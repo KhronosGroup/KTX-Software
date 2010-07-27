@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="OpenGL Properties"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(GLIncludeParent)&quot;"
+		PreprocessorDefinitions="KTX_OPENGL=1"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="$(GLLib).lib"
+	/>
+	<UserMacro
+		Name="GLBinDir"
+		Value=""
+	/>
+	<UserMacro
+		Name="GLIncludeParent"
+		Value="$(HI_BSLIB_HOME)\include"
+	/>
+	<UserMacro
+		Name="GLLibDir"
+		Value=""
+	/>
+	<UserMacro
+		Name="GLLib"
+		Value="opengl32"
+	/>
+	<UserMacro
+		Name="GLDlls"
+		Value=""
+	/>
+	<UserMacro
+		Name="GLVer"
+		Value="4"
+	/>
+</VisualStudioPropertySheet>

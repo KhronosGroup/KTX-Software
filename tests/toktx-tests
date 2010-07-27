@@ -1,0 +1,132 @@
+#! /bin/bash
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4:
+
+# Regression tests for toktx
+
+# ---------------------------------------------------------------
+#
+# Copyright (c) 2010 The Khronos Group Inc.
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and/or associated documentation files (the
+# "Materials"), to deal in the Materials without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Materials, and to
+# permit persons to whom the Materials are furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Materials.
+# 
+# THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+# 
+# ---------------------------------------------------------------
+
+toktx=../build/vc9/Debug/toktx.exe
+testimages=../testimages
+
+declare -i numtests=0
+declare -i passed=0
+declare -i failed=0
+
+# Ensure test is not polluted by user environment
+unset TOKTX_OPTIONS
+
+numtests=$numtests+1
+if $toktx --help 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "--help not recognized"
+  failed=$failed+1
+fi
+
+numtests=$numtests+1
+if $toktx --version 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "--version not recognized"
+  failed=$failed+1
+fi
+
+numtests=$numtests+1
+if ! $toktx --foobar 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "invalid option --foobar accepted"
+  failed=$failed+1
+fi
+
+numtests=$numtests+1
+if ! $toktx --automipmap --mipmaps a b 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "Simultaneous --automipmap & --mipmaps allowed"
+  failed=$failed+1
+fi
+
+function cmpktx () {
+  if diff $1 $2; then
+    passed=$passed+1
+  else
+	failed=$failed+1
+	echo "created ktx file differs from target $2"
+  fi
+}
+
+# Generate ktx file and compare with reference
+# gencmpktx <reference> <toktx args> <toktx infile> ...
+function gencmpktx() {
+  numtests=$numtests+1
+  local args
+  local reference=$1; shift
+  for i in $*; do
+	if [ ${i:0:2} == "--" ]; then
+	  args="$args $i"
+	  shift
+	fi
+  done
+  #echo $toktx $args $tempfile $*
+  $toktx $args $tempfile $*
+  cmpktx $tempfile $reference
+  rm $tempfile
+}
+
+cd $testimages
+tempfile=$(mktemp toktxXXXX.ktx)
+
+gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 rgb.ppm 
+gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 rgb.ppm
+TOKTX_OPTIONS=--lower_left_maps_to_s0t0 gencmpktx up-reference.ktx up.ppm
+gencmpktx down-reference.ktx up.ppm
+gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
+gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 rgba.pam
+
+numtests=$numtests+1
+TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx - rgb.ppm > $tempfile
+cmpktx $tempfile rgb-reference.ktx
+rm $tempfile
+
+numtests=$numtests+1
+cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 - > $tempfile
+cmpktx $tempfile rgb-reference.ktx
+rm $tempfile
+
+numtests=$numtests+1
+cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 $tempfile
+cmpktx $tempfile rgb-reference.ktx
+rm $tempfile
+
+echo "Tests run: $numtests; passed: $passed; failed: $failed"
+if [ $failed -gt 0 ]; then
+  exit 1;
+else
+  exit 0;
+fi
+

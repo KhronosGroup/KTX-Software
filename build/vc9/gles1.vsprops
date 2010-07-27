@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="OpenGL ES 1.1 Properties"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(GLESIncludeParent)"
+		PreprocessorDefinitions="KTX_OPENGL_ES1=1"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="$(GLESLibDir)/$(GLESLib).lib $(GLESLibDir)/$(EGLLib).lib"
+	/>
+	<UserMacro
+		Name="GLESBinDir"
+		Value="$(HI_BSLIB_HOME)\graphics\GLES\OES_11_RENDERION\lib\win32-cm-hief-release"
+	/>
+	<UserMacro
+		Name="GLESIncludeParent"
+		Value="$(HI_BSLIB_HOME)\include"
+	/>
+	<UserMacro
+		Name="GLESLibDir"
+		Value="$(GLESBinDir)"
+	/>
+	<UserMacro
+		Name="EGLLib"
+		Value="libEGL"
+	/>
+	<UserMacro
+		Name="GLESLib"
+		Value="libGLESv1_CM"
+	/>
+	<UserMacro
+		Name="EGLAuxDll"
+		Value="libEGLPlatform.dll"
+	/>
+	<UserMacro
+		Name="GLESVer"
+		Value="1"
+	/>
+</VisualStudioPropertySheet>
