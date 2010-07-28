@@ -35,7 +35,7 @@ depth := ../..
 version := 10
 
 # Location of KTX home page
-ktxHomePage = $(depth)/../../sdk/tools/KTX
+ktxHomePage = $(depth)/../../../sdk/tools/KTX
 
 ktxPubInc := $(depth)/include
 ktxLibSrc := $(depth)/lib
@@ -80,10 +80,8 @@ default: $(SUBDIRS)
 doc: $(ktxLibDocOutDir)/html
 
 dist: $(ktxDistZip) $(ktxDistTgz)
-	cp $(ktxDistZip) $(ktxDistTgz) $(ktxHomePage)/downloads
-	cp -r $(ktxLibDocOutDir)/html/. $(ktxHomePage)/doc/libktx
 
-updateKtxHome: dist doc toktxWin
+updateKtxHome: dist $(ktxLibDocOutDir)/html toktxWin
 	cp -r $(ktxLibDocOutDir)/html/. $(ktxHomePage)/doc/libktx
 	cp $(ktxDistZip) $(ktxDistTgz) $(ktxHomePage)/downloads
 	cp $(toktxWinExe) $(ktxHomePage)/downloads
@@ -103,6 +101,9 @@ $(ktxDistTgz):
 toktxWin:
 #	"$(devenv)" $(vc9)/ktx.sln /build "Release GL" /project $(vc9)/toktx/toktx.vcproj /projectconfig Release
 	"$(devenv)" $(vc9)/ktx.sln /build "Release GL"
+
+#$(ktxLibDocOutDir):
+#	mkdir -P $@
 
 $(SUBDIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
