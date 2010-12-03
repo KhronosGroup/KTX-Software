@@ -15,7 +15,6 @@
     - GLES2 & GL load tests
     - cubemap, 3D & array texture loading tests
 
-	general
+    general
 
-	- register mime-type
     - design icon for KTX files

@@ -72,7 +72,7 @@ vpath %.cxx $(ktxLibSrc)
 
 SUBDIRS = lib #toktx gles1_loadtests
 
-.PHONY: doc dist $(ktxDistZip) $(ktxDistTgz) $(SUBDIRS) clean clobber
+.PHONY: clean clobber doc dist help $(ktxDistZip) $(ktxDistTgz) $(SUBDIRS)
 .PHONY: updateKtxHome toktxWin
 
 default: $(SUBDIRS)
@@ -80,6 +80,17 @@ default: $(SUBDIRS)
 doc: $(ktxLibDocOutDir)/html
 
 dist: $(ktxDistZip) $(ktxDistTgz)
+
+help:
+	@echo "The following targets are available:"
+	@echo "    default       - compile the library"
+	@echo "    doc           - build the documentation with doxygen"
+	@echo "    dist          - build the .zip and .tgz files for distribution"
+	@echo "    help          - print this list of targets"
+	@echo "    updateKtxHome - runs dist, doc and toktxWin then updates the KTX"
+	@echo "                    page in the OpenGL ES SDK. Requires an SVN"
+	@echo "	                   workspace for the SDK on the same system"
+	@echo "    toktxWin      - build the windows binary of toktx"
 
 updateKtxHome: dist $(ktxLibDocOutDir)/html toktxWin
 	cp -r $(ktxLibDocOutDir)/html/. $(ktxHomePage)/doc/libktx
