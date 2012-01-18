@@ -259,10 +259,15 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 						&& !GLEW_OES_compressed_ETC1_RGB8_texture) {
 						GLubyte* unpacked;
 
-						_ktxUnpackETC(data, &unpacked, pixelWidth, pixelHeight);
+						errorCode = _ktxUnpackETC(data, &unpacked, pixelWidth, pixelHeight);
+						if (errorCode != KTX_SUCCESS) {
+							goto cleanup;
+						}
 						glTexImage2D(texinfo.glTarget + face, level, 
 									 GL_RGB, pixelWidth, pixelHeight, 0, 
 									 GL_RGB, GL_UNSIGNED_BYTE, unpacked);
+
+						free(unpacked);
 					} else
 #endif
 						glCompressedTexImage2D(texinfo.glTarget + face, level, 
@@ -318,7 +323,7 @@ cleanup:
 			pDimensions->height = header.pixelHeight;
 			pDimensions->depth = header.pixelDepth;
 		}
-		if (*pIsMipmapped) {
+		if (pIsMipmapped) {
 			if (texinfo.generateMipmaps || header.numberOfMipmapLevels > 1)
 				*pIsMipmapped = GL_TRUE;
 			else

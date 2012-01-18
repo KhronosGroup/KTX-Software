@@ -117,9 +117,9 @@ _ktxUnpackETC(const GLubyte* srcETC, GLubyte** dstImage,
 		{
 			for(xx = 0; xx< active_width; xx++)
 			{
-				newimg[ (yy*active_width)*3 + xx*3 + 0 ] = *dstImage[ (yy*width)*3 + xx*3 + 0];
-				newimg[ (yy*active_width)*3 + xx*3 + 1 ] = *dstImage[ (yy*width)*3 + xx*3 + 1];
-				newimg[ (yy*active_width)*3 + xx*3 + 2 ] = *dstImage[ (yy*width)*3 + xx*3 + 2];
+				newimg[ (yy*active_width)*3 + xx*3 + 0 ] = (*dstImage)[ (yy*width)*3 + xx*3 + 0];
+				newimg[ (yy*active_width)*3 + xx*3 + 1 ] = (*dstImage)[ (yy*width)*3 + xx*3 + 1];
+				newimg[ (yy*active_width)*3 + xx*3 + 2 ] = (*dstImage)[ (yy*width)*3 + xx*3 + 2];
 			}
 		}
 
