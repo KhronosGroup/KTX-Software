@@ -40,7 +40,9 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #define _KTXINT_H_
 
 /* Define this to include the ETC unpack software in the library. */
+#ifndef SUPPORT_SOFTWARE_ETC_UNPACK
 #define SUPPORT_SOFTWARE_ETC_UNPACK 1
+#endif
 
 #ifdef __cplusplus
 extern "C" {

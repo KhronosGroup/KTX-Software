@@ -52,6 +52,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include KTX_GLFUNCPTRS
 
+/* KTX files require an unpack alignment of 4 */
+#define KTX_GL_UNPACK_ALIGNMENT 4
 
 /**
  * @~English
@@ -119,6 +121,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 	void*				data = NULL;
 	khronos_uint32_t	dataSize = 0;
 	GLuint				texname;
+	int					texnameUser;
 	khronos_uint32_t    faceLodSize;
 	khronos_uint32_t    faceLodSizeRounded;
 	khronos_uint32_t	level;
@@ -130,6 +133,10 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 
 	if (pGlerror)
 		*pGlerror = GL_NO_ERROR;
+
+	if (ppKvd) {
+		*ppKvd = NULL;
+    }
 
 	if (!file) {
 		return KTX_INVALID_VALUE;
@@ -153,11 +160,16 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 			return KTX_INVALID_OPERATION;
 		*pKvdLen = header.bytesOfKeyValueData;
 		if (*pKvdLen) {
-			*ppKvd = malloc(*pKvdLen);
+			*ppKvd = (unsigned char*)malloc(*pKvdLen);
 			if (*ppKvd == NULL)
 				return KTX_OUT_OF_MEMORY;
 		    if (fread(*ppKvd, *pKvdLen, 1, file) != 1)
+			{
+				free(*ppKvd);
+				*ppKvd = NULL;
+
 				return KTX_UNEXPECTED_END_OF_FILE;
+			}
 		}
 	} else {
 		/* skip key/value metadata */
@@ -169,18 +181,24 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 
 	/* KTX files require an unpack alignment of 4 */
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, KTX_GL_UNPACK_ALIGNMENT);
+	}
 
-	if (pTexture && *pTexture) {
+	texnameUser = pTexture && *pTexture;
+	if (texnameUser) {
 		texname = *pTexture;
 	} else {
 		glGenTextures(1, &texname);
 	}
 	glBindTexture(texinfo.glTarget, texname);
 
+#if !KTX_OPENGL_ES2
+	// OpenGL ES 2.0 doesn't support GL_GENERATE_MIPMAP for glTexParameteri
 	if (texinfo.generateMipmaps && (glGenerateMipmap == NULL)) {
 		glTexParameteri(texinfo.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
+#endif
 
 	if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP) {
 		texinfo.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
@@ -259,7 +277,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 						&& !GLEW_OES_compressed_ETC1_RGB8_texture) {
 						GLubyte* unpacked;
 
-						errorCode = _ktxUnpackETC(data, &unpacked, pixelWidth, pixelHeight);
+						errorCode = _ktxUnpackETC((GLubyte*)data, &unpacked, pixelWidth, pixelHeight);
 						if (errorCode != KTX_SUCCESS) {
 							goto cleanup;
 						}
@@ -307,7 +325,9 @@ cleanup:
 	free(data);
 
 	/* restore previous GL state */
-	glPixelStorei(GL_UNPACK_ALIGNMENT, previousUnpackAlignment);
+	if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, previousUnpackAlignment);
+	}
 
 	if (errorCode == KTX_SUCCESS)
 	{
@@ -328,6 +348,16 @@ cleanup:
 				*pIsMipmapped = GL_TRUE;
 			else
 				*pIsMipmapped = GL_FALSE;
+		}
+	} else {
+		if (ppKvd && *ppKvd)
+		{
+			free(*ppKvd);
+			*ppKvd = NULL;
+		}
+
+		if (!texnameUser) {
+			glDeleteTextures(1, &texname);
 		}
 	}
 	return errorCode;
