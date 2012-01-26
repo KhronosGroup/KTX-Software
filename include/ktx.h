@@ -23,7 +23,7 @@
  */
 
 /*
- * This file copyright (c) 2010 The Khronos Group Inc.
+ * This file copyright (c) 2010 The Khronos Group, Inc.
  */
 
 /**
@@ -118,9 +118,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @author Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>
  * @author Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
  *
- * @version 1.0
+ * @version 1.0.1
  *
- * @date 2010.7.24
+ * @date 2012.1.26
  */
 
 #include <stdio.h>
@@ -318,7 +318,7 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  * Loads a texture from a KTX file in memory.
  */
 KTX_error_code
-ktxLoadTextureM(const char* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarget,
+ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarget,
 				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd);
@@ -395,6 +395,16 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 
 /**
 @page history Revision History
+
+@section v2 Version 1.0.1
+Implemented ktxLoadTextureM.
+Fixed the following:
+@li Public Bugzilla <a href="http://www.khronos.org/bugzilla/show_bug.cgi?id=571">571</a>: crash when null passed for pIsMipmapped.
+@li Public Bugzilla <a href="http://www.khronos.org/bugzilla/show_bug.cgi?id=572">572</a>: memory leak when unpacking ETC textures.
+@li Public Bugzilla <a href="http://www.khronos.org/bugzilla/show_bug.cgi?id=573">573</a>: potential crash when unpacking ETC textures with unused padding pixels.
+@li Public Bugzilla <a href="http://www.khronos.org/bugzilla/show_bug.cgi?id=576">576</a>: various small fixes.
+
+Thanks to Krystian Bigaj for the ktxLoadTextureM implementation and these fixes.
 
 @section v1 Version 1.0
 Initial release.

@@ -47,7 +47,7 @@
 
 //#define TEXTURE_FILE "../../../testimages/up-reference.ktx"
 #define TEXTURE_FILE "../../../testimages/etc1.ktx"
-//#define TEXTURE_FILE "../../../testimages/rgba.ktx"
+//#define TEXTURE_FILE "../../../testimages/rgba-reference.ktx"
 //#define TEXTURE_FILE "../../../testimages/down-reference.ktx"
 
 /* ----------------------------------------------------------------------------- */
@@ -183,18 +183,22 @@ void atInitialize_01_draw_texture(void** ppAppData)
 			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glTexParameteriv(target, GL_TEXTURE_CROP_RECT_OES, iCropRect);
+		glEnable(target);
+
 		/* Check for any errors */
 		glerror = glGetError();
+	} else {
+		pData->texWidth = pData->texHeight = 50;
+		pData->myTex = 0;
 	}
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
 	glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_BYTE, 0, (GLvoid *)s_frameVertices);
 
-	glTexParameteriv(target, GL_TEXTURE_CROP_RECT_OES, iCropRect);
-	glEnable(target);
 	pData->initialized = GL_TRUE;
 }
 

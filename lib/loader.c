@@ -55,17 +55,27 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 /* KTX files require an unpack alignment of 4 */
 #define KTX_GL_UNPACK_ALIGNMENT 4
 
-/**
+/* KTX stream interface */
+typedef int(*ktxStream_read)(void* dst, const GLsizei count, void* src);
+typedef int(*ktxStream_skip)(const GLsizei count, void* src);
+
+struct ktxStream
+{
+	void* src;
+	ktxStream_read read;
+	ktxStream_skip skip;
+};
+
+/*
  * @~English
- * @brief Load a GL texture object from a stdio FILE stream.
+ * @brief Load a GL texture object from a ktxStream.
  *
  * This function will unpack GL_ETC1_RGB8_OES format compressed textures in
  * software when the format is not supported by the GL implementation,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
  *
- * @param [in] file			pointer to the stdio FILE stream from which to
- * 							load.
+ * @param [in] stream		pointer to the ktxStream from which to load.
  * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
@@ -109,8 +119,9 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
  */
+static
 KTX_error_code
-ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
+ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
@@ -138,7 +149,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 		*ppKvd = NULL;
     }
 
-	if (!file) {
+	if (!stream || !stream->read || !stream->skip) {
 		return KTX_INVALID_VALUE;
 	}
 
@@ -146,7 +157,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 		return KTX_INVALID_VALUE;
 	}
 
-	if (fread(&header, KTX_HEADER_SIZE, 1, file) != 1) {
+	if (!stream->read(&header, KTX_HEADER_SIZE, stream->src)) {
 		return KTX_UNEXPECTED_END_OF_FILE;
 	}
 
@@ -163,7 +174,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 			*ppKvd = (unsigned char*)malloc(*pKvdLen);
 			if (*ppKvd == NULL)
 				return KTX_OUT_OF_MEMORY;
-		    if (fread(*ppKvd, *pKvdLen, 1, file) != 1)
+			if (!stream->read(*ppKvd, *pKvdLen, stream->src))
 			{
 				free(*ppKvd);
 				*ppKvd = NULL;
@@ -173,7 +184,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 		}
 	} else {
 		/* skip key/value metadata */
-		if (fseek(file, (long)header.bytesOfKeyValueData, SEEK_CUR) != 0) {
+		if (!stream->skip((long)header.bytesOfKeyValueData, stream->src)) {
 			return KTX_UNEXPECTED_END_OF_FILE;
 		}
 	}
@@ -219,7 +230,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 		GLsizei pixelHeight = MAX(1, header.pixelHeight >> level);
 		GLsizei pixelDepth  = MAX(1, header.pixelDepth  >> level);
 
-		if (fread(&faceLodSize, sizeof(khronos_uint32_t), 1, file) != 1) {
+		if (!stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src)) {
 			errorCode = KTX_UNEXPECTED_END_OF_FILE;
 			goto cleanup;
 		}
@@ -244,7 +255,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 
 		for (face = 0; face < header.numberOfFaces; ++face)
 		{
-			if (fread(data, faceLodSizeRounded, 1, file) != 1) {
+			if (!stream->read(data, faceLodSizeRounded, stream->src)) {
 				errorCode = KTX_UNEXPECTED_END_OF_FILE;
 				goto cleanup;
 			}
@@ -363,6 +374,114 @@ cleanup:
 	return errorCode;
 }
 
+/* Implementation of ktxStream for FILE */
+
+static
+int ktxFileStream_read(void* dst, const GLsizei count, void* src)
+{
+	if (!dst || !src || (fread(dst, count, 1, (FILE*)src) != 1))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static
+int ktxFileStream_skip(const GLsizei count, void* src)
+{
+	if (!src || (count < 0) || (fseek((FILE*)src, count, SEEK_CUR) != 0))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static
+int ktxFileInit(struct ktxStream* stream, FILE* file)
+{
+	if (!stream || !file)
+	{
+		return 0;
+	}
+
+	stream->src = (void*)file;
+	stream->read = ktxFileStream_read;
+	stream->skip = ktxFileStream_skip;
+
+	return 1;
+}
+
+/**
+ * @~English
+ * @brief Load a GL texture object from a stdio FILE stream.
+ *
+ * This function will unpack GL_ETC1_RGB8_OES format compressed textures in
+ * software when the format is not supported by the GL implementation,
+ * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
+ * defined as 1.
+ *
+ * @param [in] file			pointer to the stdio FILE stream from which to
+ * 							load.
+ * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
+ *                          <tt>*pTexture == 0</tt> the function will generate
+ *                          a texture name. The function binds either the
+ *                          generated name or the name given in @p *pTexture
+ * 						    to the texture target returned in @p *pTarget,
+ * 						    before loading the texture data. If @p pTexture
+ *                          is not NULL and a name was generated, the generated
+ *                          name will be returned in *pTexture.
+ * @param [out] pTarget 	@p *pTarget is set to the texture target used. The
+ * 						    target is chosen based on the file contents.
+ * @param [out] pDimensions	If @p pDimensions is not NULL, the width, height and
+ *							depth of the texture's base level are returned in the
+ *                          fields of the KTX_dimensions structure to which it points.
+ * @param [out] pIsMipmapped
+ *	                        If @p pIsMipmapped is not NULL, @p *pIsMipmapped is set
+ *                          to GL_TRUE if the KTX texture is mipmapped, GL_FALSE
+ *                          otherwise.
+ * @param [out] pGlerror    @p *pGlerror is set to the value returned by
+ *                          glGetError when this function returns the error
+ *                          KTX_GL_ERROR. glerror can be NULL.
+ * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
+ *                          of key-value data pointed at by @p *ppKvd. Must not be
+ *                          NULL, if @p ppKvd is not NULL.                     
+ * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
+ *                          memory containing key-value data read from the file.
+ *                          The application is responsible for freeing the memory.
+ *
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p target is @c NULL or the size of a mip
+ * 							    level is greater than the size of the
+ * 							    preceding level.
+ * @exception KTX_INVALID_OPERATION @p ppKvd is not NULL but pKvdLen is NULL.
+ * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the
+ * 										 expected amount of data.
+ * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated to store
+ *                              the requested key-value data.
+ * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
+ * 								glGenTextures or gl*TexImage*. The GL error
+ *                              will be returned in @p *glerror, if glerror
+ *                              is not @c NULL.
+ */
+KTX_error_code
+ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
+				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+				GLenum* pGlerror,
+				unsigned int* pKvdLen, unsigned char** ppKvd)
+{
+	struct ktxStream stream;
+
+	if (!ktxFileInit(&stream, file))
+	{
+		return KTX_FILE_OPEN_FAILED;
+	}
+
+	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
+}
 
 /**
  * @~English
@@ -417,6 +536,64 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
 	return errorCode;
 }
 
+/* Implementation of ktxStream for memory */
+
+struct ktxMem
+{
+	const unsigned char* bytes;
+	GLsizei size;
+	GLsizei pos;
+};
+
+static
+int ktxMemStream_read(void* dst, const GLsizei count, void* src)
+{
+	struct ktxMem* mem = (struct ktxMem*)src;
+	
+	if(!dst || !mem || (mem->pos + count > mem->size) || (mem->pos + count < mem->pos))
+	{
+		return 0;
+	}
+
+	memcpy(dst, mem->bytes + mem->pos, count);
+	mem->pos += count;
+
+	return 1;
+}
+
+static
+int ktxMemStream_skip(const GLsizei count, void* src)
+{
+	struct ktxMem* mem = (struct ktxMem*)src;
+
+	if(!mem || (mem->pos + count > mem->size) || (mem->pos + count < mem->pos))
+	{
+		return 0;
+	}
+
+	mem->pos += count;
+
+	return 1;
+}
+
+static
+int ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, GLsizei size)
+{
+	if (!stream || !mem || !bytes || (size <= 0))
+	{
+		return 0;
+	}
+	
+	mem->bytes = (const unsigned char*)bytes;
+	mem->size = size;
+	mem->pos = 0;
+
+	stream->src = mem;
+	stream->read = ktxMemStream_read;
+	stream->skip = ktxMemStream_skip;
+
+	return 1;
+}
 
 /**
  * @~English
@@ -456,39 +633,20 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
  */
 KTX_error_code
-ktxLoadTextureM(const char* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarget,
+ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarget,
 				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	/** @todo Implement ktxLoadTextureM.
-	
-	On GNU/Linux it is as simple as adding
+	struct ktxMem mem;
+	struct ktxStream stream;
 
-	@verbatim
-	#define _GNU_SOURCE
-	#include <stdio.h>
+	if (!ktxMemInit(&stream, &mem, bytes, size))
+	{
+		return KTX_FILE_OPEN_FAILED;
+	}
 
-	somewhere outside this function, then
-
-	KTX_error_code errorCode;
-	FILE* file = fmemopen(bytes, size, "rb");
-
-	if (file) {
-		errorCode = ktxLoadTextureF(file, pTexture, pDimensions, pTarget,
-									pIsMipmapped, pGlerror, pKvdLen, ppKvd);
-		fclose(file);
-	} else
-	    errorCode = KTX_FILE_OPEN_FAILED;
-
-	return errorCode;
-	@endverbatim
-
-	Unfortunately it is not as simple on Windows. One possibility is
-	poking around in the not exactly public FILE structure to 
-	implement the equivalent of fmemopen.
-	*/
-	return KTX_FILE_OPEN_FAILED;
+	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 }
 
 
