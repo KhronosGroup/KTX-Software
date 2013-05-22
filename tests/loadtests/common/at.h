@@ -49,9 +49,11 @@ extern "C" {
 
 /* ----------------------------------------------------------------------------- */
 
+#if KTX_OPENGL
+  #define EGLAPI  // With OpenGL we use an emulator in a local file not libEGL.dll.
+#endif
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES/gl.h>
 
 /* ----------------------------------------------------------------------------- */
 
@@ -65,24 +67,6 @@ extern "C" {
 #define	AT_SURFACE_WIDTH	320
 #define	AT_SURFACE_HEIGHT	240
 
-/** EGL configuration used. */
-static const EGLint configAttribs[] =
-{
-    EGL_LEVEL,				0,
-	EGL_NATIVE_RENDERABLE,	EGL_FALSE,
-
-    EGL_RED_SIZE,			5,
-    EGL_GREEN_SIZE,			6,
-    EGL_BLUE_SIZE,			5,
-    EGL_ALPHA_SIZE,			EGL_DONT_CARE,
-    EGL_LUMINANCE_SIZE,		EGL_DONT_CARE,
-
-    EGL_DEPTH_SIZE,			16,
-    EGL_STENCIL_SIZE,		EGL_DONT_CARE,
-    EGL_SURFACE_TYPE,		EGL_WINDOW_BIT,
-	EGL_RENDERABLE_TYPE,	EGL_OPENGL_ES_BIT,
-    EGL_NONE
-};
 
 /*
  * Select the most appropriate config according to the attributes used as parameter.
@@ -105,11 +89,11 @@ atGetAppropriateEGLConfig(EGLDisplay eglDisplay, const EGLint* aAttribs,
 
 /* ----------------------------------------------------------------------------- */
 
-typedef 	signed char 					tS8;
+typedef 	signed char 				tS8;
 typedef 	unsigned char 				tU8;
-typedef 	signed short 					tS16;
+typedef 	signed short 				tS16;
 typedef 	unsigned short 				tU16;
-typedef 	signed long 					tS32;
+typedef 	signed long 				tS32;
 typedef 	unsigned long 				tU32;
 typedef 	tS32 						tEnum;
 typedef 	tU8 						tBool;
@@ -118,7 +102,7 @@ typedef 	tS32 						tFixed;
 
 /* ----------------------------------------------------------------------------- */
 
-typedef void	(*atPFInitialize)(void**		ppAppData);
+typedef void	(*atPFInitialize)(void**	ppAppData, const char* const args);
 typedef void	(*atPFRelease)	(void*		pAppData);
 typedef void	(*atPFResize)	(void*      pAppData, int iWidth, int iHeight);
 typedef void	(*atPFRun)		(void*		pAppData, int iTimeMS);
@@ -130,6 +114,29 @@ typedef struct atSample_def {
 	atPFResize pfResize;
 	atPFRun pfRun;
 } atSample;
+
+/** A table of samples and arguments */
+typedef struct atSampleInvocation_def {
+	const atSample* sample;
+	const char* const args;
+	const char* const title;
+} atSampleInvocation;
+
+/* ----------------------------------------------------------------------------- */
+
+#define ATE_LEFT_ARROW		0x00000001
+#define ATE_RIGHT_ARROW		0x00000002
+#define ATE_UP_ARROW		0x00000003
+#define ATE_DOWN_ARROW		0x00000004
+#define ATE_ENTER			0x00000005
+#define ATE_LBUTTON			0x00000006
+#define ATE_RBUTTON			0x00000007
+
+#define ATE_NUM_SUPPORTED_EVENTS 0x7
+
+typedef void (*atPFHandleEvent)(void* pAppData, unsigned int uEvent, int iPressed);
+
+atPFHandleEvent atSetEventHandler(unsigned int uEvent, atPFHandleEvent pfHandle);
 
 /* ----------------------------------------------------------------------------- */
 
@@ -143,9 +150,34 @@ typedef struct atSample_def {
  * to build the frenet basis; if |at-eye| is colinear to UP, the function will fail.
  */
 int	atSetViewMatrix (tFloat* aMatrix_, tFloat eyex, tFloat eyey, tFloat eyez,
-							tFloat atx, tFloat aty, tFloat atz);
+					 tFloat atx, tFloat aty, tFloat atz);
 
-int	atSetProjectionMatrix	(tFloat* aMatrix_, tFloat fovy, tFloat aspect, tFloat zNear, tFloat zFar );
+/* Set a perspective projection matrix */
+int	atSetProjectionMatrix (tFloat* aMatrix_, tFloat fovy, tFloat aspect, tFloat zNear, tFloat zFar );
+
+/* Set an orthographic projection matrix. */
+int	atSetOrthoMatrix (tFloat* aMatrix_, tFloat left, tFloat right,
+					  tFloat bottom, tFloat top, tFloat zNear, tFloat zFar );
+
+/* Set an orthographic projection matrix that retains 0 at the center. */
+int	atSetOrthoZeroAtCenterMatrix (tFloat* aMatrix_, tFloat left, tFloat right,
+					              tFloat bottom, tFloat top, tFloat zNear, tFloat zFar );
+
+/* ----------------------------------------------------------------------------- */
+
+/* Platform independent interface to a message box function */
+unsigned int atMessageBox(const char* message, const char* caption,
+						  unsigned int type);
+
+/* message box types */
+#define AT_MB_OK		0x00000001
+#define AT_MB_OKCANCEL	0x00000002
+#define AT_MB_ICONINFO	0x00000003
+#define AT_MB_ICONERROR	0x00000004
+
+/* ----------------------------------------------------------------------------- */
+
+extern float atIdentity[16];
 
 /* ----------------------------------------------------------------------------- */
 

@@ -11,11 +11,12 @@
 	/>
 	<Tool
 		Name="VCLinkerTool"
-		AdditionalDependencies="$(GLLib).lib"
+		AdditionalDependencies="$(GLEWLib).lib $(GLLib).lib"
+		AdditionalLibraryDirectories="&quot;$(GLLibDir)&quot;"
 	/>
 	<UserMacro
 		Name="GLBinDir"
-		Value=""
+		Value="$(HI_BSLIB_HOME)\graphics\GL\ALL_GLEW\bin"
 	/>
 	<UserMacro
 		Name="GLIncludeParent"
@@ -23,11 +24,15 @@
 	/>
 	<UserMacro
 		Name="GLLibDir"
-		Value=""
+		Value="$(HI_BSLIB_HOME)\graphics\GL\ALL_GLEW\lib"
 	/>
 	<UserMacro
 		Name="GLLib"
 		Value="opengl32"
+	/>
+	<UserMacro
+		Name="GLEWLib"
+		Value="glew32"
 	/>
 	<UserMacro
 		Name="GLDlls"
@@ -35,6 +40,6 @@
 	/>
 	<UserMacro
 		Name="GLVer"
-		Value="4"
+		Value="3"
 	/>
 </VisualStudioPropertySheet>

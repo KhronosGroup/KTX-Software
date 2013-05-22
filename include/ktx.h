@@ -19,7 +19,6 @@
  *
  * @todo Find a way so that applications do not have to define KTX_OPENGL{,_ES*}
  *       when using the library.
- * @todo Use runtime checks for sized internalformat and ETC support.
  */
 
 /*
@@ -32,7 +31,7 @@
 
 LibKTX contains code
 
-@li (c) 2010 The Khronos Group Inc.
+@li (c) 2010 & (c) 2013 The Khronos Group Inc.
 @li (c) 2008 and (c) 2010 HI Corporation
 @li (c) 2005 Ericsson AB
 @li (c) 2003-2010, Troy D. Hanson
@@ -69,6 +68,14 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
+@section hi_mark hi_mark{,_sq}.ktx
+
+The HI logo textures are &copy; & &trade; HI Corporation and are
+provided for use only in testing the KTX loader. Any other use requires
+specific prior written permission from HI. Furthermore the name HI may
+not be used to endorse or promote products derived from this software
+without specific prior written permission.
+
 @section uthash uthash.h
 
 uthash.h is made available under the following revised BSD license.
@@ -90,7 +97,6 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 */
 
 /**
@@ -108,9 +114,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * formal specification.</a>
  *
  * The library is open source software. Most of the code is licensed under a
- * modified BSD license. The code for unpacking ETC1 compressed textures has
- * a separate license that restricts it to uses associated with Khronos Group
- * APIs. See the @ref licensing for more details.
+ * modified BSD license. The code for unpacking ETC1, ETC2 and EAC compressed
+ * textures has a separate license that restricts it to uses associated with
+ * Khronos Group APIs. See @ref licensing for more details.
  *
  * See @ref history for the list of changes.
  *
@@ -118,9 +124,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @author Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>
  * @author Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
  *
- * @version 1.0.1
+ * @version 2.0
  *
- * @date 2012.1.26
+ * @date 2013.4.09
  */
 
 #include <stdio.h>
@@ -128,16 +134,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "KHR/khrplatform.h"
 
 #if KTX_OPENGL
+
 	#ifdef _WIN32
-	#include <windows.h>
-	#define GL_APIENTRY APIENTRY
+	  #include <windows.h>
+	  #include <GL/glew.h>
+    #else
+      #define GLCOREARB_PROTOTYPES
+      #include <GL/glcorearb.h>
 	#endif
 
-	#include <GL/gl.h>
-
+	#define GL_APIENTRY APIENTRY
     #define KTX_GLFUNCPTRS "gl_funcptrs.h"
-	/* Use runtime checks for sized internalformat support. */
-	#define KTX_SUPPORT_SIZEDINTERNALFORMATS 1
 
 #elif KTX_OPENGL_ES1
 
@@ -145,7 +152,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include <GLES/glext.h>
 
     #define KTX_GLFUNCPTRS "gles1_funcptrs.h"
-	#define KTX_SUPPORT_SIZEDINTERNALFORMATS 0
 
 #elif KTX_OPENGL_ES2
 
@@ -153,10 +159,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include <GLES2/gl2ext.h>
 
     #define KTX_GLFUNCPTRS "gles2_funcptrs.h"
-	#define KTX_SUPPORT_SIZEDINTERNALFORMATS 0
+
+#elif KTX_OPENGL_ES3
+
+	#include <GLES3/gl3.h>
+	#include <GLES3/gl3ext.h>
+
+    #define KTX_GLFUNCPTRS "gles3_funcptrs.h"
 
 #else
-#error Please #define one of KTX_OPENGL, KTX_OPENGL_ES1, KTX_OPENGL_ES2 as 1
+#error Please #define one of KTX_OPENGL, KTX_OPENGL_ES1, KTX_OPENGL_ES2 or KTX_OPENGL_ES3 as 1
 #endif
 
 
@@ -176,6 +188,10 @@ extern "C" {
  * @brief Standard format for 3D orientation value.
  */
 #define KTX_ORIENTATION3_FMT "S=%c,T=%c,R=%c"
+/**
+ * @brief Required unpack alignment
+ */
+#define KTX_GL_UNPACK_ALIGNMENT 4
 
 /**
  * @brief Error codes returned by library functions.
@@ -187,7 +203,7 @@ typedef enum KTX_error_code_t {
 	KTX_GL_ERROR,            /*!< GL operations resulted in an error. */
 	KTX_INVALID_OPERATION,   /*!< The operation is not allowed in the current state. */
 	KTX_INVALID_VALUE,	     /*!< A parameter value was not valid */
-	KTX_NOT_FOUND,			 /*!< Request key was not found */
+	KTX_NOT_FOUND,			 /*!< Requested key was not found */
 	KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
 	KTX_UNEXPECTED_END_OF_FILE, /*!< The file did not contain enough data */
 	KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
@@ -341,6 +357,12 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* imageInfo,
 			 GLsizei bytesOfKeyValueData, const void* keyValueData,
 			 GLuint numImages, KTX_image_info images[]);
 
+/* ktxErrorString()
+ *
+ * Returns a string corresponding to a KTX error code.
+ */
+const char* const ktxErrorString(KTX_error_code error);
+
 /* ktxHashTable_Create()
  *
  * Creates a key-value hash table
@@ -395,6 +417,32 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 
 /**
 @page history Revision History
+
+@section v3 Version 2.0
+Added:
+@li support for decoding ETC2 and EAC formats in the absence of a hardware
+    decoder.
+@li support for converting textures with legacy LUMINANCE, LUMINANCE_ALPHA,
+    etc. formats to the equivalent R, RG, etc. format with an
+	appropriate swizzle, when loading in OpenGL Core Profile contexts.
+@li ktxErrorString function to return a string corresponding to an error code.
+@li	tests for ktxLoadTexture[FN] that run under OpenGL ES 3.0 and OpenGL 3.3.
+    The latter includes an EGL on WGL wrapper that makes porting apps between
+	OpenGL ES and OpenGL easier on Windows.
+@li more texture formats to ktxLoadTexture[FN] and toktx tests.
+
+Changed:
+@li ktxLoadTexture[FMN] to discover the capabilities of the GL context at
+    run time and load textures, or not, according to those capabilities.
+
+Fixed:
+@li failure of ktxWriteKTXF to pad image rows to 4 bytes as required by the KTX
+    format.
+@li ktxWriteKTXF exiting with KTX_FILE_WRITE_ERROR when attempting to write
+    more than 1 byte of face-LOD padding.
+
+Although there is only a very minor API change, the addition of ktxErrorString, the functional changes
+are large enough to justify bumping the major revision number.
 
 @section v2 Version 1.0.1
 Implemented ktxLoadTextureM.

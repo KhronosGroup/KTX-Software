@@ -9,8 +9,8 @@
 //!
 //! @author Mark Callow, HI Corporation, www.hicorp.co.jp
 //!
-//! @version 1.0
-//! @date 2010/7/24
+//! @version 1.1
+//! @date 2013/3/27
 
 // $Revision$ on $Date::                            $
 
@@ -65,6 +65,7 @@ struct commandOptions {
 	bool		 cubemap;
 	bool		 luminance;
 	bool		 mipmap;
+	bool		 sized;
 	bool		 useStdin;
 	bool		 lower_left_maps_to_s0t0;
 	_TCHAR*		 outfile;
@@ -110,6 +111,9 @@ usage(_TCHAR* appName)
         "               be provided. Provide the base-level image first then in order\n"
 		"               down to the 1x1 image. This option is mutually exclusive with\n"
 		"               --automipmap.\n"
+		"  --sized      Set the texture's internal format to a sized format based on\n"
+		"               the component size of the input file. Otherwise set it to an\n"
+		"               unsized internal format.\n"
         "  --upper_left_maps_to_s0t0\n"
 		"               Map the logical upper left corner of the image to s0,t0.\n"
 		"               Although opposite to the OpenGL convention, this is the DEFAULT\n"
@@ -138,7 +142,7 @@ usage(_TCHAR* appName)
 static void
 version(_TCHAR* appName)
 {
-	fprintf(stderr, "%s version 1.0\n", appName);
+	fprintf(stderr, "%s version 1.1\n", appName);
 }
 
 
@@ -233,32 +237,43 @@ int _tmain(int argc, _TCHAR* argv[])
 					switch (components) {
 					  case 1:
 						if (options.luminance) {
-							tinfo.glFormat = GL_LUMINANCE;
-							tinfo.glInternalFormat = GL_LUMINANCE;
-							tinfo.glBaseInternalFormat = GL_LUMINANCE;
+							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE;
+							if (options.sized)
+								tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+							else
+								tinfo.glInternalFormat = GL_LUMINANCE;
 						} else {
-							tinfo.glFormat = GL_ALPHA;
-							tinfo.glInternalFormat = GL_ALPHA;
-							tinfo.glBaseInternalFormat = GL_ALPHA;
+							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_ALPHA;
+							if (options.sized)
+								tinfo.glInternalFormat = componentSize == 1 ? GL_ALPHA8 : GL_ALPHA16;
+							else
+								tinfo.glInternalFormat = GL_ALPHA;
 						}
 						break;
 
 					  case 2:
-					    tinfo.glFormat = GL_LUMINANCE_ALPHA;
-						tinfo.glInternalFormat = GL_LUMINANCE_ALPHA;
-						tinfo.glBaseInternalFormat = GL_LUMINANCE_ALPHA;
+					    tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE_ALPHA;
+						if (options.sized)
+							tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
+						else
+							tinfo.glInternalFormat = GL_LUMINANCE_ALPHA;
 						break;
 
 					  case 3:
-						tinfo.glFormat = GL_RGB;
-						tinfo.glInternalFormat = GL_RGB;
-						tinfo.glBaseInternalFormat = GL_RGB;
+						tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RGB;
+						if (options.sized)
+							tinfo.glInternalFormat = componentSize == 1 ? GL_RGB8 : GL_RGB16;
+						else
+							tinfo.glInternalFormat = GL_RGB;
 						break;
 
 					  case 4:
-						tinfo.glFormat = GL_RGBA;
-						tinfo.glInternalFormat = GL_RGBA;
-						tinfo.glBaseInternalFormat = GL_RGBA;
+						tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RGBA;
+						if (options.sized)
+							tinfo.glInternalFormat = componentSize == 1 ? GL_RGBA8 : GL_RGBA16;
+						else
+							tinfo.glInternalFormat = GL_RGBA;
+						break;
 						break;
 
 					  default:
@@ -383,6 +398,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	options.cubemap = false;
 	options.luminance = false;
 	options.mipmap = false;
+	options.sized = false;
 	options.outfile = 0;
 	options.numInputFiles = 0;
 	options.firstInfileIndex = 0;
@@ -485,13 +501,15 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 			} else
 				options.mipmap = 1;
 		} else if (_tcscmp(&option[2], "cubemap") == 0) {
-			options.cubemap = 1;
+			options.cubemap = true;
 		} else if (_tcscmp(&option[2], "luminance") == 0) {
-			options.luminance = 1;
+			options.luminance = true;
+		} else if (_tcscmp(&option[2], "sized") == 0) {
+			options.sized = true;
 		} else if (_tcscmp(&option[2], "upper_left_maps_to_s0t0") == 0) {
-			options.lower_left_maps_to_s0t0 = GL_FALSE;
+			options.lower_left_maps_to_s0t0 = false;
 		} else if (_tcscmp(&option[2], "lower_left_maps_to_s0t0") == 0) {
-			options.lower_left_maps_to_s0t0 = GL_TRUE;
+			options.lower_left_maps_to_s0t0 = true;
 		} else {
 			// unrecognized argument
 			usage(options.appName);

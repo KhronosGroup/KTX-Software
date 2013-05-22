@@ -107,6 +107,8 @@ TOKTX_OPTIONS=--lower_left_maps_to_s0t0 gencmpktx up-reference.ktx up.ppm
 gencmpktx down-reference.ktx up.ppm
 gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 rgba.pam
+gencmpktx luminance_unsized.ktx --luminance luminance.pgm
+gencmpktx luminance_sized.ktx --luminance --sized luminance.pgm
 
 numtests=$numtests+1
 TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx - rgb.ppm > $tempfile

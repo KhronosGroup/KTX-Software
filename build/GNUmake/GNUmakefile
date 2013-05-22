@@ -58,7 +58,7 @@ devenv = $(shell cygpath "$(VS90COMNTOOLS)/../IDE/devenv.exe")
 
 distFiles := include/ktx.h $(ktxDoxyConfig) lib tests TODO tools \
 	         testimages/*.ppm testimages/{etc1,*reference}.ktx \
-			 build/GNUmake/GNUmakefile \
+			 build/GNUmake/GNUmakefile build/GNUmake/lib/GNUmakefile \
 	         build/vc9/*.sln build/vc9/*/*.vcproj build/vc9/*.txt \
              build/vc9/*.vsprops 
 
@@ -110,8 +110,8 @@ $(ktxDistTgz):
 	cd $(depth); tar czf $(ktxTgzOut) $(distFiles) --exclude="*/.svn/*"
 
 toktxWin:
-#	"$(devenv)" $(vc9)/ktx.sln /build "Release GL" /project $(vc9)/toktx/toktx.vcproj /projectconfig Release
-	"$(devenv)" $(vc9)/ktx.sln /build "Release GL"
+#	"$(devenv)" $(vc9)/ktx.sln /build "Release" /project $(vc9)/toktx/toktx.vcproj /projectconfig Release
+	"$(devenv)" $(vc9)/ktx.sln /build "Release"
 
 #$(ktxLibDocOutDir):
 #	mkdir -P $@

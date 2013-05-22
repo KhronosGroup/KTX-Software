@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="OpenGL ES 3.0 Properties"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(GLESIncludeParent)&quot;"
+		PreprocessorDefinitions="KTX_OPENGL_ES3=1"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="$(GLESLibDir)/$(GLESLib).lib $(GLESLibDir)/$(EGLlib).lib"
+	/>
+	<UserMacro
+		Name="GLESVer"
+		Value="3"
+	/>
+	<UserMacro
+		Name="GLESIncludeParent"
+		Value="$(HI_BSLIB_HOME)\include"
+	/>
+</VisualStudioPropertySheet>

@@ -41,7 +41,19 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 /* Define this to include the ETC unpack software in the library. */
 #ifndef SUPPORT_SOFTWARE_ETC_UNPACK
-#define SUPPORT_SOFTWARE_ETC_UNPACK 1
+  /* Include for all GL versions because have seen OpenGL ES 3
+   * implementaions that do not support ETC1 (ARM Mali emulator v1.0)!
+   */
+  #define SUPPORT_SOFTWARE_ETC_UNPACK 1
+#endif
+
+#ifndef SUPPORT_LEGACY_FORMAT_CONVERSION
+  #if KTX_OPENGL
+    #define SUPPORT_LEGACY_FORMAT_CONVERSION 1
+  #elif KTX_OPENGL_ES1
+    /* ES1, ES2 & ES3 support the legacy formats */
+    #define SUPPORT_LEGACY_FORMAT_CONVERSION 0
+  #endif
 #endif
 
 #ifdef __cplusplus
@@ -95,39 +107,143 @@ typedef struct KTX_texinfo_t {
 	khronos_uint32_t generateMipmaps;
 } KTX_texinfo;
 
+/**
+ * @internal
+ * @brief used to pass GL context capabilites to subroutines.
+ */
+#define _KTX_NO_R16_FORMATS     0x0
+#define _KTX_R16_FORMATS_NORM	0x1
+#define _KTX_R16_FORMATS_SNORM	0x2
+#define _KTX_ALL_R16_FORMATS (_KTX_R16_FORMATS_NORM | _KTX_R16_FORMATS_SNORM)
+extern GLint _ktxR16Formats;
+extern GLboolean _ktxSupportsSRGB;
+
+
+/*
+ * These defines are needed to compile the KTX library.
+ * When these things are not available in the GL version in
+ * use at runtime, the library either provides its own support
+ * or handles the expected errors.
+ */
+#ifndef GL_LUMINANCE
+#define GL_ALPHA						0x1906
+#define GL_LUMINANCE					0x1909
+#define GL_LUMINANCE_ALPHA				0x190A
+#endif
+#ifndef GL_INTENSITY
+#define GL_INTENSITY					0x8049
+#endif
+#if SUPPORT_LEGACY_FORMAT_CONVERSION
+/* For loading legacy KTX files. */
+#ifndef GL_LUMINANCE4
+#define GL_ALPHA4						0x803B
+#define GL_ALPHA8						0x803C
+#define GL_ALPHA12						0x803D
+#define GL_ALPHA16						0x803E
+#define GL_LUMINANCE4					0x803F
+#define GL_LUMINANCE8					0x8040
+#define GL_LUMINANCE12					0x8041
+#define GL_LUMINANCE16					0x8042
+#define GL_LUMINANCE4_ALPHA4			0x8043
+#define GL_LUMINANCE6_ALPHA2			0x8044
+#define GL_LUMINANCE8_ALPHA8			0x8045
+#define GL_LUMINANCE12_ALPHA4			0x8046
+#define GL_LUMINANCE12_ALPHA12			0x8047
+#define GL_LUMINANCE16_ALPHA16			0x8048
+#endif
+#ifndef GL_INTENSITY4
+#define GL_INTENSITY4					0x804A
+#define GL_INTENSITY8					0x804B
+#define GL_INTENSITY12					0x804C
+#define GL_INTENSITY16					0x804D
+#endif
+#ifndef GL_SLUMINANCE
+#define GL_SLUMINANCE_ALPHA				0x8C44
+#define GL_SLUMINANCE8_ALPHA8			0x8C45
+#define GL_SLUMINANCE					0x8C46
+#define GL_SLUMINANCE8					0x8C47
+#endif
+#endif /* SUPPORT_LEGACY_FORMAT_CONVERSION */
 #ifndef GL_TEXTURE_1D
-#define GL_TEXTURE_1D                    0x0DE0
+#define GL_TEXTURE_1D                   0x0DE0
 #endif
 #ifndef GL_TEXTURE_3D
-#define GL_TEXTURE_3D                    0x806F
+#define GL_TEXTURE_3D                   0x806F
 #endif
 #ifndef GL_TEXTURE_CUBE_MAP
-#define GL_TEXTURE_CUBE_MAP              0x8513
-#define GL_TEXTURE_CUBE_MAP_POSITIVE_X   0x8515
+#define GL_TEXTURE_CUBE_MAP             0x8513
+#define GL_TEXTURE_CUBE_MAP_POSITIVE_X  0x8515
 #endif
 /* from GL_EXT_texture_array */
 #ifndef GL_TEXTURE_1D_ARRAY_EXT
-#define GL_TEXTURE_1D_ARRAY_EXT          0x8C18
-#define GL_TEXTURE_2D_ARRAY_EXT          0x8C1A
+#define GL_TEXTURE_1D_ARRAY_EXT         0x8C18
+#define GL_TEXTURE_2D_ARRAY_EXT         0x8C1A
 #endif
 #ifndef GL_GENERATE_MIPMAP
-#define GL_GENERATE_MIPMAP               0x8191
+#define GL_GENERATE_MIPMAP              0x8191
 #endif
 
 #ifndef GL_UNSIGNED_SHORT_5_6_5
-#define GL_UNSIGNED_SHORT_5_6_5          0x8363
+#define GL_UNSIGNED_SHORT_5_6_5         0x8363
 #endif
 #ifndef GL_UNSIGNED_SHORT_4_4_4_4
-#define GL_UNSIGNED_SHORT_4_4_4_4        0x8033
+#define GL_UNSIGNED_SHORT_4_4_4_4       0x8033
 #endif
 #ifndef GL_UNSIGNED_SHORT_5_5_5_1
-#define GL_UNSIGNED_SHORT_5_5_5_1        0x8034
+#define GL_UNSIGNED_SHORT_5_5_5_1       0x8034
 #endif
 
 #ifndef GL_ETC1_RGB8_OES
-#define GL_ETC1_RGB8_OES				 0x8D64
+#define GL_ETC1_RGB8_OES				0x8D64
 #endif
 
+#if SUPPORT_SOFTWARE_ETC_UNPACK
+#ifndef GL_COMPRESSED_R11_EAC
+#define GL_COMPRESSED_R11_EAC                            0x9270
+#define GL_COMPRESSED_SIGNED_R11_EAC                     0x9271
+#define GL_COMPRESSED_RG11_EAC                           0x9272
+#define GL_COMPRESSED_SIGNED_RG11_EAC                    0x9273
+#define GL_COMPRESSED_RGB8_ETC2                          0x9274
+#define GL_COMPRESSED_SRGB8_ETC2                         0x9275
+#define GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2      0x9276
+#define GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2     0x9277
+#define GL_COMPRESSED_RGBA8_ETC2_EAC                     0x9278
+#define GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC				 0x9279
+#endif
+#ifndef GL_R16_SNORM
+#define GL_R16_SNORM					0x8F98
+#define GL_RG16_SNORM					0x8F99
+#endif
+#ifndef GL_RED
+#define GL_RED							0x1903
+#define GL_GREEN						0x1904
+#define GL_BLUE							0x1905
+#define GL_RG							0x8227
+#endif
+#ifndef GL_R16
+#define GL_R16							0x822A
+#define GL_RG16							0x822C
+#endif
+#ifndef GL_RGB8
+#define GL_RGB8                         0x8051
+#define GL_RGBA8                        0x8058
+#endif
+#ifndef GL_SRGB8
+#define GL_SRGB8						0x8C41
+#define GL_SRGB8_ALPHA8					0x8C43
+#endif
+#endif
+
+#ifndef GL_MAJOR_VERSION
+#define GL_MAJOR_VERSION                0x821B
+#define GL_MINOR_VERSION                0x821C
+#endif
+
+#ifndef GL_CONTEXT_PROFILE_MASK
+#define GL_CONTEXT_PROFILE_MASK				 0x9126
+#define GL_CONTEXT_CORE_PROFILE_BIT			 0x00000001
+#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT 0x00000002
+#endif
 
 #ifndef MAX
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
@@ -152,9 +268,11 @@ void _ktxSwapEndian32(khronos_uint32_t* pData32, int count);
 /*
  * UncompressETC: uncompresses an ETC compressed texture image
  */
-KTX_error_code _ktxUnpackETC(const GLubyte *srcETC, GLubyte **dstImage,
-							 khronos_uint32_t active_width,
-							 khronos_uint32_t active_height);
+KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
+							 khronos_uint32_t active_width, khronos_uint32_t active_height,
+							 GLubyte** dstImage,
+							 GLenum* format, GLenum* internalFormat, GLenum* type,
+							 GLint R16Formats, GLboolean supportsSRGB);
 
 #ifdef __cplusplus
 }

@@ -15,7 +15,7 @@
 	/>
 	<UserMacro
 		Name="GLESBinDir"
-		Value="$(HI_BSLIB_HOME)\graphics\GLES\OES_11_RENDERION\lib\win32-cm-hief-release"
+		Value="$(HI_BSLIB_HOME)\graphics\GLES\11_RENDERION\lib\win32-cm-release"
 	/>
 	<UserMacro
 		Name="GLESIncludeParent"

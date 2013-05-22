@@ -29,7 +29,7 @@
 # ---------------------------------------------------------------
 
 # Author: Mark Callow, HI Corporation
-# $Revision$ $Date:: 2010-07-07 15:54:52 +0900 #$
+# $Revision$ $Date::                            $
 
 depth := ../../..
 
@@ -39,9 +39,11 @@ ktxLibSrc := $(depth)/lib
 LIBX := a
 ktxLib := libktx.$(LIBX)
 
-sources = $(notdir $(wildcard ${ktxLibSrc}/*.c))
+csources = $(notdir $(wildcard ${ktxLibSrc}/*.c))
+cxxsources = $(notdir $(wildcard ${ktxLibSrc}/*.cxx))
 headers = $(notdir $(wildcard ${ktxLibSrc}/*.h $(ktxPubInc)/*.h))
-objects = $(sources:%.c=%.o) etcdec.o
+objects = $(csources:%.c=%.o)
+objects += $(cxxsources:%.cxx=%.o)
 
 # Change this to the parent of *your* GL header files
 glincdir = $(HI_BSLIB_HOME)/include
@@ -54,25 +56,52 @@ CFLAGS = -MMD
 ifneq ($(OPTIMIZE),true)
   CFLAGS += -g
 endif
-cdefs = -DKTX_OPENGL_ES1=1
 cincs = -I$(ktxPubInc) -I$(ktxLibSrc) -I$(glincdir)
 CFLAGS += $(cdefs) $(cincs)
+subdirs = es1 es2 es3 gl
+versions = $(addsuffix ver,${subdirs})
+makes = $(addsuffix make,${subdirs})
 
-.PHONY: clean clobber
+.PHONY: clean clobber versions $(versions) $(makes)
+
+default: $(versions)
+
+es1ver: cdefs=-DKTX_OPENGL_ES1=1
+es2ver: cdefs=-DKTX_OPENGL_ES2=1
+es3ver: cdefs=-DKTX_OPENGL_ES3=1
+glver: cdefs=-DKTX_OPENGL=1
+$(versions): target=$(ktxLib)
+$(versions): %ver: %make
+
+makes: $(makes)
+
+$(makes): %make: %
+	echo target = "$(target)"
+	$(MAKE) -C $< -f ../$(lastword ${MAKEFILE_LIST}) depth=../$(depth) cdefs=$(cdefs) $(target)
+
+$(subdirs):
+	+mkdir $@
 
 $(ktxLib): $(objects)
 	$(AR) -r $@ $(objects)
 
-# Have to use this Ericsson file unchanged so it is not renamed.
-# GNUmake's built-in implicit rules do not recognize cxx as a
-# c plusplus extension.
-etcdec.o: etcdec.cxx
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) -x c $<
+# Have to use the Ericsson etcdec.cxx file unchanged so it is not
+# renamed. KTX original files that need to be C++ also use .cxx
+# for consistency. GNUmake's implicit rules do not recognize cxx
+# as a c++ extension. so create our own rule.
+%.o: %.cxx ; $(CXX) -c $(CPPFLAGS) $(CFLAGS) $<
 
-clean:
-	rm *.o
+clean: target=cleansubdir
+clean: makes
 
-clobber:
-	rm $(ktxLib)
+clobber: target=clobbersubdir
+clobber: makes
+	rmdir $(subdirs)
+
+cleansubdir:
+	rm -f *.d *.o
+
+clobbersubdir: cleansubdir
+	rm -f $(ktxLib)
 
 -include *.d

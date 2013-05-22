@@ -49,6 +49,12 @@ static float dot(const float srcA[3], const float srcB[3])
 	return srcA[0]*srcB[0] + srcA[1]*srcB[1] + srcA[2]*srcB[2];
 }
 
+static float dot4(const float srcA[4], const float srcB[4])
+{
+	return srcA[0]*srcB[0] + srcA[1]*srcB[1]
+           + srcA[2]*srcB[2] + srcA[3]*srcB[3];
+}
+
 // Calculate the cross product and return it
 static void cross (float dst[3], const float srcA[3], const float srcB[3])
 {
@@ -75,8 +81,17 @@ static void normalize (float vec[3])
 
 /* ----------------------------------------------------------------------------- */
 
+float atIdentity[] = {
+	1.0f,0.0f,0.0f,0.0f,
+	0.0f,1.0f,0.0f,0.0f,
+	0.0f,0.0f,1.0f,0.0f,
+	0.0f,0.0f,0.0f,1.0f
+};
+
+/* ----------------------------------------------------------------------------- */
+
 int	atSetViewMatrix (float* aMatrix_, float eyex, float eyey, float eyez,
-							float atx, float aty, float atz)
+					 float atx, float aty, float atz)
 {
 	if(aMatrix_ == 0) return 0;
 
@@ -160,6 +175,67 @@ int	atSetProjectionMatrix	(float* aMatrix_, float fovy, float aspect, float zNea
 		aMatrix_[1*4 + 3] =  0.0f;
 		aMatrix_[2*4 + 3] = -1.0f;
 		aMatrix_[3*4 + 3] =  0.0f;
+	}
+	return 1;
+}
+
+/* ----------------------------------------------------------------------------- */
+
+int	atSetOrthoMatrix	(float* aMatrix_, float left, float right,
+						 float bottom, float top,
+						 float zNear, float zFar )
+{
+	if(aMatrix_ == 0) return 0;
+
+	{
+		aMatrix_[0*4 + 0] =  2.0f / ( right - left );
+		aMatrix_[1*4 + 0] =  0.0f;
+		aMatrix_[2*4 + 0] =  0.0f;
+		aMatrix_[3*4 + 0] =  - (right + left) / (right - left);
+		aMatrix_[0*4 + 1] =  0.0f;
+		aMatrix_[1*4 + 1] =  2.0f / ( top - bottom );
+		aMatrix_[2*4 + 1] =  0.0f;
+		aMatrix_[3*4 + 1] =  - (top + bottom) / (top - bottom);
+		aMatrix_[0*4 + 2] =  0.0f;
+		aMatrix_[1*4 + 2] =  0.0f;
+		aMatrix_[2*4 + 2] = -2.0f * ( zFar - zNear );
+		aMatrix_[3*4 + 2] = - (zFar + zNear) / (zFar - zNear);
+		aMatrix_[0*4 + 3] =  0.0f;
+		aMatrix_[1*4 + 3] =  0.0f;
+		aMatrix_[2*4 + 3] =  0.0f;
+		aMatrix_[3*4 + 3] =  1.0f;
+	}
+	return 1;
+}
+
+/* ----------------------------------------------------------------------------- */
+
+/**
+ * As above but leaves 0,0,0 at the center instead of lower-left-front.
+ */
+int	atSetOrthoZeroAtCenterMatrix	(float* aMatrix_, float left, float right,
+						 float bottom, float top,
+						 float zNear, float zFar )
+{
+	if(aMatrix_ == 0) return 0;
+
+	{
+		aMatrix_[0*4 + 0] =  2.0f / ( right - left );
+		aMatrix_[1*4 + 0] =  0.0f;
+		aMatrix_[2*4 + 0] =  0.0f;
+		aMatrix_[3*4 + 0] =  0.0f;
+		aMatrix_[0*4 + 1] =  0.0f;
+		aMatrix_[1*4 + 1] =  2.0f / ( top - bottom );
+		aMatrix_[2*4 + 1] =  0.0f;
+		aMatrix_[3*4 + 1] =  0.0f;
+		aMatrix_[0*4 + 2] =  0.0f;
+		aMatrix_[1*4 + 2] =  0.0f;
+		aMatrix_[2*4 + 2] = -2.0f * ( zFar - zNear );
+		aMatrix_[3*4 + 2] =  0.0f;
+		aMatrix_[0*4 + 3] =  0.0f;
+		aMatrix_[1*4 + 3] =  0.0f;
+		aMatrix_[2*4 + 3] =  0.0f;
+		aMatrix_[3*4 + 3] =  1.0f;
 	}
 	return 1;
 }
@@ -261,6 +337,4 @@ atGetAppropriateEGLConfig(EGLDisplay eglDisplay, const EGLint* aAttribs,
 
     return EGL_TRUE;
 }
-
-/* ----------------------------------------------------------------------------- */
 

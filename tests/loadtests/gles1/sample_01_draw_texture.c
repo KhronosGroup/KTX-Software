@@ -41,14 +41,13 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
-#include "sample.h"
 #include "ktx.h"
+#include "../common/at.h"
+#include "../data/frame.h"
 
-
-//#define TEXTURE_FILE "../../../testimages/up-reference.ktx"
-#define TEXTURE_FILE "../../../testimages/etc1.ktx"
-//#define TEXTURE_FILE "../../../testimages/rgba-reference.ktx"
-//#define TEXTURE_FILE "../../../testimages/down-reference.ktx"
+#if defined(_WIN32)
+#define snprintf _snprintf
+#endif
 
 /* ----------------------------------------------------------------------------- */
 
@@ -63,34 +62,25 @@ typedef struct DrawTexture_def {
     PFNGLDRAWTEXXVOESPROC glDrawTexxvOES;
     PFNGLDRAWTEXFVOESPROC glDrawTexfvOES;
 
-	int width;
-	int height;
+	int iWidth;
+	int iHeight;
 
-	int texWidth;
-	int texHeight;
+	int iTexWidth;
+	int iTexHeight;
 
-	GLint myTex;
+	float fFrameMvMatrix[16];
+	float fFramePMatrix[16];
 
-	GLboolean initialized;
+	GLint gnTexture;
+
+	GLboolean bInitialized;
 } DrawTexture;
 
 
 /* ----------------------------------------------------------------------------- */
 
-/*
- * Frame definition
- */
-static const GLbyte		s_frameVertices[] =
-{
-    -1, -1, 0,
-	 1, -1, 0,
-	 1,  1, 0,
-	-1,  1, 0
-};
 
-/* ----------------------------------------------------------------------------- */
-
-void atInitialize_01_draw_texture(void** ppAppData)
+void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 {
 	GLint           iCropRect[4]    = {0, 0, 0, 0};
 	const GLubyte*  szExtensions     = glGetString(GL_EXTENSIONS);
@@ -112,8 +102,8 @@ void atInitialize_01_draw_texture(void** ppAppData)
 
 	*ppAppData = pData;
 
-	pData->initialized = GL_FALSE;
-	pData->myTex = 0;
+	pData->bInitialized = GL_FALSE;
+	pData->gnTexture = 0;
 
 	if (strstr(szExtensions, "OES_draw_texture") != NULL) {
        pData->glDrawTexsOES =
@@ -137,13 +127,13 @@ void atInitialize_01_draw_texture(void** ppAppData)
 	   return;
 	}
 
-	ktxerror = ktxLoadTextureN(TEXTURE_FILE, &pData->myTex, &target, &dimensions,
+	ktxerror = ktxLoadTextureN(args, &pData->gnTexture, &target, &dimensions,
 							   &isMipmapped, &glerror, &kvDataLen, &pKvData);
 
 	if (KTX_SUCCESS == ktxerror) {
 		if (target != GL_TEXTURE_2D) {
 			/* Can only draw 2D textures */
-			glDeleteTextures(1, &pData->myTex);
+			glDeleteTextures(1, &pData->gnTexture);
 			return;
 		}
 
@@ -166,8 +156,8 @@ void atInitialize_01_draw_texture(void** ppAppData)
 			free(pKvData);
 		}
 
-		iCropRect[2] = pData->texWidth = dimensions.width;
-		iCropRect[3] = pData->texHeight = dimensions.height;
+		iCropRect[2] = pData->iTexWidth = dimensions.width;
+		iCropRect[3] = pData->iTexHeight = dimensions.height;
 		iCropRect[2] *= sign_s;
 		iCropRect[3] *= sign_t;
 
@@ -185,21 +175,32 @@ void atInitialize_01_draw_texture(void** ppAppData)
 
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 		glTexParameteriv(target, GL_TEXTURE_CROP_RECT_OES, iCropRect);
-		glEnable(target);
 
 		/* Check for any errors */
 		glerror = glGetError();
 	} else {
-		pData->texWidth = pData->texHeight = 50;
-		pData->myTex = 0;
+		char message[1024];
+		int maxchars = sizeof(message)/sizeof(char);
+		int nchars;
+
+		nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
+						  args, ktxErrorString(ktxerror));
+		if (ktxerror == KTX_GL_ERROR) {
+			maxchars -= nchars;
+			nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
+		}
+		atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
+
+		pData->iTexWidth = pData->iTexHeight = 50;
+		pData->gnTexture = 0;
 	}
 
 	glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
 	glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_BYTE, 0, (GLvoid *)s_frameVertices);
+	glVertexPointer(3, GL_BYTE, 0, (GLvoid *)frame_position);
 
-	pData->initialized = GL_TRUE;
+	pData->bInitialized = GL_TRUE;
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -209,42 +210,62 @@ void atRelease_01_draw_texture (void* pAppData)
 	DrawTexture* pData = (DrawTexture*)pAppData;
 	atAssert(pData);
 
-	if (pData->initialized) {
+	if (pData->bInitialized) {
 		DrawTexture* pData = (DrawTexture*)pAppData;
 		atAssert(pData);
-		glDeleteTextures(1, &pData->myTex);
+		glDeleteTextures(1, &pData->gnTexture);
 	}
+	atAssert(GL_NO_ERROR == glGetError());
+	atFree(pData, 0);
 }
 
 /* ----------------------------------------------------------------------------- */
 
-void atResize_01_draw_texture (void* pAppData, int width, int height)
+void atResize_01_draw_texture (void* pAppData, int iWidth, int iHeight)
 {
 
 	DrawTexture* pData = (DrawTexture*)pAppData;
 	atAssert(pData);
 
-	glViewport(0, 0, width, height);
-	pData->width = width;
-	pData->height = height;
+	glViewport(0, 0, iWidth, iHeight);
+	pData->iWidth = iWidth;
+	pData->iHeight = iHeight;
 
+	// Set up an orthographic projection where 1 = 1 pixel, and 0,0,0
+	// is at the center of the window.
+	atSetOrthoZeroAtCenterMatrix(pData->fFramePMatrix, -0.5f, iWidth - 0.5f,
+					 -0.5, iHeight - 0.5f,
+					 -1.0f, 1.0f);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(pData->fFramePMatrix);
+
+	glMatrixMode(GL_MODELVIEW);
+	// Scale the frame to fit inside the viewport
+    // Because rectangles are half-open in GL, a -1,-1 to +1,+1 line
+	// loop with identity MVP matrix loses the topmost & rightmost lines.
+	glLoadIdentity();
+	glScalef((float)(iWidth - 3) / 2, (float)(iHeight - 3) / 2, 1);
 }
 
 /* ----------------------------------------------------------------------------- */
 
 void atRun_01_draw_texture (void* pAppData, int iTimeMS)
 {
-    const int iVpOffset = 50;
-
 	DrawTexture* pData = (DrawTexture*)pAppData;
 	atAssert(pData);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_TEXTURE_2D);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
-	pData->glDrawTexiOES(pData->width/2 - pData->texWidth/2,
-		         		 (pData->height)/2 - pData->texHeight/2,
+
+	glEnable(GL_TEXTURE_2D);
+	pData->glDrawTexiOES(pData->iWidth/2 - pData->iTexWidth/2,
+		         		 (pData->iHeight)/2 - pData->iTexHeight/2,
 						 0,
-				 		 pData->texWidth, pData->texHeight);
+				 		 pData->iTexWidth, pData->iTexHeight);
+
+	atAssert(GL_NO_ERROR == glGetError());
 }
 
 /* ----------------------------------------------------------------------------- */

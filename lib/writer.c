@@ -49,7 +49,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxint.h"
 
 static GLint sizeofGLtype(GLenum type);
-static GLint groupSize(GLenum format, GLenum type);
+static GLint groupSize(GLenum format, GLenum type, GLint* elementBytes);
 
 
 /**
@@ -228,49 +228,87 @@ ktxWriteKTXF(FILE* dst, const KTX_texture_info* textureInfo,
 	/* Write the image data */
 	for (level = 0, i = 0; level < numMipmapLevels; ++level)
 	{
-		GLuint pixelWidth, pixelHeight, pixelDepth;
+		GLuint elementBytes;
+		GLsizei expectedFaceSize;
 		GLuint face, faceLodSize, faceLodRounding;
+		GLuint groupBytes = groupSize(header.glFormat,
+									  header.glType,
+								      &elementBytes);
+		GLuint pixelWidth, pixelHeight, pixelDepth;
+		GLuint packedRowBytes, rowBytes, rowRounding;
 
 		pixelWidth  = MAX(1, header.pixelWidth  >> level);
 		pixelHeight = MAX(1, header.pixelHeight >> level);
 		pixelDepth  = MAX(1, header.pixelDepth  >> level);
 
-		faceLodSize = images[i].size;
+		/* Calculate face sizes for this LoD based on glType, glFormat, width & height */
+		expectedFaceSize = groupBytes
+						   * pixelWidth
+						   * pixelHeight
+						   * pixelDepth
+						   * numArrayElements;
+
+		rowRounding = 0;
+		packedRowBytes = groupBytes * pixelWidth;
+		/* KTX format specifies UNPACK_ALIGNMENT==4 */
+		if (!compressed && elementBytes < KTX_GL_UNPACK_ALIGNMENT) {
+			rowBytes = KTX_GL_UNPACK_ALIGNMENT / elementBytes;
+			/* The following statement is equivalent to:
+			/*     packedRowBytes *= ceil((groupBytes * width) / KTX_GL_UNPACK_ALIGNMENT);
+			 */
+			rowBytes *= ((groupBytes * pixelWidth) + (KTX_GL_UNPACK_ALIGNMENT - 1)) / KTX_GL_UNPACK_ALIGNMENT;
+			rowRounding = rowBytes - packedRowBytes;
+		}
+
+		if (rowRounding == 0) {
+			faceLodSize = images[i].size;
+		} else {
+			/* Need to pad the rows to meet the required UNPACK_ALIGNMENT */
+			faceLodSize = rowBytes * pixelHeight * pixelDepth * numArrayElements;
+		}
 		faceLodRounding = 3 - ((faceLodSize + 3) % 4);
 		
-		if (fwrite(&faceLodSize, sizeof(faceLodSize), 1, dst) != 1)
-		{
+		if (fwrite(&faceLodSize, sizeof(faceLodSize), 1, dst) != 1) {
 			errorCode = KTX_FILE_WRITE_ERROR;
 			goto cleanup;
 		}
 
-		for (face = 0; face < header.numberOfFaces; ++face, ++i)
-		{
-			/* Calculate LOD & face sizes based on glType, glFormat, width & height
-			 * and compare with size of supplied file. Can do only for uncompressed
-			 * textures.
-			 */
+		for (face = 0; face < header.numberOfFaces; ++face, ++i) {
 			if (!compressed) {
 				/* Sanity check. */
-				GLsizei size = groupSize(header.glFormat, header.glType)
-							   * pixelWidth
-							   * pixelHeight
-							   * pixelDepth
-							   * numArrayElements;
-				if (images[i].size != size) {
+				if (images[i].size != expectedFaceSize) {
 					errorCode = KTX_INVALID_OPERATION;
 					goto cleanup;
 				}
 			}
-			if (fwrite(images[i].data, faceLodSize, 1, dst) != 1)
-			{
-				errorCode = KTX_FILE_WRITE_ERROR;
-				goto cleanup;
-			}
-			if (faceLodRounding)
-			{
-				if (fwrite(pad, sizeof(GLbyte), faceLodRounding, dst) != 1)
+			if (rowRounding == 0) {
+				/* Can write whole face at once */
+				if (fwrite(images[i].data, faceLodSize, 1, dst) != 1) {
 					errorCode = KTX_FILE_WRITE_ERROR;
+					goto cleanup;
+				}
+			} else {
+				/* Write the rows individually, padding each one */
+				GLuint row;
+				GLuint numRows = pixelHeight
+								* pixelDepth
+								* numArrayElements;
+				for (row = 0; row < numRows; row++) {
+					if (fwrite(&images[i].data[row*packedRowBytes], packedRowBytes, 1, dst) != 1) {
+						errorCode = KTX_FILE_WRITE_ERROR;
+						goto cleanup;
+					}
+					if (fwrite(pad, sizeof(GLbyte), rowRounding, dst) != rowRounding) {
+						errorCode = KTX_FILE_WRITE_ERROR;
+						goto cleanup;
+					}
+				}
+			}
+			if (faceLodRounding) {
+				if (fwrite(pad, sizeof(GLbyte), faceLodRounding, dst) != faceLodRounding) {
+					errorCode = KTX_FILE_WRITE_ERROR;
+					goto cleanup;
+				}
 			}
 		}
 	}
@@ -332,7 +370,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  *          is invalid.
  */
 static GLint
-groupSize(GLenum format, GLenum type)
+groupSize(GLenum format, GLenum type, GLint* elementBytes)
 {
 	switch (format) {
 	case GL_ALPHA:
@@ -342,29 +380,29 @@ groupSize(GLenum format, GLenum type)
 	case GL_BLUE:
     #endif
 	case GL_LUMINANCE:
-		return sizeofGLtype(type);
+		return (*elementBytes = sizeofGLtype(type));
 		break;
 	case GL_LUMINANCE_ALPHA:
     #if defined(GL_RG)
 	case GL_RG:
     #endif
-		return sizeofGLtype(type)*2;
+		return (*elementBytes = sizeofGLtype(type)) * 2;
 		break;
 	case GL_RGB:
     #if defined(GL_BGR)
 	case GL_BGR:
     #endif
-		if(type == GL_UNSIGNED_SHORT_5_6_5) return 2;
-		else                                return sizeofGLtype(type)*3;
+		if(type == GL_UNSIGNED_SHORT_5_6_5) return (*elementBytes = 2);
+		else                                return (*elementBytes = sizeofGLtype(type)) * 3;
 		break;
 	case GL_RGBA:
     #if defined(GL_BGRA)
 	case GL_BGRA:
     #endif
 		if(type == GL_UNSIGNED_SHORT_4_4_4_4 || type == GL_UNSIGNED_SHORT_5_5_5_1)
-			return 2;
+			return (*elementBytes = 2);
 		else
-			return sizeofGLtype(type)*4;
+			return (*elementBytes = sizeofGLtype(type)) * 4;
 		break;
 	default:
 		break;

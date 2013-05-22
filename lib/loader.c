@@ -52,28 +52,302 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include KTX_GLFUNCPTRS
 
-/* KTX files require an unpack alignment of 4 */
-#define KTX_GL_UNPACK_ALIGNMENT 4
-
-/* KTX stream interface */
+/* @private is not preventing the typedefs, structs and defines from
+ * appearing in the Doxygen output even though EXTRACT_PRIVATE is NO
+ * in the config file. To prevent these items appearing I have changed
+ * the special comments to ordinary comments, and have set
+ * HIDE_UNDOC_MEMBERS = YES in the Doxygen config file.
+ *
+ * Items declared "static" are omitted, as expected, due to EXTRACT_STATIC
+ * being NO, so there is no need to convert those to ordinary comments. 
+ */
+/*
+ * @private
+ * @~English
+ * @brief type for a pointer to a stream reading function
+ */
 typedef int(*ktxStream_read)(void* dst, const GLsizei count, void* src);
+/*
+ * @private
+ * @~English
+ * @brief type for a pointer to a stream skipping function
+ */
 typedef int(*ktxStream_skip)(const GLsizei count, void* src);
 
+/*
+ * @private
+ * @~English
+ * @brief KTX stream interface
+ */
 struct ktxStream
 {
-	void* src;
-	ktxStream_read read;
-	ktxStream_skip skip;
+	void* src;				/**< pointer to the stream source */
+	ktxStream_read read;	/**< pointer to function for reading bytes */
+	ktxStream_skip skip;	/**< pointer to function for skipping bytes */
 };
+
+/*
+ * @private
+ * @~English
+ * @brief additional contextProfile bit indicating an OpenGL ES context.
+ *
+ * This is the same value NVIDIA returns when using an OpenGL ES profile
+ * of their desktop drivers. However it is not specified in any official
+ * specification as OpenGL ES does not support the GL_CONTEXT_PROFILE_MASK
+ * query.
+ */
+#define _CONTEXT_ES_PROFILE_BIT 0x4
+
+/*
+ * @private
+ * @~English
+ * @name Supported Sized Format Macros
+ *
+ * These macros describe values that may be used with the sizedFormats
+ * variable.
+ */
+/**@{*/
+#define _NON_LEGACY_FORMATS 0x1 /*< @private @internal non-legacy sized formats are supported. */
+#define _LEGACY_FORMATS 0x2  /*< @private @internal legacy sized formats are supported. */
+/*
+ * @private
+ * @~English
+ * @brief all sized formats are supported
+ */
+#define _ALL_SIZED_FORMATS (_NON_LEGACY_FORMATS | _LEGACY_FORMATS)
+#define _NO_SIZED_FORMATS 0 /*< @private @internal no sized formats are supported. */
+/**@}*/
+
+/**
+ * @private
+ * @~English
+ * @brief indicates the profile of the current context.
+ */
+static GLint contextProfile = 0;
+/**
+ * @private
+ * @~English
+ * @brief indicates what sized texture formats are supported
+ *        by the current context.
+ */
+static GLint sizedFormats = _ALL_SIZED_FORMATS;
+static GLboolean supportsSwizzle = GL_TRUE;
+/**
+ * @private
+ * @~English
+ * @brief indicates which R16 & RG16 formats are supported by the current context.
+ */
+static GLint R16Formats = _KTX_ALL_R16_FORMATS;
+/**
+ * @private
+ * @~English
+ * @brief indicates if the current context supports sRGB textures.
+ */
+static GLboolean supportsSRGB = GL_TRUE;
+
+
+/**
+ * @private
+ * @~English
+ * @brief Discover the capabilities of the current GL context.
+ * 
+ * Queries the context and sets several the following internal variables indicating
+ * the capabilities of the context:
+ *
+ * @li sizedFormats
+ * @li supportsSwizzle
+ * @li supportsSRGB
+ * @li b16Formats
+ *
+ */           
+static void discoverContextCapabilities(void)
+{
+	GLint majorVersion = 1;
+	GLint minorVersion = 0;
+
+	if (strstr(glGetString(GL_VERSION), "GL ES") != NULL)
+		contextProfile = _CONTEXT_ES_PROFILE_BIT;
+	// MAJOR & MINOR only introduced in GL {,ES} 3.0
+	glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+	glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+	if (glGetError() != GL_NO_ERROR) {
+		// < v3.0; resort to the old-fashioned way.
+		if (contextProfile & _CONTEXT_ES_PROFILE_BIT)
+			sscanf(glGetString(GL_VERSION), "OpenGL ES %d.%d ", &majorVersion, &minorVersion);
+		else
+			sscanf(glGetString(GL_VERSION), "OpenGL %d.%d ", &majorVersion, &minorVersion);
+	}
+	if (contextProfile & _CONTEXT_ES_PROFILE_BIT) {
+		if (majorVersion < 3) {
+			supportsSwizzle = GL_FALSE;
+			sizedFormats = _NO_SIZED_FORMATS;
+			R16Formats = _KTX_NO_R16_FORMATS;
+			supportsSRGB = GL_FALSE;
+		} else {
+			sizedFormats = _NON_LEGACY_FORMATS;
+		}
+		if (strstr(glGetString(GL_EXTENSIONS), "GL_OES_required_internalformat") != NULL) {
+			sizedFormats |= _ALL_SIZED_FORMATS;
+		}
+		// There are no OES extensions for sRGB textures or R16 formats.
+	} else {
+		// PROFILE_MASK was introduced in OpenGL 3.2.
+		// Profiles: CONTEXT_CORE_PROFILE_BIT 0x1, CONTEXT_COMPATIBILITY_PROFILE_BIT 0x2.
+		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &contextProfile);
+		if (glGetError() == GL_NO_ERROR) {
+			// >= 3.2
+			if (majorVersion == 3 && minorVersion < 3)
+				supportsSwizzle = GL_FALSE;
+			if ((contextProfile & GL_CONTEXT_CORE_PROFILE_BIT))
+				sizedFormats &= ~_LEGACY_FORMATS;
+		} else {
+			// < 3.2
+			contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
+			supportsSwizzle = GL_FALSE;
+			// sRGB textures introduced in 2.0
+			if (majorVersion < 2 && strstr(glGetString(GL_EXTENSIONS), "GL_EXT_texture_sRGB") == NULL) {
+				supportsSRGB = GL_FALSE;
+			}
+			// R{,G]16 introduced in 3.0; R{,G}16_SNORM introduced in 3.1.
+			if (majorVersion == 3) {
+				if (minorVersion == 0)
+					R16Formats &= ~_KTX_R16_FORMATS_SNORM;
+			} else if (strstr(glGetString(GL_EXTENSIONS), "GL_ARB_texture_rg") != NULL) {
+				R16Formats &= ~_KTX_R16_FORMATS_SNORM;
+			} else {
+				R16Formats = _KTX_NO_R16_FORMATS;
+			}
+		}
+	}
+}
+
+#if SUPPORT_LEGACY_FORMAT_CONVERSION
+/**
+ * @internal
+ * @~English
+ * @brief Convert deprecated legacy-format texture to modern format.
+ * 
+ * The function sets the GL_TEXTURE_SWIZZLEs necessary to get the same
+ * behavior as the legacy format.
+ *
+ * @param [in] target       texture target on which the swizzle will
+ *                          be set.
+ * @param [in, out] pFormat pointer to variable holding the base format of the
+ *                          texture. The new base format is written here.
+ * @param [in, out] pInternalFormat  pointer to variable holding the internalformat
+ *                                   of the texture. The new internalformat is
+ *                                   written here.
+ * @return void unrecognized formats will be passed on to OpenGL. Any loading error
+ *              that arises will be handled in the usual way.
+ */           
+static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat) {
+	switch (*pFormat) {
+	  case GL_ALPHA:
+		{
+		  GLenum swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
+		  *pFormat = GL_RED;
+		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+		  switch (*pInternalFormat) {
+	        case GL_ALPHA:
+		    case GL_ALPHA4:
+		    case GL_ALPHA8:
+			  *pInternalFormat = GL_R8;
+			  break;
+		    case GL_ALPHA12:
+		    case GL_ALPHA16:
+			  *pInternalFormat = GL_R16;
+			  break;
+		  }
+		}
+	  case GL_LUMINANCE:
+		{
+		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+		  *pFormat = GL_RED;
+		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+		  switch (*pInternalFormat) {
+			case GL_LUMINANCE:
+		    case GL_LUMINANCE4:
+		    case GL_LUMINANCE8:
+			  *pInternalFormat = GL_R8;
+			  break;
+		    case GL_LUMINANCE12:
+		    case GL_LUMINANCE16:
+			  *pInternalFormat = GL_R16;
+			  break;
+#if 0
+		    // XXX Must avoid doing the swizzle in these cases
+			case GL_SLUMINANCE:
+			case GL_SLUMINANCE8:
+			  *pInternalFormat = GL_SRGB8;
+			  break;
+#endif
+		  }
+		  break;
+		}
+	  case GL_LUMINANCE_ALPHA:
+		{
+		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
+		  *pFormat = GL_RG;
+		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+		  switch (*pInternalFormat) {
+			case GL_LUMINANCE_ALPHA:
+		    case GL_LUMINANCE4_ALPHA4:
+			case GL_LUMINANCE6_ALPHA2:
+		    case GL_LUMINANCE8_ALPHA8:
+			  *pInternalFormat = GL_RG8;
+			  break;
+		    case GL_LUMINANCE12_ALPHA4:
+			case GL_LUMINANCE12_ALPHA12:
+		    case GL_LUMINANCE16_ALPHA16:
+			  *pInternalFormat = GL_RG16;
+			  break;
+#if 0
+		    // XXX Must avoid doing the swizzle in these cases
+			case GL_SLUMINANCE_ALPHA:
+			case GL_SLUMINANCE8_ALPHA8:
+			  *pInternalFormat = GL_SRGB8_ALPHA8;
+			  break;
+#endif
+		  }
+		  break;
+		}
+	  case GL_INTENSITY:
+		{
+		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
+		  *pFormat = GL_RED;
+		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+		  switch (*pInternalFormat) {
+			case GL_INTENSITY:
+		    case GL_INTENSITY4:
+		    case GL_INTENSITY8:
+			  *pInternalFormat = GL_R8;
+			  break;
+		    case GL_INTENSITY12:
+		    case GL_INTENSITY16:
+			  *pInternalFormat = GL_R16;
+			  break;
+		  }
+		  break;
+		}
+	  default:
+	    break;
+	}
+}
+#endif /* SUPPORT_LEGACY_FORMAT_CONVERSION */
+
 
 /*
  * @~English
  * @brief Load a GL texture object from a ktxStream.
  *
- * This function will unpack GL_ETC1_RGB8_OES format compressed textures in
- * software when the format is not supported by the GL implementation,
+ * This function will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
+ * 
+ * It will also convert textures with legacy formats to their modern equivalents
+ * when the format is not supported by the GL context, provided that the library
+ * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1. 
  *
  * @param [in] stream		pointer to the ktxStream from which to load.
  * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
@@ -137,10 +411,9 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 	khronos_uint32_t    faceLodSizeRounded;
 	khronos_uint32_t	level;
 	khronos_uint32_t	face;
-	GLenum				glInternalFormat;
+	GLenum				glFormat, glInternalFormat;
 	KTX_error_code		errorCode = KTX_SUCCESS;
 	GLenum				errorTmp;
-
 
 	if (pGlerror)
 		*pGlerror = GL_NO_ERROR;
@@ -189,6 +462,8 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		}
 	}
 
+	if (contextProfile == 0)
+		discoverContextCapabilities();
 
 	/* KTX files require an unpack alignment of 4 */
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
@@ -204,25 +479,39 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 	}
 	glBindTexture(texinfo.glTarget, texname);
 
-#if !KTX_OPENGL_ES2
-	// OpenGL ES 2.0 doesn't support GL_GENERATE_MIPMAP for glTexParameteri
+	// Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
 	if (texinfo.generateMipmaps && (glGenerateMipmap == NULL)) {
 		glTexParameteri(texinfo.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
-#endif
 
 	if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP) {
 		texinfo.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 	}
 
-#if KTX_SUPPORT_SIZEDINTERNALFORMATS
 	glInternalFormat = header.glInternalFormat;
+	glFormat = header.glFormat;
+	if (!texinfo.compressed) {
+#if SUPPORT_LEGACY_FORMAT_CONVERSION
+		// If sized legacy formats are supported there is no need to convert.
+		// If only unsized formats are supported, there is no point in converting
+		// as the modern formats aren't supported either.
+		if (sizedFormats == _NON_LEGACY_FORMATS && supportsSwizzle) {
+			convertFormat(texinfo.glTarget, &glFormat, &glInternalFormat);
+			errorTmp = glGetError();
+		} else if (sizedFormats == _NO_SIZED_FORMATS)
+			glInternalFormat = header.glBaseInternalFormat;
 #else
-	if (texinfo.compressed)
-		glInternalFormat = header.glInternalFormat;
-	else
-		glInternalFormat = header.glBaseInternalFormat;
+		// With only unsized formats must change internal format.
+		if (sizedFormats == _NO_SIZED_FORMATS
+			|| (!(sizedFormats & _LEGACY_FORMATS) &&
+				(header.glBaseInternalFormat == GL_ALPHA	
+				|| header.glBaseInternalFormat == GL_LUMINANCE
+				|| header.glBaseInternalFormat == GL_LUMINANCE_ALPHA
+				|| header.glBaseInternalFormat == GL_INTENSITY))) {
+			glInternalFormat = header.glBaseInternalFormat;
+		}
 #endif
+	}
 
 	for (level = 0; level < header.numberOfMipmapLevels; ++level)
 	{
@@ -276,36 +565,23 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				} else {
 					glTexImage1D(texinfo.glTarget + face, level, 
 						glInternalFormat, pixelWidth, 0, 
-						header.glFormat, header.glType, data);
+						glFormat, header.glType, data);
 				}
 			} else if (texinfo.textureDimensions == 2) {
 				if (header.numberOfArrayElements) {
 					pixelHeight = header.numberOfArrayElements;
 				}
 				if (texinfo.compressed) {
-#if SUPPORT_SOFTWARE_ETC_UNPACK
-					if (glInternalFormat == GL_ETC1_RGB8_OES
-						&& !GLEW_OES_compressed_ETC1_RGB8_texture) {
-						GLubyte* unpacked;
-
-						errorCode = _ktxUnpackETC((GLubyte*)data, &unpacked, pixelWidth, pixelHeight);
-						if (errorCode != KTX_SUCCESS) {
-							goto cleanup;
-						}
-						glTexImage2D(texinfo.glTarget + face, level, 
-									 GL_RGB, pixelWidth, pixelHeight, 0, 
-									 GL_RGB, GL_UNSIGNED_BYTE, unpacked);
-
-						free(unpacked);
-					} else
-#endif
-						glCompressedTexImage2D(texinfo.glTarget + face, level, 
-							glInternalFormat, pixelWidth, pixelHeight, 0,
-							faceLodSize, data);
+				    // It is simpler to just attempt to load the format, rather than divine which
+					// formats are supported by the implementation. In the event of an error,
+					// software unpacking can be attempted.
+					glCompressedTexImage2D(texinfo.glTarget + face, level, 
+						glInternalFormat, pixelWidth, pixelHeight, 0,
+						faceLodSize, data);
 				} else {
 					glTexImage2D(texinfo.glTarget + face, level, 
 						glInternalFormat, pixelWidth, pixelHeight, 0, 
-						header.glFormat, header.glType, data);
+						glFormat, header.glType, data);
 				}
 			} else if (texinfo.textureDimensions == 3) {
 				if (header.numberOfArrayElements) {
@@ -318,11 +594,41 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				} else {
 					glTexImage3D(texinfo.glTarget + face, level, 
 						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0, 
-						header.glFormat, header.glType, data);
+						glFormat, header.glType, data);
 				}
 			}
 
 			errorTmp = glGetError();
+#if SUPPORT_SOFTWARE_ETC_UNPACK
+			// Renderion is returning INVALID_VALUE. Oops!!
+			if ((errorTmp == GL_INVALID_ENUM || errorTmp == GL_INVALID_VALUE)
+				&& texinfo.compressed
+				&& texinfo.textureDimensions == 2
+				&& (glInternalFormat == GL_ETC1_RGB8_OES || (glInternalFormat >= GL_COMPRESSED_R11_EAC && glInternalFormat <= GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)))
+			    {
+				GLubyte* unpacked;
+				GLenum format, internalFormat, type;
+
+				errorCode = _ktxUnpackETC((GLubyte*)data, glInternalFormat, pixelWidth, pixelHeight,
+					                      &unpacked, &format, &internalFormat, &type,
+										  R16Formats, supportsSRGB);
+				if (errorCode != KTX_SUCCESS) {
+					goto cleanup;
+				}
+				if (!sizedFormats & _NON_LEGACY_FORMATS) {
+					if (internalFormat == GL_RGB8)
+						internalFormat = GL_RGB;
+					else if (internalFormat == GL_RGBA8)
+						internalFormat = GL_RGBA;
+				}
+				glTexImage2D(texinfo.glTarget + face, level, 
+							 internalFormat, pixelWidth, pixelHeight, 0, 
+							 format, type, unpacked);
+
+				free(unpacked);
+				errorTmp = glGetError();
+			}
+#endif
 			if (errorTmp != GL_NO_ERROR) {
 				if (pGlerror)
 					*pGlerror = errorTmp;
@@ -417,10 +723,14 @@ int ktxFileInit(struct ktxStream* stream, FILE* file)
  * @~English
  * @brief Load a GL texture object from a stdio FILE stream.
  *
- * This function will unpack GL_ETC1_RGB8_OES format compressed textures in
- * software when the format is not supported by the GL implementation,
+ * This function will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
+ * 
+ * It will also convert texture with legacy formats to their modern equivalents
+ * when the format is not supported by the GL context, provided that the library
+ * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1. 
  *
  * @param [in] file			pointer to the stdio FILE stream from which to
  * 							load.
