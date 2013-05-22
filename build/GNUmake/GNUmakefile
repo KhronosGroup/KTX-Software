@@ -54,7 +54,7 @@ ktxLibDocOutDir := ../doc
 
 vc9 := ../vc9
 toktxWinExe := $(vc9)/Release/toktx.exe
-devenv = $(shell cygpath "$(VS90COMNTOOLS)/../IDE/devenv.exe")
+devenv = $(shell cygpath "${VS90COMNTOOLS}/../IDE/devenv.exe")
 
 distFiles := include/ktx.h $(ktxDoxyConfig) lib tests TODO tools \
 	         testimages/*.ppm testimages/{etc1,*reference}.ktx \
@@ -109,8 +109,16 @@ $(ktxDistZip):
 $(ktxDistTgz):
 	cd $(depth); tar czf $(ktxTgzOut) $(distFiles) --exclude="*/.svn/*"
 
+# The project files in ktx.sln use user macros set in $(vc9)/gl.vsprops
+# to find the OpenGL include files and libraries. The macros use this
+# environment variable as part of the path. When run from cygwin, this
+# path in this variable is in UNIX format. It needs to be in Windows
+# format for $(devenv).
+#
+# If you change the macros in $(vc9)/gl.vsprops to point to your local
+# copies of the GL files, change or comment out this as appropriate.
+toktxWin: export HI_BSLIB_HOME:="$(shell cygpath -w "${HI_BSLIB_HOME}")"
 toktxWin:
-#	"$(devenv)" $(vc9)/ktx.sln /build "Release" /project $(vc9)/toktx/toktx.vcproj /projectconfig Release
 	"$(devenv)" $(vc9)/ktx.sln /build "Release"
 
 #$(ktxLibDocOutDir):
