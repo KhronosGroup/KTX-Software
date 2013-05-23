@@ -10,7 +10,7 @@
 //! @author Mark Callow, HI Corporation, www.hicorp.co.jp
 //!
 //! @version 1.1
-//! @date 2013/3/27
+//! $Date::                      $
 
 // $Revision$ on $Date::                            $
 
@@ -61,6 +61,7 @@
 
 struct commandOptions {
 	_TCHAR*		 appName;
+	bool		 alpha;
 	bool		 automipmap;
 	bool		 cubemap;
 	bool		 luminance;
@@ -94,19 +95,25 @@ usage(_TCHAR* appName)
         "  <infile>     One or more image files in .pam, .ppm or .pgm format. Other\n"
 		"               formats can be readily converted to these formats using tools\n"
 		"               such as ImageMagick and XnView. When no infile is specified,\n"
-		"               stdin is used. .ppm files yield RGB textures, .pgm files ALPHA\n"
-		"               textures and .pam files ALPHA, LUMINANCE_ALPHA, RGB or RGBA\n"
-		"               textures according to the file's TUPLTYPE and DEPTH.\n"
+		"               stdin is used. .ppm files yield RGB textures, .pgm files RED\n"
+		"               textures and .pam files RED, RG, RGB or RGBA textures according\n"
+		"               to the file's TUPLTYPE and DEPTH.\n"
 		"\n"
         "  Options are:\n"
 		"\n"
+		"  --alpha      Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam\n"
+		"               infiles. The default is to create RED textures. This is ignored\n"
+		"               for files with 2 or more channels. This option is mutually\n"
+		"               exclusive with --luminance.\n"
         "  --automipmap A mipmap pyramid will be automatically generated when the KTX\n"
         "               file is loaded. This option is mutually exclusive with --mipmap.\n"
         "  --cubemap    KTX file is for a cubemap. At least 6 <infile>s must be provided,\n"
         "               more if --mipmap is also specified. Provide the images in the\n"
 		"               order: +X, -X, +Y, -Y, +Z, -Z.\n"
-        "  --luminance  Create luminance textures from .pgm and GRAYSCALE .pam infiles.\n"
-		"               Normally ALPHA textures will be created.\n"
+        "  --luminance  Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and\n"
+		"               1 or 2 channel GRAYSCALE .pam infiles. The default is to create\n"
+		"               RED or RG textures. This option is mutually exclusive with\n"
+		"               --alpha.\n"
         "  --mipmap     KTX file is for a mipmap pyramid. One <infile> per level must\n"
         "               be provided. Provide the base-level image first then in order\n"
 		"               down to the 1x1 image. This option is mutually exclusive with\n"
@@ -242,21 +249,35 @@ int _tmain(int argc, _TCHAR* argv[])
 								tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8 : GL_LUMINANCE16;
 							else
 								tinfo.glInternalFormat = GL_LUMINANCE;
-						} else {
+						} else if (options.alpha) {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_ALPHA;
 							if (options.sized)
 								tinfo.glInternalFormat = componentSize == 1 ? GL_ALPHA8 : GL_ALPHA16;
 							else
 								tinfo.glInternalFormat = GL_ALPHA;
+						} else {
+							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RED;
+							if (options.sized)
+								tinfo.glInternalFormat = componentSize == 1 ? GL_R8 : GL_R16;
+							else
+								tinfo.glInternalFormat = GL_RED;
 						}
 						break;
 
 					  case 2:
-					    tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE_ALPHA;
-						if (options.sized)
-							tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
-						else
-							tinfo.glInternalFormat = GL_LUMINANCE_ALPHA;
+						if (options.luminance) {
+							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE_ALPHA;
+							if (options.sized)
+								tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
+							else
+								tinfo.glInternalFormat = GL_LUMINANCE_ALPHA;
+						} else {
+							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RG;
+							if (options.sized)
+								tinfo.glInternalFormat = componentSize == 1 ? GL_RG8 : GL_RG16;
+							else
+								tinfo.glInternalFormat = GL_RG;
+						}
 						break;
 
 					  case 3:
@@ -393,7 +414,8 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	unsigned int outfilenamelen;
 	const _TCHAR* toktx_options;
 	_TCHAR option[30];
-	
+
+	options.alpha = false;
 	options.automipmap = false;
 	options.cubemap = false;
 	options.luminance = false;
@@ -488,6 +510,12 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 		} else if (_tcscmp(&option[2], "version") == 0) {
 			version(options.appName);
 			exit(0);
+		} else if (_tcscmp(&option[2], "alpha") == 0) {
+			if (options.luminance) {
+				usage(options.appName);
+				exit(1);
+			}
+			options.alpha = true;
 		} else if (_tcscmp(&option[2], "automipmap") == 0) {
 			if (options.mipmap) {
 				usage(options.appName);
@@ -503,6 +531,10 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 		} else if (_tcscmp(&option[2], "cubemap") == 0) {
 			options.cubemap = true;
 		} else if (_tcscmp(&option[2], "luminance") == 0) {
+			if (options.alpha) {
+				usage(options.appName);
+				exit(1);
+			}
 			options.luminance = true;
 		} else if (_tcscmp(&option[2], "sized") == 0) {
 			options.sized = true;

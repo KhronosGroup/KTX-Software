@@ -71,6 +71,14 @@ else
   failed=$failed+1
 fi
 
+numtests=$numtests+1
+if ! $toktx --alpha --luminance a b 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "Simultaneous --alpha & --luminance allowed"
+  failed=$failed+1
+fi
+
 function cmpktx () {
   if diff $1 $2; then
     passed=$passed+1
