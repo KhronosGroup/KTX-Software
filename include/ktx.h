@@ -126,7 +126,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @version 2.0
  *
- * @date 2013.4.09
+ * @date $Date$
  */
 
 #include <stdio.h>
