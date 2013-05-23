@@ -32,7 +32,7 @@
 # $Revision$ $Date::                            $
 
 depth := ../..
-version := 10
+version := 20
 
 # Location of KTX home page
 ktxHomePage = $(depth)/../../../sdk/tools/KTX
