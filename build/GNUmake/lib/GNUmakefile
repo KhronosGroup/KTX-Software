@@ -76,7 +76,6 @@ $(versions): %ver: %make
 makes: $(makes)
 
 $(makes): %make: %
-	echo target = "$(target)"
 	$(MAKE) -C $< -f ../$(lastword ${MAKEFILE_LIST}) depth=../$(depth) cdefs=$(cdefs) $(target)
 
 $(subdirs):
