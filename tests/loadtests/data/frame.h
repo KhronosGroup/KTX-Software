@@ -1,7 +1,7 @@
 /*
  * Frame definition
  */
-static const GLbyte	frame_position[] =
+static const GLbyte frame_position[] =
 {
     -1, -1, 0,
 	 1, -1, 0,

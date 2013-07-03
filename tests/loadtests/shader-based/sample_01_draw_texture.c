@@ -260,7 +260,7 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 		glDeleteShader(gnDecalFs);
 	}
 
-	// Set the texture's mv matrix to scale by the texture size.
+	// Set the quad's mv matrix to scale by the texture size.
 	// With the pixel-mapping ortho projection set below, the texture will
 	// be rendered at actual size just like DrawTex*OES.
 	for (i = 0; i < 16; i++) {
@@ -311,13 +311,19 @@ void atResize_01_draw_texture (void* pAppData, int iWidth, int iHeight)
 
 	// Set up an orthographic projection where 1 = 1 pixel, and 0,0,0
 	// is at the center of the window.
-	atSetOrthoZeroAtCenterMatrix(pData->fPMatrix, -0.5f, iWidth - 0.5f,
-					 -0.5, iHeight - 0.5f,
+	atSetOrthoZeroAtCenterMatrix(pData->fPMatrix, 0.0f, (float)iWidth,
+					 0.0f, (float)iHeight,
 					 -1.0f, 1.0f);
 
-	// Scale the frame to fit inside the viewport
-    // Because rectangles are half-open in GL, a -1,-1 to +1,+1 line
-	// loop with identity MVP matrix loses the topmost & rightmost lines.
+	// Scale the frame to fill the viewport. To guarantee its lines
+	// appear we need to inset them by half-a-pixel hence the -1.
+    // [Lines at the edges of the clip volume may or may not appear
+	// depending on the OpenGL ES implementation. This is because
+	// (a) the edges are on the points of the diamonds of the diamond
+	//     exit rule and slight precision errors can easily push the
+	//     lines outside the diamonds.
+	// (b) the specification allows lines to be up to 1 pixel either
+	//     side of the exact position.]
 	pData->fFrameMvMatrix[0*4 + 0] = (float)(iWidth - 1) / 2;
 	pData->fFrameMvMatrix[1*4 + 1] = (float)(iHeight - 1) / 2;
 }

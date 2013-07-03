@@ -233,19 +233,25 @@ void atResize_01_draw_texture (void* pAppData, int iWidth, int iHeight)
 
 	// Set up an orthographic projection where 1 = 1 pixel, and 0,0,0
 	// is at the center of the window.
-	atSetOrthoZeroAtCenterMatrix(pData->fFramePMatrix, -0.5f, iWidth - 0.5f,
-					 -0.5, iHeight - 0.5f,
+	atSetOrthoZeroAtCenterMatrix(pData->fFramePMatrix, 0.0f, (float)iWidth,
+					 0.0, (float)iHeight,
 					 -1.0f, 1.0f);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(pData->fFramePMatrix);
 
 	glMatrixMode(GL_MODELVIEW);
-	// Scale the frame to fit inside the viewport
-    // Because rectangles are half-open in GL, a -1,-1 to +1,+1 line
-	// loop with identity MVP matrix loses the topmost & rightmost lines.
+	// Scale the frame to fill the viewport. To guarantee its lines
+	// appear we need to inset them by half-a-pixel hence the -1.
+    // [Lines at the edges of the clip volume may or may not appear
+	// depending on the OpenGL ES implementation. This is because
+	// (a) the edges are on the points of the diamonds of the diamond
+	//     exit rule and slight precision errors can easily push the
+	//     lines outside the diamonds.
+	// (b) the specification allows lines to be up to 1 pixel either
+	//     side of the exact position.]
 	glLoadIdentity();
-	glScalef((float)(iWidth - 3) / 2, (float)(iHeight - 3) / 2, 1);
+	glScalef((float)(iWidth - 1) / 2, (float)(iHeight - 1) / 2, 1);
 }
 
 /* ----------------------------------------------------------------------------- */
