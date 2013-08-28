@@ -501,7 +501,8 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		} else if (sizedFormats == _NO_SIZED_FORMATS)
 			glInternalFormat = header.glBaseInternalFormat;
 #else
-		// With only unsized formats must change internal format.
+		// When no sized formats are supported, or legacy sized formats are not
+		// supported, must change internal format.
 		if (sizedFormats == _NO_SIZED_FORMATS
 			|| (!(sizedFormats & _LEGACY_FORMATS) &&
 				(header.glBaseInternalFormat == GL_ALPHA	
