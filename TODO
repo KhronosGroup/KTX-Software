@@ -1,4 +1,3 @@
-
     KTX Project TO DO List
 
 	$Id$
@@ -8,6 +7,7 @@
     - ppm & reference ktx files for 1D textures
     - support 3D and array textures
     - ppm & reference ktx files for cubemap, 3D & array texture creation tests
+    - dds files as input; repackage images in KTX wrapper
 
     library testing
 
