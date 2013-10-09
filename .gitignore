@@ -1,0 +1,55 @@
+
+# /build/
+/build/*.tgz
+/build/*.zip
+/build/doc
+
+# /build/GNUmake/lib/
+/build/GNUmake/lib/*.d
+/build/GNUmake/lib/es1
+/build/GNUmake/lib/es2
+/build/GNUmake/lib/es3
+/build/GNUmake/lib/gl
+
+# /build/vc9/
+/build/vc9/*.ncb
+/build/vc9/*.suo
+/build/vc9/Debug*
+/build/vc9/Release*
+
+# /build/vc9/gl3_loadtests/
+/build/vc9/gl3_loadtests/Debug*
+/build/vc9/gl3_loadtests/Release*
+/build/vc9/gl3_loadtests/*.user
+
+# /build/vc9/gles1_loadtests/
+/build/vc9/gles1_loadtests/*.user
+/build/vc9/gles1_loadtests/Debug
+
+# /build/vc9/gles3_loadtests/
+/build/vc9/gles3_loadtests/Debug*
+/build/vc9/gles3_loadtests/Release*
+/build/vc9/gles3_loadtests/*.user
+
+# /build/vc9/libktx/
+/build/vc9/libktx/Debug*
+/build/vc9/libktx/Release*
+/build/vc9/libktx/*.user
+
+# /build/vc9/toktx/
+/build/vc9/toktx/*.user
+/build/vc9/toktx/Debug
+/build/vc9/toktx/Release
+
+# /include/
+/include/imdebug.h
+
+# /lib/
+/lib/src
+
+# /testimages/
+/testimages/*.png
+/testimages/Thumbs.db
+/testimages/hi_mark.ppm
+/testimages/hi_mark_sq.ppm
+/testimages/hi_mark_sq_unpack_alignment_1.ktx
