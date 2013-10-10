@@ -4,9 +4,10 @@
 /**
  * @file	main_linux_x11.c
  * @brief	Main loop, draw inside an egl window surface.
- * 		The EGL configuration is RGB565 with a 16Bit depth-buffer.
- *
- * @version $Revision$ on $Date::                            $
+ *          The EGL configuration is RGB565 with a 16-bit depth-buffer.
+ * 
+ * @warning This code has not been used with the current KTX load tests.
+ *          It is provided as a helpful starting point for a Linux port.
  */
 
 /*

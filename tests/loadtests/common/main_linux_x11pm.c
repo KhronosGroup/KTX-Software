@@ -2,16 +2,17 @@
 /* vi: set sw=2 ts=4: */
 
 /**
- * @file	main_linux_x11.c
+ * @file	main_linux_x11pm.c
  * @brief	Main loop, draw inside an egl pixmap surface.
- *      Blit to the screen using X11.
- * 		The EGL configuration is RGB565 with a 16Bit depth-buffer.
+ *          Blit to the screen using X11.
+ * 		    The EGL configuration is RGB565 with a 16-bit depth-buffer.
  *
- *		THIS SAMPLE IS NOT OPTIMIZED AND IS NOT A REFERENCE ON USING RENDERION
- *		ON X11 WINDOW SYSTEM. 
- *		DO NOT USE IN A REAL PRODUCT.
+ * @warning	THIS SAMPLE IS NOT OPTIMIZED AND IS NOT A REFERENCE ON USING
+ *          RENDERION OR ANY OTHER OPENGL IMPLEMENTATION ON X11 WINDOW SYSTEM. 
+ *		    DO NOT USE IN A REAL PRODUCT.
  *
- * @version $Revision$ on $Date::                            $
+ * @warning This code has not been used with the current KTX load tests.
+ *          It is provided as a helpful starting point for a Linux port.
  */
 
 /*

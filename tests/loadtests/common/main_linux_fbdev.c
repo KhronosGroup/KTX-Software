@@ -4,10 +4,10 @@
 /**
  * @file	main_linux_fbdev.c
  * @brief	Main loop, draw inside a Renderion client-pixmap (HI extension).
- *		Blit to the screen using fbdev.
- * 		The EGL configuration is RGB565 with a 16Bit depth-buffer.
- *
- * @version $Revision$ on $Date::                            $
+ *		    Blit to the screen using fbdev.
+ * 		    The EGL configuration is RGB565 with a 16-bit depth-buffer.
+ * @warning This code has not been used with the current KTX load tests.
+ *          It is provided as a helpful starting point for a Linux port.
  */
 
 /*
