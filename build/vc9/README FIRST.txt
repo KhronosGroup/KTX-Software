@@ -30,11 +30,11 @@
     above.
 
     You can edit the files, found in this vc9 folder, or you can edit
-    the macros within Visual Studio. Click the Properties tab, expand
-    an appropriate configuration (with GLES1, GLES2 or GL in the name
-    as desired) and double click the property sheet and in the properties
-    dialog that appears, select "User Macros." The property sheet names
-    corresponding to the above files are:
+    the macros within Visual Studio. Click the Properties Manager tab,
+    expand an appropriate configuration (with GLES1, GLES2 or GL in the
+    name as desired) and double click the property sheet and in the
+    properties dialog that appears, select "User Macros." The property
+    sheet names corresponding to the above files are:
 
     - OpenGL ES 1.1 Properties
     - OpenGL ES 2.0 Properties
