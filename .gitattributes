@@ -11,6 +11,9 @@
 
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
+*.vcproj text eol=crlf
+*.vsprops text eol=crlf
+build/vc9/* eol=crlf
 
 # Denote all files that are truly binary and should not be modified.
 *.png binary
