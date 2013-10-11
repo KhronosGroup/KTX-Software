@@ -26,9 +26,10 @@ tests/toktx-tests eol=lf
 TODO filter=dater
 build/vc9/README\ FIRST.txt filter=dater
 include/ktx.h filter=dater ident
-**/GNUMakefile ident
+**/GNUmakefile ident
 include/ktx.h filter=dater ident
 lib/*.[ch] ident
+lib/*.cxx ident
 tests/loadtests/common/at.[ch] ident
 tests/loadtests/common/egltowgl.c ident
 tests/loadtests/gles1/*.c ident

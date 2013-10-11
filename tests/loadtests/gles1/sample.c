@@ -1,7 +1,7 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
-/* $Id* */
+/* $Id$ */
 
 /**
  * @file	sample.h
