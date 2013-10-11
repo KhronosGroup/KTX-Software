@@ -23,11 +23,11 @@ build/vc9/* eol=crlf
 tests/toktx-tests eol=lf
 
 # Keyword expansion
-TODO filter=dater
-build/vc9/README\ FIRST.txt filter=dater
-include/ktx.h filter=dater ident
+TODO filter=kwexpander
+build/vc9/README\ FIRST.txt filter=kwexpander
+include/ktx.h filter=kwexpander ident
 GNUmakefile ident
-include/ktx.h filter=dater ident
+include/ktx.h filter=kwexpander ident
 lib/*.[ch] ident
 lib/*.cxx ident
 tests/loadtests/common/at.[ch] ident
@@ -36,4 +36,4 @@ tests/loadtests/gles1/*.c ident
 tests/loadtests/shader-based/*.c ident
 tools/toktx/*.cpp ident
 tools/toktx/*.h ident
-tools/toktx/toktx.cpp filter=dater ident
+tools/toktx/toktx.cpp filter=kwexpander ident

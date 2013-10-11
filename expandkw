@@ -1,0 +1,7 @@
+#! /bin/bash
+
+# Use as Git smudge filter to expand keywords. Currently
+# only $Date$ is supported.
+
+last_date=$(git log --pretty=format:"%ad" -1 HEAD -- $1)
+sed -e 's/\$Date.*\$/$Date: '"$last_date \$"/
