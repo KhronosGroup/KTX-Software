@@ -14,8 +14,8 @@
  * @author Georg Kolling, Imagination Technology
  * @author with modifications by Mark Callow, HI Corporation
  *
- * $Revision$
- * $Date::                            $
+ * $Id$
+ * $Date$
  *
  * @todo Find a way so that applications do not have to define KTX_OPENGL{,_ES*}
  *       when using the library.
@@ -126,7 +126,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @version 2.0
  *
- * $Date::                      $
+ * $Date$
  */
 
 #include <stdio.h>

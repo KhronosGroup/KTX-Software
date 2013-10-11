@@ -1,12 +1,11 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file	sample_02_cube_textured.c
  * @brief	Draw a textured cube.
- *
- * $Revision: 21082 $
- * $Date:: 2013-04-09 14:52:45 +0900 #$
  */
 
 /*

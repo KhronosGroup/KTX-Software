@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file errstr.c
  * @~English
@@ -8,9 +10,6 @@
  * @brief Function to return a string corresponding to a KTX error code.
  *
  * @author Mark Callow, HI Corporation
- *
- * $Revision$
- * $Date::                            $
  */
 
 /*

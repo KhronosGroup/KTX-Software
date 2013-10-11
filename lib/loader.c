@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file
  * @~English
@@ -9,9 +11,6 @@
  *
  * @author Georg Kolling, Imagination Technology
  * @author Mark Callow, HI Corporation
- *
- * $Revision$
- * $Date::                            $
  */
 
 /*

@@ -124,4 +124,4 @@
     Whatever the reason, the conclusion is avoid the Adreno SDK.
 
     --
-    $Revision$ on $Date::                            $
+    Last edited $Date$

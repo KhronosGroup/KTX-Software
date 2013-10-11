@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @internal
  * @file egltowgl.c
@@ -10,9 +12,6 @@
  *
  * @author Piers Daniell
  * @author Mark Callow
- *
- * $Revision: 21008 $
- * $Date:: 2013-04-02 16:29:06 +0900 #$
  */
 
 /*

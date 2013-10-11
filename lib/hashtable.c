@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file hashtable.c
  * @~English
@@ -9,9 +11,6 @@
  *        pairs.
  *
  * @author Mark Callow, HI Corporation
- *
- * $Revision: 11914 $
- * $Date:: 2010-07-12 17:46:23 +0900 #$
  */
 
 /*

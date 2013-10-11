@@ -6,8 +6,6 @@
  * @file	main_win32.c
  * @brief	Main loop for win32 / winCE/ win-mobile, draw inside an 
  *			egl window surface.
- *
- * @version $Revision$ on $Date::                            $
  */
 
 /*

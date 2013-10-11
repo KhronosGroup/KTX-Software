@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file writer.c
  * @~English
@@ -8,9 +10,6 @@
  * @brief Functions for creating KTX-format files from a set of images.
  *
  * @author Mark Callow, HI Corporation
- *
- * $Revision$
- * $Date::                            $
  */
 
 /*

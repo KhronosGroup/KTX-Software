@@ -1,7 +1,7 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
-/* $Revision$ on $Date::                            $ */
+/* $Id$ */
 
 /*
 Copyright (c) 2010 The Khronos Group Inc.

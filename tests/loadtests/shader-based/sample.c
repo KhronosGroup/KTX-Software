@@ -1,13 +1,11 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file	sample.h
  * @brief	List of the samples to be used.
- *
- * $Revision: 20138 $
- * $Date:: 2013-01-17 17:12:23 +0900 #$
- *
  */
 
 /*

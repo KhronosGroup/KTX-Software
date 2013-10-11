@@ -1,12 +1,11 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file	at.h
  * @brief	Simple interface to build applications using renderion.
- *
- * $Revision$
- * $Date::                            $
  */
 
 /*

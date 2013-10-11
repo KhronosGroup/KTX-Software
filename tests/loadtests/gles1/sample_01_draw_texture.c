@@ -1,15 +1,14 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id$ */
+
 /**
  * @file	sample_01_draw_texture.c
  * @brief	Tests DrawTexture functionality to see if the implementation
  *          applies the viewport transform to the supplied coordinates.
  *
  * @author	Mark Callow
- *
- * $Revision: 11851 $
- * $Date:: 2010-07-05 19:49:43 +0900 #$
  */
 
 /*

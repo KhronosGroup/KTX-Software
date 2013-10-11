@@ -10,9 +10,9 @@
 //! @author Mark Callow, HI Corporation, www.hicorp.co.jp
 //!
 //! @version 1.1
-//! $Date::                      $
+//! $Date$
 
-// $Revision$ on $Date::                            $
+// $Id$
 
 //
 // Copyright (c) 2010 The Khronos Group Inc.

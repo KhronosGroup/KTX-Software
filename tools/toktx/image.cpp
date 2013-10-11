@@ -1,6 +1,8 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4:
 
+// $Id$
+
 //!
 //! @internal
 //! @~English
@@ -10,9 +12,6 @@
 //!
 //! @author Mark Callow, HI Corporation.
 //! @author Jacob Str&oumlm, Ericsson AB.
-//!
-//! $Revision$
-//! $Date::                            $
 //!
 
 //

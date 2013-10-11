@@ -1,15 +1,14 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4:
 
+// $Id$
+
 //!
 //! @internal
 //! @~English
 //! @file image.h
 //!
 //! @brief Internal interface for netpbm file reader
-//!
-//! $Revision$
-//! $Date::                            $
 //!
 
 //

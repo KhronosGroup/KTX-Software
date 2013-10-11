@@ -29,7 +29,7 @@
 # ---------------------------------------------------------------
 
 # Author: Mark Callow, HI Corporation
-# $Revision$ $Date::                            $
+# $Id$
 
 depth := ../..
 version := 20
