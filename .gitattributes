@@ -24,7 +24,7 @@ tests/toktx-tests eol=lf
 
 # Keyword expansion
 TODO filter=kwexpander
-build/vc9/README\ FIRST.txt filter=kwexpander
+build/vc9/README[[:space:]]FIRST.txt filter=kwexpander
 include/ktx.h filter=kwexpander ident
 GNUmakefile ident
 include/ktx.h filter=kwexpander ident
