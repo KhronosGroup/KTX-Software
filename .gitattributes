@@ -25,14 +25,14 @@ tests/toktx-tests eol=lf
 # Keyword expansion
 TODO filter=dater
 build/vc9/README\ FIRST.txt filter=dater
-include/ktx.h filter=dater indent
-**/GNUMakefile indent
-include/ktx.h filter=dater indent
-lib/*.[ch] indent
-tests/loadtests/common/at.[ch] indent
-tests/loadtests/common/egltowgl.c indent
-tests/loadtests/gles1/*.c indent
-tests/loadtests/shader-based/*.c indent
-tools/toktx/*.cpp indent
-tools/toktx/*.h indent
-tools/toktx/toktx.cpp filter=dater indent
+include/ktx.h filter=dater ident
+**/GNUMakefile ident
+include/ktx.h filter=dater ident
+lib/*.[ch] ident
+tests/loadtests/common/at.[ch] ident
+tests/loadtests/common/egltowgl.c ident
+tests/loadtests/gles1/*.c ident
+tests/loadtests/shader-based/*.c ident
+tools/toktx/*.cpp ident
+tools/toktx/*.h ident
+tools/toktx/toktx.cpp filter=dater ident
