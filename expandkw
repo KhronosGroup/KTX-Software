@@ -3,11 +3,7 @@
 # Smudge driver for the kwexpander filter for expanding keywords. Currently
 # only $Date$ is supported.
 #
-# Add something like
-#    [filter "kwexpander"]
-#	smudge = $(git rev-parse --show-toplevel)/expandkw %f
-#	clean = sed -e 's/\\$Date.*\\$/$Date$/'
-# to .git/config.
+# See CONTRIBUTING.md for usage information.
 
 last_date=$(git log --pretty=format:"%ad" -1 HEAD -- "$1")
 sed -e 's/\$Date.*\$/$Date: '"$last_date \$"/
