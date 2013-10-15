@@ -16,7 +16,7 @@ A few of the source files have $Date$ keywords in them. If you are generating th
 	clean = sed -e 's/\\$Date.*\\$/$Date$/'
 ```
 
-If you would like to use $Date$ expansion in other projects then we recommend you copy expandkw to somewhere in your path, such /usr/local/bin and add the above to your ~/.gitconfig file instead, while changing the git rev-parse clause to simply
+If you would like to use $Date$ expansion in other projects then we recommend you copy expandkw to somewhere in your path, such as /usr/local/bin and add the above to your ~/.gitconfig file instead, while changing the git rev-parse clause to simply
 
 ```
 smudge = expandkw %f
