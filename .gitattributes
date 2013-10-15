@@ -19,8 +19,9 @@ build/vc9/* eol=crlf
 *.png binary
 *.jpg binary
 
-# Force line endings for specific files
+# Force line endings for unix shell scripts and other specific files
 tests/toktx-tests eol=lf
+expandkw eol=lf
 
 # Keyword expansion
 TODO filter=kwexpander
