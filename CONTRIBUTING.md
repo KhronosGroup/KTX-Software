@@ -13,9 +13,15 @@ A few of the source files have $Date$ keywords in them. If you are generating th
 [filter "kwexpander"]
 	# The rev-parse command returns the absolute path to the working tree top.
 	smudge = bash expandkw %f
-	clean = bash -c "sed -e 's/\\$Date.*\\$/$Date$/'"
+	clean = bash -c \"sed -e 's/\\$Date.*\\$/\\$Date\\$/'\"
 ```
-Assumes bash is in your PATH environment variable. On Unix/Linux/OSX, this is normally the case. On Windows, you will need Cygwin and must either add C:\cygwin\bin to %PATH% or prefix "bash" above with C:/cygwin/bin/.
+Assumes bash is in your PATH environment variable. On Unix/GNULinux/OSX, this is normally the case. On Windows, you will need Cygwin and must either add C:\cygwin\bin to %PATH% or prefix "bash" above with C:/cygwin/bin/.
+
+On Unix/GNULinux/OSX you can simply clean to simply
+
+```
+clean = sed -e 's/\\$Date.*\\$/\\$Date\\$/'
+```
 
 #### Using $Date$ expansion in other projects
 

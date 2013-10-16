@@ -6,4 +6,4 @@
 # See CONTRIBUTING.md for usage information.
 
 last_date=$(git log --pretty=format:"%ad" -1 HEAD -- "$1")
-sed -e 's/\$Date.*\$/$Date: '"$last_date \$"/
+sed -e 's/\$Date.*\$/\$Date: '"$last_date"' \$'/
