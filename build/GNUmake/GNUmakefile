@@ -34,8 +34,10 @@
 depth := ../..
 version := 20
 
-# Location of KTX home page
-ktxHomePage = $(depth)/../../../sdk/tools/KTX
+# Location of KTX home page.
+# Can pass Khronos SVN location through environment or make command.
+KHRONOS_SVN ?= ../khronos
+ktxHomePage ?= $(KHRONOS_SVN)/ogles/trunk/sdk/tools/KTX
 
 ktxPubInc := $(depth)/include
 ktxLibSrc := $(depth)/lib
@@ -88,11 +90,13 @@ help:
 	@echo "    dist          - build the .zip and .tgz files for distribution"
 	@echo "    help          - print this list of targets"
 	@echo "    updateKtxHome - runs dist, doc and toktxWin then updates the KTX"
-	@echo "                    page in the OpenGL ES SDK. Requires an SVN"
-	@echo "	                   workspace for the SDK on the same system"
+	@echo "                    page in the OpenGL ES SDK. Requires a workspace"
+	@echo "	                   for the SDK on the same system. Can specify"
+	@echo "                    KHRONOS_SVN or ktxHomePage in the make command"
+	@echo "	                   or environment"
 	@echo "    toktxWin      - build the windows binary of toktx"
 
-updateKtxHome: dist $(ktxLibDocOutDir)/html toktxWin
+updateKtxHome: $(ktxHomePage) dist $(ktxLibDocOutDir)/html toktxWin
 	cp -r $(ktxLibDocOutDir)/html/. $(ktxHomePage)/doc/libktx
 	cp $(ktxDistZip) $(ktxDistTgz) $(ktxHomePage)/downloads
 	cp $(toktxWinExe) $(ktxHomePage)/downloads
@@ -104,10 +108,10 @@ $(ktxLibDocOutDir)/html: $(depth)/$(ktxDoxyConfig) $(sources) $(headers)
 
 # Having to change directory to run zip means $@ cannot be used.
 $(ktxDistZip):
-	cd $(depth); zip --quiet -r $(ktxZipOut) $(distFiles) --exclude "*/.svn/*"
+	cd $(depth); zip --quiet -r $(ktxZipOut) $(distFiles) --exclude "*/.svn/*" "*/.git/*"
 
 $(ktxDistTgz):
-	cd $(depth); tar czf $(ktxTgzOut) $(distFiles) --exclude="*/.svn/*"
+	cd $(depth); tar czf $(ktxTgzOut) $(distFiles) --exclude-vcs
 
 # The project files in ktx.sln use user macros set in $(vc9)/gl.vsprops
 # to find the OpenGL include files and libraries. The macros use this
