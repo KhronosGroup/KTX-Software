@@ -23,8 +23,9 @@
 /build/vc9/gl3_loadtests/*.user
 
 # /build/vc9/gles1_loadtests/
+/build/vc9/gles1_loadtests/Debug*
+/build/vc9/gles1_loadtests/Release*
 /build/vc9/gles1_loadtests/*.user
-/build/vc9/gles1_loadtests/Debug
 
 # /build/vc9/gles3_loadtests/
 /build/vc9/gles3_loadtests/Debug*
