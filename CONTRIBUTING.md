@@ -16,7 +16,7 @@ A few of the source files have $Date$ keywords in them. If you are generating th
 [merge]
     renormalize = true
 ```
-Assumes bash is in your PATH environment variable. On Unix/GNULinux/OSX, this is normally the case. On Windows, you will need Cygwin and must either add C:\cygwin\bin to %PATH% or prefix "bash" above with C:/cygwin/bin/.
+Assumes bash is in a folder in your PATH environment variable. On Unix/GNULinux/OSX, this is normally the case. On Windows, you will need Cygwin and must either add C:\cygwin\bin to %PATH% or prefix "bash" above with C:/cygwin/bin/.
 
 On Unix/GNULinux/OSX you can change clean to simply
 
