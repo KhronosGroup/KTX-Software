@@ -1,13 +1,13 @@
 # Set default behaviour, in case users don't have core.autocrlf set.
-#* text=auto
+* text=auto
 
 # Explicitly declare text files we want to always be normalized and converted 
 # to native line endings on checkout.
-#*.cpp text
-#*.cxx text
-#*.c++ text
-#*.c text
-#*.h text
+*.cpp text
+*.cxx text
+*.c++ text
+*.c text
+*.h text
 
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
@@ -21,8 +21,8 @@ build/vc9/* eol=crlf
 *.ktx binary
 
 # Force line endings for unix shell scripts and other specific files
-#tests/toktx-tests eol=lf
-#expandkw eol=lf
+tests/toktx-tests eol=lf
+expandkw eol=lf
 
 # Keyword expansion
 TODO filter=kwexpander
