@@ -2,7 +2,7 @@
 The Official Khronos KTX Repository
 ---
 This is the offical home of the source code
-for the Khronos KTX libraries and tools.
+for the Khronos KTX library and tools.
 
 Download packages and live documentation can be
 found on the [KTX page](http://www.khronos.org/opengles/sdk/tools/KTX/) of
