@@ -39,6 +39,11 @@ declare -i failed=0
 # Ensure test is not polluted by user environment
 unset TOKTX_OPTIONS
 
+if [ ! -f "$toktx" ]; then
+  echo $0: $toktx not found. Aborting test
+  exit 1
+fi
+
 numtests=$numtests+1
 if $toktx --help 2> /dev/null; then
   passed=$passed+1
