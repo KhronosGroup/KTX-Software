@@ -131,7 +131,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 
-#include "KHR/khrplatform.h"
+#include <KHR/khrplatform.h>
 
 #if KTX_OPENGL
 
@@ -417,6 +417,11 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 
 /**
 @page history Revision History
+
+@section v4 Version XXX
+Fixed:
+@li compile warnings from compilers stricter than MS Visual C++. Thanks to
+    Pavel Rotjberg.
 
 @section v3 Version 2.0
 Added:

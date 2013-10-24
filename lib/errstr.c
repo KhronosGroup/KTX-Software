@@ -56,7 +56,7 @@ static const char* const errorStrings[] = {
 	"Not a KTX file",								  /* KTX_UNKNOWN_FILE_FORMAT */
 	"Texture type not supported by GL context"		  /* KTX_UNSUPPORTED_TEXTURE_TYPE */
 };
-static const int lastErrorCode = (sizeof(errorStrings) / sizeof(wchar_t*)) - 1;
+static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
 
 
 /**

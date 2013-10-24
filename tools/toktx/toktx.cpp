@@ -52,6 +52,7 @@
 #include "stdafx.h"
 #include "ktx.h"
 #include "image.h"
+#include <cstdlib>
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
@@ -164,7 +165,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	int exitCode = 0, face, i;
 	unsigned int levelWidth, levelHeight;
 	FileResult readResult;
-	boolean useStdin = false;
+	bool useStdin = false;
 	unsigned char* kvData = NULL;
 	unsigned int kvDataLen = 0;
 

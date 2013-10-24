@@ -48,7 +48,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxint.h"
 
 static GLint sizeofGLtype(GLenum type);
-static GLint groupSize(GLenum format, GLenum type, GLint* elementBytes);
+static GLint groupSize(GLenum format, GLenum type, GLuint* elementBytes);
 
 
 /**
@@ -178,9 +178,6 @@ ktxWriteKTXF(FILE* dst, const KTX_texture_info* textureInfo,
 		return KTX_INVALID_VALUE;
 	}
 
-	if (header.numberOfArrayElements < 0 || header.numberOfMipmapLevels < 0)
-		return KTX_INVALID_VALUE;
-
 	if (header.numberOfArrayElements == 0)
 	{
 		numArrayElements = 1;
@@ -253,7 +250,7 @@ ktxWriteKTXF(FILE* dst, const KTX_texture_info* textureInfo,
 		if (!compressed && elementBytes < KTX_GL_UNPACK_ALIGNMENT) {
 			rowBytes = KTX_GL_UNPACK_ALIGNMENT / elementBytes;
 			/* The following statement is equivalent to:
-			/*     packedRowBytes *= ceil((groupBytes * width) / KTX_GL_UNPACK_ALIGNMENT);
+			 *     packedRowBytes *= ceil((groupBytes * width) / KTX_GL_UNPACK_ALIGNMENT);
 			 */
 			rowBytes *= ((groupBytes * pixelWidth) + (KTX_GL_UNPACK_ALIGNMENT - 1)) / KTX_GL_UNPACK_ALIGNMENT;
 			rowRounding = rowBytes - packedRowBytes;
@@ -369,7 +366,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  *          is invalid.
  */
 static GLint
-groupSize(GLenum format, GLenum type, GLint* elementBytes)
+groupSize(GLenum format, GLenum type, GLuint* elementBytes)
 {
 	switch (format) {
 	case GL_ALPHA:

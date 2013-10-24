@@ -144,6 +144,13 @@ static GLint R16Formats = _KTX_ALL_R16_FORMATS;
  */
 static GLboolean supportsSRGB = GL_TRUE;
 
+/**
+ * @private
+ * ~English
+ * @brief workaround mismatch of glGetString declaration and standard string
+ *        function parameters.
+ */
+#define glGetString(x) (const char*)glGetString(x)
 
 /**
  * @private
@@ -239,11 +246,11 @@ static void discoverContextCapabilities(void)
  * @return void unrecognized formats will be passed on to OpenGL. Any loading error
  *              that arises will be handled in the usual way.
  */           
-static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat) {
+static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalFormat) {
 	switch (*pFormat) {
 	  case GL_ALPHA:
 		{
-		  GLenum swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
+		  GLint swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
@@ -260,7 +267,7 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 		}
 	  case GL_LUMINANCE:
 		{
-		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
@@ -274,7 +281,8 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 			  *pInternalFormat = GL_R16;
 			  break;
 #if 0
-		    // XXX Must avoid doing the swizzle in these cases
+		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
+            // XXX Must manually swizzle.
 			case GL_SLUMINANCE:
 			case GL_SLUMINANCE8:
 			  *pInternalFormat = GL_SRGB8;
@@ -285,7 +293,7 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 		}
 	  case GL_LUMINANCE_ALPHA:
 		{
-		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
+		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
 		  *pFormat = GL_RG;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
@@ -301,7 +309,8 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 			  *pInternalFormat = GL_RG16;
 			  break;
 #if 0
-		    // XXX Must avoid doing the swizzle in these cases
+		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
+            // XXX Must manually swizzle.
 			case GL_SLUMINANCE_ALPHA:
 			case GL_SLUMINANCE8_ALPHA8:
 			  *pInternalFormat = GL_SRGB8_ALPHA8;
@@ -312,7 +321,7 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 		}
 	  case GL_INTENSITY:
 		{
-		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
+		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
