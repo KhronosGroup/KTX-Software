@@ -138,6 +138,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#ifdef _WIN32
 	  #include <windows.h>
 	  #include <GL/glew.h>
+    #elif KTX_USE_GETPROC
+      #include <GL/glew.h>
     #else
       #define GLCOREARB_PROTOTYPES
       #include <GL/glcorearb.h>

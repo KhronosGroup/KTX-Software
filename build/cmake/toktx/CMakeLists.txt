@@ -7,7 +7,12 @@ set(DEPTH ../${DEPTH})
 
 # toktx is compiled using OpenGL includes so it has access to
 # the enums for all defined GL formats and types.
-if(NOT TOKTX_GL_HEADER)
+if(TOKTX_GL_HEADER)
+  set(glheader ${${TOKTX_GL_HEADER}_PATH})
+  if(${glheader} STREQUAL ".*-NOTFOUND")
+	message(FATAL_ERROR "Selected \"${TOKTX_GL_HEADER}_PATH\" path not found. Please set it or select a different TOKTX_GL_HEADER.")
+  endif()
+else()
   if(GLCORE_PATH AND GLEW_PATH)
 	set(glheader "GLCORE")
 	message("Both glcorearb.h and glew.h found. Set TOKTX_GL_HEADER to override\n"
@@ -24,6 +29,10 @@ if(NOT TOKTX_GL_HEADER)
 endif()
 
 add_definitions(-DKTX_OPENGL=1)
+if(TOKTX_GL_HEADER STREQUAL "GLEW")
+  add_definitions(-DKTX_USE_GETPROC=1)
+endif()
+
 
 # Add GL_PATH because it is not in the standard compiler search path
 # on all OS platforms.

@@ -27,8 +27,7 @@ else()
   endforeach()
 
   if(${num_paths} EQUAL 0)
-    message(FATAL_ERROR "Can't find a GL platform to build libktx. Please set one of the"
-                      " GL{CORE,EW,ES[123]} paths to a folder containing a GL header directory root.")
+    message(FATAL_ERROR "Can't find a GL platform to build libktx. Please set one of GL{CORE,EW,ES[123]}_PATH to a folder containing a GL header directory root.")
   elseif(${num_paths} GREATER 1)
 	# Arbitrary priority
 	if(GLCORE_PATH)
@@ -68,6 +67,9 @@ elseif (KTX_GL_PLATFORM STREQUAL "GLES2")
 elseif (KTX_GL_PLATFORM STREQUAL "GLES3")
     add_definitions(-DKTX_OPENGL_ES3=1)
 endif ()
+if(KTX_GL_PLATFORM STREQUAL "GLEW")
+  add_definitions(-DKTX_USE_GETPROC=1)
+endif()
 
 file(GLOB ktx_SRC ${DEPTH}/lib/*.c*)
 include_directories(${DEPTH}/include)
