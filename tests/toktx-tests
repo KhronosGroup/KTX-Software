@@ -31,6 +31,7 @@
 
 toktx_vc9=../build/vc9/Release/toktx.exe
 toktx_cmake=../build/cmake/toktx/toktx
+toktx_gmake=../build/GNUmake/toktx/toktx
 testimages=../testimages
 
 declare -i numtests=0
@@ -42,10 +43,13 @@ unset TOKTX_OPTIONS
 
 if [ -x "$toktx_vc9" ]; then
   toktx=$toktx_vc9
+elif [ -x "$toktx_gmake" ]; then
+  toktx=$toktx_cmake
 elif [ -x "$toktx_cmake" ]; then
   toktx=$toktx_cmake
 else
-  echo $0: Neither $toktx_cvc9 nor $toktx_cmake found. Aborting test
+  echo $0: None of $toktx_vc9, $toktx_gmake or $toktx_cmake found.
+  echo $0: Aborting test
   exit 1
 fi
 
