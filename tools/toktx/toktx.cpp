@@ -60,6 +60,37 @@
 #  define IMAGE_DEBUG 0
 #endif
 
+#define ALLOW_LEGACY_FORMAT_CREATION 1
+
+#if ALLOW_LEGACY_FORMAT_CREATION
+#ifndef GL_LUMINANCE
+#define GL_LUMINANCE					0x1909
+#define GL_LUMINANCE_ALPHA				0x190A
+#endif
+#ifndef GL_LUMINANCE4
+#define GL_ALPHA4						0x803B
+#define GL_ALPHA8						0x803C
+#define GL_ALPHA12						0x803D
+#define GL_ALPHA16						0x803E
+#define GL_LUMINANCE4					0x803F
+#define GL_LUMINANCE8					0x8040
+#define GL_LUMINANCE12					0x8041
+#define GL_LUMINANCE16					0x8042
+#define GL_LUMINANCE4_ALPHA4			0x8043
+#define GL_LUMINANCE6_ALPHA2			0x8044
+#define GL_LUMINANCE8_ALPHA8			0x8045
+#define GL_LUMINANCE12_ALPHA4			0x8046
+#define GL_LUMINANCE12_ALPHA12			0x8047
+#define GL_LUMINANCE16_ALPHA16			0x8048
+#endif
+#ifndef GL_SLUMINANCE
+#define GL_SLUMINANCE_ALPHA				0x8C44
+#define GL_SLUMINANCE8_ALPHA8			0x8C45
+#define GL_SLUMINANCE					0x8C46
+#define GL_SLUMINANCE8					0x8C47
+#endif
+#endif /* ALLOW_LEGACY_FORMAT_CREATION */
+
 struct commandOptions {
 	_TCHAR*		 appName;
 	bool		 alpha;
@@ -102,19 +133,23 @@ usage(_TCHAR* appName)
 		"\n"
         "  Options are:\n"
 		"\n"
+#if ALLOW_LEGACY_FORMAT_CREATION
 		"  --alpha      Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam\n"
 		"               infiles. The default is to create RED textures. This is ignored\n"
 		"               for files with 2 or more channels. This option is mutually\n"
 		"               exclusive with --luminance.\n"
+#endif
         "  --automipmap A mipmap pyramid will be automatically generated when the KTX\n"
         "               file is loaded. This option is mutually exclusive with --mipmap.\n"
         "  --cubemap    KTX file is for a cubemap. At least 6 <infile>s must be provided,\n"
         "               more if --mipmap is also specified. Provide the images in the\n"
 		"               order: +X, -X, +Y, -Y, +Z, -Z.\n"
+#if ALLOW_LEGACY_FORMAT_CREATION
         "  --luminance  Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and\n"
 		"               1 or 2 channel GRAYSCALE .pam infiles. The default is to create\n"
 		"               RED or RG textures. This option is mutually exclusive with\n"
 		"               --alpha.\n"
+#endif
         "  --mipmap     KTX file is for a mipmap pyramid. One <infile> per level must\n"
         "               be provided. Provide the base-level image first then in order\n"
 		"               down to the 1x1 image. This option is mutually exclusive with\n"
@@ -244,13 +279,13 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 					switch (components) {
 					  case 1:
-						if (options.luminance) {
+						if (ALLOW_LEGACY_FORMAT_CREATION && options.luminance) {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE;
 							if (options.sized)
 								tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8 : GL_LUMINANCE16;
 							else
 								tinfo.glInternalFormat = GL_LUMINANCE;
-						} else if (options.alpha) {
+						} else if (ALLOW_LEGACY_FORMAT_CREATION && options.alpha) {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_ALPHA;
 							if (options.sized)
 								tinfo.glInternalFormat = componentSize == 1 ? GL_ALPHA8 : GL_ALPHA16;
@@ -266,7 +301,7 @@ int _tmain(int argc, _TCHAR* argv[])
 						break;
 
 					  case 2:
-						if (options.luminance) {
+						if (ALLOW_LEGACY_FORMAT_CREATION && options.luminance) {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE_ALPHA;
 							if (options.sized)
 								tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
@@ -414,7 +449,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	int i, addktx = 0;
 	unsigned int outfilenamelen;
 	const _TCHAR* toktx_options;
-	_TCHAR option[30];
+	_TCHAR option[31];
 
 	options.alpha = false;
 	options.automipmap = false;
@@ -437,7 +472,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	options.appName++;
 
 	toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
-	while (toktx_options && _stscanf(toktx_options, "%30s", &option) != EOF) {
+	while (toktx_options && _stscanf(toktx_options, "%30s", (char*)&option) != EOF) {
 		if (!processOption(option, options)) {
 			fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable\n");
 			usage(options.appName);
@@ -512,7 +547,7 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 			version(options.appName);
 			exit(0);
 		} else if (_tcscmp(&option[2], "alpha") == 0) {
-			if (options.luminance) {
+			if (!ALLOW_LEGACY_FORMAT_CREATION || options.luminance) {
 				usage(options.appName);
 				exit(1);
 			}
@@ -532,7 +567,7 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 		} else if (_tcscmp(&option[2], "cubemap") == 0) {
 			options.cubemap = true;
 		} else if (_tcscmp(&option[2], "luminance") == 0) {
-			if (options.alpha) {
+			if (!ALLOW_LEGACY_FORMAT_CREATION || options.alpha) {
 				usage(options.appName);
 				exit(1);
 			}

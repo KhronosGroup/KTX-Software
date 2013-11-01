@@ -29,7 +29,8 @@
 # 
 # ---------------------------------------------------------------
 
-toktx=../build/vc9/Release/toktx.exe
+toktx_vc9=../build/vc9/Release/toktx.exe
+toktx_cmake=../build/cmake/toktx/toktx
 testimages=../testimages
 
 declare -i numtests=0
@@ -39,8 +40,12 @@ declare -i failed=0
 # Ensure test is not polluted by user environment
 unset TOKTX_OPTIONS
 
-if [ ! -f "$toktx" ]; then
-  echo $0: $toktx not found. Aborting test
+if [ -x "$toktx_vc9" ]; then
+  toktx=$toktx_vc9
+elif [ -x "$toktx_cmake" ]; then
+  toktx=$toktx_cmake
+else
+  echo $0: Neither $toktx_cvc9 nor $toktx_cmake found. Aborting test
   exit 1
 fi
 

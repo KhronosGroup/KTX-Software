@@ -72,7 +72,7 @@ vpath %.h $(ktxPubInc) $(ktxLibSrc)
 vpath %.c $(ktxLibSrc)
 vpath %.cxx $(ktxLibSrc)
 
-SUBDIRS = lib #toktx gles1_loadtests
+SUBDIRS = libktx #toktx gles1_loadtests
 
 .PHONY: clean clobber doc dist help $(ktxDistZip) $(ktxDistTgz) $(SUBDIRS)
 .PHONY: updateKtxHome toktxWin
