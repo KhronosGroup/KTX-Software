@@ -29,7 +29,8 @@
 # 
 # ---------------------------------------------------------------
 
-toktx=../build/vc9/Release/toktx.exe
+#toktx=../build/vc9/Release/toktx.exe
+toktx=../build/cmake/toktx/toktx
 testimages=../testimages
 
 declare -i numtests=0
