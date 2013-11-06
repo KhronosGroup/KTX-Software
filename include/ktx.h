@@ -421,7 +421,15 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 @page history Revision History
 
 @section v4 Version XXX
+Added:
+@li CMake build files. Thanks to Pavel Rotjberg for the initial version.
+
+Changed:
+@li ktxWriteKTXF to check the validity of the type & format combinations
+    passed to it.
+
 Fixed:
+@li Public Bugzilla <a href="http://www.khronos.org/bugzilla/show_bug.cgi?id=999">999</a>: 16-bit luminance texture cannot be written.
 @li compile warnings from compilers stricter than MS Visual C++. Thanks to
     Pavel Rotjberg.
 

@@ -47,8 +47,11 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktx.h"
 #include "ktxint.h"
 
-static GLint sizeofGLtype(GLenum type);
-static GLint groupSize(GLenum format, GLenum type, GLuint* elementBytes);
+static KTX_error_code validateTypeAndFormat(GLenum format, GLenum type);
+static KTX_error_code sizeofGroupAndElement(GLenum format, GLenum type,
+											GLuint* groupBytes, GLuint* elementBytes,
+											GLboolean* packed);
+static KTX_error_code sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed);
 
 
 /**
@@ -76,6 +79,7 @@ static GLint groupSize(GLenum format, GLenum type, GLuint* elementBytes);
  *                              && pixelHeight == 0.
  * @exception KTX_INVALID_VALUE @c numberOfFaces != 1 || numberOfFaces != 6 or
  *                              numberOfArrayElements or numberOfMipmapLevels are < 0.
+ * @exception KTX_INVALID_VALUE @c glType in @p textureInfo is an unrecognized type.
  * @exception KTX_INVALID_OPERATION
  *                              numberOfFaces == 6 and images are either not 2D or
  *                              are not square.
@@ -86,6 +90,10 @@ static GLint groupSize(GLenum format, GLenum type, GLuint* elementBytes);
  *                              the size of a provided image is different than that
  *                              required for the specified width, height or depth
  *                              or for the mipmap level being processed.
+ * @exception KTX_INVALID_OPERATION
+ *								@c glType and @c glFormat in @p textureInfo are mismatched.
+ *								See OpenGL 4.4 specification section 8.4.4 and
+ *                              table 8.5.
  * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the file.
  */
 KTX_error_code
@@ -99,6 +107,7 @@ ktxWriteKTXF(FILE* dst, const KTX_texture_info* textureInfo,
 	GLbyte pad[4] = { 0, 0, 0, 0 };
 	KTX_error_code errorCode = KTX_SUCCESS;
 	GLboolean compressed = GL_FALSE;
+	GLuint groupBytes, elementBytes;
 	
 	if (!dst) {
 		return KTX_INVALID_VALUE;
@@ -124,21 +133,46 @@ ktxWriteKTXF(FILE* dst, const KTX_texture_info* textureInfo,
 		header.glTypeSize != 2 &&
 		header.glTypeSize != 4)
 	{
-		/* Only 8, 16, and 32-bit types supported so far */
+		/* Only 8, 16, and 32-bit types are supported for byte-swapping. 
+		 * See UNPACK_SWAP_BYTES & table 8.4 in the OpenGL 4.4 spec.
+		 */
 		return KTX_INVALID_VALUE;
 	}
-	if (header.glTypeSize != sizeofGLtype(header.glType))
-		return KTX_INVALID_VALUE;
 
 	if (header.glType == 0 || header.glFormat == 0)
 	{
 		if (header.glType + header.glFormat != 0) {
-			/* either both or none of glType & glFormat must be zero */
+			/* either both or neither of glType & glFormat must be zero */
 			return KTX_INVALID_VALUE;
 		} else
 			compressed = GL_TRUE;
-
 	}
+	else
+	{
+		GLboolean packed;
+
+		/* Get size of group and element */
+		if ((errorCode = sizeofGroupAndElement(header.glFormat, header.glType,
+											   &groupBytes, &elementBytes, &packed)) != KTX_SUCCESS)
+		{
+			return errorCode;
+		}
+
+		/* Check validity of type/format combination for packed types */
+		if (packed && (errorCode = validateTypeAndFormat(header.glFormat, header.glType)) != KTX_SUCCESS)
+		{
+			return errorCode;
+		}
+
+		if (header.glTypeSize != elementBytes)
+		{
+#if defined(GL_FLOAT_32_UNSIGNED_INT_24_8_REV)
+			if (header.glType != GL_FLOAT_32_UNSIGNED_INT_24_8_REV || header.glTypeSize != 1)
+#endif
+			return KTX_INVALID_VALUE;
+		}
+	}
+
 
 	/* Check texture dimensions. KTX files can store 8 types of textures:
      * 1D, 2D, 3D, cube, and array variants of these. There is currently
@@ -224,12 +258,8 @@ ktxWriteKTXF(FILE* dst, const KTX_texture_info* textureInfo,
 	/* Write the image data */
 	for (level = 0, i = 0; level < numMipmapLevels; ++level)
 	{
-		GLuint elementBytes;
 		GLsizei expectedFaceSize;
 		GLuint face, faceLodSize, faceLodRounding;
-		GLuint groupBytes = groupSize(header.glFormat,
-									  header.glType,
-								      &elementBytes);
 		GLuint pixelWidth, pixelHeight, pixelDepth;
 		GLuint packedRowBytes, rowBytes, rowRounding;
 
@@ -247,13 +277,13 @@ ktxWriteKTXF(FILE* dst, const KTX_texture_info* textureInfo,
 		rowRounding = 0;
 		packedRowBytes = groupBytes * pixelWidth;
 		/* KTX format specifies UNPACK_ALIGNMENT==4 */
+		/* GL spec: rows are not to be padded when elementBytes != 1, 2, 4 or 8.
+		 * As GL currently has no such elements, no test is necessary.
+		 */
 		if (!compressed && elementBytes < KTX_GL_UNPACK_ALIGNMENT) {
-			rowBytes = KTX_GL_UNPACK_ALIGNMENT / elementBytes;
-			/* The following statement is equivalent to:
-			 *     packedRowBytes *= ceil((groupBytes * width) / KTX_GL_UNPACK_ALIGNMENT);
-			 */
-			rowBytes *= ((groupBytes * pixelWidth) + (KTX_GL_UNPACK_ALIGNMENT - 1)) / KTX_GL_UNPACK_ALIGNMENT;
-			rowRounding = rowBytes - packedRowBytes;
+			// Equivalent to UNPACK_ALIGNMENT * ceil((groupSize * pixelWidth) / UNPACK_ALIGNMENT)
+			rowRounding = 3 - ((packedRowBytes + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
+			rowBytes = packedRowBytes + rowRounding;
 		}
 
 		if (rowRounding == 0) {
@@ -357,86 +387,237 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
 
 
 /*
- * @brief Return the size of the group of elements constituting a pixel.
+ * @brief Check format and type matching as required by OpenGL.
  *
  * @param [in] format	the format of the image data
  * @param [in] type		the type of the image data
  *
- * @return	the size in bytes or < 0 if the type, format or combination
- *          is invalid.
+ * @return	KTX_SUCCESS if matched, KTX_INVALID_OPERATION, if mismatched
+ *			or KTX_INVALID_VALUE if @p type is invalid.
  */
-static GLint
-groupSize(GLenum format, GLenum type, GLuint* elementBytes)
+static KTX_error_code
+validateTypeAndFormat(GLenum format, GLenum type)
 {
+	KTX_error_code retVal = KTX_SUCCESS;
+
+	if ((format >= GL_RED_INTEGER && format <= GL_BGRA_INTEGER) && (type == GL_FLOAT || type == GL_HALF_FLOAT))
+	{
+		retVal = KTX_INVALID_OPERATION; // Note: OpenGL 4.4 says GL_INVALID_VALUE but we'll mirror the others.
+	}
+
+	switch (type)
+	{
+		case GL_UNSIGNED_BYTE_3_3_2:
+		case GL_UNSIGNED_BYTE_2_3_3_REV:
+			if (format != GL_RGB && format != GL_RGB_INTEGER)
+				retVal = KTX_INVALID_OPERATION; // Matches OpenGL 4.4
+			break;
+
+		case GL_UNSIGNED_SHORT_5_6_5:
+		case GL_UNSIGNED_SHORT_5_6_5_REV:
+			if (format != GL_RGB && format != GL_RGB_INTEGER)
+				retVal = KTX_INVALID_OPERATION;
+			break;
+
+		case GL_UNSIGNED_SHORT_4_4_4_4:
+		case GL_UNSIGNED_SHORT_5_5_5_1:
+		case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+			if (format != GL_RGBA && format != GL_BGRA
+				&& format != GL_RGBA_INTEGER && format != GL_BGRA_INTEGER)
+			{
+				retVal = KTX_INVALID_OPERATION;
+			}
+			break;
+
+		case GL_UNSIGNED_INT_8_8_8_8:
+		case GL_UNSIGNED_INT_8_8_8_8_REV:
+		case GL_UNSIGNED_INT_10_10_10_2:
+		case GL_UNSIGNED_INT_2_10_10_10_REV:
+			if (format != GL_RGBA && format != GL_BGRA
+				&& format != GL_RGBA_INTEGER && format != GL_BGRA_INTEGER)
+			{
+				retVal = KTX_INVALID_OPERATION;
+			}
+			break;
+
+		case GL_UNSIGNED_INT_24_8:
+			if (format != GL_DEPTH_STENCIL)
+				retVal = KTX_INVALID_OPERATION;
+			break;
+
+		case GL_UNSIGNED_INT_10F_11F_11F_REV:
+		case GL_UNSIGNED_INT_5_9_9_9_REV:
+			if (format != GL_RGB && format != GL_BGR)
+				retVal = KTX_INVALID_OPERATION;
+			break;
+
+		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+			// Note: OpenGL 4.4 says GL_INVALID_VALUE in one place,
+			// GL_INVALID_OPERATION in another. The latter is more logical.
+			retVal = KTX_INVALID_OPERATION;
+
+		default:
+			retVal = KTX_INVALID_VALUE;
+	}
+
+	return retVal;
+}
+
+
+/*
+ * @brief Get the size of the group of elements constituting a pixel in
+ *        the given @p type and @p format and the size of an element.
+ *
+ * Sizes are returned in basic machine units (bytes). The function also
+ * indicates if @type is a packed pixel format.
+ *
+ * @param [in]  format		the format of the image data
+ * @param [in]  type		the type of the image data
+ * @param [out] groupBytes	pointer to location where to write the size of a group
+ * @param [out] size		pointer to location where to write the size of an element
+ * @param [out] packed		pointer to location where to write flag indicating
+ *							if the type is a packed type.
+ *
+ * @return	KTX_INVALID_VALUE if the @p type or @p format is invalid.
+ */
+static KTX_error_code
+sizeofGroupAndElement(GLenum format, GLenum type, GLuint* groupBytes,
+					  GLuint* elementBytes, GLboolean* packed)
+{
+	KTX_error_code retVal;
+
+	if ((retVal = sizeofGLtype(type, elementBytes, packed)) != KTX_SUCCESS)
+	{
+		return retVal;
+	}
+
+	if (*packed)
+	{
+		*groupBytes = *elementBytes;
+		return retVal;
+	}
+
 	switch (format) {
 	case GL_ALPHA:
-    #if defined(GL_RED)
 	case GL_RED:
 	case GL_GREEN:
 	case GL_BLUE:
-    #endif
-	case GL_LUMINANCE:
-		return (*elementBytes = sizeofGLtype(type));
+	case GL_LUMINANCE: /* deprecated but needed for ES 1 & 2 */
+	case GL_ALPHA_INTEGER:
+	case GL_RED_INTEGER:
+	case GL_GREEN_INTEGER:
+	case GL_BLUE_INTEGER:
+	/* case GL_LUMINANCE_INTEGER: deprecated */
+		*groupBytes = *elementBytes;
 		break;
 	case GL_LUMINANCE_ALPHA:
-    #if defined(GL_RG)
 	case GL_RG:
-    #endif
-		return (*elementBytes = sizeofGLtype(type)) * 2;
+	/* case GL_LUMINANCE_ALPHA_INTEGER: deprecated */
+	case GL_RG_INTEGER:
+		*groupBytes = *elementBytes * 2;
 		break;
 	case GL_RGB:
-    #if defined(GL_BGR)
 	case GL_BGR:
-    #endif
-		if(type == GL_UNSIGNED_SHORT_5_6_5) return (*elementBytes = 2);
-		else                                return (*elementBytes = sizeofGLtype(type)) * 3;
+	case GL_RGB_INTEGER:
+	case GL_BGR_INTEGER:
+		*groupBytes = *elementBytes * 3;
 		break;
 	case GL_RGBA:
-    #if defined(GL_BGRA)
 	case GL_BGRA:
-    #endif
-		if(type == GL_UNSIGNED_SHORT_4_4_4_4 || type == GL_UNSIGNED_SHORT_5_5_5_1)
-			return (*elementBytes = 2);
-		else
-			return (*elementBytes = sizeofGLtype(type)) * 4;
+	case GL_RGBA_INTEGER:
+	case GL_BGRA_INTEGER:
+		*groupBytes = *elementBytes * 4;
 		break;
 	default:
-		break;
+		retVal = KTX_INVALID_VALUE;
 	}
 
-	return -1;
+	return retVal;
 }
 
 /*
- * @brief Return the sizeof the GL type in basic machine units
+ * @brief Get the size of a GL type in basic machine units
+ *        and indicate whether or not it is a packed type.
+ *
+ * @param [in]  type	the type whose size is to be returned.
+ * @param [out] size	pointer to location where to write the size
+ * @param [out] packed	pointer to location where to write flag indicating
+ *                      if the type is a packed type.
+ *
+ * @return KTX_INVALID_VALUE if the @p type is unrecognized.
  */
-static GLint
-sizeofGLtype(GLenum type)
+static KTX_error_code
+sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
 {
+	assert(packed && size);
+	*packed = GL_FALSE;
+
 	switch (type) {
 		case GL_BYTE:
-			return sizeof(GLbyte);
+			*size = sizeof(GLbyte);
+			break;
+
 		case GL_UNSIGNED_BYTE:
-			return sizeof(GLubyte);
+			*size = sizeof(GLubyte);
+			break;
+
+		case GL_UNSIGNED_BYTE_3_3_2:
+		case GL_UNSIGNED_BYTE_2_3_3_REV:
+			*packed = GL_TRUE;
+			*size = sizeof(GLubyte);
+			break;
+
 		case GL_SHORT:
-			return sizeof(GLshort);
+			*size = sizeof(GLshort);
+			break;
+
 		case GL_UNSIGNED_SHORT:
-			return sizeof(GLushort);
-        #if defined(GL_INT)
+		case GL_UNSIGNED_SHORT_5_6_5:
+		case GL_UNSIGNED_SHORT_4_4_4_4:
+		case GL_UNSIGNED_SHORT_5_5_5_1:
+		case GL_UNSIGNED_SHORT_5_6_5_REV:
+		case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+			*packed = GL_TRUE;
+			*size = sizeof(GLushort);
+			break;
+
 		case GL_INT:
-			return sizeof(GLint);
-		#endif
-        #if defined(GL_UNSIGNED_INT)
+			*size = sizeof(GLint);
+			break;
+
 		case GL_UNSIGNED_INT:
-			return sizeof(GLuint);
-		#endif
-        #if defined(GL_HALF_FLOAT)
+			*size = sizeof(GLuint);
+			break;
+
+		case GL_UNSIGNED_INT_8_8_8_8:
+		case GL_UNSIGNED_INT_8_8_8_8_REV:
+		case GL_UNSIGNED_INT_10_10_10_2:
+		case GL_UNSIGNED_INT_2_10_10_10_REV:
+		case GL_UNSIGNED_INT_24_8:
+		case GL_UNSIGNED_INT_10F_11F_11F_REV:
+		case GL_UNSIGNED_INT_5_9_9_9_REV:
+			*packed = GL_TRUE;
+			*size = sizeof(GLuint);
+			break;
+
 		case GL_HALF_FLOAT:
-			return sizeof(GLhalf);
-		#endif
+			*size = sizeof(GLhalf);
+			break;
+
 		case GL_FLOAT:
-			return sizeof(GLfloat);
+			*size = sizeof(GLfloat);
+			break;
+
+		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+			*packed = GL_TRUE;
+			*size = sizeof(GLfloat) + sizeof(GLint);
+			break;
+
+		default:
+			return KTX_INVALID_VALUE;
 	}
-	return -1;
+	return KTX_SUCCESS;
 }
 

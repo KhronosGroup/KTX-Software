@@ -120,10 +120,10 @@ extern GLboolean _ktxSupportsSRGB;
 
 
 /*
- * These defines are needed to compile the KTX library.
- * When these things are not available in the GL version in
- * use at runtime, the library either provides its own support
- * or handles the expected errors.
+ * These defines are needed to compile the KTX library. When
+ * these things are not available in the GL header in use at
+ * compile time, the library provides its own support, handles
+ * the expected run-time errors or just needs the token value.
  */
 #ifndef GL_LUMINANCE
 #define GL_ALPHA						0x1906
@@ -183,14 +183,59 @@ extern GLboolean _ktxSupportsSRGB;
 #define GL_GENERATE_MIPMAP              0x8191
 #endif
 
-#ifndef GL_UNSIGNED_SHORT_5_6_5
-#define GL_UNSIGNED_SHORT_5_6_5         0x8363
+/* For writer.c */
+#if !defined(GL_BGR)
+#define GL_BGR							0x80E0
+#define GL_BGRA							0x80E1
 #endif
-#ifndef GL_UNSIGNED_SHORT_4_4_4_4
-#define GL_UNSIGNED_SHORT_4_4_4_4       0x8033
+#if !defined(GL_RED_INTEGER)
+#define GL_RED_INTEGER					0x8D94
+#define GL_RGB_INTEGER					0x8D98
+#define GL_RGBA_INTEGER					0x8D99
 #endif
-#ifndef GL_UNSIGNED_SHORT_5_5_5_1
-#define GL_UNSIGNED_SHORT_5_5_5_1       0x8034
+#if !defined(GL_GREEN_INTEGER)
+#define GL_GREEN_INTEGER				0x8D95
+#define GL_BLUE_INTEGER					0x8D96
+#define GL_ALPHA_INTEGER				0x8D97
+#endif
+#if !defined (GL_BGR_INTEGER)
+#define GL_BGR_INTEGER					0x8D9A
+#define GL_BGRA_INTEGER					0x8D9B
+#endif
+#if !defined(GL_INT)
+#define GL_INT 0x1404
+#define GL_UNSIGNED_INT 0x1405
+#endif
+#if !defined(GL_HALF_FLOAT)
+typedef unsigned short GLhalf;
+#define GL_HALF_FLOAT					0x140B
+#endif
+#if !defined(GL_UNSIGNED_BYTE_3_3_2)
+#define GL_UNSIGNED_BYTE_3_3_2			0x8032
+#define GL_UNSIGNED_INT_8_8_8_8			0x8035
+#define GL_UNSIGNED_INT_10_10_10_2		0x8036
+#endif
+#if !defined(GL_UNSIGNED_BYTE_2_3_3_REV)
+#define GL_UNSIGNED_BYTE_2_3_3_REV		0x8362
+#define GL_UNSIGNED_SHORT_5_6_5			0x8363
+#define GL_UNSIGNED_SHORT_5_6_5_REV		0x8364
+#define GL_UNSIGNED_SHORT_4_4_4_4_REV	0x8365
+#define GL_UNSIGNED_SHORT_1_5_5_5_REV	0x8366
+#define GL_UNSIGNED_INT_8_8_8_8_REV		0x8367
+#define GL_UNSIGNED_INT_2_10_10_10_REV	0x8368
+#endif
+#if !defined(GL_UNSIGNED_INT_24_8)
+#define GL_DEPTH_STENCIL				0x84F9
+#define GL_UNSIGNED_INT_24_8			0x84FA
+#endif
+#if !defined(GL_UNSIGNED_INT_5_9_9_9_REV)
+#define GL_UNSIGNED_INT_5_9_9_9_REV		0x8C3E
+#endif
+#if !defined(GL_UNSIGNED_INT_10F_11F_11F_REV)
+#define GL_UNSIGNED_INT_10F_11F_11F_REV 0x8C3B
+#endif
+#if !defined (GL_FLOAT_32_UNSIGNED_INT_24_8_REV)
+#define GL_FLOAT_32_UNSIGNED_INT_24_8_REV	0x8DAD
 #endif
 
 #ifndef GL_ETC1_RGB8_OES
@@ -219,6 +264,7 @@ extern GLboolean _ktxSupportsSRGB;
 #define GL_GREEN						0x1904
 #define GL_BLUE							0x1905
 #define GL_RG							0x8227
+#define GL_RG_INTEGER					0x8228
 #endif
 #ifndef GL_R16
 #define GL_R16							0x822A
