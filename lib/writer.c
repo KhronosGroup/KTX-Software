@@ -573,6 +573,9 @@ sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
 			break;
 
 		case GL_UNSIGNED_SHORT:
+			*size = sizeof(GLushort);
+			break;
+
 		case GL_UNSIGNED_SHORT_5_6_5:
 		case GL_UNSIGNED_SHORT_4_4_4_4:
 		case GL_UNSIGNED_SHORT_5_5_5_1:
