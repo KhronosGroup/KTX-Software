@@ -1,7 +1,8 @@
 Using CMake
 ---
-Use this directory as both "source code" and "Where to build the binaries."
+If building a single configuration using a single generator you can
+use this directory as both "source code" and "Where to build the binaries."
+Of course you can create a separate build directory, if you wish.
 
-Of course, if you are simultaneously using multiple configurations or
-multiple generators you will want to pick a different build directory
-for each.
+If simultaneously using multiple configurations or generators create a
+different build directory for each, e.g., win32build, androidbuild.

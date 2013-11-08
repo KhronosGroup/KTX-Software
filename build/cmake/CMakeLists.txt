@@ -50,7 +50,9 @@ else()
 	endif()
 	set(KTX_GL_PLATFORM ${glplatform} CACHE STRING
 		# Must be a single string!
-		"Choose the GL platform to use for build. Options are GLEW, GLCORE, GLES1, GLES2 & GLES3.")
+		"Choose the GL platform to use for build. Initial automatic choice is based on platforms found on system.")
+	set_property(CACHE KTX_GL_PLATFORM PROPERTY STRINGS
+	 			 "GLEW;GLCORE;GLES1;GLES2;GLES3")
 	message("Multiple GL platforms found for build. Set KTX_GL_PLATFORM\n"
             "to override automatic choice of \"${KTX_GL_PLATFORM}\"")
   endif()
