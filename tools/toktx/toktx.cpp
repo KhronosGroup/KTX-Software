@@ -63,11 +63,11 @@
 #define ALLOW_LEGACY_FORMAT_CREATION 1
 
 #if ALLOW_LEGACY_FORMAT_CREATION
-#ifndef GL_LUMINANCE
+#if !defined(GL_LUMINANCE)
 #define GL_LUMINANCE					0x1909
 #define GL_LUMINANCE_ALPHA				0x190A
 #endif
-#ifndef GL_LUMINANCE4
+#if !defined(GL_LUMINANCE4)
 #define GL_ALPHA4						0x803B
 #define GL_ALPHA8						0x803C
 #define GL_ALPHA12						0x803D
@@ -83,13 +83,29 @@
 #define GL_LUMINANCE12_ALPHA12			0x8047
 #define GL_LUMINANCE16_ALPHA16			0x8048
 #endif
-#ifndef GL_SLUMINANCE
+#if !defined(GL_SLUMINANCE)
 #define GL_SLUMINANCE_ALPHA				0x8C44
 #define GL_SLUMINANCE8_ALPHA8			0x8C45
 #define GL_SLUMINANCE					0x8C46
 #define GL_SLUMINANCE8					0x8C47
 #endif
 #endif /* ALLOW_LEGACY_FORMAT_CREATION */
+
+#if !defined(GL_RED)
+#define GL_RED							0x1903
+#define GL_RGB8							0x8051
+#define GL_RGB16						0x8054
+#define GL_RGBA8						0x8058
+#define GL_RGBA16						0x805B
+#endif
+#if !defined(GL_RG)
+#define GL_RG							0x8227
+#define GL_R8							0x8229
+#define GL_R16							0x822A
+#define GL_RG8							0x822B
+#define GL_RG16							0x822C
+#endif
+
 
 struct commandOptions {
 	_TCHAR*		 appName;
