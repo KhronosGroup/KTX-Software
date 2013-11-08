@@ -12,8 +12,9 @@
     library testing
 
     - proper mipmap test (multiple planes each showing a different miplevel)
-    - GLES2 & GL load tests
+    - GLES2 load tests
     - cubemap, 3D & array texture loading tests
+    - test frameworks for Linux, Android, MacOS and iOS.
 
     general
 
