@@ -131,7 +131,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 
-#include <KHR/khrplatform.h>
+#include "KHR/khrplatform.h"
 
 #if KTX_OPENGL
 
