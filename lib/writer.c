@@ -467,7 +467,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  *
  */
 KTX_error_code
-ktxWriteKTXM(const void **bytes, GLsizei *size, const KTX_texture_info* textureInfo,
+ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textureInfo,
                          GLsizei bytesOfKeyValueData, const void* keyValueData,
                          GLuint numImages, KTX_image_info images[])
 {
