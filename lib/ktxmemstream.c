@@ -118,7 +118,7 @@ int ktxMemStream_write(const void* src, const GLsizei size, const GLsizei count,
         memcpy(mem->bytes + mem->used_size, src, size*count);
         mem->used_size += size*count;
 
-        return size*count;
+        return count;
 }
 
 #define KTX_MEM_DEFAULT_ALLOCATED_SIZE 256
