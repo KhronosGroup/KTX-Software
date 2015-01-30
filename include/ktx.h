@@ -359,6 +359,15 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* imageInfo,
 			 GLsizei bytesOfKeyValueData, const void* keyValueData,
 			 GLuint numImages, KTX_image_info images[]);
 
+/* ktxWriteKTXM
+ *
+ * Writes a KTX file using supplied data into memory.
+ */
+KTX_error_code
+ktxWriteKTXM(const void **bytes, GLsizei *size, const KTX_texture_info* textureInfo,
+                         GLsizei bytesOfKeyValueData, const void* keyValueData,
+                         GLuint numImages, KTX_image_info images[]);
+
 /* ktxErrorString()
  *
  * Returns a string corresponding to a KTX error code.

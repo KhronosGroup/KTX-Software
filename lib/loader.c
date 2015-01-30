@@ -48,42 +48,11 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "KHR/khrplatform.h"
 #include "ktx.h"
 #include "ktxint.h"
+#include "ktxstream.h"
+#include "ktxfilestream.h"
+#include "ktxmemstream.h"
 
 #include KTX_GLFUNCPTRS
-
-/* @private is not preventing the typedefs, structs and defines from
- * appearing in the Doxygen output even though EXTRACT_PRIVATE is NO
- * in the config file. To prevent these items appearing I have changed
- * the special comments to ordinary comments, and have set
- * HIDE_UNDOC_MEMBERS = YES in the Doxygen config file.
- *
- * Items declared "static" are omitted, as expected, due to EXTRACT_STATIC
- * being NO, so there is no need to convert those to ordinary comments. 
- */
-/*
- * @private
- * @~English
- * @brief type for a pointer to a stream reading function
- */
-typedef int(*ktxStream_read)(void* dst, const GLsizei count, void* src);
-/*
- * @private
- * @~English
- * @brief type for a pointer to a stream skipping function
- */
-typedef int(*ktxStream_skip)(const GLsizei count, void* src);
-
-/*
- * @private
- * @~English
- * @brief KTX stream interface
- */
-struct ktxStream
-{
-	void* src;				/**< pointer to the stream source */
-	ktxStream_read read;	/**< pointer to function for reading bytes */
-	ktxStream_skip skip;	/**< pointer to function for skipping bytes */
-};
 
 /*
  * @private
@@ -689,45 +658,6 @@ cleanup:
 	return errorCode;
 }
 
-/* Implementation of ktxStream for FILE */
-
-static
-int ktxFileStream_read(void* dst, const GLsizei count, void* src)
-{
-	if (!dst || !src || (fread(dst, count, 1, (FILE*)src) != 1))
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
-static
-int ktxFileStream_skip(const GLsizei count, void* src)
-{
-	if (!src || (count < 0) || (fseek((FILE*)src, count, SEEK_CUR) != 0))
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
-static
-int ktxFileInit(struct ktxStream* stream, FILE* file)
-{
-	if (!stream || !file)
-	{
-		return 0;
-	}
-
-	stream->src = (void*)file;
-	stream->read = ktxFileStream_read;
-	stream->skip = ktxFileStream_skip;
-
-	return 1;
-}
-
 /**
  * @~English
  * @brief Load a GL texture object from a stdio FILE stream.
@@ -853,65 +783,6 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
 	    errorCode = KTX_FILE_OPEN_FAILED;
 
 	return errorCode;
-}
-
-/* Implementation of ktxStream for memory */
-
-struct ktxMem
-{
-	const unsigned char* bytes;
-	GLsizei size;
-	GLsizei pos;
-};
-
-static
-int ktxMemStream_read(void* dst, const GLsizei count, void* src)
-{
-	struct ktxMem* mem = (struct ktxMem*)src;
-	
-	if(!dst || !mem || (mem->pos + count > mem->size) || (mem->pos + count < mem->pos))
-	{
-		return 0;
-	}
-
-	memcpy(dst, mem->bytes + mem->pos, count);
-	mem->pos += count;
-
-	return 1;
-}
-
-static
-int ktxMemStream_skip(const GLsizei count, void* src)
-{
-	struct ktxMem* mem = (struct ktxMem*)src;
-
-	if(!mem || (mem->pos + count > mem->size) || (mem->pos + count < mem->pos))
-	{
-		return 0;
-	}
-
-	mem->pos += count;
-
-	return 1;
-}
-
-static
-int ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, GLsizei size)
-{
-	if (!stream || !mem || !bytes || (size <= 0))
-	{
-		return 0;
-	}
-	
-	mem->bytes = (const unsigned char*)bytes;
-	mem->size = size;
-	mem->pos = 0;
-
-	stream->src = mem;
-	stream->read = ktxMemStream_read;
-	stream->skip = ktxMemStream_skip;
-
-	return 1;
 }
 
 /**
