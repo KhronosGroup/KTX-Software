@@ -318,7 +318,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 			if (rowRounding == 0) {
 				/* Can write whole face at once */
                                 errorCode = stream->write(images[i].data, faceLodSize, 1, stream->src);
- 				if (errorCode != KTX_SUCCESS)
+				if (errorCode != KTX_SUCCESS)
 					goto cleanup;
 			} else {
 				/* Write the rows individually, padding each one */
