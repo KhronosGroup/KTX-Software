@@ -99,6 +99,7 @@ static KTX_error_code sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
  *								See OpenGL 4.4 specification section 8.4.4 and
  *                              table 8.5.
  * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the file.
+ * @exception KTX_OUT_OF_MEMORY system failed to allocate sufficient memory.
  */
 static
 KTX_error_code
@@ -249,15 +250,18 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 	}
 
 	//write header
-	stream->write(&header, sizeof(KTX_header), 1, stream->src);
+	errorCode = stream->write(&header, sizeof(KTX_header), 1, stream->src);
+        if (errorCode != KTX_SUCCESS)
+                return errorCode;
 
 	//write keyValueData
 	if (bytesOfKeyValueData != 0) {
 		if (keyValueData == NULL)
 			return KTX_INVALID_OPERATION;
 
-		if (stream->write(keyValueData, 1, bytesOfKeyValueData, stream->src) != bytesOfKeyValueData)
-			return KTX_FILE_WRITE_ERROR;
+                errorCode = stream->write(keyValueData, 1, bytesOfKeyValueData, stream->src);
+		if (errorCode != KTX_SUCCESS)
+			return errorCode;
 	}
 
 	/* Write the image data */
@@ -299,10 +303,9 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 		}
 		faceLodRounding = 3 - ((faceLodSize + 3) % 4);
 
-		if (stream->write(&faceLodSize, sizeof(faceLodSize), 1, stream->src) != 1) {
-			errorCode = KTX_FILE_WRITE_ERROR;
+                errorCode = stream->write(&faceLodSize, sizeof(faceLodSize), 1, stream->src);
+		if (errorCode != KTX_SUCCESS)
 			goto cleanup;
-		}
 
 		for (face = 0; face < header.numberOfFaces; ++face, ++i) {
 			if (!compressed) {
@@ -314,10 +317,9 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 			}
 			if (rowRounding == 0) {
 				/* Can write whole face at once */
-				if (stream->write(images[i].data, faceLodSize, 1, stream->src) != 1) {
-					errorCode = KTX_FILE_WRITE_ERROR;
+                                errorCode = stream->write(images[i].data, faceLodSize, 1, stream->src);
+ 				if (errorCode != KTX_SUCCESS)
 					goto cleanup;
-				}
 			} else {
 				/* Write the rows individually, padding each one */
 				GLuint row;
@@ -325,21 +327,19 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 								* pixelDepth
 								* numArrayElements;
 				for (row = 0; row < numRows; row++) {
-					if (stream->write(&images[i].data[row*packedRowBytes], packedRowBytes, 1, stream->src) != 1) {
-						errorCode = KTX_FILE_WRITE_ERROR;
+                                        errorCode = stream->write(&images[i].data[row*packedRowBytes], packedRowBytes, 1, stream->src);
+					if (errorCode != KTX_SUCCESS)
 						goto cleanup;
-					}
-					if (stream->write(pad, sizeof(GLbyte), rowRounding, stream->src) != rowRounding) {
-						errorCode = KTX_FILE_WRITE_ERROR;
+
+                                        errorCode = stream->write(pad, sizeof(GLbyte), rowRounding, stream->src);
+					if (errorCode != KTX_SUCCESS)
 						goto cleanup;
-					}
 				}
 			}
 			if (faceLodRounding) {
-				if (stream->write(pad, sizeof(GLbyte), faceLodRounding, stream->src) != faceLodRounding) {
-					errorCode = KTX_FILE_WRITE_ERROR;
+                                errorCode = stream->write(pad, sizeof(GLbyte), faceLodRounding, stream->src);
+				if (errorCode != KTX_SUCCESS)
 					goto cleanup;
-				}
 			}
 		}
 	}
@@ -396,11 +396,11 @@ ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
                          GLuint numImages, KTX_image_info images[])
 {
         struct ktxStream stream;
+        KTX_error_code errorCode = KTX_SUCCESS;
 
-        if (!ktxFileInit(&stream, file))
-        {
-                return KTX_FILE_OPEN_FAILED;
-        }
+        errorCode = ktxFileInit(&stream, file);
+        if (errorCode != KTX_SUCCESS)
+                return errorCode;
 
         return ktxWriteKTXS(&stream, textureInfo, bytesOfKeyValueData, keyValueData, numImages, images);
 }
@@ -450,9 +450,9 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  * @~English
  * @brief Write image(s) in KTX format to memory.
  *
- * @param [in] bytes        pointer to the output with KTX data. Application
+ * @param [out] bytes        pointer to the output with KTX data. Application
                             is responsible for freeing that memory.
- * @param [in] size         pointer to store size of the memory written.
+ * @param [out] size         pointer to store size of the memory written.
  * @param [in] textureInfo  pointer to a KTX_image_info structure providing
  *                          information about the images to be included in
  *                          the KTX file.
@@ -477,10 +477,9 @@ ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textu
 
         *bytes = NULL;
 
-        if (!ktxMemInit(&stream, &mem, NULL, 0))
-        {
-                return KTX_FILE_OPEN_FAILED;
-        }
+        rc = ktxMemInit(&stream, &mem, NULL, 0);
+        if (rc != KTX_SUCCESS)
+                return rc;
 
         rc = ktxWriteKTXS(&stream, textureInfo, bytesOfKeyValueData, keyValueData, numImages, images);
         if(rc != KTX_SUCCESS)
@@ -734,4 +733,3 @@ sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
 	}
 	return KTX_SUCCESS;
 }
-

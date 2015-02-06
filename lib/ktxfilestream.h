@@ -43,6 +43,9 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxint.h"
 #include "ktxstream.h"
 
-int ktxFileInit(struct ktxStream* stream, FILE* file);
+/*
+ * ktxFileInit: Initialize a ktxStream to a ktxFileStream with a FILE object
+ */
+KTX_error_code ktxFileInit(struct ktxStream* stream, FILE* file);
 
 #endif /* _KTXFILESTREAM_H_ */

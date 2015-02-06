@@ -54,6 +54,15 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include KTX_GLFUNCPTRS
 
+/* @private is not preventing the typedefs, structs and defines from
+ * appearing in the Doxygen output even though EXTRACT_PRIVATE is NO
+ * in the config file. To prevent these items appearing I have changed
+ * the special comments to ordinary comments, and have set
+ * HIDE_UNDOC_MEMBERS = YES in the Doxygen config file.
+ *
+ * Items declared "static" are omitted, as expected, due to EXTRACT_STATIC
+ * being NO, so there is no need to convert those to ordinary comments.
+ */
 /*
  * @private
  * @~English
@@ -397,7 +406,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 	if (ppKvd) {
 		*ppKvd = NULL;
-    }
+        }
 
 	if (!stream || !stream->read || !stream->skip) {
 		return KTX_INVALID_VALUE;
@@ -407,14 +416,13 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		return KTX_INVALID_VALUE;
 	}
 
-	if (!stream->read(&header, KTX_HEADER_SIZE, stream->src)) {
-		return KTX_UNEXPECTED_END_OF_FILE;
-	}
+        errorCode = stream->read(&header, KTX_HEADER_SIZE, stream->src);
+	if (errorCode != KTX_SUCCESS)
+		return errorCode;
 
 	errorCode = _ktxCheckHeader(&header, &texinfo);
-	if (errorCode != KTX_SUCCESS) {
+	if (errorCode != KTX_SUCCESS)
 		return errorCode;
-	}
 
 	if (ppKvd) {
 		if (pKvdLen == NULL)
@@ -424,18 +432,20 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 			*ppKvd = (unsigned char*)malloc(*pKvdLen);
 			if (*ppKvd == NULL)
 				return KTX_OUT_OF_MEMORY;
-			if (!stream->read(*ppKvd, *pKvdLen, stream->src))
+                        errorCode = stream->read(*ppKvd, *pKvdLen, stream->src);
+			if (errorCode != KTX_SUCCESS)
 			{
 				free(*ppKvd);
 				*ppKvd = NULL;
 
-				return KTX_UNEXPECTED_END_OF_FILE;
+				return errorCode;
 			}
 		}
 	} else {
 		/* skip key/value metadata */
-		if (!stream->skip((long)header.bytesOfKeyValueData, stream->src)) {
-			return KTX_UNEXPECTED_END_OF_FILE;
+                errorCode = stream->skip((long)header.bytesOfKeyValueData, stream->src);
+		if (errorCode != KTX_SUCCESS) {
+			return errorCode;
 		}
 	}
 
@@ -497,8 +507,8 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		GLsizei pixelHeight = MAX(1, header.pixelHeight >> level);
 		GLsizei pixelDepth  = MAX(1, header.pixelDepth  >> level);
 
-		if (!stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src)) {
-			errorCode = KTX_UNEXPECTED_END_OF_FILE;
+                errorCode = stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src);
+		if (errorCode != KTX_SUCCESS) {
 			goto cleanup;
 		}
 		if (header.endianness == KTX_ENDIAN_REF_REV) {
@@ -522,8 +532,8 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 		for (face = 0; face < header.numberOfFaces; ++face)
 		{
-			if (!stream->read(data, faceLodSizeRounded, stream->src)) {
-				errorCode = KTX_UNEXPECTED_END_OF_FILE;
+                        errorCode = stream->read(data, faceLodSizeRounded, stream->src);
+			if (errorCode != KTX_SUCCESS) {
 				goto cleanup;
 			}
 
@@ -537,12 +547,12 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 			if (texinfo.textureDimensions == 1) {
 				if (texinfo.compressed) {
-					glCompressedTexImage1D(texinfo.glTarget + face, level, 
+					glCompressedTexImage1D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage1D(texinfo.glTarget + face, level, 
-						glInternalFormat, pixelWidth, 0, 
+					glTexImage1D(texinfo.glTarget + face, level,
+						glInternalFormat, pixelWidth, 0,
 						glFormat, header.glType, data);
 				}
 			} else if (texinfo.textureDimensions == 2) {
@@ -723,11 +733,11 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
 	struct ktxStream stream;
+        KTX_error_code errorCode = KTX_SUCCESS;
 
-	if (!ktxFileInit(&stream, file))
-	{
-		return KTX_FILE_OPEN_FAILED;
-	}
+        errorCode = ktxFileInit(&stream, file);
+	if (errorCode != KTX_SUCCESS)
+		return errorCode;
 
 	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 }
@@ -753,7 +763,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.*
@@ -830,11 +840,11 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarg
 {
 	struct ktxMem mem;
 	struct ktxStream stream;
+        KTX_error_code errorCode = KTX_SUCCESS;
 
-	if (!ktxMemInit(&stream, &mem, bytes, size))
-	{
-		return KTX_FILE_OPEN_FAILED;
-	}
+        errorCode = ktxMemInit(&stream, &mem, bytes, size);
+	if (errorCode != KTX_SUCCESS)
+		return errorCode;
 
 	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 }

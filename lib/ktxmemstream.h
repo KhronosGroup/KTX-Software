@@ -43,6 +43,11 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxint.h"
 #include "ktxstream.h"
 
+/**
+ * @internal
+ * @brief Structure to store information
+ *    about data allocated for ktxMemStream
+ */
 struct ktxMem
 {
         unsigned char* bytes;
@@ -51,6 +56,9 @@ struct ktxMem
         GLsizei pos;
 };
 
-int ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, GLsizei size);
+/*
+ * ktxMemInit: Initialize a ktxStream to a ktxMemStream with ktxMem struct and/or array of bytes
+ */
+KTX_error_code ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, GLsizei size);
 
 #endif /* _KTXMEMSTREAM_H_ */

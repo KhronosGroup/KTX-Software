@@ -38,24 +38,35 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #ifndef _KTXSTREAM_H_
 #define _KTXSTREAM_H_
 
+#include "ktx.h"
+
+/* @private is not preventing the typedefs, structs and defines from
+ * appearing in the Doxygen output even though EXTRACT_PRIVATE is NO
+ * in the config file. To prevent these items appearing I have changed
+ * the special comments to ordinary comments, and have set
+ * HIDE_UNDOC_MEMBERS = YES in the Doxygen config file.
+ *
+ * Items declared "static" are omitted, as expected, due to EXTRACT_STATIC
+ * being NO, so there is no need to convert those to ordinary comments.
+ */
 /*
  * @private
  * @~English
  * @brief type for a pointer to a stream reading function
  */
-typedef int(*ktxStream_read)(void* dst, const GLsizei count, void* src);
+typedef KTX_error_code(*ktxStream_read)(void* dst, const GLsizei count, void* src);
 /*
  * @private
  * @~English
  * @brief type for a pointer to a stream skipping function
  */
-typedef int(*ktxStream_skip)(const GLsizei count, void* src);
+typedef KTX_error_code(*ktxStream_skip)(const GLsizei count, void* src);
 /*
  * @private
  * @~English
  * @brief type for a pointer to a stream reading function
  */
-typedef int(*ktxStream_write)(const void *src, const GLsizei size, const GLsizei count, void* dst);
+typedef KTX_error_code(*ktxStream_write)(const void *src, const GLsizei size, const GLsizei count, void* dst);
 
 /*
  * @private
