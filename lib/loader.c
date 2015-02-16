@@ -134,7 +134,7 @@ static GLboolean supportsSRGB = GL_TRUE;
  * @private
  * @~English
  * @brief Discover the capabilities of the current GL context.
- * 
+ *
  * Queries the context and sets several the following internal variables indicating
  * the capabilities of the context:
  *
@@ -143,7 +143,7 @@ static GLboolean supportsSRGB = GL_TRUE;
  * @li supportsSRGB
  * @li b16Formats
  *
- */           
+ */
 static void discoverContextCapabilities(void)
 {
 	GLint majorVersion = 1;
@@ -210,7 +210,7 @@ static void discoverContextCapabilities(void)
  * @internal
  * @~English
  * @brief Convert deprecated legacy-format texture to modern format.
- * 
+ *
  * The function sets the GL_TEXTURE_SWIZZLEs necessary to get the same
  * behavior as the legacy format.
  *
@@ -223,7 +223,7 @@ static void discoverContextCapabilities(void)
  *                                   written here.
  * @return void unrecognized formats will be passed on to OpenGL. Any loading error
  *              that arises will be handled in the usual way.
- */           
+ */
 static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalFormat) {
 	switch (*pFormat) {
 	  case GL_ALPHA:
@@ -330,10 +330,10 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalForma
  * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
- * 
+ *
  * It will also convert textures with legacy formats to their modern equivalents
  * when the format is not supported by the GL context, provided that the library
- * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1. 
+ * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param [in] stream		pointer to the ktxStream from which to load.
  * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
@@ -358,7 +358,7 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalForma
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.
@@ -406,7 +406,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 	if (ppKvd) {
 		*ppKvd = NULL;
-        }
+	}
 
 	if (!stream || !stream->read || !stream->skip) {
 		return KTX_INVALID_VALUE;
@@ -416,7 +416,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		return KTX_INVALID_VALUE;
 	}
 
-        errorCode = stream->read(&header, KTX_HEADER_SIZE, stream->src);
+	errorCode = stream->read(&header, KTX_HEADER_SIZE, stream->src);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
@@ -432,7 +432,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 			*ppKvd = (unsigned char*)malloc(*pKvdLen);
 			if (*ppKvd == NULL)
 				return KTX_OUT_OF_MEMORY;
-                        errorCode = stream->read(*ppKvd, *pKvdLen, stream->src);
+			errorCode = stream->read(*ppKvd, *pKvdLen, stream->src);
 			if (errorCode != KTX_SUCCESS)
 			{
 				free(*ppKvd);
@@ -443,7 +443,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		}
 	} else {
 		/* skip key/value metadata */
-                errorCode = stream->skip((long)header.bytesOfKeyValueData, stream->src);
+		errorCode = stream->skip((long)header.bytesOfKeyValueData, stream->src);
 		if (errorCode != KTX_SUCCESS) {
 			return errorCode;
 		}
@@ -492,7 +492,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		// supported, must change internal format.
 		if (sizedFormats == _NO_SIZED_FORMATS
 			|| (!(sizedFormats & _LEGACY_FORMATS) &&
-				(header.glBaseInternalFormat == GL_ALPHA	
+				(header.glBaseInternalFormat == GL_ALPHA
 				|| header.glBaseInternalFormat == GL_LUMINANCE
 				|| header.glBaseInternalFormat == GL_LUMINANCE_ALPHA
 				|| header.glBaseInternalFormat == GL_INTENSITY))) {
@@ -507,7 +507,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		GLsizei pixelHeight = MAX(1, header.pixelHeight >> level);
 		GLsizei pixelDepth  = MAX(1, header.pixelDepth  >> level);
 
-                errorCode = stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src);
+		errorCode = stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src);
 		if (errorCode != KTX_SUCCESS) {
 			goto cleanup;
 		}
@@ -532,7 +532,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 		for (face = 0; face < header.numberOfFaces; ++face)
 		{
-                        errorCode = stream->read(data, faceLodSizeRounded, stream->src);
+			errorCode = stream->read(data, faceLodSizeRounded, stream->src);
 			if (errorCode != KTX_SUCCESS) {
 				goto cleanup;
 			}
@@ -563,12 +563,12 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				    // It is simpler to just attempt to load the format, rather than divine which
 					// formats are supported by the implementation. In the event of an error,
 					// software unpacking can be attempted.
-					glCompressedTexImage2D(texinfo.glTarget + face, level, 
+					glCompressedTexImage2D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, pixelHeight, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage2D(texinfo.glTarget + face, level, 
-						glInternalFormat, pixelWidth, pixelHeight, 0, 
+					glTexImage2D(texinfo.glTarget + face, level,
+						glInternalFormat, pixelWidth, pixelHeight, 0,
 						glFormat, header.glType, data);
 				}
 			} else if (texinfo.textureDimensions == 3) {
@@ -576,12 +576,12 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 					pixelDepth = header.numberOfArrayElements;
 				}
 				if (texinfo.compressed) {
-					glCompressedTexImage3D(texinfo.glTarget + face, level, 
+					glCompressedTexImage3D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage3D(texinfo.glTarget + face, level, 
-						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0, 
+					glTexImage3D(texinfo.glTarget + face, level,
+						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
 						glFormat, header.glType, data);
 				}
 			}
@@ -593,7 +593,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				&& texinfo.compressed
 				&& texinfo.textureDimensions == 2
 				&& (glInternalFormat == GL_ETC1_RGB8_OES || (glInternalFormat >= GL_COMPRESSED_R11_EAC && glInternalFormat <= GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)))
-			    {
+			{
 				GLubyte* unpacked;
 				GLenum format, internalFormat, type;
 
@@ -609,8 +609,8 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 					else if (internalFormat == GL_RGBA8)
 						internalFormat = GL_RGBA;
 				}
-				glTexImage2D(texinfo.glTarget + face, level, 
-							 internalFormat, pixelWidth, pixelHeight, 0, 
+				glTexImage2D(texinfo.glTarget + face, level,
+							 internalFormat, pixelWidth, pixelHeight, 0,
 							 format, type, unpacked);
 
 				free(unpacked);
@@ -676,10 +676,10 @@ cleanup:
  * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
- * 
+ *
  * It will also convert texture with legacy formats to their modern equivalents
  * when the format is not supported by the GL context, provided that the library
- * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1. 
+ * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param [in] file			pointer to the stdio FILE stream from which to
  * 							load.
@@ -705,7 +705,7 @@ cleanup:
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.
@@ -733,9 +733,9 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
 	struct ktxStream stream;
-        KTX_error_code errorCode = KTX_SUCCESS;
+	KTX_error_code errorCode = KTX_SUCCESS;
 
-        errorCode = ktxFileInit(&stream, file);
+	errorCode = ktxFileInit(&stream, file);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
@@ -773,7 +773,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
  * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
  * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
- * 								
+ *
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
  */
 KTX_error_code
@@ -790,7 +790,7 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
 								    pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 		fclose(file);
 	} else
-	    errorCode = KTX_FILE_OPEN_FAILED;
+		errorCode = KTX_FILE_OPEN_FAILED;
 
 	return errorCode;
 }
@@ -818,7 +818,7 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.*
@@ -829,7 +829,7 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
  * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
- * 								
+ *
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
  */
 KTX_error_code
@@ -840,9 +840,9 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarg
 {
 	struct ktxMem mem;
 	struct ktxStream stream;
-        KTX_error_code errorCode = KTX_SUCCESS;
+	KTX_error_code errorCode = KTX_SUCCESS;
 
-        errorCode = ktxMemInit(&stream, &mem, bytes, size);
+	errorCode = ktxMemInit(&stream, &mem, bytes, size);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 

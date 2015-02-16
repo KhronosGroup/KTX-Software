@@ -82,7 +82,7 @@ typedef struct _keyAndValue {
 KTX_hash_table
 ktxHashTable_Create()
 {
-    key_and_value_t** kvt = (key_and_value_t**)malloc(sizeof (key_and_value_t**));
+	key_and_value_t** kvt = (key_and_value_t**)malloc(sizeof (key_and_value_t**));
 	*kvt = NULL;
 	return (KTX_hash_table)kvt;
 }
@@ -105,12 +105,12 @@ ktxHashTable_Destroy(KTX_hash_table This)
 {
 	key_and_value_t* kv;
 
-    for(kv = *(key_and_value_t**)This; kv != NULL;) {
+	for(kv = *(key_and_value_t**)This; kv != NULL;) {
 		key_and_value_t* tmp = (key_and_value_t*)kv->hh.next;
-        HASH_DELETE(hh, /*head*/*(key_and_value_t**)This, kv);
+		HASH_DELETE(hh, /*head*/*(key_and_value_t**)This, kv);
 		free(kv);
 		kv = tmp;
-    }
+	}
 	free(This);
 }
 

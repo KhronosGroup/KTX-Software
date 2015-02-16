@@ -104,7 +104,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @mainpage The KTX Library
  *
  * @section intro_sec Introduction
- * 
+ *
  * libktx is a small library of functions for creating KTX (Khronos
  * TeXture) files and instantiating OpenGL&reg; and OpenGL&reg; ES
  * textures from them.
@@ -252,7 +252,7 @@ typedef struct KTX_texture_info_t
 	 * For non-compressed textures, should be the same as glFormat.
 	 * For compressed textures specifies the base internal, e.g.
 	 * GL_RGB, GL_RGBA.
-     */                        
+     */
 	khronos_uint32_t glBaseInternalFormat;
 	/** @brief Width of the image for texture level 0, in pixels. */
 	khronos_uint32_t pixelWidth;
@@ -342,7 +342,7 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarg
 				unsigned int* pKvdLen, unsigned char** ppKvd);
 
 /* ktxWriteKTXF
- * 
+ *
  * Writes a KTX file using supplied data.
  */
 KTX_error_code
@@ -351,7 +351,7 @@ ktxWriteKTXF(FILE*, const KTX_texture_info* imageInfo,
 			 GLuint numImages, KTX_image_info images[]);
 
 /* ktxWriteKTXN
- * 
+ *
  * Writes a KTX file using supplied data.
  */
 KTX_error_code
@@ -365,8 +365,8 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* imageInfo,
  */
 KTX_error_code
 ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textureInfo,
-                         GLsizei bytesOfKeyValueData, const void* keyValueData,
-                         GLuint numImages, KTX_image_info images[]);
+			 GLsizei bytesOfKeyValueData, const void* keyValueData,
+			 GLuint numImages, KTX_image_info images[]);
 
 /* ktxErrorString()
  *
