@@ -107,6 +107,7 @@ ktxHashTable_Destroy(KTX_hash_table This)
 
     for(kv = *(key_and_value_t**)This; kv != NULL;) {
 		key_and_value_t* tmp = (key_and_value_t*)kv->hh.next;
+        HASH_DELETE(hh, /*head*/*(key_and_value_t**)This, kv);
 		free(kv);
 		kv = tmp;
     }
@@ -141,7 +142,7 @@ ktxHashTable_AddKVPair(KTX_hash_table This, const char* key, unsigned int valueL
 
 		if (keyLen == 1)
 			return KTX_INVALID_VALUE;	/* Empty string */
-	
+
 		/* Allocate all the memory as a block */
 		kv = (key_and_value_t*)malloc(sizeof(key_and_value_t) + keyLen + valueLen);
 		/* Put key first */
