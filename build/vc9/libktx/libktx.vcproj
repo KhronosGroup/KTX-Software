@@ -555,6 +555,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\ktxfilestream.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\ktxmemstream.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\loader.c"
 				>
 			</File>
@@ -599,7 +607,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\ktxfilestream.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\ktxint.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\ktxmemstream.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\ktxstream.h"
 				>
 			</File>
 			<File

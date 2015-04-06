@@ -361,7 +361,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* imageInfo,
 
 /* ktxWriteKTXM
  *
- * Writes a KTX file using supplied data into memory.
+ * Writes a KTX file into memory using supplied data.
  */
 KTX_error_code
 ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textureInfo,
