@@ -289,8 +289,8 @@ void read_big_endian_2byte_word(unsigned short *blockadr, FILE *f)
 	uint8 bytes[2];
 	unsigned short block;
 
-	fread(&bytes[0], 1, 1, f);
-	fread(&bytes[1], 1, 1, f);
+	(void) fread(&bytes[0], 1, 1, f);
+	(void) fread(&bytes[1], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];
@@ -307,10 +307,10 @@ void read_big_endian_4byte_word(unsigned int *blockadr, FILE *f)
 	uint8 bytes[4];
 	unsigned int block;
 
-	fread(&bytes[0], 1, 1, f);
-	fread(&bytes[1], 1, 1, f);
-	fread(&bytes[2], 1, 1, f);
-	fread(&bytes[3], 1, 1, f);
+	(void) fread(&bytes[0], 1, 1, f);
+	(void) fread(&bytes[1], 1, 1, f);
+	(void) fread(&bytes[2], 1, 1, f);
+	(void) fread(&bytes[3], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];
