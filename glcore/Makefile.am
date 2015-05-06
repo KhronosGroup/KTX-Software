@@ -1,0 +1,2 @@
+noinst_LTLIBRARIES=libglcore30.la
+libglcore30_la_SOURCES=gl_core_3_0.c

@@ -1,1 +1,1 @@
-SUBDIRS=include lib tools/toktx
+SUBDIRS=include glcore lib tools/toktx
