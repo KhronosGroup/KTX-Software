@@ -41,6 +41,7 @@ ktxHomePage ?= $(KHRONOS_SVN)/ogles/trunk/sdk/tools/KTX
 
 ktxPubInc := $(depth)/include
 ktxLibSrc := $(depth)/lib
+ktxLicense := $(depth)/Licensing.md
 ktxTools  := $(depth)/tools
 toktxSrc  := $(ktxTools)/toktx
 ktxDoxyConfig := ktxDoxy
@@ -103,7 +104,7 @@ updateKtxHome: $(ktxHomePage) dist $(ktxLibDocOutDir)/html toktxWin
 
 # doxygen is run in the top-level directory so that ancestors of that
 # directory will be removed from paths displayed in the documentation.
-$(ktxLibDocOutDir)/html: $(depth)/$(ktxDoxyConfig) $(sources) $(headers)
+$(ktxLibDocOutDir)/html: $(depth)/$(ktxDoxyConfig) $(sources) $(headers) $(ktxLicense)
 	cd $(depth); doxygen $(ktxDoxyConfig)
 
 # Having to change directory to run zip means $@ cannot be used.

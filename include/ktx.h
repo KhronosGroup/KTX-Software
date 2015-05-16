@@ -25,9 +25,8 @@
  * This file copyright (c) 2010 The Khronos Group, Inc.
  */
 
-/**
+/*
 @~English
-@page licensing Licensing
 
 LibKTX contains code
 
@@ -35,8 +34,11 @@ LibKTX contains code
 @li (c) 2008 and (c) 2010 HI Corporation
 @li (c) 2005 Ericsson AB
 @li (c) 2003-2010, Troy D. Hanson
+@li (c) 2015 Mark Callow
 
-A specific copyright is given in each source file.
+Most files contain explicit licensing information. Some files refer the
+reader to this file (LICENSING.md). Such files are licensed under the
+Default License below.
 
 @section default Default License
 
@@ -141,7 +143,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     #elif KTX_USE_GETPROC
       #include <GL/glew.h>
     #else
-      #define GLCOREARB_PROTOTYPES
+      #define GL_GLEXT_PROTOTYPES
       #include <GL/glcorearb.h>
 	#endif
 
@@ -164,8 +166,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #elif KTX_OPENGL_ES3
 
+    #define GL_GLEXT_PROTOTYPES
 	#include <GLES3/gl3.h>
-	#include <GLES3/gl3ext.h>
+	#include <GLES2/gl2ext.h>
 
     #define KTX_GLFUNCPTRS "gles3_funcptrs.h"
 
