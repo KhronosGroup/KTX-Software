@@ -36,14 +36,13 @@ LibKTX contains code
 @li (c) 2003-2010, Troy D. Hanson
 @li (c) 2015 Mark Callow
 
-Most files contain explicit licensing information. Some files refer the
-reader to this file (LICENSING.md). Such files are licensed under the
-Default License below.
-
 @section default Default License
 
 With the exception of the files listed explicitly below, the source
-files are made available under the following BSD-like license.
+files are made available under the following BSD-like license. Most
+files contain this license explicitly. Some files refer to LICENSE.md
+which contains this same text. Such files are licensed under this
+Default License.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and/or associated documentation files (the
@@ -118,7 +117,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * The library is open source software. Most of the code is licensed under a
  * modified BSD license. The code for unpacking ETC1, ETC2 and EAC compressed
  * textures has a separate license that restricts it to uses associated with
- * Khronos Group APIs. See @ref licensing for more details.
+ * Khronos Group APIs. See @ref license for more details.
  *
  * See @ref history for the list of changes.
  *

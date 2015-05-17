@@ -1,5 +1,5 @@
-Licensing                       {#licensing}
-=========
+License                       {#license}
+=======
 
 LibKTX contains code
 
@@ -9,15 +9,13 @@ LibKTX contains code
 * (c) 2003-2010, Troy D. Hanson
 * (c) 2015 Mark Callow
 
-Most files contain explicit licensing information. Some files
-refer the reader to this file (LICENSING.md). Such files are licensed
-under the Default License below.
-
 Default License
 ---------------
 
 With the exception of the files listed explicitly below, the source
-files are made available under the following BSD-like license.
+files are made available under the following BSD-like license. Most
+files contain this license explicitly. Some files refer to this
+file (LICENSE.md) Such files are licensed under this Default License.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and/or associated documentation files (the

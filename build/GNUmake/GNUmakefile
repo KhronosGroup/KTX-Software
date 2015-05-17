@@ -41,7 +41,7 @@ ktxHomePage ?= $(KHRONOS_SVN)/ogles/trunk/sdk/tools/KTX
 
 ktxPubInc := $(depth)/include
 ktxLibSrc := $(depth)/lib
-ktxLicense := $(depth)/Licensing.md
+ktxLicense := $(depth)/LICENSE.md
 ktxTools  := $(depth)/tools
 toktxSrc  := $(ktxTools)/toktx
 ktxDoxyConfig := ktxDoxy
