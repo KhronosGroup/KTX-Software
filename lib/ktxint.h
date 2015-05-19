@@ -196,6 +196,8 @@ extern GLboolean _ktxSupportsSRGB;
 #if !defined(GL_GREEN_INTEGER)
 #define GL_GREEN_INTEGER				0x8D95
 #define GL_BLUE_INTEGER					0x8D96
+#endif
+#if !defined(GL_ALPHA_INTEGER)
 #define GL_ALPHA_INTEGER				0x8D97
 #endif
 #if !defined (GL_BGR_INTEGER)

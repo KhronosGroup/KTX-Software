@@ -1,0 +1,3 @@
+*.lib filter=lfs -crlf
+*.dll filter=lfs -crlf
+*.so filter=lfs -crlf

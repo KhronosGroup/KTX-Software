@@ -100,7 +100,7 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 	GLboolean isMipmapped;
 	GLenum glerror;
 	GLubyte* pKvData;
-	GLsizei  kvDataLen;
+	GLuint  kvDataLen;
 	GLint sign_s = 1, sign_t = 1;
 	GLint i;
 	GLuint gnColorFs, gnDecalFs, gnVs;
@@ -126,15 +126,15 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 
 		ktxerror = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
 		if (KTX_SUCCESS == ktxerror) {
-			GLubyte* pValue;
-			GLsizei valueLen;
+			GLchar* pValue;
+			GLuint valueLen;
 
 			if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
-													  &valueLen, &pValue))
+													  &valueLen, (void**)&pValue))
 			{
 				char s, t;
 
-				if (_snscanf(pValue, valueLen, KTX_ORIENTATION2_FMT, &s, &t) == 2) {
+				if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
 					if (s == 'l') sign_s = -1;
 					if (t == 'd') sign_t = -1;
 				}
@@ -192,7 +192,7 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 		pData->gnTexture = 0;
 	}
 
-	glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
+    glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
 
     // Must have vertex data in buffer objects to use VAO's on ES3/GL Core
 	glGenBuffers(1, &pData->gnVbo);
@@ -235,7 +235,6 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
 
 	glBindVertexArray(0);
-
 	if (makeShader(GL_VERTEX_SHADER, pszVs, &gnVs)) {
 		if (makeShader(GL_FRAGMENT_SHADER, pszColorFs, &gnColorFs)) {
 			if (makeProgram(gnVs, gnColorFs, &pData->gnColProg)) {

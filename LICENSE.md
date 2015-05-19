@@ -9,6 +9,13 @@ LibKTX contains code
 * (c) 2003-2010, Troy D. Hanson
 * (c) 2015 Mark Callow
 
+The KTX load tests contain code
+
+* (c) 2013 The Khronos Group Inc.
+* (c) 2008 and (c) 2010 HI Corporation
+* (c) 1997-2014 Sam Lantinga
+* (c) 2015 Mark Callow
+
 Default License
 ---------------
 
@@ -74,3 +81,9 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+include/SDL2/*
+--------------
+
+These files are part of the SDL2 source distributed by the [SDL project]
+(http://libsdl.org) under the terms of the [zlib license]
+(http://www.zlib.net/zlib_license.html).

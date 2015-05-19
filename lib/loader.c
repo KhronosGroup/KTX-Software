@@ -443,7 +443,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		}
 	} else {
 		/* skip key/value metadata */
-		errorCode = stream->skip((long)header.bytesOfKeyValueData, stream->src);
+		errorCode = stream->skip(header.bytesOfKeyValueData, stream->src);
 		if (errorCode != KTX_SUCCESS) {
 			return errorCode;
 		}

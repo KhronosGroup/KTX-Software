@@ -42,6 +42,10 @@
 /build/vc9/toktx/Debug
 /build/vc9/toktx/Release
 
+# User related stuff in /build/xcode
+/build/xcode/*/*.xcodeproj/project.xcworkspace
+/build/xcode/*/*.xcodeproj/xcuserdata
+
 # /include/
 /include/imdebug.h
 
@@ -54,4 +58,5 @@
 /testimages/hi_mark.ppm
 /testimages/hi_mark_sq.ppm
 /testimages/hi_mark_sq_unpack_alignment_1.ktx
+
 /.project

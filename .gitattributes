@@ -39,3 +39,6 @@ tests/loadtests/shader-based/*.c ident
 tools/toktx/*.cpp ident
 tools/toktx/*.h ident
 tools/toktx/toktx.cpp filter=kwexpander ident
+*.a filter=lfs -crlf
+*.dylib filter=lfs -crlf
+SDL2 filter=lfs -crlf

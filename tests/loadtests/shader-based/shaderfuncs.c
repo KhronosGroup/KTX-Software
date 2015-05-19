@@ -93,7 +93,6 @@ GLboolean makeShader(GLenum type, const GLchar* const source, GLuint* shader)
 GLboolean makeProgram(GLuint vs, GLuint fs, GLuint* program)
 {
 
-	GLint error = glGetError();
 	GLint linked;
 	GLint fsCompiled, vsCompiled;
 
@@ -115,13 +114,12 @@ GLboolean makeProgram(GLuint vs, GLuint fs, GLuint* program)
 			infoLog = malloc(logLength);
 			glGetProgramInfoLog(prog, logLength, &charsWritten, infoLog);
 
-			atMessageBox(logLength ? infoLog : "", "Program link error", MB_OK|MB_ICONERROR);
+			atMessageBox(logLength ? infoLog : "", "Program link error", AT_MB_OK|AT_MB_ICONERROR);
 
 			free(infoLog);
+            glDeleteProgram(prog);
 		}
 
-		glDeleteShader(vs);
-		glDeleteShader(fs);
 		*program = prog;
 		return GL_TRUE;
 	} else {

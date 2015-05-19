@@ -240,7 +240,7 @@ int	atSetOrthoZeroAtCenterMatrix	(float* aMatrix_, float left, float right,
 }
 
 /* ----------------------------------------------------------------------------- */
-
+#if 0
 /**
  * Select the most appropriate config according to the attributes used as parameter.
  * @param [in] eglDisplay Current display.
@@ -337,3 +337,4 @@ atGetAppropriateEGLConfig(EGLDisplay eglDisplay, const EGLint* aAttribs,
     return EGL_TRUE;
 }
 
+#endif

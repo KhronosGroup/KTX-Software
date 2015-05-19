@@ -30,10 +30,17 @@
 
 LibKTX contains code
 
-@li (c) 2010 & (c) 2013 The Khronos Group Inc.
+@li (c) 2010 The Khronos Group Inc.
 @li (c) 2008 and (c) 2010 HI Corporation
 @li (c) 2005 Ericsson AB
 @li (c) 2003-2010, Troy D. Hanson
+@li (c) 2015 Mark Callow
+
+The KTX load tests contain code
+
+@li (c) 2013 The Khronos Group Inc.
+@li (c) 2008 and (c) 2010 HI Corporation
+@li (c) 1997-2014 Sam Lantinga
 @li (c) 2015 Mark Callow
 
 @section default Default License
@@ -98,6 +105,12 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@section SDL2 include/SDL2/
+
+These files are part of the SDL2 source distributed by the [SDL project]
+(http://libsdl.org) under the terms of the [zlib license]
+(http://www.zlib.net/zlib_license.html).
 */
 
 /**
@@ -158,6 +171,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #elif KTX_OPENGL_ES2
 
+    #define GL_GLEXT_PROTOTYPES
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
 

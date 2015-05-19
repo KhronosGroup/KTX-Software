@@ -90,7 +90,7 @@ out vec4 fragcolor;     \n\
                         \n\
 void main(void)         \n\
 {                       \n\
-    fragcolor = v_color;\n\
+  fragcolor = v_color;\n\
 }";
 
 /* ----------------------------------------------------------------------------- */

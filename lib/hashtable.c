@@ -136,7 +136,7 @@ KTX_error_code
 ktxHashTable_AddKVPair(KTX_hash_table This, const char* key, unsigned int valueLen, const void* value)
 {
 	if (This && key && value && valueLen != 0) {
-		int keyLen = strlen(key) + 1;
+		unsigned int keyLen = (unsigned int)strlen(key) + 1;
 		/* key_and_value_t* head = *(key_and_value_t**)This; */
 		key_and_value_t* kv;
 
@@ -302,13 +302,13 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* pKvd, KTX_hash_table* pHt)
 
 	while (src < (char *)pKvd + kvdLen) {
 		char* key;
-		int keyLen;
+		unsigned int keyLen;
 		void* value;
 		khronos_uint32_t keyAndValueByteSize = *((khronos_uint32_t*)src);
 
 		src += sizeof(keyAndValueByteSize);
 		key = src;
-		keyLen = strlen(key) + 1;
+		keyLen = (unsigned int)strlen(key) + 1;
 		value = key + keyLen;
 
 		ktxHashTable_AddKVPair(kvt, key, keyAndValueByteSize - keyLen, value);

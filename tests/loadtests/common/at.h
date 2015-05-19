@@ -42,21 +42,25 @@
 
 /* ----------------------------------------------------------------------------- */
 
+#include <SDL2/sdl.h>
+
+/* ----------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* ----------------------------------------------------------------------------- */
 
-#if KTX_OPENGL
-  #define EGLAPI  // With OpenGL we use an emulator in a local file not libEGL.dll.
-#endif
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+//#if KTX_OPENGL
+//  #define EGLAPI  // With OpenGL we use an emulator in a local file not libEGL.dll.
+//#endif
+//#include <EGL/egl.h>
+//#include <EGL/eglext.h>
 
 /* ----------------------------------------------------------------------------- */
 
-#include <malloc.h>	
+//#include <malloc.h>
 #include <memory.h>	
 #include <string.h>	
 #include <assert.h>
@@ -70,9 +74,9 @@ extern "C" {
 /*
  * Select the most appropriate config according to the attributes used as parameter.
  */
-EGLBoolean
-atGetAppropriateEGLConfig(EGLDisplay eglDisplay, const EGLint* aAttribs,
-   						  EGLConfig* pResult);
+//EGLBoolean
+//atGetAppropriateEGLConfig(EGLDisplay eglDisplay, const EGLint* aAttribs,
+//   						  EGLConfig* pResult);
 
 /* ----------------------------------------------------------------------------- */
 
@@ -114,28 +118,21 @@ typedef struct atSample_def {
 	atPFRun pfRun;
 } atSample;
 
-/** A table of samples and arguments */
-typedef struct atSampleInvocation_def {
-	const atSample* sample;
-	const char* const args;
-	const char* const title;
-} atSampleInvocation;
-
 /* ----------------------------------------------------------------------------- */
 
-#define ATE_LEFT_ARROW		0x00000001
-#define ATE_RIGHT_ARROW		0x00000002
-#define ATE_UP_ARROW		0x00000003
-#define ATE_DOWN_ARROW		0x00000004
-#define ATE_ENTER			0x00000005
-#define ATE_LBUTTON			0x00000006
-#define ATE_RBUTTON			0x00000007
+//#define ATE_LEFT_ARROW		0x00000001
+//#define ATE_RIGHT_ARROW		0x00000002
+//#define ATE_UP_ARROW		0x00000003
+//#define ATE_DOWN_ARROW		0x00000004
+//#define ATE_ENTER			0x00000005
+//#define ATE_LBUTTON			0x00000006
+//#define ATE_RBUTTON			0x00000007
 
-#define ATE_NUM_SUPPORTED_EVENTS 0x7
+//#define ATE_NUM_SUPPORTED_EVENTS 0x7
 
-typedef void (*atPFHandleEvent)(void* pAppData, unsigned int uEvent, int iPressed);
+//typedef void (*atPFHandleEvent)(void* pAppData, unsigned int uEvent, int iPressed);
 
-atPFHandleEvent atSetEventHandler(unsigned int uEvent, atPFHandleEvent pfHandle);
+//atPFHandleEvent atSetEventHandler(unsigned int uEvent, atPFHandleEvent pfHandle);
 
 /* ----------------------------------------------------------------------------- */
 
@@ -165,14 +162,14 @@ int	atSetOrthoZeroAtCenterMatrix (tFloat* aMatrix_, tFloat left, tFloat right,
 /* ----------------------------------------------------------------------------- */
 
 /* Platform independent interface to a message box function */
-unsigned int atMessageBox(const char* message, const char* caption,
-						  unsigned int type);
+#define atMessageBox(message, caption, type) \
+    SDL_ShowSimpleMessageBox(type, caption, message, NULL)
 
 /* message box types */
-#define AT_MB_OK		0x00000001
-#define AT_MB_OKCANCEL	0x00000002
-#define AT_MB_ICONINFO	0x00000003
-#define AT_MB_ICONERROR	0x00000004
+#define AT_MB_OK		0x00000000
+#define AT_MB_OKCANCEL	0x00000000
+#define AT_MB_ICONINFO	SDL_MESSAGEBOX_INFORMATION
+#define AT_MB_ICONERROR	SDL_MESSAGEBOX_ERROR
 
 /* ----------------------------------------------------------------------------- */
 
