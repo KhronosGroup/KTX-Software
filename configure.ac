@@ -73,10 +73,14 @@ AC_ARG_WITH([glew], [AS_HELP_STRING([--with-glew], [do not use glew as GL helper
     fi
 ],[
     if test $GL_SPECIFIED = "ogl"; then
-        GLCORE_LTLIBS=$PWD/glcore/libglcore30.la
+        GLCORE_LIBS=$PWD/glcore/libglcore30.la
         GLCORE_CFLAGS="-I$BUILD_ROOT/glcore -DUSE_GLCORE"
-        AC_SUBST([GLCORE_LTLIBS])
+	GLCORE_LDFLAGS="-whole-archive"
+	GLCORE_BUILD_CFLAGS="-fPIC"
+        AC_SUBST([GLCORE_LIBS])
         AC_SUBST([GLCORE_CFLAGS])
+	AC_SUBST([GLCORE_LDFLAGS])
+	AC_SUBST([GLCORE_BUILD_CFLAGS])
     fi
 ])
 AC_PROG_CC

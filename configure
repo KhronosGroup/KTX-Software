@@ -713,11 +713,14 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+GLCORE_BUILD_CFLAGS
+GLCORE_LDFLAGS
+GLCORE_CFLAGS
+GLCORE_LIBS
 GLEW_LDFLAGS
 GLEW_CFLAGS
 glew_LIBS
 glew_CFLAGS
-KTX_CFLAGS
 gl_LIBS
 gl_CFLAGS
 glesv3_LIBS
@@ -726,6 +729,7 @@ glesv2_LIBS
 glesv2_CFLAGS
 USEDGL_LDFLAGS
 USEDGL_CFLAGS
+KTX_CFLAGS
 glesv1_LIBS
 glesv1_CFLAGS
 USEDGL
@@ -1452,7 +1456,7 @@ Optional Packages:
   --with-openglesv2       use OpenGL ES v2
   --with-openglesv3       use OpenGL ES v3
   --with-opengl           use OpenGL
-  --without-glew          do not use glew as GL helper library (only checked
+  --with-glew             do not use glew as GL helper library (only checked
                           when opengl is used)
   --with-pic[=PKGS]       try to use only PIC/non-PIC objects [default=use
                           both]
@@ -2511,7 +2515,7 @@ else
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-        USEDGL=-DKTX_OPENGL_ES1=1
+        KTX_CFLAGS="-DKTX_OPENGL_ES1=1"
 
         USEDGL_CFLAGS=$glesv1_CFLAGS
 
@@ -2606,7 +2610,7 @@ else
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-        USEDGL=-DKTX_OPENGL_ES2=1
+        KTX_CFLAGS="-DKTX_OPENGL_ES2=1"
 
         USEDGL_CFLAGS=$glesv2_CFLAGS
 
@@ -2699,7 +2703,7 @@ else
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-        USEDGL=-DKTX_OPENGL_ES3=1
+        KTX_CFLAGS="-DKTX_OPENGL_ES3=1"
 
         USEDGL_CFLAGS=$glesv3_CFLAGS
 
@@ -2717,7 +2721,7 @@ if test "${with_opengl+set}" = set; then :
     if test -v GL_SPECIFIED; then
         as_fn_error $? "Please specify only one gl/gles library" "$LINENO" 5
     fi
-    GL_SPECIFIED="gl"
+    GL_SPECIFIED="ogl"
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gl" >&5
@@ -2807,7 +2811,7 @@ fi
 # Check whether --with-glew was given.
 if test "${with_glew+set}" = set; then :
   withval=$with_glew;
-    if ! test $GL_SPECIFIED="gl"; then
+    if test ! $GL_SPECIFIED = "ogl"; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: disabling glew only affects gl. Ignoring it..." >&5
 $as_echo "$as_me: WARNING: disabling glew only affects gl. Ignoring it..." >&2;}
     else
@@ -2901,12 +2905,26 @@ else
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
+            glew_CFLAGS="$glew_CFLAGS -DUSE_GLEW"
             GLEW_CFLAGS=$glew_CFLAGS
 
             GLEW_LDFLAGS=$glew_LIBS
 
 
 fi
+    fi
+
+else
+
+    if test $GL_SPECIFIED = "ogl"; then
+        GLCORE_LIBS=$PWD/glcore/libglcore30.la
+        GLCORE_CFLAGS="-I$BUILD_ROOT/glcore -DUSE_GLCORE"
+	GLCORE_LDFLAGS="-whole-archive"
+	GLCORE_BUILD_CFLAGS="-fPIC"
+
+
+
+
     fi
 
 fi
@@ -11551,7 +11569,7 @@ fi
   libsuff=
   case "$host_cpu" in
   x86_64*|s390x*|powerpc64*)
-    echo '#line 11554 "configure"' > conftest.$ac_ext
+    echo '#line 11572 "configure"' > conftest.$ac_ext
     if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -15408,7 +15426,7 @@ fi
   libsuff=
   case "$host_cpu" in
   x86_64*|s390x*|powerpc64*)
-    echo '#line 15411 "configure"' > conftest.$ac_ext
+    echo '#line 15429 "configure"' > conftest.$ac_ext
     if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -15768,7 +15786,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # Only expand once:
 
 
-ac_config_files="$ac_config_files Makefile lib/Makefile include/Makefile tools/toktx/Makefile"
+ac_config_files="$ac_config_files Makefile lib/Makefile include/Makefile glcore/Makefile tools/toktx/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -16895,6 +16913,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "include/Makefile") CONFIG_FILES="$CONFIG_FILES include/Makefile" ;;
+    "glcore/Makefile") CONFIG_FILES="$CONFIG_FILES glcore/Makefile" ;;
     "tools/toktx/Makefile") CONFIG_FILES="$CONFIG_FILES tools/toktx/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
