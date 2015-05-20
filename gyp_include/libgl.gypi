@@ -33,14 +33,14 @@
               'libs': [ '-lgl'],
             }],
           ],
-        }, 'OS == "android" or OS == "ios"', {
-          # OpenGL not supported on these platforms.
-          # XXX How to get GYP to print a useful error? An "undefined
-          # variable 'libs' in ktx.gyp" error is currently emitted.
         }, 'OS == "mac"', {
           'lib_dirs': [ ],
           'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGL.framework'],
-       }],
+        }, {
+          # OpenGL not supported
+          'lib_dirs': [ ],
+          'libs': [ ],
+        }],
       ],
     }, # variables
     'link_settings': {

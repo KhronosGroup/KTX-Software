@@ -21,13 +21,9 @@
 #        'AppBaseSDL_joinPaths.cpp',
 #        'AppBaseSDL_showShaderInfoLog.cpp',
       ],
-#      'include_dirs': [
-#        '../../other_include/SDL',
-#        '../../include',
-#      ],
-#      'direct_dependent_settings': {
-#        'include_dirs': [ '.' ],
-#      },
+      'include_dirs': [
+         '../common',
+      ],
       'dependencies': [ 'libsdl' ],
       'export_dependent_settings': [ 'libsdl' ],
       'link_settings': {

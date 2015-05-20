@@ -19,13 +19,13 @@
   # to run gyp on this file.
 
   'make_global_settings': [
-	 ['AR.emscripten', 'emar'],
+     ['AR.emscripten', 'emar'],
 
-	 ['CC.emscripten', 'emcc'],
-	 ['CXX.emscripten', 'emcc'],
+     ['CC.emscripten', 'emcc'],
+     ['CXX.emscripten', 'emcc'],
 
-	 ['LD.emscripten', 'emcc'],
-	 ['LINK.emscripten', 'emcc'],
+     ['LD.emscripten', 'emcc'],
+     ['LINK.emscripten', 'emcc'],
   ],
   'xcode_settings': {
     # Don't add anything new to this block unless you really need it!
@@ -48,23 +48,28 @@
                                   # condition in level 1.
       'conditions': [
         ['OS == "win"', {
-          'GL_VERSION%': 'gl3',
+          'GL_PROFILE%': 'gl',
+          'GL_VERSION%': '3.3',
         }, 'OS == "mac"', {
-          'GL_VERSION%': 'gl3',
+          'GL_PROFILE%': 'gl',
+          'GL_VERSION%': '3.3',
         }, 'OS == "ios"', {
-          'GL_VERSION%': 'es3',
+          'GL_PROFILE%': 'es',
+          'GL_VERSION%': '3.0',
         }, 'OS == "android"', {
-          'GL_VERSION%': 'es3',
+          'GL_PROFILE%': 'es',
+          'GL_VERSION%': '3.0',
           'executable': 'shared_library',
         }],
       ],
     },
+    'GL_PROFILE%': '<(GL_PROFILE)',
     'GL_VERSION%': '<(GL_VERSION)',
     'executable': '<(executable)',
     'otherlibroot_dir': 'other_lib/<(OS)',
     'conditions': [
       # Emscripten "vs-tool" VS integration only supports certain MSVS versions;
-      ['GL_VERSION[:2]!="gl" and (GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010"))', {
+      ['GL_PROFILE!="gl" and (GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010"))', {
         'emit_emscripten_configs': 'true'
       }, {
         'emit_emscripten_configs': 'false'
@@ -90,19 +95,6 @@
         }],
       ],
     },
-    'conditions': [
-      # TODO consider moving these to libktx as direct dependent
-      # settings.
-      ['GL_VERSION[:2] == "gl"', {
-        'defines': [ 'KTX_OPENGL=1' ],
-      }, 'GL_VERSION == "es1"', {
-        'defines': [ 'KTX_OPENGL_ES1=1' ],
-      }, 'GL_VERSION == "es2"', {
-        'defines': [ 'KTX_OPENGL_ES2=1' ],
-      }, 'GL_VERSION == "es3"', {
-        'defines': [ 'KTX_OPENGL_ES3=1' ],
-      }],
-    ],
     'msvs_configuration_attributes': {
       # Augment these with $(PlatformName) since we generate
       # multi-platform projects.
@@ -138,25 +130,25 @@
       ],
     },
     'configurations': {
-	  'Debug': {
+      'Debug': {
         'cflags': [ '-O0' ],
         'defines': [
-		  'DEBUG', '_DEBUG',
-		],
-		'msvs_configuration_platform': 'Win32',
-		'msvs_settings': {
-		  'VCCLCompilerTool': {
+          'DEBUG', '_DEBUG',
+        ],
+        'msvs_configuration_platform': 'Win32',
+        'msvs_settings': {
+          'VCCLCompilerTool': {
             # EditAndContinue
-		    'DebugInformationFormat': 4,
+            'DebugInformationFormat': 4,
             'Optimization': 0,
             # Use MultiThreadedDebugDLL (/MDd) to get extra checking.
             # Default is MultiThreaded (/MD).
             'RuntimeLibrary': 3,
-		  },
+          },
           # Changing OutputFile causes an MSB8012 warning from MSBuild
           # because GYP only ensures that TargetPath matches the
           # OutputFile. TargetName must match as well.
-		  'VCLinkerTool': {
+          'VCLinkerTool': {
             'GenerateDebugInformation': 'true',
             # SDLmain.lib is compiled /MD making msvcrt.lib a default
             # link lib. Remove it from default list to quiet the
@@ -164,8 +156,8 @@
             # above.  Alternative fix is to provide a debug version of
             # SDLmain.lib compiled /MDd.
             'IgnoreDefaultLibraryNames': 'msvcrt.lib'
-		    #'OutputFile': '$(OutDir)$(ProjectName)_g$(TargetExt)'
-		  },
+            #'OutputFile': '$(OutDir)$(ProjectName)_g$(TargetExt)'
+          },
           #'VCLibrarianTool': {
           #  'OutputFile': '$(OutDir)$(ProjectName)_g$(TargetExt)'
           #},
@@ -176,7 +168,7 @@
               },
             }],
           ],
-		},
+        },
         'xcode_settings':  {
           'GCC_OPTIMIZATION_LEVEL': 0,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
@@ -186,22 +178,22 @@
             }],
           ],
         },
-	  }, # Debug
+      }, # Debug configuration
       'Release': {
         'cflags': [ '-O3' ],
         'defines': [
           'NDEBUG',
-		],
-		'msvs_configuration_platform': 'Win32',
-		'msvs_settings': {
-		  'VCCLCompilerTool': {
+        ],
+        'msvs_configuration_platform': 'Win32',
+        'msvs_settings': {
+          'VCCLCompilerTool': {
             'Optimization': 3,
             # Use MultiThreadDLL (msvcrt) to match the way SDLmain.lib
             # is compiled. Default is MultiThread (libcmt) which causes
             # link errors due to symbols defined in both msvcrt and
             # libcmt.
             'RuntimeLibrary': 2,
-		  },
+          },
         },
         'xcode_settings':  {
           'GCC_OPTIMIZATION_LEVEL': 3,
@@ -212,7 +204,7 @@
             }],
           ],
         },
-	  },
+      }, # Release configuration
       # Conditionally add some configs
       'conditions': [  # or 'conditions!':
         ['emit_x64_configs=="true"', { # and Linux?
@@ -220,7 +212,7 @@
           'Debug_x64': {
             'inherit_from': ['Debug'],
             'msvs_configuration_platform': 'x64',
-           	'msvs_settings': {
+               'msvs_settings': {
               'VCCLCompilerTool': {
                 # Program Database. E&C not available in 64-bit
                 'DebugInformationFormat': 3,
@@ -230,7 +222,7 @@
           'Release_x64': {
             'inherit_from': ['Release'],
             'msvs_configuration_platform': 'x64',
-           	'msvs_settings': {
+               'msvs_settings': {
               'VCCLCompilerTool': {
                 # Program Database. E&C not available in 64-bit
                 'DebugInformationFormat': 3,
@@ -269,8 +261,7 @@
                 'LinkerOptimizationLevel': 4, # -O3
               },
             },
-            # Not working. Investigate later.
-            # Variables are not propagated from configurations?
+            # ditto
             'OS': 'html5',
             'toolset': 'emscripten',
           }, # Release_Emscripten
@@ -300,7 +291,8 @@
   }, # target_defaults
   # Caution: variables set here will override any variables set above.
   'includes': [
-     'lib/lib.gypi',
+     'lib/libktx_gl.gypi',
+     'lib/libktx_es3.gypi',
      'tests/tests.gypi',
      #'tools/tools.gypi',
   ],

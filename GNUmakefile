@@ -52,7 +52,9 @@ gypfiles=ktx.gyp \
 		 gyp_include/libgles2.gypi \
 		 gyp_include/libgles3.gypi \
 		 gyp_include/libsdl.gypi \
-		 lib/lib.gypi \
+		 lib/libktx_core.gypi \
+		 lib/libktx_gl.gypi \
+		 lib/libktx_es3.gypi \
 		 tests/tests.gypi \
 		 tests/loadtests/appfwSDL/appfwSDL.gypi \
 		 tests/loadtests/loadtests.gypi \
@@ -65,7 +67,7 @@ gypfiles=ktx.gyp \
 #export PYTHONPATH=$(gypdir)pylib
 
 # Normal use
-gyp=$(gypdir)gyp
+gyp=$(gypdir)gyp# --debug=all
 
 # Use this to start in the Python debugger
 #gyp=python -m pdb $(gypdir)gyp_main.py
