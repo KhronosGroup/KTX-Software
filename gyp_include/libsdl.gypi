@@ -25,16 +25,20 @@
         ['OS == "win"', {
           'link_settings': {
             'libraries=': [ '-lSDL2', '-lSDL2main' ],
-            'library_dirs': [ '<(winolib_dir)' ],
+            'library_dirs': [ '<(sdl2_lib_dir)' ],
           },
-          'copies': [{
-            'destination': '<(PRODUCT_DIR)',
-            # This results in <CustomBuildTool include=".../$(PlatformName)/SDL2.dll">
-            # which works, but VS2010 typically will show the custom
-            # copy command in properties for only one configuration.
-            # Nevertheless copy will be performed in all.
-            'files': [ '<(winolib_dir)/SDL2.dll' ],
-          }],
+          'conditions': [
+            ['sdl2_dll_dir != ""', {
+              'copies': [{
+                'destination': '<(PRODUCT_DIR)',
+                # This results in <CustomBuildTool include=".../$(PlatformName)/SDL2.dll">
+                # which works, but VS2010 typically will show the custom
+                # copy command in properties for only one configuration.
+                # Nevertheless copy will be performed in all.
+                'files': [ '<(sdl2_dll_dir)/SDL2.dll' ],
+              }], # copies
+            }],
+          ], # conditions
         }],
         ['OS == "ios"', {
           'link_settings': {
@@ -55,30 +59,27 @@
                 ],
               }, 'sdl_to_use == "built_framework"', {
                 'libraries=': [
-                  '<@(macolib_dir)/SDL2.framework',
+                  '<@(sdl2_lib_dir)/SDL2.framework',
                   '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                 ],
               }, {
                 'libraries=': [
-                  '<@(macolib_dir)/libSDL2.dylib',
+                  '<@(sdl2_lib_dir)/libSDL2.dylib',
                   '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                 ],
-                'library_dirs=': [ '<@(macolib_dir)' ],
+                'library_dirs=': [ '<@(sdl2_lib_dir)' ],
               }],
             ], # conditions
           }, # link settings
           'direct_dependent_settings': {
             'conditions': [
               ['sdl_to_use == "installed_framework"', {
-#                'include_dirs': [
-#                  '/Library/Frameworks/SDL2.framework/Headers',
-#                ],
                 'mac_framework_dirs': [ '<@(sdl2.framework_dir)' ],
               }, 'sdl_to_use == "built_framework"', {
 #                'include_dirs': [
-#                  '<(macolib_dir)/SDL2.framework/Headers',
+#                  '<(sdl2_lib_dir)/SDL2.framework/Headers',
 #                ],
-                'mac_framework_dirs': [ '<@(macolib_dir)' ],
+                'mac_framework_dirs': [ '<@(sdl2_lib_dir)' ],
                 # Do "man dyld" for information about @executable_path.
                 'xcode_settings': {
                   'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
@@ -87,7 +88,7 @@
                   # A small change to GYP was required to use
                   # FRAMEWORKS_FOLDER_PATH
                   'destination': '$(FRAMEWORKS_FOLDER_PATH)',
-                  'files': [ '<(macolib_dir)/SDL2.framework' ],
+                  'files': [ '<(sdl2_lib_dir)/SDL2.framework' ],
                 }],
               }, 'sdl_to_use == "dylib"', {
                 'xcode_settings': {
@@ -97,7 +98,7 @@
                   # A small change to GYP was required to use
                   # EXECUTABLE_FOLDER_PATH.
                   'destination': '$(EXECUTABLE_FOLDER_PATH)',
-                  'files': [ '<@(macolib_dir)/libSDL2.dylib' ],
+                  'files': [ '<@(sdl2_lib_dir)/libSDL2.dylib' ],
                 }],
               }],
             ],

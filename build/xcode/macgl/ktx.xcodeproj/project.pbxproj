@@ -17,22 +17,11 @@
 				83F5D12B741D31F4668F1808 /* PBXTargetDependency */,
 				3FC7B0C65E5D50554ED676B7 /* PBXTargetDependency */,
 				700E80B7D828465A1738984D /* PBXTargetDependency */,
-				9A6179FA2E3149D03068C41A /* PBXTargetDependency */,
-				2BDE5F59F19C12BE2CD287FA /* PBXTargetDependency */,
 				54A6C67B3AA80B96D2228ACA /* PBXTargetDependency */,
+				9A6179FA2E3149D03068C41A /* PBXTargetDependency */,
 			);
 			name = All;
 			productName = All;
-		};
-		77D674CF3B041B0E928FAD8D /* libgles3 */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 7ED2CEFEFC0CF8BF355BECEF /* Build configuration list for PBXAggregateTarget "libgles3" */;
-			buildPhases = (
-			);
-			dependencies = (
-			);
-			name = libgles3;
-			productName = libgles3;
 		};
 		7E694AF384684A19CC02477C /* libsdl */ = {
 			isa = PBXAggregateTarget;
@@ -119,13 +108,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		07913322DD9EC30EAA151D1A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 01FA19D4E56139A59B805B6A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 77D674CF3B041B0E928FAD8D;
-			remoteInfo = libgles3;
-		};
 		0891EEAEF9D944B8E01D4695 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 01FA19D4E56139A59B805B6A /* Project object */;
@@ -623,9 +605,8 @@
 				966E850726E15ED8B97F4592 /* libktx_es3 */,
 				EE0B42FC5EB13FFA0BD973B4 /* appfwSDL */,
 				7E694AF384684A19CC02477C /* libsdl */,
-				9BA39C9BB0FB7C96DE30237D /* libgl */,
-				77D674CF3B041B0E928FAD8D /* libgles3 */,
 				EC43DA5F3377BA56712BB6D7 /* gl3_loadtests */,
+				9BA39C9BB0FB7C96DE30237D /* libgl */,
 			);
 		};
 /* End PBXProject section */
@@ -695,11 +676,6 @@
 			target = EE0B42FC5EB13FFA0BD973B4 /* appfwSDL */;
 			targetProxy = 73E6B88DC5461C9A3F1EDEF1 /* PBXContainerItemProxy */;
 		};
-		2BDE5F59F19C12BE2CD287FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 77D674CF3B041B0E928FAD8D /* libgles3 */;
-			targetProxy = 07913322DD9EC30EAA151D1A /* PBXContainerItemProxy */;
-		};
 		3A55A2903D63909B5E6C4BC2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6B4023BE4531EC194CD41BD1 /* libktx_gl */;
@@ -753,19 +729,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		45859A95DC0F49698AA15B55 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_NAME = libgles3;
-			};
-			name = Release;
-		};
 		48B6CDD290948346F15BB12A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -774,7 +737,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = libsdl;
 			};
 			name = Release;
@@ -793,7 +756,7 @@
 					tests/loadtests/common,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = appfwSDL;
 			};
 			name = Release;
@@ -809,7 +772,7 @@
 					DEBUG,
 					_DEBUG,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = libgl;
 			};
 			name = Debug;
@@ -825,7 +788,7 @@
 					DEBUG,
 					_DEBUG,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = libsdl;
 			};
 			name = Debug;
@@ -856,7 +819,7 @@
 					/Library/Frameworks,
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = gl3_loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				WRAPPER_PREFIX = "";
@@ -880,7 +843,7 @@
 					tests/loadtests/common,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = appfwSDL;
 			};
 			name = Debug;
@@ -902,7 +865,7 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = ktx_gl;
 			};
 			name = Debug;
@@ -925,7 +888,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = libgl;
 			};
 			name = Release;
@@ -956,7 +919,7 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = ktx_gl;
 			};
 			name = Release;
@@ -978,7 +941,7 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = ktx_es3;
 			};
 			name = Debug;
@@ -1008,7 +971,7 @@
 					/Library/Frameworks,
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = gl3_loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_PREFIX = "";
@@ -1031,26 +994,10 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = ktx_es3;
 			};
 			name = Release;
-		};
-		BCC7FDB5FFE05556AA001291 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_NAME = libgles3;
-			};
-			name = Debug;
 		};
 		CC6794157F8F909DCA1BCFB4 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1137,15 +1084,6 @@
 			buildConfigurations = (
 				657B6E3E8528BC84D5F8A083 /* Debug */,
 				48B6CDD290948346F15BB12A /* Release */,
-			);
-			defaultConfigurationIsVisible = 1;
-			defaultConfigurationName = Debug;
-		};
-		7ED2CEFEFC0CF8BF355BECEF /* Build configuration list for PBXAggregateTarget "libgles3" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				BCC7FDB5FFE05556AA001291 /* Debug */,
-				45859A95DC0F49698AA15B55 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;

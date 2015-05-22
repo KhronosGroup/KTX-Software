@@ -21,10 +21,7 @@
     'variables': {
       'conditions': [
         ['OS == "win"', {
-          'dlls': [
-            '<(winolib_dir)/glew32.dll',
-          ],
-          'lib_dirs': [ '<(winolib_dir)' ],
+          'lib_dirs': [ '<(glew_lib_dir)' ],
           'conditions': [
             ['GENERATOR == "msvs"', {
               'libs': [
@@ -36,6 +33,11 @@
                 '-lgl',
                 '-lglew32',
               ],
+            }],
+            ['glew_dll_dir != ""', {
+              'dlls': [ '<(glew_dll_dir)/glew32.dll' ],
+            }, {
+              'dlls': [ ],
             }],
           ],
         }, 'OS == "mac"', {
@@ -49,7 +51,7 @@
       ],
     }, # variables
     'conditions': [
-      ['OS == "win"', {
+      ['OS == "win" and dlls.__len__() > 0', {
         'copies': [{
           # Files appearing in 'copies' cause gyp to generate a folder
           # hierarchy in Visual Studio filters reflecting the location

@@ -7,22 +7,7 @@
 {
   'includes': [
      'appfwSDL/appfwSDL.gypi',
-#     '../../gyp_include/libgl.gypi',
-#     '../../gyp_include/libgles1.gypi',
-#     '../../gyp_include/libgles2.gypi',
-#     '../../gyp_include/libgles3.gypi',
   ],
-#  'conditions': [
-#    ['GL_VERSION[:2] == "gl"', {
-#      'includes': [ '../../gyp_include/libgl.gypi' ],
-#    }, 'GL_VERSION == "es1"', {
-#      'includes': [ '../../gyp_include/libgles1.gypi' ],
-#    }, 'GL_VERSION == "es2"', {
-#      'includes': [ '../../gyp_include/libgles2.gypi' ],
-#    }, 'GL_VERSION == "es3"', {
-#      'includes': [ '../../gyp_include/libgles3.gypi' ],
-#    }],
-#  ],
   'variables': { # level 1
     'variables': { # level 2 so can use in level 1
        # This is a list to avoid a very wide line.
@@ -100,45 +85,6 @@
           'xcode_settings': {
             'INFOPLIST_FILE': '<(infoplist_file)',
           },
-    #         }, {
-    #           # OpenGL ES
-    #           'conditions': [
-    #             ['OS == "mac"', {
-    #               'conditions': [
-    #                 ['GL_VERSION == "es2"', {
-    #                   'defines': [
-    #                     'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE',
-    #                     'GL_CONTEXT_MAJOR_VERSION=4',
-    #                     'GL_CONTEXT_MINOR_VERSION=1',
-    #                   ],
-    #                 }], # GL_VERSION == "es2"
-    #               ], # conditions
-    #               # TODO: output error message for != es2 but don't know
-    #               # how.
-    #             }, 'GL_VERSION == "es1"', {
-    #               # Unfortunately '<(GL_VERSION[:-1]' does not work so
-    #               # need to enumerate each case.
-    #               'defines': [
-    #                 'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
-    #                 'GL_CONTEXT_MAJOR_VERSION=1',
-    #                 'GL_CONTEXT_MINOR_VERSION=0',
-    #               ],
-    #             }, 'GL_VERSION == "es2"', {
-    #               'defines': [
-    #                 'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
-    #                 'GL_CONTEXT_MAJOR_VERSION=2',
-    #                 'GL_CONTEXT_MINOR_VERSION=0',
-    #               ],
-    #             }, 'GL_VERSION == "es3"', {
-    #               'defines': [
-    #                 'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
-    #                 'GL_CONTEXT_MAJOR_VERSION=3',
-    #                 'GL_CONTEXT_MINOR_VERSION=0',
-    #               ],
-    #             }], # OS == "mac"
-    #          ], # conditions
-    #        }], # GL_VERSION[:2] == "gl"
-
           'conditions': [
             ['emit_emscripten_configs=="true"', {
               'configurations': {

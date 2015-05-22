@@ -11,36 +11,14 @@
 /build/GNUmake/lib/es3
 /build/GNUmake/lib/gl
 
-# /build/vc9/
-/build/vc9/*.ncb
-/build/vc9/*.suo
-/build/vc9/Debug*
-/build/vc9/Release*
-
-# /build/vc9/gl3_loadtests/
-/build/vc9/gl3_loadtests/Debug*
-/build/vc9/gl3_loadtests/Release*
-/build/vc9/gl3_loadtests/*.user
-
-# /build/vc9/gles1_loadtests/
-/build/vc9/gles1_loadtests/Debug*
-/build/vc9/gles1_loadtests/Release*
-/build/vc9/gles1_loadtests/*.user
-
-# /build/vc9/gles3_loadtests/
-/build/vc9/gles3_loadtests/Debug*
-/build/vc9/gles3_loadtests/Release*
-/build/vc9/gles3_loadtests/*.user
-
-# /build/vc9/libktx/
-/build/vc9/libktx/Debug*
-/build/vc9/libktx/Release*
-/build/vc9/libktx/*.user
-
-# /build/vc9/toktx/
-/build/vc9/toktx/*.user
-/build/vc9/toktx/Debug
-/build/vc9/toktx/Release
+# MS Visual Studio build and user option files
+/build/**/*.ncb
+/build/**/*.suo
+/build/**/*.user
+/build/**/Win32
+/build/**/x64
+/build/**/Debug*
+/build/**/Release*
 
 # User related stuff in /build/xcode
 /build/xcode/*/*.xcodeproj/project.xcworkspace

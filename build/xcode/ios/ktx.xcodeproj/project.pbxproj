@@ -17,9 +17,8 @@
 				83F5D12B741D31F4668F1808 /* PBXTargetDependency */,
 				3FC7B0C65E5D50554ED676B7 /* PBXTargetDependency */,
 				700E80B7D828465A1738984D /* PBXTargetDependency */,
-				9A6179FA2E3149D03068C41A /* PBXTargetDependency */,
-				2BDE5F59F19C12BE2CD287FA /* PBXTargetDependency */,
 				375FB158B4F4F52B32ED418E /* PBXTargetDependency */,
+				2BDE5F59F19C12BE2CD287FA /* PBXTargetDependency */,
 			);
 			name = All;
 			productName = All;
@@ -43,16 +42,6 @@
 			);
 			name = libsdl;
 			productName = libsdl;
-		};
-		9BA39C9BB0FB7C96DE30237D /* libgl */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 15E620D7543252DB85690788 /* Build configuration list for PBXAggregateTarget "libgl" */;
-			buildPhases = (
-			);
-			dependencies = (
-			);
-			name = libgl;
-			productName = libgl;
 		};
 /* End PBXAggregateTarget section */
 
@@ -185,13 +174,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 966E850726E15ED8B97F4592;
 			remoteInfo = libktx_es3;
-		};
-		95C8B62C4B48877D5382C1CE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 01FA19D4E56139A59B805B6A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9BA39C9BB0FB7C96DE30237D;
-			remoteInfo = libgl;
 		};
 		DBD3C9487675007BB5611932 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -645,9 +627,8 @@
 				966E850726E15ED8B97F4592 /* libktx_es3 */,
 				EE0B42FC5EB13FFA0BD973B4 /* appfwSDL */,
 				7E694AF384684A19CC02477C /* libsdl */,
-				9BA39C9BB0FB7C96DE30237D /* libgl */,
-				77D674CF3B041B0E928FAD8D /* libgles3 */,
 				142E0CEEE166668B52588F22 /* es3_loadtests */,
+				77D674CF3B041B0E928FAD8D /* libgles3 */,
 			);
 		};
 /* End PBXProject section */
@@ -780,11 +761,6 @@
 			target = 966E850726E15ED8B97F4592 /* libktx_es3 */;
 			targetProxy = 288D333930476B78B455BD92 /* PBXContainerItemProxy */;
 		};
-		9A6179FA2E3149D03068C41A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9BA39C9BB0FB7C96DE30237D /* libgl */;
-			targetProxy = 95C8B62C4B48877D5382C1CE /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -834,23 +810,6 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
-		};
-		62D91F1134F5936CE952D329 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				PRODUCT_NAME = libgl;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
 		};
 		657B6E3E8528BC84D5F8A083 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -921,20 +880,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
-			};
-			name = Release;
-		};
-		890FFAF726EFD4A25EB6714A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				PRODUCT_NAME = libgl;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -1119,15 +1064,6 @@
 			buildConfigurations = (
 				E70048C94F7B5906192073CC /* Debug */,
 				CC6794157F8F909DCA1BCFB4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 1;
-			defaultConfigurationName = Debug;
-		};
-		15E620D7543252DB85690788 /* Build configuration list for PBXAggregateTarget "libgl" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				62D91F1134F5936CE952D329 /* Debug */,
-				890FFAF726EFD4A25EB6714A /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;

@@ -18,14 +18,62 @@
   # -f FORMATS from within the GYP file?  I'd like people to just be able
   # to run gyp on this file.
 
+ 'variables': { # level 1
+    'variables': { # level 2 so GL_VERSION can be used in level 1
+      'otherlibroot_dir': 'other_lib/<(OS)',
+# Probably not needed.
+#      'conditions': [
+#        ['OS == "win"', {
+#          'GL_PROFILE%': 'gl',
+#          'GL_VERSION%': '3.3',
+#        }, 'OS == "mac"', {
+#          'GL_PROFILE%': 'gl',
+#          'GL_VERSION%': '3.3',
+#        }, 'OS == "ios"', {
+#          'GL_PROFILE%': 'es',
+#          'GL_VERSION%': '3.0',
+#        }, 'OS == "android"', {
+#          'GL_PROFILE%': 'es',
+#          'GL_VERSION%': '3.0',
+#          'executable': 'shared_library',
+#        }],
+#      ],
+    },
+#    'GL_PROFILE%': '<(GL_PROFILE)',
+#    'GL_VERSION%': '<(GL_VERSION)',
+#    'otherlibroot_dir': 'other_lib/<(OS)',
+    'executable': 'executable',
+    'emit_x64_configs': 'false',
+
+#    'conditions': [
+      # TODO Emscripten support not yet correct or complete. DO NOT
+      # TRY TO USE.
+      # Emscripten "vs-tool" VS integration only supports certain MSVS versions;
+#      ['GL_PROFILE!="gl" and (GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010"))', {
+#        'emit_emscripten_configs': 'true',
+#      }, {
+        'emit_emscripten_configs': 'false',
+#      }],
+
+    'conditions': [
+      ['OS == "android"', {
+        'executable': 'shared_library',
+      }],
+      # Don't generate x64 configs in MSVS Express Edition projects.
+      # Note: 2012e and 2013e support x64.
+      ['OS == "win" and (GENERATOR!="msvs" or (GENERATOR=="msvs" and MSVS_VERSION!="2010e" and MSVS_VERSION!="2008e" and MSVS_VERSION!="2005e"))', {
+        'emit_x64_configs': 'true'
+      }],
+    ],
+  },
   'make_global_settings': [
-     ['AR.emscripten', 'emar'],
+    ['AR.emscripten', 'emar'],
 
-     ['CC.emscripten', 'emcc'],
-     ['CXX.emscripten', 'emcc'],
+    ['CC.emscripten', 'emcc'],
+    ['CXX.emscripten', 'emcc'],
 
-     ['LD.emscripten', 'emcc'],
-     ['LINK.emscripten', 'emcc'],
+    ['LD.emscripten', 'emcc'],
+    ['LINK.emscripten', 'emcc'],
   ],
   'xcode_settings': {
     # Don't add anything new to this block unless you really need it!
@@ -39,47 +87,6 @@
       }],
       ['OS == "mac"', {
         'SDKROOT': 'macosx',
-      }],
-    ],
-  },
-  'variables': { # level 1
-    'variables': { # level 2 so GL_VERSION can be used in level 1
-      'executable': 'executable', # Set this in level 2 to avoid another
-                                  # condition in level 1.
-      'conditions': [
-        ['OS == "win"', {
-          'GL_PROFILE%': 'gl',
-          'GL_VERSION%': '3.3',
-        }, 'OS == "mac"', {
-          'GL_PROFILE%': 'gl',
-          'GL_VERSION%': '3.3',
-        }, 'OS == "ios"', {
-          'GL_PROFILE%': 'es',
-          'GL_VERSION%': '3.0',
-        }, 'OS == "android"', {
-          'GL_PROFILE%': 'es',
-          'GL_VERSION%': '3.0',
-          'executable': 'shared_library',
-        }],
-      ],
-    },
-    'GL_PROFILE%': '<(GL_PROFILE)',
-    'GL_VERSION%': '<(GL_VERSION)',
-    'executable': '<(executable)',
-#    'otherlibroot_dir': 'other_lib/<(OS)',
-    'conditions': [
-      # Emscripten "vs-tool" VS integration only supports certain MSVS versions;
-      ['GL_PROFILE!="gl" and (GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010"))', {
-        'emit_emscripten_configs': 'true'
-      }, {
-        'emit_emscripten_configs': 'false'
-      }],
-      # Don't generate x64 configs in MSVS Express Edition projects.
-      # Note: 2012e and 2013e support x64.
-      ['OS=="win" and (GENERATOR!="msvs" or (GENERATOR=="msvs" and MSVS_VERSION!="2010e" and MSVS_VERSION!="2008e" and MSVS_VERSION!="2005e"))', {
-        'emit_x64_configs': 'true'
-      }, {
-        'emit_x64_configs': 'false'
       }],
     ],
   },
@@ -119,12 +126,9 @@
           'TARGETED_DEVICE_FAMILY': '1,2',
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
           'IPHONEOS_DEPLOYMENT_TARGET': '7.0',
-        }, 'OS == "mac" and GL_VERSION[:2] == "gl"', {
-          'MACOSX_DEPLOYMENT_TARGET': '10.5',
-          'COMBINE_HIDPI_IMAGES': 'NO',
         }, 'OS == "mac"', {
-          # Need ARB_ES2_compatibility which only appeared in 10.9
-          'MACOSX_DEPLOYMENT_TARGET': '10.9',
+          # If need GL 4.1 or ARB_ES2_compatibility, bump to 10.9
+          'MACOSX_DEPLOYMENT_TARGET': '10.5',
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
       ],
