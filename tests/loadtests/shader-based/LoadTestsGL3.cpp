@@ -142,7 +142,15 @@ LoadTestsGL3::initialize(int argc, char* argv[])
     }
     
     sgcGLContext = SDL_GL_CreateContext(pswMainWindow);
-    if (sgcGLContext == NULL) {
+	// Work around bug in SDL. It returns a 2.x context when 3.x is requested.
+	// It does though internally record an error.
+	const char* error = SDL_GetError();
+    if (sgcGLContext == NULL
+		|| (error[0] != '\0'
+		    && GL_CONTEXT_MAJOR_VERSION >= 3
+	        && (GL_CONTEXT_PROFILE == SDL_GL_CONTEXT_PROFILE_CORE
+			    || GL_CONTEXT_PROFILE == SDL_GL_CONTEXT_PROFILE_COMPATIBILITY))
+		) {
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
