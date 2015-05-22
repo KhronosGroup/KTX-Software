@@ -12,8 +12,11 @@
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
 *.vcproj text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
 *.vsprops text eol=crlf
 build/vc9/* eol=crlf
+build/msvs/* eol=crlf
 
 # Denote all files that are truly binary and should not be modified.
 *.png binary
@@ -40,5 +43,7 @@ tools/toktx/*.cpp ident
 tools/toktx/*.h ident
 tools/toktx/toktx.cpp filter=kwexpander ident
 *.a filter=lfs -crlf
+*.dll filter=lfs -crlf
 *.dylib filter=lfs -crlf
+*.lib filter=lfs -crlf
 SDL2 filter=lfs -crlf

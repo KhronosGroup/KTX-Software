@@ -23,11 +23,6 @@
       # is emitted when 'copies' is so used.
       'conditions': [
         ['OS == "win"', {
-          'variables': {
-            # Use $(PlatformName) not $(Platform) for compatibiity
-            # with VS2005.
-            'winolib_dir': '<(otherlibroot_dir)/$(PlatformName)',
-          },
           'link_settings': {
             'libraries=': [ '-lSDL2', '-lSDL2main' ],
             'library_dirs': [ '<(winolib_dir)' ],

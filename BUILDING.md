@@ -83,8 +83,27 @@ GYP:
 
 ```bash
 cd <your_gyp_clone>
-sudo ./setup install
+sudo ./setup.py install
 ```
+
+On Windows either
+* install msysgit
+* install python 2.7.x and add `<python>` and `<python>/Scripts` to the PATH
+environment in Windows. `<python>` is the install directory; it defaults to
+`C:\Python27`.
+* copy [make for msysgit]
+(http://repo.or.cz/w/msysgit.git?a=blob;f=bin/make.exe;h=a971ea1266ff40e89137bba068e2c944a382725f;hb=968336eddac1874c56cd934d10783566af5a3e26)
+to the `msysgit` `bin` directory; the default location is
+`%USERPROFILE%\AppData\Programs\Git\bin`. Note that the download is name
+`bin_make.exe`; you must rename this to make.exe. Note also that this is
+version 3.79 of GNU make. It works but version 3.81 is preferable, if you
+can find it.
+* open a `Git Bash` shell to run the commands.
+
+or
+* install cygwin making sure to include make from the *development*
+section and *python* from the shells? section.
+* open a Cygwin shell to run the commands.
 
 To generate the projects run the following commands in the home directory
 of the project:

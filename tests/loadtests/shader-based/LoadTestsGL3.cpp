@@ -41,11 +41,16 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
-#include "LoadTestsGL3.h"
 
 #if defined(_WIN32)
-#define snprintf _snprintf
+  #define snprintf _snprintf
+  #define _CRT_SECURE_NO_WARNINGS
+  #if KTX_OPENGL
+    #include "GL/glew.h"
+  #endif
 #endif
+
+#include "LoadTestsGL3.h"
 
 extern "C" {
 /* ----------------------------------------------------------------------------- */
@@ -119,8 +124,6 @@ LoadTestsGL3::LoadTestsGL3()
 bool
 LoadTestsGL3::initialize(int argc, char* argv[])
 {
-    int width, height;
-
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, GL_CONTEXT_PROFILE);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, GL_CONTEXT_MAJOR_VERSION);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, GL_CONTEXT_MINOR_VERSION);
@@ -143,6 +146,22 @@ LoadTestsGL3::initialize(int argc, char* argv[])
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
+
+#if defined(_WIN32) && KTX_OPENGL
+    // No choice but to use GLEW on Windows; there is no .lib with static bindings.
+    {
+        int iResult = glewInit();
+        if (iResult != GLEW_OK) {
+			std::string sName(szName);
+
+            (void)SDL_ShowSimpleMessageBox(
+                          SDL_MESSAGEBOX_ERROR,
+                          szName,
+						  (sName + (const char*)glewGetErrorString(iResult)).c_str(),
+                          NULL);
+        }
+    }
+#endif
 
     szBasePath = SDL_GetBasePath();
     if (szBasePath == NULL)
@@ -214,8 +233,8 @@ LoadTestsGL3::invokeSample(int iSampleNum)
 
     pCurSampleInv = &siSamples[iSampleNum];
     pCurSampleInv->sample->pfInitialize(
-                                    &pCurSampleData,
-                                    (szBasePath + pCurSampleInv->args).c_str()
+                            &pCurSampleData,
+                            (szBasePath + pCurSampleInv->args).c_str()
                                        );
     
     SDL_GL_GetDrawableSize(pswMainWindow, &width, & height);

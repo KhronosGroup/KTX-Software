@@ -21,16 +21,21 @@
     'variables': {
       'conditions': [
         ['OS == "win"', {
-          # None of 'copies', 'link_settings' or libraries can appear inside
-          # configurations hence use of $(PlatformName), which is used
-          # instead of $(Platform) for compatibility with VS2005. 
-          'winolib_dir': '<(otherlibroot_dir)/$(PlatformName)',
+          'dlls': [
+            '<(winolib_dir)/glew32.dll',
+          ],
           'lib_dirs': [ '<(winolib_dir)' ],
           'conditions': [
             ['GENERATOR == "msvs"', {
-              'libs': [ '-lopengl32.lib' ],
+              'libs': [
+                '-lopengl32.lib',
+                '-lglew32.lib',
+              ],
             }, {
-              'libs': [ '-lgl'],
+              'libs': [
+                '-lgl',
+                '-lglew32',
+              ],
             }],
           ],
         }, 'OS == "mac"', {
@@ -43,6 +48,19 @@
         }],
       ],
     }, # variables
+    'conditions': [
+      ['OS == "win"', {
+        'copies': [{
+          # Files appearing in 'copies' cause gyp to generate a folder
+          # hierarchy in Visual Studio filters reflecting the location
+          # of each file. The folders will be empty.
+          'destination': '<(PRODUCT_DIR)',
+          'files': [
+            '<@(dlls)',
+          ],
+        }],
+      }], # OS == "win"
+    ], # conditions
     'link_settings': {
      'libraries': [ '<@(libs)' ],
      'library_dirs': [ '<@(lib_dirs)' ],

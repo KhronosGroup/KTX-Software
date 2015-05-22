@@ -66,7 +66,7 @@
     'GL_PROFILE%': '<(GL_PROFILE)',
     'GL_VERSION%': '<(GL_VERSION)',
     'executable': '<(executable)',
-    'otherlibroot_dir': 'other_lib/<(OS)',
+#    'otherlibroot_dir': 'other_lib/<(OS)',
     'conditions': [
       # Emscripten "vs-tool" VS integration only supports certain MSVS versions;
       ['GL_PROFILE!="gl" and (GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010"))', {

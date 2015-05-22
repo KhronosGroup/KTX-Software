@@ -21,10 +21,6 @@
     'conditions': [
       ['OS == "win"', {
         'variables' : {
-          # None of 'copies', 'link_settings' or libraries can appear inside
-          # configurations hence use of $(PlatformName), which is used
-          # instead of $(Platform) for compatibility with VS2005. 
-          'winolib_dir': '<(otherlibroot_dir)/$(PlatformName)',
           'dlls': [
             '<(winolib_dir)/libEGL.dll',
             '<(winolib_dir)/libGLESv2.dll',

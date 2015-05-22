@@ -7,10 +7,10 @@
 {
   'includes': [
      'appfwSDL/appfwSDL.gypi',
-     '../../gyp_include/libgl.gypi',
+#     '../../gyp_include/libgl.gypi',
 #     '../../gyp_include/libgles1.gypi',
 #     '../../gyp_include/libgles2.gypi',
-     '../../gyp_include/libgles3.gypi',
+#     '../../gyp_include/libgles3.gypi',
   ],
 #  'conditions': [
 #    ['GL_VERSION[:2] == "gl"', {
@@ -69,6 +69,7 @@
 
   'conditions': [
     ['OS == "mac" or OS == "win"', {
+      'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
           'target_name': 'gl3_loadtests',
@@ -203,6 +204,7 @@
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
     ['OS == "ios"', {
+      'includes': [ '../../gyp_include/libgles3.gypi' ],
       'targets': [
         {
           'target_name': 'es3_loadtests',

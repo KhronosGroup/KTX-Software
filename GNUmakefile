@@ -27,8 +27,8 @@ builddir:=build
 stampfile:=.${pname}-stamp
 
 msvs_buildd:=$(builddir)/msvs
-msvs_platforms:=web win wingl
-msvs_vernames:=vs2010 vs2010e vs2008 vs2013
+msvs_platforms:=win# web wingl
+msvs_vernames:=vs2008 vs2010 vs2010e vs2013 vs2013e
 # Build list of names "${platform}/vs{2010,2010e,2008}/.ktx-stamp"
 msvs_targets=$(addprefix ${platform}/,$(addsuffix /${stampfile},${msvs_vernames}))
 msvs_platform_dirs:=$(addprefix ${msvs_buildd}/,${msvs_platforms})
@@ -93,9 +93,8 @@ xcode: $(xcode_targets)
 # {win+web,wingl}/vs<version> part of the target name. Uses the
 # msvs_version macro above to extract the version.
 $(msvs_targets): $(msvs_buildd)/%/$(stampfile): $(gypfiles)
-	$(gyp) -f msvs -DUSE_GL=$(use_gl) -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. $(pname).gyp
+	$(gyp) -f msvs -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. $(pname).gyp
 	@date > $@
-
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): $(gypfiles)
 	$(gyp) -f xcode -DOS=$(patsubst %gl,%,$*) --generator-output=$(dir $@) --depth=. $(pname).gyp
