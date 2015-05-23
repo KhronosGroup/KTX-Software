@@ -18,9 +18,7 @@
         'main.cpp',
         'AppBaseSDL.cpp',
         'AppBaseSDL.h',
-#        'AppBaseSDL_joinPaths.cpp',
-#        'AppBaseSDL_showShaderInfoLog.cpp',
-      ],
+     ],
       'include_dirs': [
          '../common',
       ],

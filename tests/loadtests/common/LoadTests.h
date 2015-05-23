@@ -5,10 +5,10 @@
 
 /**
  * @internal
- * @file LoadTestsGL3.h
+ * @file LoadTests.h
  * @~English
  *
- * @brief Declaration of LoadTests app for OpenGL 3.3+ and OpenGL ES 3.x
+ * @brief Declaration of LoadTests app class.
  *
  * @author Mark Callow
  * @copyright (c) 2015, Mark Callow.
@@ -43,26 +43,29 @@
 
 
 #include "../appfwSDL/AppBaseSDL.h"
-#include "../common/at.h"
+#include "at.h"
 #include <string>
 
-class LoadTestsGL3 : public AppBaseSDL {
+class LoadTests : public AppBaseSDL {
   public:
-    LoadTestsGL3();
-    virtual int doEvent(void* userdata, SDL_Event* event);
-    virtual void finalize();
-    virtual bool initialize(int argc, char* argv[]);
-    virtual void onFPSUpdate();
-    virtual void resize(int width, int height);
-    virtual void update(void* userdata, int ticks);
-
-  protected:
     /** A table of samples and arguments */
     typedef struct sampleInvocation_ {
         const atSample* sample;
         const std::string args;
         const char* const title;
     } sampleInvocation;
+    
+    LoadTests(const sampleInvocation samples[],
+                  const int numSamples,
+                  const char* const name);
+    virtual int doEvent(SDL_Event* event);
+    virtual void finalize();
+    virtual bool initialize(int argc, char* argv[]);
+    virtual void onFPSUpdate();
+    virtual void resize(int width, int height);
+    virtual void update(int ticks);
+
+  protected:
     
     void invokeSample(int iSampleNum);
     void setWindowTitle(const char* const sampleName);
@@ -73,7 +76,6 @@ class LoadTestsGL3 : public AppBaseSDL {
     void* pCurSampleData;
     const char* szBasePath;
 
-    static const sampleInvocation siSamples[];
-    static const int iNumSamples;
-    static const char* const szName;
+    const sampleInvocation* const siSamples;
+    const int iNumSamples;
 };

@@ -43,8 +43,9 @@
        # .h files are included so they will appear in IDEs' file lists.
       'common/at.h',
       'common/at.c',
+      'common/LoadTests.cpp',
+      'common/LoadTests.h',
       'shader-based/LoadTestsGL3.cpp',
-      'shader-based/LoadTestsGL3.h',
       'shader-based/sample_01_draw_texture.c',
       'shader-based/sample_02_cube_textured.c',
       'shader-based/shaderfuncs.c',

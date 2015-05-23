@@ -59,7 +59,7 @@ AppBaseSDL::finalize() {
 
 
 int
-AppBaseSDL::doEvent(void* userdata, SDL_Event* event)
+AppBaseSDL::doEvent(SDL_Event* event)
 {
     switch (event->type) {
       case SDL_QUIT:
@@ -78,7 +78,7 @@ AppBaseSDL::onFPSUpdate()
 
 
 void
-AppBaseSDL::update(void* userdata, int ticks)
+AppBaseSDL::update(int ticks)
 {
     iFPSFrames++;
     if (ticks - lFPSTimeStart > 1000) {

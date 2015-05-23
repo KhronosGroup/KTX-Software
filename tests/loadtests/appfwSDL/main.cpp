@@ -65,31 +65,25 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #endif
 
 
-void
-update(void* userdata)
-{
-  theApp->update(userdata, SDL_GetTicks());
-}
-
-
 int
 main(int argc, char* argv[])
 {
   if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
-      fprintf(stderr, "SDL video initialization failed: %s\n", SDL_GetError());
+      fprintf(stderr, "%s: SDL video initialization failed: %s\n",
+              theApp->name(), SDL_GetError());
       return 1;
   }
 
   if (!theApp->initialize(argc, argv))
     return 1;
 
-  // SDL_SetEventFilter(theApp->Event, NULL);  // Catches events before they are added to the event queue
-  SDL_AddEventWatch(theApp->onEvent, NULL);  // Triggered when event added to queue. Will this work on iOS?
+  // SDL_SetEventFilter(theApp->Event, theApp);  // Catches events before they are added to the event queue
+  SDL_AddEventWatch(theApp->onEvent, theApp);  // Triggered when event added to queue. Will this work on iOS?
 
   if (!NEED_MAIN_LOOP) {
     // TODO: Fix this main to work for multiple windows. One way is to have the application
     // call setAnimationCallback and keep a list of the windows in this file, calling update for each window.
-    setAnimationCallback(SDL_GL_GetCurrentWindow(), update, NULL);
+    setAnimationCallback(SDL_GL_GetCurrentWindow(), theApp->onUpdate, theApp);
     // iOS version of SDL will not exit when main completes.
     // The Emscripten version of the app must be compiled with -s NO_EXIT_RUNTIME=1 to prevent Emscripten
     // exiting when main completes.
@@ -97,7 +91,7 @@ main(int argc, char* argv[])
   } else {
     for (;;) {
       SDL_PumpEvents();
-      theApp->update(NULL, SDL_GetTicks());
+      theApp->update(SDL_GetTicks());
       // Let app return a sleep time from update()?
       // if so
       // sleep(sleeptime);

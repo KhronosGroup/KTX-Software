@@ -8,7 +8,8 @@
  * @file LoadTestsGL3.cpp
  * @~English
  *
- * @brief LoadTests app for OpenGL 3.3+ and OpenGL ES 3.x
+ * @brief Instantiate LoadTest app with set of tests for OpenGL 3.3+ and
+ *        OpenGL ES 3.x
  *
  * @author Mark Callow
  * @copyright (c) 2015, Mark Callow.
@@ -42,15 +43,7 @@
  */
 
 
-#if defined(_WIN32)
-  #define snprintf _snprintf
-  #define _CRT_SECURE_NO_WARNINGS
-  #if KTX_OPENGL
-    #include "GL/glew.h"
-  #endif
-#endif
-
-#include "LoadTestsGL3.h"
+#include "../common/LoadTests.h"
 
 extern "C" {
 /* ----------------------------------------------------------------------------- */
@@ -84,7 +77,7 @@ static const atSample sc_Sample02 = {
 }
 /* ----------------------------------------------------------------------------- */
 
-const LoadTestsGL3::sampleInvocation LoadTestsGL3::siSamples[] = {
+const LoadTests::sampleInvocation siSamples[] = {
 	{ &sc_Sample01, "testimages/hi_mark.ktx", "RGB8 NPOT HI Logo" },
 	{ &sc_Sample01, "testimages/luminance_unsized_reference.ktx", "Luminance (Unsized)" },
 	{ &sc_Sample01, "testimages/luminance_sized_reference.ktx", "Luminance (Sized)" },
@@ -108,162 +101,9 @@ const LoadTestsGL3::sampleInvocation LoadTestsGL3::siSamples[] = {
 	{ &sc_Sample02, "testimages/hi_mark_sq.ktx", "RGB8 NPOT HI Logo" }
 };
 
-const int LoadTestsGL3::iNumSamples = sizeof(LoadTestsGL3::siSamples) / sizeof(sampleInvocation);
-
-const char* const LoadTestsGL3::szName = "KTX Loader Tests";
-
-AppBaseSDL* theApp = new LoadTestsGL3();
+const int iNumSamples = sizeof(siSamples) / sizeof(LoadTests::sampleInvocation);
 
 
-LoadTestsGL3::LoadTestsGL3()
-{
-    iCurSampleNum = 0;
-    pCurSampleInv = &siSamples[0];
-}
+AppBaseSDL* theApp = new LoadTests(siSamples, iNumSamples,
+                                       "KTX Loader Tests for GL/ES 3");
 
-bool
-LoadTestsGL3::initialize(int argc, char* argv[])
-{
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, GL_CONTEXT_PROFILE);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, GL_CONTEXT_MAJOR_VERSION);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, GL_CONTEXT_MINOR_VERSION);
-    
-    pswMainWindow = SDL_CreateWindow(
-                        szName,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        640, 480,
-                        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
-                    );
-
-    if (pswMainWindow == NULL) {
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
-        return false;
-    }
-    
-    sgcGLContext = SDL_GL_CreateContext(pswMainWindow);
-	// Work around bug in SDL. It returns a 2.x context when 3.x is requested.
-	// It does though internally record an error.
-	const char* error = SDL_GetError();
-    if (sgcGLContext == NULL
-		|| (error[0] != '\0'
-		    && GL_CONTEXT_MAJOR_VERSION >= 3
-	        && (GL_CONTEXT_PROFILE == SDL_GL_CONTEXT_PROFILE_CORE
-			    || GL_CONTEXT_PROFILE == SDL_GL_CONTEXT_PROFILE_COMPATIBILITY))
-		) {
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
-        return false;
-    }
-
-#if defined(_WIN32) && KTX_OPENGL
-    // No choice but to use GLEW on Windows; there is no .lib with static bindings.
-    {
-        int iResult = glewInit();
-        if (iResult != GLEW_OK) {
-			std::string sName(szName);
-
-            (void)SDL_ShowSimpleMessageBox(
-                          SDL_MESSAGEBOX_ERROR,
-                          szName,
-						  (sName + (const char*)glewGetErrorString(iResult)).c_str(),
-                          NULL);
-        }
-    }
-#endif
-
-    szBasePath = SDL_GetBasePath();
-    if (szBasePath == NULL)
-        szBasePath = SDL_strdup("./");
-    
-    // Not getting an initialize resize event, at least on Mac OS X.
-    // Therefore use invokeSample which calls the sample's resize func.
-    invokeSample(iCurSampleNum);
-    
-    return AppBaseSDL::initialize(argc, argv);
-}
-
-
-void
-LoadTestsGL3::finalize()
-{
-    pCurSampleInv->sample->pfRelease(pCurSampleData);
-}
-
-
-int
-LoadTestsGL3::doEvent(void* userdata, SDL_Event* event)
-{
-    switch (event->type) {
-      case SDL_MOUSEBUTTONUP:
-        switch (event->button.button) {
-          case SDL_BUTTON_LEFT:
-            pCurSampleInv->sample->pfRelease(pCurSampleData);
-            if (++iCurSampleNum >= iNumSamples)
-              iCurSampleNum = 0;
-            pCurSampleInv = &siSamples[iCurSampleNum];
-            invokeSample(iCurSampleNum);
-            return 0;
-        }
-        break;
-      case SDL_WINDOWEVENT:
-        switch (event->window.event) {
-          case SDL_WINDOWEVENT_RESIZED:
-            resize(event->window.data1, event->window.data2);
-            return 0;
-        }
-        break;
-            
-    }
-    return AppBaseSDL::doEvent(userdata, event);
-}
-
-
-void
-LoadTestsGL3::resize(int width, int height)
-{
-    pCurSampleInv->sample->pfResize(pCurSampleData, width, height);
-}
-
-
-void
-LoadTestsGL3::update(void* userdata, int ticks)
-{
-    pCurSampleInv->sample->pfRun(pCurSampleData, ticks);
-    SDL_GL_SwapWindow(pswMainWindow);
-    AppBaseSDL::update(userdata, ticks);
-}
-
-
-void
-LoadTestsGL3::invokeSample(int iSampleNum)
-{
-    int width, height;
-
-    pCurSampleInv = &siSamples[iSampleNum];
-    pCurSampleInv->sample->pfInitialize(
-                            &pCurSampleData,
-                            (szBasePath + pCurSampleInv->args).c_str()
-                                       );
-    
-    SDL_GL_GetDrawableSize(pswMainWindow, &width, & height);
-    setWindowTitle(pCurSampleInv->title);
-    pCurSampleInv->sample->pfResize(pCurSampleData, width, height);
-}
-
-
-void
-LoadTestsGL3::onFPSUpdate()
-{
-    // Using onFPSUpdate avoids rewriting the title every frame.
-    setWindowTitle(pCurSampleInv->title);
-}
-
-
-void
-LoadTestsGL3::setWindowTitle(const char* const szSampleName)
-{
-    char szTitle[100];
-    
-    snprintf(szTitle, sizeof(szTitle), "%#.2f fps. %s: %s", fFPS, szName, szSampleName);
-    SDL_SetWindowTitle(pswMainWindow, szTitle);
-}

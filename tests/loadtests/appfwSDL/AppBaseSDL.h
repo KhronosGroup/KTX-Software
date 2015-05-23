@@ -47,20 +47,29 @@ extern class AppBaseSDL* theApp;
 
 class AppBaseSDL {
   public:
+    AppBaseSDL(const char* const name) : szName(name) { }
     virtual bool initialize(int argc, char* argv[]);
     virtual void finalize();
-    virtual int doEvent(void* userdata, SDL_Event* event);
+    virtual int doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
-    virtual void update(void* userdata, int ticks);
+    virtual void update(int ticks);
+    
+    const char* const name() { return szName; }
     
     static int onEvent(void* userdata, SDL_Event* event) {
-        return theApp->doEvent(userdata, event);
+        return ((AppBaseSDL *)userdata)->doEvent(event);
     }
     
+    static void onUpdate(void* userdata) {
+        ((AppBaseSDL *)userdata)->update(SDL_GetTicks());
+    }
+
 protected:
     long lFPSTimeStart;
     int iFPSFrames;
     float fFPS;
+    
+    const char* const szName;
 };
 
 
