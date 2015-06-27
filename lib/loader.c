@@ -470,6 +470,10 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 	if (texinfo.generateMipmaps && (glGenerateMipmap == NULL)) {
 		glTexParameteri(texinfo.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
+#ifdef GL_TEXTURE_MAX_LEVEL
+	if (!texinfo.generateMipmaps)
+		glTexParameteri(texinfo.glTarget, GL_TEXTURE_MAX_LEVEL, header.numberOfMipmapLevels - 1);
+#endif
 
 	if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP) {
 		texinfo.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
