@@ -78,5 +78,5 @@ include_directories(${DEPTH}/include)
 add_subdirectory(libktx libktx)
 add_subdirectory(toktx toktx)
 
-add_dependencies(toktx libktx)
+add_dependencies(toktx ktx)
 
