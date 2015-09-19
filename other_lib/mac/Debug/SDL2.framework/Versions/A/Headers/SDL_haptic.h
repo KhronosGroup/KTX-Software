@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2014 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -102,11 +102,6 @@
  *    return 0; // Success
  * }
  * \endcode
- *
- * You can also find out more information on my blog:
- * http://bobbens.dyndns.org/journal/2010/sdl_haptic/
- *
- * \author Edgar Simo Serra
  */
 
 #ifndef _SDL_haptic_h
@@ -900,7 +895,7 @@ extern DECLSPEC int SDLCALL SDL_JoystickIsHaptic(SDL_Joystick * joystick);
 /**
  *  \brief Opens a Haptic device for usage from a Joystick device.
  *
- *  You must still close the haptic device seperately.  It will not be closed
+ *  You must still close the haptic device separately.  It will not be closed
  *  with the joystick.
  *
  *  When opening from a joystick you should first close the haptic device before
@@ -957,7 +952,7 @@ extern DECLSPEC int SDLCALL SDL_HapticNumEffects(SDL_Haptic * haptic);
 extern DECLSPEC int SDLCALL SDL_HapticNumEffectsPlaying(SDL_Haptic * haptic);
 
 /**
- *  \brief Gets the haptic devices supported features in bitwise matter.
+ *  \brief Gets the haptic device's supported features in bitwise manner.
  *
  *  Example:
  *  \code

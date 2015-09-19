@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2014 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -190,7 +190,7 @@ extern DECLSPEC Sint16 SDLCALL SDL_JoystickGetAxis(SDL_Joystick * joystick,
  */
 /* @{ */
 #define SDL_HAT_CENTERED    0x00
-#define SDL_HAT_UP      0x01
+#define SDL_HAT_UP          0x01
 #define SDL_HAT_RIGHT       0x02
 #define SDL_HAT_DOWN        0x04
 #define SDL_HAT_LEFT        0x08
