@@ -46,9 +46,20 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 bool
 AppBaseSDL::initialize(int argc, char* argv[])
 {
+    const char* basePath = SDL_GetBasePath();
+    if (basePath == NULL)
+        basePath = SDL_strdup("./");
+    sBasePath = basePath;
+    SDL_free((void *)basePath);
+    return true;
+}
+
+
+void
+AppBaseSDL::initializeFPSTimer()
+{
     lFPSTimeStart = SDL_GetTicks();
     iFPSFrames = 0;
-    return true;
 }
 
 
@@ -78,7 +89,7 @@ AppBaseSDL::onFPSUpdate()
 
 
 void
-AppBaseSDL::update(int ticks)
+AppBaseSDL::drawFrame(int ticks)
 {
     iFPSFrames++;
     if (ticks - lFPSTimeStart > 1000) {

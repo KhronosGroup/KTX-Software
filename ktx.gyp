@@ -119,7 +119,6 @@
       },
     },
     'xcode_settings': {
-      'ARCHS': '$(ARCHS_STANDARD_32_64_BIT)',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad

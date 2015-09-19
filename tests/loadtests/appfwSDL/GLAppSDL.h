@@ -42,22 +42,34 @@
  */
 
 
-#include "../appfwSDL/GLAppSDL.h"
-#include "at.h"
-#include <string>
+#include "AppBaseSDL.h"
 
-class LoadTests : public GLAppSDL {
+#if KTX_OPENGL
+  #if defined(_WIN32)
+    #include "GL/glew.h"
+ #else
+    #define GL_GLEXT_PROTOTYPES
+    #include "GL/glcorearb.h"
+  #endif
+#else
+  #include "GLES3/gl3.h"
+#endif
+
+
+class GLAppSDL : public AppBaseSDL {
   public:
-    /** A table of samples and arguments */
-    typedef struct sampleInvocation_ {
-        const atSample* sample;
-        const std::string args;
-        const char* const title;
-    } sampleInvocation;
-    
-    LoadTests(const sampleInvocation samples[],
-                  const int numSamples,
-                  const char* const name);
+	  GLAppSDL(const char* const name,
+               int width, int height,
+               const SDL_GLprofile profile,
+               const int majorVersion,
+               const int minorVersion)
+            : profile(profile),
+              majorVersion(majorVersion), minorVersion(minorVersion),
+              AppBaseSDL(name)
+	{
+	    w_width = width;
+	    w_height = height;
+	};
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(int ticks);
     virtual void finalize();
@@ -66,13 +78,15 @@ class LoadTests : public GLAppSDL {
     virtual void resize(int width, int height);
 
   protected:
-    
-    void invokeSample(int iSampleNum);
-    int iCurSampleNum;
-    const sampleInvocation* pCurSampleInv;
-    void* pCurSampleData;
-    const char* szBasePath;
+    void setWindowTitle(const char* const szExtra);
 
-    const sampleInvocation* const siSamples;
-    const int iNumSamples;
+    SDL_Window* pswMainWindow;
+    SDL_GLContext sgcGLContext;
+
+	int w_width;
+	int w_height;
+
+	const SDL_GLprofile profile;
+	const int majorVersion;
+	const int minorVersion;
 };

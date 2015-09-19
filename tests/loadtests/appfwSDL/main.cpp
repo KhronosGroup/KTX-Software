@@ -47,7 +47,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include <emscripten.h>
 #endif
 
-#include "at.h"
 
 #if defined(__IPHONEOS__)
   #define NEED_MAIN_LOOP 0
@@ -83,7 +82,7 @@ main(int argc, char* argv[])
   if (!NEED_MAIN_LOOP) {
     // TODO: Fix this main to work for multiple windows. One way is to have the application
     // call setAnimationCallback and keep a list of the windows in this file, calling update for each window.
-    setAnimationCallback(SDL_GL_GetCurrentWindow(), theApp->onUpdate, theApp);
+    setAnimationCallback(SDL_GL_GetCurrentWindow(), theApp->onDrawFrame, theApp);
     // iOS version of SDL will not exit when main completes.
     // The Emscripten version of the app must be compiled with -s NO_EXIT_RUNTIME=1 to prevent Emscripten
     // exiting when main completes.
@@ -91,7 +90,7 @@ main(int argc, char* argv[])
   } else {
     for (;;) {
       SDL_PumpEvents();
-      theApp->update(SDL_GetTicks());
+      theApp->drawFrame(SDL_GetTicks());
       // Let app return a sleep time from update()?
       // if so
       // sleep(sleeptime);

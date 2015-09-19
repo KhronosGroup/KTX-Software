@@ -42,6 +42,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
 #include <SDL2/SDL.h>
+#include <string>
 
 extern class AppBaseSDL* theApp;
 
@@ -50,18 +51,20 @@ class AppBaseSDL {
     AppBaseSDL(const char* const name) : szName(name) { }
     virtual bool initialize(int argc, char* argv[]);
     virtual void finalize();
+    virtual void drawFrame(int ticks);
     virtual int doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
-    virtual void update(int ticks);
     
+    void initializeFPSTimer();
     const char* const name() { return szName; }
+    std::string basePath() { return sBasePath; }
     
     static int onEvent(void* userdata, SDL_Event* event) {
         return ((AppBaseSDL *)userdata)->doEvent(event);
     }
     
-    static void onUpdate(void* userdata) {
-        ((AppBaseSDL *)userdata)->update(SDL_GetTicks());
+    static void onDrawframe(void* userdata) {
+        ((AppBaseSDL *)userdata)->drawFrame(SDL_GetTicks());
     }
 
 protected:
@@ -70,6 +73,8 @@ protected:
     float fFPS;
     
     const char* const szName;
+    std::string sBasePath;
+
 };
 
 

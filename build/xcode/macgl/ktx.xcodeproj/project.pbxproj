@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -46,27 +46,31 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		005733A8E02731FD5DEA6C87 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F2232BB0AD1421F2E4669E5 /* OpenGL.framework */; };
 		031A4ABB27280E6DB99E8B19 /* down-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = A3690F7A76E6B647D8467BD2 /* down-reference.ktx */; };
-		0A368B649136F9929602E64A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28B87262EBE09199AEC26A2E /* QuartzCore.framework */; };
 		0AB4635AAA0E4142CE18DC92 /* etc2-rgba1.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 2451D04AABECFD40A7D9B4CB /* etc2-rgba1.ktx */; };
 		178753CB511CF2C96BD470C3 /* etc2-sRGB.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = B67ACC5123DBAB812319D1C4 /* etc2-sRGB.ktx */; };
+		1CDB5BBA03C85F671C2693B7 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ACBAD86927A652CC29B08CAD /* Cocoa.framework */; };
 		1D56A883A1CDD40DA59D6867 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = C8AD971071B296151851CD23 /* etcunpack.cxx */; };
 		23AC55C26786FDECC07F1A96 /* LoadTestsGL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 343853E321B0486A8C27E98A /* LoadTestsGL3.cpp */; };
 		24461C937F45A040D02AB69E /* luminance_sized_reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 09E4F6C360EB976DF6085961 /* luminance_sized_reference.ktx */; };
 		29B2D1BD5F255DFF356FA63A /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A39A0FAAF49478465D317D8 /* shaders.c */; };
 		29F85C3DD55D1372C7129410 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 272BEE517FB7207578DFB20B /* ktxfilestream.c */; };
 		2BFCE65B036539DFE65F9259 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = 7751763CD61457E95FFF8F8C /* writer.c */; };
+		2F710F1252F36E868EC37B28 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3784E924B6650E923B67CD01 /* main.cpp */; };
+		3743421FC58B156D300E3883 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F5D1D387936108012C83255 /* SDL2.framework */; };
 		407E195D18F548690475DB54 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = 7751763CD61457E95FFF8F8C /* writer.c */; };
-		46A558FAA105F385D51F0583 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 297399222BBDBF46626ADE3B /* Foundation.framework */; };
 		486E56E12E041E26E8DAD72D /* rgba-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 85E2C6A87A41473640B1D3C6 /* rgba-reference.ktx */; };
 		4893DF1698DF314307652432 /* at.c in Sources */ = {isa = PBXBuildFile; fileRef = 81908DCD083FC95393976AB8 /* at.c */; };
+		498D402C68AC8732280FEDAA /* GLAppSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1B9304157539433032C7B26A /* GLAppSDL.cpp */; };
 		4F6FE97F819CE4A67DA5A286 /* hi_mark.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D47ACABA2036DADCD64B1D90 /* hi_mark.ktx */; };
 		50D38B2AD22DE5498169A098 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 80F22D5E050CB890E5584CC7 /* etcdec.cxx */; };
-		552640384EECC6BF5AB1C653 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ACBAD86927A652CC29B08CAD /* Cocoa.framework */; };
+		5CAD638CDEE5DB143F8A3FC8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 297399222BBDBF46626ADE3B /* Foundation.framework */; };
 		6158D7391173F3E03766B1AD /* up-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = ACACACB5DF33C371D4E55DD3 /* up-reference.ktx */; };
 		66B752FB6BA85455DD3F4019 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = E029C2F9F550270F98DD6902 /* checkheader.c */; };
 		66CBA14EA9F9803EDB0D2D86 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3322234F9C8BC139D6C9E640 /* ktxmemstream.c */; };
 		6BBA48DF10A04C09DDE244DE /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = E029C2F9F550270F98DD6902 /* checkheader.c */; };
+		6FBFA6138B11E1F25708DCC8 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F0460E6030188A2724AB7748 /* ApplicationServices.framework */; };
 		70E3025EB7C8C4AC28F10186 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = A97B20DEDA52CE78171C13DF /* hashtable.c */; };
 		77C4B888E444C0C022E5A7B4 /* conftestimage_SIGNED_RG11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 3D8F200AD5871B8930F96E66 /* conftestimage_SIGNED_RG11_EAC.ktx */; };
 		7C3A72A3C1EEAB02E39B385B /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 272BEE517FB7207578DFB20B /* ktxfilestream.c */; };
@@ -83,26 +87,22 @@
 		A111B45D150A8BA9148CE983 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = C8AD971071B296151851CD23 /* etcunpack.cxx */; };
 		A2B5C48541257B9E8A7B40B3 /* shaderfuncs.c in Sources */ = {isa = PBXBuildFile; fileRef = 09DA098A9017714DF6372E69 /* shaderfuncs.c */; };
 		A8756392CD47AE975E79D9AF /* etc2-sRGBa1.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = B11A5EF79DA87CCBA1939138 /* etc2-sRGBa1.ktx */; };
-		AE755A2E2AEE33FA0831554E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9F2173419D60E86DDDCF4F2 /* CoreGraphics.framework */; };
 		B1FD8D1DFC810A4536E368E1 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = D07B52D2E4CC7D0DE9568B62 /* swap.c */; };
 		B24F753EFAA0E3D64300900A /* conftestimage_SIGNED_R11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = A9F30AA7DFF7035988781BD1 /* conftestimage_SIGNED_R11_EAC.ktx */; };
 		B5B4809974F4C2672BDC4363 /* rgb-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 129D745B413496DBE8FED8A8 /* rgb-reference.ktx */; };
 		B8E8CD658379A1AD5FD0B1A4 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = 315D769F0AE4D4AEE14016BC /* loader.c */; };
 		BDBCF57D5FC2EBB1BDCBC41D /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = 315D769F0AE4D4AEE14016BC /* loader.c */; };
 		C29648F7F279953B3544D2AF /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = D07B52D2E4CC7D0DE9568B62 /* swap.c */; };
-		C3084B1A0320D97C4E7D4273 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69CF445951F0070522B7CAB7 /* AudioToolbox.framework */; };
+		C397FB9B546231EF62E20B9D /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 075444D4B7CD9DF265CEB796 /* CoreAudio.framework */; };
 		C48513C4D07E2F957434D048 /* LoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5AD3F0F515FCD3D836866182 /* LoadTests.cpp */; };
-		C713D07C694F42C71AB1FB4E /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F5D1D387936108012C83255 /* SDL2.framework */; };
-		D877683DDBB903555F32ECB7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3784E924B6650E923B67CD01 /* main.cpp */; };
+		D58FB7A2CCDA1293582F9E71 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69CF445951F0070522B7CAB7 /* AudioToolbox.framework */; };
 		D8D4449609DEC9C32E398C74 /* rgb-amg-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F28D1CF3F4CA347159AD0EB2 /* rgb-amg-reference.ktx */; };
-		DB54E19F579E243131DD4EAA /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F2232BB0AD1421F2E4669E5 /* OpenGL.framework */; };
 		DCA7995921CECBCAD6B96583 /* etc1.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 7D558A3BD27C3395B1BCD833 /* etc1.ktx */; };
 		E0FCD48CD95D2D66BF1F1695 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = A97B20DEDA52CE78171C13DF /* hashtable.c */; };
 		F63D208B7D2ED67C87AB42B8 /* rgb-mipmap-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 7781657F4F2393082683C81A /* rgb-mipmap-reference.ktx */; };
-		F8D548C34F8CEEDFA19158E4 /* AppBaseSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A75F70C59D728B91228DFA76 /* AppBaseSDL.cpp */; };
+		F85173F34B5819A8E4F462E5 /* AppBaseSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A75F70C59D728B91228DFA76 /* AppBaseSDL.cpp */; };
 		F9177A7DB6670A56113A8350 /* libktx_gl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FF87E06B3E54DFAF3AE94D2 /* libktx_gl.a */; };
 		FBA1335F7889564FED13327D /* etc2-sRGBa8.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 718E3677CECD85C424E5B5F4 /* etc2-sRGBa8.ktx */; };
-		FD557BF3F935AD015C62F223 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 075444D4B7CD9DF265CEB796 /* CoreAudio.framework */; };
 		FDD0CAFDCB0A790C6B60081C /* sample_02_cube_textured.c in Sources */ = {isa = PBXBuildFile; fileRef = AB9408321D41CF34940BEA3D /* sample_02_cube_textured.c */; };
 		FE3477A2D7831311246961B6 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = CCBA7DF83FC306EC1DEB307B /* errstr.c */; };
 		FF3A81D0856A33F0DA2342DB /* hi_mark_sq.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = CBD3DE63A49E0725E6734351 /* hi_mark_sq.ktx */; };
@@ -230,11 +230,11 @@
 		09E4F6C360EB976DF6085961 /* luminance_sized_reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = luminance_sized_reference.ktx; sourceTree = "<group>"; };
 		0F5D1D387936108012C83255 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = /Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 		129D745B413496DBE8FED8A8 /* rgb-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-reference.ktx"; sourceTree = "<group>"; };
+		1B9304157539433032C7B26A /* GLAppSDL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GLAppSDL.cpp; sourceTree = "<group>"; };
 		1F2232BB0AD1421F2E4669E5 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		2451D04AABECFD40A7D9B4CB /* etc2-rgba1.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-rgba1.ktx"; sourceTree = "<group>"; };
 		272BEE517FB7207578DFB20B /* ktxfilestream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxfilestream.c; sourceTree = "<group>"; };
 		27594CC48B1F335BD6B9B5CC /* conftestimage_R11_EAC.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = conftestimage_R11_EAC.ktx; sourceTree = "<group>"; };
-		28B87262EBE09199AEC26A2E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		297399222BBDBF46626ADE3B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		31360BC99552F0BF376B5B15 /* sample_01_draw_texture.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sample_01_draw_texture.c; sourceTree = "<group>"; };
 		315D769F0AE4D4AEE14016BC /* loader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = loader.c; sourceTree = "<group>"; };
@@ -288,14 +288,15 @@
 		C0665AF53CD2E3B3F15B6A2E /* libgles3.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgles3.gypi; path = gyp_include/libgles3.gypi; sourceTree = "<group>"; };
 		C099DB5B1579033D83E72DCB /* libappfwSDL.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libappfwSDL.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C8AD971071B296151851CD23 /* etcunpack.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcunpack.cxx; sourceTree = "<group>"; };
-		C9F2173419D60E86DDDCF4F2 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		CBD3DE63A49E0725E6734351 /* hi_mark_sq.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark_sq.ktx; sourceTree = "<group>"; };
 		CCBA7DF83FC306EC1DEB307B /* errstr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = errstr.c; sourceTree = "<group>"; };
+		D019344AFAA405CEBE4B57E9 /* GLAppSDL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GLAppSDL.h; sourceTree = "<group>"; };
 		D07B52D2E4CC7D0DE9568B62 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
 		D47ACABA2036DADCD64B1D90 /* hi_mark.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark.ktx; sourceTree = "<group>"; };
 		E029C2F9F550270F98DD6902 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
 		E684F8C4C08B5F3C853C87FB /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		EE78EB4BE6C286FA9372035F /* gles2_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles2_funcptrs.h; sourceTree = "<group>"; };
+		F0460E6030188A2724AB7748 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
 		F28D1CF3F4CA347159AD0EB2 /* rgb-amg-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-amg-reference.ktx"; sourceTree = "<group>"; };
 		F96207241017FB32E6D44658 /* libktx_gl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libktx_gl.gypi; path = lib/libktx_gl.gypi; sourceTree = "<group>"; };
 		FAE93F3C0C96A832E0BB9E4E /* tests.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tests.gypi; path = tests/tests.gypi; sourceTree = "<group>"; };
@@ -309,14 +310,13 @@
 			files = (
 				86BC9B80EB860B1BE3DB2180 /* libappfwSDL.a in Frameworks */,
 				F9177A7DB6670A56113A8350 /* libktx_gl.a in Frameworks */,
-				C713D07C694F42C71AB1FB4E /* SDL2.framework in Frameworks */,
-				552640384EECC6BF5AB1C653 /* Cocoa.framework in Frameworks */,
-				C3084B1A0320D97C4E7D4273 /* AudioToolbox.framework in Frameworks */,
-				FD557BF3F935AD015C62F223 /* CoreAudio.framework in Frameworks */,
-				AE755A2E2AEE33FA0831554E /* CoreGraphics.framework in Frameworks */,
-				46A558FAA105F385D51F0583 /* Foundation.framework in Frameworks */,
-				0A368B649136F9929602E64A /* QuartzCore.framework in Frameworks */,
-				DB54E19F579E243131DD4EAA /* OpenGL.framework in Frameworks */,
+				3743421FC58B156D300E3883 /* SDL2.framework in Frameworks */,
+				1CDB5BBA03C85F671C2693B7 /* Cocoa.framework in Frameworks */,
+				D58FB7A2CCDA1293582F9E71 /* AudioToolbox.framework in Frameworks */,
+				C397FB9B546231EF62E20B9D /* CoreAudio.framework in Frameworks */,
+				6FBFA6138B11E1F25708DCC8 /* ApplicationServices.framework in Frameworks */,
+				5CAD638CDEE5DB143F8A3FC8 /* Foundation.framework in Frameworks */,
+				005733A8E02731FD5DEA6C87 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -439,6 +439,20 @@
 			name = Source;
 			sourceTree = "<group>";
 		};
+		96E1410711C6EC20C9EBD1A5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F0460E6030188A2724AB7748 /* ApplicationServices.framework */,
+				69CF445951F0070522B7CAB7 /* AudioToolbox.framework */,
+				ACBAD86927A652CC29B08CAD /* Cocoa.framework */,
+				075444D4B7CD9DF265CEB796 /* CoreAudio.framework */,
+				297399222BBDBF46626ADE3B /* Foundation.framework */,
+				1F2232BB0AD1421F2E4669E5 /* OpenGL.framework */,
+				0F5D1D387936108012C83255 /* SDL2.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A8DE5FE12DCF2CA57538BB14 /* shader-based */ = {
 			isa = PBXGroup;
 			children = (
@@ -466,7 +480,7 @@
 			isa = PBXGroup;
 			children = (
 				7875FF638EC6BDA79918E4C4 /* Source */,
-				DC303DCAFD2668CD1E81A5BC /* Frameworks */,
+				96E1410711C6EC20C9EBD1A5 /* Frameworks */,
 				AD371A6A3AB951976D3BD31E /* Products */,
 				63E827EF5696D6C0ECEF2B85 /* Build */,
 			);
@@ -480,26 +494,13 @@
 			path = include;
 			sourceTree = "<group>";
 		};
-		DC303DCAFD2668CD1E81A5BC /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				69CF445951F0070522B7CAB7 /* AudioToolbox.framework */,
-				ACBAD86927A652CC29B08CAD /* Cocoa.framework */,
-				075444D4B7CD9DF265CEB796 /* CoreAudio.framework */,
-				C9F2173419D60E86DDDCF4F2 /* CoreGraphics.framework */,
-				297399222BBDBF46626ADE3B /* Foundation.framework */,
-				1F2232BB0AD1421F2E4669E5 /* OpenGL.framework */,
-				28B87262EBE09199AEC26A2E /* QuartzCore.framework */,
-				0F5D1D387936108012C83255 /* SDL2.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		DCC9A3EEF9FF4B757730BBBF /* appfwSDL */ = {
+		E8664E385A98866515695FF2 /* appfwSDL */ = {
 			isa = PBXGroup;
 			children = (
 				A75F70C59D728B91228DFA76 /* AppBaseSDL.cpp */,
 				69CA5F2C824145CBEAAE7B88 /* AppBaseSDL.h */,
+				1B9304157539433032C7B26A /* GLAppSDL.cpp */,
+				D019344AFAA405CEBE4B57E9 /* GLAppSDL.h */,
 				3784E924B6650E923B67CD01 /* main.cpp */,
 			);
 			path = appfwSDL;
@@ -508,7 +509,7 @@
 		FF997C77E34174D82283659B /* tests/loadtests */ = {
 			isa = PBXGroup;
 			children = (
-				DCC9A3EEF9FF4B757730BBBF /* appfwSDL */,
+				E8664E385A98866515695FF2 /* appfwSDL */,
 				6A6D929482F23280B66EE527 /* common */,
 				A8DE5FE12DCF2CA57538BB14 /* shader-based */,
 			);
@@ -619,8 +620,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D877683DDBB903555F32ECB7 /* main.cpp in Sources */,
-				F8D548C34F8CEEDFA19158E4 /* AppBaseSDL.cpp in Sources */,
+				2F710F1252F36E868EC37B28 /* main.cpp in Sources */,
+				F85173F34B5819A8E4F462E5 /* AppBaseSDL.cpp in Sources */,
+				498D402C68AC8732280FEDAA /* GLAppSDL.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -736,7 +738,6 @@
 		48B6CDD290948346F15BB12A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -749,7 +750,6 @@
 		5281611EBB5B416AFDA8CF91 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
@@ -768,7 +768,6 @@
 		62D91F1134F5936CE952D329 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -784,7 +783,6 @@
 		657B6E3E8528BC84D5F8A083 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -800,7 +798,6 @@
 		67E69C6045F72429269C2AF0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -833,7 +830,6 @@
 		7ADE363DACE6706FB9AD7888 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
@@ -855,7 +851,6 @@
 		82B1C8B224CA808CABEDDE30 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -887,7 +882,6 @@
 		890FFAF726EFD4A25EB6714A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -910,7 +904,6 @@
 		931A0CE2EDFC780F65857E52 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -931,7 +924,6 @@
 		A5599E2E5EED47C9930BCBC9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -953,7 +945,6 @@
 		AA9BD753DB210942967CA18B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -985,7 +976,6 @@
 		B1416AD944409630EFDD57A5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
