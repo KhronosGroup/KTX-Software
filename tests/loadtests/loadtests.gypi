@@ -85,7 +85,6 @@
           },
           'xcode_settings': {
             'INFOPLIST_FILE': '<(infoplist_file)',
-            'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME:identifier}',
           },
           'conditions': [
             ['emit_emscripten_configs=="true"', {

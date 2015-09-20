@@ -999,6 +999,7 @@
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = es3_loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1044,6 +1045,7 @@
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = es3_loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";

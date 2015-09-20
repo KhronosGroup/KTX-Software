@@ -138,6 +138,11 @@
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
       ],
+      'target_conditions': [
+        ['_type == "executable"', {
+          'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME:identifier}',
+        }],
+      ],
     },
     'configurations': {
       'Debug': {
