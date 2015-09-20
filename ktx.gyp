@@ -89,6 +89,13 @@
         'SDKROOT': 'macosx',
       }],
     ],
+  }, # xcode_settings
+  'configurations': {
+    'Debug': {
+      'xcode_settings': {
+        'ENABLE_TESTABILITY': 'YES',
+      },
+    },
   },
   'target_defaults': {
     # Sadly variable values cannot be dictionaries. If they could, it
