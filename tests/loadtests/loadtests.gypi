@@ -58,7 +58,7 @@
       'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
-          'target_name': 'gl3_loadtests',
+          'target_name': 'gl3loadtests',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [
@@ -85,6 +85,7 @@
           },
           'xcode_settings': {
             'INFOPLIST_FILE': '<(infoplist_file)',
+            'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME:identifier}',
           },
           'conditions': [
             ['emit_emscripten_configs=="true"', {
@@ -147,7 +148,7 @@
               }], # copies
             }], # OS == "android"
           ], # conditions
-        }, # gl3_loadtests,
+        }, # gl3loadtests,
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
     ['OS == "ios"', {
