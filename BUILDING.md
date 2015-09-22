@@ -43,7 +43,7 @@ same problem may affect the SDL2.framework included with KTX. The problem
 and solution is described at [stackoverflow]
 (https://stackoverflow.com/questions/22368202/xcode-5-crashes-when-running-an-app-with-sdl-2)
 and is now supposedly fixed. If the problem occurs, use `codesign` to fix it,
-as described in the second answer.
+as described in the second answer at stackoverflow.
 
 NOTE: SDL 2.0.3 OS X support has a bug where clicking on a window title
 sends an event to the application. This is fixed in SDL 2.0.4.
@@ -67,7 +67,7 @@ from that repo, you need to install Mercurial and have the script
 
 The example below copies `git-remote-hg` to `/usr/local/bin`. Note
 this URL is a fork with fixes for compability with Mercurial 3.2+.
-The origin is at `s/fingolfin/felipec/`.
+Applying `s/fingolfin/felipec/` on the URL gives the upstream origin.
 
 ```bash
 sudo curl -o /usr/local/bin/git-remote-hg https://raw.githubusercontent.com/fingolfin/git-remote-hg/master/git-remote-hg
@@ -105,8 +105,8 @@ On Windows you can use either the [native Windows version](https://www.python.or
 (recommended) or the version found in [Cygwin](https://www.cygwin.com).
 
 If you install the native Windows version you must add `<python>` and
-`<python>/Scripts` to the PATH environment in Windows. Replace
-`<python>` with your actual install directory which defaults to `C:\Python27`.
+`<python>/Scripts` to the PATH environment in Windows. `<python>` represents
+your actual install directory which defaults to `C:\Python27`.
 
 ### GNU make 3.81+
 
@@ -144,7 +144,7 @@ Unpack the archive and you'll find a file called mingw32-make.exe.
 
 If using the Git for Windows shell (*Git Bash*), copy this to either
 
-`C:\Program Files (x86)\Git\bin` (Windows 8.1)
+`%SystemDrive%\Program Files (x86)\Git\bin` (Windows 8.1)
 
 or
 
@@ -155,7 +155,7 @@ or if something else is at play.
 
 If using the GitHub for Windows shell (*Git Shell*) copy this to
 
-`%USERPROFILE%/AppData/Local/GitHub/PortableGit*/bin/make.exe`
+`%USERPROFILE%\AppData\Local\GitHub\PortableGit*\bin\make.exe`
 
 
 Building
