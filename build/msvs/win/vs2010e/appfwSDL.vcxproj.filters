@@ -28,6 +28,24 @@
     <Filter Include="tests\loadtests\appfwSDL">
       <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\main.cpp">
@@ -37,6 +55,12 @@
       <Filter>tests\loadtests\appfwSDL</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\AppBaseSDL.h">
+      <Filter>tests\loadtests\appfwSDL</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.cpp">
+      <Filter>tests\loadtests\appfwSDL</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.h">
       <Filter>tests\loadtests\appfwSDL</Filter>
     </ClInclude>
     <None Include="..\..\..\..\ktx.gyp"/>

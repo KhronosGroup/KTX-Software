@@ -25,8 +25,17 @@
     <Filter Include="tests\loadtests">
       <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\shader-based">
-      <UniqueIdentifier>{4F188E2E-49FC-B262-7CCF-1089F4BC0D9F}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
@@ -144,12 +153,15 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\common\at.c">
       <Filter>tests\loadtests\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTests.cpp">
+      <Filter>tests\loadtests\common</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTests.h">
+      <Filter>tests\loadtests\common</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\..\..\tests\loadtests\shader-based\LoadTestsGL3.cpp">
       <Filter>tests\loadtests\shader-based</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\..\tests\loadtests\shader-based\LoadTestsGL3.h">
-      <Filter>tests\loadtests\shader-based</Filter>
-    </ClInclude>
     <ClCompile Include="..\..\..\..\tests\loadtests\shader-based\sample_01_draw_texture.c">
       <Filter>tests\loadtests\shader-based</Filter>
     </ClCompile>

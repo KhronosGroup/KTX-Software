@@ -154,7 +154,7 @@
       'includes': [ '../../gyp_include/libgles3.gypi' ],
       'targets': [
         {
-          'target_name': 'es3_loadtests',
+          'target_name': 'es3loadtests',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [

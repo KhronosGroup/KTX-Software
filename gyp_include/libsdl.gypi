@@ -46,6 +46,8 @@
               '<@(otherlibroot_dir)/$CONFIGURATION-$(PLATFORM_NAME)/libSDL2.a',
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreMotion.framework',
+              '$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
+              '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
              ],
           },
         }],
@@ -55,21 +57,22 @@
               ['sdl_to_use == "installed_framework"', {
                 'libraries=': [
                   '<@(sdl2.framework_dir)/SDL2.framework',
-                  '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                 ],
               }, 'sdl_to_use == "built_framework"', {
                 'libraries=': [
                   '<@(sdl2_lib_dir)/SDL2.framework',
-                  '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                 ],
               }, {
                 'libraries=': [
                   '<@(sdl2_lib_dir)/libSDL2.dylib',
-                  '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                 ],
-                'library_dirs=': [ '<@(sdl2_lib_dir)' ],
+                 'library_dirs=': [ '<@(sdl2_lib_dir)' ],
               }],
             ], # conditions
+            'libraries=': [
+              '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
+              '$(SDKROOT)/System/Library/Frameworks/ApplicationServices.framework',
+            ]
           }, # link settings
           'direct_dependent_settings': {
             'conditions': [
@@ -109,8 +112,8 @@
             'libraries=': [
               '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
-              '$(SDKROOT)/System/Library/Frameworks/ApplicationServices.framework',
               '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+              '$(SDKROOT)/System/Library/Frameworks/GameController.framework',
             ],
           },
         }],

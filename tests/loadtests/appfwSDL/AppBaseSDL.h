@@ -63,7 +63,7 @@ class AppBaseSDL {
         return ((AppBaseSDL *)userdata)->doEvent(event);
     }
     
-    static void onDrawframe(void* userdata) {
+    static void onDrawFrame(void* userdata) {
         ((AppBaseSDL *)userdata)->drawFrame(SDL_GetTicks());
     }
 
