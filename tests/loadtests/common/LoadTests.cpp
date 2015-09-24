@@ -54,6 +54,7 @@ LoadTests::LoadTests(const sampleInvocation samples[],
 {
     iCurSampleNum = 0;
     pCurSampleInv = &siSamples[0];
+	pCurSampleData = NULL;
 }
 
 bool

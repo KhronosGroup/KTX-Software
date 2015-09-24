@@ -44,9 +44,8 @@
 #if defined(_WIN32)
   #define snprintf _snprintf
   #define _CRT_SECURE_NO_WARNINGS
-  #if KTX_OPENGL
-    #include "GL/glew.h"
-  #endif
+  #include "GL/glew.h"
+  #include "SDL2/SDL_loadso.h"
 #endif
 
 #include "GLAppSDL.h"
@@ -91,10 +90,41 @@ GLAppSDL::initialize(int argc, char* argv[])
         return false;
     }
 
-#if defined(_WIN32) && (KTX_OPENGL)
-	SDL_assert(profile != SDL_GL_CONTEXT_PROFILE_ES);
-    // No choice but to use GLEW on Windows; there is no .lib with static bindings.
+#if defined(_WIN32)
+	if (profile != SDL_GL_CONTEXT_PROFILE_ES)
     {
+        // No choice but to use GLEW for GL on Windows; there is no .lib with static bindings.
+		// For ES we use one of the hardware vendor SDKs all of which have static bindings.
+		// TODO: Figure out how to support ARB_esNN_compatibility were there are no static
+		//       bindings.
+
+		void* glewdll = SDL_LoadObject("glew32.dll");
+		if (glewdll == NULL) {
+			std::string sName(szName);
+
+			(void)SDL_ShowSimpleMessageBox(
+				SDL_MESSAGEBOX_ERROR,
+				szName,
+				(sName + (const char*)SDL_GetError()).c_str(),
+				NULL);
+			return false;
+		}
+		
+		typedef GLenum (GLEWAPIENTRY PFNGLEWINIT)(void);
+		PFNGLEWINIT* pGlewInit;
+		pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, "glewInit");
+		if (pGlewInit == NULL) {
+			std::string sName(szName);
+
+			(void)SDL_ShowSimpleMessageBox(
+				SDL_MESSAGEBOX_ERROR,
+				szName,
+				(sName + (const char*)SDL_GetError()).c_str(),
+				NULL);
+			return false;
+
+		}		 
+
 		glewExperimental=GL_TRUE; // GLEW uses glGetString(GL_EXTENSIONS) to get a
 		                          // list of extensions and then loads pointers
 		                          // for the returned extensions. Of course GL_EXTENSIONS

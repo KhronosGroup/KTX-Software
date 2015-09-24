@@ -44,17 +44,6 @@
 
 #include "AppBaseSDL.h"
 
-#if KTX_OPENGL
-  #if defined(_WIN32)
-    #include "GL/glew.h"
- #else
-    #define GL_GLEXT_PROTOTYPES
-    #include "GL/glcorearb.h"
-  #endif
-#else
-  #include "GLES3/gl3.h"
-#endif
-
 
 class GLAppSDL : public AppBaseSDL {
   public:

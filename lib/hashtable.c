@@ -44,7 +44,16 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
+
+// This is to avoid compile warnings. strlen is defined as returning
+// size_t and is used by the uthash macros. This avoids having to
+// make changes to uthash and a bunch of casts in this file. The
+// casts would be required because the key and value lengths in KTX
+// are specified as 4 byte quantities so we can't change _keyAndValue
+// below to use size_t.
+#define strlen(x) ((unsigned int)strlen(x))
 
 #include "uthash.h"
 
