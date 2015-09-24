@@ -140,7 +140,7 @@
               }],
             }],
             ['OS == "android"', {
-              'includes': [ '../android_app_common.gypi' ],
+              #'includes': [ '../android_app_common.gypi' ],
               'copies': [{
                 'destination': '<(android_assets_dir)/<(datadir)',
                 'files': [ '<@(data_files)' ],
