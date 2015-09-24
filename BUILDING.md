@@ -6,8 +6,10 @@ Status
 ------
 
 Construction of new build system and portable loader tests is
-underway.  At present only the Mac OS X and iOS builds are completed.
-Windows will follow soon. This document is about these new items.
+underway.  At present the Mac OS X, iOS and Windows(GL) builds are
+completed. Builds for at least one OpenGL ES SDK on Windows and for
+Linux and Android will follow. This document is about the new
+build system.
 
 Dependencies
 ------------
