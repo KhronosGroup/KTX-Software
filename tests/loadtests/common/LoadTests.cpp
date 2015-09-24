@@ -60,7 +60,8 @@ LoadTests::LoadTests(const sampleInvocation samples[],
 bool
 LoadTests::initialize(int argc, char* argv[])
 {
-    GLAppSDL::initialize(argc, argv);
+	if (!GLAppSDL::initialize(argc, argv))
+		return false;
     
     szBasePath = SDL_GetBasePath();
     if (szBasePath == NULL)
