@@ -1,3 +1,6 @@
+# vi
+.*.swp
+*~
 
 # /build/
 /build/*.tgz
@@ -13,6 +16,8 @@
 
 # MS Visual Studio build and user option files
 /build/**/*.ncb
+/build/**/*.sdf
+/build/**/*.opensdf
 /build/**/*.suo
 /build/**/*.user
 /build/**/Win32
