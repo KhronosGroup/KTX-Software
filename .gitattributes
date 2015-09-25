@@ -27,6 +27,7 @@ build/msvs/* eol=crlf
 tests/toktx-tests eol=lf
 expandkw eol=lf
 .ktx-stamp eol=lf
+GNUmakefile eol=lf
 
 # Keyword expansion
 TODO filter=kwexpander
