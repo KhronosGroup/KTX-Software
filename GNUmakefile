@@ -28,7 +28,7 @@ stampfile:=.${pname}-stamp
 
 msvs_buildd:=$(builddir)/msvs
 msvs_platforms:=win# web wingl
-msvs_vernames:=vs2008 vs2010 vs2010e vs2013 vs2013e
+msvs_vernames:=vs2008 vs2010 vs2010e vs2013 vs2013e vs2015
 # Build list of names "${platform}/vs{2010,2010e,2008}/.ktx-stamp"
 msvs_targets=$(addprefix ${platform}/,$(addsuffix /${stampfile},${msvs_vernames}))
 msvs_platform_dirs:=$(addprefix ${msvs_buildd}/,${msvs_platforms})

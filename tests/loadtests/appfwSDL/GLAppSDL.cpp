@@ -98,8 +98,50 @@ GLAppSDL::initialize(int argc, char* argv[])
 		// TODO: Figure out how to support ARB_esNN_compatibility were there are no static
 		//       bindings.
 
+		// So the same library can be linked in to applications using GLEW and
+		// applications not using GLEW, do not call any GLEW functions directly.
+		// Call via queried function pointers.
 		void* glewdll = SDL_LoadObject("glew32.dll");
 		if (glewdll == NULL) {
+			std::string sName(szName);
+
+			(void)SDL_ShowSimpleMessageBox(
+				SDL_MESSAGEBOX_ERROR,
+				szName,
+				(sName + ": " + (const char*)SDL_GetError()).c_str(),
+				NULL);
+			return false;
+		}
+		
+		typedef GLenum(GLEWAPIENTRY PFNGLEWINIT)(void);
+		typedef const GLubyte * GLEWAPIENTRY PFNGLEWGETERRORSTRING(GLenum error);
+		PFNGLEWINIT* pGlewInit;
+		PFNGLEWGETERRORSTRING* pGlewGetErrorString;
+		GLboolean* pGlewExperimental;
+		bool error = true;
+		pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, "glewInit");
+		if (pGlewInit != NULL) {
+			pGlewExperimental = (GLboolean*)SDL_LoadFunction(glewdll, "glewExperimental");
+			if (pGlewExperimental != NULL) {
+				pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(glewdll, "glewGetErrorString");
+				if (pGlewGetErrorString != NULL) {
+					error = false;
+				}
+			}
+		}
+
+		if (error) {
+			std::string sName(szName);
+
+			(void)SDL_ShowSimpleMessageBox(
+				SDL_MESSAGEBOX_ERROR,
+				szName,
+				(sName + ": " + (const char*)SDL_GetError()).c_str(),
+				NULL);
+			return false;
+		}
+
+		if (pGlewExperimental == NULL) {
 			std::string sName(szName);
 
 			(void)SDL_ShowSimpleMessageBox(
@@ -109,23 +151,8 @@ GLAppSDL::initialize(int argc, char* argv[])
 				NULL);
 			return false;
 		}
-		
-		typedef GLenum (GLEWAPIENTRY PFNGLEWINIT)(void);
-		PFNGLEWINIT* pGlewInit;
-		pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, "glewInit");
-		if (pGlewInit == NULL) {
-			std::string sName(szName);
 
-			(void)SDL_ShowSimpleMessageBox(
-				SDL_MESSAGEBOX_ERROR,
-				szName,
-				(sName + (const char*)SDL_GetError()).c_str(),
-				NULL);
-			return false;
-
-		}		 
-
-		glewExperimental=GL_TRUE; // GLEW uses glGetString(GL_EXTENSIONS) to get a
+		*pGlewExperimental=GL_TRUE; // GLEW uses glGetString(GL_EXTENSIONS) to get a
 		                          // list of extensions and then loads pointers
 		                          // for the returned extensions. Of course GL_EXTENSIONS
 		                          // is an invalid enum for glGetSring in GL 3.2+ core
@@ -134,14 +161,14 @@ GLAppSDL::initialize(int argc, char* argv[])
 		                          // list anyway. Setting this flag forces GLEW to load
 		                          // all function pointers, overriding the extensions
 		                          // list.
-        int iResult = glewInit();
+        int iResult = pGlewInit();
         if (iResult != GLEW_OK) {
 			std::string sName(szName);
 
             (void)SDL_ShowSimpleMessageBox(
                           SDL_MESSAGEBOX_ERROR,
                           szName,
-						  (sName + (const char*)glewGetErrorString(iResult)).c_str(),
+						  (sName + (const char*)pGlewGetErrorString(iResult)).c_str(),
                           NULL);
             return false;
         }

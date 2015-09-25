@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1607021B-FA72-E12E-5465-EDEF7737BB90}</ProjectGuid>
+    <ProjectGuid>{5E94F3BB-157A-9A94-BB45-B376AE32EE9A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>gl3loadtests</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
@@ -30,7 +30,7 @@
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Label="Locals">
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
@@ -285,19 +285,19 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="appfwSDL.vcxproj">
-      <Project>{8BCC63FF-31B8-7CB8-7CA2-17B81126BDED}</Project>
+      <Project>{63F1C275-2C8C-D4E2-EC65-5971FF56EED2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libktx_gl.vcxproj">
-      <Project>{E2970795-C4CA-6891-9904-A33641807BE4}</Project>
+      <Project>{21311053-AF54-04B2-A07D-92FC7BAC36FC}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libgl.vcxproj">
-      <Project>{B4EEA411-3F16-2EFE-EA67-8FBFE0FA5341}</Project>
+      <Project>{183674DE-79D9-065A-9F60-EC8E5CA3925E}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libsdl.vcxproj">
-      <Project>{73EC29FE-EAF2-F172-9158-C7017DCB58CC}</Project>
+      <Project>{B3BF3293-4A18-801D-3375-611DA0404E72}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

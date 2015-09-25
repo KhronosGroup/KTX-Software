@@ -37,17 +37,17 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
-//#include "sample.h"
+#if defined(_WIN32)
+#define snprintf _snprintf
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "../common/at.h"
 #include "ktx.h"
 
 #include "../data/cube.h"
 
 #include <math.h>
-
-#if defined(_WIN32)
-#define snprintf _snprintf
-#endif
 
 /* ------------------------------------------------------------------------- */
 
