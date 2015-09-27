@@ -53,7 +53,7 @@
 #include "ktx.h"
 #include "image.h"
 #include <cstdlib>
-#if (IMAGE_DEBUG) && defined(_DEBUG) && defined(WIN32) && !defined(_WIN32_WCE)
+#if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
 #  undef IMAGE_DEBUG
@@ -258,10 +258,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (options.useStdin) {
 			infile = 0;
 			f = stdin;
-			if (_WIN32) {
-				/* Set "stdin" to have binary mode */
-				(void)_setmode( _fileno( stdin ), _O_BINARY );
-			}
+#if defined(_WIN32)
+            /* Set "stdin" to have binary mode */
+            (void)_setmode( _fileno( stdin ), _O_BINARY );
+#endif
 		} else {
 			infile = argv[options.firstInfileIndex + i];
 			f = fopen(infile,"rb");
@@ -421,10 +421,10 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if (_tcscmp(options.outfile, "-") == 0) {
 		f = stdout;
-		if (_WIN32) {
-			/* Set "stdout" to have binary mode */
-			(void)_setmode( _fileno( stdout ), _O_BINARY );
-		}
+#if defined(_WIN32)
+        /* Set "stdout" to have binary mode */
+        (void)_setmode( _fileno( stdout ), _O_BINARY );
+#endif
 	} else
 		f = fopen(options.outfile,"wb");
 	if (f) {

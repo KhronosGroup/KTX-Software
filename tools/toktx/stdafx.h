@@ -28,7 +28,6 @@
 #define _setmode(x, y) 0
 #define _unlink unlink
 #define _T
-#define WIN32 0
 
 #endif
 #include <fcntl.h> 
