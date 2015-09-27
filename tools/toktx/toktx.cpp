@@ -123,13 +123,15 @@ struct commandOptions {
 };
 
 static khronos_uint32_t log2(khronos_uint32_t v);
-static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& options);
+static void processCommandLine(int argc, _TCHAR* argv[],
+                               struct commandOptions& options);
 static bool processOption(const _TCHAR* option, struct commandOptions& options);
-static void yflip(unsigned char*& srcImage, unsigned int imageSize, unsigned int w, unsigned int h,
-				  unsigned int pixelSize);
+static void yflip(unsigned char*& srcImage, unsigned int imageSize,
+                  unsigned int w, unsigned int h, unsigned int pixelSize);
 #if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
-					  bool isLuminance, unsigned char* srcImage);
+static void dumpImage(_TCHAR* name, int width, int height, int components,
+                      int componentSize, bool isLuminance,
+                      unsigned char* srcImage);
 #endif
 
 static void
@@ -410,8 +412,8 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			(void)fclose(f);
 		} else {
-			fprintf(stderr, "%s could not open input file \"%s\"; error: %d\n",
-				    options.appName, infile ? infile : "stdin", errno);
+			fprintf(stderr, "%s could not open input file \"%s\". %s\n",
+				    options.appName, infile ? infile : "stdin", strerror(errno));
 			exitCode = 2;
 			goto cleanup1;
 		}
@@ -430,8 +432,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (KTX_SUCCESS == ret) {
 			fclose(f);
 		} else {
-			fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error code: %d\n",
-					options.appName, options.outfile, ret);
+			fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
+					options.appName, options.outfile, ktxErrorString(ret));
 			fclose(f);
 			if (f != stdout)
 				_unlink(options.outfile);
@@ -439,7 +441,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	
 	} else {
-		fprintf(stderr, "%s: could not open output file \"%s\"; system error: %s\n",
+		fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
 			    options.appName, options.outfile, strerror(errno));
 		exitCode = 2;
 	}
@@ -487,9 +489,11 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 		options.appName = _tcsrchr(argv[0], '/');
 	options.appName++;
 
+    // NOTE: If options with arguments are ever added, this option handling
+    // code will need revamping.
 	toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
 	while (toktx_options && _stscanf(toktx_options, "%30s", (char*)&option) != EOF) {
-		if (!processOption(option, options)) {
+		if (processOption(option, options) == 0) {
 			fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable\n");
 			usage(options.appName);
 			exit(1);
@@ -499,8 +503,19 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 			while (*toktx_options == ' ') toktx_options++;
 	}
 
-	for (i = 1; i < argc; i++) {
-		if (!processOption(argv[i], options))
+    if (argc > 2
+        && _tcscmp(argv[argc-2], "-NSDocumentRevisionsDebugMode") == 0
+        && _tcscmp(argv[argc-1], "YES") == 0) {
+        // -NSDocumentRevisionsDebugMode YES is appended to the end
+        // of the command by Xcode when debugging and "Allow debugging when
+        // using document Versions Browser" is checked in the scheme. It
+        // defaults to checked and is saved in a user-specific file not the
+        // pbxproj file so it can't be disabled in a generated project.
+        // Remove these from the arguments under consideration.
+        argc -= 2;
+    }
+    for (i = 1; i < argc; i++) {
+        if (!processOption(argv[i], options))
 			break; // No more options
 	}
 	
@@ -550,10 +565,19 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 }
 
 
+/*
+ * @brief process a potential command line option
+ * 
+ * @return  false, if not an option; true, if it is an option
+ *
+ * @param[in]    option        a word from the command line.
+ * @param[inout] options       commandOptions struct in which option information
+ *                             is set.
+ */
 static bool
 processOption(const _TCHAR* option, struct commandOptions& options)
 {
-	bool retVal = true;
+	int retVal = 1;
 
 	if (_tcsncmp(option, "--", 2) == 0) {
 		if (_tcscmp(&option[2], "help") == 0) {
@@ -599,8 +623,12 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 			usage(options.appName);
 			exit(1);
 		}
-	} else
-		retVal = false;
+    } else if (option[0] == _T('-') && option[1] != _T('\0')) {
+            // old style option specification
+            usage(options.appName);
+            exit(1);
+    } else
+		retVal = 0;
 
 	return retVal;
 }

@@ -263,6 +263,7 @@
 		5DE30D0DFB65B42D920F6F25 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		69CA5F2C824145CBEAAE7B88 /* AppBaseSDL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppBaseSDL.h; sourceTree = "<group>"; };
 		69CF445951F0070522B7CAB7 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		6E3E587A48E77B88BB6AD26C /* tools.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tools.gypi; path = tools/tools.gypi; sourceTree = "<group>"; };
 		718E3677CECD85C424E5B5F4 /* etc2-sRGBa8.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa8.ktx"; sourceTree = "<group>"; };
 		76DDF7EDFE2E0158BA3981D9 /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
 		7751763CD61457E95FFF8F8C /* writer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer.c; sourceTree = "<group>"; };
@@ -290,6 +291,7 @@
 		A9F30AA7DFF7035988781BD1 /* conftestimage_SIGNED_R11_EAC.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = conftestimage_SIGNED_R11_EAC.ktx; sourceTree = "<group>"; };
 		AA0133972523862625BA00E9 /* uthash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = uthash.h; sourceTree = "<group>"; };
 		AB9408321D41CF34940BEA3D /* sample_02_cube_textured.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sample_02_cube_textured.c; sourceTree = "<group>"; };
+		ABFEAC15C0B155457CD81CEB /* toktx.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = toktx.gypi; path = tools/toktx/toktx.gypi; sourceTree = "<group>"; };
 		ACACACB5DF33C371D4E55DD3 /* up-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "up-reference.ktx"; sourceTree = "<group>"; };
 		B11A5EF79DA87CCBA1939138 /* etc2-sRGBa1.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa1.ktx"; sourceTree = "<group>"; };
 		B5E702C329652B099F2592C9 /* ktxmemstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxmemstream.h; sourceTree = "<group>"; };
@@ -312,7 +314,6 @@
 		F28D1CF3F4CA347159AD0EB2 /* rgb-amg-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-amg-reference.ktx"; sourceTree = "<group>"; };
 		F96207241017FB32E6D44658 /* libktx_gl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libktx_gl.gypi; path = lib/libktx_gl.gypi; sourceTree = "<group>"; };
 		FAE93F3C0C96A832E0BB9E4E /* tests.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tests.gypi; path = tests/tests.gypi; sourceTree = "<group>"; };
-		FC8FB5355CA5AA29C62F00EA /* android_app_common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android_app_common.gypi; path = tests/android_app_common.gypi; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -396,10 +397,9 @@
 			path = tests/loadtests;
 			sourceTree = "<group>";
 		};
-		63E827EF5696D6C0ECEF2B85 /* Build */ = {
+		58ACD24DF772D50FF1B38C72 /* Build */ = {
 			isa = PBXGroup;
 			children = (
-				FC8FB5355CA5AA29C62F00EA /* android_app_common.gypi */,
 				803632FB64F4F4E92D2D7C3D /* appfwSDL.gypi */,
 				E684F8C4C08B5F3C853C87FB /* config.gypi */,
 				09D2574713EB491746F98B12 /* ktx.gyp */,
@@ -411,6 +411,8 @@
 				BF928318BB965E0ECE478D89 /* libsdl.gypi */,
 				457A6C5129A792B394DAB916 /* loadtests.gypi */,
 				FAE93F3C0C96A832E0BB9E4E /* tests.gypi */,
+				ABFEAC15C0B155457CD81CEB /* toktx.gypi */,
+				6E3E587A48E77B88BB6AD26C /* tools.gypi */,
 			);
 			name = Build;
 			sourceTree = "<group>";
@@ -504,7 +506,7 @@
 				7875FF638EC6BDA79918E4C4 /* Source */,
 				BA894D0EB6FC786760F6E06A /* Frameworks */,
 				76D75122C64F110030B65540 /* Products */,
-				63E827EF5696D6C0ECEF2B85 /* Build */,
+				58ACD24DF772D50FF1B38C72 /* Build */,
 			);
 			sourceTree = "<group>";
 		};

@@ -41,7 +41,9 @@ declare -i failed=0
 # Ensure test is not polluted by user environment
 unset TOKTX_OPTIONS
 
-if [ -x "$toktx_vc9" ]; then
+if [ -n "$1" -a -x "$1" ]; then
+  toktx="$1"
+elif [ -x "$toktx_vc9" ]; then
   toktx=$toktx_vc9
 elif [ -x "$toktx_gmake" ]; then
   toktx=$toktx_cmake

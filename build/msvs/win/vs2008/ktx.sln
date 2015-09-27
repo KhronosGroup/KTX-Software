@@ -21,6 +21,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx_gl", "libktx_gl.vcpr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsdl", "libsdl.vcproj", "{49F84D8B-1E03-3B28-B8F4-8EA7A1752FEF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx", "toktx.vcproj", "{2FC35399-4A47-1B8E-7A59-28F2E902E438}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4C43BA83-57DB-884B-FBC7-6920E98B77E7} = {4C43BA83-57DB-884B-FBC7-6920E98B77E7}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release|x64 = Release|x64
@@ -37,6 +42,14 @@ Global
 		{235DFBF9-5843-4A32-9EB8-9D68FE0EDE29}.Debug|x64.Build.0 = Debug|x64
 		{235DFBF9-5843-4A32-9EB8-9D68FE0EDE29}.Release|Win32.ActiveCfg = Release|Win32
 		{235DFBF9-5843-4A32-9EB8-9D68FE0EDE29}.Release|Win32.Build.0 = Release|Win32
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Release|x64.ActiveCfg = Release|x64
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Release|x64.Build.0 = Release|x64
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Debug|Win32.Build.0 = Debug|Win32
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Debug|x64.ActiveCfg = Debug|x64
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Debug|x64.Build.0 = Debug|x64
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Release|Win32.ActiveCfg = Release|Win32
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438}.Release|Win32.Build.0 = Release|Win32
 		{40F7D021-0676-642B-D7C7-010DA281F6CE}.Release|x64.ActiveCfg = Release|x64
 		{40F7D021-0676-642B-D7C7-010DA281F6CE}.Release|x64.Build.0 = Release|x64
 		{40F7D021-0676-642B-D7C7-010DA281F6CE}.Debug|Win32.ActiveCfg = Debug|Win32

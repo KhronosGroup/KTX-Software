@@ -58,6 +58,8 @@ gypfiles=ktx.gyp \
 		 tests/tests.gypi \
 		 tests/loadtests/appfwSDL/appfwSDL.gypi \
 		 tests/loadtests/loadtests.gypi \
+		 tools/tools.gypi \
+		 tools/toktx/toktx.gypi
 
 # Uncomment these 2 lines if you do not want to install our modified GYP.
 # Set gypdir to the directory containing the modified GYP.

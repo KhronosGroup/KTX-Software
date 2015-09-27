@@ -135,7 +135,8 @@
         }, 'OS == "mac"', {
           # If need GL 4.1 or ARB_ES2_compatibility, bump to 10.9
           'MACOSX_DEPLOYMENT_TARGET': '10.5',
-          'COMBINE_HIDPI_IMAGES': 'YES',
+          'CODE_SIGN_IDENTITY': 'Mac Developer',
+           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
       ],
       'target_conditions': [
@@ -309,7 +310,7 @@
      'lib/libktx_gl.gypi',
      'lib/libktx_es3.gypi',
      'tests/tests.gypi',
-     #'tools/tools.gypi',
+     'tools/tools.gypi',
   ],
 }
 
