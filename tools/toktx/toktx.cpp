@@ -243,7 +243,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
 		_snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT, 'r', 'd');
-		ktxHashTable_AddKVPair(ht, KTX_ORIENTATION_KEY, strlen(orientation) + 1,
+		ktxHashTable_AddKVPair(ht, KTX_ORIENTATION_KEY, (unsigned int)strlen(orientation) + 1,
 							   orientation);
 		if (KTX_SUCCESS != ktxHashTable_Serialize(ht, &kvDataLen, &kvData)) {
 			fprintf(stderr, "%s: Out of memory\n", options.appName);
@@ -258,7 +258,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (options.useStdin) {
 			infile = 0;
 			f = stdin;
-			if (WIN32) {
+			if (_WIN32) {
 				/* Set "stdin" to have binary mode */
 				(void)_setmode( _fileno( stdin ), _O_BINARY );
 			}
@@ -421,7 +421,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if (_tcscmp(options.outfile, "-") == 0) {
 		f = stdout;
-		if (WIN32) {
+		if (_WIN32) {
 			/* Set "stdout" to have binary mode */
 			(void)_setmode( _fileno( stdout ), _O_BINARY );
 		}
@@ -528,7 +528,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 		exit(1);
 	}
 
-	outfilenamelen = _tcslen(argv[i]) + 1;
+	outfilenamelen = (unsigned int)_tcslen(argv[i]) + 1;
 	if (_tcscmp(argv[i], "-") != 0 && _tcsrchr(argv[i], '.') == NULL) {
 		addktx = 1;
 		outfilenamelen += 4;
@@ -577,7 +577,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 static bool
 processOption(const _TCHAR* option, struct commandOptions& options)
 {
-	int retVal = 1;
+	bool retVal = true;
 
 	if (_tcsncmp(option, "--", 2) == 0) {
 		if (_tcscmp(&option[2], "help") == 0) {
@@ -628,7 +628,7 @@ processOption(const _TCHAR* option, struct commandOptions& options)
             usage(options.appName);
             exit(1);
     } else
-		retVal = 0;
+		retVal = false;
 
 	return retVal;
 }

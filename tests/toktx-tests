@@ -29,7 +29,8 @@
 # 
 # ---------------------------------------------------------------
 
-toktx_vc9=../build/vc9/Release/toktx.exe
+toktx_vs2013=../build/msvs/win/vs2013/x64/Release/toktx.exe
+toktx_vs2015=../build/msvs/win/vs2015/x64/Release/toktx.exe
 toktx_cmake=../build/cmake/toktx/toktx
 toktx_gmake=../build/GNUmake/toktx/toktx
 testimages=../testimages
@@ -43,14 +44,16 @@ unset TOKTX_OPTIONS
 
 if [ -n "$1" -a -x "$1" ]; then
   toktx="$1"
-elif [ -x "$toktx_vc9" ]; then
-  toktx=$toktx_vc9
+elif [ -x "$toktx_vs2013" ]; then
+  toktx=$toktx_vs2013
+elif [ -x "$toktx_vs2015" ]; then
+  toktx=$toktx_vs2015
 elif [ -x "$toktx_gmake" ]; then
   toktx=$toktx_cmake
 elif [ -x "$toktx_cmake" ]; then
   toktx=$toktx_cmake
 else
-  echo $0: None of $toktx_vc9, $toktx_gmake or $toktx_cmake found.
+  echo $0: None of $toktx_vs2013, $toktx_vs2015, $toktx_gmake or $toktx_cmake found.
   echo $0: Aborting test
   exit 1
 fi
@@ -123,7 +126,12 @@ function gencmpktx() {
 }
 
 cd $testimages
-tempfile=$(mktemp toktxXXXX.ktx)
+# Git Bash does not include mktemp.
+if which mktemp > /dev/null; then
+  tempfile=$(mktemp toktxXXXX.ktx)
+else
+  tempfile=/tmp/toktxXXXX.ktx
+fi
 
 gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 rgb.ppm 
 gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 rgb.ppm

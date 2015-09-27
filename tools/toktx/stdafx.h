@@ -7,7 +7,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <assert.h>
 #include <stdio.h>
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
 #include <tchar.h>
 #else
