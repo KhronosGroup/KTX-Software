@@ -5,11 +5,14 @@ Building KTX
 Status
 ------
 
-Construction of new build system and portable loader tests is
-underway.  At present the Mac OS X, iOS and Windows(GL) builds are
-completed. Builds for at least one OpenGL ES SDK on Windows and for
-Linux and Android will follow. This document is about the new
-build system.
+Construction of a new build system and portable loader tests is
+underway.  At present the Mac OS X, iOS and Windows(GL) builds of
+`libktx` and `loadtests` are completed. Builds for at least one
+OpenGL ES 3.x SDK on Windows and for Linux and Android will follow.
+Mac OS X and Windows builds of `toktx` are also completed. A build
+for Linux will follow.
+
+This document describes the new build system.
 
 Dependencies
 ------------
@@ -19,7 +22,7 @@ GYP unless you want to re-generate the supplied projects or generate
 additional projects.*
 
 The KTX loader tests use libSDL 2.0.4. You do not need SDL if you
-only wish to build the KTX library.
+only wish to build `libktx`, the KTX library.
 
 ### SDL
 
