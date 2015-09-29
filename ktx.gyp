@@ -307,8 +307,7 @@
   }, # target_defaults
   # Caution: variables set here will override any variables set above.
   'includes': [
-     'lib/libktx_gl.gypi',
-     'lib/libktx_es3.gypi',
+     'lib/libktx.gypi',
      'tests/tests.gypi',
      'tools/tools.gypi',
   ],

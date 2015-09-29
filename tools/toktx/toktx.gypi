@@ -35,7 +35,7 @@
           'type': '<(executable)',
           'mac_bundle': 0,
           'dependencies': [
-            'libktx_gl',
+            'libktx.gl',
           ],
           'sources': [
             'image.cpp',

@@ -91,8 +91,8 @@
     <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="libktx_gl.vcxproj">
-      <Project>{A0FF26D0-B3FB-2190-BD72-A414F57BFE23}</Project>
+    <ProjectReference Include="libktx.gl.vcxproj">
+      <Project>{E3B55AE9-29D1-5C41-CC60-1C2B93E20039}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

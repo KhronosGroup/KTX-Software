@@ -52,9 +52,7 @@ gypfiles=ktx.gyp \
 		 gyp_include/libgles2.gypi \
 		 gyp_include/libgles3.gypi \
 		 gyp_include/libsdl.gypi \
-		 lib/libktx_core.gypi \
-		 lib/libktx_gl.gypi \
-		 lib/libktx_es3.gypi \
+		 lib/libktx.gypi \
 		 tests/tests.gypi \
 		 tests/loadtests/appfwSDL/appfwSDL.gypi \
 		 tests/loadtests/loadtests.gypi \

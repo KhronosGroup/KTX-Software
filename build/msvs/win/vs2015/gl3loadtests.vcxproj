@@ -287,8 +287,8 @@
       <Project>{63F1C275-2C8C-D4E2-EC65-5971FF56EED2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="libktx_gl.vcxproj">
-      <Project>{21311053-AF54-04B2-A07D-92FC7BAC36FC}</Project>
+    <ProjectReference Include="libktx.gl.vcxproj">
+      <Project>{83E9B8EA-AB22-C6AE-EFC8-0CD8A8B34277}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libgl.vcxproj">
