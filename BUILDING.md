@@ -159,6 +159,22 @@ If using the GitHub for Windows shell (*Git Shell*) copy this to
 
 `%USERPROFILE%\AppData\Local\GitHub\PortableGit*\bin\make.exe`
 
+### Doxygen
+
+You need this if you want to generate the _libktx_ documentation. You can download
+binaries and also find instructions for building it from source at
+[Doxygen downloads](http://www.stack.nl/~dimitri/doxygen/download.html).
+
+You need to set the environment variable `DOXYGEN_BIN` in order for the project
+files to find it at run time. `PATH` cannot be relied on because it seems to be
+impossible to modify Xcode's default, unless you start it from the command line.
+
+Setting any environment variables for Xcode is highly non-obvious
+(thanks Apple :confounded:). See [osx-env-sync](https://github.com/ersiner/osx-env-sync)
+to see how to set `DOXYGEN_BIN`. (`~/.MaxOSX/environment.plist` does not work
+in recent versions of OS X, if it ever worked.).
+
+Windows and Linux users shouldn't have any trouble setting this environment variable.
 
 Building
 --------
@@ -173,7 +189,7 @@ run on iOS using OpenGL ES 3.0.
 Use `build/xcode/macgl/ktx.xcodeproject` to build the library and load tests
 to run under OpenGL 3.3 on OS X.
 
-Use one of `build/msvs/win/vs20{08,10,10e,13,13e}/ktx.sln` to build the
+Use one of `build/msvs/win/vs20{08,10,10e,13,13e,15}/ktx.sln` to build the
 library and load tests for Windows Win32 or x64.
 
 Generating Projects

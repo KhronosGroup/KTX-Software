@@ -92,7 +92,7 @@
           # doxygen is run in the top-level directory so that ancestors of that
           # directory will be removed from paths displayed in the documentation.
           'action': [
-            'doxygen', '<@(doxyConfig)',
+            '$DOXYGEN_BIN', '<@(doxyConfig)',
           ],
         },
       ], # actions

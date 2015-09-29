@@ -760,7 +760,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating documentation with Doxygen\"\nexec doxygen ktxDoxy\nexit 1\n";
+			shellScript = "echo note: \"Generating documentation with Doxygen\"\nexec \"$DOXYGEN_BIN\" ktxDoxy\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
