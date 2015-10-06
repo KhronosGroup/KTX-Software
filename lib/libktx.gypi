@@ -66,38 +66,62 @@
       },
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
-    },
-    {
-      'target_name': 'libktx.doc',
-      'type': 'none',
-      'actions': [
-        {
-          'action_name': 'buildDoc',
-          'variables': {
-            'doxyConfig': 'ktxDoxy',
-          },
-          'message': 'Generating documentation with Doxygen',
-          'msvs_cygwin_shell': '0',
-          'inputs': [
-            '../<@(doxyConfig)',
-            '../LICENSE.md',
-            '<@(sources)',
-          ],
-          'outputs': [
-            '../build/doc/.gentimestamp',
-            '../build/doc/html',
-            '../build/doc/latex',
-            '../build/doc/man',
-          ],
-          # doxygen is run in the top-level directory so that ancestors of that
-          # directory will be removed from paths displayed in the documentation.
-          'action': [
-            '$DOXYGEN_BIN', '<@(doxyConfig)',
-          ],
-        },
-      ], # actions
-    }, # libktx.doc
+    }, # libktx.es3
   ], # targets
+  'conditions': [
+    ['OS == "mac"', {
+      # Can only build on Mac for now. See comment below.
+      'targets': [
+        {
+          'target_name': 'libktx.doc',
+          'type': 'none',
+          'actions': [
+            {
+              'action_name': 'buildDoc',
+              'variables': {
+                'doxyConfig': 'ktxDoxy',
+              },
+              'message': 'Generating documentation with Doxygen',
+              'msvs_cygwin_shell': '0',
+              'inputs': [
+                '../<@(doxyConfig)',
+                '../LICENSE.md',
+                '<@(sources)',
+              ],
+              'outputs': [
+                '../build/doc/.gentimestamp',
+                '../build/doc/html',
+                '../build/doc/latex',
+                '../build/doc/man',
+              ],
+              # doxygen must be run in the top-level directory so that ancestors of that
+              # directory will be removed from paths displayed in the documentation.
+              # With Xcode the current directory when a project is run is
+              # the directory containing the .gyp file, which, in this
+              # case is the top-level directory we need so the command below
+              # works.
+              #
+              # With MSVS it is the directory containing the .vcxproj
+              # file and the MSVS generator will "relativize the
+              # doxyConfig attribute accordingly. I don't see a way to
+              # make the action run in a different directory so for
+              # now, the target is only included for Xcode.
+              #
+              # We use an environment variable to find Doxygen because
+              # it seems to be impossible to modify the $PATH variable
+              # used by Xcode - unless you start it from the command
+              # line. Use $(DOXYGEN_BIN) because $DOXYGEN_BIN doesn't
+              # work for MSVS. The Xcode generator converts this to
+              # ${DOXYGEN_BIN}
+              'action': [
+                '$(DOXYGEN_BIN)', '<@(doxyConfig)',
+              ],
+            },
+          ], # actions
+        }, # libktx.doc
+      ], # targets
+    }],
+  ],
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

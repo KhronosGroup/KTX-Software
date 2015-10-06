@@ -26,9 +26,9 @@
 			dependencies = (
 				CD241FFD239E06CBB0C29DDE /* PBXTargetDependency */,
 				235AABDED6FDF98549A4AE13 /* PBXTargetDependency */,
-				C3827820F8993A74C238EDF9 /* PBXTargetDependency */,
 				3FC7B0C65E5D50554ED676B7 /* PBXTargetDependency */,
 				700E80B7D828465A1738984D /* PBXTargetDependency */,
+				C3827820F8993A74C238EDF9 /* PBXTargetDependency */,
 				51298E3100A6E23D847B7490 /* PBXTargetDependency */,
 				9A6179FA2E3149D03068C41A /* PBXTargetDependency */,
 				73AA6D278E81A6E43593DA2B /* PBXTargetDependency */,
@@ -711,9 +711,9 @@
 				0C106332176D6AFFA3AF5A77 /* All */,
 				F156B2C1BA76F02AD27B1831 /* libktx.gl */,
 				3A2E15A7D8A7FFD79E17364B /* libktx.es3 */,
-				0625B5E48AD9AD640904A5C3 /* libktx.doc */,
 				EE0B42FC5EB13FFA0BD973B4 /* appfwSDL */,
 				7E694AF384684A19CC02477C /* libsdl */,
+				0625B5E48AD9AD640904A5C3 /* libktx.doc */,
 				DEE9F1EF37AB36E7672D043C /* gl3loadtests */,
 				9BA39C9BB0FB7C96DE30237D /* libgl */,
 				180F7F39759C604CD7F8BA1C /* toktx */,
@@ -760,7 +760,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating documentation with Doxygen\"\nexec \"$DOXYGEN_BIN\" ktxDoxy\nexit 1\n";
+			shellScript = "echo note: \"Generating documentation with Doxygen\"\nexec \"${DOXYGEN_BIN}\" ktxDoxy\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

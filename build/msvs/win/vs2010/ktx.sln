@@ -15,8 +15,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl3loadtests", "gl3loadtest
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{5C63DBB9-38C1-FD84-F253-7D2DD611F47F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.es3", "libktx.es3.vcxproj", "{8E33128E-C20E-8684-66D3-28153E617B33}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{80563AE1-5CC6-08B1-7EA6-F1DE419ADD2F}"
@@ -92,14 +90,6 @@ Global
 		{D1E6A797-4867-15B2-0441-8B7D615DD709}.Debug|x64.Build.0 = Debug|x64
 		{D1E6A797-4867-15B2-0441-8B7D615DD709}.Release|Win32.ActiveCfg = Release|Win32
 		{D1E6A797-4867-15B2-0441-8B7D615DD709}.Release|Win32.Build.0 = Release|Win32
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Release|x64.ActiveCfg = Release|x64
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Release|x64.Build.0 = Release|x64
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Debug|Win32.ActiveCfg = Debug|Win32
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Debug|Win32.Build.0 = Debug|Win32
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Debug|x64.ActiveCfg = Debug|x64
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Debug|x64.Build.0 = Debug|x64
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Release|Win32.ActiveCfg = Release|Win32
-		{DC4B4237-CB6E-9D2F-9D87-B9D28E9C184E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
