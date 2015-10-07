@@ -117,16 +117,12 @@ GLAppSDL::initialize(int argc, char* argv[])
 		typedef const GLubyte * GLEWAPIENTRY PFNGLEWGETERRORSTRING(GLenum error);
 		PFNGLEWINIT* pGlewInit;
 		PFNGLEWGETERRORSTRING* pGlewGetErrorString;
-		GLboolean* pGlewExperimental;
 		bool error = true;
 		pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, "glewInit");
 		if (pGlewInit != NULL) {
-			pGlewExperimental = (GLboolean*)SDL_LoadFunction(glewdll, "glewExperimental");
-			if (pGlewExperimental != NULL) {
-				pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(glewdll, "glewGetErrorString");
-				if (pGlewGetErrorString != NULL) {
-					error = false;
-				}
+			pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(glewdll, "glewGetErrorString");
+			if (pGlewGetErrorString != NULL) {
+				error = false;
 			}
 		}
 
@@ -141,26 +137,6 @@ GLAppSDL::initialize(int argc, char* argv[])
 			return false;
 		}
 
-		if (pGlewExperimental == NULL) {
-			std::string sName(szName);
-
-			(void)SDL_ShowSimpleMessageBox(
-				SDL_MESSAGEBOX_ERROR,
-				szName,
-				(sName + (const char*)SDL_GetError()).c_str(),
-				NULL);
-			return false;
-		}
-
-		*pGlewExperimental=GL_TRUE; // GLEW uses glGetString(GL_EXTENSIONS) to get a
-		                          // list of extensions and then loads pointers
-		                          // for the returned extensions. Of course GL_EXTENSIONS
-		                          // is an invalid enum for glGetSring in GL 3.2+ core
-		                          // profile. Some implementations, correctly, return an
-		                          // empty list. Others raise the error but return a
-		                          // list anyway. Setting this flag forces GLEW to load
-		                          // all function pointers, overriding the extensions
-		                          // list.
         int iResult = pGlewInit();
         if (iResult != GLEW_OK) {
 			std::string sName(szName);
@@ -172,8 +148,6 @@ GLAppSDL::initialize(int argc, char* argv[])
                           NULL);
             return false;
         }
-		(void)glGetError(); // Clear the INVALID_ENUM error caused by GLEW's,
-		                    // incorrect use of GL_EXTENSIONS.
     }
 #endif
 

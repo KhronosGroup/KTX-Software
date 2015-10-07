@@ -22,6 +22,8 @@ build/msvs/* eol=crlf
 *.png binary
 *.jpg binary
 *.ktx binary
+*.lib binary
+*.dll binary
 
 # Force line endings for unix shell scripts and other specific files
 tests/toktx-tests eol=lf
