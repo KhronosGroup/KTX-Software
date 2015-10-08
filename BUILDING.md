@@ -64,11 +64,9 @@ Nothing need be done.
 #### Building SDL from source
 
 If you want to build libSDL 2.0.4 from source, clone
-the repo at libsdl.org using `git-remote-hg` as detailed below.
-
-This repo has the libSDL.org Mercurial repo as a remote. To pull
-from that repo, you need to install Mercurial and have the script
-`git-remote-hg` in your `$PATH`.
+the repo at libsdl.org. You will need to install
+[Mercurial](https://www.mercurial-scm.org/wiki/Download) and
+install the script `git-remote-hg` in your `$PATH`.
 
 The example below copies `git-remote-hg` to `/usr/local/bin`. Note
 this URL is a fork with fixes for compability with Mercurial 3.2+.
@@ -83,6 +81,16 @@ If on OS X you may need to edit the script and change the first line
 ```
 - #!/usr/bin/env python2
 + #!/usr/bin/env python
+```
+
+If on Windows using Git Bash or Git Shell use `/bin` instead of
+`/usr/local/bin` or else create a ~/bin directory, making sure it is
+in your `$PATH`, and put it there.
+ 
+Use the following command to clone the SDL repo:
+
+```bash
+git clone hg::http://hg.libsdl.org/SDL
 ```
 
 Copy the results of your build to the appropriate place under the
