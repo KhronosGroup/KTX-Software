@@ -99,15 +99,25 @@ sudo curl -o /usr/local/bin/git-remote-hg https://raw.githubusercontent.com/fing
 sudo chmod +x /usr/local/bin/git-remote-hg
 ```
 
-If on OS X you may need to edit the script and change the first line
+If on Windows using Git Bash or Git Shell, create a ~/bin directory, making
+sure it is in your `$PATH`, and put it there instead of `/usr/local/bin`.
+
+:bangbang: If using Git Bash, do not be tempted to use `/bin`. The file will end up in
+`%USERPROFILE%\AppData\Local\VirtualStore\Program Files (x86)\Git\bin` and
+will not be visible to the Windows version of `python` which will be told by `env`
+to run `%SystemDrive%\Program Files (x86)\Git\bin\git-remote-hg`. The latter
+is the canonical location of `/bin`. I do not know if Git Shell has a similar
+issue. :bangbang:
+
+You may need to make a `python2` link to your Python 2 installation or edit the script
+and change the first line
 ```
 - #!/usr/bin/env python2
 + #!/usr/bin/env python
 ```
+On OS X, whether `python2` exists depends on which distribution of Python 2 you are using.
 
-If on Windows using Git Bash or Git Shell use `/bin` instead of
-`/usr/local/bin` or else create a ~/bin directory, making sure it is
-in your `$PATH`, and put it there.
+On Windows, the standard distribution of Python 2 does not include a `python2` command.
  
 Use the following command to clone the SDL repo:
 
