@@ -90,9 +90,14 @@ the repo at libsdl.org. You will need to install
 [Mercurial](https://www.mercurial-scm.org/wiki/Download) and
 install the script `git-remote-hg` in your `$PATH`.
 
-The example below copies `git-remote-hg` to `/usr/local/bin`. Note
-this URL is a fork with fixes for compability with Mercurial 3.2+.
-Applying `s/fingolfin/felipec/` on the URL gives the upstream origin.
+When installing Mercurial for Windows, choose the appropriate `*py2.7`
+installer so that `git-remote-hg` can `import mercurial` from your
+Python installation. 
+
+To install `git=remote-hg` follow the example below, which copies it
+to `/usr/local/bin`. Note the URL below is a fork with fixes for
+compability with Mercurial 3.2+. Applying `s/fingolfin/felipec/` on
+the URL gives the upstream origin.
 
 ```bash
 sudo curl -o /usr/local/bin/git-remote-hg https://raw.githubusercontent.com/fingolfin/git-remote-hg/master/git-remote-hg
