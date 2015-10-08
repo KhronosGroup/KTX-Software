@@ -2,17 +2,18 @@
 Building KTX
 ============
 
+This document describes how to build `libktx` and the portable
+KTX loader tests.
+
 Status
 ------
 
 Construction of a new build system and portable loader tests is
 underway.  At present the Mac OS X, iOS and Windows(GL) builds of
 `libktx` and `loadtests` are completed. Builds for at least one
-OpenGL ES 3.x SDK on Windows and for Linux and Android will follow.
-Mac OS X and Windows builds of `toktx` are also completed. A build
-for Linux will follow.
-
-This document describes the new build system.
+OpenGL<sup>&reg;</sup> ES 3.x SDK on Windows and for Linux and
+Android will follow. Mac OS X and Windows builds of `toktx` are
+also completed. A build for Linux will follow.
 
 Dependencies
 ------------
@@ -21,11 +22,32 @@ The KTX project uses GYP to generate project files. *You do not need
 GYP unless you want to re-generate the supplied projects or generate
 additional projects.*
 
+The KTX library, `libktx`, and the KTX loader tests, `loadtests`, use
+the _GL Extension Wrangler_ (GLEW) library when built for
+OpenGL<sup>&reg;</sup> on Windows.
+
 The KTX loader tests use libSDL 2.0.4. You do not need SDL if you
-only wish to build `libktx`, the KTX library.
+only wish to build `libktx`.
+
+Binaries of all dependencies are included in the KTX Git repo.
+
+### GL Extension Wrangler
+
+Builds of GLEW are provided in the KTX Git repo.
+
+#### Building GLEW from source
+
+If you want to build GLEW from source you need the OpenGL core profile
+friendly version, i.e, 1.13.0+. You can either clone
+[the master GLEW repo](https://github.com/nigels-com/glew) and, following
+the instructions there, generate the code then build it, or you
+can download a pre-generated snapshot from https://glew.s3.amazonaws.com/index.html
+and build that following the instructions also found in
+[the master GLEW repo](https://github.com/nigels-com/glew).
+The snapshot used for the binary included in this repo came from
+https://glew.s3.amazonaws.com/index.html?prefix=nigels-com/glew/25/25.1/.
 
 ### SDL
-
 
 Builds of SDL are provided in the KTX Git repo.
 
