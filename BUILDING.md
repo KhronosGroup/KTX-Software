@@ -189,23 +189,24 @@ The first two of these options include a copy of [MinGW](http://www.mingw.org/)
 (Minimalist GNU for Windows). Sadly it is not the *same* copy; installing both
 tools results in two copies of MinGW on your system. Neither copy includes
 GNU `make`. You can download a pre-compiled version from the
-[MinGW project](http://sourceforge.net/projects/mingw/files/MinGW/Extension/make/make-3.82.90-cvs/make-3.82.90-2-mingw32-cvs-20120902-bin.tar.lzma/download).
-Unpack the archive and you'll find a file called mingw32-make.exe.
+MinGW project [32-bit](http://sourceforge.net/projects/mingw/files/MinGW/Extension/make/make-3.82.90-cvs/make-3.82.90-2-mingw32-cvs-20120902-bin.tar.lzma/download) or
+[64-bit](http://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/make/make-3.82.90-20111115.zip/download).
+Unpack the archive and you'll find a file called `mingw32-make.exe` (32-bit) or `make` (64-bit).
 
 If using the Git for Windows shell (*Git Bash*), copy this to either
 
-`%SystemDrive%\Program Files (x86)\Git\bin` (Windows 8.1)
+`%SystemDrive%\Program Files (x86)\Git\usr\bin\make.exe` (Windows 8.1 and 10)
 
-or
+(omit ` (x86)` if using 64-bit) or
 
-`%USERPROFILE%\AppData\Local\Programs\Git\bin` (Windows 7)
+`%USERPROFILE%\AppData\Local\Programs\Git\usr\bin\make.exe` (Windows 7)
 
 :confused: I do not know if the difference in OS caused the different install locations
 or if something else is at play.
 
 If using the GitHub for Windows shell (*Git Shell*) copy this to
 
-`%USERPROFILE%\AppData\Local\GitHub\PortableGit*\bin\make.exe`
+`%USERPROFILE%\AppData\Local\GitHub\PortableGit*\usr\bin\make.exe`
 
 ### Doxygen
 
