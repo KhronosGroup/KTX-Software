@@ -94,7 +94,7 @@ When installing Mercurial for Windows, choose the appropriate `*py2.7`
 installer so that `git-remote-hg` can `import mercurial` from your
 Python installation. 
 
-To install `git=remote-hg` follow the example below, which copies it
+To install `git-remote-hg` follow the example below, which copies it
 to `/usr/local/bin`. Note the URL below is a fork with fixes for
 compability with Mercurial 3.2+. Applying `s/fingolfin/felipec/` on
 the URL gives the upstream origin.
