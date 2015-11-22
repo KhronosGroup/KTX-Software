@@ -79,6 +79,7 @@ void
 LoadTests::finalize()
 {
     pCurSampleInv->sample->pfRelease(pCurSampleData);
+	GLAppSDL::finalize();
 }
 
 

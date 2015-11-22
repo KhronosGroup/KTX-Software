@@ -52,16 +52,42 @@
 
 bool
 GLAppSDL::initialize(int argc, char* argv[])
-{ 
-    if (!AppBaseSDL::initialize(argc, argv))
-        return false;
+{
+	if (!AppBaseSDL::initialize(argc, argv))
+		return false;
 
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, profile);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
 #if defined(DEBUG)
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
+
+	if (profile == SDL_GL_CONTEXT_PROFILE_ES) {
+		int numVideoDrivers = SDL_GetNumVideoDrivers();
+		int i;
+#if 0
+		const char** drivers;
+
+		drivers = (const char**)SDL_malloc(sizeof(const char*) * numVideoDrivers);
+		for (i = 0; i < numVideoDrivers; i++) {
+			drivers[i] = SDL_GetVideoDriver(i);
+		}
+#endif
+
+		// Only the indicated platforms pay attention to these hints
+		// but they could be set on any platform.
+#if __WINDOWS__ || __LINUX__
+		SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
+#endif
+
+#if __WINDOWS__
+		// If using ANGLE copied from Chrome should set to "d3dcompiler_46.dll"
+		// Should set via command-line definition from gyp file.
+		SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none");
+#endif
+    }
+
     
     pswMainWindow = SDL_CreateWindow(
                         szName,
@@ -75,7 +101,8 @@ GLAppSDL::initialize(int argc, char* argv[])
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
-    
+
+
     sgcGLContext = SDL_GL_CreateContext(pswMainWindow);
 	// Work around bug in SDL. It returns a 2.x context when 3.x is requested.
 	// It does though internally record an error.
@@ -90,15 +117,16 @@ GLAppSDL::initialize(int argc, char* argv[])
         return false;
     }
 
-#if defined(_WIN32)
+#if __WINDOWS__ || __LINUX__
 	if (profile != SDL_GL_CONTEXT_PROFILE_ES)
     {
         // No choice but to use GLEW for GL on Windows; there is no .lib with static bindings.
 		// For ES we use one of the hardware vendor SDKs all of which have static bindings.
-		// TODO: Figure out how to support ARB_esNN_compatibility were there are no static
-		//       bindings.
+		// TODO: Figure out how to support {GLX,WGL}_EXT_create_context_es2_profile were there
+		//       are no static bindings. Need a GLEW equivalent for ES and different compile
+		//       options. Perhaps can borrow function loading stuff from SDL's testgles2.c.
 
-		// So the same library can be linked in to applications using GLEW and
+		// So one build of this library can be linked in to applications using GLEW and
 		// applications not using GLEW, do not call any GLEW functions directly.
 		// Call via queried function pointers.
 		void* glewdll = SDL_LoadObject("glew32.dll");
@@ -164,6 +192,7 @@ GLAppSDL::initialize(int argc, char* argv[])
 void
 GLAppSDL::finalize()
 {
+	SDL_GL_DeleteContext(sgcGLContext);
 }
 
 

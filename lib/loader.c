@@ -152,7 +152,7 @@ static void discoverContextCapabilities(void)
 {
 	GLint majorVersion = 1;
 	GLint minorVersion = 0;
-
+	GLenum error = glGetError();
 	if (strstr(glGetString(GL_VERSION), "GL ES") != NULL)
 		contextProfile = _CONTEXT_ES_PROFILE_BIT;
 	// MAJOR & MINOR only introduced in GL {,ES} 3.0

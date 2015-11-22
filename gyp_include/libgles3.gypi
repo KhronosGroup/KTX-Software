@@ -19,13 +19,16 @@
     },
     'conditions': [
       ['OS == "win"', {
+        # This is for the ARM MALI emulator whose installation adds
+        # OPENGLES_LIBDIR to the environment and adds its value to
+        # PATH so the dlls will be found.
         'variables' : {
-          'dlls': [
-            '<(winolib_dir)/libEGL.dll',
-            '<(winolib_dir)/libGLESv2.dll',
-            '<(winolib_dir)/d3dcompiler_46.dll',
-          ],
-          'lib_dirs': [ '<(winolib_dir)' ],
+          #'dlls': [
+          #  '$(OPENGLES_LIBDIR)/libEGL.dll',
+          #  '$(OPENGLES_LIBDIR)/libGLESv2.dll',
+          #  '$(OPENGLES_LIBDIR)/d3dcompiler_46.dll',
+          #],
+          'lib_dirs': [ '$(OPENGLES_LIBDIR)' ],
           'conditions': [
             ['GENERATOR == "msvs"', {
               'libs': ['-llibGLESv2', '-llibEGL'],
@@ -38,15 +41,15 @@
         # configuration dependent sources. Hence use of $(PlatformName)
         # that is set by the build environment. NOTE: $(PlatformName)
         # may not work with the make generator.
-        'copies': [{
+        #'copies': [{
           # Files appearing in 'copies' cause gyp to generate a folder
           # hierarchy in Visual Studio filters reflecting the location
           # of each file. The folders will be empty.
-          'destination': '<(PRODUCT_DIR)',
-          'files': [
-            '<@(dlls)',
-          ],
-        }],
+        #  'destination': '<(PRODUCT_DIR)',
+        #  'files': [
+        #    '<@(dlls)',
+        #  ],
+        #}],
       }], # OS == "win"
       ['OS == "ios"', {
         'variables': {

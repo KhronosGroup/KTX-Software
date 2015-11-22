@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2014 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -299,6 +299,7 @@
 #undef SDL_VIDEO_DRIVER_X11_DYNAMIC_XSS
 #undef SDL_VIDEO_DRIVER_X11_DYNAMIC_XVIDMODE
 #undef SDL_VIDEO_DRIVER_X11_XCURSOR
+#undef SDL_VIDEO_DRIVER_X11_XDBE
 #undef SDL_VIDEO_DRIVER_X11_XINERAMA
 #undef SDL_VIDEO_DRIVER_X11_XINPUT2
 #undef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
@@ -307,7 +308,6 @@
 #undef SDL_VIDEO_DRIVER_X11_XSHAPE
 #undef SDL_VIDEO_DRIVER_X11_XVIDMODE
 #undef SDL_VIDEO_DRIVER_X11_SUPPORTS_GENERIC_EVENTS
-#undef SDL_VIDEO_DRIVER_X11_CONST_PARAM_XDATA32
 #undef SDL_VIDEO_DRIVER_X11_CONST_PARAM_XEXTADDDISPLAY
 #undef SDL_VIDEO_DRIVER_X11_HAS_XKBKEYCODETOKEYSYM
 #undef SDL_VIDEO_DRIVER_NACL

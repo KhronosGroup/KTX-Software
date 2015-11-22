@@ -150,7 +150,7 @@
         }, # gl3loadtests,
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
-    ['OS == "ios"', {
+    ['OS != "mac"', {
       'includes': [ '../../gyp_include/libgles3.gypi' ],
       'targets': [
         {
