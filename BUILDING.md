@@ -73,7 +73,8 @@ and is now supposedly fixed. If the problem occurs, use `codesign` to fix it,
 as described in the second answer at stackoverflow.
 
 NOTE: SDL 2.0.3 OS X support has a bug where clicking on a window title
-sends an event to the application. This is fixed in SDL 2.0.4.
+sends an event to the application. This is fixed in SDL 2.0.4 and in
+the SDL included with KTX.
 
 #### iOS
 
@@ -85,50 +86,9 @@ Nothing need be done.
 
 #### Building SDL from source
 
-If you want to build libSDL 2.0.4 from source, clone
-the repo at libsdl.org. You will need to install
-[Mercurial](https://www.mercurial-scm.org/wiki/Download) and
-install the script `git-remote-hg` in your `$PATH`.
-
-When installing Mercurial for Windows, choose the appropriate `*py2.7`
-installer so that `git-remote-hg` can `import mercurial` from your
-Python installation. 
-
-To install `git-remote-hg` follow the example below, which copies it
-to `/usr/local/bin`. Note the URL below is a fork with fixes for
-compability with Mercurial 3.2+. Applying `s/fingolfin/felipec/` on
-the URL gives the upstream origin.
-
-```bash
-sudo curl -o /usr/local/bin/git-remote-hg https://raw.githubusercontent.com/fingolfin/git-remote-hg/master/git-remote-hg
-sudo chmod +x /usr/local/bin/git-remote-hg
-```
-
-If on Windows using Git Bash or Git Shell, create a ~/bin directory, making
-sure it is in your `$PATH`, and put it there instead of `/usr/local/bin`.
-
-:bangbang: If using Git Bash, do not be tempted to use `/bin`. The file will end up in
-`%USERPROFILE%\AppData\Local\VirtualStore\Program Files (x86)\Git\bin` and
-will not be visible to the Windows version of `python` which will be told by `env`
-to run `%SystemDrive%\Program Files (x86)\Git\bin\git-remote-hg`. The latter
-is the canonical location of `/bin`. I do not know if Git Shell has a similar
-issue. :bangbang:
-
-You may need to make a `python2` link to your Python 2 installation or edit the script
-and change the first line
-```
-- #!/usr/bin/env python2
-+ #!/usr/bin/env python
-```
-On OS X, whether `python2` exists depends on which distribution of Python 2 you are using.
-
-On Windows, the standard distribution of Python 2 does not include a `python2` command.
- 
-Use the following command to clone the SDL repo:
-
-```bash
-git clone hg::http://hg.libsdl.org/SDL
-```
+The fork of SDL used by KTX can be found at https://github.com/msc-/SDL.
+See the [README](https://github.com/msc-/SDL/README.md) there
+for instructions.
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
