@@ -2,17 +2,18 @@
 Building KTX
 ============
 
+This document describes how to build `libktx` and the portable
+KTX loader tests.
+
 Status
 ------
 
 Construction of a new build system and portable loader tests is
 underway.  At present the Mac OS X, iOS and Windows(GL) builds of
 `libktx` and `loadtests` are completed. Builds for at least one
-OpenGL ES 3.x SDK on Windows and for Linux and Android will follow.
-Mac OS X and Windows builds of `toktx` are also completed. A build
-for Linux will follow.
-
-This document describes the new build system.
+OpenGL<sup>&reg;</sup> ES 3.x SDK on Windows and for Linux and
+Android will follow. Mac OS X and Windows builds of `toktx` are
+also completed. A build for Linux will follow.
 
 Dependencies
 ------------
@@ -21,11 +22,32 @@ The KTX project uses GYP to generate project files. *You do not need
 GYP unless you want to re-generate the supplied projects or generate
 additional projects.*
 
+The KTX library, `libktx`, and the KTX loader tests, `loadtests`, use
+the _GL Extension Wrangler_ (GLEW) library when built for
+OpenGL<sup>&reg;</sup> on Windows.
+
 The KTX loader tests use libSDL 2.0.4. You do not need SDL if you
-only wish to build `libktx`, the KTX library.
+only wish to build `libktx`.
+
+Binaries of all dependencies are included in the KTX Git repo.
+
+### GL Extension Wrangler
+
+Builds of GLEW are provided in the KTX Git repo.
+
+#### Building GLEW from source
+
+If you want to build GLEW from source you need the OpenGL core profile
+friendly version, i.e, 1.13.0+. You can either clone
+[the master GLEW repo](https://github.com/nigels-com/glew) and, following
+the instructions there, generate the code then build it, or you
+can download a pre-generated snapshot from https://glew.s3.amazonaws.com/index.html
+and build that following the instructions also found in
+[the master GLEW repo](https://github.com/nigels-com/glew).
+The snapshot used for the binary included in this repo came from
+https://glew.s3.amazonaws.com/index.html?prefix=nigels-com/glew/25/25.1/.
 
 ### SDL
-
 
 Builds of SDL are provided in the KTX Git repo.
 
@@ -64,25 +86,48 @@ Nothing need be done.
 #### Building SDL from source
 
 If you want to build libSDL 2.0.4 from source, clone
-the repo at libsdl.org using `git-remote-hg` as detailed below.
+the repo at libsdl.org. You will need to install
+[Mercurial](https://www.mercurial-scm.org/wiki/Download) and
+install the script `git-remote-hg` in your `$PATH`.
 
-This repo has the libSDL.org Mercurial repo as a remote. To pull
-from that repo, you need to install Mercurial and have the script
-`git-remote-hg` in your `$PATH`.
+When installing Mercurial for Windows, choose the appropriate `*py2.7`
+installer so that `git-remote-hg` can `import mercurial` from your
+Python installation. 
 
-The example below copies `git-remote-hg` to `/usr/local/bin`. Note
-this URL is a fork with fixes for compability with Mercurial 3.2+.
-Applying `s/fingolfin/felipec/` on the URL gives the upstream origin.
+To install `git-remote-hg` follow the example below, which copies it
+to `/usr/local/bin`. Note the URL below is a fork with fixes for
+compability with Mercurial 3.2+. Applying `s/fingolfin/felipec/` on
+the URL gives the upstream origin.
 
 ```bash
 sudo curl -o /usr/local/bin/git-remote-hg https://raw.githubusercontent.com/fingolfin/git-remote-hg/master/git-remote-hg
 sudo chmod +x /usr/local/bin/git-remote-hg
 ```
 
-If on OS X you may need to edit the script and change the first line
+If on Windows using Git Bash or Git Shell, create a ~/bin directory, making
+sure it is in your `$PATH`, and put it there instead of `/usr/local/bin`.
+
+:bangbang: If using Git Bash, do not be tempted to use `/bin`. The file will end up in
+`%USERPROFILE%\AppData\Local\VirtualStore\Program Files (x86)\Git\bin` and
+will not be visible to the Windows version of `python` which will be told by `env`
+to run `%SystemDrive%\Program Files (x86)\Git\bin\git-remote-hg`. The latter
+is the canonical location of `/bin`. I do not know if Git Shell has a similar
+issue. :bangbang:
+
+You may need to make a `python2` link to your Python 2 installation or edit the script
+and change the first line
 ```
 - #!/usr/bin/env python2
 + #!/usr/bin/env python
+```
+On OS X, whether `python2` exists depends on which distribution of Python 2 you are using.
+
+On Windows, the standard distribution of Python 2 does not include a `python2` command.
+ 
+Use the following command to clone the SDL repo:
+
+```bash
+git clone hg::http://hg.libsdl.org/SDL
 ```
 
 Copy the results of your build to the appropriate place under the
@@ -144,23 +189,24 @@ The first two of these options include a copy of [MinGW](http://www.mingw.org/)
 (Minimalist GNU for Windows). Sadly it is not the *same* copy; installing both
 tools results in two copies of MinGW on your system. Neither copy includes
 GNU `make`. You can download a pre-compiled version from the
-[MinGW project](http://sourceforge.net/projects/mingw/files/MinGW/Extension/make/make-3.82.90-cvs/make-3.82.90-2-mingw32-cvs-20120902-bin.tar.lzma/download).
-Unpack the archive and you'll find a file called mingw32-make.exe.
+MinGW project [32-bit](http://sourceforge.net/projects/mingw/files/MinGW/Extension/make/make-3.82.90-cvs/make-3.82.90-2-mingw32-cvs-20120902-bin.tar.lzma/download) or
+[64-bit](http://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/make/make-3.82.90-20111115.zip/download).
+Unpack the archive and you'll find a file called `mingw32-make.exe` (32-bit) or `make` (64-bit).
 
 If using the Git for Windows shell (*Git Bash*), copy this to either
 
-`%SystemDrive%\Program Files (x86)\Git\bin` (Windows 8.1)
+`%SystemDrive%\Program Files (x86)\Git\usr\bin\make.exe` (Windows 8.1 and 10)
 
-or
+(omit ` (x86)` if using 64-bit) or
 
-`%USERPROFILE%\AppData\Local\Programs\Git\bin` (Windows 7)
+`%USERPROFILE%\AppData\Local\Programs\Git\usr\bin\make.exe` (Windows 7)
 
 :confused: I do not know if the difference in OS caused the different install locations
 or if something else is at play.
 
 If using the GitHub for Windows shell (*Git Shell*) copy this to
 
-`%USERPROFILE%\AppData\Local\GitHub\PortableGit*\bin\make.exe`
+`%USERPROFILE%\AppData\Local\GitHub\PortableGit*\usr\bin\make.exe`
 
 ### Doxygen
 
