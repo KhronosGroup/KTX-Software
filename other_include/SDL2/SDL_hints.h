@@ -186,6 +186,20 @@ extern "C" {
 #define SDL_HINT_VIDEO_X11_XRANDR           "SDL_VIDEO_X11_XRANDR"
 
 /**
+ *  \brief  A variable controlling whether the X11 _NET_WM_PING protocol should be supported.
+ *
+ *  This variable can be set to the following values:
+ *    "0"       - Disable _NET_WM_PING
+ *    "1"       - Enable _NET_WM_PING
+ *
+ *  By default SDL will use _NET_WM_PING, but for applications that know they
+ *  will not always be able to respond to ping requests in a timely manner they can
+ *  turn it off to avoid the window manager thinking the app is hung.
+ *  The hint is checked in CreateWindow.
+ */
+#define SDL_HINT_VIDEO_X11_NET_WM_PING      "SDL_VIDEO_X11_NET_WM_PING"
+
+/**
  *  \brief  A variable controlling whether the window frame and title bar are interactive when the cursor is hidden 
  *
  *  This variable can be set to the following values:
@@ -619,31 +633,31 @@ extern "C" {
 /**
  *  \brief  A variable controlling what driver to use for OpenGL ES contexts.
  *
- *  On some platforms, currently Windows and X11, the OpenGL driver supports
- *  OpenGL ES context profiles. By default SDL uses these profiles, when
- *  available and attempts to load an OpenGL ES library when not.
- *  This variable controls whether SDL follows the default behaviour or
- *  simple loads an OpenGL ES library.
+ *  On some platforms, currently Windows and X11, OpenGL drivers may support
+ *  creating contexts with an OpenGL ES profile. By default SDL uses these
+ *  profiles, when available, otherwise it attempts to load an OpenGL ES
+ *  library, e.g. that provided by the ANGLE project. This variable controls
+ *  whether SDL follows this default behaviour or will always load an
+ *  OpenGL ES library.
  *
  *  Circumstances where this is useful include
- *  - Testing an app with a particular OpenGL ES emulator
- *  - Running applications where the OpenGL ES function addresses were
- *    resolved at link time by linking with an OpenGL ES library or emulator.
+ *  - Testing an app with a particular OpenGL ES implementation, e.g ANGLE,
+ *    or emulator, e.g. those from ARM, Imagination or Qualcomm.
+ *  - Resolving OpenGL ES function addresses at link time by linking with
+ *    the OpenGL ES library instead of querying them at run time with
+ *    SDL_GL_GetProcAddress.
  *
  *  Caution: for an application to work with the default behaviour across
  *  different OpenGL drivers it \i must query the OpenGL ES function
  *  addresses at run time using SDL_GL_GetProcAddress.
  *
  *  This variable is ignored on most platforms because OpenGL ES is native
- *  or completely unsupported.
+ *  or not supported.
  *
  *  This variable can be set to the following values:
  *    "0"       - Use ES profile of OpenGL, if available. (Default when not set.)
  *    "1"       - Load OpenGL ES library using the default library names.
- *    "X;Y"     - Load EGL library "X" and OpenGL ES library "Y".
  *
- *  By default SDL tries to make a best guess for each platform whether
- *  to use acceleration or not.
  */
 #define SDL_HINT_OPENGL_ES_DRIVER   "SDL_OPENGL_ES_DRIVER"
 
