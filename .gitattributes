@@ -48,8 +48,10 @@ tools/toktx/*.h ident
 tools/toktx/toktx.cpp filter=kwexpander ident
 
 # LFS attributes
-*.a filter=lfs -crlf
-*.dll filter=lfs -crlf
-*.dylib filter=lfs -crlf
-*.lib filter=lfs -crlf
-SDL2 filter=lfs -crlf
+*.a filter=lfs -text
+*.dll filter=lfs -text
+*.dylib filter=lfs -text
+*.lib filter=lfs -text
+*.pdb filter=lfs -text
+*.so filter=lfs -text
+SDL2 filter=lfs -text
