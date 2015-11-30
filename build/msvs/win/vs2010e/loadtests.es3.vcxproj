@@ -5,25 +5,16 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{762D8362-D9F9-62DD-3694-D66A7DB2CA22}</ProjectGuid>
+    <ProjectGuid>{276AA5D5-795C-3104-09D1-F9148DB85386}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>es3loadtests</RootNamespace>
+    <RootNamespace>loadtests.es3</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
-    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
   <PropertyGroup Label="Configuration">
@@ -37,10 +28,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros"/>
   <PropertyGroup>
-    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\bin\;$(MSBuildProjectDirectory)\..\..\..\..\bin\</ExecutablePath>
+    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\.\bin\;$(MSBuildProjectDirectory)\..\..\..\..\.\bin\</ExecutablePath>
     <IntDir>$(Platform)\$(Configuration)\obj\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetPath>$(OutDir)\$(ProjectName)$(TargetExt)</TargetPath>
@@ -50,30 +40,6 @@
       <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <Optimization>Disabled</Optimization>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KTX_OPENGL_ES3=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <WarningLevel>Level3</WarningLevel>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);$(OPENGLES_LIBDIR);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
-      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
-      <SubSystem>Windows</SubSystem>
-    </Link>
-    <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KTX_OPENGL_ES3=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAsWinRT>false</CompileAsWinRT>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KTX_OPENGL_ES3=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -114,28 +80,6 @@
       <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KTX_OPENGL_ES3=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAsWinRT>false</CompileAsWinRT>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <Optimization>Full</Optimization>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KTX_OPENGL_ES3=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <WarningLevel>Level3</WarningLevel>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);$(OPENGLES_LIBDIR);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
-      <SubSystem>Windows</SubSystem>
-    </Link>
-    <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KTX_OPENGL_ES3=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktx.gyp"/>
   </ItemGroup>
@@ -154,19 +98,19 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="appfwSDL.vcxproj">
-      <Project>{27843C3F-057B-1CCA-06FF-B89197C951CF}</Project>
+      <Project>{2E8A3A97-DB6A-DF53-7812-B988CB7688E3}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libktx.es3.vcxproj">
-      <Project>{8E33128E-C20E-8684-66D3-28153E617B33}</Project>
+      <Project>{AAE3EF3D-C116-FAB5-897E-CEAE9F856B69}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libgles3.vcxproj">
-      <Project>{3E95F323-F3D7-DE60-64CE-4F96065A7008}</Project>
+      <Project>{F9AD1B08-78D7-F56F-E6D2-D57777862209}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libsdl.vcxproj">
-      <Project>{003B6682-BB36-9B66-5A44-E9844D0F1A02}</Project>
+      <Project>{2C49378C-74F4-6C02-F8FC-AEB28C0F109D}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

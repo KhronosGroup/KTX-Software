@@ -58,7 +58,7 @@
       'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
-          'target_name': 'gl3loadtests',
+          'target_name': 'loadtests.gl3',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [
@@ -147,14 +147,14 @@
               }], # copies
             }], # OS == "android"
           ], # conditions
-        }, # gl3loadtests,
+        }, # loadtests.gl3
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
     ['OS != "mac"', {
       'includes': [ '../../gyp_include/libgles3.gypi' ],
       'targets': [
         {
-          'target_name': 'es3loadtests',
+          'target_name': 'loadtests.es3',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [
@@ -203,7 +203,7 @@
               }],
             }], # OS == "ios"
           ],
-        } # es3_loadtests
+        } # loadtests.es3
       ], # 'OS == "ios"' targets
     }] #'OS == "ios"'
   ], # conditions for conditional targets

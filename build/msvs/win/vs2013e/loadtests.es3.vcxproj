@@ -19,11 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8A060813-D443-C41C-6680-1847142DC392}</ProjectGuid>
+    <ProjectGuid>{4EC11000-1EA7-86A0-4696-8CB4F4876A92}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>es3loadtests</RootNamespace>
+    <RootNamespace>loadtests.es3</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
-    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
   <PropertyGroup Label="Configuration">
@@ -40,7 +39,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros"/>
   <PropertyGroup>
-    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\bin\;$(MSBuildProjectDirectory)\..\..\..\..\bin\</ExecutablePath>
+    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\.\bin\;$(MSBuildProjectDirectory)\..\..\..\..\.\bin\</ExecutablePath>
     <IntDir>$(Platform)\$(Configuration)\obj\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
@@ -157,19 +156,19 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="appfwSDL.vcxproj">
-      <Project>{8BCC63FF-31B8-7CB8-7CA2-17B81126BDED}</Project>
+      <Project>{AEB0C6A1-C9D6-CF7A-6ED8-A90F67192E9C}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libktx.es3.vcxproj">
-      <Project>{28603540-C508-51BE-29DA-DFB0DC8298AC}</Project>
+      <Project>{E433BFCE-5FDC-98BD-3488-2F3581141D1B}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libgles3.vcxproj">
-      <Project>{91B1141A-3F82-71D2-508F-8E90C9783FCE}</Project>
+      <Project>{795AADA3-14B5-CFCA-DCCF-4F863FACAFD4}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libsdl.vcxproj">
-      <Project>{73EC29FE-EAF2-F172-9158-C7017DCB58CC}</Project>
+      <Project>{0CDCAADE-FD3A-11C9-1085-81D901A7DA1C}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
