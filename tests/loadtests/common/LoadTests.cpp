@@ -131,8 +131,8 @@ LoadTests::invokeSample(int iSampleNum)
     pCurSampleInv = &siSamples[iSampleNum];
     pCurSampleInv->sample->pfInitialize(
                             &pCurSampleData,
-                            (szBasePath + pCurSampleInv->args).c_str()
-                                       );
+                            pCurSampleInv->args,
+                            szBasePath);
     
     SDL_GL_GetDrawableSize(pswMainWindow, &width, & height);
     setWindowTitle(pCurSampleInv->title);

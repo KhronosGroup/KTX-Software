@@ -105,7 +105,9 @@ typedef 	tS32 						tFixed;
 
 /* ----------------------------------------------------------------------------- */
 
-typedef void	(*atPFInitialize)(void**	ppAppData, const char* const args);
+typedef void	(*atPFInitialize)(void**            ppAppData,
+                                  const char* const szArgs,
+                                  const char* const szBasePath);
 typedef void	(*atPFRelease)	(void*		pAppData);
 typedef void	(*atPFResize)	(void*      pAppData, int iWidth, int iHeight);
 typedef void	(*atPFRun)		(void*		pAppData, int iTimeMS);
@@ -158,6 +160,11 @@ int	atSetOrthoMatrix (tFloat* aMatrix_, tFloat left, tFloat right,
 /* Set an orthographic projection matrix that retains 0 at the center. */
 int	atSetOrthoZeroAtCenterMatrix (tFloat* aMatrix_, tFloat left, tFloat right,
 					              tFloat bottom, tFloat top, tFloat zNear, tFloat zFar );
+
+/* Catenate 2 strings returning newly allocated memory containing the 
+ * catenation. The caller is responsible for freeing the memory.
+ */
+char* atStrCat(const char* const s1, const char* const s2);
 
 /* ----------------------------------------------------------------------------- */
 

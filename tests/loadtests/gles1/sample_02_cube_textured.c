@@ -51,53 +51,83 @@
 
 /* ------------------------------------------------------------------------- */
 
-void atInitialize_02_cube(void** ppAppData, const char* const args)
+void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
+                          const char* const szBasePath)
 {
+    const GLchar*  szExtensions = (const GLchar*)glGetString(GL_EXTENSIONS);
+    const char* filename;
 	GLuint texture = 0;
 	GLenum target;
 	GLenum glerror;
 	GLboolean isMipmapped;
+    GLboolean npotSupported, npotTexture;
 	KTX_error_code ktxerror;
 
-	ktxerror = ktxLoadTextureN(args, &texture, &target, NULL, &isMipmapped, &glerror,
-		                       0, NULL);
+    if (strstr(szExtensions, "OES_texture_npot") != NULL)
+        npotSupported = GL_TRUE;
+    else
+        npotSupported = GL_FALSE;
+    
+    if ((filename = strchr(szArgs, ' ')) != NULL) {
+        if (!strncmp(szArgs, "--npot ", 7)) {
+            npotTexture = GL_TRUE;
+#if defined(DEBUG)
+        } else {
+            assert(0); /* Unknown argument in sampleInvocations */
+#endif
+        }
+    } else {
+        filename = szArgs;
+        npotTexture = GL_FALSE;
+    }
+    
+    if (npotTexture  && !npotSupported) {
+        /* Load error texture. */
+        filename = "testimages/no-npot.ktx";
+    }
+    filename = atStrCat(szBasePath, filename);
 
-	if (KTX_SUCCESS == ktxerror) {
-		if (target != GL_TEXTURE_2D) {
-			/* Can only draw 2D textures */
-			glDeleteTextures(1, &texture);
-			return;
-		}
-	    glEnable(target);
+    if (filename != NULL) {
+        ktxerror = ktxLoadTextureN(filename, &texture, &target, NULL, &isMipmapped,
+                                   &glerror, 0, NULL);
 
-		if (isMipmapped) 
-			/* Enable bilinear mipmapping */
-			/* TO DO: application can consider inserting a key,value pair in the KTX
-			 * file that indicates what type of filtering to use.
-			 */
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		else
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        if (KTX_SUCCESS == ktxerror) {
+            if (target != GL_TEXTURE_2D) {
+                /* Can only draw 2D textures */
+                glDeleteTextures(1, &texture);
+                return;
+            }
+            glEnable(target);
 
-		/* Check for any errors */
-		glerror = glGetError();
-	} else {
-		char message[1024];
-		int maxchars = sizeof(message)/sizeof(char);
-		int nchars;
+            if (isMipmapped) 
+                /* Enable bilinear mipmapping */
+                /* TO DO: application can consider inserting a key,value pair in the KTX
+                 * file that indicates what type of filtering to use.
+                 */
+                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            else
+                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        } else {
+            char message[1024];
+            int maxchars = sizeof(message)/sizeof(char);
+            int nchars;
 
-		nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
-						  args, ktxErrorString(ktxerror));
-		if (ktxerror == KTX_GL_ERROR) {
-			maxchars -= nchars;
-			nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
-		}
-		atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
-	}
+            nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
+                              filename, ktxErrorString(ktxerror));
+            if (ktxerror == KTX_GL_ERROR) {
+                maxchars -= nchars;
+                nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
+            }
+            atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
+        }
+        
+        atFree((void*)filename, NULL);
+    } /* else
+       Out of memory. In which case, a message box is unlikely to work. */
 
-	/* By default dithering is enabled. Dithering does not provide visual improvement 
+	/* By default dithering is enabled. Dithering does not provide visual improvement
 	 * in this sample so disable it to improve performance. 
 	 */
 	glDisable(GL_DITHER);

@@ -37,12 +37,12 @@ static const float cube_color[] = /* almost random colors */
 };
 static const float cube_texture[] =
 {
-	0.0f, 0.0f,		1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 1.0f,
-	0.0f, 0.0f,		1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 1.0f,
-	0.0f, 0.0f,		1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 1.0f,
-	0.0f, 0.0f,		1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 1.0f,
-	0.0f, 0.0f,		1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 1.0f,
-	0.0f, 0.0f,		1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 1.0f
+	0.0f, 1.0f,		1.0f, 0.0f,		1.0f, 1.0f,		0.0f, 0.0f,
+	1.0f, 1.0f,		0.0f, 0.0f,		0.0f, 1.0f,		1.0f, 0.0f,
+	0.0f, 1.0f,		1.0f, 0.0f,		1.0f, 1.0f,		0.0f, 0.0f,
+	1.0f, 1.0f,		0.0f, 0.0f,		0.0f, 1.0f,		1.0f, 0.0f,
+	0.0f, 1.0f,		1.0f, 0.0f,		1.0f, 1.0f,		0.0f, 0.0f,
+	1.0f, 1.0f,		0.0f, 0.0f,		0.0f, 1.0f,		1.0f, 0.0f
 };
 static const float cube_normal[] =
 {

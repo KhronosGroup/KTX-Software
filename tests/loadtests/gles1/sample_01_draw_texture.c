@@ -5,8 +5,9 @@
 
 /**
  * @file	sample_01_draw_texture.c
- * @brief	Tests DrawTexture functionality to see if the implementation
- *          applies the viewport transform to the supplied coordinates.
+ * @brief	Tests the KTX loader with OpenGL ES 1.1 by loading and drawing
+ *          KTX textures in various formats using the DrawTexture functions
+ *          from OES_draw_texture.
  *
  * @author	Mark Callow
  */
@@ -70,7 +71,9 @@ typedef struct DrawTexture_def {
 	float fFrameMvMatrix[16];
 	float fFramePMatrix[16];
 
-	GLint gnTexture;
+	GLuint gnTexture;
+
+    GLboolean bNpotSupported;
 
 	GLboolean bInitialized;
 } DrawTexture;
@@ -78,17 +81,27 @@ typedef struct DrawTexture_def {
 
 /* ----------------------------------------------------------------------------- */
 
-
-void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
+static int isPowerOfTwo (int x)
 {
-	GLint           iCropRect[4]    = {0, 0, 0, 0};
-	const GLubyte*  szExtensions     = glGetString(GL_EXTENSIONS);
-	GLuint texture = 0;
+   if (x < 0) x = -1;
+   return ((x != 0) && !(x & (x - 1)));
+}
+
+/* ----------------------------------------------------------------------------- */
+
+void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
+                                  const char* const szBasePath)
+{
+	GLint           iCropRect[4] = {0, 0, 0, 0};
+	const GLchar*  szExtensions  = (const GLchar*)glGetString(GL_EXTENSIONS);
+    const char* filename;
+    GLuint texture = 0;
 	GLenum target;
 	GLboolean isMipmapped;
+    GLboolean npotTexture;
 	GLenum glerror;
 	GLubyte* pKvData;
-	GLsizei  kvDataLen;
+	GLuint  kvDataLen;
 	KTX_dimensions dimensions;
 	KTX_error_code ktxerror;
 	KTX_hash_table kvtable;
@@ -106,93 +119,128 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 
 	if (strstr(szExtensions, "OES_draw_texture") != NULL) {
        pData->glDrawTexsOES =
-		 	 (PFNGLDRAWTEXSOESPROC)eglGetProcAddress("glDrawTexsOES");
+		 	 (PFNGLDRAWTEXSOESPROC)SDL_GL_GetProcAddress("glDrawTexsOES");
        pData->glDrawTexiOES =
-		 	 (PFNGLDRAWTEXIOESPROC)eglGetProcAddress("glDrawTexiOES");
+		 	 (PFNGLDRAWTEXIOESPROC)SDL_GL_GetProcAddress("glDrawTexiOES");
        pData->glDrawTexxOES =
-		 	 (PFNGLDRAWTEXXOESPROC)eglGetProcAddress("glDrawTexxOES");
+		 	 (PFNGLDRAWTEXXOESPROC)SDL_GL_GetProcAddress("glDrawTexxOES");
        pData->glDrawTexfOES =
-		 	 (PFNGLDRAWTEXFOESPROC)eglGetProcAddress("glDrawTexfOES");
+		 	 (PFNGLDRAWTEXFOESPROC)SDL_GL_GetProcAddress("glDrawTexfOES");
        pData->glDrawTexsvOES =
-		 	 (PFNGLDRAWTEXSVOESPROC)eglGetProcAddress("glDrawTexsvOES");
+		 	 (PFNGLDRAWTEXSVOESPROC)SDL_GL_GetProcAddress("glDrawTexsvOES");
        pData->glDrawTexivOES =
-		 	 (PFNGLDRAWTEXIVOESPROC)eglGetProcAddress("glDrawTexivOES");
+		 	 (PFNGLDRAWTEXIVOESPROC)SDL_GL_GetProcAddress("glDrawTexivOES");
        pData->glDrawTexxvOES =
-		 	 (PFNGLDRAWTEXXVOESPROC)eglGetProcAddress("glDrawTexxvOES");
+		 	 (PFNGLDRAWTEXXVOESPROC)SDL_GL_GetProcAddress("glDrawTexxvOES");
        pData->glDrawTexfvOES =
-		 	 (PFNGLDRAWTEXFVOESPROC)eglGetProcAddress("glDrawTexfvOES");
+		 	 (PFNGLDRAWTEXFVOESPROC)SDL_GL_GetProcAddress("glDrawTexfvOES");
 	} else {
-	   /* Can't do anything */
+        /* Can't do anything */
+        atMessageBox("This OpenGL ES implementation does not support "
+                     "OES_draw_texture.",
+                     "Can't Run Test", AT_MB_OK|AT_MB_ICONERROR);
 	   return;
 	}
+  
+    if (strstr(szExtensions, "OES_texture_npot") != NULL)
+       pData->bNpotSupported = GL_TRUE;
+    else
+       pData->bNpotSupported = GL_FALSE;
 
-	ktxerror = ktxLoadTextureN(args, &pData->gnTexture, &target, &dimensions,
-							   &isMipmapped, &glerror, &kvDataLen, &pKvData);
 
-	if (KTX_SUCCESS == ktxerror) {
-		if (target != GL_TEXTURE_2D) {
-			/* Can only draw 2D textures */
-			glDeleteTextures(1, &pData->gnTexture);
-			return;
-		}
+    if ((filename = strchr(szArgs, ' ')) != NULL) {
+        if (!strncmp(szArgs, "--npot ", 7)) {
+            npotTexture = GL_TRUE;
+#if defined(DEBUG)
+        } else {
+            assert(0); /* Unknown argument in sampleInvocations */
+#endif
+        }
+    } else {
+        filename = szArgs;
+        npotTexture = GL_FALSE;
+    }
 
-		ktxerror = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
-		if (KTX_SUCCESS == ktxerror) {
-			GLubyte* pValue;
-			GLsizei valueLen;
+    if (npotTexture  && !pData->bNpotSupported) {
+        /* Load error texture. */
+        filename = "testimages/no-npot.ktx";
+    }
+    
+    filename = atStrCat(szBasePath, filename);
+    
+    if (filename != NULL) {
+        ktxerror = ktxLoadTextureN(filename, &pData->gnTexture, &target,
+                                   &dimensions, &isMipmapped, &glerror,
+                                   &kvDataLen, &pKvData);
+      
+        if (KTX_SUCCESS == ktxerror) {
+            if (target != GL_TEXTURE_2D) {
+                /* Can only draw 2D textures */
+                glDeleteTextures(1, &pData->gnTexture);
+                return;
+            }
 
-			if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
-													  &valueLen, &pValue))
-			{
-				char s, t;
+            ktxerror = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
+            if (KTX_SUCCESS == ktxerror) {
+                GLchar* pValue;
+                GLuint valueLen;
 
-				if (_snscanf(pValue, valueLen, KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-					if (s == 'l') sign_s = -1;
-					if (t == 'd') sign_t = -1;
-				}
-			}
-			ktxHashTable_Destroy(kvtable);
-			free(pKvData);
-		}
+                if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
+                                                          &valueLen, (void*)&pValue))
+                {
+                    char s, t;
 
-		iCropRect[2] = pData->iTexWidth = dimensions.width;
-		iCropRect[3] = pData->iTexHeight = dimensions.height;
-		iCropRect[2] *= sign_s;
-		iCropRect[3] *= sign_t;
+                    if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
+                        if (s == 'l') sign_s = -1;
+                        if (t == 'd') sign_t = -1;
+                    }
+                }
+                ktxHashTable_Destroy(kvtable);
+                free(pKvData);
+            }
 
-	    glEnable(target);
+            iCropRect[2] = pData->iTexWidth = dimensions.width;
+            iCropRect[3] = pData->iTexHeight = dimensions.height;
+            iCropRect[2] *= sign_s;
+            iCropRect[3] *= sign_t;
 
-		if (isMipmapped) 
-			/* Enable bilinear mipmapping */
-			/* TO DO: application can consider inserting a key,value pair in the KTX
-			 * that indicates what type of filtering to use.
-			 */
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		else
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glEnable(target);
 
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-		glTexParameteriv(target, GL_TEXTURE_CROP_RECT_OES, iCropRect);
+            if (isMipmapped) 
+                /* Enable bilinear mipmapping */
+                /* TO DO: application can consider inserting a key,value pair in the KTX
+                 * that indicates what type of filtering to use.
+                 */
+                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            else
+                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		/* Check for any errors */
-		glerror = glGetError();
-	} else {
-		char message[1024];
-		int maxchars = sizeof(message)/sizeof(char);
-		int nchars;
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+            glTexParameteriv(target, GL_TEXTURE_CROP_RECT_OES, iCropRect);
 
-		nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
-						  args, ktxErrorString(ktxerror));
-		if (ktxerror == KTX_GL_ERROR) {
-			maxchars -= nchars;
-			nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
-		}
-		atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
+            /* Check for any errors */
+            glerror = glGetError();
+        } else {
+            char message[1024];
+            int maxchars = sizeof(message)/sizeof(char);
+            int nchars;
 
-		pData->iTexWidth = pData->iTexHeight = 50;
-		pData->gnTexture = 0;
-	}
+            nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
+                              filename, ktxErrorString(ktxerror));
+            if (ktxerror == KTX_GL_ERROR) {
+                maxchars -= nchars;
+                nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
+            }
+            atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
+
+            pData->iTexWidth = pData->iTexHeight = 50;
+            pData->gnTexture = 0;
+        }
+
+        atFree((void*)filename, NULL);
+    } /* else
+        Out of memory. In which case, a message box is unlikely to work. */
 
 	glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
 	glColor4f(1.0f, 1.0f, 0.0f, 1.0f);

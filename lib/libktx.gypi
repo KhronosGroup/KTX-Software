@@ -53,6 +53,21 @@
       'include_dirs': [ '<@(include_dirs)' ],
     }, # libktx.gl target
     {
+      'target_name': 'libktx.es1',
+      'variables': {
+        # Because these must be specified in two places.
+        'defines': [ 'KTX_OPENGL_ES1=1' ],
+      },
+      'type': 'static_library',
+      'defines': [ '<@(defines)' ],
+      'direct_dependent_settings': {
+        'defines': [ '<@(defines)' ],
+        'include_dirs': [ '<@(include_dirs)' ],
+      },
+      'sources': [ '<@(sources)' ],
+      'include_dirs': [ '<@(include_dirs)' ],
+    }, # libktx.es1
+    {
       'target_name': 'libktx.es3',
       'variables': {
         # Because these must be specified in two places.

@@ -51,7 +51,7 @@ class LoadTests : public GLAppSDL {
     /** A table of samples and arguments */
     typedef struct sampleInvocation_ {
         const atSample* sample;
-        const std::string args;
+        const char* const args;
         const char* const title;
     } sampleInvocation;
     

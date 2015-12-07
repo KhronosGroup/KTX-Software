@@ -48,7 +48,8 @@
 extern "C" {
 /* ----------------------------------------------------------------------------- */
 /* SAMPLE 01 */
-void atInitialize_01_draw_texture(void** ppAppData, const char* const args);
+void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
+                                  const char* const szBasePath);
 void atRelease_01_draw_texture(void* pAppData);
 void atResize_01_draw_texture(void* pAppData, int iWidth, int iHeight);
 void atRun_01_draw_texture(void* pAppData, int iTimeMS); 
@@ -62,7 +63,8 @@ static const atSample sc_Sample01 = {
 
 /* ----------------------------------------------------------------------------- */
 /* SAMPLE 02 */
-void atInitialize_02_cube(void** ppAppData, const char* const args);
+void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
+                          const char* const szBasePath);
 void atRelease_02_cube(void* pAppData);
 void atResize_02_cube(void* pAppData, int iWidth, int iHeight);
 void atRun_02_cube(void* pAppData, int iTimeMS); 
@@ -105,5 +107,5 @@ const int iNumSamples = sizeof(siSamples) / sizeof(LoadTests::sampleInvocation);
 
 
 AppBaseSDL* theApp = new LoadTests(siSamples, iNumSamples,
-                                       "KTX Loader Tests for GL/ES 3");
+                                       "KTX Loader Tests for GL3 & ES3");
 

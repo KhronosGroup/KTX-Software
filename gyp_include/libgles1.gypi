@@ -23,13 +23,12 @@
         'variables' : {
           'dlls': [
             '<(winolib_dir)/libEGL.dll',
-            '<(winolib_dir)/libGLESv2.dll',
-            '<(winolib_dir)/d3dcompiler_46.dll',
+            '<(winolib_dir)/libGLES_CM.dll',
           ],
           'lib_dirs': [ '<(winolib_dir)' ],
           'conditions': [
             ['GENERATOR == "msvs"', {
-              'libs': ['-llibGLESv2', '-llibEGL'],
+              'libs': ['-llibGLES_CM', '-llibEGL'],
             }, {
               'libs': ['-lGLESv2', '-lEGL'],
             }],

@@ -39,12 +39,16 @@
         'infoplist_file': 'resources_mac/Info.plist',
       }],
     ],
-    'gl3_source_files': [
-       # .h files are included so they will appear in IDEs' file lists.
+    'common_source_files': [
       'common/at.h',
       'common/at.c',
       'common/LoadTests.cpp',
       'common/LoadTests.h',
+      'data/cube.h',
+      'data/frame.h',
+    ],
+    'gl3_source_files': [
+       # .h files are included so they will appear in IDEs' file lists.
       'shader-based/LoadTestsGL3.cpp',
       'shader-based/sample_01_draw_texture.c',
       'shader-based/sample_02_cube_textured.c',
@@ -58,7 +62,7 @@
       'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
-          'target_name': 'loadtests.gl3',
+          'target_name': 'gl3loadtests',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [
@@ -67,6 +71,7 @@
             'libgl',
           ],
           'sources': [
+            '<@(common_source_files)',
             '<@(gl3_source_files)',
           ],
           'include_dirs': [
@@ -133,8 +138,8 @@
               'copies': [{
                 # A small change to GYP was required to use
                 # UNLOCALIZED_RESOURCES_FOLDER_PATH.
-                #'destination': '$(BUILT_PRODUCTS_DIR)/loadtests.app/<(datadir)', # ios
-                #'destination': '$(BUILT_PRODUCTS_DIR)/loadtests.app/Resources/<(datadir)', # mac
+                #'destination': '$(BUILT_PRODUCTS_DIR)/gl3loadtests.app/<(datadir)', # ios
+                #'destination': '$(BUILT_PRODUCTS_DIR)/gl3loadtests.app/Resources/<(datadir)', # mac
                 'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
                 'files': [ '<@(data_files)' ],
               }],
@@ -147,14 +152,17 @@
               }], # copies
             }], # OS == "android"
           ], # conditions
-        }, # loadtests.gl3
+        }, # gl3loadtests
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
-    ['OS != "mac"', {
-      'includes': [ '../../gyp_include/libgles3.gypi' ],
+    ['OS == "ios" or OS == "win"', {
+      'includes': [
+        '../../gyp_include/libgles3.gypi',
+        '../../gyp_include/libgles1.gypi'
+      ],
       'targets': [
         {
-          'target_name': 'loadtests.es3',
+          'target_name': 'es3loadtests',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [
@@ -164,6 +172,8 @@
           ],
           #'toolsets': [target', 'emscripten'],
           'sources': [
+            '<@(common_source_files)',
+            'data/quad.h',
             '<@(gl3_source_files)',
           ], # sources
           'include_dirs': [
@@ -196,16 +206,76 @@
               'copies': [{
                 # A small change to GYP was required to use
                 # UNLOCALIZED_RESOURCES_FOLDER_PATH.
-                #'destination': '$(BUILT_PRODUCTS_DIR)/loadtests.app/<(datadir)', # ios
-                #'destination': '$(BUILT_PRODUCTS_DIR)/loadtests.app/Resources/<(datadir)', # mac
+                #'destination': '$(BUILT_PRODUCTS_DIR)/es3loadtests.app/<(datadir)', # ios
+                #'destination': '$(BUILT_PRODUCTS_DIR)/es3loadtests.app/Resources/<(datadir)', # mac
                 'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
                 'files': [ '<@(data_files)' ],
               }],
             }], # OS == "ios"
+            ['OS == "win"', {
+              'copies': [{
+                'destination': '<(PRODUCT_DIR)/<(datadir)',
+                'files': [ '<@(data_files)' ],
+              }],
+            }], # OS == "win"
           ],
-        } # loadtests.es3
-      ], # 'OS == "ios"' targets
-    }] #'OS == "ios"'
+        }, # es3loadtests
+        {
+          'target_name': 'es1loadtests',
+          'type': '<(executable)',
+          'mac_bundle': 1,
+          'dependencies': [
+            'appfwSDL',
+            'libktx.es1',
+            'libgles1',
+          ],
+          #'toolsets': [target', 'emscripten'],
+          'sources': [
+            '<@(common_source_files)',
+            'gles1/LoadTestsES1.cpp',
+            'gles1/sample_01_draw_texture.c',
+            'gles1/sample_02_cube_textured.c',
+          ], # sources
+          'include_dirs': [
+            'common',
+          ],
+          'defines': [
+            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
+            'GL_CONTEXT_MAJOR_VERSION=1',
+            'GL_CONTEXT_MINOR_VERSION=1',
+          ],
+          'msvs_settings': {
+            'VCLinkerTool': {
+              # /SUBSYSTEM:WINDOWS.
+              'SubSystem': '2',
+            },
+          },
+          'xcode_settings': {
+            'INFOPLIST_FILE': '<(infoplist_file)',
+          },
+          'conditions': [
+            ['OS == "ios"', {
+              # Not needed for iOS simulator builds. I expect it is needed
+              # for iOS device builds. Since I don't have code signing  I
+              # can't complete a build to test.
+              'mac_bundle_resources': [
+                'resources_ios/Default.png',
+                'resources_ios/Default-568h@2x.png',
+                'resources_ios/Icon.png',
+              ],
+              'copies': [{
+                # A small change to GYP was required to use
+                # UNLOCALIZED_RESOURCES_FOLDER_PATH.
+                #'destination': '$(BUILT_PRODUCTS_DIR)/es1loadtests.app/<(datadir)', # ios
+                #'destination': '$(BUILT_PRODUCTS_DIR)/es1loadtests.app/Resources/<(datadir)', # mac
+                'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
+                'files': [ '<@(data_files)' ],
+              }],
+            }], # OS == "ios"
+            ], # conditions
+        } # es1loadtests
+      ], # 'OS == "ios" or OS == "win"' targets
+    }] #'OS == "ios or OS == "win"'
   ], # conditions for conditional targets
 }
 

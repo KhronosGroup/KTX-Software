@@ -91,8 +91,10 @@ typedef struct DrawTexture_def {
 
 /* ----------------------------------------------------------------------------- */
 
-void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
+void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
+                                  const char* const szBasePath)
 {
+    const char* filename;
 	GLfloat* pfQuadTexCoords = quad_texture;
 	GLfloat  fTmpTexCoords[sizeof(quad_texture)/sizeof(GLfloat)];
 	GLuint texture = 0;
@@ -119,78 +121,86 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const args)
 	pData->bInitialized = GL_FALSE;
 	pData->gnTexture = 0;
 	
-	ktxerror = ktxLoadTextureN(args, &pData->gnTexture, &target, &dimensions,
-							   &isMipmapped, &glerror, &kvDataLen, &pKvData);
+    filename = atStrCat(szBasePath, szArgs);
+    
+    if (filename != NULL) {
+        ktxerror = ktxLoadTextureN(filename, &pData->gnTexture, &target,
+                                   &dimensions, &isMipmapped, &glerror,
+                                   &kvDataLen, &pKvData);
 
-	if (KTX_SUCCESS == ktxerror) {
+        if (KTX_SUCCESS == ktxerror) {
 
-		ktxerror = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
-		if (KTX_SUCCESS == ktxerror) {
-			GLchar* pValue;
-			GLuint valueLen;
+            ktxerror = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
+            if (KTX_SUCCESS == ktxerror) {
+                GLchar* pValue;
+                GLuint valueLen;
 
-			if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
-													  &valueLen, (void**)&pValue))
-			{
-				char s, t;
+                if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
+                                                          &valueLen, (void**)&pValue))
+                {
+                    char s, t;
 
-				if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-					if (s == 'l') sign_s = -1;
-					if (t == 'd') sign_t = -1;
-				}
-			}
-			ktxHashTable_Destroy(kvtable);
-			free(pKvData);
-		}
+                    if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
+                        if (s == 'l') sign_s = -1;
+                        if (t == 'd') sign_t = -1;
+                    }
+                }
+                ktxHashTable_Destroy(kvtable);
+                free(pKvData);
+            }
 
-		if (sign_s < 0 || sign_t < 0) {
-			// Transform the texture coordinates to get correct image orientation.
-			int iNumCoords = sizeof(quad_texture) / sizeof(float);
-			for (i = 0; i < iNumCoords; i++) {
-				fTmpTexCoords[i] = quad_texture[i];
-				if (i & 1) { // odd, i.e. a y coordinate
-					if (sign_t < 1) {
-						fTmpTexCoords[i] = fTmpTexCoords[i] * -1 + 1;
-					}
-				} else { // an x coordinate
-					if (sign_s < 1) {
-						fTmpTexCoords[i] = fTmpTexCoords[i] * -1 + 1;
-					}
-				}
-			}
-			pfQuadTexCoords = fTmpTexCoords;
-		}
+            if (sign_s < 0 || sign_t < 0) {
+                // Transform the texture coordinates to get correct image orientation.
+                int iNumCoords = sizeof(quad_texture) / sizeof(float);
+                for (i = 0; i < iNumCoords; i++) {
+                    fTmpTexCoords[i] = quad_texture[i];
+                    if (i & 1) { // odd, i.e. a y coordinate
+                        if (sign_t < 1) {
+                            fTmpTexCoords[i] = fTmpTexCoords[i] * -1 + 1;
+                        }
+                    } else { // an x coordinate
+                        if (sign_s < 1) {
+                            fTmpTexCoords[i] = fTmpTexCoords[i] * -1 + 1;
+                        }
+                    }
+                }
+                pfQuadTexCoords = fTmpTexCoords;
+            }
 
-		pData->iTexWidth = dimensions.width;
-		pData->iTexHeight = dimensions.height;
+            pData->iTexWidth = dimensions.width;
+            pData->iTexHeight = dimensions.height;
 
-		if (isMipmapped) 
-			/* Enable bilinear mipmapping */
-			/* TO DO: application can consider inserting a key,value pair in the KTX
-			 * that indicates what type of filtering to use.
-			 */
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		else
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            if (isMipmapped) 
+                /* Enable bilinear mipmapping */
+                /* TO DO: application can consider inserting a key,value pair in the KTX
+                 * that indicates what type of filtering to use.
+                 */
+                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            else
+                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		atAssert(GL_NO_ERROR == glGetError());
-	} else {
-		char message[1024];
-		int maxchars = sizeof(message)/sizeof(char);
-		int nchars;
+            atAssert(GL_NO_ERROR == glGetError());
+        } else {
+            char message[1024];
+            int maxchars = sizeof(message)/sizeof(char);
+            int nchars;
 
-		nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
-						  args, ktxErrorString(ktxerror));
-		if (ktxerror == KTX_GL_ERROR) {
-			maxchars -= nchars;
-			nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
-		}
-		atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
+            nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
+                              filename, ktxErrorString(ktxerror));
+            if (ktxerror == KTX_GL_ERROR) {
+                maxchars -= nchars;
+                nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
+            }
+            atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
 
-		pData->iTexWidth = pData->iTexHeight = 50;
-		pData->gnTexture = 0;
-	}
+            pData->iTexWidth = pData->iTexHeight = 50;
+            pData->gnTexture = 0;
+        }
+        
+        atFree((void*)filename, NULL);
+    } /* else
+       Out of memory. In which case, a message box is unlikely to work. */
 
     glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
 

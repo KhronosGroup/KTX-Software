@@ -240,6 +240,32 @@ int	atSetOrthoZeroAtCenterMatrix	(float* aMatrix_, float left, float right,
 }
 
 /* ----------------------------------------------------------------------------- */
+
+/**
+ * Catenate two strings returning a new zero-terminated string.
+ * Caller is responsible for freeing the returned string.
+ */
+char* atStrCat(const char* const p1, const char* const p2)
+{
+    char* retStr;
+    size_t retStrLen, p1Len, p2Len;
+    
+    p1Len = strlen(p1);
+    p2Len = strlen(p2);
+    retStrLen = p1Len + p2Len;
+    retStr = atMalloc(retStrLen + 1, NULL); /* +1 for final NUL */
+    if (retStr != NULL) {
+        strncpy(retStr, p1, p1Len);
+        strncpy(retStr + p1Len, p2, p2Len);
+    }
+    retStr[retStrLen] = '\0';
+    
+    assert(retStr[retStrLen-1] == 'x');
+
+    return retStr;
+}
+
+/* ----------------------------------------------------------------------------- */
 #if 0
 /**
  * Select the most appropriate config according to the attributes used as parameter.
