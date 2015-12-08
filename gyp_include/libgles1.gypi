@@ -5,7 +5,6 @@
 # @brief Target for adding dependency on OpenGL ES 1.
 #
 {
-# XXX TO BE COMPLETED. COPY OF libgles2 target as starting point.
   'includes': [
     'config.gypi',
   ],
@@ -30,7 +29,7 @@
             ['GENERATOR == "msvs"', {
               'libs': ['-llibGLES_CM', '-llibEGL'],
             }, {
-              'libs': ['-lGLESv2', '-lEGL'],
+              'libs': ['-lGLES_CM', '-lEGL'],
             }],
           ],
         }, # variables
@@ -54,17 +53,10 @@
           'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework'],
         },
       }],
-      ['OS == "mac"', {
-        # Uses GL_ARB_ES2_compatibility
-        'variables': {
-          'lib_dirs': [ ],
-          'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGL.framework'],
-        },
-      }],
       ['OS == "android"', {
         'variables': {
           'lib_dirs': [ ],
-          'libs': ['-lGLESv2', '-lEGL'],
+          'libs': ['-lGLES_CM', '-lEGL'],
         }
       }],
     ], # conditions

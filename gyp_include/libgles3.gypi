@@ -57,13 +57,6 @@
           'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework'],
         },
       }],
-      ['OS == "mac"', {
-        # Uses GL_ARB_ES3_compatibility (once it is available)
-        'variables': {
-          'lib_dirs': [ ],
-          'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGL.framework'],
-        },
-      }],
       ['OS == "android"', {
         'variables': {
           'lib_dirs': [ ],
