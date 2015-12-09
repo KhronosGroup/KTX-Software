@@ -38,8 +38,8 @@
  */
 
 #if defined(_WIN32)
-#define snprintf _snprintf
-#define _CRT_SECURE_NO_WARNINGS
+  #define snprintf _snprintf
+  #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "../common/at.h"

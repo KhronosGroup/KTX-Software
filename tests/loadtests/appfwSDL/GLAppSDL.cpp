@@ -64,9 +64,9 @@ GLAppSDL::initialize(int argc, char* argv[])
 #endif
 
 	if (profile == SDL_GL_CONTEXT_PROFILE_ES) {
+#if 0
 		int numVideoDrivers = SDL_GetNumVideoDrivers();
 		int i;
-#if 0
 		const char** drivers;
 
 		drivers = (const char**)SDL_malloc(sizeof(const char*) * numVideoDrivers);

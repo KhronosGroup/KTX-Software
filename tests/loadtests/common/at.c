@@ -37,6 +37,10 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
+#if defined(_WIN32)
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "at.h"
 #include <math.h>
 
