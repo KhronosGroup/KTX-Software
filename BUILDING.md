@@ -10,10 +10,13 @@ Status
 
 Construction of a new build system and portable loader tests is
 underway.  At present the Mac OS X, iOS and Windows(GL) builds of
-`libktx` and `loadtests` are completed. Builds for at least one
-OpenGL<sup>&reg;</sup> ES 3.x SDK on Windows and for Linux and
-Android will follow. Mac OS X and Windows builds of `toktx` are
-also completed. A build for Linux will follow.
+`libktx` and `loadtests` are completed. There are three versions of
+loadtests: GL3, ES1 and ES3. GL3 can be built on Mac and Windows.
+ES1 can be built on iOS and with the PowerVR emulator on Windows.
+ES3 can be built on iOS and with any of the major emulators on
+Windows. Builds for for Linux and Android will follow.
+
+Mac OS X and Windows builds of `toktx` are also completed. A build for Linux will follow.
 
 Dependencies
 ------------
@@ -95,16 +98,20 @@ Copy the results of your build to the appropriate place under the
 
 ### OpenGL ES Emulator for Windows
 
-To build the complete MSVS lsolution on Windows and run the OpenGL ES
+To build the complete MSVS solution on Windows and run the OpenGL ES
 version of the load tests an OpenGL ES emulator is needed. The generated
-projects work with the ARM Mali emulator. Install that before trying to
-build on Windows.
+projects work with the
+[ARM Mali emulator](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/).
+Install that before trying to build on Windows.
 
-Builds can be modified to work with any of the maor emulators; Adreno,
-Mali or PowerVR. To use a different emulator change the selection at
-the bottom of `gyp_include/config.gypi' and regenerate the projects.
-If you want to run the load tests for OpenGL ES 1.1 you will need to use
-Imagination Technologies' PowerVR emulator.
+Builds can be modified to work with any of the major emulators;
+[Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools),
+[Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
+or [PowerVR](http://www.imgtec.com/PowerVR/insider/sdkdownloads/index.asp).
+To use a different emulator change the selection at the bottom of
+`gyp_include/config.gypi' and regenerate the projects. If you want to run
+the load tests for OpenGL ES 1.1 you will need to use Imagination
+Technologies' PowerVR emulator.
 
 ### GYP
 
