@@ -20,11 +20,7 @@
     'conditions': [
       ['OS == "win"', {
         'variables' : {
-          'dlls': [
-            '<(winolib_dir)/libEGL.dll',
-            '<(winolib_dir)/libGLES_CM.dll',
-          ],
-          'lib_dirs': [ '<(winolib_dir)' ],
+          'lib_dirs': [ '<(gles1_lib_dir)' ],
           'conditions': [
             ['GENERATOR == "msvs"', {
               'libs': ['-llibGLES_CM', '-llibEGL'],
@@ -33,17 +29,18 @@
             }],
           ],
         }, # variables
-        # Configuration dependent copies are not possible, nor are
-        # configuration dependent sources. Hence use of $(PlatformName)
-        # that is set by the build environment. NOTE: $(PlatformName)
-        # may not work with the make generator.
+        # Neither 'copies' nor 'link_settings' can appear inside
+        # configurations hence source folders for copies are
+        # specified using configuraton variables such as $(PlatformName)
+        # and $CONFIGURATION. An error is emitted when 'link_settings'
+        # is so used. No error is emitted when 'copies' is so used.
         'copies': [{
           # Files appearing in 'copies' cause gyp to generate a folder
           # hierarchy in Visual Studio filters reflecting the location
           # of each file. The folders will be empty.
           'destination': '<(PRODUCT_DIR)',
           'files': [
-            '<@(dlls)',
+            '<@(gles1_dlls)',
           ],
         }],
       }], # OS == "win"

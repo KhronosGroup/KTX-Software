@@ -6,7 +6,8 @@
 #
 {
   'includes': [
-     'appfwSDL/appfwSDL.gypi',
+    '../../gyp_include/config.gypi',
+    'appfwSDL/appfwSDL.gypi',
   ],
   'variables': { # level 1
     'variables': { # level 2 so can use in level 1
@@ -158,7 +159,6 @@
     ['OS == "ios" or OS == "win"', {
       'includes': [
         '../../gyp_include/libgles3.gypi',
-        '../../gyp_include/libgles1.gypi'
       ],
       'targets': [
         {
@@ -220,6 +220,13 @@
             }], # OS == "win"
           ],
         }, # es3loadtests
+      ], # 'OS == "ios" or OS == "win"' targets
+    }], # 'OS == "ios" or OS == "win"'
+    ['OS == "ios" or (OS == "win" and es1support == "true")', {
+      'includes': [
+        '../../gyp_include/libgles1.gypi'
+      ],
+      'targets': [
         {
           'target_name': 'es1loadtests',
           'type': '<(executable)',

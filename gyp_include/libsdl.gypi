@@ -18,9 +18,10 @@
         ],
       },
       # Neither 'copies' nor 'link_settings' can appear inside
-      # configurations hence use of $(PlatformName) and $CONFIGURATION.
-      # An error is emitted when 'link_settings' is so used. No error
-      # is emitted when 'copies' is so used.
+      # configurations hence source folders for copies are
+      # specified using configuraton variables such as $(PlatformName)
+      # and $CONFIGURATION. An error is emitted when 'link_settings'
+      # is so used. No error is emitted when 'copies' is so used.
       'conditions': [
         ['OS == "win"', {
           'link_settings': {

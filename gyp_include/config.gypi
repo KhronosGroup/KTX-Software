@@ -33,6 +33,7 @@
       # Win32 or x64. $(PlatformName) is used instead of $(Platform) for
       # compatibility with VS2005.
       'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
+
     }, # variables level 2
     'otherlibroot_dir%': '<(otherlibroot_dir)',
     'droidolib_dir%': '<(droidolib_dir)',
@@ -41,17 +42,12 @@
     'winolib_dir%': '<(winolib_dir)',
 
     'gl_includes_parent_dir': '../other_include',
-    'gles1_lib_dir': 'nowhere',
-    'gles1_bin_dir': 'nowhere',
-    'gles2_lib_dir': 'nowhere',
-    'gles2_bin_dir': 'nowhere',
-    'gles3_lib_dir': 'nowhere',
-    'gles3_bin_dir': 'nowhere',
 
     'conditions': [
       ['OS == "ios"', {
         # On iOS libSDL2.a is statically linked and is found in <(iosolib_dir).
-      }, 'OS == "mac"', {
+      },
+      'OS == "mac"', {
         'sdl_to_use%': 'installed_framework',
         # Possible values for the preceding: 
         #   installed_framework
@@ -74,7 +70,8 @@
         # SDL2.framework as appropriate. See iOS above for info
         # about $CONFIGURATION.
         'sdl2_lib_dir': '<(macolib_dir)',
-      }, 'OS == "win"', {
+      },
+      'OS == "win"', {
         # An empty string in a DLL location means an installed dll
         # is expected to be found at run time so no dll will be
         # copied to <(PRODUCT_DIR).
@@ -82,13 +79,39 @@
         'sdl2_lib_dir': '<(winolib_dir)',
         # Location of SDL2.dll
         'sdl2_dll_dir': '<(winolib_dir)',
+
         # Location of glew32.lib.
         'glew_lib_dir': '<(winolib_dir)',
         # Location of glew32.dll.
         'glew_dll_dir': '<(winolib_dir)',
+
       }],
     ] # conditions
-  }
+  },
+  'includes': [
+    # Pick your poison as regards an OpenGL ES emulator
+    # for Windows.
+    #
+    # Neither Mali nor Adreno supports OpenGL ES 1.X so
+    # MSVS projects generated for these do not include
+    # es1loadtests.
+    #
+    # Adreno has bugs. It crashes on eglMakeCurrent when
+    # context and suface are EGL_NO_CONTEXT and EGL_NO_SURFACE
+    # respectively. Prior to that a message box appears with the
+    # message "could not load from Adreno device driver: eglGetError"
+    # when eglGetDisplay(EGL_DEFAULT_DISPLAY) is called.
+    #
+    # PVR has some implementation bugs that cause some
+    # of the loadtests to misbehave.
+    #
+    # For now pick Mali as it will cause the least issues for
+    # people who just want to build and run.
+
+    #'adrenoemu.gypi',
+    'maliemu.gypi',
+    #'pvremu.gypi',
+  ],
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

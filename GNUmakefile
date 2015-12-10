@@ -46,12 +46,15 @@ xcode_targets=$(addsuffix /${stampfile},$(addprefix ${xcode_buildd}/,${xcode_pla
 msvs_version=$(strip $(foreach platform,${msvs_platforms},$(if $(findstring ${platform},$*),$(subst ${platform}/vs,,$*))))
 
 gypfiles=ktx.gyp \
+		 gyp_include/adrenoemu.gypi \
 		 gyp_include/config.gypi \
 		 gyp_include/libgl.gypi \
 		 gyp_include/libgles1.gypi \
 		 gyp_include/libgles2.gypi \
 		 gyp_include/libgles3.gypi \
 		 gyp_include/libsdl.gypi \
+		 gyp_include/maliemu.gypi \
+		 gyp_include/pvremu.gypi \
 		 lib/libktx.gypi \
 		 tests/tests.gypi \
 		 tests/loadtests/appfwSDL/appfwSDL.gypi \
