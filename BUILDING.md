@@ -93,6 +93,19 @@ for instructions.
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
 
+### OpenGL ES Emulator for Windows
+
+To build the complete MSVS lsolution on Windows and run the OpenGL ES
+version of the load tests an OpenGL ES emulator is needed. The generated
+projects work with the ARM Mali emulator. Install that before trying to
+build on Windows.
+
+Builds can be modified to work with any of the maor emulators; Adreno,
+Mali or PowerVR. To use a different emulator change the selection at
+the bottom of `gyp_include/config.gypi' and regenerate the projects.
+If you want to run the load tests for OpenGL ES 1.1 you will need to use
+Imagination Technologies' PowerVR emulator.
+
 ### GYP
 
 All the builds use project or make files generated with a modified version
