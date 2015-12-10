@@ -19,8 +19,8 @@
 				3FC7B0C65E5D50554ED676B7 /* PBXTargetDependency */,
 				700E80B7D828465A1738984D /* PBXTargetDependency */,
 				675031C842CB960E5EF00BE3 /* PBXTargetDependency */,
-				CEB37A22FFC6B910B63D7DE4 /* PBXTargetDependency */,
 				2BDE5F59F19C12BE2CD287FA /* PBXTargetDependency */,
+				CEB37A22FFC6B910B63D7DE4 /* PBXTargetDependency */,
 				E65F87D7458B9194857BF570 /* PBXTargetDependency */,
 			);
 			name = All;
@@ -463,6 +463,7 @@
 		D019344AFAA405CEBE4B57E9 /* GLAppSDL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GLAppSDL.h; sourceTree = "<group>"; };
 		D07B52D2E4CC7D0DE9568B62 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
 		D47ACABA2036DADCD64B1D90 /* hi_mark.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark.ktx; sourceTree = "<group>"; };
+		DCFEF75080A5E848A3F25ABE /* maliemu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = maliemu.gypi; path = gyp_include/maliemu.gypi; sourceTree = "<group>"; };
 		E029C2F9F550270F98DD6902 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
 		E684F8C4C08B5F3C853C87FB /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		E7731386E1BB59ECD2D74D67 /* no-npot.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "no-npot.ktx"; sourceTree = "<group>"; };
@@ -591,25 +592,6 @@
 			path = lib;
 			sourceTree = "<group>";
 		};
-		3810EA7F1207FCECEBF1C6EE /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				803632FB64F4F4E92D2D7C3D /* appfwSDL.gypi */,
-				E684F8C4C08B5F3C853C87FB /* config.gypi */,
-				09D2574713EB491746F98B12 /* ktx.gyp */,
-				76DDF7EDFE2E0158BA3981D9 /* libgl.gypi */,
-				457910110F574CDF0E7E93FB /* libgles1.gypi */,
-				C0665AF53CD2E3B3F15B6A2E /* libgles3.gypi */,
-				1C288BEDC71B05577EFD1186 /* libktx.gypi */,
-				BF928318BB965E0ECE478D89 /* libsdl.gypi */,
-				457A6C5129A792B394DAB916 /* loadtests.gypi */,
-				FAE93F3C0C96A832E0BB9E4E /* tests.gypi */,
-				ABFEAC15C0B155457CD81CEB /* toktx.gypi */,
-				6E3E587A48E77B88BB6AD26C /* tools.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		6A6D929482F23280B66EE527 /* common */ = {
 			isa = PBXGroup;
 			children = (
@@ -640,6 +622,26 @@
 				283C9B50A6B85BC82023FBE1 /* tests/loadtests */,
 			);
 			name = Source;
+			sourceTree = "<group>";
+		};
+		7A67CDDD9E4E4A3CDE21C1B9 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				803632FB64F4F4E92D2D7C3D /* appfwSDL.gypi */,
+				E684F8C4C08B5F3C853C87FB /* config.gypi */,
+				09D2574713EB491746F98B12 /* ktx.gyp */,
+				76DDF7EDFE2E0158BA3981D9 /* libgl.gypi */,
+				457910110F574CDF0E7E93FB /* libgles1.gypi */,
+				C0665AF53CD2E3B3F15B6A2E /* libgles3.gypi */,
+				1C288BEDC71B05577EFD1186 /* libktx.gypi */,
+				BF928318BB965E0ECE478D89 /* libsdl.gypi */,
+				457A6C5129A792B394DAB916 /* loadtests.gypi */,
+				DCFEF75080A5E848A3F25ABE /* maliemu.gypi */,
+				FAE93F3C0C96A832E0BB9E4E /* tests.gypi */,
+				ABFEAC15C0B155457CD81CEB /* toktx.gypi */,
+				6E3E587A48E77B88BB6AD26C /* tools.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		939C40297DE14DF8DB557A89 /* gles1 */ = {
@@ -683,7 +685,7 @@
 				7875FF638EC6BDA79918E4C4 /* Source */,
 				BA894D0EB6FC786760F6E06A /* Frameworks */,
 				95C8C33390100362879546DE /* Products */,
-				3810EA7F1207FCECEBF1C6EE /* Build */,
+				7A67CDDD9E4E4A3CDE21C1B9 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -887,8 +889,8 @@
 				EE0B42FC5EB13FFA0BD973B4 /* appfwSDL */,
 				7E694AF384684A19CC02477C /* libsdl */,
 				F9CFDBA90DCE87D4953C8A86 /* es3loadtests */,
-				55BAD77411B86436B32D7036 /* es1loadtests */,
 				77D674CF3B041B0E928FAD8D /* libgles3 */,
+				55BAD77411B86436B32D7036 /* es1loadtests */,
 				E90A5101115B82322043C0C6 /* libgles1 */,
 			);
 		};
