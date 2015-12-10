@@ -129,13 +129,15 @@ void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
             int maxchars = sizeof(message)/sizeof(char);
             int nchars;
 
-            nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: %s.",
-                              filename, ktxErrorString(ktxerror));
-            if (ktxerror == KTX_GL_ERROR) {
-                maxchars -= nchars;
-                nchars += snprintf(&message[nchars], maxchars, " GL error is %#x.", glerror);
-            }
-            atMessageBox(message, "Texture load failed", AT_MB_OK|AT_MB_ICONERROR);
+			nchars = snprintf(message, maxchars, "Load of texture \"%s\" failed: ",
+				              filename);
+			maxchars -= nchars;
+			if (ktxerror == KTX_GL_ERROR) {
+				nchars += snprintf(&message[nchars], maxchars, "GL error %#x occurred.", glerror);
+			} else {
+				nchars += snprintf(&message[nchars], maxchars, "%s.", ktxErrorString(ktxerror));
+			}
+			atMessageBox(message, "Texture load failed", AT_MB_OK | AT_MB_ICONERROR);
         }
         
         atFree((void*)filename, NULL);
