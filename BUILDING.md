@@ -29,6 +29,10 @@ The KTX library, `libktx`, and the KTX loader tests, `loadtests`, use
 the _GL Extension Wrangler_ (GLEW) library when built for
 OpenGL<sup>&reg;</sup> on Windows.
 
+The MSVS solutions for Windows include OpenGL ES versions of
+`loadtests`. To build a complete solution and run the OpenGL ES
+version of the load tests you need to install an OpenGL ES emulator.
+
 The KTX loader tests use libSDL 2.0.4. You do not need SDL if you
 only wish to build `libktx`.
 
@@ -49,6 +53,26 @@ and build that following the instructions also found in
 [the master GLEW repo](https://github.com/nigels-com/glew).
 The snapshot used for the binary included in this repo came from
 https://glew.s3.amazonaws.com/index.html?prefix=nigels-com/glew/25/25.1/.
+
+### OpenGL ES Emulator for Windows
+
+The generated projects work with the
+[ARM Mali emulator](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/).
+Install that before trying to build on Windows.
+
+Projects can be modified to work with any of the major emulators;
+[Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools),
+[ANGLE](https://chromium.googlesource.com/angle/angle/)<sup>*</sup>,
+[Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
+or [PowerVR](https://community.imgtec.com/developers/powervr/graphics-sdk/).
+To use a different emulator change the selection at the bottom of
+`gyp_include/config.gypi' and regenerate the projects. If you want to run
+the load tests for OpenGL ES 1.1 you will need to use Imagination
+Technologies' PowerVR emulator as that alone supports OpenGL ES 1.1.
+
+<sup>*</sup>You will need to build ANGLE yourself and copy the libs
+and dlls to the appropriate directories under `other_lib/win`. Note
+that ANGLE's OpenGL ES 3 support is not yet complete.
 
 ### SDL
 
@@ -95,23 +119,6 @@ for instructions.
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
-
-### OpenGL ES Emulator for Windows
-
-To build the complete MSVS solution on Windows and run the OpenGL ES
-version of the load tests an OpenGL ES emulator is needed. The generated
-projects work with the
-[ARM Mali emulator](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/).
-Install that before trying to build on Windows.
-
-Builds can be modified to work with any of the major emulators;
-[Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools),
-[Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
-or [PowerVR](http://www.imgtec.com/PowerVR/insider/sdkdownloads/index.asp).
-To use a different emulator change the selection at the bottom of
-`gyp_include/config.gypi' and regenerate the projects. If you want to run
-the load tests for OpenGL ES 1.1 you will need to use Imagination
-Technologies' PowerVR emulator.
 
 ### GYP
 

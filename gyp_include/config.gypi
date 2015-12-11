@@ -92,7 +92,7 @@
     # Pick your poison as regards an OpenGL ES emulator
     # for Windows.
     #
-    # Neither Mali nor Adreno supports OpenGL ES 1.X so
+    # Mali, Adreno & ANGLE do not support OpenGL ES 1.X so
     # MSVS projects generated for these do not include
     # es1loadtests.
     #
@@ -105,10 +105,12 @@
     # PVR has some implementation bugs that cause some
     # of the loadtests to misbehave.
     #
-    # For now pick Mali as it will cause the least issues for
-    # people who just want to build and run.
+    # Mali has been chosen as default as it will cause the least
+    # issues for building and running on both Win32 and x64
+    # platforms.
 
     #'adrenoemu.gypi',
+    #'angle.gypi',
     'maliemu.gypi',
     #'pvremu.gypi',
   ],

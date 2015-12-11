@@ -47,6 +47,7 @@ msvs_version=$(strip $(foreach platform,${msvs_platforms},$(if $(findstring ${pl
 
 gypfiles=ktx.gyp \
 		 gyp_include/adrenoemu.gypi \
+		 gyp_include/angle.gypi \
 		 gyp_include/config.gypi \
 		 gyp_include/libgl.gypi \
 		 gyp_include/libgles1.gypi \

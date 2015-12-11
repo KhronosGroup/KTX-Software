@@ -12,7 +12,7 @@
 
 {
   'variables': { # level 1
-    'variables': { # level 2 defines variablea to be used in level 1
+    'variables': { # level 2 defines variables to be used in level 1
       'variables': { # level 3 defines variables to be used in level 2
         # Default install location
         'conditions': [
