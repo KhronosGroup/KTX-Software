@@ -13,31 +13,39 @@
 #   'GYP_GENERATOR_FLAGS:' 'msvs_version=2010'
 # }
 
-pname:=ktx
+pname := ktx
 # Formats to generate by default.
 formats=msvs xcode # make
 
-builddir:=build
+builddir := build
 
 # GYP only updates solution & project files that have changed since
 # the last time they were generated. It is impractical to list
 # as dependencies herein all the output files of a given GYP generator
 # so use a file with the timestamp of the latest generation to ensure
 # gyp is only run when necessary.
-stampfile:=.${pname}-stamp
+stampfile := .${pname}-stamp
 
-msvs_buildd:=$(builddir)/msvs
-msvs_platforms:=win# web wingl
-msvs_vernames:=vs2008 vs2010 vs2010e vs2013 vs2013e vs2015
+msvs_buildd := $(builddir)/msvs
+msvs_platforms := win# web wingl
+msvs_vernames := vs2008 vs2010 vs2010e vs2013 vs2013e vs2015
 # Build list of names "${platform}/vs{2010,2010e,2008}/.ktx-stamp"
-msvs_targets=$(addprefix ${platform}/,$(addsuffix /${stampfile},${msvs_vernames}))
-msvs_platform_dirs:=$(addprefix ${msvs_buildd}/,${msvs_platforms})
+msvs_targets = $(addprefix ${platform}/,$(addsuffix /${stampfile},${msvs_vernames}))
+msvs_platform_dirs := $(addprefix ${msvs_buildd}/,${msvs_platforms})
 # Expand the ${platform} in each of name in msvs_targets
-msvs_targets:=$(foreach platform,${msvs_platform_dirs},${msvs_targets})
+msvs_targets := $(foreach platform,${msvs_platform_dirs},${msvs_targets})
 
-xcode_buildd:=$(builddir)/xcode
-xcode_platforms:=ios macgl# mac
-xcode_targets=$(addsuffix /${stampfile},$(addprefix ${xcode_buildd}/,${xcode_platforms}))
+xcode_buildd := $(builddir)/xcode
+xcode_platforms := ios macgl# mac
+xcode_targets = $(addsuffix /${stampfile},$(addprefix ${xcode_buildd}/,${xcode_platforms}))
+
+cmake_buildd := $(builddir)/cmake.n
+cmake_platforms := linux
+cmake_targets = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,${cmake_platforms}))
+
+make_buildd := $(builddir)/make
+make_platforms := linux mac
+make_targets = $(addsuffix /${stampfile},$(addprefix ${make_buildd}/,${make_platforms}))
 
 # Used by msvs recipe to extract version number from the partial target
 # name set in $* by the pattern rule. Loops over the list of platform
@@ -91,6 +99,10 @@ msvs: $(msvs_targets)
 
 xcode: $(xcode_targets)
 
+cmake: $(cmake_targets)
+
+make: $(make_targets)
+
 #android: $(android_targets)
 
 # Can't use wildcards in target patterns so have to match the whole
@@ -102,6 +114,18 @@ $(msvs_targets): $(msvs_buildd)/%/$(stampfile): $(gypfiles)
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): $(gypfiles)
 	$(gyp) -f xcode -DOS=$(patsubst %gl,%,$*) --generator-output=$(dir $@) --depth=. $(pname).gyp
+	@date > $@
+
+$(warning cmake_targets = $(cmake_targets))
+
+$(cmake_targets): $(cmake_buildd)/%/$(stampfile): $(gypfiles)
+	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) --depth=. $(pname).gyp
+	@date > $@
+
+$(warning make_targets = $(make_targets))
+
+$(make_targets): $(make_buildd)/%/$(stampfile): $(gypfiles)
+	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. $(pname).gyp
 	@date > $@
 
 # vim:ai:ts=4:sts=4:sw=2:textwidth=75
