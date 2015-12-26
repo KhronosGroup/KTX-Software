@@ -20,7 +20,13 @@
     },
     'variables': {
       'conditions': [
-        ['OS == "win"', {
+        ['OS == "mac"', {
+          'lib_dirs': [ ],
+          'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGL.framework'],
+        }, 'OS == "linux"', {
+          'lib_dirs': [ ],
+          'libs': ['-lGL'],
+        }, 'OS == "win"', {
           'lib_dirs': [ '<(glew_lib_dir)' ],
           'conditions': [
             ['GENERATOR == "msvs"', {
@@ -40,9 +46,6 @@
               'dlls': [ ],
             }],
           ],
-        }, 'OS == "mac"', {
-          'lib_dirs': [ ],
-          'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGL.framework'],
         }, {
           # OpenGL not supported
           'lib_dirs': [ ],

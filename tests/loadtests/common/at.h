@@ -42,7 +42,7 @@
 
 /* ----------------------------------------------------------------------------- */
 
-#include <SDL2/sdl.h>
+#include <SDL2/SDL.h>
 
 /* ----------------------------------------------------------------------------- */
 
@@ -52,15 +52,6 @@ extern "C" {
 
 /* ----------------------------------------------------------------------------- */
 
-//#if KTX_OPENGL
-//  #define EGLAPI  // With OpenGL we use an emulator in a local file not libEGL.dll.
-//#endif
-//#include <EGL/egl.h>
-//#include <EGL/eglext.h>
-
-/* ----------------------------------------------------------------------------- */
-
-//#include <malloc.h>
 #include <memory.h>	
 #include <string.h>	
 #include <assert.h>
@@ -69,14 +60,6 @@ extern "C" {
 
 #define	AT_SURFACE_WIDTH	320
 #define	AT_SURFACE_HEIGHT	240
-
-
-/*
- * Select the most appropriate config according to the attributes used as parameter.
- */
-//EGLBoolean
-//atGetAppropriateEGLConfig(EGLDisplay eglDisplay, const EGLint* aAttribs,
-//   						  EGLConfig* pResult);
 
 /* ----------------------------------------------------------------------------- */
 

@@ -24,70 +24,87 @@
       #
       # An error is emitted when 'link_settings' is so used. No error
       # is emitted when 'copies' is so used.
-      'droidolib_dir': '<(otherlibroot_dir)$(BUILDTYPE)/$(TARGET_ABI)',
+      'droidolib_dir': '<(otherlibroot_dir)/$(BUILDTYPE)/$(TARGET_ABI)',
       # $CONFIGURATION is either Debug or Release. PLATFORM_NAME
       # is either iphoneos or iphonesimulator. Set by xcode during build.
       'iosolib_dir': '<(otherlibroot_dir)/$CONFIGURATION-$PLATFORM_NAME',
+      'linuxolib_dir': '<(otherlibroot_dir)/$(BUILDTYPE)-x64',
       'macolib_dir': '<(otherlibroot_dir)/$CONFIGURATION',
       # $(ConfigurationName) is Debug or Release. $(PlatformName) is
       # Win32 or x64. $(PlatformName) is used instead of $(Platform) for
       # compatibility with VS2005.
       'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
-
     }, # variables level 2
     'otherlibroot_dir%': '<(otherlibroot_dir)',
     'droidolib_dir%': '<(droidolib_dir)',
     'iosolib_dir%': '<(iosolib_dir)',
+    'linuxolib_dir%': '<(linuxolib_dir)',
     'macolib_dir%': '<(macolib_dir)',
     'winolib_dir%': '<(winolib_dir)',
 
     'gl_includes_parent_dir': '../other_include',
 
+    # Possible values for sdl_to_use in the following: 
+    #   built_dylib
+    #     uses a dynamic SDL2 library you have built yourself and
+    #     includes this dylib in the application bundle.
+    #   installed_dylib
+    #     uses a dynamic SDL2 library installed in your system,
+    #     i.e it will be found somewhere on the search path.
+    #   installed_framework (mac only)
+    #     uses a standard SDL2 binary installed in either
+    #     /Library/Frameworks or ~/Library/Frameworks.
+    #   built_framework (mac only)
+    #     uses a framework you have built yourself and includes
+    #     this framework in the application bundle. Note this
+    #     means the SDL headers will be included in the
+    #     application bundle.
+    #   staticlib
+    #     links to a static library.
     'conditions': [
-      ['OS == "ios"', {
-        # On iOS libSDL2.a is statically linked and is found in <(iosolib_dir).
-      },
+      ['OS == "android"', {
+        'sdl_to_use': 'built_dylib', # No other choice
+        'sdl2_lib_dir': '<(droidolib_dir)',
+      }, # OS == "android"
+      'OS == "ios"', {
+        'sdl_to_use': 'staticlib', # No other choice
+        'sdl2_lib_dir': '<(iosolib_dir)',
+      }, # OS == "ios"
+      'OS == "linux"', {
+        'sdl_to_use%': 'staticlib',
+
+        # Location of libSDL2.a, libSDL2main.a and libSDL2_*.so
+        'sdl2_lib_dir': '<(linuxolib_dir)',
+
+        # Location of glew32.lib.
+        'glew_lib_dir': '<(linuxolib_dir)',
+        # Location of glew32.dll.
+        'glew_dll_dir': '<(linuxolib_dir)',
+      }, # OS == "linux"
       'OS == "mac"', {
         'sdl_to_use%': 'installed_framework',
-        # Possible values for the preceding: 
-        #   installed_framework
-        #     uses a standard SDL2 binary installed in either
-        #     /Library/Frameworks or ~/Library/Frameworks.
-        #   built_framework
-        #     uses a framework you have built yourself and includes
-        #     this framework in the application bundle. Note this
-        #     means the SDL headers will be included in the
-        #     application bundle.
-        #   dylib
-        #     uses a dynamic library you have built yourself and
-        #     includes this dylib in the application bundle.
 
         # Used when sdl_to_use == "installed_framework"
         'sdl2.framework_dir': '/Library/Frameworks',
 
         # Used when sdl_to_use != "installed_framework". This is the
-        # location which will be searched for libSDL2.dylib or
-        # SDL2.framework as appropriate. See iOS above for info
-        # about $CONFIGURATION.
+        # location which will be searched for libSDL2.a,
+        # libSDL2.dylib or SDL2.framework as appropriate.
         'sdl2_lib_dir': '<(macolib_dir)',
-      },
+      }, # OS == "mac"
       'OS == "win"', {
-        # An empty string in a DLL location means an installed dll
-        # is expected to be found at run time so no dll will be
-        # copied to <(PRODUCT_DIR).
-        # Location of SDL2.lib and SDL2main.lib
+        'sdl_to_use%': 'built_dylib',
+
+        # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',
-        # Location of SDL2.dll
-        'sdl2_dll_dir': '<(winolib_dir)',
 
         # Location of glew32.lib.
         'glew_lib_dir': '<(winolib_dir)',
         # Location of glew32.dll.
         'glew_dll_dir': '<(winolib_dir)',
-
-      }],
-    ] # conditions
-  },
+      }], # OS == "win"
+    ], # conditions
+  }, # variables level 1
   'includes': [
     # Pick your poison as regards an OpenGL ES emulator
     # for Windows.

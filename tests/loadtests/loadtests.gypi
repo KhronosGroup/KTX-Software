@@ -59,7 +59,7 @@
   }, # variables, level 1
 
   'conditions': [
-    ['OS == "mac" or OS == "win"', {
+    ['OS == "mac" or OS == "win" or OS == "linux"', {
       'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
@@ -129,7 +129,7 @@
                 },
               },
             }], # emit_emscripten_configs=="true"
-            ['OS == "win"', {
+            ['OS == "win" or OS == "linux"', {
               'copies': [{
                 'destination': '<(PRODUCT_DIR)/<(datadir)',
                 'files': [ '<@(data_files)' ],

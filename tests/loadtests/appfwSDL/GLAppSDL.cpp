@@ -30,7 +30,7 @@
  *
  * If only executable code is distributed, then the accompanying
  * documentation must state that "this software is based in part on the
- * work of HI Corporation."
+ * work of Mark Callow."
  *
  * THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -47,6 +47,8 @@
   #include "GL/glew.h"
   #include "SDL2/SDL_loadso.h"
 #endif
+
+#include <stdio.h>
 
 #include "GLAppSDL.h"
 
@@ -117,14 +119,16 @@ GLAppSDL::initialize(int argc, char* argv[])
         return false;
     }
 
-#if __WINDOWS__ || __LINUX__
+#if __WINDOWS__
 	if (profile != SDL_GL_CONTEXT_PROFILE_ES)
     {
-        // No choice but to use GLEW for GL on Windows; there is no .lib with static bindings.
-		// For ES we use one of the hardware vendor SDKs all of which have static bindings.
-		// TODO: Figure out how to support {GLX,WGL}_EXT_create_context_es2_profile were there
-		//       are no static bindings. Need a GLEW equivalent for ES and different compile
-		//       options. Perhaps can borrow function loading stuff from SDL's testgles2.c.
+        // No choice but to use GLEW for GL on Windows; there is no .lib with static
+        // bindings. For ES we use one of the hardware vendor SDKs all of which have
+        // static bindings.
+		// TODO: Figure out how to support {GLX,WGL}_EXT_create_context_es2_profile
+        //       were there are no static bindings. Need a GLEW equivalent for ES and
+        //       different compile options. Perhaps can borrow function loading stuff
+        //       from SDL's testgles2.c.
 
 		// So one build of this library can be linked in to applications using GLEW and
 		// applications not using GLEW, do not call any GLEW functions directly.
