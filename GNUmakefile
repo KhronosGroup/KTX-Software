@@ -44,7 +44,7 @@ cmake_platforms := linux
 cmake_targets = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,${cmake_platforms}))
 
 make_buildd := $(builddir)/make
-make_platforms := linux mac
+make_platforms := linux #mac
 make_targets = $(addsuffix /${stampfile},$(addprefix ${make_buildd}/,${make_platforms}))
 
 # Used by msvs recipe to extract version number from the partial target
