@@ -215,13 +215,15 @@ $(builddir)/gl3loadtests: | $(ktx_gyp_gl3loadtests_target_copies)
 $(ktx_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
 
 LDFLAGS_Debug := \
+	-Wl,-rpath,. \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
 
 LDFLAGS_Release := \
+	-Wl,-rpath,. \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
 
 LIBS := \
-	-lSDL2 \
+	-lSDL2-2.0 \
 	-lSDL2main \
 	-ldl \
 	-lpthread \

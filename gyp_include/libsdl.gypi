@@ -56,7 +56,7 @@
               ],
             }], # actions
           } # direct_dependent_settings
-        }], # OS == "Android"
+        }], # OS == "android"
         ['OS == "ios"', {
           'link_settings': {
             'libraries=': [
@@ -69,19 +69,36 @@
           },
         }], # OS == "ios"
         ['OS == "linux"', {
-          'link_settings': {
-            'libraries=': [
-              '-lSDL2', '-lSDL2main',
-              '-ldl', '-lpthread'
-            ],
-            'library_dirs': [ '<(sdl2_lib_dir)' ],
-          },
           'conditions': [
             ['sdl_to_use == "built_dylib"', {
+              'link_settings': {
+                'libraries=': [
+                  '-lSDL2-2.0', '-lSDL2main',
+                  '-ldl', '-lpthread'
+                ],
+                'library_dirs': [ '<(sdl2_lib_dir)' ],
+                'ldflags': [ '-Wl,-rpath,.' ],
+              },
               'copies': [{
                 'destination': '<(PRODUCT_DIR)',
-                'files': [ '<(sdl2_lib_dir)/libSDL2-2.0.so' ],
+                'files': [
+                  '<(sdl2_lib_dir)/libSDL2-2.0.so.0',
+                  '<(sdl2_lib_dir)/libSDL2-2.0.so.0.4.0',
+                ],
               }], # copies
+            }, 'sdl_to_use == "installed_dylib"', {
+              'libraries=': [
+                '-lSDL2-2.0', '-lSDL2main',
+                '-ldl', '-lpthread'
+              ],
+            }, {
+              'link_settings': {
+                'libraries=': [
+                  '-lSDL2', '-lSDL2main',
+                  '-ldl', '-lpthread'
+                ],
+                'library_dirs': [ '<(sdl2_lib_dir)' ],
+              },
             }],
           ], # conditions
         }], # OS == "linux"
@@ -166,7 +183,7 @@
                 # custom copy command in properties for only one
                 # configuration. Nevertheless copy will be performed
                 # in all.
-                'files': [ '<(sdl2_lib_dir)/<(sdl2_dylib)' ],
+                'files': [ '<(sdl2_lib_dir)/SDL2.dll' ],
               }], # copies
             }],
           ], # conditions

@@ -59,7 +59,7 @@
     #     this framework in the application bundle. Note this
     #     means the SDL headers will be included in the
     #     application bundle.
-    #   staticlib
+    #   staticlib (not Windows)
     #     links to a static library.
     'conditions': [
       ['OS == "android"', {
@@ -71,7 +71,7 @@
         'sdl2_lib_dir': '<(iosolib_dir)',
       }, # OS == "ios"
       'OS == "linux"', {
-        'sdl_to_use%': 'staticlib',
+        'sdl_to_use%': 'built_dylib',
 
         # Location of libSDL2.a, libSDL2main.a and libSDL2_*.so
         'sdl2_lib_dir': '<(linuxolib_dir)',

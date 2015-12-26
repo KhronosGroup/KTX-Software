@@ -2,7 +2,26 @@
 
 TOOLSET := target
 TARGET := libsdl
+### Generated for copy rule.
+$(builddir)/libSDL2-2.0.so.0: TOOLSET := $(TOOLSET)
+$(builddir)/libSDL2-2.0.so.0: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.0 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/libSDL2-2.0.so.0
+$(builddir)/libSDL2-2.0.so.0.4.0: TOOLSET := $(TOOLSET)
+$(builddir)/libSDL2-2.0.so.0.4.0: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.0.4.0 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/libSDL2-2.0.so.0.4.0
+ktx_gyp_libsdl_target_copies = $(builddir)/libSDL2-2.0.so.0 $(builddir)/libSDL2-2.0.so.0.4.0
+
 ### Rules for final target.
+# Build our special outputs first.
+$(obj).target/libsdl.stamp: | $(ktx_gyp_libsdl_target_copies)
+
+# Preserve order dependency of special output on deps.
+$(ktx_gyp_libsdl_target_copies): | 
+
 $(obj).target/libsdl.stamp: TOOLSET := $(TOOLSET)
 $(obj).target/libsdl.stamp:  FORCE_DO_CMD
 	$(call do_cmd,touch)
