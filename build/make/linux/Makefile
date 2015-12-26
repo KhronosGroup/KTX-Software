@@ -342,6 +342,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
                  $(join ^,libsdl.target.mk)))),)
   include libsdl.target.mk
 endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,toktx.target.mk)))),)
+  include toktx.target.mk
+endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
 cmd_regen_makefile = cd $(srcdir); /usr/local/bin/gyp -fmake --ignore-environment "--toplevel-dir=." "--depth=." "--generator-output=build/make/linux" "-DOS=linux" ktx.gyp

@@ -3,4 +3,4 @@
 export builddir_name ?= ./build/make/linux/out
 .PHONY: all
 all:
-	$(MAKE) libgl libsdl libktx.es1 libktx.gl libktx.es3 appfwSDL gl3loadtests
+	$(MAKE) libktx.gl libgl libktx.es3 libsdl toktx libktx.es1 appfwSDL gl3loadtests

@@ -27,7 +27,7 @@
   'conditions': [
     # No point in building this command line utility for iOS or
     # Android.
-    ['OS == "mac" or OS == "win"', {
+    ['OS == "linux" or OS == "mac" or OS == "win"', {
       #'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
