@@ -15,7 +15,6 @@
 *.vcxproj text eol=crlf
 *.vcxproj.filters text eol=crlf
 *.vsprops text eol=crlf
-build/vc9/* eol=crlf
 build/msvs/* eol=crlf
 
 # Denote all files that are truly binary and should not be modified.
@@ -33,7 +32,6 @@ GNUmakefile eol=lf
 
 # Keyword expansion
 TODO filter=kwexpander
-build/vc9/README[[:space:]]FIRST.txt filter=kwexpander
 include/ktx.h filter=kwexpander ident
 GNUmakefile ident
 include/ktx.h filter=kwexpander ident
