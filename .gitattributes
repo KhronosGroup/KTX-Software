@@ -51,5 +51,7 @@ tools/toktx/toktx.cpp filter=kwexpander ident
 *.dylib filter=lfs -text
 *.lib filter=lfs -text
 *.pdb filter=lfs -text
-*.so filter=lfs -text
+# Use LFS only on the actual shared object. *.so and
+# *.so.? are symbolic links to *.so.?.?.?.
+*.so.?.?.? filter=lfs -text
 SDL2 filter=lfs -text
