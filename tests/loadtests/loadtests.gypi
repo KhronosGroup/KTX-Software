@@ -68,7 +68,7 @@
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
-            'libktx.gl',
+            'libktx.gyp:libktx.gl',
             'libgl',
           ],
           'sources': [
@@ -167,7 +167,7 @@
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
-            'libktx.es3',
+            'libktx.gyp:libktx.es3',
             'libgles3',
           ],
           #'toolsets': [target', 'emscripten'],
@@ -233,7 +233,7 @@
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
-            'libktx.es1',
+            'libktx.gyp:libktx.es1',
             'libgles1',
           ],
           #'toolsets': [target', 'emscripten'],

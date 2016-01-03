@@ -35,7 +35,7 @@
           'type': '<(executable)',
           'mac_bundle': 0,
           'dependencies': [
-            'libktx.gl',
+            'libktx.gyp:libktx.gl',
           ],
           'sources': [
             'image.cpp',
@@ -53,9 +53,9 @@
               'SubSystem': '1',
             },
           },
-          'xcode_settings': {
-            'INFOPLIST_FILE': '<(infoplist_file)',
-          },
+#          'xcode_settings': {
+#            'INFOPLIST_FILE': '<(infoplist_file)',
+#          },
           'conditions': [
             ['emit_emscripten_configs=="true"', {
               'configurations': {

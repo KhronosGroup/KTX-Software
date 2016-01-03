@@ -36,7 +36,7 @@ msvs_platform_dirs := $(addprefix ${msvs_buildd}/,${msvs_platforms})
 msvs_targets := $(foreach platform,${msvs_platform_dirs},${msvs_targets})
 
 xcode_buildd := $(builddir)/xcode
-xcode_platforms := ios macgl# mac
+xcode_platforms := ios mac
 xcode_targets = $(addsuffix /${stampfile},$(addprefix ${xcode_buildd}/,${xcode_platforms}))
 
 cmake_buildd := $(builddir)/cmake.n
@@ -54,9 +54,11 @@ make_targets = $(addsuffix /${stampfile},$(addprefix ${make_buildd}/,${make_plat
 msvs_version=$(strip $(foreach platform,${msvs_platforms},$(if $(findstring ${platform},$*),$(subst ${platform}/vs,,$*))))
 
 gypfiles=ktx.gyp \
+		 libktx.gyp \
 		 gyp_include/adrenoemu.gypi \
 		 gyp_include/angle.gypi \
 		 gyp_include/config.gypi \
+		 gyp_include/default.gypi \
 		 gyp_include/libgl.gypi \
 		 gyp_include/libgles1.gypi \
 		 gyp_include/libgles2.gypi \
@@ -91,9 +93,12 @@ gyp=$(gypdir)gyp# --debug=all
 # appear have execute permission in this case.
 #gyp=python $(gypdir)/gyp_main.py
 
-.PHONY: msvs xcode
+.PHONY: msvs xcode default
 
-default: $(formats)
+default:
+	@echo Pick one of make {all,cmake,make,msvs,xcode}
+
+all: $(formats)
 
 msvs: $(msvs_targets)
 
@@ -108,25 +113,21 @@ make: $(make_targets)
 # Can't use wildcards in target patterns so have to match the whole
 # {win+web,wingl}/vs<version> part of the target name. Uses the
 # msvs_version macro above to extract the version.
-$(msvs_targets): $(msvs_buildd)/%/$(stampfile): $(gypfiles)
-	$(gyp) -f msvs -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. $(pname).gyp
+$(msvs_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
+	$(gyp) -f msvs -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. $(pname).gyp ktxtools.gyp
 	@date > $@
 
-$(xcode_targets): $(xcode_buildd)/%/$(stampfile): $(gypfiles)
-	$(gyp) -f xcode -DOS=$(patsubst %gl,%,$*) --generator-output=$(dir $@) --depth=. $(pname).gyp
+$(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
+	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=.  $(pname).gyp $(if $(findstring mac,$*),ktxtools.gyp)
 	@date > $@
 
-$(warning cmake_targets = $(cmake_targets))
-
-$(cmake_targets): $(cmake_buildd)/%/$(stampfile): $(gypfiles)
+$(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) --depth=. $(pname).gyp
 	@date > $@
 
-$(warning make_targets = $(make_targets))
-
-$(make_targets): $(make_buildd)/%/$(stampfile): $(gypfiles)
-	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. $(pname).gyp
+$(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
+	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=.  $(pname).gyp $(if $(findstring linux,$*),ktxtools.gyp)
 	@date > $@
 
-# vim:ai:ts=4:sts=4:sw=2:textwidth=75
+# vim:ai:expandtab!:ts=4:sts=4:sw=2:textwidth=75
 

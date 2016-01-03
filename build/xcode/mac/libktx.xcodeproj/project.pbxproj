@@ -1,0 +1,697 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		1DECD74B6E574582E25FE647 /* libktx.doc */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 744E587BF0ADE1B7A8D6B4D4 /* Build configuration list for PBXAggregateTarget "libktx.doc" */;
+			buildPhases = (
+				9890628BAC1B1A9998078E62 /* Action "buildDoc" */,
+			);
+			dependencies = (
+			);
+			name = libktx.doc;
+			productName = libktx.doc;
+		};
+		CCEDC85BF1BE90D7C304C68F /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 7B89E5EE356A6AC73231DCB3 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				C9FE67D8786E27F5C8B57E0C /* PBXTargetDependency */,
+				E7A54A8613D879AF51E4D8F0 /* PBXTargetDependency */,
+				2D247F49B589189237D6EA9E /* PBXTargetDependency */,
+				051E57CD74C486776F90913F /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		09BF565C9D66C957DAB80AB3 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
+		143E987327D1CD88CA2F5F1E /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		1B55FEAFB9A4B45D07EE6636 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
+		244C5E02B13D0F980D7D1198 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		2A631BE8A141535F4A9AB1E7 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		2EA8FBE0A23C8B05264764A1 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		3A34A4FDE1D3410F3C0E59B9 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		3BFB66FB90E5C3A815C970E9 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		457F5F7EE702C5708D72D363 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
+		4BF7CF33264CA3521643CA63 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		4F53093CEF93D1D9B32B2840 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
+		5EC3325200E4972FC07252B1 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
+		6B3C2D19F60D104F315772CC /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
+		73DDE7C2F1A26EF2A1D7DF2F /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
+		741EA4D366ED04365FC18B8C /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		9467850F9FAC9B7C2F25FFB6 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		983DBBEBBFC12C1B42223E2F /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		A73404A09C08C0B01CC779A8 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
+		B753535D541DA6B50FCBA63A /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		C0C5057A03D1A7668069FAE7 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		C54325B1979600B3372DF2E5 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		C7DE30196962C11C9AEC60A5 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		D5F2A59863A1EDC3AF13960C /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		D88CA8AC5661C7293C04C592 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		EFCF3C2EACB362C0CA21162D /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		F142A7B0CA3C96532E3E3CA0 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		F8256CCBC9DA8B3D307E8653 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		F9A9D7B7B8DB12C90952DC62 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
+		FB78666404A17EED823F11B9 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		FD5C379802C630B690CEF25E /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		151C4A5ADF38F45F8CF03A3D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1DECD74B6E574582E25FE647;
+			remoteInfo = libktx.doc;
+		};
+		4B728F15AA6196C777B01117 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 362967529B3D7D3E12C3129D;
+			remoteInfo = libktx.gl;
+		};
+		B14217010049444BF75CEBCB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA0BF733B14DB39E93B75C67;
+			remoteInfo = libktx.es3;
+		};
+		F48EBDDD1C0B8609C5DE48DE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 555F14739B20F130C104F38F;
+			remoteInfo = libktx.es1;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxfilestream.c; sourceTree = "<group>"; };
+		0CC8195A95CBBC8C1CB04BCA /* gles2_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles2_funcptrs.h; sourceTree = "<group>"; };
+		0CFCEF2F9431C38E96287DA2 /* ktxDoxy */ = {isa = PBXFileReference; lastKnownFileType = text; path = ktxDoxy; sourceTree = "<group>"; };
+		1BD886EACF703C7F42DB60DF /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.md; sourceTree = "<group>"; };
+		294D72CF2DE93CC967F22442 /* libktx.gl.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.gl.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C4E8C270B5BECA345ACBF85 /* ktxint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxint.h; sourceTree = "<group>"; };
+		36344252BF902A18F4ACB26C /* ktxmemstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxmemstream.c; sourceTree = "<group>"; };
+		384624CA76049217B70E9012 /* hashtable.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hashtable.c; sourceTree = "<group>"; };
+		3E387A83332F46C079F057CC /* ktxstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxstream.h; sourceTree = "<group>"; };
+		41211ADC3CDA95A34AA6A27C /* latex */ = {isa = PBXFileReference; lastKnownFileType = text; path = latex; sourceTree = "<group>"; };
+		44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcdec.cxx; sourceTree = "<group>"; };
+		474075FAD32D60D3E886E1E4 /* uthash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = uthash.h; sourceTree = "<group>"; };
+		4C3286F4F350F897BEFC5F41 /* man */ = {isa = PBXFileReference; lastKnownFileType = text; path = man; sourceTree = "<group>"; };
+		4E0FC251435360C63D168913 /* errstr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = errstr.c; sourceTree = "<group>"; };
+		78750DEB71973541DB221CBA /* libktx.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libktx.gyp; sourceTree = "<group>"; };
+		791F590DA146B5479181020A /* .gentimestamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gentimestamp; sourceTree = "<group>"; };
+		7ABEC8601DA2251BB3038768 /* libktx.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libktx.gypi; path = lib/libktx.gypi; sourceTree = "<group>"; };
+		7DFB01C2A0C66136843F9C90 /* libktx.es1.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es1.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_funcptrs.h; sourceTree = "<group>"; };
+		998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es3.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB840FC777BBF6B093DAE4D6 /* loader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = loader.c; sourceTree = "<group>"; };
+		B173E34FD52E42EBF0F24CF0 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
+		B6AB21816B1A0B0575E4A525 /* writer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer.c; sourceTree = "<group>"; };
+		BE607367214BBF5824644530 /* default.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = default.gypi; path = gyp_include/default.gypi; sourceTree = "<group>"; };
+		C2E7B90F693D2ADDEB68C765 /* ktx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktx.h; sourceTree = "<group>"; };
+		CC45FB0EDE0EAFEBA24567B5 /* ktxmemstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxmemstream.h; sourceTree = "<group>"; };
+		D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcunpack.cxx; sourceTree = "<group>"; };
+		E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles1_funcptrs.h; sourceTree = "<group>"; };
+		E3D44A3E3431DE089D06DE94 /* ktxfilestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxfilestream.h; sourceTree = "<group>"; };
+		EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles3_funcptrs.h; sourceTree = "<group>"; };
+		EC2F140ED1C840A390FE4436 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
+		FD67D1D15D6790B15041EEF9 /* html */ = {isa = PBXFileReference; lastKnownFileType = text; path = html; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		18E6F7D7BC15F8279480AFA8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		79CBFA0AD7E4A2D1363429E3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DECF3554B8A7E0897F11D805 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		295EF93D1FE69CB0D85628E7 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				C2E7B90F693D2ADDEB68C765 /* ktx.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		3AE5B8C2D5A6F84F3C6DB984 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				294D72CF2DE93CC967F22442 /* libktx.gl.a */,
+				7DFB01C2A0C66136843F9C90 /* libktx.es1.a */,
+				998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3B3D410B0B58AD4F6ED6B2CF /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				EC2F140ED1C840A390FE4436 /* checkheader.c */,
+				4E0FC251435360C63D168913 /* errstr.c */,
+				44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */,
+				D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */,
+				85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */,
+				E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */,
+				0CC8195A95CBBC8C1CB04BCA /* gles2_funcptrs.h */,
+				EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */,
+				384624CA76049217B70E9012 /* hashtable.c */,
+				02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */,
+				E3D44A3E3431DE089D06DE94 /* ktxfilestream.h */,
+				2C4E8C270B5BECA345ACBF85 /* ktxint.h */,
+				36344252BF902A18F4ACB26C /* ktxmemstream.c */,
+				CC45FB0EDE0EAFEBA24567B5 /* ktxmemstream.h */,
+				3E387A83332F46C079F057CC /* ktxstream.h */,
+				AB840FC777BBF6B093DAE4D6 /* loader.c */,
+				B173E34FD52E42EBF0F24CF0 /* swap.c */,
+				474075FAD32D60D3E886E1E4 /* uthash.h */,
+				B6AB21816B1A0B0575E4A525 /* writer.c */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		3B7169D373FF61455E9607CB = {
+			isa = PBXGroup;
+			children = (
+				9158770CD404DF101A9CA506 /* Source */,
+				3AE5B8C2D5A6F84F3C6DB984 /* Products */,
+				85E34AA11593EC67D2FC7CCF /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		45B317027D7FC960DD0FD9CF /* build/doc */ = {
+			isa = PBXGroup;
+			children = (
+				791F590DA146B5479181020A /* .gentimestamp */,
+				FD67D1D15D6790B15041EEF9 /* html */,
+				41211ADC3CDA95A34AA6A27C /* latex */,
+				4C3286F4F350F897BEFC5F41 /* man */,
+			);
+			path = build/doc;
+			sourceTree = "<group>";
+		};
+		85E34AA11593EC67D2FC7CCF /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				BE607367214BBF5824644530 /* default.gypi */,
+				78750DEB71973541DB221CBA /* libktx.gyp */,
+				7ABEC8601DA2251BB3038768 /* libktx.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		9158770CD404DF101A9CA506 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				45B317027D7FC960DD0FD9CF /* build/doc */,
+				295EF93D1FE69CB0D85628E7 /* include */,
+				3B3D410B0B58AD4F6ED6B2CF /* lib */,
+				1BD886EACF703C7F42DB60DF /* LICENSE.md */,
+				0CFCEF2F9431C38E96287DA2 /* ktxDoxy */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		362967529B3D7D3E12C3129D /* libktx.gl */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F5A0870A088F4A96318D4A3E /* Build configuration list for PBXNativeTarget "libktx.gl" */;
+			buildPhases = (
+				3DAC5082159A24F424A999F8 /* Sources */,
+				18E6F7D7BC15F8279480AFA8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libktx.gl;
+			productName = ktx.gl;
+			productReference = 294D72CF2DE93CC967F22442 /* libktx.gl.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		555F14739B20F130C104F38F /* libktx.es1 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3CAF22E07F512352322AC813 /* Build configuration list for PBXNativeTarget "libktx.es1" */;
+			buildPhases = (
+				AEF5530256D343973C2F78C6 /* Sources */,
+				DECF3554B8A7E0897F11D805 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libktx.es1;
+			productName = ktx.es1;
+			productReference = 7DFB01C2A0C66136843F9C90 /* libktx.es1.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CA0BF733B14DB39E93B75C67 /* libktx.es3 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 362A396F87E611E00C607BFF /* Build configuration list for PBXNativeTarget "libktx.es3" */;
+			buildPhases = (
+				D3C8B4D37193D48AF5D5B04E /* Sources */,
+				79CBFA0AD7E4A2D1363429E3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libktx.es3;
+			productName = ktx.es3;
+			productReference = 998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F65D357A2EC6F19D7F5E1B7D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+			};
+			buildConfigurationList = B9816C07C4E0E95D8D8C85AB /* Build configuration list for PBXProject "libktx" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 3B7169D373FF61455E9607CB;
+			projectDirPath = ../../..;
+			projectRoot = "";
+			targets = (
+				CCEDC85BF1BE90D7C304C68F /* All */,
+				362967529B3D7D3E12C3129D /* libktx.gl */,
+				555F14739B20F130C104F38F /* libktx.es1 */,
+				CA0BF733B14DB39E93B75C67 /* libktx.es3 */,
+				1DECD74B6E574582E25FE647 /* libktx.doc */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9890628BAC1B1A9998078E62 /* Action "buildDoc" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				ktxDoxy,
+				LICENSE.md,
+				include/ktx.h,
+				lib/checkheader.c,
+				lib/errstr.c,
+				lib/etcdec.cxx,
+				lib/etcunpack.cxx,
+				lib/gl_funcptrs.h,
+				lib/gles1_funcptrs.h,
+				lib/gles2_funcptrs.h,
+				lib/gles3_funcptrs.h,
+				lib/hashtable.c,
+				lib/ktxfilestream.c,
+				lib/ktxfilestream.h,
+				lib/ktxint.h,
+				lib/ktxmemstream.c,
+				lib/ktxmemstream.h,
+				lib/ktxstream.h,
+				lib/loader.c,
+				lib/swap.c,
+				lib/uthash.h,
+				lib/writer.c,
+			);
+			name = "Action \"buildDoc\"";
+			outputPaths = (
+				build/doc/.gentimestamp,
+				build/doc/html,
+				build/doc/latex,
+				build/doc/man,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo note: \"Generating documentation with Doxygen\"\nexec \"${DOXYGEN_BIN}\" ktxDoxy\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3DAC5082159A24F424A999F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F142A7B0CA3C96532E3E3CA0 /* checkheader.c in Sources */,
+				B753535D541DA6B50FCBA63A /* errstr.c in Sources */,
+				EFCF3C2EACB362C0CA21162D /* etcdec.cxx in Sources */,
+				FB78666404A17EED823F11B9 /* etcunpack.cxx in Sources */,
+				D88CA8AC5661C7293C04C592 /* hashtable.c in Sources */,
+				09BF565C9D66C957DAB80AB3 /* ktxfilestream.c in Sources */,
+				4F53093CEF93D1D9B32B2840 /* ktxmemstream.c in Sources */,
+				73DDE7C2F1A26EF2A1D7DF2F /* loader.c in Sources */,
+				143E987327D1CD88CA2F5F1E /* swap.c in Sources */,
+				C0C5057A03D1A7668069FAE7 /* writer.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AEF5530256D343973C2F78C6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9467850F9FAC9B7C2F25FFB6 /* checkheader.c in Sources */,
+				2EA8FBE0A23C8B05264764A1 /* errstr.c in Sources */,
+				C54325B1979600B3372DF2E5 /* etcdec.cxx in Sources */,
+				2A631BE8A141535F4A9AB1E7 /* etcunpack.cxx in Sources */,
+				983DBBEBBFC12C1B42223E2F /* hashtable.c in Sources */,
+				6B3C2D19F60D104F315772CC /* ktxfilestream.c in Sources */,
+				5EC3325200E4972FC07252B1 /* ktxmemstream.c in Sources */,
+				457F5F7EE702C5708D72D363 /* loader.c in Sources */,
+				741EA4D366ED04365FC18B8C /* swap.c in Sources */,
+				D5F2A59863A1EDC3AF13960C /* writer.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3C8B4D37193D48AF5D5B04E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BF7CF33264CA3521643CA63 /* checkheader.c in Sources */,
+				3A34A4FDE1D3410F3C0E59B9 /* errstr.c in Sources */,
+				244C5E02B13D0F980D7D1198 /* etcdec.cxx in Sources */,
+				FD5C379802C630B690CEF25E /* etcunpack.cxx in Sources */,
+				3BFB66FB90E5C3A815C970E9 /* hashtable.c in Sources */,
+				1B55FEAFB9A4B45D07EE6636 /* ktxfilestream.c in Sources */,
+				A73404A09C08C0B01CC779A8 /* ktxmemstream.c in Sources */,
+				F9A9D7B7B8DB12C90952DC62 /* loader.c in Sources */,
+				C7DE30196962C11C9AEC60A5 /* swap.c in Sources */,
+				F8256CCBC9DA8B3D307E8653 /* writer.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		051E57CD74C486776F90913F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1DECD74B6E574582E25FE647 /* libktx.doc */;
+			targetProxy = 151C4A5ADF38F45F8CF03A3D /* PBXContainerItemProxy */;
+		};
+		2D247F49B589189237D6EA9E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA0BF733B14DB39E93B75C67 /* libktx.es3 */;
+			targetProxy = B14217010049444BF75CEBCB /* PBXContainerItemProxy */;
+		};
+		C9FE67D8786E27F5C8B57E0C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 362967529B3D7D3E12C3129D /* libktx.gl */;
+			targetProxy = 4B728F15AA6196C777B01117 /* PBXContainerItemProxy */;
+		};
+		E7A54A8613D879AF51E4D8F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 555F14739B20F130C104F38F /* libktx.es1 */;
+			targetProxy = F48EBDDD1C0B8609C5DE48DE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1BD5F93039221F150F2EE09C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL=1",
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.gl;
+			};
+			name = Release;
+		};
+		2E4F7F5FB18A0F5BC966A04D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = libktx.doc;
+			};
+			name = Release;
+		};
+		5696BB14384DAB6493E64177 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ENABLE_TESTABILITY = YES;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+			};
+			name = Debug;
+		};
+		6FF5E9361E8067A03A6D6BE3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL_ES1=1",
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.es1;
+			};
+			name = Release;
+		};
+		89A3F5CE9D5661525E156A95 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		8D2A051E6E26AA85B89C5159 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		946AD25808EF80342CBD8BEA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL_ES3=1",
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.es3;
+			};
+			name = Release;
+		};
+		B70774D9E354160C6725881A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+			};
+			name = Release;
+		};
+		B9C5DC9B6D2E6D004F638FDB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.gl;
+			};
+			name = Debug;
+		};
+		CABD1828BE24F7BDAA152A6C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL_ES3=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.es3;
+			};
+			name = Debug;
+		};
+		DD2A7D203F9E9C54E28C0267 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = libktx.doc;
+			};
+			name = Debug;
+		};
+		F161B83E7909CA3AEF1CE4D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL_ES1=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.es1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		362A396F87E611E00C607BFF /* Build configuration list for PBXNativeTarget "libktx.es3" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CABD1828BE24F7BDAA152A6C /* Debug */,
+				946AD25808EF80342CBD8BEA /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		3CAF22E07F512352322AC813 /* Build configuration list for PBXNativeTarget "libktx.es1" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F161B83E7909CA3AEF1CE4D7 /* Debug */,
+				6FF5E9361E8067A03A6D6BE3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		744E587BF0ADE1B7A8D6B4D4 /* Build configuration list for PBXAggregateTarget "libktx.doc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD2A7D203F9E9C54E28C0267 /* Debug */,
+				2E4F7F5FB18A0F5BC966A04D /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		7B89E5EE356A6AC73231DCB3 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				89A3F5CE9D5661525E156A95 /* Debug */,
+				8D2A051E6E26AA85B89C5159 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		B9816C07C4E0E95D8D8C85AB /* Build configuration list for PBXProject "libktx" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5696BB14384DAB6493E64177 /* Debug */,
+				B70774D9E354160C6725881A /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		F5A0870A088F4A96318D4A3E /* Build configuration list for PBXNativeTarget "libktx.gl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9C5DC9B6D2E6D004F638FDB /* Debug */,
+				1BD5F93039221F150F2EE09C /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+}

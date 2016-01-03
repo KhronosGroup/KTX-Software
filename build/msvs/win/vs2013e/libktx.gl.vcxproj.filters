@@ -123,6 +123,6 @@
     <ClCompile Include="..\..\..\..\lib\writer.c">
       <Filter>lib</Filter>
     </ClCompile>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\libktx.gyp"/>
   </ItemGroup>
 </Project>

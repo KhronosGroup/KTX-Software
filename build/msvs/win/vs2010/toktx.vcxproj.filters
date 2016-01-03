@@ -48,6 +48,6 @@
     <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
       <Filter>tools\toktx</Filter>
     </ClCompile>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\ktxtools.gyp"/>
   </ItemGroup>
 </Project>
