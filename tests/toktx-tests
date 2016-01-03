@@ -29,11 +29,13 @@
 # 
 # ---------------------------------------------------------------
 
-toktx_vs2013=../build/msvs/win/vs2013/x64/Release/toktx.exe
-toktx_vs2015=../build/msvs/win/vs2015/x64/Release/toktx.exe
-toktx_cmake=../build/cmake/toktx/toktx
-toktx_gmake=../build/GNUmake/toktx/toktx
-testimages=../testimages
+# Make paths relative to location of this script.
+mydir=${0%/*}/..
+toktx_vs2013=$mydir/build/msvs/win/vs2013/x64/Release/toktx.exe
+toktx_vs2015=$mydir/build/msvs/win/vs2015/x64/Release/toktx.exe
+toktx_cmake=$mydir/build/cmake/toktx/toktx
+toktx_gmake=$mydir/build/GNUmake/toktx/toktx
+testimages=$mydir/testimages
 
 declare -i numtests=0
 declare -i passed=0

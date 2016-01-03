@@ -90,7 +90,23 @@
               },
             }], # emit_emscripten_configs=="true"
           ], # conditions
-        }, # toktx
+        }, # toktx target
+        {
+          'target_name': 'toktx-tests',
+          'type': 'none',
+          'dependencies': [ 'toktx' ],
+          'actions': [
+            {
+              'action_name': 'toktx-tests',
+              'message': 'Running toktx tests',
+              'inputs': [ '../../tests/toktx-tests' ],
+              'outputs': [ ],
+              'action': [
+                '<(_inputs)', '<(PRODUCT_DIR)/toktx',
+              ],
+            }, # toktx-tests action
+          ], # actions
+        } # toktx-tests target
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
   ] # conditions for conditional targets
