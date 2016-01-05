@@ -100,7 +100,7 @@
               'action_name': 'toktx-tests',
               'message': 'Running toktx tests',
               'inputs': [ '../../tests/toktx-tests' ],
-              'outputs': [ ],
+              'outputs': [ 'testsrun' ],
               'action': [
                 '<(_inputs)', '<(PRODUCT_DIR)/toktx',
               ],
