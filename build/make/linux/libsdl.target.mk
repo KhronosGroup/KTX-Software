@@ -13,14 +13,14 @@ $(builddir)/libSDL2-2.0.so.0.4.0: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/lib
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/libSDL2-2.0.so.0.4.0
-ktx_gyp_libsdl_target_copies = $(builddir)/libSDL2-2.0.so.0 $(builddir)/libSDL2-2.0.so.0.4.0
+ktxtests_gyp_libsdl_target_copies = $(builddir)/libSDL2-2.0.so.0 $(builddir)/libSDL2-2.0.so.0.4.0
 
 ### Rules for final target.
 # Build our special outputs first.
-$(obj).target/libsdl.stamp: | $(ktx_gyp_libsdl_target_copies)
+$(obj).target/libsdl.stamp: | $(ktxtests_gyp_libsdl_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktx_gyp_libsdl_target_copies): | 
+$(ktxtests_gyp_libsdl_target_copies): | 
 
 $(obj).target/libsdl.stamp: TOOLSET := $(TOOLSET)
 $(obj).target/libsdl.stamp:  FORCE_DO_CMD

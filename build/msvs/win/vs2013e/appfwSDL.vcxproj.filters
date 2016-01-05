@@ -63,6 +63,6 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.h">
       <Filter>tests\loadtests\appfwSDL</Filter>
     </ClInclude>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
 </Project>

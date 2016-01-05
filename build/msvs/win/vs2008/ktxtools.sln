@@ -7,6 +7,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx", "toktx.vcproj", "{2
 		{3A0FCC32-DE3E-C3E3-6F2A-395B515F5599} = {3A0FCC32-DE3E-C3E3-6F2A-395B515F5599}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.vcproj", "{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2FC35399-4A47-1B8E-7A59-28F2E902E438} = {2FC35399-4A47-1B8E-7A59-28F2E902E438}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release|x64 = Release|x64
@@ -31,6 +36,14 @@ Global
 		{3A0FCC32-DE3E-C3E3-6F2A-395B515F5599}.Debug|x64.Build.0 = Debug|x64
 		{3A0FCC32-DE3E-C3E3-6F2A-395B515F5599}.Release|Win32.ActiveCfg = Release|Win32
 		{3A0FCC32-DE3E-C3E3-6F2A-395B515F5599}.Release|Win32.Build.0 = Release|Win32
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Release|x64.ActiveCfg = Release|x64
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Release|x64.Build.0 = Release|x64
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Debug|Win32.ActiveCfg = Debug|Win32
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Debug|Win32.Build.0 = Debug|Win32
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Debug|x64.ActiveCfg = Debug|x64
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Debug|x64.Build.0 = Debug|x64
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Release|Win32.ActiveCfg = Release|Win32
+		{47B6829B-9CE3-739B-0F6D-EC0778CD8D16}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

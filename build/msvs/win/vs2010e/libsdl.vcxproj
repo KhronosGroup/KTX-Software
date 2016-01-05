@@ -69,7 +69,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\other_lib\win\$(ConfigurationName)-$(PlatformName)\SDL2.dll">

@@ -201,7 +201,7 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\shader-based\shaders.c">
       <Filter>tests\loadtests\shader-based</Filter>
     </ClCompile>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
     <None Include="..\..\..\..\testimages\conftestimage_R11_EAC.ktx">
       <Filter>testimages</Filter>
     </None>

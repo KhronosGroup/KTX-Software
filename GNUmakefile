@@ -53,7 +53,8 @@ make_targets = $(addsuffix /${stampfile},$(addprefix ${make_buildd}/,${make_plat
 # because subst returns the full string in the event of no match.
 msvs_version=$(strip $(foreach platform,${msvs_platforms},$(if $(findstring ${platform},$*),$(subst ${platform}/vs,,$*))))
 
-gypfiles=ktx.gyp \
+gypfiles=ktxtests.gyp \
+		 ktxtools.gyp \
 		 libktx.gyp \
 		 gyp_include/adrenoemu.gypi \
 		 gyp_include/angle.gypi \
@@ -96,7 +97,7 @@ gyp=$(gypdir)gyp# --debug=all
 .PHONY: msvs xcode default
 
 default:
-	@echo Pick one of make {all,cmake,make,msvs,xcode}
+	@echo Pick one of \"make '{all,cmake,make,msvs,xcode}'\"
 
 all: $(formats)
 
@@ -114,19 +115,19 @@ make: $(make_targets)
 # {win+web,wingl}/vs<version> part of the target name. Uses the
 # msvs_version macro above to extract the version.
 $(msvs_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f msvs -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. $(pname).gyp ktxtools.gyp
+	$(gyp) -f msvs -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. ktxtests.gyp ktxtools.gyp
 	@date > $@
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=.  $(pname).gyp $(if $(findstring mac,$*),ktxtools.gyp)
+	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=.  ktxtests.gyp $(if $(findstring mac,$*),ktxtools.gyp)
 	@date > $@
 
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) --depth=. $(pname).gyp
+	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp
 	@date > $@
 
 $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=.  $(pname).gyp $(if $(findstring linux,$*),ktxtools.gyp)
+	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=.  ktxtests.gyp $(if $(findstring linux,$*),ktxtools.gyp)
 	@date > $@
 
 # vim:ai:expandtab!:ts=4:sts=4:sw=2:textwidth=75

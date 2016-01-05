@@ -113,7 +113,7 @@ $(builddir)/testimages/up-reference.ktx: $(srcdir)/testimages/up-reference.ktx F
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/up-reference.ktx
-ktx_gyp_gl3loadtests_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/down-reference.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/up-reference.ktx
+ktxtests_gyp_gl3loadtests_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/down-reference.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/up-reference.ktx
 
 ### Generated for mac_bundle_resources
 $(builddir)/gl3loadtests.app/Contents/Info.plist: export BUILT_FRAMEWORKS_DIR := ${abs_builddir}
@@ -222,7 +222,7 @@ all_deps += $(OBJS)
 $(OBJS): | $(builddir)/libappfwSDL.a $(builddir)/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
 
 # Make sure our actions/rules run before any of us.
-$(OBJS): | $(ktx_gyp_gl3loadtests_target_copies)
+$(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -257,10 +257,10 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 # Build our special outputs first.
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: | $(ktx_gyp_gl3loadtests_target_copies)
+$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktx_gyp_gl3loadtests_target_copies): | $(builddir)/libappfwSDL.a $(builddir)/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
+$(ktxtests_gyp_gl3loadtests_target_copies): | $(builddir)/libappfwSDL.a $(builddir)/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
 
 LDFLAGS_Debug := \
 	-arch x86_64 \
@@ -287,7 +287,7 @@ $(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: GYP_LDFLAGS := $(LDFLA
 $(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: LIBS := $(LIBS)
 $(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: GYP_LIBTOOLFLAGS := $(LIBTOOLFLAGS_$(BUILDTYPE))
 # Build our special outputs first.
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: | $(ktx_gyp_gl3loadtests_target_copies)
+$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 BUNDLE_DEPS := \
 	$(builddir)/gl3loadtests.app/Contents/Info.plist \
