@@ -159,6 +159,17 @@
           ],
         },
       }, # Debug configuration
+      'Debug_Win32': {
+        'inherit_from': ['Debug'],
+        'msvs_configuration_platform': 'Win32',
+        'msvs_settings': {
+          'VCLinkerTool': {
+            # Disable because it prevents E&C and is unnecessary in
+            # debug configurations.
+            'AdditionalOptions': '/SAFESEH:NO',
+          },
+        },
+      },
       'Release': {
         'cflags': [ '-O3' ],
         'defines': [
