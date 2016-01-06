@@ -116,7 +116,7 @@
               # documentation.
               #
               'conditions': [
-                ['OS == "linux"' , {
+                ['GENERATOR == "make"' , {
                   # With `make` the current directory during project
                   # build is the directory containing the .gyp file,
                   # which is the same directory that holds the ktxDoxy
@@ -124,7 +124,7 @@
                   'action': [
                     'doxygen', '<@(doxyConfig)'
                   ],
-                }, 'OS == "mac"', {
+                }, 'GENERATOR == "xcode"', {
                   # With Xcode, like Linux, the current directory
                   # during project build is one holding the .gyp and
                   # ktxDoxy files. However we need to spawn another
@@ -141,7 +141,7 @@
                   'action': [
                     'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
                   ],
-                }, 'OS == "win"', {
+                }, 'GENERATOR == "msvs"', {
                   # With MSVS the current directory will be that
                   # containing the vcxproj file.
                   #

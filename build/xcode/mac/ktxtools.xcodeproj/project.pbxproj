@@ -331,6 +331,30 @@
 			};
 			name = Debug;
 		};
+		66F8BC3A3DBC792915F369CF /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
+				PRODUCT_NAME = toktx;
+				STRIP_INSTALLED_PRODUCT = NO;
+			};
+			name = Debug_Win32;
+		};
 		6819BDAEDE4B77753203AA94 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -408,6 +432,16 @@
 			};
 			name = Release;
 		};
+		A1FBA00A83DC294575F996B7 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+			};
+			name = Debug_Win32;
+		};
 		B6A67CE6E77F9B0EF3D64B97 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -418,6 +452,29 @@
 				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
 			};
 			name = Debug;
+		};
+		BAE2D2CBB725D361668A843C /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug_Win32;
+		};
+		F4ADF0FA30FE7407125E4F0E /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = "toktx-tests";
+			};
+			name = Debug_Win32;
 		};
 		F674A1B5BBAC215E0A10EEB7 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -442,6 +499,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B6A67CE6E77F9B0EF3D64B97 /* Debug */,
+				A1FBA00A83DC294575F996B7 /* Debug_Win32 */,
 				8BBB07FD2D60DA56F6AD0120 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -451,6 +509,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				37776677C6D9AB37905A841B /* Debug */,
+				BAE2D2CBB725D361668A843C /* Debug_Win32 */,
 				6819BDAEDE4B77753203AA94 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -460,6 +519,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F674A1B5BBAC215E0A10EEB7 /* Debug */,
+				F4ADF0FA30FE7407125E4F0E /* Debug_Win32 */,
 				8794F0E448AC575153E1C62A /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -469,6 +529,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8452D9D4185046327662CDCE /* Debug */,
+				66F8BC3A3DBC792915F369CF /* Debug_Win32 */,
 				7FF12B6F1B51B91F3A95CBA9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;

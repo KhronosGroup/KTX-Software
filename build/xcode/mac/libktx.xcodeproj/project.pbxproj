@@ -486,6 +486,13 @@
 			};
 			name = Debug;
 		};
+		69BF6C60B95E8ED17B51EDBF /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug_Win32;
+		};
 		6FF5E9361E8067A03A6D6BE3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -507,6 +514,28 @@
 			};
 			name = Release;
 		};
+		77AB7F95E591E06ED0E484EE /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.gl;
+			};
+			name = Debug_Win32;
+		};
 		89A3F5CE9D5661525E156A95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -520,6 +549,16 @@
 				PRODUCT_NAME = All;
 			};
 			name = Release;
+		};
+		908E09EB1FF7CC68B75DCB10 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+			};
+			name = Debug_Win32;
 		};
 		946AD25808EF80342CBD8BEA /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -634,6 +673,66 @@
 			};
 			name = Debug;
 		};
+		F3E083B8F96DCB1FC75F8038 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL_ES3=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.es3;
+			};
+			name = Debug_Win32;
+		};
+		F7C133216A336BFE947CA1A3 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"KTX_OPENGL_ES1=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = ktx.es1;
+			};
+			name = Debug_Win32;
+		};
+		FBBACD56F70A4FB2B34C5D8B /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = libktx.doc;
+			};
+			name = Debug_Win32;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -641,6 +740,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CABD1828BE24F7BDAA152A6C /* Debug */,
+				F3E083B8F96DCB1FC75F8038 /* Debug_Win32 */,
 				946AD25808EF80342CBD8BEA /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -650,6 +750,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F161B83E7909CA3AEF1CE4D7 /* Debug */,
+				F7C133216A336BFE947CA1A3 /* Debug_Win32 */,
 				6FF5E9361E8067A03A6D6BE3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -659,6 +760,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DD2A7D203F9E9C54E28C0267 /* Debug */,
+				FBBACD56F70A4FB2B34C5D8B /* Debug_Win32 */,
 				2E4F7F5FB18A0F5BC966A04D /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -668,6 +770,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				89A3F5CE9D5661525E156A95 /* Debug */,
+				69BF6C60B95E8ED17B51EDBF /* Debug_Win32 */,
 				8D2A051E6E26AA85B89C5159 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -677,6 +780,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5696BB14384DAB6493E64177 /* Debug */,
+				908E09EB1FF7CC68B75DCB10 /* Debug_Win32 */,
 				B70774D9E354160C6725881A /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -686,6 +790,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B9C5DC9B6D2E6D004F638FDB /* Debug */,
+				77AB7F95E591E06ED0E484EE /* Debug_Win32 */,
 				1BD5F93039221F150F2EE09C /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;

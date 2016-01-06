@@ -660,6 +660,13 @@
 			};
 			name = Release;
 		};
+		49E55C352A59DCC91E8A936C /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug_Win32;
+		};
 		4AE2628124EF3B43DF94CEE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -679,6 +686,22 @@
 				PRODUCT_NAME = libsdl;
 			};
 			name = Release;
+		};
+		5BC4009004F174F4165D1F85 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = libgl;
+			};
+			name = Debug_Win32;
 		};
 		5E330C6A58B0132F5466D2A3 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -705,6 +728,22 @@
 				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
 			};
 			name = Release;
+		};
+		643BD0517F5E31526169A716 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = libsdl;
+			};
+			name = Debug_Win32;
 		};
 		A23A7321893FC5FAF8DB477B /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -739,12 +778,78 @@
 			};
 			name = Release;
 		};
+		A96EDDB666881A60CC687C30 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					tests/loadtests/common,
+					other_include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_NAME = appfwSDL;
+			};
+			name = Debug_Win32;
+		};
 		CB1EDACD736B7AD4248A63B4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = All;
 			};
 			name = Release;
+		};
+		D1AC5C0506C6AC668C266332 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+			};
+			name = Debug_Win32;
+		};
+		D29DCE8EF6DB67FE29A8EAD6 /* Debug_Win32 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE",
+					"GL_CONTEXT_MAJOR_VERSION=3",
+					"GL_CONTEXT_MINOR_VERSION=3",
+					"KTX_OPENGL=1",
+					DEBUG,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					tests/loadtests/common,
+					other_include,
+					include,
+				);
+				INFOPLIST_FILE = tests/loadtests/resources_mac/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					/Library/Frameworks,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
+				PRODUCT_NAME = gl3loadtests;
+				STRIP_INSTALLED_PRODUCT = NO;
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug_Win32;
 		};
 		DDC5BF79E3EEF378973A4AE9 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -844,6 +949,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5E330C6A58B0132F5466D2A3 /* Debug */,
+				5BC4009004F174F4165D1F85 /* Debug_Win32 */,
 				24D99494169CE267633F1979 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -853,6 +959,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F5125667E248F18591A9DA2D /* Debug */,
+				A96EDDB666881A60CC687C30 /* Debug_Win32 */,
 				E8F2039F5C1B6E7D75A73A1B /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -862,6 +969,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				039D6644D7FA7DC0C74500FD /* Debug */,
+				D1AC5C0506C6AC668C266332 /* Debug_Win32 */,
 				638297006311DDA35DC6BA03 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -871,6 +979,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DDC5BF79E3EEF378973A4AE9 /* Debug */,
+				D29DCE8EF6DB67FE29A8EAD6 /* Debug_Win32 */,
 				A23A7321893FC5FAF8DB477B /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -880,6 +989,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4AE2628124EF3B43DF94CEE4 /* Debug */,
+				49E55C352A59DCC91E8A936C /* Debug_Win32 */,
 				CB1EDACD736B7AD4248A63B4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -889,6 +999,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EBB82069D935FC9582B00322 /* Debug */,
+				643BD0517F5E31526169A716 /* Debug_Win32 */,
 				5AA7D22302D3EC30B9C84AAF /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
