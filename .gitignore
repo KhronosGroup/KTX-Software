@@ -16,6 +16,7 @@
 /build/GNUmake/lib/gl
 
 /build/make/**/out
+/build/make/**/*.d
 
 # MS Visual Studio build and user option files
 /build/**/*.ncb
