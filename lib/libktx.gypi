@@ -84,8 +84,8 @@
     }, # libktx.es3
   ], # targets
   'conditions': [
-    ['OS == "mac"', {
-      # Can only build on Mac for now. See comment below.
+    ['OS == "linux" or OS == "mac"', {
+      # Can only build doc on desktops
       'targets': [
         {
           'target_name': 'libktx.doc',
@@ -98,6 +98,7 @@
               },
               'message': 'Generating documentation with Doxygen',
               'msvs_cygwin_shell': '0',
+              'msvs_quote_cmd': '1',
               'inputs': [
                 '../<@(doxyConfig)',
                 '../LICENSE.md',
@@ -111,25 +112,40 @@
               ],
               # doxygen must be run in the top-level project directory so that
               # ancestors of that directory will be removed from paths displayed
-              # in the documentation. With Xcode the current directory when a
-              # project is run is the directory containing the .gyp file, which,
-              # in this case is the top-level directory we need so the command
-              # below works.
+              # in the documentation.
               #
-              # With MSVS it is the directory containing the .vcxproj
-              # file and the MSVS generator will "relativize the
-              # doxyConfig attribute accordingly. I don't see a way to
-              # make the action run in a different directory so for
-              # now, the target is only included for Xcode.
-              #
-              # Spawn another shell with -l so the startup files will be read.
-              # Actions in Xcode are run by 'sh' so no startup files are read.
-              # Startup files must be read so that the user's normal $PATH will
-              # set and, therefore, we can find Doxygen. It seems to be
-              # impossible to modify the $PATH variable used by Xcode and it
-              # only uses the user's path when started from the command line.
-              'action': [
-                'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
+              'conditions': [
+                ['OS == "linux" or OS == "mac"', {
+                  # With Xcode the current directory when a project is run is
+                  # the directory containing the .gyp file, which, in this
+                  # case is the top-level directory we need so the command
+                  # below works.
+                  #
+                  # Spawn another shell with -l so the startup (.bashrc,
+                  # etc) files will be read.  Actions in Xcode are run by
+                  # 'sh' which does not read any startup files. Startup
+                  # files must be read so that the user's normal $PATH will
+                  # set and, therefore, we can find Doxygen. It seems to be
+                  # impossible to modify the $PATH variable used by Xcode
+                  # and it only uses the user's path when started from the
+                  # command line.
+                  'action': [
+                    'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
+                  ],
+                }, 'OS == "win"', {
+                  # With MSVS the current directory will be that containing
+                  # the vcxproj file.
+                  #
+                  # Spawn another cmd.exe so we can change directory.
+                  # Unfortunately the MSVS generator relativizes any command
+                  # argument that does not look like an option which, in the
+                  # following, means it prefixes "cd" with the relative
+                  # path. There is no way to avoid this so for now the
+                  # target is only included for Xcode.
+                  'action': [
+                    'cmd', '/c', '/e:off cd', '..', '& doxygen <@(doxyConfig)'
+                  ],
+                }],
               ],
             },
           ], # actions

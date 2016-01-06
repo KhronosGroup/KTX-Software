@@ -129,7 +129,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\libktx.gyp"/>
     <None Include="..\..\..\..\ktxDoxy">
       <Filter>_excluded_files</Filter>
     </None>
