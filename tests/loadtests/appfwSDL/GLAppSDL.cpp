@@ -42,7 +42,9 @@
  */
 
 #if defined(_WIN32)
-  #define snprintf _snprintf
+  #if _MSC_VER < 1900
+    #define snprintf _snprintf
+  #endif
   #define _CRT_SECURE_NO_WARNINGS
   #include "GL/glew.h"
   #include "SDL2/SDL_loadso.h"
