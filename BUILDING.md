@@ -194,18 +194,8 @@ If using the GitHub for Windows shell (*Git Shell*) copy this to
 
 You need this if you want to generate the _libktx_ documentation. You can download
 binaries and also find instructions for building it from source at
-[Doxygen downloads](http://www.stack.nl/~dimitri/doxygen/download.html).
-
-You need to set the environment variable `DOXYGEN_BIN` in order for the project
-files to find it at run time. `PATH` cannot be relied on because it seems to be
-impossible to modify Xcode's default, unless you start it from the command line.
-
-Setting any environment variables for Xcode is highly non-obvious
-(thanks Apple :confounded:). See [osx-env-sync](https://github.com/ersiner/osx-env-sync)
-to see how to set `DOXYGEN_BIN`. (`~/.MaxOSX/environment.plist` does not work
-in recent versions of OS X, if it ever worked.).
-
-Windows and Linux users shouldn't have any trouble setting this environment variable.
+[Doxygen downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make sure
+the directory containing the `doxygen` executable is in your `$PATH`.
 
 Building
 --------

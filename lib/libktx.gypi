@@ -109,12 +109,12 @@
                 '../build/doc/latex',
                 '../build/doc/man',
               ],
-              # doxygen must be run in the top-level directory so that ancestors of that
-              # directory will be removed from paths displayed in the documentation.
-              # With Xcode the current directory when a project is run is
-              # the directory containing the .gyp file, which, in this
-              # case is the top-level directory we need so the command below
-              # works.
+              # doxygen must be run in the top-level project directory so that
+              # ancestors of that directory will be removed from paths displayed
+              # in the documentation. With Xcode the current directory when a
+              # project is run is the directory containing the .gyp file, which,
+              # in this case is the top-level directory we need so the command
+              # below works.
               #
               # With MSVS it is the directory containing the .vcxproj
               # file and the MSVS generator will "relativize the
@@ -122,14 +122,14 @@
               # make the action run in a different directory so for
               # now, the target is only included for Xcode.
               #
-              # We use an environment variable to find Doxygen because
-              # it seems to be impossible to modify the $PATH variable
-              # used by Xcode - unless you start it from the command
-              # line. Use $(DOXYGEN_BIN) because $DOXYGEN_BIN doesn't
-              # work for MSVS. The Xcode generator converts this to
-              # ${DOXYGEN_BIN}
+              # Spawn another shell with -l so the startup files will be read.
+              # Actions in Xcode are run by 'sh' so no startup files are read.
+              # Startup files must be read so that the user's normal $PATH will
+              # set and, therefore, we can find Doxygen. It seems to be
+              # impossible to modify the $PATH variable used by Xcode and it
+              # only uses the user's path when started from the command line.
               'action': [
-                '$(DOXYGEN_BIN)', '<@(doxyConfig)',
+                'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
               ],
             },
           ], # actions
