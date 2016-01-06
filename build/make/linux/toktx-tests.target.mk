@@ -8,15 +8,6 @@ cmd_ktxtools_gyp_toktx_tests_target_toktx_tests = LD_LIBRARY_PATH=$(builddir)/li
 
 $(srcdir)/tools/toktx/testsrun: obj := $(abs_obj)
 $(srcdir)/tools/toktx/testsrun: builddir := $(abs_builddir)
-$(srcdir)/tools/toktx/testsrun: export BUILT_FRAMEWORKS_DIR := ${abs_builddir}
-$(srcdir)/tools/toktx/testsrun: export BUILT_PRODUCTS_DIR := ${abs_builddir}
-$(srcdir)/tools/toktx/testsrun: export CONFIGURATION := ${BUILDTYPE}
-$(srcdir)/tools/toktx/testsrun: export PRODUCT_NAME := toktx-tests
-$(srcdir)/tools/toktx/testsrun: export SDKROOT := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
-$(srcdir)/tools/toktx/testsrun: export SRCROOT := ${abs_srcdir}/
-$(srcdir)/tools/toktx/testsrun: export SOURCE_ROOT := ${SRCROOT}
-$(srcdir)/tools/toktx/testsrun: export TARGET_BUILD_DIR := ${abs_builddir}
-$(srcdir)/tools/toktx/testsrun: export TEMP_DIR := ${TMPDIR}
 $(srcdir)/tools/toktx/testsrun: TOOLSET := $(TOOLSET)
 $(srcdir)/tools/toktx/testsrun: $(srcdir)/tests/toktx-tests FORCE_DO_CMD
 	$(call do_cmd,ktxtools_gyp_toktx_tests_target_toktx_tests)

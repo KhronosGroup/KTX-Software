@@ -110,38 +110,48 @@
                 '../build/doc/latex',
                 '../build/doc/man',
               ],
-              # doxygen must be run in the top-level project directory so that
-              # ancestors of that directory will be removed from paths displayed
-              # in the documentation.
+              # doxygen must be run in the top-level project directory
+              # containing the ktxDoxy file so that ancestors of that
+              # directory will be removed from paths displayed in the
+              # documentation.
               #
               'conditions': [
-                ['OS == "linux" or OS == "mac"', {
-                  # With Xcode the current directory when a project is run is
-                  # the directory containing the .gyp file, which, in this
-                  # case is the top-level directory we need so the command
-                  # below works.
+                ['OS == "linux"' , {
+                  # With `make` the current directory during project
+                  # build is the directory containing the .gyp file,
+                  # which is the same directory that holds the ktxDoxy
+                  # file, so we're good to go.
+                  'action': [
+                    'doxygen', '<@(doxyConfig)'
+                  ],
+                }, 'OS == "mac"', {
+                  # With Xcode, like Linux, the current directory
+                  # during project build is one holding the .gyp and
+                  # ktxDoxy files. However we need to spawn another
+                  # shell with -l so the startup (.bashrc, etc) files
+                  # will be read.
                   #
-                  # Spawn another shell with -l so the startup (.bashrc,
-                  # etc) files will be read.  Actions in Xcode are run by
-                  # 'sh' which does not read any startup files. Startup
-                  # files must be read so that the user's normal $PATH will
-                  # set and, therefore, we can find Doxygen. It seems to be
-                  # impossible to modify the $PATH variable used by Xcode
-                  # and it only uses the user's path when started from the
-                  # command line.
+                  # Actions in Xcode are run by 'sh' which does not
+                  # read any startup files. Startup files must be
+                  # read so that the user's normal $PATH will be set
+                  # and, therefore, we can find Doxygen. It seems to
+                  # be impossible to modify the $PATH variable used
+                  # by Xcode; it will only inherit the user's path
+                  # when started from the command line.
                   'action': [
                     'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
                   ],
                 }, 'OS == "win"', {
-                  # With MSVS the current directory will be that containing
-                  # the vcxproj file.
+                  # With MSVS the current directory will be that
+                  # containing the vcxproj file.
                   #
                   # Spawn another cmd.exe so we can change directory.
-                  # Unfortunately the MSVS generator relativizes any command
-                  # argument that does not look like an option which, in the
-                  # following, means it prefixes "cd" with the relative
-                  # path. There is no way to avoid this so for now the
-                  # target is only included for Xcode.
+                  # Unfortunately the MSVS generator relativizes any
+                  # command argument that does not look like an
+                  # option which, in the following, means it prefixes
+                  # "cd" with the relative path. There is no way to
+                  # avoid this so for now this target is only
+                  # included for Xcode.
                   'action': [
                     'cmd', '/c', '/e:off cd', '..', '& doxygen <@(doxyConfig)'
                   ],

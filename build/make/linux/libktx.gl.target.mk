@@ -9,11 +9,7 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-fasm-blocks \
-	-mpascal-strings \
-	-O0 \
-	-gdwarf-2 \
-	-arch x86_64
+	-O0
 
 # Flags passed to only C files.
 CFLAGS_C_Debug :=
@@ -21,13 +17,26 @@ CFLAGS_C_Debug :=
 # Flags passed to only C++ files.
 CFLAGS_CC_Debug :=
 
-# Flags passed to only ObjC files.
-CFLAGS_OBJC_Debug :=
-
-# Flags passed to only ObjC++ files.
-CFLAGS_OBJCC_Debug :=
-
 INCS_Debug := \
+	-I$(srcdir)/include \
+	-I$(srcdir)/other_include
+
+DEFS_Debug_Win32 := \
+	'-DKTX_OPENGL=1' \
+	'-DDEBUG' \
+	'-D_DEBUG'
+
+# Flags passed to all source files.
+CFLAGS_Debug_Win32 := \
+	-O0
+
+# Flags passed to only C files.
+CFLAGS_C_Debug_Win32 :=
+
+# Flags passed to only C++ files.
+CFLAGS_CC_Debug_Win32 :=
+
+INCS_Debug_Win32 := \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
@@ -37,22 +46,13 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-fasm-blocks \
-	-mpascal-strings \
-	-O3 \
-	-arch x86_64
+	-O3
 
 # Flags passed to only C files.
 CFLAGS_C_Release :=
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Release :=
-
-# Flags passed to only ObjC files.
-CFLAGS_OBJC_Release :=
-
-# Flags passed to only ObjC++ files.
-CFLAGS_OBJCC_Release :=
 
 INCS_Release := \
 	-I$(srcdir)/include \
@@ -78,8 +78,6 @@ all_deps += $(OBJS)
 $(OBJS): TOOLSET := $(TOOLSET)
 $(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
 $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
-$(OBJS): GYP_OBJCFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE)) $(CFLAGS_OBJC_$(BUILDTYPE))
-$(OBJS): GYP_OBJCXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE)) $(CFLAGS_OBJCC_$(BUILDTYPE))
 
 # Suffix rules, putting all outputs into $(obj).
 
@@ -105,31 +103,24 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cxx FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
-LDFLAGS_Debug := \
-	-arch x86_64 \
-	-L$(builddir)
+LDFLAGS_Debug :=
 
-LIBTOOLFLAGS_Debug :=
+LDFLAGS_Debug_Win32 :=
 
-LDFLAGS_Release := \
-	-arch x86_64 \
-	-L$(builddir)
-
-LIBTOOLFLAGS_Release :=
+LDFLAGS_Release :=
 
 LIBS :=
 
-$(builddir)/libktx.gl.a: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
-$(builddir)/libktx.gl.a: LIBS := $(LIBS)
-$(builddir)/libktx.gl.a: GYP_LIBTOOLFLAGS := $(LIBTOOLFLAGS_$(BUILDTYPE))
-$(builddir)/libktx.gl.a: TOOLSET := $(TOOLSET)
-$(builddir)/libktx.gl.a: $(OBJS) FORCE_DO_CMD
-	$(call do_cmd,alink)
+$(obj).target/libktx.gl.a: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
+$(obj).target/libktx.gl.a: LIBS := $(LIBS)
+$(obj).target/libktx.gl.a: TOOLSET := $(TOOLSET)
+$(obj).target/libktx.gl.a: $(OBJS) FORCE_DO_CMD
+	$(call do_cmd,alink_thin)
 
-all_deps += $(builddir)/libktx.gl.a
+all_deps += $(obj).target/libktx.gl.a
 # Add target alias
 .PHONY: libktx.gl
-libktx.gl: $(builddir)/libktx.gl.a
+libktx.gl: $(obj).target/libktx.gl.a
 
 # Add target alias to "all" target.
 .PHONY: all
