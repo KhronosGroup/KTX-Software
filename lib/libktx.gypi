@@ -116,15 +116,7 @@
               # documentation.
               #
               'conditions': [
-                ['GENERATOR == "make"' , {
-                  # With `make` the current directory during project
-                  # build is the directory containing the .gyp file,
-                  # which is the same directory that holds the ktxDoxy
-                  # file, so we're good to go.
-                  'action': [
-                    'doxygen', '<@(doxyConfig)'
-                  ],
-                }, 'GENERATOR == "xcode"', {
+                ['GENERATOR == "xcode"', {
                   # With Xcode, like Linux, the current directory
                   # during project build is one holding the .gyp and
                   # ktxDoxy files. However we need to spawn another
@@ -155,9 +147,17 @@
                   'action': [
                     'cmd', '/c', '/e:off cd', '..', '& doxygen <@(doxyConfig)'
                   ],
+                }, {
+                  # With `make`, cmake, etc. the current directory during
+                  # project build is the directory containing the .gyp file,
+                  # which is the same directory that holds the ktxDoxy
+                  # file, so we're good to go.
+                  'action': [
+                    'doxygen', '<@(doxyConfig)'
+                  ],
                 }],
-              ],
-            },
+              ], # action conditional
+            }
           ], # actions
         }, # libktx.doc
       ], # targets

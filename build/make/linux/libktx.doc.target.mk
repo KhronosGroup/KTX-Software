@@ -8,6 +8,15 @@ cmd_libktx_gyp_libktx_doc_target_buildDoc = LD_LIBRARY_PATH=$(builddir)/lib.host
 
 $(srcdir)/build/doc/.gentimestamp: obj := $(abs_obj)
 $(srcdir)/build/doc/.gentimestamp: builddir := $(abs_builddir)
+$(srcdir)/build/doc/.gentimestamp: export BUILT_FRAMEWORKS_DIR := ${abs_builddir}
+$(srcdir)/build/doc/.gentimestamp: export BUILT_PRODUCTS_DIR := ${abs_builddir}
+$(srcdir)/build/doc/.gentimestamp: export CONFIGURATION := ${BUILDTYPE}
+$(srcdir)/build/doc/.gentimestamp: export PRODUCT_NAME := libktx.doc
+$(srcdir)/build/doc/.gentimestamp: export SDKROOT := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
+$(srcdir)/build/doc/.gentimestamp: export SRCROOT := ${abs_srcdir}/
+$(srcdir)/build/doc/.gentimestamp: export SOURCE_ROOT := ${SRCROOT}
+$(srcdir)/build/doc/.gentimestamp: export TARGET_BUILD_DIR := ${abs_builddir}
+$(srcdir)/build/doc/.gentimestamp: export TEMP_DIR := ${TMPDIR}
 $(srcdir)/build/doc/.gentimestamp: TOOLSET := $(TOOLSET)
 $(srcdir)/build/doc/.gentimestamp $(srcdir)/build/doc/html $(srcdir)/build/doc/latex $(srcdir)/build/doc/man: libktx_gyp_libktx_doc_target_buildDoc.intermediate
 	@:

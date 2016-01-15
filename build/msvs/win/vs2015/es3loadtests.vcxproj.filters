@@ -268,13 +268,13 @@
     <None Include="..\..\..\..\testimages\rgb-amg-reference.ktx">
       <Filter>testimages</Filter>
     </None>
-    <None Include="..\..\..\..\testimages\rgba-reference.ktx">
-      <Filter>testimages</Filter>
-    </None>
     <None Include="..\..\..\..\testimages\rgb-mipmap-reference.ktx">
       <Filter>testimages</Filter>
     </None>
     <None Include="..\..\..\..\testimages\rgb-reference.ktx">
+      <Filter>testimages</Filter>
+    </None>
+    <None Include="..\..\..\..\testimages\rgba-reference.ktx">
       <Filter>testimages</Filter>
     </None>
     <None Include="..\..\..\..\testimages\up-reference.ktx">
