@@ -5,6 +5,10 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -43,6 +47,7 @@
     <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\bin\;$(MSBuildProjectDirectory)\..\..\..\..\bin\</ExecutablePath>
     <IntDir>$(Platform)\$(Configuration)\obj\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <TargetName>$(ProjectName)</TargetName>
@@ -61,7 +66,32 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_3.5\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=1;GL_CONTEXT_MINOR_VERSION=1;KTX_OPENGL_ES1=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=1;GL_CONTEXT_MINOR_VERSION=1;KTX_OPENGL_ES1=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/SAFESEH:NO</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
@@ -85,7 +115,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_3.5\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
@@ -108,7 +138,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_3.5\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -130,7 +160,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_3.5\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -140,7 +170,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\at.h"/>

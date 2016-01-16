@@ -75,7 +75,7 @@
     <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib\libEGL.dll">
       <Filter>C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib</Filter>
     </None>
-    <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib\libGLES_CM.dll">
+    <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib\libGLESv2.dll">
       <Filter>C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_$(PlatformArchitecture)\Lib</Filter>
     </None>
   </ItemGroup>

@@ -25,7 +25,7 @@
             # such versions will need to rename the folders to Win32
             # and x64, or copy the libs and dlls to such a folder and
             # use $(PlatformName) here.
-            'pvrsdk_dir': 'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_3.5/Builds/Windows/x86_$(PlatformArchitecture)/Lib',
+            'pvrsdk_dir': 'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_$(PlatformArchitecture)/Lib',
           }, {
             'pvrsdk_dir': 'somewhere', # TO DO
           }]
@@ -51,7 +51,7 @@
            '<(gles1_bin_dir)/libEGL.dll',
            '<(gles1_bin_dir)/libGLES_CM.dll',
         ],
-        'gles3_dlls': [
+        'gles2_dlls': [
            '<(gles2_bin_dir)/libEGL.dll',
            '<(gles2_bin_dir)/libGLESv2.dll',
         ], 

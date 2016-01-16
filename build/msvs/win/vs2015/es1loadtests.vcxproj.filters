@@ -111,6 +111,6 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\gles1\sample_02_cube_textured.c">
       <Filter>tests\loadtests\gles1</Filter>
     </ClCompile>
-    <None Include="..\..\..\..\ktx.gyp"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
 </Project>

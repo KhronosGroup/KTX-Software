@@ -7,7 +7,12 @@
 # Note that this emulator does not support OpenGL ES 1.X.
 # Also note that a downloaded emulator only contains the dlls for the
 # download target, e.g., 64-bit in the 64-bit download. So a build
-# of the project for the other platform will fail.
+# of the project for the other platform will fail. If you do install
+# both 64- and 32-bit packages, there is no suitable VS macro to use
+# in *_{bin,lib}_dir so VS can find the appropriate files at build
+# time. The files are installed in C:/Program Files/ARM/... and
+# C:/Program Files (x86)/ARM/...
+#
 
 {
   'variables': { # level 1
