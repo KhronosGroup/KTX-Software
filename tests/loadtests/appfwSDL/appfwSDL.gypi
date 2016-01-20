@@ -20,7 +20,7 @@
         'AppBaseSDL.h',
         'GLAppSDL.cpp',
         'GLAppSDL.h',
-     ],
+      ],
       'include_dirs': [
          '../common',
       ],

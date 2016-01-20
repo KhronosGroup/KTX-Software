@@ -378,7 +378,7 @@ endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
 cmd_regen_makefile = cd $(srcdir); /Library/Frameworks/Python.framework/Versions/2.7/bin/gyp -fmake --ignore-environment "--toplevel-dir=." "--depth=." "--generator-output=build/make/linux" "-DOS=linux" ktxtests.gyp ktxtools.gyp
-Makefile: $(srcdir)/tests/loadtests/appfwSDL/appfwSDL.gypi $(srcdir)/tests/tests.gypi $(srcdir)/gyp_include/libgles1.gypi $(srcdir)/gyp_include/config.gypi $(srcdir)/lib/libktx.gypi $(srcdir)/gyp_include/libgl.gypi $(srcdir)/ktxtests.gyp $(srcdir)/ktxtools.gyp $(srcdir)/gyp_include/default.gypi $(srcdir)/libktx.gyp $(srcdir)/gyp_include/libsdl.gypi $(srcdir)/gyp_include/maliemu.gypi $(srcdir)/tests/loadtests/loadtests.gypi $(srcdir)/tools/tools.gypi $(srcdir)/gyp_include/libgles3.gypi $(srcdir)/tools/toktx/toktx.gypi
+Makefile: $(srcdir)/tests/loadtests/appfwSDL/appfwSDL.gypi $(srcdir)/tests/tests.gypi $(srcdir)/gyp_include/libgles1.gypi $(srcdir)/gyp_include/config.gypi $(srcdir)/lib/libktx.gypi $(srcdir)/gyp_include/libgl.gypi $(srcdir)/ktxtests.gyp $(srcdir)/ktxtools.gyp $(srcdir)/gyp_include/default.gypi $(srcdir)/libktx.gyp $(srcdir)/gyp_include/libsdl.gypi $(srcdir)/tests/loadtests/loadtests.gypi $(srcdir)/tools/tools.gypi $(srcdir)/gyp_include/libgles3.gypi $(srcdir)/gyp_include/pvremu.gypi $(srcdir)/tools/toktx/toktx.gypi
 	$(call do_cmd,regen_makefile)
 
 # "all" is a concatenation of the "all" targets from all the included

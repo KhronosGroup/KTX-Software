@@ -366,6 +366,7 @@
 		4C17601D3AA590EC2B89F81E /* hi_mark_sq.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark_sq.ktx; sourceTree = "<group>"; };
 		549B93FB4F8A1B620D210745 /* down-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "down-reference.ktx"; sourceTree = "<group>"; };
 		54E93E51FBFFB904C2D13D44 /* sample_02_cube_textured.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sample_02_cube_textured.c; sourceTree = "<group>"; };
+		55094AE30A4060D7DAF62B7C /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		5B9BB32D3FF508BBB857682B /* conftestimage_RG11_EAC.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = conftestimage_RG11_EAC.ktx; sourceTree = "<group>"; };
 		5F3DF32FF0DD0187B27D638B /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		62C8ED7D4BE000BE8F05196F /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
@@ -398,7 +399,6 @@
 		C64420EDFCCC9D13D9DE2C86 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		C96546158F4A81236255171B /* luminance_sized_reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = luminance_sized_reference.ktx; sourceTree = "<group>"; };
 		C99FB7EF3F88EA4810C61A55 /* es1loadtests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = es1loadtests.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE185552737DD797E63F3A81 /* maliemu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = maliemu.gypi; path = gyp_include/maliemu.gypi; sourceTree = "<group>"; };
 		D0DAB15DEF2EA4220ECCF380 /* libappfwSDL.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libappfwSDL.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D13429D77C03906152F50702 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		D197E24A7A330DDB9973136B /* es3loadtests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = es3loadtests.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -521,7 +521,7 @@
 				BE87322074888456974DB31C /* Projects */,
 				D4502F02DD085F068376E8E5 /* Frameworks */,
 				B62AE141B7DF9843D6A8AAFC /* Products */,
-				C9C9E3E3E4F38CC1A9E73888 /* Build */,
+				DB7E703F95C33A29BD178E4D /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -573,24 +573,6 @@
 				C2D0CFE555C5E77ED61AEA5C /* tests/loadtests */,
 			);
 			name = Source;
-			sourceTree = "<group>";
-		};
-		C9C9E3E3E4F38CC1A9E73888 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
-				62C8ED7D4BE000BE8F05196F /* config.gypi */,
-				2A10C481083B8ADF83741784 /* default.gypi */,
-				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
-				39AB8B5957A513B36D5A740C /* libgl.gypi */,
-				DCA2A2C870993F0227174041 /* libgles1.gypi */,
-				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
-				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
-				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
-				CE185552737DD797E63F3A81 /* maliemu.gypi */,
-				443BA60BE91B83D924E4DD4E /* tests.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		CE18FFFF81FD09B443C03BD2 /* shader-based */ = {
@@ -653,6 +635,24 @@
 				9B11E31607306A9B19B29AC4 /* quad.h */,
 			);
 			path = data;
+			sourceTree = "<group>";
+		};
+		DB7E703F95C33A29BD178E4D /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
+				62C8ED7D4BE000BE8F05196F /* config.gypi */,
+				2A10C481083B8ADF83741784 /* default.gypi */,
+				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
+				39AB8B5957A513B36D5A740C /* libgl.gypi */,
+				DCA2A2C870993F0227174041 /* libgles1.gypi */,
+				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
+				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
+				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
+				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
+				443BA60BE91B83D924E4DD4E /* tests.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
