@@ -43,7 +43,7 @@
   #if _MSC_VER < 1900
     #define snprintf _snprintf
   #endif
-#define _CRT_SECURE_NO_WARNINGS
+  #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ktx.h"
