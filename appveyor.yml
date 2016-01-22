@@ -17,7 +17,7 @@ install:
 
     REM Each line is run in a separate instance of cmd.exe
 
-    choco install doxygen
+    choco install doxygen.install
 
     REM Copy PowerVR OpenGL ES Emulator libraries
 
