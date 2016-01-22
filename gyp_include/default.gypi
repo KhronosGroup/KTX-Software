@@ -138,12 +138,14 @@
           # OutputFile. TargetName must match as well.
           'VCLinkerTool': {
             'GenerateDebugInformation': 'true',
-            # SDLmain.lib is compiled /MD making msvcrt.lib a default
-            # link lib. Remove it from default list to quiet the
-            # LNK4098 warning that notifies of the conflict with /MDd
-            # above.  Alternative fix is to provide a debug version of
+            # Uncomment the following if using a non-debug
+            # SDLmain.lib. This will be compiled /MD making msvcrt.lib
+            # a default link lib. This removes it from default list to
+            # quiet the LNK4098 warning that notifies of the conflict
+            # with /MDd above.
             # SDLmain.lib compiled /MDd.
-            'IgnoreDefaultLibraryNames': 'msvcrt.lib'
+            #'IgnoreDefaultLibraryNames': 'msvcrt.lib'
+
             #'OutputFile': '$(OutDir)$(ProjectName)_g$(TargetExt)'
           },
           #'VCLibrarianTool': {
