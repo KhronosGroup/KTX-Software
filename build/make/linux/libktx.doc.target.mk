@@ -8,15 +8,6 @@ cmd_libktx_gyp_libktx_doc_target_buildDoc = LD_LIBRARY_PATH=$(builddir)/lib.host
 
 $(srcdir)/build/doc/html: obj := $(abs_obj)
 $(srcdir)/build/doc/html: builddir := $(abs_builddir)
-$(srcdir)/build/doc/html: export BUILT_FRAMEWORKS_DIR := ${abs_builddir}
-$(srcdir)/build/doc/html: export BUILT_PRODUCTS_DIR := ${abs_builddir}
-$(srcdir)/build/doc/html: export CONFIGURATION := ${BUILDTYPE}
-$(srcdir)/build/doc/html: export PRODUCT_NAME := libktx.doc
-$(srcdir)/build/doc/html: export SDKROOT := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
-$(srcdir)/build/doc/html: export SRCROOT := ${abs_srcdir}/
-$(srcdir)/build/doc/html: export SOURCE_ROOT := ${SRCROOT}
-$(srcdir)/build/doc/html: export TARGET_BUILD_DIR := ${abs_builddir}
-$(srcdir)/build/doc/html: export TEMP_DIR := ${TMPDIR}
 $(srcdir)/build/doc/html: TOOLSET := $(TOOLSET)
 $(srcdir)/build/doc/html $(srcdir)/build/doc/latex $(srcdir)/build/doc/man: libktx_gyp_libktx_doc_target_buildDoc.intermediate
 	@:
@@ -34,15 +25,6 @@ cmd_libktx_gyp_libktx_doc_target_touchTimestamp = LD_LIBRARY_PATH=$(builddir)/li
 
 $(srcdir)/build/doc/.gentimestamp: obj := $(abs_obj)
 $(srcdir)/build/doc/.gentimestamp: builddir := $(abs_builddir)
-$(srcdir)/build/doc/.gentimestamp: export BUILT_FRAMEWORKS_DIR := ${abs_builddir}
-$(srcdir)/build/doc/.gentimestamp: export BUILT_PRODUCTS_DIR := ${abs_builddir}
-$(srcdir)/build/doc/.gentimestamp: export CONFIGURATION := ${BUILDTYPE}
-$(srcdir)/build/doc/.gentimestamp: export PRODUCT_NAME := libktx.doc
-$(srcdir)/build/doc/.gentimestamp: export SDKROOT := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
-$(srcdir)/build/doc/.gentimestamp: export SRCROOT := ${abs_srcdir}/
-$(srcdir)/build/doc/.gentimestamp: export SOURCE_ROOT := ${SRCROOT}
-$(srcdir)/build/doc/.gentimestamp: export TARGET_BUILD_DIR := ${abs_builddir}
-$(srcdir)/build/doc/.gentimestamp: export TEMP_DIR := ${TMPDIR}
 $(srcdir)/build/doc/.gentimestamp: TOOLSET := $(TOOLSET)
 $(srcdir)/build/doc/.gentimestamp: $(srcdir)/ktxDoxy $(srcdir)/LICENSE.md $(srcdir)/include/ktx.h $(srcdir)/lib/checkheader.c $(srcdir)/lib/errstr.c $(srcdir)/lib/etcdec.cxx $(srcdir)/lib/etcunpack.cxx $(srcdir)/lib/gl_funcptrs.h $(srcdir)/lib/gles1_funcptrs.h $(srcdir)/lib/gles2_funcptrs.h $(srcdir)/lib/gles3_funcptrs.h $(srcdir)/lib/hashtable.c $(srcdir)/lib/ktxfilestream.c $(srcdir)/lib/ktxfilestream.h $(srcdir)/lib/ktxint.h $(srcdir)/lib/ktxmemstream.c $(srcdir)/lib/ktxmemstream.h $(srcdir)/lib/ktxstream.h $(srcdir)/lib/loader.c $(srcdir)/lib/swap.c $(srcdir)/lib/uthash.h $(srcdir)/lib/writer.c FORCE_DO_CMD
 	$(call do_cmd,libktx_gyp_libktx_doc_target_touchTimestamp)

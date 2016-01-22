@@ -33,11 +33,6 @@ $(builddir)/testimages/etc1.ktx: $(srcdir)/testimages/etc1.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/etc1.ktx
-$(builddir)/testimages/etc2-rgb.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-rgb.ktx: $(srcdir)/testimages/etc2-rgb.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc2-rgb.ktx
 $(builddir)/testimages/etc2-rgba1.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/etc2-rgba1.ktx: $(srcdir)/testimages/etc2-rgba1.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -48,11 +43,11 @@ $(builddir)/testimages/etc2-rgba8.ktx: $(srcdir)/testimages/etc2-rgba8.ktx FORCE
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/etc2-rgba8.ktx
-$(builddir)/testimages/etc2-sRGB.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-sRGB.ktx: $(srcdir)/testimages/etc2-sRGB.ktx FORCE_DO_CMD
+$(builddir)/testimages/etc2-rgb.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-rgb.ktx: $(srcdir)/testimages/etc2-rgb.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/etc2-sRGB.ktx
+all_deps += $(builddir)/testimages/etc2-rgb.ktx
 $(builddir)/testimages/etc2-sRGBa1.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/etc2-sRGBa1.ktx: $(srcdir)/testimages/etc2-sRGBa1.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -63,6 +58,11 @@ $(builddir)/testimages/etc2-sRGBa8.ktx: $(srcdir)/testimages/etc2-sRGBa8.ktx FOR
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/etc2-sRGBa8.ktx
+$(builddir)/testimages/etc2-sRGB.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-sRGB.ktx: $(srcdir)/testimages/etc2-sRGB.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc2-sRGB.ktx
 $(builddir)/testimages/hi_mark.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/hi_mark.ktx: $(srcdir)/testimages/hi_mark.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -93,6 +93,11 @@ $(builddir)/testimages/rgb-amg-reference.ktx: $(srcdir)/testimages/rgb-amg-refer
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/rgb-amg-reference.ktx
+$(builddir)/testimages/rgba-reference.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/rgba-reference.ktx: $(srcdir)/testimages/rgba-reference.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/rgba-reference.ktx
 $(builddir)/testimages/rgb-mipmap-reference.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/rgb-mipmap-reference.ktx: $(srcdir)/testimages/rgb-mipmap-reference.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -103,45 +108,13 @@ $(builddir)/testimages/rgb-reference.ktx: $(srcdir)/testimages/rgb-reference.ktx
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/rgb-reference.ktx
-$(builddir)/testimages/rgba-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/rgba-reference.ktx: $(srcdir)/testimages/rgba-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/rgba-reference.ktx
 $(builddir)/testimages/up-reference.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/up-reference.ktx: $(srcdir)/testimages/up-reference.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/up-reference.ktx
-ktxtests_gyp_gl3loadtests_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/down-reference.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/up-reference.ktx
+ktxtests_gyp_gl3loadtests_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/down-reference.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/up-reference.ktx
 
-### Generated for mac_bundle_resources
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export BUILT_FRAMEWORKS_DIR := ${abs_builddir}
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export BUILT_PRODUCTS_DIR := ${abs_builddir}
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export CONFIGURATION := ${BUILDTYPE}
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export CONTENTS_FOLDER_PATH := gl3loadtests.app/Contents
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export EXECUTABLE_NAME := gl3loadtests
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export EXECUTABLE_PATH := gl3loadtests.app/Contents/MacOS/gl3loadtests
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export FULL_PRODUCT_NAME := gl3loadtests.app
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export INFOPLIST_FILE := tests/loadtests/resources_mac/Info.plist
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export INFOPLIST_PATH := gl3loadtests.app/Contents/Info.plist
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export MACH_O_TYPE := mh_execute
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export ONLY_ACTIVE_ARCH := YES
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export PRODUCT_BUNDLE_IDENTIFIER := org.khronos.${PRODUCT_NAME:identifier}
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export PRODUCT_NAME := gl3loadtests
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export PRODUCT_TYPE := com.apple.product-type.application
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export SDKROOT := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export SRCROOT := ${abs_srcdir}/
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export SOURCE_ROOT := ${SRCROOT}
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export TARGET_BUILD_DIR := ${abs_builddir}
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export TEMP_DIR := ${TMPDIR}
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export UNLOCALIZED_RESOURCES_FOLDER_PATH := gl3loadtests.app/Contents/Resources
-$(builddir)/gl3loadtests.app/Contents/Info.plist: export WRAPPER_NAME := gl3loadtests.app
-$(builddir)/gl3loadtests.app/Contents/Info.plist: TOOLSET := $(TOOLSET)
-$(builddir)/gl3loadtests.app/Contents/Info.plist: $(srcdir)/tests/loadtests/resources_mac/Info.plist FORCE_DO_CMD
-	$(call do_cmd,mac_tool,,,copy-info-plist)
-
-all_deps += $(builddir)/gl3loadtests.app/Contents/Info.plist
 DEFS_Debug := \
 	'-DGL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE' \
 	'-DGL_CONTEXT_MAJOR_VERSION=3' \
@@ -152,23 +125,13 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-fasm-blocks \
-	-mpascal-strings \
-	-O0 \
-	-gdwarf-2 \
-	-arch x86_64
+	-O0
 
 # Flags passed to only C files.
 CFLAGS_C_Debug :=
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Debug :=
-
-# Flags passed to only ObjC files.
-CFLAGS_OBJC_Debug :=
-
-# Flags passed to only ObjC++ files.
-CFLAGS_OBJCC_Debug :=
 
 INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/common \
@@ -184,22 +147,13 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-fasm-blocks \
-	-mpascal-strings \
-	-O3 \
-	-arch x86_64
+	-O3
 
 # Flags passed to only C files.
 CFLAGS_C_Release :=
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Release :=
-
-# Flags passed to only ObjC files.
-CFLAGS_OBJC_Release :=
-
-# Flags passed to only ObjC++ files.
-CFLAGS_OBJCC_Release :=
 
 INCS_Release := \
 	-I$(srcdir)/tests/loadtests/common \
@@ -219,7 +173,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(builddir)/libappfwSDL.a $(builddir)/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
+$(OBJS): | $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
@@ -229,8 +183,6 @@ $(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
 $(OBJS): TOOLSET := $(TOOLSET)
 $(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
 $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
-$(OBJS): GYP_OBJCFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE)) $(CFLAGS_OBJC_$(BUILDTYPE))
-$(OBJS): GYP_OBJCXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE)) $(CFLAGS_OBJCC_$(BUILDTYPE))
 
 # Suffix rules, putting all outputs into $(obj).
 
@@ -257,24 +209,18 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 # Build our special outputs first.
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
+$(builddir)/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktxtests_gyp_gl3loadtests_target_copies): | $(builddir)/libappfwSDL.a $(builddir)/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
+$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
 
 LDFLAGS_Debug := \
-	-arch x86_64 \
-	-L$(builddir) \
+	-Wl,-rpath,. \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
-
-LIBTOOLFLAGS_Debug :=
 
 LDFLAGS_Release := \
-	-arch x86_64 \
-	-L$(builddir) \
+	-Wl,-rpath,. \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
-
-LIBTOOLFLAGS_Release :=
 
 LIBS := \
 	-lSDL2-2.0 \
@@ -283,34 +229,19 @@ LIBS := \
 	-lpthread \
 	-lGL
 
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: LIBS := $(LIBS)
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: GYP_LIBTOOLFLAGS := $(LIBTOOLFLAGS_$(BUILDTYPE))
-# Build our special outputs first.
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
-
-BUNDLE_DEPS := \
-	$(builddir)/gl3loadtests.app/Contents/Info.plist \
-	$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests
-
-$(builddir)/gl3loadtests.app: $(BUNDLE_DEPS)
-	@true  # No-op, used by tests
-	@touch -c $(builddir)/gl3loadtests.app
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: LD_INPUTS := $(OBJS) $(builddir)/libappfwSDL.a $(builddir)/libktx.gl.a
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: TOOLSET := $(TOOLSET)
-$(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests: $(OBJS) $(builddir)/libappfwSDL.a $(builddir)/libktx.gl.a FORCE_DO_CMD
+$(builddir)/gl3loadtests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
+$(builddir)/gl3loadtests: LIBS := $(LIBS)
+$(builddir)/gl3loadtests: LD_INPUTS := $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a
+$(builddir)/gl3loadtests: TOOLSET := $(TOOLSET)
+$(builddir)/gl3loadtests: $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
-all_deps += $(builddir)/gl3loadtests.app/Contents/MacOS/gl3loadtests
+all_deps += $(builddir)/gl3loadtests
 # Add target alias
 .PHONY: gl3loadtests
-gl3loadtests: $(builddir)/gl3loadtests.app
-
-# Short alias for building this executable.
-.PHONY: gl3loadtests.app
-gl3loadtests.app: $(builddir)/gl3loadtests.app
+gl3loadtests: $(builddir)/gl3loadtests
 
 # Add executable to "all" target.
 .PHONY: all
-all: $(builddir)/gl3loadtests.app
+all: $(builddir)/gl3loadtests
 
