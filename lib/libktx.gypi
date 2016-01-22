@@ -131,32 +131,26 @@
                   'action': [
                     'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
                   ],
-                }, 'GENERATOR == "msvs"', {
-                  # With MSVS the current directory will be that
-                  # containing the vcxproj file.
+                }, {
+                  # With `make`, cmake, etc, like Xcode,  the current
+                  # directory during project build is the one we need.
                   #
-                  # When the actions 'msvs_cygwin_shell': '1' is set
-                  # (the default), a setup_env.bat file is run
+                  # With MSVS the current directory will be that
+                  # containing the vcxproj file. However when the
+                  # action is using bash ('msvs_cygwin_shell': '1',
+                  # the default, is set) a setup_env.bat file is run
                   # before the command. Our setup_env.bat cd's to the
                   # top-level directory to make this case look like the
                   # others.
                   #
-                  # In this case no path relativization is performed
-                  # on any command arguments. We have to take care to
-                  # provide paths that are relative to our cd
-                  # location.
+                  # No path relativization is performed on any command
+                  # arguments. We have to take care to provide paths that
+                  # are relative to our cd location.
                   # 
                   # Note that If using cmd.exe ('msvs_cygwin_shell': '0')
                   # the MSVS generator will relativize *all* command
-                  # arguments, that # do not look like options, to
+                  # arguments, that do not look like options, to the
                   # vcxproj location.
-                  #
-                  'action': [
-                    'doxygen', '<@(doxyConfig)'
-                  ],
-                }, {
-                  # With `make`, cmake, etc, like Xcode,  the current
-                  # directory during project build is the one we need.
                   'action': [
                     'doxygen', '<@(doxyConfig)'
                   ],
