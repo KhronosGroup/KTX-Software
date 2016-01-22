@@ -14,7 +14,7 @@ underway.  At present the iOS, Mac OS X, Linux and Windows builds of
 loadtests: GL3, ES1 and ES3. GL3 can be built on Linux, Mac and Windows.
 ES1 can be built on iOS and with the PowerVR emulator on Windows.
 ES3 can be built on iOS and with any of the major emulators on
-Windows. A builds for Android will follow.
+Windows. A build for Android will follow.
 
 Linux, Mac OS X and Windows builds of `toktx` are also completed.
 
