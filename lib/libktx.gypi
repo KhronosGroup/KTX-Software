@@ -84,44 +84,42 @@
     }, # libktx.es3
   ], # targets
   'conditions': [
-    ['OS == "linux" or OS == "mac"', {
+    ['OS == "linux" or OS == "mac" or OS == "win"', {
       # Can only build doc on desktops
       'targets': [
         {
           'target_name': 'libktx.doc',
           'type': 'none',
+          'variables': {
+            'doxyConfig': 'ktxDoxy',
+            'timestamp': 'build/doc/.gentimestamp',
+          },
           'actions': [
             {
               'action_name': 'buildDoc',
-              'variables': {
-                'doxyConfig': 'ktxDoxy',
-              },
               'message': 'Generating documentation with Doxygen',
-              'msvs_cygwin_shell': '0',
-              'msvs_quote_cmd': '1',
               'inputs': [
                 '../<@(doxyConfig)',
                 '../LICENSE.md',
                 '<@(sources)',
               ],
               'outputs': [
-                '../build/doc/.gentimestamp',
                 '../build/doc/html',
                 '../build/doc/latex',
                 '../build/doc/man',
               ],
               # doxygen must be run in the top-level project directory
-              # containing the ktxDoxy file so that ancestors of that
-              # directory will be removed from paths displayed in the
-              # documentation.
+              # so that ancestors of that # directory will be removed
+              # from paths displayed in the documentation. This is
+              # the directory where the ktxDoxy file and .gyp files
+              # are stored.
               #
               'conditions': [
                 ['GENERATOR == "xcode"', {
-                  # With Xcode, like Linux, the current directory
-                  # during project build is one holding the .gyp and
-                  # ktxDoxy files. However we need to spawn another
-                  # shell with -l so the startup (.bashrc, etc) files
-                  # will be read.
+                  # With Xcode, the current directory during project
+                  # build is one we need so we're good to go. However
+                  # we need to spawn another shell with -l so the
+                  # startup (.bashrc, etc) files will be read.
                   #
                   # Actions in Xcode are run by 'sh' which does not
                   # read any startup files. Startup files must be
@@ -137,26 +135,53 @@
                   # With MSVS the current directory will be that
                   # containing the vcxproj file.
                   #
-                  # Spawn another cmd.exe so we can change directory.
-                  # Unfortunately the MSVS generator relativizes any
-                  # command argument that does not look like an
-                  # option which, in the following, means it prefixes
-                  # "cd" with the relative path. There is no way to
-                  # avoid this so for now this target is only
-                  # included for Xcode.
+                  # When the actions 'msvs_cygwin_shell': '1' is set
+                  # (the default), a setup_env.bat file is run
+                  # before the command. Our setup_env.bat cd's to the
+                  # top-level directory to make this case look like the
+                  # others.
+                  #
+                  # In this case no path relativization is performed
+                  # on any command arguments. We have to take care to
+                  # provide paths that are relative to our cd
+                  # location.
+                  # 
+                  # Note that If using cmd.exe ('msvs_cygwin_shell': '0')
+                  # the MSVS generator will relativize *all* command
+                  # arguments, that # do not look like options, to
+                  # vcxproj location.
+                  #
                   'action': [
-                    'cmd', '/c', '/e:off cd', '..', '& doxygen <@(doxyConfig)'
+                    'doxygen', '<@(doxyConfig)'
                   ],
                 }, {
-                  # With `make`, cmake, etc. the current directory during
-                  # project build is the directory containing the .gyp file,
-                  # which is the same directory that holds the ktxDoxy
-                  # file, so we're good to go.
+                  # With `make`, cmake, etc, like Xcode,  the current
+                  # directory during project build is the one we need.
                   'action': [
                     'doxygen', '<@(doxyConfig)'
                   ],
                 }],
               ], # action conditional
+            },
+            # It is not possible to chain commands in an action with
+            # && because the generators will quote such strings.
+            # Instead we need this additional action to touch the
+            # timestamp. The generators will chain these two actions
+            {
+              'action_name': 'touchTimestamp',
+              'variables': {
+                'timestamp': 'build/doc/.gentimestamp',
+              },
+              'message': 'setting generation timestamp',
+              'inputs': [
+                '../<@(doxyConfig)',
+                '../LICENSE.md',
+                '<@(sources)',
+              ],
+              'outputs': [
+                '<(timestamp)',
+              ],
+              'action': [ 'touch', '<@(timestamp)', ],
             }
           ], # actions
         }, # libktx.doc
