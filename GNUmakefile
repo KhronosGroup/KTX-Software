@@ -97,7 +97,7 @@ gyp=$(gypdir)gyp# --debug=all
 .PHONY: msvs xcode default
 
 default:
-	@echo Pick one of \"make '{all,cmake,make,msvs,xcode}'\"
+	@echo Pick one of "\"make {all,cmake,make,msvs,xcode}\""
 
 all: $(formats)
 
