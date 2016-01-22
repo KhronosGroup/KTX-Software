@@ -943,29 +943,6 @@
 			};
 			name = Debug;
 		};
-		424C93F1465C2EDA0CFEF9C8 /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				PRODUCT_NAME = libgles3;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug_Win32;
-		};
-		49E55C352A59DCC91E8A936C /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = All;
-			};
-			name = Debug_Win32;
-		};
 		4AE2628124EF3B43DF94CEE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -986,39 +963,6 @@
 			};
 			name = Release;
 		};
-		5AFA3F3CA3130F2C7F86071F /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES",
-					"GL_CONTEXT_MAJOR_VERSION=3",
-					"GL_CONTEXT_MINOR_VERSION=0",
-					"KTX_OPENGL_ES3=1",
-					DEBUG,
-					_DEBUG,
-				);
-				HEADER_SEARCH_PATHS = (
-					tests/loadtests/common,
-					other_include,
-					include,
-				);
-				INFOPLIST_FILE = tests/loadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				LIBRARY_SEARCH_PATHS = (
-					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
-					"$(SDKROOT)/System/Library/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
-				PRODUCT_NAME = es3loadtests;
-				STRIP_INSTALLED_PRODUCT = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				WRAPPER_PREFIX = "";
-			};
-			name = Debug_Win32;
-		};
 		638297006311DDA35DC6BA03 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1028,22 +972,6 @@
 				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
 			};
 			name = Release;
-		};
-		643BD0517F5E31526169A716 /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				PRODUCT_NAME = libsdl;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug_Win32;
 		};
 		8B8D4C9FBCC4A1DE7DD1BB9A /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1077,27 +1005,6 @@
 				WRAPPER_PREFIX = "";
 			};
 			name = Debug;
-		};
-		A96EDDB666881A60CC687C30 /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				EXECUTABLE_PREFIX = lib;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				HEADER_SEARCH_PATHS = (
-					tests/loadtests/common,
-					other_include,
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				PRODUCT_NAME = appfwSDL;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug_Win32;
 		};
 		B3B62D5D2766B99E606BB040 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1173,22 +1080,6 @@
 			};
 			name = Release;
 		};
-		BE01E9E1E2A6C066BEC1AE97 /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				PRODUCT_NAME = libgles1;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug_Win32;
-		};
 		C2C51D36F078170A3AE68FD9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1229,16 +1120,6 @@
 			};
 			name = Release;
 		};
-		D1AC5C0506C6AC668C266332 /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
-				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = iphoneos;
-				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
-			};
-			name = Debug_Win32;
-		};
 		DCAE567DB483B3980444C0C3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1270,39 +1151,6 @@
 				WRAPPER_PREFIX = "";
 			};
 			name = Release;
-		};
-		DFE3596429EE4272D1F9A8BE /* Debug_Win32 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES",
-					"GL_CONTEXT_MAJOR_VERSION=1",
-					"GL_CONTEXT_MINOR_VERSION=1",
-					"KTX_OPENGL_ES1=1",
-					DEBUG,
-					_DEBUG,
-				);
-				HEADER_SEARCH_PATHS = (
-					tests/loadtests/common,
-					other_include,
-					include,
-				);
-				INFOPLIST_FILE = tests/loadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				LIBRARY_SEARCH_PATHS = (
-					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
-					"$(SDKROOT)/System/Library/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
-				PRODUCT_NAME = es1loadtests;
-				STRIP_INSTALLED_PRODUCT = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				WRAPPER_PREFIX = "";
-			};
-			name = Debug_Win32;
 		};
 		E8F2039F5C1B6E7D75A73A1B /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1366,7 +1214,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F5125667E248F18591A9DA2D /* Debug */,
-				A96EDDB666881A60CC687C30 /* Debug_Win32 */,
 				E8F2039F5C1B6E7D75A73A1B /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -1376,7 +1223,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				27B03995FD8475F2D5FE8037 /* Debug */,
-				424C93F1465C2EDA0CFEF9C8 /* Debug_Win32 */,
 				B688AF1A71810BE0AB2F86DC /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -1386,7 +1232,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				039D6644D7FA7DC0C74500FD /* Debug */,
-				D1AC5C0506C6AC668C266332 /* Debug_Win32 */,
 				638297006311DDA35DC6BA03 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -1396,7 +1241,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8B8D4C9FBCC4A1DE7DD1BB9A /* Debug */,
-				5AFA3F3CA3130F2C7F86071F /* Debug_Win32 */,
 				DCAE567DB483B3980444C0C3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -1406,7 +1250,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C2C51D36F078170A3AE68FD9 /* Debug */,
-				DFE3596429EE4272D1F9A8BE /* Debug_Win32 */,
 				B3B62D5D2766B99E606BB040 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -1416,7 +1259,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B6E90208BD315A0A66385B0C /* Debug */,
-				BE01E9E1E2A6C066BEC1AE97 /* Debug_Win32 */,
 				B72F152579100400C5C64A16 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -1426,7 +1268,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4AE2628124EF3B43DF94CEE4 /* Debug */,
-				49E55C352A59DCC91E8A936C /* Debug_Win32 */,
 				CB1EDACD736B7AD4248A63B4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
@@ -1436,7 +1277,6 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EBB82069D935FC9582B00322 /* Debug */,
-				643BD0517F5E31526169A716 /* Debug_Win32 */,
 				5AA7D22302D3EC30B9C84AAF /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;

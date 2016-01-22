@@ -175,39 +175,6 @@ INCS_Debug := \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include
 
-DEFS_Debug_Win32 := \
-	'-DGL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE' \
-	'-DGL_CONTEXT_MAJOR_VERSION=3' \
-	'-DGL_CONTEXT_MINOR_VERSION=3' \
-	'-DKTX_OPENGL=1' \
-	'-DDEBUG' \
-	'-D_DEBUG'
-
-# Flags passed to all source files.
-CFLAGS_Debug_Win32 := \
-	-fasm-blocks \
-	-mpascal-strings \
-	-O0 \
-	-gdwarf-2 \
-	-arch x86_64
-
-# Flags passed to only C files.
-CFLAGS_C_Debug_Win32 :=
-
-# Flags passed to only C++ files.
-CFLAGS_CC_Debug_Win32 :=
-
-# Flags passed to only ObjC files.
-CFLAGS_OBJC_Debug_Win32 :=
-
-# Flags passed to only ObjC++ files.
-CFLAGS_OBJCC_Debug_Win32 :=
-
-INCS_Debug_Win32 := \
-	-I$(srcdir)/tests/loadtests/common \
-	-I$(srcdir)/other_include \
-	-I$(srcdir)/include
-
 DEFS_Release := \
 	'-DGL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE' \
 	'-DGL_CONTEXT_MAJOR_VERSION=3' \
@@ -301,13 +268,6 @@ LDFLAGS_Debug := \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
 
 LIBTOOLFLAGS_Debug :=
-
-LDFLAGS_Debug_Win32 := \
-	-arch x86_64 \
-	-L$(builddir) \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
-
-LIBTOOLFLAGS_Debug_Win32 :=
 
 LDFLAGS_Release := \
 	-arch x86_64 \

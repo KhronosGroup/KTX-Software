@@ -30,34 +30,6 @@ INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/other_include
 
-DEFS_Debug_Win32 := \
-	'-DDEBUG' \
-	'-D_DEBUG'
-
-# Flags passed to all source files.
-CFLAGS_Debug_Win32 := \
-	-fasm-blocks \
-	-mpascal-strings \
-	-O0 \
-	-gdwarf-2 \
-	-arch x86_64
-
-# Flags passed to only C files.
-CFLAGS_C_Debug_Win32 :=
-
-# Flags passed to only C++ files.
-CFLAGS_CC_Debug_Win32 :=
-
-# Flags passed to only ObjC files.
-CFLAGS_OBJC_Debug_Win32 :=
-
-# Flags passed to only ObjC++ files.
-CFLAGS_OBJCC_Debug_Win32 :=
-
-INCS_Debug_Win32 := \
-	-I$(srcdir)/tests/loadtests/common \
-	-I$(srcdir)/other_include
-
 DEFS_Release := \
 	'-DNDEBUG'
 
@@ -123,12 +95,6 @@ LDFLAGS_Debug := \
 	-L$(builddir)
 
 LIBTOOLFLAGS_Debug :=
-
-LDFLAGS_Debug_Win32 := \
-	-arch x86_64 \
-	-L$(builddir)
-
-LIBTOOLFLAGS_Debug_Win32 :=
 
 LDFLAGS_Release := \
 	-arch x86_64 \

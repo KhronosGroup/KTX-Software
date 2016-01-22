@@ -7,7 +7,8 @@
 {
  'variables': { # level 1
     'executable': 'executable',
-    'emit_x64_configs': 'false',
+    'emit_vs_x64_configs': 'false',
+    'emit_vs_win32_configs': 'false',
 
 #    'conditions': [
       # TODO Emscripten support not yet correct or complete. DO NOT
@@ -23,13 +24,18 @@
       ['OS == "android"', {
         'executable': 'shared_library',
       }],
-      # Don't generate x64 configs in MSVS Express Edition projects.
-      # Note: 2012e and 2013e support x64.
-      ['OS == "win" and (GENERATOR!="msvs" or (GENERATOR=="msvs" and MSVS_VERSION!="2010e" and MSVS_VERSION!="2008e" and MSVS_VERSION!="2005e"))', {
-        'emit_x64_configs': 'true'
-      }],
-    ],
-  },
+      ['OS == "win" and GENERATOR == "msvs"', {
+        'emit_vs_win32_configs': 'true',
+        'conditions': [
+          # Don't generate x64 configs in MSVS Express Edition projects.
+          # Note: 2012e and 2013e support x64.
+          ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
+            'emit_vs_x64_configs': 'true'
+          }],
+        ],
+      }], # OS == "win" and GENERATOR == "msvs"
+    ], # conditions
+ }, # variables
   'make_global_settings': [
     ['AR.emscripten', 'emar'],
 
@@ -54,6 +60,8 @@
       }],
     ],
   }, # xcode_settings
+  # This has to be here. If in target_defaults' Debug config
+  # Xcode will warn that this value is not set.
   'configurations': {
     'Debug': {
       'xcode_settings': {
@@ -159,17 +167,6 @@
           ],
         },
       }, # Debug configuration
-      'Debug_Win32': {
-        'inherit_from': ['Debug'],
-        'msvs_configuration_platform': 'Win32',
-        'msvs_settings': {
-          'VCLinkerTool': {
-            # Disable because it prevents E&C and is unnecessary in
-            # debug configurations.
-            'AdditionalOptions': '/SAFESEH:NO',
-          },
-        },
-      },
       'Release': {
         'cflags': [ '-O3' ],
         'defines': [
@@ -198,29 +195,44 @@
       }, # Release configuration
       # Conditionally add some configs
       'conditions': [  # or 'conditions!':
-        ['emit_x64_configs=="true"', { # and Linux?
+        ['emit_vs_win32_configs=="true"', {
           # The part after '_' must match the msvs_configuration_platform
+          'Debug_Win32': {
+            'inherit_from': ['Debug'],
+            'msvs_configuration_platform': 'Win32',
+            'msvs_settings': {
+              'VCLinkerTool': {
+                # Disable because it prevents E&C and is unnecessary in
+                # debug configurations.
+                'AdditionalOptions': '/SAFESEH:NO',
+              },
+            },
+          },
+          # No need for Release_Win32 as the standard Release settings apply and
+          # we can include msvs_configuration_platform there without problem.
+        }], # emit_vs_win32_configs
+        ['emit_vs_x64_configs=="true"', {
           'Debug_x64': {
             'inherit_from': ['Debug'],
             'msvs_configuration_platform': 'x64',
-               'msvs_settings': {
+            'msvs_settings': {
               'VCCLCompilerTool': {
                 # Program Database. E&C not available in 64-bit
                 'DebugInformationFormat': 3,
               },
             },
-          },
+          }, # Debug_x64
           'Release_x64': {
             'inherit_from': ['Release'],
             'msvs_configuration_platform': 'x64',
-               'msvs_settings': {
+            'msvs_settings': {
               'VCCLCompilerTool': {
                 # Program Database. E&C not available in 64-bit
                 'DebugInformationFormat': 3,
               },
             },
-          },
-        }],
+          }, # Release_x64
+        }], # emit_vs_x64_configs
         ['emit_emscripten_configs=="true"', {
           # The part after '_' must match the msvs_configuration_platform
           'Debug_Emscripten': {
