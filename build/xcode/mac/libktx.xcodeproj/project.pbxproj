@@ -12,6 +12,7 @@
 			buildConfigurationList = 744E587BF0ADE1B7A8D6B4D4 /* Build configuration list for PBXAggregateTarget "libktx.doc" */;
 			buildPhases = (
 				9890628BAC1B1A9998078E62 /* Action "buildDoc" */,
+				3296F6D89C7EC471FB718CD0 /* Action "touchTimestamp" */,
 			);
 			dependencies = (
 			);
@@ -320,6 +321,44 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		3296F6D89C7EC471FB718CD0 /* Action "touchTimestamp" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				ktxDoxy,
+				LICENSE.md,
+				include/ktx.h,
+				lib/checkheader.c,
+				lib/errstr.c,
+				lib/etcdec.cxx,
+				lib/etcunpack.cxx,
+				lib/gl_funcptrs.h,
+				lib/gles1_funcptrs.h,
+				lib/gles2_funcptrs.h,
+				lib/gles3_funcptrs.h,
+				lib/hashtable.c,
+				lib/ktxfilestream.c,
+				lib/ktxfilestream.h,
+				lib/ktxint.h,
+				lib/ktxmemstream.c,
+				lib/ktxmemstream.h,
+				lib/ktxstream.h,
+				lib/loader.c,
+				lib/swap.c,
+				lib/uthash.h,
+				lib/writer.c,
+			);
+			name = "Action \"touchTimestamp\"";
+			outputPaths = (
+				build/doc/.gentimestamp,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo note: \"setting generation timestamp\"\nexec touch build/doc/.gentimestamp\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
 		9890628BAC1B1A9998078E62 /* Action "buildDoc" */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -351,7 +390,6 @@
 			);
 			name = "Action \"buildDoc\"";
 			outputPaths = (
-				build/doc/.gentimestamp,
 				build/doc/html,
 				build/doc/latex,
 				build/doc/man,
