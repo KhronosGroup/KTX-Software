@@ -1,0 +1,48 @@
+# See https://docs.travis-ci.com/user/multi-os/ for more info.
+
+# Example as single section.
+#os:
+#- linux
+#- osx
+#- cpp
+#compiler:
+#- gcc
+#install:
+#if [[ "$os" == "linux" ]]; then sudo apt-get -qq update; sudo apt-get -qq install library; fi
+#if [[ "$os" == "osx" ]]; then brew doctor; brew library; f
+#script:
+#- ./autogen.sh && ./configure && make
+
+# Multi-section
+os:
+- linux
+sudo: required
+dist: trusty
+language:
+- cpp
+compiler:
+#-clang
+- gcc
+install:
+- sudo apt-get -qq update; sudo apt-get -qq install doxygen
+script:
+- cd build/make/linux && make BUILDTYPE=Debug
+- make BUILDTYPE=Release
+
+---
+
+os:
+- osx
+language:
+- cpp
+compiler:
+- clang
+#- gcc
+install:
+- port install doxygen
+script:
+- xcodebuild -project ktxtests -alltargets -configuration Debug
+- xcodebuild -project ktxtests -alltargets -configuration Release
+- xcodebuild -project ktxtools -alltargets -configuration Debug
+- xcodebuild -project ktxtools -alltargets -configuration Release
+
