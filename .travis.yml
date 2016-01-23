@@ -25,6 +25,8 @@ compiler:
 - gcc
 install:
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
+- git clone https://github.com/msc-/gyp
+- cd gyp && sudo ./setup.py install
 script:
 - cd build/make/linux && make BUILDTYPE=Debug
 - make BUILDTYPE=Release
