@@ -23,7 +23,7 @@ language:
 compiler:
 #-clang
 - gcc
-init:
+before_install:
 - sudo apt-get -qq install git-lfs
 - git lfs init
 install:
