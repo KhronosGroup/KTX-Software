@@ -26,8 +26,10 @@ compiler:
 install:
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
 - git clone https://github.com/msc-/gyp
+- pwd
 - cd gyp && sudo ./setup.py install && cd ..
 script:
+- pwd
 - cd KhronosGroup/KTX/build/make/linux && make BUILDTYPE=Debug
 - make BUILDTYPE=Release
 
