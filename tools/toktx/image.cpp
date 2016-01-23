@@ -63,7 +63,9 @@ void skipComments(FILE *src)
 	while((c = getc(src)) == '#')
 	{
 		char line[1024];
-		fgets(line, 1024, src);
+                // This is to silence -Wunused-result from GCC 4.8+.
+		char* retval;
+		retval = fgets(line, 1024, src);
 	}
 	ungetc(c, src);
 }
@@ -130,10 +132,15 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 		 unsigned int &imageSize, unsigned char*& pixels)
 {
 	char line[255];
+	int numvals;
 
 	skipNonData(src);
 
-	fscanf(src, "%s", line);
+	numvals = fscanf(src, "%3s", line);
+        if (numvals == 0) {
+		fprintf(stderr, "Error: PBM type string missing.\n");
+		return INVALID_FORMAT;
+        }
 
 	if (strcmp(line, "P6") == 0) {
 		return readPPM(src, width, height, components, componentSize, imageSize, pixels);
@@ -193,10 +200,17 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 		unsigned int &imageSize, unsigned char*& pixels)
 {
 	int maxval;
+	int numvals;
 
 	skipNonData(src);
 	
-	fscanf(src, "%d %d", &width, &height);
+	numvals = fscanf(src, "%d %d", &width, &height);
+	if (numvals != 2)
+	{
+		fprintf(stderr, "Error: width or height missing.\n");
+		fclose(src);
+		return INVALID_VALUE;
+        }
 	if( width<=0 || height <=0)
 	{
 		fprintf(stderr, "Error: width or height negative.\n");
@@ -208,7 +222,11 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 
 	components = 3;
 
-	fscanf(src, "%d", &maxval);
+	numvals = fscanf(src, "%d", &maxval);
+        if (numvals == 0) {
+		fprintf(stderr, "Error: maxval must be an integer.\n");
+		return INVALID_VALUE;
+        }
 	if (maxval <= 0 || maxval >= (1<<16)) {
 		fprintf(stderr, "Error: Color resolution must be > 0 && < 65536.\n");
 		return INVALID_VALUE;
@@ -222,7 +240,7 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 	// We need to remove the newline.
 	char c = 0;
 	while(c != '\n')
-		fscanf(src, "%c", &c);
+		numvals = fscanf(src, "%c", &c);
 	
 	imageSize = width * height * components * componentSize;
 	return readImage(src, imageSize, pixels);
@@ -274,9 +292,16 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 		unsigned int &imageSize, unsigned char*& pixels)
 {
 	int maxval;
+	int numvals;
 
 	skipNonData(src);
-	fscanf(src,"%d %d", &width, &height);
+	numvals = fscanf(src,"%d %d", &width, &height);
+	if (numvals != 2)
+	{
+		fprintf(stderr, "Error: image width or height missing.\n");
+		fclose(src);
+		return INVALID_VALUE;
+        }
 	if (width<=0 || height<=0)
 	{
 		fprintf(stderr, "Error: width and height of the image must be greater than zero.\n");
@@ -286,7 +311,11 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 
 	components = 1;
 
-	fscanf(src,"%d",&maxval);
+	numvals = fscanf(src,"%d",&maxval);
+        if (numvals == 0) {
+		fprintf(stderr, "Error: maxval must be an integer.\n");
+		return INVALID_VALUE;
+        }
 	if (maxval <= 0 || maxval >= (1<<16)) {
 		fprintf(stderr, "Error: maxval must be > 1 && < 65536.\n");
 		return INVALID_VALUE;
@@ -298,7 +327,7 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 
 	/* gotta eat the newline too */
 	char ch=0;
-	while(ch!='\n') fscanf(src,"%c",&ch);
+	while(ch!='\n') numvals = fscanf(src,"%c",&ch);
 
 	imageSize = width * height * componentSize;
 	return readImage(src, imageSize, pixels);
