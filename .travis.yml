@@ -29,8 +29,8 @@ install:
 - git clone https://github.com/msc-/gyp
 - cd gyp && sudo ./setup.py install && cd ..
 - cd KhronosGroup/KTX
+- ls -l other_lib/linux/Debug-x64
 script:
-- pwd
 - cd build/make/linux && make BUILDTYPE=Debug
 - make BUILDTYPE=Release
 
