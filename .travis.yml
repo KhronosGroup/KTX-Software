@@ -24,10 +24,12 @@ compiler:
 #-clang
 - gcc
 before_install:
+- git lfs help
 - sudo apt-get update
-- sudo apt-get -qq install git-lfs
+- sudo apt-get -qq install https://packagecloud.io/github/git-lfs
 - git lfs init
 install:
+- git lfs help
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
 - cd ../..
 - git clone https://github.com/msc-/gyp
