@@ -25,18 +25,21 @@ compiler:
 - gcc
 install:
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
+- cd ../..
 - git clone https://github.com/msc-/gyp
-- pwd
 - cd gyp && sudo ./setup.py install && cd ..
+- cd KhronosGroup/KTX
 script:
 - pwd
-- cd KhronosGroup/KTX/build/make/linux && make BUILDTYPE=Debug
+- cd build/make/linux && make BUILDTYPE=Debug
 - make BUILDTYPE=Release
 
 ---
 
 os:
 - osx
+osx_image:
+- xcode7.2
 language:
 - cpp
 compiler:
@@ -45,7 +48,7 @@ compiler:
 install:
 - port install doxygen
 script:
-- cd KhronosGroup/KTX/build/xcode/mac
+- cd build/xcode/mac
 - xcodebuild -project ktxtests -alltargets -configuration Debug
 - xcodebuild -project ktxtests -alltargets -configuration Release
 - xcodebuild -project ktxtools -alltargets -configuration Debug
