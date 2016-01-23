@@ -24,6 +24,7 @@ compiler:
 #-clang
 - gcc
 before_install:
+- sudo apt-get update
 - sudo apt-get -qq install git-lfs
 - git lfs init
 install:
