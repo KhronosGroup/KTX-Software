@@ -23,6 +23,9 @@ language:
 compiler:
 #-clang
 - gcc
+init:
+- sudo apt-get -qq install git-lfs
+- git lfs init
 install:
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
 - cd ../..
