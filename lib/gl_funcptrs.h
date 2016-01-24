@@ -43,6 +43,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 extern "C" {
 #endif
 
+
+
 #define DECLARE_GL_FUNCPTRS
 
 /* remove this if you use GLEW and already have this */

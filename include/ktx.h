@@ -137,14 +137,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 	#ifdef _WIN32
 	  #include <windows.h>
-	  #include <GL/glew.h>
-    #elif KTX_USE_GETPROC
-      #include <GL/glew.h>
-    #else
+	#endif
+	
+    #ifdef USE_GLCORE
+      #include <gl_core_3_0.h>
       #define GLCOREARB_PROTOTYPES
       #include <GL/glcorearb.h>
+    #elif USE_GLEW
+	  #include <GL/glew.h>
 	#endif
-
+    
 	#define GL_APIENTRY APIENTRY
     #define KTX_GLFUNCPTRS "gl_funcptrs.h"
 
