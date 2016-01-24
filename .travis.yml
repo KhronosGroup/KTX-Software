@@ -30,7 +30,7 @@ before_install:
 install:
 # Get the LFS'ed file 'cos clone happened before LFS init.
 - git checkout other_lib
-- git lfs logs
+- git lfs logs $(git lfs logs | head -n 1)
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
 - cd ../..
 - git clone https://github.com/msc-/gyp
