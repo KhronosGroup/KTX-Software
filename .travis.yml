@@ -26,10 +26,10 @@ compiler:
 before_install:
 #- sudo apt-get update
 #- sudo apt-get -qq install packagecloud.io/github/git-lfs
-- git lfs init
+- GIT_CURL_VERBOSE=1 git lfs init
 install:
 # Get the LFS'ed file 'cos clone happened before LFS init.
-- git checkout other_lib/linux/Debug-x64/libSDL2-2.0.so.0.4.0
+- GIT_CURL_VERBOSE=1 git checkout other_lib/linux/Debug-x64/libSDL2-2.0.so.0.4.0
 - git lfs logs last
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
 - cd ../..
@@ -65,4 +65,3 @@ script:
 - xcodebuild -project ktxtests -alltargets -configuration Release
 - xcodebuild -project ktxtools -alltargets -configuration Debug
 - xcodebuild -project ktxtools -alltargets -configuration Release
-
