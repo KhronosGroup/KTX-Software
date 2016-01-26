@@ -34,8 +34,7 @@ before_install:
 - git lfs install
 # popd back to the cloned repo.
 - popd
-#- git lfs pull
-- git checkout
+- git lfs pull
 install:
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
 - pushd ../..
