@@ -34,7 +34,7 @@ before_install:
 - git lfs install
 # popd back to the cloned repo.
 - popd
-- git lfs pull
+- git lfs pull --include="other_lib/linux/Debug-x64/libSDL2-2.0.so.0.4.0"
 install:
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
 - pushd ../..
