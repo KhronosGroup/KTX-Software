@@ -34,6 +34,7 @@ before_install:
 - git lfs install
 # popd back to the cloned repo.
 - popd
+# Pull just the LFS'ed linux files to avoid a panic when pulling all.
 - git lfs pull --include="other_lib/linux"
 install:
 - sudo apt-get -qq update; sudo apt-get -qq install doxygen
@@ -47,8 +48,6 @@ script:
 - make BUILDTYPE=Debug
 - make BUILDTYPE=Release
 
----
-
 os:
 - osx
 osx_image:
@@ -59,6 +58,8 @@ compiler:
 - clang
 #- gcc
 install:
+- port install git-lfs
+- git lfs install
 - port install doxygen
 script:
 - cd build/xcode/mac
