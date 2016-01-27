@@ -12,7 +12,7 @@ language:
 - cpp
 
 compiler:
-- clang
+#- clang
 - gcc
 
 before_install:
