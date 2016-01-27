@@ -27,7 +27,7 @@ before_install:
     pushd ../.. ;
     wget https://github.com/github/git-lfs/releases/download/v1.1.0/git-lfs-linux-amd64-1.1.0.tar.gz
     && tar -zxvf git-lfs-linux-amd64-1.1.0.tar.gz
-    && export PATH=`pwd`/git-lfs-1.1.0:$PATH ;
+    && exbrew PATH=`pwd`/git-lfs-1.1.0:$PATH ;
     popd ;
     git lfs install ;
     git lfs pull --include="other_lib/linux" ;
@@ -35,7 +35,7 @@ before_install:
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]
   then
-    port install git-lfs
+    brew install git-lfs
     git lfs install
     git lfs pull --include="other_lib/{ios,mac}"
   fi
@@ -45,7 +45,7 @@ install:
   then
     sudo apt-get -qq update; sudo apt-get -qq install doxygen;
   fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then port install doxygen; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
 - pushd ../..
 - git clone https://github.com/msc-/gyp
 - cd gyp && sudo ./setup.py install && cd ..
