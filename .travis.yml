@@ -38,7 +38,8 @@ before_install:
     brew install git-lfs
     git lfs install
     git lfs pull --include="other_lib/ios"
-    git lfs pull --include="other_lib/mac"
+    git lfs pull --include="other_lib/mac/Debug"
+    git lfs pull --include="other_lib/mac/Release"
   fi
 
 install:
