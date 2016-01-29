@@ -37,8 +37,8 @@ before_install:
   fi
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    brew update --quiet > /dev/null
-    #brew tap homebrew/binary --quiet
+    brew update > /dev/null
+    brew tap homebrew/binary --quiet
     brew install git-lfs
     git lfs install
     git lfs version
