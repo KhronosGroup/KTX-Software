@@ -60,6 +60,7 @@ install:
 - popd
 
 before_script:
+- |
   # Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
