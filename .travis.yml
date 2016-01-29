@@ -26,7 +26,8 @@ before_install:
 # one to work with the GitHub server.
 # Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
 - |
-  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
     pushd ../..
     wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz
     tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz
@@ -34,15 +35,14 @@ before_install:
     popd
     git lfs install
     git lfs pull --include="other_lib/linux"
-  fi
-- |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    ;;
+  osx)
     brew update > /dev/null
-    brew tap homebrew/binary --quiet
     brew install git-lfs
     git lfs install
     git lfs version
-  fi
+    ;;
+  esac
 
 install:
 - |
