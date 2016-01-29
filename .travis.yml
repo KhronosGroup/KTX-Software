@@ -25,35 +25,42 @@ before_install:
 # The already installed GIT LFS is very old - 0.5.0. Need a more recent
 # one to work with the GitHub server.
 # Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]] ;
-  then
-    pushd ../.. ;
+- |
+  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    pushd ../..
     wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz
-    && tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz
-    && export PATH=`pwd`/git-lfs-1.1.0:$PATH ;
-    popd ;
-    git lfs install ;
-    git lfs pull --include="other_lib/linux" ;
+    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz
+    export PATH=`pwd`/git-lfs-1.1.0:$PATH
+    popd
+    git lfs install
+    git lfs pull --include="other_lib/linux"
   fi
 - |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]
-  then
-    brew update --quiet
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    brew update --quiet > /dev/null
     #brew tap homebrew/binary --quiet
     brew install git-lfs
+    git lfs install
     git lfs version
   fi
 
 install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]];
-  then
-    sudo apt-get -qq update; sudo apt-get -qq install doxygen;
+- |
+  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    sudo apt-get -qq update; sudo apt-get -qq install doxygen
   fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
 - pushd ../..
 - git clone https://github.com/msc-/gyp
 - cd gyp && sudo ./setup.py install && cd ..
 - popd
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ls -l other_lib/linux/Debug-x64; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -l other_lib/mac/Debug; fi
+
+before_script:
+# Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then git lfs pull other_lib/linux; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then git lfs pull other_lib/{ios,mac}; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ls -l other_lib/linux/Debug-x64; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -l other_lib/mac/Debug; fi
 
@@ -64,16 +71,16 @@ script:
     make BUILDTYPE=Debug ;
     make BUILDTYPE=Release ;
   fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]] ;
-  then 
-    cd build/xcode/mac ;
-    xcodebuild -project ktxtests -alltargets -configuration Debug ;
-    xcodebuild -project ktxtests -alltargets -configuration Release ;
-    xcodebuild -project ktxtools -alltargets -configuration Debug ;
-    xcodebuild -project ktxtools -alltargets -configuration Release ;
-    cd ../ios ;
-    xcodebuild -project ktxtests -alltargets -configuration Debug ;
-    xcodebuild -project ktxtests -alltargets -configuration Release ;
-    xcodebuild -project ktxtools -alltargets -configuration Debug ;
-    xcodebuild -project ktxtools -alltargets -configuration Release ;
+- |
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    cd build/xcode/mac
+    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug
+    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release
+    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug
+    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release
+    cd ../ios
+    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug
+    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release
+    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug
+    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release
   fi
