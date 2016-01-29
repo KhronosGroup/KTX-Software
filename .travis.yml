@@ -38,15 +38,10 @@ before_install:
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]
   then
-    brew update > /dev/null
+    brew update --quiet
+    #brew tap homebrew/binary --quiet
     brew install git-lfs
-    git lfs install
-    git lfs pull --include="other_lib/ios/Debug-iphoneos"
-    git lfs pull --include="other_lib/ios/Debug-iphonesimulator"
-    git lfs pull --include="other_lib/ios/Release-iphoneos"
-    git lfs pull --include="other_lib/ios/Release-iphonesimulator"
-    git lfs pull --include="other_lib/mac/Debug"
-    git lfs pull --include="other_lib/mac/Release"
+    git lfs version
   fi
 
 install:
