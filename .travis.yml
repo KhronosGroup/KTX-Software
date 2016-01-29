@@ -54,22 +54,20 @@ install:
 - git clone https://github.com/msc-/gyp
 - cd gyp && sudo ./setup.py install && cd ..
 - popd
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ls -l other_lib/linux/Debug-x64; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -l other_lib/mac/Debug; fi
 
 before_script:
 # Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then git lfs pull other_lib/linux; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then git lfs pull other_lib/{ios,mac}; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then git lfs pull --include=other_lib/linux; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then git lfs pull --include=other_lib/{ios,mac}; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ls -l other_lib/linux/Debug-x64; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -l other_lib/mac/Debug; fi
 
 script:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]] ;
-  then
-    cd build/make/linux ;
-    make BUILDTYPE=Debug ;
-    make BUILDTYPE=Release ;
+- |
+  if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then
+    cd build/make/linux
+    make BUILDTYPE=Debug
+    make BUILDTYPE=Release
   fi
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
