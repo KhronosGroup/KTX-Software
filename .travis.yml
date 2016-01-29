@@ -46,31 +46,41 @@ before_install:
 
 install:
 - |
-  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
     sudo apt-get -qq update; sudo apt-get -qq install doxygen
-  fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
+    ;;
+  osx)
+    brew install doxygen
+    ;;
+  esac
 - pushd ../..
 - git clone https://github.com/msc-/gyp
 - cd gyp && sudo ./setup.py install && cd ..
 - popd
 
 before_script:
-# Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then git lfs pull --include=other_lib/linux; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then git lfs pull --include=other_lib/{ios,mac}; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ls -l other_lib/linux/Debug-x64; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -l other_lib/mac/Debug; fi
+  # Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    git lfs pull --include=other_lib/linux
+    ls -l other_lib/linux/Debug-x64
+    ;;
+  osx)
+    git lfs pull --include=other_lib/{ios,mac}
+    ls -l other_lib/mac/Debug
+    ;;
+  esac
 
 script:
 - |
-  if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
     cd build/make/linux
     make BUILDTYPE=Debug
     make BUILDTYPE=Release
-  fi
-- |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    ;;
+  osx)
     cd build/xcode/mac
     xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug
     xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release
@@ -81,4 +91,5 @@ script:
     xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release
     xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug
     xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release
-  fi
+    ;;
+  esac
