@@ -67,10 +67,10 @@ before_script:
   linux)
     # Pull just linux files to save time.
     git lfs pull --include=other_lib/linux | cat
-    ls -l other_lib/linux/Debug-x64
     ;;
   osx)
-    git lfs pull --include=other_lib/{ios/*/*,mac} > lfspullout
+    git lfs pull --include=other_lib/mac > lfspullout
+    git lfs pull --include=other_lib/ios >> lfspullout
     cat lfspullout
     rm lfspullout
     ls -l other_lib/mac/Debug
