@@ -61,15 +61,18 @@ install:
 
 before_script:
 - |
-  # Pull just the LFS'ed linux, mac and ios files to avoid a panic when pulling all.
+  # | cat is to avoid a Go panic because it can't get width of the "terminal".
+  # See Git LFS issue https://github.com/github/git-lfs/issues/880.
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    git lfs pull --include=other_lib/linux
+    # Pull just linux files to save time.
+    git lfs pull --include=other_lib/linux | cat
     ls -l other_lib/linux/Debug-x64
     ;;
   osx)
-    git lfs pull --include=other_lib/{ios,mac}
+    git lfs pull --include=other_lib/{ios,mac} | cat
     ls -l other_lib/mac/Debug
+    cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
     ;;
   esac
 
@@ -87,9 +90,8 @@ script:
     OSX_XCODE_OPTIONS=(-alltargets -destination "plafform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386")
     IOS_XCODE_OPTIONS=(-alltargets -destination "platform=generic/iOS" -destination "platform=iOS Simulator,OS=latest")
     XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO'
-    echo "${OSX_XCODE_OPTIONS[@]}"
-    echo "${IOS_XCODE_OPTIONS[@]}"
-    echo $XCODE_CODESIGN_ENV
+    # The following and more is needed if yuo want to actually sign the code.
+    # See http://stackoverflow.com/questions/27671854/travis-ci-fails-to-build-with-a-code-signing-error.
     #KEY_CHAIN=xcode-build.keychain
     #security create-keychain -p travis $KEY_CHAIN
     # Make the keychain the default so identities are found
@@ -103,18 +105,8 @@ script:
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
-    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
-    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
     cd ../ios
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
-    xcodebuild -project ktxtools.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV
-    xcodebuild -project ktxtools.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
-    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
-    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
     ;;
   esac
