@@ -61,8 +61,8 @@ install:
 
 before_script:
 - |
-  # | cat is to avoid a Go panic because it can't get width of the "terminal".
-  # See Git LFS issue https://github.com/github/git-lfs/issues/880.
+  # The "| cat" is to avoid a Go panic because it can't get width of the
+  # "terminal". See Git LFS issue https://github.com/github/git-lfs/issues/880.
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     # Pull just linux files to save time.
@@ -72,7 +72,7 @@ before_script:
   osx)
     git lfs pull --include=other_lib/{ios,mac} | cat
     ls -l other_lib/mac/Debug
-    cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
+    sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
     ;;
   esac
 
