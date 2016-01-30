@@ -72,6 +72,7 @@ before_script:
   osx)
     git lfs pull --include=other_lib/{ios,mac} | cat
     ls -l other_lib/mac/Debug
+    ls -lR other_lib/ios
     sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
     ;;
   esac
