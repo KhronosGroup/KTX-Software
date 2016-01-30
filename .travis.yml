@@ -97,7 +97,7 @@ script:
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
     cd build/xcode/mac
-    xcodebuild -project ktxtests.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Debug
+    xcodebuild -project ktxtests.xcodeproj -alltargets -destination "plafform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386" $XCODE_CODESIGN_ENV -configuration Debug
     xcodebuild -project ktxtests.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Release
     xcodebuild -project ktxtools.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Debug
     xcodebuild -project ktxtools.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Release
