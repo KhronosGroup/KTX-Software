@@ -69,10 +69,7 @@ before_script:
     git lfs pull --include=other_lib/linux | cat
     ;;
   osx)
-    git lfs pull --include=other_lib/mac > lfspullout
-    git lfs pull --include=other_lib/ios >> lfspullout
-    cat lfspullout
-    rm lfspullout
+    git lfs pull --include=other_lib/mac,other_lib/ios | cat
     ls -l other_lib/mac/Debug
     ls -lR other_lib/ios
     sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
