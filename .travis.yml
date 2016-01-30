@@ -82,6 +82,9 @@ script:
     make BUILDTYPE=Release
     ;;
   osx)
+    OSX_XCODE_OPTIONS='-alltargets -destination "plafform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386"'
+    IOS_XCODE_OPTIONS='-alltargets -destination "platform=generic/iOS" -destination "platform=iOS Simulator,OS=latest"'
+    XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO'
     #KEY_CHAIN=xcode-build.keychain
     #security create-keychain -p travis $KEY_CHAIN
     # Make the keychain the default so identities are found
@@ -91,14 +94,22 @@ script:
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
     cd build/xcode/mac
-    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
-    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
+    xcodebuild -project ktxtests.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Debug
+    xcodebuild -project ktxtests.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Release
+    xcodebuild -project ktxtools.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Debug
+    xcodebuild -project ktxtools.xcodeproj $OSX_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Release
+    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
+    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
+    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
+    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
     cd ../ios
-    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
-    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
-    xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
+    xcodebuild -project ktxtests.xcodeproj $IOS_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Debug
+    xcodebuild -project ktxtests.xcodeproj $IOS_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Release
+    xcodebuild -project ktxtools.xcodeproj $IOS_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Debug
+    xcodebuild -project ktxtools.xcodeproj $IOS_XCODE_OPTIONS $XCODE_CODESIGN_ENV -configuration Release
+    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
+    #xcodebuild -project ktxtests.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
+    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Debug CODE_SIGNING_REQUIRED=NO
+    #xcodebuild -project ktxtools.xcodeproj -alltargets -configuration Release CODE_SIGNING_REQUIRED=NO
     ;;
   esac
