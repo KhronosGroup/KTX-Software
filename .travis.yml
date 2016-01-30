@@ -85,6 +85,9 @@ script:
     OSX_XCODE_OPTIONS='-alltargets -destination "plafform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386"'
     IOS_XCODE_OPTIONS='-alltargets -destination "platform=generic/iOS" -destination "platform=iOS Simulator,OS=latest"'
     XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO'
+    echo $OSX_XCODE_OPTIONS
+    echo $IOS_XCODE_OPTIONS
+    echo $XCODE_CODESIGN_ENV
     #KEY_CHAIN=xcode-build.keychain
     #security create-keychain -p travis $KEY_CHAIN
     # Make the keychain the default so identities are found
