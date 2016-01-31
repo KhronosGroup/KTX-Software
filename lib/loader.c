@@ -128,7 +128,9 @@ static GLboolean supportsSRGB = GL_TRUE;
  * @brief workaround mismatch of glGetString declaration and standard string
  *        function parameters.
  */
-#define glGetString(x) (const char*)glGetString(x)
+#ifndef KTX_USE_GL3W_GETPROC
+    #define glGetString(x) (const char*)glGetString(x)
+#endif
 
 /**
  * @private

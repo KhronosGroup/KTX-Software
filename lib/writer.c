@@ -614,7 +614,7 @@ sizeofGroupAndElement(GLenum format, GLenum type, GLuint* groupBytes,
 	case GL_GREEN:
 	case GL_BLUE:
 	case GL_LUMINANCE: /* deprecated but needed for ES 1 & 2 */
-	case GL_ALPHA_INTEGER:
+	// case GL_ALPHA_INTEGER:
 	case GL_RED_INTEGER:
 	case GL_GREEN_INTEGER:
 	case GL_BLUE_INTEGER:
