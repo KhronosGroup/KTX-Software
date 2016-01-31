@@ -1,6 +1,9 @@
 ![logo](http://www.khronos.org/assets/images/khronos-group-logo.png)
-The Official Khronos KTX Repository [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0?svg=true)](https://ci.appveyor.com/project/msc-/ktx)
+The Official Khronos KTX Repository
 ---
+
+<span style="font-size: 80%; color: white; background-color: grey;">GNU/Linux, iOS & OSX</span> [![Build Status](https://travis-ci.org/KhronosGroup/KTX.svg?branch=master)](https://travis-ci.org/KhronosGroup/KTX) <span style="font-size: 80%; color: white; background-color: grey;">Windows</span> [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0?svg=true)](https://ci.appveyor.com/project/msc-/ktx)
+
 This is the offical home of the source code
 for the Khronos KTX library and tools.
 
