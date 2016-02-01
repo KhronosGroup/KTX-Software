@@ -726,21 +726,21 @@ void decompressBlockPlanar57c(unsigned int compressed57_1, unsigned int compress
 
 	int xx, yy;
 
-	for( xx=0; xx<4; xx++)
-	{
-		for( yy=0; yy<4; yy++)
-		{
-			img[channels*width*(starty+yy) + channels*(startx+xx) + 0] = CLAMP(0, ((xx*(colorH[0]-colorO[0]) + yy*(colorV[0]-colorO[0]) + 4*colorO[0] + 2) >> 2),255);
-			img[channels*width*(starty+yy) + channels*(startx+xx) + 1] = CLAMP(0, ((xx*(colorH[1]-colorO[1]) + yy*(colorV[1]-colorO[1]) + 4*colorO[1] + 2) >> 2),255);
-			img[channels*width*(starty+yy) + channels*(startx+xx) + 2] = CLAMP(0, ((xx*(colorH[2]-colorO[2]) + yy*(colorV[2]-colorO[2]) + 4*colorO[2] + 2) >> 2),255);
+    for( yy=0; yy<4; yy++)
+    {
+        for( xx=0; xx<4; xx++)
+        {
+            const int indexLocal = channels*width*(starty+yy) + channels*(startx+xx);
+            img[indexLocal + 0] = CLAMP(0, (((colorH[0]-colorO[0])*(xx+yy) + 4*colorO[0] + 2) >> 2),255);
+            img[indexLocal + 1] = CLAMP(0, (((colorH[1]-colorO[1])*(xx+yy) + 4*colorO[1] + 2) >> 2),255);
+            img[indexLocal + 2] = CLAMP(0, (((colorH[2]-colorO[2])*(xx+yy) + 4*colorO[2] + 2) >> 2),255);
 
-			//Equivalent method
-			/*img[channels*width*(starty+yy) + channels*(startx+xx) + 0] = (int)CLAMP(0, JAS_ROUND((xx*(colorH[0]-colorO[0])/4.0 + yy*(colorV[0]-colorO[0])/4.0 + colorO[0])), 255);
-			img[channels*width*(starty+yy) + channels*(startx+xx) + 1] = (int)CLAMP(0, JAS_ROUND((xx*(colorH[1]-colorO[1])/4.0 + yy*(colorV[1]-colorO[1])/4.0 + colorO[1])), 255);
-			img[channels*width*(starty+yy) + channels*(startx+xx) + 2] = (int)CLAMP(0, JAS_ROUND((xx*(colorH[2]-colorO[2])/4.0 + yy*(colorV[2]-colorO[2])/4.0 + colorO[2])), 255);*/
-			
-		}
-	}
+            //Equivalent method
+            /*img[channels*width*(starty+yy) + channels*(startx+xx) + 0] = (int)CLAMP(0, JAS_ROUND((xx*(colorH[0]-colorO[0])/4.0 + yy*(colorV[0]-colorO[0])/4.0 + colorO[0])), 255);
+            img[channels*width*(starty+yy) + channels*(startx+xx) + 1] = (int)CLAMP(0, JAS_ROUND((xx*(colorH[1]-colorO[1])/4.0 + yy*(colorV[1]-colorO[1])/4.0 + colorO[1])), 255);
+            img[channels*width*(starty+yy) + channels*(startx+xx) + 2] = (int)CLAMP(0, JAS_ROUND((xx*(colorH[2]-colorO[2])/4.0 + yy*(colorV[2]-colorO[2])/4.0 + colorO[2])), 255);*/
+        }
+    }
 }
 void decompressBlockPlanar57(unsigned int compressed57_1, unsigned int compressed57_2, uint8 *img, int width, int height, int startx, int starty)
 {
@@ -1649,33 +1649,27 @@ int clamp(int val)
 // However, a hardware decoder can share gates between the two formats as explained
 // in the specification under GL_COMPRESSED_R11_EAC.
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2013. All Rights Reserved.
-void decompressBlockAlphaC(uint8* data, uint8* img, int width, int height, int ix, int iy, int channels) 
+void decompressBlockAlphaC(uint8* data, uint8* img, int width, int height, int ix, int iy, int channels)
 {
-	int alpha = data[0];
-	int table = data[1];
-	
-	int bit=0;
-	int byte=2;
-	//extract an alpha value for each pixel.
-	for(int x=0; x<4; x++) 
-	{
-		for(int y=0; y<4; y++) 
-		{
-			//Extract table index
-			int index=0;
-			for(int bitpos=0; bitpos<3; bitpos++) 
-			{
-				index|=getbit(data[byte],7-bit,2-bitpos);
-				bit++;
-				if(bit>7) 
-				{
-					bit=0;
-					byte++;
-				}
-			}
-			img[(ix+x+(iy+y)*width)*channels]=clamp(alpha +alphaTable[table][index]);
-		}
-	}
+    const int alpha = data[0];
+    const int table = data[1];
+
+    int bit=16;
+    uint8* imgofs = &img[(ix+iy*width)*channels];
+    //extract an alpha value for each pixel.
+    for(int y=0; y<4; y++) 
+    {
+        for(int x=0; x<4; x++) 
+        {
+            //Extract table index
+            int index=0;
+            for(int bitpos=0; bitpos<3; bitpos++, bit++) 
+            {
+                index|=getbit(data[bit>>3],~(bit&0x07),2-bitpos);
+            }
+            imgofs[(x+y*width)*channels]=clamp(alpha +alphaTable[table][index]);
+        }
+    }
 }
 void decompressBlockAlpha(uint8* data, uint8* img, int width, int height, int ix, int iy) 
 {
