@@ -30,9 +30,9 @@
       '<@(additional_emcc_options)',
       '-s', 'USE_SDL=2',
     ],
-    # A hack to get INFOPLIST_FILE relativized. Keys ending in
-    # _file & _dir assumed to be paths and are made relative to
-    # the main .gyp file.
+    # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
+    # Keys ending in _file & _dir assumed to be paths and are made relative
+    # to the main .gyp file.
     'conditions': [
       ['OS == "ios"', {
         'infoplist_file': 'resources_ios/Info.plist',
@@ -136,6 +136,9 @@
               }],
             }], # OS == "win"
             ['OS == "mac"', {
+              'sources': [
+                'resources_mac/Info.plist',
+              ],
               'copies': [{
                 # A small change to GYP was required to use
                 # UNLOCALIZED_RESOURCES_FOLDER_PATH.
@@ -191,17 +194,18 @@
             },
           },
           'xcode_settings': {
+            'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
+            'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
             'INFOPLIST_FILE': '<(infoplist_file)',
           },
           'conditions': [
             ['OS == "ios"', {
-              # Not needed for iOS simulator builds. I expect it is needed
-              # for iOS device builds. Since I don't have code signing  I
-              # can't complete a build to test.
+              'sources': [
+                'resources_ios/Info.plist',
+                'resources_ios/LaunchScreen.storyboard',
+              ],
               'mac_bundle_resources': [
-                'resources_ios/Default.png',
-                'resources_ios/Default-568h@2x.png',
-                'resources_ios/Icon.png',
+                'resources_ios/Images.xcassets',
               ],
               'copies': [{
                 # A small change to GYP was required to use
@@ -258,17 +262,18 @@
             },
           },
           'xcode_settings': {
+            'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
+            'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
             'INFOPLIST_FILE': '<(infoplist_file)',
           },
           'conditions': [
             ['OS == "ios"', {
-              # Not needed for iOS simulator builds. I expect it is needed
-              # for iOS device builds. Since I don't have code signing  I
-              # can't complete a build to test.
+              'sources': [
+                'resources_ios/Info.plist',
+                'resources_ios/LaunchScreen.storyboard',
+              ],
               'mac_bundle_resources': [
-                'resources_ios/Default.png',
-                'resources_ios/Default-568h@2x.png',
-                'resources_ios/Icon.png',
+                'resources_ios/Images.xcassets',
               ],
               'copies': [{
                 # A small change to GYP was required to use
