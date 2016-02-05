@@ -14,7 +14,25 @@
 {
   'variables': { # level 1
     'variables': { # level 2 defines variables to be used in level 1
-      'variables': { # level 3 defines variables to be used in level 2
+      'variables': { # level 3 ditto
+        'variables': { # level 4 ditto
+          'gen_platform_arch_var': '64',
+          'conditions': [
+            ['GENERATOR == "msvs"', {
+              'conditions': [
+                #['int(MSVS_VERSION[:4]) >= 2010', {
+                ['MSVS_VERSION[:4] != "2010" and MSVS_VERSION[:4] != "2008" and MSVS_VERSION[:4] != "2008"', {
+                  'gen_platform_arch_var': '$(PlatformArchitecture)',
+                }, 'emit_vs_x64_configs == "true"', {
+                  'gen_platform_arch_var': '64',
+                }, {
+                  'gen_platform_arch_var': '32',
+                }],
+              ],
+            }],
+          ],
+        },
+        'gen_platform_arch': '<(gen_platform_arch)',
         # Default install location
         'conditions': [
           ['OS == "win"', {
@@ -25,7 +43,8 @@
             # such versions will need to rename the folders to Win32
             # and x64, or copy the libs and dlls to such a folder and
             # use $(PlatformName) here.
-            'pvrsdk_dir': 'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_$(PlatformArchitecture)/Lib',
+            
+            'pvrsdk_dir': 'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_<(gen_platform_arch_var)/Lib',
           }, {
             'pvrsdk_dir': 'somewhere', # TO DO
           }]

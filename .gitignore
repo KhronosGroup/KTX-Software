@@ -26,8 +26,8 @@
 /build/**/*.user
 /build/**/Win32
 /build/**/x64
-/build/**/Debug*
-/build/**/Release*
+/build/msvs/**/Debug*
+/build/msvs/**/Release*
 
 # User related stuff in /build/xcode
 /build/xcode/*/*.xcodeproj/project.xcworkspace

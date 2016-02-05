@@ -39,12 +39,12 @@ xcode_buildd := $(builddir)/xcode
 xcode_platforms := ios mac
 xcode_targets = $(addsuffix /${stampfile},$(addprefix ${xcode_buildd}/,${xcode_platforms}))
 
-cmake_buildd := $(builddir)/cmake.n
-cmake_platforms := linux
+cmake_buildd := $(builddir)/cmake
+cmake_platforms := linux# mac
 cmake_targets = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,${cmake_platforms}))
 
 make_buildd := $(builddir)/make
-make_platforms := linux #mac
+make_platforms := linux# mac
 make_targets = $(addsuffix /${stampfile},$(addprefix ${make_buildd}/,${make_platforms}))
 
 # Used by msvs recipe to extract version number from the partial target
@@ -52,6 +52,10 @@ make_targets = $(addsuffix /${stampfile},$(addprefix ${make_buildd}/,${make_plat
 # names attempting to match and delete it. if findstring is necessary
 # because subst returns the full string in the event of no match.
 msvs_version=$(strip $(foreach platform,${msvs_platforms},$(if $(findstring ${platform},$*),$(subst ${platform}/vs,,$*))))
+
+# Returns ktxtools.gyp if the OS set in $* is a desktop OS, otherwise an
+# empty string.
+ktxtools.gyp=$(if $(or $(findstring linux,$*),$(findstring mac,$*),$(findstring win,$*)),ktxtools.gyp)
 
 gypfiles=ktxtests.gyp \
 		 ktxtools.gyp \
@@ -119,15 +123,15 @@ $(msvs_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	@date > $@
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=.  ktxtests.gyp $(if $(findstring mac,$*),ktxtools.gyp)
+	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
 	@date > $@
 
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp
+	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=. --depth=. ktxtests.gyp $(ktxtools.gyp)
 	@date > $@
 
 $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=.  ktxtests.gyp $(if $(findstring linux,$*),ktxtools.gyp)
+	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
 	@date > $@
 
 # vim:ai:expandtab!:ts=4:sts=4:sw=2:textwidth=75

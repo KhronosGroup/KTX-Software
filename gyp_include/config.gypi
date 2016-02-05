@@ -12,27 +12,48 @@
   'variables': { # level 1
     'variables': { # level 2
       'variables': { # level 3 defines variables to be used in level 2
+        # None of 'copies', 'link_settings', library_dirs or libraries
+        # can appear inside configurations hence must use build system
+        # environment variables such as $(ConfigurationName).
+        #
+        # An error is emitted when 'link_settings' is so used. No error
+        # is emitted when 'copies' is so used.
+        #
+        # To avoid repeating the test for all OSes, define gyp variables
+        # containing the build system variable name.
+        'conditions': [
+          ['GENERATOR == "cmake"', {
+            'gen_config_var': '${configuration}',
+            'gen_platform_var': 'x64', # Default to x64
+          }, 'GENERATOR == "make"', {
+            'gen_config_var': '$(BUILDTYPE)',
+            'gen_platform_var': 'x64', # Default to x64
+          }, 'GENERATOR == "msvs"', {
+            # $(ConfigurationName) is Debug or Release. $(PlatformName) is
+            # Win32 or x64. $(PlatformName) is used instead of $(Platform) for
+            # compatibility with VS2005.
+            'gen_config_var': '$(ConfigurationName)',
+            'gen_platform_var': '$(PlatformName)',
+          }, 'GENERATOR == "xcode"', {
+            'gen_config_var': '$CONFIGURATION',
+            'gen_platform_var': '$PLATFORM_NAME',
+          }],
+        ],
         'otherlibroot_dir': '../other_lib/<(OS)',
       },
+      'gen_config_var%': '<(gen_config_var)',
+      'gen_platform_var%': '<(gen_platform_var)',
+      'gen_platform_arch%': '<(gen_platform_arch)',
       'otherlibroot_dir%': '<(otherlibroot_dir)',
+      #
       # *olib_dir are the default locations for external libraries
       #
-      # None of 'copies', 'link_settings', library_dirs or libraries
-      # can appear inside configurations hence use of build system
-      # environment variables such as $(ConfigurationName) in some of
-      # the paths below.
-      #
-      # An error is emitted when 'link_settings' is so used. No error
-      # is emitted when 'copies' is so used.
-      'droidolib_dir': '<(otherlibroot_dir)/$(BUILDTYPE)/$(TARGET_ABI)',
+      'droidolib_dir': '<(otherlibroot_dir)/<(gen_config_var)/$(TARGET_ABI)',
       # $CONFIGURATION is either Debug or Release. PLATFORM_NAME
       # is either iphoneos or iphonesimulator. Set by xcode during build.
-      'iosolib_dir': '<(otherlibroot_dir)/$CONFIGURATION-$PLATFORM_NAME',
-      'linuxolib_dir': '<(otherlibroot_dir)/$(BUILDTYPE)-x64',
-      'macolib_dir': '<(otherlibroot_dir)/$CONFIGURATION',
-      # $(ConfigurationName) is Debug or Release. $(PlatformName) is
-      # Win32 or x64. $(PlatformName) is used instead of $(Platform) for
-      # compatibility with VS2005.
+      'iosolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
+      'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
+      'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
       'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
     }, # variables level 2
     'otherlibroot_dir%': '<(otherlibroot_dir)',
