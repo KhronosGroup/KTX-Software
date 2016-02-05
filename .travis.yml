@@ -80,6 +80,10 @@ script:
     cd build/make/linux
     make BUILDTYPE=Debug
     make BUILDTYPE=Release
+    cd ../../cmake/linux/Debug
+    cmake .; make
+    cd ../Release
+    cmake .; make
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
