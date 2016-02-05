@@ -18,6 +18,12 @@
 /build/make/**/out
 /build/make/**/*.d
 
+# cmake generated files.
+/build/cmake
+!/build/cmake/**/.ktx-stamp
+!/build/cmake/**/Debug/CMakeLists.txt
+!/build/cmake/**/Release/CMakeLists.txt
+
 # MS Visual Studio build and user option files
 /build/**/*.ncb
 /build/**/*.sdf
