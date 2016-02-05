@@ -55,6 +55,14 @@ set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-O3 ")
 unset(TOOLSET)
 unset(TARGET)
 
+#ktxtests.gyp:libgl#target
+set(TARGET "libgl")
+set(TOOLSET "target")
+add_custom_target(libgl SOURCES)
+set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:libktx.doc#target
 set(TARGET "libktx.doc")
 set(TOOLSET "target")
@@ -144,6 +152,49 @@ add_dependencies(libktx_doc
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:libktx.gl#target
+set(TARGET "libktx.gl")
+set(TOOLSET "target")
+list(APPEND libktx_gl__c_srcs
+  "../../../../lib/checkheader.c"
+  "../../../../lib/errstr.c"
+  "../../../../lib/hashtable.c"
+  "../../../../lib/ktxfilestream.c"
+  "../../../../lib/ktxmemstream.c"
+  "../../../../lib/loader.c"
+  "../../../../lib/swap.c"
+  "../../../../lib/writer.c")
+list(APPEND libktx_gl__cxx_srcs
+  "../../../../lib/etcdec.cxx"
+  "../../../../lib/etcunpack.cxx")
+list(APPEND libktx_gl__other_srcs
+  "../../../../include/ktx.h"
+  "../../../../lib/gl_funcptrs.h"
+  "../../../../lib/gles1_funcptrs.h"
+  "../../../../lib/gles2_funcptrs.h"
+  "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxfilestream.h"
+  "../../../../lib/ktxint.h"
+  "../../../../lib/ktxmemstream.h"
+  "../../../../lib/ktxstream.h"
+  "../../../../lib/uthash.h")
+add_library(libktx_gl STATIC ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
+set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${libktx_gl__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(libktx_gl PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
+set_target_properties(libktx_gl PROPERTIES PREFIX "lib")
+set_target_properties(libktx_gl PROPERTIES ARCHIVE_OUTPUT_NAME "ktx.gl")
+set_target_properties(libktx_gl PROPERTIES SUFFIX ".a")
+set_source_files_properties(${obj}.${TOOLSET}/libktx.gl.a PROPERTIES GENERATED "TRUE")
+list(APPEND libktx_gl__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
+set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;NDEBUG;")
+set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-O3 ")
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtests.gyp:libsdl#target
 set(TARGET "libsdl")
 set(TOOLSET "target")
@@ -218,87 +269,6 @@ set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-O3 ")
 unset(TOOLSET)
 unset(TARGET)
 
-#ktxtests.gyp:libgl#target
-set(TARGET "libgl")
-set(TOOLSET "target")
-add_custom_target(libgl SOURCES)
-set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
-#libktx.gyp:libktx.gl#target
-set(TARGET "libktx.gl")
-set(TOOLSET "target")
-list(APPEND libktx_gl__c_srcs
-  "../../../../lib/checkheader.c"
-  "../../../../lib/errstr.c"
-  "../../../../lib/hashtable.c"
-  "../../../../lib/ktxfilestream.c"
-  "../../../../lib/ktxmemstream.c"
-  "../../../../lib/loader.c"
-  "../../../../lib/swap.c"
-  "../../../../lib/writer.c")
-list(APPEND libktx_gl__cxx_srcs
-  "../../../../lib/etcdec.cxx"
-  "../../../../lib/etcunpack.cxx")
-list(APPEND libktx_gl__other_srcs
-  "../../../../include/ktx.h"
-  "../../../../lib/gl_funcptrs.h"
-  "../../../../lib/gles1_funcptrs.h"
-  "../../../../lib/gles2_funcptrs.h"
-  "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxfilestream.h"
-  "../../../../lib/ktxint.h"
-  "../../../../lib/ktxmemstream.h"
-  "../../../../lib/ktxstream.h"
-  "../../../../lib/uthash.h")
-add_library(libktx_gl STATIC ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
-set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_source_files_properties(${libktx_gl__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
-set_target_properties(libktx_gl PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
-set_target_properties(libktx_gl PROPERTIES PREFIX "lib")
-set_target_properties(libktx_gl PROPERTIES ARCHIVE_OUTPUT_NAME "ktx.gl")
-set_target_properties(libktx_gl PROPERTIES SUFFIX ".a")
-set_source_files_properties(${obj}.${TOOLSET}/libktx.gl.a PROPERTIES GENERATED "TRUE")
-list(APPEND libktx_gl__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
-set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
-set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;NDEBUG;")
-set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-O3 ")
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtests.gyp:appfwSDL#target
-set(TARGET "appfwSDL")
-set(TOOLSET "target")
-list(APPEND appfwSDL__cxx_srcs
-  "../../../../tests/loadtests/appfwSDL/main.cpp"
-  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
-  "../../../../tests/loadtests/appfwSDL/GLAppSDL.cpp")
-list(APPEND appfwSDL__other_srcs
-  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
-  "../../../../tests/loadtests/appfwSDL/GLAppSDL.h")
-add_library(appfwSDL STATIC ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
-set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_source_files_properties(${appfwSDL__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
-set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
-set_target_properties(appfwSDL PROPERTIES PREFIX "lib")
-set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_NAME "appfwSDL")
-set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
-set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
-list(APPEND appfwSDL__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
-set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
-set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-O3 ")
-add_dependencies(appfwSDL
-  libsdl
-)
-unset(TOOLSET)
-unset(TARGET)
-
 #ktxtools.gyp:toktx#target
 set(TARGET "toktx")
 set(TOOLSET "target")
@@ -359,6 +329,36 @@ add_dependencies(toktx-tests
 unset(TOOLSET)
 unset(TARGET)
 
+#ktxtests.gyp:appfwSDL#target
+set(TARGET "appfwSDL")
+set(TOOLSET "target")
+list(APPEND appfwSDL__cxx_srcs
+  "../../../../tests/loadtests/appfwSDL/main.cpp"
+  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
+  "../../../../tests/loadtests/appfwSDL/GLAppSDL.cpp")
+list(APPEND appfwSDL__other_srcs
+  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
+  "../../../../tests/loadtests/appfwSDL/GLAppSDL.h")
+add_library(appfwSDL STATIC ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
+set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${appfwSDL__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
+set_target_properties(appfwSDL PROPERTIES PREFIX "lib")
+set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_NAME "appfwSDL")
+set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
+set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
+list(APPEND appfwSDL__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
+set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-O3 ")
+add_dependencies(appfwSDL
+  libsdl
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtests.gyp:gl3loadtests#target
 set(TARGET "gl3loadtests")
 set(TOOLSET "target")
@@ -369,21 +369,21 @@ list(APPEND gl3loadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/conftestimage_SIGNED_RG11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/down-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-rgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-rgba1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-rgba8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-sRGB.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-rgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-sRGBa1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-sRGBa8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-sRGB.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/hi_mark.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/hi_mark_sq.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/luminance_sized_reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/luminance_unsized_reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/no-npot.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgb-amg-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgb-mipmap-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgb-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/up-reference.ktx")
 list(APPEND gl3loadtests__copies__output
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
@@ -392,21 +392,21 @@ list(APPEND gl3loadtests__copies__output
   "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
   "${builddir}/testimages/down-reference.ktx"
   "${builddir}/testimages/etc1.ktx"
-  "${builddir}/testimages/etc2-rgb.ktx"
   "${builddir}/testimages/etc2-rgba1.ktx"
   "${builddir}/testimages/etc2-rgba8.ktx"
-  "${builddir}/testimages/etc2-sRGB.ktx"
+  "${builddir}/testimages/etc2-rgb.ktx"
   "${builddir}/testimages/etc2-sRGBa1.ktx"
   "${builddir}/testimages/etc2-sRGBa8.ktx"
+  "${builddir}/testimages/etc2-sRGB.ktx"
   "${builddir}/testimages/hi_mark.ktx"
   "${builddir}/testimages/hi_mark_sq.ktx"
   "${builddir}/testimages/luminance_sized_reference.ktx"
   "${builddir}/testimages/luminance_unsized_reference.ktx"
   "${builddir}/testimages/no-npot.ktx"
   "${builddir}/testimages/rgb-amg-reference.ktx"
+  "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/rgb-mipmap-reference.ktx"
   "${builddir}/testimages/rgb-reference.ktx"
-  "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/up-reference.ktx")
 add_custom_command(
 OUTPUT ${gl3loadtests__copies__output}
@@ -416,21 +416,21 @@ COMMAND ${CMAKE_COMMAND} -E copy testimages/conftestimage_SIGNED_R11_EAC.ktx ${b
 COMMAND ${CMAKE_COMMAND} -E copy testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/down-reference.ktx ${builddir}/testimages/down-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
+COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy testimages/up-reference.ktx ${builddir}/testimages/up-reference.ktx
 DEPENDS ${gl3loadtests__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
