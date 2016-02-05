@@ -88,7 +88,7 @@ script:
   osx)
     # Due to the spaces in the platform names, must use array variables so
     # destination args can be expanded to a single word.
-    OSX_XCODE_OPTIONS=(-alltargets -destination "plafform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386")
+    OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386")
     IOS_XCODE_OPTIONS=(-alltargets -destination "platform=generic/iOS" -destination "platform=iOS Simulator,OS=latest")
     XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO'
     # The following and more is needed if yuo want to actually sign the code.
