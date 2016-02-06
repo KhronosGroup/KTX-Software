@@ -96,7 +96,9 @@
 		1AEF7FE8F3CD0A01B52E80AC /* image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = image.cpp; sourceTree = "<group>"; };
 		203503E5D73963F434684DDB /* toktx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = toktx.cpp; sourceTree = "<group>"; };
 		53718F849477FE4A99643D3C /* toktx */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = toktx; sourceTree = BUILT_PRODUCTS_DIR; };
+		60CB42EA6BD3CA61486652F2 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		7E34B6FCD7D2C06100AC83B8 /* toktx-tests */ = {isa = PBXFileReference; lastKnownFileType = text; path = "toktx-tests"; sourceTree = "<group>"; };
+		9FDEDCE310E000EE3C1F8868 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		A17ED16C420B2458BFAFE7CD /* ktxtools.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = ktxtools.gyp; sourceTree = "<group>"; };
 		A70ADC63B30492A0A8FE4CEC /* testsrun */ = {isa = PBXFileReference; lastKnownFileType = text; path = testsrun; sourceTree = "<group>"; };
 		ABDA085C0BCC5D2B8629A83C /* default.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = default.gypi; path = gyp_include/default.gypi; sourceTree = "<group>"; };
@@ -119,6 +121,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0B771CDC4B79F2E443888AD3 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				60CB42EA6BD3CA61486652F2 /* config.gypi */,
+				ABDA085C0BCC5D2B8629A83C /* default.gypi */,
+				A17ED16C420B2458BFAFE7CD /* ktxtools.gyp */,
+				9FDEDCE310E000EE3C1F8868 /* pvremu.gypi */,
+				DA82593AE378BC3E1F06CD53 /* toktx.gypi */,
+				B6C3F24523648045AB33FCA3 /* tools.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		0BF540AA04D1BADABC9377B1 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -134,7 +149,7 @@
 				0BF540AA04D1BADABC9377B1 /* Source */,
 				9E2B0B1103C809BC9CE294BD /* Projects */,
 				BEF05C43CC7571E38C50D279 /* Products */,
-				DBC131F94544DA76193FF9E4 /* Build */,
+				0B771CDC4B79F2E443888AD3 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -165,17 +180,6 @@
 				53718F849477FE4A99643D3C /* toktx */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		DBC131F94544DA76193FF9E4 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				ABDA085C0BCC5D2B8629A83C /* default.gypi */,
-				A17ED16C420B2458BFAFE7CD /* ktxtools.gyp */,
-				DA82593AE378BC3E1F06CD53 /* toktx.gypi */,
-				B6C3F24523648045AB33FCA3 /* tools.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		DBE178DB442369731669729C /* Products */ = {

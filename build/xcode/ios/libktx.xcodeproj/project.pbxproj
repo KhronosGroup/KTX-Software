@@ -101,9 +101,11 @@
 		BE607367214BBF5824644530 /* default.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = default.gypi; path = gyp_include/default.gypi; sourceTree = "<group>"; };
 		C2E7B90F693D2ADDEB68C765 /* ktx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktx.h; sourceTree = "<group>"; };
 		CC45FB0EDE0EAFEBA24567B5 /* ktxmemstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxmemstream.h; sourceTree = "<group>"; };
+		D085D834087565F1CD69EFD7 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcunpack.cxx; sourceTree = "<group>"; };
 		E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles1_funcptrs.h; sourceTree = "<group>"; };
 		E3D44A3E3431DE089D06DE94 /* ktxfilestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxfilestream.h; sourceTree = "<group>"; };
+		E4C296305A71370E67B0FDD7 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles3_funcptrs.h; sourceTree = "<group>"; };
 		EC2F140ED1C840A390FE4436 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -191,16 +193,18 @@
 			children = (
 				0066CBEBE45AFAA06792E05F /* Source */,
 				3AE5B8C2D5A6F84F3C6DB984 /* Products */,
-				85E34AA11593EC67D2FC7CCF /* Build */,
+				8A1AECBDD9C0DD169EE29287 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
-		85E34AA11593EC67D2FC7CCF /* Build */ = {
+		8A1AECBDD9C0DD169EE29287 /* Build */ = {
 			isa = PBXGroup;
 			children = (
+				D085D834087565F1CD69EFD7 /* config.gypi */,
 				BE607367214BBF5824644530 /* default.gypi */,
 				78750DEB71973541DB221CBA /* libktx.gyp */,
 				7ABEC8601DA2251BB3038768 /* libktx.gypi */,
+				E4C296305A71370E67B0FDD7 /* pvremu.gypi */,
 			);
 			name = Build;
 			sourceTree = "<group>";
