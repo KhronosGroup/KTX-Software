@@ -5,37 +5,14 @@
 # @brief Default settings for building KTX library, tools and tests.
 #
 {
- 'variables': { # level 1
+  'variables': { # level 1
     'executable': 'executable',
-    'emit_vs_x64_configs': 'false',
-    'emit_vs_win32_configs': 'false',
-
-#    'conditions': [
-      # TODO Emscripten support not yet correct or complete. DO NOT
-      # TRY TO USE.
-      # Emscripten "vs-tool" VS integration only supports certain MSVS versions;
-#      ['GL_PROFILE!="gl" and (GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010"))', {
-#        'emit_emscripten_configs': 'true',
-#      }, {
-        'emit_emscripten_configs': 'false',
-#      }],
-
     'conditions': [
       ['OS == "android"', {
         'executable': 'shared_library',
       }],
-      ['OS == "win" and GENERATOR == "msvs"', {
-        'emit_vs_win32_configs': 'true',
-        'conditions': [
-          # Don't generate x64 configs in MSVS Express Edition projects.
-          # Note: 2012e and 2013e support x64.
-          ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
-            'emit_vs_x64_configs': 'true'
-          }],
-        ],
-      }], # OS == "win" and GENERATOR == "msvs"
     ], # conditions
- }, # variables
+  }, # variables
   'make_global_settings': [
     ['AR.emscripten', 'emar'],
 

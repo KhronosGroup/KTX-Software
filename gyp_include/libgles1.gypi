@@ -5,9 +5,6 @@
 # @brief Target for adding dependency on OpenGL ES 1.
 #
 {
-  'includes': [
-    'config.gypi',
-  ],
   'targets': [
   {
     'target_name': 'libgles1',
@@ -29,11 +26,6 @@
             }],
           ],
         }, # variables
-        # Neither 'copies' nor 'link_settings' can appear inside
-        # configurations hence source folders for copies are
-        # specified using configuraton variables such as $(PlatformName)
-        # and $CONFIGURATION. An error is emitted when 'link_settings'
-        # is so used. No error is emitted when 'copies' is so used.
         'copies': [{
           # Files appearing in 'copies' cause gyp to generate a folder
           # hierarchy in Visual Studio filters reflecting the location

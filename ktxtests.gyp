@@ -17,8 +17,8 @@
 # to run gyp on this file.
 #
 {
-  # Caution: variables set here will override any variables set above.
   'includes': [
+     'gyp_include/config.gypi',
      'gyp_include/default.gypi',
      'tests/tests.gypi',
   ],

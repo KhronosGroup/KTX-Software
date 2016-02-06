@@ -5,9 +5,6 @@
 # @brief Target for adding dependency on SDL 2.
 #
 {
-  'includes': [
-    'config.gypi',
-  ],
   'targets': [
     {
       'target_name': 'libsdl',

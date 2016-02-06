@@ -5,9 +5,6 @@
 # @brief Target for adding dependency on OpenGL ES 3.
 #
 {
-  'includes': [
-    'config.gypi',
-  ],
   'targets': [
   {
     'target_name': 'libgles3',

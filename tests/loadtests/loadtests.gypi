@@ -6,7 +6,6 @@
 #
 {
   'includes': [
-    '../../gyp_include/config.gypi',
     'appfwSDL/appfwSDL.gypi',
   ],
   'variables': { # level 1

@@ -5,9 +5,6 @@
 # @brief Target for adding dependency on OpenGL.
 #
 {
-  'includes': [
-    'config.gypi',
-  ],
   'targets': [
   {
     'target_name': 'libgl',

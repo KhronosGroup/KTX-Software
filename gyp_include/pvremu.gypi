@@ -19,11 +19,23 @@
           'gen_platform_arch_var': '64',
           'conditions': [
             ['GENERATOR == "msvs"', {
+              # XXX Crap! The IMG directory names are not easy to map to
+              # using MSVS macros. The only suitable macro (i.e. having
+              # values of 32 or 64) is $(PlatformArchitecture) but it
+              # does not exist in VS2005, 2008 and possibly 2010. For
+              # these, default is chosen according to whether the
+              # version supports x64. 32-bit builds will therefore
+              # not work on those versions.  Users wishing to support
+              # both platforms will need to do something like rename
+              # the IMG folders Win32 and x64 and use $(PlatformName)
+              # here.
               'conditions': [
                 #['int(MSVS_VERSION[:4]) >= 2010', {
-                ['MSVS_VERSION[:4] != "2010" and MSVS_VERSION[:4] != "2008" and MSVS_VERSION[:4] != "2008"', {
+                ['MSVS_VERSION[:4] != "2010" and MSVS_VERSION[:4] != "2008" and MSVS_VERSION[:4] != "2005"', {
                   'gen_platform_arch_var': '$(PlatformArchitecture)',
-                }, 'emit_vs_x64_configs == "true"', {
+                }, 'MSVS_VERSION[:4:1] != "e"', {
+                  # Express ediions of 2005 ~ 2010 do not support
+                  # 64-bit.
                   'gen_platform_arch_var': '64',
                 }, {
                   'gen_platform_arch_var': '32',
@@ -32,19 +44,13 @@
             }],
           ],
         },
-        'gen_platform_arch': '<(gen_platform_arch)',
+        'gen_platform_arch_var': '<(gen_platform_arch_var)',
         # Default install location
         'conditions': [
           ['OS == "win"', {
-            # XXX Crap! The IMG directory names are not easy to map to
-            # using MSVS macros. The only suitable macro (i.e. having
-            # values # of 32 or 64) is $(PlatformArchitecture) but it
-            # does not exist in VS2008 and possibly VS2010. Users of
-            # such versions will need to rename the folders to Win32
-            # and x64, or copy the libs and dlls to such a folder and
-            # use $(PlatformName) here.
             
-            'pvrsdk_dir': 'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_<(gen_platform_arch_var)/Lib',
+            'pvrsdk_dir':
+            'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_<(gen_platform_arch_var)/Lib',
           }, {
             'pvrsdk_dir': 'somewhere', # TO DO
           }]

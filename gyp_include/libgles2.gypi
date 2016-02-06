@@ -6,9 +6,6 @@
 #
 {
 # XXX TO BE COMPLETED.
-  'includes': [
-    'config.gypi',
-  ],
   'targets': [
   {
     'target_name': 'libgles2',

@@ -18,6 +18,7 @@
 {
   # Caution: variables set here will override any variables set above.
   'includes': [
+     'gyp_include/config.gypi',
      'gyp_include/default.gypi',
      'lib/libktx.gypi',
   ],
