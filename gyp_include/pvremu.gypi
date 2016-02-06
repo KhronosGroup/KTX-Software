@@ -33,12 +33,12 @@
                 #['int(MSVS_VERSION[:4]) >= 2010', {
                 ['MSVS_VERSION[:4] != "2010" and MSVS_VERSION[:4] != "2008" and MSVS_VERSION[:4] != "2005"', {
                   'gen_platform_arch_var': '$(PlatformArchitecture)',
-                }, 'MSVS_VERSION[:4:1] != "e"', {
+                }, 'MSVS_VERSION[-1] == "e"', {
                   # Express ediions of 2005 ~ 2010 do not support
                   # 64-bit.
-                  'gen_platform_arch_var': '64',
-                }, {
                   'gen_platform_arch_var': '32',
+                }, {
+                  'gen_platform_arch_var': '64',
                 }],
               ],
             }],
