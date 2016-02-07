@@ -20,7 +20,7 @@ See [LICENSING](LICENSING.md) for information about licensing.
 See [BUILDING](BUILDING.md) for information about building the code.
 
 **IMPORTANT:** you **must** install the [Git LFS](https://github.com/github/git-lfs)
-command line extension in order to clone this repository. You need at least
-version 1.1.
+command line extension in order to fully checkout this repository after cloning. You
+need at least version 1.1.
 
 If you need help with using KTX please use the [KTX forum](https://forums.khronos.org/forumdisplay.php/103-KTX-file-format-for-OpenGL-OpenGL-ES-and-WebGL-textures). To report problems use the GitHub [issues](https://github.com/KhronosGroup/KTX/issues).
