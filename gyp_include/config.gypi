@@ -2,25 +2,29 @@
 # @internal
 # @copyright © 2015, Mark Callow. For license see LICENSE.md.
 #
-# @brief Configuration variables specifying file locations
-#        and other choices.
+# @brief Set variables specifying locations from which to link
+#        3rd party libraries and which variants to use.
+#
+# Edit this as desired then regenerate the projects with gyp.
 #
 {
-  # Names need _dir (lowercase) suffix to be relativized. Variable
-  # expansions are not relativized: use _dir to ensure it happens
-  # now.
   'variables': { # level 1
+
     'variables': { # level 2 defines variables to be used in level 1
+
       'variables': { # level 3 ditto
+        # Build system environment variable names.
+        #
+        # There should be no need to change these. They are defined here for
+        # clarity; this the only gypi where there are used. Defining these
+        # variables avoids repeating the tests for all OSes.
+        #
         # None of 'copies', 'link_settings', library_dirs or libraries
-        # can appear inside configurations hence must use build system
+        # can appear inside a configuration dict hence must use build system
         # environment variables such as $(ConfigurationName).
         #
         # An error is emitted when 'link_settings' is so used. No error
         # is emitted when 'copies' is so used.
-        #
-        # To avoid repeating the test for all OSes, define gyp variables
-        # containing the build system variable name.
         'conditions': [
           ['GENERATOR == "cmake"', {
             'gen_config_var': '${configuration}',
@@ -35,22 +39,27 @@
             'gen_config_var': '$(ConfigurationName)',
             'gen_platform_var': '$(PlatformName)',
           }, 'GENERATOR == "xcode"', {
+            # $CONFIGURATION is either Debug or Release. PLATFORM_NAME
+            # is either iphoneos or iphonesimulator. Set by xcode during build.
             'gen_config_var': '$CONFIGURATION',
             'gen_platform_var': '$PLATFORM_NAME',
           }],
         ],
+        # Base location for 3rd party libraries.
         'otherlibroot_dir': '../other_lib/<(OS)',
       }, # variables level 3
       # Copy variables out one scope.
       'gen_config_var%': '<(gen_config_var)',
       'gen_platform_var%': '<(gen_platform_var)',
       'otherlibroot_dir%': '<(otherlibroot_dir)',
+      
+      # Names need _dir (lowercase) suffix to be relativized. Variable
+      # expansions are not relativized: use _dir to ensure it happens
+      # now.
       #
-      # *olib_dir are the default locations for external libraries
+      # *olib_dir are the OS-specific base locations for 3rd party libraries
       #
       'droidolib_dir': '<(otherlibroot_dir)/<(gen_config_var)/$(TARGET_ABI)',
-      # $CONFIGURATION is either Debug or Release. PLATFORM_NAME
-      # is either iphoneos or iphonesimulator. Set by xcode during build.
       'iosolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
@@ -64,6 +73,7 @@
     'macolib_dir%': '<(macolib_dir)',
     'winolib_dir%': '<(winolib_dir)',
 
+    # Directory containing EGL, GL{,ES}*, KHR, etc. include directories.
     'gl_includes_parent_dir': '../other_include',
 
     # Possible values for sdl_to_use in the following: 
@@ -127,6 +137,7 @@
       }], # OS == "win"
     ], # conditions
   }, # variables level 1
+
   'includes': [
     # Pick your poison as regards an OpenGL ES emulator
     # for Windows.
