@@ -19,11 +19,11 @@
 build/msvs/* eol=crlf
 
 # Denote all files that are truly binary and should not be modified.
-*.png binary
-*.jpg binary
 *.ktx binary
+*.jpg binary
 *.lib binary
-*.dll binary
+*.png binary
+*.pspimage binary
 
 # Force line endings for unix shell scripts and other specific files
 tests/toktx-tests eol=lf
