@@ -56,29 +56,29 @@
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
       'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
 
-      'emit_vs_x64_configs': 'false',
-      'emit_vs_win32_configs': 'false',
-      'conditions': [
-        ['GENERATOR == "msvs"', {
-          'emit_vs_win32_configs': 'true',
-          'conditions': [
-            # Don't generate x64 configs in MSVS Express Edition projects.
-            # Note: 2012e and 2013e support x64.
-            ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
-              'emit_vs_x64_configs': 'true',
-            }],
-          ],
-        }], # GENERATOR == "msvs"
-        # TODO Emscripten support not yet correct or complete. DO NOT
-        # TRY TO USE.
-        # Emscripten "vs-tool" VS integration only supports certain MSVS
-        # versions;
-#        [GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010")', {
-#          'emit_emscripten_configs': 'true',
-#        }, {
-#          'emit_emscripten_configs': 'false',
-#        }],
-      ], # conditions
+#      'emit_vs_x64_configs': 'false',
+#      'emit_vs_win32_configs': 'false',
+#      'conditions': [
+#        ['GENERATOR == "msvs"', {
+#          'emit_vs_win32_configs': 'true',
+#          'conditions': [
+#            # Don't generate x64 configs in MSVS Express Edition projects.
+#            # Note: 2012e and 2013e support x64.
+#            ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
+#              'emit_vs_x64_configs': 'true',
+#            }],
+#          ],
+#        }], # GENERATOR == "msvs"
+#        # TODO Emscripten support not yet correct or complete. DO NOT
+#        # TRY TO USE.
+#        # Emscripten "vs-tool" VS integration only supports certain MSVS
+#        # versions;
+##        [GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010")', {
+##          'emit_emscripten_configs': 'true',
+##        }, {
+##          'emit_emscripten_configs': 'false',
+##        }],
+#      ], # conditions
     }, # variables level 2
     # Copy variables out one scope.
     'otherlibroot_dir%': '<(otherlibroot_dir)',
@@ -87,9 +87,9 @@
     'linuxolib_dir%': '<(linuxolib_dir)',
     'macolib_dir%': '<(macolib_dir)',
     'winolib_dir%': '<(winolib_dir)',
-    'emit_vs_x64_configs': '<(emit_vs_x64_configs)',
-    'emit_vs_win32_configs': '<(emit_vs_win32_configs)',
-    'emit_emscripten_configs%': 'false',
+#    'emit_vs_x64_configs': '<(emit_vs_x64_configs)',
+#    'emit_vs_win32_configs': '<(emit_vs_win32_configs)',
+#    'emit_emscripten_configs%': 'false',
 
     'gl_includes_parent_dir': '../other_include',
 
