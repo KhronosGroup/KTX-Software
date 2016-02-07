@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 cmake_policy(VERSION 2.8.8)
-project(gl3loadtests)
+project(toktx-tests)
 set(configuration "Release")
 enable_language(ASM)
 set(builddir "${CMAKE_CURRENT_BINARY_DIR}")
@@ -299,36 +299,6 @@ target_link_libraries(toktx
 unset(TOOLSET)
 unset(TARGET)
 
-#ktxtools.gyp:toktx-tests#target
-set(TARGET "toktx-tests")
-set(TOOLSET "target")
-set(toktx-tests__toktx-tests__input "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/toktx-tests")
-set(toktx-tests__toktx-tests__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/testsrun")
-add_custom_command(OUTPUT ${toktx-tests__toktx-tests__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory tools/toktx
-  COMMAND tests/toktx-tests "${builddir}/toktx"
-  DEPENDS ${toktx-tests__toktx-tests__input}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Running toktx tests
-  VERBATIM
-)
-add_custom_target(toktx-tests__toktx-tests
-  DEPENDS ${toktx-tests__toktx-tests__output}
-  SOURCES ${toktx-tests__toktx-tests__input}
-)
-add_custom_target(toktx-tests SOURCES)
-set_target_properties(toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(toktx-tests__toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-add_dependencies(toktx-tests__toktx-tests
-  toktx
-)
-add_dependencies(toktx-tests
-  toktx
-  toktx-tests__toktx-tests
-)
-unset(TOOLSET)
-unset(TARGET)
-
 #ktxtests.gyp:appfwSDL#target
 set(TARGET "appfwSDL")
 set(TOOLSET "target")
@@ -495,6 +465,36 @@ target_link_libraries(gl3loadtests
   -ldl
   -lpthread
   -lGL
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:toktx-tests#target
+set(TARGET "toktx-tests")
+set(TOOLSET "target")
+set(toktx-tests__toktx-tests__input "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/toktx-tests")
+set(toktx-tests__toktx-tests__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/testsrun")
+add_custom_command(OUTPUT ${toktx-tests__toktx-tests__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/toktx
+  COMMAND tests/toktx-tests "${builddir}/toktx"
+  DEPENDS ${toktx-tests__toktx-tests__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Running toktx tests
+  VERBATIM
+)
+add_custom_target(toktx-tests__toktx-tests
+  DEPENDS ${toktx-tests__toktx-tests__output}
+  SOURCES ${toktx-tests__toktx-tests__input}
+)
+add_custom_target(toktx-tests SOURCES)
+set_target_properties(toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(toktx-tests__toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(toktx-tests__toktx-tests
+  toktx
+)
+add_dependencies(toktx-tests
+  toktx
+  toktx-tests__toktx-tests
 )
 unset(TOOLSET)
 unset(TARGET)
