@@ -27,7 +27,7 @@
               # version supports x64. 32-bit builds will therefore
               # not work on those versions.  Users wishing to support
               # both platforms will need to do something like rename
-              # the IMG folders Win32 and x64 and use $(PlatformName)
+              # the IMG folders to Win32 and x64 and use $(PlatformName)
               # here.
               'conditions': [
                 #['int(MSVS_VERSION[:4]) >= 2010', {
