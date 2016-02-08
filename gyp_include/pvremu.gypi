@@ -47,8 +47,7 @@
         'gen_platform_arch_var': '<(gen_platform_arch_var)',
         # Default install location
         'conditions': [
-          ['OS == "win"', {
-            
+          ['OS == "win"', {            
             'pvrsdk_dir':
             'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_<(gen_platform_arch_var)/Lib',
           }, {
