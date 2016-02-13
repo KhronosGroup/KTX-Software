@@ -147,7 +147,9 @@ These files are part of the SDL2 source distributed by the [SDL project]
 
 #include "KHR/khrplatform.h"
 
-#define KTX_USE_GETPROC 0
+#if !defined(KTX_USE_GETPROC)
+  #define KTX_USE_GETPROC 0
+#endif
 
 #if KTX_OPENGL
 
