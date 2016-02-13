@@ -46,6 +46,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -57,6 +58,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxmemstream.h"
 
 #include KTX_GLFUNCPTRS
+
+DECLARE_GL_FUNCPTRS
 
 /* @private is not preventing the typedefs, structs and defines from
  * appearing in the Doxygen output even though EXTRACT_PRIVATE is NO
@@ -134,6 +137,7 @@ static GLboolean supportsSRGB = GL_TRUE;
  */
 #define glGetString(x) (const char*)glGetString(x)
 
+
 /**
  * @private
  * @~English
@@ -207,6 +211,11 @@ static void discoverContextCapabilities(void)
 			}
 		}
 	}
+    
+    // Done here so things will work when GLEW, or equivalent, is being used
+    // and GL function names are defined as pointers. Initialization at
+    // declaration would happen before these pointers have been initialized.
+    INITIALIZE_GL_FUNCPTRS
 }
 
 #if SUPPORT_LEGACY_FORMAT_CONVERSION
@@ -469,9 +478,45 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		glGenTextures(1, &texname);
 	}
 	glBindTexture(texinfo.glTarget, texname);
+    
+    /* load as 2D texture if 1D textures are not supported */
+    if (texinfo.textureDimensions == 1 &&
+        ((texinfo.compressed && (pfGlCompressedTexImage1D == NULL)) ||
+         (!texinfo.compressed && (pfGlTexImage1D == NULL))))
+    {
+        texinfo.textureDimensions = 2;
+        texinfo.glTarget = GL_TEXTURE_2D;
+        header.pixelHeight = 1;
+    }
+    
+    if (header.numberOfArrayElements > 0)
+    {
+        if (texinfo.glTarget == GL_TEXTURE_1D)
+        {
+            texinfo.glTarget = GL_TEXTURE_1D_ARRAY_EXT;
+        }
+        else if (texinfo.glTarget == GL_TEXTURE_2D)
+        {
+            texinfo.glTarget = GL_TEXTURE_2D_ARRAY_EXT;
+        }
+        else
+        {
+            /* No API for 3D and cube arrays yet */
+            return KTX_UNSUPPORTED_TEXTURE_TYPE;
+        }
+        texinfo.textureDimensions++;
+    }
+    
+    /* reject 3D texture if unsupported */
+    if (texinfo.textureDimensions == 3 &&
+        ((texinfo.compressed && (pfGlCompressedTexImage3D == NULL)) ||
+         (!texinfo.compressed && (pfGlTexImage3D == NULL))))
+    {
+        return KTX_UNSUPPORTED_TEXTURE_TYPE;
+    }
 
 	// Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-	if (texinfo.generateMipmaps && (glGenerateMipmap == NULL)) {
+	if (texinfo.generateMipmaps && (pfGlGenerateMipmap == NULL)) {
 		glTexParameteri(texinfo.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
 #ifdef GL_TEXTURE_MAX_LEVEL
@@ -554,12 +599,13 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 			}
 
 			if (texinfo.textureDimensions == 1) {
+                assert(pfGlCompressedTexImage1D != NULL && pfGlTexImage1D != NULL);
 				if (texinfo.compressed) {
-					glCompressedTexImage1D(texinfo.glTarget + face, level,
+					pfGlCompressedTexImage1D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage1D(texinfo.glTarget + face, level,
+					pfGlTexImage1D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, 0,
 						glFormat, header.glType, data);
 				}
@@ -580,15 +626,16 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 						glFormat, header.glType, data);
 				}
 			} else if (texinfo.textureDimensions == 3) {
+                assert(pfGlCompressedTexImage3D != NULL && pfGlTexImage3D != NULL);
 				if (header.numberOfArrayElements) {
 					pixelDepth = header.numberOfArrayElements;
 				}
 				if (texinfo.compressed) {
-					glCompressedTexImage3D(texinfo.glTarget + face, level,
+					pfGlCompressedTexImage3D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage3D(texinfo.glTarget + face, level,
+					pfGlTexImage3D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
 						glFormat, header.glType, data);
 				}
@@ -625,7 +672,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				errorTmp = glGetError();
 			}
 #endif
-			if (errorTmp != GL_NO_ERROR) {
+            if (errorTmp != GL_NO_ERROR) {
 				if (pGlerror)
 					*pGlerror = errorTmp;
 				errorCode = KTX_GL_ERROR;
@@ -644,8 +691,8 @@ cleanup:
 
 	if (errorCode == KTX_SUCCESS)
 	{
-		if (texinfo.generateMipmaps && glGenerateMipmap) {
-			glGenerateMipmap(texinfo.glTarget);
+		if (texinfo.generateMipmaps && pfGlGenerateMipmap) {
+			pfGlGenerateMipmap(texinfo.glTarget);
 		}
 		*pTarget = texinfo.glTarget;
 		if (pTexture) {

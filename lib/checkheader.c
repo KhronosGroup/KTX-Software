@@ -51,11 +51,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktx.h"
 #include "ktxint.h"
 
-#include KTX_GLFUNCPTRS
-
-DECLARE_GL_FUNCPTRS
-DECLARE_GL_EXTGLOBALS
-
 /**
  * @internal
  * @~English
@@ -155,43 +150,7 @@ KTX_error_code _ktxCheckHeader(KTX_header* header, KTX_texinfo* texinfo)
 		/* numberOfFaces must be either 1 or 6 */
 		return KTX_INVALID_VALUE;
 	}
-
-	/* load as 2D texture if 1D textures are not supported */
-	if (texinfo->textureDimensions == 1 &&
-		((texinfo->compressed && (glCompressedTexImage1D == NULL)) ||
-		 (!texinfo->compressed && (glTexImage1D == NULL))))
-	{
-		texinfo->textureDimensions = 2;
-		texinfo->glTarget = GL_TEXTURE_2D;
-		header->pixelHeight = 1;
-	}
-
-	if (header->numberOfArrayElements > 0)
-	{
-		if (texinfo->glTarget == GL_TEXTURE_1D)
-		{
-			texinfo->glTarget = GL_TEXTURE_1D_ARRAY_EXT;
-		}
-		else if (texinfo->glTarget == GL_TEXTURE_2D)
-		{
-			texinfo->glTarget = GL_TEXTURE_2D_ARRAY_EXT;
-		}
-		else
-		{
-			/* No API for 3D and cube arrays yet */
-			return KTX_UNSUPPORTED_TEXTURE_TYPE;
-		}
-		texinfo->textureDimensions++;
-	}
-
-	/* reject 3D texture if unsupported */
-	if (texinfo->textureDimensions == 3 &&
-		((texinfo->compressed && (glCompressedTexImage3D == NULL)) ||
-		 (!texinfo->compressed && (glTexImage3D == NULL))))
-	{
-		return KTX_UNSUPPORTED_TEXTURE_TYPE;
-	}
-
+    
 	/* Check number of mipmap levels */
 	if (header->numberOfMipmapLevels == 0)
 	{

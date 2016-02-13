@@ -50,27 +50,25 @@ typedef void (GL_APIENTRY* PFNGLCOMPRESSEDTEXIMAGE1DPROC) (GLenum target, GLint 
 typedef void (GL_APIENTRY* PFNGLCOMPRESSEDTEXIMAGE3DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *data);
 typedef void (GL_APIENTRY* PFNGLGENERATEMIPMAPPROC) (GLenum target);
 
-/* remove these where already defined as functions */
-extern PFNGLTEXIMAGE1DPROC glTexImage1D;
-extern PFNGLTEXIMAGE3DPROC glTexImage3D;
-extern PFNGLCOMPRESSEDTEXIMAGE1DPROC glCompressedTexImage1D;
-extern PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D;
-extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+extern PFNGLTEXIMAGE1DPROC pfGlTexImage1D;
+extern PFNGLTEXIMAGE3DPROC pfGlTexImage3D;
+extern PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D;
+extern PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D;
+extern PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
 
-/* and these */
 #define DECLARE_GL_FUNCPTRS \
-    PFNGLTEXIMAGE1DPROC glTexImage1D = 0; \
-    PFNGLTEXIMAGE3DPROC glTexImage3D = 0; \
-    PFNGLCOMPRESSEDTEXIMAGE1DPROC glCompressedTexImage1D = 0; \
-    PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D = 0; \
-    PFNGLGENERATEMIPMAPPROC glGenerateMipmap = 0;
+    PFNGLTEXIMAGE1DPROC pfGlTexImage1D; \
+    PFNGLTEXIMAGE3DPROC pfGlTexImage3D; \
+    PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D; \
+    PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D; \
+    PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
 
-/* remove this if you use GLEW and already have this */
-extern int GLEW_OES_compressed_ETC1_RGB8_texture;
-
-/* and make this macro empty */
-#define DECLARE_GL_EXTGLOBALS \
-	int GLEW_OES_compressed_ETC1_RGB8_texture = 0;
+#define INITIALIZE_GL_FUNCPTRS \
+    pfGlTexImage1D = 0; \
+    pfGlTexImage3D = 0; \
+    pfGlCompressedTexImage1D = 0; \
+    pfGlCompressedTexImage3D = 0; \
+    pfGlGenerateMipmap = 0;
 
 #ifdef __cplusplus
 }

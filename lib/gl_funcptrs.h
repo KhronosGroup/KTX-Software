@@ -43,15 +43,26 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 extern "C" {
 #endif
 
-#define DECLARE_GL_FUNCPTRS
+extern PFNGLTEXIMAGE1DPROC pfGlTexImage1D;
+extern PFNGLTEXIMAGE3DPROC pfGlTexImage3D;
+extern PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D;
+extern PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D;
+extern PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
 
-/* remove this if you use GLEW and already have this */
-extern int GLEW_OES_compressed_ETC1_RGB8_texture;
+#define DECLARE_GL_FUNCPTRS \
+    PFNGLTEXIMAGE1DPROC pfGlTexImage1D; \
+    PFNGLTEXIMAGE3DPROC pfGlTexImage3D; \
+    PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D; \
+    PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D; \
+    PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
 
-/* and make this macro empty */
-#define DECLARE_GL_EXTGLOBALS \
-	int GLEW_OES_compressed_ETC1_RGB8_texture = 0;
-
+#define INITIALIZE_GL_FUNCPTRS \
+    pfGlTexImage1D = glTexImage1D; \
+    pfGlTexImage3D = glTexImage3D; \
+    pfGlCompressedTexImage1D = glCompressedTexImage1D; \
+    pfGlCompressedTexImage3D = glCompressedTexImage3D; \
+    pfGlGenerateMipmap = glGenerateMipmap;
+    
 #ifdef __cplusplus
 }
 #endif
