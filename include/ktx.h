@@ -147,12 +147,15 @@ These files are part of the SDL2 source distributed by the [SDL project]
 
 #include "KHR/khrplatform.h"
 
+#define KTX_USE_GETPROC 0
+
 #if KTX_OPENGL
 
 	#ifdef _WIN32
 	  #include <windows.h>
-	  #include <GL/glew.h>
-    #elif KTX_USE_GETPROC
+      #define KTX_USE_GETPROC 1
+    #endif
+    #if KTX_USE_GETPROC
       #include <GL/glew.h>
     #else
       #define GL_GLEXT_PROTOTYPES
