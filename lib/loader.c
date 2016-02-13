@@ -672,7 +672,11 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				errorTmp = glGetError();
 			}
 #endif
-            if (errorTmp != GL_NO_ERROR) {
+            if (errorTmp == GL_NO_ERROR) {
+                if (texinfo.generateMipmaps && (pfGlGenerateMipmap != NULL)) {
+                    pfGlGenerateMipmap(texinfo.glTarget);
+                }
+            } else {
 				if (pGlerror)
 					*pGlerror = errorTmp;
 				errorCode = KTX_GL_ERROR;
