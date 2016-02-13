@@ -37,7 +37,7 @@ cd build/make/linux
 # Build everything
 make
 # or
-make -f {ktxtests,ktxtools,libktx}.Makefile
+make -f [ktxtests|ktxtools|libktx].Makefile
 ```
 
 Alternatively you can use cmake:
@@ -60,7 +60,7 @@ and tools to run under OpenGL 3.3 on OS X.
 
 Use the solutions under one of `build/msvs/win/vs20{08,10,10e,13,13e,15}`
 to build the library, load tests and tools for Windows Win32 or x64. Builds
-of the Win32 platform in VS 2008 and 2010 will not work. For the
+of the Win32 platform with vs2008 and vs2010 will not work. For the
 explanation see [pvremu.gypi](gyp_include/pvremu.gypi#L22).
 
 Dependencies
@@ -102,16 +102,16 @@ https://glew.s3.amazonaws.com/index.html?prefix=nigels-com/glew/25/25.1/.
 ### OpenGL ES Emulator for Windows
 
 The generated projects work with the
-[ARM Mali emulator](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/).
-Install that before trying to build on Windows.
+[Imagination Technologies PowerVR](https://community.imgtec.com/developers/powervr/graphics-sdk/).
+emulator. Install that before trying to build on Windows.
 
 Projects can be modified to work with any of the major emulators;
-[Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools),
-[ANGLE](https://chromium.googlesource.com/angle/angle/)<sup>*</sup>,
-[Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
+[Qualcomm Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools),
+[Google ANGLE](https://chromium.googlesource.com/angle/angle/)<sup>*</sup>,
+[ARM Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
 or [PowerVR](https://community.imgtec.com/developers/powervr/graphics-sdk/).
 To use a different emulator change the selection at the bottom of
-`gyp_include/config.gypi' and regenerate the projects. If you want to run
+`gyp_include/config.gypi` and regenerate the projects. If you want to run
 the load tests for OpenGL ES 1.1 you will need to use Imagination
 Technologies' PowerVR emulator as that alone supports OpenGL ES 1.1.
 
@@ -163,7 +163,7 @@ See the [README](https://github.com/msc-/SDL/README.md) there
 for instructions.
 
 Copy the results of your build to the appropriate place under the
-`other_lib` directory.
+`other_lib` directory and to `/Library/Frameworks`.
 
 ### GYP
 
@@ -243,7 +243,7 @@ To (re-)generate the projects run the following commands in a shell:
 
 ```bash
 cd <your KTX clone>
-make [xcode,msvs]
+make [cmake|make|msvs|xcode]
 ```
 
 All important configuration options are gathered together in the file
