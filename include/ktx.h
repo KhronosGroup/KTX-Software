@@ -138,7 +138,7 @@ These files are part of the SDL2 source distributed by the [SDL project]
  * @author Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>
  * @author Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
  *
- * @version 2.0
+ * @version 2.0.X
  *
  * $Date$
  */
@@ -448,9 +448,16 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 #endif
 
 /**
-@page history Revision History
+@page history KTX Library Revision History
 
-@section v4 Version XXX
+@section v5 Version 2.0.X
+Changed:
+@li New build system
+
+Fixed:
+@li Generate mipmap in case when glGenerateMipmap is being used.
+
+@section v4 Version 2.0.1
 Added:
 @li CMake build files. Thanks to Pavel Rotjberg for the initial version.
 
