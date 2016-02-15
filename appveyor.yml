@@ -10,8 +10,8 @@ platform:
 - x64
 - Win32
 init:
-- ps: '#$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
-- ps: git config --global core.autocrlf true
+- ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
+- ps: #git config --global core.autocrlf true
 install:
 - cmd: >-
     REM This is not a batch file even though it looks like one.
