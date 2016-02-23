@@ -1,6 +1,9 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+#ifndef GL_APP_SDL_H_1456211188
+#define GL_APP_SDL_H_1456211188
+
 /* $Id: ac63511da134f2c25a9e1da86a36bc27b6198ae3 $ */
 
 /**
@@ -79,3 +82,5 @@ class GLAppSDL : public AppBaseSDL {
 	const int majorVersion;
 	const int minorVersion;
 };
+
+#endif /* GL_APP_SDL_H_1456211188 */

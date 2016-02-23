@@ -1,6 +1,9 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+#ifndef LOAD_TESTS_H
+#define LOAD_TESTS_H
+
 /* $Id: ac63511da134f2c25a9e1da86a36bc27b6198ae3 $ */
 
 /**
@@ -76,3 +79,5 @@ class LoadTests : public GLAppSDL {
     const sampleInvocation* const siSamples;
     const int iNumSamples;
 };
+
+#endif /* LOAD_TESTS_H */

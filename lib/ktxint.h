@@ -36,8 +36,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * Author: Mark Callow from original code by Georg Kolling
  */
 
-#ifndef _KTXINT_H_
-#define _KTXINT_H_
+#ifndef KTXINT_H
+#define KTXINT_H
 
 /* Define this to include the ETC unpack software in the library. */
 #ifndef SUPPORT_SOFTWARE_ETC_UNPACK
@@ -326,4 +326,4 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
 }
 #endif
 
-#endif /* _KTXINT_H_ */
+#endif /* KTXINT_H */
