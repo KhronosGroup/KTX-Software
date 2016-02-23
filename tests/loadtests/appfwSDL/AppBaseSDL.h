@@ -1,6 +1,9 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+#ifndef APP_BASE_SDL_H_1456211087
+#define APP_BASE_SDL_H_1456211087
+
 /* $Id: f63e0a9e6eed51ed84a8eea1eff0708c8a6af22b $ */
 
 /**
@@ -77,7 +80,7 @@ protected:
 
 };
 
-
+#endif /* APP_BASE_SDL_H_1456211087 */
 
 
 

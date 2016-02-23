@@ -36,8 +36,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * Author: Mark Callow based on code from Georg Kolling
  */
 
-#ifndef _GLES2_FUNCPTRS_H_
-#define _GLES2_FUNCPTRS_H_
+#ifndef GLES2_FUNCPTRS_H
+#define GLES2_FUNCPTRS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,4 +73,4 @@ extern PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
 }
 #endif
 
-#endif /* GLES2_FUNCPTRS */
+#endif /* GLES2_FUNCPTRS_H */

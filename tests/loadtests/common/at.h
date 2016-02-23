@@ -37,8 +37,8 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
-#ifndef __AT_H__
-#define __AT_H__
+#ifndef AT_H_1456211324
+#define AT_H_1456211324
 
 /* ----------------------------------------------------------------------------- */
 
@@ -173,5 +173,5 @@ extern float atIdentity[16];
 
 /* ----------------------------------------------------------------------------- */
 
-#endif /*__AT_H__*/
+#endif /* AT_H_1456211324 */
 

@@ -36,8 +36,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * Author: Mark Callow based on code from Georg Kolling
  */
 
-#ifndef _GL_FUNCPTRS_H_
-#define _GL_FUNCPTRS_H_
+#ifndef GL_FUNCPTRS_H
+#define GL_FUNCPTRS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +45,11 @@ extern "C" {
 
 #if KTX_USE_GETPROC
   // Not defined in glew.h.
-  typedef void (GL_APIENTRY* PFNGLTEXIMAGE1DPROC) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+  typedef void (GL_APIENTRY* PFNGLTEXIMAGE1DPROC) (
+                    GLenum target, GLint level, GLint internalformat,
+                    GLsizei width, GLint border, GLenum format, GLenum type,
+                    const GLvoid *pixels
+                                                  );
 #endif
 
 extern PFNGLTEXIMAGE1DPROC pfGlTexImage1D;
@@ -72,4 +76,4 @@ extern PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
 }
 #endif
 
-#endif /* GL_FUNCPTRS */
+#endif /* GL_FUNCPTRS_H */

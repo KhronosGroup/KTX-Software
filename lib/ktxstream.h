@@ -35,8 +35,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * by Mark Callow and Georg Kolling
  */
 
-#ifndef _KTXSTREAM_H_
-#define _KTXSTREAM_H_
+#ifndef KTXSTREAM_H
+#define KTXSTREAM_H
 
 #include "ktx.h"
 
@@ -72,4 +72,4 @@ struct ktxStream
 	ktxStream_write write;     /**< pointer to function for writing bytes */
 };
 
-#endif /* _KTXSTREAM_H_ */
+#endif /* KTXSTREAM_H */
