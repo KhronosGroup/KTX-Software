@@ -1,8 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
-#ifndef _KTX_H_
-#define _KTX_H_
+#ifndef KTX_H_A55A6F00956F42F3A137C11929827FE1
+#define KTX_H_A55A6F00956F42F3A137C11929827FE1
 
 /**
  * @file
