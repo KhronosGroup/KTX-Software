@@ -147,15 +147,16 @@ These files are part of the SDL2 source distributed by the [SDL project]
 
 #include "KHR/khrplatform.h"
 
-#if !defined(KTX_USE_GETPROC)
-  #define KTX_USE_GETPROC 0
-#endif
-
 #if KTX_OPENGL
 
 	#ifdef _WIN32
 	  #include <windows.h>
+      #undef KTX_USE_GETPROC  /* Must use GETPROC on Windows */
       #define KTX_USE_GETPROC 1
+    #else
+      #if !defined(KTX_USE_GETPROC)
+        #define KTX_USE_GETPROC 0
+      #endif
     #endif
     #if KTX_USE_GETPROC
       #include <GL/glew.h>
@@ -455,7 +456,7 @@ Changed:
 @li New build system
 
 Fixed:
-@li Generate mipmap in case when glGenerateMipmap is being used.
+@li Generate mipmap in case when glGenerateMipmap is available.
 
 @section v4 Version 2.0.1
 Added:
