@@ -50,14 +50,56 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include <string.h>
 #include <stdlib.h>
 
-#include "KHR/khrplatform.h"
+#if KTX_OPENGL
+
+  #ifdef _WIN32
+    #include <windows.h>
+    #undef KTX_USE_GETPROC  /* Must use GETPROC on Windows */
+    #define KTX_USE_GETPROC 1
+  #else
+    #if !defined(KTX_USE_GETPROC)
+      #define KTX_USE_GETPROC 0
+    #endif
+  #endif
+  #if KTX_USE_GETPROC
+    #include <GL/glew.h>
+  #else
+    #define GL_GLEXT_PROTOTYPES
+    #include <GL/glcorearb.h>
+  #endif
+
+  #define GL_APIENTRY APIENTRY
+  #include "gl_funcptrs.h"
+
+#elif KTX_OPENGL_ES1
+
+  #include <GLES/gl.h>
+  #include <GLES/glext.h>
+  #include "gles1_funcptrs.h"
+
+#elif KTX_OPENGL_ES2
+
+  #define GL_GLEXT_PROTOTYPES
+  #include <GLES2/gl2.h>
+  #include <GLES2/gl2ext.h>
+  #include "gles2_funcptrs.h"
+
+#elif KTX_OPENGL_ES3
+
+  #define GL_GLEXT_PROTOTYPES
+  #include <GLES3/gl3.h>
+  #include <GLES2/gl2ext.h>
+  #include "gles3_funcptrs.h"
+
+#else
+  #error Please #define one of KTX_OPENGL, KTX_OPENGL_ES1, KTX_OPENGL_ES2 or KTX_OPENGL_ES3 as 1
+#endif
+
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxstream.h"
 #include "ktxfilestream.h"
 #include "ktxmemstream.h"
-
-#include KTX_GLFUNCPTRS
 
 DECLARE_GL_FUNCPTRS
 
