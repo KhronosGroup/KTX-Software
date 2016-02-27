@@ -50,12 +50,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include <string.h>
 #include <stdlib.h>
 
-#include "ktx.h"
-#include "ktxint.h"
-#include "ktxstream.h"
-#include "ktxfilestream.h"
-#include "ktxmemstream.h"
-
 #if KTX_OPENGL
 
   #ifdef _WIN32
