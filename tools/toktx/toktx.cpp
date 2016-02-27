@@ -49,6 +49,7 @@
 // to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
+#include "GL/glcorearb.h"
 #include "stdafx.h"
 #include "ktx.h"
 #include "image.h"
