@@ -44,12 +44,14 @@
   #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <GLES/gl.h>
+#include <GLES/glext.h>
+#include <ktx.h>
+#include <math.h>
+
 #include "../common/at.h"
-#include "ktx.h"
 
 #include "../data/cube.h"
-
-#include <math.h>
 
 #if defined(_WIN32)
 #define snprintf _snprintf

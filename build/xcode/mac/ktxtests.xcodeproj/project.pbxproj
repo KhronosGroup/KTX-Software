@@ -44,17 +44,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		0328D6F10BDCFD0BE192722C /* LoadTestsGL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 772F9014971B200CBC4276D0 /* LoadTestsGL3.cpp */; };
-		05FFDAF4C5A1C4A5C49E75E9 /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = 45C24C44C088C5FE50A05E72 /* shaders.c */; };
 		09F54F3157ABC1A41A539D15 /* etc1.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 6BFDE348D66C01C4BC8E6840 /* etc1.ktx */; };
 		0E84A827CDD2D29EFE38DD99 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F235DB21E8B49B19DAB24ECF /* Cocoa.framework */; };
 		11FC7A7DEB37BB2B4D2B988B /* rgb-amg-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 7BD6203C8FBC39DC34880176 /* rgb-amg-reference.ktx */; };
 		1848744E8EB08E3D92B5CE31 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C64420EDFCCC9D13D9DE2C86 /* AudioToolbox.framework */; };
-		18F5935D2C7D50FECD9F74AC /* sample_02_cube_textured.c in Sources */ = {isa = PBXBuildFile; fileRef = 54E93E51FBFFB904C2D13D44 /* sample_02_cube_textured.c */; };
-		1C424F2C1508B5A23279CDFE /* sample_01_draw_texture.c in Sources */ = {isa = PBXBuildFile; fileRef = AA2647A71746299528A99FB8 /* sample_01_draw_texture.c */; };
 		1DC8419665FA9A8BFF8EAB84 /* etc2-sRGBa8.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 03F8D8F05E8AF26D4A75085A /* etc2-sRGBa8.ktx */; };
 		1EA6646642D12878CB28C6D6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAABAD93EC42FF0666FD02E /* Foundation.framework */; };
-		28F1B3C141A56252C7982393 /* shaderfuncs.c in Sources */ = {isa = PBXBuildFile; fileRef = 7D0AE8CDE383097029349281 /* shaderfuncs.c */; };
 		31C221DE0F7DE194F6297A73 /* luminance_sized_reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C96546158F4A81236255171B /* luminance_sized_reference.ktx */; };
 		3B3A38CEB7436BFB4C630B9D /* conftestimage_RG11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5B9BB32D3FF508BBB857682B /* conftestimage_RG11_EAC.ktx */; };
 		3CE0866C8A2F4FBC9BDD74A5 /* LoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9B3C65E60956677EC14FB23 /* LoadTests.cpp */; };
@@ -63,6 +58,7 @@
 		52B1F56842CB29114458861B /* hi_mark_sq.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 4C17601D3AA590EC2B89F81E /* hi_mark_sq.ktx */; };
 		566277F6A6591D57EFCE036E /* luminance_unsized_reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = ED1A58E1D79B20089188AFC3 /* luminance_unsized_reference.ktx */; };
 		60826A2C7BF10D11CA3CD01C /* etc2-sRGB.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 0A325175540A8C180B31554F /* etc2-sRGB.ktx */; };
+		67D1CB5A815E7D05AFF1C303 /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = 45C24C44C088C5FE50A05E72 /* shaders.c */; };
 		71FDE5B850D357B4147DD8CD /* conftestimage_R11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 1F095A3E0C7C52EC2BB1B13D /* conftestimage_R11_EAC.ktx */; };
 		7556866734EBBF533F27753E /* rgb-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = DFDC80D8CB4CE3E10235A1EA /* rgb-reference.ktx */; };
 		786B8115B1E22C0C15EC18A5 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E112A84CE9183658432C21B /* GameController.framework */; };
@@ -72,19 +68,23 @@
 		86E1A57FAE6B569705EA187A /* conftestimage_SIGNED_R11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = FB6E14559A0C70CAC2E29A95 /* conftestimage_SIGNED_R11_EAC.ktx */; };
 		8AB9C4BF4ABF9781E5D1EC82 /* rgb-mipmap-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 364C54ECA3E488CA05E9164E /* rgb-mipmap-reference.ktx */; };
 		8DFBD1EB0B8CB4F5ACD02F57 /* AppBaseSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA26834A86BC93BFB21BE6EF /* AppBaseSDL.cpp */; };
+		8FE23D71AF8E03389EDF0AF2 /* LoadTestsGL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 772F9014971B200CBC4276D0 /* LoadTestsGL3.cpp */; };
 		9ADA3B8FEAD54F5D95C4571D /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7DAC0A8FCF8DCEA95FB887 /* OpenGL.framework */; };
 		9CC79ADB51547CC4274EE5C6 /* conftestimage_SIGNED_RG11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = BEDCC79140B271FAA0EF794C /* conftestimage_SIGNED_RG11_EAC.ktx */; };
 		9E836F2FDE7BB86294EE8D96 /* etc2-rgba1.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F4A8038346EC9FBE396B3D7D /* etc2-rgba1.ktx */; };
 		A33FDE223D04961058814943 /* rgba-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 801882CAE68ECDC7B186ACBF /* rgba-reference.ktx */; };
 		BB9F300DE4E3F81720230EA9 /* etc2-rgba8.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C41C30A1686347835432D50C /* etc2-rgba8.ktx */; };
 		BFC0A1F5A9E6D78ED533A7DD /* at.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BBB46B78F037384F190231C /* at.c */; };
+		C29A9875422E9E9AD0B19AF1 /* sample_02_cube_textured.c in Sources */ = {isa = PBXBuildFile; fileRef = 54E93E51FBFFB904C2D13D44 /* sample_02_cube_textured.c */; };
 		C9800FEFF7AC9729BFDEAC8C /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16077AD7D5B5764AF6D0D478 /* main.cpp */; };
 		DAE2009843AA7724D00C0131 /* libappfwSDL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DAB15DEF2EA4220ECCF380 /* libappfwSDL.a */; };
 		DE4944F91655DA701D776A23 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A50524FF40EC10C5AE196E67 /* ApplicationServices.framework */; };
 		E8C43AAE3587A1DCF20BEE05 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A057DBE32ED2E747E88B54A1 /* CoreAudio.framework */; };
 		F5E06ADB8CE41036CE39A215 /* down-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 549B93FB4F8A1B620D210745 /* down-reference.ktx */; };
 		F7217F6E92874DC4E154F409 /* no-npot.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 75C6904CFBFF4C46F4F1885A /* no-npot.ktx */; };
+		F85F8C6F054FF8BDD1EF91CE /* shaderfuncs.c in Sources */ = {isa = PBXBuildFile; fileRef = 7D0AE8CDE383097029349281 /* shaderfuncs.c */; };
 		F8C2B4922C3B2EBB359CF330 /* GLAppSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2969CAD7B2C60C84F699D74 /* GLAppSDL.cpp */; };
+		FC3500EF1022C6276FE7A577 /* sample_01_draw_texture.c in Sources */ = {isa = PBXBuildFile; fileRef = AA2647A71746299528A99FB8 /* sample_01_draw_texture.c */; };
 		FC99ACF8BB2A8E3A876F4FAF /* up-reference.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = EB893C075A04CF6DE26C995A /* up-reference.ktx */; };
 /* End PBXBuildFile section */
 
@@ -244,6 +244,7 @@
 		8973B88BC13D51088B627856 /* hi_mark.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark.ktx; sourceTree = "<group>"; };
 		8E830755AE985595D1A80E19 /* etc2-sRGBa1.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa1.ktx"; sourceTree = "<group>"; };
 		90B3A1521E24C7127F4C0B11 /* LoadTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadTests.h; sourceTree = "<group>"; };
+		932EFA131C9F9D280B18D852 /* mygl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mygl.h; sourceTree = "<group>"; };
 		9BAC3E0EF5E9D8643E91AD4C /* gl3loadtests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gl3loadtests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A057DBE32ED2E747E88B54A1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		A50524FF40EC10C5AE196E67 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
@@ -368,9 +369,22 @@
 				D3FF4041A9FD547A6C936911 /* common */,
 				7C28F0A7CD2E952C4733FD42 /* data */,
 				6253529C9ECD3DB40007818C /* resources_mac */,
-				CE18FFFF81FD09B443C03BD2 /* shader-based */,
+				501FC1A2D7334F01BD699955 /* shader-based */,
 			);
 			path = tests/loadtests;
+			sourceTree = "<group>";
+		};
+		501FC1A2D7334F01BD699955 /* shader-based */ = {
+			isa = PBXGroup;
+			children = (
+				772F9014971B200CBC4276D0 /* LoadTestsGL3.cpp */,
+				932EFA131C9F9D280B18D852 /* mygl.h */,
+				AA2647A71746299528A99FB8 /* sample_01_draw_texture.c */,
+				54E93E51FBFFB904C2D13D44 /* sample_02_cube_textured.c */,
+				7D0AE8CDE383097029349281 /* shaderfuncs.c */,
+				45C24C44C088C5FE50A05E72 /* shaders.c */,
+			);
+			path = "shader-based";
 			sourceTree = "<group>";
 		};
 		6253529C9ECD3DB40007818C /* resources_mac */ = {
@@ -420,18 +434,6 @@
 				4452C290188683B8722610E4 /* tests/loadtests */,
 			);
 			name = Source;
-			sourceTree = "<group>";
-		};
-		CE18FFFF81FD09B443C03BD2 /* shader-based */ = {
-			isa = PBXGroup;
-			children = (
-				772F9014971B200CBC4276D0 /* LoadTestsGL3.cpp */,
-				AA2647A71746299528A99FB8 /* sample_01_draw_texture.c */,
-				54E93E51FBFFB904C2D13D44 /* sample_02_cube_textured.c */,
-				7D0AE8CDE383097029349281 /* shaderfuncs.c */,
-				45C24C44C088C5FE50A05E72 /* shaders.c */,
-			);
-			path = "shader-based";
 			sourceTree = "<group>";
 		};
 		D3FF4041A9FD547A6C936911 /* common */ = {
@@ -577,11 +579,11 @@
 			files = (
 				BFC0A1F5A9E6D78ED533A7DD /* at.c in Sources */,
 				3CE0866C8A2F4FBC9BDD74A5 /* LoadTests.cpp in Sources */,
-				0328D6F10BDCFD0BE192722C /* LoadTestsGL3.cpp in Sources */,
-				1C424F2C1508B5A23279CDFE /* sample_01_draw_texture.c in Sources */,
-				18F5935D2C7D50FECD9F74AC /* sample_02_cube_textured.c in Sources */,
-				28F1B3C141A56252C7982393 /* shaderfuncs.c in Sources */,
-				05FFDAF4C5A1C4A5C49E75E9 /* shaders.c in Sources */,
+				8FE23D71AF8E03389EDF0AF2 /* LoadTestsGL3.cpp in Sources */,
+				FC3500EF1022C6276FE7A577 /* sample_01_draw_texture.c in Sources */,
+				C29A9875422E9E9AD0B19AF1 /* sample_02_cube_textured.c in Sources */,
+				F85F8C6F054FF8BDD1EF91CE /* shaderfuncs.c in Sources */,
+				67D1CB5A815E7D05AFF1C303 /* shaders.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -728,7 +730,6 @@
 					"GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE",
 					"GL_CONTEXT_MAJOR_VERSION=3",
 					"GL_CONTEXT_MINOR_VERSION=3",
-					"KTX_OPENGL=1",
 					NDEBUG,
 				);
 				HEADER_SEARCH_PATHS = (
@@ -768,7 +769,6 @@
 					"GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE",
 					"GL_CONTEXT_MAJOR_VERSION=3",
 					"GL_CONTEXT_MINOR_VERSION=3",
-					"KTX_OPENGL=1",
 					DEBUG,
 					_DEBUG,
 				);

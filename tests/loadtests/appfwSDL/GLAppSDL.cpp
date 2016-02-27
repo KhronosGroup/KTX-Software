@@ -87,7 +87,7 @@ GLAppSDL::initialize(int argc, char* argv[])
 
 #if __WINDOWS__
 		// If using ANGLE copied from Chrome should set to "d3dcompiler_46.dll"
-		// Should set via command-line definition from gyp file.
+		// Should set value via compiler -D definition from gyp file.
 		SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none");
 #endif
     }

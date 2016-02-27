@@ -125,6 +125,7 @@ const int iNumSamples = sizeof(siSamples) / sizeof(LoadTests::sampleInvocation);
 
 
 AppBaseSDL* theApp = new LoadTests(siSamples, iNumSamples,
-                                   "KTX Loader Tests for OpenGL ES 1");
+                                   "KTX Loader Tests for OpenGL ES 1",
+                                   SDL_GL_CONTEXT_PROFILE_ES, 1, 1);
 
 

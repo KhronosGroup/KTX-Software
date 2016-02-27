@@ -48,7 +48,10 @@
   #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "ktx.h"
+#include <GLES/gl.h>
+#include <GLES/glext.h>
+#include <ktx.h>
+
 #include "../common/at.h"
 #include "../data/frame.h"
 

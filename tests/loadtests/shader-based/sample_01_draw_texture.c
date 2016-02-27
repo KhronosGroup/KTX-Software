@@ -46,7 +46,9 @@
   #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "ktx.h"
+#include <ktx.h>
+
+#include "mygl.h"
 #include "../common/at.h"
 #include "../data/frame.h"
 #include "../data/quad.h"

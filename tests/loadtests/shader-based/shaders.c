@@ -40,6 +40,7 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
+#include "GL/glcorearb.h"
 #include "ktx.h"
 
 const GLchar* pszESLangVer = "#version 300 es\n";

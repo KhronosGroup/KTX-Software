@@ -39,14 +39,9 @@
   'targets': [
     {
       'target_name': 'libktx.gl',
-      'variables': {
-        # Because these must be specified in two places.
-        'defines': [ 'KTX_OPENGL=1' ],
-      },
       'type': 'static_library',
-      'defines': [ '<@(defines)' ],
+      'defines': [ 'KTX_OPENGL=1' ],
       'direct_dependent_settings': {
-         'defines': [ '<@(defines)' ],
          'include_dirs': [ '<@(include_dirs)' ],
       },
       'sources': [ '<@(sources)' ],
@@ -54,14 +49,9 @@
     }, # libktx.gl target
     {
       'target_name': 'libktx.es1',
-      'variables': {
-        # Because these must be specified in two places.
-        'defines': [ 'KTX_OPENGL_ES1=1' ],
-      },
       'type': 'static_library',
-      'defines': [ '<@(defines)' ],
+      'defines': [ 'KTX_OPENGL_ES1=1' ],
       'direct_dependent_settings': {
-        'defines': [ '<@(defines)' ],
         'include_dirs': [ '<@(include_dirs)' ],
       },
       'sources': [ '<@(sources)' ],
@@ -69,14 +59,9 @@
     }, # libktx.es1
     {
       'target_name': 'libktx.es3',
-      'variables': {
-        # Because these must be specified in two places.
-        'defines': [ 'KTX_OPENGL_ES3=1' ],
-      },
       'type': 'static_library',
-      'defines': [ '<@(defines)' ],
+      'defines': [ 'KTX_OPENGL_ES3=1' ],
       'direct_dependent_settings': {
-         'defines': [ '<@(defines)' ],
          'include_dirs': [ '<@(include_dirs)' ],
       },
       'sources': [ '<@(sources)' ],

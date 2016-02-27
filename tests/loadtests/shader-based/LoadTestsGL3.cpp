@@ -105,7 +105,13 @@ const LoadTests::sampleInvocation siSamples[] = {
 
 const int iNumSamples = sizeof(siSamples) / sizeof(LoadTests::sampleInvocation);
 
+#if !(defined(GL_CONTEXT_PROFILE) && defined(GL_CONTEXT_MAJOR_VERSION) && defined(GL_CONTEXT_MINOR_VERSION))
+  #error GL_CONTEXT_PROFILE, GL_CONTEXT_MAJOR_VERSION & GL_CONTEXT_MINOR_VERSION must be defined.
+#endif
 
 AppBaseSDL* theApp = new LoadTests(siSamples, iNumSamples,
-                                       "KTX Loader Tests for GL3 & ES3");
+                                   "KTX Loader Tests for GL3 & ES3",
+                                   GL_CONTEXT_PROFILE,
+                                   GL_CONTEXT_MAJOR_VERSION,
+                                   GL_CONTEXT_MINOR_VERSION);
 

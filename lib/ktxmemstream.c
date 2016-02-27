@@ -44,7 +44,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include <string.h>
 #include <stdlib.h>
 
-#include "KHR/khrplatform.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxmemstream.h"

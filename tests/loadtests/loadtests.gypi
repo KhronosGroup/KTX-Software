@@ -54,6 +54,7 @@
       'shader-based/sample_02_cube_textured.c',
       'shader-based/shaderfuncs.c',
       'shader-based/shaders.c',
+      'shader-based/mygl.h',
     ],
   }, # variables, level 1
 
@@ -248,11 +249,6 @@
           ], # sources
           'include_dirs': [
             'common',
-          ],
-          'defines': [
-            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
-            'GL_CONTEXT_MAJOR_VERSION=1',
-            'GL_CONTEXT_MINOR_VERSION=1',
           ],
           'msvs_settings': {
             'VCLinkerTool': {

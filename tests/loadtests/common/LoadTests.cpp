@@ -44,13 +44,14 @@
 
 #include "LoadTests.h"
 
-
 LoadTests::LoadTests(const sampleInvocation samples[],
                      const int numSamples,
-                     const char* const name)
+                     const char* const name,
+                     const SDL_GLprofile profile,
+                     const int majorVersion,
+                     const int minorVersion)
           : siSamples(samples), iNumSamples(numSamples),
-            GLAppSDL(name, 640, 480, GL_CONTEXT_PROFILE,
-                     GL_CONTEXT_MAJOR_VERSION, GL_CONTEXT_MINOR_VERSION)
+            GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion)
 {
     iCurSampleNum = 0;
     pCurSampleInv = &siSamples[0];

@@ -44,12 +44,12 @@
   #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "../common/at.h"
-#include "ktx.h"
-
-#include "../data/cube.h"
-
+#include <ktx.h>
 #include <math.h>
+
+#include "mygl.h"
+#include "../common/at.h"
+#include "../data/cube.h"
 
 /* ------------------------------------------------------------------------- */
 

@@ -40,8 +40,10 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
+#include <ktx.h>
+
+#include "mygl.h"
 #include "../common/at.h"
-#include "ktx.h"
 
 /* ----------------------------------------------------------------------------- */
 
@@ -55,13 +57,12 @@ GLboolean makeShader(GLenum type, const GLchar* const source, GLuint* shader)
 	GLint sh = glCreateShader(type);
 	GLint shaderCompiled;
 	const GLchar* ss[2];
+    const SDL_GLprofile profile;
 
-#if KTX_OPENGL
-	// XXX Probably should figure out a run-time check for this.
-	ss[0] = pszGLLangVer;
-#else
-	ss[0] = pszESLangVer;
-#endif
+	if (strstr((const char*)glGetString(GL_VERSION), "GL ES") == NULL)
+	    ss[0] = pszGLLangVer;
+    else
+    	ss[0] = pszESLangVer;
 	ss[1] = source;
 	glShaderSource(sh, 2, ss, NULL);
 	glCompileShader(sh);

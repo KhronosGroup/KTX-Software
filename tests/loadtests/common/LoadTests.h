@@ -60,7 +60,10 @@ class LoadTests : public GLAppSDL {
     
     LoadTests(const sampleInvocation samples[],
                   const int numSamples,
-                  const char* const name);
+                  const char* const name,
+                  const SDL_GLprofile profile,
+                  const int majorVersion,
+                  const int minorVersion);
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(int ticks);
     virtual void finalize();
