@@ -44,9 +44,6 @@
             'targetver.h',
             'toktx.cpp',
           ],
-          'defines': [
-           'KTX_OPENGL=1',
-          ],
           'msvs_settings': {
             'VCLinkerTool': {
               # /SUBSYSTEM:CONSOLE
