@@ -276,8 +276,8 @@
 		1F4B829E7ACBC1899F3B51B4 /* Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages";
-			dstSubfolderSpec = 0;
+			dstPath = testimages;
+			dstSubfolderSpec = 7;
 			files = (
 				D6447C5ACD394EDC5604D22D /* conftestimage_R11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */,
 				96E2E14E109BBEEF02059B7E /* conftestimage_RG11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */,
@@ -308,8 +308,8 @@
 		30ABEABC03128667D32F452E /* Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages";
-			dstSubfolderSpec = 0;
+			dstPath = testimages;
+			dstSubfolderSpec = 7;
 			files = (
 				76F4BCFAAF01A1EB9D38EB60 /* conftestimage_R11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */,
 				63DE4BF6D7E69A545BD5DB89 /* conftestimage_RG11_EAC.ktx in Copy to $(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */,
