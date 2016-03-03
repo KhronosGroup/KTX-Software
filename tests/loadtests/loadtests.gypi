@@ -210,7 +210,7 @@
                 # A small change to GYP was required to use
                 # UNLOCALIZED_RESOURCES_FOLDER_PATH.
                 #'destination': '$(BUILT_PRODUCTS_DIR)/es3loadtests.app/<(datadir)', # ios
-                #'destination': '$(BUILT_PRODUCTS_DIR)/es3loadtests.app/Resources/<(datadir)', # mac
+                #'destination': '$(BUILT_PRODUCTS_DIR)/es3loadtests.app/$CONTENTS_FOLDER_PATH/Resources/<(datadir)', # mac
                 'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
                 'files': [ '<@(data_files)' ],
               }],
@@ -278,7 +278,7 @@
                 # A small change to GYP was required to use
                 # UNLOCALIZED_RESOURCES_FOLDER_PATH.
                 #'destination': '$(BUILT_PRODUCTS_DIR)/es1loadtests.app/<(datadir)', # ios
-                #'destination': '$(BUILT_PRODUCTS_DIR)/es1loadtests.app/Resources/<(datadir)', # mac
+                #'destination': '$(BUILT_PRODUCTS_DIR)/es1loadtests.app/$CONTENTS_FOLDER_PATH/Resources/<(datadir)', # mac
                 'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
                 'files': [ '<@(data_files)' ],
               }],
