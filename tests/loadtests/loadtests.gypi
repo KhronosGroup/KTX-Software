@@ -140,11 +140,7 @@
                 'resources_mac/Info.plist',
               ],
               'copies': [{
-                # A small change to GYP was required to use
-                # UNLOCALIZED_RESOURCES_FOLDER_PATH.
-                #'destination': '$(BUILT_PRODUCTS_DIR)/gl3loadtests.app/<(datadir)', # ios
-                #'destination': '$(BUILT_PRODUCTS_DIR)/gl3loadtests.app/Resources/<(datadir)', # mac
-                'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
+                'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
                 'files': [ '<@(data_files)' ],
               }],
             }],
@@ -208,11 +204,7 @@
                 'resources_ios/Images.xcassets',
               ],
               'copies': [{
-                # A small change to GYP was required to use
-                # UNLOCALIZED_RESOURCES_FOLDER_PATH.
-                #'destination': '$(BUILT_PRODUCTS_DIR)/es3loadtests.app/<(datadir)', # ios
-                #'destination': '$(BUILT_PRODUCTS_DIR)/es3loadtests.app/$CONTENTS_FOLDER_PATH/Resources/<(datadir)', # mac
-                'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
+                'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
                 'files': [ '<@(data_files)' ],
               }],
             }], # OS == "ios"
@@ -271,11 +263,7 @@
                 'resources_ios/Images.xcassets',
               ],
               'copies': [{
-                # A small change to GYP was required to use
-                # UNLOCALIZED_RESOURCES_FOLDER_PATH.
-                #'destination': '$(BUILT_PRODUCTS_DIR)/es1loadtests.app/<(datadir)', # ios
-                #'destination': '$(BUILT_PRODUCTS_DIR)/es1loadtests.app/$CONTENTS_FOLDER_PATH/Resources/<(datadir)', # mac
-                'destination': '$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
+                'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
                 'files': [ '<@(data_files)' ],
               }],
             }], # OS == "ios"
