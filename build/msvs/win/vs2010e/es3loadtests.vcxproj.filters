@@ -109,6 +109,15 @@
     <Filter Include="tests\loadtests\shader-based">
       <UniqueIdentifier>{4F188E2E-49FC-B262-7CCF-1089F4BC0D9F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\shader-based">
+      <UniqueIdentifier>{4F188E2E-49FC-B262-7CCF-1089F4BC0D9F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="testimages">
       <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
     </Filter>
@@ -213,6 +222,9 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\shader-based\shaders.c">
       <Filter>tests\loadtests\shader-based</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\shader-based\mygl.h">
+      <Filter>tests\loadtests\shader-based</Filter>
+    </ClInclude>
     <None Include="..\..\..\..\ktxtests.gyp"/>
     <None Include="..\..\..\..\testimages\conftestimage_R11_EAC.ktx">
       <Filter>testimages</Filter>
