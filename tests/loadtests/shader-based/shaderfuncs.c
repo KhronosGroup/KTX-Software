@@ -57,7 +57,6 @@ GLboolean makeShader(GLenum type, const GLchar* const source, GLuint* shader)
 	GLint sh = glCreateShader(type);
 	GLint shaderCompiled;
 	const GLchar* ss[2];
-    const SDL_GLprofile profile;
 
 	if (strstr((const char*)glGetString(GL_VERSION), "GL ES") == NULL)
 	    ss[0] = pszGLLangVer;
