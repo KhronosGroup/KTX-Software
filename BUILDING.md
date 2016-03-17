@@ -175,8 +175,8 @@ there.
 *You do not need GYP unless you want to re-generate the supplied projects
 or generate additional projects.*
 
-*You can use the standard version of GYP if you do not need to generate the
-Xcode projects.*
+*You can use the standard version of GYP if you do not need to generate
+Xcode or make projects.*
 
 ### GNU make 3.81+
 
