@@ -3,7 +3,6 @@
 TOOLSET := target
 TARGET := toktx
 DEFS_Debug := \
-	'-DKTX_OPENGL=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -22,7 +21,6 @@ INCS_Debug := \
 	-I$(srcdir)/other_include
 
 DEFS_Release := \
-	'-DKTX_OPENGL=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.

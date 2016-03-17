@@ -4,16 +4,16 @@ TOOLSET := target
 TARGET := toktx-tests
 ### Rules for action "toktx-tests":
 quiet_cmd_ktxtools_gyp_toktx_tests_target_toktx_tests = ACTION Running toktx tests $@
-cmd_ktxtools_gyp_toktx_tests_target_toktx_tests = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p tools/toktx; tests/toktx-tests $(builddir)/toktx
+cmd_ktxtools_gyp_toktx_tests_target_toktx_tests = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p tools/toktx; tests/toktx-tests "$(builddir)/toktx"
 
-$(srcdir)/tools/toktx/testsrun: obj := $(abs_obj)
-$(srcdir)/tools/toktx/testsrun: builddir := $(abs_builddir)
-$(srcdir)/tools/toktx/testsrun: TOOLSET := $(TOOLSET)
-$(srcdir)/tools/toktx/testsrun: $(srcdir)/tests/toktx-tests FORCE_DO_CMD
+tools/toktx/testsrun: obj := $(abs_obj)
+tools/toktx/testsrun: builddir := $(abs_builddir)
+tools/toktx/testsrun: TOOLSET := $(TOOLSET)
+tools/toktx/testsrun: $(srcdir)/tests/toktx-tests FORCE_DO_CMD
 	$(call do_cmd,ktxtools_gyp_toktx_tests_target_toktx_tests)
 
-all_deps += $(srcdir)/tools/toktx/testsrun
-action_ktxtools_gyp_toktx_tests_target_toktx_tests_outputs := $(srcdir)/tools/toktx/testsrun
+all_deps += tools/toktx/testsrun
+action_ktxtools_gyp_toktx_tests_target_toktx_tests_outputs := tools/toktx/testsrun
 
 
 ### Rules for final target.
