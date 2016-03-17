@@ -6,31 +6,31 @@ TARGET := libktx.doc
 quiet_cmd_libktx_gyp_libktx_doc_target_buildDoc = ACTION Generating documentation with Doxygen $@
 cmd_libktx_gyp_libktx_doc_target_buildDoc = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p build/doc; doxygen ktxDoxy
 
-$(srcdir)/build/doc/html: obj := $(abs_obj)
-$(srcdir)/build/doc/html: builddir := $(abs_builddir)
-$(srcdir)/build/doc/html: TOOLSET := $(TOOLSET)
-$(srcdir)/build/doc/html $(srcdir)/build/doc/latex $(srcdir)/build/doc/man: libktx_gyp_libktx_doc_target_buildDoc.intermediate
+build/doc/html: obj := $(abs_obj)
+build/doc/html: builddir := $(abs_builddir)
+build/doc/html: TOOLSET := $(TOOLSET)
+build/doc/html build/doc/latex build/doc/man: libktx_gyp_libktx_doc_target_buildDoc.intermediate
 	@:
 .INTERMEDIATE: libktx_gyp_libktx_doc_target_buildDoc.intermediate
 libktx_gyp_libktx_doc_target_buildDoc.intermediate: $(srcdir)/ktxDoxy $(srcdir)/LICENSE.md $(srcdir)/include/ktx.h $(srcdir)/lib/checkheader.c $(srcdir)/lib/errstr.c $(srcdir)/lib/etcdec.cxx $(srcdir)/lib/etcunpack.cxx $(srcdir)/lib/gl_funcptrs.h $(srcdir)/lib/gles1_funcptrs.h $(srcdir)/lib/gles2_funcptrs.h $(srcdir)/lib/gles3_funcptrs.h $(srcdir)/lib/hashtable.c $(srcdir)/lib/ktxfilestream.c $(srcdir)/lib/ktxfilestream.h $(srcdir)/lib/ktxint.h $(srcdir)/lib/ktxmemstream.c $(srcdir)/lib/ktxmemstream.h $(srcdir)/lib/ktxstream.h $(srcdir)/lib/loader.c $(srcdir)/lib/swap.c $(srcdir)/lib/uthash.h $(srcdir)/lib/writer.c FORCE_DO_CMD
 	$(call do_cmd,touch)
 	$(call do_cmd,libktx_gyp_libktx_doc_target_buildDoc)
 
-all_deps += $(srcdir)/build/doc/html $(srcdir)/build/doc/latex $(srcdir)/build/doc/man
-action_libktx_gyp_libktx_doc_target_buildDoc_outputs := $(srcdir)/build/doc/html $(srcdir)/build/doc/latex $(srcdir)/build/doc/man
+all_deps += build/doc/html build/doc/latex build/doc/man
+action_libktx_gyp_libktx_doc_target_buildDoc_outputs := build/doc/html build/doc/latex build/doc/man
 
 ### Rules for action "touchTimestamp":
 quiet_cmd_libktx_gyp_libktx_doc_target_touchTimestamp = ACTION setting generation timestamp $@
 cmd_libktx_gyp_libktx_doc_target_touchTimestamp = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p build/doc; touch build/doc/.gentimestamp
 
-$(srcdir)/build/doc/.gentimestamp: obj := $(abs_obj)
-$(srcdir)/build/doc/.gentimestamp: builddir := $(abs_builddir)
-$(srcdir)/build/doc/.gentimestamp: TOOLSET := $(TOOLSET)
-$(srcdir)/build/doc/.gentimestamp: $(srcdir)/ktxDoxy $(srcdir)/LICENSE.md $(srcdir)/include/ktx.h $(srcdir)/lib/checkheader.c $(srcdir)/lib/errstr.c $(srcdir)/lib/etcdec.cxx $(srcdir)/lib/etcunpack.cxx $(srcdir)/lib/gl_funcptrs.h $(srcdir)/lib/gles1_funcptrs.h $(srcdir)/lib/gles2_funcptrs.h $(srcdir)/lib/gles3_funcptrs.h $(srcdir)/lib/hashtable.c $(srcdir)/lib/ktxfilestream.c $(srcdir)/lib/ktxfilestream.h $(srcdir)/lib/ktxint.h $(srcdir)/lib/ktxmemstream.c $(srcdir)/lib/ktxmemstream.h $(srcdir)/lib/ktxstream.h $(srcdir)/lib/loader.c $(srcdir)/lib/swap.c $(srcdir)/lib/uthash.h $(srcdir)/lib/writer.c FORCE_DO_CMD
+build/doc/.gentimestamp: obj := $(abs_obj)
+build/doc/.gentimestamp: builddir := $(abs_builddir)
+build/doc/.gentimestamp: TOOLSET := $(TOOLSET)
+build/doc/.gentimestamp: $(srcdir)/ktxDoxy $(srcdir)/LICENSE.md $(srcdir)/include/ktx.h $(srcdir)/lib/checkheader.c $(srcdir)/lib/errstr.c $(srcdir)/lib/etcdec.cxx $(srcdir)/lib/etcunpack.cxx $(srcdir)/lib/gl_funcptrs.h $(srcdir)/lib/gles1_funcptrs.h $(srcdir)/lib/gles2_funcptrs.h $(srcdir)/lib/gles3_funcptrs.h $(srcdir)/lib/hashtable.c $(srcdir)/lib/ktxfilestream.c $(srcdir)/lib/ktxfilestream.h $(srcdir)/lib/ktxint.h $(srcdir)/lib/ktxmemstream.c $(srcdir)/lib/ktxmemstream.h $(srcdir)/lib/ktxstream.h $(srcdir)/lib/loader.c $(srcdir)/lib/swap.c $(srcdir)/lib/uthash.h $(srcdir)/lib/writer.c FORCE_DO_CMD
 	$(call do_cmd,libktx_gyp_libktx_doc_target_touchTimestamp)
 
-all_deps += $(srcdir)/build/doc/.gentimestamp
-action_libktx_gyp_libktx_doc_target_touchTimestamp_outputs := $(srcdir)/build/doc/.gentimestamp
+all_deps += build/doc/.gentimestamp
+action_libktx_gyp_libktx_doc_target_touchTimestamp_outputs := build/doc/.gentimestamp
 
 
 ### Rules for final target.

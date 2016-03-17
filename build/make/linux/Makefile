@@ -23,7 +23,6 @@ endif
 # Specify BUILDTYPE=Release on the command line for a release build.
 BUILDTYPE ?= Debug
 
-
 # Directory all our build output goes into.
 # Note that this must be two directories beneath src/ for unit tests to pass,
 # as they reach into the src/ directory for data with relative paths.
