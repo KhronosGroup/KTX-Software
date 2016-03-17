@@ -89,8 +89,8 @@ script:
     cd build/make/linux &&
     make BUILDTYPE=Debug &&
     make BUILDTYPE=Release &&
-    cd ../../cmake/linux/&Debug &&
-    cmake && make &&
+    cd ../../cmake/linux/Debug &&
+    cmake . && make &&
     cd ../Release &&
     cmake . && make
     ;;
