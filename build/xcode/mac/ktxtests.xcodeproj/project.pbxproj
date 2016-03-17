@@ -743,7 +743,7 @@
 					/Library/Frameworks,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = gl3loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_PREFIX = "";
@@ -783,7 +783,7 @@
 					/Library/Frameworks,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME:identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = gl3loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				WRAPPER_PREFIX = "";

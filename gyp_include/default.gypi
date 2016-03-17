@@ -112,7 +112,10 @@
       ],
       'target_conditions': [
         ['_type == "executable"', {
-          'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME:identifier}',
+            # Don't add a default value because this variable gets exported
+            # as is to CMake and ${PRODUCT_NAME:-identifier} is invalid
+            # syntax.
+          'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
         }],
       ],
     },
