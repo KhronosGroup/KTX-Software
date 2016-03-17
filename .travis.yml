@@ -27,18 +27,18 @@ before_install:
     # The already installed GIT LFS is very old - 0.5.0. Need a more recent
     # one to work with the GitHub server.
     # Current directory is .../build/KhronosGroup/KTX. cd to 'build'.
-    pushd ../..
-    wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz
-    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz
-    export PATH=`pwd`/git-lfs-1.1.0:$PATH
-    popd
-    git lfs install
+    pushd ../.. &&
+    wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    export PATH=`pwd`/git-lfs-1.1.0:$PATH &&
+    popd &&
+    git lfs install &&
     git lfs pull --include="other_lib/linux"
     ;;
   osx)
-    brew update > /dev/null
-    brew install git-lfs
-    git lfs install
+    brew update > /dev/null &&
+    brew install git-lfs &&
+    git lfs install &&
     git lfs version
     ;;
   esac
@@ -68,7 +68,7 @@ before_script:
     git lfs pull --include=other_lib/linux | cat
     ;;
   osx)
-    git lfs pull --include=other_lib/mac,other_lib/ios | cat
+    git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
     sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
     ;;
   esac
@@ -77,13 +77,13 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    cd build/make/linux
-    make BUILDTYPE=Debug
-    make BUILDTYPE=Release
-    cd ../../cmake/linux/Debug
-    cmake .; make
-    cd ../Release
-    cmake .; make
+    cd build/make/linux &&
+    make BUILDTYPE=Debug &&
+    make BUILDTYPE=Release &&
+    cd ../../cmake/linux/&Debug &&
+    cmake && make &&
+    cd ../Release &&
+    cmake . && make
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
@@ -91,7 +91,7 @@ script:
     OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386")
     IOS_XCODE_OPTIONS=(-alltargets -destination "platform=generic/iOS" -destination "platform=iOS Simulator,OS=latest")
     XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO'
-    # The following and more is needed if yuo want to actually sign the code.
+    # The following and more is needed if you want to actually sign the code.
     # See http://stackoverflow.com/questions/27671854/travis-ci-fails-to-build-with-a-code-signing-error.
     #KEY_CHAIN=xcode-build.keychain
     #security create-keychain -p travis $KEY_CHAIN
@@ -101,13 +101,13 @@ script:
     #security unlock-keychain -p travis $KEY_CHAIN
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
-    cd build/xcode/mac
-    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV
-    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
-    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV
-    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
-    cd ../ios
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV
+    cd build/xcode/mac &&
+    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
+    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
+    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    cd ../ios &&
+    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
     ;;
   esac
