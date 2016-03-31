@@ -417,9 +417,6 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 Changed:
 @li New build system
 
-Fixed:
-@li Generate mipmap in case when glGenerateMipmap is available.
-
 @section v4 Version 2.0.1
 Added:
 @li CMake build files. Thanks to Pavel Rotjberg for the initial version.
