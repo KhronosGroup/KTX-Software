@@ -22,8 +22,9 @@ init:
   - ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
   - ps: git config --global core.autocrlf true # workaround Git LFS bug
 
+# N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:
-  - cmd: |-
+- cmd: |-
     choco install doxygen.install
     REM Copy PowerVR OpenGL ES Emulator libraries
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib
@@ -37,7 +38,7 @@ cache:
   - other_lib
 
 build_script:
-  - cmd: |-
+- cmd: |-
     "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtests.sln
     "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtools.sln
     "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtests.sln
