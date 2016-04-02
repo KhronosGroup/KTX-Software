@@ -15,11 +15,21 @@ platform:
   - x64
   - Win32
 
+on_failure:
+  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+
 init:
   - ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
   - ps: git config --global core.autocrlf true # workaround Git LFS bug
 
 install:
+- cmd: |-
+    REM Test what happens with return between commands.
+    REM Does this line appear below the previous?
+    echo Setting foo
+    set foo=bar
+    echo Can we see foo?
+    echo %foo%
 - cmd: >-
     REM This is not a batch file even though it looks like one.
 
@@ -51,7 +61,6 @@ build_script:
     "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtests.sln
 
     "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtools.sln
-
 
     "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtests.sln
 
