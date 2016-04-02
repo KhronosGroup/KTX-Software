@@ -23,45 +23,22 @@ init:
   - ps: git config --global core.autocrlf true # workaround Git LFS bug
 
 install:
-- cmd: |-
-    REM Test what happens with return between commands.
-    REM Does this line appear below the previous?
-    echo Setting foo
-    set foo=bar
-    echo Can we see foo?
-    echo %foo%
-- cmd: >-
-    REM This is not a batch file even though it looks like one.
-
-    REM Each line is run in a separate instance of cmd.exe
-
+  - cmd: |-
     choco install doxygen.install
-
     REM Copy PowerVR OpenGL ES Emulator libraries
-
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib
-
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib & curl -O 'https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libEGL.{dll,lib}' -O 'https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib}' -O 'https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}'
-
-
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib
-
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib & curl -O 'https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libEGL.{dll,lib}' -O 'https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib}' -O 'https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}'
-
-
     REM cd back to cloned repo.
-
     cd C:\projects\ktx
 
 cache:
   - other_lib
 
 build_script:
-- cmd: >-
+  - cmd: |-
     "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtests.sln
-
     "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtools.sln
-
     "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtests.sln
-
     "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtools.sln
