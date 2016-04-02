@@ -61,19 +61,10 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 DECLARE_GL_FUNCPTRS
 
-/* @private is not preventing the typedefs, structs and defines from
- * appearing in the Doxygen output even though EXTRACT_PRIVATE is NO
- * in the config file. To prevent these items appearing I have changed
- * the special comments to ordinary comments, and have set
- * HIDE_UNDOC_MEMBERS = YES in the Doxygen config file.
- *
- * Items declared "static" are omitted, as expected, due to EXTRACT_STATIC
- * being NO, so there is no need to convert those to ordinary comments.
- */
-/*
- * @private
+/**
+ * @internal
  * @~English
- * @brief additional contextProfile bit indicating an OpenGL ES context.
+ * @brief Additional contextProfile bit indicating an OpenGL ES context.
  *
  * This is the same value NVIDIA returns when using an OpenGL ES profile
  * of their desktop drivers. However it is not specified in any official
@@ -82,8 +73,8 @@ DECLARE_GL_FUNCPTRS
  */
 #define _CONTEXT_ES_PROFILE_BIT 0x4
 
-/*
- * @private
+/**
+ * @internal
  * @~English
  * @name Supported Sized Format Macros
  *
@@ -91,55 +82,55 @@ DECLARE_GL_FUNCPTRS
  * variable.
  */
 /**@{*/
-#define _NON_LEGACY_FORMATS 0x1 /*< @private @internal non-legacy sized formats are supported. */
-#define _LEGACY_FORMATS 0x2  /*< @private @internal legacy sized formats are supported. */
-/*
- * @private
+#define _NON_LEGACY_FORMATS 0x1 /*< @internal Non-legacy sized formats are supported. */
+#define _LEGACY_FORMATS 0x2  /*< @internal Legacy sized formats are supported. */
+/**
+ * @internal
  * @~English
- * @brief all sized formats are supported
+ * @brief All sized formats are supported
  */
 #define _ALL_SIZED_FORMATS (_NON_LEGACY_FORMATS | _LEGACY_FORMATS)
-#define _NO_SIZED_FORMATS 0 /*< @private @internal no sized formats are supported. */
+#define _NO_SIZED_FORMATS 0 /*< @internal No sized formats are supported. */
 /**@}*/
 
 /**
- * @private
+ * @internal
  * @~English
  * @brief indicates the profile of the current context.
  */
 static GLint contextProfile = 0;
 /**
- * @private
+ * @internal
  * @~English
- * @brief indicates what sized texture formats are supported
+ * @brief Indicates what sized texture formats are supported
  *        by the current context.
  */
 static GLint sizedFormats = _ALL_SIZED_FORMATS;
 static GLboolean supportsSwizzle = GL_TRUE;
 /**
- * @private
+ * @internal
  * @~English
- * @brief indicates which R16 & RG16 formats are supported by the current context.
+ * @brief Indicates which R16 & RG16 formats are supported by the current context.
  */
 static GLint R16Formats = _KTX_ALL_R16_FORMATS;
 /**
- * @private
+ * @internal
  * @~English
- * @brief indicates if the current context supports sRGB textures.
+ * @brief Indicates if the current context supports sRGB textures.
  */
 static GLboolean supportsSRGB = GL_TRUE;
 
 /**
- * @private
- * ~English
- * @brief workaround mismatch of glGetString declaration and standard string
+ * @internal
+ * @~English
+ * @brief Workaround mismatch of glGetString declaration and standard string
  *        function parameters.
  */
 #define glGetString(x) (const char*)glGetString(x)
 
 
 /**
- * @private
+ * @internal
  * @~English
  * @brief Discover the capabilities of the current GL context.
  *
