@@ -67,7 +67,7 @@ static KTX_error_code sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
  * @brief Write image(s) in a KTX-format to a ktxStream.
  *
  * @param [in] stream           pointer to the ktxStream from which to load.
- * @param [in] textureInfo  pointer to a KTX_image_info structure providing
+ * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
  *                          information about the images to be included in
  *                          the KTX file.
  * @param [in] bytesOfKeyValueData
@@ -357,7 +357,7 @@ cleanup:
  * @brief Write image(s) in a KTX-formatted stdio FILE stream.
  *
  * @param [in] file         pointer to the FILE stream to write to.
- * @param [in] textureInfo  pointer to a KTX_image_info structure providing
+ * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
  *                          information about the images to be included in
  *                          the KTX file.
  * @param [in] bytesOfKeyValueData
@@ -415,7 +415,7 @@ ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
  *
  * @param [in] dstname		pointer to a C string that contains the path of
  * 							the file to load.
- * @param [in] textureInfo  pointer to a KTX_image_info structure providing
+ * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
  *                          information about the images to be included in
  *                          the KTX file.
  * @param [in] bytesOfKeyValueData
@@ -457,7 +457,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  * @param [out] bytes        pointer to the output with KTX data. Application
 							is responsible for freeing that memory.
  * @param [out] size         pointer to store size of the memory written.
- * @param [in] textureInfo  pointer to a KTX_image_info structure providing
+ * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
  *                          information about the images to be included in
  *                          the KTX file.
  * @param [in] bytesOfKeyValueData
