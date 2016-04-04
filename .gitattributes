@@ -33,9 +33,8 @@ expandkw eol=lf
 GNUmakefile eol=lf
 
 # Keyword expansion
-TODO filter=kwexpander
-include/ktx.h filter=kwexpander ident
 GNUmakefile ident
+TODO.md filter=kwexpander
 include/ktx.h filter=kwexpander ident
 lib/*.[ch] ident
 lib/*.cxx ident
