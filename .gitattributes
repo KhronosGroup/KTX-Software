@@ -34,8 +34,8 @@ GNUmakefile eol=lf
 
 # Keyword expansion
 GNUmakefile ident
-TODO.md filter=kwexpander
-include/ktx.h filter=kwexpander ident
+TODO.md filter=keyworder
+include/ktx.h filter=keyworder ident
 lib/*.[ch] ident
 lib/*.cxx ident
 tests/loadtests/common/at.[ch] ident
@@ -44,7 +44,7 @@ tests/loadtests/gles1/*.c ident
 tests/loadtests/shader-based/*.c ident
 tools/toktx/*.cpp ident
 tools/toktx/*.h ident
-tools/toktx/toktx.cpp filter=kwexpander ident
+tools/toktx/toktx.cpp filter=keyworder ident
 
 # LFS attributes
 *.a filter=lfs -text

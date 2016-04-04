@@ -1,0 +1,8 @@
+# Filters used by KTX repo
+[filter "keyworder"]
+    smudge = bash expand_kw %f
+    clean = bash -c \"sed -e 's/\\$Date.*\\$/\\$Date\\$/'\"
+
+# Needed to avoid merge conflicts
+[merge]
+    renormalize = true
