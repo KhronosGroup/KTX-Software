@@ -8,29 +8,28 @@
 
 ### $Date$ keyword expansion
 
-A few of the source files have $Date$ keywords in them. If you are generating the documentation or preparing distribution archives, you must add the following to the .git/config file in your clone of the repository so that $Date$ will be expanded and unexpanded. This is optional if not doing one of the aforementioned tasks.
+A few of the source files have $Date$ keywords in them which are expanded
+via a smudge filter. If you are generating the documentation or preparing
+distribution archives, you must issue the following commands in the root
+of your clone so that $Date$ will be expanded and unexpanded. This is
+optional if not doing one of the aforementioned tasks.
 
-```
-[filter "kwexpander"]
-	smudge = bash expandkw %f
-	clean = bash -c \"sed -e 's/\\$Date.*\\$/\\$Date\\$/'\"
-[merge]
-    renormalize = true
-```
-Assumes bash is in a folder in your PATH environment variable. On Unix/GNULinux/OSX, this is normally the case. On Windows, you will need Cygwin and must either add C:\cygwin\bin to %PATH% or prefix "bash" above with C:/cygwin/bin/.
+On Unix (Linux, Mac OS X, etc.) platforms and Windows using Git for Windows'
+Git Bash or Cygwin's bash terminal:
 
-On Unix/GNULinux/OSX you can change clean to simply
-
-```
-clean = sed -e 's/\\$Date.*\\$/\\$Date\\$/'
+```bash
+./install-gitconfig.sh
+rm TODO.md include/ktx.h tools/toktx/toktx.cpp
+git checkout TODO.md include/ktx.h tools/toktx/toktx.cpp
 ```
 
-#### Using $Date$ expansion in other projects
+On Windows with the Command Prompt (requires `git.exe` in a directory
+on your %PATH%):
 
-Add the above to your ~/.gitconfig file instead. If on Unix/Linux/OSX, you should copy expandkw to somewhere in your path, such as /usr/local/bin and change smudge to simply
-
+```cmd
+install-gitconfig.bat
+del TODO.md include/ktx.h tools/toktx/toktx.cpp
+git checkout TODO.md include/ktx.h tools/toktx/toktx.cpp 
 ```
-smudge = expandkw %f
-```
 
-If on Windows, you will need to use the full path to "expandkw" in the smudge driver. The driver shown relies on Git setting the current directory to the top of the KTX working tree.
+The first command adds an [include] of the repo's `.gitconfig` to the local git config file`.git/config` in your clone of the repo. `.gitconfig` contains the config of the "keyworder" filter. The remaining commands force a new checkout of the affected files to smudge them with the date. These two are unnecessary if you plan to edit these files. All are unecessary if you do not care about having the dates shown.
