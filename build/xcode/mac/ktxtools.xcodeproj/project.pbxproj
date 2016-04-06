@@ -35,7 +35,7 @@
 
 /* Begin PBXBuildFile section */
 		1346235913FC0C0B0E19961E /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
-		43D55316FEF2FEA36E54E618 /* libktx.gl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3947491CE9C6DC830B08282D /* libktx.gl.a */; };
+		CBE7C02D2F69FA8BB3240936 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		E93B9764B51109A563E1F9FC /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
 /* End PBXBuildFile section */
 
@@ -46,13 +46,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = 998EA7B9AC7E5B6EB606DF64;
 			remoteInfo = libktx.es3;
-		};
-		531F7864B35FCD966F258565 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 294D72CF2DE93CC967F22442;
-			remoteInfo = libktx.gl;
 		};
 		72C1A7EF6E14A76F8E8DEF14 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -67,6 +60,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 0E89E748F8A4B7B17C501EFA;
 			remoteInfo = "toktx-tests";
+		};
+		797F29D7FBA240927A67213D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F552AA19D91ECB8C25731D64;
+			remoteInfo = libktx.gl;
 		};
 		88D2ACF2A8F37AEBE3AEBBA9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -114,7 +114,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				43D55316FEF2FEA36E54E618 /* libktx.gl.a in Frameworks */,
+				CBE7C02D2F69FA8BB3240936 /* libktx.gl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +161,16 @@
 			name = Projects;
 			sourceTree = "<group>";
 		};
+		AC3BEC6CB2F10CEADFB04473 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */,
+				4953E24547305137EE2E70E7 /* libktx.es1.a */,
+				A463980ED735E3E3971189B4 /* libktx.es3.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		B9DBBD2BDC0AB56FD77FF34F /* tools/toktx */ = {
 			isa = PBXGroup;
 			children = (
@@ -178,16 +188,6 @@
 			isa = PBXGroup;
 			children = (
 				53718F849477FE4A99643D3C /* toktx */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		DBE178DB442369731669729C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				3947491CE9C6DC830B08282D /* libktx.gl.a */,
-				4953E24547305137EE2E70E7 /* libktx.es1.a */,
-				A463980ED735E3E3971189B4 /* libktx.es3.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -235,7 +235,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = DBE178DB442369731669729C /* Products */;
+					ProductGroup = AC3BEC6CB2F10CEADFB04473 /* Products */;
 					ProjectRef = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
 				},
 			);
@@ -249,18 +249,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		3947491CE9C6DC830B08282D /* libktx.gl.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libktx.gl.a;
-			remoteRef = 531F7864B35FCD966F258565 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		4953E24547305137EE2E70E7 /* libktx.es1.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libktx.es1.a;
 			remoteRef = F87327285998842E4B3C9BE8 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libktx.gl.dylib;
+			remoteRef = 797F29D7FBA240927A67213D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		A463980ED735E3E3971189B4 /* libktx.es3.a */ = {

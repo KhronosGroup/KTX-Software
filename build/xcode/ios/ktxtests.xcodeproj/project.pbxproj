@@ -354,7 +354,6 @@
 		2DAABAD93EC42FF0666FD02E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		318C079F5709CE3BE6391E24 /* libktx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libktx.xcodeproj; path = build/xcode/ios/libktx.xcodeproj; sourceTree = SOURCE_ROOT; };
 		364C54ECA3E488CA05E9164E /* rgb-mipmap-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-mipmap-reference.ktx"; sourceTree = "<group>"; };
-		39AB8B5957A513B36D5A740C /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
 		4064762A5A368ADCC9CC334F /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		42C98F0448C6539F8995E5EC /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		43130224EFE5B33CA32DFB8C /* LoadTestsES1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoadTestsES1.cpp; sourceTree = "<group>"; };
@@ -461,6 +460,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		064DB31D1AA5F495FE11A628 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
+				62C8ED7D4BE000BE8F05196F /* config.gypi */,
+				2A10C481083B8ADF83741784 /* default.gypi */,
+				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
+				DCA2A2C870993F0227174041 /* libgles1.gypi */,
+				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
+				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
+				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
+				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
+				443BA60BE91B83D924E4DD4E /* tests.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		0A7F5EA342F58C74360A560C /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -507,7 +523,7 @@
 				BE87322074888456974DB31C /* Projects */,
 				D4502F02DD085F068376E8E5 /* Frameworks */,
 				B62AE141B7DF9843D6A8AAFC /* Products */,
-				DB7E703F95C33A29BD178E4D /* Build */,
+				064DB31D1AA5F495FE11A628 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -631,24 +647,6 @@
 				9B11E31607306A9B19B29AC4 /* quad.h */,
 			);
 			path = data;
-			sourceTree = "<group>";
-		};
-		DB7E703F95C33A29BD178E4D /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
-				62C8ED7D4BE000BE8F05196F /* config.gypi */,
-				2A10C481083B8ADF83741784 /* default.gypi */,
-				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
-				39AB8B5957A513B36D5A740C /* libgl.gypi */,
-				DCA2A2C870993F0227174041 /* libgles1.gypi */,
-				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
-				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
-				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
-				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
-				443BA60BE91B83D924E4DD4E /* tests.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

@@ -97,17 +97,19 @@
       ['OS == "android"', {
         'sdl_to_use': 'built_dylib', # No other choice
         'sdl2_lib_dir': '<(droidolib_dir)',
+        'library': 'static_library',
       }, # OS == "android"
       'OS == "ios"', {
         'sdl_to_use': 'staticlib', # No other choice
         'sdl2_lib_dir': '<(iosolib_dir)',
+        'library': 'static_library',
       }, # OS == "ios"
       'OS == "linux"', {
         'sdl_to_use%': 'built_dylib',
-
         # Location of libSDL2.a, libSDL2main.a and libSDL2_*.so
         'sdl2_lib_dir': '<(linuxolib_dir)',
-
+        # Type of libktx to build
+        'library': 'shared_library',
         # Location of glew32.lib.
         'glew_lib_dir': '<(linuxolib_dir)',
         # Location of glew32.dll.
@@ -115,21 +117,19 @@
       }, # OS == "linux"
       'OS == "mac"', {
         'sdl_to_use%': 'installed_framework',
-
         # Used when sdl_to_use == "installed_framework"
         'sdl2.framework_dir': '/Library/Frameworks',
-
         # Used when sdl_to_use != "installed_framework". This is the
         # location which will be searched for libSDL2.a,
         # libSDL2.dylib or SDL2.framework as appropriate.
         'sdl2_lib_dir': '<(macolib_dir)',
+        'library': 'shared_library',
       }, # OS == "mac"
       'OS == "win"', {
         'sdl_to_use%': 'built_dylib',
-
         # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',
-
+        'library': 'shared_library',
         # Location of glew32.lib.
         'glew_lib_dir': '<(winolib_dir)',
         # Location of glew32.dll.

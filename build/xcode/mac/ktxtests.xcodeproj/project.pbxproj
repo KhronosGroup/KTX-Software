@@ -16,20 +16,9 @@
 				FDD4B7ACC509FA25CBFDC384 /* PBXTargetDependency */,
 				A0A7CAC54656F2F3A6ED9805 /* PBXTargetDependency */,
 				1705CFEC82A917D7000886EB /* PBXTargetDependency */,
-				0655988067943BD4E87E6BC1 /* PBXTargetDependency */,
 			);
 			name = All;
 			productName = All;
-		};
-		BF97B2EE853A57EA8400D402 /* libgl */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 0DDFE8133819512A57AB18CF /* Build configuration list for PBXAggregateTarget "libgl" */;
-			buildPhases = (
-			);
-			dependencies = (
-			);
-			name = libgl;
-			productName = libgl;
 		};
 		C9FA79AED7857DAE20C5CEC8 /* libsdl */ = {
 			isa = PBXAggregateTarget;
@@ -64,9 +53,9 @@
 		786B8115B1E22C0C15EC18A5 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E112A84CE9183658432C21B /* GameController.framework */; };
 		7A73FB8FC36015D43C49021C /* etc2-rgba8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C41C30A1686347835432D50C /* etc2-rgba8.ktx */; };
 		7A806337CE9857663DCDE4A6 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 518D7D9FE634BEB218059A69 /* SDL2.framework */; };
-		85D1A64A12DEB46373B79ECB /* libktx.gl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1925F191F4460CD405FA712D /* libktx.gl.a */; };
 		89C662C73494BAFD1F9B507B /* conftestimage_SIGNED_R11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = FB6E14559A0C70CAC2E29A95 /* conftestimage_SIGNED_R11_EAC.ktx */; };
 		8DFBD1EB0B8CB4F5ACD02F57 /* AppBaseSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA26834A86BC93BFB21BE6EF /* AppBaseSDL.cpp */; };
+		92D8FFBD2CA11C736EF47874 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C37258511DF431072A64055F /* libktx.gl.dylib */; };
 		987A0596666D35A75F66BDEC /* conftestimage_RG11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5B9BB32D3FF508BBB857682B /* conftestimage_RG11_EAC.ktx */; };
 		987B0D91B82EA9804E14EF8A /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 801882CAE68ECDC7B186ACBF /* rgba-reference.ktx */; };
 		9ADA3B8FEAD54F5D95C4571D /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7DAC0A8FCF8DCEA95FB887 /* OpenGL.framework */; };
@@ -89,20 +78,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		0BC4B402EADCF557CBC61F11 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BF97B2EE853A57EA8400D402;
-			remoteInfo = libgl;
-		};
-		3980D95BDB162CDBAE9BAD5B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 294D72CF2DE93CC967F22442;
-			remoteInfo = libktx.gl;
-		};
 		4C88BA42DAA10F3EC9A1BCFA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
@@ -123,13 +98,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 5D14C76351FD143925D22373;
 			remoteInfo = appfwSDL;
-		};
-		786E69F372B7E7C68F003D5F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BF97B2EE853A57EA8400D402;
-			remoteInfo = libgl;
 		};
 		95B6593687BA69C4423D9B72 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -152,6 +120,13 @@
 			remoteGlobalIDString = 5D14C76351FD143925D22373;
 			remoteInfo = appfwSDL;
 		};
+		DEF2396CB5BDD9BC37A89683 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F552AA19D91ECB8C25731D64;
+			remoteInfo = libktx.gl;
+		};
 		E26D0B1CABE4E7B309504209 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
@@ -165,6 +140,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = 998EA7B9AC7E5B6EB606DF64;
 			remoteInfo = libktx.es3;
+		};
+		F63E2BAAD04DB53EDF371689 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 2C49C1BC3266E196E5B13666;
+			remoteInfo = libgl;
 		};
 		FBB8F763BC71116E7103274A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -222,7 +204,6 @@
 		2BD6E6F97B5A2721AB152492 /* AppBaseSDL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppBaseSDL.h; sourceTree = "<group>"; };
 		2DAABAD93EC42FF0666FD02E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		364C54ECA3E488CA05E9164E /* rgb-mipmap-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-mipmap-reference.ktx"; sourceTree = "<group>"; };
-		39AB8B5957A513B36D5A740C /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
 		443BA60BE91B83D924E4DD4E /* tests.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tests.gypi; path = tests/tests.gypi; sourceTree = "<group>"; };
 		45C24C44C088C5FE50A05E72 /* shaders.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shaders.c; sourceTree = "<group>"; };
 		4C17601D3AA590EC2B89F81E /* hi_mark_sq.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark_sq.ktx; sourceTree = "<group>"; };
@@ -287,7 +268,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DAE2009843AA7724D00C0131 /* libappfwSDL.a in Frameworks */,
-				85D1A64A12DEB46373B79ECB /* libktx.gl.a in Frameworks */,
+				92D8FFBD2CA11C736EF47874 /* libktx.gl.dylib in Frameworks */,
 				0E84A827CDD2D29EFE38DD99 /* Cocoa.framework in Frameworks */,
 				DE4944F91655DA701D776A23 /* ApplicationServices.framework in Frameworks */,
 				7A806337CE9857663DCDE4A6 /* SDL2.framework in Frameworks */,
@@ -302,14 +283,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0A7F5EA342F58C74360A560C /* Products */ = {
+		064DB31D1AA5F495FE11A628 /* Build */ = {
 			isa = PBXGroup;
 			children = (
-				1925F191F4460CD405FA712D /* libktx.gl.a */,
-				719FBA3A9E8179251EA3FB5C /* libktx.es1.a */,
-				F936FB865FD39A798F331D2A /* libktx.es3.a */,
+				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
+				62C8ED7D4BE000BE8F05196F /* config.gypi */,
+				2A10C481083B8ADF83741784 /* default.gypi */,
+				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
+				DCA2A2C870993F0227174041 /* libgles1.gypi */,
+				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
+				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
+				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
+				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
+				443BA60BE91B83D924E4DD4E /* tests.gypi */,
 			);
-			name = Products;
+			name = Build;
 			sourceTree = "<group>";
 		};
 		1BB76C860D5069CA5FB62F33 /* testimages */ = {
@@ -348,7 +336,7 @@
 				BE87322074888456974DB31C /* Projects */,
 				9061E31EE959DBB4B580714E /* Frameworks */,
 				29AAF38FA601F40C91377C3E /* Products */,
-				DB7E703F95C33A29BD178E4D /* Build */,
+				064DB31D1AA5F495FE11A628 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -379,6 +367,16 @@
 				4FA3400DA310C349FF8575FC /* Info.plist */,
 			);
 			path = resources_mac;
+			sourceTree = "<group>";
+		};
+		6338AE350DA1EE6B0E8A930B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C37258511DF431072A64055F /* libktx.gl.dylib */,
+				719FBA3A9E8179251EA3FB5C /* libktx.es1.a */,
+				F936FB865FD39A798F331D2A /* libktx.es3.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		7C28F0A7CD2E952C4733FD42 /* data */ = {
@@ -457,24 +455,6 @@
 			path = appfwSDL;
 			sourceTree = "<group>";
 		};
-		DB7E703F95C33A29BD178E4D /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
-				62C8ED7D4BE000BE8F05196F /* config.gypi */,
-				2A10C481083B8ADF83741784 /* default.gypi */,
-				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
-				39AB8B5957A513B36D5A740C /* libgl.gypi */,
-				DCA2A2C870993F0227174041 /* libgles1.gypi */,
-				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
-				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
-				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
-				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
-				443BA60BE91B83D924E4DD4E /* tests.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -491,7 +471,7 @@
 			dependencies = (
 				4250122D9591CD3EAFDB8204 /* PBXTargetDependency */,
 				C41D9BCB87087F481C9FD725 /* PBXTargetDependency */,
-				4AC3EFAA12119AA52B6E8673 /* PBXTargetDependency */,
+				48E4BBB7FE65A02F8F79E55D /* PBXTargetDependency */,
 				60F9441EDDC9856E8FCF601F /* PBXTargetDependency */,
 			);
 			name = gl3loadtests;
@@ -531,7 +511,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = 0A7F5EA342F58C74360A560C /* Products */;
+					ProductGroup = 6338AE350DA1EE6B0E8A930B /* Products */;
 					ProjectRef = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
 				},
 			);
@@ -541,24 +521,23 @@
 				5D14C76351FD143925D22373 /* appfwSDL */,
 				C9FA79AED7857DAE20C5CEC8 /* libsdl */,
 				0B2F68F79FDD3BDDF975D5F6 /* gl3loadtests */,
-				BF97B2EE853A57EA8400D402 /* libgl */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		1925F191F4460CD405FA712D /* libktx.gl.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libktx.gl.a;
-			remoteRef = 3980D95BDB162CDBAE9BAD5B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		719FBA3A9E8179251EA3FB5C /* libktx.es1.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libktx.es1.a;
 			remoteRef = 95B6593687BA69C4423D9B72 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C37258511DF431072A64055F /* libktx.gl.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libktx.gl.dylib;
+			remoteRef = DEF2396CB5BDD9BC37A89683 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		F936FB865FD39A798F331D2A /* libktx.es3.a */ = {
@@ -598,11 +577,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0655988067943BD4E87E6BC1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BF97B2EE853A57EA8400D402 /* libgl */;
-			targetProxy = 0BC4B402EADCF557CBC61F11 /* PBXContainerItemProxy */;
-		};
 		1705CFEC82A917D7000886EB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 0B2F68F79FDD3BDDF975D5F6 /* gl3loadtests */;
@@ -618,10 +592,10 @@
 			target = 5D14C76351FD143925D22373 /* appfwSDL */;
 			targetProxy = 6AF01820B6FE5EB654235282 /* PBXContainerItemProxy */;
 		};
-		4AC3EFAA12119AA52B6E8673 /* PBXTargetDependency */ = {
+		48E4BBB7FE65A02F8F79E55D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BF97B2EE853A57EA8400D402 /* libgl */;
-			targetProxy = 786E69F372B7E7C68F003D5F /* PBXContainerItemProxy */;
+			name = libgl;
+			targetProxy = F63E2BAAD04DB53EDF371689 /* PBXContainerItemProxy */;
 		};
 		60F9441EDDC9856E8FCF601F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -657,19 +631,6 @@
 			};
 			name = Debug;
 		};
-		24D99494169CE267633F1979 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_NAME = libgl;
-			};
-			name = Release;
-		};
 		4AE2628124EF3B43DF94CEE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -689,22 +650,6 @@
 				PRODUCT_NAME = libsdl;
 			};
 			name = Release;
-		};
-		5E330C6A58B0132F5466D2A3 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_NAME = libgl;
-			};
-			name = Debug;
 		};
 		638297006311DDA35DC6BA03 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -850,15 +795,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0DDFE8133819512A57AB18CF /* Build configuration list for PBXAggregateTarget "libgl" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				5E330C6A58B0132F5466D2A3 /* Debug */,
-				24D99494169CE267633F1979 /* Release */,
-			);
-			defaultConfigurationIsVisible = 1;
-			defaultConfigurationName = Debug;
-		};
 		17D90B743F949E3BBAAA996C /* Build configuration list for PBXNativeTarget "appfwSDL" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

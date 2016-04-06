@@ -34,8 +34,8 @@
       '../other_include',
     ],
   }, # variables
-  # As writer.c does not need OpenGL, do not add a dependency on
-  # OpenGL{, ES} here.
+
+  'includes': [ '../gyp_include/libgl.gypi' ],
   'targets': [
     {
       'target_name': 'libktx.gl',
@@ -43,7 +43,7 @@
         # Because these must be specified in two places.
         'defines': [ 'KTX_OPENGL=1' ],
       },
-      'type': 'static_library',
+      'type': '<(library)',
       'defines': [ '<@(defines)' ],
       'direct_dependent_settings': {
          'defines': [ '<@(defines)' ],
@@ -51,6 +51,17 @@
       },
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'conditions': [
+        ['library == "shared_library"', {
+          'dependencies': [ 'libgl' ],
+          # XXX FIXME. Need to figure out if copy needed on all platforms
+          # and platform independent way to specify destination and files.
+#         'copies': [{
+#          'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
+#          'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+#        }] # copies
+        }]
+      ], # conditions
     }, # libktx.gl target
     {
       'target_name': 'libktx.es1',

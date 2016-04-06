@@ -59,7 +59,6 @@
 
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
-      'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
           'target_name': 'gl3loadtests',
@@ -68,7 +67,7 @@
           'dependencies': [
             'appfwSDL',
             'libktx.gyp:libktx.gl',
-            'libgl',
+            'libktx.gyp:libgl',
           ],
           'sources': [
             '<@(common_source_files)',

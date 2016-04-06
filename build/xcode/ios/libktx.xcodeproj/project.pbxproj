@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
+		2C49C1BC3266E196E5B13666 /* libgl */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = B2C1286994E34E1E011B87F5 /* Build configuration list for PBXAggregateTarget "libgl" */;
+			buildPhases = (
+			);
+			dependencies = (
+			);
+			name = libgl;
+			productName = libgl;
+		};
 		CCEDC85BF1BE90D7C304C68F /* All */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 7B89E5EE356A6AC73231DCB3 /* Build configuration list for PBXAggregateTarget "All" */;
@@ -16,6 +26,7 @@
 				C9FE67D8786E27F5C8B57E0C /* PBXTargetDependency */,
 				E7A54A8613D879AF51E4D8F0 /* PBXTargetDependency */,
 				2D247F49B589189237D6EA9E /* PBXTargetDependency */,
+				D28D2B72096C5EF1492EFF16 /* PBXTargetDependency */,
 			);
 			name = All;
 			productName = All;
@@ -77,11 +88,19 @@
 			remoteGlobalIDString = 555F14739B20F130C104F38F;
 			remoteInfo = libktx.es1;
 		};
+		F9721A6D539BE3627B0F1954 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2C49C1BC3266E196E5B13666;
+			remoteInfo = libgl;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxfilestream.c; sourceTree = "<group>"; };
 		0CC8195A95CBBC8C1CB04BCA /* gles2_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles2_funcptrs.h; sourceTree = "<group>"; };
+		0DF732D4865EBE87E6C2B6E5 /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
 		294D72CF2DE93CC967F22442 /* libktx.gl.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.gl.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C4E8C270B5BECA345ACBF85 /* ktxint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxint.h; sourceTree = "<group>"; };
 		36344252BF902A18F4ACB26C /* ktxmemstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxmemstream.c; sourceTree = "<group>"; };
@@ -193,15 +212,16 @@
 			children = (
 				0066CBEBE45AFAA06792E05F /* Source */,
 				3AE5B8C2D5A6F84F3C6DB984 /* Products */,
-				8A1AECBDD9C0DD169EE29287 /* Build */,
+				5B6E1B39688457E3A8A8A4F3 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
-		8A1AECBDD9C0DD169EE29287 /* Build */ = {
+		5B6E1B39688457E3A8A8A4F3 /* Build */ = {
 			isa = PBXGroup;
 			children = (
 				D085D834087565F1CD69EFD7 /* config.gypi */,
 				BE607367214BBF5824644530 /* default.gypi */,
+				0DF732D4865EBE87E6C2B6E5 /* libgl.gypi */,
 				78750DEB71973541DB221CBA /* libktx.gyp */,
 				7ABEC8601DA2251BB3038768 /* libktx.gypi */,
 				E4C296305A71370E67B0FDD7 /* pvremu.gypi */,
@@ -279,6 +299,7 @@
 				362967529B3D7D3E12C3129D /* libktx.gl */,
 				555F14739B20F130C104F38F /* libktx.es1 */,
 				CA0BF733B14DB39E93B75C67 /* libktx.es3 */,
+				2C49C1BC3266E196E5B13666 /* libgl */,
 			);
 		};
 /* End PBXProject section */
@@ -348,6 +369,11 @@
 			target = 362967529B3D7D3E12C3129D /* libktx.gl */;
 			targetProxy = 4B728F15AA6196C777B01117 /* PBXContainerItemProxy */;
 		};
+		D28D2B72096C5EF1492EFF16 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2C49C1BC3266E196E5B13666 /* libgl */;
+			targetProxy = F9721A6D539BE3627B0F1954 /* PBXContainerItemProxy */;
+		};
 		E7A54A8613D879AF51E4D8F0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 555F14739B20F130C104F38F /* libktx.es1 */;
@@ -376,6 +402,22 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		2336AA407878FB2CEE50E52A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				PRODUCT_NAME = libgl;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		5696BB14384DAB6493E64177 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -415,6 +457,19 @@
 				PRODUCT_NAME = All;
 			};
 			name = Debug;
+		};
+		8A18935AEF3088F5419192E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				PRODUCT_NAME = libgl;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
 		};
 		8D2A051E6E26AA85B89C5159 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -546,6 +601,15 @@
 			buildConfigurations = (
 				89A3F5CE9D5661525E156A95 /* Debug */,
 				8D2A051E6E26AA85B89C5159 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		B2C1286994E34E1E011B87F5 /* Build configuration list for PBXAggregateTarget "libgl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2336AA407878FB2CEE50E52A /* Debug */,
+				8A18935AEF3088F5419192E1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;
