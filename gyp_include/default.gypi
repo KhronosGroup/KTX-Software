@@ -162,6 +162,7 @@
           ],
         },
         'xcode_settings':  {
+          'COPY_PHASE_STRIP': 'NO',
           'GCC_OPTIMIZATION_LEVEL': 0,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
           'target_conditions': [
@@ -188,6 +189,7 @@
           },
         },
         'xcode_settings':  {
+          'COPY_PHASE_STRIP': 'NO',
           'GCC_OPTIMIZATION_LEVEL': 3,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
           'target_conditions': [

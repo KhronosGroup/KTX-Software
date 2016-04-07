@@ -61,7 +61,17 @@
               'xcode_code_sign': 1,
               'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
               'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-            }] # copies
+            }], # copies
+            'xcode_settings': {
+              # Tell DYLD to search the executable folder for this dylib.
+              # Do "man dyld" for more information.
+              'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
+            },
+          }, # direct_dependent_settings
+          'xcode_settings': {
+            # This is so dyld can find the dylib when it is installed by
+            # the copy command above.
+            'INSTALL_PATH': '@rpath',
           },
         }]
       ], # conditions
