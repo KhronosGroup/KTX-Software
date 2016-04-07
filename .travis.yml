@@ -16,6 +16,13 @@ compiler:
 #- clang
 - gcc
 
+# whitelist
+branches:
+  only:
+    - master
+    - incoming
+    - noglcontext
+
 env:
   global:
     - GIT_LFS_VERSION="1.1.0"
