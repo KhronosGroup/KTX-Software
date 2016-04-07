@@ -197,10 +197,10 @@
             ['OS == "ios"', {
               'sources': [
                 'resources_ios/Info.plist',
-                'resources_ios/LaunchScreen.storyboard',
               ],
               'mac_bundle_resources': [
                 'resources_ios/Images.xcassets',
+                'resources_ios/LaunchScreen.storyboard',
               ],
               'copies': [{
                 'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
@@ -261,10 +261,10 @@
             ['OS == "ios"', {
               'sources': [
                 'resources_ios/Info.plist',
-                'resources_ios/LaunchScreen.storyboard',
               ],
               'mac_bundle_resources': [
                 'resources_ios/Images.xcassets',
+                'resources_ios/LaunchScreen.storyboard',
               ],
               'copies': [{
                 'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
