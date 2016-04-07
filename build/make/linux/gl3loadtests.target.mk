@@ -173,7 +173,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
+$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
@@ -212,28 +212,27 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 $(builddir)/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a $(obj).target/libgl.stamp $(obj).target/libsdl.stamp
+$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
 
 LDFLAGS_Debug := \
-	-Wl,-rpath,. \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-Wl,-rpath=\$$ORIGIN/lib.target/ \
+	-Wl,-rpath-link=\$(builddir)/lib.target/
 
 LDFLAGS_Release := \
-	-Wl,-rpath,. \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-Wl,-rpath=\$$ORIGIN/lib.target/ \
+	-Wl,-rpath-link=\$(builddir)/lib.target/
 
 LIBS := \
 	-lSDL2-2.0 \
-	-lSDL2main \
 	-ldl \
 	-lpthread \
 	-lGL
 
 $(builddir)/gl3loadtests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/gl3loadtests: LIBS := $(LIBS)
-$(builddir)/gl3loadtests: LD_INPUTS := $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a
+$(builddir)/gl3loadtests: LD_INPUTS := $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.so
 $(builddir)/gl3loadtests: TOOLSET := $(TOOLSET)
-$(builddir)/gl3loadtests: $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.a FORCE_DO_CMD
+$(builddir)/gl3loadtests: $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.so FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/gl3loadtests

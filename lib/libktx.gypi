@@ -54,25 +54,30 @@
       'conditions': [
         ['library == "shared_library"', {
           'dependencies': [ 'libgl' ],
-          'direct_dependent_settings': {
-            # XXX FIXME. Need to figure out if copy needed on all platforms
-            # and platform independent way to specify destination and files.
-            'copies': [{
-              'xcode_code_sign': 1,
-              'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
-              'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-            }], # copies
-            'xcode_settings': {
-              # Tell DYLD to search the executable folder for this dylib.
-              # Do "man dyld" for more information.
-              'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
-            },
-          }, # direct_dependent_settings
-          'xcode_settings': {
-            # This is so dyld can find the dylib when it is installed by
-            # the copy command above.
-            'INSTALL_PATH': '@rpath',
-          },
+          'conditions': [
+            ['OS == "mac" or "OS" == "ios"', {
+              'direct_dependent_settings': {
+                # XXX FIXME. Need to figure out if copy needed on all platforms
+                # and platform independent way to specify destination and files.
+                'copies': [{
+                  'xcode_code_sign': 1,
+                  'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
+                  'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+                }], # copies
+                'xcode_settings': {
+                  # Tell DYLD to search the executable folder for this dylib.
+                  # Do "man dyld" for more information.
+                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
+                },
+              }, # direct_dependent_settings
+              'xcode_settings': {
+                # This is so dyld can find the dylib when it is installed by
+                # the copy command above.
+                'INSTALL_PATH': '@rpath',
+              },
+            }
+          ]], # conditions
+
         }]
       ], # conditions
     }, # libktx.gl target
@@ -170,7 +175,7 @@
                   # No path relativization is performed on any command
                   # arguments. We have to take care to provide paths that
                   # are relative to our cd location.
-                  # 
+                  #
                   # Note that If using cmd.exe ('msvs_cygwin_shell': '0')
                   # the MSVS generator will relativize *all* command
                   # arguments, that do not look like options, to the

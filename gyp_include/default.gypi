@@ -121,6 +121,12 @@
     },
     'configurations': {
       'Debug': {
+        'target_conditions': [
+          ['OS == "linux" and _type == "shared_library"', {
+            'cflags': [ '-fPIC' ],
+          }], # OS == "linux" and library == "shared_library"
+        ],
+
         'cflags': [ '-O0' ],
         'defines': [
           'DEBUG', '_DEBUG',
@@ -173,6 +179,11 @@
         },
       }, # Debug configuration
       'Release': {
+        'target_conditions': [
+          ['OS == "linux" and _type == "shared_library"', {
+            'cflags': [ '-fPIC' ],
+          }], # OS == "linux" and library == "shared_library"
+        ],
         'cflags': [ '-O3' ],
         'defines': [
           'NDEBUG',

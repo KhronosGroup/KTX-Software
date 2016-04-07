@@ -84,10 +84,12 @@
                 ],
               }], # copies
             }, 'sdl_to_use == "installed_dylib"', {
-              'libraries=': [
-                '-lSDL2-2.0', '-lSDL2main',
-                '-ldl', '-lpthread'
-              ],
+              'link_settings': {
+                'libraries=': [
+                  '-lSDL2-2.0',
+                  '-ldl', '-lpthread'
+                ],
+              }
             }, {
               'link_settings': {
                 'libraries=': [

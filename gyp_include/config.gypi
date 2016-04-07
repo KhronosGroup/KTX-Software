@@ -52,7 +52,7 @@
       'gen_config_var%': '<(gen_config_var)',
       'gen_platform_var%': '<(gen_platform_var)',
       'otherlibroot_dir%': '<(otherlibroot_dir)',
-      
+
       # Names need _dir (lowercase) suffix to be relativized. Variable
       # expansions are not relativized: use _dir to ensure it happens
       # now.
@@ -76,7 +76,7 @@
     # Directory containing EGL, GL{,ES}*, KHR, etc. include directories.
     'gl_includes_parent_dir': '../other_include',
 
-    # Possible values for sdl_to_use in the following: 
+    # Possible values for sdl_to_use in the following:
     #   built_dylib
     #     uses a dynamic SDL2 library you have built yourself and
     #     includes this dylib in the application bundle.
@@ -105,7 +105,7 @@
         'library': 'static_library',
       }, # OS == "ios"
       'OS == "linux"', {
-        'sdl_to_use%': 'built_dylib',
+        'sdl_to_use%': 'installed_dylib',
         # Location of libSDL2.a, libSDL2main.a and libSDL2_*.so
         'sdl2_lib_dir': '<(linuxolib_dir)',
         # Type of libktx to build
