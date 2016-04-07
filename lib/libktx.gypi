@@ -54,12 +54,14 @@
       'conditions': [
         ['library == "shared_library"', {
           'dependencies': [ 'libgl' ],
-          # XXX FIXME. Need to figure out if copy needed on all platforms
-          # and platform independent way to specify destination and files.
-#         'copies': [{
-#          'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
-#          'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-#        }] # copies
+          'direct_dependent_settings': {
+            # XXX FIXME. Need to figure out if copy needed on all platforms
+            # and platform independent way to specify destination and files.
+            'copies': [{
+              'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
+              'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+            }] # copies
+          },
         }]
       ], # conditions
     }, # libktx.gl target
