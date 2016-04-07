@@ -58,6 +58,7 @@
             # XXX FIXME. Need to figure out if copy needed on all platforms
             # and platform independent way to specify destination and files.
             'copies': [{
+              'xcode_code_sign': 1,
               'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
               'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
             }] # copies
