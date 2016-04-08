@@ -15,6 +15,9 @@ platform:
   - x64
   - Win32
 
+environment:
+  GIT_TRACE: 1
+
 on_failure:
   - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
