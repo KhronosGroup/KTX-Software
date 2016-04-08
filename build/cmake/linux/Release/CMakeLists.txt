@@ -322,8 +322,31 @@ unset(TARGET)
 #ktxtests.gyp:libsdl#target
 set(TARGET "libsdl")
 set(TOOLSET "target")
+list(APPEND libsdl__copies__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.0")
+list(APPEND libsdl__copies__output
+  "${builddir}/libSDL2-2.0.so.0"
+  "${builddir}/libSDL2-2.0.so.0.4.0")
+add_custom_command(
+OUTPUT ${libsdl__copies__output}
+COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0 ${builddir}/libSDL2-2.0.so.0
+COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.0 ${builddir}/libSDL2-2.0.so.0.4.0
+DEPENDS ${libsdl__copies__input}
+WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+COMMENT Copying for libsdl
+VERBATIM
+)
+add_custom_target(libsdl__copies
+  DEPENDS ${libsdl__copies__output}
+  SOURCES ${libsdl__copies__input}
+)
 add_custom_target(libsdl SOURCES)
 set_target_properties(libsdl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(libsdl__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(libsdl
+  libsdl__copies
+)
 unset(TOOLSET)
 unset(TARGET)
 
@@ -456,7 +479,8 @@ list(APPEND gl3loadtests__other_srcs
   "../../../../tests/loadtests/common/LoadTests.h"
   "../../../../tests/loadtests/data/cube.h"
   "../../../../tests/loadtests/data/frame.h")
-link_directories()
+link_directories( ../../../../other_lib/linux/${configuration}-x64
+)
 add_executable(gl3loadtests ${gl3loadtests__c_srcs} ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
 set_target_properties(gl3loadtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(gl3loadtests__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
@@ -473,6 +497,7 @@ list(APPEND gl3loadtests__include_dirs
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
 set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;KTX_OPENGL=1;NDEBUG;")
 set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
@@ -494,6 +519,7 @@ target_link_libraries(gl3loadtests
   appfwSDL
   libktx_gl
   "-lSDL2-2.0"
+  "-lSDL2main"
   "-ldl"
   "-lpthread"
   "-lGL"

@@ -105,7 +105,7 @@
         'library': 'static_library',
       }, # OS == "ios"
       'OS == "linux"', {
-        'sdl_to_use%': 'installed_dylib',
+        'sdl_to_use%': 'built_dylib',
         # Location of libSDL2.a, libSDL2main.a and libSDL2_*.so
         'sdl2_lib_dir': '<(linuxolib_dir)',
         # Type of libktx to build
