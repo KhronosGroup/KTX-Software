@@ -215,15 +215,20 @@ $(builddir)/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
 $(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
 
 LDFLAGS_Debug := \
+	-Wl,-rpath,. \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
-	-Wl,-rpath-link=\$(builddir)/lib.target/
+	-Wl,-rpath-link=\$(builddir)/lib.target/ \
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
 
 LDFLAGS_Release := \
+	-Wl,-rpath,. \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
-	-Wl,-rpath-link=\$(builddir)/lib.target/
+	-Wl,-rpath-link=\$(builddir)/lib.target/ \
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
 
 LIBS := \
 	-lSDL2-2.0 \
+	-lSDL2main \
 	-ldl \
 	-lpthread \
 	-lGL
