@@ -52,7 +52,7 @@
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
       'conditions': [
-        ['library == "shared_library"', {
+        ['_type == "shared_library"', {
           'dependencies': [ 'libgl' ],
           'conditions': [
             ['OS == "mac" or "OS" == "ios"', {
