@@ -176,6 +176,9 @@ static void discoverContextCapabilities(void)
 			supportsSRGB = GL_FALSE;
 		} else {
 			sizedFormats = _NON_LEGACY_FORMATS;
+            if (strstr(glGetString(GL_EXTENSIONS), "GL_EXT_texture_cube_map_array") != NULL) {
+                supportsCubeMapArrays = GL_TRUE;
+            }
 		}
 		if (strstr(glGetString(GL_EXTENSIONS), "GL_OES_required_internalformat") != NULL) {
 			sizedFormats |= _ALL_SIZED_FORMATS;
