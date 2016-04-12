@@ -55,30 +55,35 @@
         ['_type == "shared_library"', {
           'dependencies': [ 'libgl' ],
           'conditions': [
-            ['OS == "mac" or "OS" == "ios"', {
+            ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
-                # XXX FIXME. Need to figure out if copy needed on all platforms
-                # and platform independent way to specify destination and files.
-                'copies': [{
-                  'xcode_code_sign': 1,
-                  'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
-                  'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-                }], # copies
-                'xcode_settings': {
-                  # Tell DYLD where to search for this dylib.
-                  # "man dyld" for more information.
-                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
-                },
+                'target_conditions': [
+                  ['_mac_bundle == 1', {
+                    'copies': [{
+                      'xcode_code_sign': 1,
+                      'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+                      'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+                    }], # copies
+                    'xcode_settings': {
+                      # Tell DYLD where to search for this dylib.
+                      # "man dyld" for more information.
+                      'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
+                    },
+                  }, {
+                    'xcode_settings': {
+                      'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
+                    },
+                  }], # _mac_bundle == 1
+                ], # target_conditions
               }, # direct_dependent_settings
               'xcode_settings': {
                 # This is so dyld can find the dylib when it is installed by
                 # the copy command above.
                 'INSTALL_PATH': '@rpath',
               },
-            }
-          ]], # conditions
-
-        }]
+            }] # OS == "mac or OS == "ios"
+          ], # conditions
+        }] # _type == "shared_library"
       ], # conditions
     }, # libktx.gl target
     {

@@ -7,18 +7,14 @@
 {
   'variables': { # level 1
     'variables': { # level 2 so can use in level 1
-       # This is a list to avoid a very wide line.
-       # -s is separate because '-s foo' in a list results
-       # in "-s foo" on output.
-       'additional_emcc_options': [
-         '-s', 'ERROR_ON_UNDEFINED_SYMBOLS=1',
+      # This is a list to avoid a very wide line.
+      # -s is separate because '-s foo' in a list results
+      # in "-s foo" on output.
+      'additional_emcc_options': [
+        '-s', 'ERROR_ON_UNDEFINED_SYMBOLS=1',
       ],
       # 'testimages_dir': '../../testimages',
-     }, # variables, level 2
-     #'data_files': [
-     # '<!@(ls <(testimages_dir)/*.ktx)',
-     #],
-    #'datadir': 'testimages',
+    }, # variables, level 2
     'additional_emcc_options': [ '<@(additional_emcc_options)' ],
     'additional_emlink_options': [
       '<@(additional_emcc_options)',
@@ -28,7 +24,6 @@
     # No point in building this command line utility for iOS or
     # Android.
     ['OS == "linux" or OS == "mac" or OS == "win"', {
-      #'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
           'target_name': 'toktx',
@@ -53,9 +48,6 @@
               'SubSystem': '1',
             },
           },
-#          'xcode_settings': {
-#            'INFOPLIST_FILE': '<(infoplist_file)',
-#          },
           'conditions': [
             ['emit_emscripten_configs=="true"', {
               'configurations': {

@@ -34,10 +34,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		94E8FA7C611E5593C56CC2EC /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
-		95E10882DE2F2C97294F823F /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
-		A30F5819703B475B8F1ED1A8 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = 5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		1346235913FC0C0B0E19961E /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
 		CBE7C02D2F69FA8BB3240936 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
+		E93B9764B51109A563E1F9FC /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,26 +91,11 @@
 		};
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		BB033D16EB86E0F4E548C66D /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				A30F5819703B475B8F1ED1A8 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
-			);
-			name = "Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		0AEF50F1B637980A330FE517 /* libktx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libktx.xcodeproj; path = build/xcode/mac/libktx.xcodeproj; sourceTree = SOURCE_ROOT; };
 		1AEF7FE8F3CD0A01B52E80AC /* image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = image.cpp; sourceTree = "<group>"; };
 		203503E5D73963F434684DDB /* toktx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = toktx.cpp; sourceTree = "<group>"; };
 		53718F849477FE4A99643D3C /* toktx */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = toktx; sourceTree = BUILT_PRODUCTS_DIR; };
-		5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libktx.gl.dylib; sourceTree = "<group>"; };
 		60CB42EA6BD3CA61486652F2 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		7E34B6FCD7D2C06100AC83B8 /* toktx-tests */ = {isa = PBXFileReference; lastKnownFileType = text; path = "toktx-tests"; sourceTree = "<group>"; };
 		9FDEDCE310E000EE3C1F8868 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
@@ -137,14 +121,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		05C4D8D885018EDA20F37E64 /* BUILT_PRODUCTS_DIR */ = {
-			isa = PBXGroup;
-			children = (
-				5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */,
-			);
-			name = BUILT_PRODUCTS_DIR;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		0B771CDC4B79F2E443888AD3 /* Build */ = {
 			isa = PBXGroup;
 			children = (
@@ -158,24 +134,23 @@
 			name = Build;
 			sourceTree = "<group>";
 		};
-		507390469E1B37461768D63F = {
+		0BF540AA04D1BADABC9377B1 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				5B848D179B1566284EEEB542 /* Source */,
-				9E2B0B1103C809BC9CE294BD /* Projects */,
-				BEF05C43CC7571E38C50D279 /* Products */,
-				0B771CDC4B79F2E443888AD3 /* Build */,
-			);
-			sourceTree = "<group>";
-		};
-		5B848D179B1566284EEEB542 /* Source */ = {
-			isa = PBXGroup;
-			children = (
-				05C4D8D885018EDA20F37E64 /* BUILT_PRODUCTS_DIR */,
 				E368DE5878720C42889C7AC5 /* tests */,
 				B9DBBD2BDC0AB56FD77FF34F /* tools/toktx */,
 			);
 			name = Source;
+			sourceTree = "<group>";
+		};
+		507390469E1B37461768D63F = {
+			isa = PBXGroup;
+			children = (
+				0BF540AA04D1BADABC9377B1 /* Source */,
+				9E2B0B1103C809BC9CE294BD /* Projects */,
+				BEF05C43CC7571E38C50D279 /* Products */,
+				0B771CDC4B79F2E443888AD3 /* Build */,
+			);
 			sourceTree = "<group>";
 		};
 		9E2B0B1103C809BC9CE294BD /* Projects */ = {
@@ -232,7 +207,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = BCCC7D053DF29AD1EDB88D3F /* Build configuration list for PBXNativeTarget "toktx" */;
 			buildPhases = (
-				BB033D16EB86E0F4E548C66D /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
 				D0A656318CAC323BA35C6858 /* Sources */,
 				9D7BF018901B5E740F317578 /* Frameworks */,
 			);
@@ -323,8 +297,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				94E8FA7C611E5593C56CC2EC /* image.cpp in Sources */,
-				95E10882DE2F2C97294F823F /* toktx.cpp in Sources */,
+				E93B9764B51109A563E1F9FC /* image.cpp in Sources */,
+				1346235913FC0C0B0E19961E /* toktx.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,7 +359,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = toktx;
@@ -411,7 +385,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = toktx;
