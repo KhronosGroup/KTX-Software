@@ -1,6 +1,6 @@
 ##
 # @internal
-# @copyright © 2015, Mark Callow. For license see LICENSE.md.
+# @copyright c 2015, Mark Callow. For license see LICENSE.md.
 #
 # @brief Set variables specifying locations from which to link
 #        3rd party libraries and which variants to use.
@@ -91,10 +91,10 @@
     #     this framework in the application bundle. Note this
     #     means the SDL headers will be included in the
     #     application bundle.
-    #   staticlib (not Windows)
+    #   static_lib (not Windows)
     #     links to a static library.
     #
-    # Possible values for 'library', used when building libktx:
+    # Possible values for 'library':
     #   static_lib
     #   shared_lib
     'conditions': [
@@ -104,7 +104,7 @@
         'library': 'static_library',
       }, # OS == "android"
       'OS == "ios"', {
-        'sdl_to_use': 'staticlib', # No other choice
+        'sdl_to_use': 'static_lib', # No other choice
         'sdl2_lib_dir': '<(iosolib_dir)',
         'library': 'static_library',
       }, # OS == "ios"
@@ -112,7 +112,7 @@
         'sdl_to_use%': 'built_dylib',
         # Location of libSDL2.a, libSDL2main.a and libSDL2_*.so
         'sdl2_lib_dir': '<(linuxolib_dir)',
-        # Type of libktx to build
+        # libktx type.
         'library': 'shared_library',
         # Location of glew32.lib.
         'glew_lib_dir': '<(linuxolib_dir)',
@@ -127,12 +127,14 @@
         # location which will be searched for libSDL2.a,
         # libSDL2.dylib or SDL2.framework as appropriate.
         'sdl2_lib_dir': '<(macolib_dir)',
+        # libktx type.
         'library': 'shared_library',
       }, # OS == "mac"
       'OS == "win"', {
         'sdl_to_use%': 'built_dylib',
         # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',
+        # libktx type. Must be static as exports currently not defined.
         'library': 'static_library',
         # Location of glew32.lib.
         'glew_lib_dir': '<(winolib_dir)',
