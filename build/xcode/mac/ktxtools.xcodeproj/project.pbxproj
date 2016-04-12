@@ -34,9 +34,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		3DB1E1BC88537F016FAFF7CF /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = 5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		94E8FA7C611E5593C56CC2EC /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
 		95E10882DE2F2C97294F823F /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
+		A30F5819703B475B8F1ED1A8 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = 5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		CBE7C02D2F69FA8BB3240936 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 /* End PBXBuildFile section */
 
@@ -93,15 +93,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		CDAC702FCFDB73B11846C2A3 /* Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */ = {
+		BB033D16EB86E0F4E548C66D /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolderSpec = 6;
+			dstSubfolderSpec = 10;
 			files = (
-				3DB1E1BC88537F016FAFF7CF /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */,
+				A30F5819703B475B8F1ED1A8 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
 			);
-			name = "Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH)";
+			name = "Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -232,7 +232,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = BCCC7D053DF29AD1EDB88D3F /* Build configuration list for PBXNativeTarget "toktx" */;
 			buildPhases = (
-				CDAC702FCFDB73B11846C2A3 /* Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */,
+				BB033D16EB86E0F4E548C66D /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
 				D0A656318CAC323BA35C6858 /* Sources */,
 				9D7BF018901B5E740F317578 /* Frameworks */,
 			);
@@ -385,7 +385,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = toktx;
@@ -411,7 +411,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = toktx;

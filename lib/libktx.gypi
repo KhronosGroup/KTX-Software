@@ -61,13 +61,13 @@
                 # and platform independent way to specify destination and files.
                 'copies': [{
                   'xcode_code_sign': 1,
-                  'destination': '<(PRODUCT_DIR)/$(EXECUTABLE_FOLDER_PATH)',
+                  'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                   'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
                 }], # copies
                 'xcode_settings': {
-                  # Tell DYLD to search the executable folder for this dylib.
-                  # Do "man dyld" for more information.
-                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
+                  # Tell DYLD where to search for this dylib.
+                  # "man dyld" for more information.
+                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
                 },
               }, # direct_dependent_settings
               'xcode_settings': {

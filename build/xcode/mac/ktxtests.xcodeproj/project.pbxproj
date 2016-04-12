@@ -37,6 +37,7 @@
 		0554C9FB807855981985567E /* no-npot.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 75C6904CFBFF4C46F4F1885A /* no-npot.ktx */; };
 		05BFF274894C8AFC3FB34C24 /* hi_mark.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 8973B88BC13D51088B627856 /* hi_mark.ktx */; };
 		065CE60A89792F6A2062C966 /* rgb-amg-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 7BD6203C8FBC39DC34880176 /* rgb-amg-reference.ktx */; };
+		07A711A030A81929D5A60C00 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = 494BF6D873DFE6D3ACEB94C2 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0E84A827CDD2D29EFE38DD99 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F235DB21E8B49B19DAB24ECF /* Cocoa.framework */; };
 		10034E7E4CC10294DC3D4DA8 /* GLAppSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2969CAD7B2C60C84F699D74 /* GLAppSDL.cpp */; };
 		12D631E5F94602F7B58A2F98 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16077AD7D5B5764AF6D0D478 /* main.cpp */; };
@@ -54,7 +55,6 @@
 		61571AF2086BF623393944D6 /* conftestimage_RG11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5B9BB32D3FF508BBB857682B /* conftestimage_RG11_EAC.ktx */; };
 		6A7C840ABC19496B2D9F482B /* etc2-sRGB.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 0A325175540A8C180B31554F /* etc2-sRGB.ktx */; };
 		6AD836EB7C9A40DBE82545F8 /* etc2-rgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 10345834F42A97336B068120 /* etc2-rgb.ktx */; };
-		6CAF5DE4AAAF5F838A4ECF55 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = 494BF6D873DFE6D3ACEB94C2 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		7513C6FC001DFE6AD985CD16 /* luminance_unsized_reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = ED1A58E1D79B20089188AFC3 /* luminance_unsized_reference.ktx */; };
 		767A3DF45EBE6702E5134A2A /* conftestimage_R11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 1F095A3E0C7C52EC2BB1B13D /* conftestimage_R11_EAC.ktx */; };
 		786B8115B1E22C0C15EC18A5 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E112A84CE9183658432C21B /* GameController.framework */; };
@@ -159,6 +159,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		34781F1BE4FDAD4E3C9EE175 /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				07A711A030A81929D5A60C00 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
+			);
+			name = "Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		436DD2088FE2AFC3671153B1 /* Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -189,17 +200,6 @@
 				91ACAA2D0184323883813D9A /* up-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */,
 			);
 			name = "Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F1ED3EDFFAECC483E47B7389 /* Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 6;
-			files = (
-				6CAF5DE4AAAF5F838A4ECF55 /* libktx.gl.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */,
-			);
-			name = "Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH)";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -484,7 +484,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8E157C80ED77148648829215 /* Build configuration list for PBXNativeTarget "gl3loadtests" */;
 			buildPhases = (
-				F1ED3EDFFAECC483E47B7389 /* Copy to $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_FOLDER_PATH) */,
+				34781F1BE4FDAD4E3C9EE175 /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
 				436DD2088FE2AFC3671153B1 /* Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */,
 				AE7BA73273EFEE41AC9D5658 /* Sources */,
 				AD01E9A5820FAE4A34EDED62 /* Frameworks */,
@@ -707,7 +707,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/resources_mac/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
 					/Library/Frameworks,
@@ -750,7 +750,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/resources_mac/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
 					/Library/Frameworks,
