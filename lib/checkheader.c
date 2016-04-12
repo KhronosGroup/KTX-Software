@@ -111,7 +111,7 @@ KTX_error_code _ktxCheckHeader(KTX_header* header, KTX_texinfo* texinfo)
 
 	/* Check texture dimensions. KTX files can store 8 types of textures:
 	   1D, 2D, 3D, cube, and array variants of these. There is currently
-	   no GL extension that would accept 3D array or cube array textures. */
+	   no GL extension for 3D array textures. */
 	if ((header->pixelWidth == 0) ||
 		(header->pixelDepth > 0 && header->pixelHeight == 0))
 	{
@@ -158,7 +158,8 @@ KTX_error_code _ktxCheckHeader(KTX_header* header, KTX_texinfo* texinfo)
 		texinfo->generateMipmaps = 1;
 		header->numberOfMipmapLevels = 1;
 	}
-	max_dim = MAX(MAX(header->pixelWidth, header->pixelHeight), header->pixelDepth);
+    /* This test works for arrays too because height or depth will be 0. */
+    max_dim = MAX(MAX(header->pixelWidth, header->pixelHeight), header->pixelDepth);
 	if (max_dim < ((khronos_uint32_t)1 << (header->numberOfMipmapLevels - 1)))
 	{
 		/* Can't have more mip levels than 1 + log2(max(width, height, depth)) */

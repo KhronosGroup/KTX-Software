@@ -121,6 +121,12 @@
     },
     'configurations': {
       'Debug': {
+        'target_conditions': [
+          ['OS == "linux" and _type == "shared_library"', {
+            'cflags': [ '-fPIC' ],
+          }], # OS == "linux" and library == "shared_library"
+        ],
+
         'cflags': [ '-O0' ],
         'defines': [
           'DEBUG', '_DEBUG',
@@ -162,6 +168,7 @@
           ],
         },
         'xcode_settings':  {
+          'COPY_PHASE_STRIP': 'NO',
           'GCC_OPTIMIZATION_LEVEL': 0,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
           'target_conditions': [
@@ -172,6 +179,11 @@
         },
       }, # Debug configuration
       'Release': {
+        'target_conditions': [
+          ['OS == "linux" and _type == "shared_library"', {
+            'cflags': [ '-fPIC' ],
+          }], # OS == "linux" and library == "shared_library"
+        ],
         'cflags': [ '-O3' ],
         'defines': [
           'NDEBUG',
@@ -188,6 +200,7 @@
           },
         },
         'xcode_settings':  {
+          'COPY_PHASE_STRIP': 'NO',
           'GCC_OPTIMIZATION_LEVEL': 3,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
           'target_conditions': [

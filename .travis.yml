@@ -8,6 +8,8 @@ os:
 sudo: required
 dist: trusty
 
+osx_image: xcode7.3
+
 language:
 - cpp
 
@@ -15,6 +17,13 @@ compiler:
 # clang compilation will be tested by xcode.
 #- clang
 - gcc
+
+# whitelist
+branches:
+  only:
+    - master
+    - incoming
+    - noglcontext
 
 env:
   global:

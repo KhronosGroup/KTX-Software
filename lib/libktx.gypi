@@ -34,18 +34,52 @@
       '../other_include',
     ],
   }, # variables
-  # As writer.c does not need OpenGL, do not add a dependency on
-  # OpenGL{, ES} here.
+
+  'includes': [ '../gyp_include/libgl.gypi' ],
   'targets': [
     {
       'target_name': 'libktx.gl',
-      'type': 'static_library',
+      'type': '<(library)',
       'defines': [ 'KTX_OPENGL=1' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'conditions': [
+        ['_type == "shared_library"', {
+          'dependencies': [ 'libgl' ],
+          'conditions': [
+            ['OS == "mac" or OS == "ios"', {
+              'direct_dependent_settings': {
+                'target_conditions': [
+                  ['_mac_bundle == 1', {
+                    'copies': [{
+                      'xcode_code_sign': 1,
+                      'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+                      'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+                    }], # copies
+                    'xcode_settings': {
+                      # Tell DYLD where to search for this dylib.
+                      # "man dyld" for more information.
+                      'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
+                    },
+                  }, {
+                    'xcode_settings': {
+                      'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
+                    },
+                  }], # _mac_bundle == 1
+                ], # target_conditions
+              }, # direct_dependent_settings
+              'xcode_settings': {
+                # This is so dyld can find the dylib when it is installed by
+                # the copy command above.
+                'INSTALL_PATH': '@rpath',
+              },
+            }] # OS == "mac or OS == "ios"
+          ], # conditions
+        }] # _type == "shared_library"
+      ], # conditions
     }, # libktx.gl target
     {
       'target_name': 'libktx.es1',
@@ -131,7 +165,7 @@
                   # No path relativization is performed on any command
                   # arguments. We have to take care to provide paths that
                   # are relative to our cd location.
-                  # 
+                  #
                   # Note that If using cmd.exe ('msvs_cygwin_shell': '0')
                   # the MSVS generator will relativize *all* command
                   # arguments, that do not look like options, to the

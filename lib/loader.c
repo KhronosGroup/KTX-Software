@@ -161,6 +161,12 @@ static GLint R16Formats = _KTX_ALL_R16_FORMATS;
  * @brief Indicates if the current context supports sRGB textures.
  */
 static GLboolean supportsSRGB = GL_TRUE;
+/**
+ * @internal
+ * @~English
+ * @brief Indicates if the current context supports cube map arrays.
+ */
+static GLboolean supportsCubeMapArrays = GL_FALSE;
 
 /**
  * @internal
@@ -198,9 +204,11 @@ static void discoverContextCapabilities(void)
 	if (glGetError() != GL_NO_ERROR) {
 		// < v3.0; resort to the old-fashioned way.
 		if (contextProfile & _CONTEXT_ES_PROFILE_BIT)
-			sscanf(glGetString(GL_VERSION), "OpenGL ES %d.%d ", &majorVersion, &minorVersion);
+			sscanf(glGetString(GL_VERSION), "OpenGL ES %d.%d ",
+                   &majorVersion, &minorVersion);
 		else
-			sscanf(glGetString(GL_VERSION), "OpenGL %d.%d ", &majorVersion, &minorVersion);
+			sscanf(glGetString(GL_VERSION), "OpenGL %d.%d ",
+                   &majorVersion, &minorVersion);
 	}
 	if (contextProfile & _CONTEXT_ES_PROFILE_BIT) {
 		if (majorVersion < 3) {
@@ -210,6 +218,9 @@ static void discoverContextCapabilities(void)
 			supportsSRGB = GL_FALSE;
 		} else {
 			sizedFormats = _NON_LEGACY_FORMATS;
+            if (strstr(glGetString(GL_EXTENSIONS), "GL_EXT_texture_cube_map_array") != NULL) {
+                supportsCubeMapArrays = GL_TRUE;
+            }
 		}
 		if (strstr(glGetString(GL_EXTENSIONS), "GL_OES_required_internalformat") != NULL) {
 			sizedFormats |= _ALL_SIZED_FORMATS;
@@ -225,7 +236,9 @@ static void discoverContextCapabilities(void)
 				supportsSwizzle = GL_FALSE;
 			if ((contextProfile & GL_CONTEXT_CORE_PROFILE_BIT))
 				sizedFormats &= ~_LEGACY_FORMATS;
-		} else {
+            if (majorVersion >= 4)
+                supportsCubeMapArrays = GL_TRUE;
+        } else {
 			// < 3.2
 			contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
 			supportsSwizzle = GL_FALSE;
@@ -243,6 +256,11 @@ static void discoverContextCapabilities(void)
 				R16Formats = _KTX_NO_R16_FORMATS;
 			}
 		}
+        if (!supportsCubeMapArrays) {
+            if (strstr(glGetString(GL_EXTENSIONS), "GL_ARB_texture_cube_map_array") != NULL) {
+                supportsCubeMapArrays = GL_TRUE;
+            }
+        }
 	}
     
     // Done here so things will work when GLEW, or equivalent, is being used
@@ -532,15 +550,25 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
         {
             texinfo.glTarget = GL_TEXTURE_2D_ARRAY_EXT;
         }
+        else if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP)
+        {
+            texinfo.glTarget = GL_TEXTURE_CUBE_MAP_ARRAY;
+        }
         else
         {
-            /* No API for 3D and cube arrays yet */
+            /* No API for 3D arrays yet */
             return KTX_UNSUPPORTED_TEXTURE_TYPE;
         }
         texinfo.textureDimensions++;
     }
     
-    /* reject 3D texture if unsupported */
+    /* Reject cube map arrays if unsupported. */
+    if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP_ARRAY && !supportsCubeMapArrays)
+    {
+        return KTX_UNSUPPORTED_TEXTURE_TYPE;        
+    }
+    
+    /* Reject 3D texture if unsupported. */
     if (texinfo.textureDimensions == 3 &&
         ((texinfo.compressed && (pfGlCompressedTexImage3D == NULL)) ||
          (!texinfo.compressed && (pfGlTexImage3D == NULL))))

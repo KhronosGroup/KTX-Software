@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 13.00
 # Visual Studio 2013
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{D1FA803F-FC64-1E07-D943-A96CDAE60A75}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{98354E09-8B30-2537-1D5B-E7F2DD0D71C5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.es1", "libktx.es1.vcxproj", "{399C0129-AAB3-A267-75B5-D1A78CAEDCDC}"
@@ -40,6 +42,14 @@ Global
 		{98354E09-8B30-2537-1D5B-E7F2DD0D71C5}.Debug|x64.Build.0 = Debug|x64
 		{98354E09-8B30-2537-1D5B-E7F2DD0D71C5}.Release|Win32.ActiveCfg = Release|Win32
 		{98354E09-8B30-2537-1D5B-E7F2DD0D71C5}.Release|Win32.Build.0 = Release|Win32
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Release|x64.ActiveCfg = Release|x64
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Release|x64.Build.0 = Release|x64
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Debug|Win32.Build.0 = Debug|Win32
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Debug|x64.ActiveCfg = Debug|x64
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Debug|x64.Build.0 = Debug|x64
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Release|Win32.ActiveCfg = Release|Win32
+		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Release|Win32.Build.0 = Release|Win32
 		{E433BFCE-5FDC-98BD-3488-2F3581141D1B}.Release|x64.ActiveCfg = Release|x64
 		{E433BFCE-5FDC-98BD-3488-2F3581141D1B}.Release|x64.Build.0 = Release|x64
 		{E433BFCE-5FDC-98BD-3488-2F3581141D1B}.Debug|Win32.ActiveCfg = Debug|Win32

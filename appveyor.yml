@@ -15,12 +15,15 @@ platform:
   - x64
   - Win32
 
+environment:
+  GIT_TRACE: 1
+
 on_failure:
   - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
 init:
   - ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
-  - ps: git config --global core.autocrlf true # workaround Git LFS bug
+  - git config --global core.autocrlf true # workaround Git LFS bug
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:

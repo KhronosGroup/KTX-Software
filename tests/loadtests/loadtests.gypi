@@ -60,7 +60,6 @@
 
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
-      'includes': [ '../../gyp_include/libgl.gypi' ],
       'targets': [
         {
           'target_name': 'gl3loadtests',
@@ -69,7 +68,7 @@
           'dependencies': [
             'appfwSDL',
             'libktx.gyp:libktx.gl',
-            'libgl',
+            'libktx.gyp:libgl',
           ],
           'sources': [
             '<@(common_source_files)',
@@ -198,10 +197,10 @@
             ['OS == "ios"', {
               'sources': [
                 'resources_ios/Info.plist',
-                'resources_ios/LaunchScreen.storyboard',
               ],
               'mac_bundle_resources': [
                 'resources_ios/Images.xcassets',
+                'resources_ios/LaunchScreen.storyboard',
               ],
               'copies': [{
                 'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
@@ -257,10 +256,10 @@
             ['OS == "ios"', {
               'sources': [
                 'resources_ios/Info.plist',
-                'resources_ios/LaunchScreen.storyboard',
               ],
               'mac_bundle_resources': [
                 'resources_ios/Images.xcassets',
+                'resources_ios/LaunchScreen.storyboard',
               ],
               'copies': [{
                 'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
