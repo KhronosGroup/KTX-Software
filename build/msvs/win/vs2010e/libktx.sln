@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{A76617E5-CDD4-8A19-7821-5C43170B76FA}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{FED59114-F702-D571-8F10-443025F17709}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.es1", "libktx.es1.vcxproj", "{B0C5E25C-C48B-ECA6-31ED-01186013CF4F}"
@@ -14,6 +16,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A76617E5-CDD4-8A19-7821-5C43170B76FA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A76617E5-CDD4-8A19-7821-5C43170B76FA}.Debug|Win32.Build.0 = Debug|Win32
+		{A76617E5-CDD4-8A19-7821-5C43170B76FA}.Release|Win32.ActiveCfg = Release|Win32
+		{A76617E5-CDD4-8A19-7821-5C43170B76FA}.Release|Win32.Build.0 = Release|Win32
 		{AAE3EF3D-C116-FAB5-897E-CEAE9F856B69}.Debug|Win32.ActiveCfg = Debug|Win32
 		{AAE3EF3D-C116-FAB5-897E-CEAE9F856B69}.Debug|Win32.Build.0 = Debug|Win32
 		{AAE3EF3D-C116-FAB5-897E-CEAE9F856B69}.Release|Win32.ActiveCfg = Release|Win32

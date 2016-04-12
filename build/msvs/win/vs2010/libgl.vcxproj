@@ -135,7 +135,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\ktxtests.gyp"/>
+    <None Include="..\..\..\..\libktx.gyp"/>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\other_lib\win\$(ConfigurationName)-$(PlatformName)\glew32.dll">
