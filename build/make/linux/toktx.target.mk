@@ -47,7 +47,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libktx.gl.a
+$(OBJS): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -70,17 +70,21 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
-LDFLAGS_Debug :=
+LDFLAGS_Debug := \
+	-Wl,-rpath=\$$ORIGIN/lib.target/ \
+	-Wl,-rpath-link=\$(builddir)/lib.target/
 
-LDFLAGS_Release :=
+LDFLAGS_Release := \
+	-Wl,-rpath=\$$ORIGIN/lib.target/ \
+	-Wl,-rpath-link=\$(builddir)/lib.target/
 
 LIBS :=
 
 $(builddir)/toktx: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/toktx: LIBS := $(LIBS)
-$(builddir)/toktx: LD_INPUTS := $(OBJS) $(obj).target/libktx.gl.a
+$(builddir)/toktx: LD_INPUTS := $(OBJS) $(obj).target/libktx.gl.so
 $(builddir)/toktx: TOOLSET := $(TOOLSET)
-$(builddir)/toktx: $(OBJS) $(obj).target/libktx.gl.a FORCE_DO_CMD
+$(builddir)/toktx: $(OBJS) $(obj).target/libktx.gl.so FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/toktx

@@ -9,7 +9,8 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-O0
+	-O0 \
+	-fPIC
 
 # Flags passed to only C files.
 CFLAGS_C_Debug :=
@@ -27,7 +28,8 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-O3
+	-O3 \
+	-fPIC
 
 # Flags passed to only C files.
 CFLAGS_C_Release :=
@@ -53,6 +55,9 @@ OBJS := \
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
+
+# Make sure our dependencies are built before any of us.
+$(OBJS): | $(obj).target/libgl.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -88,20 +93,32 @@ LDFLAGS_Debug :=
 
 LDFLAGS_Release :=
 
-LIBS :=
+LIBS := \
+	-lGL
 
-$(obj).target/libktx.gl.a: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
-$(obj).target/libktx.gl.a: LIBS := $(LIBS)
-$(obj).target/libktx.gl.a: TOOLSET := $(TOOLSET)
-$(obj).target/libktx.gl.a: $(OBJS) FORCE_DO_CMD
-	$(call do_cmd,alink_thin)
+$(obj).target/libktx.gl.so: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
+$(obj).target/libktx.gl.so: LIBS := $(LIBS)
+$(obj).target/libktx.gl.so: LD_INPUTS := $(OBJS)
+$(obj).target/libktx.gl.so: TOOLSET := $(TOOLSET)
+$(obj).target/libktx.gl.so: $(OBJS) FORCE_DO_CMD
+	$(call do_cmd,solink)
 
-all_deps += $(obj).target/libktx.gl.a
+all_deps += $(obj).target/libktx.gl.so
 # Add target alias
 .PHONY: libktx.gl
-libktx.gl: $(obj).target/libktx.gl.a
+libktx.gl: $(builddir)/lib.target/libktx.gl.so
 
-# Add target alias to "all" target.
+# Copy this to the shared library output path.
+$(builddir)/lib.target/libktx.gl.so: TOOLSET := $(TOOLSET)
+$(builddir)/lib.target/libktx.gl.so: $(obj).target/libktx.gl.so FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/lib.target/libktx.gl.so
+# Short alias for building this shared library.
+.PHONY: libktx.gl.so
+libktx.gl.so: $(obj).target/libktx.gl.so $(builddir)/lib.target/libktx.gl.so
+
+# Add shared library to "all" target.
 .PHONY: all
-all: libktx.gl
+all: $(builddir)/lib.target/libktx.gl.so
 

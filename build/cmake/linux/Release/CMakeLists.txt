@@ -12,115 +12,6 @@ set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 set(CMAKE_NINJA_FORCE_RESPONSE_FILE 1)
 
 
-#libktx.gyp:libktx.gl#target
-set(TARGET "libktx.gl")
-set(TOOLSET "target")
-list(APPEND libktx_gl__c_srcs
-  "../../../../lib/checkheader.c"
-  "../../../../lib/errstr.c"
-  "../../../../lib/hashtable.c"
-  "../../../../lib/ktxfilestream.c"
-  "../../../../lib/ktxmemstream.c"
-  "../../../../lib/loader.c"
-  "../../../../lib/swap.c"
-  "../../../../lib/writer.c")
-list(APPEND libktx_gl__cxx_srcs
-  "../../../../lib/etcdec.cxx"
-  "../../../../lib/etcunpack.cxx")
-list(APPEND libktx_gl__other_srcs
-  "../../../../include/ktx.h"
-  "../../../../lib/gl_funcptrs.h"
-  "../../../../lib/gles1_funcptrs.h"
-  "../../../../lib/gles2_funcptrs.h"
-  "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxfilestream.h"
-  "../../../../lib/ktxint.h"
-  "../../../../lib/ktxmemstream.h"
-  "../../../../lib/ktxstream.h"
-  "../../../../lib/uthash.h")
-add_library(libktx_gl STATIC ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
-set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_source_files_properties(${libktx_gl__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
-set_target_properties(libktx_gl PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
-set_target_properties(libktx_gl PROPERTIES PREFIX "lib")
-set_target_properties(libktx_gl PROPERTIES ARCHIVE_OUTPUT_NAME "ktx.gl")
-set_target_properties(libktx_gl PROPERTIES SUFFIX ".a")
-set_source_files_properties(${obj}.${TOOLSET}/libktx.gl.a PROPERTIES GENERATED "TRUE")
-list(APPEND libktx_gl__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
-set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
-set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;NDEBUG;")
-set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-O3 ")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtools.gyp:toktx#target
-set(TARGET "toktx")
-set(TOOLSET "target")
-list(APPEND toktx__cxx_srcs
-  "../../../../tools/toktx/image.cpp"
-  "../../../../tools/toktx/toktx.cpp")
-list(APPEND toktx__other_srcs
-  "../../../../tools/toktx/image.h"
-  "../../../../tools/toktx/stdafx.h"
-  "../../../../tools/toktx/targetver.h")
-add_executable(toktx ${toktx__cxx_srcs} ${toktx__other_srcs})
-set_target_properties(toktx PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_source_files_properties(${toktx__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
-set_target_properties(toktx PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
-set_target_properties(toktx PROPERTIES PREFIX "")
-set_target_properties(toktx PROPERTIES RUNTIME_OUTPUT_NAME "toktx")
-set_target_properties(toktx PROPERTIES SUFFIX "")
-set_source_files_properties(${builddir}/toktx PROPERTIES GENERATED "TRUE")
-list(APPEND toktx__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
-set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
-set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;NDEBUG;")
-set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-O3 ")
-set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
-set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
-set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
-target_link_libraries(toktx
-  libktx_gl
-)
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtools.gyp:toktx-tests#target
-set(TARGET "toktx-tests")
-set(TOOLSET "target")
-set(toktx-tests__toktx-tests__input "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/toktx-tests")
-set(toktx-tests__toktx-tests__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/testsrun")
-add_custom_command(OUTPUT ${toktx-tests__toktx-tests__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory tools/toktx
-  COMMAND tests/toktx-tests "${builddir}/toktx"
-  DEPENDS ${toktx-tests__toktx-tests__input}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Running toktx tests
-  VERBATIM
-)
-add_custom_target(toktx-tests__toktx-tests
-  DEPENDS ${toktx-tests__toktx-tests__output}
-  SOURCES ${toktx-tests__toktx-tests__input}
-)
-add_custom_target(toktx-tests SOURCES)
-set_target_properties(toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(toktx-tests__toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-add_dependencies(toktx-tests__toktx-tests
-  toktx
-)
-add_dependencies(toktx-tests
-  toktx
-  toktx-tests__toktx-tests
-)
-unset(TOOLSET)
-unset(TARGET)
-
 #libktx.gyp:libktx.es3#target
 set(TARGET "libktx.es3")
 set(TOOLSET "target")
@@ -161,6 +52,7 @@ list(APPEND libktx_es3__include_dirs
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
 set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;NDEBUG;")
 set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 unset(TOOLSET)
@@ -206,6 +98,7 @@ list(APPEND libktx_es1__include_dirs
 set_property(TARGET libktx_es1 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es1__include_dirs})
 set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;NDEBUG;")
 set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 unset(TOOLSET)
@@ -300,6 +193,132 @@ add_dependencies(libktx_doc
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:libgl#target
+set(TARGET "libgl")
+set(TOOLSET "target")
+add_custom_target(libgl SOURCES)
+set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libktx.gl#target
+set(TARGET "libktx.gl")
+set(TOOLSET "target")
+list(APPEND libktx_gl__c_srcs
+  "../../../../lib/checkheader.c"
+  "../../../../lib/errstr.c"
+  "../../../../lib/hashtable.c"
+  "../../../../lib/ktxfilestream.c"
+  "../../../../lib/ktxmemstream.c"
+  "../../../../lib/loader.c"
+  "../../../../lib/swap.c"
+  "../../../../lib/writer.c")
+list(APPEND libktx_gl__cxx_srcs
+  "../../../../lib/etcdec.cxx"
+  "../../../../lib/etcunpack.cxx")
+list(APPEND libktx_gl__other_srcs
+  "../../../../include/ktx.h"
+  "../../../../lib/gl_funcptrs.h"
+  "../../../../lib/gles1_funcptrs.h"
+  "../../../../lib/gles2_funcptrs.h"
+  "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxfilestream.h"
+  "../../../../lib/ktxint.h"
+  "../../../../lib/ktxmemstream.h"
+  "../../../../lib/ktxstream.h"
+  "../../../../lib/uthash.h")
+link_directories()
+add_library(libktx_gl SHARED ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
+set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${libktx_gl__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(libktx_gl PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${builddir}/lib.${TOOLSET}")
+set_target_properties(libktx_gl PROPERTIES PREFIX "lib")
+set_target_properties(libktx_gl PROPERTIES LIBRARY_OUTPUT_NAME "ktx.gl")
+set_target_properties(libktx_gl PROPERTIES SUFFIX ".so")
+set_source_files_properties(${builddir}/lib.${TOOLSET}/libktx.gl.so PROPERTIES GENERATED "TRUE")
+list(APPEND libktx_gl__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
+set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;NDEBUG;")
+set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-O3 -fPIC ")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+add_dependencies(libktx_gl
+  libgl
+)
+target_link_libraries(libktx_gl
+  "-lGL"
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:toktx#target
+set(TARGET "toktx")
+set(TOOLSET "target")
+list(APPEND toktx__cxx_srcs
+  "../../../../tools/toktx/image.cpp"
+  "../../../../tools/toktx/toktx.cpp")
+list(APPEND toktx__other_srcs
+  "../../../../tools/toktx/image.h"
+  "../../../../tools/toktx/stdafx.h"
+  "../../../../tools/toktx/targetver.h")
+add_executable(toktx ${toktx__cxx_srcs} ${toktx__other_srcs})
+set_target_properties(toktx PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${toktx__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(toktx PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(toktx PROPERTIES PREFIX "")
+set_target_properties(toktx PROPERTIES RUNTIME_OUTPUT_NAME "toktx")
+set_target_properties(toktx PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/toktx PROPERTIES GENERATED "TRUE")
+list(APPEND toktx__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
+set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;NDEBUG;")
+set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+target_link_libraries(toktx
+  libktx_gl
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:toktx-tests#target
+set(TARGET "toktx-tests")
+set(TOOLSET "target")
+set(toktx-tests__toktx-tests__input "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/toktx-tests")
+set(toktx-tests__toktx-tests__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/testsrun")
+add_custom_command(OUTPUT ${toktx-tests__toktx-tests__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/toktx
+  COMMAND tests/toktx-tests "${builddir}/toktx"
+  DEPENDS ${toktx-tests__toktx-tests__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Running toktx tests
+  VERBATIM
+)
+add_custom_target(toktx-tests__toktx-tests
+  DEPENDS ${toktx-tests__toktx-tests__output}
+  SOURCES ${toktx-tests__toktx-tests__input}
+)
+add_custom_target(toktx-tests SOURCES)
+set_target_properties(toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(toktx-tests__toktx-tests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(toktx-tests__toktx-tests
+  toktx
+)
+add_dependencies(toktx-tests
+  toktx
+  toktx-tests__toktx-tests
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtests.gyp:libsdl#target
 set(TARGET "libsdl")
 set(TOOLSET "target")
@@ -355,19 +374,12 @@ list(APPEND appfwSDL__include_dirs
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
 set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 add_dependencies(appfwSDL
   libsdl
 )
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtests.gyp:libgl#target
-set(TARGET "libgl")
-set(TOOLSET "target")
-add_custom_target(libgl SOURCES)
-set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -486,11 +498,12 @@ set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadte
 set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;KTX_OPENGL=1;NDEBUG;")
 set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-O3 ")
 set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/resources_mac/Info.plist")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/resources_mac/Info.plist")
 add_dependencies(gl3loadtests__copies
   appfwSDL
   libktx_gl
@@ -503,10 +516,8 @@ add_dependencies(gl3loadtests
   gl3loadtests__copies
 )
 target_link_libraries(gl3loadtests
--Wl,--start-group
   appfwSDL
   libktx_gl
--Wl,--end-group
   "-lSDL2-2.0"
   "-lSDL2main"
   "-ldl"
