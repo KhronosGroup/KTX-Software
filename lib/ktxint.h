@@ -174,6 +174,9 @@ extern GLboolean _ktxSupportsSRGB;
 #define GL_TEXTURE_CUBE_MAP             0x8513
 #define GL_TEXTURE_CUBE_MAP_POSITIVE_X  0x8515
 #endif
+#ifndef GL_TEXTURE_CUBE_MAP_ARRAY
+#define GL_TEXTURE_CUBE_MAP_ARRAY       0x9009
+#endif
 /* from GL_EXT_texture_array */
 #ifndef GL_TEXTURE_1D_ARRAY_EXT
 #define GL_TEXTURE_1D_ARRAY_EXT         0x8C18
