@@ -40,36 +40,55 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include "ktx.h"
 
+typedef struct ktxMem ktxMem;
+typedef struct ktxStream ktxStream;
+
 /**
- * @private
+ * @internal
  * @~English
  * @brief type for a pointer to a stream reading function
  */
-typedef KTX_error_code(*ktxStream_read)(void* dst, const GLsizei count, void* src);
+typedef KTX_error_code (*ktxStream_read)(ktxStream* str, void* dst,
+                                         const GLsizei count);
 /**
- * @private
+ * @internal
  * @~English
  * @brief type for a pointer to a stream skipping function
  */
-typedef KTX_error_code(*ktxStream_skip)(const GLsizei count, void* src);
+typedef KTX_error_code (*ktxStream_skip)(ktxStream* str, const GLsizei count);
+
 /**
- * @private
+ * @internal
  * @~English
  * @brief type for a pointer to a stream reading function
  */
-typedef KTX_error_code(*ktxStream_write)(const void *src, const GLsizei size, const GLsizei count, void* dst);
+typedef KTX_error_code (*ktxStream_write)(ktxStream* str, const void *src,
+                                          const GLsizei size,
+                                          const GLsizei count);
 
 /**
- * @private
+ * @internal
+ * @~English
+ * @brief type for a pointer to a stream closing function
+ */
+typedef KTX_error_code (*ktxStream_close)(ktxStream* str);
+
+/**
+ * @internal
  * @~English
  * @brief KTX stream interface
  */
-struct ktxStream
+typedef struct ktxStream
 {
-	void* src;                 /**< pointer to the stream source */
-	ktxStream_read read;       /**< pointer to function for reading bytes */
-	ktxStream_skip skip;       /**< pointer to function for skipping bytes */
-	ktxStream_write write;     /**< pointer to function for writing bytes */
-};
+    ktxStream_read read;   /**< @internal pointer to function for reading bytes. */
+    ktxStream_skip skip;   /**< @internal pointer to function for skipping bytes. */
+    ktxStream_write write; /**< @internal pointer to function for writing bytes. */
+    ktxStream_close close; /**< @internal pointer to function for closing stream. */
+
+    union {
+        FILE* file;
+        ktxMem* mem;
+    } data;                /**< @internal pointer to the stream data */
+} ktxStream;
 
 #endif /* KTXSTREAM_H */

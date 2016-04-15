@@ -41,6 +41,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -61,9 +62,10 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * @exception KTX_OUT_OF_MEMORY        System failed to allocate sufficient memory.
  */
 static
-KTX_error_code ktxMem_expand(struct ktxMem *mem, const GLsizei newsize)
+KTX_error_code ktxMem_expand(ktxMem *mem, const size_t newsize)
 {
-	GLsizei new_alloc_size = mem->alloc_size;
+    assert(mem != NULL);
+	size_t new_alloc_size = mem->alloc_size;
 	while (new_alloc_size < newsize)
 		new_alloc_size <<= 1;
 
@@ -71,7 +73,7 @@ KTX_error_code ktxMem_expand(struct ktxMem *mem, const GLsizei newsize)
 		return KTX_SUCCESS;
 
 	mem->bytes = (unsigned char*)realloc(mem->bytes, new_alloc_size);
-	if(!mem->bytes)
+	if (!mem->bytes)
 	{
 		mem->alloc_size = 0;
 		mem->used_size = 0;
@@ -80,6 +82,24 @@ KTX_error_code ktxMem_expand(struct ktxMem *mem, const GLsizei newsize)
 
 	mem->alloc_size = new_alloc_size;
 	return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Close a ktxMemStream, a NOP.
+ *
+ * @param [in] str           pointer to the stream.
+ *
+ * @return    KTX_SUCCESS as no failure is possible.
+ */
+static
+KTX_error_code ktxMemStream_close(ktxStream* str)
+{
+    if (!str)
+        return KTX_INVALID_VALUE;
+    
+    return KTX_SUCCESS;
 }
 
 /**
@@ -96,12 +116,16 @@ KTX_error_code ktxMem_expand(struct ktxMem *mem, const GLsizei newsize)
  * @exception KTX_INVALID_VALUE        @p dst is @c NULL or @p mem is @c NULL or not sufficient data is available in ktxMem.
  */
 static
-KTX_error_code ktxMemStream_read(void* dst, const GLsizei count, void* src)
+KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const GLsizei count)
 {
-	struct ktxMem* mem = (struct ktxMem*)src;
+	ktxMem* mem;
 
-	if(!dst || !mem || (mem->pos + count > mem->used_size) || (mem->pos + count < mem->pos))
+	if (!str)
 		return KTX_INVALID_VALUE;
+    
+    mem = str->data.mem;
+    if (!mem || (mem->pos + count > mem->used_size) || (mem->pos + count < mem->pos))
+        return KTX_INVALID_VALUE;
 
 	memcpy(dst, mem->bytes + mem->pos, count);
 	mem->pos += count;
@@ -122,12 +146,16 @@ KTX_error_code ktxMemStream_read(void* dst, const GLsizei count, void* src)
  * @exception KTX_INVALID_VALUE        @p mem is @c NULL or not sufficient data is available in ktxMem.
  */
 static
-KTX_error_code ktxMemStream_skip(const GLsizei count, void* src)
+KTX_error_code ktxMemStream_skip(ktxStream* str, const GLsizei count)
 {
-	struct ktxMem* mem = (struct ktxMem*)src;
-
-	if(!mem || (mem->pos + count > mem->used_size) || (mem->pos + count < mem->pos))
-		return KTX_INVALID_VALUE;
+    ktxMem* mem;
+    
+    if (!str)
+        return KTX_INVALID_VALUE;
+    
+    mem = str->data.mem;
+    if (!mem || (mem->pos + count > mem->used_size) || (mem->pos + count < mem->pos))
+        return KTX_INVALID_VALUE;
 
 	mem->pos += count;
 
@@ -150,13 +178,14 @@ KTX_error_code ktxMemStream_skip(const GLsizei count, void* src)
  * @exception KTX_OUT_OF_MEMORY        See ktxMem_expand() for causes.
  */
 static
-KTX_error_code ktxMemStream_write(const void* src, const GLsizei size, const GLsizei count, void* dst)
+KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
+                                  const GLsizei size, const GLsizei count)
 {
-	struct ktxMem* mem = (struct ktxMem*)dst;
+	ktxMem* mem;
 	KTX_error_code rc = KTX_SUCCESS;
 
-	if(!dst || !mem)
-		return KTX_INVALID_VALUE;
+    if (!str || !(mem = str->data.mem))
+        return KTX_INVALID_VALUE;
 
 	if(mem->alloc_size < mem->used_size + size*count)
 	{
@@ -191,12 +220,13 @@ KTX_error_code ktxMemStream_write(const void* src, const GLsizei size, const GLs
  * @exception KTX_INVALID_VALUE        @p stream is @c NULL or @p mem is @c NULL or @p size is less than 0.
  * @exception KTX_OUT_OF_MEMORY        system failed to allocate sufficient memory.
  */
-KTX_error_code ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, GLsizei size)
+KTX_error_code ktxMemStream_init(ktxStream* str, ktxMem* mem,
+                                 const void* bytes, size_t size)
 {
-	if (!stream || !mem || size < 0)
+	if (!str || !mem)
 		return KTX_INVALID_VALUE;
 
-	if(!bytes)
+	if (!bytes)
 	{
 		if (size == 0)
 			size = KTX_MEM_DEFAULT_ALLOCATED_SIZE;
@@ -215,10 +245,18 @@ KTX_error_code ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const vo
 		mem->pos = 0;
 	}
 
-	stream->src = mem;
-	stream->read = ktxMemStream_read;
-	stream->skip = ktxMemStream_skip;
-	stream->write = ktxMemStream_write;
+	str->data.mem = mem;
+    str->close = ktxMemStream_close;
+	str->read = ktxMemStream_read;
+	str->skip = ktxMemStream_skip;
+	str->write = ktxMemStream_write;
 
 	return KTX_SUCCESS;
+}
+
+void
+ktxMem_clear(ktxMem* mem)
+{
+    assert(mem != NULL);
+    memset(mem, 0, sizeof(ktxMem));
 }

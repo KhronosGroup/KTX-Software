@@ -34,36 +34,42 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		031C1629278412D2A4FE2A7C /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		08AA16F283A64B54A22CCB98 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
-		0D21C57EE271E356F28D5876 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
-		132B88435234F94BACEE2058 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		2176B94A1C4663687361F24A /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		2A7E57A4810E94A5D89CDA56 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		2DD67720DD647E3B19C59DA6 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		421DBC978B48383705B3D72D /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
-		478640BC07722FCE7D1458F7 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
-		4DDE6240A0372BFECA1B3CA9 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		56322FFFDA73BF0C1DECAB79 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
-		5A1739D1BD7E2CE2E3536D32 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		5D926154DD2238429170B0DF /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		667BFFCAB80A0ED313F3E917 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		6AAB55564C8CF54E22E8D445 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		79CB3A064BB454EAB5F9AA8A /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		7F17A903F2CB434013A1AE00 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
-		9AAAFD9B981E1B1C651C9141 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		9B807CF2F14B3FADE03EAF94 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		AA9B5131E9779F14A07F2A97 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		B33BC44449346A225F07492F /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		B8A9C790281D7A6C06AA3308 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		C94734261FE1F7452646A492 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		CA30E9817A78911C7F10D974 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
-		CA4BA38599B60A203ED5F8D1 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		DD3E3C69154414FB5F55B4F4 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		F72B727ED61807E64FBAA130 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		F8F39D71233968D3A1012A76 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
-		FA3650A32C6F7C5C6F7199AC /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
-		FBB900AB87175CD0E8B5791A /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		098C778592B8710958541B0B /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
+		141A435DB015AF770F5431B0 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		1E9EC787497B6BC68EDD6D37 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		207A6E774C4A387AFB6FA80C /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		264EFF4EA9506FA15E121ACE /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		28E158C209C1F0A551E7E1E3 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
+		2DF6358C85C4276C05D296C3 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
+		309C2FBB0C546F3D5B13EC2D /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		38BE03C1E23F783B4B677BCF /* ktxcontext.c in Sources */ = {isa = PBXBuildFile; fileRef = 2726F9FBE1FE24BB4DE6ABF7 /* ktxcontext.c */; };
+		3C272D84F7E5FB9D5D0A13E0 /* ktxcontext.c in Sources */ = {isa = PBXBuildFile; fileRef = 2726F9FBE1FE24BB4DE6ABF7 /* ktxcontext.c */; };
+		4A1AADF7241AB67E129B36DD /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		4F2B017765DD406452B96508 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		4F44D55F261CB81C42BE8EF9 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		52EA1C351776CF37D536A444 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
+		5B92D8899519488C89482DB8 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		7114EC04E170545C189C5F73 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		7DA8F9E1E3148FE41888FE7F /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		8351F5A654D9E7BF02D1F667 /* loader.c in Sources */ = {isa = PBXBuildFile; fileRef = AB840FC777BBF6B093DAE4D6 /* loader.c */; };
+		91A277A6111DA7F5EC728531 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
+		95B943355C0C7E4B63747C8A /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		9BF871F12EF2846EEB7B46B1 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		B94EB64A762710C7DA6DD82E /* reader.c in Sources */ = {isa = PBXBuildFile; fileRef = AF7174742211B9AD5E3DDF59 /* reader.c */; };
+		B9BE2E7D91E02B2D14EE21D8 /* reader.c in Sources */ = {isa = PBXBuildFile; fileRef = AF7174742211B9AD5E3DDF59 /* reader.c */; };
+		BCFEB02F664F9EC3CDE0F51D /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		BE39D17AE232EB831D3F2542 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		C372960FFAD55D28E7612FA6 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		C3A44E621D080A73DA5C39AD /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		C9F271E59B23FA2C10430792 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
+		D4C4F72C66E09AB520217BF3 /* ktxcontext.c in Sources */ = {isa = PBXBuildFile; fileRef = 2726F9FBE1FE24BB4DE6ABF7 /* ktxcontext.c */; };
+		D6B31AAAD6EC96A5AD71DFCA /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		D7319AAAF947AF062F41C5C8 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
+		D969C5BA0E850161EF3DB86A /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		E4FDB9F63D614D94BBBFC192 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
+		E7E159220525526F344415C2 /* reader.c in Sources */ = {isa = PBXBuildFile; fileRef = AF7174742211B9AD5E3DDF59 /* reader.c */; };
+		F4622229A4D677D0D337813D /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		FDDE6DDE1F9D7FE1EC8BFE2F /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +107,7 @@
 		02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxfilestream.c; sourceTree = "<group>"; };
 		0CC8195A95CBBC8C1CB04BCA /* gles2_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles2_funcptrs.h; sourceTree = "<group>"; };
 		0DF732D4865EBE87E6C2B6E5 /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
+		2726F9FBE1FE24BB4DE6ABF7 /* ktxcontext.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxcontext.c; sourceTree = "<group>"; };
 		294D72CF2DE93CC967F22442 /* libktx.gl.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.gl.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C4E8C270B5BECA345ACBF85 /* ktxint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxint.h; sourceTree = "<group>"; };
 		36344252BF902A18F4ACB26C /* ktxmemstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ktxmemstream.c; sourceTree = "<group>"; };
@@ -115,6 +122,7 @@
 		85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_funcptrs.h; sourceTree = "<group>"; };
 		998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es3.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB840FC777BBF6B093DAE4D6 /* loader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = loader.c; sourceTree = "<group>"; };
+		AF7174742211B9AD5E3DDF59 /* reader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = reader.c; sourceTree = "<group>"; };
 		B173E34FD52E42EBF0F24CF0 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
 		B6AB21816B1A0B0575E4A525 /* writer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer.c; sourceTree = "<group>"; };
 		BE607367214BBF5824644530 /* default.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = default.gypi; path = gyp_include/default.gypi; sourceTree = "<group>"; };
@@ -127,6 +135,7 @@
 		E4C296305A71370E67B0FDD7 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles3_funcptrs.h; sourceTree = "<group>"; };
 		EC2F140ED1C840A390FE4436 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
+		F803FD2D5CEE88A9674FEC89 /* ktxcontext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxcontext.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,7 +167,7 @@
 			isa = PBXGroup;
 			children = (
 				295EF93D1FE69CB0D85628E7 /* include */,
-				3B3D410B0B58AD4F6ED6B2CF /* lib */,
+				D2059E34FB25FB6D93F979BA /* lib */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -181,32 +190,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3B3D410B0B58AD4F6ED6B2CF /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				EC2F140ED1C840A390FE4436 /* checkheader.c */,
-				4E0FC251435360C63D168913 /* errstr.c */,
-				44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */,
-				D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */,
-				85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */,
-				E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */,
-				0CC8195A95CBBC8C1CB04BCA /* gles2_funcptrs.h */,
-				EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */,
-				384624CA76049217B70E9012 /* hashtable.c */,
-				02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */,
-				E3D44A3E3431DE089D06DE94 /* ktxfilestream.h */,
-				2C4E8C270B5BECA345ACBF85 /* ktxint.h */,
-				36344252BF902A18F4ACB26C /* ktxmemstream.c */,
-				CC45FB0EDE0EAFEBA24567B5 /* ktxmemstream.h */,
-				3E387A83332F46C079F057CC /* ktxstream.h */,
-				AB840FC777BBF6B093DAE4D6 /* loader.c */,
-				B173E34FD52E42EBF0F24CF0 /* swap.c */,
-				474075FAD32D60D3E886E1E4 /* uthash.h */,
-				B6AB21816B1A0B0575E4A525 /* writer.c */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
 		3B7169D373FF61455E9607CB = {
 			isa = PBXGroup;
 			children = (
@@ -227,6 +210,35 @@
 				E4C296305A71370E67B0FDD7 /* pvremu.gypi */,
 			);
 			name = Build;
+			sourceTree = "<group>";
+		};
+		D2059E34FB25FB6D93F979BA /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				EC2F140ED1C840A390FE4436 /* checkheader.c */,
+				4E0FC251435360C63D168913 /* errstr.c */,
+				44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */,
+				D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */,
+				85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */,
+				E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */,
+				0CC8195A95CBBC8C1CB04BCA /* gles2_funcptrs.h */,
+				EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */,
+				384624CA76049217B70E9012 /* hashtable.c */,
+				2726F9FBE1FE24BB4DE6ABF7 /* ktxcontext.c */,
+				F803FD2D5CEE88A9674FEC89 /* ktxcontext.h */,
+				02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */,
+				E3D44A3E3431DE089D06DE94 /* ktxfilestream.h */,
+				2C4E8C270B5BECA345ACBF85 /* ktxint.h */,
+				36344252BF902A18F4ACB26C /* ktxmemstream.c */,
+				CC45FB0EDE0EAFEBA24567B5 /* ktxmemstream.h */,
+				3E387A83332F46C079F057CC /* ktxstream.h */,
+				AB840FC777BBF6B093DAE4D6 /* loader.c */,
+				AF7174742211B9AD5E3DDF59 /* reader.c */,
+				B173E34FD52E42EBF0F24CF0 /* swap.c */,
+				474075FAD32D60D3E886E1E4 /* uthash.h */,
+				B6AB21816B1A0B0575E4A525 /* writer.c */,
+			);
+			path = lib;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -309,16 +321,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FBB900AB87175CD0E8B5791A /* checkheader.c in Sources */,
-				2176B94A1C4663687361F24A /* errstr.c in Sources */,
-				DD3E3C69154414FB5F55B4F4 /* etcdec.cxx in Sources */,
-				031C1629278412D2A4FE2A7C /* etcunpack.cxx in Sources */,
-				C94734261FE1F7452646A492 /* hashtable.c in Sources */,
-				478640BC07722FCE7D1458F7 /* ktxfilestream.c in Sources */,
-				08AA16F283A64B54A22CCB98 /* ktxmemstream.c in Sources */,
-				0D21C57EE271E356F28D5876 /* loader.c in Sources */,
-				AA9B5131E9779F14A07F2A97 /* swap.c in Sources */,
-				6AAB55564C8CF54E22E8D445 /* writer.c in Sources */,
+				309C2FBB0C546F3D5B13EC2D /* checkheader.c in Sources */,
+				C3A44E621D080A73DA5C39AD /* errstr.c in Sources */,
+				F4622229A4D677D0D337813D /* etcdec.cxx in Sources */,
+				4F44D55F261CB81C42BE8EF9 /* etcunpack.cxx in Sources */,
+				C372960FFAD55D28E7612FA6 /* hashtable.c in Sources */,
+				D4C4F72C66E09AB520217BF3 /* ktxcontext.c in Sources */,
+				2DF6358C85C4276C05D296C3 /* ktxfilestream.c in Sources */,
+				D7319AAAF947AF062F41C5C8 /* ktxmemstream.c in Sources */,
+				8351F5A654D9E7BF02D1F667 /* loader.c in Sources */,
+				E7E159220525526F344415C2 /* reader.c in Sources */,
+				264EFF4EA9506FA15E121ACE /* swap.c in Sources */,
+				207A6E774C4A387AFB6FA80C /* writer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -326,16 +340,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D926154DD2238429170B0DF /* checkheader.c in Sources */,
-				79CB3A064BB454EAB5F9AA8A /* errstr.c in Sources */,
-				5A1739D1BD7E2CE2E3536D32 /* etcdec.cxx in Sources */,
-				9B807CF2F14B3FADE03EAF94 /* etcunpack.cxx in Sources */,
-				B8A9C790281D7A6C06AA3308 /* hashtable.c in Sources */,
-				FA3650A32C6F7C5C6F7199AC /* ktxfilestream.c in Sources */,
-				CA30E9817A78911C7F10D974 /* ktxmemstream.c in Sources */,
-				F8F39D71233968D3A1012A76 /* loader.c in Sources */,
-				2DD67720DD647E3B19C59DA6 /* swap.c in Sources */,
-				2A7E57A4810E94A5D89CDA56 /* writer.c in Sources */,
+				9BF871F12EF2846EEB7B46B1 /* checkheader.c in Sources */,
+				4F2B017765DD406452B96508 /* errstr.c in Sources */,
+				BCFEB02F664F9EC3CDE0F51D /* etcdec.cxx in Sources */,
+				7114EC04E170545C189C5F73 /* etcunpack.cxx in Sources */,
+				5B92D8899519488C89482DB8 /* hashtable.c in Sources */,
+				3C272D84F7E5FB9D5D0A13E0 /* ktxcontext.c in Sources */,
+				91A277A6111DA7F5EC728531 /* ktxfilestream.c in Sources */,
+				C9F271E59B23FA2C10430792 /* ktxmemstream.c in Sources */,
+				28E158C209C1F0A551E7E1E3 /* loader.c in Sources */,
+				B9BE2E7D91E02B2D14EE21D8 /* reader.c in Sources */,
+				1E9EC787497B6BC68EDD6D37 /* swap.c in Sources */,
+				7DA8F9E1E3148FE41888FE7F /* writer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,16 +359,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				132B88435234F94BACEE2058 /* checkheader.c in Sources */,
-				B33BC44449346A225F07492F /* errstr.c in Sources */,
-				4DDE6240A0372BFECA1B3CA9 /* etcdec.cxx in Sources */,
-				9AAAFD9B981E1B1C651C9141 /* etcunpack.cxx in Sources */,
-				667BFFCAB80A0ED313F3E917 /* hashtable.c in Sources */,
-				56322FFFDA73BF0C1DECAB79 /* ktxfilestream.c in Sources */,
-				7F17A903F2CB434013A1AE00 /* ktxmemstream.c in Sources */,
-				421DBC978B48383705B3D72D /* loader.c in Sources */,
-				F72B727ED61807E64FBAA130 /* swap.c in Sources */,
-				CA4BA38599B60A203ED5F8D1 /* writer.c in Sources */,
+				FDDE6DDE1F9D7FE1EC8BFE2F /* checkheader.c in Sources */,
+				95B943355C0C7E4B63747C8A /* errstr.c in Sources */,
+				D6B31AAAD6EC96A5AD71DFCA /* etcdec.cxx in Sources */,
+				BE39D17AE232EB831D3F2542 /* etcunpack.cxx in Sources */,
+				D969C5BA0E850161EF3DB86A /* hashtable.c in Sources */,
+				38BE03C1E23F783B4B677BCF /* ktxcontext.c in Sources */,
+				E4FDB9F63D614D94BBBFC192 /* ktxfilestream.c in Sources */,
+				098C778592B8710958541B0B /* ktxmemstream.c in Sources */,
+				52EA1C351776CF37D536A444 /* loader.c in Sources */,
+				B94EB64A762710C7DA6DD82E /* reader.c in Sources */,
+				4A1AADF7241AB67E129B36DD /* swap.c in Sources */,
+				141A435DB015AF770F5431B0 /* writer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -46,17 +46,20 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * @brief Structure to store information
  *    about data allocated for ktxMemStream
  */
-struct ktxMem
+typedef struct ktxMem
 {
 	unsigned char* bytes;
-	GLsizei alloc_size;
-	GLsizei used_size;
-	GLsizei pos;
-};
+	size_t alloc_size;
+	size_t used_size;
+	size_t pos;
+} ktxMem;
 
 /*
  * ktxMemInit: Initialize a ktxStream to a ktxMemStream with ktxMem struct and/or array of bytes
  */
-KTX_error_code ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, GLsizei size);
+KTX_error_code ktxMemStream_init(ktxStream* str, struct ktxMem* mem,
+                                 const void* bytes, size_t size);
+
+void ktxMem_clear(ktxMem* mem);
 
 #endif /* KTXMEMSTREAM_H */

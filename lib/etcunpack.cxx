@@ -67,7 +67,7 @@ extern void setupAlphaTable();
 extern int formatSigned;
 
 static void
-readBigEndian4byteWord(khronos_uint32_t* pBlock, const GLubyte *s)
+readBigEndian4byteWord(ktx_uint32_t* pBlock, const GLubyte *s)
 {
 	*pBlock = (s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3];
 }
@@ -76,7 +76,7 @@ readBigEndian4byteWord(khronos_uint32_t* pBlock, const GLubyte *s)
 /* Unpack an ETC1_RGB8_OES format compressed texture */
 extern "C" KTX_error_code
 _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
-			  khronos_uint32_t activeWidth, khronos_uint32_t activeHeight,
+			  ktx_uint32_t activeWidth, ktx_uint32_t activeHeight,
 			  GLubyte** dstImage,
 			  GLenum* format, GLenum* internalFormat, GLenum* type,
 			  GLint R16Formats, GLboolean supportsSRGB)
