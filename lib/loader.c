@@ -97,6 +97,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include "ktx.h"
 #include "ktxint.h"
+#include "ktxcontext.h"
 #include "ktxstream.h"
 #include "ktxfilestream.h"
 #include "ktxmemstream.h"
@@ -175,40 +176,6 @@ static GLboolean supportsCubeMapArrays = GL_FALSE;
  *        function parameters.
  */
 #define glGetString(x) (const char*)glGetString(x)
-
-/**
-* @internal
-* @~English
-* @brief Workaround mismatch of glGetStringi declaration and standard string
-*        function parameters.
-*/
-#define pfGlGetStringi(x,y) (const char*)pfGlGetStringi(x,y)
-
-/**
- * @internal
- * @~English
- * @brief Check for existence of OpenGL extension
- */
-static GLboolean
-hasExtension(const char* extension)
-{
-	if (pfGlGetStringi == NULL) {
-		if (strstr(glGetString(GL_EXTENSIONS), extension) != NULL)
-			return GL_TRUE;
-		else
-			return GL_FALSE;
-	}
-	else {
-		int i, n;
-
-		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
-		for (i = 0; i < n; i++) {
-			if (strcmp(pfGlGetStringi(GL_EXTENSIONS, i), extension) == 0)
-				return GL_TRUE;
-		}
-		return GL_FALSE;
-	}
-}
 
 /**
  * @internal
@@ -315,28 +282,28 @@ static void discoverContextCapabilities(void)
  *                          be set.
  * @param [in, out] pFormat pointer to variable holding the base format of the
  *                          texture. The new base format is written here.
- * @param [in, out] pInternalFormat  pointer to variable holding the internalformat
+ * @param [in, out] pInternalformat  pointer to variable holding the internalformat
  *                                   of the texture. The new internalformat is
  *                                   written here.
  * @return void unrecognized formats will be passed on to OpenGL. Any loading error
  *              that arises will be handled in the usual way.
  */
-static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalFormat) {
+static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalformat) {
 	switch (*pFormat) {
 	  case GL_ALPHA:
 		{
 		  GLint swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalFormat) {
+		  switch (*pInternalformat) {
 	        case GL_ALPHA:
 		    case GL_ALPHA4:
 		    case GL_ALPHA8:
-			  *pInternalFormat = GL_R8;
+			  *pInternalformat = GL_R8;
 			  break;
 		    case GL_ALPHA12:
 		    case GL_ALPHA16:
-			  *pInternalFormat = GL_R16;
+			  *pInternalformat = GL_R16;
 			  break;
 		  }
 		}
@@ -345,22 +312,22 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalForma
 		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalFormat) {
+		  switch (*pInternalformat) {
 			case GL_LUMINANCE:
 		    case GL_LUMINANCE4:
 		    case GL_LUMINANCE8:
-			  *pInternalFormat = GL_R8;
+			  *pInternalformat = GL_R8;
 			  break;
 		    case GL_LUMINANCE12:
 		    case GL_LUMINANCE16:
-			  *pInternalFormat = GL_R16;
+			  *pInternalformat = GL_R16;
 			  break;
 #if 0
 		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
             // XXX Must manually swizzle.
 			case GL_SLUMINANCE:
 			case GL_SLUMINANCE8:
-			  *pInternalFormat = GL_SRGB8;
+			  *pInternalformat = GL_SRGB8;
 			  break;
 #endif
 		  }
@@ -371,24 +338,24 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalForma
 		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
 		  *pFormat = GL_RG;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalFormat) {
+		  switch (*pInternalformat) {
 			case GL_LUMINANCE_ALPHA:
 		    case GL_LUMINANCE4_ALPHA4:
 			case GL_LUMINANCE6_ALPHA2:
 		    case GL_LUMINANCE8_ALPHA8:
-			  *pInternalFormat = GL_RG8;
+			  *pInternalformat = GL_RG8;
 			  break;
 		    case GL_LUMINANCE12_ALPHA4:
 			case GL_LUMINANCE12_ALPHA12:
 		    case GL_LUMINANCE16_ALPHA16:
-			  *pInternalFormat = GL_RG16;
+			  *pInternalformat = GL_RG16;
 			  break;
 #if 0
 		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
             // XXX Must manually swizzle.
 			case GL_SLUMINANCE_ALPHA:
 			case GL_SLUMINANCE8_ALPHA8:
-			  *pInternalFormat = GL_SRGB8_ALPHA8;
+			  *pInternalformat = GL_SRGB8_ALPHA8;
 			  break;
 #endif
 		  }
@@ -399,15 +366,15 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalForma
 		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalFormat) {
+		  switch (*pInternalformat) {
 			case GL_INTENSITY:
 		    case GL_INTENSITY4:
 		    case GL_INTENSITY8:
-			  *pInternalFormat = GL_R8;
+			  *pInternalformat = GL_R8;
 			  break;
 		    case GL_INTENSITY12:
 		    case GL_INTENSITY16:
-			  *pInternalFormat = GL_R16;
+			  *pInternalformat = GL_R16;
 			  break;
 		  }
 		  break;
@@ -418,6 +385,183 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalForma
 }
 #endif /* SUPPORT_LEGACY_FORMAT_CONVERSION */
 
+typedef struct ktx_cbdata {
+    GLenum glTarget;
+    GLenum glFormat;
+    GLenum glInternalformat;
+    GLenum glType;
+    GLenum glError;
+} ktx_cbdata;
+
+KTX_error_code KTXAPIENTRY
+texImage1DCallback(int miplevel, int face,
+                   int width, int heightOrLayers,
+                   int depthOrLayers,
+                   ktx_uint32_t faceLodSize,
+                   void* pixels, void* userdata)
+{
+    ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    
+    assert(pfGlTexImage1D != NULL);
+    pfGlTexImage1D(cbData->glTarget + face, miplevel,
+                   cbData->glInternalformat, width, 0,
+                   cbData->glFormat, cbData->glType, pixels);
+    
+    if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
+        return KTX_SUCCESS;
+    } else {
+        return KTX_GL_ERROR;
+    }
+}
+
+KTX_error_code KTXAPIENTRY
+compressedTexImage1DCallback(int miplevel, int face,
+                             int width, int heightOrLayers,
+                             int depthOrLayers,
+                             ktx_uint32_t faceLodSize,
+                             void* pixels, void* userdata)
+{
+    ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    
+    assert(pfGlCompressedTexImage1D != NULL);
+    pfGlCompressedTexImage1D(cbData->glTarget + face, miplevel,
+                             cbData->glInternalformat, width, 0,
+                             cbData->glType, pixels);
+    
+    if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
+        return KTX_SUCCESS;
+    } else {
+        return KTX_GL_ERROR;
+    }
+}
+
+KTX_error_code KTXAPIENTRY
+texImage2DCallback(int miplevel, int face,
+                   int width, int heightOrLayers,
+                   int depthOrLayers,
+                   ktx_uint32_t faceLodSize,
+                   void* pixels, void* userdata)
+{
+    ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+ 
+    glTexImage2D(cbData->glTarget + face, miplevel,
+                 cbData->glInternalformat, width, heightOrLayers, 0,
+                 cbData->glFormat, cbData->glType, pixels);
+
+    if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
+        return KTX_SUCCESS;
+    } else {
+        return KTX_GL_ERROR;
+    }
+}
+
+
+KTX_error_code KTXAPIENTRY
+compressedTexImage2DCallback(int miplevel, int face,
+                             int width, int heightOrLayers,
+                             int depthOrLayers,
+                             ktx_uint32_t faceLodSize,
+                             void* pixels, void* userdata)
+{
+    ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    GLenum glerror;
+    KTX_error_code errorCode;
+    
+    // It is simpler to just attempt to load the format, rather than divine which
+    // formats are supported by the implementation. In the event of an error,
+    // software unpacking can be attempted.
+    glCompressedTexImage2D(cbData->glTarget + face, miplevel,
+                           cbData->glInternalformat, width, heightOrLayers, 0,
+                           faceLodSize, pixels);
+    
+    glerror = glGetError();
+#if SUPPORT_SOFTWARE_ETC_UNPACK
+    // Renderion is returning INVALID_VALUE. Oops!!
+    if ((glerror == GL_INVALID_ENUM || glerror == GL_INVALID_VALUE)
+        && (cbData->glInternalformat == GL_ETC1_RGB8_OES
+            || (cbData->glInternalformat >= GL_COMPRESSED_R11_EAC
+                && cbData->glInternalformat <= GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)
+            ))
+    {
+        GLubyte* unpacked;
+        GLenum format, internalformat, type;
+        
+        errorCode = _ktxUnpackETC((GLubyte*)pixels, cbData->glInternalformat,
+                                  width, heightOrLayers, &unpacked,
+                                  &format, &internalformat,
+                                  &type, R16Formats, supportsSRGB);
+        if (errorCode != KTX_SUCCESS) {
+            return errorCode;
+        }
+        if (!sizedFormats & _NON_LEGACY_FORMATS) {
+            if (internalformat == GL_RGB8)
+                internalformat = GL_RGB;
+            else if (internalformat == GL_RGBA8)
+                internalformat = GL_RGBA;
+        }
+        glTexImage2D(cbData->glTarget + face, miplevel,
+                     internalformat,
+                     width, heightOrLayers,
+                     0,
+                     format, type, unpacked);
+        
+        free(unpacked);
+        glerror = glGetError();
+    }
+#endif
+    
+    if ((cbData->glError = glerror) == GL_NO_ERROR) {
+        return KTX_SUCCESS;
+    } else {
+        return KTX_GL_ERROR;
+    }
+}
+
+KTX_error_code KTXAPIENTRY
+texImage3DCallback(int miplevel, int face,
+                   int width, int heightOrLayers,
+                   int depthOrLayers,
+                   ktx_uint32_t faceLodSize,
+                   void* pixels, void* userdata)
+{
+    ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    
+    assert(pfGlTexImage3D != NULL);
+    pfGlTexImage3D(cbData->glTarget + face, miplevel,
+                   cbData->glInternalformat,
+                   width, heightOrLayers, depthOrLayers,
+                   0,
+                   cbData->glFormat, cbData->glType, pixels);
+    
+    if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
+        return KTX_SUCCESS;
+    } else {
+        return KTX_GL_ERROR;
+    }
+}
+
+KTX_error_code KTXAPIENTRY
+compressedTexImage3DCallback(int miplevel, int face,
+                             int width, int heightOrLayers,
+                             int depthOrLayers,
+                             ktx_uint32_t faceLodSize,
+                             void* pixels, void* userdata)
+{
+    ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    
+    assert(pfGlCompressedTexImage3D != NULL);
+    pfGlCompressedTexImage3D(cbData->glTarget + face, miplevel,
+                             cbData->glInternalformat,
+                             width, heightOrLayers, depthOrLayers,
+                             0,
+                             cbData->glType, pixels);
+    
+    if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
+        return KTX_SUCCESS;
+    } else {
+        return KTX_GL_ERROR;
+    }
+}
 
 /*
  * @~English
@@ -483,25 +627,27 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalForma
  */
 static
 KTX_error_code
-ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
-				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-				GLenum* pGlerror,
-				unsigned int* pKvdLen, unsigned char** ppKvd)
+ktxLoadTexture(ktxContext* kc, GLuint* pTexture, GLenum* pTarget,
+               KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+               GLenum* pGlerror,
+               unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	GLint				previousUnpackAlignment;
-	KTX_header			header;
-	KTX_texinfo			texinfo;
-	void*				data = NULL;
-	khronos_uint32_t	dataSize = 0;
-	GLuint				texname;
-	int					texnameUser;
-	khronos_uint32_t    faceLodSize;
-	khronos_uint32_t    faceLodSizeRounded;
-	khronos_uint32_t	level;
-	khronos_uint32_t	face;
-	GLenum				glFormat, glInternalFormat;
-	KTX_error_code		errorCode = KTX_SUCCESS;
-	GLenum				errorTmp;
+    KTX_header	          header;
+    KTX_supplemental_info texinfo;
+	GLint				  previousUnpackAlignment;
+	void*				  data = NULL;
+	ktx_uint32_t	      dataSize = 0;
+	GLuint				  texname;
+	int					  texnameUser;
+	ktx_uint32_t          faceLodSize;
+	ktx_uint32_t          faceLodSizeRounded;
+	ktx_uint32_t	      level;
+	ktx_uint32_t	      face;
+	KTX_error_code		  errorCode = KTX_SUCCESS;
+	GLenum				  errorTmp;
+    PFNKTXIMAGECB         imageCb;
+    ktx_cbdata            cbData;
+    int                   dimension;
 
 	if (pGlerror)
 		*pGlerror = GL_NO_ERROR;
@@ -510,7 +656,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		*ppKvd = NULL;
 	}
 
-	if (!stream || !stream->read || !stream->skip) {
+	if (!kc || !kc->stream.read || !kc->stream.skip) {
 		return KTX_INVALID_VALUE;
 	}
 
@@ -518,38 +664,14 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		return KTX_INVALID_VALUE;
 	}
 
-	errorCode = stream->read(&header, KTX_HEADER_SIZE, stream->src);
+    errorCode = ktxReadHeader(kc, &header, &texinfo);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-	errorCode = _ktxCheckHeader(&header, &texinfo);
-	if (errorCode != KTX_SUCCESS)
-		return errorCode;
-
-	if (ppKvd) {
-		if (pKvdLen == NULL)
-			return KTX_INVALID_OPERATION;
-		*pKvdLen = header.bytesOfKeyValueData;
-		if (*pKvdLen) {
-			*ppKvd = (unsigned char*)malloc(*pKvdLen);
-			if (*ppKvd == NULL)
-				return KTX_OUT_OF_MEMORY;
-			errorCode = stream->read(*ppKvd, *pKvdLen, stream->src);
-			if (errorCode != KTX_SUCCESS)
-			{
-				free(*ppKvd);
-				*ppKvd = NULL;
-
-				return errorCode;
-			}
-		}
-	} else {
-		/* skip key/value metadata */
-		errorCode = stream->skip(header.bytesOfKeyValueData, stream->src);
-		if (errorCode != KTX_SUCCESS) {
-			return errorCode;
-		}
-	}
+    ktxReadKVData(kc, pKvdLen, ppKvd);
+    if (errorCode != KTX_SUCCESS) {
+        return errorCode;
+    }
 
 	if (contextProfile == 0)
 		discoverContextCapabilities();
@@ -560,85 +682,114 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		glPixelStorei(GL_UNPACK_ALIGNMENT, KTX_GL_UNPACK_ALIGNMENT);
 	}
 
+    cbData.glFormat = header.glFormat;
+    cbData.glInternalformat = header.glInternalFormat;
+    cbData.glType = header.glType;
+
 	texnameUser = pTexture && *pTexture;
 	if (texnameUser) {
 		texname = *pTexture;
 	} else {
 		glGenTextures(1, &texname);
 	}
-	glBindTexture(texinfo.glTarget, texname);
+
+    dimension = texinfo.textureDimension;
+    if (header.numberOfArrayElements > 0) {
+        dimension += 1;
+        if (header.numberOfFaces == 6) {
+            /* _ktxCheckHeader should have caught this. */
+            assert(texinfo.textureDimension == 2);
+            cbData.glTarget = GL_TEXTURE_CUBE_MAP_ARRAY;
+        } else {
+            switch (texinfo.textureDimension) {
+              case 1: cbData.glTarget = GL_TEXTURE_1D_ARRAY_EXT; break;
+              case 2: cbData.glTarget = GL_TEXTURE_2D_ARRAY_EXT; break;
+                /* _ktxCheckHeader should have caught this. */
+              default: assert(KTX_TRUE);
+            }
+        }
+    } else {
+        if (header.numberOfFaces == 6) {
+            /* _ktxCheckHeader should have caught this. */
+            assert(texinfo.textureDimension == 2);
+            cbData.glTarget = GL_TEXTURE_CUBE_MAP;
+        } else {
+            switch (texinfo.textureDimension) {
+              case 1: cbData.glTarget = GL_TEXTURE_1D; break;
+              case 2: cbData.glTarget = GL_TEXTURE_2D; break;
+                case 3: cbData.glTarget = GL_TEXTURE_3D; break;
+              /* _ktxCheckHeader shold have caught this. */
+              default: assert(KTX_TRUE);
+            }
+        }
+    }
     
-    /* load as 2D texture if 1D textures are not supported */
-    if (texinfo.textureDimensions == 1 &&
+    if (cbData.glTarget == GL_TEXTURE_1D &&
         ((texinfo.compressed && (pfGlCompressedTexImage1D == NULL)) ||
          (!texinfo.compressed && (pfGlTexImage1D == NULL))))
     {
-        texinfo.textureDimensions = 2;
-        texinfo.glTarget = GL_TEXTURE_2D;
-        header.pixelHeight = 1;
-    }
-    
-    if (header.numberOfArrayElements > 0)
-    {
-        if (texinfo.glTarget == GL_TEXTURE_1D)
-        {
-            texinfo.glTarget = GL_TEXTURE_1D_ARRAY_EXT;
-        }
-        else if (texinfo.glTarget == GL_TEXTURE_2D)
-        {
-            texinfo.glTarget = GL_TEXTURE_2D_ARRAY_EXT;
-        }
-        else if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP)
-        {
-            texinfo.glTarget = GL_TEXTURE_CUBE_MAP_ARRAY;
-        }
-        else
-        {
-            /* No API for 3D arrays yet */
-            return KTX_UNSUPPORTED_TEXTURE_TYPE;
-        }
-        texinfo.textureDimensions++;
-    }
-    
-    /* Reject cube map arrays if unsupported. */
-    if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP_ARRAY && !supportsCubeMapArrays)
-    {
-        return KTX_UNSUPPORTED_TEXTURE_TYPE;        
+        return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
     
     /* Reject 3D texture if unsupported. */
-    if (texinfo.textureDimensions == 3 &&
+    if (cbData.glTarget == GL_TEXTURE_3D &&
         ((texinfo.compressed && (pfGlCompressedTexImage3D == NULL)) ||
          (!texinfo.compressed && (pfGlTexImage3D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
-
-	// Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-	if (texinfo.generateMipmaps && (pfGlGenerateMipmap == NULL)) {
-		glTexParameteri(texinfo.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
-	}
+    
+    /* Reject cube map arrays if not supported. */
+    if (cbData.glTarget == GL_TEXTURE_CUBE_MAP_ARRAY && !supportsCubeMapArrays) {
+        return KTX_UNSUPPORTED_TEXTURE_TYPE;
+    }
+    
+    /* XXX Need to reject other array textures & cube maps if not supported. */
+    
+    switch (dimension) {
+      case 1:
+        imageCb = texinfo.compressed
+                  ? compressedTexImage1DCallback : texImage1DCallback;
+        break;
+      case 2:
+        imageCb = texinfo.compressed
+                  ? compressedTexImage2DCallback : texImage2DCallback;
+            break;
+      case 3:
+        imageCb = texinfo.compressed
+                  ? compressedTexImage3DCallback : texImage3DCallback;
+        break;
+      default:
+            assert(KTX_TRUE);
+    }
+   
+    glBindTexture(cbData.glTarget, texname);
+    
+    // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
+    if (texinfo.generateMipmaps && (pfGlGenerateMipmap == NULL)) {
+        glTexParameteri(cbData.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
+    }
 #ifdef GL_TEXTURE_MAX_LEVEL
 	if (!texinfo.generateMipmaps)
-		glTexParameteri(texinfo.glTarget, GL_TEXTURE_MAX_LEVEL, header.numberOfMipmapLevels - 1);
+		glTexParameteri(cbData.glTarget, GL_TEXTURE_MAX_LEVEL, header.numberOfMipmapLevels - 1);
 #endif
 
-	if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP) {
-		texinfo.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+	if (cbData.glTarget == GL_TEXTURE_CUBE_MAP) {
+		cbData.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 	}
-
-	glInternalFormat = header.glInternalFormat;
-	glFormat = header.glFormat;
+    
+	cbData.glInternalformat = header.glInternalFormat;
+	cbData.glFormat = header.glFormat;
 	if (!texinfo.compressed) {
 #if SUPPORT_LEGACY_FORMAT_CONVERSION
 		// If sized legacy formats are supported there is no need to convert.
 		// If only unsized formats are supported, there is no point in converting
 		// as the modern formats aren't supported either.
 		if (sizedFormats == _NON_LEGACY_FORMATS && supportsSwizzle) {
-			convertFormat(texinfo.glTarget, &glFormat, &glInternalFormat);
+			convertFormat(cbData.glTarget, &cbData.glFormat, &cbData.glInternalformat);
 			errorTmp = glGetError();
 		} else if (sizedFormats == _NO_SIZED_FORMATS)
-			glInternalFormat = header.glBaseInternalFormat;
+			cbData.glInternalformat = header.glBaseInternalFormat;
 #else
 		// When no sized formats are supported, or legacy sized formats are not
 		// supported, must change internal format.
@@ -648,138 +799,17 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				|| header.glBaseInternalFormat == GL_LUMINANCE
 				|| header.glBaseInternalFormat == GL_LUMINANCE_ALPHA
 				|| header.glBaseInternalFormat == GL_INTENSITY))) {
-			glInternalFormat = header.glBaseInternalFormat;
+			cbData.glInternalformat = header.glBaseInternalFormat;
 		}
 #endif
 	}
 
-	for (level = 0; level < header.numberOfMipmapLevels; ++level)
-	{
-		GLsizei pixelWidth  = MAX(1, header.pixelWidth  >> level);
-		GLsizei pixelHeight = MAX(1, header.pixelHeight >> level);
-		GLsizei pixelDepth  = MAX(1, header.pixelDepth  >> level);
-
-		errorCode = stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src);
-		if (errorCode != KTX_SUCCESS) {
-			goto cleanup;
-		}
-		if (header.endianness == KTX_ENDIAN_REF_REV) {
-			_ktxSwapEndian32(&faceLodSize, 1);
-		}
-		faceLodSizeRounded = (faceLodSize + 3) & ~(khronos_uint32_t)3;
-		if (!data) {
-			/* allocate memory sufficient for the first level */
-			data = malloc(faceLodSizeRounded);
-			if (!data) {
-				errorCode = KTX_OUT_OF_MEMORY;
-				goto cleanup;
-			}
-			dataSize = faceLodSizeRounded;
-		}
-		else if (dataSize < faceLodSizeRounded) {
-			/* subsequent levels cannot be larger than the first level */
-			errorCode = KTX_INVALID_VALUE;
-			goto cleanup;
-		}
-
-		for (face = 0; face < header.numberOfFaces; ++face)
-		{
-			errorCode = stream->read(data, faceLodSizeRounded, stream->src);
-			if (errorCode != KTX_SUCCESS) {
-				goto cleanup;
-			}
-
-			/* Perform endianness conversion on texture data */
-			if (header.endianness == KTX_ENDIAN_REF_REV && header.glTypeSize == 2) {
-				_ktxSwapEndian16((khronos_uint16_t*)data, faceLodSize / 2);
-			}
-			else if (header.endianness == KTX_ENDIAN_REF_REV && header.glTypeSize == 4) {
-				_ktxSwapEndian32((khronos_uint32_t*)data, faceLodSize / 4);
-			}
-
-			if (texinfo.textureDimensions == 1) {
-                assert(pfGlCompressedTexImage1D != NULL && pfGlTexImage1D != NULL);
-				if (texinfo.compressed) {
-					pfGlCompressedTexImage1D(texinfo.glTarget + face, level,
-						glInternalFormat, pixelWidth, 0,
-						faceLodSize, data);
-				} else {
-					pfGlTexImage1D(texinfo.glTarget + face, level,
-						glInternalFormat, pixelWidth, 0,
-						glFormat, header.glType, data);
-				}
-			} else if (texinfo.textureDimensions == 2) {
-				if (header.numberOfArrayElements) {
-					pixelHeight = header.numberOfArrayElements;
-				}
-				if (texinfo.compressed) {
-				    // It is simpler to just attempt to load the format, rather than divine which
-					// formats are supported by the implementation. In the event of an error,
-					// software unpacking can be attempted.
-					glCompressedTexImage2D(texinfo.glTarget + face, level,
-						glInternalFormat, pixelWidth, pixelHeight, 0,
-						faceLodSize, data);
-				} else {
-					errorTmp = glGetError();
-					glTexImage2D(texinfo.glTarget + face, level,
-						glInternalFormat, pixelWidth, pixelHeight, 0,
-						glFormat, header.glType, data);
-				}
-			} else if (texinfo.textureDimensions == 3) {
-                assert(pfGlCompressedTexImage3D != NULL && pfGlTexImage3D != NULL);
-				if (header.numberOfArrayElements) {
-					pixelDepth = header.numberOfArrayElements;
-				}
-				if (texinfo.compressed) {
-					pfGlCompressedTexImage3D(texinfo.glTarget + face, level,
-						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
-						faceLodSize, data);
-				} else {
-					pfGlTexImage3D(texinfo.glTarget + face, level,
-						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
-						glFormat, header.glType, data);
-				}
-			}
-
-			errorTmp = glGetError();
-#if SUPPORT_SOFTWARE_ETC_UNPACK
-			// Renderion is returning INVALID_VALUE. Oops!!
-			if ((errorTmp == GL_INVALID_ENUM || errorTmp == GL_INVALID_VALUE)
-				&& texinfo.compressed
-				&& texinfo.textureDimensions == 2
-				&& (glInternalFormat == GL_ETC1_RGB8_OES || (glInternalFormat >= GL_COMPRESSED_R11_EAC && glInternalFormat <= GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)))
-			{
-				GLubyte* unpacked;
-				GLenum format, internalFormat, type;
-
-				errorCode = _ktxUnpackETC((GLubyte*)data, glInternalFormat, pixelWidth, pixelHeight,
-					                      &unpacked, &format, &internalFormat, &type,
-										  R16Formats, supportsSRGB);
-				if (errorCode != KTX_SUCCESS) {
-					goto cleanup;
-				}
-				if (!sizedFormats & _NON_LEGACY_FORMATS) {
-					if (internalFormat == GL_RGB8)
-						internalFormat = GL_RGB;
-					else if (internalFormat == GL_RGBA8)
-						internalFormat = GL_RGBA;
-				}
-				glTexImage2D(texinfo.glTarget + face, level,
-							 internalFormat, pixelWidth, pixelHeight, 0,
-							 format, type, unpacked);
-
-				free(unpacked);
-				errorTmp = glGetError();
-			}
-#endif
-            if (errorTmp != GL_NO_ERROR) {
-				if (pGlerror)
-					*pGlerror = errorTmp;
-				errorCode = KTX_GL_ERROR;
-				goto cleanup;
-			}
-		}
-	}
+    errorCode = ktxReadImages((void*)kc, imageCb, &cbData);
+    /* GL errors are the only reason for failure. */
+    if (errorCode != KTX_SUCCESS && cbData.glError != GL_NO_ERROR) {
+        if (pGlerror)
+            *pGlerror = cbData.glError;
+    }
 
 cleanup:
 	free(data);
@@ -791,10 +821,11 @@ cleanup:
 
 	if (errorCode == KTX_SUCCESS)
 	{
-		if (texinfo.generateMipmaps && pfGlGenerateMipmap) {
-			pfGlGenerateMipmap(texinfo.glTarget);
+        // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
+        if (texinfo.generateMipmaps && pfGlGenerateMipmap) {
+			pfGlGenerateMipmap(cbData.glTarget);
 		}
-		*pTarget = texinfo.glTarget;
+		*pTarget = cbData.glTarget;
 		if (pTexture) {
 			*pTexture = texname;
 		}
@@ -892,14 +923,18 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	struct ktxStream stream;
+	KTX_context ctx;
 	KTX_error_code errorCode = KTX_SUCCESS;
 
-	errorCode = ktxFileInit(&stream, file);
+	errorCode = ktxOpenKTXF(file, &ctx);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
+    errorCode = ktxLoadTexture(ctx, pTexture, pTarget, pDimensions, pIsMipmapped,
+                               pGlerror, pKvdLen, ppKvd);
+    ktxCloseKTX(ctx);
+
+    return errorCode;
 }
 
 /**
@@ -993,20 +1028,23 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
  */
 KTX_error_code
-ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarget,
-				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-				GLenum* pGlerror,
+ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
+                GLenum* pTarget, KTX_dimensions* pDimensions,
+                GLboolean* pIsMipmapped, GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	struct ktxMem mem;
-	struct ktxStream stream;
+	KTX_context ctx;
 	KTX_error_code errorCode = KTX_SUCCESS;
 
-	errorCode = ktxMemInit(&stream, &mem, bytes, size);
+	errorCode = ktxOpenKTXM(bytes, size, &ctx);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
+	errorCode = ktxLoadTexture(ctx, pTexture, pTarget, pDimensions,
+                               pIsMipmapped, pGlerror, pKvdLen, ppKvd);
+    ktxCloseKTX(ctx);
+    
+    return errorCode;
 }
 
 

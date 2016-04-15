@@ -123,7 +123,7 @@ struct commandOptions {
 	unsigned int firstInfileIndex;
 };
 
-static khronos_uint32_t log2(khronos_uint32_t v);
+static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
 static bool processOption(const _TCHAR* option, struct commandOptions& options);
@@ -633,10 +633,10 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 	return retVal;
 }
 
-static khronos_uint32_t
-log2(khronos_uint32_t v)
+static ktx_uint32_t
+log2(ktx_uint32_t v)
 {
-	khronos_uint32_t e;
+	ktx_uint32_t e;
 
 	/* http://aggregate.org/MAGIC/ */
 	v |= (v >> 1);

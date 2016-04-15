@@ -60,52 +60,17 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 extern "C" {
 #endif
 
-
-#define KTX_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
-#define KTX_ENDIAN_REF      (0x04030201)
-#define KTX_ENDIAN_REF_REV  (0x01020304)
-#define KTX_HEADER_SIZE		(64)
-
-/**
- * @internal
- * @brief KTX file header
- *
- * See the KTX specification for descriptions
- * 
- */
-typedef struct KTX_header_t {
-	khronos_uint8_t  identifier[12];
-	khronos_uint32_t endianness;
-	khronos_uint32_t glType;
-	khronos_uint32_t glTypeSize;
-	khronos_uint32_t glFormat;
-	khronos_uint32_t glInternalFormat;
-	khronos_uint32_t glBaseInternalFormat;
-	khronos_uint32_t pixelWidth;
-	khronos_uint32_t pixelHeight;
-	khronos_uint32_t pixelDepth;
-	khronos_uint32_t numberOfArrayElements;
-	khronos_uint32_t numberOfFaces;
-	khronos_uint32_t numberOfMipmapLevels;
-	khronos_uint32_t bytesOfKeyValueData;
-} KTX_header;
-
-/* This will cause compilation to fail if the struct size doesn't match */
-typedef int KTX_header_SIZE_ASSERT [sizeof(KTX_header) == KTX_HEADER_SIZE];
-
 /**
  * @internal
  * @brief _ktxCheckHeader returns texture information in this structure
  *
  * TO DO: document properly
  */
-typedef struct KTX_texinfo_t {
-	/* Data filled in by _ktxCheckHeader() */
-	khronos_uint32_t textureDimensions;
-	khronos_uint32_t glTarget;
-	khronos_uint32_t compressed;
-	khronos_uint32_t generateMipmaps;
-} KTX_texinfo;
+typedef struct ktx_texinfo {
+	ktx_uint32_t textureDimension;
+	ktx_uint32_t compressed;
+	ktx_uint32_t generateMipmaps;
+} ktx_texinfo;
 
 /**
  * @internal
@@ -308,23 +273,24 @@ typedef unsigned short GLhalf;
  * 
  * Reads the KTX file header and performs some sanity checking on the values
  */
-KTX_error_code _ktxCheckHeader(KTX_header* header, KTX_texinfo* texinfo);
+KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
+                               KTX_supplemental_info* pSuppInfo);
 
 /*
  * SwapEndian16: Swaps endianness in an array of 16-bit values
  */
-void _ktxSwapEndian16(khronos_uint16_t* pData16, int count);
+void _ktxSwapEndian16(ktx_uint16_t* pData16, int count);
 
 /*
  * SwapEndian32: Swaps endianness in an array of 32-bit values
  */
-void _ktxSwapEndian32(khronos_uint32_t* pData32, int count);
+void _ktxSwapEndian32(ktx_uint32_t* pData32, int count);
 
 /*
  * UncompressETC: uncompresses an ETC compressed texture image
  */
 KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
-							 khronos_uint32_t active_width, khronos_uint32_t active_height,
+							 ktx_uint32_t active_width, ktx_uint32_t active_height,
 							 GLubyte** dstImage,
 							 GLenum* format, GLenum* internalFormat, GLenum* type,
 							 GLint R16Formats, GLboolean supportsSRGB);

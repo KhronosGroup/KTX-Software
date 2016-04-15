@@ -254,7 +254,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 	}
 
 	//write header
-	errorCode = stream->write(&header, sizeof(KTX_header), 1, stream->src);
+	errorCode = stream->write(stream, &header, sizeof(KTX_header), 1);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
@@ -263,7 +263,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 		if (keyValueData == NULL)
 			return KTX_INVALID_OPERATION;
 
-		errorCode = stream->write(keyValueData, 1, bytesOfKeyValueData, stream->src);
+		errorCode = stream->write(stream, keyValueData, 1, bytesOfKeyValueData);
 		if (errorCode != KTX_SUCCESS)
 			return errorCode;
 	}
@@ -307,7 +307,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 		}
 		faceLodRounding = 3 - ((faceLodSize + 3) % 4);
 
-		errorCode = stream->write(&faceLodSize, sizeof(faceLodSize), 1, stream->src);
+		errorCode = stream->write(stream, &faceLodSize, sizeof(faceLodSize), 1);
 		if (errorCode != KTX_SUCCESS)
 			goto cleanup;
 
@@ -321,7 +321,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 			}
 			if (rowRounding == 0) {
 				/* Can write whole face at once */
-				errorCode = stream->write(images[i].data, faceLodSize, 1, stream->src);
+				errorCode = stream->write(stream, images[i].data, faceLodSize, 1);
 				if (errorCode != KTX_SUCCESS)
 					goto cleanup;
 			} else {
@@ -331,17 +331,21 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 								* pixelDepth
 								* numArrayElements;
 				for (row = 0; row < numRows; row++) {
-					errorCode = stream->write(&images[i].data[row*packedRowBytes], packedRowBytes, 1, stream->src);
+					errorCode = stream->write(stream,
+                                            &images[i].data[row*packedRowBytes],
+                                            packedRowBytes, 1);
 					if (errorCode != KTX_SUCCESS)
 						goto cleanup;
 
-					errorCode = stream->write(pad, sizeof(GLbyte), rowRounding, stream->src);
+					errorCode = stream->write(stream, pad, sizeof(GLbyte),
+                                              rowRounding);
 					if (errorCode != KTX_SUCCESS)
 						goto cleanup;
 				}
 			}
 			if (faceLodRounding) {
-				errorCode = stream->write(pad, sizeof(GLbyte), faceLodRounding, stream->src);
+				errorCode = stream->write(stream, pad, sizeof(GLbyte),
+                                          faceLodRounding);
 				if (errorCode != KTX_SUCCESS)
 					goto cleanup;
 			}
@@ -402,7 +406,7 @@ ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
 		struct ktxStream stream;
 		KTX_error_code errorCode = KTX_SUCCESS;
 
-		errorCode = ktxFileInit(&stream, file);
+		errorCode = ktxFileStream_init(&stream, file);
 		if (errorCode != KTX_SUCCESS)
 				return errorCode;
 
@@ -441,8 +445,8 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
 	FILE* dst = fopen(dstname, "wb");
 
 	if (dst) {
-		errorCode = ktxWriteKTXF(dst, textureInfo, bytesOfKeyValueData, keyValueData,
-								 numImages, images);
+		errorCode = ktxWriteKTXF(dst, textureInfo, bytesOfKeyValueData,
+                                 keyValueData, numImages, images);
 		fclose(dst);
 	} else
 		errorCode = KTX_FILE_OPEN_FAILED;
@@ -471,9 +475,10 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  *
  */
 KTX_error_code
-ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textureInfo,
-			GLsizei bytesOfKeyValueData, const void* keyValueData,
-			GLuint numImages, KTX_image_info images[])
+ktxWriteKTXM(unsigned char** bytes, GLsizei* size,
+             const KTX_texture_info* textureInfo,
+			 GLsizei bytesOfKeyValueData, const void* keyValueData,
+			 GLuint numImages, KTX_image_info images[])
 {
 	struct ktxMem mem;
 	struct ktxStream stream;
@@ -481,11 +486,12 @@ ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textu
 
 	*bytes = NULL;
 
-	rc = ktxMemInit(&stream, &mem, NULL, 0);
+	rc = ktxMemStream_init(&stream, &mem, NULL, 0);
 	if (rc != KTX_SUCCESS)
 		return rc;
 
-	rc = ktxWriteKTXS(&stream, textureInfo, bytesOfKeyValueData, keyValueData, numImages, images);
+	rc = ktxWriteKTXS(&stream, textureInfo, bytesOfKeyValueData, keyValueData,
+                      numImages, images);
 	if(rc != KTX_SUCCESS)
 	{
 		if(mem.bytes)
@@ -496,7 +502,7 @@ ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textu
 	}
 
 	*bytes = mem.bytes;
-	*size = mem.used_size;
+	*size = (GLsizei)mem.used_size;
 	return KTX_SUCCESS;
 }
 
@@ -514,9 +520,11 @@ validateTypeAndFormat(GLenum format, GLenum type)
 {
 	KTX_error_code retVal = KTX_SUCCESS;
 
-	if ((format >= GL_RED_INTEGER && format <= GL_BGRA_INTEGER) && (type == GL_FLOAT || type == GL_HALF_FLOAT))
+	if ((format >= GL_RED_INTEGER && format <= GL_BGRA_INTEGER)
+        && (type == GL_FLOAT || type == GL_HALF_FLOAT))
 	{
-		retVal = KTX_INVALID_OPERATION; // Note: OpenGL 4.4 says GL_INVALID_VALUE but we'll mirror the others.
+        // Note: OpenGL 4.4 says GL_INVALID_VALUE but we'll mirror the others.
+		retVal = KTX_INVALID_OPERATION;
 	}
 
 	switch (type)

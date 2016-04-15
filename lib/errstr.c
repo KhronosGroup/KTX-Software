@@ -47,6 +47,7 @@ static const char* const errorStrings[] = {
 	"Operation succeeded",							  /* KTX_SUCCESS */
 	"File open failed",								  /* KTX_FILE_OPEN_FAILED */
 	"File write failed",							  /* KTX_FILE_WRITE_ERROR */
+    "File data inconsistent with spec.",              /* KTX_FILE_DATA_ERROR */
 	"GL error occurred",							  /* KTX_GL_ERROR */
 	"Operation not allowed in the current state",     /* KTX_INVALID_OPERATION */
 	"Invalid parameter value",						  /* KTX_INVALID_VALUE */

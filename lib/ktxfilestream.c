@@ -52,10 +52,36 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 /**
  * @internal
  * @~English
+ * @brief Close a ktxFileStream.
+ *
+ * Any unwritten buffered data are flushed to the OS. Any unread buffered data
+ * are discarded.
+ *
+ * @param [in] str           pointer to the stream.
+ *
+ * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_UNEXPECTED_END_OF_FILE the underlying fclose returned EOF.
+ */
+static
+KTX_error_code ktxFileStream_close(ktxStream* str)
+{
+    if (!str)
+        return KTX_INVALID_VALUE;
+    
+    if (fclose(str->data.file) != 0)
+        return KTX_UNEXPECTED_END_OF_FILE;
+    
+    return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
  * @brief Read bytes from a ktxFileStream.
  *
  * @param [out] dst           pointer to a block of memory with a size
-			   of at least @p size bytes, converted to a void*.
+			                  of at least @p size bytes, converted to a void*.
  * @param [in] size          total size of bytes to be read.
  * @param [in] src           pointer to a FILE object, converted to a void*, that specifies an input stream.
  *
@@ -65,12 +91,12 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected amount of data.
  */
 static
-KTX_error_code ktxFileStream_read(void* dst, const GLsizei size, void* src)
+KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const GLsizei size)
 {
-	if (!dst || !src)
+	if (!str || !dst)
 		return KTX_INVALID_VALUE;
 
-	if (fread(dst, size, 1, (FILE*)src) != 1)
+	if (fread(dst, size, 1, str->data.file) != 1)
 		return KTX_UNEXPECTED_END_OF_FILE;
 
 	return KTX_SUCCESS;
@@ -81,21 +107,21 @@ KTX_error_code ktxFileStream_read(void* dst, const GLsizei size, void* src)
  * @~English
  * @brief Skip bytes in a ktxFileStream.
  *
+ * @param [in] str           pointer to the stream object.
  * @param [in] count         number of bytes to be skipped.
- * @param [in] src           pointer to a FILE object, converted to a void*, that specifies an input stream.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE @p dst is @c NULL or @p count is less than zero.
+ * @exception KTX_INVALID_VALUE @p str is @c NULL or @p count is less than zero.
  * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected amount of data.
  */
 static
-KTX_error_code ktxFileStream_skip(const GLsizei count, void* src)
+KTX_error_code ktxFileStream_skip(ktxStream* str, const GLsizei count)
 {
-	if (!src || (count < 0))
+	if (!str || (count < 0))
 		return KTX_INVALID_VALUE;
 
-	if (fseek((FILE*)src, count, SEEK_CUR) != 0)
+	if (fseek(str->data.file, count, SEEK_CUR) != 0)
 		return KTX_UNEXPECTED_END_OF_FILE;
 
 	return KTX_SUCCESS;
@@ -117,12 +143,13 @@ KTX_error_code ktxFileStream_skip(const GLsizei count, void* src)
  * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the file.
  */
 static
-KTX_error_code ktxFileStream_write(const void *src, const GLsizei size, const GLsizei count, void* dst)
+KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
+                                   const GLsizei size, const GLsizei count)
 {
-	if (!dst || !src)
+	if (!str || !src)
 		return KTX_INVALID_VALUE;
 
-	if (fwrite(src, size, count, (FILE*)dst) != count)
+	if (fwrite(src, size, count, str->data.file) != count)
 		return KTX_FILE_WRITE_ERROR;
 
 	return KTX_SUCCESS;
@@ -140,12 +167,13 @@ KTX_error_code ktxFileStream_write(const void *src, const GLsizei size, const GL
  *
  * @exception KTX_INVALID_VALUE @p stream is @c NULL or @p file is @c NULL.
  */
-KTX_error_code ktxFileInit(struct ktxStream* stream, FILE* file)
+KTX_error_code ktxFileStream_init(ktxStream* stream, FILE* file)
 {
 	if (!stream || !file)
 		return KTX_INVALID_VALUE;
 
-	stream->src = (void*)file;
+	stream->data.file = file;
+    stream->close = ktxFileStream_close;
 	stream->read = ktxFileStream_read;
 	stream->skip = ktxFileStream_skip;
 	stream->write = ktxFileStream_write;

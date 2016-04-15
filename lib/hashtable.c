@@ -244,7 +244,7 @@ ktxHashTable_Serialize(KTX_hash_table This, unsigned int* pKvdLen, unsigned char
 
 		for (kv = *(key_and_value_t**)This; kv != NULL; kv = kv->hh.next) {
 			/* sizeof(*sd) is to make space to write keyAndValueByteSize */
-			keyValueLen = kv->keyLen + kv->valueLen + sizeof(khronos_uint32_t);
+			keyValueLen = kv->keyLen + kv->valueLen + sizeof(ktx_uint32_t);
 			/* Add valuePadding */
 			keyValueLen += 3 - ((keyValueLen + 3) % 4);
 			bytesOfKeyValueData += keyValueLen;
@@ -260,8 +260,8 @@ ktxHashTable_Serialize(KTX_hash_table This, unsigned int* pKvdLen, unsigned char
 			int padLen;
 
 			keyValueLen = kv->keyLen + kv->valueLen;
-			*(khronos_uint32_t*)sd = keyValueLen;
-			sd += sizeof(khronos_uint32_t);
+			*(ktx_uint32_t*)sd = keyValueLen;
+			sd += sizeof(ktx_uint32_t);
 			memcpy(sd, kv->key, kv->keyLen);
 			sd += kv->keyLen;
 			memcpy(sd, kv->value, kv->valueLen);
@@ -313,7 +313,7 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* pKvd, KTX_hash_table* pHt)
 		char* key;
 		unsigned int keyLen;
 		void* value;
-		khronos_uint32_t keyAndValueByteSize = *((khronos_uint32_t*)src);
+		ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t*)src);
 
 		src += sizeof(keyAndValueByteSize);
 		key = src;
@@ -322,7 +322,7 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* pKvd, KTX_hash_table* pHt)
 
 		ktxHashTable_AddKVPair(kvt, key, keyAndValueByteSize - keyLen, value);
 		/* Round keyAndValueByteSize */
-		keyAndValueByteSize = (keyAndValueByteSize + 3) & ~(khronos_uint32_t)3;
+		keyAndValueByteSize = (keyAndValueByteSize + 3) & ~(ktx_uint32_t)3;
 		src += keyAndValueByteSize;
 	}
 
