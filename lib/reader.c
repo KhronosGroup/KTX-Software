@@ -49,66 +49,168 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxint.h"
 #include "ktxcontext.h"
 
-#if 0
 /**
  * @~English
- * @brief Load a GL texture object from a stdio FILE stream.
+ * @brief Open the KTX file pointed at by a stdio FILE.
  *
- * This function will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
- * textures in software when the format is not supported by the GL context,
- * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
- * defined as 1.
+ * The function returns a handle to a KTX_context object which must be used
+ * for further operations on the file.
  *
- * It will also convert texture with legacy formats to their modern equivalents
- * when the format is not supported by the GL context, provided that the library
- * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
- *
- * @param [in] file			pointer to the stdio FILE stream from which to
- * 							load.
- * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
- *                          <tt>*pTexture == 0</tt> the function will generate
- *                          a texture name. The function binds either the
- *                          generated name or the name given in @p *pTexture
- * 						    to the texture target returned in @p *pTarget,
- * 						    before loading the texture data. If @p pTexture
- *                          is not NULL and a name was generated, the generated
- *                          name will be returned in *pTexture.
- * @param [out] pTarget 	@p *pTarget is set to the texture target used. The
- * 						    target is chosen based on the file contents.
- * @param [out] pDimensions	If @p pDimensions is not NULL, the width, height and
- *							depth of the texture's base level are returned in the
- *                          fields of the KTX_dimensions structure to which it points.
- * @param [out] pIsMipmapped
- *	                        If @p pIsMipmapped is not NULL, @p *pIsMipmapped is set
- *                          to GL_TRUE if the KTX texture is mipmapped, GL_FALSE
- *                          otherwise.
- * @param [out] pGlerror    @p *pGlerror is set to the value returned by
- *                          glGetError when this function returns the error
- *                          KTX_GL_ERROR. glerror can be NULL.
- * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
- *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.
- * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
- *                          memory containing key-value data read from the file.
- *                          The application is responsible for freeing the memory.
- *
+ * @param [in] file		    pointer to a stdio FILE created from the desired
+ * 							file.
+ * @param [in,out] pContext	pointer to a KTX_context into which the context
+ *                          handle is written.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE @p target is @c NULL or the size of a mip
- * 							    level is greater than the size of the
- * 							    preceding level.
- * @exception KTX_INVALID_OPERATION @p ppKvd is not NULL but pKvdLen is NULL.
+ * @exception KTX_INVALID_VALUE	@p file is @c NULL or @p pContext is @c NULL.
+ * @exception KTX_OUT_OF_MEMORY not enough memory to allocation the context.
+ */
+KTX_error_code
+ktxOpenKTXF(FILE* file, KTX_context* pContext)
+{
+    ktxContext* kc;
+    KTX_error_code errorCode;
+    
+    if (file == NULL || pContext == NULL)
+        return KTX_INVALID_VALUE;
+    
+    kc = (ktxContext*)malloc(sizeof(ktxContext));
+    if (kc == NULL)
+        return KTX_OUT_OF_MEMORY;
+    
+    errorCode = ktxContext_fileInit(kc, file);
+    if (errorCode == KTX_SUCCESS)
+        *pContext = (void*)kc;
+    
+    return errorCode;
+}
+
+/**
+ * @~English
+ * @brief Open the named KTX file on disk.
+ *
+ * The function returns a handle to a KTX_context object which must be used
+ * for further operations on the file.
+ *
+ * @param [in] filename		pointer to a C string that contains the path of
+ * 							the file to load.
+ * @param [in,out] pContext	pointer to a KTX_context into which the context
+ *                          handle is written.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE	@p filename is @c NULL or @p pContext is
+ *                              @c NULL.
+ * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
+ */
+KTX_error_code
+ktxOpenKTXN(const char* const filename, KTX_context* pContext)
+{
+    KTX_error_code errorCode;
+    FILE* file;
+    
+    if (filename == NULL || pContext == NULL)
+        return KTX_INVALID_VALUE;
+    
+    file = fopen(filename, "rb");
+    
+    if (file) {
+        errorCode = ktxOpenKTXF(file, pContext);
+    } else
+        errorCode = KTX_FILE_OPEN_FAILED;
+    
+    return errorCode;
+}
+
+/**
+ * @~English
+ * @brief Open a KTX file from KTX formatted data in memory.
+ *
+ * The function returns a handle to a KTX_context object which must be used
+ * for further operations on the file.
+ *
+ * @param [in] bytes		pointer to the data in memory.
+ * @param [in] size         length of the KTX data in memory.
+ * @param [in,out] pContext	pointer to a KTX_context into which the context
+ *                          handle is written.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE	@p bytes is @c NULL, @p size is 0 or @p pContext
+ *                              is @c NULL.
+ * @exception KTX_OUT_OF_MEMORY not enough memory to allocation the context.
+ */
+KTX_error_code
+ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext)
+{
+    ktxContext* kc;
+    KTX_error_code errorCode;
+    
+    if (bytes == NULL || size == 0 || pContext == NULL)
+        return KTX_INVALID_VALUE;
+    
+    kc = (ktxContext*)malloc(sizeof(ktxContext));
+    if (kc == NULL)
+        return KTX_OUT_OF_MEMORY;
+    
+    errorCode = ktxContext_memInit(kc, bytes, size);
+    
+    if (errorCode == KTX_SUCCESS)
+        *pContext = kc;
+    
+    return errorCode;
+}
+
+/**
+ * @~English
+ * @brief Close a KTX file, freeing the associated context.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE	@p ctx is @c NULL.
+ */
+KTX_error_code
+ktxCloseKTX(KTX_context ctx)
+{
+    ktxContext* kc = (ktxContext*)ctx;
+    
+    if (kc == NULL || !kc->stream.close)
+        return KTX_INVALID_VALUE;
+    
+    kc->stream.close(&kc->stream);
+    
+    free(kc);
+}
+
+/**
+ * @~English
+ * @brief Read the header of the KTX file associated with a KTX_context object.
+ *
+ * This function byte-swaps the header, if necessary, and checks it for
+ * validity.
+ *
+ * @param [in] ctx			handle of the KTX_context representing the file.
+ * @param [in,out] pHeader  pointer to a KTX_header struct into which the
+ *                          function writes the header data of the file.
+ * @param [out] pSuppInfo 	pointer to a KTX_supplemental_info struct into
+ *                          which the function writes information about the
+ *                          texture derived while it is checking the validity
+ *                          of the header.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR the data in the header is inconsistent with
+ *                                the KTX specification. 
+ * @exception KTX_INVALID_VALUE @p ctx, @p pHeader or @p pSuppInfo is @c NULL.
+ * @exception KTX_INVALID_OPERATION the header of the file associated with the
+ *                                  @p ctx has already been read.
  * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the
  * 										 expected amount of data.
- * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated to store
- *                              the requested key-value data.
- * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
- * 								glGenTextures or gl*TexImage*. The GL error
- *                              will be returned in @p *glerror, if glerror
- *                              is not @c NULL.
+ * @exception KTX_UNKNOWN_FILE_FORMAT the file is not a KTX file.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE the header indicates a 3D array
+ *                                         texture.
  */
-#endif
 KTX_error_code
 ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
               KTX_supplemental_info* pSuppInfo)
@@ -137,7 +239,32 @@ ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
     return errorCode;
 }
 
-/* XXX What about the library needing some of this data, e.g. miplevel order? */
+/**
+ * @~English
+ * @brief Read the key-value data of the KTX file associated with a KTX_context
+ *        object.
+ *
+ * @param [in] ctx			handle of the KTX_context representing the file.
+ * @param [in,out] pKvdLen	if not NULL, @p *pKvdLen is set to the number of
+ *                          bytes of key-value data pointed at by @p *ppKvd.
+ *                          Must not be NULL, if @p ppKvd is not NULL.
+ * @param [in,out] ppKvd	if not NULL, @p *ppKvd is set to the point to a
+ *                          block of memory containing key-value data read from
+ *                          the file. The application is responsible for
+ *                          freeing the memory.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION the header of the file associated with the
+ *                                  @p ctx has not yet been read or the key-
+ *                                  value data has already been read.
+ * @exception KTX_INVALID_VALUE     @p ctx is @c NULL or not a valid ctx handle.
+ * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
+ *                                  hold the data.
+ */
+/* XXX What to do when the library needs some of this data too,
+ * e.g. miplevel order?
+ */
 KTX_error_code
 ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
 {
@@ -153,7 +280,7 @@ ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
     if (ppKvd) {
         *ppKvd = NULL;
         if (pKvdLen == NULL)
-            return KTX_INVALID_OPERATION;
+            return KTX_INVALID_VALUE;
         *pKvdLen = kc->header.bytesOfKeyValueData;
         if (*pKvdLen) {
             *ppKvd = (unsigned char*)malloc(*pKvdLen);
@@ -179,164 +306,33 @@ ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
 
 /**
  * @~English
- * @brief Open a KTX from file on disk and return texture information.
+ * @brief Read the images from the KTX file associated with a KTX_context
+ *        object.
  *
- * @param [in] filename		pointer to a C string that contains the path of
- * 							the file to load.
- * @param [in,out] pTexinfo	pointer to a struct KTX_texture_info into which
- *                          the function writes information about the texture.
+ * Each image is passed to an application-supplied callback function. Note that
+ * in the case of array textures all layers are passed in a single invocation
+ * of the callback as graphics APIs typically need them this way. The callback
+ * must copy the image data if it wishes to preserve it. The buffer whose
+ * pointer is passed is freed when this function exits.
  *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @param [in] ctx			handle of the KTX_context representing the file.
+ * @param [in,out] imageCb  a PFNKTXIMAGECB pointer holding the address of the
+ *                          callback function.
+ * @param [in,out] userdata a pointer to application-specific data which is
+ *                          passed to the callback along with the image data.
  *
- * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
- * @exception KTX_UNEXPECTED_END_OF_FILE The file does not contain the expected
- *                                       amount of data.
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error. The
+ *          following are returned directly by ktxReadImages. @p imageCb may
+ *          return these for other causes or additional errors.
  *
+ * @exception KTX_INVALID_OPERATION the header or key-value data of the file
+ *                                  associated with the @p ctx has not yet been
+ *                                  read or the images have already been read.
+ * @exception KTX_INVALID_VALUE     @p ctx is @c NULL or not a valid ctx handle
+ *                                  or @p imageCb is @c NULL.
+ * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
+ *                                  hold the base level image.
  */
-KTX_error_code
-ktxOpenKTXF(FILE* file, KTX_context* pContext)
-{
-    ktxContext* kc;
-    KTX_error_code errorCode;
-
-    if (file == NULL || pContext == NULL)
-        return KTX_INVALID_VALUE;
-
-    kc = (ktxContext*)malloc(sizeof(ktxContext));
-    if (kc == NULL)
-        return KTX_OUT_OF_MEMORY;
-    
-    errorCode = ktxContext_fileInit(kc, file);
-    if (errorCode == KTX_SUCCESS)
-        *pContext = (void*)kc;
-    
-    return errorCode;
-}
-
-/**
- * @~English
- * @brief Open a KTX from file on disk and return texture information.
- *
- * @param [in] filename		pointer to a C string that contains the path of
- * 							the file to load.
- * @param [in,out] pTexinfo	pointer to a struct KTX_texture_info into which
- *                          the function writes information about the texture.
- *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
- * @exception KTX_UNEXPECTED_END_OF_FILE The file does not contain the expected
- *                                       amount of data.
- *
- */
-KTX_error_code
-ktxOpenKTXN(const char* const filename, KTX_context* pContext)
-{
-    KTX_error_code errorCode;
-    FILE* file;
-    
-    if (filename == NULL || pContext == NULL)
-        return KTX_INVALID_VALUE;
-    
-	file = fopen(filename, "rb");
-
-	if (file) {
-		errorCode = ktxOpenKTXF(file, pContext);
-	} else
-		errorCode = KTX_FILE_OPEN_FAILED;
-
-    return errorCode;
-}
-
-/**
- * @~English
- * @brief Open a KTX from file on disk and return texture information.
- *
- * @param [in] filename		pointer to a C string that contains the path of
- * 							the file to load.
- * @param [in,out] pTexinfo	pointer to a struct KTX_texture_info into which
- *                          the function writes information about the texture.
- *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
- * @exception KTX_UNEXPECTED_END_OF_FILE The file does not contain the expected
- *                                       amount of data.
- *
- */
-KTX_error_code
-ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext)
-{
-    ktxContext* kc;
-    KTX_error_code errorCode;
-
-    if (bytes == NULL || size == 0 || pContext == NULL)
-        return KTX_INVALID_VALUE;
-    
-    kc = (ktxContext*)malloc(sizeof(ktxContext));
-    if (kc == NULL)
-        return KTX_OUT_OF_MEMORY;
-    
-    errorCode = ktxContext_memInit(kc, bytes, size);
-
-    if (errorCode == KTX_SUCCESS)
-        *pContext = kc;
-    
-    return errorCode;
-}
-
-KTX_error_code
-ktxCloseKTX(KTX_context ctx)
-{
-    ktxContext* kc = (ktxContext*)ctx;
-    
-    if (kc == NULL || !kc->stream.close)
-        return KTX_INVALID_VALUE;
-    
-    kc->stream.close(&kc->stream);
-    
-    free(kc);
-}
-
-#if 0
-/**
- * @~English
- * @brief Load a GL texture object from KTX formatted data in memory.
- *
- * @param [in] bytes		pointer to the array of bytes containing
- * 							the KTX format data to load.
- * @param [in] size			size of the memory array containing the
- *                          KTX format data.
- * @param [in,out] pTexture	name of the GL texture to load. See
- *                          ktxReadKTXF() for details.
- * @param [out] pTarget 	@p *pTarget is set to the texture target used. See
- *                          ktxReadKTXF() for details.
- * @param [out] pDimensions @p the texture's base level width depth and height
- *                          are returned in structure to which this points.
- *                          See ktxReadKTXF() for details.
- * @param [out] pIsMipmapped @p *pIsMipMapped is set to indicate if the loaded
- *                          texture is mipmapped. See ktxReadKTXF() for
- *                          details.
- * @param [out] pGlerror    @p *pGlerror is set to the value returned by
- *                          glGetError when this function returns the error
- *                          KTX_GL_ERROR. glerror can be NULL.
- * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
- *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.
- * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
- *                          memory containing key-value data read from the file.
- *                          The application is responsible for freeing the memory.*
- *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_OPEN_FAILED	The specified memory could not be opened as a file.
- * @exception KTX_INVALID_VALUE		See ktxReadKTXF() for causes.
- * @exception KTX_INVALID_OPERATION	See ktxReadKTXF() for causes.
- * @exception KTX_UNEXPECTED_END_OF_FILE See ktxReadKTXF() for causes.
- *
- * @exception KTX_GL_ERROR			See ktxReadKTXF() for causes.
- */
-#endif
 KTX_error_code
 ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
 {
@@ -349,7 +345,7 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
     KTX_error_code	errorCode = KTX_SUCCESS;
     void*			data = NULL;
  
-    if (kc == NULL || imageCb == NULL)
+    if (kc == NULL || !kc->stream.read || !kc->stream.skip || imageCb == NULL)
         return KTX_INVALID_VALUE;
     
     if (kc->state != KTX_CS_KVD_READ)
@@ -412,14 +408,6 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
                     _ktxSwapEndian32((ktx_uint32_t*)data, faceLodSize / 4);
             }
             
-            // face is either 0 or one of the 6 cube map faces
-            // miplevel is the mipmiplevel from 0 to the max miplevel dependent on the
-            //       texture size.
-            // width is the width of the image
-            // height is either the height of the image or, for 1D array
-            //        textures the number of layers in the array
-            // depth is either the depth of the image or for 2D array or cube
-            //       map arrays the number of levels in the array.
             errorCode = imageCb(miplevel, face,
                                 width, heightOrLayers, depthOrLayers,
                                 faceLodSize, data, userdata);

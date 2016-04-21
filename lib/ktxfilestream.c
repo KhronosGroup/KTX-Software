@@ -56,7 +56,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * Any unwritten buffered data are flushed to the OS. Any unread buffered data
  * are discarded.
  *
- * @param [in] str           pointer to the stream.
+ * @param [in] str           pointer to the stream to close.
  *
  * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -79,15 +79,16 @@ KTX_error_code ktxFileStream_close(ktxStream* str)
  * @~English
  * @brief Read bytes from a ktxFileStream.
  *
- * @param [out] dst           pointer to a block of memory with a size
-			                  of at least @p size bytes, converted to a void*.
- * @param [in] size          total size of bytes to be read.
- * @param [in] src           pointer to a FILE object, converted to a void*, that specifies an input stream.
+ * @param [in]  str     pointer to the ktxStream from which to read.
+ * @param [out] dst     pointer to a block of memory with a size
+ *                      of at least @p size bytes, converted to a void*.
+ * @param [in]  size    total size of bytes to be read.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p dst is @c NULL or @p src is @c NULL.
- * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected amount of data.
+ * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected
+ *                                       amount of data.
  */
 static
 KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const GLsizei size)
@@ -106,13 +107,14 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const GLsizei size)
  * @~English
  * @brief Skip bytes in a ktxFileStream.
  *
- * @param [in] str           pointer to the stream object.
+ * @param [in] str           pointer to a ktxStream object.
  * @param [in] count         number of bytes to be skipped.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p str is @c NULL or @p count is less than zero.
- * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected amount of data.
+ * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected
+ *                                       amount of data.
  */
 static
 KTX_error_code ktxFileStream_skip(ktxStream* str, const GLsizei count)
@@ -131,15 +133,19 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const GLsizei count)
  * @~English
  * @brief Write bytes to a ktxFileStream.
  *
- * @param [in] src           pointer to the array of elements to be written, converted to a const void*.
- * @param [in] size          size in bytes of each element to be written.
- * @param [in] count         number of elements, each one with a @p size of size bytes.
- * @param [out] dst          pointer to a FILE object, converted to a void*, that specifies an output stream.
+ * @param [in] str      pointer to the ktxStream that is the destination of the
+ *                      write.
+ * @param [in] src      pointer to the array of elements to be written,
+ *                      converted to a const void*.
+ * @param [in] size     size in bytes of each element to be written.
+ * @param [in] count    number of elements, each one with a @p size of size
+ *                      bytes.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE @p dst is @c NULL or @p src is @c NULL.
- * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the file.
+ * @exception KTX_INVALID_VALUE @p str is @c NULL or @p src is @c NULL.
+ * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the
+ *                                 file.
  */
 static
 KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
@@ -159,23 +165,23 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
  * @~English
  * @brief Initializes a ktxFileStream.
  *
- * @param [in] stream
- * @param [in] file
+ * @param [in] str      pointer to the ktxStream to initialize.
+ * @param [in] file     pointer to the underlying FILE object.
  *
  * @return      KTX_SUCCESS on success, KTX_INVALID_VALUE on error.
  *
  * @exception KTX_INVALID_VALUE @p stream is @c NULL or @p file is @c NULL.
  */
-KTX_error_code ktxFileStream_init(ktxStream* stream, FILE* file)
+KTX_error_code ktxFileStream_init(ktxStream* str, FILE* file)
 {
-	if (!stream || !file)
+	if (!str || !file)
 		return KTX_INVALID_VALUE;
 
-	stream->data.file = file;
-    stream->close = ktxFileStream_close;
-	stream->read = ktxFileStream_read;
-	stream->skip = ktxFileStream_skip;
-	stream->write = ktxFileStream_write;
+	str->data.file = file;
+    str->close = ktxFileStream_close;
+	str->read = ktxFileStream_read;
+	str->skip = ktxFileStream_skip;
+	str->write = ktxFileStream_write;
 
 	return KTX_SUCCESS;
 }

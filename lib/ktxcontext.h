@@ -32,10 +32,10 @@
 
 /**
  * @file
+ * @internal
  * @~English
  *
- * @brief Declares the public functions and structures of
- *        ktxContext.
+ * @brief Declares the functions and structures of a ktxContext.
  *
  * @author Mark Callow
  */
@@ -56,12 +56,17 @@ typedef enum ktx_context_state {
 } ktx_context_state;
 
 
+/**
+ * @internal
+ * @~English
+ * @brief ktxContext class
+ */
 typedef struct ktxContext {
-    ktx_context_state state;
-    ktxStream stream;
-    ktxMem mem;
-    KTX_header header;
-    int textureDimension;
+    ktx_context_state state;  /*!< @internal current context state. */
+    ktxStream stream;         /*!< @internal stream representing the KTX file. */
+    ktxMem mem;               /*!< @internal ktxMem used when @a stream is a ktxMemStream. */
+    KTX_header header;        /*!< @internal header of the KTX file. */
+    int textureDimension;     /*!< @internal number of dimensions in the texture images. */
 } ktxContext;
 
 KTX_error_code ktxContext_fileInit(ktxContext* kc, FILE* file);

@@ -57,9 +57,9 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * @param [in] mem           pointer to ktxMem struct to expand.
  * @param [in] newsize       minimum new size required.
  *
- * @return      KTX_SUCCESS on success, KTX_OUT_OF_MEMORY on error.
+ * @return     KTX_SUCCESS on success, KTX_OUT_OF_MEMORY on error.
  *
- * @exception KTX_OUT_OF_MEMORY        System failed to allocate sufficient memory.
+ * @exception  KTX_OUT_OF_MEMORY    System failed to allocate sufficient memory.
  */
 static
 KTX_error_code ktxMem_expand(ktxMem *mem, const size_t newsize)
@@ -107,13 +107,16 @@ KTX_error_code ktxMemStream_close(ktxStream* str)
  * @~English
  * @brief Read bytes from a ktxMemStream.
  *
- * @param [out] dst          pointer to memory where to copy read bytes.
- * @param [in] count         number of bytes to read.
- * @param [in] src           pointer to ktxMem struct, converted to a void*, that specifies an input stream.
+ * @param [in]     str      pointer to ktxMem struct, converted to a void*, that
+ *                          specifies an input stream.
+ * @param [in,out] dst      pointer to memory where to copy read bytes.
+ * @param [in]     count    number of bytes to read.
  *
  * @return      KTX_SUCCESS on success, KTX_INVALID_VALUE on error.
  *
- * @exception KTX_INVALID_VALUE        @p dst is @c NULL or @p mem is @c NULL or not sufficient data is available in ktxMem.
+ * @exception KTX_INVALID_VALUE     @p str or @p dst is @c NULL or @p mem is @c
+ *                                  NULL or sufficient data is not available in
+ *                                  ktxMem.
  */
 static
 KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const GLsizei count)
@@ -124,8 +127,11 @@ KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const GLsizei count)
 		return KTX_INVALID_VALUE;
     
     mem = str->data.mem;
-    if (!mem || (mem->pos + count > mem->used_size) || (mem->pos + count < mem->pos))
+    if (!mem || (mem->pos + count > mem->used_size)
+        || (mem->pos + count < mem->pos))
+    {
         return KTX_INVALID_VALUE;
+    }
 
 	memcpy(dst, mem->bytes + mem->pos, count);
 	mem->pos += count;
@@ -138,12 +144,13 @@ KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const GLsizei count)
  * @~English
  * @brief Skip bytes in a ktxFileStream.
  *
- * @param [in] count         number of bytes to skip.
- * @param [in] src           pointer to a ktxMem struct, converted to a void*, that specifies an input stream.
+ * @param [in] str      pointer to the ktxStream on which to operate.
+ * @param [in] count    number of bytes to skip.
  *
  * @return      KTX_SUCCESS on success, KTX_INVALID_VALUE on error.
  *
- * @exception KTX_INVALID_VALUE        @p mem is @c NULL or not sufficient data is available in ktxMem.
+ * @exception KTX_INVALID_VALUE     @p str or @p mem is @c NULL or sufficient
+ *                                  data is not available in ktxMem.
  */
 static
 KTX_error_code ktxMemStream_skip(ktxStream* str, const GLsizei count)
@@ -154,9 +161,11 @@ KTX_error_code ktxMemStream_skip(ktxStream* str, const GLsizei count)
         return KTX_INVALID_VALUE;
     
     mem = str->data.mem;
-    if (!mem || (mem->pos + count > mem->used_size) || (mem->pos + count < mem->pos))
+    if (!mem
+        || (mem->pos + count > mem->used_size) || (mem->pos + count < mem->pos))
+    {
         return KTX_INVALID_VALUE;
-
+    }
 	mem->pos += count;
 
 	return KTX_SUCCESS;
@@ -167,10 +176,12 @@ KTX_error_code ktxMemStream_skip(ktxStream* str, const GLsizei count)
  * @~English
  * @brief Write bytes to a ktxFileStream.
  *
- * @param [in] src           pointer to the array of elements to be written, converted to a const void*.
- * @param [in] size          size in bytes of each element to be written.
- * @param [in] count         number of elements, each one with a @p size of size bytes.
- * @param [out] dst          pointer to a ktxMem struct, converted to a void*, that specifies an output stream.
+ * @param [out] str    pointer to the ktxStream that specifies the destination.
+ * @param [in] src     pointer to the array of elements to be written,
+ *                     converted to a const void*.
+ * @param [in] size    size in bytes of each element to be written.
+ * @param [in] count   number of elements, each one with a @p size of size
+ *                     bytes.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -210,15 +221,16 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
  * @~English
  * @brief Initialize a ktxMemStream.
  *
- * @param [in] stream        pointer to a ktxStream struct to initialize.
- * @param [in] mem           pointer to a ktxMem struct to use in ktxMemStream.
- * @param [in] bytes         pointer to an array of bytes to use as initial data.
- * @param [in] size          size of array of initial data for ktxMemStream.
+ * @param [in] str      pointer to a ktxStream struct to initialize.
+ * @param [in] mem      pointer to a ktxMem struct to use in the ktxMemStream.
+ * @param [in] bytes    pointer to an array of bytes to use as initial data.
+ * @param [in] size     size of array of initial data for ktxMemStream.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE        @p stream is @c NULL or @p mem is @c NULL or @p size is less than 0.
- * @exception KTX_OUT_OF_MEMORY        system failed to allocate sufficient memory.
+ * @exception KTX_INVALID_VALUE     @p stream is @c NULL or @p mem is @c NULL
+ *                                  or @p size is less than 0.
+ * @exception KTX_OUT_OF_MEMORY     system failed to allocate sufficient memory.
  */
 KTX_error_code ktxMemStream_init(ktxStream* str, ktxMem* mem,
                                  const void* bytes, size_t size)

@@ -43,22 +43,23 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 /**
  * @internal
- * @brief Structure to store information
- *    about data allocated for ktxMemStream
+ * @brief Structure to store information about data allocated for ktxMemStream.
  */
 typedef struct ktxMem
 {
-	unsigned char* bytes;
-	size_t alloc_size;
-	size_t used_size;
-	size_t pos;
+	unsigned char* bytes;    /*!< pointer to the data. */
+	size_t alloc_size;       /*!< allocated size of the memory block. */
+	size_t used_size;        /*!< bytes used. Effectively the write position. */
+	size_t pos;              /*!< read position. */
 } ktxMem;
 
 /*
- * ktxMemInit: Initialize a ktxStream to a ktxMemStream with ktxMem struct and/or array of bytes
+ * Initialize a ktxStream to a ktxMemStream with ktxMem struct and array
+ * of bytes.
  */
 KTX_error_code ktxMemStream_init(ktxStream* str, struct ktxMem* mem,
                                  const void* bytes, size_t size);
+
 
 void ktxMem_clear(ktxMem* mem);
 

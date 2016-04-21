@@ -318,7 +318,7 @@ typedef struct KTX_texture_info
  * of glTexImage*D. Must be 0 for compressed images.
  */
 /**
- * @var KTX_texture_info::glInternalformat;
+ * @var KTX_texture_info::glInternalFormat;
  * @brief The internalformat of the image(s).
  *
  * Values are the same as for the internalformat parameter of
@@ -326,7 +326,7 @@ typedef struct KTX_texture_info
  * containing an uncompressed texture is loaded into OpenGL ES.
  */
 /**
- * @var KTX_texture_info::glBaseInternalformat;
+ * @var KTX_texture_info::glBaseInternalFormat;
  * @brief The base internalformat of the image(s)
  *
  * For non-compressed textures, should be the same as glFormat.
@@ -382,12 +382,12 @@ typedef struct KTX_image_info {
 } KTX_image_info;
 
 /**
- * @brief Structure used to return texture dimensions
+ * @brief Structure used by load functions to return texture dimensions
  */
 typedef struct KTX_dimensions {
-	GLsizei width;  /*!< */
-	GLsizei height; /*!< */
-	GLsizei depth;  /*!< */
+	GLsizei width;  /*!< width in texels */
+	GLsizei height; /*!< height in texels */
+	GLsizei depth;  /*!< depth in texels */
 } KTX_dimensions;
     
 /**
@@ -403,38 +403,92 @@ typedef void* KTX_context;
 #define KTXAPIENTRY
 #define KTXAPIENTRYP KTXAPIENTRY *
 /**
- * @brief Pointer to callback function for receiving image data
+ * @brief Signature of function called by ktxReadImages to receive image data.
+ *
+ * The function parameters give the values which change for each image.
+ *
+ * @tparam [in] miplevel        the MIP level from 0 to the max level which is
+ *                              dependent on the texture size.
+ * @tparam [in] face            usually 0; for cube maps and cube map arrays,
+ *                              one of the 6 cube faces in the order
+ *                              +X, -X, +Y, -Y, +Z, -Z.
+ * @tparam [in] width           the width of the image.
+ * @tparam [in] heightOrLayers  the height of the image or, for 1D array
+ *                              textures the number of layers in the array.
+ * @tparam [in] depthOrLayers   for 3D textures, the depth of the image; for 2D
+ *                              array or cube map array textures the number of
+ *                              layers in the array.
+ * @tparam [in] faceLodSize     the number of bytes of data pointed at by
+ *                              @p pixels.
+ * @tparam [in] pixels          pointer to the image data.
+ * @tparam [in,out] userdata    pointer for the application to pass data to and
+ *                              from the callback function.
  */
 typedef KTX_error_code (KTXAPIENTRYP PFNKTXIMAGECB)(int miplevel, int face,
                                                int width, int heightOrLayers,
                                                int depthOrLayers,
                                                ktx_uint32_t faceLodSize,
                                                void* pixels, void* userdata);
-    
+
+/*
+ * See the implementation files for the full documentation of the following
+ * functions.
+ */
+
+/*
+ * Open a KTX file from a stdio FILE and return a KTX_context object.
+ */
 KTX_error_code
 ktxOpenKTXF(FILE* file, KTX_context* pContext);
     
+/*
+ * Open the KTX file with the given file name and return a KTX_context object.
+ */
 KTX_error_code
 ktxOpenKTXN(const char* const filename, KTX_context* pContext);
     
+/*
+ * Open a KTX file that is in memory and return a KTX_context object.
+ */
 KTX_error_code
 ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext);
     
+/*
+ * Close a KTX file, freeing the context object.
+ */
 KTX_error_code
 ktxCloseKTX(KTX_context ctx);
-    
+
+/*
+ * Read the header of the KTX file identified by @p ctx.
+ */
 KTX_error_code
 ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
               KTX_supplemental_info* pSuppInfo);
 
+/*
+ * Read the key-value data from the KTX file identified by @p ctx.
+ */
 KTX_error_code
 ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd);
 
+/*
+ * Read the images from the KTX file identified by @p ctx. @p imageCb
+ * will be called with the data for each image.
+ */
 KTX_error_code
 ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata);
     
-/* ktxLoadTextureF
- *
+/*
+ * Loads a texture from a the KTX file identified by @p ctx.
+ */
+KTX_error_code
+ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
+               KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+               GLenum* pGlerror,
+               unsigned int* pKvdLen, unsigned char** ppKvd);
+
+/*
  * Loads a texture from a stdio FILE.
  */
 KTX_error_code
@@ -443,8 +497,7 @@ ktxLoadTextureF(FILE*, GLuint* pTexture, GLenum* pTarget,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd);
 
-/* ktxLoadTextureN
- *
+/*
  * Loads a texture from a KTX file on disk.
  */
 KTX_error_code
@@ -453,8 +506,7 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd);
 
-/* ktxLoadTextureM
- *
+/*
  * Loads a texture from a KTX file in memory.
  */
 KTX_error_code
@@ -463,8 +515,7 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
                 GLboolean* pIsMipmapped, GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd);
 
-/* ktxWriteKTXF
- *
+/*
  * Writes a KTX file using supplied data.
  */
 KTX_error_code
@@ -472,8 +523,7 @@ ktxWriteKTXF(FILE*, const KTX_texture_info* imageInfo,
 			 GLsizei bytesOfKeyValueData, const void* keyValueData,
 			 GLuint numImages, KTX_image_info images[]);
 
-/* ktxWriteKTXN
- *
+/*
  * Writes a KTX file using supplied data.
  */
 KTX_error_code
@@ -481,8 +531,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* imageInfo,
 			 GLsizei bytesOfKeyValueData, const void* keyValueData,
 			 GLuint numImages, KTX_image_info images[]);
 
-/* ktxWriteKTXM
- *
+/*
  * Writes a KTX file into memory using supplied data.
  */
 KTX_error_code
@@ -491,26 +540,22 @@ ktxWriteKTXM(unsigned char** bytes, GLsizei* size,
              const void* keyValueData, GLuint numImages,
              KTX_image_info images[]);
 
-/* ktxErrorString()
- *
+/*
  * Returns a string corresponding to a KTX error code.
  */
 const char* const ktxErrorString(KTX_error_code error);
 
-/* ktxHashTable_Create()
- *
+/*
  * Creates a key-value hash table
  */
 KTX_hash_table ktxHashTable_Create();
 
-/* ktxHashTable_Destroy()
- *
+/*
  * Destroys a key-value hash table
  */
 void ktxHashTable_Destroy(KTX_hash_table This);
 
-/* ktxHashTable_AddKVPair()
- *
+/*
  * Adds a key-value pair to a hash table.
  */
 KTX_error_code
@@ -518,8 +563,7 @@ ktxHashTable_AddKVPair(KTX_hash_table This, const char* key,
 					   unsigned int valueLen, const void* value);
 
 
-/* ktxHashTable_FindValue()
- *
+/*
  * Looks up a key and returns the value.
  */
 KTX_error_code
@@ -527,8 +571,7 @@ ktxHashTable_FindValue(KTX_hash_table This, const char* key,
 					   unsigned int* pValueLen, void** pValue);
 
 
-/* ktxHashTable_Serialize()
- *
+/*
  * Serializes the hash table to a block of memory suitable for
  * writing to a KTX file.
  */
@@ -537,8 +580,7 @@ ktxHashTable_Serialize(KTX_hash_table This,
                        unsigned int* kvdLen, unsigned char** kvd);
 
 
-/* ktxHashTable_Deserialize()
- *
+/*
  * Creates a hash table from the serialized data read from a
  * a KTX file.
  */
@@ -553,7 +595,7 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 /**
 @page history KTX Library Revision History
 
-@section v5 Version 3.0.0
+@section v6 Version 3.0.0
 Added:
 @li new API for reading KTX files without an OpenGL context.
 
@@ -604,8 +646,9 @@ Fixed:
 @li ktxWriteKTXF exiting with KTX_FILE_WRITE_ERROR when attempting to write
     more than 1 byte of face-LOD padding.
 
-Although there is only a very minor API change, the addition of ktxErrorString, the functional changes
-are large enough to justify bumping the major revision number.
+Although there is only a very minor API change, the addition of ktxErrorString,
+the functional changes are large enough to justify bumping the major revision
+number.
 
 @section v2 Version 1.0.1
 Implemented ktxLoadTextureM.
