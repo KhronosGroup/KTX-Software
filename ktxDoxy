@@ -765,6 +765,7 @@ INPUT                  = LICENSE.md \
                          include \
                          lib/hashtable.c \
                          lib/loader.c \
+                         lib/reader.c \
                          lib/writer.c
 
 # This tag can be used to specify the character encoding of the source files

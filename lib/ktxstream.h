@@ -76,19 +76,19 @@ typedef KTX_error_code (*ktxStream_close)(ktxStream* str);
 /**
  * @internal
  * @~English
- * @brief KTX stream interface
+ * @brief KTX stream class
  */
 typedef struct ktxStream
 {
-    ktxStream_read read;   /**< @internal pointer to function for reading bytes. */
-    ktxStream_skip skip;   /**< @internal pointer to function for skipping bytes. */
-    ktxStream_write write; /**< @internal pointer to function for writing bytes. */
-    ktxStream_close close; /**< @internal pointer to function for closing stream. */
+    ktxStream_read read;   /*!< @internal pointer to function for reading bytes. */
+    ktxStream_skip skip;   /*!< @internal pointer to function for skipping bytes. */
+    ktxStream_write write; /*!< @internal pointer to function for writing bytes. */
+    ktxStream_close close; /*!< @internal pointer to function for closing stream. */
 
     union {
         FILE* file;
         ktxMem* mem;
-    } data;                /**< @internal pointer to the stream data */
+    } data;                /**< @internal pointer to the stream data. */
 } ktxStream;
 
 #endif /* KTXSTREAM_H */

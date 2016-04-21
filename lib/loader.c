@@ -563,9 +563,9 @@ compressedTexImage3DCallback(int miplevel, int face,
     }
 }
 
-/*
+/**
  * @~English
- * @brief Load a GL texture object from a ktxStream.
+ * @brief Load a GL texture object from a file represented by a ktxContext.
  *
  * The function sets the texture object's GL_TEXTURE_MAX_LEVEL parameter
  * according to the number of levels in the ktxStream, provided the library
@@ -581,8 +581,9 @@ compressedTexImage3DCallback(int miplevel, int face,
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param [in] stream		pointer to the ktxStream from which to load.
- * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
+ * @param [in] ctx			handle of the KTX_context representing the file
+ *                          from which to load.
+ * @param [in,out] pTexture	name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
  *                          generated name or the name given in @p *pTexture
@@ -593,21 +594,23 @@ compressedTexImage3DCallback(int miplevel, int face,
  * @param [out] pTarget 	@p *pTarget is set to the texture target used. The
  * 						    target is chosen based on the file contents.
  * @param [out] pDimensions	If @p pDimensions is not NULL, the width, height and
- *							depth of the texture's base level are returned in the
- *                          fields of the KTX_dimensions structure to which it points.
+ *							depth of the texture's base level are returned in
+ *                          the fields of the KTX_dimensions structure to which
+ *                          it points.
  * @param [out] pIsMipmapped
- *	                        If @p pIsMipmapped is not NULL, @p *pIsMipmapped is set
- *                          to GL_TRUE if the KTX texture is mipmapped, GL_FALSE
- *                          otherwise.
+ *	                        If @p pIsMipmapped is not NULL, @p *pIsMipmapped is
+ *                          set to GL_TRUE if the KTX texture is mipmapped,
+ *                          GL_FALSE otherwise.
  * @param [out] pGlerror    @p *pGlerror is set to the value returned by
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. glerror can be NULL.
- * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
- *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.
- * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
- *                          memory containing key-value data read from the file.
- *                          The application is responsible for freeing the memory.
+ * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of
+ *                          bytes of key-value data pointed at by @p *ppKvd.
+ *                          Must not be NULL, if @p ppKvd is not NULL.
+ * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a
+ *                          block of memory containing key-value data read from
+ *                          the file. The application is responsible for freeing
+ *                          the memory.
  *
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -618,20 +621,20 @@ compressedTexImage3DCallback(int miplevel, int face,
  * @exception KTX_INVALID_OPERATION @p ppKvd is not NULL but pKvdLen is NULL.
  * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the
  * 										 expected amount of data.
- * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated to store
- *                              the requested key-value data.
+ * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated to
+ *                              store the requested key-value data.
  * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
  * 								glGenTextures or gl*TexImage*. The GL error
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
  */
-static
 KTX_error_code
-ktxLoadTexture(ktxContext* kc, GLuint* pTexture, GLenum* pTarget,
+ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
                GLenum* pGlerror,
                unsigned int* pKvdLen, unsigned char** ppKvd)
 {
+    ktxContext*           kc = (ktxContext*)ctx;
     KTX_header	          header;
     KTX_supplemental_info texinfo;
 	GLint				  previousUnpackAlignment;
@@ -874,7 +877,7 @@ cleanup:
  *
  * @param [in] file			pointer to the stdio FILE stream from which to
  * 							load.
- * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
+ * @param [in,out] pTexture	name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
  *                          generated name or the name given in @p *pTexture
@@ -943,7 +946,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
  *
  * @param [in] filename		pointer to a C string that contains the path of
  * 							the file to load.
- * @param [in,out] pTexture	name of the GL texture to load. See
+ * @param [in,out] pTexture	name of the GL texture object to load. See
  *                          ktxLoadTextureF() for details.
  * @param [out] pTarget 	@p *pTarget is set to the texture target used. See
  *                          ktxLoadTextureF() for details.
@@ -998,7 +1001,7 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  * 							the KTX format data to load.
  * @param [in] size			size of the memory array containing the
  *                          KTX format data.
- * @param [in,out] pTexture	name of the GL texture to load. See
+ * @param [in,out] pTexture	name of the GL texture object to load. See
  *                          ktxLoadTextureF() for details.
  * @param [out] pTarget 	@p *pTarget is set to the texture target used. See
  *                          ktxLoadTextureF() for details.
