@@ -52,32 +52,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 /**
  * @internal
  * @~English
- * @brief Close a ktxFileStream.
- *
- * Any unwritten buffered data are flushed to the OS. Any unread buffered data
- * are discarded.
- *
- * @param [in] str           pointer to the stream to close.
- *
- * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_UNEXPECTED_END_OF_FILE the underlying fclose returned EOF.
- */
-static
-KTX_error_code ktxFileStream_close(ktxStream* str)
-{
-    if (!str)
-        return KTX_INVALID_VALUE;
-    
-    if (fclose(str->data.file) != 0)
-        return KTX_UNEXPECTED_END_OF_FILE;
-    
-    return KTX_SUCCESS;
-}
-
-/**
- * @internal
- * @~English
  * @brief Read bytes from a ktxFileStream.
  *
  * @param [in]  str     pointer to the ktxStream from which to read.
@@ -179,7 +153,6 @@ KTX_error_code ktxFileStream_init(ktxStream* str, FILE* file)
 		return KTX_INVALID_VALUE;
 
 	str->data.file = file;
-    str->close = ktxFileStream_close;
 	str->read = ktxFileStream_read;
 	str->skip = ktxFileStream_skip;
 	str->write = ktxFileStream_write;

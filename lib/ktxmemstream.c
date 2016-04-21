@@ -88,24 +88,6 @@ KTX_error_code ktxMem_expand(ktxMem *mem, const size_t newsize)
 /**
  * @internal
  * @~English
- * @brief Close a ktxMemStream, a NOP.
- *
- * @param [in] str           pointer to the stream.
- *
- * @return    KTX_SUCCESS as no failure is possible.
- */
-static
-KTX_error_code ktxMemStream_close(ktxStream* str)
-{
-    if (!str)
-        return KTX_INVALID_VALUE;
-    
-    return KTX_SUCCESS;
-}
-
-/**
- * @internal
- * @~English
  * @brief Read bytes from a ktxMemStream.
  *
  * @param [in]     str      pointer to ktxMem struct, converted to a void*, that
@@ -259,7 +241,6 @@ KTX_error_code ktxMemStream_init(ktxStream* str, ktxMem* mem,
 	}
 
 	str->data.mem = mem;
-    str->close = ktxMemStream_close;
 	str->read = ktxMemStream_read;
 	str->skip = ktxMemStream_skip;
 	str->write = ktxMemStream_write;

@@ -175,10 +175,8 @@ ktxCloseKTX(KTX_context ctx)
 {
     ktxContext* kc = (ktxContext*)ctx;
     
-    if (kc == NULL || !kc->stream.close)
+    if (kc == NULL)
         return KTX_INVALID_VALUE;
-    
-    kc->stream.close(&kc->stream);
     
     free(kc);
 }
