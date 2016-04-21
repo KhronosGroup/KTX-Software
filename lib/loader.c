@@ -201,9 +201,9 @@ hasExtension(const char* extension)
     } else {
         int i, n;
 
-        glGetIntegerv(GL_EXTENSIONS, &n);
+        glGetIntegerv(GL_NUM_EXTENSIONS, &n);
         for (i = 0; i < n; i++) {
-            if (strcmp(glGetStringi(GL_EXTENSIONS, i), extension) == 0)
+            if (strcmp(pfGlGetStringi(GL_EXTENSIONS, i), extension) == 0)
                 return GL_TRUE;
         }
         return GL_FALSE;
