@@ -158,10 +158,9 @@
           }], # OS == "linux" and library == "shared_library"
         ],
 
-        'cflags': [ '-O0' ],
-        'defines': [
-          'DEBUG', '_DEBUG',
-        ],
+        'cflags': [ '-Og', '-g' ],
+        'defines': [ 'DEBUG', '_DEBUG', ],
+        'ldflags': [ '-g' ],
         'msvs_configuration_platform': 'Win32',
         'msvs_settings': {
           'VCCLCompilerTool': {
@@ -216,9 +215,7 @@
           }], # OS == "linux" and library == "shared_library"
         ],
         'cflags': [ '-O3' ],
-        'defines': [
-          'NDEBUG',
-        ],
+        'defines': [ 'NDEBUG' ],
         'msvs_configuration_platform': 'Win32',
         'msvs_settings': {
           'VCCLCompilerTool': {
