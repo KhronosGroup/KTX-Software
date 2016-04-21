@@ -57,20 +57,23 @@ extern PFNGLTEXIMAGE3DPROC pfGlTexImage3D;
 extern PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D;
 extern PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D;
 extern PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
+extern PFNGLGETSTRINGIPROC pfGlGetStringi;
 
 #define DECLARE_GL_FUNCPTRS \
     PFNGLTEXIMAGE1DPROC pfGlTexImage1D; \
     PFNGLTEXIMAGE3DPROC pfGlTexImage3D; \
     PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D; \
     PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D; \
-    PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
+    PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap; \
+    PFNGLGETSTRINGIPROC pfGlGetStringi;
 
 #define INITIALIZE_GL_FUNCPTRS \
     pfGlTexImage1D = glTexImage1D; \
     pfGlTexImage3D = glTexImage3D; \
     pfGlCompressedTexImage1D = glCompressedTexImage1D; \
     pfGlCompressedTexImage3D = glCompressedTexImage3D; \
-    pfGlGenerateMipmap = glGenerateMipmap;
+    pfGlGenerateMipmap = glGenerateMipmap; \
+    pfGlGetStringi = glGetStringi;
     
 #ifdef __cplusplus
 }

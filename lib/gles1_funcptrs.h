@@ -49,26 +49,30 @@ typedef void (GL_APIENTRY* PFNGLTEXIMAGE3DPROC) (GLenum target, GLint level, GLi
 typedef void (GL_APIENTRY* PFNGLCOMPRESSEDTEXIMAGE1DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const GLvoid *data);
 typedef void (GL_APIENTRY* PFNGLCOMPRESSEDTEXIMAGE3DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *data);
 typedef void (GL_APIENTRY* PFNGLGENERATEMIPMAPPROC) (GLenum target);
+typedef GLubyte (GL_APIENTRY* PFNGLGETSTRINGI) (GLenum name, GLint index);
 
 extern PFNGLTEXIMAGE1DPROC pfGlTexImage1D;
 extern PFNGLTEXIMAGE3DPROC pfGlTexImage3D;
 extern PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D;
 extern PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D;
 extern PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
+extern PFNGLGETSTRINGI pfGlGetStringi;
 
 #define DECLARE_GL_FUNCPTRS \
     PFNGLTEXIMAGE1DPROC pfGlTexImage1D; \
     PFNGLTEXIMAGE3DPROC pfGlTexImage3D; \
     PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D; \
     PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D; \
-    PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap;
+    PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap; \
+    PFNGLGETSTRINGI pfGlGetStringi;
 
 #define INITIALIZE_GL_FUNCPTRS \
     pfGlTexImage1D = 0; \
     pfGlTexImage3D = 0; \
     pfGlCompressedTexImage1D = 0; \
     pfGlCompressedTexImage3D = 0; \
-    pfGlGenerateMipmap = 0;
+    pfGlGenerateMipmap = 0; \
+    pfGlGetStringi = 0;
 
 #ifdef __cplusplus
 }
