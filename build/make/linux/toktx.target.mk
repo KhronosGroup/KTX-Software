@@ -9,7 +9,8 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-O0
+	-Og \
+	-g
 
 # Flags passed to only C files.
 CFLAGS_C_Debug :=
@@ -71,6 +72,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := \
+	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/
 

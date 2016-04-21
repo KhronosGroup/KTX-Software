@@ -9,7 +9,8 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-O0 \
+	-Og \
+	-g \
 	-fPIC
 
 # Flags passed to only C files.
@@ -47,9 +48,11 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/etcdec.o \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \
 	$(obj).target/$(TARGET)/lib/hashtable.o \
+	$(obj).target/$(TARGET)/lib/ktxcontext.o \
 	$(obj).target/$(TARGET)/lib/ktxfilestream.o \
 	$(obj).target/$(TARGET)/lib/ktxmemstream.o \
 	$(obj).target/$(TARGET)/lib/loader.o \
+	$(obj).target/$(TARGET)/lib/reader.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/writer.o
 
@@ -89,7 +92,8 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cxx FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
-LDFLAGS_Debug :=
+LDFLAGS_Debug := \
+	-g
 
 LDFLAGS_Release :=
 

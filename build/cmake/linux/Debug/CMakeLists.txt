@@ -19,9 +19,11 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
   "../../../../lib/hashtable.c"
+  "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
   "../../../../lib/loader.c"
+  "../../../../lib/reader.c"
   "../../../../lib/swap.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_es3__cxx_srcs
@@ -33,6 +35,7 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxcontext.h"
   "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
@@ -65,9 +68,11 @@ list(APPEND libktx_es1__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
   "../../../../lib/hashtable.c"
+  "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
   "../../../../lib/loader.c"
+  "../../../../lib/reader.c"
   "../../../../lib/swap.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_es1__cxx_srcs
@@ -79,6 +84,7 @@ list(APPEND libktx_es1__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxcontext.h"
   "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
@@ -120,6 +126,8 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
@@ -127,6 +135,7 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/loader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
@@ -159,6 +168,8 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
@@ -166,6 +177,7 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/loader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
@@ -208,9 +220,11 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
   "../../../../lib/hashtable.c"
+  "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
   "../../../../lib/loader.c"
+  "../../../../lib/reader.c"
   "../../../../lib/swap.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_gl__cxx_srcs
@@ -222,6 +236,7 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxcontext.h"
   "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
@@ -276,7 +291,7 @@ list(APPEND toktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
-set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;DEBUG;_DEBUG;")
+set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
 set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-O0 ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
