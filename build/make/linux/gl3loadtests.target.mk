@@ -124,7 +124,8 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-O0
+	-Og \
+	-g
 
 # Flags passed to only C files.
 CFLAGS_C_Debug :=
@@ -214,6 +215,7 @@ $(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(buil
 
 LDFLAGS_Debug := \
 	-Wl,-rpath,. \
+	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/ \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
