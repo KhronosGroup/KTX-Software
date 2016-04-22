@@ -113,6 +113,9 @@
     <ClInclude Include="..\..\..\..\lib\gles3_funcptrs.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\ktxcontext.h">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\ktxfilestream.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
@@ -145,6 +148,9 @@
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\ktxcontext.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\ktxfilestream.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -152,6 +158,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\loader.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\reader.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\swap.c">
@@ -167,7 +176,7 @@
       <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;doxygen\&quot; \&quot;ktxDoxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%&#xD;&#xA;call set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;touch\&quot; \&quot;build/doc/.gentimestamp\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Generating documentation with Doxygen, and also setting generation timestamp</Message>
       <Outputs>..\..\..\..\build\doc\html;..\..\..\..\build\doc\latex;..\..\..\..\build\doc\man;..\..\..\..\build\doc\.gentimestamp</Outputs>
-      <AdditionalInputs>..\..\..\..\LICENSE.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\hashtable.c;..\..\..\..\lib\ktxfilestream.c;..\..\..\..\lib\ktxfilestream.h;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\ktxmemstream.c;..\..\..\..\lib\ktxmemstream.h;..\..\..\..\lib\ktxstream.h;..\..\..\..\lib\loader.c;..\..\..\..\lib\swap.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\writer.c</AdditionalInputs>
+      <AdditionalInputs>..\..\..\..\LICENSE.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\hashtable.c;..\..\..\..\lib\ktxcontext.c;..\..\..\..\lib\ktxcontext.h;..\..\..\..\lib\ktxfilestream.c;..\..\..\..\lib\ktxfilestream.h;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\ktxmemstream.c;..\..\..\..\lib\ktxmemstream.h;..\..\..\..\lib\ktxstream.h;..\..\..\..\lib\loader.c;..\..\..\..\lib\reader.c;..\..\..\..\lib\swap.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\writer.c</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

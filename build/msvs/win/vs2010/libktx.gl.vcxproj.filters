@@ -61,6 +61,15 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
@@ -93,6 +102,12 @@
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\ktxcontext.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\ktxcontext.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\..\..\lib\ktxfilestream.c">
       <Filter>lib</Filter>
     </ClCompile>
@@ -112,6 +127,9 @@
       <Filter>lib</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\lib\loader.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\reader.c">
       <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\swap.c">

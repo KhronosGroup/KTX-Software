@@ -169,6 +169,7 @@
     <ClInclude Include="..\..\..\..\lib\gles1_funcptrs.h"/>
     <ClInclude Include="..\..\..\..\lib\gles2_funcptrs.h"/>
     <ClInclude Include="..\..\..\..\lib\gles3_funcptrs.h"/>
+    <ClInclude Include="..\..\..\..\lib\ktxcontext.h"/>
     <ClInclude Include="..\..\..\..\lib\ktxfilestream.h"/>
     <ClInclude Include="..\..\..\..\lib\ktxint.h"/>
     <ClInclude Include="..\..\..\..\lib\ktxmemstream.h"/>
@@ -181,9 +182,11 @@
     <ClCompile Include="..\..\..\..\lib\etcdec.cxx"/>
     <ClCompile Include="..\..\..\..\lib\etcunpack.cxx"/>
     <ClCompile Include="..\..\..\..\lib\hashtable.c"/>
+    <ClCompile Include="..\..\..\..\lib\ktxcontext.c"/>
     <ClCompile Include="..\..\..\..\lib\ktxfilestream.c"/>
     <ClCompile Include="..\..\..\..\lib\ktxmemstream.c"/>
     <ClCompile Include="..\..\..\..\lib\loader.c"/>
+    <ClCompile Include="..\..\..\..\lib\reader.c"/>
     <ClCompile Include="..\..\..\..\lib\swap.c"/>
     <ClCompile Include="..\..\..\..\lib\writer.c"/>
   </ItemGroup>
