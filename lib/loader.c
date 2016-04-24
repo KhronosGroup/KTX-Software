@@ -675,12 +675,7 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
 	ktx_uint32_t	      dataSize = 0;
 	GLuint				  texname;
 	int					  texnameUser;
-	ktx_uint32_t          faceLodSize;
-	ktx_uint32_t          faceLodSizeRounded;
-	ktx_uint32_t	      level;
-	ktx_uint32_t	      face;
 	KTX_error_code		  errorCode = KTX_SUCCESS;
-	GLenum				  errorTmp;
     PFNKTXIMAGECB         imageCb;
     ktx_cbdata            cbData;
     int                   dimension;
@@ -823,7 +818,6 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
 		// as the modern formats aren't supported either.
 		if (sizedFormats == _NON_LEGACY_FORMATS && supportsSwizzle) {
 			convertFormat(cbData.glTarget, &cbData.glFormat, &cbData.glInternalformat);
-			errorTmp = glGetError();
 		} else if (sizedFormats == _NO_SIZED_FORMATS)
 			cbData.glInternalformat = header.glBaseInternalFormat;
 #else
@@ -847,7 +841,6 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
             *pGlerror = cbData.glError;
     }
 
-cleanup:
 	free(data);
 
 	/* restore previous GL state */
