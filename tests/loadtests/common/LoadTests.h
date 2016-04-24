@@ -45,7 +45,7 @@
  */
 
 
-#include "../appfwSDL/GLAppSDL.h"
+#include "GLAppSDL.h"
 #include "at.h"
 #include <string>
 

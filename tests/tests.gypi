@@ -6,6 +6,7 @@
 #
 {
   'includes': [
+     'appfwSDL/appfwSDL.gypi',
      'loadtests/loadtests.gypi',
   ],
 }

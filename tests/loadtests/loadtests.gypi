@@ -5,9 +5,6 @@
 # @brief Generate project file for building KTX loadtests.
 #
 {
-  'includes': [
-    'appfwSDL/appfwSDL.gypi',
-  ],
   'variables': { # level 1
     'variables': { # level 2 so can use in level 1
        # This is a list to avoid a very wide line.

@@ -50,12 +50,16 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #if defined(__IPHONEOS__)
   #define NEED_MAIN_LOOP 0
-  //int SDL_iPhoneSetAnimationCallback(SDL_Window * window, int interval, void (*callback)(void*), void *callbackParam);
+  //int SDL_iPhoneSetAnimationCallback(
+  //                             SDL_Window * window, int interval,
+  //                             void (*callback)(void*), void *callbackParam
+  //                                  );
   #define setAnimationCallback(win, cb, userdata) \
     SDL_iPhoneSetAnimationCallback(win, 1, cb, userdata)
 #elif defined(EMSCRIPTEN)
   #define NEED_MAIN_LOOP 0
-  //void emscripten_set_main_loop_arg(em_arg_callback_func func, void *arg, int fps, int simulate_infinite_loop)
+  //void emscripten_set_main_loop_arg(em_arg_callback_func func, void *arg,
+  //                                  int fps, int simulate_infinite_loop);
   #define setAnimationCallback(win, cb, userdata) \
     emscripten_set_main_loop_arg(cb, userdata, 0, EM_FALSE)
 #else
@@ -76,16 +80,19 @@ main(int argc, char* argv[])
   if (!theApp->initialize(argc, argv))
     return 1;
 
-  // SDL_SetEventFilter(theApp->Event, theApp);  // Catches events before they are added to the event queue
-  SDL_AddEventWatch(theApp->onEvent, theApp);  // Triggered when event added to queue. Will this work on iOS?
-
+  // Catches events before they are added to the event queue.
+  // May need this for some events that need rapid response...
+  // SDL_SetEventFilter(theApp->onEvent, theApp);
+  // Triggered when event added to queue.
+  SDL_AddEventWatch(theApp->onEvent, theApp);
   if (!NEED_MAIN_LOOP) {
-    // TODO: Fix this main to work for multiple windows. One way is to have the application
-    // call setAnimationCallback and keep a list of the windows in this file, calling update for each window.
+    // TODO: Fix this main to work for multiple windows. One way is to have the
+    // application call setAnimationCallback and keep a list of the windows in
+    // this file, calling update for each window.
     setAnimationCallback(SDL_GL_GetCurrentWindow(), theApp->onDrawFrame, theApp);
     // iOS version of SDL will not exit when main completes.
-    // The Emscripten version of the app must be compiled with -s NO_EXIT_RUNTIME=1 to prevent Emscripten
-    // exiting when main completes.
+    // The Emscripten version of the app must be compiled with
+    // -s NO_EXIT_RUNTIME=1 to prevent Emscripten exiting when main completes.
     return 0;
   } else {
     for (;;) {

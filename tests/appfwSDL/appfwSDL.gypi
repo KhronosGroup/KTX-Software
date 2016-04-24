@@ -6,7 +6,7 @@
 #
 {
   'includes': [
-     '../../../gyp_include/libsdl.gypi',
+     '../../gyp_include/libsdl.gypi',
   ],
   'targets': [
     {
@@ -20,9 +20,6 @@
         'AppBaseSDL.h',
         'GLAppSDL.cpp',
         'GLAppSDL.h',
-      ],
-      'include_dirs': [
-         '../common',
       ],
       'dependencies': [ 'libsdl' ],
       'export_dependent_settings': [ 'libsdl' ],
