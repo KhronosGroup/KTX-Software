@@ -711,6 +711,7 @@
 					NDEBUG,
 				);
 				HEADER_SEARCH_PATHS = (
+					tests/appfwSDL,
 					tests/loadtests/common,
 					other_include,
 					include,
@@ -753,6 +754,7 @@
 					_DEBUG,
 				);
 				HEADER_SEARCH_PATHS = (
+					tests/appfwSDL,
 					tests/loadtests/common,
 					other_include,
 					include,

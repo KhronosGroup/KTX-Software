@@ -996,6 +996,7 @@
 					_DEBUG,
 				);
 				HEADER_SEARCH_PATHS = (
+					tests/appfwSDL,
 					tests/loadtests/common,
 					other_include,
 					include,
@@ -1025,6 +1026,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				HEADER_SEARCH_PATHS = (
+					tests/appfwSDL,
 					tests/loadtests/common,
 					other_include,
 					include,
@@ -1102,6 +1104,7 @@
 					_DEBUG,
 				);
 				HEADER_SEARCH_PATHS = (
+					tests/appfwSDL,
 					tests/loadtests/common,
 					other_include,
 					include,
@@ -1143,6 +1146,7 @@
 					NDEBUG,
 				);
 				HEADER_SEARCH_PATHS = (
+					tests/appfwSDL,
 					tests/loadtests/common,
 					other_include,
 					include,
