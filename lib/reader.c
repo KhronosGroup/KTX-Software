@@ -41,6 +41,10 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -179,6 +183,7 @@ ktxCloseKTX(KTX_context ctx)
         return KTX_INVALID_VALUE;
     
     free(kc);
+	return KTX_SUCCESS;
 }
 
 /**
