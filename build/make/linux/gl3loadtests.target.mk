@@ -134,6 +134,7 @@ CFLAGS_C_Debug :=
 CFLAGS_CC_Debug :=
 
 INCS_Debug := \
+	-I$(srcdir)/tests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include
@@ -155,6 +156,7 @@ CFLAGS_C_Release :=
 CFLAGS_CC_Release :=
 
 INCS_Release := \
+	-I$(srcdir)/tests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include

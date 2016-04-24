@@ -54,7 +54,8 @@ list(APPEND libktx_es3__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
 set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;DEBUG;_DEBUG;")
-set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-O0 ")
+set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-Og -g ")
+set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
@@ -103,7 +104,8 @@ list(APPEND libktx_es1__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es1 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es1__include_dirs})
 set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;DEBUG;_DEBUG;")
-set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-O0 ")
+set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-Og -g ")
+set_target_properties(libktx_es1 PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
@@ -256,7 +258,8 @@ list(APPEND libktx_gl__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
 set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;DEBUG;_DEBUG;")
-set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-O0 -fPIC ")
+set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-Og -g -fPIC ")
+set_target_properties(libktx_gl PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
@@ -292,7 +295,8 @@ list(APPEND toktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
 set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
-set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-O0 ")
+set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-Og -g ")
+set_target_properties(toktx PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
@@ -369,12 +373,12 @@ unset(TARGET)
 set(TARGET "appfwSDL")
 set(TOOLSET "target")
 list(APPEND appfwSDL__cxx_srcs
-  "../../../../tests/loadtests/appfwSDL/main.cpp"
-  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
-  "../../../../tests/loadtests/appfwSDL/GLAppSDL.cpp")
+  "../../../../tests/appfwSDL/main.cpp"
+  "../../../../tests/appfwSDL/AppBaseSDL.cpp"
+  "../../../../tests/appfwSDL/GLAppSDL.cpp")
 list(APPEND appfwSDL__other_srcs
-  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
-  "../../../../tests/loadtests/appfwSDL/GLAppSDL.h")
+  "../../../../tests/appfwSDL/AppBaseSDL.h"
+  "../../../../tests/appfwSDL/GLAppSDL.h")
 add_library(appfwSDL STATIC ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
 set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${appfwSDL__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -383,12 +387,11 @@ set_target_properties(appfwSDL PROPERTIES PREFIX "lib")
 set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_NAME "appfwSDL")
 set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
 set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
-list(APPEND appfwSDL__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set(appfwSDL__include_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-O0 ")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-Og -g ")
+set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
@@ -507,13 +510,14 @@ set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_NAME "gl3loadtests"
 set_target_properties(gl3loadtests PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/gl3loadtests PROPERTIES GENERATED "TRUE")
 list(APPEND gl3loadtests__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
 set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;DEBUG;_DEBUG;")
-set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-O0 ")
-set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
+set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-Og -g ")
+set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. -g ")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")

@@ -369,12 +369,12 @@ unset(TARGET)
 set(TARGET "appfwSDL")
 set(TOOLSET "target")
 list(APPEND appfwSDL__cxx_srcs
-  "../../../../tests/loadtests/appfwSDL/main.cpp"
-  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
-  "../../../../tests/loadtests/appfwSDL/GLAppSDL.cpp")
+  "../../../../tests/appfwSDL/main.cpp"
+  "../../../../tests/appfwSDL/AppBaseSDL.cpp"
+  "../../../../tests/appfwSDL/GLAppSDL.cpp")
 list(APPEND appfwSDL__other_srcs
-  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
-  "../../../../tests/loadtests/appfwSDL/GLAppSDL.h")
+  "../../../../tests/appfwSDL/AppBaseSDL.h"
+  "../../../../tests/appfwSDL/GLAppSDL.h")
 add_library(appfwSDL STATIC ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
 set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${appfwSDL__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -383,9 +383,7 @@ set_target_properties(appfwSDL PROPERTIES PREFIX "lib")
 set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_NAME "appfwSDL")
 set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
 set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
-list(APPEND appfwSDL__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set(appfwSDL__include_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
 set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-O3 ")
@@ -507,6 +505,7 @@ set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_NAME "gl3loadtests"
 set_target_properties(gl3loadtests PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/gl3loadtests PROPERTIES GENERATED "TRUE")
 list(APPEND gl3loadtests__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")

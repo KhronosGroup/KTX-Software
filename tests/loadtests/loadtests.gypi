@@ -72,6 +72,7 @@
             '<@(gl3_source_files)',
           ],
           'include_dirs': [
+            '../appfwSDL',
             'common',
           ],
           'defines': [
@@ -172,6 +173,7 @@
             '<@(gl3_source_files)',
           ], # sources
           'include_dirs': [
+            '../appfwSDL',
             'common',
           ],
           'defines': [
@@ -236,6 +238,7 @@
             'gles1/sample_02_cube_textured.c',
           ], # sources
           'include_dirs': [
+            '../appfwSDL',
             'common',
           ],
           'msvs_settings': {
