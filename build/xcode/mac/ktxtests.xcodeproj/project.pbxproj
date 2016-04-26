@@ -680,6 +680,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				GCC_WARN_PEDANTIC = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = libsdl;
 			};
@@ -710,6 +711,7 @@
 					"GL_CONTEXT_MINOR_VERSION=3",
 					NDEBUG,
 				);
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/appfwSDL,
 					tests/loadtests/common,
@@ -753,6 +755,7 @@
 					DEBUG,
 					_DEBUG,
 				);
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/appfwSDL,
 					tests/loadtests/common,
@@ -784,6 +787,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = other_include;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = appfwSDL;
@@ -802,6 +806,7 @@
 					DEBUG,
 					_DEBUG,
 				);
+				GCC_WARN_PEDANTIC = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = libsdl;
 			};
@@ -821,6 +826,7 @@
 					DEBUG,
 					_DEBUG,
 				);
+				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = other_include;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = appfwSDL;

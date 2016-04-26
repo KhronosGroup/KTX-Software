@@ -97,6 +97,8 @@
       },
     },
     'xcode_settings': {
+      'COPY_PHASE_STRIP': 'NO',
+      'GCC_WARN_PEDANTIC': 'YES',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
@@ -167,9 +169,8 @@
           ],
         },
         'xcode_settings':  {
-          'COPY_PHASE_STRIP': 'NO',
-          'GCC_OPTIMIZATION_LEVEL': 0,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
+          'GCC_OPTIMIZATION_LEVEL': 0,
           'target_conditions': [
             ['_type == "executable"', {
               'STRIP_INSTALLED_PRODUCT': 'NO',
@@ -197,10 +198,9 @@
           },
         },
         'xcode_settings':  {
-          'COPY_PHASE_STRIP': 'NO',
-          'GCC_OPTIMIZATION_LEVEL': 3,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
-          'target_conditions': [
+          'GCC_OPTIMIZATION_LEVEL': 3,
+           'target_conditions': [
             ['_type == "executable"', {
               'STRIP_INSTALLED_PRODUCT': 'YES',
             }],
