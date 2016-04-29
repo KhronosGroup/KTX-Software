@@ -98,9 +98,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxcontext.h"
-#include "ktxstream.h"
-#include "ktxfilestream.h"
-#include "ktxmemstream.h"
 
 DECLARE_GL_FUNCPTRS
 
