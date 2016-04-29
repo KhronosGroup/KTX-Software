@@ -10,6 +10,9 @@
 #ifdef _WIN32
 #include <io.h>
 #include <tchar.h>
+#if _MSC_VER < 1900
+#define snprintf _snprintf
+#endif
 #else
 #include <unistd.h>
 
@@ -17,7 +20,6 @@
 #define _TCHAR char
 #define _tcsncmp strncmp
 #define _tcscmp strcmp
-#define _snprintf snprintf
 #define _tgetenv getenv
 #define _tcscpy strcpy
 #define _stscanf sscanf
