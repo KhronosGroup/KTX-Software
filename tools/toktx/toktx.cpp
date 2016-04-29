@@ -242,7 +242,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		char orientation[10];
 
 		assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
-		_snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT, 'r', 'd');
+		snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT, 'r', 'd');
 		ktxHashTable_AddKVPair(ht, KTX_ORIENTATION_KEY, (unsigned int)strlen(orientation) + 1,
 							   orientation);
 		if (KTX_SUCCESS != ktxHashTable_Serialize(ht, &kvDataLen, &kvData)) {
