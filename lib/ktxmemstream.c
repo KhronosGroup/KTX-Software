@@ -61,11 +61,13 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  *
  * @exception  KTX_OUT_OF_MEMORY    System failed to allocate sufficient memory.
  */
-static
-KTX_error_code ktxMem_expand(ktxMem *mem, const size_t newsize)
+static KTX_error_code
+ktxMem_expand(ktxMem *mem, const size_t newsize)
 {
-    assert(mem != NULL);
-	size_t new_alloc_size = mem->alloc_size;
+	size_t new_alloc_size;
+	
+	assert(mem != NULL);
+    new_alloc_size = mem->alloc_size;
 	while (new_alloc_size < newsize)
 		new_alloc_size <<= 1;
 
