@@ -68,6 +68,7 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/libgles1.gypi \
 		 gyp_include/libgles2.gypi \
 		 gyp_include/libgles3.gypi \
+		 gyp_include/libgtest.gypi \
 		 gyp_include/libsdl.gypi \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
@@ -75,6 +76,8 @@ gypfiles=ktxtests.gyp \
 		 tests/tests.gypi \
 		 tests/appfwSDL/appfwSDL.gypi \
 		 tests/loadtests/loadtests.gypi \
+		 tests/readtests/readtests.gypi \
+		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
 		 tools/toktx/toktx.gypi
 
@@ -134,5 +137,5 @@ $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
 	@date > $@
 
-# vim:ai:expandtab!:ts=4:sts=4:sw=2:textwidth=75
+# vim:ai:noexpandtab:ts=4:sts=4:sw=2:textwidth=75
 
