@@ -194,6 +194,23 @@ TEST_F(ktxReadHeaderTest, InvalidValueOnNullParam) {
     EXPECT_EQ(ktxReadHeader(&ctx, 0, &suppInfo), KTX_INVALID_VALUE);
     EXPECT_EQ(ktxReadHeader(&ctx, &header, 0), KTX_INVALID_VALUE);
 }
+    
+TEST_F(ktxReadHeaderTest, InvalidOperationWhenCtxStateNotStart) {
+    KTX_context ctx;
+    KTX_header header;
+    KTX_supplemental_info suppInfo;
+
+    if (ktxMemFile != NULL) {
+        KTX_error_code errorCode;
+
+        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
+        ASSERT_TRUE(ctx != NULL) << "ktxOpenKTXM failed: "
+                                 << ktxErrorString(errorCode);
+        EXPECT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
+        EXPECT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_INVALID_OPERATION);
+        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
+    }
+}
 
 TEST_F(ktxReadHeaderTest, ReadHeader) {
     KTX_context ctx;
@@ -211,6 +228,7 @@ TEST_F(ktxReadHeaderTest, ReadHeader) {
         EXPECT_EQ(suppInfo.compressed, 0);
         EXPECT_EQ(suppInfo.generateMipmaps, 0);
         EXPECT_EQ(suppInfo.textureDimension, 2);
+        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
     }
 }
 
@@ -243,6 +261,7 @@ TEST_F(ktxReadKVDataTest, ReadKVData) {
         EXPECT_EQ(ktxReadKVData(ctx, &kvdLen, &kvd), KTX_SUCCESS);
         EXPECT_EQ(kvdLen, kvDataLen) << "Length of KV data incorrect";
         EXPECT_EQ(memcmp(kvd, kvData, kvDataLen), 0);
+        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
     }
 }
     
@@ -250,6 +269,24 @@ TEST_F(ktxReadKVDataTest, ReadKVData) {
 // ktxReadImagestests
 ////////////////////////////////////////
     
+TEST_F(ktxReadImagesTest, InvalidValueOnNullCallback) {
+    KTX_context ctx;
+    KTX_header header;
+    KTX_supplemental_info suppInfo;
+    KTX_error_code errorCode;
+    
+    if (ktxMemFile != NULL) {
+        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
+        ASSERT_TRUE(ctx != NULL) << "ktxOpenKTXM failed: "
+        << ktxErrorString(errorCode);
+        ASSERT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
+        ASSERT_EQ(ktxReadKVData(ctx, 0, 0), KTX_SUCCESS);
+        
+        EXPECT_EQ(ktxReadImages(ctx, 0, this), KTX_INVALID_VALUE);
+        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
+    }
+}
+
 TEST_F(ktxReadImagesTest, ReadImages) {
     KTX_context ctx;
     KTX_header header;
@@ -266,6 +303,7 @@ TEST_F(ktxReadImagesTest, ReadImages) {
         ASSERT_EQ(ktxReadKVData(ctx, &kvdLen, &kvd), KTX_SUCCESS);
         
         EXPECT_EQ(ktxReadImages(ctx, imageCallback, this), KTX_SUCCESS);
+        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
     }
 }
     
