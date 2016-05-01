@@ -50,15 +50,18 @@
 #endif
 
 namespace {
-    
 
-//////////////////////////////
-// ReadKTXTest
-//////////////////////////////
+///////////////////////////////////////////////////////////
+// Test fixtures
+///////////////////////////////////////////////////////////
 
-class ReadKTXTest : public ::testing::Test {
+//----------------------------------------------------
+// Base fixture for ktxReadKTX and related test cases.
+//----------------------------------------------------
+
+class ReadKTXTestBase : public ::testing::Test {
 protected:
-    ReadKTXTest() {
+    ReadKTXTestBase() {
         
         // Create a KTX file in memory for testing.
         
@@ -122,7 +125,7 @@ protected:
        }
     }
     
-    ~ReadKTXTest() {
+    ~ReadKTXTestBase() {
         if (ktxMemFile != NULL) delete ktxMemFile;
         if (kvData != NULL) delete kvData;
         if (images != NULL) {
@@ -153,7 +156,7 @@ protected:
                   ktx_uint32_t faceLodSize,
                   void* pixels, void* userdata)
     {
-        ReadKTXTest* fixture = (ReadKTXTest*)userdata;
+        ReadKTXTestBase* fixture = (ReadKTXTestBase*)userdata;
         return fixture->imageCallback(miplevel, face, width, heightOrLayers,
                                       depthOrLayers, faceLodSize, pixels);
     }
@@ -168,8 +171,21 @@ protected:
     KTX_texture_info texInfo;
     KTX_image_info* images;
 };
+
+//---------------------------
+// Actual test fixtures
+//---------------------------
+
+class ktxReadHeaderTest : public ReadKTXTestBase { };
+class ktxReadKVDataTest : public ReadKTXTestBase { };
+class ktxReadImagesTest : public ReadKTXTestBase { };
     
-TEST(ktxReadHeaderTest, InvalidValueOnNullParam) {
+
+/////////////////////////////////////////
+// ktxReadHeader tests
+////////////////////////////////////////
+
+TEST_F(ktxReadHeaderTest, InvalidValueOnNullParam) {
     KTX_context ctx;
     KTX_header header;
     KTX_supplemental_info suppInfo;
@@ -179,15 +195,7 @@ TEST(ktxReadHeaderTest, InvalidValueOnNullParam) {
     EXPECT_EQ(ktxReadHeader(&ctx, &header, 0), KTX_INVALID_VALUE);
 }
 
-TEST(ktxReadKVDataTest, InvalidValueOnNullContext) {
-    KTX_context ctx;
-    ktx_uint32_t kvdLen;
-    ktx_uint8_t* kvd;
-
-    EXPECT_EQ(ktxReadKVData(0, &kvdLen, &kvd), KTX_INVALID_VALUE);
-}
-
-TEST_F(ReadKTXTest, TestReadHeader) {
+TEST_F(ktxReadHeaderTest, ReadHeader) {
     KTX_context ctx;
     KTX_header header;
     KTX_supplemental_info suppInfo;
@@ -206,7 +214,19 @@ TEST_F(ReadKTXTest, TestReadHeader) {
     }
 }
 
-TEST_F(ReadKTXTest, TestReadKVData) {
+/////////////////////////////////////////
+// ktxReadKVData tests
+////////////////////////////////////////
+    
+TEST_F(ktxReadKVDataTest, InvalidValueOnNullContext) {
+    KTX_context ctx;
+    ktx_uint32_t kvdLen;
+    ktx_uint8_t* kvd;
+    
+    EXPECT_EQ(ktxReadKVData(0, &kvdLen, &kvd), KTX_INVALID_VALUE);
+}
+    
+TEST_F(ktxReadKVDataTest, ReadKVData) {
     KTX_context ctx;
     KTX_header header;
     KTX_supplemental_info suppInfo;
@@ -226,7 +246,11 @@ TEST_F(ReadKTXTest, TestReadKVData) {
     }
 }
     
-TEST_F(ReadKTXTest, TestReadImages) {
+/////////////////////////////////////////
+// ktxReadImagestests
+////////////////////////////////////////
+    
+TEST_F(ktxReadImagesTest, ReadImages) {
     KTX_context ctx;
     KTX_header header;
     KTX_supplemental_info suppInfo;
