@@ -168,7 +168,8 @@
             'DebugInformationFormat': 4,
             'Optimization': 0,
             # Use MultiThreadedDebugDLL (/MDd) to get extra checking.
-            # Default is MultiThreaded (/MD).
+            # Default in msvs is probably version dependent. In
+            # VS2010 it is MultiThreaded (/MT).
             'RuntimeLibrary': 3,
           },
           # Changing OutputFile causes an MSB8012 warning from MSBuild
