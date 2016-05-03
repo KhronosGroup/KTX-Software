@@ -16,7 +16,7 @@ file format
 library
 -------
 
-- [ ] make reader that is usable without OpenGL context
+- [x] make reader that is usable without OpenGL context
 - [ ] use TexStorage in GL texture loader when available
 - [ ] add Vulkan texture loader
 - [ ] support new features when added to file format
@@ -24,7 +24,7 @@ library
 library testing
 ---------------
 
-- [ ] test for GL-context-free reader
+- [x] test for GL-context-free reader
 - [ ] test for Vulkan loader
 - [ ] proper mipmap test (multiple planes each showing a different miplevel)
 - [ ] GLES2 load tests
