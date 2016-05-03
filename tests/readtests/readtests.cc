@@ -201,7 +201,7 @@ class ReadKTXTestBase : public ::testing::Test {
             this->color = color.color;
         };
     };
-    std::vector<std::vector<rgba8color>> imageData;
+    std::vector< std::vector<rgba8color> > imageData;
     std::vector<KTX_image_info> images;
     std::vector<rgba8color> colors;
 };
