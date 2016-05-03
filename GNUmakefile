@@ -68,13 +68,13 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/libgles1.gypi \
 		 gyp_include/libgles2.gypi \
 		 gyp_include/libgles3.gypi \
-		 gyp_include/libgtest.gypi \
 		 gyp_include/libsdl.gypi \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
 		 lib/libktx.gypi \
 		 tests/tests.gypi \
 		 tests/appfwSDL/appfwSDL.gypi \
+		 tests/gtest/gtest.gypi \
 		 tests/loadtests/loadtests.gypi \
 		 tests/readtests/readtests.gypi \
 		 tests/unittests/unittests.gypi \

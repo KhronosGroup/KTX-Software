@@ -60,28 +60,19 @@
       # *olib_dir are the OS-specific base locations for 3rd party libraries
       #
       'droidolib_dir': '<(otherlibroot_dir)/<(gen_config_var)/$(TARGET_ABI)',
-      'droidolibr_dir': '<(otherlibroot_dir)/Release/$(TARGET_ABI)',
       'iosolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'iosolibr_dir': '<(otherlibroot_dir)/Release-<(gen_platform_var)',
       'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
-      'linuxolibr_dir': '<(otherlibroot_dir)/Release',
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
-      'macolibr_dir': '<(otherlibroot_dir)/Release',
       'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
-      'winolibr_dir': '<(otherlibroot_dir)/Release',
     }, # variables level 2
     # Copy variables out one scope.
     'otherlibroot_dir%': '<(otherlibroot_dir)',
     'droidolib_dir%': '<(droidolib_dir)',
-    'droidolibr_dir%': '<(droidolibr_dir)',
     'iosolib_dir%': '<(iosolib_dir)',
-    'iosolibr_dir%': '<(iosolibr_dir)',
     'linuxolib_dir%': '<(linuxolib_dir)',
-    'linuxolibr_dir%': '<(linuxolibr_dir)',
     'macolib_dir%': '<(macolib_dir)',
-    'macolibr_dir%': '<(macolibr_dir)',
     'winolib_dir%': '<(winolib_dir)',
-    'winolibr_dir%': '<(winolibr_dir)',
 
     # Directory containing EGL, GL{,ES}*, KHR, etc. include directories.
     'gl_includes_parent_dir': '../other_include',
@@ -109,19 +100,16 @@
     #   shared_lib
     'conditions': [
       ['OS == "android"', {
-        'gtest_lib_dir': '<(droidolibr_dir)',
         'sdl_to_use': 'built_dylib', # No other choice
         'sdl2_lib_dir': '<(droidolib_dir)',
         'library': 'static_library',
       }, # OS == "android"
       'OS == "ios"', {
-        'gtest_lib_dir': '<(iosolibr_dir)',
         'sdl_to_use': 'static_lib', # No other choice
         'sdl2_lib_dir': '<(iosolib_dir)',
         'library': 'static_library',
       }, # OS == "ios"
       'OS == "linux"', {
-        'gtest_lib_dir': '<(linuxolibr_dir)',
         'sdl_to_use%': 'built_dylib',
         # Location of libSDL2.a, libSDL2main.a and libSDL2_*.so
         'sdl2_lib_dir': '<(linuxolib_dir)',
@@ -133,7 +121,6 @@
         'glew_dll_dir': '<(linuxolib_dir)',
       }, # OS == "linux"
       'OS == "mac"', {
-        'gtest_lib_dir': '<(macolibr_dir)',
         'sdl_to_use%': 'installed_framework',
         # Used when sdl_to_use == "installed_framework"
         'sdl2.framework_dir': '/Library/Frameworks',
@@ -149,8 +136,6 @@
         'glew_lib_dir': '<(winolib_dir)',
         # Location of glew32.dll.
         'glew_dll_dir': '<(winolib_dir)',
-        # Location of gtest.lib.
-        'gtest_lib_dir': '<(winolibr_dir)',
         'sdl_to_use%': 'built_dylib',
         # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',

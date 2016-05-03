@@ -12,7 +12,7 @@
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
       'includes': [
-        '../gyp_include/libgtest.gypi',
+        'gtest/gtest.gypi',
         'readtests/readtests.gypi',
         'unittests/unittests.gypi',
       ]

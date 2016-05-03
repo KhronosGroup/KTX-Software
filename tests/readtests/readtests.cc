@@ -40,14 +40,15 @@
  MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
+#if defined(_WIN32) && _MSC_VER < 1900
+  #define snprintf _snprintf
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <string.h>
 #include "GL/glcorearb.h"
 #include "ktx.h"
 #include "gtest/gtest.h"
-
-#if defined(_WIN32) && _MSC_VER < 1900
-#define snprintf _snprintf
-#endif
 
 namespace {
 
@@ -60,22 +61,18 @@ namespace {
 //----------------------------------------------------
 
 class ReadKTXTestBase : public ::testing::Test {
-protected:
-    ReadKTXTestBase() {
+  protected:
+    ReadKTXTestBase() : pixelSize(16) {
         
         // Create a KTX file in memory for testing.
         
         KTX_error_code errorCode;
         
         ktxMemFile = 0;
-        images = 0;
-        
-        pixelSize = 16;
-        // log2
-        int temp = pixelSize;
-        for (mipLevels = 0; temp != 1; mipLevels++, temp >>= 1) { }
-        mipLevels++;
-        
+        imageCbCalls = 0;
+
+        mipLevels = levelsFromSize(pixelSize);
+
         texInfo.glType = GL_UNSIGNED_BYTE;
         texInfo.glTypeSize = 1;
         texInfo.glFormat = GL_RGBA;
@@ -88,6 +85,8 @@ protected:
         texInfo.numberOfFaces = 1;
         texInfo.numberOfMipmapLevels = mipLevels;
         
+        // Create key-value data
+
         kvData = NULL;
         kvDataLen = 0;
         KTX_hash_table ht = ktxHashTable_Create();
@@ -104,21 +103,35 @@ protected:
             return;
         }
         ktxHashTable_Destroy(ht);
-        
-        images = new KTX_image_info[mipLevels];
+
+        // Initialize color table
+
+        colors.push_back(rgba8color(0xff, 0x00, 0x00, 0xff));
+        colors.push_back(rgba8color(0x00, 0xff, 0x00, 0xff));
+        colors.push_back(rgba8color(0x00, 0x00, 0xff, 0xff));
+        colors.push_back(rgba8color(0xff, 0xff, 0x00, 0xff));
+        colors.push_back(rgba8color(0x00, 0xff, 0xff, 0xff));
+
+        // Create images
+
+        imageData.resize(5);
+        images.resize(5);
         for (int i = 0; i < mipLevels; i++) {
-            int faceLodSize;
             int levelSize = pixelSize >> i;
-            // 2D texture and type RGBA UNSIGNED_BYTE (*4)
-            images[i].size = levelSize * levelSize * 4;
-            images[i].data = new GLubyte[images[i].size];
-            int pattern = 0xFF0000FF;
-            memset_pattern4(images[i].data, &pattern, images[i].size);
+            // 2D texture -> h * w
+            int pixelCount = levelSize * levelSize;
+            // Allocate the image data and initialize it to a color.
+            imageData[i].assign(pixelCount, colors[i]);
+            // Type RGBA UNSIGNED_BYTE -> *4
+            images[i].size = pixelCount * 4;
+            images[i].data = (GLubyte*)&imageData[i].front().color;
         }
         
+        // Create the in-memory KTX file
+
         errorCode = ktxWriteKTXM(&ktxMemFile, &ktxMemFileLen,
                                  &texInfo, kvDataLen, kvData,
-                                 mipLevels, images);
+                                 mipLevels, &images.front());
        if (KTX_SUCCESS != errorCode) {
             ADD_FAILURE() << "ktxWriteKTXM failed: "
                           << ktxErrorString(errorCode);
@@ -128,10 +141,6 @@ protected:
     ~ReadKTXTestBase() {
         if (ktxMemFile != NULL) delete ktxMemFile;
         if (kvData != NULL) delete kvData;
-        if (images != NULL) {
-            for (int i = 0; i < mipLevels; i++)
-                delete images[i].data;
-        }
     }
     
     KTX_error_code KTXAPIENTRY
@@ -146,6 +155,7 @@ protected:
         EXPECT_EQ(faceLodSize, expectedWidth * expectedWidth * 4);
         EXPECT_EQ(memcmp(pixels, images[miplevel].data, images[miplevel].size),
                   0);
+        imageCbCalls++;
         return KTX_SUCCESS;
     }
 
@@ -160,17 +170,42 @@ protected:
         return fixture->imageCallback(miplevel, face, width, heightOrLayers,
                                       depthOrLayers, faceLodSize, pixels);
     }
-    
-    
+
+    static int
+    levelsFromSize(int pixelSize) {
+        int mipLevels;
+        for (mipLevels = 0; pixelSize != 1; mipLevels++, pixelSize >>= 1) { }
+        return mipLevels;
+    }
+
     unsigned char* ktxMemFile;
     GLsizei ktxMemFileLen;
-    int pixelSize;
+    const int pixelSize;
     int mipLevels;
     unsigned char* kvData;
     unsigned int kvDataLen;
+    unsigned int imageCbCalls;
     KTX_texture_info texInfo;
-    KTX_image_info* images;
+    union rgba8color {
+        // Don't know how portable anonymous union members are.
+        struct { float r, g, b, a; };
+        ktx_uint32_t color;
+
+        rgba8color(ktx_uint8_t r, ktx_uint8_t g, ktx_uint8_t b, ktx_uint8_t a) {
+            this->r = r;
+            this->g = g;
+            this->b = b;
+            this->a = a;
+        };
+        rgba8color(const rgba8color& color) {
+            this->color = color.color;
+        };
+    };
+    std::vector<std::vector<rgba8color>> imageData;
+    std::vector<KTX_image_info> images;
+    std::vector<rgba8color> colors;
 };
+
 
 //---------------------------
 // Actual test fixtures
@@ -237,7 +272,6 @@ TEST_F(ktxReadHeaderTest, ReadHeader) {
 ////////////////////////////////////////
     
 TEST_F(ktxReadKVDataTest, InvalidValueOnNullContext) {
-    KTX_context ctx;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* kvd;
     
@@ -274,6 +308,7 @@ TEST_F(ktxReadImagesTest, InvalidValueOnNullCallback) {
     KTX_header header;
     KTX_supplemental_info suppInfo;
     KTX_error_code errorCode;
+    ktxReadImagesTest* fixture = this;
     
     if (ktxMemFile != NULL) {
         errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
@@ -282,7 +317,7 @@ TEST_F(ktxReadImagesTest, InvalidValueOnNullCallback) {
         ASSERT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
         ASSERT_EQ(ktxReadKVData(ctx, 0, 0), KTX_SUCCESS);
         
-        EXPECT_EQ(ktxReadImages(ctx, 0, this), KTX_INVALID_VALUE);
+        EXPECT_EQ(ktxReadImages(ctx, 0, fixture), KTX_INVALID_VALUE);
         EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
     }
 }
@@ -294,6 +329,8 @@ TEST_F(ktxReadImagesTest, ReadImages) {
     KTX_error_code errorCode;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* kvd;
+    ktxReadImagesTest* fixture = this;
+
     
     if (ktxMemFile != NULL) {
         errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
@@ -302,7 +339,9 @@ TEST_F(ktxReadImagesTest, ReadImages) {
         ASSERT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
         ASSERT_EQ(ktxReadKVData(ctx, &kvdLen, &kvd), KTX_SUCCESS);
         
-        EXPECT_EQ(ktxReadImages(ctx, imageCallback, this), KTX_SUCCESS);
+        EXPECT_EQ(ktxReadImages(ctx, imageCallback, fixture), KTX_SUCCESS);
+        EXPECT_EQ(imageCbCalls, mipLevels)
+                  << "No. of calls to imageCallback differs from number of mip levels";
         EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
     }
 }

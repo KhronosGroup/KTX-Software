@@ -59,9 +59,10 @@ namespace {
 class CheckHeaderTest : public ::testing::Test {
   protected:
     CheckHeaderTest() {
-        testHeader = {
-          { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
-        };
+        // Done this way rather than by using an initializer here
+        // so it will compile on VS 2008.
+        memcpy(testHeader.identifier, ktxId, sizeof(ktxId));
+ 
         testHeader.endianness = 0x04030201;  
         testHeader.glType = GL_UNSIGNED_BYTE;
         testHeader.glTypeSize = 1;
@@ -78,6 +79,11 @@ class CheckHeaderTest : public ::testing::Test {
     }
     
     KTX_header testHeader;
+    static ktx_uint8_t ktxId[12];
+};
+
+ktx_uint8_t CheckHeaderTest::ktxId[12] = {
+    0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A
 };
     
 TEST_F(CheckHeaderTest, AssertsOnNullArguments) {
@@ -89,7 +95,7 @@ TEST_F(CheckHeaderTest, ValidatesIdentifier) {
 
     EXPECT_EQ(_ktxCheckHeader(&testHeader, &suppInfo), KTX_SUCCESS);
 
-    testHeader.identifier[9] = '0x00';
+    testHeader.identifier[9] = 0;
     EXPECT_EQ(_ktxCheckHeader(&testHeader, &suppInfo), KTX_UNKNOWN_FILE_FORMAT);
 }
     

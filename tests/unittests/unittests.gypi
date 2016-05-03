@@ -40,14 +40,15 @@
       'mac_bundle': 0,
       'dependencies': [
         #'appfwSDL',
-        'libgtest',
+        'gtest',
+        'gtest_main',
         'libktx.gyp:libktx.gl',
       ],
       'sources': [
         'unittests.cc',
       ],
       'include_dirs': [
-        '../../other_include',
+        '../gtest/include',
         '../../lib',
       ],
       'defines': [

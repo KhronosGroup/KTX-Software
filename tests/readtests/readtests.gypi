@@ -44,16 +44,18 @@
       'mac_bundle': 0,
       'dependencies': [
         #'appfwSDL',
-        'libgtest',
+        'gtest',
+        'gtest_main',
         'libktx.gyp:libktx.gl',
+      ],
+      'include_dirs': [
+        '../gtest/include'
+        '../../lib',
+      ],
+      'defines': [
       ],
       'sources': [
         'readtests.cc',
-      ],
-      'include_dirs': [
-        '../../other_include'
-        '../../lib',      ],
-      'defines': [
       ],
       'msvs_settings': {
         'VCLinkerTool': {
