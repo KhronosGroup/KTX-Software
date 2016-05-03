@@ -344,7 +344,6 @@
 /* Begin PBXFileReference section */
 		01DC52AF35415F9935B9FCAC /* unittests.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = unittests.gypi; path = tests/unittests/unittests.gypi; sourceTree = "<group>"; };
 		03F8D8F05E8AF26D4A75085A /* etc2-sRGBa8.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa8.ktx"; sourceTree = "<group>"; };
-		04E4E370E4AACAD379F3400F /* libgtest.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgtest.gypi; path = gyp_include/libgtest.gypi; sourceTree = "<group>"; };
 		0A325175540A8C180B31554F /* etc2-sRGB.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGB.ktx"; sourceTree = "<group>"; };
 		0E112A84CE9183658432C21B /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		10345834F42A97336B068120 /* etc2-rgb.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-rgb.ktx"; sourceTree = "<group>"; };
@@ -379,6 +378,7 @@
 		7BD6203C8FBC39DC34880176 /* rgb-amg-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-amg-reference.ktx"; sourceTree = "<group>"; };
 		7D0AE8CDE383097029349281 /* shaderfuncs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shaderfuncs.c; sourceTree = "<group>"; };
 		801882CAE68ECDC7B186ACBF /* rgba-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgba-reference.ktx"; sourceTree = "<group>"; };
+		83C1B5B5C7591FC49A217ED7 /* gtest.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = gtest.gypi; path = tests/gtest/gtest.gypi; sourceTree = "<group>"; };
 		8973B88BC13D51088B627856 /* hi_mark.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark.ktx; sourceTree = "<group>"; };
 		8E830755AE985595D1A80E19 /* etc2-sRGBa1.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa1.ktx"; sourceTree = "<group>"; };
 		90B3A1521E24C7127F4C0B11 /* LoadTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadTests.h; sourceTree = "<group>"; };
@@ -485,26 +485,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1AC8DF1087ECC4CC53BABCDD /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				16AAFDA990776102529A255E /* appfwSDL.gypi */,
-				62C8ED7D4BE000BE8F05196F /* config.gypi */,
-				2A10C481083B8ADF83741784 /* default.gypi */,
-				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
-				DCA2A2C870993F0227174041 /* libgles1.gypi */,
-				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
-				04E4E370E4AACAD379F3400F /* libgtest.gypi */,
-				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
-				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
-				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
-				3CC877984E6B92D5D796DCE8 /* readtests.gypi */,
-				443BA60BE91B83D924E4DD4E /* tests.gypi */,
-				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		1BB76C860D5069CA5FB62F33 /* testimages */ = {
 			isa = PBXGroup;
 			children = (
@@ -541,7 +521,7 @@
 				BE87322074888456974DB31C /* Projects */,
 				D4502F02DD085F068376E8E5 /* Frameworks */,
 				B62AE141B7DF9843D6A8AAFC /* Products */,
-				1AC8DF1087ECC4CC53BABCDD /* Build */,
+				C5796BCA8F258C86A570AA51 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -617,6 +597,26 @@
 				01DD7361C58319D536B7A52C /* tests */,
 			);
 			name = Source;
+			sourceTree = "<group>";
+		};
+		C5796BCA8F258C86A570AA51 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				16AAFDA990776102529A255E /* appfwSDL.gypi */,
+				62C8ED7D4BE000BE8F05196F /* config.gypi */,
+				2A10C481083B8ADF83741784 /* default.gypi */,
+				83C1B5B5C7591FC49A217ED7 /* gtest.gypi */,
+				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
+				DCA2A2C870993F0227174041 /* libgles1.gypi */,
+				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
+				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
+				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
+				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
+				3CC877984E6B92D5D796DCE8 /* readtests.gypi */,
+				443BA60BE91B83D924E4DD4E /* tests.gypi */,
+				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		D3FF4041A9FD547A6C936911 /* common */ = {

@@ -16,9 +16,9 @@
       'direct_dependent_settings': {
         'include_dirs': [ '../gtest/include' ],
         'xcode_settings': {
-            # For variadic macros
-            'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-            'GCC_C_LANGUAGE_STANDARD': 'c99',
+          # For variadic macros
+          'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
+          'GCC_C_LANGUAGE_STANDARD': 'c99',
         },
       },
       'include_dirs': [
@@ -33,6 +33,11 @@
           'WarningLevel': 4,
           'WarnAsError': 'true',
         },
+      },
+      'xcode_settings': {
+        # For variadic macros
+        'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
+        'GCC_C_LANGUAGE_STANDARD': 'c99',
       },
       'configurations': {
         'Debug': {
@@ -51,9 +56,8 @@
       'direct_dependent_settings': {
         'include_dirs': [ '../gtest/include' ],
         'xcode_settings': {
-            # For variadic macros
-            'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-            'GCC_C_LANGUAGE_STANDARD': 'c99',
+          'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
+          'GCC_C_LANGUAGE_STANDARD': 'c99',
         },
       },
       'include_dirs': [ '../gtest/include', '.' ],
@@ -65,6 +69,10 @@
           'WarningLevel': 4,
           'WarnAsError': 'true',
         },
+      },
+      'xcode_settings' : {
+        'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
+        'GCC_C_LANGUAGE_STANDARD': 'c99',
       },
       'configurations': {
         'Debug': {
