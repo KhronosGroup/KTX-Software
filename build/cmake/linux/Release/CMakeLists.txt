@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 cmake_policy(VERSION 2.8.8)
-project(gl3loadtests)
+project(readtests)
 set(configuration "Release")
 enable_language(ASM)
 set(builddir "${CMAKE_CURRENT_BINARY_DIR}")
@@ -56,6 +56,7 @@ set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3_
 set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;NDEBUG;")
 set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-O3 ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 unset(TOOLSET)
@@ -105,6 +106,7 @@ set_property(TARGET libktx_es1 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es1_
 set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;NDEBUG;")
 set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-O3 ")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 unset(TOOLSET)
@@ -258,6 +260,7 @@ set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__i
 set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;NDEBUG;")
 set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-O3 -fPIC ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 add_dependencies(libktx_gl
@@ -295,9 +298,10 @@ set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
 set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-O3 ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
-set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
 target_link_libraries(toktx
   libktx_gl
 )
@@ -388,6 +392,7 @@ set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__inc
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
 set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-O3 ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 add_dependencies(appfwSDL
@@ -517,6 +522,7 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/resources_mac/Info.plist")
 add_dependencies(gl3loadtests__copies
@@ -538,6 +544,132 @@ target_link_libraries(gl3loadtests
   "-ldl"
   "-lpthread"
   "-lGL"
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:gtest_main#target
+set(TARGET "gtest_main")
+set(TOOLSET "target")
+set(gtest_main__cxx_srcs "../../../../tests/gtest/src/gtest_main.cc")
+add_library(gtest_main STATIC ${gtest_main__cxx_srcs})
+set_target_properties(gtest_main PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(gtest_main PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
+set_target_properties(gtest_main PROPERTIES PREFIX "lib")
+set_target_properties(gtest_main PROPERTIES ARCHIVE_OUTPUT_NAME "gtest_main")
+set_target_properties(gtest_main PROPERTIES SUFFIX ".a")
+set_source_files_properties(${obj}.${TOOLSET}/libgtest_main.a PROPERTIES GENERATED "TRUE")
+list(APPEND gtest_main__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
+set_property(TARGET gtest_main APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest_main__include_dirs})
+set_target_properties(gtest_main PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
+set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:gtest#target
+set(TARGET "gtest")
+set(TOOLSET "target")
+set(gtest__cxx_srcs "../../../../tests/gtest/src/gtest-all.cc")
+add_library(gtest STATIC ${gtest__cxx_srcs})
+set_target_properties(gtest PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(gtest PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
+set_target_properties(gtest PROPERTIES PREFIX "lib")
+set_target_properties(gtest PROPERTIES ARCHIVE_OUTPUT_NAME "gtest")
+set_target_properties(gtest PROPERTIES SUFFIX ".a")
+set_source_files_properties(${obj}.${TOOLSET}/libgtest.a PROPERTIES GENERATED "TRUE")
+list(APPEND gtest__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
+set_property(TARGET gtest APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest__include_dirs})
+set_target_properties(gtest PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;")
+set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:unittests#target
+set(TARGET "unittests")
+set(TOOLSET "target")
+set(unittests__cxx_srcs "../../../../tests/unittests/unittests.cc")
+add_executable(unittests ${unittests__cxx_srcs})
+set_target_properties(unittests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(unittests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(unittests PROPERTIES PREFIX "")
+set_target_properties(unittests PROPERTIES RUNTIME_OUTPUT_NAME "unittests")
+set_target_properties(unittests PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/unittests PROPERTIES GENERATED "TRUE")
+list(APPEND unittests__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET unittests APPEND PROPERTY INCLUDE_DIRECTORIES ${unittests__include_dirs})
+set_target_properties(unittests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
+set_target_properties(unittests PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+target_link_libraries(unittests
+-Wl,--start-group
+  gtest
+  gtest_main
+-Wl,--end-group
+  libktx_gl
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:readtests#target
+set(TARGET "readtests")
+set(TOOLSET "target")
+set(readtests__cxx_srcs "../../../../tests/readtests/readtests.cc")
+add_executable(readtests ${readtests__cxx_srcs})
+set_target_properties(readtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(readtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(readtests PROPERTIES PREFIX "")
+set_target_properties(readtests PROPERTIES RUNTIME_OUTPUT_NAME "readtests")
+set_target_properties(readtests PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/readtests PROPERTIES GENERATED "TRUE")
+list(APPEND readtests__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET readtests APPEND PROPERTY INCLUDE_DIRECTORIES ${readtests__include_dirs})
+set_target_properties(readtests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
+set_target_properties(readtests PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
+set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+target_link_libraries(readtests
+-Wl,--start-group
+  gtest
+  gtest_main
+-Wl,--end-group
+  libktx_gl
 )
 unset(TOOLSET)
 unset(TARGET)
