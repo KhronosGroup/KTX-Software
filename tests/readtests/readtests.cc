@@ -187,15 +187,15 @@ class ReadKTXTestBase : public ::testing::Test {
     unsigned int imageCbCalls;
     KTX_texture_info texInfo;
     union rgba8color {
-        // Don't know how portable anonymous union members are.
-        struct { float r, g, b, a; };
+        // Sadly anonymous union members are not so portable.
+        struct { ktx_uint8_t r, g, b, a; } components;
         ktx_uint32_t color;
 
         rgba8color(ktx_uint8_t r, ktx_uint8_t g, ktx_uint8_t b, ktx_uint8_t a) {
-            this->r = r;
-            this->g = g;
-            this->b = b;
-            this->a = a;
+            this->components.r = r;
+            this->components.g = g;
+            this->components.b = b;
+            this->components.a = a;
         };
         rgba8color(const rgba8color& color) {
             this->color = color.color;
