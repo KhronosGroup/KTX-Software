@@ -9,6 +9,15 @@
      'appfwSDL/appfwSDL.gypi',
      'loadtests/loadtests.gypi',
   ],
+  'conditions': [
+    ['OS == "mac" or OS == "win" or OS == "linux"', {
+      'includes': [
+        'gtest/gtest.gypi',
+        'readtests/readtests.gypi',
+        'unittests/unittests.gypi',
+      ]
+    }]
+  ]
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

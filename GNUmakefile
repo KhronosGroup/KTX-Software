@@ -74,7 +74,10 @@ gypfiles=ktxtests.gyp \
 		 lib/libktx.gypi \
 		 tests/tests.gypi \
 		 tests/appfwSDL/appfwSDL.gypi \
+		 tests/gtest/gtest.gypi \
 		 tests/loadtests/loadtests.gypi \
+		 tests/readtests/readtests.gypi \
+		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
 		 tools/toktx/toktx.gypi
 
@@ -134,5 +137,5 @@ $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
 	@date > $@
 
-# vim:ai:expandtab!:ts=4:sts=4:sw=2:textwidth=75
+# vim:ai:noexpandtab:ts=4:sts=4:sw=2:textwidth=75
 
