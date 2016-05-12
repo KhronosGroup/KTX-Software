@@ -31,7 +31,7 @@ A few files have `$Date$` keywords. If you care about having the proper
 dates shown or will be generating the documentation or preparing
 distribution archives, you **must** follow the instructions below.
 
-<h4 id="kwexpansion">$Date$ keyword expansion</h4>
+#### <a id="kwexpansion"></a>$Date$ keyword expansion
 
 $Date$ keywords are expanded via a smudge & clean filter. To install
 the filter, issue the following commands in the root of your clone.
