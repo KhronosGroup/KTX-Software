@@ -1,0 +1,20 @@
+# CodeDocs configuration file
+
+# Use the project's doxygen config file.
+DOXYFILE = ktxDoxy
+
+# The following are necessary because CodeDocs does not follow the
+# INPUT specified in ktxDoxy.
+
+# One or more directories and files to exclude from documentation
+# generation.  Use relative paths with respect to the repository root
+# directory.
+EXCLUDE = build BUILDING.md CONTRIBUTING.md GNUmakefile gyp_include \
+          ktxDoxy lib/checkheader.c lib/etcdec.cxx other_include other_lib \
+          README.md tests TODO.md tools
+
+# One or more wildcard patterns to exclude files and directories
+# from document generation.
+EXCLUDE_PATTERNS = *.bat *.gyp *.gypi *.sh *.yml ktx*stream.* *funcptrs.*
+
+#vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
