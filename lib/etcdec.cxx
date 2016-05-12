@@ -1,4 +1,4 @@
-/**
+/*
  
 @~English
 @page license License
