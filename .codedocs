@@ -3,11 +3,15 @@
 # Use the project's doxygen config file.
 DOXYFILE = ktxDoxy
 
+# The following are necessary because CodeDocs does not follow the
+# INPUT specified in ktxDoxy.
+
 # One or more directories and files to exclude from documentation
 # generation.  Use relative paths with respect to the repository root
 # directory.
-EXCLUDE = build GNUmakefile gyp_include ktxDoxy other_include other_lib tests \
-          tools lib/checkheader.c
+EXCLUDE = build BUILDING.md CONTRIBUTING.md GNUmakefile gyp_include \
+          ktxDoxy lib/checkheader.c other_include other_lib \
+          README.md tests TODO.md tools
 
 # One or more wildcard patterns to exclude files and directories
 # from document generation.
