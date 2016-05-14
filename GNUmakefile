@@ -77,6 +77,7 @@ gypfiles=ktxtests.gyp \
 		 tests/gtest/gtest.gypi \
 		 tests/loadtests/loadtests.gypi \
 		 tests/readtests/readtests.gypi \
+		 tests/testimages/testimages.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
 		 tools/toktx/toktx.gypi

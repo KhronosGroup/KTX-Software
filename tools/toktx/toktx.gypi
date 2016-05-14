@@ -13,7 +13,6 @@
       'additional_emcc_options': [
         '-s', 'ERROR_ON_UNDEFINED_SYMBOLS=1',
       ],
-      # 'testimages_dir': '../../testimages',
     }, # variables, level 2
     'additional_emcc_options': [ '<@(additional_emcc_options)' ],
     'additional_emlink_options': [
