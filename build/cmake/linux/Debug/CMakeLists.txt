@@ -342,6 +342,14 @@ add_dependencies(toktx-tests
 unset(TOOLSET)
 unset(TARGET)
 
+#ktxtests.gyp:testimages#target
+set(TARGET "testimages")
+set(TOOLSET "target")
+add_custom_target(testimages SOURCES)
+set_target_properties(testimages PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtests.gyp:libsdl#target
 set(TARGET "libsdl")
 set(TOOLSET "target")
@@ -410,28 +418,28 @@ unset(TARGET)
 set(TARGET "gl3loadtests")
 set(TOOLSET "target")
 list(APPEND gl3loadtests__copies__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/conftestimage_R11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/conftestimage_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/conftestimage_SIGNED_R11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/down-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-rgba1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-rgba8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-rgb.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-sRGBa1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-sRGBa8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/etc2-sRGB.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/hi_mark.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/hi_mark_sq.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/luminance_sized_reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/luminance_unsized_reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/no-npot.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgb-amg-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgba-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgb-mipmap-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/rgb-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../testimages/up-reference.ktx")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/down-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/up-reference.ktx")
 list(APPEND gl3loadtests__copies__output
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
@@ -457,28 +465,28 @@ list(APPEND gl3loadtests__copies__output
   "${builddir}/testimages/up-reference.ktx")
 add_custom_command(
 OUTPUT ${gl3loadtests__copies__output}
-COMMAND ${CMAKE_COMMAND} -E copy testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/down-reference.ktx ${builddir}/testimages/down-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy testimages/up-reference.ktx ${builddir}/testimages/up-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/down-reference.ktx ${builddir}/testimages/down-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/up-reference.ktx ${builddir}/testimages/up-reference.ktx
 DEPENDS ${gl3loadtests__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for gl3loadtests
@@ -489,20 +497,20 @@ add_custom_target(gl3loadtests__copies
   SOURCES ${gl3loadtests__copies__input}
 )
 list(APPEND gl3loadtests__c_srcs
-  "../../../../tests/loadtests/common/at.c"
-  "../../../../tests/loadtests/shader-based/sample_01_draw_texture.c"
-  "../../../../tests/loadtests/shader-based/sample_02_cube_textured.c"
-  "../../../../tests/loadtests/shader-based/shaderfuncs.c"
-  "../../../../tests/loadtests/shader-based/shaders.c")
+  "../../../../tests/glloadtests/common/at.c"
+  "../../../../tests/glloadtests/shader-based/sample_01_draw_texture.c"
+  "../../../../tests/glloadtests/shader-based/sample_02_cube_textured.c"
+  "../../../../tests/glloadtests/shader-based/shaderfuncs.c"
+  "../../../../tests/glloadtests/shader-based/shaders.c")
 list(APPEND gl3loadtests__cxx_srcs
-  "../../../../tests/loadtests/common/LoadTests.cpp"
-  "../../../../tests/loadtests/shader-based/LoadTestsGL3.cpp")
+  "../../../../tests/glloadtests/common/LoadTests.cpp"
+  "../../../../tests/glloadtests/shader-based/LoadTestsGL3.cpp")
 list(APPEND gl3loadtests__other_srcs
-  "../../../../tests/loadtests/common/at.h"
-  "../../../../tests/loadtests/common/LoadTests.h"
-  "../../../../tests/loadtests/data/cube.h"
-  "../../../../tests/loadtests/data/frame.h"
-  "../../../../tests/loadtests/shader-based/mygl.h")
+  "../../../../tests/glloadtests/common/at.h"
+  "../../../../tests/glloadtests/common/LoadTests.h"
+  "../../../../tests/glloadtests/data/cube.h"
+  "../../../../tests/glloadtests/data/frame.h"
+  "../../../../tests/glloadtests/shader-based/mygl.h")
 link_directories( ../../../../other_lib/linux/${configuration}-x64
 )
 add_executable(gl3loadtests ${gl3loadtests__c_srcs} ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
@@ -516,7 +524,7 @@ set_target_properties(gl3loadtests PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/gl3loadtests PROPERTIES GENERATED "TRUE")
 list(APPEND gl3loadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/appfwSDL"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/glloadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
@@ -529,15 +537,17 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PR
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/resources_mac/Info.plist")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/glloadtests/resources_mac/Info.plist")
 add_dependencies(gl3loadtests__copies
   appfwSDL
   libktx_gl
   libgl
+  testimages
   libsdl
 )
 add_dependencies(gl3loadtests
   libgl
+  testimages
   libsdl
   gl3loadtests__copies
 )
