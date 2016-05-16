@@ -15,12 +15,7 @@
          '-s', 'TOTAL_MEMORY=52000000',
          '-s', 'NO_EXIT_RUNTIME=1',
        ],
-       'testimages_dir': '../../testimages',
     }, # variables, level 2
-#    'data_files': [
-#      '<!@(ls <(testimages_dir)/*.ktx)',
-#    ],
-#    'datadir': 'testimages',
     'additional_emcc_options': [ '<@(additional_emcc_options)' ],
     'additional_emlink_options': [
       '<@(additional_emcc_options)',
@@ -103,20 +98,10 @@
             },
           },
         }], # emit_emscripten_configs=="true"
-#        ['OS == "win" or OS == "linux"', {
-#          'copies': [{
-#            'destination': '<(PRODUCT_DIR)/<(datadir)',
-#            'files': [ '<@(data_files)' ],
-#          }],
-#        }], # OS == "win" or OS == "linux"
 #        ['OS == "mac"', {
 #            'sources': [
 #            'resources_mac/Info.plist',
 #          ],
-#          'copies': [{
-#            'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
-#            'files': [ '<@(data_files)' ],
-#          }], # copies
 #        }], # OS == "mac"
       ], # conditions
     }, # readtests

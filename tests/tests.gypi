@@ -7,7 +7,8 @@
 {
   'includes': [
      'appfwSDL/appfwSDL.gypi',
-     'loadtests/loadtests.gypi',
+     'glloadtests/glloadtests.gypi',
+     'testimages/testimages.gypi',
   ],
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {

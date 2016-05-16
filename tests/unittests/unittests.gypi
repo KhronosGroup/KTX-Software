@@ -15,7 +15,6 @@
          '-s', 'TOTAL_MEMORY=52000000',
          '-s', 'NO_EXIT_RUNTIME=1',
        ],
-       'testimages_dir': '../../testimages',
     }, # variables, level 2
     'additional_emcc_options': [ '<@(additional_emcc_options)' ],
     'additional_emlink_options': [

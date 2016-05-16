@@ -15,11 +15,7 @@
          '-s', 'TOTAL_MEMORY=52000000',
          '-s', 'NO_EXIT_RUNTIME=1',
        ],
-       'testimages_dir': '../../testimages',
      }, # variables, level 2
-     'data_files': [
-        '<!@(ls <(testimages_dir)/*.ktx)',
-     ],
     'datadir': 'testimages',
     'additional_emcc_options': [ '<@(additional_emcc_options)' ],
     'additional_emlink_options': [
@@ -66,6 +62,7 @@
             'appfwSDL',
             'libktx.gyp:libktx.gl',
             'libktx.gyp:libgl',
+            'testimages',
           ],
           'sources': [
             '<@(common_source_files)',
@@ -126,28 +123,11 @@
                 },
               },
             }], # emit_emscripten_configs=="true"
-            ['OS == "win" or OS == "linux"', {
-              'copies': [{
-                'destination': '<(PRODUCT_DIR)/<(datadir)',
-                'files': [ '<@(data_files)' ],
-              }],
-            }], # OS == "win"
             ['OS == "mac"', {
               'sources': [
                 'resources_mac/Info.plist',
               ],
-              'copies': [{
-                'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
-                'files': [ '<@(data_files)' ],
-              }],
             }],
-            ['OS == "android"', {
-              #'includes': [ '../android_app_common.gypi' ],
-              'copies': [{
-                'destination': '<(android_assets_dir)/<(datadir)',
-                'files': [ '<@(data_files)' ],
-              }], # copies
-            }], # OS == "android"
           ], # conditions
         }, # gl3loadtests
       ], # 'OS == "mac" or OS == "win"' targets
@@ -165,6 +145,7 @@
             'appfwSDL',
             'libktx.gyp:libktx.es3',
             'libgles3',
+            'testimages',
           ],
           #'toolsets': [target', 'emscripten'],
           'sources': [
@@ -201,17 +182,7 @@
                 'resources_ios/Images.xcassets',
                 'resources_ios/LaunchScreen.storyboard',
               ],
-              'copies': [{
-                'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
-                'files': [ '<@(data_files)' ],
-              }],
             }], # OS == "ios"
-            ['OS == "win"', {
-              'copies': [{
-                'destination': '<(PRODUCT_DIR)/<(datadir)',
-                'files': [ '<@(data_files)' ],
-              }],
-            }], # OS == "win"
           ],
         }, # es3loadtests
       ], # 'OS == "ios" or OS == "win"' targets
@@ -229,6 +200,7 @@
             'appfwSDL',
             'libktx.gyp:libktx.es1',
             'libgles1',
+            'testimages',
           ],
           #'toolsets': [target', 'emscripten'],
           'sources': [
@@ -261,12 +233,8 @@
                 'resources_ios/Images.xcassets',
                 'resources_ios/LaunchScreen.storyboard',
               ],
-              'copies': [{
-                'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
-                'files': [ '<@(data_files)' ],
-              }],
             }], # OS == "ios"
-            ], # conditions
+          ], # conditions
         } # es1loadtests
       ], # 'OS == "ios" or OS == "win"' targets
     }] #'OS == "ios or OS == "win"'

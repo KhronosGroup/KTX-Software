@@ -30,11 +30,13 @@
 # ---------------------------------------------------------------
 
 # Make paths relative to location of this script.
-mydir=${0%/*}/..
-toktx_vs2013=$mydir/build/msvs/win/vs2013/x64/Release/toktx.exe
-toktx_vs2015=$mydir/build/msvs/win/vs2015/x64/Release/toktx.exe
-toktx_cmake=$mydir/build/cmake/toktx/toktx
-toktx_gmake=$mydir/build/GNUmake/toktx/toktx
+depth=..
+mydir=${0%/*}
+ktx_root=$mydir/$depth
+toktx_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/toktx.exe
+toktx_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/toktx.exe
+toktx_cmake=$ktx_root/build/cmake/toktx/toktx
+toktx_gmake=$ktx_root/build/GNUmake/toktx/toktx
 testimages=$mydir/testimages
 
 declare -i numtests=0

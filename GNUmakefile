@@ -74,9 +74,10 @@ gypfiles=ktxtests.gyp \
 		 lib/libktx.gypi \
 		 tests/tests.gypi \
 		 tests/appfwSDL/appfwSDL.gypi \
+		 tests/glloadtests/glloadtests.gypi \
 		 tests/gtest/gtest.gypi \
-		 tests/loadtests/loadtests.gypi \
 		 tests/readtests/readtests.gypi \
+		 tests/testimages/testimages.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
 		 tools/toktx/toktx.gypi
