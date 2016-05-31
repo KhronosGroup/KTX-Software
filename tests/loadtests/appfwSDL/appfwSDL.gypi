@@ -6,7 +6,7 @@
 #
 {
   'includes': [
-     '../../gyp_include/libsdl.gypi',
+     '../../../gyp_include/libsdl.gypi',
   ],
   'targets': [
     {
@@ -20,16 +20,33 @@
         'AppBaseSDL.h',
         'GLAppSDL.cpp',
         'GLAppSDL.h',
+        # These 2 are here to avoid rebuilds of SDL during development.
+        'SDL_vulkan.c',
+        'SDL_vulkan.h',
+        'VkAppSDL.cpp',
+        'VkAppSDL.h',
       ],
       'dependencies': [ 'libsdl' ],
+      'direct_dependent_settings': {
+        'include_dirs': [ '.' ],
+      },
       'export_dependent_settings': [ 'libsdl' ],
+      # These are so SDL_vulkan.c will compile without changes
+      # from how it needs to be to be included in SDL source.
+      'include_dirs': [
+        '.',
+        '../../../other_include/SDL2',
+      ],
       'link_settings': {
         'conditions': [
           ['OS == "android"', {
-            'libraries': [ '-lstlport_static', ],
+            'libraries': [ '-lstlport_static' ],
             'library_dirs': [ '<(cxx-stl)/stlport/libs/$(TARGET_ABI)' ],
-          }]
-        ]
+          }, 'OS == "linux"', {
+            # This is because of SDL_vulkan
+            'libraries': [ '-lX11-xcb' ],
+          }],
+        ],
       }, 
 
       # Ideally we should create a 'link_settings' here to set

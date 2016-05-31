@@ -48,8 +48,8 @@
 #include <math.h>
 
 #include "mygl.h"
-#include "../common/at.h"
-#include "../data/cube.h"
+#include "at.h"
+#include "cube.h"
 
 /* ------------------------------------------------------------------------- */
 

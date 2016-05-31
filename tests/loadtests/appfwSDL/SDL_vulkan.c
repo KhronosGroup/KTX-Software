@@ -1,0 +1,157 @@
+#include <string.h>
+
+/* When building SDL the desired ones of the following
+ * would be defined on the cc command line.
+ */
+//#define SDL_VIDEO_DRIVER_WAYLAND 0
+//#define SDL_VIDEO_DRIVER_WINDOWS 0
+#define SDL_VIDEO_DRIVER_X11 1
+
+#if SDL_VIDEO_DRIVER_WINDOWS
+  #define VK_USE_PLATFORM_WIN32_KHR
+#else
+  #if SDL_VIDEO_DRIVER_WAYLAND
+    #define VK_USE_PLATFORM_WAYLAND_KHR
+  #endif
+  #if SDL_VIDEO_DRIVER_X11
+    #define VK_USE_PLATFORM_XCB_KHR
+    #include <X11/Xlib-xcb.h>
+  #endif
+#endif
+
+#include <SDL_vulkan.h>
+#include <SDL_syswm.h>
+
+static SDL_bool SetNames(unsigned* count, const char** names, unsigned inCount, const char* const* inNames) {
+    unsigned capacity = *count;
+    *count = inCount;
+    if (names) {
+        if (capacity < inCount) {
+            SDL_SetError("Insufficient capacity for extension names: %u < %u", capacity, inCount);
+            return SDL_FALSE;
+        }
+        for (unsigned i = 0; i < inCount; ++i)
+            names[i] = inNames[i];
+    }
+    return SDL_TRUE;
+}
+
+SDL_bool SDL_GetVulkanInstanceExtensions(unsigned* count, const char** names) {
+    const char *driver = SDL_GetCurrentVideoDriver();
+    if (!driver) {
+        SDL_SetError("No video driver - has SDL_Init(SDL_INIT_VIDEO) been called?");
+        return SDL_FALSE;
+    }
+    if (!count) {
+        SDL_SetError("'count' is null");
+        return SDL_FALSE;
+    }
+#if SDL_VIDEO_DRIVER_ANDROID
+    if (!strcmp(driver, "android")) {
+        const char* ext[] = { VK_KHR_ANDROID_SURFACE_EXTENSION_NAME };
+        return SetNames(count, names, 1, ext);
+    }
+#endif
+#if SDL_VIDEO_DRIVER_WAYLAND
+    if (!strcmp(driver, "wayland")) {
+        const char* ext[] = { VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME };
+        return SetNames(count, names, 1, ext);
+    }
+#endif
+#if SDL_VIDEO_DRIVER_WINDOWS
+    if (!strcmp(driver, "windows")) {
+        const char* ext[] = { VK_KHR_WIN32_SURFACE_EXTENSION_NAME };
+        return SetNames(count, names, 1, ext);
+    }
+#endif
+#if SDL_VIDEO_DRIVER_X11
+    if (!strcmp(driver, "x11")) {
+        const char* ext[] = { VK_KHR_XCB_SURFACE_EXTENSION_NAME };
+        return SetNames(count, names, 1, ext);
+    }
+#endif
+
+    (void)SetNames;
+    (void)names;
+
+    SDL_SetError("Unsupported video driver '%s'", driver);
+    return SDL_FALSE;
+}
+
+SDL_bool SDL_CreateVulkanSurface(SDL_Window* window, VkInstance instance, VkSurfaceKHR* surface) {
+    if (!window) {
+        SDL_SetError("'window' is null");
+        return SDL_FALSE;
+    }
+    if (instance == VK_NULL_HANDLE) {
+        SDL_SetError("'instance' is null");
+        return SDL_FALSE;
+    }
+
+    SDL_SysWMinfo wminfo;
+    SDL_VERSION(&wminfo.version);
+    if (!SDL_GetWindowWMInfo(window, &wminfo))
+        return SDL_FALSE;
+
+    switch (wminfo.subsystem) {
+#if SDL_VIDEO_DRIVER_ANDROID
+    case SDL_SYSWM_ANDROID:
+    {
+        VkAndroidSurfaceCreateInfoKHR createInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+        createInfo.pNext = NULL;
+        createInfo.flags = 0;
+        createInfo.window = wminfo.info.android.window;
+
+        VkResult r =
+            vkCreateAndroidSurfaceKHR(instance, &createInfo, NULL, surface);
+        if (r != VK_SUCCESS) {
+            SDL_SetError("vkCreateAndroidSurfaceKHR failed: %i", (int)r);
+            return SDL_FALSE;
+        }
+        return SDL_TRUE;
+   }
+#endif
+#if SDL_VIDEO_DRIVER_WINDOWS
+    case SDL_SYSWM_WINDOWS:
+    {
+        VkWin32SurfaceCreateInfoKHR createInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+        createInfo.pNext = NULL;
+        createInfo.flags = 0;
+        createInfo.hinstance = wminfo.info.win.hdc; // XXX ???
+        createInfo.hwnd = wminfo.info.win.window;
+
+        VkResult r =
+            vkCreateWin32SurfaceKHR(instance, &createInfo, NULL, surface);
+        if (r != VK_SUCCESS) {
+            SDL_SetError("vkCreateAndroidSurfaceKHR failed: %i", (int)r);
+            return SDL_FALSE;
+        }
+        return SDL_TRUE;
+    }
+#endif
+#if SDL_VIDEO_DRIVER_X11
+    case SDL_SYSWM_X11:
+    {
+        VkXcbSurfaceCreateInfoKHR createInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+        createInfo.pNext = NULL;
+        createInfo.flags = 0;
+        createInfo.connection = XGetXCBConnection(wminfo.info.x11.display);
+        createInfo.window = wminfo.info.x11.window;
+
+        VkResult r = vkCreateXcbSurfaceKHR(instance, &createInfo, NULL, surface);
+        if (r != VK_SUCCESS) {
+            SDL_SetError("vkCreateXcbSurfaceKHR failed: %i", (int)r);
+            return SDL_FALSE;
+        }
+        return SDL_TRUE;
+    }
+#endif
+    default:
+        (void)surface;
+        SDL_SetError("Unsupported subsystem %i", (int)wminfo.subsystem);
+        return SDL_FALSE;
+    }
+}
