@@ -466,40 +466,6 @@ VkAppSDL::setupDebugReporting()
 {
     VkResult err;
 
-#if 0
-    // vkEnumerateDeviceLayerProperties is deprecated so this should
-    // should no longer be necessary.
-    // Look for device validation layers.
-    uint32_t deviceLayerCount = 0;
-    uint32_t deviceValidationLayerCount = 0;
-    bool validationFound = 0;
-    enabledLayerCount = 0;
-
-    err =
-        vkEnumerateDeviceLayerProperties(vpdGpu, &deviceLayerCount, NULL);
-    assert(!err);
-
-    if (deviceLayerCount > 0) {
-        VkLayerProperties deviceLayers[deviceLayerCount];
-        err = vkEnumerateDeviceLayerProperties(vpdGpu, &deviceLayerCount,
-                                               deviceLayers);
-        assert(!err);
-
-        if (validate) {
-            validationFound = checkLayers(deviceValidationLayerCount,
-                                                 deviceValidationLayers,
-                                                 deviceLayerCount,
-                                                 deviceLayers);
-            enabledLayerCount = deviceValidationLayerCount;
-        }
-    }
-
-    if (validate && !validationFound) {
-        ERROR_RETURN("vkEnumerateDeviceLayerProperties failed to find "
-                     "a required validation layer.");
-    }
-#endif
-
     if (validate) {
         GET_INSTANCE_PROC_ADDR(viInstance, CreateDebugReportCallbackEXT);
         GET_INSTANCE_PROC_ADDR(viInstance, DestroyDebugReportCallbackEXT);
