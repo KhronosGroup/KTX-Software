@@ -243,108 +243,6 @@ VkAppSDL::initializeVulkan()
 
 
 bool
-VkAppSDL::createDevice()
-{
-    const char *deviceExtensionNames[] = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-    uint32_t enabledDeviceExtensionCount = ARRAY_LEN(deviceExtensionNames);
-    VkResult err;
-
-    float queue_priorities[1] = {0.0};
-    const VkDeviceQueueCreateInfo queueInfo = {
-        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        NULL,
-        0,
-        vkQueueFamilyIndex,
-        1,
-        queue_priorities
-    };
-
-    VkDeviceCreateInfo deviceInfo = { };
-    deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    //deviceInfo.pNext = NULL; // Zeroed by { } initialization.
-    deviceInfo.queueCreateInfoCount = 1;
-    deviceInfo.pQueueCreateInfos = &queueInfo;
-    deviceInfo.enabledLayerCount = enabledLayerCount;
-    deviceInfo.ppEnabledLayerNames =
-        (const char *const *)((validate)
-                                  ? deviceValidationLayers
-                                  : NULL),
-    deviceInfo.enabledExtensionCount = enabledDeviceExtensionCount;
-    deviceInfo.ppEnabledExtensionNames = (const char *const *)deviceExtensionNames;
-    // If specific features are required, pass them in here
-    //deviceInfo.pEnabledFeatures = NULL;
-
-    err = vkCreateDevice(vpdGpu, &deviceInfo, NULL, &vdDevice);
-    if (err != VK_SUCCESS) {
-        std::string title;
-        std::stringstream msg;
-        title = szName;
-        title += ": vkCreateDevice Failure";
-        if (err == VK_ERROR_EXTENSION_NOT_PRESENT) {
-            // Figure out which extension(s) are missing.
-            uint32_t deviceExtensionCount = 0;
-
-            err = vkEnumerateDeviceExtensionProperties(vpdGpu,
-                                                       NULL,
-                                                       &deviceExtensionCount,
-                                                       NULL);
-            VkExtensionProperties deviceExtensions[deviceExtensionCount];
-
-            assert(err == VK_SUCCESS);
-            if (deviceExtensionCount > 0) {
-                err = vkEnumerateDeviceExtensionProperties(vpdGpu,
-                                                             NULL,
-                                                             &deviceExtensionCount,
-                                                             deviceExtensions);
-                assert(err == VK_SUCCESS);
-            }
-            msg << "Cannot find the following device extensions:\n";
-            for (int i = 0; i < enabledDeviceExtensionCount; i++) {
-                int j;
-                for (j = 0; j < deviceExtensionCount; j++) {
-                    if (!strcmp(extensionNames[i], deviceExtensions[j].extensionName))
-                        break;
-                }
-                if (j == deviceExtensionCount) {
-                    // Not found
-                    msg << "    " << extensionNames[i] << "\n";
-                }
-            }
-            msg << "\n\nDo you have a compatible Vulkan "
-                   "installable client driver (ICD) installed?";
-       } else {
-            msg << "vkCreateDevice: unexpected failure, result code = ";
-            msg << err << ".";
-       }
-       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
-                                      msg.str().c_str(), NULL);
-       return false;
-    }
-
-    GET_DEVICE_PROC_ADDR(vdDevice, CreateSwapchainKHR);
-    GET_DEVICE_PROC_ADDR(vdDevice, DestroySwapchainKHR);
-    GET_DEVICE_PROC_ADDR(vdDevice, GetSwapchainImagesKHR);
-    GET_DEVICE_PROC_ADDR(vdDevice, AcquireNextImageKHR);
-    GET_DEVICE_PROC_ADDR(vdDevice, QueuePresentKHR);
-
-    const VkCommandPoolCreateInfo cmdPoolInfo = {
-        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        NULL,
-        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        vkQueueFamilyIndex,
-    };
-    err = vkCreateCommandPool(vdDevice, &cmdPoolInfo, NULL, &vcpCommandPool);
-    assert(!err);
-
-    vkGetDeviceQueue(vdDevice, vkQueueFamilyIndex, 0, &vqQueue);
-
-    return true;
-}
-
-
-bool
 VkAppSDL::createInstance()
 {
     VkResult err;
@@ -520,7 +418,121 @@ VkAppSDL::createInstance()
     GET_INSTANCE_PROC_ADDR(viInstance, GetSwapchainImagesKHR);
 
     return true;
-}
+} // createInstance
+
+
+bool
+VkAppSDL::findGpu()
+{
+    VkResult err;
+    uint32_t gpuCount;
+
+    // Make initial call to query gpu_count, then second call for gpu info.
+    err = vkEnumeratePhysicalDevices(viInstance, &gpuCount, NULL);
+    assert(err == VK_SUCCESS && gpuCount > 0);
+
+    if (gpuCount > 0) {
+        VkPhysicalDevice gpus[gpuCount];
+        err = vkEnumeratePhysicalDevices(viInstance, &gpuCount, gpus);
+        assert(err == VK_SUCCESS);
+        // For now just grab the first physical device */
+        vpdGpu = gpus[0];
+        //vkGetPhysicalDeviceProperties(vpdGpu, &vpdpGpuProperties);
+    } else {
+        vpdGpu = VK_NULL_HANDLE;
+
+        std::string msg;
+        ERROR_RETURN(
+            "vkEnumeratePhysicalDevices reported zero accessible devices.\n\n"
+            "Do you have a compatible Vulkan installable client driver (ICD) "
+            "installed?");
+    }
+
+    // Query fine-grained feature support for this GPU. If the app has
+    // specific feature requirements, it should check supported
+    // features based on this query
+    //VkPhysicalDeviceFeatures physDevFeatures;
+    //vkGetPhysicalDeviceFeatures(vpdGpu, &physDevFeatures);
+
+    // Get Memory information and properties
+    vkGetPhysicalDeviceMemoryProperties(vpdGpu, &memoryProperties);
+
+    return true;
+} // findGpu
+
+
+bool
+VkAppSDL::setupDebugReporting()
+{
+    VkResult err;
+
+#if 0
+    // vkEnumerateDeviceLayerProperties is deprecated so this should
+    // should no longer be necessary.
+    // Look for device validation layers.
+    uint32_t deviceLayerCount = 0;
+    uint32_t deviceValidationLayerCount = 0;
+    bool validationFound = 0;
+    enabledLayerCount = 0;
+
+    err =
+        vkEnumerateDeviceLayerProperties(vpdGpu, &deviceLayerCount, NULL);
+    assert(!err);
+
+    if (deviceLayerCount > 0) {
+        VkLayerProperties deviceLayers[deviceLayerCount];
+        err = vkEnumerateDeviceLayerProperties(vpdGpu, &deviceLayerCount,
+                                               deviceLayers);
+        assert(!err);
+
+        if (validate) {
+            validationFound = checkLayers(deviceValidationLayerCount,
+                                                 deviceValidationLayers,
+                                                 deviceLayerCount,
+                                                 deviceLayers);
+            enabledLayerCount = deviceValidationLayerCount;
+        }
+    }
+
+    if (validate && !validationFound) {
+        ERROR_RETURN("vkEnumerateDeviceLayerProperties failed to find "
+                     "a required validation layer.");
+    }
+#endif
+
+    if (validate) {
+        GET_INSTANCE_PROC_ADDR(viInstance, CreateDebugReportCallbackEXT);
+        GET_INSTANCE_PROC_ADDR(viInstance, DestroyDebugReportCallbackEXT);
+        GET_INSTANCE_PROC_ADDR(viInstance, DebugReportMessageEXT);
+
+        VkDebugReportCallbackCreateInfoEXT dbgCreateInfo;
+        dbgCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+        dbgCreateInfo.pNext = NULL;
+        dbgCreateInfo.pfnCallback = debugFunc;
+        dbgCreateInfo.pUserData = this;
+        dbgCreateInfo.flags =
+            VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+        VkResult err = pfnCreateDebugReportCallbackEXT(viInstance, &dbgCreateInfo, NULL,
+                                                    &msgCallback);
+        switch (err) {
+          case VK_SUCCESS:
+            return true;
+            break;
+          case VK_ERROR_OUT_OF_HOST_MEMORY:
+            ERROR_RETURN("CreateDebugReportCallback: out of host memory.");
+            break;
+          default:
+          {
+            std::stringstream msg;
+            msg << "CreateDebugReportCallback: unexpected failure, result code "
+                << err << ".";
+            ERROR_RETURN(msg.str().c_str());
+            break;
+          }
+        }
+    }
+    return true;
+} // setupDebugReporting
 
 
 bool
@@ -532,7 +544,139 @@ VkAppSDL::createSurface()
         ERROR_RETURN(msg.c_str());
     }
     return true;
-}
+} // createSurface
+
+
+bool
+VkAppSDL::findQueue()
+{
+    uint32_t queueCount;
+
+    vkQueueFamilyIndex = UINT32_MAX;
+    // Retrieve no. of supported queues.
+    vkGetPhysicalDeviceQueueFamilyProperties(vpdGpu, &queueCount, NULL);
+    // Retrieve queue properties
+    VkQueueFamilyProperties queueProps[queueCount];
+    vkGetPhysicalDeviceQueueFamilyProperties(vpdGpu, &queueCount, queueProps);
+    assert(queueCount >= 1);
+
+    // Find a queue that supports graphics and present
+    for (uint32_t i = 0; i < queueCount; i++) {
+        VkBool32 supportsPresent;
+        vkGetPhysicalDeviceSurfaceSupportKHR(vpdGpu, i, vsSurface, &supportsPresent);
+        if (supportsPresent && (queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+            vkQueueFamilyIndex = i;
+            break;
+        }
+    }
+    if (vkQueueFamilyIndex == UINT32_MAX) {
+        ERROR_RETURN("Could not find a graphics- and a present-capable Vulkan queue.")
+    }
+
+    return true;
+} // findQueue
+
+
+bool
+VkAppSDL::createDevice()
+{
+    const char *deviceExtensionNames[] = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+    uint32_t enabledDeviceExtensionCount = ARRAY_LEN(deviceExtensionNames);
+    VkResult err;
+
+    float queue_priorities[1] = {0.0};
+    const VkDeviceQueueCreateInfo queueInfo = {
+        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        NULL,
+        0,
+        vkQueueFamilyIndex,
+        1,
+        queue_priorities
+    };
+
+    VkDeviceCreateInfo deviceInfo = { };
+    deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    //deviceInfo.pNext = NULL; // Zeroed by { } initialization.
+    deviceInfo.queueCreateInfoCount = 1;
+    deviceInfo.pQueueCreateInfos = &queueInfo;
+    deviceInfo.enabledLayerCount = enabledLayerCount;
+    deviceInfo.ppEnabledLayerNames =
+        (const char *const *)((validate)
+                                  ? deviceValidationLayers
+                                  : NULL),
+    deviceInfo.enabledExtensionCount = enabledDeviceExtensionCount;
+    deviceInfo.ppEnabledExtensionNames = (const char *const *)deviceExtensionNames;
+    // If specific features are required, pass them in here
+    //deviceInfo.pEnabledFeatures = NULL;
+
+    err = vkCreateDevice(vpdGpu, &deviceInfo, NULL, &vdDevice);
+    if (err != VK_SUCCESS) {
+        std::string title;
+        std::stringstream msg;
+        title = szName;
+        title += ": vkCreateDevice Failure";
+        if (err == VK_ERROR_EXTENSION_NOT_PRESENT) {
+            // Figure out which extension(s) are missing.
+            uint32_t deviceExtensionCount = 0;
+
+            err = vkEnumerateDeviceExtensionProperties(vpdGpu,
+                                                       NULL,
+                                                       &deviceExtensionCount,
+                                                       NULL);
+            VkExtensionProperties deviceExtensions[deviceExtensionCount];
+
+            assert(err == VK_SUCCESS);
+            if (deviceExtensionCount > 0) {
+                err = vkEnumerateDeviceExtensionProperties(vpdGpu,
+                                                             NULL,
+                                                             &deviceExtensionCount,
+                                                             deviceExtensions);
+                assert(err == VK_SUCCESS);
+            }
+            msg << "Cannot find the following device extensions:\n";
+            for (int i = 0; i < enabledDeviceExtensionCount; i++) {
+                int j;
+                for (j = 0; j < deviceExtensionCount; j++) {
+                    if (!strcmp(extensionNames[i], deviceExtensions[j].extensionName))
+                        break;
+                }
+                if (j == deviceExtensionCount) {
+                    // Not found
+                    msg << "    " << extensionNames[i] << "\n";
+                }
+            }
+            msg << "\n\nDo you have a compatible Vulkan "
+                   "installable client driver (ICD) installed?";
+       } else {
+            msg << "vkCreateDevice: unexpected failure, result code = ";
+            msg << err << ".";
+       }
+       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
+                                      msg.str().c_str(), NULL);
+       return false;
+    }
+
+    GET_DEVICE_PROC_ADDR(vdDevice, CreateSwapchainKHR);
+    GET_DEVICE_PROC_ADDR(vdDevice, DestroySwapchainKHR);
+    GET_DEVICE_PROC_ADDR(vdDevice, GetSwapchainImagesKHR);
+    GET_DEVICE_PROC_ADDR(vdDevice, AcquireNextImageKHR);
+    GET_DEVICE_PROC_ADDR(vdDevice, QueuePresentKHR);
+
+    const VkCommandPoolCreateInfo cmdPoolInfo = {
+        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        NULL,
+        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        vkQueueFamilyIndex,
+    };
+    err = vkCreateCommandPool(vdDevice, &cmdPoolInfo, NULL, &vcpCommandPool);
+    assert(!err);
+
+    vkGetDeviceQueue(vdDevice, vkQueueFamilyIndex, 0, &vqQueue);
+
+    return true;
+} // createDevice
 
 
 bool
@@ -631,77 +775,7 @@ VkAppSDL::createSwapchain()
     assert(!err);
 
     return true;
-}
-
-
-bool
-VkAppSDL::findGpu()
-{
-    VkResult err;
-    uint32_t gpuCount;
-
-    // Make initial call to query gpu_count, then second call for gpu info.
-    err = vkEnumeratePhysicalDevices(viInstance, &gpuCount, NULL);
-    assert(err == VK_SUCCESS && gpuCount > 0);
-
-    if (gpuCount > 0) {
-        VkPhysicalDevice gpus[gpuCount];
-        err = vkEnumeratePhysicalDevices(viInstance, &gpuCount, gpus);
-        assert(err == VK_SUCCESS);
-        // For now just grab the first physical device */
-        vpdGpu = gpus[0];
-        //vkGetPhysicalDeviceProperties(vpdGpu, &vpdpGpuProperties);
-    } else {
-        vpdGpu = VK_NULL_HANDLE;
-
-        std::string msg;
-        ERROR_RETURN(
-            "vkEnumeratePhysicalDevices reported zero accessible devices.\n\n"
-            "Do you have a compatible Vulkan installable client driver (ICD) "
-            "installed?");
-    }
-
-    // Query fine-grained feature support for this GPU. If the app has
-    // specific feature requirements, it should check supported
-    // features based on this query
-    //VkPhysicalDeviceFeatures physDevFeatures;
-    //vkGetPhysicalDeviceFeatures(vpdGpu, &physDevFeatures);
-
-    // Get Memory information and properties
-    vkGetPhysicalDeviceMemoryProperties(vpdGpu, &memoryProperties);
-
-    return true;
-}
-
-
-bool
-VkAppSDL::findQueue()
-{
-    uint32_t queueCount;
-
-    vkQueueFamilyIndex = UINT32_MAX;
-    // Retrieve no. of supported queues.
-    vkGetPhysicalDeviceQueueFamilyProperties(vpdGpu, &queueCount, NULL);
-    // Retrieve queue properties
-    VkQueueFamilyProperties queueProps[queueCount];
-    vkGetPhysicalDeviceQueueFamilyProperties(vpdGpu, &queueCount, queueProps);
-    assert(queueCount >= 1);
-
-    // Find a queue that supports graphics and present
-    for (uint32_t i = 0; i < queueCount; i++) {
-        VkBool32 supportsPresent;
-        vkGetPhysicalDeviceSurfaceSupportKHR(vpdGpu, i, vsSurface, &supportsPresent);
-        if (supportsPresent && (queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
-            vkQueueFamilyIndex = i;
-            break;
-        }
-    }
-    if (vkQueueFamilyIndex == UINT32_MAX) {
-        ERROR_RETURN("Could not find a graphics- and a present-capable Vulkan queue.")
-    }
-
-    return true;
-}
+} // createSwapchain
 
 
 bool
@@ -752,7 +826,7 @@ VkAppSDL::prepareColorBuffers()
     }
 
     return true;
-}
+} // prepareColorBuffers
 
 
 bool
@@ -834,7 +908,7 @@ VkAppSDL::prepareDepthBuffer()
     assert(!err);
 
     return true;
-}
+} // prepareDepthBuffer
 
 
 void
@@ -922,79 +996,9 @@ VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
 }
 
 
-bool
-VkAppSDL::setupDebugReporting()
-{
-    VkResult err;
-
-#if 0
-    // vkEnumerateDeviceLayerProperties is deprecated so this should
-    // should no longer be necessary.
-    // Look for device validation layers.
-    uint32_t deviceLayerCount = 0;
-    uint32_t deviceValidationLayerCount = 0;
-    bool validationFound = 0;
-    enabledLayerCount = 0;
-
-    err =
-        vkEnumerateDeviceLayerProperties(vpdGpu, &deviceLayerCount, NULL);
-    assert(!err);
-
-    if (deviceLayerCount > 0) {
-        VkLayerProperties deviceLayers[deviceLayerCount];
-        err = vkEnumerateDeviceLayerProperties(vpdGpu, &deviceLayerCount,
-                                               deviceLayers);
-        assert(!err);
-
-        if (validate) {
-            validationFound = checkLayers(deviceValidationLayerCount,
-                                                 deviceValidationLayers,
-                                                 deviceLayerCount,
-                                                 deviceLayers);
-            enabledLayerCount = deviceValidationLayerCount;
-        }
-    }
-
-    if (validate && !validationFound) {
-        ERROR_RETURN("vkEnumerateDeviceLayerProperties failed to find "
-                     "a required validation layer.");
-    }
-#endif
-
-    if (validate) {
-        GET_INSTANCE_PROC_ADDR(viInstance, CreateDebugReportCallbackEXT);
-        GET_INSTANCE_PROC_ADDR(viInstance, DestroyDebugReportCallbackEXT);
-        GET_INSTANCE_PROC_ADDR(viInstance, DebugReportMessageEXT);
-
-        VkDebugReportCallbackCreateInfoEXT dbgCreateInfo;
-        dbgCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-        dbgCreateInfo.pNext = NULL;
-        dbgCreateInfo.pfnCallback = debugFunc;
-        dbgCreateInfo.pUserData = this;
-        dbgCreateInfo.flags =
-            VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-        VkResult err = pfnCreateDebugReportCallbackEXT(viInstance, &dbgCreateInfo, NULL,
-                                                    &msgCallback);
-        switch (err) {
-          case VK_SUCCESS:
-            return true;
-            break;
-          case VK_ERROR_OUT_OF_HOST_MEMORY:
-            ERROR_RETURN("CreateDebugReportCallback: out of host memory.");
-            break;
-          default:
-          {
-            std::stringstream msg;
-            msg << "CreateDebugReportCallback: unexpected failure, result code "
-                << err << ".";
-            ERROR_RETURN(msg.str().c_str());
-            break;
-          }
-        }
-    }
-    return true;
-}
-
+//----------------------------------------------------------------------
+//  Utility functions
+//----------------------------------------------------------------------
 
 /*
  * @internal
