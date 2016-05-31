@@ -49,9 +49,9 @@
 #include <ktx.h>
 
 #include "mygl.h"
-#include "../common/at.h"
-#include "../data/frame.h"
-#include "../data/quad.h"
+#include "at.h"
+#include "frame.h"
+#include "quad.h"
 
 /* ----------------------------------------------------------------------------- */
 

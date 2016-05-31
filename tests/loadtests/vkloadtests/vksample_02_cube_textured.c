@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /* $Id$ */
 
@@ -47,9 +47,10 @@
 #include <ktx.h>
 #include <math.h>
 
+#if 0
 #include "mygl.h"
-#include "../common/at.h"
-#include "../data/cube.h"
+#include "at.h"
+#include "cube.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -58,10 +59,12 @@ GLboolean makeProgram(GLuint vs, GLuint fs, GLuint* program);
 
 extern const GLchar* pszVs;
 extern const GLchar* pszDecalFs;
-
+#endif
 /* ------------------------------------------------------------------------- */
 
 typedef struct CubeTextured_def {
+        ktx_uint32_t dummy;
+#if 0
 	GLuint gnTexture;
 	GLuint gnTexProg;
 
@@ -75,6 +78,7 @@ typedef struct CubeTextured_def {
 	GLint gulSamplerLocTP;
 
 	GLboolean bInitialized;
+#endif
 } CubeTextured;
 
 /* ------------------------------------------------------------------------- */
@@ -82,6 +86,7 @@ typedef struct CubeTextured_def {
 void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
                           const char* const szBasePath)
 {
+#if 0
     const char* filename;
 	GLuint texture = 0;
 	GLenum target;
@@ -212,10 +217,12 @@ void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
 
 	atAssert(GL_NO_ERROR == glGetError());
 	pData->bInitialized = GL_TRUE;
+#endif
 }
 
 void atRelease_02_cube(void* pAppData)
 {
+#if 0
 	CubeTextured* pData = (CubeTextured*)pAppData;
 	atAssert(pData);
 
@@ -230,11 +237,13 @@ void atRelease_02_cube(void* pAppData)
 	}
 	atAssert(GL_NO_ERROR == glGetError());
 	atFree(pData, 0);
+#endif
 }
 
 
 void atResize_02_cube(void* pAppData, int iWidth, int iHeight)
 {
+#if 0
 	GLfloat matProj[16];
 	CubeTextured* pData = (CubeTextured*)pAppData;
 	atAssert(pData);
@@ -243,16 +252,17 @@ void atResize_02_cube(void* pAppData, int iWidth, int iHeight)
 
 	atSetProjectionMatrix(matProj, 45.f, iWidth / (GLfloat)iHeight, 1.0f, 100.f);
 	glUniformMatrix4fv(pData->gulPMatrixLocTP, 1, GL_FALSE, matProj);
+#endif
 }
 
-void atRun_02_cube(void* pAppData, tTicks tTicks)
+void atRun_02_cube(void* pAppData, int iTimeMS) 
 {
+#if 0
 	/* Draw */
 	CubeTextured* pData = (CubeTextured*)pAppData;
 	/* Setup the view matrix : just turn around the cube. */
 	float matView[16];
 	const float fDistance = 50.0f;
-	int iTimeMS = tTicks * 1000 / SDL_GetPerformanceFrequency();
 
 	atAssert(pData);
 
@@ -266,6 +276,7 @@ void atRun_02_cube(void* pAppData, tTicks tTicks)
 	glDrawElements(GL_TRIANGLES, sizeof(cube_index_buffer), GL_UNSIGNED_BYTE, (GLvoid*)(pData->iIndicesOffset));
 
 	atAssert(GL_NO_ERROR == glGetError());
+#endif
 }
 
 /* ------------------------------------------------------------------------- */

@@ -33,12 +33,12 @@
       }],
     ],
     'common_source_files': [
-      'common/at.h',
-      'common/at.c',
-      'common/LoadTests.cpp',
-      'common/LoadTests.h',
-      'data/cube.h',
-      'data/frame.h',
+      '../common/at.h',
+      '../common/at.c',
+      '../geom/cube.h',
+      '../geom/frame.h',
+      'LoadTests.cpp',
+      'LoadTests.h',
     ],
     'gl3_source_files': [
        # .h files are included so they will appear in IDEs' file lists.
@@ -69,8 +69,9 @@
             '<@(gl3_source_files)',
           ],
           'include_dirs': [
-            '../appfwSDL',
-            'common',
+            '.',
+            '../common',
+            '../geom',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE',
@@ -134,7 +135,7 @@
     }], # 'OS == "mac" or OS == "win"'
     ['OS == "ios" or OS == "win"', {
       'includes': [
-        '../../gyp_include/libgles3.gypi',
+        '../../../gyp_include/libgles3.gypi',
       ],
       'targets': [
         {
@@ -149,13 +150,14 @@
           ],
           #'toolsets': [target', 'emscripten'],
           'sources': [
+            '../geom/quad.h',
             '<@(common_source_files)',
-            'data/quad.h',
             '<@(gl3_source_files)',
           ], # sources
           'include_dirs': [
-            '../appfwSDL',
-            'common',
+            '.',
+            '../common',
+            '../geom',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
@@ -189,7 +191,7 @@
     }], # 'OS == "ios" or OS == "win"'
     ['OS == "ios" or (OS == "win" and es1support == "true")', {
       'includes': [
-        '../../gyp_include/libgles1.gypi'
+        '../../../gyp_include/libgles1.gypi'
       ],
       'targets': [
         {
@@ -210,8 +212,9 @@
             'gles1/sample_02_cube_textured.c',
           ], # sources
           'include_dirs': [
-            '../appfwSDL',
-            'common',
+            '.',
+            '../common',
+            '../geom',
           ],
           'msvs_settings': {
             'VCLinkerTool': {

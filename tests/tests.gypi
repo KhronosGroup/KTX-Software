@@ -6,8 +6,7 @@
 #
 {
   'includes': [
-     'appfwSDL/appfwSDL.gypi',
-     'glloadtests/glloadtests.gypi',
+     'loadtests/loadtests.gypi',
      'testimages/testimages.gypi',
   ],
   'conditions': [

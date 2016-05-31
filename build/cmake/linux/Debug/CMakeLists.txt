@@ -384,14 +384,18 @@ unset(TARGET)
 #ktxtests.gyp:appfwSDL#target
 set(TARGET "appfwSDL")
 set(TOOLSET "target")
+set(appfwSDL__c_srcs "../../../../tests/loadtests/appfwSDL/SDL_vulkan.c")
 list(APPEND appfwSDL__cxx_srcs
-  "../../../../tests/appfwSDL/main.cpp"
-  "../../../../tests/appfwSDL/AppBaseSDL.cpp"
-  "../../../../tests/appfwSDL/GLAppSDL.cpp")
+  "../../../../tests/loadtests/appfwSDL/main.cpp"
+  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
+  "../../../../tests/loadtests/appfwSDL/GLAppSDL.cpp"
+  "../../../../tests/loadtests/appfwSDL/VkAppSDL.cpp")
 list(APPEND appfwSDL__other_srcs
-  "../../../../tests/appfwSDL/AppBaseSDL.h"
-  "../../../../tests/appfwSDL/GLAppSDL.h")
-add_library(appfwSDL STATIC ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
+  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
+  "../../../../tests/loadtests/appfwSDL/GLAppSDL.h"
+  "../../../../tests/loadtests/appfwSDL/SDL_vulkan.h"
+  "../../../../tests/loadtests/appfwSDL/VkAppSDL.h")
+add_library(appfwSDL STATIC ${appfwSDL__c_srcs} ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
 set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${appfwSDL__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
@@ -399,7 +403,10 @@ set_target_properties(appfwSDL PROPERTIES PREFIX "lib")
 set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_NAME "appfwSDL")
 set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
 set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
-set(appfwSDL__include_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+list(APPEND appfwSDL__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include/SDL2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
 set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-Og -g ")
@@ -410,6 +417,147 @@ set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 add_dependencies(appfwSDL
   libsdl
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:vkloadtests#target
+set(TARGET "vkloadtests")
+set(TOOLSET "target")
+list(APPEND vkloadtests__copies__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/down-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/up-reference.ktx")
+list(APPEND vkloadtests__copies__output
+  "${builddir}/testimages/conftestimage_R11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
+  "${builddir}/testimages/down-reference.ktx"
+  "${builddir}/testimages/etc1.ktx"
+  "${builddir}/testimages/etc2-rgba1.ktx"
+  "${builddir}/testimages/etc2-rgba8.ktx"
+  "${builddir}/testimages/etc2-rgb.ktx"
+  "${builddir}/testimages/etc2-sRGBa1.ktx"
+  "${builddir}/testimages/etc2-sRGBa8.ktx"
+  "${builddir}/testimages/etc2-sRGB.ktx"
+  "${builddir}/testimages/hi_mark.ktx"
+  "${builddir}/testimages/hi_mark_sq.ktx"
+  "${builddir}/testimages/luminance_sized_reference.ktx"
+  "${builddir}/testimages/luminance_unsized_reference.ktx"
+  "${builddir}/testimages/no-npot.ktx"
+  "${builddir}/testimages/rgb-amg-reference.ktx"
+  "${builddir}/testimages/rgba-reference.ktx"
+  "${builddir}/testimages/rgb-mipmap-reference.ktx"
+  "${builddir}/testimages/rgb-reference.ktx"
+  "${builddir}/testimages/up-reference.ktx")
+add_custom_command(
+OUTPUT ${vkloadtests__copies__output}
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/down-reference.ktx ${builddir}/testimages/down-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/up-reference.ktx ${builddir}/testimages/up-reference.ktx
+DEPENDS ${vkloadtests__copies__input}
+WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+COMMENT Copying for vkloadtests
+VERBATIM
+)
+add_custom_target(vkloadtests__copies
+  DEPENDS ${vkloadtests__copies__output}
+  SOURCES ${vkloadtests__copies__input}
+)
+list(APPEND vkloadtests__c_srcs
+  "../../../../tests/loadtests/common/at.c"
+  "../../../../tests/loadtests/vkloadtests/vksample_02_cube_textured.c")
+set(vkloadtests__cxx_srcs "../../../../tests/loadtests/vkloadtests/VkLoadTests.cpp")
+list(APPEND vkloadtests__other_srcs
+  "../../../../tests/loadtests/common/at.h"
+  "../../../../tests/loadtests/vkloadtests/VkLoadTests.h")
+link_directories( ../../../../other_lib/linux/${configuration}-x64
+)
+add_executable(vkloadtests ${vkloadtests__c_srcs} ${vkloadtests__cxx_srcs} ${vkloadtests__other_srcs})
+set_target_properties(vkloadtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(vkloadtests__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${vkloadtests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(vkloadtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(vkloadtests PROPERTIES PREFIX "")
+set_target_properties(vkloadtests PROPERTIES RUNTIME_OUTPUT_NAME "vkloadtests")
+set_target_properties(vkloadtests PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/vkloadtests PROPERTIES GENERATED "TRUE")
+list(APPEND vkloadtests__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
+set_property(TARGET vkloadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${vkloadtests__include_dirs})
+set_target_properties(vkloadtests PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
+set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-Og -g ")
+set_target_properties(vkloadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. -g ")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources_mac/Info.plist")
+add_dependencies(vkloadtests__copies
+  appfwSDL
+  libktx_gl
+  testimages
+  libsdl
+)
+add_dependencies(vkloadtests
+  testimages
+  libsdl
+  vkloadtests__copies
+)
+target_link_libraries(vkloadtests
+  appfwSDL
+  libktx_gl
+  "-lvulkan"
+  "-lX11-xcb"
+  "-lSDL2-2.0"
+  "-lSDL2main"
+  "-ldl"
+  "-lpthread"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -497,20 +645,20 @@ add_custom_target(gl3loadtests__copies
   SOURCES ${gl3loadtests__copies__input}
 )
 list(APPEND gl3loadtests__c_srcs
-  "../../../../tests/glloadtests/common/at.c"
-  "../../../../tests/glloadtests/shader-based/sample_01_draw_texture.c"
-  "../../../../tests/glloadtests/shader-based/sample_02_cube_textured.c"
-  "../../../../tests/glloadtests/shader-based/shaderfuncs.c"
-  "../../../../tests/glloadtests/shader-based/shaders.c")
+  "../../../../tests/loadtests/common/at.c"
+  "../../../../tests/loadtests/glloadtests/shader-based/sample_01_draw_texture.c"
+  "../../../../tests/loadtests/glloadtests/shader-based/sample_02_cube_textured.c"
+  "../../../../tests/loadtests/glloadtests/shader-based/shaderfuncs.c"
+  "../../../../tests/loadtests/glloadtests/shader-based/shaders.c")
 list(APPEND gl3loadtests__cxx_srcs
-  "../../../../tests/glloadtests/common/LoadTests.cpp"
-  "../../../../tests/glloadtests/shader-based/LoadTestsGL3.cpp")
+  "../../../../tests/loadtests/glloadtests/LoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/LoadTestsGL3.cpp")
 list(APPEND gl3loadtests__other_srcs
-  "../../../../tests/glloadtests/common/at.h"
-  "../../../../tests/glloadtests/common/LoadTests.h"
-  "../../../../tests/glloadtests/data/cube.h"
-  "../../../../tests/glloadtests/data/frame.h"
-  "../../../../tests/glloadtests/shader-based/mygl.h")
+  "../../../../tests/loadtests/common/at.h"
+  "../../../../tests/loadtests/geom/cube.h"
+  "../../../../tests/loadtests/geom/frame.h"
+  "../../../../tests/loadtests/glloadtests/LoadTests.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/mygl.h")
 link_directories( ../../../../other_lib/linux/${configuration}-x64
 )
 add_executable(gl3loadtests ${gl3loadtests__c_srcs} ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
@@ -523,8 +671,10 @@ set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_NAME "gl3loadtests"
 set_target_properties(gl3loadtests PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/gl3loadtests PROPERTIES GENERATED "TRUE")
 list(APPEND gl3loadtests__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/appfwSDL"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/glloadtests/common"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
@@ -537,7 +687,7 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PR
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/glloadtests/resources_mac/Info.plist")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources_mac/Info.plist")
 add_dependencies(gl3loadtests__copies
   appfwSDL
   libktx_gl
@@ -554,6 +704,7 @@ add_dependencies(gl3loadtests
 target_link_libraries(gl3loadtests
   appfwSDL
   libktx_gl
+  "-lX11-xcb"
   "-lSDL2-2.0"
   "-lSDL2main"
   "-ldl"

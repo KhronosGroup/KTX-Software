@@ -18,6 +18,8 @@ CFLAGS_C_Debug :=
 CFLAGS_CC_Debug :=
 
 INCS_Debug := \
+	-I$(srcdir)/tests/loadtests/appfwSDL \
+	-I$(srcdir)/other_include/SDL2 \
 	-I$(srcdir)/other_include
 
 DEFS_Release := \
@@ -34,12 +36,16 @@ CFLAGS_C_Release :=
 CFLAGS_CC_Release :=
 
 INCS_Release := \
+	-I$(srcdir)/tests/loadtests/appfwSDL \
+	-I$(srcdir)/other_include/SDL2 \
 	-I$(srcdir)/other_include
 
 OBJS := \
-	$(obj).target/$(TARGET)/tests/appfwSDL/main.o \
-	$(obj).target/$(TARGET)/tests/appfwSDL/AppBaseSDL.o \
-	$(obj).target/$(TARGET)/tests/appfwSDL/GLAppSDL.o
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/main.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/AppBaseSDL.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/GLAppSDL.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/SDL_vulkan.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VkAppSDL.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
@@ -55,13 +61,22 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(B
 
 # Suffix rules, putting all outputs into $(obj).
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.c FORCE_DO_CMD
+	@$(call do_cmd,cc,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # Try building from generated source, too.
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.c FORCE_DO_CMD
+	@$(call do_cmd,cc,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
+
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.c FORCE_DO_CMD
+	@$(call do_cmd,cc,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
