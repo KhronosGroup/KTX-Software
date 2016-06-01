@@ -597,13 +597,18 @@ compressedTexImage3DCallback(int miplevel, int face,
  * @~English
  * @brief Load a GL texture object from a file represented by a ktxContext.
  *
- * This function will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * The function sets the texture object's GL_TEXTURE_MAX_LEVEL parameter
+ * according to the number of levels in the ktxStream, provided the library
+ * has been compiled with a version of gl.h where GL_TEXTURE_MAX_LEVEL is
+ * defined.
+ *
+ * It will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
  * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
  *
  * It will also convert textures with legacy formats to their modern equivalents
- * when the format is not supported by the GL context, provided that the library
+ * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param [in] ctx			handle of the KTX_context representing the file
