@@ -1,13 +1,22 @@
 #include <string.h>
 
-/* When building SDL the desired ones of the following
- * would be defined on the cc command line.
+#include <SDL_config.h>
+/* The following is necessary when compiling this file outside of SDL
+ * due to the linux build using a generated SDL_config.h which is not
+ * visible outside SDL. The other platforms use the public SDL_config.h.
  */
-//#define SDL_VIDEO_DRIVER_WAYLAND 0
-//#define SDL_VIDEO_DRIVER_WINDOWS 0
+#if __LINUX__
+#define SDL_VIDEO_DRIVER_WAYLAND 1
 #define SDL_VIDEO_DRIVER_X11 1
+#endif
 
-#if SDL_VIDEO_DRIVER_WINDOWS
+#if SDL_VIDEO_DRIVER_ANDROID
+  #define VK_USE_PLATFORM_ANDROID_KHR
+#elif SDL_VIDEO_DRIVER_COCOA
+  #include <MoltenVk/MoltenVk.h>
+#elif SDL_VIDEO_DRIVER_UIKIT
+  #include <MoltenVk/MoltenVk.h>
+#elif SDL_VIDEO_DRIVER_WINDOWS
   #define VK_USE_PLATFORM_WIN32_KHR
 #else
   #if SDL_VIDEO_DRIVER_WAYLAND
@@ -18,8 +27,8 @@
     #include <X11/Xlib-xcb.h>
   #endif
 #endif
-
 #include <SDL_vulkan.h>
+
 #include <SDL_syswm.h>
 
 static SDL_bool SetNames(unsigned* count, const char** names, unsigned inCount, const char* const* inNames) {
@@ -51,6 +60,10 @@ SDL_bool SDL_GetVulkanInstanceExtensions(unsigned* count, const char** names) {
         const char* ext[] = { VK_KHR_ANDROID_SURFACE_EXTENSION_NAME };
         return SetNames(count, names, 1, ext);
     }
+#endif
+#if SDL_VIDEO_DRIVER_COCOA
+#endif
+#if SDL_VIDEO_DRIVER_UIKIT
 #endif
 #if SDL_VIDEO_DRIVER_WAYLAND
     if (!strcmp(driver, "wayland")) {
