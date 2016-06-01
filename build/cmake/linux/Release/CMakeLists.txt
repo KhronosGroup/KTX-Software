@@ -346,6 +346,14 @@ set_target_properties(testimages PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
+#ktxtests.gyp:libvulkan#target
+set(TARGET "libvulkan")
+set(TOOLSET "target")
+add_custom_target(libvulkan SOURCES)
+set_target_properties(libvulkan PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtests.gyp:libsdl#target
 set(TARGET "libsdl")
 set(TOOLSET "target")
@@ -536,10 +544,12 @@ set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tes
 add_dependencies(vkloadtests__copies
   appfwSDL
   libktx_gl
+  libvulkan
   testimages
   libsdl
 )
 add_dependencies(vkloadtests
+  libvulkan
   testimages
   libsdl
   vkloadtests__copies
