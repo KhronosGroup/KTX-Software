@@ -1,10 +1,13 @@
 ##
 # @internal
-# @copyright © 2015, Mark Callow. For license see LICENSE.md.
+# @copyright © 2016, Mark Callow. For license see LICENSE.md.
 #
-# @brief Generate project file for building KTX loadtests.
+# @brief Generate project file for building KTX loadtests for Vulkan.
 #
 {
+  'includes': [
+    '../../../gyp_include/libvulkan.gypi',
+  ],
   'variables': { # level 1
     # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
     # Keys ending in _file & _dir assumed to be paths and are made relative
@@ -23,15 +26,16 @@
       'type': '<(executable)',
       'mac_bundle': 1,
       'dependencies': [
-	'appfwSDL',
+        'appfwSDL',
         'libktx.gyp:libktx.gl',
+        'libvulkan',
         'testimages'
       ],
       'sources': [
         '../common/at.c',
         '../common/at.h',
-	'VkLoadTests.cpp',
-	'VkLoadTests.h',
+        'VkLoadTests.cpp',
+        'VkLoadTests.h',
         'vksample_02_cube_textured.c',
       ],
       'defines': [
@@ -44,16 +48,16 @@
         'libraries': [ '-lvulkan' ],
       },
       'msvs_settings': {
-	'VCLinkerTool': {
-	  # /SUBSYSTEM:WINDOWS.
-	  'SubSystem': '2',
-	},
+        'VCLinkerTool': {
+          # /SUBSYSTEM:WINDOWS.
+          'SubSystem': '2',
+        },
       },
       'xcode_settings': {
-	'INFOPLIST_FILE': '<(infoplist_file)',
+        'INFOPLIST_FILE': '<(infoplist_file)',
       },
       'conditions': [
-	['OS == "ios"', {
+        ['OS == "ios"', {
           'sources': [
             'resources_ios/Info.plist',
           ],
@@ -67,10 +71,10 @@
             'INFOPLIST_FILE': '<(infoplist_file)',
           },
         }, 'OS == "mac"', {
-	  'sources': [
-	    'resources_mac/Info.plist',
-	  ],
-	}], # OS == "ios" and else clauses
+          'sources': [
+            'resources_mac/Info.plist',
+          ],
+        }], # OS == "ios", etc
       ], # conditions
     }, # vkloadtests
   ], # targets
