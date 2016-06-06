@@ -130,6 +130,9 @@ VkAppSDL::initialize(int argc, char* argv[])
 	    return false;
 	}
 
+	currentBuffer = 0;
+	subOptimalPresentWarned = false;
+
     // Not getting an initial resize event, at least on Mac OS X.
     // Therefore call resize directly.
     
@@ -189,7 +192,84 @@ void
 VkAppSDL::drawFrame(int ticks)
 {
     AppBaseSDL::drawFrame(ticks);
-    //SDL_GL_SwapWindow(pswMainWindow);
+    VkResult U_ASSERT_ONLY err;
+
+    // Wait for work to finish before updating uniforms.
+    vkDeviceWaitIdle(vdDevice);
+
+    const VkCommandBufferBeginInfo cmd_buf_info = {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, 0, 0, 0
+    };
+
+    VkClearValue clear_values;
+      clear_values.color.float32[0] = currentBuffer * 1.f;
+      clear_values.color.float32[1] = .2f;
+      clear_values.color.float32[2] = .2f;
+      clear_values.color.float32[3] = .2f;
+      clear_values.depthStencil = {3.0f, 3};
+
+    const VkRenderPassBeginInfo rp_begin = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        NULL,
+        vrpRenderPass,
+        scBuffers[currentBuffer].fb,
+        { ve2SwapchainExtent.width, ve2SwapchainExtent.height },
+        1,
+        &clear_values,
+    };
+
+    err = vkBeginCommandBuffer(vcbCommandBuffer, &cmd_buf_info);
+    assert(!err);
+
+    vkCmdBeginRenderPass(vcbCommandBuffer, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdEndRenderPass(vcbCommandBuffer);
+
+    VkImageMemoryBarrier present_barrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        NULL,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_ACCESS_MEMORY_READ_BIT,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        scBuffers[currentBuffer].image,
+        { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
+    };
+
+    vkCmdPipelineBarrier(
+        vcbCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        0, 0, NULL, 0, NULL, 1, &present_barrier);
+
+    err = vkEndCommandBuffer(vcbCommandBuffer);
+    assert(!err);
+
+    VkSubmitInfo submit_info = { };
+      submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+      submit_info.commandBufferCount = 1;
+      submit_info.pCommandBuffers = &vcbCommandBuffer;
+
+    err = vkQueueSubmit(vqQueue, 1, &submit_info, VK_NULL_HANDLE);
+    assert(!err);
+
+    VkPresentInfoKHR present = { };
+      present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+      present.swapchainCount = 1;
+      present.pSwapchains = &vscSwapchain;
+      present.pImageIndices = &currentBuffer;
+
+    err = vkQueuePresentKHR(vqQueue, &present);
+    if (err == VK_SUBOPTIMAL_KHR) {
+        if (!subOptimalPresentWarned) {
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
+                                     "Suboptimal present of framebuffer.", NULL);
+        }
+    } else
+        assert(!err);
+
+    err = vkQueueWaitIdle(vqQueue);
+    assert(err == VK_SUCCESS);
+    currentBuffer = (currentBuffer + 1) % swapchainImageCount;
 }
 
 
@@ -238,7 +318,9 @@ VkAppSDL::initializeVulkan()
             && createDevice()
             && createSwapchain()
             && prepareColorBuffers()
-            && prepareDepthBuffer());
+            && prepareDepthBuffer()
+            && prepareRenderPass()
+            && prepareFramebuffers());
 }
 
 
@@ -877,6 +959,130 @@ VkAppSDL::prepareDepthBuffer()
 } // prepareDepthBuffer
 
 
+bool
+VkAppSDL::prepareDescriptorLayout()
+{
+    return true;
+}
+
+
+bool
+VkAppSDL::prepareRenderPass()
+{
+    VkAttachmentDescription attachments[2] = { };
+      attachments[0].format = vfFormat;
+      attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
+      attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+      attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+      attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+      attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+      attachments[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+      attachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+      attachments[1].format = depth.format;
+      attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+      attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+      attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+      attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+      attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+      attachments[1].initialLayout =
+                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+      attachments[1].finalLayout =
+                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    const VkAttachmentReference color_reference = {
+        0,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+    const VkAttachmentReference depth_reference = {
+        1,
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    };
+    const VkSubpassDescription subpass = {
+        0,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        0,
+        NULL,
+        1,
+        &color_reference,
+        NULL,
+        &depth_reference,
+        0,
+        NULL,
+    };
+    const VkRenderPassCreateInfo rp_info = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        NULL,
+        0,
+        2,
+        attachments,
+        1,
+        &subpass,
+        0,
+        NULL,
+    };
+    VkResult U_ASSERT_ONLY err;
+
+    err = vkCreateRenderPass(vdDevice, &rp_info, NULL, &vrpRenderPass);
+    assert(!err);
+    return true;
+}
+
+
+bool
+VkAppSDL::preparePipeline()
+{
+    return true;
+}
+
+
+bool
+VkAppSDL::prepareDescriptorPool()
+{
+    return true;
+
+}
+
+
+bool
+VkAppSDL::prepareDescriptorSet()
+{
+    return true;
+
+}
+
+
+bool
+VkAppSDL::prepareFramebuffers()
+{
+    VkImageView attachments[2];
+    attachments[1] = depth.view;
+
+    const VkFramebufferCreateInfo fb_info = {
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        NULL,
+        0,
+        vrpRenderPass,
+        2,
+        attachments,
+        w_width,
+        w_height,
+        1,
+    };
+    VkResult U_ASSERT_ONLY err;
+    uint32_t i;
+
+    for (i = 0; i < swapchainImageCount; i++) {
+        attachments[0] = scBuffers[i].view;
+        err = vkCreateFramebuffer(vdDevice, &fb_info, NULL,
+                                  &scBuffers[i].fb);
+        assert(!err);
+    }
+
+    return true;
+}
+
+
 void
 VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         VkImageLayout old_image_layout,
@@ -885,8 +1091,8 @@ VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
 {
     VkResult U_ASSERT_ONLY err;
 
-    if (vcbCommand == VK_NULL_HANDLE) {
-        const VkCommandBufferAllocateInfo cmd = {
+    if (vcbCommandBuffer == VK_NULL_HANDLE) {
+        const VkCommandBufferAllocateInfo cbaInfo = {
             VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             NULL,
             vcpCommandPool,
@@ -894,7 +1100,7 @@ VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
             1,
         };
 
-        err = vkAllocateCommandBuffers(vdDevice, &cmd, &vcbCommand);
+        err = vkAllocateCommandBuffers(vdDevice, &cbaInfo, &vcbCommandBuffer);
         assert(!err);
 
         VkCommandBufferInheritanceInfo cmdBufHInfo = { };
@@ -913,7 +1119,7 @@ VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         cmdBufInfo.flags = 0,
         cmdBufInfo.pInheritanceInfo = &cmdBufHInfo,
 
-        err = vkBeginCommandBuffer(vcbCommand, &cmdBufInfo);
+        err = vkBeginCommandBuffer(vcbCommandBuffer, &cmdBufInfo);
         assert(!err);
     }
 
@@ -957,9 +1163,9 @@ VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
     VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-    vkCmdPipelineBarrier(vcbCommand, src_stages, dest_stages, 0, 0, NULL, 0,
+    vkCmdPipelineBarrier(vcbCommandBuffer, src_stages, dest_stages, 0, 0, NULL, 0,
                          NULL, 1, pMemoryBarrier);
-}
+} // setImageLayout
 
 
 //----------------------------------------------------------------------
@@ -1023,8 +1229,8 @@ VkAppSDL::debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
                     uint64_t srcObject, size_t location, int32_t msgCode,
                     const char *pLayerPrefix, const char *pMsg, void *pUserData) {
     VkAppSDL* app = (VkAppSDL*)pUserData;
-    app->debugFunc(msgFlags, objType, srcObject, location, msgCode,
-                   pLayerPrefix, pMsg);
+    return app->debugFunc(msgFlags, objType, srcObject, location, msgCode,
+                          pLayerPrefix, pMsg);
 }
 
 

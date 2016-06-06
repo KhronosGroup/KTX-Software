@@ -38,8 +38,8 @@
         'VkLoadTests.h',
         'vksample_02_cube_textured.c',
       ],
-      'defines': [
-      ],
+      'cflags': [ '-std=c++11' ],
+      'defines': [ ],
       'include_dirs': [
         '../common',
         '../geom',

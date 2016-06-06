@@ -26,6 +26,7 @@
         'VkAppSDL.cpp',
         'VkAppSDL.h',
       ],
+      'cflags': [ '-std=c++11' ],
       'dependencies': [ 'libsdl' ],
       'direct_dependent_settings': {
         'include_dirs': [ '.' ],
