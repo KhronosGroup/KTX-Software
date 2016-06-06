@@ -85,6 +85,13 @@ class VkAppSDL : public AppBaseSDL {
     bool initializeVulkan();
     bool prepareColorBuffers();
     bool prepareDepthBuffer();
+    bool prepareDescriptorLayout();
+    bool prepareRenderPass();
+    bool preparePipeline();
+    bool prepareDescriptorPool();
+    bool prepareDescriptorSet();
+    bool prepareFramebuffers();
+
     bool setupDebugReporting();
     void setWindowTitle(const char* const szExtra);
 
@@ -112,6 +119,7 @@ class VkAppSDL : public AppBaseSDL {
         VkImage image;
         VkCommandBuffer cmd;
         VkImageView view;
+        VkFramebuffer fb;
     } SwapchainBuffers;
 
     typedef struct _DepthBuffer {
@@ -129,6 +137,7 @@ class VkAppSDL : public AppBaseSDL {
 
 	uint32_t enabledExtensionCount;
 	uint32_t enabledLayerCount;
+	bool subOptimalPresentWarned;
 	bool validate;
 
     const char* extensionNames[64];
@@ -137,7 +146,7 @@ class VkAppSDL : public AppBaseSDL {
     uint32_t vkQueueFamilyIndex;
 
     VkColorSpaceKHR vcsColorSpace;
-    VkCommandBuffer vcbCommand; // Buffer for initialization commands
+    VkCommandBuffer vcbCommandBuffer;
     VkCommandPool vcpCommandPool;
     VkDevice vdDevice;
     VkFormat vfFormat;
@@ -146,6 +155,7 @@ class VkAppSDL : public AppBaseSDL {
     VkPhysicalDeviceMemoryProperties memoryProperties;
     VkInstance viInstance;
     VkQueue vqQueue;
+    VkRenderPass vrpRenderPass;
     VkSurfaceKHR vsSurface;
 
     PFN_vkGetPhysicalDeviceSurfaceSupportKHR
@@ -163,6 +173,7 @@ class VkAppSDL : public AppBaseSDL {
     PFN_vkAcquireNextImageKHR pfnAcquireNextImageKHR;
     PFN_vkQueuePresentKHR pfnQueuePresentKHR;
     uint32_t swapchainImageCount;
+    uint32_t currentBuffer;
     VkSwapchainKHR vscSwapchain;
     SwapchainBuffers* scBuffers;
     VkExtent2D ve2SwapchainExtent;

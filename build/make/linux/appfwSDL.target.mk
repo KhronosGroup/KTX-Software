@@ -8,6 +8,7 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
+	-std=c++11 \
 	-Og \
 	-g
 
@@ -27,6 +28,7 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
+	-std=c++11 \
 	-O3
 
 # Flags passed to only C files.
