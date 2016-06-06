@@ -52,8 +52,8 @@
 #include <GLES/glext.h>
 #include <ktx.h>
 
-#include "../common/at.h"
-#include "../data/frame.h"
+#include "at.h"
+#include "frame.h"
 
 /* ----------------------------------------------------------------------------- */
 

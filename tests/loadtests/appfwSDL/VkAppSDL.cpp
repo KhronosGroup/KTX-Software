@@ -103,7 +103,7 @@ VkAppSDL::initialize(int argc, char* argv[])
 	}
 	if (!AppBaseSDL::initialize(argc2, argv2))
 		return false;
-	delete argv2;
+	delete[] argv2;
 
 #if defined(DEBUG)
 	validate = true;
@@ -206,7 +206,8 @@ VkAppSDL::drawFrame(int ticks)
       clear_values.color.float32[1] = .2f;
       clear_values.color.float32[2] = .2f;
       clear_values.color.float32[3] = .2f;
-      clear_values.depthStencil = {3.0f, 3};
+      clear_values.depthStencil.depth = .0f;
+      clear_values.depthStencil.stencil = 0;
 
     const VkRenderPassBeginInfo rp_begin = {
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -1264,7 +1265,7 @@ VkAppSDL::debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
     (void)SDL_ShowSimpleMessageBox(
         SDL_MESSAGEBOX_WARNING, title.c_str(), message, NULL
     );
-    delete message;
+    delete[] message;
 
     /*
      * false indicates that layer should not bail-out of an

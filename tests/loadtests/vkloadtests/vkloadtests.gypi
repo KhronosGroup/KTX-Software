@@ -6,7 +6,7 @@
 #
 {
   'includes': [
-    '../../../gyp_include/libvulkan.gypi',
+#    '../../../gyp_include/libvulkan.gypi',
   ],
   'variables': { # level 1
     # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
@@ -44,9 +44,6 @@
         '../common',
         '../geom',
       ],
-      'link_settings': {
-        'libraries': [ '-lvulkan' ],
-      },
       'msvs_settings': {
         'VCLinkerTool': {
           # /SUBSYSTEM:WINDOWS.
