@@ -13,9 +13,11 @@
 #if SDL_VIDEO_DRIVER_ANDROID
   #define VK_USE_PLATFORM_ANDROID_KHR
 #elif SDL_VIDEO_DRIVER_COCOA
-  #include <MoltenVk/MoltenVk.h>
+  #define VK_USE_PLATFORM_OSX_MVK
+  #include <MoltenVK/vk_mvk_osx_surface.h>
 #elif SDL_VIDEO_DRIVER_UIKIT
-  #include <MoltenVk/MoltenVk.h>
+  #define VK_USE_PLATFORM_IOS_MVK
+  #include <MoltenVK/vk_mvk_ios_surface.h>
 #elif SDL_VIDEO_DRIVER_WINDOWS
   #define VK_USE_PLATFORM_WIN32_KHR
 #else
@@ -124,6 +126,48 @@ SDL_bool SDL_CreateVulkanSurface(SDL_Window* window, VkInstance instance, VkSurf
         }
         return SDL_TRUE;
    }
+#endif
+#if SDL_VIDEO_DRIVER_UIKIT
+    case SDL_SYSWM_UIKIT:
+    {
+        VkIOSSurfaceCreateInfoMVK createInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK;
+        createInfo.pNext = NULL;
+        createInfo.flags = 0;
+        // XXX Must be a reference to a UIView object and the UIView must be
+        // backed by a CALayer instance of type CAMetalLayer.
+        // Doing this requires work in SDL...
+        createInfo.pView = wminfo.info.uikit.window;
+        
+        VkResult r =
+        vkCreateIOSSurfaceMVK(instance, &createInfo, NULL, surface);
+        if (r != VK_SUCCESS) {
+            SDL_SetError("vkCreateIOSSurfaceMVK failed: %i", (int)r);
+            return SDL_FALSE;
+        }
+        return SDL_TRUE;
+    }
+#endif
+#if SDL_VIDEO_DRIVER_COCOA
+    case SDL_SYSWM_COCOA:
+    {
+        VkOSXSurfaceCreateInfoMVK createInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_OSX_SURFACE_CREATE_INFO_MVK;
+        createInfo.pNext = NULL;
+        createInfo.flags = 0;
+        // XXX Must be a reference to an NSView object and the NSView must be
+        // backed by a CALayer instance of type CAMetalLayer.
+        // Doing this requires work in SDL...
+        createInfo.pView = wminfo.info.cocoa.window;
+        
+        VkResult r =
+        vkCreateOSXSurfaceMVK(instance, &createInfo, NULL, surface);
+        if (r != VK_SUCCESS) {
+            SDL_SetError("vkCreateOSXSurfaceMVK failed: %i", (int)r);
+            return SDL_FALSE;
+        }
+        return SDL_TRUE;
+    }
 #endif
 #if SDL_VIDEO_DRIVER_WINDOWS
     case SDL_SYSWM_WINDOWS:

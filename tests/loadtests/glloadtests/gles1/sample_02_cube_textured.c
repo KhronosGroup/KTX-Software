@@ -49,9 +49,9 @@
 #include <ktx.h>
 #include <math.h>
 
-#include "../common/at.h"
+#include "at.h"
 
-#include "../data/cube.h"
+#include "cube.h"
 
 #if defined(_WIN32)
 #define snprintf _snprintf

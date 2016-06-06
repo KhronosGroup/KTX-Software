@@ -7,6 +7,7 @@
 {
   'includes': [
      '../../../gyp_include/libsdl.gypi',
+     '../../../gyp_include/libvulkan.gypi',
   ],
   'targets': [
     {
@@ -27,13 +28,16 @@
         'VkAppSDL.h',
       ],
       'cflags': [ '-std=c++11' ],
-      'dependencies': [ 'libsdl' ],
+      #      'xcode_settings': {
+          
+          #      }
+      'dependencies': [ 'libsdl', 'vulkan_headers' ],
       'direct_dependent_settings': {
         'include_dirs': [ '.' ],
       },
       'export_dependent_settings': [ 'libsdl' ],
-      # These are so SDL_vulkan.c will compile without changes
-      # from how it needs to be to be included in SDL source.
+      # This is so SDL_vulkan.c will compile without changes
+      # from how it will be when eventually included in SDL source.
       'include_dirs': [
         '.',
         '../../../other_include/SDL2',
