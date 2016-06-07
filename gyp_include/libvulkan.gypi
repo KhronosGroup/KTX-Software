@@ -24,7 +24,7 @@
             # For the Vulkan includes
             '/Users/mark/Molten-0.12.0/MoltenVK/include',
           ],
-            'mac_framework_dirs': [
+          'mac_framework_dirs': [
             '/Users/mark/Molten-0.12.0/MoltenVK/<(fwdir)'
           ],
         },
@@ -43,8 +43,9 @@
         'link_settings': {
           'libraries': [
             'MoltenVK.framework',
-            'libc++.tbd',
+            'libc++.dylib',
             'Metal.framework',
+            'QuartzCore.framework'
           ],
           'library_dirs': [ ],
           'mac_framework_dirs': [

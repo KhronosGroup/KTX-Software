@@ -127,7 +127,9 @@
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
           'TARGETED_DEVICE_FAMILY': '1,2',
         }, 'OS == "mac"', {
-          'MACOSX_DEPLOYMENT_TARGET': '10.9',
+          # For Metal (Vulkan) compatibility. Also needed should
+          # GL 4.1 or ARB_ES2_compatibility be required.
+          'MACOSX_DEPLOYMENT_TARGET': '10.9', #.7',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
