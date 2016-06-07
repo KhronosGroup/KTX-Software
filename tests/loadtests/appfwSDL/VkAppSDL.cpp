@@ -357,7 +357,8 @@ VkAppSDL::createInstance()
 
         instanceValidationLayers = instanceValidationLayers_alt1;
         if (instanceLayerCount > 0) {
-            VkLayerProperties instanceLayers[instanceLayerCount];
+            VkLayerProperties* instanceLayers
+                = new VkLayerProperties[instanceLayerCount];
             err = vkEnumerateInstanceLayerProperties(&instanceLayerCount,
                                                      instanceLayers);
             assert(err == VK_SUCCESS);
@@ -384,6 +385,7 @@ VkAppSDL::createInstance()
                     deviceValidationLayers[i] = instanceValidationLayers[i];
                 }
             }
+            delete [] instanceLayers;
         }
 
         if (!validationFound) {
@@ -462,7 +464,8 @@ VkAppSDL::createInstance()
             err = vkEnumerateInstanceExtensionProperties(NULL,
                                                          &instanceExtensionCount,
                                                          NULL);
-            VkExtensionProperties instanceExtensions[instanceExtensionCount];
+            VkExtensionProperties* instanceExtensions
+                = new VkExtensionProperties[instanceExtensionCount];
 
             assert(err == VK_SUCCESS);
             if (instanceExtensionCount > 0) {
@@ -484,6 +487,7 @@ VkAppSDL::createInstance()
                 }
             }
             msg << "\nMake sure your layers path is set appropriately.";
+            delete [] instanceExtensions;
        } else {
             msg << "vkCreateInstance: unexpected failure, code = "
                 << err << ".\n\nDo you have a compatible Vulkan "
@@ -515,12 +519,13 @@ VkAppSDL::findGpu()
     assert(err == VK_SUCCESS && gpuCount > 0);
 
     if (gpuCount > 0) {
-        VkPhysicalDevice gpus[gpuCount];
+        VkPhysicalDevice *gpus = new VkPhysicalDevice[gpuCount];
         err = vkEnumeratePhysicalDevices(viInstance, &gpuCount, gpus);
         assert(err == VK_SUCCESS);
         // For now just grab the first physical device */
         vpdGpu = gpus[0];
         //vkGetPhysicalDeviceProperties(vpdGpu, &vpdpGpuProperties);
+        delete [] gpus;
     } else {
         vpdGpu = VK_NULL_HANDLE;
 
@@ -605,7 +610,8 @@ VkAppSDL::findQueue()
     // Retrieve no. of supported queues.
     vkGetPhysicalDeviceQueueFamilyProperties(vpdGpu, &queueCount, NULL);
     // Retrieve queue properties
-    VkQueueFamilyProperties queueProps[queueCount];
+    VkQueueFamilyProperties* queueProps
+        = new VkQueueFamilyProperties[queueCount];
     vkGetPhysicalDeviceQueueFamilyProperties(vpdGpu, &queueCount, queueProps);
     assert(queueCount >= 1);
 
@@ -618,6 +624,7 @@ VkAppSDL::findQueue()
             break;
         }
     }
+    delete [] queueProps;
     if (vkQueueFamilyIndex == UINT32_MAX) {
         ERROR_RETURN("Could not find a graphics- and a present-capable Vulkan queue.")
     }
@@ -674,7 +681,8 @@ VkAppSDL::createDevice()
                                                        NULL,
                                                        &deviceExtensionCount,
                                                        NULL);
-            VkExtensionProperties deviceExtensions[deviceExtensionCount];
+            VkExtensionProperties* deviceExtensions
+                = new VkExtensionProperties[deviceExtensionCount];
 
             assert(err == VK_SUCCESS);
             if (deviceExtensionCount > 0) {
@@ -698,6 +706,7 @@ VkAppSDL::createDevice()
             }
             msg << "\n\nDo you have a compatible Vulkan "
                    "installable client driver (ICD) installed?";
+            delete [] deviceExtensions;
        } else {
             msg << "vkCreateDevice: unexpected failure, result code = ";
             msg << err << ".";
@@ -737,7 +746,7 @@ VkAppSDL::createSwapchain()
     err = vkGetPhysicalDeviceSurfaceFormatsKHR(vpdGpu, vsSurface, &formatCount, NULL);
     assert(!err);
 
-    VkSurfaceFormatKHR formats[formatCount];
+    VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
     err = vkGetPhysicalDeviceSurfaceFormatsKHR(vpdGpu, vsSurface, &formatCount, formats);
     assert(!err);
 
@@ -768,9 +777,10 @@ VkAppSDL::createSwapchain()
     err = vkGetPhysicalDeviceSurfacePresentModesKHR(vpdGpu, vsSurface,
                                                     &presentModeCount, NULL);
     assert(!err);
-    VkPresentModeKHR presentModes[presentModeCount];
+    VkPresentModeKHR* presentModes = new VkPresentModeKHR[presentModeCount];
     err = vkGetPhysicalDeviceSurfacePresentModesKHR(vpdGpu, vsSurface,
-                                                    &presentModeCount, presentModes);
+                                                    &presentModeCount,
+                                                    presentModes);
     assert(!err);
 
     // If mailbox mode is available, use it, as is the lowest-latency non-
@@ -823,6 +833,9 @@ VkAppSDL::createSwapchain()
     err = vkCreateSwapchainKHR(vdDevice, &swapchainInfo, NULL, &vscSwapchain);
     assert(!err);
 
+    delete [] formats;
+    delete [] presentModes;
+
     return true;
 } // createSwapchain
 
@@ -837,7 +850,7 @@ VkAppSDL::prepareColorBuffers()
                                   &imageCountTmp,
                                   NULL);
     imageCountTmp = swapchainImageCount;
-    VkImage swapchainImages[swapchainImageCount];
+    VkImage* swapchainImages = new VkImage[swapchainImageCount];
     // XXX Note this changes swapChainImageCount to 4 even though the
     // value passed in in 3, yet it returns VK_SUCCESS not VK_INCOMPLETE.
     err = vkGetSwapchainImagesKHR(vdDevice, vscSwapchain,
@@ -874,6 +887,7 @@ VkAppSDL::prepareColorBuffers()
         assert(!err);
     }
 
+    delete [] swapchainImages;
     return true;
 } // prepareColorBuffers
 
