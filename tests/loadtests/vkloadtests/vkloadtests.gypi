@@ -51,6 +51,8 @@
         },
       },
       'xcode_settings': {
+        'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
+        'GCC_C_LANGUAGE_STANDARD': 'c99',
         'INFOPLIST_FILE': '<(infoplist_file)',
       },
       'conditions': [

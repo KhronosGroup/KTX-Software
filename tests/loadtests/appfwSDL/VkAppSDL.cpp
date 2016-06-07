@@ -214,7 +214,7 @@ VkAppSDL::drawFrame(int ticks)
         NULL,
         vrpRenderPass,
         scBuffers[currentBuffer].fb,
-        { ve2SwapchainExtent.width, ve2SwapchainExtent.height },
+        { static_cast<int32_t>(ve2SwapchainExtent.width), static_cast<int32_t>(ve2SwapchainExtent.height) },
         1,
         &clear_values,
     };
@@ -1066,8 +1066,8 @@ VkAppSDL::prepareFramebuffers()
         vrpRenderPass,
         2,
         attachments,
-        w_width,
-        w_height,
+        static_cast<uint32_t>(w_width),
+        static_cast<uint32_t>(w_height),
         1,
     };
     VkResult U_ASSERT_ONLY err;

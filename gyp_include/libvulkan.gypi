@@ -5,39 +5,32 @@
 # @brief Target for adding dependency on Vulkan.
 #
 {
+  'variables': {
+    'conditions': [
+      ['OS == "ios"', {
+        'fwdir': 'iOS'
+      }, 'OS == "mac"', {
+        'fwdir': 'OSX'
+      }]
+    ], # conditions
+  }, # variables
   'targets': [{
     'target_name': 'vulkan_headers',
     'type': 'none',
     'conditions': [
-      ['OS == "ios"', {
+      ['OS == "ios" or OS == "mac"', {
         'direct_dependent_settings': {
           'include_dirs': [
             # For the Vulkan includes
             '/Users/mark/Molten-0.12.0/MoltenVK/include',
           ],
             'mac_framework_dirs': [
-            '/Users/mark/Molten-0.12.0/MoltenVK/iOS'
-          ],
-        },
-      }, 'OS == "mac"', {
-        'direct_dependent_settings': {
-          'include_dirs': [
-            # For the Vulkan includes
-            '/Users/mark/Molten-0.12.0/MoltenVK/include',
-          ],
-          'mac_framework_dirs': [
-            '/Users/mark/Molten-0.12.0/MoltenVK/iOS'
-          ],
-        },
-      }, 'OS == "win"', {
-        'direct_dependent_settings': {
-          'include_dirs': [
-            'somewhere',
+            '/Users/mark/Molten-0.12.0/MoltenVK/<(fwdir)'
           ],
         },
       #}, {
         # In /usr/include on Linux so nothing needed.
-      }] # OS == 'ios', etc
+      }] # OS == 'ios' or OS == 'mac', etc
     ], # conditions
   }, # vulkan_headers target
   {
@@ -46,7 +39,7 @@
     'dependencies': [ 'vulkan_headers' ],
     'export_dependent_settings': [ 'vulkan_headers' ],
     'conditions': [
-      ['OS == "ios"', {
+      ['OS == "ios" or OS == "mac"', {
         'link_settings': {
           'libraries': [
             'MoltenVK.framework',
@@ -55,19 +48,7 @@
           ],
           'library_dirs': [ ],
           'mac_framework_dirs': [
-            '/Users/mark/Molten-0.12.0/MoltenVK/iOS'
-          ],
-        },
-      }, 'OS == "mac"', {
-        'link_settings': {
-          'libraries': [
-            'MoltenVK.framework',
-            'libc++.tbd',
-            'Metal.framework',
-          ],
-          'library_dirs': [ ],
-          'mac_framework_dirs': [
-            '/Users/mark/Molten-0.12.0/MoltenVK/iOS'
+            '/Users/mark/Molten-0.12.0/MoltenVK/<(fwdir)'
           ],
         },
       }, 'OS == "win"', {
@@ -87,7 +68,7 @@
         'link_settings': {
          'libraries': [ '-lvulkan' ],
         },
-      }] # OS == 'ios', etc
+      }] # OS == 'ios' or OS == "mac", etc
     ], # conditions
   }], # libvulkan target & targets
 }

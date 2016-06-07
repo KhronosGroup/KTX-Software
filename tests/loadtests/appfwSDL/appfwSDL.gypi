@@ -28,9 +28,6 @@
         'VkAppSDL.h',
       ],
       'cflags': [ '-std=c++11' ],
-      #      'xcode_settings': {
-          
-          #      }
       'dependencies': [ 'libsdl', 'vulkan_headers' ],
       'direct_dependent_settings': {
         'include_dirs': [ '.' ],
@@ -52,15 +49,16 @@
             'libraries': [ '-lX11-xcb' ],
           }],
         ],
-      }, 
-
-      # Ideally we should create a 'link_settings' here to set
-      # "-s NO_EXIT_RUNTIME" here for Emscripten for html5 since the
-      # no-loop framework needs the runtime to keep running when main
-      # exits, but, as ldflags & VCLinker.AdditionalOptions are
-      # strings, any setting made here will overwrite any settings
-      # made by the application. Defer to the app for setting this.
-
+        # Ideally we should include in this 'link_settings' setting of
+        # "-s NO_EXIT_RUNTIME" for Emscripten for html5 since the
+        # no-loop framework needs the runtime to keep running when main
+        # exits, but, as ldflags & VCLinker.AdditionalOptions are
+        # strings, any setting made here will overwrite any settings
+        # made by the application. Defer to the app for setting this.
+      },
+      'xcode_settings': {
+        'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
+      }
     } # target appfwSDL
   ] #targets
 }
