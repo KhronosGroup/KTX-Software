@@ -107,7 +107,7 @@
           'IPHONEOS_DEPLOYMENT_TARGET': '7.0',
         }, 'OS == "mac"', {
           # If need GL 4.1 or ARB_ES2_compatibility, bump to 10.9
-          'MACOSX_DEPLOYMENT_TARGET': '10.5',
+          'MACOSX_DEPLOYMENT_TARGET': '10.7', #.5',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
            'COMBINE_HIDPI_IMAGES': 'YES',
         }],

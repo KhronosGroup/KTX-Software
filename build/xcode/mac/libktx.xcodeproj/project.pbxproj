@@ -578,7 +578,7 @@
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Release;
@@ -596,7 +596,7 @@
 					_DEBUG,
 				);
 				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = libgl;
 			};
 			name = Debug;
@@ -611,7 +611,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = libktx.doc;
 			};
 			name = Release;
@@ -645,7 +645,7 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = ktx.es1;
 			};
 			name = Release;
@@ -667,7 +667,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = libgl;
 			};
 			name = Release;
@@ -697,7 +697,7 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = ktx.es3;
 			};
 			name = Release;
@@ -733,7 +733,7 @@
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Debug;
@@ -757,7 +757,7 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = ktx.es3;
 			};
 			name = Debug;
@@ -775,7 +775,7 @@
 					_DEBUG,
 				);
 				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = libktx.doc;
 			};
 			name = Debug;
@@ -799,7 +799,7 @@
 					include,
 					other_include,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = ktx.es1;
 			};
 			name = Debug;
