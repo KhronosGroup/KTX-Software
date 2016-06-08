@@ -62,6 +62,8 @@
               '$(SDKROOT)/System/Library/Frameworks/CoreMotion.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
               '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+              # On iOS SDL statically links OpenGL ES.
+              '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
              ],
           },
         }], # OS == "ios"
