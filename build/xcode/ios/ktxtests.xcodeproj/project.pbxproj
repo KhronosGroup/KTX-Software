@@ -184,6 +184,7 @@
 		A69DE4BC6B4CA5DF70190ADE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 96D8712AD0F4B8B5BF74629F /* LaunchScreen.storyboard */; };
 		A755AE2C61BC2AD3C75A947D /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C64420EDFCCC9D13D9DE2C86 /* AudioToolbox.framework */; };
 		A803DD6F1B54918F31E684A3 /* hi_mark.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 94DD1C49F443105D08BF84A6 /* hi_mark.ktx */; };
+		AF9B500FF9DC6CFDE210B89D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4064762A5A368ADCC9CC334F /* OpenGLES.framework */; };
 		B82ECA493C5C6F430CE798E7 /* rgb-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 950C8C60F3478061F24DC0B5 /* rgb-reference.ktx */; };
 		BA2D6D5DEB9C842847759C0A /* rgb-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 950C8C60F3478061F24DC0B5 /* rgb-reference.ktx */; };
 		BC32E55F38AE34B9E6EAFE1D /* LoadTestsGL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5735D01818F495716D84DE34 /* LoadTestsGL3.cpp */; };
@@ -671,11 +672,11 @@
 				8653F09076BC1C4EC5D6DBCA /* CoreMotion.framework in Frameworks */,
 				8CB8380450B17469D9CD4732 /* CoreGraphics.framework in Frameworks */,
 				73E8C4B6621EB745830AC4DD /* QuartzCore.framework in Frameworks */,
+				2CE5C2B241C1F8F1890418B6 /* OpenGLES.framework in Frameworks */,
 				A755AE2C61BC2AD3C75A947D /* AudioToolbox.framework in Frameworks */,
 				A3E9122BF8C0A77BE8940D88 /* CoreAudio.framework in Frameworks */,
 				0B29DF4975C40C7D8A7CF4B2 /* Foundation.framework in Frameworks */,
 				C61C7B5D8B6C5AAA87B7CA8D /* GameController.framework in Frameworks */,
-				2CE5C2B241C1F8F1890418B6 /* OpenGLES.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -690,11 +691,11 @@
 				6FA5C3E614B16358B8A2AA07 /* CoreMotion.framework in Frameworks */,
 				F3A5F4BE38217347996D5ABF /* CoreGraphics.framework in Frameworks */,
 				8E031B378D377665BE12CFBE /* QuartzCore.framework in Frameworks */,
+				22D74B1B4C014397F1D9B58D /* OpenGLES.framework in Frameworks */,
 				47E1CA38CCDE6A4F19BCD7D1 /* AudioToolbox.framework in Frameworks */,
 				C23E55D5E93EBFFED480398F /* CoreAudio.framework in Frameworks */,
 				F939B99AFAFFD2BBB149AFA9 /* Foundation.framework in Frameworks */,
 				5CC0E74214F72FD9846D0EC5 /* GameController.framework in Frameworks */,
-				22D74B1B4C014397F1D9B58D /* OpenGLES.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -716,6 +717,7 @@
 				FE6A04B4AF4C9993EC06E4DB /* CoreMotion.framework in Frameworks */,
 				D0325C41CEA6F4FAE6383FBE /* CoreGraphics.framework in Frameworks */,
 				167BFC780674AD1A92A113D9 /* QuartzCore.framework in Frameworks */,
+				AF9B500FF9DC6CFDE210B89D /* OpenGLES.framework in Frameworks */,
 				0CE9B0E0ED3EC22777FFB068 /* AudioToolbox.framework in Frameworks */,
 				009E1359FC36E980F2C0FA1C /* CoreAudio.framework in Frameworks */,
 				64F9125B42B81C37B31016D3 /* Foundation.framework in Frameworks */,
