@@ -1382,7 +1382,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = vulkan_headers;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1399,7 +1399,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = "/Users/mark/Molten-0.12.0/MoltenVK/include";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libvulkan;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1417,7 +1417,7 @@
 					_DEBUG,
 				);
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1480,7 +1480,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libsdl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1508,7 +1508,7 @@
 					_DEBUG,
 				);
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = testimages;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1564,7 +1564,7 @@
 					_DEBUG,
 				);
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = vulkan_headers;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1596,7 +1596,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1623,7 +1623,7 @@
 				);
 				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = "/Users/mark/Molten-0.12.0/MoltenVK/include";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libvulkan;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1638,7 +1638,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = testimages;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1664,7 +1664,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1686,7 +1686,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1704,7 +1704,7 @@
 					_DEBUG,
 				);
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1719,7 +1719,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1748,7 +1748,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1793,7 +1793,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1824,7 +1824,7 @@
 					other_include,
 					"/Users/mark/Molten-0.12.0/MoltenVK/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = appfwSDL;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1842,7 +1842,7 @@
 					_DEBUG,
 				);
 				GCC_WARN_PEDANTIC = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libsdl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1869,7 +1869,7 @@
 					other_include,
 					"/Users/mark/Molten-0.12.0/MoltenVK/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = appfwSDL;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

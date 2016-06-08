@@ -104,7 +104,7 @@
           # 1 = iPhone/iPod Touch; 2 = iPad
           'TARGETED_DEVICE_FAMILY': '1,2',
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
-          'IPHONEOS_DEPLOYMENT_TARGET': '7.0',
+          'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
         }, 'OS == "mac"', {
           # If need GL 4.1 or ARB_ES2_compatibility, bump to 10.9
           'MACOSX_DEPLOYMENT_TARGET': '10.7', #.5',
