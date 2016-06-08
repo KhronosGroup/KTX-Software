@@ -125,7 +125,6 @@
           # 1 = iPhone/iPod Touch; 2 = iPad
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
-          'TARGETED_DEVICE_FAMILY': '1,2',
         }, 'OS == "mac"', {
           # For Metal (Vulkan) compatibility. Also needed should
           # GL 4.1 or ARB_ES2_compatibility be required.
