@@ -82,6 +82,7 @@ class VkAppSDL : public AppBaseSDL {
     bool createSwapchain();
     bool findGpu();
     bool findQueue();
+    void flushInitialCommands();
     bool initializeVulkan();
     bool prepareColorBuffers();
     bool prepareDepthBuffer();

@@ -118,7 +118,7 @@ VkAppSDL::initialize(int argc, char* argv[])
                         SDL_WINDOWPOS_UNDEFINED,
                         SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
-                        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+                        SDL_WINDOW_RESIZABLE
                     );
 
     if (pswMainWindow == NULL) {
@@ -195,32 +195,94 @@ VkAppSDL::drawFrame(int ticks)
     VkResult U_ASSERT_ONLY err;
 
     // Wait for work to finish before updating uniforms.
+    // XXX Is this really necessary? Doesn't it stall the pipeline?
     vkDeviceWaitIdle(vdDevice);
 
+    VkSemaphore presentCompleteSemaphore;
+    VkSemaphoreCreateInfo scInfo = {
+        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        NULL,
+        0,
+    };
+    //VkFence nullFence = VK_NULL_HANDLE;
+
+    err = vkCreateSemaphore(vdDevice, &scInfo,
+                            NULL, &presentCompleteSemaphore);
+    assert(!err);
+
+    // Get the index of the next available swapchain image:
+    err = vkAcquireNextImageKHR(vdDevice, vscSwapchain, UINT64_MAX,
+                                presentCompleteSemaphore,
+                                (VkFence)0,
+                                &currentBuffer);
+    if (err == VK_ERROR_OUT_OF_DATE_KHR) {
+        // Swap chain is out of date (e.g. the window was resized).
+        // Re-create it.
+        //resize();
+        //draw(demo);
+        vkDestroySemaphore(vdDevice, presentCompleteSemaphore, NULL);
+        return;
+    } else if (err == VK_SUBOPTIMAL_KHR) {
+        // demo->swapchain is not as optimal as it could be, but the platform's
+        // presentation engine will still present the image correctly.
+    } else {
+        assert(!err);
+    }
+
+    // XXX This should undoubtedly be moved somewhere else.
+    // Is a command buffer per swap chain buffer necessary? Let's try without.
+    if (vcbCommandBuffer == VK_NULL_HANDLE) {
+        VkCommandBufferAllocateInfo aInfo;
+        aInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        aInfo.pNext = NULL;
+        aInfo.commandPool = vcpCommandPool;
+        aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        aInfo.commandBufferCount = 1;
+
+        err = vkAllocateCommandBuffers(vdDevice, &aInfo, &vcbCommandBuffer);
+        assert(!err);
+    }
+
     const VkCommandBufferBeginInfo cmd_buf_info = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, 0, 0, 0
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
     };
 
-    VkClearValue clear_values;
-      clear_values.color.float32[0] = currentBuffer * 1.f;
-      clear_values.color.float32[1] = .2f;
-      clear_values.color.float32[2] = .2f;
-      clear_values.color.float32[3] = .2f;
-      clear_values.depthStencil.depth = .0f;
-      clear_values.depthStencil.stencil = 0;
+    VkClearValue clear_values[2] = {
+       { currentBuffer * 1.f, 0.2f, 0.2f, 1.0f },
+       { 0.0f, 0 }
+    };
 
     const VkRenderPassBeginInfo rp_begin = {
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         NULL,
         vrpRenderPass,
         scBuffers[currentBuffer].fb,
-        { static_cast<int32_t>(ve2SwapchainExtent.width), static_cast<int32_t>(ve2SwapchainExtent.height) },
-        1,
-        &clear_values,
+        { 0, 0, ve2SwapchainExtent.width, ve2SwapchainExtent.height },
+        2,
+        clear_values,
     };
 
     err = vkBeginCommandBuffer(vcbCommandBuffer, &cmd_buf_info);
     assert(!err);
+
+    // We can use LAYOUT_UNDEFINED as a wildcard here because we don't care what
+    // happens to the previous contents of the image
+    VkImageMemoryBarrier image_memory_barrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        NULL,
+        0,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        scBuffers[currentBuffer].image,
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+    };
+    vkCmdPipelineBarrier(vcbCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         0, 0, NULL, 0,
+                         NULL, 1, &image_memory_barrier);
 
     vkCmdBeginRenderPass(vcbCommandBuffer, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdEndRenderPass(vcbCommandBuffer);
@@ -237,18 +299,30 @@ VkAppSDL::drawFrame(int ticks)
         scBuffers[currentBuffer].image,
         { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
     };
+    present_barrier.image = scBuffers[currentBuffer].image;
 
     vkCmdPipelineBarrier(
-        vcbCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        vcbCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
         0, 0, NULL, 0, NULL, 1, &present_barrier);
 
     err = vkEndCommandBuffer(vcbCommandBuffer);
     assert(!err);
 
-    VkSubmitInfo submit_info = { };
+
+    VkPipelineStageFlags pipe_stage_flags =
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    VkSubmitInfo submit_info;
       submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+      submit_info.pNext = NULL;
+      submit_info.waitSemaphoreCount = 1;
+      submit_info.pWaitSemaphores = &presentCompleteSemaphore,
+      submit_info.pWaitDstStageMask = &pipe_stage_flags,
       submit_info.commandBufferCount = 1;
       submit_info.pCommandBuffers = &vcbCommandBuffer;
+      submit_info.pWaitDstStageMask = &pipe_stage_flags,
+      submit_info.signalSemaphoreCount = 0;
+      submit_info.pSignalSemaphores = NULL;
 
     err = vkQueueSubmit(vqQueue, 1, &submit_info, VK_NULL_HANDLE);
     assert(!err);
@@ -260,7 +334,11 @@ VkAppSDL::drawFrame(int ticks)
       present.pImageIndices = &currentBuffer;
 
     err = vkQueuePresentKHR(vqQueue, &present);
-    if (err == VK_SUBOPTIMAL_KHR) {
+    if (err == VK_ERROR_OUT_OF_DATE_KHR) {
+        // demo->swapchain is out of date (e.g. the window was resized) and
+        // must be recreated:
+        //resize();
+    } else if (err == VK_SUBOPTIMAL_KHR) {
         if (!subOptimalPresentWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
                                      "Suboptimal present of framebuffer.", NULL);
@@ -270,7 +348,8 @@ VkAppSDL::drawFrame(int ticks)
 
     err = vkQueueWaitIdle(vqQueue);
     assert(err == VK_SUCCESS);
-    currentBuffer = (currentBuffer + 1) % swapchainImageCount;
+    vkDestroySemaphore(vdDevice, presentCompleteSemaphore, NULL);
+    //currentBuffer = (currentBuffer + 1) % swapchainImageCount;
 }
 
 
@@ -311,7 +390,7 @@ VkAppSDL::setWindowTitle(const char* const szExtra)
 bool
 VkAppSDL::initializeVulkan()
 {
-    return (createInstance()
+    if (createInstance()
             && findGpu()
             && setupDebugReporting()
             && createSurface()
@@ -321,7 +400,14 @@ VkAppSDL::initializeVulkan()
             && prepareColorBuffers()
             && prepareDepthBuffer()
             && prepareRenderPass()
-            && prepareFramebuffers());
+            && prepareFramebuffers()) {
+        // Functions above most likely generate pipeline commands
+        // that need to be flushed before beginning the render loop.
+        flushInitialCommands();
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
@@ -742,7 +828,7 @@ VkAppSDL::createSwapchain()
 {
     // Get the list of supported formats.
     VkResult err;
-    uint32_t formatCount;
+    uint32_t formatCount, i;
     err = vkGetPhysicalDeviceSurfaceFormatsKHR(vpdGpu, vsSurface, &formatCount, NULL);
     assert(!err);
 
@@ -754,10 +840,17 @@ VkAppSDL::createSwapchain()
         vfFormat = VK_FORMAT_B8G8R8A8_SRGB;
     } else {
         assert(formatCount >= 1);
-        // XXX Pick an sRGB format.
-        vfFormat = formats[0].format;
+        for (i = 0; i < formatCount; i++) {
+            if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB) {
+                vfFormat = formats[i].format;
+                break;
+            }
+        }
+        if (i == formatCount)
+            i = 0;
+        vfFormat = formats[i].format;
     }
-    vcsColorSpace = formats[0].colorSpace;
+    vcsColorSpace = formats[i].colorSpace;
 
     VkSurfaceCapabilitiesKHR surfCap;
     err = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vpdGpu, vsSurface, &surfCap);
@@ -796,16 +889,17 @@ VkAppSDL::createSwapchain()
     // Determine the number of VkImage's to use in the swap chain. Want to
     // own only 1 image at a time, besides the images being displayed and
     // queued for display).
-    swapchainImageCount = surfCap.minImageCount + 1;
+    uint32_t desiredImageCount = surfCap.minImageCount + 1;
     if ((surfCap.maxImageCount > 0)
-        && (swapchainImageCount > surfCap.maxImageCount)) {
+        && (desiredImageCount > surfCap.maxImageCount)) {
         // Application must settle for fewer images than desired:
-        swapchainImageCount = surfCap.maxImageCount;
+        desiredImageCount = surfCap.maxImageCount;
     }
 
     const class MySwapChainInfo : public VkSwapchainCreateInfoKHR {
       public:
         MySwapChainInfo(VkAppSDL& app,
+                        uint32_t minImageCount,
                         VkSurfaceTransformFlagBitsKHR preTransform,
                         VkPresentModeKHR presentMode)
         {
@@ -813,7 +907,7 @@ VkAppSDL::createSwapchain()
             pNext = NULL;
             flags = 0;
             surface = app.vsSurface;
-            minImageCount = app.swapchainImageCount;
+            this->minImageCount = minImageCount;
             imageFormat = app.vfFormat;
             imageColorSpace = app.vcsColorSpace;
             imageExtent = app.ve2SwapchainExtent;
@@ -828,7 +922,8 @@ VkAppSDL::createSwapchain()
             oldSwapchain = NULL;
             clipped = true;
         }
-    } swapchainInfo(*this, surfCap.currentTransform, swapchainPresentMode);
+    } swapchainInfo(*this, desiredImageCount,
+                    surfCap.currentTransform, swapchainPresentMode);
 
     err = vkCreateSwapchainKHR(vdDevice, &swapchainInfo, NULL, &vscSwapchain);
     assert(!err);
@@ -844,17 +939,13 @@ bool
 VkAppSDL::prepareColorBuffers()
 {
     VkResult err;
-    uint32_t imageCountTmp;
 
     err = vkGetSwapchainImagesKHR(vdDevice, vscSwapchain,
-                                  &imageCountTmp,
+                                  &swapchainImageCount,
                                   NULL);
-    imageCountTmp = swapchainImageCount;
     VkImage* swapchainImages = new VkImage[swapchainImageCount];
-    // XXX Note this changes swapChainImageCount to 4 even though the
-    // value passed in in 3, yet it returns VK_SUCCESS not VK_INCOMPLETE.
     err = vkGetSwapchainImagesKHR(vdDevice, vscSwapchain,
-                                  &imageCountTmp,
+                                  &swapchainImageCount,
                                   swapchainImages);
     assert(!err);
 
@@ -1099,6 +1190,47 @@ VkAppSDL::prepareFramebuffers()
 
 
 void
+VkAppSDL::flushInitialCommands()
+{
+    VkResult U_ASSERT_ONLY err;
+
+    if (vcbCommandBuffer == VK_NULL_HANDLE)
+        return;
+
+    err = vkEndCommandBuffer(vcbCommandBuffer);
+    assert(!err);
+
+    const VkCommandBuffer cmd_bufs[] = { vcbCommandBuffer };
+    VkFence nullFence = VK_NULL_HANDLE;
+    VkSubmitInfo sInfo;
+    sInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    sInfo.pNext = NULL;
+    sInfo.waitSemaphoreCount = 0;
+    sInfo.pWaitSemaphores = NULL;
+    sInfo.pWaitDstStageMask = NULL;
+    sInfo.commandBufferCount = 1;
+    sInfo.pCommandBuffers = cmd_bufs;
+    sInfo.signalSemaphoreCount = 0;
+    sInfo.pSignalSemaphores = NULL;
+
+    err = vkQueueSubmit(vqQueue, 1, &sInfo, nullFence);
+    assert(!err);
+
+    err = vkQueueWaitIdle(vqQueue);
+    assert(!err);
+
+    vkFreeCommandBuffers(vdDevice, vcpCommandPool, 1, cmd_bufs);
+    vcbCommandBuffer = VK_NULL_HANDLE;
+
+}
+
+
+//----------------------------------------------------------------------
+//  Utility functions
+//----------------------------------------------------------------------
+
+
+void
 VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         VkImageLayout old_image_layout,
         VkImageLayout new_image_layout,
@@ -1182,10 +1314,6 @@ VkAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
                          NULL, 1, pMemoryBarrier);
 } // setImageLayout
 
-
-//----------------------------------------------------------------------
-//  Utility functions
-//----------------------------------------------------------------------
 
 /*
  * @internal
