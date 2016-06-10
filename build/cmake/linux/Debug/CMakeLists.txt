@@ -342,11 +342,11 @@ add_dependencies(toktx-tests
 unset(TOOLSET)
 unset(TARGET)
 
-#ktxtests.gyp:testimages#target
-set(TARGET "testimages")
+#ktxtests.gyp:vulkan_headers#target
+set(TARGET "vulkan_headers")
 set(TOOLSET "target")
-add_custom_target(testimages SOURCES)
-set_target_properties(testimages PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_custom_target(vulkan_headers SOURCES)
+set_target_properties(vulkan_headers PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -355,6 +355,17 @@ set(TARGET "libvulkan")
 set(TOOLSET "target")
 add_custom_target(libvulkan SOURCES)
 set_target_properties(libvulkan PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(libvulkan
+  vulkan_headers
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:testimages#target
+set(TARGET "testimages")
+set(TOOLSET "target")
+add_custom_target(testimages SOURCES)
+set_target_properties(testimages PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -422,9 +433,11 @@ set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 add_dependencies(appfwSDL
   libsdl
+  vulkan_headers
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -541,7 +554,10 @@ set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-std=c++11 -Og -g ")
 set_target_properties(vkloadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. -g ")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
@@ -552,22 +568,24 @@ add_dependencies(vkloadtests__copies
   libvulkan
   testimages
   libsdl
+  vulkan_headers
 )
 add_dependencies(vkloadtests
   libvulkan
   testimages
   libsdl
+  vulkan_headers
   vkloadtests__copies
 )
 target_link_libraries(vkloadtests
   appfwSDL
   libktx_gl
-  "-lvulkan"
   "-lX11-xcb"
   "-lSDL2-2.0"
   "-lSDL2main"
   "-ldl"
   "-lpthread"
+  "-lvulkan"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -704,11 +722,13 @@ add_dependencies(gl3loadtests__copies
   libgl
   testimages
   libsdl
+  vulkan_headers
 )
 add_dependencies(gl3loadtests
   libgl
   testimages
   libsdl
+  vulkan_headers
   gl3loadtests__copies
 )
 target_link_libraries(gl3loadtests

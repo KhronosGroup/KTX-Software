@@ -178,7 +178,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
@@ -217,7 +217,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 $(builddir)/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
+$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
 
 LDFLAGS_Debug := \
 	-Wl,-rpath,. \

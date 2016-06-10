@@ -168,7 +168,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libvulkan.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libvulkan.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(ktxtests_gyp_vkloadtests_target_copies)
@@ -207,7 +207,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 $(builddir)/vkloadtests: | $(ktxtests_gyp_vkloadtests_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktxtests_gyp_vkloadtests_target_copies): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libvulkan.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
+$(ktxtests_gyp_vkloadtests_target_copies): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libvulkan.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
 
 LDFLAGS_Debug := \
 	-Wl,-rpath,. \
@@ -223,12 +223,12 @@ LDFLAGS_Release := \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
 
 LIBS := \
-	-lvulkan \
 	-lX11-xcb \
 	-lSDL2-2.0 \
 	-lSDL2main \
 	-ldl \
-	-lpthread
+	-lpthread \
+	-lvulkan
 
 $(builddir)/vkloadtests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/vkloadtests: LIBS := $(LIBS)

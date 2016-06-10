@@ -391,6 +391,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
                  $(join ^,vkloadtests.target.mk)))),)
   include vkloadtests.target.mk
 endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,vulkan_headers.target.mk)))),)
+  include vulkan_headers.target.mk
+endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
 cmd_regen_makefile = cd $(srcdir); /usr/local/bin/gyp -fmake --ignore-environment "--toplevel-dir=." "--depth=." "--generator-output=build/make/linux" "-DOS=linux" ktxtests.gyp ktxtools.gyp

@@ -4,7 +4,7 @@ TOOLSET := target
 TARGET := libvulkan
 ### Rules for final target.
 $(obj).target/libvulkan.stamp: TOOLSET := $(TOOLSET)
-$(obj).target/libvulkan.stamp:  FORCE_DO_CMD
+$(obj).target/libvulkan.stamp: $(obj).target/vulkan_headers.stamp FORCE_DO_CMD
 	$(call do_cmd,touch)
 
 all_deps += $(obj).target/libvulkan.stamp
