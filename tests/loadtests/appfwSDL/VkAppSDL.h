@@ -44,9 +44,12 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
-
 #include "AppBaseSDL.h"
 #include <vulkan/vulkan.h>
+
+#if !defined(USE_FUNCPTRS_FOR_KHR_EXTS)
+#define USE_FUNCPTRS_FOR_KHR_EXTS 0
+#endif
 
 class VkAppSDL : public AppBaseSDL {
   public:
@@ -159,6 +162,23 @@ class VkAppSDL : public AppBaseSDL {
     VkRenderPass vrpRenderPass;
     VkSurfaceKHR vsSurface;
 
+    uint32_t swapchainImageCount;
+    uint32_t currentBuffer;
+    VkSwapchainKHR vscSwapchain;
+    SwapchainBuffers* scBuffers;
+    VkExtent2D ve2SwapchainExtent;
+
+    DepthBuffer depth;
+
+    VkDebugReportCallbackEXT msgCallback;
+
+    const uint32_t vkVersion;
+
+    PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT;
+    PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT;
+    PFN_vkDebugReportMessageEXT pfnDebugReportMessageEXT;
+
+#if USE_FUNCPTRS_FOR_KHR_EXTS
     PFN_vkGetPhysicalDeviceSurfaceSupportKHR
         pfnGetPhysicalDeviceSurfaceSupportKHR;
     PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR
@@ -173,20 +193,22 @@ class VkAppSDL : public AppBaseSDL {
     PFN_vkGetSwapchainImagesKHR pfnGetSwapchainImagesKHR;
     PFN_vkAcquireNextImageKHR pfnAcquireNextImageKHR;
     PFN_vkQueuePresentKHR pfnQueuePresentKHR;
-    uint32_t swapchainImageCount;
-    uint32_t currentBuffer;
-    VkSwapchainKHR vscSwapchain;
-    SwapchainBuffers* scBuffers;
-    VkExtent2D ve2SwapchainExtent;
 
-    DepthBuffer depth;
+#define vkGetPhysicalDeviceSurfaceSupportKHR \
+            pfnGetPhysicalDeviceSurfaceSupportKHR
+#define vkGetPhysicalDeviceSurfaceCapabilitiesKHR \
+            pfnGetPhysicalDeviceSurfaceCapabilitiesKHR
+#define vkGetPhysicalDeviceSurfaceFormatsKHR \
+            pfnGetPhysicalDeviceSurfaceFormatsKHR
+#define vkGetPhysicalDeviceSurfacePresentModesKHR \
+            pfnGetPhysicalDeviceSurfacePresentModesKHR
 
-    PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT;
-    PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT;
-    PFN_vkDebugReportMessageEXT pfnDebugReportMessageEXT;
-    VkDebugReportCallbackEXT msgCallback;
-
-	const uint32_t vkVersion;
+#define vkCreateSwapchainKHR pfnCreateSwapchainKHR
+#define vkDestroySwapchainKHR pfnDestroySwapchainKHR
+#define vkGetSwapchainImagesKHR pfnGetSwapchainImagesKHR
+#define vkAcquireNextImageKHR pfnAcquireNextImageKHR
+#define vkQueuePresentKHR pfnQueuePresentKHR
+#endif
 };
 
 #endif /* VK_APP_SDL_H_1456211188 */

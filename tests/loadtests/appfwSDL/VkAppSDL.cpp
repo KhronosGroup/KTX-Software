@@ -584,11 +584,13 @@ VkAppSDL::createInstance()
        return false;
     }
 
+#if USE_FUNCPTRS_FOR_KHR_EXTS
     GET_INSTANCE_PROC_ADDR(viInstance, GetPhysicalDeviceSurfaceSupportKHR);
     GET_INSTANCE_PROC_ADDR(viInstance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
     GET_INSTANCE_PROC_ADDR(viInstance, GetPhysicalDeviceSurfaceFormatsKHR);
     GET_INSTANCE_PROC_ADDR(viInstance, GetPhysicalDeviceSurfacePresentModesKHR);
-    GET_INSTANCE_PROC_ADDR(viInstance, GetSwapchainImagesKHR);
+    //GET_INSTANCE_PROC_ADDR(viInstance, GetSwapchainImagesKHR);
+#endif
 
     return true;
 } // createInstance
@@ -644,7 +646,6 @@ VkAppSDL::setupDebugReporting()
         GET_INSTANCE_PROC_ADDR(viInstance, CreateDebugReportCallbackEXT);
         GET_INSTANCE_PROC_ADDR(viInstance, DestroyDebugReportCallbackEXT);
         GET_INSTANCE_PROC_ADDR(viInstance, DebugReportMessageEXT);
-
         VkDebugReportCallbackCreateInfoEXT dbgCreateInfo;
         dbgCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
         dbgCreateInfo.pNext = NULL;
@@ -652,8 +653,9 @@ VkAppSDL::setupDebugReporting()
         dbgCreateInfo.pUserData = this;
         dbgCreateInfo.flags =
             VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-        VkResult err = pfnCreateDebugReportCallbackEXT(viInstance, &dbgCreateInfo, NULL,
-                                                    &msgCallback);
+        VkResult err = pfnCreateDebugReportCallbackEXT(viInstance,
+                                                       &dbgCreateInfo, NULL,
+                                                       &msgCallback);
         switch (err) {
           case VK_SUCCESS:
             return true;
@@ -802,11 +804,13 @@ VkAppSDL::createDevice()
        return false;
     }
 
+#if USE_FUNCPTRS_FOR_KHR_EXTS
     GET_DEVICE_PROC_ADDR(vdDevice, CreateSwapchainKHR);
     GET_DEVICE_PROC_ADDR(vdDevice, DestroySwapchainKHR);
     GET_DEVICE_PROC_ADDR(vdDevice, GetSwapchainImagesKHR);
     GET_DEVICE_PROC_ADDR(vdDevice, AcquireNextImageKHR);
     GET_DEVICE_PROC_ADDR(vdDevice, QueuePresentKHR);
+#endif
 
     const VkCommandPoolCreateInfo cmdPoolInfo = {
         VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -829,11 +833,13 @@ VkAppSDL::createSwapchain()
     // Get the list of supported formats.
     VkResult err;
     uint32_t formatCount, i;
-    err = vkGetPhysicalDeviceSurfaceFormatsKHR(vpdGpu, vsSurface, &formatCount, NULL);
+    err = vkGetPhysicalDeviceSurfaceFormatsKHR(vpdGpu, vsSurface,
+                                               &formatCount, NULL);
     assert(!err);
 
     VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
-    err = vkGetPhysicalDeviceSurfaceFormatsKHR(vpdGpu, vsSurface, &formatCount, formats);
+    err = vkGetPhysicalDeviceSurfaceFormatsKHR(vpdGpu, vsSurface,
+                                               &formatCount, formats);
     assert(!err);
 
     if (formatCount == 1 && formats[0].format == VK_FORMAT_UNDEFINED) {
