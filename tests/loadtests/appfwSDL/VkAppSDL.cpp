@@ -116,7 +116,8 @@ VkAppSDL::initialize(int argc, char* argv[])
                     );
 
     if (pswMainWindow == NULL) {
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+                                       SDL_GetError(), NULL);
         return false;
     }
 
@@ -124,7 +125,7 @@ VkAppSDL::initialize(int argc, char* argv[])
 	    return false;
 	}
 
-	currentBuffer = 0;
+	swapchain.currentBuffer = 0;
 	subOptimalPresentWarned = false;
 
     // Not getting an initial resize event, at least on Mac OS X.
@@ -140,8 +141,8 @@ VkAppSDL::initialize(int argc, char* argv[])
 void
 VkAppSDL::finalize()
 {
-    if (vscSwapchain != VK_NULL_HANDLE) {
-        vkDestroySwapchainKHR(vdDevice, vscSwapchain, NULL);
+    if (swapchain.vhandle != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(vdDevice, swapchain.vhandle, NULL);
     }
     // Destroy vcbCommand and vcpCommandPool
     if (vqQueue != VK_NULL_HANDLE) {
@@ -206,10 +207,10 @@ VkAppSDL::drawFrame(int ticks)
     assert(!err);
 
     // Get the index of the next available swapchain image:
-    err = vkAcquireNextImageKHR(vdDevice, vscSwapchain, UINT64_MAX,
+    err = vkAcquireNextImageKHR(vdDevice, swapchain.vhandle, UINT64_MAX,
                                 presentCompleteSemaphore,
                                 (VkFence)0,
-                                &currentBuffer);
+                                &swapchain.currentBuffer);
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
         // Swap chain is out of date (e.g. the window was resized).
         // Re-create it.
@@ -233,7 +234,8 @@ VkAppSDL::drawFrame(int ticks)
       submit_info.pWaitSemaphores = &presentCompleteSemaphore,
       submit_info.pWaitDstStageMask = &pipe_stage_flags,
       submit_info.commandBufferCount = 1;
-      submit_info.pCommandBuffers = &scBuffers[currentBuffer].cmd;
+      submit_info.pCommandBuffers =
+                              &swapchain.buffers[swapchain.currentBuffer].cmd;
       submit_info.pWaitDstStageMask = &pipe_stage_flags,
       submit_info.signalSemaphoreCount = 0;
       submit_info.pSignalSemaphores = NULL;
@@ -244,8 +246,8 @@ VkAppSDL::drawFrame(int ticks)
     VkPresentInfoKHR present = { };
       present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
       present.swapchainCount = 1;
-      present.pSwapchains = &vscSwapchain;
-      present.pImageIndices = &currentBuffer;
+      present.pSwapchains = &swapchain.vhandle;
+      present.pImageIndices = &swapchain.currentBuffer;
 
     err = vkQueuePresentKHR(vqQueue, &present);
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -255,7 +257,8 @@ VkAppSDL::drawFrame(int ticks)
     } else if (err == VK_SUBOPTIMAL_KHR) {
         if (!subOptimalPresentWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
-                                     "Suboptimal present of framebuffer.", NULL);
+                                     "Suboptimal present of framebuffer.",
+                                     NULL);
         }
     } else
         assert(!err);
@@ -400,10 +403,12 @@ VkAppSDL::createInstance()
 
     extensionNames[enabledExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
     if (validate)
-        extensionNames[enabledExtensionCount++] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
+        extensionNames[enabledExtensionCount++] =
+                                           VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
 
     unsigned c = ARRAY_LEN(extensionNames) - enabledExtensionCount;
-    if (!SDL_GetVulkanInstanceExtensions(&c, &extensionNames[enabledExtensionCount])) {
+    if (!SDL_GetVulkanInstanceExtensions(&c,
+                                     &extensionNames[enabledExtensionCount])) {
         std::string msg;
         msg = "SDL_GetVulkanInstanceExtensions failed: ";
         msg += SDL_GetError();
@@ -426,7 +431,8 @@ VkAppSDL::createInstance()
     instanceInfo.pNext = NULL;
     instanceInfo.pApplicationInfo = &app;
     instanceInfo.enabledLayerCount = enabledLayerCount;
-    instanceInfo.ppEnabledLayerNames = (const char *const *)instanceValidationLayers;
+    instanceInfo.ppEnabledLayerNames =
+                                (const char *const *)instanceValidationLayers;
     instanceInfo.enabledExtensionCount = enabledExtensionCount;
     instanceInfo.ppEnabledExtensionNames = (const char *const *)extensionNames;
 
@@ -776,11 +782,11 @@ VkAppSDL::createSwapchain()
     assert(!err);
 
     if (surfCap.currentExtent.width == (uint32_t)-1) {
-        ve2SwapchainExtent.width = w_width;
-        ve2SwapchainExtent.height = w_height;
+        swapchain.extent.width = w_width;
+        swapchain.extent.height = w_height;
     } else {
         // If the surface size is defined, the swap chain size must match.
-        ve2SwapchainExtent = surfCap.currentExtent;
+        swapchain.extent = surfCap.currentExtent;
         w_width = surfCap.currentExtent.width;
         w_height = surfCap.currentExtent.height;
     }
@@ -829,7 +835,7 @@ VkAppSDL::createSwapchain()
             this->minImageCount = minImageCount;
             imageFormat = app.vfFormat;
             imageColorSpace = app.vcsColorSpace;
-            imageExtent = app.ve2SwapchainExtent;
+            imageExtent = app.swapchain.extent;
             imageArrayLayers = 1;
             imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
             imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -844,7 +850,7 @@ VkAppSDL::createSwapchain()
     } swapchainInfo(*this, desiredImageCount,
                     surfCap.currentTransform, swapchainPresentMode);
 
-    err = vkCreateSwapchainKHR(vdDevice, &swapchainInfo, NULL, &vscSwapchain);
+    err = vkCreateSwapchainKHR(vdDevice, &swapchainInfo, NULL, &swapchain.vhandle);
     assert(!err);
 
     delete [] formats;
@@ -859,19 +865,19 @@ VkAppSDL::prepareColorBuffers()
 {
     VkResult err;
 
-    err = vkGetSwapchainImagesKHR(vdDevice, vscSwapchain,
-                                  &swapchainImageCount,
+    err = vkGetSwapchainImagesKHR(vdDevice, swapchain.vhandle,
+                                  &swapchain.imageCount,
                                   NULL);
-    VkImage* swapchainImages = new VkImage[swapchainImageCount];
-    err = vkGetSwapchainImagesKHR(vdDevice, vscSwapchain,
-                                  &swapchainImageCount,
+    VkImage* swapchainImages = new VkImage[swapchain.imageCount];
+    err = vkGetSwapchainImagesKHR(vdDevice, swapchain.vhandle,
+                                  &swapchain.imageCount,
                                   swapchainImages);
     assert(!err);
 
-    scBuffers = new SwapchainBuffers[swapchainImageCount];
-    assert(scBuffers);
+    swapchain.buffers = new SwapchainBuffers[swapchain.imageCount];
+    assert(swapchain.buffers);
 
-    for (uint32_t i = 0; i < swapchainImageCount; i++) {
+    for (uint32_t i = 0; i < swapchain.imageCount; i++) {
         VkImageViewCreateInfo colorImageView = { };
         colorImageView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         colorImageView.pNext = NULL;
@@ -888,12 +894,12 @@ VkAppSDL::prepareColorBuffers()
         colorImageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
         colorImageView.flags = 0;
 
-        scBuffers[i].image = swapchainImages[i];
+        swapchain.buffers[i].image = swapchainImages[i];
 
-        colorImageView.image = scBuffers[i].image;
+        colorImageView.image = swapchain.buffers[i].image;
 
         err = vkCreateImageView(vdDevice, &colorImageView, NULL,
-                                &scBuffers[i].view);
+                                &swapchain.buffers[i].view);
         assert(!err);
     }
 
@@ -1097,10 +1103,10 @@ VkAppSDL::prepareFramebuffers()
     VkResult U_ASSERT_ONLY err;
     uint32_t i;
 
-    for (i = 0; i < swapchainImageCount; i++) {
-        attachments[0] = scBuffers[i].view;
+    for (i = 0; i < swapchain.imageCount; i++) {
+        attachments[0] = swapchain.buffers[i].view;
         err = vkCreateFramebuffer(vdDevice, &fb_info, NULL,
-                                  &scBuffers[i].fb);
+                                  &swapchain.buffers[i].fb);
         assert(!err);
     }
 

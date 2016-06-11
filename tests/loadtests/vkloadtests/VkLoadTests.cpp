@@ -77,9 +77,10 @@ VkLoadTests::initialize(int argc, char* argv[])
     aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     aInfo.commandBufferCount = 1;
 
-    for (int i = 0; i < swapchainImageCount; i++) {
+    for (int i = 0; i < swapchain.imageCount; i++) {
         VkResult U_ASSERT_ONLY err =
-                vkAllocateCommandBuffers(vdDevice, &aInfo, &scBuffers[i].cmd);
+                          vkAllocateCommandBuffers(vdDevice, &aInfo,
+                                                   &swapchain.buffers[i].cmd);
         assert(!err);
         buildCommandBuffer(i);
     }
@@ -164,13 +165,14 @@ VkLoadTests::buildCommandBuffer(int bufferIndex)
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         NULL,
         vrpRenderPass,
-        scBuffers[bufferIndex].fb,
-        { 0, 0, ve2SwapchainExtent.width, ve2SwapchainExtent.height },
+        swapchain.buffers[bufferIndex].fb,
+        { 0, 0, swapchain.extent.width, swapchain.extent.height },
         2,
         clear_values,
     };
 
-    err = vkBeginCommandBuffer(scBuffers[bufferIndex].cmd, &cmd_buf_info);
+    err = vkBeginCommandBuffer(swapchain.buffers[bufferIndex].cmd,
+                               &cmd_buf_info);
     assert(!err);
 
     // We can use LAYOUT_UNDEFINED as a wildcard here because we don't care what
@@ -184,18 +186,18 @@ VkLoadTests::buildCommandBuffer(int bufferIndex)
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED,
-        scBuffers[bufferIndex].image,
+        swapchain.buffers[bufferIndex].image,
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
     };
-    vkCmdPipelineBarrier(scBuffers[bufferIndex].cmd,
+    vkCmdPipelineBarrier(swapchain.buffers[bufferIndex].cmd,
                          VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                          0, 0, NULL, 0,
                          NULL, 1, &image_memory_barrier);
 
-    vkCmdBeginRenderPass(scBuffers[bufferIndex].cmd, &rp_begin,
+    vkCmdBeginRenderPass(swapchain.buffers[bufferIndex].cmd, &rp_begin,
                          VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdEndRenderPass(scBuffers[bufferIndex].cmd);
+    vkCmdEndRenderPass(swapchain.buffers[bufferIndex].cmd);
 
     VkImageMemoryBarrier present_barrier = {
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -206,18 +208,18 @@ VkLoadTests::buildCommandBuffer(int bufferIndex)
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED,
-        scBuffers[bufferIndex].image,
+        swapchain.buffers[bufferIndex].image,
         { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
     };
-    present_barrier.image = scBuffers[bufferIndex].image;
+    present_barrier.image = swapchain.buffers[bufferIndex].image;
 
     vkCmdPipelineBarrier(
-        scBuffers[bufferIndex].cmd,
+        swapchain.buffers[bufferIndex].cmd,
         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
         0, 0, NULL, 0, NULL, 1, &present_barrier);
 
-    err = vkEndCommandBuffer(scBuffers[bufferIndex].cmd);
+    err = vkEndCommandBuffer(swapchain.buffers[bufferIndex].cmd);
     assert(!err);
 
 }

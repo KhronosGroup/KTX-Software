@@ -75,7 +75,7 @@ class VkAppSDL : public AppBaseSDL {
 	    viInstance = VK_NULL_HANDLE;
 	    vqQueue = VK_NULL_HANDLE;
 	    vsSurface = VK_NULL_HANDLE;
-	    vscSwapchain = VK_NULL_HANDLE;
+	    swapchain.vhandle = VK_NULL_HANDLE;
 	};
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(int ticks);
@@ -125,13 +125,6 @@ class VkAppSDL : public AppBaseSDL {
               uint64_t srcObject, size_t location, int32_t msgCode,
               const char *pLayerPrefix, const char *pMsg, void *pUserData);
 
-    typedef struct _SwapchainBuffers {
-        VkImage image;
-        VkCommandBuffer cmd;
-        VkImageView view;
-        VkFramebuffer fb;
-    } SwapchainBuffers;
-
     typedef struct _DepthBuffer {
         VkFormat format;
         VkImage image;
@@ -139,6 +132,21 @@ class VkAppSDL : public AppBaseSDL {
         VkDeviceMemory mem;
         VkImageView view;
     } DepthBuffer;
+
+    typedef struct _SwapchainBuffers {
+        VkImage image;
+        VkCommandBuffer cmd;
+        VkImageView view;
+        VkFramebuffer fb;
+    } SwapchainBuffers;
+
+    typedef struct _Swapchain {
+        uint32_t imageCount;
+        uint32_t currentBuffer;
+        VkSwapchainKHR vhandle;
+        SwapchainBuffers* buffers;
+        VkExtent2D extent;
+    } Swapchain;
 
     SDL_Window* pswMainWindow;
 
@@ -168,12 +176,7 @@ class VkAppSDL : public AppBaseSDL {
     VkRenderPass vrpRenderPass;
     VkSurfaceKHR vsSurface;
 
-    uint32_t swapchainImageCount;
-    uint32_t currentBuffer;
-    VkSwapchainKHR vscSwapchain;
-    SwapchainBuffers* scBuffers;
-    VkExtent2D ve2SwapchainExtent;
-
+    Swapchain swapchain;
     DepthBuffer depth;
 
     VkDebugReportCallbackEXT msgCallback;
