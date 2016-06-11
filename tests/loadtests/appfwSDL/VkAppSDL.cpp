@@ -68,23 +68,23 @@
       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, msg, NULL); \
       return false;
 
-#define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                                 \
-    {                                                                            \
-        pfn##entrypoint =                                                        \
-            (PFN_vk##entrypoint)vkGetInstanceProcAddr(inst, "vk" #entrypoint);   \
-        if (pfn##entrypoint == NULL) {                                           \
-            ERROR_RETURN("vkGetInstanceProcAddr: unable to find vk" #entrypoint); \
-        }                                                                        \
-    }
+#define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                              \
+  {                                                                           \
+    pfn##entrypoint =                                                         \
+        (PFN_vk##entrypoint)vkGetInstanceProcAddr(inst, "vk" #entrypoint);    \
+    if (pfn##entrypoint == NULL) {                                            \
+        ERROR_RETURN("vkGetInstanceProcAddr: unable to find vk" #entrypoint); \
+    }                                                                         \
+  }
 
-#define GET_DEVICE_PROC_ADDR(device, entrypoint)                                 \
-    {                                                                            \
-        pfn##entrypoint =                                                        \
-            (PFN_vk##entrypoint)vkGetDeviceProcAddr(device, "vk" #entrypoint);   \
-        if (pfn##entrypoint == NULL) {                                           \
-            ERROR_RETURN("vkGetDeviceProcAddr: unable to find vk" #entrypoint); \
-        }                                                                        \
-    }
+#define GET_DEVICE_PROC_ADDR(device, entrypoint)                            \
+  {                                                                         \
+    pfn##entrypoint =                                                       \
+        (PFN_vk##entrypoint)vkGetDeviceProcAddr(device, "vk" #entrypoint);  \
+    if (pfn##entrypoint == NULL) {                                          \
+        ERROR_RETURN("vkGetDeviceProcAddr: unable to find vk" #entrypoint); \
+    }                                                                       \
+  }
 
 
 bool
