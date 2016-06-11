@@ -70,6 +70,21 @@ VkLoadTests::initialize(int argc, char* argv[])
     if (szBasePath == NULL)
         szBasePath = SDL_strdup("./");
     
+    VkCommandBufferAllocateInfo aInfo;
+    aInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    aInfo.pNext = NULL;
+    aInfo.commandPool = vcpCommandPool;
+    aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    aInfo.commandBufferCount = 1;
+
+    for (int i = 0; i < swapchainImageCount; i++) {
+        VkResult U_ASSERT_ONLY err =
+                vkAllocateCommandBuffers(vdDevice, &aInfo, &scBuffers[i].cmd);
+        assert(!err);
+        buildCommandBuffer(i);
+    }
+
+
     // Not getting an initialize resize event, at least on Mac OS X.
     // Therefore use invokeSample which calls the sample's resize func.
     invokeSample(iCurSampleNum);
@@ -122,9 +137,90 @@ void
 VkLoadTests::drawFrame(int ticks)
 {
     pCurSampleInv->sample->pfRun(pCurSampleData, ticks);
+
     VkAppSDL::drawFrame(ticks);
 }
 
+
+void
+VkLoadTests::buildCommandBuffer(int bufferIndex)
+{
+    // XXX This should be moved into sample's initialize function.
+    // Doing so requires changes to sample framework that I don't want
+    // to do right now.
+
+    VkResult U_ASSERT_ONLY err;
+
+    const VkCommandBufferBeginInfo cmd_buf_info = {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
+    };
+
+    VkClearValue clear_values[2] = {
+       { bufferIndex * 1.f, 0.2f, 0.2f, 1.0f },
+       { 0.0f, 0 }
+    };
+
+    const VkRenderPassBeginInfo rp_begin = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        NULL,
+        vrpRenderPass,
+        scBuffers[bufferIndex].fb,
+        { 0, 0, ve2SwapchainExtent.width, ve2SwapchainExtent.height },
+        2,
+        clear_values,
+    };
+
+    err = vkBeginCommandBuffer(scBuffers[bufferIndex].cmd, &cmd_buf_info);
+    assert(!err);
+
+    // We can use LAYOUT_UNDEFINED as a wildcard here because we don't care what
+    // happens to the previous contents of the image
+    VkImageMemoryBarrier image_memory_barrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        NULL,
+        0,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        scBuffers[bufferIndex].image,
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+    };
+    vkCmdPipelineBarrier(scBuffers[bufferIndex].cmd,
+                         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         0, 0, NULL, 0,
+                         NULL, 1, &image_memory_barrier);
+
+    vkCmdBeginRenderPass(scBuffers[bufferIndex].cmd, &rp_begin,
+                         VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdEndRenderPass(scBuffers[bufferIndex].cmd);
+
+    VkImageMemoryBarrier present_barrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        NULL,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_ACCESS_MEMORY_READ_BIT,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        scBuffers[bufferIndex].image,
+        { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
+    };
+    present_barrier.image = scBuffers[bufferIndex].image;
+
+    vkCmdPipelineBarrier(
+        scBuffers[bufferIndex].cmd,
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        0, 0, NULL, 0, NULL, 1, &present_barrier);
+
+    err = vkEndCommandBuffer(scBuffers[bufferIndex].cmd);
+    assert(!err);
+
+}
 
 void
 VkLoadTests::invokeSample(int iSampleNum)

@@ -70,6 +70,7 @@ class VkLoadTests : public VkAppSDL {
 
   protected:
     
+    void buildCommandBuffer(int iBufNum);
     void invokeSample(int iSampleNum);
     int iCurSampleNum;
     const sampleInvocation* pCurSampleInv;

@@ -56,12 +56,6 @@
 #include "VkAppSDL.h"
 #include <SDL_vulkan.h>
 
-#if defined(NDEBUG) && defined(__GNUC__)
-#define U_ASSERT_ONLY __attribute__((unused))
-#else
-#define U_ASSERT_ONLY
-#endif
-
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
 #define ERROR_RETURN(msg) \
@@ -191,8 +185,9 @@ VkAppSDL::doEvent(SDL_Event* event)
 void
 VkAppSDL::drawFrame(int ticks)
 {
-    AppBaseSDL::drawFrame(ticks);
     VkResult U_ASSERT_ONLY err;
+
+    AppBaseSDL::drawFrame(ticks);
 
     // Wait for work to finish before updating uniforms.
     // XXX Is this really necessary? Doesn't it stall the pipeline?
@@ -229,87 +224,6 @@ VkAppSDL::drawFrame(int ticks)
         assert(!err);
     }
 
-    // XXX This should undoubtedly be moved somewhere else.
-    // Is a command buffer per swap chain buffer necessary? Let's try without.
-    if (vcbCommandBuffer == VK_NULL_HANDLE) {
-        VkCommandBufferAllocateInfo aInfo;
-        aInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        aInfo.pNext = NULL;
-        aInfo.commandPool = vcpCommandPool;
-        aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        aInfo.commandBufferCount = 1;
-
-        err = vkAllocateCommandBuffers(vdDevice, &aInfo, &vcbCommandBuffer);
-        assert(!err);
-    }
-
-    const VkCommandBufferBeginInfo cmd_buf_info = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
-    };
-
-    VkClearValue clear_values[2] = {
-       { currentBuffer * 1.f, 0.2f, 0.2f, 1.0f },
-       { 0.0f, 0 }
-    };
-
-    const VkRenderPassBeginInfo rp_begin = {
-        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        NULL,
-        vrpRenderPass,
-        scBuffers[currentBuffer].fb,
-        { 0, 0, ve2SwapchainExtent.width, ve2SwapchainExtent.height },
-        2,
-        clear_values,
-    };
-
-    err = vkBeginCommandBuffer(vcbCommandBuffer, &cmd_buf_info);
-    assert(!err);
-
-    // We can use LAYOUT_UNDEFINED as a wildcard here because we don't care what
-    // happens to the previous contents of the image
-    VkImageMemoryBarrier image_memory_barrier = {
-        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        NULL,
-        0,
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        scBuffers[currentBuffer].image,
-        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
-    };
-    vkCmdPipelineBarrier(vcbCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                         0, 0, NULL, 0,
-                         NULL, 1, &image_memory_barrier);
-
-    vkCmdBeginRenderPass(vcbCommandBuffer, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdEndRenderPass(vcbCommandBuffer);
-
-    VkImageMemoryBarrier present_barrier = {
-        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        NULL,
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        VK_ACCESS_MEMORY_READ_BIT,
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        scBuffers[currentBuffer].image,
-        { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
-    };
-    present_barrier.image = scBuffers[currentBuffer].image;
-
-    vkCmdPipelineBarrier(
-        vcbCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-        0, 0, NULL, 0, NULL, 1, &present_barrier);
-
-    err = vkEndCommandBuffer(vcbCommandBuffer);
-    assert(!err);
-
-
     VkPipelineStageFlags pipe_stage_flags =
         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     VkSubmitInfo submit_info;
@@ -319,7 +233,7 @@ VkAppSDL::drawFrame(int ticks)
       submit_info.pWaitSemaphores = &presentCompleteSemaphore,
       submit_info.pWaitDstStageMask = &pipe_stage_flags,
       submit_info.commandBufferCount = 1;
-      submit_info.pCommandBuffers = &vcbCommandBuffer;
+      submit_info.pCommandBuffers = &scBuffers[currentBuffer].cmd;
       submit_info.pWaitDstStageMask = &pipe_stage_flags,
       submit_info.signalSemaphoreCount = 0;
       submit_info.pSignalSemaphores = NULL;
@@ -349,7 +263,6 @@ VkAppSDL::drawFrame(int ticks)
     err = vkQueueWaitIdle(vqQueue);
     assert(err == VK_SUCCESS);
     vkDestroySemaphore(vdDevice, presentCompleteSemaphore, NULL);
-    //currentBuffer = (currentBuffer + 1) % swapchainImageCount;
 }
 
 

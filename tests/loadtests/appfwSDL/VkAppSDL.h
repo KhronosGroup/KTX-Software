@@ -51,6 +51,12 @@
 #define USE_FUNCPTRS_FOR_KHR_EXTS 0
 #endif
 
+#if defined(NDEBUG) && defined(__GNUC__)
+#define U_ASSERT_ONLY __attribute__((unused))
+#else
+#define U_ASSERT_ONLY
+#endif
+
 class VkAppSDL : public AppBaseSDL {
   public:
 	VkAppSDL(const char* const name,
