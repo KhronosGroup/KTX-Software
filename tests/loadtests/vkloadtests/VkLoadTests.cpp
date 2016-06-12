@@ -43,6 +43,7 @@
 
 
 #include "VkLoadTests.h"
+#include "VkSample_02_cube_textured.h"
 
 #define LT_VK_MAJOR_VERSION 1
 #define LT_VK_MINOR_VERSION 0
@@ -50,14 +51,21 @@
 #define LT_VK_VERSION VK_MAKE_VERSION(1, 0, 0)
 
 VkLoadTests::VkLoadTests(const sampleInvocation samples[],
-                     const int numSamples,
-                     const char* const name)
+                         const int numSamples,
+                         const char* const name)
           : siSamples(samples), iNumSamples(numSamples),
             VkAppSDL(name, 640, 480, LT_VK_VERSION)
 {
     iCurSampleNum = 0;
-    pCurSampleInv = &siSamples[0];
-	pCurSampleData = NULL;
+    pCurSample = NULL;
+}
+
+VkLoadTests::~VkLoadTests()
+{
+    if (pCurSample != NULL) {
+        pCurSample->finalize();
+        delete pCurSample;
+    }
 }
 
 bool
@@ -70,22 +78,6 @@ VkLoadTests::initialize(int argc, char* argv[])
     if (szBasePath == NULL)
         szBasePath = SDL_strdup("./");
     
-    VkCommandBufferAllocateInfo aInfo;
-    aInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    aInfo.pNext = NULL;
-    aInfo.commandPool = vcpCommandPool;
-    aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    aInfo.commandBufferCount = 1;
-
-    for (int i = 0; i < swapchain.imageCount; i++) {
-        VkResult U_ASSERT_ONLY err =
-                          vkAllocateCommandBuffers(vdDevice, &aInfo,
-                                                   &swapchain.buffers[i].cmd);
-        assert(!err);
-        buildCommandBuffer(i);
-    }
-
-
     // Not getting an initialize resize event, at least on Mac OS X.
     // Therefore use invokeSample which calls the sample's resize func.
     invokeSample(iCurSampleNum);
@@ -97,7 +89,7 @@ VkLoadTests::initialize(int argc, char* argv[])
 void
 VkLoadTests::finalize()
 {
-    pCurSampleInv->sample->pfRelease(pCurSampleData);
+    pCurSample->finalize();
 	VkAppSDL::finalize();
 }
 
@@ -109,10 +101,10 @@ VkLoadTests::doEvent(SDL_Event* event)
       case SDL_MOUSEBUTTONUP:
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
-            pCurSampleInv->sample->pfRelease(pCurSampleData);
+            pCurSample->finalize();
+            delete pCurSample;
             if (++iCurSampleNum >= iNumSamples)
               iCurSampleNum = 0;
-            pCurSampleInv = &siSamples[iCurSampleNum];
             invokeSample(iCurSampleNum);
             return 0;
           default:
@@ -129,115 +121,34 @@ VkLoadTests::doEvent(SDL_Event* event)
 void
 VkLoadTests::resize(int width, int height)
 {
-    if (pCurSampleData != NULL)
-        pCurSampleInv->sample->pfResize(pCurSampleData, width, height);
+    if (pCurSample != NULL)
+        pCurSample->resize(width, height);
 }
 
 
 void
 VkLoadTests::drawFrame(int ticks)
 {
-    pCurSampleInv->sample->pfRun(pCurSampleData, ticks);
+    pCurSample->run(ticks);
 
     VkAppSDL::drawFrame(ticks);
 }
 
 
 void
-VkLoadTests::buildCommandBuffer(int bufferIndex)
-{
-    // XXX This should be moved into sample's initialize function.
-    // Doing so requires changes to sample framework that I don't want
-    // to do right now.
-
-    VkResult U_ASSERT_ONLY err;
-
-    const VkCommandBufferBeginInfo cmd_buf_info = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
-    };
-
-    VkClearValue clear_values[2] = {
-       { bufferIndex * 1.f, 0.2f, 0.2f, 1.0f },
-       { 0.0f, 0 }
-    };
-
-    const VkRenderPassBeginInfo rp_begin = {
-        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        NULL,
-        vrpRenderPass,
-        swapchain.buffers[bufferIndex].fb,
-        { 0, 0, swapchain.extent.width, swapchain.extent.height },
-        2,
-        clear_values,
-    };
-
-    err = vkBeginCommandBuffer(swapchain.buffers[bufferIndex].cmd,
-                               &cmd_buf_info);
-    assert(!err);
-
-    // We can use LAYOUT_UNDEFINED as a wildcard here because we don't care what
-    // happens to the previous contents of the image
-    VkImageMemoryBarrier image_memory_barrier = {
-        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        NULL,
-        0,
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        swapchain.buffers[bufferIndex].image,
-        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
-    };
-    vkCmdPipelineBarrier(swapchain.buffers[bufferIndex].cmd,
-                         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                         0, 0, NULL, 0,
-                         NULL, 1, &image_memory_barrier);
-
-    vkCmdBeginRenderPass(swapchain.buffers[bufferIndex].cmd, &rp_begin,
-                         VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdEndRenderPass(swapchain.buffers[bufferIndex].cmd);
-
-    VkImageMemoryBarrier present_barrier = {
-        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        NULL,
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        VK_ACCESS_MEMORY_READ_BIT,
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        swapchain.buffers[bufferIndex].image,
-        { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
-    };
-    present_barrier.image = swapchain.buffers[bufferIndex].image;
-
-    vkCmdPipelineBarrier(
-        swapchain.buffers[bufferIndex].cmd,
-        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-        0, 0, NULL, 0, NULL, 1, &present_barrier);
-
-    err = vkEndCommandBuffer(swapchain.buffers[bufferIndex].cmd);
-    assert(!err);
-
-}
-
-void
 VkLoadTests::invokeSample(int iSampleNum)
 {
     int width, height;
+    const sampleInvocation* sampleInv;
 
-    pCurSampleInv = &siSamples[iSampleNum];
-    pCurSampleInv->sample->pfInitialize(
-                            &pCurSampleData,
-                            pCurSampleInv->args,
-                            szBasePath);
+    sampleInv = &siSamples[iSampleNum];
+    pCurSample = sampleInv->createSample(vcpCommandPool, vdDevice,
+                                         vrpRenderPass, swapchain,
+                                         sampleInv->args, szBasePath);
     
     SDL_GetWindowSize(pswMainWindow, &width, & height);
-    setWindowTitle(pCurSampleInv->title);
-    pCurSampleInv->sample->pfResize(pCurSampleData, width, height);
+    setWindowTitle(sampleInv->title);
+    pCurSample->resize(width, height);
 }
 
 
@@ -245,7 +156,7 @@ void
 VkLoadTests::onFPSUpdate()
 {
     // Using onFPSUpdate avoids rewriting the title every frame.
-    setWindowTitle(pCurSampleInv->title);
+    setWindowTitle(siSamples[iCurSampleNum].title);
 }
 
 extern "C" {
@@ -267,6 +178,7 @@ static const atSample sc_Sample01 = {
 #endif
 
 /* ----------------------------------------------------------------------------- */
+#if 0
 /* SAMPLE 02 */
 void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
                           const char* const szBasePath);
@@ -280,8 +192,9 @@ static const atSample sc_Sample02 = {
     atResize_02_cube,
     atRun_02_cube,
 };
-
+#endif
 };
+
 /* ----------------------------------------------------------------------------- */
 
 const VkLoadTests::sampleInvocation siSamples[] = {
@@ -304,12 +217,14 @@ const VkLoadTests::sampleInvocation siSamples[] = {
     { &sc_Sample01, "testimages/conftestimage_SIGNED_R11_EAC.ktx", "ETC2 Signed R11" },
     { &sc_Sample01, "testimages/conftestimage_RG11_EAC.ktx", "ETC2 RG11" },
     { &sc_Sample01, "testimages/conftestimage_SIGNED_RG11_EAC.ktx", "ETC2 Signed RG11" },
-#endif
     { &sc_Sample02, "testimages/rgb-amg-reference.ktx", "RGB8 + Auto Mipmap" },
-#if 0
     { &sc_Sample02, "testimages/rgb-mipmap-reference.ktx", "Color/level mipmap" },
     { &sc_Sample02, "testimages/hi_mark_sq.ktx", "RGB8 NPOT HI Logo" }
 #endif
+    { VkSample_02_cube_textured::create,
+      "testimages/rgb-amg-reference.ktx",
+      "RGB8 + Auto Mipmap"
+    },
 };
 
 const int iNumSamples = sizeof(siSamples) / sizeof(VkLoadTests::sampleInvocation);

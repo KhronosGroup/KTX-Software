@@ -81,6 +81,12 @@
   }
 
 
+VkAppSDL::~VkAppSDL()
+{
+
+}
+
+
 bool
 VkAppSDL::initialize(int argc, char* argv[])
 {

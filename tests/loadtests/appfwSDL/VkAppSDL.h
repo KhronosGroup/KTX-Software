@@ -45,6 +45,8 @@
  */
 
 #include "AppBaseSDL.h"
+#include <cstring>
+#include <new>
 #include <vulkan/vulkan.h>
 
 #if !defined(USE_FUNCPTRS_FOR_KHR_EXTS)
@@ -62,27 +64,49 @@ class VkAppSDL : public AppBaseSDL {
 	VkAppSDL(const char* const name,
              int width, int height,
              const uint32_t version)
-            : vkVersion(version),
+            : w_width(width), w_height(height), vkVersion(version),
               AppBaseSDL(name)
 	{
-	    w_width = width;
-	    w_height = height;
-
-	    pswMainWindow = NULL;
-
-	    vdDevice = VK_NULL_HANDLE;
-	    vpdGpu = VK_NULL_HANDLE;
-	    viInstance = VK_NULL_HANDLE;
-	    vqQueue = VK_NULL_HANDLE;
-	    vsSurface = VK_NULL_HANDLE;
-	    swapchain.vhandle = VK_NULL_HANDLE;
+	    // The app is statically allocated so all memory will be zeroed.
+	    // In the event this changes, the overridden new below will zero
+	    // the storage. Thus we can avoid a long list of initializers.
 	};
+	virtual ~VkAppSDL();
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(int ticks);
     virtual void finalize();
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();
     virtual void resize(int width, int height);
+
+    static void* operator new(size_t size) {
+        void* storage = new char[size];
+        memset(storage, 0, size);
+        return storage;
+    }
+
+    struct DepthBuffer {
+        VkFormat format;
+        VkImage image;
+        VkMemoryAllocateInfo memAlloc;
+        VkDeviceMemory mem;
+        VkImageView view;
+    };
+
+    struct SwapchainBuffers {
+        VkImage image;
+        VkCommandBuffer cmd;
+        VkImageView view;
+        VkFramebuffer fb;
+    };
+
+    struct Swapchain {
+        uint32_t imageCount;
+        uint32_t currentBuffer;
+        VkSwapchainKHR vhandle;
+        SwapchainBuffers* buffers;
+        VkExtent2D extent;
+    };
 
   protected:
     bool createDevice();
@@ -124,29 +148,6 @@ class VkAppSDL : public AppBaseSDL {
     debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
               uint64_t srcObject, size_t location, int32_t msgCode,
               const char *pLayerPrefix, const char *pMsg, void *pUserData);
-
-    typedef struct _DepthBuffer {
-        VkFormat format;
-        VkImage image;
-        VkMemoryAllocateInfo memAlloc;
-        VkDeviceMemory mem;
-        VkImageView view;
-    } DepthBuffer;
-
-    typedef struct _SwapchainBuffers {
-        VkImage image;
-        VkCommandBuffer cmd;
-        VkImageView view;
-        VkFramebuffer fb;
-    } SwapchainBuffers;
-
-    typedef struct _Swapchain {
-        uint32_t imageCount;
-        uint32_t currentBuffer;
-        VkSwapchainKHR vhandle;
-        SwapchainBuffers* buffers;
-        VkExtent2D extent;
-    } Swapchain;
 
     SDL_Window* pswMainWindow;
 

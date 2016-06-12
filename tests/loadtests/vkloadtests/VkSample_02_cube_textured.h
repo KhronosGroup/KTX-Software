@@ -1,23 +1,16 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
-#ifndef VK_LOAD_TESTS_H
-#define VK_LOAD_TESTS_H
-
-/* $Id: ac63511da134f2c25a9e1da86a36bc27b6198ae3 $ */
+/* $Id$ */
 
 /**
- * @internal
- * @file VkLoadTests.h
- * @~English
- *
- * @brief Declaration of VkLoadTests app class.
- *
- * @author Mark Callow
- * @copyright (c) 2016, Mark Callow.
+ * @file	VkSample_02_cube_textured.c
+ * @brief	Draw a textured cube.
  */
 
 /*
+ * Copyright (c) 2016 Mark Callow
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and/or associated documentation files (the
  * "Materials"), to deal in the Materials without restriction, including
@@ -44,41 +37,34 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
+#ifndef VK_SAMPLE_02_CUBE_TEXTURED_H
+#define VK_SAMPLE_02_CUBE_TEXTURED_H
 
-#include "VkAppSDL.h"
 #include "VkSample.h"
-#include "at.h"
-#include <string>
 
-class VkLoadTests : public VkAppSDL {
+class VkSample_02_cube_textured : public VkSample {
   public:
-    /** A table of samples and arguments */
-    typedef struct sampleInvocation_ {
-        const VkSample::PFN_create createSample;
-        const char* const args;
-        const char* const title;
-    } sampleInvocation;
-    
-    VkLoadTests(const sampleInvocation samples[],
-                const int numSamples,
-                const char* const name);
-    virtual ~VkLoadTests();
-    virtual int doEvent(SDL_Event* event);
-    virtual void drawFrame(int ticks);
+    VkSample_02_cube_textured(const VkCommandPool commandPool,
+                              const VkDevice device,
+                              const VkRenderPass renderPass,
+                              VkAppSDL::Swapchain& swapchain)
+                         : VkSample(commandPool, device, renderPass, swapchain) { }
+    virtual ~VkSample_02_cube_textured();
+
+    // Keep separate initialize for now in case we need to return errors
+    virtual void initialize(const char* const szArgs,
+                            const char* const szBasePath);
     virtual void finalize();
-    virtual bool initialize(int argc, char* argv[]);
-    virtual void onFPSUpdate();
-    virtual void resize(int width, int height);
+    virtual void resize(int iWidth, int iHeight);
+    virtual void run(int iTimeMS);
+
+    static VkSample*
+    create(const VkCommandPool commandPool, const VkDevice device,
+           const VkRenderPass renderPass, VkAppSDL::Swapchain& swapchain,
+           const char* const szArgs, const char* const szBasePath);
 
   protected:
-    
-    void invokeSample(int iSampleNum);
-    int iCurSampleNum;
-    VkSample* pCurSample;
-    const char* szBasePath;
-
-    const sampleInvocation* const siSamples;
-    const int iNumSamples;
+    void buildCommandBuffer(int bufferIndex);
 };
 
-#endif /* VK_LOAD_TESTS_H */
+#endif /* VK_SAMPLE_02_CUBE_TEXTURED_H */

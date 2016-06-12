@@ -44,8 +44,34 @@
   #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <assert.h>
 #include <ktx.h>
 #include <math.h>
+#include <vulkan/vulkan.h>
+
+#include "VkSample_02_cube_textured.h"
+
+VkSample*
+VkSample_02_cube_textured::create(const VkCommandPool commandPool,
+                                  const VkDevice device,
+                                  const VkRenderPass renderPass,
+                                  VkAppSDL::Swapchain& swapchain,
+                                  const char* const szArgs,
+                                  const char* const szBasePath)
+{
+    VkSample_02_cube_textured* result =
+            new VkSample_02_cube_textured(commandPool, device, renderPass,
+                                          swapchain);
+    result->initialize(szArgs, szBasePath);
+    return result;
+}
+
+
+VkSample_02_cube_textured::~VkSample_02_cube_textured()
+{
+
+}
+
 
 #if 0
 #include "mygl.h"
@@ -83,9 +109,28 @@ typedef struct CubeTextured_def {
 
 /* ------------------------------------------------------------------------- */
 
-void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
-                          const char* const szBasePath)
+void
+VkSample_02_cube_textured::initialize(const char* const szArgs,
+                                      const char* const szBasePath)
 {
+    VkResult U_ASSERT_ONLY err;
+    VkCommandBufferAllocateInfo aInfo;
+
+    aInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    aInfo.pNext = NULL;
+    aInfo.commandPool = commandPool;
+    aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    aInfo.commandBufferCount = 1;
+
+    for (int i = 0; i < swapchain.imageCount; i++) {
+        VkResult U_ASSERT_ONLY err =
+                          vkAllocateCommandBuffers(device, &aInfo,
+                                                   &swapchain.buffers[i].cmd);
+        assert(!err);
+        buildCommandBuffer(i);
+    }
+
+
 #if 0
     const char* filename;
 	GLuint texture = 0;
@@ -220,8 +265,12 @@ void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
 #endif
 }
 
-void atRelease_02_cube(void* pAppData)
+void
+VkSample_02_cube_textured::finalize()
 {
+    for (int i = 0; i < swapchain.imageCount; i++) {
+      vkFreeCommandBuffers(device, commandPool, 1, &swapchain.buffers[i].cmd);
+    }
 #if 0
 	CubeTextured* pData = (CubeTextured*)pAppData;
 	atAssert(pData);
@@ -241,7 +290,8 @@ void atRelease_02_cube(void* pAppData)
 }
 
 
-void atResize_02_cube(void* pAppData, int iWidth, int iHeight)
+void
+VkSample_02_cube_textured::resize(int iWidth, int iHeight)
 {
 #if 0
 	GLfloat matProj[16];
@@ -255,7 +305,8 @@ void atResize_02_cube(void* pAppData, int iWidth, int iHeight)
 #endif
 }
 
-void atRun_02_cube(void* pAppData, int iTimeMS) 
+void
+VkSample_02_cube_textured::run(int iTimeMS)
 {
 #if 0
 	/* Draw */
@@ -280,4 +331,82 @@ void atRun_02_cube(void* pAppData, int iTimeMS)
 }
 
 /* ------------------------------------------------------------------------- */
+
+void
+VkSample_02_cube_textured::buildCommandBuffer(int bufferIndex)
+{
+    VkResult U_ASSERT_ONLY err;
+
+    const VkCommandBufferBeginInfo cmd_buf_info = {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
+    };
+
+    VkClearValue clear_values[2] = {
+       { bufferIndex * 1.f, 0.2f, 0.2f, 1.0f },
+       { 0.0f, 0 }
+    };
+
+    const VkRenderPassBeginInfo rp_begin = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        NULL,
+        renderPass,
+        swapchain.buffers[bufferIndex].fb,
+        { 0, 0, swapchain.extent.width, swapchain.extent.height },
+        2,
+        clear_values,
+    };
+
+    err = vkBeginCommandBuffer(swapchain.buffers[bufferIndex].cmd,
+                               &cmd_buf_info);
+    assert(!err);
+
+    // We can use LAYOUT_UNDEFINED as a wildcard here because we don't care what
+    // happens to the previous contents of the image
+    VkImageMemoryBarrier image_memory_barrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        NULL,
+        0,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        swapchain.buffers[bufferIndex].image,
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+    };
+    vkCmdPipelineBarrier(swapchain.buffers[bufferIndex].cmd,
+                         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         0, 0, NULL, 0,
+                         NULL, 1, &image_memory_barrier);
+
+    vkCmdBeginRenderPass(swapchain.buffers[bufferIndex].cmd, &rp_begin,
+                         VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdEndRenderPass(swapchain.buffers[bufferIndex].cmd);
+
+    VkImageMemoryBarrier present_barrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        NULL,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_ACCESS_MEMORY_READ_BIT,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        swapchain.buffers[bufferIndex].image,
+        { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
+    };
+    present_barrier.image = swapchain.buffers[bufferIndex].image;
+
+    vkCmdPipelineBarrier(
+        swapchain.buffers[bufferIndex].cmd,
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        0, 0, NULL, 0, NULL, 1, &present_barrier);
+
+    err = vkEndCommandBuffer(swapchain.buffers[bufferIndex].cmd);
+    assert(!err);
+
+
+}
 

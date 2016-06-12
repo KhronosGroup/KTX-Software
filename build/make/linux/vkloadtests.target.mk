@@ -162,7 +162,7 @@ INCS_Release := \
 OBJS := \
 	$(obj).target/$(TARGET)/tests/loadtests/common/at.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/VkLoadTests.o \
-	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/vksample_02_cube_textured.o
+	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/VkSample_02_cube_textured.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

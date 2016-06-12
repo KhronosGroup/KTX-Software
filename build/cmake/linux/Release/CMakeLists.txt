@@ -519,13 +519,15 @@ add_custom_target(vkloadtests__copies
   DEPENDS ${vkloadtests__copies__output}
   SOURCES ${vkloadtests__copies__input}
 )
-list(APPEND vkloadtests__c_srcs
-  "../../../../tests/loadtests/common/at.c"
-  "../../../../tests/loadtests/vkloadtests/vksample_02_cube_textured.c")
-set(vkloadtests__cxx_srcs "../../../../tests/loadtests/vkloadtests/VkLoadTests.cpp")
+set(vkloadtests__c_srcs "../../../../tests/loadtests/common/at.c")
+list(APPEND vkloadtests__cxx_srcs
+  "../../../../tests/loadtests/vkloadtests/VkLoadTests.cpp"
+  "../../../../tests/loadtests/vkloadtests/VkSample_02_cube_textured.cpp")
 list(APPEND vkloadtests__other_srcs
   "../../../../tests/loadtests/common/at.h"
-  "../../../../tests/loadtests/vkloadtests/VkLoadTests.h")
+  "../../../../tests/loadtests/vkloadtests/VkLoadTests.h"
+  "../../../../tests/loadtests/vkloadtests/VkSample.h"
+  "../../../../tests/loadtests/vkloadtests/VkSample_02_cube_textured.h")
 link_directories( ../../../../other_lib/linux/${configuration}-x64
 )
 add_executable(vkloadtests ${vkloadtests__c_srcs} ${vkloadtests__cxx_srcs} ${vkloadtests__other_srcs})
