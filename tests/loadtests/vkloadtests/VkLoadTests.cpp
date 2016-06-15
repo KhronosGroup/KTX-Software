@@ -121,6 +121,7 @@ VkLoadTests::doEvent(SDL_Event* event)
 void
 VkLoadTests::resize(int width, int height)
 {
+    VkAppSDL::resize(width, height);
     if (pCurSample != NULL)
         pCurSample->resize(width, height);
 }
@@ -148,7 +149,7 @@ VkLoadTests::invokeSample(int iSampleNum)
     
     SDL_GetWindowSize(pswMainWindow, &width, & height);
     setWindowTitle(sampleInv->title);
-    pCurSample->resize(width, height);
+    //pCurSample->resize(width, height);
 }
 
 

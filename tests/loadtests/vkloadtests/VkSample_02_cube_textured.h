@@ -44,9 +44,9 @@
 
 class VkSample_02_cube_textured : public VkSample {
   public:
-    VkSample_02_cube_textured(const VkCommandPool commandPool,
-                              const VkDevice device,
-                              const VkRenderPass renderPass,
+    VkSample_02_cube_textured(const VkCommandPool& commandPool,
+                              const VkDevice& device,
+                              const VkRenderPass& renderPass,
                               VkAppSDL::Swapchain& swapchain)
                          : VkSample(commandPool, device, renderPass, swapchain) { }
     virtual ~VkSample_02_cube_textured();
@@ -59,12 +59,13 @@ class VkSample_02_cube_textured : public VkSample {
     virtual void run(int iTimeMS);
 
     static VkSample*
-    create(const VkCommandPool commandPool, const VkDevice device,
-           const VkRenderPass renderPass, VkAppSDL::Swapchain& swapchain,
+    create(const VkCommandPool& commandPool, const VkDevice& device,
+           const VkRenderPass& renderPass, VkAppSDL::Swapchain& swapchain,
            const char* const szArgs, const char* const szBasePath);
 
   protected:
     void buildCommandBuffer(int bufferIndex);
+    void prepareCubeDataBuffer();
 };
 
 #endif /* VK_SAMPLE_02_CUBE_TEXTURED_H */

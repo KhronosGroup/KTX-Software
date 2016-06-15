@@ -52,9 +52,9 @@
 #include "VkSample_02_cube_textured.h"
 
 VkSample*
-VkSample_02_cube_textured::create(const VkCommandPool commandPool,
-                                  const VkDevice device,
-                                  const VkRenderPass renderPass,
+VkSample_02_cube_textured::create(const VkCommandPool& commandPool,
+                                  const VkDevice& device,
+                                  const VkRenderPass& renderPass,
                                   VkAppSDL::Swapchain& swapchain,
                                   const char* const szArgs,
                                   const char* const szBasePath)
@@ -113,20 +113,7 @@ void
 VkSample_02_cube_textured::initialize(const char* const szArgs,
                                       const char* const szBasePath)
 {
-    VkResult U_ASSERT_ONLY err;
-    VkCommandBufferAllocateInfo aInfo;
-
-    aInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    aInfo.pNext = NULL;
-    aInfo.commandPool = commandPool;
-    aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    aInfo.commandBufferCount = 1;
-
     for (int i = 0; i < swapchain.imageCount; i++) {
-        VkResult U_ASSERT_ONLY err =
-                          vkAllocateCommandBuffers(device, &aInfo,
-                                                   &swapchain.buffers[i].cmd);
-        assert(!err);
         buildCommandBuffer(i);
     }
 
@@ -293,6 +280,9 @@ VkSample_02_cube_textured::finalize()
 void
 VkSample_02_cube_textured::resize(int iWidth, int iHeight)
 {
+    for (int i = 0; i < swapchain.imageCount; i++) {
+        buildCommandBuffer(i);
+    }
 #if 0
 	GLfloat matProj[16];
 	CubeTextured* pData = (CubeTextured*)pAppData;
@@ -406,7 +396,13 @@ VkSample_02_cube_textured::buildCommandBuffer(int bufferIndex)
 
     err = vkEndCommandBuffer(swapchain.buffers[bufferIndex].cmd);
     assert(!err);
+}
 
+
+void
+VkSample_02_cube_textured::prepareCubeDataBuffer()
+{
 
 }
+
 

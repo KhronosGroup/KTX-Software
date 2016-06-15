@@ -118,6 +118,7 @@ class VkAppSDL : public AppBaseSDL {
     void flushInitialCommands();
     bool initializeVulkan();
     bool prepareColorBuffers();
+    bool prepareCommandBuffers();
     bool prepareDepthBuffer();
     bool prepareDescriptorLayout();
     bool prepareRenderPass();

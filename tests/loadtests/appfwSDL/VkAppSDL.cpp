@@ -137,7 +137,7 @@ VkAppSDL::initialize(int argc, char* argv[])
     // Not getting an initial resize event, at least on Mac OS X.
     // Therefore call resize directly.
     
-    resize(w_width, w_height);
+    //resize(w_width, w_height);
 
     initializeFPSTimer();
     return true;
@@ -278,6 +278,32 @@ VkAppSDL::drawFrame(int ticks)
 void
 VkAppSDL::resize(int width, int height)
 {
+    for (int i = 0; i < swapchain.imageCount; i++) {
+        vkDestroyFramebuffer(vdDevice, swapchain.buffers[i].fb, NULL);
+        vkDestroyImageView(vdDevice, swapchain.buffers[i].view, NULL);
+        vkFreeCommandBuffers(vdDevice, vcpCommandPool, 1,
+                             &swapchain.buffers[i].cmd);
+    }
+    vkDestroySwapchainKHR(vdDevice, swapchain.vhandle, NULL);
+    delete [] swapchain.buffers;
+
+    vkDestroyImageView(vdDevice, depth.view, NULL);
+    vkDestroyImage(vdDevice, depth.image, NULL);
+    vkFreeMemory(vdDevice, depth.mem, NULL);
+
+    vkDestroyRenderPass(vdDevice, vrpRenderPass, NULL);
+
+    w_width = width;
+    w_height = height;
+
+    (void)(createSwapchain()
+        && prepareColorBuffers()
+        && prepareDepthBuffer()
+        && prepareCommandBuffers()
+        && prepareRenderPass()
+        && prepareFramebuffers());
+
+    flushInitialCommands();
 }
 
 
@@ -321,6 +347,7 @@ VkAppSDL::initializeVulkan()
             && createSwapchain()
             && prepareColorBuffers()
             && prepareDepthBuffer()
+            && prepareCommandBuffers()
             && prepareRenderPass()
             && prepareFramebuffers()) {
         // Functions above most likely generate pipeline commands
@@ -994,6 +1021,25 @@ VkAppSDL::prepareDepthBuffer()
 
     return true;
 } // prepareDepthBuffer
+
+
+bool
+VkAppSDL::prepareCommandBuffers()
+{
+    VkCommandBufferAllocateInfo aInfo;
+    aInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    aInfo.pNext = NULL;
+    aInfo.commandPool = vcpCommandPool;
+    aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    aInfo.commandBufferCount = 1;
+
+    for (int i = 0; i < swapchain.imageCount; i++) {
+        VkResult U_ASSERT_ONLY err =
+         vkAllocateCommandBuffers(vdDevice, &aInfo, &swapchain.buffers[i].cmd);
+        assert(err == VK_SUCCESS);
+    }
+    return true;
+}
 
 
 bool

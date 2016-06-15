@@ -49,8 +49,8 @@
 
 class VkSample {
   public:
-    VkSample(const VkCommandPool commandPool, const VkDevice device,
-             const VkRenderPass renderPass, VkAppSDL::Swapchain& swapchain)
+    VkSample(const VkCommandPool& commandPool, const VkDevice& device,
+             const VkRenderPass& renderPass, VkAppSDL::Swapchain& swapchain)
        : commandPool(commandPool), device(device), renderPass(renderPass),
          swapchain(swapchain) { }
 
@@ -61,17 +61,17 @@ class VkSample {
     virtual void resize(int iWidth, int iHeight) = 0;
     virtual void run(int iTimeMS) = 0;
 
-    typedef VkSample* (*PFN_create)(const VkCommandPool commandPool,
-                                    const VkDevice device,
-                                    const VkRenderPass renderPass,
+    typedef VkSample* (*PFN_create)(const VkCommandPool& commandPool,
+                                    const VkDevice& device,
+                                    const VkRenderPass& renderPass,
                                     VkAppSDL::Swapchain& swapchain,
                                     const char* const szArgs,
                                     const char* const szBasePath);
 
   protected:
-    const VkCommandPool commandPool;
-    const VkDevice device;
-    const VkRenderPass renderPass;
+    const VkCommandPool& commandPool;
+    const VkDevice& device;
+    const VkRenderPass& renderPass;
     VkAppSDL::Swapchain& swapchain;
 };
 
