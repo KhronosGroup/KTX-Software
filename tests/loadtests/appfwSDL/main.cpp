@@ -97,8 +97,8 @@ main(int argc, char* argv[])
   } else {
     for (;;) {
       SDL_PumpEvents();
-      theApp->drawFrame(SDL_GetPerformanceCounter());
-      // Let app return a sleep time from drawFrame()? If so
+      theApp->drawFrame();
+      // XXX Let app return a sleeptime from drawFrame()? If so
       // sleep(sleeptime);
     }
   }
