@@ -245,19 +245,18 @@ void atResize_02_cube(void* pAppData, int iWidth, int iHeight)
 	glUniformMatrix4fv(pData->gulPMatrixLocTP, 1, GL_FALSE, matProj);
 }
 
-void atRun_02_cube(void* pAppData, tTicks tTicks)
+void atRun_02_cube(void* pAppData, uint32_t msTicks)
 {
 	/* Draw */
 	CubeTextured* pData = (CubeTextured*)pAppData;
 	/* Setup the view matrix : just turn around the cube. */
 	float matView[16];
-	const float fDistance = 50.0f;
-	int iTimeMS = tTicks * 1000 / SDL_GetPerformanceFrequency();
+	const float fDistance = 5.0f;
 
 	atAssert(pData);
 
 	atSetViewMatrix(matView, 
-		(float)cos( iTimeMS*0.001f ) * fDistance, (float)sin( iTimeMS*0.0007f ) * fDistance, (float)sin( iTimeMS*0.001f ) * fDistance, 
+		(float)cos( iTimeMS*0.001f ) * fDistance, (float)sin( msTicks*0.0007f ) * fDistance, (float)sin( msTicks*0.001f ) * fDistance,
 		0.0f, 0.0f, 0.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
