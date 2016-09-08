@@ -178,11 +178,13 @@ void atResize_02_cube(void* pAppData, int iWidth, int iHeight)
 	glMatrixMode( GL_MODELVIEW );
 }
 
-void atRun_02_cube(void* pAppData, int iTimeMS) 
+void atRun_02_cube(void* pAppData, tTicks tTicks) 
 {
 	/* Setup the view matrix : just turn around the cube. */
 	float matView[16];
 	const float fDistance = 50.0f;
+	int iTimeMS = tTicks * 1000 / SDL_GetPerformanceFrequency();
+
 	atSetViewMatrix(matView, 
 		(float)cos( iTimeMS*0.001f ) * fDistance, (float)sin( iTimeMS*0.0007f ) * fDistance, (float)sin( iTimeMS*0.001f ) * fDistance, 
 		0.0f, 0.0f, 0.0f);

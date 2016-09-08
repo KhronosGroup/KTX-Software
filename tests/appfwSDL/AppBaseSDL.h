@@ -51,29 +51,34 @@ extern class AppBaseSDL* theApp;
 
 class AppBaseSDL {
   public:
+    // In case we need to revert to 32-bit on some platform
+    typedef Uint64 ticks_t;
     AppBaseSDL(const char* const name) : szName(name) { }
     virtual bool initialize(int argc, char* argv[]);
     virtual void finalize();
-    virtual void drawFrame(int ticks);
+    virtual void drawFrame(ticks_t ticks);
     virtual int doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
     
     void initializeFPSTimer();
     const char* const name() { return szName; }
-    std::string basePath() { return sBasePath; }
+    const std::string getAssetPath() { return sBasePath; }
     
     static int onEvent(void* userdata, SDL_Event* event) {
         return ((AppBaseSDL *)userdata)->doEvent(event);
     }
     
     static void onDrawFrame(void* userdata) {
-        ((AppBaseSDL *)userdata)->drawFrame(SDL_GetTicks());
+        ((AppBaseSDL *)userdata)->drawFrame(SDL_GetPerformanceCounter());
     }
 
-protected:
-    long lFPSTimeStart;
-    int iFPSFrames;
-    float fFPS;
+  protected:
+    float lastFrameTime;  // ms
+    struct fpsCounter {
+        ticks_t startTime;
+        int numFrames;
+        float lastFPS;
+    } fpsCounter;
     
     const char* const szName;
     std::string sBasePath;

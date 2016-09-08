@@ -47,7 +47,7 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
                                   const char* const szBasePath);
 void atRelease_01_draw_texture(void* pAppData);
 void atResize_01_draw_texture(void* pAppData, int iWidth, int iHeight);
-void atRun_01_draw_texture(void* pAppData, int iTimeMS); 
+void atRun_01_draw_texture(void* pAppData, tTicks tTicks); 
 
 static const atSample sc_Sample01 = {
 	atInitialize_01_draw_texture,
@@ -62,7 +62,7 @@ void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
                           const char* const szBasePath);
 void atRelease_02_cube(void* pAppData);
 void atResize_02_cube(void* pAppData, int iWidth, int iHeight);
-void atRun_02_cube(void* pAppData, int iTimeMS); 
+void atRun_02_cube(void* pAppData, tTicks tTicks); 
 
 static const atSample sc_Sample02 = {
 	atInitialize_02_cube,
