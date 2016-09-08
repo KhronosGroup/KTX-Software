@@ -51,6 +51,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <iomanip>
 #include <sstream>
 
 #include "VkAppSDL.h"
@@ -190,7 +191,7 @@ VkAppSDL::doEvent(SDL_Event* event)
 
 
 void
-VkAppSDL::drawFrame(int ticks)
+VkAppSDL::drawFrame(Uint64 ticks)
 {
     VkResult U_ASSERT_ONLY err;
 
@@ -318,20 +319,16 @@ VkAppSDL::onFPSUpdate()
 void
 VkAppSDL::setWindowTitle(const char* const szExtra)
 {
-    char szTitle[100];
+    std::stringstream ss;
 
-    // Using this verbose way to avoid compiler warnings that occur when using
-    // the obvious way of a ?: to select a format string.
-    if (szExtra[0] == '\0') {
-        snprintf(szTitle, sizeof(szTitle),
-                 "%#.2f fps. %s",
-                 fFPS, szName);
-    } else {
-        snprintf(szTitle, sizeof(szTitle),
-                 "%#.2f fps. %s: %s",
-                 fFPS, szName, szExtra);
+    ss << std::fixed << std::setprecision(2)
+       << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)"
+       << szName;
+
+    if (szExtra != NULL && szExtra[0] != '\0') {
+        ss << ": " << szExtra;
     }
-    SDL_SetWindowTitle(pswMainWindow, szTitle);
+    SDL_SetWindowTitle(pswMainWindow, ss.str().c_str());
 }
 
 

@@ -245,13 +245,18 @@ void atResize_02_cube(void* pAppData, int iWidth, int iHeight)
 	glUniformMatrix4fv(pData->gulPMatrixLocTP, 1, GL_FALSE, matProj);
 }
 
+<<<<<<< 097be7f8fc1fd50d1510432ad3562792686d9c73
 void atRun_02_cube(void* pAppData, uint32_t msTicks)
+=======
+void atRun_02_cube(void* pAppData, tTicks tTicks)
+>>>>>>> Switch to high-precision timer/counter.
 {
 	/* Draw */
 	CubeTextured* pData = (CubeTextured*)pAppData;
 	/* Setup the view matrix : just turn around the cube. */
 	float matView[16];
 	const float fDistance = 5.0f;
+	int iTimeMS = tTicks * 1000 / SDL_GetPerformanceFrequency();
 
 	atAssert(pData);
 
