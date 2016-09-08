@@ -58,8 +58,10 @@ AppBaseSDL::initialize(int argc, char* argv[])
 void
 AppBaseSDL::initializeFPSTimer()
 {
-    lFPSTimeStart = SDL_GetTicks();
-    iFPSFrames = 0;
+    lastFrameTime = 0;
+    fpsCounter.numFrames = 0;
+    fpsCounter.lastFPS = 0;
+    fpsCounter.startTime = SDL_GetPerformanceCounter();
 }
 
 
@@ -88,14 +90,19 @@ AppBaseSDL::onFPSUpdate()
 }
 
 
+// This should be called from the end of a derived class's drawFrame.
 void
-AppBaseSDL::drawFrame(int ticks)
+AppBaseSDL::drawFrame(ticks_t ticks)
 {
-    iFPSFrames++;
-    if (ticks - lFPSTimeStart > 1000) {
-        fFPS = (float)(iFPSFrames * 1000) / (ticks - lFPSTimeStart);
+    ticks_t endTicks = SDL_GetPerformanceCounter();
+    Uint64 tps = SDL_GetPerformanceFrequency();
+    lastFrameTime = 1000.0 * (endTicks - ticks) / tps;
+    fpsCounter.numFrames++;
+    if (endTicks - fpsCounter.startTime > tps) {
+        fpsCounter.lastFPS = (float)(fpsCounter.numFrames * tps)
+                             / (endTicks - fpsCounter.startTime);
         onFPSUpdate(); // Notify listeners that fps value has been updated.
-        lFPSTimeStart = ticks;
-        iFPSFrames = 0;
+        fpsCounter.startTime = endTicks;
+        fpsCounter.numFrames = 0;
     }
 }

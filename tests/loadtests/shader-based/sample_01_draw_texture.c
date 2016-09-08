@@ -340,7 +340,7 @@ void atResize_01_draw_texture (void* pAppData, int iWidth, int iHeight)
 
 /* ----------------------------------------------------------------------------- */
 
-void atRun_01_draw_texture (void* pAppData, int iTimeMS)
+void atRun_01_draw_texture (void* pAppData, tTicks tTicks)
 {
 	DrawTexture* pData = (DrawTexture*)pAppData;
 	atAssert(pData);

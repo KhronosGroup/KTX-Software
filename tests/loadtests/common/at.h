@@ -85,15 +85,16 @@ typedef 	tS32 						tEnum;
 typedef 	tU8 						tBool;
 typedef 	float 						tFloat;
 typedef 	tS32 						tFixed;
+typedef     Uint64                      tTicks;
 
 /* ----------------------------------------------------------------------------- */
 
 typedef void	(*atPFInitialize)(void**            ppAppData,
                                   const char* const szArgs,
                                   const char* const szBasePath);
-typedef void	(*atPFRelease)	(void*		pAppData);
-typedef void	(*atPFResize)	(void*      pAppData, int iWidth, int iHeight);
-typedef void	(*atPFRun)		(void*		pAppData, int iTimeMS);
+typedef void	(*atPFRelease)	 (void*	  pAppData);
+typedef void	(*atPFResize)	 (void*   pAppData, int iWidth, int iHeight);
+typedef void	(*atPFRun)		 (void*	  pAppData, tTicks ticks);
 
 /** A single sample. */
 typedef struct atSample_def {

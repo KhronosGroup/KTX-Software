@@ -51,6 +51,8 @@
 #endif
 
 #include <stdio.h>
+#include <iomanip>
+#include <sstream>
 
 #include "GLAppSDL.h"
 
@@ -220,7 +222,7 @@ GLAppSDL::doEvent(SDL_Event* event)
 
 
 void
-GLAppSDL::drawFrame(int ticks)
+GLAppSDL::drawFrame(ticks_t ticks)
 {
     AppBaseSDL::drawFrame(ticks);
     SDL_GL_SwapWindow(pswMainWindow);
@@ -244,18 +246,14 @@ GLAppSDL::onFPSUpdate()
 void
 GLAppSDL::setWindowTitle(const char* const szExtra)
 {
-    char szTitle[100];
+    std::stringstream ss;
 
-    // Using this verbose way to avoid compiler warnings that occur when using
-    // the obvious way of a ?: to select a format string.
-    if (szExtra[0] == '\0') {
-        snprintf(szTitle, sizeof(szTitle),
-                 "%#.2f fps. %s",
-                 fFPS, szName);
-    } else {
-        snprintf(szTitle, sizeof(szTitle),
-                 "%#.2f fps. %s: %s",
-                 fFPS, szName, szExtra);
+    ss << std::fixed << std::setprecision(2)
+       << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)"
+       << " - " << szName;
+
+    if (szExtra != NULL && szExtra[0] != '\0') {
+        ss << ": " << szExtra;
     }
-    SDL_SetWindowTitle(pswMainWindow, szTitle);
+    SDL_SetWindowTitle(pswMainWindow, ss.str().c_str());
 }
