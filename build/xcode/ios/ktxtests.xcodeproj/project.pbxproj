@@ -932,7 +932,7 @@
 					DEBUG,
 					_DEBUG,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -953,7 +953,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libsdl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -992,7 +992,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1027,7 +1027,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1048,7 +1048,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1065,7 +1065,7 @@
 					DEBUG,
 					_DEBUG,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1079,7 +1079,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgles1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1108,7 +1108,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1150,7 +1150,7 @@
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/resources_ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$(PLATFORM_NAME)",
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -1176,7 +1176,7 @@
 					tests/loadtests/common,
 					other_include,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = appfwSDL;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1193,7 +1193,7 @@
 					DEBUG,
 					_DEBUG,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libsdl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1215,7 +1215,7 @@
 					tests/loadtests/common,
 					other_include,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = appfwSDL;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
