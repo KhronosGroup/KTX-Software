@@ -1631,7 +1631,6 @@ void decompressBlockETC21BitAlpha(unsigned int block_part1, unsigned int block_p
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2013. All Rights Reserved.
 uint8 getbit(uint8 input, int frompos, int topos) 
 {
-	uint8 output=0;
 	if(frompos>topos)
 		return ((1<<frompos)&input)>>(frompos-topos);
 	return ((1<<frompos)&input)<<(topos-frompos);

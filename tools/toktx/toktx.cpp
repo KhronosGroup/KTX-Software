@@ -218,7 +218,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	int exitCode = 0, face, i;
 	unsigned int levelWidth, levelHeight;
 	FileResult readResult;
-	bool useStdin = false;
 	unsigned char* kvData = NULL;
 	unsigned int kvDataLen = 0;
 

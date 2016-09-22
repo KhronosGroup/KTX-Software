@@ -58,9 +58,32 @@
         'SDKROOT': 'macosx',
       }],
     ],
+    # These have to be here. If in target_defaults', Xcode 8 will
+    # warn that the project settings are not the recommended settings
+    # and ask if you want to turn all these on.  However, if these
+    # are set in target_defaults, the warnings *will* be turned on.
+    # GYP bug? Xcode bug?
+    'CLANG_WARN_BOOL_CONVERSION': 'YES',
+    'CLANG_WARN_CONSTANT_CONVERSION': 'YES',
+    'CLANG_WARN_EMPTY_BODY': 'YES',
+    'CLANG_WARN_ENUM_CONVERSION': 'YES',
+    'CLANG_WARN_INFINITE_RECURSION': 'YES',
+    'CLANG_WARN_INT_CONVERSION': 'YES',
+    'CLANG_WARN_SUSPICIOUS_MOVE': 'YES',
+    'CLANG_WARN_UNREACHABLE_CODE': 'YES',
+    'CLANG_WARN__DUPLICATE_METHOD_MATCH': 'YES',
+    'ENABLE_STRICT_OBJC_MSGSEND': 'YES',
+    'GCC_NO_COMMON_BLOCKS': 'YES',
+    'GCC_WARN_64_TO_32_BIT_CONVERSION': 'YES',
+    'GCC_WARN_ABOUT_RETURN_TYPE': 'YES',
+    'GCC_WARN_PEDANTIC': 'YES',
+    'GCC_WARN_UNDECLARED_SELECTOR': 'YES',
+    'GCC_WARN_UNINITIALIZED_AUTOS': 'YES',
+    'GCC_WARN_UNUSED_FUNCTION': 'YES',
+    'GCC_WARN_UNUSED_VARIABLE': 'YES',
   }, # xcode_settings
   # This has to be here. If in target_defaults' Debug config
-  # Xcode will warn that this value is not set.
+  # Xcode 7+ will warn that this value is not set.
   'configurations': {
     'Debug': {
       'xcode_settings': {
@@ -97,6 +120,7 @@
       },
     },
     'xcode_settings': {
+      'COPY_PHASE_STRIP': 'NO',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
