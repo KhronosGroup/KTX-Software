@@ -669,11 +669,10 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
     KTX_supplemental_info texinfo;
 	GLint				  previousUnpackAlignment;
 	void*				  data = NULL;
-	ktx_uint32_t	      dataSize = 0;
 	GLuint				  texname;
 	int					  texnameUser;
 	KTX_error_code		  errorCode = KTX_SUCCESS;
-    PFNKTXIMAGECB         imageCb;
+    PFNKTXIMAGECB         imageCb = NULL;
     ktx_cbdata            cbData;
     int                   dimension;
 
