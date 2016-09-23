@@ -60,9 +60,8 @@
     ],
     # These have to be here. If in target_defaults', Xcode 8 will
     # warn that the project settings are not the recommended settings
-    # and ask if you want to turn all these on.  However, if these
-    # are set in target_defaults, the warnings *will* be turned on.
-    # GYP bug? Xcode bug?
+    # and suggest it turns all these on. However, if they are set in
+    # target_defaults, the warnings *will* be turned on. Xcode bug?
     'CLANG_WARN_BOOL_CONVERSION': 'YES',
     'CLANG_WARN_CONSTANT_CONVERSION': 'YES',
     'CLANG_WARN_EMPTY_BODY': 'YES',
@@ -83,7 +82,7 @@
     'GCC_WARN_UNUSED_VARIABLE': 'YES',
   }, # xcode_settings
   # This has to be here. If in target_defaults' Debug config
-  # Xcode 7+ will warn that this value is not set.
+  # Xcode 7+ will warn that this recommended value is not set.
   'configurations': {
     'Debug': {
       'xcode_settings': {
