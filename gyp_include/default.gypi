@@ -126,10 +126,12 @@
           # 1 = iPhone/iPod Touch; 2 = iPad
           'TARGETED_DEVICE_FAMILY': '1,2',
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
+          'PROVISIONING_PROFILE': '',
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
         }, 'OS == "mac"', {
           'MACOSX_DEPLOYMENT_TARGET': '10.9',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
+          'PROVISIONING_PROFILE': '',
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
       ],
