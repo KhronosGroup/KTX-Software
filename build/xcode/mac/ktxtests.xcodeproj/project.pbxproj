@@ -1063,6 +1063,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -1084,6 +1085,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest_main;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -1112,6 +1114,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = readtests;
+				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
@@ -1141,6 +1144,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = unittests;
+				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
@@ -1167,6 +1171,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = unittests;
+				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
 			name = Release;
@@ -1189,6 +1194,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = libsdl;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -1234,6 +1240,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = testimages;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -1258,6 +1265,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest_main;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -1291,6 +1299,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = gl3loadtests;
+				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_PREFIX = "";
 			};
@@ -1307,6 +1316,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = testimages;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -1339,6 +1349,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = readtests;
+				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
 			name = Release;
@@ -1374,6 +1385,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = gl3loadtests;
+				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 				WRAPPER_PREFIX = "";
 			};
@@ -1402,6 +1414,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -1419,6 +1432,7 @@
 				HEADER_SEARCH_PATHS = other_include;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = appfwSDL;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -1436,6 +1450,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = libsdl;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -1456,6 +1471,7 @@
 				HEADER_SEARCH_PATHS = other_include;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = appfwSDL;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
