@@ -167,16 +167,18 @@ Copy the results of your build to the appropriate place under the
 
 ### GYP
 
-All the builds use project or make files generated with a modified version
-of [GYP](https://github.com/msc-/gyp). To install GYP, follow the
-instructions in the [README](https://github.com/msc-/gyp/blob/master/README.md)
-there.
+All the builds use cmake, make or project files generated with
+[GYP](https://gyp.gsrc.io/). A modified version, available
+in the `remaster` branch of [this fork](https://github.com/msc-/gyp/tree/remaster),
+is needed to generate makefiles. To install GYP, follow the [instructions in the
+fork](https://github.com/msc-/gyp/tree/remaster#installing-gyp). These work
+for either version of GYP. There are no install instructions at GYP's home.
 
 *You do not need GYP unless you want to re-generate the supplied projects
 or generate additional projects.*
 
 *You can use the standard version of GYP if you do not need to generate
-Xcode or make projects.*
+make projects.*
 
 ### GNU make 3.81+
 
