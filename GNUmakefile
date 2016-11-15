@@ -78,10 +78,11 @@ gypfiles=ktxtests.gyp \
 		 tools/tools.gypi \
 		 tools/toktx/toktx.gypi
 
-# Uncomment these 2 lines if you do not want to install our modified GYP.
-# Set gypdir to the directory containing the modified GYP.
-# PYTHONPATH is inserted at start of python's search path thus the second
-# line ensures the modified GYP is used.
+# Uncomment these 2 lines if you do not want to install our modified
+# GYP (i.e. run setup.py install). Set gypdir to the directory
+# containing the modified GYP. PYTHONPATH is inserted at start of
+# python's search path thus the second line ensures the modified
+# GYP is used.
 #gypdir=tools/gyp/
 #export PYTHONPATH=$(gypdir)pylib
 
@@ -134,5 +135,4 @@ $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
 	@date > $@
 
-# vim:ai:expandtab!:ts=4:sts=4:sw=2:textwidth=75
-
+# vim:ai:noexpandtab:ts=4:sts=4:sw=2:textwidth=75
