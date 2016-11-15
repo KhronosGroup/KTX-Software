@@ -10,11 +10,10 @@
     'emit_vs_x64_configs': 'false',
     'emit_vs_win32_configs': 'false',
     'emit_emscripten_configs': 'false',
-
     'conditions': [
       # TODO Emscripten support not yet correct or complete. DO NOT
       # TRY TO USE.
-      # Emscripten "vs-tool" VS integration only supports certain MSVS versions;
+      # Emscripten "vs-tool" VS integration only supports MSVS 2010;
 #      ['GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010")', {
 #        'emit_emscripten_configs': 'true',
 #      }, {
@@ -26,7 +25,7 @@
       ['OS == "win" and GENERATOR == "msvs"', {
         'emit_vs_win32_configs': 'true',
         'conditions': [
-          # Don't generate x64 configs in MSVS Express Edition projects.
+          # Don't generate x64 configs in certain MSVS Express Edition projects.
           # Note: 2012e and 2013e support x64.
           ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
             'emit_vs_x64_configs': 'true'
@@ -58,10 +57,11 @@
         'SDKROOT': 'macosx',
       }],
     ],
-    # These have to be here. If in target_defaults', Xcode 8 will
-    # warn that the project settings are not the recommended settings
-    # and suggest it turns all these on. However, if they are set in
-    # target_defaults, the warnings *will* be turned on. Xcode bug?
+    # These have to project-wide. If in target_defaults', and
+    # therefore set in each target, Xcode 8 will warn that the project
+    # settings are not the recommended settings and suggest it turns
+    # all these on, even though they *will* all be turned on. Xcode
+    # bug?
     'CLANG_WARN_BOOL_CONVERSION': 'YES',
     'CLANG_WARN_CONSTANT_CONVERSION': 'YES',
     'CLANG_WARN_EMPTY_BODY': 'YES',
@@ -81,7 +81,7 @@
     'GCC_WARN_UNUSED_FUNCTION': 'YES',
     'GCC_WARN_UNUSED_VARIABLE': 'YES',
   }, # xcode_settings
-  # This has to be here. If in target_defaults' Debug config
+  # This has to be project-wide too. If in target_defaults' Debug config
   # Xcode 7+ will warn that this recommended value is not set.
   'configurations': {
     'Debug': {
@@ -123,26 +123,33 @@
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
-          'TARGETED_DEVICE_FAMILY': '1,2',
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
-          'PROVISIONING_PROFILE': '',
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
+          'TARGETED_DEVICE_FAMILY': '1,2',
         }, 'OS == "mac"', {
           'MACOSX_DEPLOYMENT_TARGET': '10.9',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
-          'PROVISIONING_PROFILE': '',
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
       ],
       'target_conditions': [
-        ['_type == "executable"', {
-            # Don't add a default value because this variable gets exported
-            # as is to CMake and ${PRODUCT_NAME:-identifier} is invalid
-            # syntax.
-          'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
+        ['_type == "executable" or _type == "shared_library"', {
+          'target_conditions': [
+            ['_mac_bundle == 1', {
+              # Don't add a default value because this variable gets exported
+              # as is to CMake and ${PRODUCT_NAME:-identifier} is invalid
+              # syntax.
+              'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
+            }],
+          ],
+          # Starting with Xcode 8, DEVELOPMENT_TEAM must be specified
+          # to successfully build a project. Since it will be different
+          # for each user of this project, do not specify it here. See
+          # ../BUILDING.md for instructions on how to set it in your
+          # Xcode preferences.
         }],
-      ],
-    },
+      ], # target_conditions
+    }, # xcode_settings
     'configurations': {
       'Debug': {
         'target_conditions': [

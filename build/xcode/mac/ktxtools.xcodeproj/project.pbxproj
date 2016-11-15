@@ -358,9 +358,7 @@
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = toktx;
-				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
 			name = Release;
@@ -384,9 +382,7 @@
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = toktx;
-				PROVISIONING_PROFILE = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
@@ -402,7 +398,6 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "toktx-tests";
-				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -477,7 +472,6 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "toktx-tests";
-				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
