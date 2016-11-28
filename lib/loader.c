@@ -134,6 +134,31 @@ static GLboolean supportsCubeMapArrays = GL_FALSE;
  */
 #define glGetString(x) (const char*)glGetString(x)
 
+/**
+ * @internal
+ * @~English
+ * @brief Check for existence of OpenGL extension
+ */
+static GLboolean
+hasExtension(const char* extension)
+{
+	if (pfGlGetStringi == NULL) {
+		if (strstr(glGetString(GL_EXTENSIONS), extension) != NULL)
+			return GL_TRUE;
+		else
+			return GL_FALSE;
+	}
+	else {
+		int i, n;
+
+		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		for (i = 0; i < n; i++) {
+			if (strcmp(pfGlGetStringi(GL_EXTENSIONS, i), extension) == 0)
+				return GL_TRUE;
+		}
+		return GL_FALSE;
+	}
+}
 
 /**
  * @internal
@@ -153,6 +178,11 @@ static void discoverContextCapabilities(void)
 {
 	GLint majorVersion = 1;
 	GLint minorVersion = 0;
+
+	// Done here so things will work when GLEW, or equivalent, is being used
+	// and GL function names are defined as pointers. Initialization at
+	// declaration would happen before these pointers have been initialized.
+	INITIALIZE_GL_FUNCPTRS
 
 	if (strstr(glGetString(GL_VERSION), "GL ES") != NULL)
 		contextProfile = _CONTEXT_ES_PROFILE_BIT;
@@ -176,11 +206,11 @@ static void discoverContextCapabilities(void)
 			supportsSRGB = GL_FALSE;
 		} else {
 			sizedFormats = _NON_LEGACY_FORMATS;
-            if (strstr(glGetString(GL_EXTENSIONS), "GL_EXT_texture_cube_map_array") != NULL) {
+            if (hasExtension("GL_EXT_texture_cube_map_array")) {
                 supportsCubeMapArrays = GL_TRUE;
             }
 		}
-		if (strstr(glGetString(GL_EXTENSIONS), "GL_OES_required_internalformat") != NULL) {
+		if (hasExtension("GL_OES_required_internalformat")) {
 			sizedFormats |= _ALL_SIZED_FORMATS;
 		}
 		// There are no OES extensions for sRGB textures or R16 formats.
@@ -201,7 +231,7 @@ static void discoverContextCapabilities(void)
 			contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
 			supportsSwizzle = GL_FALSE;
 			// sRGB textures introduced in 2.0
-			if (majorVersion < 2 && strstr(glGetString(GL_EXTENSIONS), "GL_EXT_texture_sRGB") == NULL) {
+			if (majorVersion < 2 && hasExtension("GL_EXT_texture_sRGB")) {
 				supportsSRGB = GL_FALSE;
 			}
 			// R{,G]16 introduced in 3.0; R{,G}16_SNORM introduced in 3.1.
@@ -215,16 +245,11 @@ static void discoverContextCapabilities(void)
 			}
 		}
         if (!supportsCubeMapArrays) {
-            if (strstr(glGetString(GL_EXTENSIONS), "GL_ARB_texture_cube_map_array") != NULL) {
+            if (hasExtension("GL_ARB_texture_cube_map_array")) {
                 supportsCubeMapArrays = GL_TRUE;
             }
         }
 	}
-    
-    // Done here so things will work when GLEW, or equivalent, is being used
-    // and GL function names are defined as pointers. Initialization at
-    // declaration would happen before these pointers have been initialized.
-    INITIALIZE_GL_FUNCPTRS
 }
 
 #if SUPPORT_LEGACY_FORMAT_CONVERSION
@@ -640,6 +665,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 						glInternalFormat, pixelWidth, pixelHeight, 0,
 						faceLodSize, data);
 				} else {
+					errorTmp = glGetError();
 					glTexImage2D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, pixelHeight, 0,
 						glFormat, header.glType, data);
