@@ -84,11 +84,13 @@ typedef struct DrawTexture_def {
 
 /* ----------------------------------------------------------------------------- */
 
+#if 0
 static int isPowerOfTwo (int x)
 {
    if (x < 0) x = -1;
    return ((x != 0) && !(x & (x - 1)));
 }
+#endif
 
 /* ----------------------------------------------------------------------------- */
 
@@ -98,7 +100,6 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
 	GLint           iCropRect[4] = {0, 0, 0, 0};
 	const GLchar*  szExtensions  = (const GLchar*)glGetString(GL_EXTENSIONS);
     const char* filename;
-    GLuint texture = 0;
 	GLenum target;
 	GLboolean isMipmapped;
     GLboolean npotTexture;

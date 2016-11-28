@@ -99,7 +99,6 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
     const char* filename;
 	GLfloat* pfQuadTexCoords = quad_texture;
 	GLfloat  fTmpTexCoords[sizeof(quad_texture)/sizeof(GLfloat)];
-	GLuint texture = 0;
 	GLenum target;
 	GLboolean isMipmapped;
 	GLenum glerror;

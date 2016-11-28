@@ -53,11 +53,13 @@ static float dot(const float srcA[3], const float srcB[3])
 	return srcA[0]*srcB[0] + srcA[1]*srcB[1] + srcA[2]*srcB[2];
 }
 
+#if 0
 static float dot4(const float srcA[4], const float srcB[4])
 {
 	return srcA[0]*srcB[0] + srcA[1]*srcB[1]
            + srcA[2]*srcB[2] + srcA[3]*srcB[3];
 }
+#endif
 
 // Calculate the cross product and return it
 static void cross (float dst[3], const float srcA[3], const float srcB[3])

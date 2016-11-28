@@ -80,14 +80,14 @@ KTX_error_code _ktxCheckHeader(KTX_header* header, KTX_texinfo* texinfo)
 
 	if (header->endianness == KTX_ENDIAN_REF_REV)
 	{
-		/* Convert endianness of header fields if necessary */
+		/* Convert endianness of header fields. */
 		_ktxSwapEndian32(&header->glType, 12);
 
-		if (header->glTypeSize != 1 ||
-			header->glTypeSize != 2 ||
+		if (header->glTypeSize != 1 &&
+			header->glTypeSize != 2 &&
 			header->glTypeSize != 4)
 		{
-			/* Only 8, 16, and 32-bit types supported so far */
+			/* Only 8-, 16-, and 32-bit types supported so far. */
 			return KTX_INVALID_VALUE;
 		}
 	}

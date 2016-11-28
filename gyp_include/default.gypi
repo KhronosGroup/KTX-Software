@@ -10,11 +10,10 @@
     'emit_vs_x64_configs': 'false',
     'emit_vs_win32_configs': 'false',
     'emit_emscripten_configs': 'false',
-
     'conditions': [
       # TODO Emscripten support not yet correct or complete. DO NOT
       # TRY TO USE.
-      # Emscripten "vs-tool" VS integration only supports certain MSVS versions;
+      # Emscripten "vs-tool" VS integration only supports MSVS 2010;
 #      ['GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010")', {
 #        'emit_emscripten_configs': 'true',
 #      }, {
@@ -26,7 +25,7 @@
       ['OS == "win" and GENERATOR == "msvs"', {
         'emit_vs_win32_configs': 'true',
         'conditions': [
-          # Don't generate x64 configs in MSVS Express Edition projects.
+          # Don't generate x64 configs in certain MSVS Express Edition projects.
           # Note: 2012e and 2013e support x64.
           ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
             'emit_vs_x64_configs': 'true'
@@ -58,9 +57,32 @@
         'SDKROOT': 'macosx',
       }],
     ],
+    # These have to project-wide. If in target_defaults', and
+    # therefore set in each target, Xcode 8 will warn that the project
+    # settings are not the recommended settings and suggest it turns
+    # all these on, even though they *will* all be turned on. Xcode
+    # bug?
+    'CLANG_WARN_BOOL_CONVERSION': 'YES',
+    'CLANG_WARN_CONSTANT_CONVERSION': 'YES',
+    'CLANG_WARN_EMPTY_BODY': 'YES',
+    'CLANG_WARN_ENUM_CONVERSION': 'YES',
+    'CLANG_WARN_INFINITE_RECURSION': 'YES',
+    'CLANG_WARN_INT_CONVERSION': 'YES',
+    'CLANG_WARN_SUSPICIOUS_MOVE': 'YES',
+    'CLANG_WARN_UNREACHABLE_CODE': 'YES',
+    'CLANG_WARN__DUPLICATE_METHOD_MATCH': 'YES',
+    'ENABLE_STRICT_OBJC_MSGSEND': 'YES',
+    'GCC_NO_COMMON_BLOCKS': 'YES',
+    'GCC_WARN_64_TO_32_BIT_CONVERSION': 'YES',
+    'GCC_WARN_ABOUT_RETURN_TYPE': 'YES',
+    'GCC_WARN_PEDANTIC': 'YES',
+    'GCC_WARN_UNDECLARED_SELECTOR': 'YES',
+    'GCC_WARN_UNINITIALIZED_AUTOS': 'YES',
+    'GCC_WARN_UNUSED_FUNCTION': 'YES',
+    'GCC_WARN_UNUSED_VARIABLE': 'YES',
   }, # xcode_settings
-  # This has to be here. If in target_defaults' Debug config
-  # Xcode will warn that this value is not set.
+  # This has to be project-wide too. If in target_defaults' Debug config
+  # Xcode 7+ will warn that this recommended value is not set.
   'configurations': {
     'Debug': {
       'xcode_settings': {
@@ -97,28 +119,37 @@
       },
     },
     'xcode_settings': {
+      'COPY_PHASE_STRIP': 'NO',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
-          'TARGETED_DEVICE_FAMILY': '1,2',
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
-          'IPHONEOS_DEPLOYMENT_TARGET': '7.0',
+          'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
+          'TARGETED_DEVICE_FAMILY': '1,2',
         }, 'OS == "mac"', {
-          # If need GL 4.1 or ARB_ES2_compatibility, bump to 10.9
-          'MACOSX_DEPLOYMENT_TARGET': '10.5',
+          'MACOSX_DEPLOYMENT_TARGET': '10.9',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
-           'COMBINE_HIDPI_IMAGES': 'YES',
+          'COMBINE_HIDPI_IMAGES': 'YES',
         }],
       ],
       'target_conditions': [
-        ['_type == "executable"', {
-            # Don't add a default value because this variable gets exported
-            # as is to CMake and ${PRODUCT_NAME:-identifier} is invalid
-            # syntax.
-          'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
+        ['_type == "executable" or _type == "shared_library"', {
+          'target_conditions': [
+            ['_mac_bundle == 1', {
+              # Don't add a default value because this variable gets exported
+              # as is to CMake and ${PRODUCT_NAME:-identifier} is invalid
+              # syntax.
+              'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
+            }],
+          ],
+          # Starting with Xcode 8, DEVELOPMENT_TEAM must be specified
+          # to successfully build a project. Since it will be different
+          # for each user of this project, do not specify it here. See
+          # ../BUILDING.md for instructions on how to set it in your
+          # Xcode preferences.
         }],
-      ],
-    },
+      ], # target_conditions
+    }, # xcode_settings
     'configurations': {
       'Debug': {
         'target_conditions': [

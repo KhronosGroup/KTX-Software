@@ -6,14 +6,14 @@ The Official Khronos KTX Repository
 |----------------------| :------: | :--------: |
 | GNU/Linux, iOS & OSX | [![Build Status](https://travis-ci.org/KhronosGroup/KTX.svg?branch=master)](https://travis-ci.org/KhronosGroup/KTX) | [![Build Status](https://travis-ci.org/KhronosGroup/KTX.svg?branch=incoming)](https://travis-ci.org/KhronosGroup/KTX) |
 | Windows | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/incoming?svg=true)](https://ci.appveyor.com/project/msc-/ktx) |
+| Documentation | [![Build status](https://codedocs.xyz/KhronosGroup/KTX.svg)](https://codedocs.xyz/KhronosGroup/KTX/) | - |
 
 This is the offical home of the source code
 for the Khronos KTX library and tools.
 
-Download packages and live documentation can be
-found on the [KTX page](http://www.khronos.org/opengles/sdk/tools/KTX/) of
-the [OpenGL ES SDK](http://www.khronos.org/opengles/sdk) on
-[khronos.org](http://www.khronos.org).
+See the Doxygen generated [live documentation](https://codedocs.xyz/KhronosGroup/KTX/)
+for API usage information. Because [CodeDocs](https://codedocs.xyz) does
+not yet support multiple branches, only `master/HEAD` is available.
 
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
@@ -21,7 +21,15 @@ See [LICENSE](LICENSE.md) for information about licensing.
 
 See [BUILDING](BUILDING.md) for information about building the code.
 
-If you need help with using KTX please use the [KTX forum](https://forums.khronos.org/forumdisplay.php/103-KTX-file-format-for-OpenGL-OpenGL-ES-and-WebGL-textures). To report problems use the GitHub [issues](https://github.com/KhronosGroup/KTX/issues).
+More information about KTX and links to tools that support it can be
+found on the
+[KTX page](http://www.khronos.org/opengles/sdk/tools/KTX/) of
+the [OpenGL ES SDK](http://www.khronos.org/opengles/sdk) on
+[khronos.org](http://www.khronos.org).
+
+If you need help with using the KTX library or KTX tools, please use the
+[KTX forum](https://forums.khronos.org/forumdisplay.php/103-KTX-file-format-for-OpenGL-OpenGL-ES-and-WebGL-textures).
+To report problems use GitHub [issues](https://github.com/KhronosGroup/KTX/issues).
 
 **IMPORTANT:** you **must** install the [Git LFS](https://github.com/github/git-lfs)
 command line extension in order to fully checkout this repository after cloning. You
