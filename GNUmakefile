@@ -125,18 +125,18 @@ make: $(make_targets)
 # msvs_version macro above to extract the version.
 $(msvs_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f msvs -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. ktxtests.gyp ktxtools.gyp
-	@date > $@
+	@date -R > $@
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
-	@date > $@
+	@date -R > $@
 
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=. --depth=. ktxtests.gyp $(ktxtools.gyp)
-	@date > $@
+	@date -R > $@
 
 $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
-	@date > $@
+	@date -R > $@
 
 # vim:ai:noexpandtab:ts=4:sts=4:sw=2:textwidth=75
