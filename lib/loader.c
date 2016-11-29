@@ -135,6 +135,14 @@ static GLboolean supportsCubeMapArrays = GL_FALSE;
 #define glGetString(x) (const char*)glGetString(x)
 
 /**
+* @internal
+* @~English
+* @brief Workaround mismatch of glGetStringi declaration and standard string
+*        function parameters.
+*/
+#define pfGlGetStringi(x,y) (const char*)pfGlGetStringi(x,y)
+
+/**
  * @internal
  * @~English
  * @brief Check for existence of OpenGL extension
