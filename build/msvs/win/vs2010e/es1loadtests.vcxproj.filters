@@ -91,6 +91,42 @@
     <Filter Include="tests\loadtests\glloadtests\gles1">
       <UniqueIdentifier>{D655D013-412A-B922-555C-77DF132C0C2F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
+      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\resources_win">
+      <UniqueIdentifier>{3EC1C20E-0E84-0A59-0016-B8E9FA0DD373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
+      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\resources_win">
+      <UniqueIdentifier>{3EC1C20E-0E84-0A59-0016-B8E9FA0DD373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
+      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\resources_win">
+      <UniqueIdentifier>{3EC1C20E-0E84-0A59-0016-B8E9FA0DD373}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\at.h">
@@ -120,6 +156,15 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\sample_02_cube_textured.c">
       <Filter>tests\loadtests\glloadtests\gles1</Filter>
     </ClCompile>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\glloadtests.rc">
+      <Filter>tests\loadtests\glloadtests\resources_win</Filter>
+    </ResourceCompile>
+    <None Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\KtxIcon.ico">
+      <Filter>tests\loadtests\glloadtests\resources_win</Filter>
+    </None>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\resource.h">
+      <Filter>tests\loadtests\glloadtests\resources_win</Filter>
+    </ClInclude>
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
 </Project>

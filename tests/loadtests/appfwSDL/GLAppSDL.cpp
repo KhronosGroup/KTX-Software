@@ -56,6 +56,10 @@
 
 #include "GLAppSDL.h"
 
+#if __WINDOWS__
+void setWindowsIcon(SDL_Window *sdlWindow);
+#endif
+
 bool
 GLAppSDL::initialize(int argc, char* argv[])
 {
@@ -108,6 +112,11 @@ GLAppSDL::initialize(int argc, char* argv[])
         return false;
     }
 
+#if __WINDOWS__
+	// Set the applications own icon in place of the Windows default set by SDL.
+	// Needs to be done here to avoid change being visible.
+	setWindowsIcon(pswMainWindow);
+#endif
 
     sgcGLContext = SDL_GL_CreateContext(pswMainWindow);
 	// Work around bug in SDL. It returns a 2.x context when 3.x is requested.
@@ -265,3 +274,26 @@ GLAppSDL::setWindowTitle(const char* const szExtra)
     }
     SDL_SetWindowTitle(pswMainWindow, ss.str().c_str());
 }
+
+#if __WINDOWS__
+// Windows specific code to use icon in module
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <SDL2/SDL_syswm.h>
+void
+setWindowsIcon(SDL_Window *sdlWindow) {
+	HINSTANCE handle = ::GetModuleHandle(nullptr);
+	// Identify icon by name rather than IDI_ macro to avoid having to
+	// include application's resource.h.
+	HICON icon = ::LoadIcon(handle, "MAIN_ICON");// MAKEINTRESOURCE(IDI_ICON1));
+	if (icon != nullptr){
+		SDL_SysWMinfo wminfo;
+		SDL_VERSION(&wminfo.version);
+		if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1){
+			HWND hwnd = wminfo.info.win.window;
+			::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG>(icon));
+		}
+	}
+}
+#endif
+

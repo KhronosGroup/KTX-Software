@@ -85,6 +85,8 @@
             'VCLinkerTool': {
               # /SUBSYSTEM:WINDOWS.
               'SubSystem': '2',
+              # Needed for loading this app's own icon
+              'AdditionalDependencies': [ 'user32.lib' ],
             },
           },
           'xcode_settings': {
@@ -128,8 +130,12 @@
               },
             }], # emit_emscripten_configs=="true"
             ['OS == "mac"', {
+              'sources': [ 'resources/mac/Info.plist' ],
+            }, 'OS == "win"', {
               'sources': [
-                'resources/mac/Info.plist',
+                'resources_win/glloadtests.rc',
+                'resources_win/KtxIcon.ico',
+                'resources_win/resource.h',
               ],
             }],
           ], # conditions
@@ -171,6 +177,8 @@
             'VCLinkerTool': {
               # /SUBSYSTEM:WINDOWS.
               'SubSystem': '2',
+              # Needed for loading this app's own icon
+              'AdditionalDependencies': [ 'user32.lib' ],
             },
           },
           'xcode_settings': {
@@ -188,7 +196,13 @@
                 'resources/ios/LaunchImages.xcassets',
                 'resources/ios/LaunchScreen.storyboard',
               ],
-            }], # OS == "ios"
+            }, 'OS == "win"', {
+              'sources': [
+                'resources_win/glloadtests.rc',
+                'resources_win/KtxIcon.ico',
+                'resources_win/resource.h',
+              ],
+            }], # OS == "ios" else OS = "win"
           ],
         }, # es3loadtests
       ], # 'OS == "ios" or OS == "win"' targets
@@ -224,6 +238,8 @@
             'VCLinkerTool': {
               # /SUBSYSTEM:WINDOWS.
               'SubSystem': '2',
+              # Needed for loading this app's own icon
+              'AdditionalDependencies': [ 'user32.lib' ],
             },
           },
           'xcode_settings': {
@@ -240,6 +256,12 @@
               '../../../icons/ios/CommonIcons.xcassets',
                 'resources/ios/LaunchImages.xcassets',
                 'resources/ios/LaunchScreen.storyboard',
+              ],
+            }, 'OS == "win"', {
+              'sources': [
+                'resources_win/glloadtests.rc',
+                'resources_win/KtxIcon.ico',
+                'resources_win/resource.h',
               ],
             }], # OS == "ios"
           ], # conditions
