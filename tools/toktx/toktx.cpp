@@ -468,6 +468,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	unsigned int outfilenamelen;
 	const _TCHAR* toktx_options;
 	_TCHAR option[31];
+	_TCHAR* slash;
 
 	options.alpha = false;
 	options.automipmap = false;
@@ -484,10 +485,10 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	 */
 	options.lower_left_maps_to_s0t0 = false;
 
-	options.appName = _tcsrchr(argv[0], '\\');
-	if (options.appName == NULL)
-		options.appName = _tcsrchr(argv[0], '/');
-	options.appName++;
+	slash = _tcsrchr(argv[0], '\\');
+	if (slash == NULL)
+		slash = _tcsrchr(argv[0], '/');
+	options.appName = slash != NULL ? slash + 1 : argv[0];
 
     // NOTE: If options with arguments are ever added, this option handling
     // code will need revamping.
