@@ -108,8 +108,8 @@ static const atSample sc_Sample04 = {
 const LoadTests::sampleInvocation siSamples[] = {
 	{ &sc_Sample01, "--npot testimages/hi_mark.ktx", "RGB8 NPOT HI Logo" },
 	{ &sc_Sample01, "--npot testimages/luminance_unsized_reference.ktx", "Luminance (Unsized) NPOT" },
-	{ &sc_Sample01, "testimages/up-reference.ktx", "RGB8" },
-	{ &sc_Sample01, "testimages/down-reference.ktx", "RGB8 + KTXOrientation" },
+	{ &sc_Sample01, "testimages/orient-up.ktx", "RGB (unsized)" },
+	{ &sc_Sample01, "testimages/orient-down-metadata.ktx", "RGB (unsized) + KTXOrientation down" },
 	{ &sc_Sample01, "testimages/etc1.ktx", "ETC1 RGB8"},
 	{ &sc_Sample01, "testimages/etc2-rgb.ktx", "ETC2 RGB8"},
 	{ &sc_Sample01, "testimages/etc2-rgba1.ktx", "ETC2 RGB8A1" },

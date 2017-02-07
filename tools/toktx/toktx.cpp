@@ -114,6 +114,7 @@ struct commandOptions {
 	bool		 automipmap;
 	bool		 cubemap;
 	bool		 luminance;
+    bool         metadata;
 	bool		 mipmap;
 	bool		 sized;
 	bool		 useStdin;
@@ -173,6 +174,7 @@ usage(_TCHAR* appName)
         "               be provided. Provide the base-level image first then in order\n"
 		"               down to the 1x1 image. This option is mutually exclusive with\n"
 		"               --automipmap.\n"
+        "  --nometadata Do not write KTXorientation metadata into the output file.\n"
 		"  --sized      Set the texture's internal format to a sized format based on\n"
 		"               the component size of the input file. Otherwise set it to an\n"
 		"               unsized internal format.\n"
@@ -181,13 +183,15 @@ usage(_TCHAR* appName)
 		"               Although opposite to the OpenGL convention, this is the DEFAULT\n"
 		"               BEHAVIOUR. netpbm files have an upper left origin so this option\n"
 		"               means do nothing. When this option is in effect, toktx writes a\n"
-		"               KTXorientation value of S=r,T=d into the output file so that\n"
-		"               loaders can tell that the logical orientation is different from\n"
-		"               GL.\n"
+		"               KTXorientation value of S=r,T=d into the output file to inform\n"
+		"               loaders of the logical orientation.\n"
 		"  --lower_left_maps_to_s0t0\n"
 		"               Map the logical lower left corner of the image to s0,t0.\n"
         "               This causes the input netpbm files to be flipped vertically to\n"
-		"               OpenGL's lower-left origin.\n"
+		"               OpenGL's lower-left origin. When this option is in effect, toktx\n"
+	    "               writes a KTXorientation value of S=r,T=u into the output file\n"
+	    "               to inform loaders of the logical orientation. GL loaders do not\n"
+	    "               need this but it is helpful for Vulkan loaders.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
 		"\n"
@@ -236,21 +240,24 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	// TO DO: handle 3D textures. Concatenate the files here or in WriteKTXF?
 
-	if (!options.lower_left_maps_to_s0t0) {
-		// Non-standard orientation. Add metadata.
-		KTX_hash_table ht = ktxHashTable_Create();
-		char orientation[10];
+    // Add orientation metadata.
+    if (options.metadata) {
+        KTX_hash_table ht = ktxHashTable_Create();
+        char orientation[10];
 
-		assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
-		snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT, 'r', 'd');
-		ktxHashTable_AddKVPair(ht, KTX_ORIENTATION_KEY, (unsigned int)strlen(orientation) + 1,
-							   orientation);
-		if (KTX_SUCCESS != ktxHashTable_Serialize(ht, &kvDataLen, &kvData)) {
-			fprintf(stderr, "%s: Out of memory\n", options.appName);
-			exit(2);
-		}
-		ktxHashTable_Destroy(ht);
-	}
+        assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
+
+        snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
+                     'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
+        ktxHashTable_AddKVPair(ht, KTX_ORIENTATION_KEY,
+                               (unsigned int)strlen(orientation) + 1,
+                               orientation);
+        if (KTX_SUCCESS != ktxHashTable_Serialize(ht, &kvDataLen, &kvData)) {
+            fprintf(stderr, "%s: Out of memory\n", options.appName);
+            exit(2);
+        }
+        ktxHashTable_Destroy(ht);
+    }
 
 	for (i = 0; i < options.numInputFiles; i++) {
 		_TCHAR* infile;
@@ -474,6 +481,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	options.automipmap = false;
 	options.cubemap = false;
 	options.luminance = false;
+	options.metadata = true;
 	options.mipmap = false;
 	options.sized = false;
 	options.outfile = 0;
@@ -613,6 +621,8 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 				exit(1);
 			}
 			options.luminance = true;
+        } else if (_tcscmp(&option[2], "nometadata") == 0) {
+            options.metadata = false;
 		} else if (_tcscmp(&option[2], "sized") == 0) {
 			options.sized = true;
 		} else if (_tcscmp(&option[2], "upper_left_maps_to_s0t0") == 0) {

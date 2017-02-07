@@ -23,11 +23,6 @@ $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx: $(srcdir)/tests/testim
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-$(builddir)/testimages/down-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/down-reference.ktx: $(srcdir)/tests/testimages/down-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/down-reference.ktx
 $(builddir)/testimages/etc1.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/etc1.ktx: $(srcdir)/tests/testimages/etc1.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -88,6 +83,31 @@ $(builddir)/testimages/no-npot.ktx: $(srcdir)/tests/testimages/no-npot.ktx FORCE
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/no-npot.ktx
+$(builddir)/testimages/orient-down-metadata.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-down-metadata.ktx: $(srcdir)/tests/testimages/orient-down-metadata.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-down-metadata.ktx
+$(builddir)/testimages/orient-down-metadata-sized.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-down-metadata-sized.ktx: $(srcdir)/tests/testimages/orient-down-metadata-sized.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-down-metadata-sized.ktx
+$(builddir)/testimages/orient-up.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up.ktx: $(srcdir)/tests/testimages/orient-up.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-up.ktx
+$(builddir)/testimages/orient-up-metadata-sized.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up-metadata-sized.ktx: $(srcdir)/tests/testimages/orient-up-metadata-sized.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-up-metadata-sized.ktx
+$(builddir)/testimages/orient-up-sized.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up-sized.ktx: $(srcdir)/tests/testimages/orient-up-sized.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-up-sized.ktx
 $(builddir)/testimages/rgb-amg-reference.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/rgb-amg-reference.ktx: $(srcdir)/tests/testimages/rgb-amg-reference.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -108,12 +128,7 @@ $(builddir)/testimages/rgb-reference.ktx: $(srcdir)/tests/testimages/rgb-referen
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/rgb-reference.ktx
-$(builddir)/testimages/up-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/up-reference.ktx: $(srcdir)/tests/testimages/up-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/up-reference.ktx
-ktxtests_gyp_gl3loadtests_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/down-reference.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/up-reference.ktx
+ktxtests_gyp_gl3loadtests_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/orient-down-metadata.ktx $(builddir)/testimages/orient-down-metadata-sized.ktx $(builddir)/testimages/orient-up.ktx $(builddir)/testimages/orient-up-metadata-sized.ktx $(builddir)/testimages/orient-up-sized.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx
 
 DEFS_Debug := \
 	'-DGL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE' \

@@ -445,7 +445,6 @@ list(APPEND vkloadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/down-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
@@ -458,17 +457,20 @@ list(APPEND vkloadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-sized.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/up-reference.ktx")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx")
 list(APPEND vkloadtests__copies__output
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${builddir}/testimages/down-reference.ktx"
   "${builddir}/testimages/etc1.ktx"
   "${builddir}/testimages/etc2-rgba1.ktx"
   "${builddir}/testimages/etc2-rgba8.ktx"
@@ -481,18 +483,21 @@ list(APPEND vkloadtests__copies__output
   "${builddir}/testimages/luminance_sized_reference.ktx"
   "${builddir}/testimages/luminance_unsized_reference.ktx"
   "${builddir}/testimages/no-npot.ktx"
+  "${builddir}/testimages/orient-down-metadata.ktx"
+  "${builddir}/testimages/orient-down-metadata-sized.ktx"
+  "${builddir}/testimages/orient-up.ktx"
+  "${builddir}/testimages/orient-up-metadata-sized.ktx"
+  "${builddir}/testimages/orient-up-sized.ktx"
   "${builddir}/testimages/rgb-amg-reference.ktx"
   "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/rgb-mipmap-reference.ktx"
-  "${builddir}/testimages/rgb-reference.ktx"
-  "${builddir}/testimages/up-reference.ktx")
+  "${builddir}/testimages/rgb-reference.ktx")
 add_custom_command(
 OUTPUT ${vkloadtests__copies__output}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/down-reference.ktx ${builddir}/testimages/down-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
@@ -505,11 +510,15 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/tes
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-sized.ktx ${builddir}/testimages/orient-down-metadata-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-sized.ktx ${builddir}/testimages/orient-up-metadata-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-sized.ktx ${builddir}/testimages/orient-up-sized.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/up-reference.ktx ${builddir}/testimages/up-reference.ktx
 DEPENDS ${vkloadtests__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for vkloadtests
@@ -595,7 +604,6 @@ list(APPEND gl3loadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/down-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
@@ -608,17 +616,20 @@ list(APPEND gl3loadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-sized.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/up-reference.ktx")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx")
 list(APPEND gl3loadtests__copies__output
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${builddir}/testimages/down-reference.ktx"
   "${builddir}/testimages/etc1.ktx"
   "${builddir}/testimages/etc2-rgba1.ktx"
   "${builddir}/testimages/etc2-rgba8.ktx"
@@ -631,18 +642,21 @@ list(APPEND gl3loadtests__copies__output
   "${builddir}/testimages/luminance_sized_reference.ktx"
   "${builddir}/testimages/luminance_unsized_reference.ktx"
   "${builddir}/testimages/no-npot.ktx"
+  "${builddir}/testimages/orient-down-metadata.ktx"
+  "${builddir}/testimages/orient-down-metadata-sized.ktx"
+  "${builddir}/testimages/orient-up.ktx"
+  "${builddir}/testimages/orient-up-metadata-sized.ktx"
+  "${builddir}/testimages/orient-up-sized.ktx"
   "${builddir}/testimages/rgb-amg-reference.ktx"
   "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/rgb-mipmap-reference.ktx"
-  "${builddir}/testimages/rgb-reference.ktx"
-  "${builddir}/testimages/up-reference.ktx")
+  "${builddir}/testimages/rgb-reference.ktx")
 add_custom_command(
 OUTPUT ${gl3loadtests__copies__output}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/down-reference.ktx ${builddir}/testimages/down-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
@@ -655,11 +669,15 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/tes
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-sized.ktx ${builddir}/testimages/orient-down-metadata-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-sized.ktx ${builddir}/testimages/orient-up-metadata-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-sized.ktx ${builddir}/testimages/orient-up-sized.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/up-reference.ktx ${builddir}/testimages/up-reference.ktx
 DEPENDS ${gl3loadtests__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for gl3loadtests

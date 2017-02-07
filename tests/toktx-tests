@@ -29,15 +29,18 @@
 # 
 # ---------------------------------------------------------------
 
+# change dir to the testimages folder, a child of the script location.
+cd $(dirname $0)/testimages
+
 # Make paths relative to location of this script.
-depth=..
-mydir=${0%/*}
-ktx_root=$mydir/$depth
+depth=../..
+ktx_root=$depth
 toktx_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/toktx.exe
 toktx_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/toktx.exe
-toktx_cmake=$ktx_root/build/cmake/toktx/toktx
-toktx_gmake=$ktx_root/build/GNUmake/toktx/toktx
-testimages=$mydir/testimages
+toktx_cmake=$ktx_root/build/cmake/linux/Release/toktx
+toktx_cmake_d=$ktx_root/build/cmake/linux/Debug/toktx
+toktx_make=$ktx_root/build/make/linux/out/Release/toktx
+toktx_make_d=$ktx_root/build/make/linux/out/Debug/toktx
 
 declare -i numtests=0
 declare -i passed=0
@@ -52,10 +55,14 @@ elif [ -x "$toktx_vs2013" ]; then
   toktx=$toktx_vs2013
 elif [ -x "$toktx_vs2015" ]; then
   toktx=$toktx_vs2015
-elif [ -x "$toktx_gmake" ]; then
-  toktx=$toktx_cmake
 elif [ -x "$toktx_cmake" ]; then
   toktx=$toktx_cmake
+elif [ -x "$toktx_cmake_d" ]; then
+  toktx=$toktx_cmake_d
+elif [ -x "$toktx_make" ]; then
+  toktx=$toktx_gmake
+elif [ -x "$toktx_make_d" ]; then
+  toktx=$toktx_gmake
 else
   echo $0: None of $toktx_vs2013, $toktx_vs2015, $toktx_gmake or $toktx_cmake found.
   echo $0: Aborting test
@@ -129,7 +136,8 @@ function gencmpktx() {
   rm $tempfile
 }
 
-cd $testimages
+#---------------- Tests start here -----------------------
+
 # Git Bash does not include mktemp.
 if which mktemp > /dev/null; then
   tempfile=$(mktemp toktxXXXX.ktx)
@@ -137,27 +145,28 @@ else
   tempfile=/tmp/toktxXXXX.ktx
 fi
 
-gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 rgb.ppm 
-gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 rgb.ppm
-TOKTX_OPTIONS=--lower_left_maps_to_s0t0 gencmpktx up-reference.ktx up.ppm
-gencmpktx down-reference.ktx up.ppm
-gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
-gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 rgba.pam
+gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgb.ppm 
+gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --nometadata rgb.ppm
+TOKTX_OPTIONS="--lower_left_maps_to_s0t0 --nometadata" gencmpktx orient-up.ktx up.ppm
+gencmpktx orient-up-metadata-sized.ktx --lower_left_maps_to_s0t0 --sized up.ppm
+gencmpktx orient-down-metadata.ktx up.ppm
+gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
+gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgba.pam
 gencmpktx luminance_unsized_reference.ktx --luminance luminance.pgm
 gencmpktx luminance_sized_reference.ktx --luminance --sized luminance.pgm
 
 numtests=$numtests+1
-TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx - rgb.ppm > $tempfile
+TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx --nometadata - rgb.ppm > $tempfile
 cmpktx $tempfile rgb-reference.ktx
 rm $tempfile
 
 numtests=$numtests+1
-cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 - > $tempfile
+cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 --nometadata - > $tempfile
 cmpktx $tempfile rgb-reference.ktx
 rm $tempfile
 
 numtests=$numtests+1
-cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 $tempfile
+cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 --nometadata $tempfile
 cmpktx $tempfile rgb-reference.ktx
 rm $tempfile
 
