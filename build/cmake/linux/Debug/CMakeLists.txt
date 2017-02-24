@@ -52,6 +52,7 @@ list(APPEND libktx_es3__cxx_srcs
 list(APPEND libktx_es3__other_srcs
   "../../../../include/ktx.h"
   "../../../../include/ktxvulkan.h"
+  "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
@@ -61,7 +62,8 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
   "../../../../lib/ktxstream.h"
-  "../../../../lib/uthash.h")
+  "../../../../lib/uthash.h"
+  "../../../../lib/vk_format.h")
 add_library(libktx_es3 STATIC ${libktx_es3__c_srcs} ${libktx_es3__cxx_srcs} ${libktx_es3__other_srcs})
 set_target_properties(libktx_es3 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
 set_source_files_properties(${libktx_es3__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -104,6 +106,7 @@ list(APPEND libktx_es1__cxx_srcs
 list(APPEND libktx_es1__other_srcs
   "../../../../include/ktx.h"
   "../../../../include/ktxvulkan.h"
+  "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
@@ -113,7 +116,8 @@ list(APPEND libktx_es1__other_srcs
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
   "../../../../lib/ktxstream.h"
-  "../../../../lib/uthash.h")
+  "../../../../lib/uthash.h"
+  "../../../../lib/vk_format.h")
 add_library(libktx_es1 STATIC ${libktx_es1__c_srcs} ${libktx_es1__cxx_srcs} ${libktx_es1__other_srcs})
 set_target_properties(libktx_es1 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
 set_source_files_properties(${libktx_es1__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -147,6 +151,7 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcunpack.cxx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
@@ -164,6 +169,7 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
 list(APPEND libktx_doc__buildDoc__output
@@ -191,6 +197,7 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcunpack.cxx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
@@ -208,6 +215,7 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
 set(libktx_doc__touchTimestamp__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/.gentimestamp")
@@ -263,6 +271,7 @@ list(APPEND libktx_gl__cxx_srcs
 list(APPEND libktx_gl__other_srcs
   "../../../../include/ktx.h"
   "../../../../include/ktxvulkan.h"
+  "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
@@ -272,7 +281,8 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
   "../../../../lib/ktxstream.h"
-  "../../../../lib/uthash.h")
+  "../../../../lib/uthash.h"
+  "../../../../lib/vk_format.h")
 link_directories()
 add_library(libktx_gl SHARED ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
 set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")

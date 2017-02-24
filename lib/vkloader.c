@@ -21,6 +21,7 @@
 #include "ktxvulkan.h"
 #include "ktxint.h"
 #include "ktxcontext.h"
+#include "vk_format.h"
 
 // Macro to check and display Vulkan return results.
 // Use when the only possible errors are caused by invalid usage by this loader.
@@ -134,96 +135,6 @@ ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* vdi,
 
     // XXX : throw error
     return 0;
-}
-
-typedef struct {
-    uint8_t x, y, z;
-} u8vec3_t;
-
-typedef struct {
-    uint32_t x, y, z;
-} u32vec3_t ;
-
-typedef struct format_info {
-    uint32_t glInternalFormat;
-    uint32_t blockSize;  // in bytes
-    u8vec3_t blockDim;   // block_dimension
-    VkFormat vkFormat;
-    VkBool32 compressed;
-} format_info;
-
-format_info formatTable[] = {
-     { GL_R8, 1, {1, 1, 1}, VK_FORMAT_R8G8B8_UNORM, VK_FALSE },
-     { GL_RG8, 2, {1, 1, 1}, VK_FORMAT_R8G8B8_UNORM, VK_FALSE },
-     { GL_RGB8, 3, {1, 1, 1}, VK_FORMAT_R8G8B8_UNORM, VK_FALSE },
-     { GL_RGBA8, 4, {1, 1, 1}, VK_FORMAT_R8G8B8_UNORM, VK_FALSE },
-     { GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 16, {4, 4, 1},
-                                         VK_FORMAT_BC2_UNORM_BLOCK, VK_TRUE },
-     { GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 16, {4, 4, 1},
-                                         VK_FORMAT_BC3_UNORM_BLOCK, VK_TRUE }
-};
-
-static format_info*
-getFormatInfo(ktx_uint32_t glInternalFormat)
-{
-    format_info* info;
-    uint32_t i;
-
-    for (i= 0; i < ARRAY_LEN(formatTable); i++) {
-        info = &formatTable[i];
-        if (glInternalFormat == info->glInternalFormat) {
-            return info;
-            break;
-        }
-    }
-    return NULL;
-}
-
-/*
- * Regrettably he KTX format does not provide the total size of the image
- * data, so we have to calculate it.
- */
-inline size_t
-levelSize(format_info* formatInfo, uint32_t level,
-          uint32_t width, uint32_t height, uint32_t depth)
-{
-    u32vec3_t blockCount;
-    uint32_t levelSizeX;
-
-    blockCount.x = MAX(1, (width / formatInfo->blockDim.x)  >> level);
-    blockCount.y = MAX(1, (height / formatInfo->blockDim.y)  >> level);
-    blockCount.z = MAX(1, (depth / formatInfo->blockDim.z)  >> level);
-
-    levelSizeX = formatInfo->blockSize * blockCount.x;
-    if (!formatInfo->compressed) {
-        uint32_t rowRounding;
-        // Round to KTX_GL_UNPACK_ALIGNMENT. levelSizeX is the packed no. of
-        // bytes in a row since formatInfo.blockDim is 1 for uncompressed.
-        // Equivalent to UNPACK_ALIGNMENT * ceil((groupSize * pixelWidth) / UNPACK_ALIGNMENT)
-        rowRounding = 3 - ((levelSizeX + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
-        levelSizeX += rowRounding;
-    }
-    return levelSizeX * blockCount.y * blockCount.z;
-}
-
-inline size_t
-layerSize(format_info* formatInfo, uint32_t levels,
-          uint32_t width, uint32_t height, uint32_t depth)
-{
-    size_t layerSize = 0;
-
-    // The size of a face is the sum of the size of each level.
-    for(uint32_t level = 0; level <= levels; level++)
-        layerSize += levelSize(formatInfo, level, width, height, depth);
-
-    return layerSize;
-}
-
-inline size_t
-dataSize(format_info* formatInfo, uint32_t levels, uint32_t layers,
-         uint32_t width, uint32_t height, uint32_t depth)
-{
-    return layerSize(formatInfo, levels, width, height, depth) * layers;
 }
 
 //======================================================================
@@ -345,7 +256,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
     KTX_header               header;
     KTX_supplemental_info    texinfo;
     KTX_error_code           errorCode;
-    format_info*             formatInfo;
+    VkFormat				 vkFormat;
     VkImageType              imageType;
     VkImageViewType          viewType;
     VkImageCreateFlags       createFlags = 0;
@@ -445,14 +356,16 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
     pTexture->mipLevels = header.numberOfMipmapLevels;
     pTexture->layerCount = arrayLayers;
 
-    formatInfo = getFormatInfo(header.glInternalFormat);
-    if (formatInfo == NULL) {
+    vkFormat = vkGetFormatFromOpenGLInternalFormat(header.glInternalFormat);
+    if (vkFormat == VK_FORMAT_UNDEFINED)
+    	vkFormat = vkGetFormatFromOpenGLFormat(header.glFormat, header.glType);
+    if (vkFormat == VK_FORMAT_UNDEFINED) {
         return KTX_INVALID_OPERATION;
     }
 
     // Get device properties for the requested texture format
     result = vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
-                                                      formatInfo->vkFormat,
+    												  vkFormat,
                                                       imageType,
                                                       tiling,
                                                       usageFlags,
@@ -462,7 +375,6 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
         return KTX_INVALID_OPERATION;
     }
 
-    // XXX Move this to after memory is set up.
     VK_CHECK_RESULT(vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo));
 
     if (tiling != VK_IMAGE_TILING_LINEAR)
@@ -472,6 +384,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
         VkDeviceMemory stagingMemory;
         VkBufferImageCopy* copyRegions;
         VkDeviceSize textureSize;
+        VkDeviceSize cmpTextureSize;
         VkBufferCreateInfo bufferCreateInfo = {
           .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
           .pNext = NULL
@@ -493,12 +406,10 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
         uint32_t numCopyRegions = header.numberOfMipmapLevels * header.numberOfFaces;
         user_cbdata_optimal cbData;
 
-        textureSize = dataSize(formatInfo,
-                              pTexture->mipLevels, pTexture->layerCount,
-                              pTexture->width, pTexture->height,
-                              pTexture->depth);
+        textureSize = ktxReader_getDataSize(ctx);
 
-        copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy) * numCopyRegions);
+        copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy)
+        										   * numCopyRegions);
         if (copyRegions == NULL) {
             return KTX_OUT_OF_MEMORY;
         }
@@ -550,7 +461,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
 
         // Create optimal tiled target image
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.format = formatInfo->vkFormat;
+        imageCreateInfo.format = vkFormat;
         imageCreateInfo.mipLevels = pTexture->mipLevels;
         imageCreateInfo.arrayLayers = arrayLayers;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -645,7 +556,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
         user_cbdata_linear cbData;
 
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.format = formatInfo->vkFormat;
+        imageCreateInfo.format = vkFormat;
         imageCreateInfo.extent.width = pTexture->width;
         imageCreateInfo.extent.height = pTexture->height;
         imageCreateInfo.extent.depth = pTexture->depth;
@@ -751,7 +662,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
     view.pNext = NULL;
     view.image = VK_NULL_HANDLE;
     view.viewType = viewType;
-    view.format = formatInfo->vkFormat;
+    view.format = vkFormat;
     view.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     view.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     view.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;

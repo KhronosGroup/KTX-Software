@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set et sw=2 ts=4: */
 
 /* $Id$ */
 
@@ -13,7 +13,7 @@
  */
 
 /*
-Copyright (c) 2010 The Khronos Group Inc.
+Copyright (c) 2016 Mark Callow, Edgewise Consulting.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and/or associated documentation files (the
@@ -52,6 +52,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxcontext.h"
+#include "gl_format.h"
 
 /**
  * @~English
@@ -451,4 +452,90 @@ cleanup:
 
     return errorCode;
 }
+
+/*
+ * Regrettably he KTX format does not provide the total size of the image
+ * data, so we have to calculate it.
+ */
+inline size_t
+levelSize(const GlFormatSize* formatSize, uint32_t level,
+          uint32_t width, uint32_t height, uint32_t depth)
+{
+    struct blockCount {
+    	uint32_t x, y, z;
+    } blockCount;
+    uint32_t levelSizeX;
+
+    blockCount.x = MAX(1, (width / formatSize->blockWidth)  >> level);
+    blockCount.y = MAX(1, (height / formatSize->blockHeight)  >> level);
+    blockCount.z = MAX(1, (depth / formatSize->blockDepth)  >> level);
+
+    levelSizeX = (formatSize->blockSizeInBits / 8) * blockCount.x;
+    if (!(formatSize->flags & GL_FORMAT_SIZE_COMPRESSED_BIT)) {
+        uint32_t rowRounding;
+        // Round to KTX_GL_UNPACK_ALIGNMENT. levelSizeX is the packed no. of
+        // bytes in a row since formatInfo.blockDim is 1 for uncompressed.
+        // Equivalent to UNPACK_ALIGNMENT * ceil((groupSize * pixelWidth) / UNPACK_ALIGNMENT)
+        rowRounding = 3 - ((levelSizeX + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
+        levelSizeX += rowRounding;
+    }
+    return levelSizeX * blockCount.y * blockCount.z;
+}
+
+inline size_t
+layerSize(const GlFormatSize* formatSize, uint32_t levels,
+          uint32_t width, uint32_t height, uint32_t depth)
+{
+    size_t layerSize = 0;
+
+    // The size of a face is the sum of the size of each level.
+    for(uint32_t level = 0; level <= levels; level++)
+        layerSize += levelSize(formatSize, level, width, height, depth);
+
+    return layerSize;
+}
+
+size_t
+dataSize(const GlFormatSize* formatSize, uint32_t levels, uint32_t layers,
+         uint32_t width, uint32_t height, uint32_t depth)
+{
+	size_t ls = layerSize(formatSize, levels, width, height, depth);
+    return (ls * layers) + formatSize->paletteSizeInBits / 8;
+}
+
+size_t
+ktxReader_getDataSize(KTX_context ctx)
+{
+    ktxContext* kc = (ktxContext*)ctx;
+	GlFormatSize formatSize;
+	KTX_header* header;
+	uint32_t layers;
+
+    if (kc == NULL || !kc->stream.read || !kc->stream.skip)
+        return KTX_INVALID_VALUE;
+
+    if (kc->state == KTX_CS_START)
+    	// XXX Consider reading the header instead of erroring.
+        return KTX_INVALID_OPERATION;
+
+    header = &kc->header;
+
+    glGetFormatSize(header->glInternalFormat, &formatSize);
+
+    /* XXX Consider setting this and isArray, etc. in check header to
+     * avoid multiple instances of similar checks. */
+    layers = header->numberOfArrayElements == 0 ?
+    		 1 : header->numberOfArrayElements;
+    layers *= header->numberOfFaces;
+
+    return dataSize(&formatSize,
+    				header->numberOfMipmapLevels,
+					layers,
+					header->pixelWidth,
+					header->pixelHeight,
+					header->pixelDepth);
+
+}
+
+
 

@@ -481,6 +481,13 @@ KTX_error_code
 ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata);
     
 /*
+ * Return the number of bytes needed to store all of the data in the
+ * KTX file.
+ */
+size_t
+ktxReader_getDataSize(KTX_context ctx);
+
+/*
  * Loads a texture from a the KTX file identified by @p ctx.
  */
 KTX_error_code
