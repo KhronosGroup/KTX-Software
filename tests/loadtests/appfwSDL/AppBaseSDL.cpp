@@ -61,7 +61,7 @@ AppBaseSDL::initializeFPSTimer()
     lastFrameTime = 0;
     fpsCounter.numFrames = 0;
     fpsCounter.lastFPS = 0;
-    fpsCounter.startTime = SDL_GetPerformanceCounter();
+    startTicks = fpsCounter.startTicks = SDL_GetPerformanceCounter();
 }
 
 
@@ -90,19 +90,30 @@ AppBaseSDL::onFPSUpdate()
 }
 
 
-// This should be called from the end of a derived class's drawFrame.
+//  Protected, non-virtual
 void
-AppBaseSDL::drawFrame(ticks_t ticks)
+AppBaseSDL::drawFrame()
 {
-    ticks_t endTicks = SDL_GetPerformanceCounter();
+    ticks_t ticks = SDL_GetPerformanceCounter();
     Uint64 tps = SDL_GetPerformanceFrequency();
-    lastFrameTime = 1000.0 * (endTicks - ticks) / tps;
+    uint32_t msTicksSinceStart = (ticks - startTicks) * 1000 / tps;
+
+    drawFrame(msTicksSinceStart);
+
+    ticks_t endTicks = SDL_GetPerformanceCounter();
+    lastFrameTime = (1000.0f * (endTicks - ticks)) / tps;
     fpsCounter.numFrames++;
-    if (endTicks - fpsCounter.startTime > tps) {
+    if (endTicks - fpsCounter.startTicks > tps) {
         fpsCounter.lastFPS = (float)(fpsCounter.numFrames * tps)
-                             / (endTicks - fpsCounter.startTime);
+                             / (endTicks - fpsCounter.startTicks);
         onFPSUpdate(); // Notify listeners that fps value has been updated.
-        fpsCounter.startTime = endTicks;
+        fpsCounter.startTicks = endTicks;
         fpsCounter.numFrames = 0;
     }
 }
+
+const char* const appName()
+{
+    return theApp->name();
+}
+

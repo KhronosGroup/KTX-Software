@@ -145,8 +145,8 @@ class ReadKTXTestBase : public ::testing::Test {
     
     KTX_error_code KTXAPIENTRY
     imageCallback(int miplevel, int face,
-                  int width, int heightOrLayers,
-                  int depthOrLayers,
+                  int width, int height, int depth,
+                  int layers,
                   ktx_uint32_t faceLodSize,
                   void* pixels)
     {
@@ -161,14 +161,14 @@ class ReadKTXTestBase : public ::testing::Test {
 
     static KTX_error_code KTXAPIENTRY
     imageCallback(int miplevel, int face,
-                  int width, int heightOrLayers,
-                  int depthOrLayers,
+                  int width, int height,
+                  int depth, int layers,
                   ktx_uint32_t faceLodSize,
                   void* pixels, void* userdata)
     {
         ReadKTXTestBase* fixture = (ReadKTXTestBase*)userdata;
-        return fixture->imageCallback(miplevel, face, width, heightOrLayers,
-                                      depthOrLayers, faceLodSize, pixels);
+        return fixture->imageCallback(miplevel, face, width, height, depth,
+                                      layers, faceLodSize, pixels);
     }
 
     static int

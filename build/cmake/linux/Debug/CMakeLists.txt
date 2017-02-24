@@ -12,25 +12,46 @@ set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 set(CMAKE_NINJA_FORCE_RESPONSE_FILE 1)
 
 
+#libktx.gyp:vulkan_headers#target
+set(TARGET "vulkan_headers")
+set(TOOLSET "target")
+add_custom_target(vulkan_headers SOURCES)
+set_target_properties(vulkan_headers PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libvulkan#target
+set(TARGET "libvulkan")
+set(TOOLSET "target")
+add_custom_target(libvulkan SOURCES)
+set_target_properties(libvulkan PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(libvulkan
+  vulkan_headers
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:libktx.es3#target
 set(TARGET "libktx.es3")
 set(TOOLSET "target")
 list(APPEND libktx_es3__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
+  "../../../../lib/glloader.c"
   "../../../../lib/hashtable.c"
   "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
-  "../../../../lib/loader.c"
   "../../../../lib/reader.c"
   "../../../../lib/swap.c"
+  "../../../../lib/vkloader.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es3__other_srcs
   "../../../../include/ktx.h"
+  "../../../../include/ktxvulkan.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
@@ -69,19 +90,21 @@ set(TOOLSET "target")
 list(APPEND libktx_es1__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
+  "../../../../lib/glloader.c"
   "../../../../lib/hashtable.c"
   "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
-  "../../../../lib/loader.c"
   "../../../../lib/reader.c"
   "../../../../lib/swap.c"
+  "../../../../lib/vkloader.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_es1__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es1__other_srcs
   "../../../../include/ktx.h"
+  "../../../../include/ktxvulkan.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
@@ -121,6 +144,7 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxDoxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
@@ -129,6 +153,7 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.h"
@@ -138,10 +163,10 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/loader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
 list(APPEND libktx_doc__buildDoc__output
   "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/html"
@@ -163,6 +188,7 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxDoxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
@@ -171,6 +197,7 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.h"
@@ -180,10 +207,10 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/loader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
 set(libktx_doc__touchTimestamp__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/.gentimestamp")
 add_custom_command(OUTPUT ${libktx_doc__touchTimestamp__output}
@@ -223,19 +250,21 @@ set(TOOLSET "target")
 list(APPEND libktx_gl__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
+  "../../../../lib/glloader.c"
   "../../../../lib/hashtable.c"
   "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
-  "../../../../lib/loader.c"
   "../../../../lib/reader.c"
   "../../../../lib/swap.c"
+  "../../../../lib/vkloader.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_gl__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_gl__other_srcs
   "../../../../include/ktx.h"
+  "../../../../include/ktxvulkan.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
@@ -257,7 +286,8 @@ set_target_properties(libktx_gl PROPERTIES SUFFIX ".so")
 set_source_files_properties(${builddir}/lib.${TOOLSET}/libktx.gl.so PROPERTIES GENERATED "TRUE")
 list(APPEND libktx_gl__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
 set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;DEBUG;_DEBUG;")
 set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-Og -g -fPIC ")
@@ -268,9 +298,12 @@ set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGIN
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 add_dependencies(libktx_gl
   libgl
+  libvulkan
+  vulkan_headers
 )
 target_link_libraries(libktx_gl
   "-lGL"
+  "-lvulkan"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -342,30 +375,118 @@ add_dependencies(toktx-tests
 unset(TOOLSET)
 unset(TARGET)
 
-#ktxtests.gyp:vulkan_headers#target
-set(TARGET "vulkan_headers")
-set(TOOLSET "target")
-add_custom_target(vulkan_headers SOURCES)
-set_target_properties(vulkan_headers PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtests.gyp:libvulkan#target
-set(TARGET "libvulkan")
-set(TOOLSET "target")
-add_custom_target(libvulkan SOURCES)
-set_target_properties(libvulkan PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-add_dependencies(libvulkan
-  vulkan_headers
-)
-unset(TOOLSET)
-unset(TARGET)
-
 #ktxtests.gyp:testimages#target
 set(TARGET "testimages")
 set(TOOLSET "target")
+list(APPEND testimages__copies__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_space.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_vulkan.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3.ktx")
+list(APPEND testimages__copies__output
+  "${builddir}/testimages/conftestimage_R11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
+  "${builddir}/testimages/cubemap_space.ktx"
+  "${builddir}/testimages/cubemap_vulkan.ktx"
+  "${builddir}/testimages/cubemap_yokohama.ktx"
+  "${builddir}/testimages/etc1.ktx"
+  "${builddir}/testimages/etc2-rgba1.ktx"
+  "${builddir}/testimages/etc2-rgba8.ktx"
+  "${builddir}/testimages/etc2-rgb.ktx"
+  "${builddir}/testimages/etc2-sRGBa1.ktx"
+  "${builddir}/testimages/etc2-sRGBa8.ktx"
+  "${builddir}/testimages/etc2-sRGB.ktx"
+  "${builddir}/testimages/hi_mark.ktx"
+  "${builddir}/testimages/hi_mark_sq.ktx"
+  "${builddir}/testimages/luminance_sized_reference.ktx"
+  "${builddir}/testimages/luminance_unsized_reference.ktx"
+  "${builddir}/testimages/no-npot.ktx"
+  "${builddir}/testimages/orient-down-metadata.ktx"
+  "${builddir}/testimages/orient-down-metadata-sized.ktx"
+  "${builddir}/testimages/orient-up.ktx"
+  "${builddir}/testimages/orient-up-metadata-sized.ktx"
+  "${builddir}/testimages/orient-up-sized.ktx"
+  "${builddir}/testimages/pattern_02_bc2.ktx"
+  "${builddir}/testimages/rgb-amg-reference.ktx"
+  "${builddir}/testimages/rgba-reference.ktx"
+  "${builddir}/testimages/rgb-mipmap-reference.ktx"
+  "${builddir}/testimages/rgb-reference.ktx"
+  "${builddir}/testimages/texturearray_bc3.ktx")
+add_custom_command(
+OUTPUT ${testimages__copies__output}
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_space.ktx ${builddir}/testimages/cubemap_space.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_vulkan.ktx ${builddir}/testimages/cubemap_vulkan.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama.ktx ${builddir}/testimages/cubemap_yokohama.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-sized.ktx ${builddir}/testimages/orient-down-metadata-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-sized.ktx ${builddir}/testimages/orient-up-metadata-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-sized.ktx ${builddir}/testimages/orient-up-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx ${builddir}/testimages/pattern_02_bc2.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3.ktx ${builddir}/testimages/texturearray_bc3.ktx
+DEPENDS ${testimages__copies__input}
+WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+COMMENT Copying for testimages
+VERBATIM
+)
+add_custom_target(testimages__copies
+  DEPENDS ${testimages__copies__output}
+  SOURCES ${testimages__copies__input}
+)
 add_custom_target(testimages SOURCES)
 set_target_properties(testimages PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(testimages__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(testimages
+  testimages__copies
+)
 unset(TOOLSET)
 unset(TARGET)
 
@@ -403,19 +524,85 @@ unset(TARGET)
 #ktxtests.gyp:appfwSDL#target
 set(TARGET "appfwSDL")
 set(TOOLSET "target")
-set(appfwSDL__c_srcs "../../../../tests/loadtests/appfwSDL/SDL_vulkan.c")
+set(appfwSDL__frag2spirv__input "")
+set(RULE_INPUT_PATH "tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag")
+set(RULE_INPUT_DIRNAME "tests/loadtests/appfwSDL/VulkanAppSDL/shaders")
+set(RULE_INPUT_NAME "textoverlay.frag")
+set(RULE_INPUT_ROOT "textoverlay")
+set(RULE_INPUT_EXT ".frag")
+set(appfwSDL__frag2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${appfwSDL__frag2spirv_0_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${appfwSDL__frag2spirv__input} ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+add_custom_target(appfwSDL__frag2spirv DEPENDS
+  ${appfwSDL__frag2spirv_0_0}
+SOURCES ${appfwSDL__frag2spirv__input}
+  ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
+)
+set(appfwSDL__vert2spirv__input "")
+set(RULE_INPUT_PATH "tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert")
+set(RULE_INPUT_DIRNAME "tests/loadtests/appfwSDL/VulkanAppSDL/shaders")
+set(RULE_INPUT_NAME "textoverlay.vert")
+set(RULE_INPUT_ROOT "textoverlay")
+set(RULE_INPUT_EXT ".vert")
+set(appfwSDL__vert2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${appfwSDL__vert2spirv_0_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${appfwSDL__vert2spirv__input} ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+add_custom_target(appfwSDL__vert2spirv DEPENDS
+  ${appfwSDL__vert2spirv_0_0}
+SOURCES ${appfwSDL__vert2spirv__input}
+  ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
+)
+set(appfwSDL__c_srcs "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/SDL_vulkan.c")
 list(APPEND appfwSDL__cxx_srcs
   "../../../../tests/loadtests/appfwSDL/main.cpp"
   "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
   "../../../../tests/loadtests/appfwSDL/GLAppSDL.cpp"
-  "../../../../tests/loadtests/appfwSDL/VkAppSDL.cpp")
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanContext.cpp"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanSwapchain.cpp"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkandebug.cpp"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkantools.cpp")
 list(APPEND appfwSDL__other_srcs
   "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
   "../../../../tests/loadtests/appfwSDL/GLAppSDL.h"
-  "../../../../tests/loadtests/appfwSDL/SDL_vulkan.h"
-  "../../../../tests/loadtests/appfwSDL/VkAppSDL.h")
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/SDL_vulkan.h"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanAppSDL.h"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkancheckres.h"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanContext.h"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanSwapchain.h"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkandebug.h"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkantextoverlay.hpp"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkantools.h"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag"
+  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert")
 add_library(appfwSDL STATIC ${appfwSDL__c_srcs} ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
 set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(appfwSDL__frag2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(appfwSDL__vert2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${appfwSDL__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
 set_target_properties(appfwSDL PROPERTIES PREFIX "lib")
@@ -424,20 +611,33 @@ set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
 set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
 list(APPEND appfwSDL__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include/SDL2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-std=c++11 -Og -g ")
+set_source_files_properties(${appfwSDL__c_srcs} PROPERTIES COMPILE_FLAGS "-Og -g ")
+set_source_files_properties(${appfwSDL__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Og -g -std=c++11 ")
 set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+add_dependencies(appfwSDL__frag2spirv
+  libsdl
+  vulkan_headers
+)
+add_dependencies(appfwSDL__vert2spirv
+  libsdl
+  vulkan_headers
+)
 add_dependencies(appfwSDL
   libsdl
   vulkan_headers
+  appfwSDL__frag2spirv
+  appfwSDL__vert2spirv
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -445,85 +645,250 @@ unset(TARGET)
 #ktxtests.gyp:vkloadtests#target
 set(TARGET "vkloadtests")
 set(TOOLSET "target")
+set(vkloadtests__frag2spirv__input "")
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/cube/cube.frag")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cube")
+set(RULE_INPUT_NAME "cube.frag")
+set(RULE_INPUT_ROOT "cube")
+set(RULE_INPUT_EXT ".frag")
+set(vkloadtests__frag2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__frag2spirv_0_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
+set(RULE_INPUT_NAME "reflect.frag")
+set(RULE_INPUT_ROOT "reflect")
+set(RULE_INPUT_EXT ".frag")
+set(vkloadtests__frag2spirv_1_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__frag2spirv_1_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
+set(RULE_INPUT_NAME "skybox.frag")
+set(RULE_INPUT_ROOT "skybox")
+set(RULE_INPUT_EXT ".frag")
+set(vkloadtests__frag2spirv_2_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__frag2spirv_2_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/texture/texture.frag")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texture")
+set(RULE_INPUT_NAME "texture.frag")
+set(RULE_INPUT_ROOT "texture")
+set(RULE_INPUT_EXT ".frag")
+set(vkloadtests__frag2spirv_3_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__frag2spirv_3_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.frag
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texturearray")
+set(RULE_INPUT_NAME "instancing.frag")
+set(RULE_INPUT_ROOT "instancing")
+set(RULE_INPUT_EXT ".frag")
+set(vkloadtests__frag2spirv_4_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__frag2spirv_4_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+add_custom_target(vkloadtests__frag2spirv DEPENDS
+  ${vkloadtests__frag2spirv_0_0}
+  ${vkloadtests__frag2spirv_1_0}
+  ${vkloadtests__frag2spirv_2_0}
+  ${vkloadtests__frag2spirv_3_0}
+  ${vkloadtests__frag2spirv_4_0}
+SOURCES ${vkloadtests__frag2spirv__input}
+  ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag
+  ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag
+  ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag
+  ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.frag
+  ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag
+)
+set(vkloadtests__vert2spirv__input "")
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/cube/cube.vert")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cube")
+set(RULE_INPUT_NAME "cube.vert")
+set(RULE_INPUT_ROOT "cube")
+set(RULE_INPUT_EXT ".vert")
+set(vkloadtests__vert2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__vert2spirv_0_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
+set(RULE_INPUT_NAME "reflect.vert")
+set(RULE_INPUT_ROOT "reflect")
+set(RULE_INPUT_EXT ".vert")
+set(vkloadtests__vert2spirv_1_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__vert2spirv_1_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
+set(RULE_INPUT_NAME "skybox.vert")
+set(RULE_INPUT_ROOT "skybox")
+set(RULE_INPUT_EXT ".vert")
+set(vkloadtests__vert2spirv_2_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__vert2spirv_2_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/texture/texture.vert")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texture")
+set(RULE_INPUT_NAME "texture.vert")
+set(RULE_INPUT_ROOT "texture")
+set(RULE_INPUT_EXT ".vert")
+set(vkloadtests__vert2spirv_3_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__vert2spirv_3_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texturearray")
+set(RULE_INPUT_NAME "instancing.vert")
+set(RULE_INPUT_ROOT "instancing")
+set(RULE_INPUT_EXT ".vert")
+set(vkloadtests__vert2spirv_4_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__vert2spirv_4_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.${RULE_INPUT_EXT}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
+add_custom_target(vkloadtests__vert2spirv DEPENDS
+  ${vkloadtests__vert2spirv_0_0}
+  ${vkloadtests__vert2spirv_1_0}
+  ${vkloadtests__vert2spirv_2_0}
+  ${vkloadtests__vert2spirv_3_0}
+  ${vkloadtests__vert2spirv_4_0}
+SOURCES ${vkloadtests__vert2spirv__input}
+  ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert
+  ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert
+  ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert
+  ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert
+  ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert
+)
 list(APPEND vkloadtests__copies__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-sized.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-sized.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-sized.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/cube.obj"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/sphere.obj"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/teapot.dae"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/torusknot.obj")
 list(APPEND vkloadtests__copies__output
-  "${builddir}/testimages/conftestimage_R11_EAC.ktx"
-  "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
-  "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
-  "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${builddir}/testimages/etc1.ktx"
-  "${builddir}/testimages/etc2-rgba1.ktx"
-  "${builddir}/testimages/etc2-rgba8.ktx"
-  "${builddir}/testimages/etc2-rgb.ktx"
-  "${builddir}/testimages/etc2-sRGBa1.ktx"
-  "${builddir}/testimages/etc2-sRGBa8.ktx"
-  "${builddir}/testimages/etc2-sRGB.ktx"
-  "${builddir}/testimages/hi_mark.ktx"
-  "${builddir}/testimages/hi_mark_sq.ktx"
-  "${builddir}/testimages/luminance_sized_reference.ktx"
-  "${builddir}/testimages/luminance_unsized_reference.ktx"
-  "${builddir}/testimages/no-npot.ktx"
-  "${builddir}/testimages/orient-down-metadata.ktx"
-  "${builddir}/testimages/orient-down-metadata-sized.ktx"
-  "${builddir}/testimages/orient-up.ktx"
-  "${builddir}/testimages/orient-up-metadata-sized.ktx"
-  "${builddir}/testimages/orient-up-sized.ktx"
-  "${builddir}/testimages/rgb-amg-reference.ktx"
-  "${builddir}/testimages/rgba-reference.ktx"
-  "${builddir}/testimages/rgb-mipmap-reference.ktx"
-  "${builddir}/testimages/rgb-reference.ktx")
+  "${builddir}/models/cube.obj"
+  "${builddir}/models/sphere.obj"
+  "${builddir}/models/teapot.dae"
+  "${builddir}/models/torusknot.obj")
 add_custom_command(
 OUTPUT ${vkloadtests__copies__output}
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-sized.ktx ${builddir}/testimages/orient-down-metadata-sized.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-sized.ktx ${builddir}/testimages/orient-up-metadata-sized.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-sized.ktx ${builddir}/testimages/orient-up-sized.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/cube.obj ${builddir}/models/cube.obj
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/sphere.obj ${builddir}/models/sphere.obj
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/teapot.dae ${builddir}/models/teapot.dae
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/torusknot.obj ${builddir}/models/torusknot.obj
 DEPENDS ${vkloadtests__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for vkloadtests
@@ -533,19 +898,38 @@ add_custom_target(vkloadtests__copies
   DEPENDS ${vkloadtests__copies__output}
   SOURCES ${vkloadtests__copies__input}
 )
-set(vkloadtests__c_srcs "../../../../tests/loadtests/common/at.c")
 list(APPEND vkloadtests__cxx_srcs
-  "../../../../tests/loadtests/vkloadtests/VkLoadTests.cpp"
-  "../../../../tests/loadtests/vkloadtests/VkSample_02_cube_textured.cpp")
+  "../../../../tests/loadtests/vkloadtests/Texture.cpp"
+  "../../../../tests/loadtests/vkloadtests/TextureArray.cpp"
+  "../../../../tests/loadtests/vkloadtests/TextureCubemap.cpp"
+  "../../../../tests/loadtests/vkloadtests/TexturedCube.cpp"
+  "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.cpp"
+  "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.cpp")
 list(APPEND vkloadtests__other_srcs
-  "../../../../tests/loadtests/common/at.h"
-  "../../../../tests/loadtests/vkloadtests/VkLoadTests.h"
-  "../../../../tests/loadtests/vkloadtests/VkSample.h"
-  "../../../../tests/loadtests/vkloadtests/VkSample_02_cube_textured.h")
+  "../../../../tests/loadtests/common/vecmath.hpp"
+  "../../../../tests/loadtests/vkloadtests/Texture.h"
+  "../../../../tests/loadtests/vkloadtests/TextureArray.h"
+  "../../../../tests/loadtests/vkloadtests/TextureCubemap.h"
+  "../../../../tests/loadtests/vkloadtests/TexturedCube.h"
+  "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag"
+  "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert"
+  "../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag"
+  "../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert"
+  "../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag"
+  "../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert"
+  "../../../../tests/loadtests/vkloadtests/shaders/texture/texture.frag"
+  "../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert"
+  "../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag"
+  "../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert"
+  "../../../../tests/loadtests/vkloadtests/utils/VulkanMeshLoader.hpp"
+  "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.h"
+  "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.h")
 link_directories( ../../../../other_lib/linux/${configuration}-x64
 )
-add_executable(vkloadtests ${vkloadtests__c_srcs} ${vkloadtests__cxx_srcs} ${vkloadtests__other_srcs})
+add_executable(vkloadtests ${vkloadtests__cxx_srcs} ${vkloadtests__other_srcs})
 set_target_properties(vkloadtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(vkloadtests__frag2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(vkloadtests__vert2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(vkloadtests__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${vkloadtests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(vkloadtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
@@ -554,11 +938,14 @@ set_target_properties(vkloadtests PROPERTIES RUNTIME_OUTPUT_NAME "vkloadtests")
 set_target_properties(vkloadtests PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/vkloadtests PROPERTIES GENERATED "TRUE")
 list(APPEND vkloadtests__include_dirs
+  "${obj}.${TOOLSET}/${TARGET}/geni"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET vkloadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${vkloadtests__include_dirs})
 set_target_properties(vkloadtests PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
 set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-std=c++11 -Og -g ")
@@ -572,7 +959,23 @@ set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources_mac/Info.plist")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources_mac/Info.plist")
+add_dependencies(vkloadtests__frag2spirv
+  appfwSDL
+  libktx_gl
+  libvulkan
+  testimages
+  libsdl
+  vulkan_headers
+)
+add_dependencies(vkloadtests__vert2spirv
+  appfwSDL
+  libktx_gl
+  libvulkan
+  testimages
+  libsdl
+  vulkan_headers
+)
 add_dependencies(vkloadtests__copies
   appfwSDL
   libktx_gl
@@ -586,16 +989,19 @@ add_dependencies(vkloadtests
   testimages
   libsdl
   vulkan_headers
+  vkloadtests__frag2spirv
+  vkloadtests__vert2spirv
   vkloadtests__copies
 )
 target_link_libraries(vkloadtests
   appfwSDL
   libktx_gl
+  "-lassimp"
+  "-lpthread"
   "-lX11-xcb"
   "-lSDL2-2.0"
   "-lSDL2main"
   "-ldl"
-  "-lpthread"
   "-lvulkan"
 )
 unset(TOOLSET)
@@ -604,94 +1010,6 @@ unset(TARGET)
 #ktxtests.gyp:gl3loadtests#target
 set(TARGET "gl3loadtests")
 set(TOOLSET "target")
-list(APPEND gl3loadtests__copies__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-sized.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-sized.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-sized.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx")
-list(APPEND gl3loadtests__copies__output
-  "${builddir}/testimages/conftestimage_R11_EAC.ktx"
-  "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
-  "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
-  "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${builddir}/testimages/etc1.ktx"
-  "${builddir}/testimages/etc2-rgba1.ktx"
-  "${builddir}/testimages/etc2-rgba8.ktx"
-  "${builddir}/testimages/etc2-rgb.ktx"
-  "${builddir}/testimages/etc2-sRGBa1.ktx"
-  "${builddir}/testimages/etc2-sRGBa8.ktx"
-  "${builddir}/testimages/etc2-sRGB.ktx"
-  "${builddir}/testimages/hi_mark.ktx"
-  "${builddir}/testimages/hi_mark_sq.ktx"
-  "${builddir}/testimages/luminance_sized_reference.ktx"
-  "${builddir}/testimages/luminance_unsized_reference.ktx"
-  "${builddir}/testimages/no-npot.ktx"
-  "${builddir}/testimages/orient-down-metadata.ktx"
-  "${builddir}/testimages/orient-down-metadata-sized.ktx"
-  "${builddir}/testimages/orient-up.ktx"
-  "${builddir}/testimages/orient-up-metadata-sized.ktx"
-  "${builddir}/testimages/orient-up-sized.ktx"
-  "${builddir}/testimages/rgb-amg-reference.ktx"
-  "${builddir}/testimages/rgba-reference.ktx"
-  "${builddir}/testimages/rgb-mipmap-reference.ktx"
-  "${builddir}/testimages/rgb-reference.ktx")
-add_custom_command(
-OUTPUT ${gl3loadtests__copies__output}
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-sized.ktx ${builddir}/testimages/orient-down-metadata-sized.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-sized.ktx ${builddir}/testimages/orient-up-metadata-sized.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-sized.ktx ${builddir}/testimages/orient-up-sized.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
-DEPENDS ${gl3loadtests__copies__input}
-WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-COMMENT Copying for gl3loadtests
-VERBATIM
-)
-add_custom_target(gl3loadtests__copies
-  DEPENDS ${gl3loadtests__copies__output}
-  SOURCES ${gl3loadtests__copies__input}
-)
 list(APPEND gl3loadtests__c_srcs
   "../../../../tests/loadtests/common/at.c"
   "../../../../tests/loadtests/glloadtests/shader-based/sample_01_draw_texture.c"
@@ -711,7 +1029,6 @@ link_directories( ../../../../other_lib/linux/${configuration}-x64
 )
 add_executable(gl3loadtests ${gl3loadtests__c_srcs} ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
 set_target_properties(gl3loadtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(gl3loadtests__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${gl3loadtests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(gl3loadtests PROPERTIES PREFIX "")
@@ -723,6 +1040,7 @@ list(APPEND gl3loadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
@@ -735,21 +1053,12 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PR
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_WARN_PEDANTIC "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources_mac/Info.plist")
-add_dependencies(gl3loadtests__copies
-  appfwSDL
-  libktx_gl
-  libgl
-  testimages
-  libsdl
-  vulkan_headers
-)
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources_mac/Info.plist")
 add_dependencies(gl3loadtests
   libgl
   testimages
   libsdl
   vulkan_headers
-  gl3loadtests__copies
 )
 target_link_libraries(gl3loadtests
   appfwSDL

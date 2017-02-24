@@ -222,9 +222,8 @@ GLAppSDL::doEvent(SDL_Event* event)
 
 
 void
-GLAppSDL::drawFrame(ticks_t ticks)
+GLAppSDL::drawFrame(uint32_t msTicks)
 {
-    AppBaseSDL::drawFrame(ticks);
     SDL_GL_SwapWindow(pswMainWindow);
 }
 

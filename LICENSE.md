@@ -14,7 +14,8 @@ The KTX load tests contain code
 * (c) 2013 The Khronos Group Inc.
 * (c) 2008 and (c) 2010 HI Corporation
 * (c) 1997-2014 Sam Lantinga
-* (c) 2015-2016 Mark Callow
+* (c) 2016 Sascha Willems
+* (c) 2015-2017 Mark Callow
 
 Default License
 ---------------
@@ -184,6 +185,9 @@ uthash.h
 
 uthash.h is made available under the following revised BSD license.
 
+Copyright &copy 2003-2010, Troy D. Hanson   http://uthash.sourceforge.net
+All rights reserved.
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
@@ -208,3 +212,17 @@ include/SDL2/*
 These files are part of the SDL2 source distributed by the [SDL project]
 (http://libsdl.org) under the terms of the [zlib license]
 (http://www.zlib.net/zlib_license.html).
+
+{VulkanMeshLoader,vulkantextoverlay}.hpp, vulkandebug.*
+-------------------------------------------------------
+
+Copyright &copy 2016 Sascha Willems - www.saschawillems.de
+
+{VulkanMeshLoader,vulkantextoverlay}.hpp and vulkandebug.* are licensed
+under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+
+OpenGL Mathematics (GLM)
+------------------------
+
+OpenGL Mathematics is licensed under the Happy Bunny License (Modified MIT)
+or the MIT License (https://github.com/g-truc/glm/blob/master/manual.md#section0)

@@ -359,6 +359,7 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
     ktx_uint32_t    faceLodSizeRounded;
     ktx_uint32_t    miplevel;
     ktx_uint32_t    face;
+    ktx_uint32_t    layers;
     KTX_error_code	errorCode = KTX_SUCCESS;
     void*			data = NULL;
  
@@ -368,20 +369,26 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
     if (kc->state != KTX_CS_KVD_READ)
         return KTX_INVALID_OPERATION;
     
+    if (kc->header.numberOfArrayElements == 0)
+        layers = 1;
+    else
+        layers = kc->header.numberOfArrayElements;
+
     for (miplevel = 0; miplevel < kc->header.numberOfMipmapLevels; ++miplevel)
     {
-        GLsizei width, heightOrLayers, depthOrLayers;
+        GLsizei width, height, depth;
         
         width = MAX(1, kc->header.pixelWidth  >> miplevel);
         /* Array textures have the same number of layers at each mip level. */
-        if (kc->header.numberOfArrayElements > 0 && kc->textureDimension == 1)
-            heightOrLayers = kc->header.numberOfArrayElements;
+        if (kc->textureDimension == 1) {
+            height = 1;
+            depth = 1;
+        } else
+            height = MAX(1, kc->header.pixelHeight >> miplevel);
+        if (kc->textureDimension == 2)
+            depth = 1;
         else
-            heightOrLayers = MAX(1, kc->header.pixelHeight >> miplevel);
-        if (kc->header.numberOfArrayElements > 0 && kc->textureDimension == 2)
-            depthOrLayers = kc->header.numberOfArrayElements;
-        else
-            depthOrLayers  = MAX(1, kc->header.pixelDepth  >> miplevel);
+            depth  = MAX(1, kc->header.pixelDepth  >> miplevel);
         
         errorCode = kc->stream.read(&kc->stream, &faceLodSize,
                                     sizeof(ktx_uint32_t));
@@ -393,7 +400,7 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
         }
         faceLodSizeRounded = (faceLodSize + 3) & ~(ktx_uint32_t)3;
         if (!data) {
-            /* allocate memory sufficient for the first miplevel */
+            /* allocate memory sufficient for the base miplevel */
             data = malloc(faceLodSizeRounded);
             if (!data) {
                 errorCode = KTX_OUT_OF_MEMORY;
@@ -407,8 +414,9 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
             goto cleanup;
         }
         
-        /* All array elements are passed in a group because that is how GL needs
-         * them. Hence no for (element = 0; element < kc->numArrayElements ...)
+        /* All array elements are passed in a group because that is how
+         * GL & Vulkan need them. Hence no
+         *    for (element = 0; element < kc->numArrayElements ...)
          */
         for (face = 0; face < kc->header.numberOfFaces; ++face)
         {
@@ -426,7 +434,7 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
             }
             
             errorCode = imageCb(miplevel, face,
-                                width, heightOrLayers, depthOrLayers,
+                                width, height, depth, layers,
                                 faceLodSize, data, userdata);
 
             if (errorCode != KTX_SUCCESS)

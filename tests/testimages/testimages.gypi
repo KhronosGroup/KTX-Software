@@ -14,7 +14,6 @@
     {
       'target_name': 'testimages',
       'type': 'none',
-      'direct_dependent_settings': {
         'copies': [{
           'conditions': [
             ['OS == "android"', {
@@ -27,7 +26,6 @@
           ], # conditions
           'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
         }], # copies
-      } # direct_dependent_settings
     } # testimages target
   ] # targets
 }

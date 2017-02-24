@@ -7,13 +7,36 @@
 {
   'includes': [
      '../../../gyp_include/libsdl.gypi',
-     '../../../gyp_include/libvulkan.gypi',
   ],
   'targets': [
     {
       'target_name': 'appfwSDL',
       'type': 'static_library',
       #'toolsets': [target', 'emscripten'],
+      'cflags_cc': [ '-std=c++11' ],
+      'dependencies': [
+        'libsdl',
+        'libktx.gyp:vulkan_headers',
+     ],
+      'direct_dependent_settings': {
+        'include_dirs': [
+          '.',
+          'VulkanAppSDL',
+        ],
+      },
+      'export_dependent_settings': [ 'libsdl' ],
+      'includes': [
+         '../../../gyp_include/glsl2spirv.gypi'
+      ],
+      'include_dirs': [
+        # These are so SDL_vulkan.c will compile without changes
+        # from how it will be when eventually included in SDL source.
+        '.',
+        'VulkanAppSDL',
+        '../../../other_include/SDL2',
+        # For stb.
+        '../../../other_include',
+      ],
       'sources': [
         # .h files are included so they will appear in IDEs' file lists.
         'main.cpp',
@@ -22,22 +45,22 @@
         'GLAppSDL.cpp',
         'GLAppSDL.h',
         # These 2 are here to avoid rebuilds of SDL during development.
-        'SDL_vulkan.c',
-        'SDL_vulkan.h',
-        'VkAppSDL.cpp',
-        'VkAppSDL.h',
-      ],
-      'cflags': [ '-std=c++11' ],
-      'dependencies': [ 'libsdl', 'vulkan_headers' ],
-      'direct_dependent_settings': {
-        'include_dirs': [ '.' ],
-      },
-      'export_dependent_settings': [ 'libsdl' ],
-      # This is so SDL_vulkan.c will compile without changes
-      # from how it will be when eventually included in SDL source.
-      'include_dirs': [
-        '.',
-        '../../../other_include/SDL2',
+        'VulkanAppSDL/SDL_vulkan.c',
+        'VulkanAppSDL/SDL_vulkan.h',
+        'VulkanAppSDL/VulkanAppSDL.cpp',
+        'VulkanAppSDL/VulkanAppSDL.h',
+        'VulkanAppSDL/vulkancheckres.h',
+        'VulkanAppSDL/VulkanContext.cpp',
+        'VulkanAppSDL/VulkanContext.h',
+        'VulkanAppSDL/VulkanSwapchain.cpp',
+        'VulkanAppSDL/VulkanSwapchain.h',
+        'VulkanAppSDL/vulkandebug.cpp',
+        'VulkanAppSDL/vulkandebug.h',
+        'VulkanAppSDL/vulkantextoverlay.hpp',
+        'VulkanAppSDL/vulkantools.cpp',
+        'VulkanAppSDL/vulkantools.h',
+        'VulkanAppSDL/shaders/textoverlay.frag',
+        'VulkanAppSDL/shaders/textoverlay.vert',
       ],
       'link_settings': {
         'conditions': [

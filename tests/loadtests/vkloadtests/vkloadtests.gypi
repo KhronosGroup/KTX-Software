@@ -5,47 +5,99 @@
 # @brief Generate project file for building KTX loadtests for Vulkan.
 #
 {
-  'includes': [
-#    '../../../gyp_include/libvulkan.gypi',
-  ],
+  # The following is already included by appfwSDL.gypi, which
+  # itself is included by this file's parent.
+  #'includes': [
+  #  '../../../gyp_include/libvulkan.gypi',
+  #],
   'variables': { # level 1
+    'variables': { # level 2
+      'conditions': [
+        ['OS == "android"', {
+          'datadest': '<(android_assets_dir)',
+        }, 'OS == "ios" or OS == "mac"', {
+          'datadest': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)',
+        }, 'OS == "linux" or OS == "win"', {
+          'datadest': '<(PRODUCT_DIR)',
+        }], # OS == "android" and else clauses
+      ], # conditions
+    }, # variables level 2
+    'model_dir': '<(datadest)/models',
+    'shader_dir': '<(datadest)/shaders',
     # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
     # Keys ending in _file & _dir assumed to be paths and are made relative
     # to the main .gyp file.
-    'conditions': [
+     'conditions': [
       ['OS == "ios"', {
         'infoplist_file': 'resources_ios/Info.plist',
-      }, {
+      }, 'OS == "mac"', {
         'infoplist_file': 'resources_mac/Info.plist',
       }],
-    ],
+    ] # conditions
   }, # variables, level 1
   'targets': [
     {
       'target_name': 'vkloadtests',
       'type': '<(executable)',
       'mac_bundle': 1,
+      'cflags': [ '-std=c++11' ],
+      'defines': [ ],
       'dependencies': [
         'appfwSDL',
         'libktx.gyp:libktx.gl',
-        'libvulkan',
-        'testimages'
+        'libktx.gyp:libvulkan',
+        'testimages',
       ],
-      'sources': [
-        '../common/at.c',
-        '../common/at.h',
-        'VkLoadTests.cpp',
-        'VkLoadTests.h',
-        'VkSample.h',
-        'VkSample_02_cube_textured.cpp',
-        'VkSample_02_cube_textured.h',
+      'includes': [
+        '../../../gyp_include/glsl2spirv.gypi',
       ],
-      'cflags': [ '-std=c++11' ],
-      'defines': [ ],
       'include_dirs': [
+        '<(INTERMEDIATE_DIR)',
         '../common',
         '../geom',
       ],
+      'sources': [
+        '../common/vecmath.hpp',
+        'Texture.cpp',
+        'Texture.h',
+        'TextureArray.cpp',
+        'TextureArray.h',
+        'TextureCubemap.cpp',
+        'TextureCubemap.h',
+        'TexturedCube.cpp',
+        'TexturedCube.h',
+        'shaders/cube/cube.frag',
+        'shaders/cube/cube.vert',
+        'shaders/cubemap/reflect.frag',
+        'shaders/cubemap/reflect.vert',
+        'shaders/cubemap/skybox.frag',
+        'shaders/cubemap/skybox.vert',
+        'shaders/texture/texture.frag',
+        'shaders/texture/texture.vert',
+        'shaders/texturearray/instancing.frag',
+        'shaders/texturearray/instancing.vert',
+        'utils/VulkanMeshLoader.hpp',
+        'VulkanLoadTests.cpp',
+        'VulkanLoadTests.h',
+        'VulkanLoadTestSample.cpp',
+        'VulkanLoadTestSample.h',
+      ],
+      'copies': [{
+        'destination': '<(model_dir)',
+        'files': [ 
+          'models/cube.obj',
+          'models/sphere.obj',
+          'models/teapot.dae',
+          'models/torusknot.obj',
+        ],
+      }], # copies      
+      'link_settings': {
+        'conditions': [
+          ['OS == "linux"', {
+            'libraries': [ '-lassimp', '-lpthread' ],
+          }],
+        ],
+      },
       'msvs_settings': {
         'VCLinkerTool': {
           # /SUBSYSTEM:WINDOWS.

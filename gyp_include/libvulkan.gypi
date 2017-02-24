@@ -17,21 +17,38 @@
   'targets': [{
     'target_name': 'vulkan_headers',
     'type': 'none',
-    'conditions': [
-      ['OS == "ios" or OS == "mac"', {
-        'direct_dependent_settings': {
+    #   $VULKAN_SDK points to the location of an installed Vulkan SDK.
+    # It must be in the includes list on ios, mac & win. On Linux
+    # it can be omitted, if libvulkan_dev is installed. Otherwise it
+    # can point to the location of a more recent version of the
+    # standard SDK from LunarG.
+    #   The leading '/' is to workaround bugs(?) in the generators
+    # that they relativize paths even when they begin with an
+    # environment variable.
+    'direct_dependent_settings': {
+      'conditions': [
+        ['GENERATOR == "cmake"', {
           'include_dirs': [
-            # For the Vulkan includes
-            '/Users/mark/Molten-0.12.0/MoltenVK/include',
+            '/$ENV{VULKAN_SDK}/include',
+          ],
+        }, 'GENERATOR == "xcode"', {
+          # Due to difficulties passing env. vars to Xcode, set VULKAN_SDK
+          # in Xcode Preferences, Locations tab, Custom Paths. It
+          # should point to whereever you have MoltenVK installed.
+          'include_dirs': [
+            #'/Users/mark/Molten-0.12.0/MoltenVK/include',
+            '/$VULKAN_SDK/include'
           ],
           'mac_framework_dirs': [
-            '/Users/mark/Molten-0.12.0/MoltenVK/<(fwdir)'
+            #'/Users/mark/Molten-0.12.0/MoltenVK/<(fwdir)'
           ],
-        },
-      #}, {
-        # In /usr/include on Linux so nothing needed.
-      }] # OS == 'ios' or OS == 'mac', etc
-    ], # conditions
+        }, {
+          'include_dirs': [
+            '/$VULKAN_SDK/include',
+          ],
+       }],
+      ], # conditions
+    } # direct_dependent_settings
   }, # vulkan_headers target
   {
     'target_name': 'libvulkan',

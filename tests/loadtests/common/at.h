@@ -94,7 +94,7 @@ typedef void	(*atPFInitialize)(void**            ppAppData,
                                   const char* const szBasePath);
 typedef void	(*atPFRelease)	 (void*	  pAppData);
 typedef void	(*atPFResize)	 (void*   pAppData, int iWidth, int iHeight);
-typedef void	(*atPFRun)		 (void*	  pAppData, tTicks ticks);
+typedef void	(*atPFRun)		 (void*	  pAppData, uint32_t msTicks);
 
 /** A single sample. */
 typedef struct atSample_def {

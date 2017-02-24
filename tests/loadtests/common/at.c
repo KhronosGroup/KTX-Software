@@ -146,7 +146,9 @@ int	atSetViewMatrix (float* aMatrix_, float eyex, float eyey, float eyez,
 		aMatrix_[7]				= 0.f;
 		aMatrix_[11]			= 0.f;
 		aMatrix_[15]			= 1.f;
-		aMatrix_[12]			= -dot(xaxis, eye); aMatrix_[13] = -dot(yaxis, eye); aMatrix_[14] = -dot(zaxis, eye);
+		aMatrix_[12]			= -dot(xaxis, eye);
+		aMatrix_[13]            = -dot(yaxis, eye);
+		aMatrix_[14]            = -dot(zaxis, eye);
 	}
 	return 1;
 }

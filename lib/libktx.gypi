@@ -9,6 +9,7 @@
     'sources': [
       # .h files are included so they will appear in IDEs' file lists.
       '../include/ktx.h',
+      '../include/ktxvulkan.h',
       'checkheader.c',
       'errstr.c',
       'etcdec.cxx',
@@ -17,6 +18,7 @@
       'gles1_funcptrs.h',
       'gles2_funcptrs.h',
       'gles3_funcptrs.h',
+      'glloader.c',
       'hashtable.c',
       'ktxcontext.c',
       'ktxcontext.h',
@@ -26,10 +28,10 @@
       'ktxmemstream.c',
       'ktxmemstream.h',
       'ktxstream.h',
-      'loader.c',
       'reader.c',
       'swap.c',
       'uthash.h',
+      'vkloader.c',
       'writer.c',
     ],
     'include_dirs': [
@@ -38,7 +40,10 @@
     ],
   }, # variables
 
-  'includes': [ '../gyp_include/libgl.gypi' ],
+  'includes': [
+      '../gyp_include/libgl.gypi',
+      '../gyp_include/libvulkan.gypi',
+  ],
   'targets': [
     {
       'target_name': 'libktx.gl',
@@ -52,7 +57,7 @@
       'sources': [ '<@(sources)' ],
       'conditions': [
         ['_type == "shared_library"', {
-          'dependencies': [ 'libgl' ],
+          'dependencies': [ 'libgl', 'libvulkan' ],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {

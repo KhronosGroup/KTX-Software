@@ -396,7 +396,7 @@ typedef struct KTX_dimensions {
 typedef void* KTX_hash_table;
 
 /**
- * @brief Opaque handle to a KTX_stream.
+ * @brief Opaque handle to a KTX_context.
  */
 typedef void* KTX_context;
     
@@ -407,26 +407,27 @@ typedef void* KTX_context;
  *
  * The function parameters give the values which change for each image.
  *
- * @tparam [in] miplevel        the MIP level from 0 to the max level which is
+ * @tparam [in] miplevel        MIP level from 0 to the max level which is
  *                              dependent on the texture size.
  * @tparam [in] face            usually 0; for cube maps and cube map arrays,
  *                              one of the 6 cube faces in the order
  *                              +X, -X, +Y, -Y, +Z, -Z.
- * @tparam [in] width           the width of the image.
- * @tparam [in] heightOrLayers  the height of the image or, for 1D array
- *                              textures the number of layers in the array.
- * @tparam [in] depthOrLayers   for 3D textures, the depth of the image; for 2D
- *                              array or cube map array textures the number of
- *                              layers in the array.
- * @tparam [in] faceLodSize     the number of bytes of data pointed at by
+ * @tparam [in] width           width of the image.
+ * @tparam [in] height          height of the image or, for 1D textures
+ *                              textures, 1.
+ * @tparam [in] depth           depth of the image or, for 1D & 2D
+ *                              textures, 1.
+ * @tparam [in] layers          number of array layers in the texture.
+ *                              For non array textures, 1.
+ * @tparam [in] faceLodSize     number of bytes of data pointed at by
  *                              @p pixels.
  * @tparam [in] pixels          pointer to the image data.
  * @tparam [in,out] userdata    pointer for the application to pass data to and
  *                              from the callback function.
  */
 typedef KTX_error_code (KTXAPIENTRYP PFNKTXIMAGECB)(int miplevel, int face,
-                                               int width, int heightOrLayers,
-                                               int depthOrLayers,
+                                               int width, int height, int depth,
+                                               int layers,
                                                ktx_uint32_t faceLodSize,
                                                void* pixels, void* userdata);
 
@@ -586,7 +587,6 @@ ktxHashTable_Serialize(KTX_hash_table This,
  */
 KTX_error_code
 ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
-
 
 #ifdef __cplusplus
 }

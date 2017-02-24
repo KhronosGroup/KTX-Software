@@ -26,6 +26,9 @@ static const float cube_face[] =
 	+1.0f, +1.0f, +1.0f,
 	-1.0f, +1.0f, -1.0f,
 };
+#define CUBE_NUM_FACE_COMPONENTS 3
+#define CUBE_FACE_STRIDE (sizeof(float) * CUBE_NUM_FACE_COMPONENTS)
+
 static const float cube_color[] = /* almost random colors */
 {
 	0.7f, 0.1f, 0.2f, 0.0f, 	0.8f, 0.9f, 0.3f, 0.0f,		0.4f, 1.0f, 0.5f, 0.0f,		0.0f, 0.6f, 0.1f, 0.0f,
@@ -54,7 +57,7 @@ static const float cube_normal[] =
 	0.0f, +1.0f, 0.0f,	0.0f, +1.0f, 0.0f,	0.0f, +1.0f, 0.0f,	0.0f, +1.0f, 0.0f,
 };
 
-static const unsigned char cube_index_buffer[] = {
+static const unsigned short cube_index_buffer[] = {
 	 0, 3, 1, 2, 0, 1,	/* Front */
 	 6, 5, 4, 5, 7, 4,	/* Back */
 	 8,11, 9,10, 8, 9,	/* Right */

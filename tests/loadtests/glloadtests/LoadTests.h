@@ -65,7 +65,7 @@ class LoadTests : public GLAppSDL {
                   const int majorVersion,
                   const int minorVersion);
     virtual int doEvent(SDL_Event* event);
-    virtual void drawFrame(ticks_t ticks);
+    virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();

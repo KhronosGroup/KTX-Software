@@ -117,10 +117,10 @@ LoadTests::resize(int width, int height)
 
 
 void
-LoadTests::drawFrame(ticks_t ticks)
+LoadTests::drawFrame(uint32_t msTicks)
 {
-    pCurSampleInv->sample->pfRun(pCurSampleData, ticks);
-    GLAppSDL::drawFrame(ticks);
+    pCurSampleInv->sample->pfRun(pCurSampleData, msTicks);
+    GLAppSDL::drawFrame(msTicks);
 }
 
 

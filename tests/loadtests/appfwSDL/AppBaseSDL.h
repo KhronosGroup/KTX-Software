@@ -47,19 +47,18 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include <SDL2/SDL.h>
 #include <string>
 
-extern class AppBaseSDL* theApp;
-
 class AppBaseSDL {
   public:
-    // In case we need to revert to 32-bit on some platform
     typedef Uint64 ticks_t;
     AppBaseSDL(const char* const name) : szName(name) { }
     virtual bool initialize(int argc, char* argv[]);
     virtual void finalize();
-    virtual void drawFrame(ticks_t ticks);
+    // Ticks in milliseconds since start.
+    virtual void drawFrame(uint32_t msTicks) { }
     virtual int doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
     
+    void drawFrame();
     void initializeFPSTimer();
     const char* const name() { return szName; }
     const std::string getAssetPath() { return sBasePath; }
@@ -69,13 +68,14 @@ class AppBaseSDL {
     }
     
     static void onDrawFrame(void* userdata) {
-        ((AppBaseSDL *)userdata)->drawFrame(SDL_GetPerformanceCounter());
+        ((AppBaseSDL *)userdata)->drawFrame();
     }
 
   protected:
+    ticks_t startTicks;
     float lastFrameTime;  // ms
     struct fpsCounter {
-        ticks_t startTime;
+        ticks_t startTicks;
         int numFrames;
         float lastFPS;
     } fpsCounter;
@@ -84,6 +84,8 @@ class AppBaseSDL {
     std::string sBasePath;
 
 };
+
+extern class AppBaseSDL* theApp;
 
 #endif /* APP_BASE_SDL_H_1456211087 */
 

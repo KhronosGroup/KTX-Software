@@ -3,4 +3,4 @@
 export builddir_name ?= ./build/make/linux/out
 .PHONY: all
 all:
-	$(MAKE) vulkan_headers libvulkan testimages libsdl appfwSDL vkloadtests gl3loadtests gtest_main gtest unittests readtests
+	$(MAKE) testimages libsdl appfwSDL vkloadtests gl3loadtests gtest_main gtest unittests readtests
