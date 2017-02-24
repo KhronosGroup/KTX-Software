@@ -69,6 +69,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  *
  * @exception KTX_INVALID_VALUE	@p file is @c NULL or @p pContext is @c NULL.
  * @exception KTX_OUT_OF_MEMORY not enough memory to allocation the context.
+ *
+ * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
 ktxOpenKTXF(FILE* file, KTX_context* pContext)
@@ -107,6 +109,8 @@ ktxOpenKTXF(FILE* file, KTX_context* pContext)
  * @exception KTX_INVALID_VALUE	@p filename is @c NULL or @p pContext is
  *                              @c NULL.
  * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
+ *
+ * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
 ktxOpenKTXN(const char* const filename, KTX_context* pContext)
@@ -144,6 +148,8 @@ ktxOpenKTXN(const char* const filename, KTX_context* pContext)
  * @exception KTX_INVALID_VALUE	@p bytes is @c NULL, @p size is 0 or @p pContext
  *                              is @c NULL.
  * @exception KTX_OUT_OF_MEMORY not enough memory to allocation the context.
+ *
+ * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
 ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext)
@@ -173,6 +179,8 @@ ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext)
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE	@p ctx is @c NULL.
+ *
+ * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
 ktxCloseKTX(KTX_context ctx)
@@ -213,6 +221,8 @@ ktxCloseKTX(KTX_context ctx)
  * @exception KTX_UNKNOWN_FILE_FORMAT the file is not a KTX file.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE the header indicates a 3D array
  *                                         texture.
+ *
+ * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
 ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
@@ -264,6 +274,8 @@ ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
  * @exception KTX_INVALID_VALUE     @p ctx is @c NULL or not a valid ctx handle.
  * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
  *                                  hold the data.
+ *
+ * @warning This command is subject to change before it is merged to master.
  */
 /* XXX What to do when the library needs some of this data too,
  * e.g. miplevel order?
@@ -335,6 +347,8 @@ ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
  *                                  or @p imageCb is @c NULL.
  * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
  *                                  hold the base level image.
+ *
+ * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
 ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)

@@ -15,6 +15,8 @@ See the Doxygen generated [live documentation](https://codedocs.xyz/KhronosGroup
 for API usage information. Because [CodeDocs](https://codedocs.xyz) does
 not yet support multiple branches, only `master/HEAD` is available.
 
+**IMPORTANT:** The API in `reader.c` for opening a KTX file and reading its images is subject to change. That is why it is not yet in master.
+
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
 See [LICENSE](LICENSE.md) for information about licensing.
