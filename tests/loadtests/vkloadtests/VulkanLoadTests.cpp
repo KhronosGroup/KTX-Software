@@ -230,6 +230,22 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "testimages/orient-up-metadata-sized.ktx",
       "RGB8 2D + KTXOrientation up"
     },
+    { Texture::create,
+      "testimages/etc2-rgb.ktx",
+      "ETC2 RGB8"
+    },
+    { Texture::create,
+      "testimages/etc2-rgba8.ktx",
+      "ETC2 RGB8A8"
+    },
+    { Texture::create,
+      "testimages/etc2-sRGB.ktx",
+      "ETC2 sRGB8"
+    },
+    { Texture::create,
+      "testimages/etc2-sRGBa8.ktx",
+      "ETC2 sRGB8a8"
+    },
     { TextureArray::create,
       "testimages/texturearray_bc3.ktx",
       "BC3 (S3TC DXT5) Texture Array"
