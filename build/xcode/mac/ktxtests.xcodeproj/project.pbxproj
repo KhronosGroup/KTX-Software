@@ -1015,7 +1015,25 @@
 		039D6644D7FA7DC0C74500FD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -1039,12 +1057,11 @@
 					"_HAS_EXCEPTIONS=1",
 					NDEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					tests/gtest,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest;
 			};
 			name = Release;
@@ -1061,12 +1078,11 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					tests/gtest,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest_main;
 			};
 			name = Release;
@@ -1086,7 +1102,6 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/lib,
 					tests/gtest/include,
@@ -1094,8 +1109,7 @@
 					other_include,
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = readtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
@@ -1116,7 +1130,6 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					lib,
@@ -1124,8 +1137,7 @@
 					other_include,
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = unittests;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
@@ -1143,7 +1155,6 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					lib,
@@ -1151,8 +1162,7 @@
 					other_include,
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = unittests;
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
@@ -1174,8 +1184,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = libsdl;
 			};
 			name = Release;
@@ -1183,6 +1192,24 @@
 		638297006311DDA35DC6BA03 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -1202,8 +1229,7 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = testimages;
 			};
 			name = Debug;
@@ -1223,12 +1249,11 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					tests/gtest,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest_main;
 			};
 			name = Debug;
@@ -1248,7 +1273,6 @@
 					"GL_CONTEXT_MINOR_VERSION=3",
 					NDEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/appfwSDL,
 					tests/glloadtests/common,
@@ -1261,7 +1285,7 @@
 					"$(SDKROOT)/System/Library/Frameworks",
 					/Library/Frameworks,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = gl3loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
@@ -1278,8 +1302,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = testimages;
 			};
 			name = Release;
@@ -1303,7 +1326,6 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/lib,
 					tests/gtest/include,
@@ -1311,8 +1333,7 @@
 					other_include,
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = readtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
@@ -1334,7 +1355,6 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/appfwSDL,
 					tests/glloadtests/common,
@@ -1347,7 +1367,7 @@
 					"$(SDKROOT)/System/Library/Frameworks",
 					/Library/Frameworks,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = gl3loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -1372,12 +1392,11 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					tests/gtest,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = gtest;
 			};
 			name = Debug;
@@ -1393,9 +1412,8 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = other_include;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = appfwSDL;
 			};
 			name = Release;
@@ -1412,8 +1430,7 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = libsdl;
 			};
 			name = Debug;
@@ -1432,9 +1449,8 @@
 					DEBUG,
 					_DEBUG,
 				);
-				GCC_WARN_PEDANTIC = YES;
 				HEADER_SEARCH_PATHS = other_include;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = appfwSDL;
 			};
 			name = Debug;

@@ -47,8 +47,9 @@
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
-      'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'mac_bundle': 0,
+      'sources': [ '<@(sources)' ],
       'conditions': [
         ['_type == "shared_library"', {
           'dependencies': [ 'libgl' ],
