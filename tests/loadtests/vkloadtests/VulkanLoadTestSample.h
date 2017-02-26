@@ -52,7 +52,8 @@ class VulkanLoadTestSample {
 					 const char* const szArgs,
                      const std::string sBasePath)
            : vkctx(vkctx), w_width(width), w_height(height),
-             sBasePath(sBasePath)
+             sBasePath(sBasePath),
+             defaultClearColor({0.025f, 0.025f, 0.025f, 1.0f})
     {
     }
 
@@ -127,7 +128,8 @@ class VulkanLoadTestSample {
     // Saved for clean-up
     std::vector<VkShaderModule> shaderModules;
 
-    VkClearColorValue defaultClearColor = { { 0.025f, 0.025f, 0.025f, 1.0f } };
+    //vk::ClearColorValue defaultClearColor({{0.025f, 0.025f, 0.025f, 1.0f}});
+    const std::array<float,4> defaultClearColor;
 
     glm::vec3 rotation = glm::vec3();
     glm::vec3 cameraPos = glm::vec3();

@@ -92,7 +92,7 @@ VulkanContext::flushCommandBuffer(vk::CommandBuffer& cmdBuffer,
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmdBuffer;
 
-    queue.submit(1, &submitInfo, VK_NULL_HANDLE);
+    queue.submit(1, &submitInfo, nullptr);
     queue.waitIdle();
 
     if (free) {

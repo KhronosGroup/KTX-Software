@@ -64,7 +64,7 @@ struct VulkanContext {
     // Contains command buffers and semaphores to be presented to the queue
     VkSubmitInfo drawCmdSubmitInfo;
 
-    vk::DescriptorPool descriptorPool = VK_NULL_HANDLE;
+    vk::DescriptorPool descriptorPool;
     VkPipelineCache pipelineCache;
 
     VulkanSwapchain swapchain;

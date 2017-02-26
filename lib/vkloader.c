@@ -13,7 +13,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vulkan/vulkan.h>
+//#include <vulkan/vulkan.h>
+//#include "/Users/mark/Molten-0.16.0/MoltenVK/include/vulkan/vulkan.h"
 /* For GL format tokens */
 #include "GL/glcorearb.h"
 #include "GL/glext.h"
@@ -22,6 +23,9 @@
 #include "ktxint.h"
 #include "ktxcontext.h"
 #include "vk_format.h"
+
+/* Turn off warning about use of GNU empty initializer extension */
+#pragma clang diagnostic ignored "-Wgnu"
 
 // Macro to check and display Vulkan return results.
 // Use when the only possible errors are caused by invalid usage by this loader.
@@ -99,6 +103,7 @@ ktxVulkanDeviceInfo_init(ktxVulkanDeviceInfo* vdi,
     if (result != VK_SUCCESS) {
         return KTX_OUT_OF_MEMORY; // XXX Consider an equivalent to pGlError
     }
+    return KTX_SUCCESS;
 }
 
 void
@@ -197,7 +202,7 @@ optimalTilingCallback(int miplevel, int face,
 typedef struct user_cbdata_linear {
     VkImage destImage;
     VkDevice device;
-    uint8_t dest;   // Pointer to mapped Image memory
+    uint8_t* dest;   // Pointer to mapped Image memory
 } user_cbdata_linear;
 
 
@@ -215,7 +220,6 @@ linearTilingCallback(int miplevel, int face,
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
     VkSubresourceLayout subResLayout;
     VkImageSubresource subRes = {};
-    uint8_t *data;
 
     subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     subRes.mipLevel = miplevel;
@@ -229,10 +233,10 @@ linearTilingCallback(int miplevel, int face,
     // XXX How to handle subResLayout.{array,depth,row}Pitch?
     //     Problem if rowPitch is not a multiple of 4. Really don't want
     //     copy a row at a time. For now
-    if (subResLayout.rowPitch & 0x3 != 0)
+    if ((subResLayout.rowPitch & 0x3) != 0)
         return KTX_INVALID_OPERATION;
     // XXX We receive all the array levels in one lump. Will this work?
-    memcpy(data + subResLayout.offset, pixels, faceLodSize);
+    memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
     return KTX_SUCCESS;
 }
 
@@ -282,7 +286,6 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
     VkBool32                 isArray;
     VkBool32                 isCube = VK_FALSE;
     uint32_t                 arrayLayers;
-    uint32_t                 dimension;
 
     if (ppKvd) {
         *ppKvd = NULL;
@@ -384,7 +387,6 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
         VkDeviceMemory stagingMemory;
         VkBufferImageCopy* copyRegions;
         VkDeviceSize textureSize;
-        VkDeviceSize cmpTextureSize;
         VkBufferCreateInfo bufferCreateInfo = {
           .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
           .pNext = NULL

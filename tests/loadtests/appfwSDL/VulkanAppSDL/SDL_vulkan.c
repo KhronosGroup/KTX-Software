@@ -13,11 +13,9 @@
 #if SDL_VIDEO_DRIVER_ANDROID
   #define VK_USE_PLATFORM_ANDROID_KHR
 #elif SDL_VIDEO_DRIVER_COCOA
-  #define VK_USE_PLATFORM_OSX_MVK
-  #include <MoltenVK/vk_mvk_osx_surface.h>
+  #define VK_USE_PLATFORM_MACOS_MVK
 #elif SDL_VIDEO_DRIVER_UIKIT
   #define VK_USE_PLATFORM_IOS_MVK
-  #include <MoltenVK/vk_mvk_ios_surface.h>
 #elif SDL_VIDEO_DRIVER_WINDOWS
   #define VK_USE_PLATFORM_WIN32_KHR
 #else
@@ -151,8 +149,8 @@ SDL_bool SDL_CreateVulkanSurface(SDL_Window* window, VkInstance instance, VkSurf
 #if SDL_VIDEO_DRIVER_COCOA
     case SDL_SYSWM_COCOA:
     {
-        VkOSXSurfaceCreateInfoMVK createInfo;
-        createInfo.sType = VK_STRUCTURE_TYPE_OSX_SURFACE_CREATE_INFO_MVK;
+        VkMacOSSurfaceCreateInfoMVK createInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
         createInfo.pNext = NULL;
         createInfo.flags = 0;
         // XXX Must be a reference to an NSView object and the NSView must be
@@ -161,7 +159,7 @@ SDL_bool SDL_CreateVulkanSurface(SDL_Window* window, VkInstance instance, VkSurf
         createInfo.pView = wminfo.info.cocoa.window;
         
         VkResult r =
-        vkCreateOSXSurfaceMVK(instance, &createInfo, NULL, surface);
+        vkCreateMacOSSurfaceMVK(instance, &createInfo, NULL, surface);
         if (r != VK_SUCCESS) {
             SDL_SetError("vkCreateOSXSurfaceMVK failed: %i", (int)r);
             return SDL_FALSE;

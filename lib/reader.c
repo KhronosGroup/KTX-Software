@@ -457,7 +457,7 @@ cleanup:
  * Regrettably he KTX format does not provide the total size of the image
  * data, so we have to calculate it.
  */
-inline size_t
+static inline size_t
 levelSize(const GlFormatSize* formatSize, uint32_t level,
           uint32_t width, uint32_t height, uint32_t depth)
 {
@@ -474,7 +474,8 @@ levelSize(const GlFormatSize* formatSize, uint32_t level,
     if (!(formatSize->flags & GL_FORMAT_SIZE_COMPRESSED_BIT)) {
         uint32_t rowRounding;
         // Round to KTX_GL_UNPACK_ALIGNMENT. levelSizeX is the packed no. of
-        // bytes in a row since formatInfo.blockDim is 1 for uncompressed.
+        // bytes in a row since formatInfo.block{Width.Height,Depth} is 1 for
+        // uncompressed.
         // Equivalent to UNPACK_ALIGNMENT * ceil((groupSize * pixelWidth) / UNPACK_ALIGNMENT)
         rowRounding = 3 - ((levelSizeX + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
         levelSizeX += rowRounding;
@@ -482,7 +483,7 @@ levelSize(const GlFormatSize* formatSize, uint32_t level,
     return levelSizeX * blockCount.y * blockCount.z;
 }
 
-inline size_t
+static inline size_t
 layerSize(const GlFormatSize* formatSize, uint32_t levels,
           uint32_t width, uint32_t height, uint32_t depth)
 {
@@ -495,7 +496,7 @@ layerSize(const GlFormatSize* formatSize, uint32_t levels,
     return layerSize;
 }
 
-size_t
+static inline size_t
 dataSize(const GlFormatSize* formatSize, uint32_t levels, uint32_t layers,
          uint32_t width, uint32_t height, uint32_t depth)
 {

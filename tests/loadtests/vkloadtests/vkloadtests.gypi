@@ -55,6 +55,12 @@
         '<(INTERMEDIATE_DIR)',
         '../common',
         '../geom',
+        '$(ASSIMP_HOME)/include',
+      ],
+      'conditions': [
+        ['OS != "mac"', {
+          'include_dirs!': [ '$(ASSIMP_HOME)/include' ],
+        }],
       ],
       'sources': [
         '../common/vecmath.hpp',
@@ -96,6 +102,12 @@
           ['OS == "linux"', {
             'libraries': [ '-lassimp', '-lpthread' ],
           }],
+          ['OS == "mac"', {
+            'library_dirs': [ '$(ASSIMP_HOME)/lib' ],
+            'xcode_settings': {
+              'OTHER_LDFLAGS': '-lassimp',
+            },
+          }],
         ],
       },
       'msvs_settings': {
@@ -106,11 +118,6 @@
       },
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-        # This is for successful link with appfwSDL.a built for
-        # MACOSX_DEPLOYMENT_TARGET 10.5. Alternatives are: change appfwSDL
-        # target to 10.7 and specify this setting for it with value 'libc++' or
-        # change target to whichever version of OS X made libc++ the default.
-        'CLANG_CXX_LIBRARY': 'libstdc++',
         'GCC_C_LANGUAGE_STANDARD': 'c99',
         'INFOPLIST_FILE': '<(infoplist_file)',
         # Minimum targets for Metal/MoltenVK.

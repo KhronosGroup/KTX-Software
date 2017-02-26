@@ -57,7 +57,7 @@
         'SDKROOT': 'macosx',
       }],
     ],
-    # These have to project-wide. If in target_defaults', and
+    # These have to be project-wide. If in target_defaults', and
     # therefore set in each target, Xcode 8 will warn that the project
     # settings are not the recommended settings and suggest it turns
     # all these on, even though they *will* all be turned on. Xcode
@@ -126,9 +126,11 @@
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
         }, 'OS == "mac"', {
-          # For Metal (Vulkan) compatibility. Also needed should
-          # GL 4.1 or ARB_ES2_compatibility be required.
-          'MACOSX_DEPLOYMENT_TARGET': '10.9', #.7',
+          # Need 10.9 for GL 4.1 or ARB_ES2_compatibility, 10.11 for Metal
+          # compatibility.
+          'MACOSX_DEPLOYMENT_TARGET': '10.11', #.7',
+          # Comment this out if deployment target >= 10.9
+          'CLANG_CXX_LIBRARY': 'libc++',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
@@ -142,7 +144,7 @@
               # syntax.
               'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
             }],
-          ],
+          ], # target_conditions, _mac_bundle
           # Starting with Xcode 8, DEVELOPMENT_TEAM must be specified
           # to successfully build a project. Since it will be different
           # for each user of this project, do not specify it here. See

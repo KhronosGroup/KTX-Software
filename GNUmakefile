@@ -64,6 +64,7 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/angle.gypi \
 		 gyp_include/config.gypi \
 		 gyp_include/default.gypi \
+		 gyp_include/glsl2spirv.gypi \
 		 gyp_include/libgl.gypi \
 		 gyp_include/libgles1.gypi \
 		 gyp_include/libgles2.gypi \

@@ -14,6 +14,9 @@
     {
       'target_name': 'testimages',
       'type': 'none',
+      # dds is needed because on some platforms, each target app gets its own
+      # directory. On others can result in multiple copies to the same place.
+      'direct_dependent_settings': {
         'copies': [{
           'conditions': [
             ['OS == "android"', {
@@ -26,8 +29,9 @@
           ], # conditions
           'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
         }], # copies
-    } # testimages target
-  ] # targets
+      }, # direct_dependent_settings
+    }, # testimages target
+  ], # targets
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

@@ -10,7 +10,7 @@
       ['OS == "ios"', {
         'fwdir': 'iOS'
       }, 'OS == "mac"', {
-        'fwdir': 'OSX'
+        'fwdir': 'macOS'
       }]
     ], # conditions
   }, # variables
@@ -36,11 +36,10 @@
           # in Xcode Preferences, Locations tab, Custom Paths. It
           # should point to whereever you have MoltenVK installed.
           'include_dirs': [
-            #'/Users/mark/Molten-0.12.0/MoltenVK/include',
-            '/$VULKAN_SDK/include'
+            '$(VULKAN_SDK)/include'
           ],
           'mac_framework_dirs': [
-            #'/Users/mark/Molten-0.12.0/MoltenVK/<(fwdir)'
+            '$(VULKAN_SDK)/<(fwdir)'
           ],
         }, {
           'include_dirs': [
@@ -59,15 +58,28 @@
       ['OS == "ios" or OS == "mac"', {
         'link_settings': {
           'libraries': [
-            'MoltenVK.framework',
-            'libc++.dylib',
-            'Metal.framework',
-            'QuartzCore.framework'
+            # items in libraries are relativized unless prefixed with /,-,$,<,>,
+            # or ^. Both '-framework foo' and '-lfoo' confuse Xcode. It seems
+            # these values are being put into an Xcode list that expects only
+            # framework names, full or relative path.
+            '$(VULKAN_SDK)/<(fwdir)/MoltenVK.framework',
+            '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+            '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+            '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+            # Xcode 7 & 8 do not properly handle the new lib*.tbd files. They
+            # warn they are ignoring the file because of "unexpected file type
+            # 'text'". The workaround is to use OTHER_LDFLAGS as below.
+            #'$(SDKROOT)/usr/lib/libc++.tbd',
           ],
           'library_dirs': [ ],
           'mac_framework_dirs': [
-            '/Users/mark/Molten-0.12.0/MoltenVK/<(fwdir)'
+            '$(VULKAN_SDK)/<(fwdir)'
           ],
+          # Not necessary because CLANG_CXX_LIBRARY is being set in
+          # default.gypi, if needed for the specified DEPLOYMENT_TARGET.
+          #'xcode_settings': {
+          #  'OTHER_LDFLAGS': '-lc++',
+          #}
         },
       }, 'OS == "win"', {
         'direct_dependent_settings': {

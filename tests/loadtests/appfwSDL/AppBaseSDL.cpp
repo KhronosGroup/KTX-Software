@@ -96,7 +96,7 @@ AppBaseSDL::drawFrame()
 {
     ticks_t ticks = SDL_GetPerformanceCounter();
     Uint64 tps = SDL_GetPerformanceFrequency();
-    uint32_t msTicksSinceStart = (ticks - startTicks) * 1000 / tps;
+    uint32_t msTicksSinceStart = (uint32_t)((ticks - startTicks) * 1000 / tps);
 
     drawFrame(msTicksSinceStart);
 
