@@ -1,9 +1,9 @@
 all: \
-    $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders/textoverlay.frag.spv
+    $(INTERMEDIATE_DIR)/textoverlay.frag.spv
 
-$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders/textoverlay.frag.spv \
+$(INTERMEDIATE_DIR)/textoverlay.frag.spv \
     : \
     tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
-	@mkdir -p "$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders"
+	@mkdir -p "$(INTERMEDIATE_DIR)"
 	@echo note: "Compiling textoverlay.frag."
-	"$(VULKAN_SDK)/../MoltenShaderConverter/Tools/MoltenShaderConverter" -gi "tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag" -so "$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders/textoverlay.frag.spv"
+	"$(VULKAN_SDK)/../MoltenShaderConverter/Tools/MoltenShaderConverter" -gi "tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag" -so "$(INTERMEDIATE_DIR)/textoverlay.frag.spv"

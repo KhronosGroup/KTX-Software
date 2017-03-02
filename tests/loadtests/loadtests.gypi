@@ -5,6 +5,23 @@
 # @brief Generate project files for building KTX loadtests.
 #
 {
+  # For consistency between the apps and appfwSDL
+  'variables': { # level 1
+    'variables': { # level 2
+      'conditions': [
+        ['OS == "android"', {
+          'datadest': '<(android_assets_dir)',
+        }, 'OS == "ios" or OS == "mac"', {
+          'datadest': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)',
+        }, 'OS == "linux" or OS == "win"', {
+          'datadest': '<(PRODUCT_DIR)',
+        }], # OS == "android" and else clauses
+      ], # conditions
+    }, # variables level 2
+    'model_dest': '<(datadest)/models',
+    'shader_dest': '<(datadest)/shaders',
+  }, # variables, level 1
+
   'includes': [
      'appfwSDL/appfwSDL.gypi',
      'glloadtests/glloadtests.gypi',

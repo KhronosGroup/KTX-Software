@@ -501,7 +501,6 @@ VulkanAppSDL::createInstance()
 
 
     /* Build list of needed extensions */
-    int extNamesArrayLen = ARRAY_LEN(extensionNames);
     memset(extensionNames, 0, sizeof(extensionNames));
 
     extensionNames[enabledExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
@@ -652,8 +651,6 @@ VulkanAppSDL::findGpu()
 bool
 VulkanAppSDL::setupDebugReporting()
 {
-    VkResult err;
-
     if (validate) {
         GET_INSTANCE_PROC_ADDR(vkctx.instance, CreateDebugReportCallbackEXT);
         GET_INSTANCE_PROC_ADDR(vkctx.instance, DestroyDebugReportCallbackEXT);

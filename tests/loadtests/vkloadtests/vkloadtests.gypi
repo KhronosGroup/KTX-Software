@@ -11,19 +11,6 @@
   #  '../../../gyp_include/libvulkan.gypi',
   #],
   'variables': { # level 1
-    'variables': { # level 2
-      'conditions': [
-        ['OS == "android"', {
-          'datadest': '<(android_assets_dir)',
-        }, 'OS == "ios" or OS == "mac"', {
-          'datadest': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)',
-        }, 'OS == "linux" or OS == "win"', {
-          'datadest': '<(PRODUCT_DIR)',
-        }], # OS == "android" and else clauses
-      ], # conditions
-    }, # variables level 2
-    'model_dir': '<(datadest)/models',
-    'shader_dir': '<(datadest)/shaders',
     # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
     # Keys ending in _file & _dir assumed to be paths and are made relative
     # to the main .gyp file.
@@ -89,14 +76,33 @@
         'VulkanLoadTestSample.h',
       ],
       'copies': [{
-        'destination': '<(model_dir)',
+        'destination': '<(model_dest)',
         'files': [ 
           'models/cube.obj',
           'models/sphere.obj',
           'models/teapot.dae',
           'models/torusknot.obj',
         ],
-      }], # copies      
+      },
+      # This is here to avoid polluting the "Resources" or output folder with
+      # all the .spv files. With the simpler choice of setting
+      # 'process_outputs_as_mac_bundle_resources' in the glsl2spirv rules,
+      # there is no way to set a subdir of "Resources" as the destination.
+      {
+        'destination': '<(shader_dest)',
+        'files': [
+          '<(INTERMEDIATE_DIR)/shaders/cube.frag.spv',
+          '<(INTERMEDIATE_DIR)/shaders/cube.vert.spv',
+          '<(INTERMEDIATE_DIR)/shaders/reflect.frag.spv',
+          '<(INTERMEDIATE_DIR)/shaders/reflect.vert.spv',
+          '<(INTERMEDIATE_DIR)/shaders/skybox.frag.spv',
+          '<(INTERMEDIATE_DIR)/shaders/skybox.vert.spv',
+          '<(INTERMEDIATE_DIR)/shaders/texture.frag.spv',
+          '<(INTERMEDIATE_DIR)/shaders/texture.vert.spv',
+          '<(INTERMEDIATE_DIR)/shaders/instancing.frag.spv',
+          '<(INTERMEDIATE_DIR)/shaders/instancing.vert.spv',
+        ],
+      }], # copies
       'link_settings': {
         'conditions': [
           ['OS == "linux"', {

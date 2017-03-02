@@ -14,25 +14,25 @@
       # but glslV does not so ...)
 	  'extension': '.frag',
 	  'message': 'Compiling <(RULE_INPUT_NAME).',
-	  # For if & when we use glslc -mfmt=num so can #include the
-	  # compiled files.
-	  #'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
-	  'outputs': [
-		'<(shader_dir)/<(RULE_INPUT_NAME).spv'
-	  ],
+	  'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
+          # This causes the output to be copied to the "Resources" folder but
+          # we don't want to pollute that with all the shaders. We want them in
+          # a subdir but there is no way to specify that. Instead we have
+          # explicit copy steps in the users of the shaders.
+          #'process_outputs_as_mac_bundle_resources': 1,
           'action': [
             '$(VULKAN_SDK)/../MoltenShaderConverter/Tools/MoltenShaderConverter',
             '-gi', '<(RULE_INPUT_PATH)',
             '-so', '<@(_outputs)',
-            ], # action
+          ], # action
         }, {
           'action': [
             'glslangValidator', '-V',
             '-o', '<@(_outputs)',
             '<(RULE_INPUT_PATH)'
-            ], # action
+          ], # action
         }], # OS == "mac" or OS == "ios"
       ], # conditions
     }, # frag2spirv
@@ -40,22 +40,20 @@
 	  'rule_name': 'vert2spirv',
 	  'extension': '.vert',
 	  'message': 'Compiling <(RULE_INPUT_NAME).',
-	  #'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
-	  'outputs': [
-		'<(shader_dir)/<(RULE_INPUT_NAME).spv'
-	  ],
+	  'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
+          #'process_outputs_as_mac_bundle_resources': 1,
           'action': [
-          '$(VULKAN_SDK)/../MoltenShaderConverter/Tools/MoltenShaderConverter',
-          '-gi', '<(RULE_INPUT_PATH)',
-          '-so', '<@(_outputs)',
+            '$(VULKAN_SDK)/../MoltenShaderConverter/Tools/MoltenShaderConverter',
+            '-gi', '<(RULE_INPUT_PATH)',
+            '-so', '<@(_outputs)',
           ], # action
         }, {
           'action': [
-          'glslangValidator', '-V',
-          '-o', '<@(_outputs)',
-          '<(RULE_INPUT_PATH)'
+            'glslangValidator', '-V',
+            '-o', '<@(_outputs)',
+            '<(RULE_INPUT_PATH)'
           ], # action
         }], # OS == "mac" or OS == "ios"
       ], # conditions

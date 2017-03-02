@@ -13,8 +13,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <vulkan/vulkan.h>
-//#include "/Users/mark/Molten-0.16.0/MoltenVK/include/vulkan/vulkan.h"
+#include <vulkan/vulkan.h>
 /* For GL format tokens */
 #include "GL/glcorearb.h"
 #include "GL/glext.h"
