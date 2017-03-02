@@ -3,122 +3,122 @@
 TOOLSET := target
 TARGET := vkloadtests
 ### Generated for rule ktxtests_gyp_vkloadtests_target_frag2spirv:
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cube/cube.frag
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cube/cube.frag
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_0)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_0 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_0 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_1)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_1 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_1 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_2)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_2 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_2 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texture/texture.frag
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texture/texture.frag
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_3)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_3 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_3 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_4)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_4 $@
 
 rule_ktxtests_gyp_vkloadtests_target_frag2spirv_outputs := \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
 
 ### Finished generating for rule: ktxtests_gyp_vkloadtests_target_frag2spirv
 
 ### Generated for rule ktxtests_gyp_vkloadtests_target_vert2spirv:
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cube/cube.vert
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cube/cube.vert
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_0)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_0 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_0 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_1)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_1 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_1 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_2)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_2 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_2 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texture/texture.vert
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texture/texture.vert
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_3)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_3 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_3 $@
 
-$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
-$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
-$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_4)
 
-all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/vkloadtests/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/vkloadtests/geni/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_4 $@
 
 rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs := \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv \
-	$(builddir)/shaders/$(notdir $<).spv
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv \
+	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
 
 ### Finished generating for rule: ktxtests_gyp_vkloadtests_target_vert2spirv
 
@@ -145,7 +145,217 @@ $(builddir)/models/torusknot.obj: $(srcdir)/tests/loadtests/vkloadtests/models/t
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/torusknot.obj
-ktxtests_gyp_vkloadtests_target_copies = $(builddir)/models/cube.obj $(builddir)/models/sphere.obj $(builddir)/models/teapot.dae $(builddir)/models/torusknot.obj
+$(builddir)/shaders/cube.frag.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/cube.frag.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/cube.frag.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/cube.frag.spv
+$(builddir)/shaders/cube.vert.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/cube.vert.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/cube.vert.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/cube.vert.spv
+$(builddir)/shaders/reflect.frag.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/reflect.frag.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/reflect.frag.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/reflect.frag.spv
+$(builddir)/shaders/reflect.vert.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/reflect.vert.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/reflect.vert.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/reflect.vert.spv
+$(builddir)/shaders/skybox.frag.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/skybox.frag.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/skybox.frag.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/skybox.frag.spv
+$(builddir)/shaders/skybox.vert.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/skybox.vert.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/skybox.vert.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/skybox.vert.spv
+$(builddir)/shaders/texture.frag.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/texture.frag.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/texture.frag.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/texture.frag.spv
+$(builddir)/shaders/texture.vert.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/texture.vert.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/texture.vert.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/texture.vert.spv
+$(builddir)/shaders/instancing.frag.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/instancing.frag.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/instancing.frag.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/instancing.frag.spv
+$(builddir)/shaders/instancing.vert.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/instancing.vert.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/instancing.vert.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/instancing.vert.spv
+$(builddir)/shaders/textoverlay.frag.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/textoverlay.frag.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/textoverlay.frag.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/textoverlay.frag.spv
+$(builddir)/shaders/textoverlay.vert.spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/textoverlay.vert.spv: $(obj).$(TOOLSET)/$(TARGET)/geni/shaders/textoverlay.vert.spv FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/shaders/textoverlay.vert.spv
+$(builddir)/testimages/conftestimage_R11_EAC.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/conftestimage_R11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_R11_EAC.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/conftestimage_R11_EAC.ktx
+$(builddir)/testimages/conftestimage_RG11_EAC.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/conftestimage_RG11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_RG11_EAC.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/conftestimage_RG11_EAC.ktx
+$(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_SIGNED_R11_EAC.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx
+$(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx
+$(builddir)/testimages/cubemap_space.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_space.ktx: $(srcdir)/tests/testimages/cubemap_space.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/cubemap_space.ktx
+$(builddir)/testimages/cubemap_vulkan.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_vulkan.ktx: $(srcdir)/tests/testimages/cubemap_vulkan.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/cubemap_vulkan.ktx
+$(builddir)/testimages/cubemap_yokohama.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama.ktx: $(srcdir)/tests/testimages/cubemap_yokohama.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/cubemap_yokohama.ktx
+$(builddir)/testimages/etc1.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc1.ktx: $(srcdir)/tests/testimages/etc1.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc1.ktx
+$(builddir)/testimages/etc2-rgba1.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-rgba1.ktx: $(srcdir)/tests/testimages/etc2-rgba1.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc2-rgba1.ktx
+$(builddir)/testimages/etc2-rgba8.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-rgba8.ktx: $(srcdir)/tests/testimages/etc2-rgba8.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc2-rgba8.ktx
+$(builddir)/testimages/etc2-rgb.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-rgb.ktx: $(srcdir)/tests/testimages/etc2-rgb.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc2-rgb.ktx
+$(builddir)/testimages/etc2-sRGBa1.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-sRGBa1.ktx: $(srcdir)/tests/testimages/etc2-sRGBa1.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc2-sRGBa1.ktx
+$(builddir)/testimages/etc2-sRGBa8.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-sRGBa8.ktx: $(srcdir)/tests/testimages/etc2-sRGBa8.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc2-sRGBa8.ktx
+$(builddir)/testimages/etc2-sRGB.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/etc2-sRGB.ktx: $(srcdir)/tests/testimages/etc2-sRGB.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/etc2-sRGB.ktx
+$(builddir)/testimages/hi_mark.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/hi_mark.ktx: $(srcdir)/tests/testimages/hi_mark.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/hi_mark.ktx
+$(builddir)/testimages/hi_mark_sq.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/hi_mark_sq.ktx: $(srcdir)/tests/testimages/hi_mark_sq.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/hi_mark_sq.ktx
+$(builddir)/testimages/luminance_sized_reference.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/luminance_sized_reference.ktx: $(srcdir)/tests/testimages/luminance_sized_reference.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/luminance_sized_reference.ktx
+$(builddir)/testimages/luminance_unsized_reference.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/luminance_unsized_reference.ktx: $(srcdir)/tests/testimages/luminance_unsized_reference.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/luminance_unsized_reference.ktx
+$(builddir)/testimages/no-npot.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/no-npot.ktx: $(srcdir)/tests/testimages/no-npot.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/no-npot.ktx
+$(builddir)/testimages/orient-down-metadata.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-down-metadata.ktx: $(srcdir)/tests/testimages/orient-down-metadata.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-down-metadata.ktx
+$(builddir)/testimages/orient-down-metadata-sized.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-down-metadata-sized.ktx: $(srcdir)/tests/testimages/orient-down-metadata-sized.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-down-metadata-sized.ktx
+$(builddir)/testimages/orient-up.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up.ktx: $(srcdir)/tests/testimages/orient-up.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-up.ktx
+$(builddir)/testimages/orient-up-metadata-sized.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up-metadata-sized.ktx: $(srcdir)/tests/testimages/orient-up-metadata-sized.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-up-metadata-sized.ktx
+$(builddir)/testimages/orient-up-sized.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up-sized.ktx: $(srcdir)/tests/testimages/orient-up-sized.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-up-sized.ktx
+$(builddir)/testimages/pattern_02_bc2.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/pattern_02_bc2.ktx: $(srcdir)/tests/testimages/pattern_02_bc2.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/pattern_02_bc2.ktx
+$(builddir)/testimages/rgb-amg-reference.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/rgb-amg-reference.ktx: $(srcdir)/tests/testimages/rgb-amg-reference.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/rgb-amg-reference.ktx
+$(builddir)/testimages/rgba-reference.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/rgba-reference.ktx: $(srcdir)/tests/testimages/rgba-reference.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/rgba-reference.ktx
+$(builddir)/testimages/rgb-mipmap-reference.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/rgb-mipmap-reference.ktx: $(srcdir)/tests/testimages/rgb-mipmap-reference.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/rgb-mipmap-reference.ktx
+$(builddir)/testimages/rgb-reference.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/rgb-reference.ktx: $(srcdir)/tests/testimages/rgb-reference.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/rgb-reference.ktx
+$(builddir)/testimages/texturearray_bc3.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/texturearray_bc3.ktx: $(srcdir)/tests/testimages/texturearray_bc3.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/texturearray_bc3.ktx
+ktxtests_gyp_vkloadtests_target_copies = $(builddir)/models/cube.obj $(builddir)/models/sphere.obj $(builddir)/models/teapot.dae $(builddir)/models/torusknot.obj $(builddir)/shaders/cube.frag.spv $(builddir)/shaders/cube.vert.spv $(builddir)/shaders/reflect.frag.spv $(builddir)/shaders/reflect.vert.spv $(builddir)/shaders/skybox.frag.spv $(builddir)/shaders/skybox.vert.spv $(builddir)/shaders/texture.frag.spv $(builddir)/shaders/texture.vert.spv $(builddir)/shaders/instancing.frag.spv $(builddir)/shaders/instancing.vert.spv $(builddir)/shaders/textoverlay.frag.spv $(builddir)/shaders/textoverlay.vert.spv $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/cubemap_space.ktx $(builddir)/testimages/cubemap_vulkan.ktx $(builddir)/testimages/cubemap_yokohama.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/orient-down-metadata.ktx $(builddir)/testimages/orient-down-metadata-sized.ktx $(builddir)/testimages/orient-up.ktx $(builddir)/testimages/orient-up-metadata-sized.ktx $(builddir)/testimages/orient-up-sized.ktx $(builddir)/testimages/pattern_02_bc2.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/texturearray_bc3.ktx
 
 DEFS_Debug := \
 	'-DDEBUG' \
@@ -167,6 +377,7 @@ INCS_Debug := \
 	-I$(obj).$(TOOLSET)/$(TARGET)/geni \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(ASSIMP_HOME)/include \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
@@ -191,6 +402,7 @@ INCS_Release := \
 	-I$(obj).$(TOOLSET)/$(TARGET)/geni \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(ASSIMP_HOME)/include \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \

@@ -56,8 +56,8 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/ktxmemstream.o \
 	$(obj).target/$(TARGET)/lib/reader.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
-	$(obj).target/$(TARGET)/lib/vkloader.o \
-	$(obj).target/$(TARGET)/lib/writer.o
+	$(obj).target/$(TARGET)/lib/writer.o \
+	$(obj).target/$(TARGET)/lib/vkloader.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
