@@ -85,8 +85,6 @@
 		BAB9452DB77DB044EF95668D /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
 		BEDA4C2029BF8BE8B25E00B0 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
 		C3D2B87BC652F820940C26DF /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		C5597DD6F718D0941E04F7AB /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		D0D264EA5A898DFD57935E41 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
 		D2A63066B320C2F36AECF4C6 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
 		D3D0B4A90073349409575118 /* ktxfilestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 02D91ED3A9C5B39B4AFA0017 /* ktxfilestream.c */; };
 		D47674D48E2A257B8208E1D1 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
@@ -391,8 +389,8 @@
 				DCF37F9F24BD9CD8E73FB9DD /* ktxmemstream.c in Sources */,
 				367BB710E7C1184B70BFF7A9 /* reader.c in Sources */,
 				79F58877688AE4F2EADEE938 /* swap.c in Sources */,
-				92CD0CB4B762B4390116644A /* vkloader.c in Sources */,
 				BAB9452DB77DB044EF95668D /* writer.c in Sources */,
+				92CD0CB4B762B4390116644A /* vkloader.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,7 +409,6 @@
 				5169716A14F54CA302F18B14 /* ktxmemstream.c in Sources */,
 				E4FF2CD19578F4646FA6A9CA /* reader.c in Sources */,
 				40D3CE99A0408E0740058802 /* swap.c in Sources */,
-				D0D264EA5A898DFD57935E41 /* vkloader.c in Sources */,
 				C3D2B87BC652F820940C26DF /* writer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -431,7 +428,6 @@
 				82A27422BBD19ACB26775FE2 /* ktxmemstream.c in Sources */,
 				96F3C71A6285E22CCDF923EB /* reader.c in Sources */,
 				5154988774C20B0BFF7D8550 /* swap.c in Sources */,
-				C5597DD6F718D0941E04F7AB /* vkloader.c in Sources */,
 				126ADE85E1794277E6D2C0C7 /* writer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

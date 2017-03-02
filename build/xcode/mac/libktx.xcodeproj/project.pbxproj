@@ -85,7 +85,6 @@
 		49EEE629985A9AE1388CB4A1 /* reader.c in Sources */ = {isa = PBXBuildFile; fileRef = AF7174742211B9AD5E3DDF59 /* reader.c */; };
 		4C4968B2820FE97C19BF991E /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
 		680BCB29F5F129B6611EA410 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		6BA7627B529E27146A86957A /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
 		78452536D3438F49B156735D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC2D1C7E43ED8126A628962B /* QuartzCore.framework */; };
 		7BC5C5D52D2E616D72C64100 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
 		7CBF24224F511D1B85732816 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ACF8F0E9241040CB326BE50 /* Metal.framework */; };
@@ -105,7 +104,6 @@
 		B536B316F29367F2DE4775D1 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
 		BE7D455EF201F5F5F2484218 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C7E03D73F6E6E8A35D31F17 /* Foundation.framework */; };
 		C8B81819A2FBA156FA6D91C8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 952FB97003C3A1793841B79D /* OpenGL.framework */; };
-		C9F57198301995619F03C93E /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
 		CB63C16778DAABD3E8D7A05E /* reader.c in Sources */ = {isa = PBXBuildFile; fileRef = AF7174742211B9AD5E3DDF59 /* reader.c */; };
 		CC46212B3DB40865ED709432 /* ktxmemstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 36344252BF902A18F4ACB26C /* ktxmemstream.c */; };
 		CEC3397AA05546DD910B20E5 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
@@ -478,7 +476,6 @@
 				ktxDoxy,
 				LICENSE.md,
 				include/ktx.h,
-				include/ktxvulkan.h,
 				lib/checkheader.c,
 				lib/errstr.c,
 				lib/etcdec.cxx,
@@ -501,8 +498,6 @@
 				lib/reader.c,
 				lib/swap.c,
 				lib/uthash.h,
-				lib/vk_format.h,
-				lib/vkloader.c,
 				lib/writer.c,
 			);
 			name = "Action \"touchTimestamp\"";
@@ -523,7 +518,6 @@
 				ktxDoxy,
 				LICENSE.md,
 				include/ktx.h,
-				include/ktxvulkan.h,
 				lib/checkheader.c,
 				lib/errstr.c,
 				lib/etcdec.cxx,
@@ -546,8 +540,6 @@
 				lib/reader.c,
 				lib/swap.c,
 				lib/uthash.h,
-				lib/vk_format.h,
-				lib/vkloader.c,
 				lib/writer.c,
 			);
 			name = "Action \"buildDoc\"";
@@ -579,8 +571,8 @@
 				951564267412F1D6DE03EBBF /* ktxmemstream.c in Sources */,
 				CB63C16778DAABD3E8D7A05E /* reader.c in Sources */,
 				7CEB87F2C46234242690C459 /* swap.c in Sources */,
-				CEC3397AA05546DD910B20E5 /* vkloader.c in Sources */,
 				D77D00D6C88AE824D407F2F7 /* writer.c in Sources */,
+				CEC3397AA05546DD910B20E5 /* vkloader.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -599,7 +591,6 @@
 				CC46212B3DB40865ED709432 /* ktxmemstream.c in Sources */,
 				B169197308DAB39BA5F46209 /* reader.c in Sources */,
 				858581C1A2B399DB43034E35 /* swap.c in Sources */,
-				C9F57198301995619F03C93E /* vkloader.c in Sources */,
 				D5EF89E333B9AC908F5082D2 /* writer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -619,7 +610,6 @@
 				803078D0F63725614F37D7CD /* ktxmemstream.c in Sources */,
 				49EEE629985A9AE1388CB4A1 /* reader.c in Sources */,
 				1DEEFC91405B27BD50047B60 /* swap.c in Sources */,
-				6BA7627B529E27146A86957A /* vkloader.c in Sources */,
 				9175FC6308D47760CE3D534F /* writer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

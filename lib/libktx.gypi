@@ -9,7 +9,6 @@
     'sources': [
       # .h files are included so they will appear in IDEs' file lists.
       '../include/ktx.h',
-      '../include/ktxvulkan.h',
       'checkheader.c',
       'errstr.c',
       'etcdec.cxx',
@@ -32,9 +31,13 @@
       'reader.c',
       'swap.c',
       'uthash.h',
+      'writer.c',
+    ],
+    # Use _files to get the names relativized
+    'vksource_files': [
+      '../include/ktxvulkan.h',
       'vk_format.h',
       'vkloader.c',
-      'writer.c',
     ],
     'include_dirs': [
       '../include',
@@ -56,7 +59,10 @@
       },
       'include_dirs': [ '<@(include_dirs)' ],
       'mac_bundle': 0,
-      'sources': [ '<@(sources)' ],
+      'sources': [
+        '<@(sources)',
+        '<@(vksource_files)',
+      ],
       'conditions': [
         ['_type == "shared_library"', {
           'dependencies': [ 'libgl', 'libvulkan' ],
