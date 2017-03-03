@@ -40,7 +40,11 @@
 #include "utils/VulkanMeshLoader.hpp"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma clang diagnostic ignored "-Wnested-anon-types"
 #include <glm/glm.hpp>
+#pragma clang diagnostic pop
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -88,7 +92,7 @@ class VulkanLoadTestSample {
 	{
 		vk::Buffer buf;
 		vk::DeviceMemory mem;
-		size_t size = 0;
+		vk::DeviceSize size = 0;
 
 		void freeResources(vk::Device& device) {
 		    if (buf) device.destroyBuffer(buf);

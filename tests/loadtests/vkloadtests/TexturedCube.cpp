@@ -60,8 +60,6 @@
 #include "TexturedCube.h"
 #include "cube.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #define UNIFORM_OFFSET(f) (size_t)(&((Uniforms *)0)->mvp)
 
 #define VERTEX_BUFFER_FIRST_BINDING_ID 0
@@ -415,9 +413,11 @@ TexturedCube::setupVertexDescriptions()
 #endif
 
     vertices.inputState = initPipelineVertexInputStateCreateInfo();
-    vertices.inputState.vertexBindingDescriptionCount = vertices.bindingDescriptions.size();
+    vertices.inputState.vertexBindingDescriptionCount =
+                  static_cast<uint32_t>(vertices.bindingDescriptions.size());
     vertices.inputState.pVertexBindingDescriptions = vertices.bindingDescriptions.data();
-    vertices.inputState.vertexAttributeDescriptionCount = vertices.attributeDescriptions.size();
+    vertices.inputState.vertexAttributeDescriptionCount =
+                  static_cast<uint32_t>(vertices.attributeDescriptions.size());
     vertices.inputState.pVertexAttributeDescriptions = vertices.attributeDescriptions.data();
 }
 
@@ -523,7 +523,7 @@ TexturedCube::preparePipeline()
     VkPipelineDynamicStateCreateInfo ds = { };
     ds.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     ds.pDynamicStates = dynamicStateEnables.data();
-    ds.dynamicStateCount = dynamicStateEnables.size();
+    ds.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
 
     VkPipelineMultisampleStateCreateInfo mss = { };
     mss.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -725,7 +725,7 @@ TexturedCube::prepareDescriptorSet()
     };
 
     vkUpdateDescriptorSets(vkctx.device,
-                           writeDescriptorSets.size(),
+                           static_cast<uint32_t>(writeDescriptorSets.size()),
                            writeDescriptorSets.data(),
                            0, NULL);
 }

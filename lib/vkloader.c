@@ -23,9 +23,6 @@
 #include "ktxcontext.h"
 #include "vk_format.h"
 
-/* Turn off warning about use of GNU empty initializer extension */
-#pragma clang diagnostic ignored "-Wgnu"
-
 // Macro to check and display Vulkan return results.
 // Use when the only possible errors are caused by invalid usage by this loader.
 #if defined(_DEBUG)
@@ -218,11 +215,11 @@ linearTilingCallback(int miplevel, int face,
 {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
     VkSubresourceLayout subResLayout;
-    VkImageSubresource subRes = {};
-
-    subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    subRes.mipLevel = miplevel;
-    subRes.arrayLayer = face;
+    VkImageSubresource subRes = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = miplevel,
+      .arrayLayer = face
+    };
 
     // Get sub resources layout
     // Includes row pitch, size offsets, etc.
@@ -273,8 +270,8 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
          .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
          .pNext = NULL
     };
-    VkSamplerCreateInfo sampler = {};
-    VkImageViewCreateInfo view = {};
+    VkSamplerCreateInfo sampler;
+    VkImageViewCreateInfo view;
     VkMemoryAllocateInfo     memAllocInfo = {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = NULL,
@@ -390,7 +387,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
           .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
           .pNext = NULL
         };
-        VkImageSubresourceRange subresourceRange = {};
+        VkImageSubresourceRange subresourceRange;
         VkFence copyFence;
         VkFenceCreateInfo fenceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -494,6 +491,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
         subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         subresourceRange.baseMipLevel = 0;
         subresourceRange.levelCount = pTexture->mipLevels;
+        subresourceRange.baseArrayLayer = 0;
         subresourceRange.layerCount = arrayLayers;
 
         // Image barrier for optimal image (target)
@@ -553,7 +551,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = NULL
         };
-        VkImageSubresourceRange subresourceRange = {};
+        VkImageSubresourceRange subresourceRange;
         user_cbdata_linear cbData;
 
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -613,6 +611,7 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
         subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         subresourceRange.baseMipLevel = 0;
         subresourceRange.levelCount = pTexture->mipLevels;
+        subresourceRange.baseArrayLayer = 0;
         subresourceRange.layerCount = arrayLayers;
 
         // Setup image memory barrier
@@ -920,6 +919,10 @@ setImageLayout(
         // Make sure any shader reads from the image have finished
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
+
+    default:
+        /* Value not used by callers, so not supported. */
+        assert(KTX_FALSE);
     }
 
     // Target layouts (new)
@@ -964,6 +967,9 @@ setImageLayout(
         }
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
+    default:
+        /* Value not used by callers, so not supported. */
+        assert(KTX_FALSE);
     }
 
     // Put barrier on top of pipeline.

@@ -51,11 +51,6 @@
 #include <assert.h>
 #include <vector>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <vulkan/vulkan.h>
 #include "TextureCubemap.h"
 
@@ -293,9 +288,11 @@ TextureCubemap::setupVertexDescriptions()
             sizeof(float) * 6);
 
     vertices.inputState = vk::PipelineVertexInputStateCreateInfo();
-    vertices.inputState.vertexBindingDescriptionCount = vertices.bindingDescriptions.size();
+    vertices.inputState.vertexBindingDescriptionCount =
+                static_cast<uint32_t>(vertices.bindingDescriptions.size());
     vertices.inputState.pVertexBindingDescriptions = vertices.bindingDescriptions.data();
-    vertices.inputState.vertexAttributeDescriptionCount = vertices.attributeDescriptions.size();
+    vertices.inputState.vertexAttributeDescriptionCount =
+                static_cast<uint32_t>(vertices.attributeDescriptions.size());
     vertices.inputState.pVertexAttributeDescriptions = vertices.attributeDescriptions.data();
 }
 
@@ -309,10 +306,11 @@ TextureCubemap::setupDescriptorPool()
         {vk::DescriptorType::eCombinedImageSampler, 2}
     };
 
-    vk::DescriptorPoolCreateInfo descriptorPoolInfo({},
-													2,
-													poolSizes.size(),
-													poolSizes.data());
+    vk::DescriptorPoolCreateInfo descriptorPoolInfo(
+                                        {},
+                                        2,
+                                        static_cast<uint32_t>(poolSizes.size()),
+                                        poolSizes.data());
     vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
     		                          &descriptorPool);
 }
@@ -335,9 +333,9 @@ TextureCubemap::setupDescriptorSetLayout()
     };
 
     vk::DescriptorSetLayoutCreateInfo descriptorLayout(
-    												{},
-													setLayoutBindings.size(),
-													setLayoutBindings.data());
+                              {},
+                              static_cast<uint32_t>(setLayoutBindings.size()),
+                              setLayoutBindings.data());
 
     vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
     									   &descriptorSetLayout);
@@ -389,10 +387,11 @@ TextureCubemap::setupDescriptorSets()
 				&cubeMapDescriptor)
     };
 
-    vkctx.device.updateDescriptorSets(writeDescriptorSets.size(),
-								   writeDescriptorSets.data(),
-								   0,
-								   nullptr);
+    vkctx.device.updateDescriptorSets(
+                             static_cast<uint32_t>(writeDescriptorSets.size()),
+                             writeDescriptorSets.data(),
+                             0,
+                             nullptr);
 
     // Sky box descriptor set
     vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSets.skybox);
@@ -418,10 +417,11 @@ TextureCubemap::setupDescriptorSets()
 				&cubeMapDescriptor)
     };
 
-    vkctx.device.updateDescriptorSets(writeDescriptorSets.size(),
-								   writeDescriptorSets.data(),
-								   0,
-								   nullptr);
+    vkctx.device.updateDescriptorSets(
+                              static_cast<uint32_t>(writeDescriptorSets.size()),
+                              writeDescriptorSets.data(),
+                              0,
+                              nullptr);
 }
 
 void
@@ -469,7 +469,7 @@ TextureCubemap::preparePipelines()
     };
     vk::PipelineDynamicStateCreateInfo dynamicState(
     		{},
-            dynamicStateEnables.size(),
+            static_cast<uint32_t>(dynamicStateEnables.size()),
             dynamicStateEnables.data());
 
     // Load shaders

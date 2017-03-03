@@ -17,9 +17,15 @@
 #ifdef __ANDROID__
 #include "vulkanandroid.h"
 #endif
+// Turn off warning about use of GNU anonymous struct extension
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma clang diagnostic ignored "-Wnested-anon-types"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+// And back on again.
+#pragma clang diagnostic pop
 
 namespace vkDebug
 {

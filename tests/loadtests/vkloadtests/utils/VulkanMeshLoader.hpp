@@ -4,6 +4,8 @@
 * Copyright (C) 2016 by Sascha Willems - www.saschawillems.de
 *
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+*
+* Suppression of clang unused function warning added by Mark Callow, 2017.3.3.
 */
 
 #pragma once
@@ -151,6 +153,10 @@ namespace vkMeshLoader
 		}
 	};
 
+// Because this file is included in multiple .cpp files, via
+// VulkanLoadTestSample.h, and not all of those samples call this function...
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"
 	static void freeMeshBufferResources(VkDevice device, vkMeshLoader::MeshBuffer *meshBuffer)
 	{
 		vkDestroyBuffer(device, meshBuffer->vertices.buf, nullptr);
@@ -162,6 +168,7 @@ namespace vkMeshLoader
 		}
 	}
 }
+#pragma clang diagnostic pop
 
 // Simple mesh class for getting all the necessary stuff from models loaded via ASSIMP
 class VulkanMeshLoader {

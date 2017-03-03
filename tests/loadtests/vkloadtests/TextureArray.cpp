@@ -51,11 +51,6 @@
 #include <time.h> 
 #include <vector>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 #include "TextureArray.h"
@@ -239,7 +234,7 @@ TextureArray::generateQuad()
 
     // Setup indices
     std::vector<uint32_t> indexBuffer = { 0,1,2, 2,3,0 };
-    quad.indexCount = indexBuffer.size();
+    quad.indexCount = static_cast<uint32_t>(indexBuffer.size());
 
     vkctx.createBuffer(
     	vk::BufferUsageFlagBits::eIndexBuffer,
@@ -279,9 +274,11 @@ TextureArray::setupVertexDescriptions()
             sizeof(float) * 3);
 
     vertices.inputState = vk::PipelineVertexInputStateCreateInfo();
-    vertices.inputState.vertexBindingDescriptionCount = vertices.bindingDescriptions.size();
+    vertices.inputState.vertexBindingDescriptionCount =
+                  static_cast<uint32_t>(vertices.bindingDescriptions.size());
     vertices.inputState.pVertexBindingDescriptions = vertices.bindingDescriptions.data();
-    vertices.inputState.vertexAttributeDescriptionCount = vertices.attributeDescriptions.size();
+    vertices.inputState.vertexAttributeDescriptionCount =
+                  static_cast<uint32_t>(vertices.attributeDescriptions.size());
     vertices.inputState.pVertexAttributeDescriptions = vertices.attributeDescriptions.data();
 }
 
@@ -295,10 +292,11 @@ TextureArray::setupDescriptorPool()
         {vk::DescriptorType::eCombinedImageSampler, 1}
     };
 
-    vk::DescriptorPoolCreateInfo descriptorPoolInfo({},
-													2,
-													poolSizes.size(),
-													poolSizes.data());
+    vk::DescriptorPoolCreateInfo descriptorPoolInfo(
+                                        {},
+                                        2,
+                                        static_cast<uint32_t>(poolSizes.size()),
+                                        poolSizes.data());
     vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
     		                          &descriptorPool);
 }
@@ -321,9 +319,9 @@ TextureArray::setupDescriptorSetLayout()
     };
 
     vk::DescriptorSetLayoutCreateInfo descriptorLayout(
-    												{},
-													setLayoutBindings.size(),
-													setLayoutBindings.data());
+                              {},
+                              static_cast<uint32_t>(setLayoutBindings.size()),
+                              setLayoutBindings.data());
 
     vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
     									   &descriptorSetLayout);
@@ -375,10 +373,11 @@ TextureArray::setupDescriptorSet()
             &texArrayDescriptor)
     );
 
-    vkctx.device.updateDescriptorSets(writeDescriptorSets.size(),
-								   writeDescriptorSets.data(),
-								   0,
-								   nullptr);
+    vkctx.device.updateDescriptorSets(
+                            static_cast<uint32_t>(writeDescriptorSets.size()),
+                            writeDescriptorSets.data(),
+                            0,
+                            nullptr);
 }
 
 void
@@ -426,7 +425,7 @@ TextureArray::preparePipelines()
     };
     vk::PipelineDynamicStateCreateInfo dynamicState(
     		{},
-            dynamicStateEnables.size(),
+            static_cast<uint32_t>(dynamicStateEnables.size()),
             dynamicStateEnables.data());
 
     // Load shaders
@@ -475,7 +474,6 @@ TextureArray::prepareUniformBuffers()
 
     // Array indices and model matrices are fixed
     float offset = -1.5f;
-    uint32_t index = 0;
     float center = (textureArray.layerCount*offset) / 2;
     for (int32_t i = 0; i < textureArray.layerCount; i++)
     {

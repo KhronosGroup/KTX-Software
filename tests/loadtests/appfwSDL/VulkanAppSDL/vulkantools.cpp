@@ -4,6 +4,8 @@
 * Copyright (C) 2016 by Sascha Willems - www.saschawillems.de
 *
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+*
+* asserts on unhandled cases in setImageLayout added by Mark Callow, 2017.3.3.
 */
 
 #include "vulkantools.h"
@@ -173,6 +175,9 @@ namespace vkTools
 				// Make sure any shader reads from the image have been finished
 				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 				break;
+
+        default:
+            assert(0); // Attempt to use unhandled case.
 		}
 
 		// Target layouts (new)
@@ -214,6 +219,9 @@ namespace vkTools
 			}
 			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 			break;
+
+        default:
+            assert(0); // Attempt to use unhandled case.
 		}
 
 		// Put barrier on top
