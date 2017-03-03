@@ -643,6 +643,9 @@ ktxReader_LoadVkTextureEx(KTX_context ctx, ktxVulkanDeviceInfo* vdi,
     sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler.mipLodBias = 0.0f;
+    // XXX Need to set this as appropriate for the value of vkFormat.
+    sampler.unnormalizedCoordinates = VK_FALSE;
+    sampler.compareEnable = VK_FALSE;
     sampler.compareOp = VK_COMPARE_OP_NEVER;
     sampler.minLod = 0.0f;
     // Max level-of-detail should match mip level count
