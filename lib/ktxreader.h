@@ -35,42 +35,43 @@
  * @internal
  * @~English
  *
- * @brief Declares the functions and structures of a ktxContext.
+ * @brief Declares the functions and structures of a ktxReader.
  *
  * @author Mark Callow
  */
 
-#ifndef KTXCONTEXT_H
-#define KTXCONTEXT_H
+#ifndef KTXREADER_H
+#define KTXREADER_H
 
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxstream.h"
 #include "ktxmemstream.h"
 
-typedef enum ktx_context_state {
-    KTX_CS_START,
-    KTX_CS_HEADER_READ,
-    KTX_CS_KVD_READ,
-    KTX_CS_IMAGES_READ,
-} ktx_context_state;
+typedef enum ktx_reader_state {
+    KTX_RS_START,
+    KTX_RS_HEADER_READ,
+    KTX_RS_KVD_READ,
+    KTX_RS_IMAGES_READ,
+} ktx_reader_state;
 
 
 /**
  * @internal
  * @~English
- * @brief ktxContext class
+ * @brief ktxReader class
  */
-typedef struct ktxContext {
-    ktx_context_state state;  /*!< @internal current context state. */
-    ktxStream stream;         /*!< @internal stream representing the KTX file. */
-    ktxMem mem;               /*!< @internal ktxMem used when @a stream is a ktxMemStream. */
-    KTX_header header;        /*!< @internal header of the KTX file. */
-    int textureDimension;     /*!< @internal number of dimensions in the texture images. */
-} ktxContext;
+typedef struct ktxReader {
+    ktx_reader_state state;  /*!< @internal current context state. */
+    ktxStream stream;        /*!< @internal stream representing the KTX file. */
+    ktxMem mem;              /*!< @internal ktxMem used when @a stream is a ktxMemStream. */
+    KTX_header header;       /*!< @internal header of the KTX file. */
+    int textureDimension;    /*!< @internal number of dimensions in the texture images. */
+} ktxReader;
 
-KTX_error_code ktxContext_fileInit(ktxContext* kc, FILE* file);
-KTX_error_code ktxContext_memInit(ktxContext* kc,
-                                  const void* bytes, size_t size);
+void ktxReader_construct(ktxReader* This);
+KTX_error_code ktxReader_constructFromFILE(ktxReader* This, FILE* file);
+KTX_error_code ktxReader_constructFromMem(ktxReader* This,
+                                          const void* bytes, size_t size);
 
-#endif /* KTXCONTEXT_H */
+#endif /* KTXREADER_H */

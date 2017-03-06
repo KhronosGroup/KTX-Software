@@ -51,44 +51,95 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "ktxcontext.h"
 #include "gl_format.h"
+
+#include "ktxreader.h"
+#include "ktxfilestream.h"
+
+/**
+ * @~English
+ * @internal
+ * @brief Initialize a ktxReader object.
+ *
+ * @param [in] This     pointer to the ktxReader to initialize.
+ */
+void
+ktxReader_construct(ktxReader* This)
+{
+  assert(This != NULL);
+  memset(This, 0, sizeof(ktxReader));
+  This->state = KTX_RS_START;
+}
+
+/**
+ * @~English
+ * @internal
+ * @brief Initialize a ktxReader object to read a KTX file represented by
+ *        a stdio FILE.
+ *
+ * @param [in] This     pointer to the ktxReader to initialize.
+ * @param [in] file     pointer to the stdio FILE to use.
+ */
+KTX_error_code
+ktxReader_constructFromFile(ktxReader* This, FILE* file)
+{
+  assert(This != NULL);
+  ktxReader_construct(This);
+  return ktxFileStream_init(&This->stream, file);
+}
+
+/**
+ * @~English
+ * @internal
+ * @brief Initialize a ktxReader object to read a KTX file in memory.
+ *
+ * @param [in] This     pointer to the ktxReader to initialize.
+ * @param [in] bytes    pointer to the memory location to use.
+ * @param [in] size     length in bytes of the KTX file pointed to by @a bytes.
+ */
+KTX_error_code
+ktxReader_constructFromMem(ktxReader* This, const void* bytes, size_t size)
+{
+  assert(This != NULL);
+  ktxReader_construct(This);
+  return ktxMemStream_init(&This->stream, &This->mem, bytes, size);
+}
 
 /**
  * @~English
  * @brief Open the KTX file pointed at by a stdio FILE.
  *
- * The function returns a handle to a KTX_context object which must be used
+ * The function returns a handle to a KTX_reader object which must be used
  * for further operations on the file.
  *
  * @param [in] file		    pointer to a stdio FILE created from the desired
  * 							file.
- * @param [in,out] pContext	pointer to a KTX_context into which the context
+ * @param [in,out] pReader	pointer to a KTX_reader into which the context
  *                          handle is written.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE	@p file is @c NULL or @p pContext is @c NULL.
+ * @exception KTX_INVALID_VALUE	@p file is @c NULL or @p pReader is @c NULL.
  * @exception KTX_OUT_OF_MEMORY not enough memory to allocation the context.
  *
  * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
-ktxOpenKTXF(FILE* file, KTX_context* pContext)
+ktxOpenKTXF(FILE* file, KTX_reader* pReader)
 {
-    ktxContext* kc;
+    ktxReader* This;
     KTX_error_code errorCode;
     
-    if (file == NULL || pContext == NULL)
+    if (file == NULL || pReader == NULL)
         return KTX_INVALID_VALUE;
     
-    kc = (ktxContext*)malloc(sizeof(ktxContext));
-    if (kc == NULL)
+    This = (ktxReader*)malloc(sizeof(ktxReader));
+    if (This == NULL)
         return KTX_OUT_OF_MEMORY;
     
-    errorCode = ktxContext_fileInit(kc, file);
+    errorCode = ktxReader_constructFromFile(This, file);
     if (errorCode == KTX_SUCCESS)
-        *pContext = (void*)kc;
+        *pReader = (void*)This;
     
     return errorCode;
 }
@@ -97,35 +148,35 @@ ktxOpenKTXF(FILE* file, KTX_context* pContext)
  * @~English
  * @brief Open the named KTX file on disk.
  *
- * The function returns a handle to a KTX_context object which must be used
+ * The function returns a handle to a KTX_reader object which must be used
  * for further operations on the file.
  *
  * @param [in] filename		pointer to a C string that contains the path of
  * 							the file to load.
- * @param [in,out] pContext	pointer to a KTX_context into which the context
+ * @param [in,out] pReader	pointer to a KTX_reader into which the context
  *                          handle is written.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE	@p filename is @c NULL or @p pContext is
+ * @exception KTX_INVALID_VALUE	@p filename is @c NULL or @p pReader is
  *                              @c NULL.
  * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
  *
  * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
-ktxOpenKTXN(const char* const filename, KTX_context* pContext)
+ktxOpenKTXN(const char* const filename, KTX_reader* pReader)
 {
     KTX_error_code errorCode;
     FILE* file;
     
-    if (filename == NULL || pContext == NULL)
+    if (filename == NULL || pReader == NULL)
         return KTX_INVALID_VALUE;
     
     file = fopen(filename, "rb");
     
     if (file) {
-        errorCode = ktxOpenKTXF(file, pContext);
+        errorCode = ktxOpenKTXF(file, pReader);
     } else
         errorCode = KTX_FILE_OPEN_FAILED;
     
@@ -136,39 +187,39 @@ ktxOpenKTXN(const char* const filename, KTX_context* pContext)
  * @~English
  * @brief Open a KTX file from KTX formatted data in memory.
  *
- * The function returns a handle to a KTX_context object which must be used
+ * The function returns a handle to a KTX_reader object which must be used
  * for further operations on the file.
  *
  * @param [in] bytes		pointer to the data in memory.
  * @param [in] size         length of the KTX data in memory.
- * @param [in,out] pContext	pointer to a KTX_context into which the context
+ * @param [in,out] pReader	pointer to a KTX_reader into which the context
  *                          handle is written.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE	@p bytes is @c NULL, @p size is 0 or @p pContext
+ * @exception KTX_INVALID_VALUE	@p bytes is @c NULL, @p size is 0 or @p pReader
  *                              is @c NULL.
  * @exception KTX_OUT_OF_MEMORY not enough memory to allocation the context.
  *
  * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
-ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext)
+ktxOpenKTXM(const void* bytes, size_t size, KTX_reader* pReader)
 {
-    ktxContext* kc;
+    ktxReader* This;
     KTX_error_code errorCode;
     
-    if (bytes == NULL || size == 0 || pContext == NULL)
+    if (bytes == NULL || size == 0 || pReader == NULL)
         return KTX_INVALID_VALUE;
     
-    kc = (ktxContext*)malloc(sizeof(ktxContext));
-    if (kc == NULL)
+    This = (ktxReader*)malloc(sizeof(ktxReader));
+    if (This == NULL)
         return KTX_OUT_OF_MEMORY;
     
-    errorCode = ktxContext_memInit(kc, bytes, size);
+    errorCode = ktxReader_constructFromMem(This, bytes, size);
     
     if (errorCode == KTX_SUCCESS)
-        *pContext = kc;
+        *pReader = This;
     
     return errorCode;
 }
@@ -179,30 +230,30 @@ ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext)
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE	@p ctx is @c NULL.
+ * @exception KTX_INVALID_VALUE	@p reader is @c NULL.
  *
  * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
-ktxCloseKTX(KTX_context ctx)
+ktxReader_close(KTX_reader reader)
 {
-    ktxContext* kc = (ktxContext*)ctx;
+    ktxReader* This = (ktxReader*)reader;
     
-    if (kc == NULL)
+    if (This == NULL)
         return KTX_INVALID_VALUE;
     
-    free(kc);
+    free(This);
 	return KTX_SUCCESS;
 }
 
 /**
  * @~English
- * @brief Read the header of the KTX file associated with a KTX_context object.
+ * @brief Read the header of the KTX file associated with a KTX_reader object.
  *
  * This function byte-swaps the header, if necessary, and checks it for
  * validity.
  *
- * @param [in] ctx			handle of the KTX_context representing the file.
+ * @param [in] reader			handle of the KTX_reader representing the file.
  * @param [in,out] pHeader  pointer to a KTX_header struct into which the
  *                          function writes the header data of the file.
  * @param [out] pSuppInfo 	pointer to a KTX_supplemental_info struct into
@@ -214,9 +265,9 @@ ktxCloseKTX(KTX_context ctx)
  *
  * @exception KTX_FILE_DATA_ERROR the data in the header is inconsistent with
  *                                the KTX specification. 
- * @exception KTX_INVALID_VALUE @p ctx, @p pHeader or @p pSuppInfo is @c NULL.
+ * @exception KTX_INVALID_VALUE @p reader, @p pHeader or @p pSuppInfo is @c NULL.
  * @exception KTX_INVALID_OPERATION the header of the file associated with the
- *                                  @p ctx has already been read.
+ *                                  @p reader has already been read.
  * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the
  * 										 expected amount of data.
  * @exception KTX_UNKNOWN_FILE_FORMAT the file is not a KTX file.
@@ -226,28 +277,28 @@ ktxCloseKTX(KTX_context ctx)
  * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
-ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
-              KTX_supplemental_info* pSuppInfo)
+ktxReader_readHeader(KTX_reader reader, KTX_header* pHeader,
+                   KTX_supplemental_info* pSuppInfo)
 {
-    ktxContext* kc = (ktxContext*)ctx;
+    ktxReader* This = (ktxReader*)reader;
     KTX_error_code errorCode;
     
-    if (pHeader == NULL || pSuppInfo == NULL || kc == NULL
-        || !kc->stream.read || !kc->stream.skip)
+    if (pHeader == NULL || pSuppInfo == NULL || This == NULL
+        || !This->stream.read || !This->stream.skip)
         return KTX_INVALID_VALUE;
     
-    if (kc->state != KTX_CS_START)
+    if (This->state != KTX_RS_START)
         return KTX_INVALID_OPERATION;
 
-    errorCode = kc->stream.read(&kc->stream, &kc->header, KTX_HEADER_SIZE);
+    errorCode = This->stream.read(&This->stream, &This->header, KTX_HEADER_SIZE);
     if (errorCode != KTX_SUCCESS)
         return errorCode;
     
-    errorCode = _ktxCheckHeader(&kc->header, pSuppInfo);
+    errorCode = _ktxCheckHeader(&This->header, pSuppInfo);
     if (errorCode == KTX_SUCCESS) {
-        memcpy(pHeader, &kc->header, sizeof(KTX_header));
-        kc->textureDimension = pSuppInfo->textureDimension;
-        kc->state = KTX_CS_HEADER_READ;
+        memcpy(pHeader, &This->header, sizeof(KTX_header));
+        This->textureDimension = pSuppInfo->textureDimension;
+        This->state = KTX_RS_HEADER_READ;
     }
 
     return errorCode;
@@ -255,10 +306,10 @@ ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
 
 /**
  * @~English
- * @brief Read the key-value data of the KTX file associated with a KTX_context
+ * @brief Read the key-value data of the KTX file associated with a KTX_reader
  *        object.
  *
- * @param [in] ctx			handle of the KTX_context representing the file.
+ * @param [in] reader			handle of the KTX_reader representing the file.
  * @param [in,out] pKvdLen	if not NULL, @p *pKvdLen is set to the number of
  *                          bytes of key-value data pointed at by @p *ppKvd.
  *                          Must not be NULL, if @p ppKvd is not NULL.
@@ -270,9 +321,9 @@ ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_OPERATION the header of the file associated with the
- *                                  @p ctx has not yet been read or the key-
+ *                                  @p reader has not yet been read or the key-
  *                                  value data has already been read.
- * @exception KTX_INVALID_VALUE     @p ctx is @c NULL or not a valid ctx handle.
+ * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader handle.
  * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
  *                                  hold the data.
  *
@@ -282,27 +333,27 @@ ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
  * e.g. miplevel order?
  */
 KTX_error_code
-ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
+ktxReader_readKVData(KTX_reader reader, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
 {
-    ktxContext* kc = (ktxContext*)ctx;
+    ktxReader* This = (ktxReader*)reader;
     KTX_error_code errorCode = KTX_SUCCESS;
 
-    if (kc == NULL || !kc->stream.read || !kc->stream.skip)
+    if (This == NULL || !This->stream.read || !This->stream.skip)
         return KTX_INVALID_VALUE;
     
-    if (kc->state != KTX_CS_HEADER_READ)
+    if (This->state != KTX_RS_HEADER_READ)
         return KTX_INVALID_OPERATION;
     
     if (ppKvd) {
         *ppKvd = NULL;
         if (pKvdLen == NULL)
             return KTX_INVALID_VALUE;
-        *pKvdLen = kc->header.bytesOfKeyValueData;
+        *pKvdLen = This->header.bytesOfKeyValueData;
         if (*pKvdLen) {
             *ppKvd = (unsigned char*)malloc(*pKvdLen);
             if (*ppKvd == NULL)
                 return KTX_OUT_OF_MEMORY;
-            errorCode = kc->stream.read(&kc->stream, *ppKvd, *pKvdLen);
+            errorCode = This->stream.read(&This->stream, *ppKvd, *pKvdLen);
             if (errorCode != KTX_SUCCESS)
             {
                 free(*ppKvd);
@@ -311,18 +362,18 @@ ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
         }
     } else {
         /* skip key/value metadata */
-        errorCode = kc->stream.skip(&kc->stream,
-                                    kc->header.bytesOfKeyValueData);
+        errorCode = This->stream.skip(&This->stream,
+                                    This->header.bytesOfKeyValueData);
     }
     if (errorCode == KTX_SUCCESS)
-        kc->state = KTX_CS_KVD_READ;
+        This->state = KTX_RS_KVD_READ;
     
     return errorCode;
 }
 
 /**
  * @~English
- * @brief Read the images from the KTX file associated with a KTX_context
+ * @brief Read the images from the KTX file associated with a KTX_reader
  *        object.
  *
  * Each image is passed to an application-supplied callback function. Note that
@@ -331,7 +382,7 @@ ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
  * must copy the image data if it wishes to preserve it. The buffer whose
  * pointer is passed is freed when this function exits.
  *
- * @param [in] ctx			handle of the KTX_context representing the file.
+ * @param [in] reader			handle of the KTX_reader representing the file.
  * @param [in,out] imageCb  a PFNKTXIMAGECB pointer holding the address of the
  *                          callback function.
  * @param [in,out] userdata a pointer to application-specific data which is
@@ -342,9 +393,9 @@ ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
  *          return these for other causes or additional errors.
  *
  * @exception KTX_INVALID_OPERATION the header or key-value data of the file
- *                                  associated with the @p ctx has not yet been
+ *                                  associated with the @p reader has not yet been
  *                                  read or the images have already been read.
- * @exception KTX_INVALID_VALUE     @p ctx is @c NULL or not a valid ctx handle
+ * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader handle
  *                                  or @p imageCb is @c NULL.
  * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
  *                                  hold the base level image.
@@ -352,9 +403,9 @@ ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
  * @warning This command is subject to change before it is merged to master.
  */
 KTX_error_code
-ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
+ktxReader_readImages(KTX_reader reader, PFNKTXIMAGECB imageCb, void* userdata)
 {
-    ktxContext* kc = (ktxContext*)ctx;
+    ktxReader* This = (ktxReader*)reader;
     ktx_uint32_t    dataSize = 0;
     ktx_uint32_t    faceLodSize;
     ktx_uint32_t    faceLodSizeRounded;
@@ -364,39 +415,39 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
     KTX_error_code	errorCode = KTX_SUCCESS;
     void*			data = NULL;
  
-    if (kc == NULL || !kc->stream.read || !kc->stream.skip || imageCb == NULL)
+    if (This == NULL || !This->stream.read || !This->stream.skip || imageCb == NULL)
         return KTX_INVALID_VALUE;
     
-    if (kc->state != KTX_CS_KVD_READ)
+    if (This->state != KTX_RS_KVD_READ)
         return KTX_INVALID_OPERATION;
     
-    if (kc->header.numberOfArrayElements == 0)
+    if (This->header.numberOfArrayElements == 0)
         layers = 1;
     else
-        layers = kc->header.numberOfArrayElements;
+        layers = This->header.numberOfArrayElements;
 
-    for (miplevel = 0; miplevel < kc->header.numberOfMipmapLevels; ++miplevel)
+    for (miplevel = 0; miplevel < This->header.numberOfMipmapLevels; ++miplevel)
     {
         GLsizei width, height, depth;
         
-        width = MAX(1, kc->header.pixelWidth  >> miplevel);
+        width = MAX(1, This->header.pixelWidth  >> miplevel);
         /* Array textures have the same number of layers at each mip level. */
-        if (kc->textureDimension == 1) {
+        if (This->textureDimension == 1) {
             height = 1;
             depth = 1;
         } else
-            height = MAX(1, kc->header.pixelHeight >> miplevel);
-        if (kc->textureDimension == 2)
+            height = MAX(1, This->header.pixelHeight >> miplevel);
+        if (This->textureDimension == 2)
             depth = 1;
         else
-            depth  = MAX(1, kc->header.pixelDepth  >> miplevel);
+            depth  = MAX(1, This->header.pixelDepth  >> miplevel);
         
-        errorCode = kc->stream.read(&kc->stream, &faceLodSize,
+        errorCode = This->stream.read(&This->stream, &faceLodSize,
                                     sizeof(ktx_uint32_t));
         if (errorCode != KTX_SUCCESS) {
             goto cleanup;
         }
-        if (kc->header.endianness == KTX_ENDIAN_REF_REV) {
+        if (This->header.endianness == KTX_ENDIAN_REF_REV) {
             _ktxSwapEndian32(&faceLodSize, 1);
         }
         faceLodSizeRounded = (faceLodSize + 3) & ~(ktx_uint32_t)3;
@@ -417,20 +468,20 @@ ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata)
         
         /* All array elements are passed in a group because that is how
          * GL & Vulkan need them. Hence no
-         *    for (element = 0; element < kc->numArrayElements ...)
+         *    for (element = 0; element < This->numArrayElements ...)
          */
-        for (face = 0; face < kc->header.numberOfFaces; ++face)
+        for (face = 0; face < This->header.numberOfFaces; ++face)
         {
-            errorCode = kc->stream.read(&kc->stream, data, faceLodSizeRounded);
+            errorCode = This->stream.read(&This->stream, data, faceLodSizeRounded);
             if (errorCode != KTX_SUCCESS) {
                 goto cleanup;
             }
             
             /* Perform endianness conversion on texture data */
-            if (kc->header.endianness == KTX_ENDIAN_REF_REV) {
-                if (kc->header.glTypeSize == 2)
+            if (This->header.endianness == KTX_ENDIAN_REF_REV) {
+                if (This->header.glTypeSize == 2)
                     _ktxSwapEndian16((ktx_uint16_t*)data, faceLodSize / 2);
-                else if (kc->header.glTypeSize == 4)
+                else if (This->header.glTypeSize == 4)
                     _ktxSwapEndian32((ktx_uint32_t*)data, faceLodSize / 4);
             }
             
@@ -448,7 +499,7 @@ cleanup:
     free(data);
 
     if (errorCode == KTX_SUCCESS)
-        kc->state = KTX_CS_IMAGES_READ;
+        This->state = KTX_RS_IMAGES_READ;
 
     return errorCode;
 }
@@ -457,7 +508,7 @@ cleanup:
  * Regrettably he KTX format does not provide the total size of the image
  * data, so we have to calculate it.
  */
-static inline size_t
+size_t
 levelSize(const GlFormatSize* formatSize, uint32_t level,
           uint32_t width, uint32_t height, uint32_t depth)
 {
@@ -504,22 +555,22 @@ dataSize(const GlFormatSize* formatSize, uint32_t levels, uint32_t layers,
     return (ls * layers) + formatSize->paletteSizeInBits / 8;
 }
 
-size_t
-ktxReader_getDataSize(KTX_context ctx)
+KTX_error_code
+ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
 {
-    ktxContext* kc = (ktxContext*)ctx;
+    ktxReader* This = (ktxReader*)reader;
 	GlFormatSize formatSize;
 	KTX_header* header;
 	uint32_t layers;
 
-    if (kc == NULL || !kc->stream.read || !kc->stream.skip)
+    if (This == NULL || !This->stream.read || !This->stream.skip)
         return KTX_INVALID_VALUE;
 
-    if (kc->state == KTX_CS_START)
+    if (This->state == KTX_RS_START)
     	// XXX Consider reading the header instead of erroring.
         return KTX_INVALID_OPERATION;
 
-    header = &kc->header;
+    header = &This->header;
 
     glGetFormatSize(header->glInternalFormat, &formatSize);
 
@@ -529,14 +580,34 @@ ktxReader_getDataSize(KTX_context ctx)
     		 1 : header->numberOfArrayElements;
     layers *= header->numberOfFaces;
 
-    return dataSize(&formatSize,
-    				header->numberOfMipmapLevels,
-					layers,
-					header->pixelWidth,
-					header->pixelHeight,
-					header->pixelDepth);
-
+    *pDataSize = dataSize(&formatSize,
+                          header->numberOfMipmapLevels,
+                          layers,
+                          header->pixelWidth,
+                          header->pixelHeight,
+                          header->pixelDepth);
+  return KTX_SUCCESS;
 }
 
+KTX_error_code
+ktxReader_getLevelSize(KTX_reader reader, uint32_t level, size_t* pLevelSize)
+{
+    ktxReader* This = (ktxReader*)reader;
+    GlFormatSize formatSize;
 
+    if (This == NULL || !This->stream.read || !This->stream.skip)
+      return KTX_INVALID_VALUE;
+    
+    if (This->state == KTX_RS_START)
+      // XXX Consider reading the header instead of erroring.
+      return KTX_INVALID_OPERATION;
+    
+    glGetFormatSize(This->header.glInternalFormat, &formatSize);
+    *pLevelSize = levelSize(&formatSize,
+                            level,
+                            This->header.pixelWidth,
+                            This->header.pixelHeight,
+                            This->header.pixelDepth);
+  return KTX_SUCCESS;
+}
 

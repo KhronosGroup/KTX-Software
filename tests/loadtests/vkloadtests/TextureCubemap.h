@@ -62,7 +62,7 @@ class TextureCubemap : public VulkanLoadTestSample
   protected:
     bool displaySkybox = true;
 
-    VulkanTexture cubeMap;
+    ktxVulkanTexture cubeMap;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;

@@ -97,7 +97,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "ktxcontext.h"
+#include "ktxreader.h"
 
 DECLARE_GL_FUNCPTRS
 
@@ -600,7 +600,7 @@ compressedTexImage3DCallback(int miplevel, int face,
 
 /**
  * @~English
- * @brief Load a GL texture object from a file represented by a ktxContext.
+ * @brief Load a GL texture object from a file represented by a ktxReader.
  *
  * The function sets the texture object's GL_TEXTURE_MAX_LEVEL parameter
  * according to the number of levels in the ktxStream, provided the library
@@ -616,7 +616,7 @@ compressedTexImage3DCallback(int miplevel, int face,
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param [in] ctx			handle of the KTX_context representing the file
+ * @param [in] reader	    handle of the KTX_reader representing the file
  *                          from which to load.
  * @param [in,out] pTexture	name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
@@ -664,12 +664,12 @@ compressedTexImage3DCallback(int miplevel, int face,
  *                              is not @c NULL.
  */
 KTX_error_code
-ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
+ktxLoadTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
                GLenum* pGlerror,
                unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-    ktxContext*           kc = (ktxContext*)ctx;
+    ktxReader*           This = (ktxReader*)reader;
     KTX_header	          header;
     KTX_supplemental_info texinfo;
 	GLint				  previousUnpackAlignment;
@@ -688,7 +688,7 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
 		*ppKvd = NULL;
 	}
 
-	if (!kc || !kc->stream.read || !kc->stream.skip) {
+	if (!This || !This->stream.read || !This->stream.skip) {
 		return KTX_INVALID_VALUE;
 	}
 
@@ -696,11 +696,11 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
 		return KTX_INVALID_VALUE;
 	}
 
-    errorCode = ktxReadHeader(kc, &header, &texinfo);
+    errorCode = ktxReader_readHeader(This, &header, &texinfo);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-    ktxReadKVData(kc, pKvdLen, ppKvd);
+    ktxReader_readKVData(This, pKvdLen, ppKvd);
     if (errorCode != KTX_SUCCESS) {
         return errorCode;
     }
@@ -835,7 +835,7 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
 #endif
 	}
 
-    errorCode = ktxReadImages((void*)kc, imageCb, &cbData);
+    errorCode = ktxReader_readImages((void*)This, imageCb, &cbData);
     /* GL errors are the only reason for failure. */
     if (errorCode != KTX_SUCCESS && cbData.glError != GL_NO_ERROR) {
         if (pGlerror)
@@ -953,16 +953,16 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	KTX_context ctx;
+	KTX_reader reader;
 	KTX_error_code errorCode = KTX_SUCCESS;
 
-	errorCode = ktxOpenKTXF(file, &ctx);
+	errorCode = ktxOpenKTXF(file, &reader);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-    errorCode = ktxLoadTexture(ctx, pTexture, pTarget, pDimensions, pIsMipmapped,
+    errorCode = ktxLoadTexture(reader, pTexture, pTarget, pDimensions, pIsMipmapped,
                                pGlerror, pKvdLen, ppKvd);
-    ktxCloseKTX(ctx);
+    ktxReader_close(reader);
 
     return errorCode;
 }
@@ -1063,16 +1063,16 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
                 GLboolean* pIsMipmapped, GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	KTX_context ctx;
+	KTX_reader reader;
 	KTX_error_code errorCode = KTX_SUCCESS;
 
-	errorCode = ktxOpenKTXM(bytes, size, &ctx);
+	errorCode = ktxOpenKTXM(bytes, size, &reader);
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-	errorCode = ktxLoadTexture(ctx, pTexture, pTarget, pDimensions,
+	errorCode = ktxLoadTexture(reader, pTexture, pTarget, pDimensions,
                                pIsMipmapped, pGlerror, pKvdLen, ppKvd);
-    ktxCloseKTX(ctx);
+    ktxReader_close(reader);
     
     return errorCode;
 }

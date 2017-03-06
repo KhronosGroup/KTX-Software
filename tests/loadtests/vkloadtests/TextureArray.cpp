@@ -82,14 +82,14 @@ TextureArray::TextureArray(VulkanContext& vkctx,
     rotation = { -15.0f, 35.0f, 0.0f };
 
     ktxVulkanDeviceInfo kvdi;
-    ktxVulkanDeviceInfo_init(&kvdi, vkctx.gpu, vkctx.device,
-                             vkctx.queue, vkctx.commandPool);
+    ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
+                                  vkctx.queue, vkctx.commandPool);
 
     KTX_error_code ktxresult;
     ktxresult = ktxLoadVkTextureN(&kvdi,
                           (getAssetPath() + szArgs).c_str(),
                           &textureArray, 0, NULL);
-    ktxVulkanDeviceInfo_deinit(&kvdi);
+    ktxVulkanDeviceInfo_destruct(&kvdi);
     if (ktxresult != KTX_SUCCESS) {
         std::stringstream message;
         message << "Load of texture \"" << getAssetPath() << szArgs

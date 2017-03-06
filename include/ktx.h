@@ -396,9 +396,9 @@ typedef struct KTX_dimensions {
 typedef void* KTX_hash_table;
 
 /**
- * @brief Opaque handle to a KTX_context.
+ * @brief Opaque handle to a KTX_reader.
  */
-typedef void* KTX_context;
+typedef void* KTX_reader;
     
 #define KTXAPIENTRY
 #define KTXAPIENTRYP KTXAPIENTRY *
@@ -437,64 +437,72 @@ typedef KTX_error_code (KTXAPIENTRYP PFNKTXIMAGECB)(int miplevel, int face,
  */
 
 /*
- * Open a KTX file from a stdio FILE and return a KTX_context object.
+ * Open a KTX file from a stdio FILE and return a KTX_reader object.
  */
 KTX_error_code
-ktxOpenKTXF(FILE* file, KTX_context* pContext);
+ktxOpenKTXF(FILE* file, KTX_reader* pReader);
     
 /*
- * Open the KTX file with the given file name and return a KTX_context object.
+ * Open the KTX file with the given file name and return a KTX_reader object.
  */
 KTX_error_code
-ktxOpenKTXN(const char* const filename, KTX_context* pContext);
+ktxOpenKTXN(const char* const filename, KTX_reader* pReader);
     
 /*
- * Open a KTX file that is in memory and return a KTX_context object.
+ * Open a KTX file that is in memory and return a KTX_reader object.
  */
 KTX_error_code
-ktxOpenKTXM(const void* bytes, size_t size, KTX_context* pContext);
+ktxOpenKTXM(const void* bytes, size_t size, KTX_reader* pReader);
     
 /*
  * Close a KTX file, freeing the context object.
  */
 KTX_error_code
-ktxCloseKTX(KTX_context ctx);
+ktxReader_close(KTX_reader This);
 
 /*
- * Read the header of the KTX file identified by @p ctx.
+ * Read the header of the KTX file identified by @p This.
  */
 KTX_error_code
-ktxReadHeader(KTX_context ctx, KTX_header* pHeader,
-              KTX_supplemental_info* pSuppInfo);
+ktxReader_readHeader(KTX_reader This, KTX_header* pHeader,
+                     KTX_supplemental_info* pSuppInfo);
 
 /*
- * Read the key-value data from the KTX file identified by @p ctx.
+ * Read the key-value data from the KTX file identified by @p This.
  */
 KTX_error_code
-ktxReadKVData(KTX_context ctx, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd);
+ktxReader_readKVData(KTX_reader This,
+                     ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd);
 
 /*
- * Read the images from the KTX file identified by @p ctx. @p imageCb
+ * Read the images from the KTX file identified by @p This. @p imageCb
  * will be called with the data for each image.
  */
 KTX_error_code
-ktxReadImages(KTX_context ctx, PFNKTXIMAGECB imageCb, void* userdata);
+ktxReader_readImages(KTX_reader This, PFNKTXIMAGECB imageCb, void* userdata);
     
 /*
- * Return the number of bytes needed to store all of the data in the
+ * Return the number of bytes needed to store all of the iamge data in the
  * KTX file.
  */
-size_t
-ktxReader_getDataSize(KTX_context ctx);
+KTX_error_code
+ktxReader_getDataSize(KTX_reader This, size_t* pLevelSize);
 
 /*
- * Loads a texture from a the KTX file identified by @p ctx.
+ * Return the number of bytes needed to store the image data for the
+ * given mipmap level.
  */
 KTX_error_code
-ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
-               KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-               GLenum* pGlerror,
-               unsigned int* pKvdLen, unsigned char** ppKvd);
+ktxReader_getLevelSize(KTX_reader This, uint32_t level, size_t* pDataSize);
+
+/*
+ * Loads a texture from a the KTX file identified by @p This.
+ */
+KTX_error_code
+ktxReader_loadTexture(KTX_reader This, GLuint* pTexture, GLenum* pTarget,
+                      KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+                      GLenum* pGlerror,
+                      unsigned int* pKvdLen, unsigned char** ppKvd);
 
 /*
  * Loads a texture from a stdio FILE.
@@ -594,6 +602,13 @@ ktxHashTable_Serialize(KTX_hash_table This,
  */
 KTX_error_code
 ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
+
+/* For compatibility for users of the interim API */
+#define KTX_context KTX_reader
+#define ktxCloseKTX ktxReader_close
+#define ktxReadHeader ktxReader_readHeader
+#define ktxReadKVData ktxReader_readKVData
+#define ktxReadImages ktxReader_readImages
 
 #ifdef __cplusplus
 }

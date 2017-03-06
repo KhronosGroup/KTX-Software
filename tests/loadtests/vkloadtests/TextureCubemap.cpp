@@ -83,13 +83,13 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     rotation = { -7.25f, 120.0f, 0.0f };
 
     ktxVulkanDeviceInfo kvdi;
-    ktxVulkanDeviceInfo_init(&kvdi, vkctx.gpu, vkctx.device,
+    ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
                              vkctx.queue, vkctx.commandPool);
     KTX_error_code ktxresult;
     ktxresult = ktxLoadVkTextureN(&kvdi,
                           (getAssetPath() + szArgs).c_str(),
                           &cubeMap, 0, NULL);
-    ktxVulkanDeviceInfo_deinit(&kvdi);
+    ktxVulkanDeviceInfo_destruct(&kvdi);
     if (ktxresult != KTX_SUCCESS) {
         std::stringstream message;
 

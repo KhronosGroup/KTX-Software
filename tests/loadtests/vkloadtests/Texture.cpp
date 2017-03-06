@@ -83,8 +83,8 @@ Texture::Texture(VulkanContext& vkctx,
     rotation = { 0.0f, 15.0f, 0.0f };
 
     ktxVulkanDeviceInfo kvdi;
-    ktxVulkanDeviceInfo_init(&kvdi, vkctx.gpu, vkctx.device,
-                             vkctx.queue, vkctx.commandPool);
+    ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
+                                  vkctx.queue, vkctx.commandPool);
 
 
     uint8_t* pKvData;
@@ -93,7 +93,7 @@ Texture::Texture(VulkanContext& vkctx,
     ktxresult = ktxLoadVkTextureN(&kvdi,
                           (getAssetPath() + szArgs).c_str(),
                           &texture, &kvDataLen, &pKvData);
-    ktxVulkanDeviceInfo_deinit(&kvdi);
+    ktxVulkanDeviceInfo_destruct(&kvdi);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
 

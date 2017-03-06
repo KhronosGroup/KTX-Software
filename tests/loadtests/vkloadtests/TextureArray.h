@@ -60,7 +60,7 @@ class TextureArray : public VulkanLoadTestSample
            const char* const szArgs, const std::string sBasePath);
 
   protected:
-    VulkanTexture textureArray;
+    ktxVulkanTexture textureArray;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;

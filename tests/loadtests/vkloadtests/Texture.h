@@ -58,7 +58,7 @@ class Texture : public VulkanLoadTestSample
            const char* const szArgs, const std::string sBasePath);
 
   protected:
-    VulkanTexture texture;
+    ktxVulkanTexture texture;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;

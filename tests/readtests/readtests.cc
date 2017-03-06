@@ -211,75 +211,75 @@ class ReadKTXTestBase : public ::testing::Test {
 // Actual test fixtures
 //---------------------------
 
-class ktxReadHeaderTest : public ReadKTXTestBase { };
-class ktxReadKVDataTest : public ReadKTXTestBase { };
-class ktxReadImagesTest : public ReadKTXTestBase { };
+class ktxReader_readHeaderTest : public ReadKTXTestBase { };
+class ktxReader_readKVDataTest : public ReadKTXTestBase { };
+class ktxReader_readImagesTest : public ReadKTXTestBase { };
     
 
 /////////////////////////////////////////
-// ktxReadHeader tests
+// ktxReader_readHeader tests
 ////////////////////////////////////////
 
-TEST_F(ktxReadHeaderTest, InvalidValueOnNullParam) {
-    KTX_context ctx;
+TEST_F(ktxReader_readHeaderTest, InvalidValueOnNullParam) {
+    KTX_reader reader;
     KTX_header header;
     KTX_supplemental_info suppInfo;
 
-    EXPECT_EQ(ktxReadHeader(0, &header, &suppInfo), KTX_INVALID_VALUE);
-    EXPECT_EQ(ktxReadHeader(&ctx, 0, &suppInfo), KTX_INVALID_VALUE);
-    EXPECT_EQ(ktxReadHeader(&ctx, &header, 0), KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxReader_readHeader(0, &header, &suppInfo), KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxReader_readHeader(&reader, 0, &suppInfo), KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxReader_readHeader(&reader, &header, 0), KTX_INVALID_VALUE);
 }
     
-TEST_F(ktxReadHeaderTest, InvalidOperationWhenCtxStateNotStart) {
-    KTX_context ctx;
+TEST_F(ktxReader_readHeaderTest, InvalidOperationWhenCtxStateNotStart) {
+    KTX_reader reader;
     KTX_header header;
     KTX_supplemental_info suppInfo;
 
     if (ktxMemFile != NULL) {
         KTX_error_code errorCode;
 
-        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
-        ASSERT_TRUE(ctx != NULL) << "ktxOpenKTXM failed: "
+        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &reader);
+        ASSERT_TRUE(reader != NULL) << "ktxOpenKTXM failed: "
                                  << ktxErrorString(errorCode);
-        EXPECT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
-        EXPECT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_INVALID_OPERATION);
-        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_readHeader(reader, &header, &suppInfo), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_readHeader(reader, &header, &suppInfo), KTX_INVALID_OPERATION);
+        EXPECT_EQ(ktxReader_close(reader), KTX_SUCCESS);
     }
 }
 
-TEST_F(ktxReadHeaderTest, ReadHeader) {
-    KTX_context ctx;
+TEST_F(ktxReader_readHeaderTest, ReadHeader) {
+    KTX_reader reader;
     KTX_header header;
     KTX_supplemental_info suppInfo;
     KTX_error_code errorCode;
 
     if (ktxMemFile != NULL) {
-        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
-        ASSERT_TRUE(ctx != NULL) << "ktxOpenKTXM failed: "
+        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &reader);
+        ASSERT_TRUE(reader != NULL) << "ktxOpenKTXM failed: "
                                  << ktxErrorString(errorCode);
-        EXPECT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_readHeader(reader, &header, &suppInfo), KTX_SUCCESS);
         
         EXPECT_EQ(memcmp(&header.glType, &texInfo, sizeof(texInfo)), 0);
         EXPECT_EQ(suppInfo.compressed, 0);
         EXPECT_EQ(suppInfo.generateMipmaps, 0);
         EXPECT_EQ(suppInfo.textureDimension, 2);
-        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_close(reader), KTX_SUCCESS);
     }
 }
 
 /////////////////////////////////////////
-// ktxReadKVData tests
+// ktxReader_readKVData tests
 ////////////////////////////////////////
     
-TEST_F(ktxReadKVDataTest, InvalidValueOnNullContext) {
+TEST_F(ktxReader_readKVDataTest, InvalidValueOnNullContext) {
     ktx_uint32_t kvdLen;
     ktx_uint8_t* kvd;
     
-    EXPECT_EQ(ktxReadKVData(0, &kvdLen, &kvd), KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxReader_readKVData(0, &kvdLen, &kvd), KTX_INVALID_VALUE);
 }
     
-TEST_F(ktxReadKVDataTest, ReadKVData) {
-    KTX_context ctx;
+TEST_F(ktxReader_readKVDataTest, ReadKVData) {
+    KTX_reader reader;
     KTX_header header;
     KTX_supplemental_info suppInfo;
     KTX_error_code errorCode;
@@ -287,62 +287,62 @@ TEST_F(ktxReadKVDataTest, ReadKVData) {
     ktx_uint8_t* kvd;
 
     if (ktxMemFile != NULL) {
-        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
-        ASSERT_TRUE(ctx != NULL) << "ktxOpenKTXM failed: "
+        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &reader);
+        ASSERT_TRUE(reader != NULL) << "ktxOpenKTXM failed: "
                                  << ktxErrorString(errorCode);
-        ASSERT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
+        ASSERT_EQ(ktxReader_readHeader(reader, &header, &suppInfo), KTX_SUCCESS);
         
-        EXPECT_EQ(ktxReadKVData(ctx, &kvdLen, &kvd), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_readKVData(reader, &kvdLen, &kvd), KTX_SUCCESS);
         EXPECT_EQ(kvdLen, kvDataLen) << "Length of KV data incorrect";
         EXPECT_EQ(memcmp(kvd, kvData, kvDataLen), 0);
-        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_close(reader), KTX_SUCCESS);
     }
 }
     
 /////////////////////////////////////////
-// ktxReadImagestests
+// ktxReader_readImagestests
 ////////////////////////////////////////
     
-TEST_F(ktxReadImagesTest, InvalidValueOnNullCallback) {
-    KTX_context ctx;
+TEST_F(ktxReader_readImagesTest, InvalidValueOnNullCallback) {
+    KTX_reader reader;
     KTX_header header;
     KTX_supplemental_info suppInfo;
     KTX_error_code errorCode;
-    ktxReadImagesTest* fixture = this;
+    ktxReader_readImagesTest* fixture = this;
     
     if (ktxMemFile != NULL) {
-        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
-        ASSERT_TRUE(ctx != NULL) << "ktxOpenKTXM failed: "
+        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &reader);
+        ASSERT_TRUE(reader != NULL) << "ktxOpenKTXM failed: "
         << ktxErrorString(errorCode);
-        ASSERT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
-        ASSERT_EQ(ktxReadKVData(ctx, 0, 0), KTX_SUCCESS);
+        ASSERT_EQ(ktxReader_readHeader(reader, &header, &suppInfo), KTX_SUCCESS);
+        ASSERT_EQ(ktxReader_readKVData(reader, 0, 0), KTX_SUCCESS);
         
-        EXPECT_EQ(ktxReadImages(ctx, 0, fixture), KTX_INVALID_VALUE);
-        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_readImages(reader, 0, fixture), KTX_INVALID_VALUE);
+        EXPECT_EQ(ktxReader_close(reader), KTX_SUCCESS);
     }
 }
 
-TEST_F(ktxReadImagesTest, ReadImages) {
-    KTX_context ctx;
+TEST_F(ktxReader_readImagesTest, ReadImages) {
+    KTX_reader reader;
     KTX_header header;
     KTX_supplemental_info suppInfo;
     KTX_error_code errorCode;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* kvd;
-    ktxReadImagesTest* fixture = this;
+    ktxReader_readImagesTest* fixture = this;
 
     
     if (ktxMemFile != NULL) {
-        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &ctx);
-        ASSERT_TRUE(ctx != NULL) << "ktxOpenKTXM failed: "
+        errorCode = ktxOpenKTXM(ktxMemFile, ktxMemFileLen, &reader);
+        ASSERT_TRUE(reader != NULL) << "ktxOpenKTXM failed: "
                                  << ktxErrorString(errorCode);
-        ASSERT_EQ(ktxReadHeader(ctx, &header, &suppInfo), KTX_SUCCESS);
-        ASSERT_EQ(ktxReadKVData(ctx, &kvdLen, &kvd), KTX_SUCCESS);
+        ASSERT_EQ(ktxReader_readHeader(reader, &header, &suppInfo), KTX_SUCCESS);
+        ASSERT_EQ(ktxReader_readKVData(reader, &kvdLen, &kvd), KTX_SUCCESS);
         
-        EXPECT_EQ(ktxReadImages(ctx, imageCallback, fixture), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_readImages(reader, imageCallback, fixture), KTX_SUCCESS);
         EXPECT_EQ(imageCbCalls, mipLevels)
                   << "No. of calls to imageCallback differs from number of mip levels";
-        EXPECT_EQ(ktxCloseKTX(ctx), KTX_SUCCESS);
+        EXPECT_EQ(ktxReader_close(reader), KTX_SUCCESS);
     }
 }
     
