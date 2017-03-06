@@ -57,7 +57,7 @@ INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include/SDL2 \
 	-I$(srcdir)/other_include \
-	-I/$VULKAN_SDK/include
+	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
 	'-DNDEBUG'
@@ -78,7 +78,7 @@ INCS_Release := \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include/SDL2 \
 	-I$(srcdir)/other_include \
-	-I/$VULKAN_SDK/include
+	-I$(VULKAN_SDK)/include
 
 OBJS := \
 	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/main.o \

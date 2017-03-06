@@ -47,10 +47,9 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \
 	$(obj).target/$(TARGET)/lib/glloader.o \
 	$(obj).target/$(TARGET)/lib/hashtable.o \
-	$(obj).target/$(TARGET)/lib/ktxcontext.o \
 	$(obj).target/$(TARGET)/lib/ktxfilestream.o \
 	$(obj).target/$(TARGET)/lib/ktxmemstream.o \
-	$(obj).target/$(TARGET)/lib/reader.o \
+	$(obj).target/$(TARGET)/lib/ktxreader.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/writer.o
 

@@ -39,10 +39,9 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/errstr.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashtable.c"
-  "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
-  "../../../../lib/reader.c"
+  "../../../../lib/ktxreader.c"
   "../../../../lib/swap.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_es3__cxx_srcs
@@ -55,11 +54,11 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxcontext.h"
   "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
   "../../../../lib/ktxstream.h"
+  "../../../../lib/ktxreader.h"
   "../../../../lib/uthash.h")
 add_library(libktx_es3 STATIC ${libktx_es3__c_srcs} ${libktx_es3__cxx_srcs} ${libktx_es3__other_srcs})
 set_target_properties(libktx_es3 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
@@ -90,10 +89,9 @@ list(APPEND libktx_es1__c_srcs
   "../../../../lib/errstr.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashtable.c"
-  "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
-  "../../../../lib/reader.c"
+  "../../../../lib/ktxreader.c"
   "../../../../lib/swap.c"
   "../../../../lib/writer.c")
 list(APPEND libktx_es1__cxx_srcs
@@ -106,11 +104,11 @@ list(APPEND libktx_es1__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxcontext.h"
   "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
   "../../../../lib/ktxstream.h"
+  "../../../../lib/ktxreader.h"
   "../../../../lib/uthash.h")
 add_library(libktx_es1 STATIC ${libktx_es1__c_srcs} ${libktx_es1__cxx_srcs} ${libktx_es1__other_srcs})
 set_target_properties(libktx_es1 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
@@ -151,15 +149,14 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
@@ -194,15 +191,14 @@ list(APPEND libktx_doc__touchTimestamp__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxcontext.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/reader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
@@ -246,10 +242,9 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/errstr.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashtable.c"
-  "../../../../lib/ktxcontext.c"
   "../../../../lib/ktxfilestream.c"
   "../../../../lib/ktxmemstream.c"
-  "../../../../lib/reader.c"
+  "../../../../lib/ktxreader.c"
   "../../../../lib/swap.c"
   "../../../../lib/writer.c"
   "../../../../lib/vkloader.c")
@@ -263,11 +258,11 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxcontext.h"
   "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/ktxmemstream.h"
   "../../../../lib/ktxstream.h"
+  "../../../../lib/ktxreader.h"
   "../../../../lib/uthash.h"
   "../../../../include/ktxvulkan.h"
   "../../../../lib/vk_format.h")

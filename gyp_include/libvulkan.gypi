@@ -22,9 +22,6 @@
     # it can be omitted, if libvulkan_dev is installed. Otherwise it
     # can point to the location of a more recent version of the
     # standard SDK from LunarG.
-    #   The leading '/' is to workaround bugs(?) in the generators
-    # that they relativize paths even when they begin with an
-    # environment variable.
     'direct_dependent_settings': {
       'conditions': [
         ['GENERATOR == "cmake"', {
@@ -43,7 +40,7 @@
           ],
         }, {
           'include_dirs': [
-            '/$VULKAN_SDK/include',
+            '$(VULKAN_SDK)/include',
           ],
        }],
       ], # conditions

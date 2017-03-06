@@ -382,7 +382,7 @@ INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include \
-	-I/$VULKAN_SDK/include
+	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
 	'-DNDEBUG'
@@ -407,7 +407,7 @@ INCS_Release := \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include \
-	-I/$VULKAN_SDK/include
+	-I$(VULKAN_SDK)/include
 
 OBJS := \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/Texture.o \

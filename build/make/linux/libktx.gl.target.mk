@@ -22,7 +22,7 @@ CFLAGS_CC_Debug :=
 INCS_Debug := \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include \
-	-I/$VULKAN_SDK/include
+	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
 	'-DKTX_OPENGL=1' \
@@ -42,7 +42,7 @@ CFLAGS_CC_Release :=
 INCS_Release := \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include \
-	-I/$VULKAN_SDK/include
+	-I$(VULKAN_SDK)/include
 
 OBJS := \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
@@ -51,10 +51,9 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \
 	$(obj).target/$(TARGET)/lib/glloader.o \
 	$(obj).target/$(TARGET)/lib/hashtable.o \
-	$(obj).target/$(TARGET)/lib/ktxcontext.o \
 	$(obj).target/$(TARGET)/lib/ktxfilestream.o \
 	$(obj).target/$(TARGET)/lib/ktxmemstream.o \
-	$(obj).target/$(TARGET)/lib/reader.o \
+	$(obj).target/$(TARGET)/lib/ktxreader.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/writer.o \
 	$(obj).target/$(TARGET)/lib/vkloader.o
