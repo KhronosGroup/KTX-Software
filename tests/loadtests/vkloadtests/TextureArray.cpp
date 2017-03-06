@@ -83,7 +83,7 @@ TextureArray::TextureArray(VulkanContext& vkctx,
 
     ktxVulkanDeviceInfo kvdi;
     ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
-                                  vkctx.queue, vkctx.commandPool);
+                                  vkctx.queue, vkctx.commandPool, nullptr);
 
     KTX_error_code ktxresult;
     ktxresult = ktxLoadVkTextureN(&kvdi,
@@ -136,10 +136,7 @@ TextureArray::cleanup()
 	// Clean up used Vulkan resources
 
 	// Clean up texture resources
-	vkDestroyImageView(vkctx.device, textureArray.view, nullptr);
-	vkDestroyImage(vkctx.device, textureArray.image, nullptr);
-	vkDestroySampler(vkctx.device, textureArray.sampler, nullptr);
-	vkFreeMemory(vkctx.device, textureArray.deviceMemory, nullptr);
+	ktxVulkanTexture_destruct(&textureArray, vkctx.device, nullptr);
 
 	if (pipelines.solid)
 		vkctx.device.destroyPipeline(pipelines.solid);

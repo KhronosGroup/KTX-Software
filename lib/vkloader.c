@@ -58,13 +58,14 @@ setImageLayout(
 
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
-                           VkQueue queue, VkCommandPool cmdPool)
+                           VkQueue queue, VkCommandPool cmdPool,
+						   const VkAllocationCallbacks* pAllocator)
 {
     ktxVulkanDeviceInfo* vdi;
     vdi = (ktxVulkanDeviceInfo*)malloc(sizeof(ktxVulkanDeviceInfo));
     if (vdi != NULL) {
-        if (ktxVulkanDeviceInfo_construct(vdi, physicalDevice,
-                                     device, queue, cmdPool) != KTX_SUCCESS)
+        if (ktxVulkanDeviceInfo_construct(vdi, physicalDevice, device,
+                                    queue, cmdPool, pAllocator) != KTX_SUCCESS)
         {
             free(vdi);
             vdi = 0;
@@ -76,7 +77,8 @@ ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
 KTX_error_code
 ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
                               VkPhysicalDevice physicalDevice, VkDevice device,
-                              VkQueue queue, VkCommandPool cmdPool)
+                              VkQueue queue, VkCommandPool cmdPool,
+							  const VkAllocationCallbacks* pAllocator)
 {
     VkCommandBufferAllocateInfo cmdBufInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
@@ -87,6 +89,7 @@ ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
     vdi->device = device;
     vdi->queue = queue;
     vdi->cmdPool = cmdPool;
+    vdi->pAllocator = pAllocator;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice,
                                         &vdi->deviceMemoryProperties);
 
@@ -120,7 +123,7 @@ ktxVulkanDeviceInfo_destroy(ktxVulkanDeviceInfo* vdi)
 // Get appropriate memory type index for a memory allocation
 static uint32_t
 ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* vdi,
-                                 uint32_t typeBits, VkFlags properties)
+                                  uint32_t typeBits, VkFlags properties)
 {
     for (uint32_t i = 0; i < 32; i++)
     {
@@ -418,7 +421,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         VK_CHECK_RESULT(vkCreateBuffer(vdi->device, &bufferCreateInfo,
-                                       NULL, &stagingBuffer));
+                                       vdi->pAllocator, &stagingBuffer));
 
         // Get memory requirements for the staging buffer (alignment,
         // memory type bits)
@@ -434,7 +437,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         );
 
         result = vkAllocateMemory(vdi->device, &memAllocInfo,
-                                  NULL, &stagingMemory);
+                                  vdi->pAllocator, &stagingMemory);
         if (result != VK_SUCCESS) {
             return KTX_OUT_OF_MEMORY;
         }
@@ -474,7 +477,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                 = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
         VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
-                                      NULL, &pTexture->image));
+                                      vdi->pAllocator, &pTexture->image));
 
         vkGetImageMemoryRequirements(vdi->device, pTexture->image, &memReqs);
 
@@ -483,7 +486,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
                                           vdi, memReqs.memoryTypeBits,
                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo, NULL,
+        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
                                          &pTexture->deviceMemory));
         VK_CHECK_RESULT(vkBindImageMemory(vdi->device, pTexture->image,
                                           pTexture->deviceMemory, 0));
@@ -526,7 +529,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
 
         // Create a fence to make sure that the copies have finished before continuing
         VK_CHECK_RESULT(vkCreateFence(vdi->device, &fenceCreateInfo,
-                                      NULL, &copyFence));
+                                      vdi->pAllocator, &copyFence));
 
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
@@ -536,11 +539,11 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         VK_CHECK_RESULT(vkWaitForFences(vdi->device, 1, &copyFence,
                                         VK_TRUE, DEFAULT_FENCE_TIMEOUT));
 
-        vkDestroyFence(vdi->device, copyFence, NULL);
+        vkDestroyFence(vdi->device, copyFence, vdi->pAllocator);
 
         // Clean up staging resources
-        vkFreeMemory(vdi->device, stagingMemory, NULL);
-        vkDestroyBuffer(vdi->device, stagingBuffer, NULL);
+        vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
+        vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
     }
     else
     {
@@ -569,7 +572,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
 
         // Load mip map level 0 to linear tiling image
         VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
-                                      NULL, &mappableImage));
+                                      vdi->pAllocator, &mappableImage));
 
         // Get memory requirements for this image
         // like size and alignment
@@ -584,7 +587,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         // Allocate host memory
-        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo, NULL, &mappableMemory));
+        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator, &mappableMemory));
 
         // Bind allocated image for use
         VK_CHECK_RESULT(vkBindImageMemory(vdi->device, mappableImage, mappableMemory, 0));
@@ -643,7 +646,6 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
     sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler.mipLodBias = 0.0f;
-    // XXX Need to set this as appropriate for the value of vkFormat.
     sampler.unnormalizedCoordinates = VK_FALSE;
     sampler.compareEnable = VK_FALSE;
     sampler.compareOp = VK_COMPARE_OP_NEVER;
@@ -655,7 +657,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
     sampler.anisotropyEnable = VK_TRUE;
     sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
     VK_CHECK_RESULT(vkCreateSampler(vdi->device, &sampler,
-                                    NULL, &pTexture->sampler));
+                                    vdi->pAllocator, &pTexture->sampler));
 
     // Create image view.
     // Textures are not directly accessed by the shaders and are abstracted
@@ -677,7 +679,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
     view.subresourceRange.layerCount = arrayLayers;
     view.image = pTexture->image;
     VK_CHECK_RESULT(vkCreateImageView(vdi->device, &view,
-                                      NULL, &pTexture->view));
+                                      vdi->pAllocator, &pTexture->view));
 
     // Fill descriptor image info that can be used for setting up descriptor sets
     pTexture->descriptor.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -995,10 +997,11 @@ setImageLayout(
 //======================================================================
 
 void
-ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device)
+ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device,
+						  const VkAllocationCallbacks* pAllocator)
 {
-    vkDestroyImageView(device, texture->view, NULL);
-    vkDestroyImage(device, texture->image, NULL);
-    vkDestroySampler(device, texture->sampler, NULL);
-    vkFreeMemory(device, texture->deviceMemory, NULL);
+    vkDestroyImageView(device, texture->view, pAllocator);
+    vkDestroyImage(device, texture->image, pAllocator);
+    vkDestroySampler(device, texture->sampler, pAllocator);
+    vkFreeMemory(device, texture->deviceMemory, pAllocator);
 }

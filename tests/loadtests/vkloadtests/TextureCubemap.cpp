@@ -84,7 +84,7 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
 
     ktxVulkanDeviceInfo kvdi;
     ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
-                             vkctx.queue, vkctx.commandPool);
+                                  vkctx.queue, vkctx.commandPool, nullptr);
     KTX_error_code ktxresult;
     ktxresult = ktxLoadVkTextureN(&kvdi,
                           (getAssetPath() + szArgs).c_str(),
@@ -134,10 +134,7 @@ TextureCubemap::cleanup()
 	// Clean up used Vulkan resources
 
 	// Clean up texture resources
-	vkDestroyImageView(vkctx.device, cubeMap.view, nullptr);
-	vkDestroyImage(vkctx.device, cubeMap.image, nullptr);
-	vkDestroySampler(vkctx.device, cubeMap.sampler, nullptr);
-	vkFreeMemory(vkctx.device, cubeMap.deviceMemory, nullptr);
+	ktxVulkanTexture_destruct(&cubeMap, vkctx.device, nullptr);
 
 	if (pipelines.reflect)
 		vkctx.device.destroyPipeline(pipelines.reflect);

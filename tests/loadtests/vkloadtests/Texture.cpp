@@ -84,7 +84,7 @@ Texture::Texture(VulkanContext& vkctx,
 
     ktxVulkanDeviceInfo kvdi;
     ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
-                                  vkctx.queue, vkctx.commandPool);
+                                  vkctx.queue, vkctx.commandPool, nullptr);
 
 
     uint8_t* pKvData;
@@ -164,7 +164,7 @@ Texture::cleanup()
 {
 	// Clean up used Vulkan resources
 
-	destroyTextureImage();
+	ktxVulkanTexture_destruct(&texture, vkctx.device, nullptr);
 
 	if (pipelines.solid)
 		vkctx.device.destroyPipeline(pipelines.solid);
@@ -176,16 +176,6 @@ Texture::cleanup()
 	vkctx.destroyDrawCommandBuffers();
 	quad.freeResources(vkctx.device);
 	uniformDataVS.freeResources(vkctx.device);
-}
-
-// Free staging resources used while creating a texture
-void
-Texture::destroyTextureImage()
-{
-    vkDestroyImageView(vkctx.device, texture.view, NULL);
-    vkDestroyImage(vkctx.device, texture.image, NULL);
-    vkDestroySampler(vkctx.device, texture.sampler, NULL);
-    vkFreeMemory(vkctx.device, texture.deviceMemory, NULL);
 }
 
 void

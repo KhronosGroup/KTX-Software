@@ -70,22 +70,29 @@ typedef struct ktxVulkanTexture
     VkDescriptorImageInfo descriptor;
 } ktxVulkanTexture;
 
+void
+ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device,
+						  const VkAllocationCallbacks* pAllocator);
+
 typedef struct ktxVulkanDeviceInfo {
     VkPhysicalDevice physicalDevice;
     VkDevice device;
     VkQueue queue;
     VkCommandBuffer cmdBuffer;
     VkCommandPool cmdPool;
+    const VkAllocationCallbacks* pAllocator;
     VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 } ktxVulkanDeviceInfo;
 
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
-                           VkQueue queue, VkCommandPool cmdPool);
+                           VkQueue queue, VkCommandPool cmdPool,
+						   const VkAllocationCallbacks* pAllocator);
 KTX_error_code
 ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
                          VkPhysicalDevice physicalDevice, VkDevice device,
-                         VkQueue queue, VkCommandPool cmdPool);
+                         VkQueue queue, VkCommandPool cmdPool,
+						 const VkAllocationCallbacks* pAllocator);
 void
 ktxVulkanDeviceInfo_destruct(ktxVulkanDeviceInfo* vdi);
 void
@@ -141,9 +148,6 @@ ktxLoadVkTextureM(ktxVulkanDeviceInfo* vdi,
                   ktxVulkanTexture* texture,
                   unsigned int* pKvdLen, unsigned char** ppKvd);
   
-void
-ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device);
-
 #ifdef __cplusplus
 }
 #endif

@@ -89,8 +89,6 @@ class Texture : public VulkanLoadTestSample
     int sign_s = 1;
     int sign_t = 1;
 
-	// Free staging resources used while creating a texture
-	void destroyTextureImage();
 	void cleanup();
 	void buildCommandBuffers();
 	void generateQuad();
