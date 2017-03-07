@@ -62,6 +62,7 @@ struct Vertex {
 	float pos[3];
 	float uv[2];
 	float normal[3];
+	float color[3];
 };
 
 VulkanLoadTestSample*
@@ -240,11 +241,12 @@ Texture::generateQuad()
 #define NORMAL { 0.0f, 0.0f, 1.0f }
     std::vector<Vertex> vertexBuffer =
     {
-        { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL },
-        { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL },
-        { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL },
-        { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL }
+        { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL, { 0.7f, 0.1f, 0.2f } },
+        { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL, { 0.0f, 0.2f, 0.8f } },
+        { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL, { 0.0f, 0.6f, 0.1f } },
+        { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL, { 0.8f, 0.9f, 0.3f } }
     };
+
 #undef dim
 #undef normal
     if (sign_s < 0 || sign_t < 0) {
@@ -287,10 +289,10 @@ Texture::setupVertexDescriptions()
             VERTEX_BUFFER_BIND_ID,
             sizeof(Vertex),
             vk::VertexInputRate::eVertex);
-
+//#define OFFSET(f) (&(((struct Vertex*)0)->f) - &(struct Vertex*)0)
     // Attribute descriptions
     // Describes memory layout and shader positions
-    vertices.attributeDescriptions.resize(3);
+    vertices.attributeDescriptions.resize(4);
     // Location 0 : Position
     vertices.attributeDescriptions[0] =
         vk::VertexInputAttributeDescription(
@@ -312,6 +314,14 @@ Texture::setupVertexDescriptions()
             VERTEX_BUFFER_BIND_ID,
             vk::Format::eR32G32B32Sfloat,
             sizeof(float) * 5);
+    // Location 3 : Color
+    vertices.attributeDescriptions[3] =
+        vk::VertexInputAttributeDescription(
+            3,
+            VERTEX_BUFFER_BIND_ID,
+            vk::Format::eR32G32B32Sfloat,
+            sizeof(float) * 8);
+
 
     vertices.inputState = vk::PipelineVertexInputStateCreateInfo();
     vertices.inputState.vertexBindingDescriptionCount =

@@ -6,6 +6,7 @@
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec2 inUV;
 layout (location = 2) in vec3 inNormal;
+layout (location = 3) in vec3 inColor;
 
 layout (binding = 0) uniform UBO 
 {
@@ -20,6 +21,7 @@ layout (location = 1) out float outLodBias;
 layout (location = 2) out vec3 outNormal;
 layout (location = 3) out vec3 outViewVec;
 layout (location = 4) out vec3 outLightVec;
+layout (location = 5) out vec3 outColor;
 
 out gl_PerVertex 
 {
@@ -30,6 +32,7 @@ void main()
 {
 	outUV = inUV;
 	outLodBias = ubo.lodBias;
+	outColor = inColor;
 
 	vec3 worldPos = vec3(ubo.model * vec4(inPos, 1.0));
 
