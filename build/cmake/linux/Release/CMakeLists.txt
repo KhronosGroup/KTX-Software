@@ -407,11 +407,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/appfwSDL/VulkanAppSDL/shaders")
 set(RULE_INPUT_NAME "textoverlay.frag")
 set(RULE_INPUT_ROOT "textoverlay")
 set(RULE_INPUT_EXT ".frag")
-set(appfwSDL__frag2spirv_0_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(appfwSDL__frag2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${appfwSDL__frag2spirv_0_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${appfwSDL__frag2spirv__input} ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -433,11 +433,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/appfwSDL/VulkanAppSDL/shaders")
 set(RULE_INPUT_NAME "textoverlay.vert")
 set(RULE_INPUT_ROOT "textoverlay")
 set(RULE_INPUT_EXT ".vert")
-set(appfwSDL__vert2spirv_0_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(appfwSDL__vert2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${appfwSDL__vert2spirv_0_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${appfwSDL__vert2spirv__input} ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -526,11 +526,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cube")
 set(RULE_INPUT_NAME "cube.frag")
 set(RULE_INPUT_ROOT "cube")
 set(RULE_INPUT_EXT ".frag")
-set(vkloadtests__frag2spirv_0_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__frag2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_0_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -546,11 +546,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
 set(RULE_INPUT_NAME "reflect.frag")
 set(RULE_INPUT_ROOT "reflect")
 set(RULE_INPUT_EXT ".frag")
-set(vkloadtests__frag2spirv_1_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__frag2spirv_1_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_1_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -566,11 +566,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
 set(RULE_INPUT_NAME "skybox.frag")
 set(RULE_INPUT_ROOT "skybox")
 set(RULE_INPUT_EXT ".frag")
-set(vkloadtests__frag2spirv_2_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__frag2spirv_2_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_2_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -586,11 +586,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texture")
 set(RULE_INPUT_NAME "texture.frag")
 set(RULE_INPUT_ROOT "texture")
 set(RULE_INPUT_EXT ".frag")
-set(vkloadtests__frag2spirv_3_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__frag2spirv_3_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_3_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -606,11 +606,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texturearray")
 set(RULE_INPUT_NAME "instancing.frag")
 set(RULE_INPUT_ROOT "instancing")
 set(RULE_INPUT_EXT ".frag")
-set(vkloadtests__frag2spirv_4_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__frag2spirv_4_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_4_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -640,11 +640,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cube")
 set(RULE_INPUT_NAME "cube.vert")
 set(RULE_INPUT_ROOT "cube")
 set(RULE_INPUT_EXT ".vert")
-set(vkloadtests__vert2spirv_0_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__vert2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_0_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -660,11 +660,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
 set(RULE_INPUT_NAME "reflect.vert")
 set(RULE_INPUT_ROOT "reflect")
 set(RULE_INPUT_EXT ".vert")
-set(vkloadtests__vert2spirv_1_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__vert2spirv_1_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_1_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -680,11 +680,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/cubemap")
 set(RULE_INPUT_NAME "skybox.vert")
 set(RULE_INPUT_ROOT "skybox")
 set(RULE_INPUT_EXT ".vert")
-set(vkloadtests__vert2spirv_2_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__vert2spirv_2_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_2_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -700,11 +700,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texture")
 set(RULE_INPUT_NAME "texture.vert")
 set(RULE_INPUT_ROOT "texture")
 set(RULE_INPUT_EXT ".vert")
-set(vkloadtests__vert2spirv_3_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__vert2spirv_3_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_3_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -720,11 +720,11 @@ set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texturearray")
 set(RULE_INPUT_NAME "instancing.vert")
 set(RULE_INPUT_ROOT "instancing")
 set(RULE_INPUT_EXT ".vert")
-set(vkloadtests__vert2spirv_4_0 "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv")
+set(vkloadtests__vert2spirv_4_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_4_0}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${obj}.${TOOLSET}/${TARGET}/geni
-  COMMAND glslangValidator -V -o "${obj}.${TOOLSET}/${TARGET}/geni/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -753,18 +753,6 @@ list(APPEND vkloadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/sphere.obj"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/teapot.dae"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/torusknot.obj"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/cube.frag.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/cube.vert.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/reflect.frag.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/reflect.vert.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/skybox.frag.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/skybox.vert.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/texture.frag.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/texture.vert.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/instancing.frag.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/instancing.vert.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.frag.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.vert.spv"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
@@ -800,18 +788,6 @@ list(APPEND vkloadtests__copies__output
   "${builddir}/models/sphere.obj"
   "${builddir}/models/teapot.dae"
   "${builddir}/models/torusknot.obj"
-  "${builddir}/shaders/cube.frag.spv"
-  "${builddir}/shaders/cube.vert.spv"
-  "${builddir}/shaders/reflect.frag.spv"
-  "${builddir}/shaders/reflect.vert.spv"
-  "${builddir}/shaders/skybox.frag.spv"
-  "${builddir}/shaders/skybox.vert.spv"
-  "${builddir}/shaders/texture.frag.spv"
-  "${builddir}/shaders/texture.vert.spv"
-  "${builddir}/shaders/instancing.frag.spv"
-  "${builddir}/shaders/instancing.vert.spv"
-  "${builddir}/shaders/textoverlay.frag.spv"
-  "${builddir}/shaders/textoverlay.vert.spv"
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
@@ -848,18 +824,6 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/cube.obj ${b
 COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/sphere.obj ${builddir}/models/sphere.obj
 COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/teapot.dae ${builddir}/models/teapot.dae
 COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/torusknot.obj ${builddir}/models/torusknot.obj
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/cube.frag.spv ${builddir}/shaders/cube.frag.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/cube.vert.spv ${builddir}/shaders/cube.vert.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/reflect.frag.spv ${builddir}/shaders/reflect.frag.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/reflect.vert.spv ${builddir}/shaders/reflect.vert.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/skybox.frag.spv ${builddir}/shaders/skybox.frag.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/skybox.vert.spv ${builddir}/shaders/skybox.vert.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/texture.frag.spv ${builddir}/shaders/texture.frag.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/texture.vert.spv ${builddir}/shaders/texture.vert.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/instancing.frag.spv ${builddir}/shaders/instancing.frag.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/instancing.vert.spv ${builddir}/shaders/instancing.vert.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.frag.spv ${builddir}/shaders/textoverlay.frag.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.vert.spv ${builddir}/shaders/textoverlay.vert.spv
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
@@ -1011,8 +975,6 @@ unset(TARGET)
 set(TARGET "gl3loadtests")
 set(TOOLSET "target")
 list(APPEND gl3loadtests__copies__input
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.frag.spv"
-  "${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.vert.spv"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
@@ -1044,8 +1006,6 @@ list(APPEND gl3loadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3.ktx")
 list(APPEND gl3loadtests__copies__output
-  "${builddir}/shaders/textoverlay.frag.spv"
-  "${builddir}/shaders/textoverlay.vert.spv"
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
@@ -1078,8 +1038,6 @@ list(APPEND gl3loadtests__copies__output
   "${builddir}/testimages/texturearray_bc3.ktx")
 add_custom_command(
 OUTPUT ${gl3loadtests__copies__output}
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.frag.spv ${builddir}/shaders/textoverlay.frag.spv
-COMMAND ${CMAKE_COMMAND} -E copy ${obj}.${TOOLSET}/${TARGET}/geni/shaders/textoverlay.vert.spv ${builddir}/shaders/textoverlay.vert.spv
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx

@@ -14,7 +14,8 @@
       # but glslV does not so ...)
 	  'extension': '.frag',
 	  'message': 'Compiling <(RULE_INPUT_NAME).',
-	  'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
+	  #'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
+	  'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
           # This causes the output to be copied to the "Resources" folder but
@@ -40,7 +41,8 @@
 	  'rule_name': 'vert2spirv',
 	  'extension': '.vert',
 	  'message': 'Compiling <(RULE_INPUT_NAME).',
-	  'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
+	  #'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
+	  'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
           #'process_outputs_as_mac_bundle_resources': 1,

@@ -83,25 +83,25 @@
           'models/teapot.dae',
           'models/torusknot.obj',
         ],
-      },
+#      },
       # This is here to avoid polluting the "Resources" or output folder with
       # all the .spv files. With the simpler choice of setting
       # 'process_outputs_as_mac_bundle_resources' in the glsl2spirv rules,
       # there is no way to set a subdir of "Resources" as the destination.
-      {
-        'destination': '<(shader_dest)',
-        'files': [
-          '<(INTERMEDIATE_DIR)/shaders/cube.frag.spv',
-          '<(INTERMEDIATE_DIR)/shaders/cube.vert.spv',
-          '<(INTERMEDIATE_DIR)/shaders/reflect.frag.spv',
-          '<(INTERMEDIATE_DIR)/shaders/reflect.vert.spv',
-          '<(INTERMEDIATE_DIR)/shaders/skybox.frag.spv',
-          '<(INTERMEDIATE_DIR)/shaders/skybox.vert.spv',
-          '<(INTERMEDIATE_DIR)/shaders/texture.frag.spv',
-          '<(INTERMEDIATE_DIR)/shaders/texture.vert.spv',
-          '<(INTERMEDIATE_DIR)/shaders/instancing.frag.spv',
-          '<(INTERMEDIATE_DIR)/shaders/instancing.vert.spv',
-        ],
+#      {
+#        'destination': '<(shader_dest)',
+#        'files': [
+#          '<(INTERMEDIATE_DIR)/shaders/cube.frag.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/cube.vert.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/reflect.frag.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/reflect.vert.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/skybox.frag.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/skybox.vert.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/texture.frag.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/texture.vert.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/instancing.frag.spv',
+#          '<(INTERMEDIATE_DIR)/shaders/instancing.vert.spv',
+#        ],
       }], # copies
       'link_settings': {
         'conditions': [

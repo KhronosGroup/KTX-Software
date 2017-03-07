@@ -3,34 +3,34 @@
 TOOLSET := target
 TARGET := appfwSDL
 ### Generated for rule ktxtests_gyp_appfwSDL_target_frag2spirv:
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
+$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
+$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
+$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
 	$(call do_cmd,ktxtests_gyp_appfwSDL_target_frag2spirv_0)
 
-all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
-cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/appfwSDL/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/appfwSDL/geni/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(builddir)/shaders/$(notdir $<).spv
+cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = RULE ktxtests_gyp_appfwSDL_target_frag2spirv_0 $@
 
 rule_ktxtests_gyp_appfwSDL_target_frag2spirv_outputs := \
-	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+	$(builddir)/shaders/$(notdir $<).spv
 
 ### Finished generating for rule: ktxtests_gyp_appfwSDL_target_frag2spirv
 
 ### Generated for rule ktxtests_gyp_appfwSDL_target_vert2spirv:
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: obj := $(abs_obj)
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv: builddir := $(abs_builddir)
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
-$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
+$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
+$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
+$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
 	$(call do_cmd,ktxtests_gyp_appfwSDL_target_vert2spirv_0)
 
-all_deps += $(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
-cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(obj).$(TOOLSET)/appfwSDL/geni; glslangValidator -V -o "$(obj).$(TOOLSET)/appfwSDL/geni/$(notdir $<).spv" "$(abspath $<)"
+all_deps += $(builddir)/shaders/$(notdir $<).spv
+cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = RULE ktxtests_gyp_appfwSDL_target_vert2spirv_0 $@
 
 rule_ktxtests_gyp_appfwSDL_target_vert2spirv_outputs := \
-	$(obj).$(TOOLSET)/$(TARGET)/geni/$(notdir $<).spv
+	$(builddir)/shaders/$(notdir $<).spv
 
 ### Finished generating for rule: ktxtests_gyp_appfwSDL_target_vert2spirv
 
