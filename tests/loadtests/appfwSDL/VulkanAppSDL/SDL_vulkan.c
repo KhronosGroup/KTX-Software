@@ -62,8 +62,16 @@ SDL_bool SDL_GetVulkanInstanceExtensions(unsigned* count, const char** names) {
     }
 #endif
 #if SDL_VIDEO_DRIVER_COCOA
+    if (!strcmp(driver, "cocoa")) {
+        const char* ext[] = { VK_MVK_MACOS_SURFACE_EXTENSION_NAME };
+        return SetNames(count, names, 1, ext);
+    }
 #endif
 #if SDL_VIDEO_DRIVER_UIKIT
+    if (!strcmp(driver, "uikit")) {
+        const char* ext[] = { VK_MVK_IOS_SURFACE_EXTENSION_NAME };
+        return SetNames(count, names, 1, ext);
+    }
 #endif
 #if SDL_VIDEO_DRIVER_WAYLAND
     if (!strcmp(driver, "wayland")) {

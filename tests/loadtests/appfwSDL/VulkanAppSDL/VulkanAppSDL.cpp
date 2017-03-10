@@ -110,7 +110,9 @@ VulkanAppSDL::initialize(int argc, char* argv[])
 	delete[] argv2;
 
 #if defined(DEBUG)
+  #if !defined(__IPHONEOS__) && !defined(__MACOSX__)
 	validate = true;
+  #endif
 	// Enable debug layers?
 #endif
     
@@ -615,7 +617,7 @@ VulkanAppSDL::findGpu()
 
     // Make initial call to query gpu_count, then second call for gpu info.
     err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, NULL);
-    assert(err == vk::Result::eSuccess && gpuCount > 0);
+    assert(err == vk::Result::eSuccess);
 
     if (gpuCount > 0) {
     	std::vector<vk::PhysicalDevice> gpus;
