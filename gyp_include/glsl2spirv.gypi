@@ -14,8 +14,6 @@
       # but glslV does not so ...)
 	  'extension': '.frag',
 	  'message': 'Compiling <(RULE_INPUT_NAME).',
-	  #'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
-	  'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
           # This causes the output to be copied to the "Resources" folder but
@@ -23,12 +21,14 @@
           # a subdir but there is no way to specify that. Instead we have
           # explicit copy steps in the users of the shaders.
           #'process_outputs_as_mac_bundle_resources': 1,
+          'outputs': [ '<(SHARED_INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
           'action': [
             '$(VULKAN_SDK)/../MoltenShaderConverter/Tools/MoltenShaderConverter',
             '-gi', '<(RULE_INPUT_PATH)',
             '-so', '<@(_outputs)',
           ], # action
         }, {
+          'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
           'action': [
             'glslangValidator', '-V',
             '-o', '<@(_outputs)',
@@ -41,17 +41,17 @@
 	  'rule_name': 'vert2spirv',
 	  'extension': '.vert',
 	  'message': 'Compiling <(RULE_INPUT_NAME).',
-	  #'outputs': [ '<(INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
-	  'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
           #'process_outputs_as_mac_bundle_resources': 1,
+          'outputs': [ '<(SHARED_INTERMEDIATE_DIR)/<(RULE_INPUT_NAME).spv' ],
           'action': [
             '$(VULKAN_SDK)/../MoltenShaderConverter/Tools/MoltenShaderConverter',
             '-gi', '<(RULE_INPUT_PATH)',
             '-so', '<@(_outputs)',
           ], # action
         }, {
+          'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
           'action': [
             'glslangValidator', '-V',
             '-o', '<@(_outputs)',

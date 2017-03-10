@@ -19,17 +19,21 @@
         'libktx.gyp:vulkan_headers',
      ],
       'direct_dependent_settings': {
-        # This is here to avoid polluting the "Resources" or output folder with
-        # all the .spv files. With the simpler choice of setting
-        # 'process_outputs_as_mac_bundle_resources' in the glsl2spirv rules,
-        # there is no way to set a subdir of "Resources" as the destination.
-#        'copies': [{
-#          'destination': '<(shader_dest)',
-#          'files': [
-#            '<(INTERMEDIATE_DIR)/shaders/textoverlay.frag.spv',
-#            '<(INTERMEDIATE_DIR)/shaders/textoverlay.vert.spv',
-#          ],
-#        }], # copies
+        'conditions': [
+          ['OS == "mac" or OS == "ios"', {
+            # Cause the dependent application to copy these shaders into its
+            # app bundle. Can't use 'process_outputs_as_mac_bundle_resources'
+            # in the glsl2spirv rules because that provides no way to put the
+            # rule outputs in a sub-directory of "Resources".
+            'copies': [{
+              'destination': '<(shader_dest)',
+              'files': [
+                '<(SHARED_INTERMEDIATE_DIR)/textoverlay.frag.spv',
+                '<(SHARED_INTERMEDIATE_DIR)/textoverlay.vert.spv',
+              ],
+            }], # copies
+          }],
+        ], # conditions
         'include_dirs': [
           '.',
           'VulkanAppSDL',
