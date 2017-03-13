@@ -219,8 +219,8 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     { &sc_Sample02, "testimages/hi_mark_sq.ktx", "RGB8 NPOT HI Logo" }
 #endif
     { Texture::create,
-      "testimages/pattern_02_bc2.ktx",
-      "BC2 (S3TC DXT3) Compressed 2D"
+      "testimages/rgba-reference.ktx",
+      "RGBA8 2D"
     },
     { Texture::create,
       "testimages/orient-down-metadata-sized.ktx",
@@ -229,6 +229,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
       "testimages/orient-up-metadata-sized.ktx",
       "RGB8 2D + KTXOrientation up"
+    },
+    { Texture::create,
+      "testimages/pattern_02_bc2.ktx",
+      "BC2 (S3TC DXT3) Compressed 2D"
     },
     { Texture::create,
       "testimages/etc2-rgb.ktx",
