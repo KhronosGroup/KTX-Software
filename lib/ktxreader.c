@@ -506,8 +506,9 @@ cleanup:
 
 /*
  * Regrettably he KTX format does not provide the total size of the image
- * data, so we have to calculate it.
+ * data, so we have the following functions to calculate it.
  */
+
 size_t
 levelSize(const GlFormatSize* formatSize, uint32_t level,
           uint32_t width, uint32_t height, uint32_t depth)
@@ -571,13 +572,16 @@ ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
         return KTX_INVALID_OPERATION;
 
     header = &This->header;
-
-    glGetFormatSize(header->glInternalFormat, &formatSize);
+    if (header->glFormat == header->glInternalFormat)
+    	// It's an old unsized texture.
+    	glGetFormatSizeFromType(header->glFormat, header->glType, &formatSize);
+    else
+    	glGetFormatSize(header->glInternalFormat, &formatSize);
 
     /* XXX Consider setting this and isArray, etc. in check header to
      * avoid multiple instances of similar checks. */
     layers = header->numberOfArrayElements == 0 ?
-    		 1 : header->numberOfArrayElements;
+    		 	 	 	 	 	 	 	 	 1 : header->numberOfArrayElements;
     layers *= header->numberOfFaces;
 
     *pDataSize = dataSize(&formatSize,
@@ -593,6 +597,7 @@ KTX_error_code
 ktxReader_getLevelSize(KTX_reader reader, uint32_t level, size_t* pLevelSize)
 {
     ktxReader* This = (ktxReader*)reader;
+	KTX_header* header;
     GlFormatSize formatSize;
 
     if (This == NULL || !This->stream.read || !This->stream.skip)
@@ -602,12 +607,18 @@ ktxReader_getLevelSize(KTX_reader reader, uint32_t level, size_t* pLevelSize)
       // XXX Consider reading the header instead of erroring.
       return KTX_INVALID_OPERATION;
     
-    glGetFormatSize(This->header.glInternalFormat, &formatSize);
+    header = &This->header;
+    if (header->glFormat == header->glInternalFormat)
+    	// It's an old unsized texture.
+    	glGetFormatSizeFromType(header->glFormat, header->glType, &formatSize);
+    else
+    	glGetFormatSize(header->glInternalFormat, &formatSize);
+
     *pLevelSize = levelSize(&formatSize,
                             level,
-                            This->header.pixelWidth,
-                            This->header.pixelHeight,
-                            This->header.pixelDepth);
+                            header->pixelWidth,
+                            header->pixelHeight,
+                            header->pixelDepth);
   return KTX_SUCCESS;
 }
 
