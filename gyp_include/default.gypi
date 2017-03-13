@@ -57,6 +57,9 @@
         'SDKROOT': 'macosx',
       }],
     ],
+    # Because libassimp is built with this disabled. It's not important unless
+    # submitting to the App Store and currently bitcode is optional.
+    'ENABLE_BITCODE': 'NO',
     # These have to be project-wide. If in target_defaults', and
     # therefore set in each target, Xcode 8 will warn that the project
     # settings are not the recommended settings and suggest it turns
@@ -80,6 +83,7 @@
     'GCC_WARN_UNINITIALIZED_AUTOS': 'YES',
     'GCC_WARN_UNUSED_FUNCTION': 'YES',
     'GCC_WARN_UNUSED_VARIABLE': 'YES',
+    #-----------------------------------------------------
   }, # xcode_settings
   # This has to be project-wide too. If in target_defaults' Debug config
   # Xcode 7+ will warn that this recommended value is not set.

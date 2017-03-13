@@ -59,7 +59,11 @@
         'AppBaseSDL.h',
         'GLAppSDL.cpp',
         'GLAppSDL.h',
-        # These 2 are here to avoid rebuilds of SDL during development.
+        # These 6 are here to avoid rebuilds of SDL during development.
+        'VulkanAppSDL/SDL_cocoametalview.h',
+        'VulkanAppSDL/SDL_cocoametalview.m',
+        'VulkanAppSDL/SDL_uikitmetalview.h',
+        'VulkanAppSDL/SDL_uikitmetalview.m',
         'VulkanAppSDL/SDL_vulkan.c',
         'VulkanAppSDL/SDL_vulkan.h',
         'VulkanAppSDL/VulkanAppSDL.cpp',
@@ -96,7 +100,21 @@
       },
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-      }
+      },
+      'conditions': [
+        ['OS != "ios"', {
+          'sources!': [
+            'VulkanAppSDL/SDL_uikitmetalview.h',
+            'VulkanAppSDL/SDL_uikitmetalview.m',
+          ],
+        }],
+        ['OS != "mac"', {
+          'sources!': [
+          'VulkanAppSDL/SDL_cocoametalview.h',
+          'VulkanAppSDL/SDL_cocoametalview.m',
+          ],
+        }],
+      ], # conditions
     } # target appfwSDL
   ] #targets
 }

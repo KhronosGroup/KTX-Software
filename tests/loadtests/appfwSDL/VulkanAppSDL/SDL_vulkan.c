@@ -14,8 +14,14 @@
   #define VK_USE_PLATFORM_ANDROID_KHR
 #elif SDL_VIDEO_DRIVER_COCOA
   #define VK_USE_PLATFORM_MACOS_MVK
+  typedef struct _MetalView MetalView;
+  typedef struct _NSWindow NSWindow;
+  MetalView* SDL_AddMetalView(NSWindow* sdlWindow);
 #elif SDL_VIDEO_DRIVER_UIKIT
   #define VK_USE_PLATFORM_IOS_MVK
+  typedef struct _MetalView MetalView;
+  typedef struct _UIWindow UIWindow;
+  MetalView* SDL_AddMetalView(UIWindow* sdlWindow);
 #elif SDL_VIDEO_DRIVER_WINDOWS
   #define VK_USE_PLATFORM_WIN32_KHR
 #else
@@ -140,11 +146,10 @@ SDL_bool SDL_CreateVulkanSurface(SDL_Window* window, VkInstance instance, VkSurf
         createInfo.sType = VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK;
         createInfo.pNext = NULL;
         createInfo.flags = 0;
-        // XXX Must be a reference to a UIView object and the UIView must be
+        // Must be a reference to a UIView object and the UIView must be
         // backed by a CALayer instance of type CAMetalLayer.
-        // Doing this requires work in SDL...
-        createInfo.pView = wminfo.info.uikit.window;
-        
+        createInfo.pView = SDL_AddMetalView(wminfo.info.uikit.window);
+      
         VkResult r =
         vkCreateIOSSurfaceMVK(instance, &createInfo, NULL, surface);
         if (r != VK_SUCCESS) {
@@ -161,10 +166,9 @@ SDL_bool SDL_CreateVulkanSurface(SDL_Window* window, VkInstance instance, VkSurf
         createInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
         createInfo.pNext = NULL;
         createInfo.flags = 0;
-        // XXX Must be a reference to an NSView object and the NSView must be
+        // Must be a reference to an NSView object and the NSView must be
         // backed by a CALayer instance of type CAMetalLayer.
-        // Doing this requires work in SDL...
-        createInfo.pView = wminfo.info.cocoa.window;
+        createInfo.pView = SDL_AddMetalView(wminfo.info.cocoa.window);
         
         VkResult r =
         vkCreateMacOSSurfaceMVK(instance, &createInfo, NULL, surface);

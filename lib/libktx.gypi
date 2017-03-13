@@ -92,6 +92,8 @@
                 # the copy command above.
                 'INSTALL_PATH': '@rpath',
               },
+            }, {
+              'dependencies': [ 'vulkan_headers' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
         }] # _type == "shared_library"
@@ -111,10 +113,14 @@
       'target_name': 'libktx.es3',
       'type': 'static_library',
       'defines': [ 'KTX_OPENGL_ES3=1' ],
+      'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
-      'sources': [ '<@(sources)' ],
+      'sources': [
+        '<@(sources)',
+        '<@(vksource_files)',
+      ],
       'include_dirs': [ '<@(include_dirs)' ],
     }, # libktx.es3
   ], # targets

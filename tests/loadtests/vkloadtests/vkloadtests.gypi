@@ -5,11 +5,13 @@
 # @brief Generate project file for building KTX loadtests for Vulkan.
 #
 {
-  # The following is already included by appfwSDL.gypi, which
-  # itself is included by this file's parent.
-  #'includes': [
-  #  '../../../gyp_include/libvulkan.gypi',
-  #],
+  'includes': [
+    # The following is already included by appfwSDL.gypi, which
+    # itself is included by this file's parent.
+    #'includes': [
+    #  '../../../gyp_include/libvulkan.gypi',
+    '../../../gyp_include/libassimp.gypi',
+  ],
   'variables': { # level 1
     # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
     # Keys ending in _file & _dir assumed to be paths and are made relative
@@ -31,7 +33,7 @@
       'defines': [ ],
       'dependencies': [
         'appfwSDL',
-        'libktx.gyp:libktx.gl',
+        'libassimp',
         'libktx.gyp:libvulkan',
         'testimages',
       ],
@@ -39,15 +41,10 @@
         '../../../gyp_include/glsl2spirv.gypi',
       ],
       'include_dirs': [
-        '<(SHARED_INTERMEDIATE_DIR)',
+        # Uncomment if we #include .spv files in the c++ files.
+        #'<(SHARED_INTERMEDIATE_DIR)',
         '../common',
         '../geom',
-        '$(ASSIMP_HOME)/include',
-      ],
-      'conditions': [
-        ['OS != "mac"', {
-          'include_dirs!': [ '$(ASSIMP_HOME)/include' ],
-        }],
       ],
       'sources': [
         '../common/vecmath.hpp',
@@ -84,46 +81,12 @@
           'models/torusknot.obj',
         ],
       }],
-      #   This copies the shaders to "Resources/shaders" thus avoiding
-      # polluting "Resources" with all the .spv files and avoiding a platform
-      # dependent path for loading the shaders, as I certainly don't want to
-      # pollute the output directories on other platforms. With the simpler
-      # choice of setting 'process_outputs_as_mac_bundle_resources' in the
-      # glsl2spirv rules there is no way to set a subdir of "Resources" as
-      # the destination.
-      #   If use 'conditions', then this copy does not get included. I do not
-      # understand why late evaluation is necessary.
-      'target_conditions': [
-        ['OS == "mac" or OS == "ios"', {
-          'copies': [{
-            'destination': '<(shader_dest)',
-            'files': [
-              '<(SHARED_INTERMEDIATE_DIR)/cube.frag.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/cube.vert.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/reflect.frag.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/reflect.vert.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/skybox.frag.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/skybox.vert.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/texture.frag.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/texture.vert.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/instancing.frag.spv',
-              '<(SHARED_INTERMEDIATE_DIR)/instancing.vert.spv',
-            ],
-          }], # copies
-        }],
-      ], # conditions
       'link_settings': {
         'conditions': [
           ['OS == "linux"', {
-            'libraries': [ '-lassimp', '-lpthread' ],
+            'libraries': [ '-lpthread' ],
           }],
-          ['OS == "mac"', {
-            'library_dirs': [ '$(ASSIMP_HOME)/lib' ],
-            'xcode_settings': {
-              'OTHER_LDFLAGS': '-lassimp',
-            },
-          }],
-        ],
+        ], # conditions
       },
       'msvs_settings': {
         'VCLinkerTool': {
@@ -146,9 +109,8 @@
       }, # xcode_settings
       'conditions': [
         ['OS == "ios"', {
-          'sources': [
-            'resources_ios/Info.plist',
-          ],
+          'dependencies': [ 'libktx.gyp:libktx.es3' ],
+          'sources': [ 'resources_ios/Info.plist' ],
           'mac_bundle_resources': [
             'resources_ios/Images.xcassets',
             'resources_ios/LaunchScreen.storyboard',
@@ -159,10 +121,35 @@
             'INFOPLIST_FILE': '<(infoplist_file)',
           },
         }, 'OS == "mac"', {
-          'sources': [
-            'resources_mac/Info.plist',
-          ],
+          'dependencies': [ 'libktx.gyp:libktx.gl' ],
+          'sources': [ 'resources_mac/Info.plist' ],
+        }, {
+          'dependencies': [ 'libktx.gyp:libktx.gl' ],
         }], # OS == "ios", etc
+        ['OS == "mac" or OS == "ios"', {
+          # This copies the shaders to "Resources/shaders" thus avoiding
+          # polluting "Resources" with all the .spv files and avoiding a
+          # platform dependent path for loading the shaders, as I certainly
+          # don't want to pollute the output directories on other platforms.
+          # With the simpler choice of setting
+          # 'process_outputs_as_mac_bundle_resources' in the glsl2spirv rules
+          # there is no way to set a subdir of "Resources" as the destination.
+          'copies': [{
+            'destination': '<(shader_dest)',
+            'files': [
+            '<(SHARED_INTERMEDIATE_DIR)/cube.frag.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/cube.vert.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/reflect.frag.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/reflect.vert.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/skybox.frag.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/skybox.vert.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/texture.frag.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/texture.vert.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/instancing.frag.spv',
+            '<(SHARED_INTERMEDIATE_DIR)/instancing.vert.spv',
+            ],
+          }], # copies
+        }],
       ], # conditions
     }, # vkloadtests
   ], # targets
