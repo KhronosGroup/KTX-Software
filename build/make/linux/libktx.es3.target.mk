@@ -20,7 +20,8 @@ CFLAGS_CC_Debug :=
 
 INCS_Debug := \
 	-I$(srcdir)/include \
-	-I$(srcdir)/other_include
+	-I$(srcdir)/other_include \
+	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
 	'-DKTX_OPENGL_ES3=1' \
@@ -38,7 +39,8 @@ CFLAGS_CC_Release :=
 
 INCS_Release := \
 	-I$(srcdir)/include \
-	-I$(srcdir)/other_include
+	-I$(srcdir)/other_include \
+	-I$(VULKAN_SDK)/include
 
 OBJS := \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
@@ -51,10 +53,14 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/ktxmemstream.o \
 	$(obj).target/$(TARGET)/lib/ktxreader.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
-	$(obj).target/$(TARGET)/lib/writer.o
+	$(obj).target/$(TARGET)/lib/writer.o \
+	$(obj).target/$(TARGET)/lib/vkloader.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
+
+# Make sure our dependencies are built before any of us.
+$(OBJS): | $(obj).target/vulkan_headers.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.

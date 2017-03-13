@@ -6,30 +6,42 @@
 #
 {
   'variables': { # level 1
-    'datadir': 'testimages',
-    # Hack to get the directory relativized
+    'variables': { # level 2
+      'datadir': 'testimages',
+    },
+    'conditions': [
+      ['OS == "android"', {
+        'imagedest': '<(android_assets_dir)/<(datadir)',
+      }, 'OS == "ios" or OS == "mac"', {
+        'imagedest': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
+      }, 'OS == "linux" or OS == "win"', {
+        'imagedest': '<(PRODUCT_DIR)/<(datadir)',
+      }], # OS == "android" and else clauses
+    ], # conditions
+     # Hack to get the directory relativized
     'testimages_dir': '.',
   },
   'targets': [
     {
       'target_name': 'testimages',
       'type': 'none',
-      # dds is needed because on some platforms, each target app gets its own
-      # directory. On others can result in multiple copies to the same place.
-      'direct_dependent_settings': {
-        'copies': [{
-          'conditions': [
-            ['OS == "android"', {
-              'destination': '<(android_assets_dir)/<(datadir)',
-            }, 'OS == "ios" or OS == "mac"', {
-              'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
-            }, 'OS == "linux" or OS == "win"', {
-                'destination': '<(PRODUCT_DIR)/<(datadir)',
-            }], # OS == "android" and else clauses
-          ], # conditions
-          'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
-        }], # copies
-      }, # direct_dependent_settings
+      'conditions': [
+        ['OS == "ios" or OS == "mac"', {
+          # dds is needed on these platforms because each app target gets
+          # its own directory.
+          'direct_dependent_settings': {
+            'copies': [{
+             'destination': '<(imagedest)',
+             'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
+            }], # copies
+          }, # direct_dependent_settings
+        }, {
+          'copies': [{
+           'destination': '<(imagedest)',
+           'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
+          }], # copies
+        }],
+      ],
     }, # testimages target
   ], # targets
 }
