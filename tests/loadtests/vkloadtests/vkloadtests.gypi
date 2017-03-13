@@ -8,7 +8,6 @@
   'includes': [
     # The following is already included by appfwSDL.gypi, which
     # itself is included by this file's parent.
-    #'includes': [
     #  '../../../gyp_include/libvulkan.gypi',
     '../../../gyp_include/libassimp.gypi',
   ],

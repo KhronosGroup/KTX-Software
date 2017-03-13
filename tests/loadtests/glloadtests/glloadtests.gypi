@@ -93,7 +93,7 @@
                 'Debug_Emscripten': {
                   'cflags': [ '<(additional_emcc_options)' ],
                   'ldflags': [
-                    '--preload-files <(PRODUCT_DIR)/(datadir)@/<(datadir)',
+                    '--preload-files <(PRODUCT_DIR)/<(datadir)@/<(datadir)',
                     '<(additional_emlink_options)',
                   ],
                   'msvs_settings': {
@@ -109,7 +109,7 @@
                 'Release_Emscripten': {
                   'cflags': [ '<(additional_emcc_options)' ],
                   'ldflags': [
-                    '--preload-files <(PRODUCT_DIR)/(datadir)@/<(datadir)',
+                    '--preload-files <(PRODUCT_DIR)/<(datadir)@/<(datadir)',
                     '<(additional_emlink_options)',
                   ],
                   'msvs_settings': {
