@@ -41,7 +41,7 @@ void main()
 
     vec4 pos = ubo.model * vec4(inPos, 1.0);
     //outNormal = mat3(inverse(transpose(ubo.model))) * inNormal;
-    outNormal = ubo.normal * inNormal;
+    outNormal = mat3(ubo.normal) * inNormal;
 	vec3 lightPos = vec3(0.0);
 	vec3 lPos = mat3(ubo.model) * lightPos.xyz;
     outLightVec = lPos - pos.xyz;

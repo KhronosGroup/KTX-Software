@@ -73,7 +73,7 @@ class Texture : public VulkanLoadTestSample
     struct {
         glm::mat4 projection;
         glm::mat4 model;
-        glm::mat3 normal;
+        glm::mat4 normal;
         glm::vec4 viewPos;
         float lodBias = 0.0f;
     } uboVS;

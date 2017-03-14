@@ -535,7 +535,10 @@ Texture::updateUniformBuffers()
     uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     // Because MetalSL does not have a matrix inverse function...
-    uboVS.normal = glm::mat3(inverse(transpose(uboVS.model)));
+    // It looks like the glm::mat3(glm::mat4) does something different than
+    // GLSL. If I convert to mat3 here, only half the quad is lit. Do it in
+    // the shader.
+    uboVS.normal = inverse(transpose(uboVS.model));
 
     uboVS.viewPos = glm::vec4(0.0f, 0.0f, -zoom, 0.0f);
 
