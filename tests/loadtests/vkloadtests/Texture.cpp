@@ -534,6 +534,8 @@ Texture::updateUniformBuffers()
     uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Because MetalSL does not have a matrix inverse function...
+    uboVS.normal = glm::mat3(inverse(transpose(uboVS.model)));
 
     uboVS.viewPos = glm::vec4(0.0f, 0.0f, -zoom, 0.0f);
 

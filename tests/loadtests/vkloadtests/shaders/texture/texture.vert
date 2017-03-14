@@ -12,6 +12,7 @@ layout (binding = 0) uniform UBO
 {
 	mat4 projection;
 	mat4 model;
+    mat3 normal;
 	vec4 viewPos;
 	float lodBias;
 } ubo;
@@ -34,12 +35,13 @@ void main()
 	outLodBias = ubo.lodBias;
 	outColor = inColor;
 
-	vec3 worldPos = vec3(ubo.model * vec4(inPos, 1.0));
+    //vec3 worldPos = vec3(ubo.model * vec4(inPos, 1.0));
 
 	gl_Position = ubo.projection * ubo.model * vec4(inPos.xyz, 1.0);
 
     vec4 pos = ubo.model * vec4(inPos, 1.0);
-	outNormal = mat3(inverse(transpose(ubo.model))) * inNormal;
+    //outNormal = mat3(inverse(transpose(ubo.model))) * inNormal;
+    outNormal = ubo.normal * inNormal;
 	vec3 lightPos = vec3(0.0);
 	vec3 lPos = mat3(ubo.model) * lightPos.xyz;
     outLightVec = lPos - pos.xyz;
