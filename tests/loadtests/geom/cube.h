@@ -65,3 +65,4 @@ static const unsigned short cube_index_buffer[] = {
 	16,19,17,18,16,17,	/* Bottom */
 	23,20,21,20,22,21	/* Top */
 };
+#define CUBE_NUM_INDICES (sizeof(cube_index_buffer) / sizeof(unsigned short))

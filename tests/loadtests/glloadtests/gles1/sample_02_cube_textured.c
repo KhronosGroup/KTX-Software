@@ -182,7 +182,7 @@ void atRun_02_cube(void* pAppData, uint32_t msTicks)
 {
 	/* Setup the view matrix : just turn around the cube. */
 	float matView[16];
-	const float fDistance = 50.0f;
+	const float fDistance = 5.0f;
 
 	atSetViewMatrix(matView, 
 		(float)cos( msTicks*0.001f ) * fDistance, (float)sin( msTicks*0.0007f ) * fDistance, (float)sin( msTicks*0.001f ) * fDistance, 
@@ -194,7 +194,8 @@ void atRun_02_cube(void* pAppData, uint32_t msTicks)
 	/* Draw */
 	glClear( GL_COLOR_BUFFER_BIT );
 
-	glDrawElements(GL_TRIANGLES, sizeof(cube_index_buffer), GL_UNSIGNED_BYTE, cube_index_buffer);
+	glDrawElements(GL_TRIANGLES, CUBE_NUM_INDICES,
+                   GL_UNSIGNED_SHORT, cube_index_buffer);
 
 	atAssert(GL_NO_ERROR == glGetError());
 }

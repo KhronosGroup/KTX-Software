@@ -262,7 +262,8 @@ void atRun_02_cube(void* pAppData, uint32_t msTicks)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUniformMatrix4fv(pData->gulMvMatrixLocTP, 1, GL_FALSE, matView);
 
-	glDrawElements(GL_TRIANGLES, sizeof(cube_index_buffer), GL_UNSIGNED_SHORT, (GLvoid*)(pData->iIndicesOffset));
+	glDrawElements(GL_TRIANGLES, CUBE_NUM_INDICES, GL_UNSIGNED_SHORT,
+                   (GLvoid*)(pData->iIndicesOffset));
 
 	atAssert(GL_NO_ERROR == glGetError());
 }
