@@ -88,8 +88,8 @@ main(int argc, char* argv[])
   if (!NEED_MAIN_LOOP) {
     // TODO: Fix this main to work for multiple windows. One way is to have the
     // application call setAnimationCallback and keep a list of the windows in
-    // this file, calling update for each window.
-    setAnimationCallback(SDL_GL_GetCurrentWindow(), theApp->onDrawFrame, theApp);
+    // this file, calling drawFrame for each window.
+    setAnimationCallback(theApp->getMainWindow(), theApp->onDrawFrame, theApp);
     // iOS version of SDL will not exit when main completes.
     // The Emscripten version of the app must be compiled with
     // -s NO_EXIT_RUNTIME=1 to prevent Emscripten exiting when main completes.

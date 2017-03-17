@@ -137,8 +137,6 @@ class VulkanAppSDL : public AppBaseSDL {
     // Set true if want presents v-sync'ed.
     bool enableVSync = false;
 
-    SDL_Window* pswMainWindow;
-
 	uint32_t w_width;
 	uint32_t w_height;
 

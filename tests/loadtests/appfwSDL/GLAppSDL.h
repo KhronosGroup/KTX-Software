@@ -72,7 +72,6 @@ class GLAppSDL : public AppBaseSDL {
   protected:
     void setWindowTitle(const char* const szExtra);
 
-    SDL_Window* pswMainWindow;
     SDL_GLContext sgcGLContext;
 
 	int w_width;

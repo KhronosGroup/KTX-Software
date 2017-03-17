@@ -57,6 +57,7 @@ class AppBaseSDL {
     virtual void drawFrame(uint32_t msTicks) { }
     virtual int doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
+    virtual SDL_Window* getMainWindow() { return pswMainWindow; }
     
     void drawFrame();
     void initializeFPSTimer();
@@ -79,6 +80,8 @@ class AppBaseSDL {
         int numFrames;
         float lastFPS;
     } fpsCounter;
+    
+    SDL_Window* pswMainWindow;
     
     const char* const szName;
     std::string sBasePath;
