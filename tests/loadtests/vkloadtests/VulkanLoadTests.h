@@ -68,6 +68,11 @@ class VulkanLoadTests : public VulkanAppSDL {
 
     const sampleInvocation* const siSamples;
     const int iNumSamples;
+    
+    struct {
+        int32_t x;
+        int32_t y;
+    } buttonDownPos;
 };
 
 #endif /* VULKAN_LOAD_TESTS_H */

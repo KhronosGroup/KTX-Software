@@ -104,13 +104,11 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             quit = true;
             break;
           case 'n':
-            // TODO advance to next sample when no keyboard
             if (++iCurSampleNum >= iNumSamples)
               iCurSampleNum = 0;
             invokeSample(iCurSampleNum);
             break;
           case 'p':
-            // TODO advance to next sample when no keyboard
             if (--iCurSampleNum < 0)
               iCurSampleNum = iNumSamples-1;
             invokeSample(iCurSampleNum);
@@ -118,6 +116,35 @@ VulkanLoadTests::doEvent(SDL_Event* event)
 
           default:
             done = false;
+        }
+        break;
+      case SDL_MOUSEBUTTONDOWN:
+        // Forward to sample in case this is the start of motion.
+        done = false;
+        switch (event->button.button) {
+          case SDL_BUTTON_LEFT:
+            buttonDownPos.x = event->button.x;
+            buttonDownPos.y = event->button.y;
+            break;
+          default:
+            break;
+        }
+        break;
+      case SDL_MOUSEBUTTONUP:
+        // Forward to sample so it doesn't get stuck in button down state.
+        done = false;
+        switch (event->button.button) {
+          case SDL_BUTTON_LEFT:
+            if (SDL_abs(event->button.x - buttonDownPos.x) < 5
+                && SDL_abs(event->button.y - buttonDownPos.y) < 5) {
+                // Advance to the next sample.
+                if (++iCurSampleNum >= iNumSamples)
+                    iCurSampleNum = 0;
+                invokeSample(iCurSampleNum);
+            }
+            break;
+          default:
+            break;
         }
         break;
       default:
@@ -162,11 +189,12 @@ VulkanLoadTests::invokeSample(int& iSampleNum)
     int width, height;
     const sampleInvocation* sampleInv;
 
+    prepared = false;  // Prevent any more rendering.
     if (pCurSample != nullptr) {
+        vkctx.queue.waitIdle(); // Wait for current rendering to finish.
         delete pCurSample;
     }
-    SDL_GetWindowSize(pswMainWindow, &width, & height);
-    prepared = false;
+    SDL_GetWindowSize(pswMainWindow, &width, &height);
     sampleInv = &siSamples[iSampleNum];
 
 	for (;;) {
@@ -220,8 +248,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
 #endif
     { Texture::create,
       "testimages/rgba-reference.ktx",
-      "RGBA8 2D"
+      "RGBA unsized 2D"
     },
+#if !defined(__IPHONEOS__) && !defined(__MACOS__)
+    // Uncompressed RGB formats not supported by Metal.
     { Texture::create,
       "testimages/orient-down-metadata-sized.ktx",
       "RGB8 2D + KTXOrientation down"
@@ -230,34 +260,42 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "testimages/orient-up-metadata-sized.ktx",
       "RGB8 2D + KTXOrientation up"
     },
+#endif
+    { Texture::create,
+        "testimages/etc2-rgb.ktx",
+        "ETC2 RGB8"
+    },
+    { Texture::create,
+        "testimages/etc2-rgba8.ktx",
+        "ETC2 RGB8A8"
+    },
+    { Texture::create,
+        "testimages/etc2-sRGB.ktx",
+        "ETC2 sRGB8"
+    },
+    { Texture::create,
+        "testimages/etc2-sRGBa8.ktx",
+        "ETC2 sRGB8a8"
+    },
+#if !defined(__IPHONEOS__)
+    // S3TC not supported on iOS.
     { Texture::create,
       "testimages/pattern_02_bc2.ktx",
       "BC2 (S3TC DXT3) Compressed 2D"
     },
-    { Texture::create,
-      "testimages/etc2-rgb.ktx",
-      "ETC2 RGB8"
-    },
-    { Texture::create,
-      "testimages/etc2-rgba8.ktx",
-      "ETC2 RGB8A8"
-    },
-    { Texture::create,
-      "testimages/etc2-sRGB.ktx",
-      "ETC2 sRGB8"
-    },
-    { Texture::create,
-      "testimages/etc2-sRGBa8.ktx",
-      "ETC2 sRGB8a8"
-    },
     { TextureArray::create,
       "testimages/texturearray_bc3.ktx",
-      "BC3 (S3TC DXT5) Texture Array"
+      "BC3 (S3TC DXT5) Compressed Texture Array"
     },
     { TextureCubemap::create,
       "testimages/cubemap_yokohama.ktx",
-      "Cube Map"
+      "BC2 (S3TC DXT3) Compressed Cube Map"
     },
+    { TextureCubemap::create,
+        "testimages/cubemap_yokohama_astc_8x8_unorm.ktx",
+        "ASTC Compressed Cube Map"
+    },
+#endif
 #if 0
     { TexturedCube::create,
       "testimages/rgb-amg-reference.ktx",
