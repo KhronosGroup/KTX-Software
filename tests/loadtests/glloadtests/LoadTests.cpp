@@ -111,6 +111,9 @@ LoadTests::doEvent(SDL_Event* event)
 void
 LoadTests::resize(int width, int height)
 {
+    // SDL iOS reports width & height in points. Get the drawable size
+    // to allow for high DPI usage.
+    SDL_GL_GetDrawableSize(pswMainWindow, &width, &height);
     if (pCurSampleData != NULL)
         pCurSampleInv->sample->pfResize(pCurSampleData, width, height);
 }
@@ -135,8 +138,8 @@ LoadTests::invokeSample(int iSampleNum)
                             pCurSampleInv->args,
                             szBasePath);
     
-    SDL_GL_GetDrawableSize(pswMainWindow, &width, & height);
     setWindowTitle(pCurSampleInv->title);
+    SDL_GL_GetDrawableSize(pswMainWindow, &width, &height);
     pCurSampleInv->sample->pfResize(pCurSampleData, width, height);
 }
 
