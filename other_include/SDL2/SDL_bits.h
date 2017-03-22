@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,8 +25,8 @@
  *  Functions for fiddling with bits and bitmasks.
  */
 
-#ifndef _SDL_bits_h
-#define _SDL_bits_h
+#ifndef SDL_bits_h_
+#define SDL_bits_h_
 
 #include "SDL_stdinc.h"
 
@@ -92,6 +92,6 @@ SDL_MostSignificantBitIndex32(Uint32 x)
 #endif
 #include "close_code.h"
 
-#endif /* _SDL_bits_h */
+#endif /* SDL_bits_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

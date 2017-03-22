@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,8 +19,8 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef _SDL_config_h
-#define _SDL_config_h
+#ifndef SDL_config_h_
+#define SDL_config_h_
 
 /**
  *  \file SDL_config.h.in
@@ -82,6 +82,8 @@
 #undef HAVE_LIBUDEV_H
 #undef HAVE_DBUS_DBUS_H
 #undef HAVE_IBUS_IBUS_H
+#undef HAVE_FCITX_FRONTEND_H
+#undef HAVE_LIBSAMPLERATE_H
 
 /* C library functions */
 #undef HAVE_MALLOC
@@ -172,6 +174,7 @@
 #undef HAVE_PTHREAD_SETNAME_NP
 #undef HAVE_PTHREAD_SET_NAME_NP
 #undef HAVE_SEM_TIMEDWAIT
+#undef HAVE_GETAUXVAL
 
 #else
 #define HAVE_STDARG_H   1
@@ -252,7 +255,6 @@
 #undef SDL_HAPTIC_XINPUT
 
 /* Enable various shared object loading systems */
-#undef SDL_LOADSO_HAIKU
 #undef SDL_LOADSO_DLOPEN
 #undef SDL_LOADSO_DUMMY
 #undef SDL_LOADSO_LDG
@@ -356,4 +358,13 @@
 #undef SDL_ASSEMBLY_ROUTINES
 #undef SDL_ALTIVEC_BLITTERS
 
-#endif /* _SDL_config_h */
+/* Enable ime support */
+#undef SDL_USE_IME
+
+/* Enable dynamic udev support */
+#undef SDL_UDEV_DYNAMIC
+
+/* Enable dynamic libsamplerate support */
+#undef SDL_LIBSAMPLERATE_DYNAMIC
+
+#endif /* SDL_config_h_ */

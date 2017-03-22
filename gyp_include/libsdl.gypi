@@ -96,7 +96,9 @@
               'link_settings': {
                 'libraries=': [
                   '-lSDL2', '-lSDL2main',
-                  '-ldl', '-lpthread'
+                  '-ldl', '-lpthread',
+                  # This is because of SDL_vulkan
+                  '-lX11-xcb',
                 ],
                 'library_dirs': [ '<(sdl2_lib_dir)' ],
               },
@@ -164,6 +166,7 @@
             'libraries=': [
               '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
+              '$(SDKROOT)/System/Library/Frameworks/AVFoundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/GameController.framework',
             ],

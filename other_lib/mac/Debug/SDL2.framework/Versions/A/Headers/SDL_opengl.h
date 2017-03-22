@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -32,8 +32,8 @@
  *  version included in SDL_opengl.h.
  */
 
-#ifndef _SDL_opengl_h
-#define _SDL_opengl_h
+#ifndef SDL_opengl_h_
+#define SDL_opengl_h_
 
 #include "SDL_config.h"
 
@@ -2171,6 +2171,6 @@ typedef void (APIENTRYP PFNGLEGLIMAGETARGETRENDERBUFFERSTORAGEOESPROC) (GLenum t
 
 #endif /* !__IPHONEOS__ */
 
-#endif /* _SDL_opengl_h */
+#endif /* SDL_opengl_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

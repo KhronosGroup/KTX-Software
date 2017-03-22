@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,8 +19,9 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef _SDL_config_winrt_h
-#define _SDL_config_winrt_h
+#ifndef SDL_config_winrt_h_
+#define SDL_config_winrt_h_
+#define SDL_config_h_
 
 #include "SDL_platform.h"
 
@@ -34,6 +35,9 @@
 */
 #ifndef NTDDI_WINBLUE
 #define NTDDI_WINBLUE 0x06030000
+#endif
+#ifndef NTDDI_WIN10
+#define NTDDI_WIN10 0x0A000000
 #endif
 
 /* This is a set of defines to configure the SDL features */
@@ -208,4 +212,4 @@ typedef unsigned int uintptr_t;
 #define SDL_ASSEMBLY_ROUTINES	1
 #endif
 
-#endif /* _SDL_config_winrt_h */
+#endif /* SDL_config_winrt_h_ */

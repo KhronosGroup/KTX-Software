@@ -140,13 +140,11 @@ class VulkanAppSDL : public AppBaseSDL {
 	uint32_t w_width;
 	uint32_t w_height;
 
-	uint32_t enabledExtensionCount;
-	uint32_t enabledLayerCount;
 	bool subOptimalPresentWarned;
 	bool validate;
 
-    const char* extensionNames[64];
-    const char* deviceValidationLayers[64];
+    std::vector<const char*> extensionNames;
+    std::vector<const char*> deviceValidationLayers;
 
     uint32_t vkQueueFamilyIndex;
 

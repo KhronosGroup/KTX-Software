@@ -59,7 +59,7 @@
 #include "VulkanSwapchain.h"
 
 #include <SDL2/SDL.h>
-#include <SDL_vulkan.h>
+#include <SDL2/SDL_vulkan.h>
 #include "AppBaseSDL.h"
 
 #define ERROR_RETURN(msg)                                                     \
@@ -98,7 +98,7 @@ VulkanSwapchain::initSurface(SDL_Window* window)
 {
     VkResult U_ASSERT_ONLY err;
 
-    if (!SDL_CreateVulkanSurface(window, instance, &surface)) {
+    if (SDL_CreateVulkanSurface(window, instance, &surface) < 0) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
         msg += SDL_GetError();
         ERROR_RETURN(msg.c_str());

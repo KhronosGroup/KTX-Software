@@ -44,11 +44,8 @@
          '../../../gyp_include/glsl2spirv.gypi'
       ],
       'include_dirs': [
-        # These are so SDL_vulkan.c will compile without changes
-        # from how it will be when eventually included in SDL source.
         '.',
         'VulkanAppSDL',
-        '../../../other_include/SDL2',
         # For stb.
         '../../../other_include',
       ],
@@ -59,13 +56,6 @@
         'AppBaseSDL.h',
         'GLAppSDL.cpp',
         'GLAppSDL.h',
-        # These 6 are here to avoid rebuilds of SDL during development.
-        'VulkanAppSDL/SDL_cocoametalview.h',
-        'VulkanAppSDL/SDL_cocoametalview.m',
-        'VulkanAppSDL/SDL_uikitmetalview.h',
-        'VulkanAppSDL/SDL_uikitmetalview.m',
-        'VulkanAppSDL/SDL_vulkan.c',
-        'VulkanAppSDL/SDL_vulkan.h',
         'VulkanAppSDL/VulkanAppSDL.cpp',
         'VulkanAppSDL/VulkanAppSDL.h',
         'VulkanAppSDL/vulkancheckres.h',
@@ -86,9 +76,6 @@
           ['OS == "android"', {
             'libraries': [ '-lstlport_static' ],
             'library_dirs': [ '<(cxx-stl)/stlport/libs/$(TARGET_ABI)' ],
-          }, 'OS == "linux"', {
-            # This is because of SDL_vulkan
-            'libraries': [ '-lX11-xcb' ],
           }],
         ],
         # Ideally we should include in this 'link_settings' setting of

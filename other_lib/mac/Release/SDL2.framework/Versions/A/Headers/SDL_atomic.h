@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -56,8 +56,8 @@
  * All of the atomic operations that modify memory are full memory barriers.
  */
 
-#ifndef _SDL_atomic_h_
-#define _SDL_atomic_h_
+#ifndef SDL_atomic_h_
+#define SDL_atomic_h_
 
 #include "SDL_stdinc.h"
 #include "SDL_platform.h"
@@ -149,6 +149,9 @@ void _ReadWriteBarrier(void);
  * For more information on these semantics, take a look at the blog post:
  * http://preshing.com/20120913/acquire-and-release-semantics
  */
+extern DECLSPEC void SDLCALL SDL_MemoryBarrierReleaseFunction(void);
+extern DECLSPEC void SDLCALL SDL_MemoryBarrierAcquireFunction(void);
+
 #if defined(__GNUC__) && (defined(__powerpc__) || defined(__ppc__))
 #define SDL_MemoryBarrierRelease()   __asm__ __volatile__ ("lwsync" : : : "memory")
 #define SDL_MemoryBarrierAcquire()   __asm__ __volatile__ ("lwsync" : : : "memory")
@@ -156,11 +159,11 @@ void _ReadWriteBarrier(void);
 #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
 #define SDL_MemoryBarrierRelease()   __asm__ __volatile__ ("dmb ish" : : : "memory")
 #define SDL_MemoryBarrierAcquire()   __asm__ __volatile__ ("dmb ish" : : : "memory")
-#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6T2__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__)
+#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6T2__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__) || defined(__ARM_ARCH_5TE__)
 #ifdef __thumb__
 /* The mcr instruction isn't available in thumb mode, use real functions */
-extern DECLSPEC void SDLCALL SDL_MemoryBarrierRelease();
-extern DECLSPEC void SDLCALL SDL_MemoryBarrierAcquire();
+#define SDL_MemoryBarrierRelease()   SDL_MemoryBarrierReleaseFunction()
+#define SDL_MemoryBarrierAcquire()   SDL_MemoryBarrierAcquireFunction()
 #else
 #define SDL_MemoryBarrierRelease()   __asm__ __volatile__ ("mcr p15, 0, %0, c7, c10, 5" : : "r"(0) : "memory")
 #define SDL_MemoryBarrierAcquire()   __asm__ __volatile__ ("mcr p15, 0, %0, c7, c10, 5" : : "r"(0) : "memory")
@@ -263,6 +266,6 @@ extern DECLSPEC void* SDLCALL SDL_AtomicGetPtr(void **a);
 
 #include "close_code.h"
 
-#endif /* _SDL_atomic_h_ */
+#endif /* SDL_atomic_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

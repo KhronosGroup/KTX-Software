@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,8 +19,9 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef _SDL_config_macosx_h
-#define _SDL_config_macosx_h
+#ifndef SDL_config_macosx_h_
+#define SDL_config_macosx_h_
+#define SDL_config_h_
 
 #include "SDL_platform.h"
 
@@ -185,4 +186,4 @@
 #define SDL_ALTIVEC_BLITTERS    1
 #endif
 
-#endif /* _SDL_config_macosx_h */
+#endif /* SDL_config_macosx_h_ */

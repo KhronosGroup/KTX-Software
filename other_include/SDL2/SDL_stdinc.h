@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,8 +25,8 @@
  *  This is a general header that includes C language support.
  */
 
-#ifndef _SDL_stdinc_h
-#define _SDL_stdinc_h
+#ifndef SDL_stdinc_h_
+#define SDL_stdinc_h_
 
 #include "SDL_config.h"
 
@@ -83,15 +83,19 @@
 #ifdef HAVE_FLOAT_H
 # include <float.h>
 #endif
-#if defined(HAVE_ICONV) && defined(HAVE_ICONV_H)
-# include <iconv.h>
-#endif
 
 /**
  *  The number of elements in an array.
  */
 #define SDL_arraysize(array)    (sizeof(array)/sizeof(array[0]))
 #define SDL_TABLESIZE(table)    SDL_arraysize(table)
+
+/**
+ *  Macro useful for building other macros with strings in them
+ *
+ *  e.g. #define LOG_ERROR(X) OutputDebugString(SDL_STRINGIFY_ARG(__FUNCTION__) ": " X "\n")
+ */
+#define SDL_STRINGIFY_ARG(arg)  #arg
 
 /**
  *  \name Cast operators
@@ -123,11 +127,18 @@
  */
 /* @{ */
 
+#ifdef __CC_ARM
+/* ARM's compiler throws warnings if we use an enum: like "SDL_bool x = a < b;" */
+#define SDL_FALSE 0
+#define SDL_TRUE 1
+typedef int SDL_bool;
+#else
 typedef enum
 {
     SDL_FALSE = 0,
     SDL_TRUE = 1
 } SDL_bool;
+#endif
 
 /**
  * \brief A signed 8-bit integer type.
@@ -522,6 +533,6 @@ SDL_FORCE_INLINE void *SDL_memcpy4(SDL_OUT_BYTECAP(dwords*4) void *dst, SDL_IN_B
 #endif
 #include "close_code.h"
 
-#endif /* _SDL_stdinc_h */
+#endif /* SDL_stdinc_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

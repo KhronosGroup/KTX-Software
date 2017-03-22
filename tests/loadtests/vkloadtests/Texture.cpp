@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab : */
 
 /*
  * Copyright (c) 2017, Mark Callow, www.edgewise-consulting.com.
@@ -59,25 +59,25 @@
 
 // Vertex layout for this example
 struct Vertex {
-	float pos[3];
-	float uv[2];
-	float normal[3];
-	float color[3];
+    float pos[3];
+    float uv[2];
+    float normal[3];
+    float color[3];
 };
 
 VulkanLoadTestSample*
 Texture::create(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
                  const char* const szArgs,
-				 const std::string sBasePath)
+                 const std::string sBasePath)
 {
     return new Texture(vkctx, width, height, szArgs, sBasePath);
 }
 
 Texture::Texture(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
-				 const char* const szArgs,
-				 const std::string sBasePath)
+                 const char* const szArgs,
+                 const std::string sBasePath)
         : VulkanLoadTestSample(vkctx, width, height, szArgs, sBasePath)
 {
     zoom = -2.5f;
@@ -99,7 +99,7 @@ Texture::Texture(VulkanContext& vkctx,
         std::stringstream message;
 
         message << "Load of texture \"" << getAssetPath() << szArgs
-        		<< "\" failed: " << ktxErrorString(ktxresult);
+                << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
 
@@ -124,16 +124,16 @@ Texture::Texture(VulkanContext& vkctx,
     }
 
     try {
-    	prepare();
+        prepare();
     } catch (std::exception& e) {
-    	cleanup();
-    	throw;
+        cleanup();
+        throw;
     }
 }
 
 Texture::~Texture()
 {
-	cleanup();
+    cleanup();
 }
 
 void
@@ -163,20 +163,21 @@ Texture::run(uint32_t msTicks)
 void
 Texture::cleanup()
 {
-	// Clean up used Vulkan resources
+    // Clean up used Vulkan resources
 
-	ktxVulkanTexture_destruct(&texture, vkctx.device, nullptr);
+    vkctx.destroyDrawCommandBuffers();
 
-	if (pipelines.solid)
-		vkctx.device.destroyPipeline(pipelines.solid);
-	if (pipelineLayout)
-		vkctx.device.destroyPipelineLayout(pipelineLayout);
-	if (descriptorSetLayout)
-		vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
+    ktxVulkanTexture_destruct(&texture, vkctx.device, nullptr);
 
-	vkctx.destroyDrawCommandBuffers();
-	quad.freeResources(vkctx.device);
-	uniformDataVS.freeResources(vkctx.device);
+    if (pipelines.solid)
+        vkctx.device.destroyPipeline(pipelines.solid);
+    if (pipelineLayout)
+        vkctx.device.destroyPipelineLayout(pipelineLayout);
+    if (descriptorSetLayout)
+        vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
+
+    quad.freeResources(vkctx.device);
+    uniformDataVS.freeResources(vkctx.device);
 }
 
 void
@@ -189,10 +190,10 @@ Texture::buildCommandBuffers()
     clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassBeginInfo(vkctx.renderPass,
-    		nullptr,
-			{{0, 0}, {w_width, w_height}},
-			2,
-			clearValues);
+            nullptr,
+            {{0, 0}, {w_width, w_height}},
+            2,
+            clearValues);
 
     for (int32_t i = 0; i < vkctx.drawCmdBuffers.size(); ++i)
     {
@@ -203,26 +204,26 @@ Texture::buildCommandBuffers()
             &static_cast<const VkCommandBufferBeginInfo&>(cmdBufInfo)));
 
         vkCmdBeginRenderPass(vkctx.drawCmdBuffers[i],
-        	&static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
-			VK_SUBPASS_CONTENTS_INLINE);
+            &static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
+            VK_SUBPASS_CONTENTS_INLINE);
 
         vk::Viewport viewport(0, 0,
-        					  (float)w_width, (float)w_height,
-							  0.0f, 1.0f);
+                              (float)w_width, (float)w_height,
+                              0.0f, 1.0f);
         vkCmdSetViewport(vkctx.drawCmdBuffers[i], 0, 1,
-        		&static_cast<const VkViewport&>(viewport));
+                &static_cast<const VkViewport&>(viewport));
 
         vk::Rect2D scissor({0, 0}, {w_width, w_height});
         vkCmdSetScissor(vkctx.drawCmdBuffers[i], 0, 1,
-        		&static_cast<const VkRect2D&>(scissor));
+                &static_cast<const VkRect2D&>(scissor));
 
         vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-        		pipelineLayout, 0, 1, &static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
+                pipelineLayout, 0, 1, &static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
         vkCmdBindPipeline(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.solid);
 
         VkDeviceSize offsets[1] = { 0 };
         vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID,
-        		1, &static_cast<const VkBuffer&>(quad.vertices.buf), offsets);
+                1, &static_cast<const VkBuffer&>(quad.vertices.buf), offsets);
         vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdDrawIndexed(vkctx.drawCmdBuffers[i], quad.indexCount, 1, 0, 0, 0);
@@ -261,7 +262,7 @@ Texture::generateQuad()
         }
     }
     vkctx.createBuffer(
-    	vk::BufferUsageFlagBits::eVertexBuffer,
+        vk::BufferUsageFlagBits::eVertexBuffer,
         vertexBuffer.size() * sizeof(Vertex),
         vertexBuffer.data(),
         &quad.vertices.buf,
@@ -272,7 +273,7 @@ Texture::generateQuad()
     quad.indexCount = static_cast<uint32_t>(indexBuffer.size());
 
     vkctx.createBuffer(
-    	vk::BufferUsageFlagBits::eIndexBuffer,
+        vk::BufferUsageFlagBits::eIndexBuffer,
         indexBuffer.size() * sizeof(uint32_t),
         indexBuffer.data(),
         &quad.indices.buf,
@@ -304,7 +305,7 @@ Texture::setupVertexDescriptions()
     vertices.attributeDescriptions[1] =
         vk::VertexInputAttributeDescription(
             1,
-			VERTEX_BUFFER_BIND_ID,
+            VERTEX_BUFFER_BIND_ID,
             vk::Format::eR32G32Sfloat,
             sizeof(float) * 3);
     // Location 2 : Vertex normal
@@ -338,7 +339,7 @@ Texture::setupDescriptorPool()
     // Example uses one ubo and one image sampler
     std::vector<vk::DescriptorPoolSize> poolSizes =
     {
-    	{vk::DescriptorType::eUniformBuffer, 1},
+        {vk::DescriptorType::eUniformBuffer, 1},
         {vk::DescriptorType::eCombinedImageSampler, 1}
     };
 
@@ -348,7 +349,7 @@ Texture::setupDescriptorPool()
                                         static_cast<uint32_t>(poolSizes.size()),
                                         poolSizes.data());
     vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
-    		                          &descriptorPool);
+                                      &descriptorPool);
 }
 
 void
@@ -357,14 +358,14 @@ Texture::setupDescriptorSetLayout()
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings =
     {
         // Binding 0 : Vertex shader uniform buffer
-    	{0,
+        {0,
          vk::DescriptorType::eUniformBuffer,
-		 1,
+         1,
          vk::ShaderStageFlagBits::eVertex},
         // Binding 1 : Fragment shader image sampler
-		{1,
-		 vk::DescriptorType::eCombinedImageSampler,
-		 1,
+        {1,
+         vk::DescriptorType::eCombinedImageSampler,
+         1,
          vk::ShaderStageFlagBits::eFragment},
     };
 
@@ -374,16 +375,16 @@ Texture::setupDescriptorSetLayout()
                               setLayoutBindings.data());
 
     vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
-    									   &descriptorSetLayout);
+                                           &descriptorSetLayout);
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo(
-    												{},
-													1,
-													&descriptorSetLayout);
+                                                    {},
+                                                    1,
+                                                    &descriptorSetLayout);
 
     vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
-    								  nullptr,
-									  &pipelineLayout);
+                                      nullptr,
+                                      &pipelineLayout);
 }
 
 void
@@ -391,8 +392,8 @@ Texture::setupDescriptorSet()
 {
     vk::DescriptorSetAllocateInfo allocInfo(
             descriptorPool,
-			1,
-			&descriptorSetLayout);
+            1,
+            &descriptorSetLayout);
 
     vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSet);
 
@@ -406,20 +407,20 @@ Texture::setupDescriptorSet()
     // Binding 0 : Vertex shader uniform buffer
     writeDescriptorSets.push_back(vk::WriteDescriptorSet(
             descriptorSet,
-			0,
-			0,
-			1,
-			vk::DescriptorType::eUniformBuffer,
-			nullptr,
+            0,
+            0,
+            1,
+            vk::DescriptorType::eUniformBuffer,
+            nullptr,
             &uniformDataVS.descriptor)
-    	);
-	// Binding 1 : Fragment shader texture sampler
-	writeDescriptorSets.push_back(vk::WriteDescriptorSet(
-			descriptorSet,
-			1,
-			0,
-			1,
-			vk::DescriptorType::eCombinedImageSampler,
+        );
+    // Binding 1 : Fragment shader texture sampler
+    writeDescriptorSets.push_back(vk::WriteDescriptorSet(
+            descriptorSet,
+            1,
+            0,
+            1,
+            vk::DescriptorType::eCombinedImageSampler,
             &texDescriptor)
     );
 
@@ -435,7 +436,7 @@ Texture::preparePipelines()
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
-			vk::PrimitiveTopology::eTriangleList);
+            vk::PrimitiveTopology::eTriangleList);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
     rasterizationState.depthClampEnable = VK_TRUE;
@@ -449,9 +450,9 @@ Texture::preparePipelines()
     blendAttachmentState.blendEnable = VK_FALSE;
     //blendAttachmentState.colorWriteMask = 0xf;
     blendAttachmentState.colorWriteMask = vk::ColorComponentFlagBits::eR
-    									  | vk::ColorComponentFlagBits::eG
-										  | vk::ColorComponentFlagBits::eB
-										  | vk::ColorComponentFlagBits::eA;
+                                          | vk::ColorComponentFlagBits::eG
+                                          | vk::ColorComponentFlagBits::eB
+                                          | vk::ColorComponentFlagBits::eA;
 
     vk::PipelineColorBlendStateCreateInfo colorBlendState;
     colorBlendState.attachmentCount = 1;
@@ -470,11 +471,11 @@ Texture::preparePipelines()
     multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
 
     std::vector<vk::DynamicState> dynamicStateEnables = {
-    	vk::DynamicState::eViewport,
-		vk::DynamicState::eScissor
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor
     };
     vk::PipelineDynamicStateCreateInfo dynamicState(
-    		{},
+            {},
             static_cast<uint32_t>(dynamicStateEnables.size()),
             dynamicStateEnables.data());
 
@@ -482,9 +483,9 @@ Texture::preparePipelines()
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
     std::string filepath = getAssetPath() + "shaders/";
     shaderStages[0] = loadShader(filepath + "texture.vert.spv",
-    							vk::ShaderStageFlagBits::eVertex);
+                                vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = loadShader(filepath + "texture.frag.spv",
-    							vk::ShaderStageFlagBits::eFragment);
+                                vk::ShaderStageFlagBits::eFragment);
 
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
     pipelineCreateInfo.layout = pipelineLayout;
@@ -501,8 +502,8 @@ Texture::preparePipelines()
     pipelineCreateInfo.pStages = shaderStages.data();
 
     vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-    		                             &pipelineCreateInfo, nullptr,
-										 &pipelines.solid);
+                                         &pipelineCreateInfo, nullptr,
+                                         &pipelines.solid);
 }
 
 // Prepare and initialize uniform buffer containing shader uniforms
@@ -511,7 +512,7 @@ Texture::prepareUniformBuffers()
 {
     // Vertex shader uniform buffer block
     vkctx.createBuffer(
-    	vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::BufferUsageFlagBits::eUniformBuffer,
         sizeof(uboVS),
         &uboVS,
         &uniformDataVS.buffer,

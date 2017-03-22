@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,8 +25,8 @@
  *  Defines keyboard scancodes.
  */
 
-#ifndef _SDL_scancode_h
-#define _SDL_scancode_h
+#ifndef SDL_scancode_h_
+#define SDL_scancode_h_
 
 #include "SDL_stdinc.h"
 
@@ -396,6 +396,6 @@ typedef enum
                                  for array bounds */
 } SDL_Scancode;
 
-#endif /* _SDL_scancode_h */
+#endif /* SDL_scancode_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

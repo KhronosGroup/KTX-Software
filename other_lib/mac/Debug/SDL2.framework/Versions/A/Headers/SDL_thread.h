@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,8 +19,8 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef _SDL_thread_h
-#define _SDL_thread_h
+#ifndef SDL_thread_h_
+#define SDL_thread_h_
 
 /**
  *  \file SDL_thread.h
@@ -74,15 +74,15 @@ typedef int (SDLCALL * SDL_ThreadFunction) (void *data);
  *
  *  We compile SDL into a DLL. This means, that it's the DLL which
  *  creates a new thread for the calling process with the SDL_CreateThread()
- *  API. There is a problem with this, that only the RTL of the SDL.DLL will
+ *  API. There is a problem with this, that only the RTL of the SDL2.DLL will
  *  be initialized for those threads, and not the RTL of the calling
  *  application!
  *
  *  To solve this, we make a little hack here.
  *
  *  We'll always use the caller's _beginthread() and _endthread() APIs to
- *  start a new thread. This way, if it's the SDL.DLL which uses this API,
- *  then the RTL of SDL.DLL will be used to create the new thread, and if it's
+ *  start a new thread. This way, if it's the SDL2.DLL which uses this API,
+ *  then the RTL of SDL2.DLL will be used to create the new thread, and if it's
  *  the application, then the RTL of the application will be used.
  *
  *  So, in short:
@@ -282,6 +282,6 @@ extern DECLSPEC int SDLCALL SDL_TLSSet(SDL_TLSID id, const void *value, void (*d
 #endif
 #include "close_code.h"
 
-#endif /* _SDL_thread_h */
+#endif /* SDL_thread_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -111,7 +111,7 @@
 #elif defined(_MSC_VER) || defined(__BORLANDC__) || \
       defined(__DMC__) || defined(__SC__) || \
       defined(__WATCOMC__) || defined(__LCC__) || \
-      defined(__DECC)
+      defined(__DECC) || defined(__CC_ARM)
 #define SDL_INLINE __inline
 #ifndef __inline__
 #define __inline__ __inline
@@ -133,6 +133,16 @@
 #define SDL_FORCE_INLINE static SDL_INLINE
 #endif
 #endif /* SDL_FORCE_INLINE not defined */
+
+#ifndef SDL_NORETURN
+#if defined(__GNUC__)
+#define SDL_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+#define SDL_NORETURN __declspec(noreturn)
+#else
+#define SDL_NORETURN
+#endif
+#endif /* SDL_NORETURN not defined */
 
 /* Apparently this is needed by several Windows compilers */
 #if !defined(__MACH__)

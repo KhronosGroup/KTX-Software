@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,8 +25,8 @@
  *  CPU feature detection for SDL.
  */
 
-#ifndef _SDL_cpuinfo_h
-#define _SDL_cpuinfo_h
+#ifndef SDL_cpuinfo_h_
+#define SDL_cpuinfo_h_
 
 #include "SDL_stdinc.h"
 
@@ -60,6 +60,9 @@
 #endif
 #ifdef __SSE2__
 #include <emmintrin.h>
+#endif
+#ifdef __SSE3__
+#include <pmmintrin.h>
 #endif
 #endif
 
@@ -145,6 +148,11 @@ extern DECLSPEC SDL_bool SDLCALL SDL_HasAVX(void);
 extern DECLSPEC SDL_bool SDLCALL SDL_HasAVX2(void);
 
 /**
+ *  This function returns true if the CPU has NEON (ARM SIMD) features.
+ */
+extern DECLSPEC SDL_bool SDLCALL SDL_HasNEON(void);
+
+/**
  *  This function returns the amount of RAM configured in the system, in MB.
  */
 extern DECLSPEC int SDLCALL SDL_GetSystemRAM(void);
@@ -156,6 +164,6 @@ extern DECLSPEC int SDLCALL SDL_GetSystemRAM(void);
 #endif
 #include "close_code.h"
 
-#endif /* _SDL_cpuinfo_h */
+#endif /* SDL_cpuinfo_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

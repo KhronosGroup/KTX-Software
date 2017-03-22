@@ -58,7 +58,7 @@
 #include "VulkanAppSDL.h"
 // Include this when vulkantools is removed.
 //#include "vulkancheckres.h"
-#include <SDL_vulkan.h>
+#include <SDL2/SDL_vulkan.h>
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -437,32 +437,25 @@ VulkanAppSDL::createInstance()
 {
     VkResult err;
     uint32_t instanceLayerCount = 0;
-    uint32_t deviceValidationLayerCount = 0;
-    const char **instanceValidationLayers = NULL;
+    std::vector<const char *>* instanceValidationLayers = nullptr;
 
-    const char *instanceValidationLayers_alt1[] = {
+    std::vector<const char *> instanceValidationLayers_alt1 = {
         "VK_LAYER_LUNARG_standard_validation"
     };
 
-    const char *instanceValidationLayers_alt2[] = {
+    std::vector<const char *> instanceValidationLayers_alt2 = {
         "VK_LAYER_GOOGLE_threading",     "VK_LAYER_LUNARG_parameter_validation",
         "VK_LAYER_LUNARG_device_limits", "VK_LAYER_LUNARG_object_tracker",
         "VK_LAYER_LUNARG_image",         "VK_LAYER_LUNARG_core_validation",
         "VK_LAYER_LUNARG_swapchain",     "VK_LAYER_GOOGLE_unique_objects"
     };
 
-    enabledExtensionCount = 0;
-    enabledLayerCount = 0;
-
     // Look for validation layers.
     bool validationFound = 0;
-    memset(deviceValidationLayers, 0, sizeof(deviceValidationLayers));
     if (validate) {
-
         err = vkEnumerateInstanceLayerProperties(&instanceLayerCount, NULL);
         assert(err == VK_SUCCESS);
 
-        instanceValidationLayers = instanceValidationLayers_alt1;
         if (instanceLayerCount > 0) {
             VkLayerProperties* instanceLayers
                 = new VkLayerProperties[instanceLayerCount];
@@ -471,27 +464,26 @@ VulkanAppSDL::createInstance()
             assert(err == VK_SUCCESS);
 
             validationFound = checkLayers(
-                                     ARRAY_LEN(instanceValidationLayers_alt1),
-                                     instanceValidationLayers,
-                                     instanceLayerCount,
-                                     instanceLayers);
+                                (uint32_t)instanceValidationLayers_alt1.size(),
+                                instanceValidationLayers_alt1.data(),
+                                instanceLayerCount,
+                                instanceLayers);
             if (validationFound) {
-                enabledLayerCount = ARRAY_LEN(instanceValidationLayers_alt1);
-                deviceValidationLayers[0]
-                                       = "VK_LAYER_LUNARG_standard_validation";
-                deviceValidationLayerCount = 1;
+                instanceValidationLayers = &instanceValidationLayers_alt1;
             } else {
                 // Use alternative set of validation layers.
-                instanceValidationLayers = instanceValidationLayers_alt2;
-                enabledLayerCount = ARRAY_LEN(instanceValidationLayers_alt2);
                 validationFound = checkLayers(
-                    ARRAY_LEN(instanceValidationLayers_alt2),
-                    instanceValidationLayers, instanceLayerCount,
-                    instanceLayers);
-                deviceValidationLayerCount =
-                        ARRAY_LEN(instanceValidationLayers_alt2);
-                for (uint32_t i = 0; i < deviceValidationLayerCount; i++) {
-                    deviceValidationLayers[i] = instanceValidationLayers[i];
+                                (uint32_t)instanceValidationLayers_alt2.size(),
+                                instanceValidationLayers_alt2.data(),
+                                instanceLayerCount,
+                                instanceLayers);
+                instanceValidationLayers = &instanceValidationLayers_alt2;
+            }
+            if (validationFound) {
+                for (uint32_t i = 0; i < instanceValidationLayers->size(); i++)
+                {
+                    deviceValidationLayers.push_back(
+                                instanceValidationLayers->data()[i]);
                 }
             }
             delete [] instanceLayers;
@@ -505,32 +497,24 @@ VulkanAppSDL::createInstance()
 
 
     /* Build list of needed extensions */
-    memset(extensionNames, 0, sizeof(extensionNames));
-
-    extensionNames[enabledExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
+    uint32_t c = SDL_GetVulkanInstanceExtensions(0, nullptr);
+    extensionNames.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     if (validate)
-        extensionNames[enabledExtensionCount++] =
-                                           VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
+        extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-    unsigned c = ARRAY_LEN(extensionNames) - enabledExtensionCount;
-    if (!SDL_GetVulkanInstanceExtensions(&c,
-                                     &extensionNames[enabledExtensionCount])) {
-        std::string msg;
-        msg = "SDL_GetVulkanInstanceExtensions failed: ";
-        msg += SDL_GetError();
-        ERROR_RETURN(msg.c_str());
-    }
-    enabledExtensionCount += c;
+    uint32_t i = (uint32_t)extensionNames.size();
+    extensionNames.resize(i + c);
+    (void)SDL_GetVulkanInstanceExtensions(c, &extensionNames.data()[i]);
 
     const vk::ApplicationInfo app(szName, 0, szName, 0, vkVersion);
 
     vk::InstanceCreateInfo instanceInfo(
-								{},
-								&app,
-								enabledLayerCount,
-								(const char *const *)instanceValidationLayers,
-								enabledExtensionCount,
-								(const char *const *)extensionNames);
+                            {},
+                            &app,
+                            (uint32_t)deviceValidationLayers.size(),
+                            (const char *const *)deviceValidationLayers.data(),
+                            (uint32_t)extensionNames.size(),
+                            (const char *const *)extensionNames.data());
 
     /*
      * This is info for a temp callback to use during CreateInstance.
@@ -583,7 +567,7 @@ VulkanAppSDL::createInstance()
                 assert(err == VK_SUCCESS);
             }
             msg << "Cannot find the following extensions:\n";
-            for (int i = 0; i < enabledExtensionCount; i++) {
+            for (int i = 0; i < extensionNames.size(); i++) {
                 int j;
                 for (j = 0; j < instanceExtensionCount; j++) {
                     if (!strcmp(extensionNames[i],
@@ -719,9 +703,9 @@ VulkanAppSDL::createDevice()
 			{},
 			1,
 			&queueInfo,
-			enabledLayerCount,
+			(uint32_t)deviceValidationLayers.size(),
 			(const char *const *)((validate)
-								  ? deviceValidationLayers
+								  ? deviceValidationLayers.data()
 								  : NULL),
 			enabledDeviceExtensionCount,
 			(const char *const *)deviceExtensionNames);
