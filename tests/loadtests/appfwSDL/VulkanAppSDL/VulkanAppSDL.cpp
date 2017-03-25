@@ -391,8 +391,9 @@ VulkanAppSDL::submitFrame()
     } else
         assert(!err);
 
-    // This is necessary because we use the same command buffers every frame
-    // and they aren't marked for simultaneous use.
+    // This is necessary because the text overlay's command buffer changes
+    // every frame and, although the other command buffers are the same
+    // every frame, they aren't marked for simultaneous use.
     VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
 }
 
