@@ -79,8 +79,8 @@ should be made only to the GYP files.
 Thanks to [0xced@stackoverflow](http://stackoverflow.com/users/21698/0xced)
 for this solution.
 
-The team identifier, formally known as the Organizational Unit, is an
-alphanumeric code (in the case of the author's "personal team") can be found
+The team identifier, formally known as the Organizational Unit, an
+alphanumeric code (in the case of the author's "personal team"), can be found
 as follows:
 
 - Open Keychain Access (it's in /Applications/Utilities)
@@ -91,12 +91,12 @@ as follows:
 - Click the triangle beside *Details* to expand it, if not already expanded
 - Copy the value of the *Organizational Unit* field under *Subject Name*
 
-If you have already manually selected the team in Xcode, you can find the
+If you have already manually selected your team in Xcode, you can find the
 Organizational Unit and revert to the original project file by running
 the following in the KTX project root:
 
 ```bash
-grep DEVELOPMENT_TEAM build/xcode/{ios,mac}/ktxtests.xcodeproj/project.pbxproj
+git diff | grep DEVELOPMENT_TEAM
 git checkout build/xcode
 ```
 
