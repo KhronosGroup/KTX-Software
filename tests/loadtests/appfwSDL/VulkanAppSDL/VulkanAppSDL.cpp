@@ -125,6 +125,7 @@ VulkanAppSDL::initialize(int argc, char* argv[])
                         SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
                         SDL_WINDOW_RESIZABLE
+                        //SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
                     );
 
     if (pswMainWindow == NULL) {
@@ -138,11 +139,6 @@ VulkanAppSDL::initialize(int argc, char* argv[])
 	}
 
 	subOptimalPresentWarned = false;
-
-    // Not getting an initial resize event, at least on Mac OS X.
-    // Therefore call resize directly.
-    
-    //resize(w_width, w_height);
 
     initializeFPSTimer();
     return true;
@@ -498,14 +494,14 @@ VulkanAppSDL::createInstance()
 
 
     /* Build list of needed extensions */
-    uint32_t c = SDL_GetVulkanInstanceExtensions(0, nullptr);
+    uint32_t c = SDL_Vulkan_GetInstanceExtensions(0, nullptr);
     extensionNames.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     if (validate)
         extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
     uint32_t i = (uint32_t)extensionNames.size();
     extensionNames.resize(i + c);
-    (void)SDL_GetVulkanInstanceExtensions(c, &extensionNames.data()[i]);
+    (void)SDL_Vulkan_GetInstanceExtensions(c, &extensionNames.data()[i]);
 
     const vk::ApplicationInfo app(szName, 0, szName, 0, vkVersion);
 

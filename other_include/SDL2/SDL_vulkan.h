@@ -64,10 +64,10 @@ extern "C" {
  *        VkCreateInstance, otherwise surface creation will fail.
  *
  *
- *  \sa SDL_CreateVulkanSurface()
+ *  \sa SDL_Vulkan_CreateSurface()
  */
-extern DECLSPEC int SDLCALL SDL_GetVulkanInstanceExtensions(unsigned int length,
-                                                            const char** names);
+extern DECLSPEC int SDLCALL SDL_Vulkan_GetInstanceExtensions(unsigned int length,
+                                                             const char** names);
 
 /**
  *  \brief Create a Vulkan rendering surface attached to the passed window.
@@ -80,14 +80,36 @@ extern DECLSPEC int SDLCALL SDL_GetVulkanInstanceExtensions(unsigned int length,
  *  \return 0 on success, or -1 on error.
  *
  *  \note Before calling this, the application must call
- *        SDL_GetVulkanInstanceExtensions() and pass the needed extensions along
- *        when creating the Vulkan instance \a instance.
+ *        SDL_Vulkan_GetInstanceExtensions() and pass the needed extensions
+ *        along when creating the Vulkan instance \a instance.
  *
- *  \sa SDL_GetVulkanInstanceExtensions()
+ *  \sa SDL_Vulkan_GetInstanceExtensions()
  */
-extern DECLSPEC int SDLCALL SDL_CreateVulkanSurface(SDL_Window* window,
-                                                    VkInstance instance,
-                                                    VkSurfaceKHR* surface);
+extern DECLSPEC int SDLCALL SDL_Vulkan_CreateSurface(SDL_Window* window,
+                                                     VkInstance instance,
+                                                     VkSurfaceKHR* surface);
+    
+/**
+ *  \brief Get the size of a window's underlying drawable in pixels (for use
+ *         with setting viewport, scissor & etc).
+ *
+ *  \param window   Window from which the drawable size should be queried
+ *  \param w        Pointer to variable for storing the width in pixels,
+ *                  may be NULL
+ *  \param h        Pointer to variable for storing the height in pixels,
+ *                  may be NULL
+ *
+ * This may differ from SDL_GetWindowSize() if we're rendering to a high-DPI
+ * drawable, i.e. the window was created with SDL_WINDOW_ALLOW_HIGHDPI on a
+ * platform with high-DPI support (Apple calls this "Retina"), and not disabled
+ * by the SDL_HINT_VIDEO_HIGHDPI_DISABLED hint.
+ *
+ *  \sa SDL_GetWindowSize()
+ *  \sa SDL_CreateWindow()
+ */
+extern DECLSPEC void SDLCALL SDL_Vulkan_GetDrawableSize(SDL_Window * window,
+                                                        int *w, int *h);
+
 
 #ifdef __cplusplus
 }

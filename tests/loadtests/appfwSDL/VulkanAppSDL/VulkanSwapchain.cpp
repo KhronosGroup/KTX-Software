@@ -98,7 +98,7 @@ VulkanSwapchain::initSurface(SDL_Window* window)
 {
     VkResult U_ASSERT_ONLY err;
 
-    if (SDL_CreateVulkanSurface(window, instance, &surface) < 0) {
+    if (SDL_Vulkan_CreateSurface(window, instance, &surface) < 0) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
         msg += SDL_GetError();
         ERROR_RETURN(msg.c_str());
@@ -281,7 +281,6 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
     }
     else
     {
-        // If the surface size is defined, the swap chain size must match
         swapchainExtent = surfCaps.currentExtent;
         *width = surfCaps.currentExtent.width;
         *height = surfCaps.currentExtent.height;
