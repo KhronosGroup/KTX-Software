@@ -69,7 +69,7 @@ class LoadTests : public GLAppSDL {
     virtual void finalize();
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();
-    virtual void resize(int width, int height);
+    virtual void windowResized();
 
   protected:
     

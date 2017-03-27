@@ -180,7 +180,9 @@ VulkanAppSDL::doEvent(SDL_Event* event)
       case SDL_WINDOWEVENT:
         switch (event->window.event) {
           case SDL_WINDOWEVENT_SIZE_CHANGED:
-            resizeWindow(event->window.data1, event->window.data2);
+            // Size given in event is in 'points' on some platforms.
+            // Resize window will figure out the drawable pixel size.
+            resizeWindow(/*event->window.data1, event->window.data2*/);
 		    return 0;
         }
         break;
@@ -217,7 +219,7 @@ VulkanAppSDL::windowResized()
 }
 
 void
-VulkanAppSDL::resizeWindow(int width, int height)
+VulkanAppSDL::resizeWindow()
 {
     // XXX Necessary? Get out-of-date errors from vkAcquireNextImage regardless
     // of whether this guard is used. This guard doesn't seem to make them any
@@ -232,8 +234,7 @@ VulkanAppSDL::resizeWindow(int width, int height)
 #endif
 
     // Recreate swap chain
-    w_width = width;
-    w_height = height;
+    SDL_Vulkan_GetDrawableSize(pswMainWindow, (int*)&w_width, (int*)&w_height);
 
     // This destroys any existing swapchain and makes a new one.
     createSwapchain();

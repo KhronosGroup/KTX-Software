@@ -186,11 +186,9 @@ GLAppSDL::initialize(int argc, char* argv[])
         }
     }
 #endif
-
-    // Not getting an initial resize event, at least on Mac OS X.
-    // Therefore call resize directly.
     
-    resize(w_width, w_height);
+    // In case the window is created with a different size than specified.
+    resizeWindow();
 
     initializeFPSTimer();
     return true;
@@ -211,7 +209,9 @@ GLAppSDL::doEvent(SDL_Event* event)
       case SDL_WINDOWEVENT:
         switch (event->window.event) {
           case SDL_WINDOWEVENT_SIZE_CHANGED:
-            resize(event->window.data1, event->window.data2);
+            // Size given in event is in 'points' on some platforms.
+            // Resize window will figure out the drawable pixel size.
+            resizeWindow(/*event->window.data1, event->window.data2*/);
 		    return 0;
         }
         break;
@@ -229,8 +229,17 @@ GLAppSDL::drawFrame(uint32_t msTicks)
 
 
 void
-GLAppSDL::resize(int width, int height)
+GLAppSDL::windowResized()
 {
+    // Derived class can override as necessary.
+}
+
+
+void
+GLAppSDL::resizeWindow()
+{
+    SDL_GL_GetDrawableSize(pswMainWindow, &w_width, &w_height);
+    windowResized();
 }
 
 

@@ -42,6 +42,8 @@
 
 #include <exception>
 
+#include <SDL2/SDL_vulkan.h>
+
 #include "VulkanLoadTests.h"
 #include "Texture.h"
 #include "TextureArray.h"
@@ -186,7 +188,6 @@ VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay)
 void
 VulkanLoadTests::invokeSample(int& iSampleNum)
 {
-    int width, height;
     const sampleInvocation* sampleInv;
 
     prepared = false;  // Prevent any more rendering.
@@ -194,12 +195,11 @@ VulkanLoadTests::invokeSample(int& iSampleNum)
         vkctx.queue.waitIdle(); // Wait for current rendering to finish.
         delete pCurSample;
     }
-    SDL_GetWindowSize(pswMainWindow, &width, &height);
     sampleInv = &siSamples[iSampleNum];
 
 	for (;;) {
 		try {
-			pCurSample = sampleInv->createSample(vkctx, width, height,
+			pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
 									sampleInv->args, sBasePath);
 			break;
 		} catch (std::exception& e) {

@@ -67,7 +67,8 @@ class GLAppSDL : public AppBaseSDL {
     virtual void finalize();
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();
-    virtual void resize(int width, int height);
+    virtual void resizeWindow();
+    virtual void windowResized();
 
   protected:
     void setWindowTitle(const char* const szExtra);

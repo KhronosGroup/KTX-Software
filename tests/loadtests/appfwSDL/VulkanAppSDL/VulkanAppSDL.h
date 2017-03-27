@@ -69,7 +69,7 @@ class VulkanAppSDL : public AppBaseSDL {
     virtual void finalize();
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();
-    virtual void resizeWindow(int width, int height);
+    virtual void resizeWindow();
     virtual void windowResized();
 
     static void* operator new(size_t size) {
