@@ -140,7 +140,7 @@ VulkanLoadTests::doEvent(SDL_Event* event)
           case SDL_BUTTON_LEFT:
             if (SDL_abs(event->button.x - buttonDown.x) < 5
                 && SDL_abs(event->button.y - buttonDown.y) < 5
-				&& (event->button.timestamp - buttonDown.timestamp) < 40) {
+				&& (event->button.timestamp - buttonDown.timestamp) < 100) {
                 // Advance to the next sample.
                 if (++iCurSampleNum >= iNumSamples)
                     iCurSampleNum = 0;
