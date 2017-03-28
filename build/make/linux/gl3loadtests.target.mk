@@ -113,7 +113,6 @@ LDFLAGS_Release := \
 	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
 
 LIBS := \
-	-lX11-xcb \
 	-lSDL2-2.0 \
 	-lSDL2main \
 	-ldl \

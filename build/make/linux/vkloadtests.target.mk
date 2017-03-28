@@ -254,7 +254,6 @@ LDFLAGS_Release := \
 
 LIBS := \
 	-lpthread \
-	-lX11-xcb \
 	-lSDL2-2.0 \
 	-lSDL2main \
 	-ldl \

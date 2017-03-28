@@ -81,8 +81,9 @@
               'copies': [{
                 'destination': '<(PRODUCT_DIR)',
                 'files': [
-                  '<(sdl2_lib_dir)/libSDL2-2.0.so.0',
-                  '<(sdl2_lib_dir)/libSDL2-2.0.so.0.4.0',
+                  '<(sdl2_lib_dir)/libSDL2-2.0.so',
+                  '<(sdl2_lib_dir)/libSDL2-2.0.so.1',
+                  '<(sdl2_lib_dir)/libSDL2-2.0.so.0.4.1',
                 ],
               }], # copies
             }, 'sdl_to_use == "installed_dylib"', {

@@ -381,8 +381,8 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_space.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_vulkan.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
@@ -405,7 +405,9 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3.ktx")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx")
 list(APPEND testimages__copies__output
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
@@ -414,8 +416,8 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/cubemap_space.ktx"
   "${builddir}/testimages/cubemap_vulkan.ktx"
   "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
+  "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx"
-  "${builddir}/testimages/cubemap_yokohama.ktx"
   "${builddir}/testimages/etc1.ktx"
   "${builddir}/testimages/etc2-rgba1.ktx"
   "${builddir}/testimages/etc2-rgba8.ktx"
@@ -438,7 +440,9 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/rgb-mipmap-reference.ktx"
   "${builddir}/testimages/rgb-reference.ktx"
-  "${builddir}/testimages/texturearray_bc3.ktx")
+  "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
+  "${builddir}/testimages/texturearray_bc3_unorm.ktx"
+  "${builddir}/testimages/texturearray_etc2_unorm.ktx")
 add_custom_command(
 OUTPUT ${testimages__copies__output}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
@@ -448,8 +452,8 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_space.ktx ${builddir}/testimages/cubemap_space.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_vulkan.ktx ${builddir}/testimages/cubemap_vulkan.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama.ktx ${builddir}/testimages/cubemap_yokohama.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
@@ -472,7 +476,9 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${buildd
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3.ktx ${builddir}/testimages/texturearray_bc3.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
 DEPENDS ${testimages__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for testimages
@@ -495,15 +501,18 @@ unset(TARGET)
 set(TARGET "libsdl")
 set(TOOLSET "target")
 list(APPEND libsdl__copies__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.0")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.1"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.1")
 list(APPEND libsdl__copies__output
-  "${builddir}/libSDL2-2.0.so.0"
-  "${builddir}/libSDL2-2.0.so.0.4.0")
+  "${builddir}/libSDL2-2.0.so"
+  "${builddir}/libSDL2-2.0.so.1"
+  "${builddir}/libSDL2-2.0.so.0.4.1")
 add_custom_command(
 OUTPUT ${libsdl__copies__output}
-COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0 ${builddir}/libSDL2-2.0.so.0
-COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.0 ${builddir}/libSDL2-2.0.so.0.4.0
+COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so ${builddir}/libSDL2-2.0.so
+COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.1 ${builddir}/libSDL2-2.0.so.1
+COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.1 ${builddir}/libSDL2-2.0.so.0.4.1
 DEPENDS ${libsdl__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for libsdl
@@ -577,7 +586,6 @@ add_custom_target(appfwSDL__vert2spirv DEPENDS
 SOURCES ${appfwSDL__vert2spirv__input}
   ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
 )
-set(appfwSDL__c_srcs "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/SDL_vulkan.c")
 list(APPEND appfwSDL__cxx_srcs
   "../../../../tests/loadtests/appfwSDL/main.cpp"
   "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
@@ -590,7 +598,6 @@ list(APPEND appfwSDL__cxx_srcs
 list(APPEND appfwSDL__other_srcs
   "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
   "../../../../tests/loadtests/appfwSDL/GLAppSDL.h"
-  "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/SDL_vulkan.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanAppSDL.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkancheckres.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanContext.h"
@@ -600,7 +607,7 @@ list(APPEND appfwSDL__other_srcs
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkantools.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert")
-add_library(appfwSDL STATIC ${appfwSDL__c_srcs} ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
+add_library(appfwSDL STATIC ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
 set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(appfwSDL__frag2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(appfwSDL__vert2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
@@ -613,13 +620,11 @@ set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED
 list(APPEND appfwSDL__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include/SDL2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
-set_source_files_properties(${appfwSDL__c_srcs} PROPERTIES COMPILE_FLAGS "-Og -g ")
-set_source_files_properties(${appfwSDL__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Og -g -std=c++11 ")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-Og -g -std=c++11 ")
 set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
@@ -697,7 +702,6 @@ add_dependencies(gl3loadtests
 target_link_libraries(gl3loadtests
   appfwSDL
   libktx_gl
-  "-lX11-xcb"
   "-lSDL2-2.0"
   "-lSDL2main"
   "-ldl"
@@ -1072,7 +1076,6 @@ target_link_libraries(vkloadtests
   appfwSDL
   libktx_gl
   "-lpthread"
-  "-lX11-xcb"
   "-lSDL2-2.0"
   "-lSDL2main"
   "-ldl"

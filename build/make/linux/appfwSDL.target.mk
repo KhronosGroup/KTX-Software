@@ -55,7 +55,6 @@ CFLAGS_CC_Debug := \
 INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
-	-I$(srcdir)/other_include/SDL2 \
 	-I$(srcdir)/other_include \
 	-I$(VULKAN_SDK)/include
 
@@ -76,7 +75,6 @@ CFLAGS_CC_Release := \
 INCS_Release := \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
-	-I$(srcdir)/other_include/SDL2 \
 	-I$(srcdir)/other_include \
 	-I$(VULKAN_SDK)/include
 
@@ -84,7 +82,6 @@ OBJS := \
 	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/main.o \
 	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/AppBaseSDL.o \
 	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/GLAppSDL.o \
-	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/SDL_vulkan.o \
 	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/VulkanAppSDL.o \
 	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/VulkanContext.o \
 	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/VulkanSwapchain.o \
@@ -108,22 +105,13 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(B
 
 # Suffix rules, putting all outputs into $(obj).
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
-
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # Try building from generated source, too.
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
-
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
-
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
