@@ -125,8 +125,9 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         done = false;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
-            buttonDownPos.x = event->button.x;
-            buttonDownPos.y = event->button.y;
+            buttonDown.x = event->button.x;
+            buttonDown.y = event->button.y;
+            buttonDown.timestamp = event->button.timestamp;
             break;
           default:
             break;
@@ -137,8 +138,9 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         done = false;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
-            if (SDL_abs(event->button.x - buttonDownPos.x) < 5
-                && SDL_abs(event->button.y - buttonDownPos.y) < 5) {
+            if (SDL_abs(event->button.x - buttonDown.x) < 5
+                && SDL_abs(event->button.y - buttonDown.y) < 5
+				&& (event->button.timestamp - buttonDown.timestamp) < 40) {
                 // Advance to the next sample.
                 if (++iCurSampleNum >= iNumSamples)
                     iCurSampleNum = 0;

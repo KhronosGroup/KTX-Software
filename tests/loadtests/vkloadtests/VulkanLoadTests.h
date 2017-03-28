@@ -79,7 +79,8 @@ class VulkanLoadTests : public VulkanAppSDL {
     struct {
         int32_t x;
         int32_t y;
-    } buttonDownPos;
+        uint32_t timestamp;
+    } buttonDown;
 };
 
 #endif /* VULKAN_LOAD_TESTS_H */
