@@ -500,33 +500,31 @@ unset(TARGET)
 #ktxtests.gyp:libsdl#target
 set(TARGET "libsdl")
 set(TOOLSET "target")
-list(APPEND libsdl__copies__input
+list(APPEND libsdl__copysdl2__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.1"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.1")
-list(APPEND libsdl__copies__output
+list(APPEND libsdl__copysdl2__output
   "${builddir}/libSDL2-2.0.so"
   "${builddir}/libSDL2-2.0.so.1"
   "${builddir}/libSDL2-2.0.so.0.4.1")
-add_custom_command(
-OUTPUT ${libsdl__copies__output}
-COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so ${builddir}/libSDL2-2.0.so
-COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.1 ${builddir}/libSDL2-2.0.so.1
-COMMAND ${CMAKE_COMMAND} -E copy other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.1 ${builddir}/libSDL2-2.0.so.0.4.1
-DEPENDS ${libsdl__copies__input}
-WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-COMMENT Copying for libsdl
-VERBATIM
+add_custom_command(OUTPUT ${libsdl__copysdl2__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}
+  COMMAND cp -P "other_lib/linux/${configuration}-x64/libSDL2-2.0.so" "other_lib/linux/${configuration}-x64/libSDL2-2.0.so.1" "other_lib/linux/${configuration}-x64/libSDL2-2.0.so.0.4.1" "${builddir}"
+  DEPENDS ${libsdl__copysdl2__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Copying libSDL2 shared library and links
+  VERBATIM
 )
-add_custom_target(libsdl__copies
-  DEPENDS ${libsdl__copies__output}
-  SOURCES ${libsdl__copies__input}
+add_custom_target(libsdl__copysdl2
+  DEPENDS ${libsdl__copysdl2__output}
+  SOURCES ${libsdl__copysdl2__input}
 )
 add_custom_target(libsdl SOURCES)
 set_target_properties(libsdl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(libsdl__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(libsdl__copysdl2 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(libsdl
-  libsdl__copies
+  libsdl__copysdl2
 )
 unset(TOOLSET)
 unset(TARGET)

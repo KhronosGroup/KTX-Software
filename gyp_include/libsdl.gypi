@@ -78,14 +78,25 @@
                 'library_dirs': [ '<(sdl2_lib_dir)' ],
                 'ldflags': [ '-Wl,-rpath,.' ],
               },
-              'copies': [{
-                'destination': '<(PRODUCT_DIR)',
-                'files': [
+              # Don't use copies because it turns symlinks into full
+              # copies.
+              'actions': [{
+                'action_name': 'copysdl2',
+                'message': 'Copying libSDL2 shared library and links',
+                'inputs': [
                   '<(sdl2_lib_dir)/libSDL2-2.0.so',
                   '<(sdl2_lib_dir)/libSDL2-2.0.so.1',
                   '<(sdl2_lib_dir)/libSDL2-2.0.so.0.4.1',
                 ],
-              }], # copies
+                'outputs': [
+                  '<(PRODUCT_DIR)/libSDL2-2.0.so',
+                  '<(PRODUCT_DIR)/libSDL2-2.0.so.1',
+                  '<(PRODUCT_DIR)/libSDL2-2.0.so.0.4.1',
+                ],
+                'action': [
+                  'cp', '-P', '<@(_inputs)','<(PRODUCT_DIR)'
+                ],
+              }], # actions
             }, 'sdl_to_use == "installed_dylib"', {
               'link_settings': {
                 'libraries=': [

@@ -2,30 +2,30 @@
 
 TOOLSET := target
 TARGET := libsdl
-### Generated for copy rule.
+### Rules for action "copysdl2":
+quiet_cmd_ktxtests_gyp_libsdl_target_copysdl2 = ACTION Copying libSDL2 shared library and links $@
+cmd_ktxtests_gyp_libsdl_target_copysdl2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir); cp -P "other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so" "other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.1" "other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.0.4.1" "$(builddir)"
+
+$(builddir)/libSDL2-2.0.so: obj := $(abs_obj)
+$(builddir)/libSDL2-2.0.so: builddir := $(abs_builddir)
 $(builddir)/libSDL2-2.0.so: TOOLSET := $(TOOLSET)
-$(builddir)/libSDL2-2.0.so: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so FORCE_DO_CMD
-	$(call do_cmd,copy)
+$(builddir)/libSDL2-2.0.so $(builddir)/libSDL2-2.0.so.1 $(builddir)/libSDL2-2.0.so.0.4.1: ktxtests_gyp_libsdl_target_copysdl2.intermediate
+	@:
+.INTERMEDIATE: ktxtests_gyp_libsdl_target_copysdl2.intermediate
+ktxtests_gyp_libsdl_target_copysdl2.intermediate: other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.1 other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.0.4.1 FORCE_DO_CMD
+	$(call do_cmd,touch)
+	$(call do_cmd,ktxtests_gyp_libsdl_target_copysdl2)
 
-all_deps += $(builddir)/libSDL2-2.0.so
-$(builddir)/libSDL2-2.0.so.1: TOOLSET := $(TOOLSET)
-$(builddir)/libSDL2-2.0.so.1: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.1 FORCE_DO_CMD
-	$(call do_cmd,copy)
+all_deps += $(builddir)/libSDL2-2.0.so $(builddir)/libSDL2-2.0.so.1 $(builddir)/libSDL2-2.0.so.0.4.1
+action_ktxtests_gyp_libsdl_target_copysdl2_outputs := $(builddir)/libSDL2-2.0.so $(builddir)/libSDL2-2.0.so.1 $(builddir)/libSDL2-2.0.so.0.4.1
 
-all_deps += $(builddir)/libSDL2-2.0.so.1
-$(builddir)/libSDL2-2.0.so.0.4.1: TOOLSET := $(TOOLSET)
-$(builddir)/libSDL2-2.0.so.0.4.1: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.0.4.1 FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/libSDL2-2.0.so.0.4.1
-ktxtests_gyp_libsdl_target_copies = $(builddir)/libSDL2-2.0.so $(builddir)/libSDL2-2.0.so.1 $(builddir)/libSDL2-2.0.so.0.4.1
 
 ### Rules for final target.
 # Build our special outputs first.
-$(obj).target/libsdl.stamp: | $(ktxtests_gyp_libsdl_target_copies)
+$(obj).target/libsdl.stamp: | $(action_ktxtests_gyp_libsdl_target_copysdl2_outputs)
 
 # Preserve order dependency of special output on deps.
-$(ktxtests_gyp_libsdl_target_copies): | 
+$(action_ktxtests_gyp_libsdl_target_copysdl2_outputs): | 
 
 $(obj).target/libsdl.stamp: TOOLSET := $(TOOLSET)
 $(obj).target/libsdl.stamp:  FORCE_DO_CMD
