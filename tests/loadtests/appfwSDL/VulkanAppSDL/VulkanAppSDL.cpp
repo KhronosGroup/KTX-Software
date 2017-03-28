@@ -613,6 +613,9 @@ VulkanAppSDL::findGpu()
         // Store properties and features so apps can query them.
         vkctx.gpu.getProperties(&vkctx.gpuProperties);
         vkctx.gpu.getFeatures(&vkctx.gpuFeatures);
+        // Get Memory information and properties
+        vkctx.gpu.getMemoryProperties(&vkctx.memoryProperties);
+        
     } else {
         std::string msg;
         ERROR_RETURN(
@@ -620,15 +623,6 @@ VulkanAppSDL::findGpu()
             "Do you have a compatible Vulkan installable client driver (ICD) "
             "installed?");
     }
-
-    // Query fine-grained feature support for this GPU. If the app has
-    // specific feature requirements, it should check supported
-    // features based on this query
-    //VkPhysicalDeviceFeatures physDevFeatures;
-    //vkGetPhysicalDeviceFeatures(vkctx.gpu, &physDevFeatures);
-
-    // Get Memory information and properties
-    vkctx.gpu.getMemoryProperties(&vkctx.memoryProperties);
 
     return true;
 } // findGpu

@@ -3,6 +3,14 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
+layout (binding = 0) uniform UBO
+{
+    mat4 projection;
+    mat4 modelView;
+    mat4 invModelView;
+    float lodBias;
+} ubo;
+
 layout (binding = 1) uniform samplerCube samplerColor;
 
 layout (location = 0) in vec3 inPos;
@@ -19,7 +27,8 @@ void main()
 	vec3 cI = normalize (inPos);
 	vec3 cR = reflect (cI, normalize(inNormal));
 
-	cR = vec3(inInvModelView * vec4(cR, 0.0));
+    //cR = vec3(inInvModelView * vec4(cR, 0.0));
+    cR = vec3(ubo.invModelView * vec4(cR, 0.0));
 	// Compensate for original images in texture being opposite to reality.
 	cR.x = -cR.x;
 

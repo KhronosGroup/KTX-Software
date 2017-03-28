@@ -153,8 +153,8 @@ TextureCubemap::cleanup()
 	}
 	vkMeshLoader::freeMeshBufferResources(vkctx.device, &meshes.skybox);
 
-	uniformData.objectVS.freeResources(vkctx.device);
-	uniformData.skyboxVS.freeResources(vkctx.device);
+	uniformData.object.freeResources(vkctx.device);
+	uniformData.skybox.freeResources(vkctx.device);
 }
 
 void
@@ -318,15 +318,19 @@ TextureCubemap::setupDescriptorSetLayout()
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings =
     {
         // Binding 0 : Vertex shader uniform buffer
-    	{0,
-         vk::DescriptorType::eUniformBuffer,
-		 1,
-         vk::ShaderStageFlagBits::eVertex},
+    	{
+            0,
+            vk::DescriptorType::eUniformBuffer,
+            1,
+            vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+        },
         // Binding 1 : Fragment shader image sampler
-		{1,
-		 vk::DescriptorType::eCombinedImageSampler,
-		 1,
-         vk::ShaderStageFlagBits::eFragment},
+		{
+            1,
+            vk::DescriptorType::eCombinedImageSampler,
+            1,
+            vk::ShaderStageFlagBits::eFragment
+        },
     };
 
     vk::DescriptorSetLayoutCreateInfo descriptorLayout(
@@ -373,7 +377,7 @@ TextureCubemap::setupDescriptorSets()
 				1,
 				vk::DescriptorType::eUniformBuffer,
 				nullptr,
-				&uniformData.objectVS.descriptor),
+				&uniformData.object.descriptor),
 		// Binding 1 : Fragment shader cubemap sampler
 		vk::WriteDescriptorSet(
 				descriptorSets.object,
@@ -403,7 +407,7 @@ TextureCubemap::setupDescriptorSets()
 				1,
 				vk::DescriptorType::eUniformBuffer,
 				nullptr,
-				&uniformData.skyboxVS.descriptor),
+				&uniformData.skybox.descriptor),
 		// Binding 1 : Fragment shader texture sampler
 		vk::WriteDescriptorSet(
 				descriptorSets.skybox,
@@ -520,21 +524,21 @@ TextureCubemap::prepareUniformBuffers()
     vkctx.createBuffer(
     	vk::BufferUsageFlagBits::eUniformBuffer,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-        sizeof(uboVS),
+        sizeof(ubo),
         nullptr,
-        &uniformData.objectVS.buffer,
-        &uniformData.objectVS.memory,
-        &uniformData.objectVS.descriptor);
+        &uniformData.object.buffer,
+        &uniformData.object.memory,
+        &uniformData.object.descriptor);
 
     // Skybox
     vkctx.createBuffer(
         vk::BufferUsageFlagBits::eUniformBuffer,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-        sizeof(uboVS),
+        sizeof(ubo),
         nullptr,
-        &uniformData.skyboxVS.buffer,
-        &uniformData.skyboxVS.memory,
-        &uniformData.skyboxVS.descriptor);
+        &uniformData.skybox.buffer,
+        &uniformData.skybox.memory,
+        &uniformData.skybox.descriptor);
 
     updateUniformBuffers();
 }
@@ -544,33 +548,39 @@ TextureCubemap::updateUniformBuffers()
 {
     // 3D object
     glm::mat4 viewMatrix = glm::mat4();
-    uboVS.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
+    ubo.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
-    uboVS.model = glm::mat4();
-    uboVS.model = viewMatrix * glm::translate(uboVS.model, cameraPos);
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.modelView = glm::mat4();
+    ubo.modelView = viewMatrix * glm::translate(ubo.modelView, cameraPos);
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Do the inverse here because doing it in every fragment is a bit much.
+    // Also MetalSL does not have inverse() and does not support passing
+    // transforms between stages.
+    ubo.invModelView = glm::inverse(ubo.modelView);
+    
 
     uint8_t *pData;
-    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformData.objectVS.memory, 0, sizeof(uboVS), 0, (void **)&pData));
-    memcpy(pData, &uboVS, sizeof(uboVS));
-    vkUnmapMemory(vkctx.device, uniformData.objectVS.memory);
+    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformData.object.memory, 0, sizeof(ubo), 0, (void **)&pData));
+    memcpy(pData, &ubo, sizeof(ubo));
+    vkUnmapMemory(vkctx.device, uniformData.object.memory);
 
     // Skybox
     viewMatrix = glm::mat4();
-    uboVS.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
+    ubo.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
 
-    uboVS.model = glm::mat4();
-    uboVS.model = viewMatrix * glm::translate(uboVS.model, glm::vec3(0, 0, 0));
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.modelView = glm::mat4();
+    ubo.modelView = viewMatrix * glm::translate(ubo.modelView, glm::vec3(0, 0, 0));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Inverse not needed by skybox.
 
-    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformData.skyboxVS.memory, 0, sizeof(uboVS), 0, (void **)&pData));
-    memcpy(pData, &uboVS, sizeof(uboVS));
-    vkUnmapMemory(vkctx.device, uniformData.skyboxVS.memory);
+    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformData.skybox.memory, 0, sizeof(ubo), 0, (void **)&pData));
+    memcpy(pData, &ubo, sizeof(ubo));
+    vkUnmapMemory(vkctx.device, uniformData.skybox.memory);
 }
 
 void
@@ -608,14 +618,14 @@ TextureCubemap::toggleObject()
 void
 TextureCubemap::changeLodBias(float delta)
 {
-    uboVS.lodBias += delta;
-    if (uboVS.lodBias < 0.0f)
+    ubo.lodBias += delta;
+    if (ubo.lodBias < 0.0f)
     {
-        uboVS.lodBias = 0.0f;
+        ubo.lodBias = 0.0f;
     }
-    if (uboVS.lodBias > cubeMap.mipLevels)
+    if (ubo.lodBias > cubeMap.mipLevels)
     {
-        uboVS.lodBias = cubeMap.mipLevels;
+        ubo.lodBias = cubeMap.mipLevels;
     }
     updateUniformBuffers();
     //updateTextOverlay();
@@ -645,7 +655,7 @@ void
 TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay)
 {
     std::stringstream ss;
-    ss << std::setprecision(2) << std::fixed << uboVS.lodBias;
+    ss << std::setprecision(2) << std::fixed << ubo.lodBias;
     textOverlay->addText("Press \"s\" to toggle skybox", 5.0f, 85.0f, VulkanTextOverlay::alignLeft);
     textOverlay->addText("Press \"space\" to toggle object", 5.0f, 100.0f, VulkanTextOverlay::alignLeft);
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)", 5.0f, 115.0f, VulkanTextOverlay::alignLeft);

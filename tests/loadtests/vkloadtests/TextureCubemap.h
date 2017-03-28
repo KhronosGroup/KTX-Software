@@ -77,15 +77,16 @@ class TextureCubemap : public VulkanLoadTestSample
     } meshes;
 
     struct {
-        UniformData objectVS;
-        UniformData skyboxVS;
+        UniformData object;
+        UniformData skybox;
     } uniformData;
-
+    
     struct {
         glm::mat4 projection;
-        glm::mat4 model;
+        glm::mat4 modelView;
+        glm::mat4  invModelView;
         float lodBias = 0.0f;
-    } uboVS;
+    } ubo;
 
     struct {
         vk::Pipeline skybox;

@@ -8,7 +8,7 @@ layout (location = 0) in vec3 inPos;
 layout (binding = 0) uniform UBO 
 {
 	mat4 projection;
-	mat4 model;
+	mat4 modelView;
 } ubo;
 
 layout (location = 0) out vec3 outUVW;
@@ -23,5 +23,5 @@ void main()
 	outUVW = inPos;
 	// Compensate for original images in texture being opposite to reality.
 	outUVW.x = -outUVW.x;
-	gl_Position = ubo.projection * ubo.model * vec4(inPos.xyz, 1.0);
+	gl_Position = ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0);
 }

@@ -9,7 +9,8 @@ layout (location = 1) in vec3 inNormal;
 layout (binding = 0) uniform UBO 
 {
 	mat4 projection;
-	mat4 model;
+	mat4 modelView;
+    mat4 invModelView;
 	float lodBias;
 } ubo;
 
@@ -27,13 +28,14 @@ out gl_PerVertex
 
 void main() 
 {
-	gl_Position = ubo.projection * ubo.model * vec4(inPos.xyz, 1.0);
+	gl_Position = ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0);
 	
-	outPos = vec3(ubo.model * vec4(inPos, 1.0));
-	outNormal = mat3(ubo.model) * inNormal;	
+	outPos = vec3(ubo.modelView * vec4(inPos, 1.0));
+	outNormal = mat3(ubo.modelView) * inNormal;
 	outLodBias = ubo.lodBias;
 	
-	outInvModelView = inverse(ubo.model);
+    //outInvModelView = inverse(ubo.model);
+    //outInvModelView = ubo.invModel;
 
 	vec3 lightPos = vec3(0.0f, -5.0f, 5.0f);
 	outLightVec = lightPos.xyz - outPos.xyz;
