@@ -312,8 +312,6 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         VulkanLoadTests::CompressionType::eBC,
         "BC2 (S3TC DXT3) Compressed 2D"
     },
-    //#if defined(__IPHONEOS__)
-    // Note: S3TC not supported on iOS.
 #endif
     { TextureArray::create,
         "testimages/texturearray_bc3_unorm.ktx",
@@ -345,8 +343,6 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         VulkanLoadTests::CompressionType::eETC2,
         "ETC2 Compressed Cube Map"
     },
-    //#else
-    //#endif
 #if 0
     { TexturedCube::create,
       "testimages/rgb-amg-reference.ktx",
