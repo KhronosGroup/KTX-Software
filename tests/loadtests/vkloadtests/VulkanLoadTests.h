@@ -67,7 +67,12 @@ class VulkanLoadTests : public VulkanAppSDL {
     virtual void windowResized();
 
   protected:
-    void invokeSample(int& iSampleNum);
+    enum class Direction {
+        eForward,
+        eBack
+    };
+
+    void invokeSample(int& iSampleNum, Direction dir);
     int iCurSampleNum;
     VulkanLoadTestSample* pCurSample;
 

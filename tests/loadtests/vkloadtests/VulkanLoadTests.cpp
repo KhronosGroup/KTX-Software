@@ -80,7 +80,7 @@ VulkanLoadTests::initialize(int argc, char* argv[])
 
 	// Not getting an initialize resize event, at least on Mac OS X.
 	// Therefore use invokeSample which calls the sample's resize func.
-	invokeSample(iCurSampleNum);
+	invokeSample(iCurSampleNum, Direction::eForward);
 	return true;
 }
 
@@ -108,12 +108,12 @@ VulkanLoadTests::doEvent(SDL_Event* event)
           case 'n':
             if (++iCurSampleNum >= iNumSamples)
               iCurSampleNum = 0;
-            invokeSample(iCurSampleNum);
+            invokeSample(iCurSampleNum, Direction::eForward);
             break;
           case 'p':
             if (--iCurSampleNum < 0)
               iCurSampleNum = iNumSamples-1;
-            invokeSample(iCurSampleNum);
+            invokeSample(iCurSampleNum, Direction::eBack);
             break;
 
           default:
@@ -144,7 +144,7 @@ VulkanLoadTests::doEvent(SDL_Event* event)
                 // Advance to the next sample.
                 if (++iCurSampleNum >= iNumSamples)
                     iCurSampleNum = 0;
-                invokeSample(iCurSampleNum);
+                invokeSample(iCurSampleNum, Direction::eForward);
             }
             break;
           default:
@@ -187,7 +187,7 @@ VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay)
 }
 
 void
-VulkanLoadTests::invokeSample(int& iSampleNum)
+VulkanLoadTests::invokeSample(int& iSampleNum, Direction dir)
 {
     const sampleInvocation* sampleInv;
     class unsupported_ctype : public std::runtime_error {
@@ -225,12 +225,14 @@ VulkanLoadTests::invokeSample(int& iSampleNum)
 									sampleInv->args, sBasePath);
 			break;
         } catch (unsupported_ctype& e) {
-            sampleInv = &siSamples[++iSampleNum];
+        	dir == Direction::eForward ? ++iSampleNum : --iSampleNum;
+            sampleInv = &siSamples[iSampleNum];
 		} catch (std::exception& e) {
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 					sampleInv->title,
 					e.what(), NULL);
-			sampleInv = &siSamples[++iSampleNum];
+        	dir == Direction::eForward ? ++iSampleNum : --iSampleNum;
+			sampleInv = &siSamples[iSampleNum];
 		}
 	}
     prepared = true;
