@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <algorithm>
 #include <time.h> 
 #include <vector>
 
@@ -59,7 +60,7 @@
 #define ENABLE_VALIDATION false
 
 // Vertex layout for this example
-struct Vertex {
+struct TAVertex {
 	float pos[3];
 	float uv[2];
 };
@@ -213,7 +214,7 @@ void
 TextureArray::generateQuad()
 {
 #define dim 2.5f
-    std::vector<Vertex> vertexBuffer =
+    std::vector<TAVertex> vertexBuffer =
     {
         { {  dim,  dim, 0.0f }, { 1.0f, 1.0f } },
         { { -dim,  dim, 0.0f }, { 0.0f, 1.0f } },
@@ -224,7 +225,7 @@ TextureArray::generateQuad()
 
     vkctx.createBuffer(
 		vk::BufferUsageFlagBits::eVertexBuffer,
-        vertexBuffer.size() * sizeof(Vertex),
+        vertexBuffer.size() * sizeof(TAVertex),
         vertexBuffer.data(),
         &quad.vertices.buf,
         &quad.vertices.mem);
@@ -249,7 +250,7 @@ TextureArray::setupVertexDescriptions()
     vertices.bindingDescriptions[0] =
         vk::VertexInputBindingDescription(
             VERTEX_BUFFER_BIND_ID,
-            sizeof(Vertex),
+            sizeof(TAVertex),
             vk::VertexInputRate::eVertex);
 
     // Attribute descriptions
@@ -452,12 +453,15 @@ TextureArray::preparePipelines()
 										 &pipelines.solid);
 }
 
+#define LAYERS_DECLARED_IN_SHADER 8U
+
 void
 TextureArray::prepareUniformBuffers()
 {
     uboVS.instance = new UboInstanceData[textureArray.layerCount];
 
-    uint32_t uboSize = sizeof(uboVS.matrices) + (textureArray.layerCount * sizeof(UboInstanceData));
+    uint32_t uboSize = sizeof(uboVS.matrices)
+             + LAYERS_DECLARED_IN_SHADER * sizeof(UboInstanceData);
 
     // Vertex shader uniform buffer block
     vkctx.createBuffer(
@@ -470,9 +474,10 @@ TextureArray::prepareUniformBuffers()
         &uniformDataVS.descriptor);
 
     // Array indices and model matrices are fixed
+    int32_t maxLayers = std::min(textureArray.layerCount, LAYERS_DECLARED_IN_SHADER);
     float offset = -1.5f;
-    float center = (textureArray.layerCount*offset) / 2;
-    for (int32_t i = 0; i < textureArray.layerCount; i++)
+    float center = (maxLayers * offset) / 2;
+    for (int32_t i = 0; i < maxLayers; i++)
     {
         // Instance model matrix
         uboVS.instance[i].model = glm::translate(glm::mat4(), glm::vec3(0.0f, i * offset - center, 0.0f));
