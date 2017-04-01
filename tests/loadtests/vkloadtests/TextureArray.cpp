@@ -469,7 +469,7 @@ TextureArray::prepareUniformBuffers()
     	vk::BufferUsageFlagBits::eUniformBuffer,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
         uboSize,
-        &uboVS,
+        nullptr,
         &uniformDataVS.buffer,
         &uniformDataVS.memory,
         &uniformDataVS.descriptor);
