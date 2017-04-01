@@ -279,7 +279,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       VulkanLoadTests::CompressionType::eNone,
       "RGBA unsized 2D"
     },
-#if !defined(__IPHONEOS__) && !defined(__MACOS__)
+#if !defined(__IPHONEOS__) && !defined(__MACOSX__)
     // Uncompressed RGB formats not supported by Metal.
     { Texture::create,
       "testimages/orient-down-metadata-sized.ktx",
