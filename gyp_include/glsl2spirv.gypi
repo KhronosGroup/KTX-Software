@@ -29,6 +29,12 @@
           ], # action
         }, {
           'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
+          # Using a "cygwin" shell results in the rule reading the
+          # setup_env.bat file in the .gyp file directory. That .bat
+          # file cd's to its location so actions will work. That
+          # breaks rules because they relativize inputs and outputs
+          # to the location of the vcxproj directory.
+          'msvs_cygwin_shell': 0,
           'action': [
             #'glslangValidator', '-V',
             'glslc', '-fshader-stage=fragment',
@@ -53,6 +59,7 @@
           ], # action
         }, {
           'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
+          'msvs_cygwin_shell': 0,
           'action': [
             #'glslangValidator', '-V',
             'glslc', '-fshader-stage=vertex',

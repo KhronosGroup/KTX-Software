@@ -151,7 +151,7 @@
                 '../build/doc/man',
               ],
               # doxygen must be run in the top-level project directory
-              # so that ancestors of that # directory will be removed
+              # so that ancestors of that directory will be removed
               # from paths displayed in the documentation. This is
               # the directory where the ktxDoxy file and .gyp files
               # are stored.
@@ -174,24 +174,31 @@
                     'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
                   ],
                 }, 'GENERATOR == "msvs"', {
-                  # With MSVS the current directory will be that
-                  # containing the vcxproj file. However when the
+                  # With MSVS the working directory will be the
+                  # location of the vcxproj file. However when the
                   # action is using bash ('msvs_cygwin_shell': '1',
-                  # the default, is set) a setup_env.bat file is run
-                  # before the command. Our setup_env.bat cd's to the
-                  # top-level directory to make this case look like the
-                  # others.
+                  # the default, is set) no path relativization is
+                  # performed on any command arguments. If forced, by
+                  # using variable names such as '*_dir', paths will be
+                  # made relative to the location of the .gyp file.
                   #
-                  # No path relativization is performed on any command
-                  # arguments. We have to take care to provide paths that
-                  # are relative to our cd location.
+                  # A setup_env.bat file is run before the command.
+                  # Apparently that .bat file is expected to be in the
+                  # same location as the .gyp and to cd to
+                  # its directory. That makes things work.
                   #
-                  # Note that If using cmd.exe ('msvs_cygwin_shell': '0')
-                  # the MSVS generator will relativize *all* command
-                  # arguments, that do not look like options, to the
-                  # vcxproj location.
+                  # Note that the same setup_env.bat is run by
+                  # rules but rules relativize paths to the vcxproj
+                  # location so cd to the .gyp home breaks rules.
+                  # Therefore in rules set 'msvs_cygwin_shell': '0.
+                  #
+                  # If using cmd.exe ('msvs_cygwin_shell': '0')
+                  # the MSVS generator will relativize to the vcxproj
+                  # location *all* command arguments, that do not look
+                  # like options. 
+                  'msvs_cygwin_shell': 1,
                   'action': [
-                    'cd <(doxyRun_dir) ; doxygen <@(doxyConfig)'
+                    'doxygen', '<@(doxyConfig)'
                   ],
                 }, {
                   # With `make`, cmake, etc, like Xcode,  the current

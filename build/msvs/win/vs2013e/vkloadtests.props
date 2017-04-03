@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <frag2spirv>
-      <CommandLineTemplate>call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; set OUTDIR=$(OutDir)&amp;&amp; set INPUTPATH=%(Identity) &amp;&amp; bash -c &quot;\&quot;glslc\&quot; \&quot;-fshader-stage=fragment\&quot; \&quot;-o\&quot; \&quot;`cygpath -m \\\&quot;${OUTDIR}\\\&quot;`/shaders/%(Filename)%(Extension).spv\&quot; \&quot;`cygpath -m \\\&quot;${INPUTPATH}\\\&quot;`\&quot;&quot;</CommandLineTemplate>
+      <CommandLineTemplate>call glslc &quot;-fshader-stage=fragment&quot; &quot;-o&quot; &quot;$(OutDir)shaders\%(Filename)%(Extension).spv&quot; &quot;%(Identity)&quot;</CommandLineTemplate>
       <Outputs>$(OutDir)shaders\%(Filename)%(Extension).spv</Outputs>
       <ExecutionDescription>Compiling %(Filename)%(Extension).</ExecutionDescription>
       <AdditionalDependencies></AdditionalDependencies>
@@ -24,7 +24,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <vert2spirv>
-      <CommandLineTemplate>call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; set OUTDIR=$(OutDir)&amp;&amp; set INPUTPATH=%(Identity) &amp;&amp; bash -c &quot;\&quot;glslc\&quot; \&quot;-fshader-stage=vertex\&quot; \&quot;-o\&quot; \&quot;`cygpath -m \\\&quot;${OUTDIR}\\\&quot;`/shaders/%(Filename)%(Extension).spv\&quot; \&quot;`cygpath -m \\\&quot;${INPUTPATH}\\\&quot;`\&quot;&quot;</CommandLineTemplate>
+      <CommandLineTemplate>call glslc &quot;-fshader-stage=vertex&quot; &quot;-o&quot; &quot;$(OutDir)shaders\%(Filename)%(Extension).spv&quot; &quot;%(Identity)&quot;</CommandLineTemplate>
       <Outputs>$(OutDir)shaders\%(Filename)%(Extension).spv</Outputs>
       <ExecutionDescription>Compiling %(Filename)%(Extension).</ExecutionDescription>
       <AdditionalDependencies></AdditionalDependencies>

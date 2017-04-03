@@ -764,9 +764,10 @@ WARN_LOGFILE           =
 INPUT                  = LICENSE.md \
                          include \
                          lib/hashtable.c \
-                         lib/loader.c \
-                         lib/reader.c \
-                         lib/writer.c
+                         lib/glloader.c \
+                         lib/ktxreader.c \
+                         lib/writer.c \
+                         lib/vkloader.c \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
