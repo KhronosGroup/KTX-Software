@@ -10,6 +10,10 @@
  * @author Mark Callow, Edgewise Consulting
  */
 
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -450,7 +454,7 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         cbData.offset = 0;
         cbData.region = copyRegions;
 #if defined(_DEBUG)
-        cbData.stagingBufferSize = memAllocInfo.allocationSize;
+        cbData.stagingBufferSize = (size_t)memAllocInfo.allocationSize;
         cbData.regionsArrayEnd = copyRegions + numCopyRegions;
 #endif
 

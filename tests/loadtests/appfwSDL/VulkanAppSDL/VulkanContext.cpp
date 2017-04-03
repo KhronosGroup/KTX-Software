@@ -130,7 +130,7 @@ VulkanContext::createPresentCommandBuffers()
 
     prePresentCmdBuffers.resize(swapchain.imageCount);
     postPresentCmdBuffers.resize(swapchain.imageCount);
-    for (int i = 0; i < swapchain.imageCount; i++) {
+    for (uint32_t i = 0; i < swapchain.imageCount; i++) {
         VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
                         &prePresentCmdBuffers[i]));
         VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
