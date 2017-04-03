@@ -1,16 +1,22 @@
 Microsoft Visual Studio Solution File, Format Version 13.00
 # Visual Studio 2013
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{24FB448F-0D75-0770-773A-8E1625FA2BA8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95} = {19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx", "toktx.vcxproj", "{2AF7DC29-DE71-9412-4FD5-0B1E3A7615FF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{24FB448F-0D75-0770-773A-8E1625FA2BA8} = {24FB448F-0D75-0770-773A-8E1625FA2BA8}
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95} = {19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.vcxproj", "{3507071C-9ACE-1BEE-0A56-C9386227C12C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2AF7DC29-DE71-9412-4FD5-0B1E3A7615FF} = {2AF7DC29-DE71-9412-4FD5-0B1E3A7615FF}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +26,14 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|x64.ActiveCfg = Release|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|x64.Build.0 = Release|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|Win32.ActiveCfg = Debug|Win32
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|Win32.Build.0 = Debug|Win32
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|x64.ActiveCfg = Debug|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|x64.Build.0 = Debug|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|Win32.ActiveCfg = Release|Win32
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|Win32.Build.0 = Release|Win32
 		{24FB448F-0D75-0770-773A-8E1625FA2BA8}.Release|x64.ActiveCfg = Release|x64
 		{24FB448F-0D75-0770-773A-8E1625FA2BA8}.Release|x64.Build.0 = Release|x64
 		{24FB448F-0D75-0770-773A-8E1625FA2BA8}.Debug|Win32.ActiveCfg = Debug|Win32

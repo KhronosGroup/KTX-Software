@@ -101,7 +101,8 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     try {
     	prepare();
     } catch (std::exception& e) {
-    	cleanup();
+		(void)e; // To quiet unused variable warnings from some compilers.
+		cleanup();
     	throw;
     }
 }
@@ -492,7 +493,7 @@ TextureCubemap::preparePipelines()
     pipelineCreateInfo.pViewportState = &viewportState;
     pipelineCreateInfo.pDepthStencilState = &depthStencilState;
     pipelineCreateInfo.pDynamicState = &dynamicState;
-    pipelineCreateInfo.stageCount = shaderStages.size();
+    pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
     pipelineCreateInfo.pStages = shaderStages.data();
 
     vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
@@ -625,7 +626,7 @@ TextureCubemap::changeLodBias(float delta)
     }
     if (ubo.lodBias > cubeMap.mipLevels)
     {
-        ubo.lodBias = cubeMap.mipLevels;
+        ubo.lodBias = (float)cubeMap.mipLevels;
     }
     updateUniformBuffers();
     //updateTextOverlay();

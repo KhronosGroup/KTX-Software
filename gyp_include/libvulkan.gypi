@@ -79,17 +79,9 @@
           #}
         },
       }, 'OS == "win"', {
-        'direct_dependent_settings': {
-          'copies': [{
-            'destination': '<(PRODUCT_DIR)',
-            'files': [
-              'libvulkan.dll',
-            ],
-          }],
-        },
         'link_settings': {
-         'libraries': [ 'somewhere' ],
-         'library_dirs': [ ],
+         'libraries': [ '-lvulkan-1' ],
+         'library_dirs': [ '$(VULKAN_SDK)/Lib' ],
         },
       }, {
         'link_settings': {

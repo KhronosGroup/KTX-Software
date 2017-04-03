@@ -225,7 +225,8 @@ VulkanLoadTests::invokeSample(int& iSampleNum, Direction dir)
 									sampleInv->args, sBasePath);
 			break;
         } catch (unsupported_ctype& e) {
-        	dir == Direction::eForward ? ++iSampleNum : --iSampleNum;
+			(void)e; // To quiet unused variable warnings from some compilers.
+			dir == Direction::eForward ? ++iSampleNum : --iSampleNum;
             sampleInv = &siSamples[iSampleNum];
 		} catch (std::exception& e) {
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,

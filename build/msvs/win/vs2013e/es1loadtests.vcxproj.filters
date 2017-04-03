@@ -4,311 +4,122 @@
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests">
-      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests\common">
+    <Filter Include="tests\loadtests\common">
       <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests">
-      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests\common">
+    <Filter Include="tests\loadtests\common">
       <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests">
-      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests\common">
-      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\glloadtests">
-      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\glloadtests\common">
-      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\geom">
+      <UniqueIdentifier>{A02DE8B8-A6FF-838C-A3B0-4DABDCFB372B}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests">
-      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests\data">
-      <UniqueIdentifier>{BB2F2B9D-F30E-26CC-2AEB-5F1CF39B6163}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\glloadtests">
-      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\glloadtests\data">
-      <UniqueIdentifier>{BB2F2B9D-F30E-26CC-2AEB-5F1CF39B6163}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\geom">
+      <UniqueIdentifier>{A02DE8B8-A6FF-838C-A3B0-4DABDCFB372B}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests">
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
       <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests\gles1">
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
+      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
+      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\gles1">
       <UniqueIdentifier>{D655D013-412A-B922-555C-77DF132C0C2F}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests">
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
       <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests\gles1">
+    <Filter Include="tests\loadtests\glloadtests\gles1">
       <UniqueIdentifier>{D655D013-412A-B922-555C-77DF132C0C2F}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests">
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
       <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\glloadtests\gles1">
+    <Filter Include="tests\loadtests\glloadtests\gles1">
       <UniqueIdentifier>{D655D013-412A-B922-555C-77DF132C0C2F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\tests\glloadtests\common\at.h">
-      <Filter>tests\glloadtests\common</Filter>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\at.h">
+      <Filter>tests\loadtests\common</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\tests\glloadtests\common\at.c">
-      <Filter>tests\glloadtests\common</Filter>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\at.c">
+      <Filter>tests\loadtests\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\glloadtests\common\LoadTests.cpp">
-      <Filter>tests\glloadtests\common</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\..\..\tests\glloadtests\common\LoadTests.h">
-      <Filter>tests\glloadtests\common</Filter>
+    <ClInclude Include="..\..\..\..\tests\loadtests\geom\cube.h">
+      <Filter>tests\loadtests\geom</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\glloadtests\data\cube.h">
-      <Filter>tests\glloadtests\data</Filter>
+    <ClInclude Include="..\..\..\..\tests\loadtests\geom\frame.h">
+      <Filter>tests\loadtests\geom</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\glloadtests\data\frame.h">
-      <Filter>tests\glloadtests\data</Filter>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\LoadTests.cpp">
+      <Filter>tests\loadtests\glloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\LoadTests.h">
+      <Filter>tests\loadtests\glloadtests</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\tests\glloadtests\gles1\LoadTestsES1.cpp">
-      <Filter>tests\glloadtests\gles1</Filter>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\LoadTestsES1.cpp">
+      <Filter>tests\loadtests\glloadtests\gles1</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\glloadtests\gles1\sample_01_draw_texture.c">
-      <Filter>tests\glloadtests\gles1</Filter>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\sample_01_draw_texture.c">
+      <Filter>tests\loadtests\glloadtests\gles1</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\glloadtests\gles1\sample_02_cube_textured.c">
-      <Filter>tests\glloadtests\gles1</Filter>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\sample_02_cube_textured.c">
+      <Filter>tests\loadtests\glloadtests\gles1</Filter>
     </ClCompile>
     <None Include="..\..\..\..\ktxtests.gyp"/>
-    <None Include="..\..\..\..\tests\testimages\conftestimage_R11_EAC.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\conftestimage_RG11_EAC.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\conftestimage_SIGNED_R11_EAC.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\conftestimage_SIGNED_RG11_EAC.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\down-reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\etc1.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\etc2-rgb.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\etc2-rgba1.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\etc2-rgba8.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\etc2-sRGB.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\etc2-sRGBa1.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\etc2-sRGBa8.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\hi_mark.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\hi_mark_sq.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\luminance_sized_reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\luminance_unsized_reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\no-npot.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\rgb-amg-reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\rgba-reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\rgb-mipmap-reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\rgb-reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\up-reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
   </ItemGroup>
 </Project>

@@ -44,6 +44,10 @@
  * the VulkanTextOverlay class and the shaders used by this test.
  */
 
+#if defined(_WIN32)
+  #define _CRT_SECURE_NO_WARNINGS // For sscanf
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -126,6 +130,7 @@ Texture::Texture(VulkanContext& vkctx,
     try {
         prepare();
     } catch (std::exception& e) {
+		(void)e; // To quiet unused variable warnings from some compilers.
         cleanup();
         throw;
     }
@@ -498,7 +503,7 @@ Texture::preparePipelines()
     pipelineCreateInfo.pViewportState = &viewportState;
     pipelineCreateInfo.pDepthStencilState = &depthStencilState;
     pipelineCreateInfo.pDynamicState = &dynamicState;
-    pipelineCreateInfo.stageCount = shaderStages.size();
+    pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
     pipelineCreateInfo.pStages = shaderStages.data();
 
     vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
@@ -573,7 +578,7 @@ Texture::changeLodBias(float delta)
     }
     if (uboVS.lodBias > texture.mipLevels)
     {
-        uboVS.lodBias = texture.mipLevels;
+        uboVS.lodBias = (float)texture.mipLevels;
     }
     updateUniformBuffers();
     //updateTextOverlay();

@@ -33,14 +33,29 @@
             '<(assimp_include)',
           ]
         }],
-      ],
+        ['OS == "win"', {
+          'copies': [{
+            'destination': '<(PRODUCT_DIR)',
+            # This results in
+            #  <CustomBuildTool include=".../$(PlatformName)/assimp.dll">
+            # which works, but VS2010 typically will show the
+            # custom copy command in properties for only one
+            # configuration. Nevertheless copy will be performed
+            # in all.
+            'files': [ '<(winolibr_dir)/assimp.dll' ],
+          }], # copies
+        }],
+      ], # conditions
     }, # direct_dependent_settings
     'link_settings': {
       'conditions': [
         ['OS == "ios"', {
           'library_dirs': [ '<(otherlibroot_dir)' ],
-        }, 'OS == "mac" or OS == "win"', {
+        }, 'OS == "mac"', {
           'library_dirs': [ '<(assimp_lib)' ],
+        }, 'OS == "win"', {
+          # winolibr because repo has only a release version.
+          'library_dirs': [ '<(winolibr_dir)' ],
         }],
         ['GENERATOR != "xcode"', {
           # '-lfoo' here confuses Xcode. It seems these values are

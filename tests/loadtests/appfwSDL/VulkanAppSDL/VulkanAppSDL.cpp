@@ -542,10 +542,10 @@ VulkanAppSDL::createInstance()
         std::stringstream msg;
         title = szName;
         title += ": vkCreateInstance Failure";
-        if (err == VK_ERROR_INCOMPATIBLE_DRIVER) {
+        if (cerr == vk::Result::eErrorIncompatibleDriver) {
             msg << "Cannot find a compatible Vulkan installable client "
                    "driver (ICD).";
-        } else if (err == VK_ERROR_EXTENSION_NOT_PRESENT) {
+        } else if (cerr == vk::Result::eErrorExtensionNotPresent) {
             // Figure out which extension(s) are missing.
             uint32_t instanceExtensionCount = 0;
 
@@ -566,7 +566,7 @@ VulkanAppSDL::createInstance()
             }
             msg << "Cannot find the following extensions:\n";
             for (int i = 0; i < extensionNames.size(); i++) {
-                int j;
+                uint32_t j;
                 for (j = 0; j < instanceExtensionCount; j++) {
                     if (!strcmp(extensionNames[i],
                                 instanceExtensions[j].extensionName))
@@ -581,7 +581,7 @@ VulkanAppSDL::createInstance()
             delete [] instanceExtensions;
        } else {
             msg << "vkCreateInstance: unexpected failure, code = "
-                << err << ".\n\nDo you have a compatible Vulkan "
+                << cerr << ".\n\nDo you have a compatible Vulkan "
                   "installable client driver (ICD) installed?";
        }
        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
@@ -731,8 +731,8 @@ VulkanAppSDL::createDevice()
                 assert(err == vk::Result::eSuccess);
             }
             msg << "Cannot find the following device extensions:\n";
-            for (int i = 0; i < enabledDeviceExtensionCount; i++) {
-                int j;
+            for (uint32_t i = 0; i < enabledDeviceExtensionCount; i++) {
+                uint32_t j;
                 for (j = 0; j < deviceExtensionCount; j++) {
                     if (!strcmp(extensionNames[i],
                                 deviceExtensions[j].extensionName))

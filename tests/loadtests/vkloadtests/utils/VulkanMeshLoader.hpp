@@ -155,8 +155,10 @@ namespace vkMeshLoader
 
 // Because this file is included in multiple .cpp files, via
 // VulkanLoadTestSample.h, and not all of those samples call this function...
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
+#if !defined(_MSC_VER)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunused-function"
+#endif
 	static void freeMeshBufferResources(VkDevice device, vkMeshLoader::MeshBuffer *meshBuffer)
 	{
 		vkDestroyBuffer(device, meshBuffer->vertices.buf, nullptr);
@@ -168,7 +170,9 @@ namespace vkMeshLoader
 		}
 	}
 }
-#pragma clang diagnostic pop
+#if !defined(_MSC_VER)
+  #pragma clang diagnostic pop
+#endif
 
 // Simple mesh class for getting all the necessary stuff from models loaded via ASSIMP
 class VulkanMeshLoader {

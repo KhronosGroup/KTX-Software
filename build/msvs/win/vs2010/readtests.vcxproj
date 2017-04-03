@@ -177,6 +177,10 @@
       <Project>{80563AE1-5CC6-08B1-7EA6-F1DE419ADD2F}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="vulkan_headers.vcxproj">
+      <Project>{D1B9C411-31F5-E261-F89A-B435DA44B98C}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>

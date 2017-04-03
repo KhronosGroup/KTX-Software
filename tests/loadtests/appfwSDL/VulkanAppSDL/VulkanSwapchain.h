@@ -62,7 +62,7 @@ class VulkanSwapchain
 
 	// Creates an OS specific surface.
 	// Looks for a graphics and a present queue
-	bool initSurface(class SDL_Window* window);
+	bool initSurface(struct SDL_Window* window);
 
 	// Connect to device and get required device function pointers.
 	bool connectDevice(VkDevice device);

@@ -101,7 +101,8 @@ TextureArray::TextureArray(VulkanContext& vkctx,
     try {
     	prepare();
     } catch (std::exception& e) {
-    	cleanup();
+		(void)e; // To quiet unused variable warnings from some compilers.
+		cleanup();
     	throw;
     }
 }
@@ -445,7 +446,7 @@ TextureArray::preparePipelines()
     pipelineCreateInfo.pViewportState = &viewportState;
     pipelineCreateInfo.pDepthStencilState = &depthStencilState;
     pipelineCreateInfo.pDynamicState = &dynamicState;
-    pipelineCreateInfo.stageCount = shaderStages.size();
+    pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
     pipelineCreateInfo.pStages = shaderStages.data();
 
     vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
@@ -483,7 +484,7 @@ TextureArray::prepareUniformBuffers()
         uboVS.instance[i].model = glm::translate(glm::mat4(), glm::vec3(0.0f, i * offset - center, 0.0f));
         uboVS.instance[i].model = glm::rotate(uboVS.instance[i].model, glm::radians(60.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         // Instance texture array index
-        uboVS.instance[i].arrayIndex.x = i;
+        uboVS.instance[i].arrayIndex.x = (float)i;
     }
 
     // Update instanced part of the uniform buffer

@@ -169,6 +169,9 @@
     <ClCompile Include="..\..\..\..\lib\etcunpack.cxx">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\gl_format.h">
+      <Filter>lib\_excluded_files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\gl_funcptrs.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>
@@ -181,15 +184,12 @@
     <ClInclude Include="..\..\..\..\lib\gles3_funcptrs.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\glloader.c">
+      <Filter>lib\_excluded_files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\ktxcontext.c">
-      <Filter>lib\_excluded_files</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\..\..\lib\ktxcontext.h">
-      <Filter>lib\_excluded_files</Filter>
-    </ClInclude>
     <ClCompile Include="..\..\..\..\lib\ktxfilestream.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
@@ -208,12 +208,12 @@
     <ClInclude Include="..\..\..\..\lib\ktxstream.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\lib\loader.c">
+    <ClCompile Include="..\..\..\..\lib\ktxreader.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\reader.c">
+    <ClInclude Include="..\..\..\..\lib\ktxreader.h">
       <Filter>lib\_excluded_files</Filter>
-    </ClCompile>
+    </ClInclude>
     <ClCompile Include="..\..\..\..\lib\swap.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>

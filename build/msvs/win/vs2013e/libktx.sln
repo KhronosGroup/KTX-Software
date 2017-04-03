@@ -7,8 +7,21 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.es1", "libktx.es1.vcxproj", "{399C0129-AAB3-A267-75B5-D1A78CAEDCDC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.es3", "libktx.es3.vcxproj", "{E433BFCE-5FDC-98BD-3488-2F3581141D1B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95} = {19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{24FB448F-0D75-0770-773A-8E1625FA2BA8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95} = {19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan", "libvulkan.vcxproj", "{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95} = {19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,6 +31,14 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|x64.ActiveCfg = Release|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|x64.Build.0 = Release|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|Win32.ActiveCfg = Debug|Win32
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|Win32.Build.0 = Debug|Win32
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|x64.ActiveCfg = Debug|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Debug|x64.Build.0 = Debug|x64
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|Win32.ActiveCfg = Release|Win32
+		{19F062E2-4E76-8FE2-E04C-80BEC8DF0D95}.Release|Win32.Build.0 = Release|Win32
 		{24FB448F-0D75-0770-773A-8E1625FA2BA8}.Release|x64.ActiveCfg = Release|x64
 		{24FB448F-0D75-0770-773A-8E1625FA2BA8}.Release|x64.Build.0 = Release|x64
 		{24FB448F-0D75-0770-773A-8E1625FA2BA8}.Debug|Win32.ActiveCfg = Debug|Win32
@@ -42,6 +63,14 @@ Global
 		{98354E09-8B30-2537-1D5B-E7F2DD0D71C5}.Debug|x64.Build.0 = Debug|x64
 		{98354E09-8B30-2537-1D5B-E7F2DD0D71C5}.Release|Win32.ActiveCfg = Release|Win32
 		{98354E09-8B30-2537-1D5B-E7F2DD0D71C5}.Release|Win32.Build.0 = Release|Win32
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Release|x64.ActiveCfg = Release|x64
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Release|x64.Build.0 = Release|x64
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Debug|Win32.Build.0 = Debug|Win32
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Debug|x64.ActiveCfg = Debug|x64
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Debug|x64.Build.0 = Debug|x64
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Release|Win32.ActiveCfg = Release|Win32
+		{A65FDD80-1B1F-0F3D-D116-97EFC39E4EE9}.Release|Win32.Build.0 = Release|Win32
 		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Release|x64.ActiveCfg = Release|x64
 		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Release|x64.Build.0 = Release|x64
 		{D1FA803F-FC64-1E07-D943-A96CDAE60A75}.Debug|Win32.ActiveCfg = Debug|Win32

@@ -96,11 +96,12 @@ TexturedCube::TexturedCube(VulkanContext& vkctx,
 		prepareDescriptorSet();
 
 		vkctx.createDrawCommandBuffers();
-		for (int i = 0; i < vkctx.swapchain.imageCount; i++) {
+		for (uint32_t i = 0; i < vkctx.swapchain.imageCount; i++) {
 			buildCommandBuffer(i);
 		}
     } catch (std::exception& e) {
-    	cleanup();
+		(void)e; // To quiet unused variable warnings from some compilers.
+		cleanup();
     	throw;
     }
 }
@@ -121,7 +122,7 @@ TexturedCube::resize(uint32_t width, uint32_t height)
 
     vkctx.destroyDrawCommandBuffers();
     vkctx.createDrawCommandBuffers();
-    for (int i = 0; i < vkctx.swapchain.imageCount; i++) {
+    for (uint32_t i = 0; i < vkctx.swapchain.imageCount; i++) {
         buildCommandBuffer(i);
     }
 }
@@ -576,7 +577,7 @@ TexturedCube::preparePipeline()
     pipelineCreateInfo.pViewportState = &vps;
     pipelineCreateInfo.pDepthStencilState = &dss;
     pipelineCreateInfo.pDynamicState = &ds;
-    pipelineCreateInfo.stageCount = shaderStages.size();
+    pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
     pipelineCreateInfo.pStages = shaderStages.data();
 
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(vkctx.device,

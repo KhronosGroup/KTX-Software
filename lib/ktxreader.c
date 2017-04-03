@@ -510,13 +510,13 @@ cleanup:
  */
 
 size_t
-levelSize(const GlFormatSize* formatSize, uint32_t level,
-          uint32_t width, uint32_t height, uint32_t depth)
+levelSize(const GlFormatSize* formatSize, ktx_uint32_t level,
+          ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
 {
     struct blockCount {
-    	uint32_t x, y, z;
+    	ktx_uint32_t x, y, z;
     } blockCount;
-    uint32_t levelSizeX;
+    ktx_uint32_t levelSizeX;
 
     blockCount.x = MAX(1, (width / formatSize->blockWidth)  >> level);
     blockCount.y = MAX(1, (height / formatSize->blockHeight)  >> level);
@@ -524,7 +524,7 @@ levelSize(const GlFormatSize* formatSize, uint32_t level,
 
     levelSizeX = (formatSize->blockSizeInBits / 8) * blockCount.x;
     if (!(formatSize->flags & GL_FORMAT_SIZE_COMPRESSED_BIT)) {
-        uint32_t rowRounding;
+        ktx_uint32_t rowRounding;
         // Round to KTX_GL_UNPACK_ALIGNMENT. levelSizeX is the packed no. of
         // bytes in a row since formatInfo.block{Width.Height,Depth} is 1 for
         // uncompressed.
@@ -536,21 +536,21 @@ levelSize(const GlFormatSize* formatSize, uint32_t level,
 }
 
 static inline size_t
-layerSize(const GlFormatSize* formatSize, uint32_t levels,
-          uint32_t width, uint32_t height, uint32_t depth)
+layerSize(const GlFormatSize* formatSize, ktx_uint32_t levels,
+          ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
 {
     size_t layerSize = 0;
 
     // The size of a face is the sum of the size of each level.
-    for(uint32_t level = 0; level <= levels; level++)
+    for(ktx_uint32_t level = 0; level <= levels; level++)
         layerSize += levelSize(formatSize, level, width, height, depth);
 
     return layerSize;
 }
 
 static inline size_t
-dataSize(const GlFormatSize* formatSize, uint32_t levels, uint32_t layers,
-         uint32_t width, uint32_t height, uint32_t depth)
+dataSize(const GlFormatSize* formatSize, ktx_uint32_t levels, ktx_uint32_t layers,
+         ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
 {
 	size_t ls = layerSize(formatSize, levels, width, height, depth);
     return (ls * layers) + formatSize->paletteSizeInBits / 8;
@@ -562,7 +562,7 @@ ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
     ktxReader* This = (ktxReader*)reader;
 	GlFormatSize formatSize;
 	KTX_header* header;
-	uint32_t layers;
+	ktx_uint32_t layers;
 
     if (This == NULL || !This->stream.read || !This->stream.skip)
         return KTX_INVALID_VALUE;
@@ -594,7 +594,7 @@ ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
 }
 
 KTX_error_code
-ktxReader_getLevelSize(KTX_reader reader, uint32_t level, size_t* pLevelSize)
+ktxReader_getLevelSize(KTX_reader reader, ktx_uint32_t level, size_t* pLevelSize)
 {
     ktxReader* This = (ktxReader*)reader;
 	KTX_header* header;

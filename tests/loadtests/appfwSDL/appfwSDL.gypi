@@ -88,20 +88,6 @@
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
       },
-      'conditions': [
-        ['OS != "ios"', {
-          'sources!': [
-            'VulkanAppSDL/SDL_uikitmetalview.h',
-            'VulkanAppSDL/SDL_uikitmetalview.m',
-          ],
-        }],
-        ['OS != "mac"', {
-          'sources!': [
-          'VulkanAppSDL/SDL_cocoametalview.h',
-          'VulkanAppSDL/SDL_cocoametalview.m',
-          ],
-        }],
-      ], # conditions
     } # target appfwSDL
   ] #targets
 }

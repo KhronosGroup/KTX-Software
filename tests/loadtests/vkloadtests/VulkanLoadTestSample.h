@@ -40,11 +40,15 @@
 #include "utils/VulkanMeshLoader.hpp"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma clang diagnostic ignored "-Wnested-anon-types"
+#if !defined(_MSC_VER)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+  #pragma clang diagnostic ignored "-Wnested-anon-types"
+#endif
 #include <glm/glm.hpp>
-#pragma clang diagnostic pop
+#if !defined(_MSC_VER)
+  #pragma clang diagnostic pop
+#endif
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 

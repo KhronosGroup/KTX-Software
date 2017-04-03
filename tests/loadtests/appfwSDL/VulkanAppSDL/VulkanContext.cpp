@@ -111,7 +111,7 @@ VulkanContext::createDrawCommandBuffers()
     aInfo.commandBufferCount = 1;
 
     drawCmdBuffers.resize(swapchain.imageCount);
-    for (int i = 0; i < swapchain.imageCount; i++) {
+    for (uint32_t i = 0; i < swapchain.imageCount; i++) {
         VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
                         &drawCmdBuffers[i]));
     }

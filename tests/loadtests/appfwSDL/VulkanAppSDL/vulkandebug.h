@@ -10,22 +10,24 @@
 #include <stdio.h>
 #include <vector>
 #ifdef _WIN32
-#include <windows.h>
-#include <fcntl.h>
-#include <io.h>
+  #include <windows.h>
+  #include <fcntl.h>
+  #include <io.h>
 #endif
-#ifdef __ANDROID__
-#include "vulkanandroid.h"
-#endif
+
 // Turn off warning about use of GNU anonymous struct extension
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma clang diagnostic ignored "-Wnested-anon-types"
+#if !defined(_MSC_VER)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+  #pragma clang diagnostic ignored "-Wnested-anon-types"
+#endif
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
-// And back on again.
-#pragma clang diagnostic pop
+#if !defined(_MSC_VER)
+  // And back on again.
+  #pragma clang diagnostic pop
+#endif
 
 namespace vkDebug
 {

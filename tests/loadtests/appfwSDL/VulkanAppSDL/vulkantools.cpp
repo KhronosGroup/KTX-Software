@@ -8,6 +8,10 @@
 * asserts on unhandled cases in setImageLayout added by Mark Callow, 2017.3.3.
 */
 
+#if defined(_WIN32)
+  #define _CRT_SECURE_NO_WARNINGS // For fopen
+#endif
+
 #include "vulkantools.h"
 
 namespace vkTools
@@ -257,11 +261,8 @@ namespace vkTools
 
 	void exitFatal(std::string message, std::string caption)
 	{
-#ifdef _WIN32
-		MessageBox(NULL, message.c_str(), caption.c_str(), MB_OK | MB_ICONERROR);
-#else
-		// TODO : Linux
-#endif
+		(void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, caption.c_str(),
+									   message.c_str(), NULL);
 		std::cerr << message << "\n";
 		exit(1);
 	}

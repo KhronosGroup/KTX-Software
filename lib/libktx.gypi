@@ -92,10 +92,10 @@
                 # the copy command above.
                 'INSTALL_PATH': '@rpath',
               },
-            }, {
-              'dependencies': [ 'vulkan_headers' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
+        }, {
+          'dependencies': [ 'vulkan_headers' ],
         }] # _type == "shared_library"
       ], # conditions
     }, # libktx.gl target
@@ -133,6 +133,7 @@
           'type': 'none',
           'variables': {
             'doxyConfig': 'ktxDoxy',
+            'doxyRun_dir': '..',
             'timestamp': 'build/doc/.gentimestamp',
           },
           'actions': [
@@ -172,10 +173,7 @@
                   'action': [
                     'bash', '-l', '-c', 'doxygen <@(doxyConfig)'
                   ],
-                }, {
-                  # With `make`, cmake, etc, like Xcode,  the current
-                  # directory during project build is the one we need.
-                  #
+                }, 'GENERATOR == "msvs"', {
                   # With MSVS the current directory will be that
                   # containing the vcxproj file. However when the
                   # action is using bash ('msvs_cygwin_shell': '1',
@@ -192,6 +190,12 @@
                   # the MSVS generator will relativize *all* command
                   # arguments, that do not look like options, to the
                   # vcxproj location.
+                  'action': [
+                    'cd <(doxyRun_dir) ; doxygen <@(doxyConfig)'
+                  ],
+                }, {
+                  # With `make`, cmake, etc, like Xcode,  the current
+                  # directory during project build is the one we need.
                   'action': [
                     'doxygen', '<@(doxyConfig)'
                   ],

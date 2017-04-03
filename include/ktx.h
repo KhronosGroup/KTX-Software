@@ -493,7 +493,7 @@ ktxReader_getDataSize(KTX_reader This, size_t* pLevelSize);
  * given mipmap level.
  */
 KTX_error_code
-ktxReader_getLevelSize(KTX_reader This, uint32_t level, size_t* pDataSize);
+ktxReader_getLevelSize(KTX_reader This, ktx_uint32_t level, size_t* pDataSize);
 
 /*
  * Loads a texture from a the KTX file identified by @p This.

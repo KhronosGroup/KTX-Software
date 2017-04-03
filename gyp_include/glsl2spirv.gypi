@@ -30,7 +30,8 @@
         }, {
           'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
           'action': [
-            'glslangValidator', '-V',
+            #'glslangValidator', '-V',
+            'glslc', '-fshader-stage=fragment',
             '-o', '<@(_outputs)',
             '<(RULE_INPUT_PATH)'
           ], # action
@@ -53,7 +54,8 @@
         }, {
           'outputs': [ '<(shader_dest)/<(RULE_INPUT_NAME).spv' ],
           'action': [
-            'glslangValidator', '-V',
+            #'glslangValidator', '-V',
+            'glslc', '-fshader-stage=vertex',
             '-o', '<@(_outputs)',
             '<(RULE_INPUT_PATH)'
           ], # action

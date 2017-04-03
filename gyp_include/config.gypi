@@ -65,6 +65,7 @@
       'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
       'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
+      'winolibr_dir': '<(otherlibroot_dir)/Release-$(PlatformName)',
     }, # variables level 2
     # Copy variables out one scope.
     'otherlibroot_dir%': '<(otherlibroot_dir)',
@@ -73,6 +74,7 @@
     'linuxolib_dir%': '<(linuxolib_dir)',
     'macolib_dir%': '<(macolib_dir)',
     'winolib_dir%': '<(winolib_dir)',
+    'winolibr_dir%': '<(winolibr_dir)',
 
     # Directory containing EGL, GL{,ES}*, KHR, etc. include directories.
     'gl_includes_parent_dir': '../other_include',
