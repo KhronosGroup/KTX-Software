@@ -50,7 +50,7 @@
     'link_settings': {
       'conditions': [
         ['OS == "ios"', {
-          'library_dirs': [ '<(otherlibroot_dir)' ],
+          'library_dirs': [ '<(iosolib_dir)' ],
         }, 'OS == "mac"', {
           'library_dirs': [ '<(assimp_lib)' ],
         }, 'OS == "win"', {

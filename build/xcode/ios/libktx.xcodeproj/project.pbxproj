@@ -130,6 +130,13 @@
 			remoteGlobalIDString = 53E28E0399F04986CCFA2113;
 			remoteInfo = libvulkan;
 		};
+		D84789EEB286E42F111FFE4C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A53C7E625BBCBD48220BD07A;
+			remoteInfo = vulkan_headers;
+		};
 		F48EBDDD1C0B8609C5DE48DE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
@@ -312,6 +319,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				7AD4BE5684D9B4A6DAD890F1 /* PBXTargetDependency */,
 			);
 			name = libktx.gl;
 			productName = ktx.gl;
@@ -457,6 +465,11 @@
 			target = A53C7E625BBCBD48220BD07A /* vulkan_headers */;
 			targetProxy = F9053FB0263CA7C836BFC685 /* PBXContainerItemProxy */;
 		};
+		7AD4BE5684D9B4A6DAD890F1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A53C7E625BBCBD48220BD07A /* vulkan_headers */;
+			targetProxy = D84789EEB286E42F111FFE4C /* PBXContainerItemProxy */;
+		};
 		C9FE67D8786E27F5C8B57E0C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 362967529B3D7D3E12C3129D /* libktx.gl */;
@@ -486,6 +499,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/iOS";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -495,6 +509,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
+					"$(VULKAN_SDK)/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.gl;
@@ -724,6 +739,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/iOS";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -734,6 +750,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
+					"$(VULKAN_SDK)/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.gl;
