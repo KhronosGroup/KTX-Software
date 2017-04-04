@@ -31,7 +31,7 @@
               # libraries above, to force its inclusion in the
               # output .so. This is necessary because the contained
               # functions are only referenced from Java.
-              '<(sdl_lib_dir)/SDL_android_main.o',
+              '<(sdl2_lib_dir)/SDL_android_main.o',
             ],
             # Copy the .so to where the APK builder will find it.
             # Strip the symbols to reduce download time to the
@@ -57,7 +57,7 @@
         ['OS == "ios"', {
           'link_settings': {
             'libraries=': [
-              '<@(otherlibroot_dir)/$CONFIGURATION-$(PLATFORM_NAME)/libSDL2.a',
+              '<@(iosolib_dir)/libSDL2.a',
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreMotion.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
@@ -154,8 +154,6 @@
                   'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
                 },
                 'copies': [{
-                  # A small change to GYP was required to use
-                  # FRAMEWORKS_FOLDER_PATH
                   'destination': '$(FRAMEWORKS_FOLDER_PATH)',
                   'files': [ '<(sdl2_lib_dir)/SDL2.framework' ],
                 }],
@@ -164,8 +162,6 @@
                   'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/.' ],
                 },
                 'copies': [{
-                  # A small change to GYP was required to use
-                  # EXECUTABLE_FOLDER_PATH.
                   'destination': '$(EXECUTABLE_FOLDER_PATH)',
                   'files': [ '<@(sdl2_lib_dir)/libSDL2.dylib' ],
                 }],
