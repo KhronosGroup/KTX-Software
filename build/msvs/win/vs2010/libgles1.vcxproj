@@ -138,12 +138,14 @@
       <Command>call mkdir &quot;$(OutDir)&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib\libGLES_CM.dll&quot; &quot;$(OutDir)libGLES_CM.dll&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_64/Lib/libGLES_CM.dll to $(OutDir)\libGLES_CM.dll</Message>
       <Outputs>$(OutDir)\libGLES_CM.dll</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib\libEGL.dll">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib\libEGL.dll&quot; &quot;$(OutDir)libEGL.dll&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_64/Lib/libEGL.dll to $(OutDir)\libEGL.dll</Message>
       <Outputs>$(OutDir)\libEGL.dll</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

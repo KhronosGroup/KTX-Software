@@ -141,6 +141,7 @@
       <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; set OUTDIR=$(OutDir)&amp;&amp; bash -c &quot;\&quot;tests/toktx-tests\&quot; \&quot;`cygpath -m \\\&quot;${OUTDIR}\\\&quot;`/toktx\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Running toktx tests</Message>
       <Outputs>..\..\..\..\tools\toktx\testsrun</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

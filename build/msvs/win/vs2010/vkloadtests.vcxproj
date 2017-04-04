@@ -199,30 +199,35 @@
       <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\torusknot.obj&quot; &quot;$(OutDir)models\torusknot.obj&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/loadtests/vkloadtests/models/torusknot.obj to $(OutDir)/models\torusknot.obj</Message>
       <Outputs>$(OutDir)\models\torusknot.obj</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\cube.obj">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\cube.obj&quot; &quot;$(OutDir)models\cube.obj&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/loadtests/vkloadtests/models/cube.obj to $(OutDir)/models\cube.obj</Message>
       <Outputs>$(OutDir)\models\cube.obj</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\other_lib\win\Release-$(PlatformName)\assimp.dll">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\other_lib\win\Release-$(Platform)\assimp.dll&quot; &quot;$(OutDir)assimp.dll&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying other_lib/win/Release-$(PlatformName)/assimp.dll to $(OutDir)\assimp.dll</Message>
       <Outputs>$(OutDir)\assimp.dll</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\teapot.dae">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\teapot.dae&quot; &quot;$(OutDir)models\teapot.dae&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/loadtests/vkloadtests/models/teapot.dae to $(OutDir)/models\teapot.dae</Message>
       <Outputs>$(OutDir)\models\teapot.dae</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\sphere.obj">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\sphere.obj&quot; &quot;$(OutDir)models\sphere.obj&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/loadtests/vkloadtests/models/sphere.obj to $(OutDir)/models\sphere.obj</Message>
       <Outputs>$(OutDir)\models\sphere.obj</Outputs>
+      <LinkObjects>false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
