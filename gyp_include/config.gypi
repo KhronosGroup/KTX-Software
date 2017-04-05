@@ -71,6 +71,7 @@
     'otherlibroot_dir%': '<(otherlibroot_dir)',
     'droidolib_dir%': '<(droidolib_dir)',
     'iosolib_dir%': '<(iosolib_dir)',
+    'iosolibr_dir%': '<(iosolibr_dir)',
     'linuxolib_dir%': '<(linuxolib_dir)',
     'macolib_dir%': '<(macolib_dir)',
     'winolib_dir%': '<(winolib_dir)',

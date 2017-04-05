@@ -2048,6 +2048,7 @@
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
 					"$(VULKAN_SDK)/iOS",
+					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				OTHER_LDFLAGS = "-lassimp -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
@@ -2147,6 +2148,7 @@
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
 					"$(VULKAN_SDK)/iOS",
+					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				OTHER_LDFLAGS = "-lassimp -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
