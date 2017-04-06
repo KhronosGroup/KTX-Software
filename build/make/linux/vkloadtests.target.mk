@@ -10,7 +10,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_0)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_0 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_0 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -20,7 +20,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_1)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_1 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_1 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -30,7 +30,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_2)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_2 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_2 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -40,7 +40,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_3)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_3 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_3 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -50,7 +50,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_4)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_4 $@
 
 rule_ktxtests_gyp_vkloadtests_target_frag2spirv_outputs := \
@@ -70,7 +70,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_0)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_0 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_0 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -80,7 +80,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_1)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_1 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_1 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -90,7 +90,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_2)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_2 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_2 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -100,7 +100,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_3)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_3 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_3 $@
 
 $(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
@@ -110,7 +110,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/sha
 	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_4)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_4 $@
 
 rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs := \

@@ -10,7 +10,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/Vulkan
 	$(call do_cmd,ktxtests_gyp_appfwSDL_target_frag2spirv_0)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = RULE ktxtests_gyp_appfwSDL_target_frag2spirv_0 $@
 
 rule_ktxtests_gyp_appfwSDL_target_frag2spirv_outputs := \
@@ -26,7 +26,7 @@ $(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/Vulkan
 	$(call do_cmd,ktxtests_gyp_appfwSDL_target_vert2spirv_0)
 
 all_deps += $(builddir)/shaders/$(notdir $<).spv
-cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslangValidator -V -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = RULE ktxtests_gyp_appfwSDL_target_vert2spirv_0 $@
 
 rule_ktxtests_gyp_appfwSDL_target_vert2spirv_outputs := \

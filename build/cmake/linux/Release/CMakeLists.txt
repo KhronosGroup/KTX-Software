@@ -538,7 +538,7 @@ set(appfwSDL__frag2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${appfwSDL__frag2spirv_0_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=fragment" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${appfwSDL__frag2spirv__input} ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -564,7 +564,7 @@ set(appfwSDL__vert2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${appfwSDL__vert2spirv_0_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=vertex" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${appfwSDL__vert2spirv__input} ../../../../tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -725,7 +725,7 @@ set(vkloadtests__frag2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_0_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=fragment" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -745,7 +745,7 @@ set(vkloadtests__frag2spirv_1_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_1_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=fragment" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -765,7 +765,7 @@ set(vkloadtests__frag2spirv_2_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_2_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=fragment" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -785,7 +785,7 @@ set(vkloadtests__frag2spirv_3_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_3_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=fragment" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -805,7 +805,7 @@ set(vkloadtests__frag2spirv_4_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__frag2spirv_4_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=fragment" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -839,7 +839,7 @@ set(vkloadtests__vert2spirv_0_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_0_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=vertex" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -859,7 +859,7 @@ set(vkloadtests__vert2spirv_1_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_1_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=vertex" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -879,7 +879,7 @@ set(vkloadtests__vert2spirv_2_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_2_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=vertex" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -899,7 +899,7 @@ set(vkloadtests__vert2spirv_3_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_3_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=vertex" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
@@ -919,7 +919,7 @@ set(vkloadtests__vert2spirv_4_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
 add_custom_command(OUTPUT
   ${vkloadtests__vert2spirv_4_0}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
-  COMMAND glslangValidator -V -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  COMMAND glslc "-fshader-stage=vertex" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
   DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Compiling ${RULE_INPUT_NAME}.
