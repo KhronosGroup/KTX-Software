@@ -244,13 +244,32 @@ Texture::generateQuad()
 {
     // Setup vertices for a single uv-mapped quad
 #define DIM 1.0f
+#define COLOR { 0.75f, 0.65f, 0.0f }
+#if 0
+#define COLOR1 { 0.7f, 0.1f, 0.2f } }
+#define COLOR2 { 0.0f, 0.2f, 0.8f } }
+#define COLOR3 { 0.0f, 0.6f, 0.1f } }
+#define COLOR4 { 0.8f, 0.9f, 0.3f } }
+#else
+#define COLOR1 COLOR
+#define COLOR2 COLOR
+#define COLOR3 COLOR
+#define COLOR4 COLOR
+#endif
 #define NORMAL { 0.0f, 0.0f, 1.0f }
     std::vector<Vertex> vertexBuffer =
     {
+#if 0
         { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL, { 0.7f, 0.1f, 0.2f } },
         { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL, { 0.0f, 0.2f, 0.8f } },
         { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL, { 0.0f, 0.6f, 0.1f } },
         { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL, { 0.8f, 0.9f, 0.3f } }
+#else
+        { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL, COLOR },
+        { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL, COLOR },
+        { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL, COLOR },
+        { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL, COLOR }
+#endif
     };
 
 #undef dim
