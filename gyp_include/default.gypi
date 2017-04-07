@@ -124,6 +124,11 @@
     },
     'xcode_settings': {
       'COPY_PHASE_STRIP': 'NO',
+      # Avoid linker warnings about "Direct access in function'. These need
+      # to be NO or YES everywhere. When not set here, for some reason, appfwSDL
+      # had them set to NO while vkloadtests had them set to YES.
+      'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
+      'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
