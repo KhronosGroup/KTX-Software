@@ -154,15 +154,17 @@
                   'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
                 },
                 'copies': [{
-                  'destination': '$(FRAMEWORKS_FOLDER_PATH)',
+                  'xcode_code_sign': 1,
+                  'destination': '$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                   'files': [ '<(sdl2_lib_dir)/SDL2.framework' ],
                 }],
               }, 'sdl_to_use == "built_dylib"', {
                 'xcode_settings': {
-                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/.' ],
+                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
                 },
                 'copies': [{
-                  'destination': '$(EXECUTABLE_FOLDER_PATH)',
+                  'xcode_code_sign': 1,
+                  'destination': '$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                   'files': [ '<@(sdl2_lib_dir)/libSDL2.dylib' ],
                 }],
               }],

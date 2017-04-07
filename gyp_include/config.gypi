@@ -124,7 +124,7 @@
         'glew_dll_dir': '<(linuxolib_dir)',
       }, # OS == "linux"
       'OS == "mac"', {
-        'sdl_to_use%': 'installed_framework',
+        'sdl_to_use%': 'built_dylib',
         # Used when sdl_to_use == "installed_framework"
         'sdl2.framework_dir': '/Library/Frameworks',
         # Used when sdl_to_use != "installed_framework". This is the
