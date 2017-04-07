@@ -38,7 +38,7 @@ tests. The plan is to offer alternatives in future.
 Building
 --------
 
-###GNU/Linux
+### GNU/Linux
 
 ```bash
 cd build/make/linux
