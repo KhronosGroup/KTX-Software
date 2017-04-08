@@ -44,7 +44,7 @@
         'libktx.gyp:libktx.gl',
       ],
       'include_dirs': [
-        '../gtest/include'
+        '../gtest/include',
         '../../lib',
       ],
       'defines': [
