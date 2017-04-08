@@ -196,7 +196,7 @@ VulkanContext::createBuffer(vk::BufferUsageFlags usageFlags,
         {
             void *mapped;
             mapped = device.mapMemory(*memory, 0, size, {});
-            memcpy(mapped, data, size);
+            memcpy(mapped, data, (size_t)size);
             device.unmapMemory(*memory);
         }
         device.bindBufferMemory(*buffer, *memory, 0);
@@ -348,7 +348,7 @@ VulkanContext::readSpv(const char *filename, size_t *pSize) {
         throw std::runtime_error(message.str());
     }
 
-    size = SDL_RWsize(rw);
+    size = (size_t)SDL_RWsize(rw);
 
     // Round-up to next 4-byte size.
     shader_code = new uint32_t[(size + 3)/4];

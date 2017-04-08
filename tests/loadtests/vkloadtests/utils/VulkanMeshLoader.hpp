@@ -435,9 +435,9 @@ public:
 		VkQueue copyQueue)
 	{
 		std::vector<float> vertexBuffer;
-		for (int m = 0; m < m_Entries.size(); m++)
+		for (uint32_t m = 0; m < m_Entries.size(); m++)
 		{
-			for (int i = 0; i < m_Entries[m].Vertices.size(); i++)
+			for (uint32_t i = 0; i < m_Entries[m].Vertices.size(); i++)
 			{
 				// Push vertex data depending on layout
 				for (auto& layoutDetail : layout)

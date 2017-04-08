@@ -565,7 +565,7 @@ VulkanAppSDL::createInstance()
                 assert(err == VK_SUCCESS);
             }
             msg << "Cannot find the following extensions:\n";
-            for (int i = 0; i < extensionNames.size(); i++) {
+            for (uint32_t i = 0; i < extensionNames.size(); i++) {
                 uint32_t j;
                 for (j = 0; j < instanceExtensionCount; j++) {
                     if (!strcmp(extensionNames[i],

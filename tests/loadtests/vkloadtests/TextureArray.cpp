@@ -170,7 +170,7 @@ TextureArray::buildCommandBuffers()
 			2,
 			clearValues);
 
-    for (int32_t i = 0; i < vkctx.drawCmdBuffers.size(); ++i)
+    for (uint32_t i = 0; i < vkctx.drawCmdBuffers.size(); ++i)
     {
         // Set target frame buffer
         renderPassBeginInfo.framebuffer = vkctx.framebuffers[i];
