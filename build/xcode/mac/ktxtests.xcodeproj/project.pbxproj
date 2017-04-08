@@ -2048,8 +2048,8 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = (
-					tests/gtest/lib,
 					tests/gtest/include,
+					lib,
 					include,
 					other_include,
 				);
@@ -2430,8 +2430,8 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = (
-					tests/gtest/lib,
 					tests/gtest/include,
+					lib,
 					include,
 					other_include,
 				);
