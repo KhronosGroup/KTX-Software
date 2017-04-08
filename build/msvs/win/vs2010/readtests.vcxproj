@@ -52,7 +52,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -67,13 +67,13 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -89,13 +89,13 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -110,13 +110,13 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -129,13 +129,13 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -149,7 +149,7 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\lib;..\..\..\..\tests\gtest\include;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\gtest\include;..\..\..\..\lib;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
