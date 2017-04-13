@@ -71,15 +71,34 @@ class VulkanLoadTests : public VulkanAppSDL {
         eForward,
         eBack
     };
-
-    void invokeSample(int& iSampleNum, Direction dir);
-    int iCurSampleNum;
+    void invokeSample(Direction dir);
     VulkanLoadTestSample* pCurSample;
 
     bool quit = false;
 
     const sampleInvocation* const siSamples;
-    const int iNumSamples;
+    class sampleIndex {
+      public:
+        sampleIndex(const int32_t numSamples) : numSamples(numSamples) {
+            index = 0;
+        }
+        sampleIndex& operator++() {
+            if (++index >= numSamples)
+                index = 0;
+            return *this;
+        }
+        sampleIndex& operator--() {
+            if (--index < 0)
+                index = numSamples-1;
+            return *this;
+        }
+        operator int32_t() {
+            return index;
+        }
+      protected:
+        const int32_t numSamples;
+        int32_t index;
+    } sampleIndex;
     
     struct {
         int32_t x;

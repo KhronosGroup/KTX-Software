@@ -58,10 +58,9 @@
 VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
 								 const int numSamples,
 								 const char* const name)
-				  : siSamples(samples), iNumSamples(numSamples),
+				  : siSamples(samples), sampleIndex(numSamples),
 					VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true)
 {
-    iCurSampleNum = 0;
     pCurSample = nullptr;
 }
 
@@ -80,7 +79,7 @@ VulkanLoadTests::initialize(int argc, char* argv[])
 
 	// Not getting an initialize resize event, at least on Mac OS X.
 	// Therefore use invokeSample which calls the sample's resize func.
-	invokeSample(iCurSampleNum, Direction::eForward);
+	invokeSample(Direction::eForward);
 	return true;
 }
 
@@ -106,14 +105,12 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             quit = true;
             break;
           case 'n':
-            if (++iCurSampleNum >= iNumSamples)
-              iCurSampleNum = 0;
-            invokeSample(iCurSampleNum, Direction::eForward);
+                ++sampleIndex;
+            invokeSample(Direction::eForward);
             break;
           case 'p':
-            if (--iCurSampleNum < 0)
-              iCurSampleNum = iNumSamples-1;
-            invokeSample(iCurSampleNum, Direction::eBack);
+            --sampleIndex;
+            invokeSample(Direction::eBack);
             break;
 
           default:
@@ -142,9 +139,8 @@ VulkanLoadTests::doEvent(SDL_Event* event)
                 && SDL_abs(event->button.y - buttonDown.y) < 5
 				&& (event->button.timestamp - buttonDown.timestamp) < 100) {
                 // Advance to the next sample.
-                if (++iCurSampleNum >= iNumSamples)
-                    iCurSampleNum = 0;
-                invokeSample(iCurSampleNum, Direction::eForward);
+                ++sampleIndex;
+                invokeSample(Direction::eForward);
             }
             break;
           default:
@@ -187,7 +183,7 @@ VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay)
 }
 
 void
-VulkanLoadTests::invokeSample(int& iSampleNum, Direction dir)
+VulkanLoadTests::invokeSample(Direction dir)
 {
     const sampleInvocation* sampleInv;
     class unsupported_ctype : public std::runtime_error {
@@ -201,7 +197,7 @@ VulkanLoadTests::invokeSample(int& iSampleNum, Direction dir)
         vkctx.queue.waitIdle(); // Wait for current rendering to finish.
         delete pCurSample;
     }
-    sampleInv = &siSamples[iSampleNum];
+    sampleInv = &siSamples[sampleIndex];
 
 	for (;;) {
 		try {
@@ -226,14 +222,14 @@ VulkanLoadTests::invokeSample(int& iSampleNum, Direction dir)
 			break;
         } catch (unsupported_ctype& e) {
 			(void)e; // To quiet unused variable warnings from some compilers.
-			dir == Direction::eForward ? ++iSampleNum : --iSampleNum;
-            sampleInv = &siSamples[iSampleNum];
+			dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            sampleInv = &siSamples[sampleIndex];
 		} catch (std::exception& e) {
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 					sampleInv->title,
 					e.what(), NULL);
-        	dir == Direction::eForward ? ++iSampleNum : --iSampleNum;
-			sampleInv = &siSamples[iSampleNum];
+        	dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            sampleInv = &siSamples[sampleIndex];
 		}
 	}
     prepared = true;
