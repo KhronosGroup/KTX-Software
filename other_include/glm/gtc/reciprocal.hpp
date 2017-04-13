@@ -15,7 +15,7 @@
 // Dependencies
 #include "../detail/setup.hpp"
 
-#if(defined(GLM_MESSAGES) && !defined(GLM_EXT_INCLUDED))
+#if GLM_MESSAGES == GLM_MESSAGES_ENABLED && !defined(GLM_EXT_INCLUDED)
 #	pragma message("GLM: GLM_GTC_reciprocal extension included")
 #endif
 
@@ -24,109 +24,109 @@ namespace glm
 	/// @addtogroup gtc_reciprocal
 	/// @{
 
-	/// Secant function. 
+	/// Secant function.
 	/// hypotenuse / adjacent or 1 / cos(x)
 	/// 
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType sec(genType angle);
 
-	/// Cosecant function. 
+	/// Cosecant function.
 	/// hypotenuse / opposite or 1 / sin(x)
 	/// 
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType> 
 	GLM_FUNC_DECL genType csc(genType angle);
 		
-	/// Cotangent function. 
+	/// Cotangent function.
 	/// adjacent / opposite or 1 / tan(x)
 	/// 
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType cot(genType angle);
 
-	/// Inverse secant function. 
+	/// Inverse secant function.
 	/// 
 	/// @return Return an angle expressed in radians.
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType asec(genType x);
 
-	/// Inverse cosecant function. 
+	/// Inverse cosecant function.
 	/// 
 	/// @return Return an angle expressed in radians.
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType acsc(genType x);
 		
-	/// Inverse cotangent function. 
+	/// Inverse cotangent function.
 	/// 
 	/// @return Return an angle expressed in radians.
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType acot(genType x);
 
-	/// Secant hyperbolic function. 
+	/// Secant hyperbolic function.
 	/// 
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType sech(genType angle);
 
-	/// Cosecant hyperbolic function. 
+	/// Cosecant hyperbolic function.
 	/// 
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType csch(genType angle);
 		
-	/// Cotangent hyperbolic function. 
+	/// Cotangent hyperbolic function.
 	/// 
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType coth(genType angle);
 
-	/// Inverse secant hyperbolic function. 
+	/// Inverse secant hyperbolic function.
 	/// 
 	/// @return Return an angle expressed in radians.
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType asech(genType x);
 
-	/// Inverse cosecant hyperbolic function. 
+	/// Inverse cosecant hyperbolic function.
 	/// 
 	/// @return Return an angle expressed in radians.
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType acsch(genType x);
 		
-	/// Inverse cotangent hyperbolic function. 
+	/// Inverse cotangent hyperbolic function.
 	/// 
 	/// @return Return an angle expressed in radians.
 	/// @tparam genType Floating-point scalar or vector types.
 	/// 
 	/// @see gtc_reciprocal
-	template <typename genType> 
+	template<typename genType>
 	GLM_FUNC_DECL genType acoth(genType x);
 
 	/// @}

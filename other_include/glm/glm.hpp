@@ -14,7 +14,7 @@
 /// <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.clean.pdf">version 4.2
 /// (pdf file)</a>.
 ///
-/// GLM core functionnalities require <glm/glm.hpp> to be included to be used.
+/// GLM core functionalities require <glm/glm.hpp> to be included to be used.
 ///
 /// @defgroup core_types Types
 ///
@@ -60,7 +60,7 @@
 #include <cassert>
 #include "fwd.hpp"
 
-#if(defined(GLM_MESSAGES) && !defined(GLM_MESSAGE_CORE_INCLUDED_DISPLAYED))
+#if GLM_MESSAGES == GLM_MESSAGES_ENABLED && !defined(GLM_MESSAGE_CORE_INCLUDED_DISPLAYED)
 #	define GLM_MESSAGE_CORE_INCLUDED_DISPLAYED
 #	pragma message("GLM: Core library included")
 #endif//GLM_MESSAGES

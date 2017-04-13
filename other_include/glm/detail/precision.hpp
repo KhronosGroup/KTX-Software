@@ -3,52 +3,64 @@
 
 #pragma once
 
+#include "setup.hpp"
+
 namespace glm
 {
 	enum precision
 	{
-		highp,
-		mediump,
-		lowp,
-		packed_highp = highp,
-		packed_mediump = mediump,
-		packed_lowp = lowp,
+		packed_highp,
+		packed_mediump,
+		packed_lowp,
+
+#		if GLM_HAS_ALIGNED_TYPE
+			aligned_highp,
+			aligned_mediump,
+			aligned_lowp,
+			aligned = aligned_highp,
+#		endif
+
+		highp = packed_highp,
+		mediump = packed_mediump,
+		lowp = packed_lowp,
 		packed = packed_highp,
-		aligned_highp,
-		aligned_mediump,
-		aligned_lowp,
-		aligned = aligned_highp,
-#		ifdef GLM_FORCE_ALIGNED
+
+#		if GLM_HAS_ALIGNED_TYPE && defined(GLM_FORCE_ALIGNED)
 			defaultp = aligned_highp
 #		else
 			defaultp = highp
 #		endif
 	};
 
+	template<length_t L, typename T, precision P = defaultp> struct vec;
+	template<length_t C, length_t R, typename T, precision P = defaultp> struct mat;
+
 namespace detail
 {
-	template <precision P>
+	template<glm::precision P>
 	struct is_aligned
 	{
 		static const bool value = false;
 	};
 
-	template<>
-	struct is_aligned<aligned_lowp>
-	{
-		static const bool value = true;
-	};
+#	if GLM_HAS_ALIGNED_TYPE
+		template<>
+		struct is_aligned<glm::aligned_lowp>
+		{
+			static const bool value = true;
+		};
 
-	template<>
-	struct is_aligned<aligned_mediump>
-	{
-		static const bool value = true;
-	};
+		template<>
+		struct is_aligned<glm::aligned_mediump>
+		{
+			static const bool value = true;
+		};
 
-	template<>
-	struct is_aligned<aligned_highp>
-	{
-		static const bool value = true;
-	};
+		template<>
+		struct is_aligned<glm::aligned_highp>
+		{
+			static const bool value = true;
+		};
+#	endif
 }//namespace detail
 }//namespace glm

@@ -26,7 +26,7 @@
 #include "../vec3.hpp"
 #include "../vec4.hpp"
 
-#if(defined(GLM_MESSAGES) && !defined(GLM_EXT_INCLUDED))
+#if GLM_MESSAGES == GLM_MESSAGES_ENABLED && !defined(GLM_EXT_INCLUDED)
 #	pragma message("GLM: GLM_GTC_noise extension included")
 #endif
 
@@ -37,22 +37,22 @@ namespace glm
 
 	/// Classic perlin noise.
 	/// @see gtc_noise
-	template <typename T, precision P, template<typename, precision> class vecType>
+	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
 	GLM_FUNC_DECL T perlin(
-		vecType<T, P> const & p);
+		vecType<L, T, P> const& p);
 		
 	/// Periodic perlin noise.
 	/// @see gtc_noise
-	template <typename T, precision P, template<typename, precision> class vecType>
+	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
 	GLM_FUNC_DECL T perlin(
-		vecType<T, P> const & p,
-		vecType<T, P> const & rep);
+		vecType<L, T, P> const& p,
+		vecType<L, T, P> const& rep);
 
 	/// Simplex noise.
 	/// @see gtc_noise
-	template <typename T, precision P, template<typename, precision> class vecType>
+	template<length_t L, typename T, precision P, template<length_t, typename, precision> class vecType>
 	GLM_FUNC_DECL T simplex(
-		vecType<T, P> const & p);
+		vecType<L, T, P> const& p);
 
 	/// @}
 }//namespace glm
