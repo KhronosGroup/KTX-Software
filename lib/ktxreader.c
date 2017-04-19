@@ -74,6 +74,7 @@ ktxReader_construct(ktxReader* This)
   assert(This != NULL);
   memset(This, 0, sizeof(ktxReader));
   This->state = KTX_RS_START;
+  This->selfOpenedFile = KTX_FALSE;
 }
 
 /**
@@ -88,9 +89,9 @@ ktxReader_construct(ktxReader* This)
 KTX_error_code
 ktxReader_constructFromFile(ktxReader* This, FILE* file)
 {
-  assert(This != NULL);
-  ktxReader_construct(This);
-  return ktxFileStream_init(&This->stream, file);
+    assert(This != NULL);
+    ktxReader_construct(This);
+    return ktxFileStream_construct(&This->stream, file);
 }
 
 /**
@@ -105,9 +106,9 @@ ktxReader_constructFromFile(ktxReader* This, FILE* file)
 KTX_error_code
 ktxReader_constructFromMem(ktxReader* This, const void* bytes, size_t size)
 {
-  assert(This != NULL);
-  ktxReader_construct(This);
-  return ktxMemStream_init(&This->stream, &This->mem, bytes, size);
+    assert(This != NULL);
+    ktxReader_construct(This);
+    return ktxMemStream_construct(&This->stream, &This->mem, bytes, size);
 }
 
 /**
@@ -182,6 +183,10 @@ ktxOpenKTXN(const char* const filename, KTX_reader* pReader)
     
     if (file) {
         errorCode = ktxOpenKTXF(file, pReader);
+        if (errorCode == KTX_SUCCESS) {
+            ktxReader* This = (ktxReader*)*pReader;
+            This->selfOpenedFile = KTX_TRUE;
+        }
     } else
         errorCode = KTX_FILE_OPEN_FAILED;
     
@@ -233,7 +238,8 @@ ktxOpenKTXM(const void* bytes, size_t size, KTX_reader* pReader)
  * @~English
  * @brief Close a ktxReader.
  *
- * Close any associated file and free the associated memory.
+ * Close any file opened by a call to ktxOpenKTXN. Free the memory associated
+ * with the ktxReader.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -241,13 +247,15 @@ ktxOpenKTXM(const void* bytes, size_t size, KTX_reader* pReader)
  *
  * @warning This command is subject to change before it is merged to master.
  */
-/*
- * XXX Fix to close any open file or FILE.
- */
 KTX_error_code
 ktxReader_close(KTX_reader reader)
 {
     ktxReader* This = (ktxReader*)reader;
+    
+    if (This->selfOpenedFile) {
+        assert(This->stream.type == eStreamTypeFile);
+        fclose(This->stream.data.file);
+    }
     
     if (This == NULL)
         return KTX_INVALID_VALUE;

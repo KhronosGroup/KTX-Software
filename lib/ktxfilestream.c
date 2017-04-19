@@ -137,7 +137,7 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
 /**
  * @internal
  * @~English
- * @brief Initializes a ktxFileStream.
+ * @brief Initialize a ktxFileStream.
  *
  * @param [in] str      pointer to the ktxStream to initialize.
  * @param [in] file     pointer to the underlying FILE object.
@@ -146,12 +146,13 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
  *
  * @exception KTX_INVALID_VALUE @p stream is @c NULL or @p file is @c NULL.
  */
-KTX_error_code ktxFileStream_init(ktxStream* str, FILE* file)
+KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file)
 {
 	if (!str || !file)
 		return KTX_INVALID_VALUE;
 
 	str->data.file = file;
+    str->type = eStreamTypeFile;
 	str->read = ktxFileStream_read;
 	str->skip = ktxFileStream_skip;
 	str->write = ktxFileStream_write;

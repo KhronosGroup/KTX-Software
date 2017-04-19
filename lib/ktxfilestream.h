@@ -44,6 +44,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 /*
  * ktxFileInit: Initialize a ktxStream to a ktxFileStream with a FILE object
  */
-KTX_error_code ktxFileStream_init(ktxStream* str, FILE* file);
+KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file);
 
 #endif /* KTXFILESTREAM_H */

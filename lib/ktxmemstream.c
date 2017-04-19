@@ -216,8 +216,8 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
  *                                  or @p size is less than 0.
  * @exception KTX_OUT_OF_MEMORY     system failed to allocate sufficient memory.
  */
-KTX_error_code ktxMemStream_init(ktxStream* str, ktxMem* mem,
-                                 const void* bytes, size_t size)
+KTX_error_code ktxMemStream_construct(ktxStream* str, ktxMem* mem,
+                                      const void* bytes, size_t size)
 {
 	if (!str || !mem)
 		return KTX_INVALID_VALUE;
@@ -242,6 +242,7 @@ KTX_error_code ktxMemStream_init(ktxStream* str, ktxMem* mem,
 	}
 
 	str->data.mem = mem;
+    str->type = eStreamTypeMemory;
 	str->read = ktxMemStream_read;
 	str->skip = ktxMemStream_skip;
 	str->write = ktxMemStream_write;

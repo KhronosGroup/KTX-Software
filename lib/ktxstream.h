@@ -43,6 +43,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 typedef struct ktxMem ktxMem;
 typedef struct ktxStream ktxStream;
 
+enum streamType { eStreamTypeFile, eStreamTypeMemory };
+
 /**
  * @internal
  * @~English
@@ -77,6 +79,7 @@ typedef struct ktxStream
     ktxStream_skip skip;   /*!< @internal pointer to function for skipping bytes. */
     ktxStream_write write; /*!< @internal pointer to function for writing bytes. */
 
+    enum streamType type;
     union {
         FILE* file;
         ktxMem* mem;

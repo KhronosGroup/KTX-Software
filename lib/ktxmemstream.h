@@ -57,8 +57,8 @@ typedef struct ktxMem
  * Initialize a ktxStream to a ktxMemStream with ktxMem struct and array
  * of bytes.
  */
-KTX_error_code ktxMemStream_init(ktxStream* str, struct ktxMem* mem,
-                                 const void* bytes, size_t size);
+KTX_error_code ktxMemStream_construct(ktxStream* str, struct ktxMem* mem,
+                                      const void* bytes, size_t size);
 
 
 void ktxMem_clear(ktxMem* mem);

@@ -117,7 +117,7 @@ TEST(MemStreamTest, Read) {
     const size_t size = 28;
     char readBuf[size];
     
-    ktxMemStream_init(&stream, &memBlock, data, size);
+    ktxMemStream_construct(&stream, &memBlock, data, size);
     stream.read(&stream, readBuf, size);
     EXPECT_EQ(memcmp(data, readBuf, size), 0);
 }
@@ -128,7 +128,7 @@ TEST(MemStreamTest, Write) {
     const char* data = "29 bytes of rubbish to write.";
     const size_t count = 29;
     
-    ktxMemStream_init(&stream, &memBlock, 0, count);
+    ktxMemStream_construct(&stream, &memBlock, 0, count);
     stream.write(&stream, data, 1, count);
     
     EXPECT_EQ(memBlock.used_size, count);
@@ -145,7 +145,7 @@ TEST(MemStreamTest, WriteExpand) {
     const size_t count = 29;
     const size_t count2 = 26;
     
-    ktxMemStream_init(&stream, &memBlock, 0, count);
+    ktxMemStream_construct(&stream, &memBlock, 0, count);
     stream.write(&stream, data, 1, count);
     stream.write(&stream, data2, 1, count2);
     EXPECT_EQ(memBlock.used_size, count + count2);

@@ -407,7 +407,7 @@ ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
 		struct ktxStream stream;
 		KTX_error_code errorCode = KTX_SUCCESS;
 
-		errorCode = ktxFileStream_init(&stream, file);
+		errorCode = ktxFileStream_construct(&stream, file);
 		if (errorCode != KTX_SUCCESS)
 				return errorCode;
 
@@ -487,7 +487,7 @@ ktxWriteKTXM(unsigned char** bytes, GLsizei* size,
 
 	*bytes = NULL;
 
-	rc = ktxMemStream_init(&stream, &mem, NULL, 0);
+	rc = ktxMemStream_construct(&stream, &mem, NULL, 0);
 	if (rc != KTX_SUCCESS)
 		return rc;
 
