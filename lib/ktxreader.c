@@ -57,6 +57,11 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxfilestream.h"
 
 /**
+ * @defgroup reader ktxReader
+ * @{
+ */
+
+/**
  * @~English
  * @internal
  * @brief Initialize a ktxReader object.
@@ -107,14 +112,14 @@ ktxReader_constructFromMem(ktxReader* This, const void* bytes, size_t size)
 
 /**
  * @~English
- * @brief Open the KTX file pointed at by a stdio FILE.
+ * @brief Create a ktxReader to read a KTX file pointed at by a stdio FILE.
  *
  * The function returns a handle to a KTX_reader object which must be used
  * for further operations on the file.
  *
  * @param [in] file		    pointer to a stdio FILE created from the desired
  * 							file.
- * @param [in,out] pReader	pointer to a KTX_reader into which the context
+ * @param [in,out] pReader	pointer to a KTX_reader into which the reader's
  *                          handle is written.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -146,14 +151,14 @@ ktxOpenKTXF(FILE* file, KTX_reader* pReader)
 
 /**
  * @~English
- * @brief Open the named KTX file on disk.
+ * @brief Create a ktxReader to read a named KTX file on disk.
  *
  * The function returns a handle to a KTX_reader object which must be used
  * for further operations on the file.
  *
  * @param [in] filename		pointer to a C string that contains the path of
- * 							the file to load.
- * @param [in,out] pReader	pointer to a KTX_reader into which the context
+ * 							the file to open.
+ * @param [in,out] pReader	pointer to a KTX_reader into which the reader's
  *                          handle is written.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -185,14 +190,14 @@ ktxOpenKTXN(const char* const filename, KTX_reader* pReader)
 
 /**
  * @~English
- * @brief Open a KTX file from KTX formatted data in memory.
+ * @brief Create a KTX reader to read KTX formatted data in memory.
  *
  * The function returns a handle to a KTX_reader object which must be used
  * for further operations on the file.
  *
  * @param [in] bytes		pointer to the data in memory.
  * @param [in] size         length of the KTX data in memory.
- * @param [in,out] pReader	pointer to a KTX_reader into which the context
+ * @param [in,out] pReader	pointer to a KTX_reader into which the reader's
  *                          handle is written.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -226,13 +231,18 @@ ktxOpenKTXM(const void* bytes, size_t size, KTX_reader* pReader)
 
 /**
  * @~English
- * @brief Close a KTX file, freeing the associated context.
+ * @brief Close a ktxReader.
+ *
+ * Close any associated file and free the associated memory.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE	@p reader is @c NULL.
  *
  * @warning This command is subject to change before it is merged to master.
+ */
+/*
+ * XXX Fix to close any open file or FILE.
  */
 KTX_error_code
 ktxReader_close(KTX_reader reader)
@@ -248,12 +258,12 @@ ktxReader_close(KTX_reader reader)
 
 /**
  * @~English
- * @brief Read the header of the KTX file associated with a KTX_reader object.
+ * @brief Read the header of the KTX file.
  *
  * This function byte-swaps the header, if necessary, and checks it for
  * validity.
  *
- * @param [in] reader			handle of the KTX_reader representing the file.
+ * @param [in] reader		handle of the KTX_reader representing the file.
  * @param [in,out] pHeader  pointer to a KTX_header struct into which the
  *                          function writes the header data of the file.
  * @param [out] pSuppInfo 	pointer to a KTX_supplemental_info struct into
@@ -306,10 +316,9 @@ ktxReader_readHeader(KTX_reader reader, KTX_header* pHeader,
 
 /**
  * @~English
- * @brief Read the key-value data of the KTX file associated with a KTX_reader
- *        object.
+ * @brief Read the key-value data of the KTX file.
  *
- * @param [in] reader			handle of the KTX_reader representing the file.
+ * @param [in] reader		handle of the KTX_reader representing the file.
  * @param [in,out] pKvdLen	if not NULL, @p *pKvdLen is set to the number of
  *                          bytes of key-value data pointed at by @p *ppKvd.
  *                          Must not be NULL, if @p ppKvd is not NULL.
@@ -323,7 +332,8 @@ ktxReader_readHeader(KTX_reader reader, KTX_header* pHeader,
  * @exception KTX_INVALID_OPERATION the header of the file associated with the
  *                                  @p reader has not yet been read or the key-
  *                                  value data has already been read.
- * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader handle.
+ * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader
+ *                                  handle.
  * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
  *                                  hold the data.
  *
@@ -333,7 +343,8 @@ ktxReader_readHeader(KTX_reader reader, KTX_header* pHeader,
  * e.g. miplevel order?
  */
 KTX_error_code
-ktxReader_readKVData(KTX_reader reader, ktx_uint32_t* pKvdLen, ktx_uint8_t ** ppKvd)
+ktxReader_readKVData(KTX_reader reader,
+                     ktx_uint32_t* pKvdLen, ktx_uint8_t** ppKvd)
 {
     ktxReader* This = (ktxReader*)reader;
     KTX_error_code errorCode = KTX_SUCCESS;
@@ -373,8 +384,7 @@ ktxReader_readKVData(KTX_reader reader, ktx_uint32_t* pKvdLen, ktx_uint8_t ** pp
 
 /**
  * @~English
- * @brief Read the images from the KTX file associated with a KTX_reader
- *        object.
+ * @brief Read the images from the KTX file.
  *
  * Each image is passed to an application-supplied callback function. Note that
  * in the case of array textures all layers are passed in a single invocation
@@ -382,7 +392,7 @@ ktxReader_readKVData(KTX_reader reader, ktx_uint32_t* pKvdLen, ktx_uint8_t ** pp
  * must copy the image data if it wishes to preserve it. The buffer whose
  * pointer is passed is freed when this function exits.
  *
- * @param [in] reader			handle of the KTX_reader representing the file.
+ * @param [in] reader		handle of the KTX_reader representing the file.
  * @param [in,out] imageCb  a PFNKTXIMAGECB pointer holding the address of the
  *                          callback function.
  * @param [in,out] userdata a pointer to application-specific data which is
@@ -393,10 +403,11 @@ ktxReader_readKVData(KTX_reader reader, ktx_uint32_t* pKvdLen, ktx_uint8_t ** pp
  *          return these for other causes or additional errors.
  *
  * @exception KTX_INVALID_OPERATION the header or key-value data of the file
- *                                  associated with the @p reader has not yet been
- *                                  read or the images have already been read.
- * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader handle
- *                                  or @p imageCb is @c NULL.
+ *                                  associated with the @p reader has not yet
+ *                                  been read or the images have already been
+ *                                  read.
+ * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader
+ *                                  handle or @p imageCb is @c NULL.
  * @exception KTX_OUT_OF_MEMORY     not enough memory to allocate a block to
  *                                  hold the base level image.
  *
@@ -556,6 +567,25 @@ dataSize(const GlFormatSize* formatSize, ktx_uint32_t levels, ktx_uint32_t layer
     return (ls * layers) + formatSize->paletteSizeInBits / 8;
 }
 
+/**
+ * @~English
+ * @brief Return the size needed for a buffer to store all the images in
+ *        a KTX file.
+ *
+ * This information is not stored in a KTX file so it must be calculated.
+ *
+ * @param [in] reader		  handle of the KTX_reader representing the file.
+ * @param [in,out] pDataSize  pointer to a @c size_t variable to which the
+ *                            size is written.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION the header or key-value data of the file
+ *                                  associated with the @p reader has not yet
+ *                                  been read.
+ * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader
+ *                                  handle.
+ */
 KTX_error_code
 ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
 {
@@ -593,6 +623,26 @@ ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
   return KTX_SUCCESS;
 }
 
+/**
+ * @~English
+ * @brief Return the size needed for a buffer to store all the images in
+ *        the specified mip level of a KTX file.
+ *
+ * This information is not stored in a KTX file so it must be calculated.
+ *
+ * @param [in] reader		   handle of the KTX_reader representing the file.
+ * @param [in] level           mip level for which the size is to be calculated.
+ * @param [in,out] pLevelSize  pointer to a @c size_t variable to which the
+ *                             size is written.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION the header or key-value data of the file
+ *                                  associated with the @p reader has not yet
+ *                                  been read.
+ * @exception KTX_INVALID_VALUE     @p reader is @c NULL or not a valid reader
+ *                                  handle.
+ */
 KTX_error_code
 ktxReader_getLevelSize(KTX_reader reader, ktx_uint32_t level, size_t* pLevelSize)
 {
@@ -621,4 +671,9 @@ ktxReader_getLevelSize(KTX_reader reader, ktx_uint32_t level, size_t* pLevelSize
                             header->pixelDepth);
   return KTX_SUCCESS;
 }
+
+/**
+ * @}
+ */
+
 
