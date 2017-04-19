@@ -2198,7 +2198,7 @@
 					other_include,
 					include,
 				);
-				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
+				INFOPLIST_FILE = tests/loadtests/glloadtests/resources_ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
@@ -2249,7 +2249,7 @@
 					other_include,
 					include,
 				);
-				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
+				INFOPLIST_FILE = tests/loadtests/glloadtests/resources_ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
@@ -2338,7 +2338,7 @@
 					other_include,
 					include,
 				);
-				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
+				INFOPLIST_FILE = tests/loadtests/glloadtests/resources_ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
@@ -2392,7 +2392,7 @@
 					other_include,
 					include,
 				);
-				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_ios/Info.plist;
+				INFOPLIST_FILE = tests/loadtests/glloadtests/resources_ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",

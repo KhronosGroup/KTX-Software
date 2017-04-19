@@ -17,9 +17,9 @@
     # to the main .gyp file.
      'conditions': [
       ['OS == "ios"', {
-        'infoplist_file': 'resources_ios/Info.plist',
+        'vkinfoplist_file': 'resources_ios/Info.plist',
       }, 'OS == "mac"', {
-        'infoplist_file': 'resources_mac/Info.plist',
+        'vkinfoplist_file': 'resources_mac/Info.plist',
       }],
     ] # conditions
   }, # variables, level 1
@@ -96,7 +96,7 @@
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
         'GCC_C_LANGUAGE_STANDARD': 'c99',
-        'INFOPLIST_FILE': '<(infoplist_file)',
+        'INFOPLIST_FILE': '<(vkinfoplist_file)',
         # Minimum targets for Metal/MoltenVK.
         'conditions': [
           ['OS == "ios"', {
@@ -117,14 +117,17 @@
           'xcode_settings': {
             'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
-            'INFOPLIST_FILE': '<(infoplist_file)',
+            'INFOPLIST_FILE': '<(vkinfoplist_file)',
           },
         }, 'OS == "mac"', {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
+          'mac_bundle_resources': [
+            'resources_mac/KTXAppIcons.icns',
+          ],
           'sources': [ 'resources_mac/Info.plist' ],
         }, {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
-        }], # OS == "ios", etc
+        }], # OS == "ios"
         ['OS == "mac" or OS == "ios"', {
           # This copies the shaders to "Resources/shaders" thus avoiding
           # polluting "Resources" with all the .spv files and avoiding a

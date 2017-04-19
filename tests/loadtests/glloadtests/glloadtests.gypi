@@ -27,9 +27,9 @@
     # to the main .gyp file.
     'conditions': [
       ['OS == "ios"', {
-        'infoplist_file': 'resources_ios/Info.plist',
+        'glinfoplist_file': 'resources_ios/Info.plist',
       }, {
-        'infoplist_file': 'resources_mac/Info.plist',
+        'glinfoplist_file': 'resources_mac/Info.plist',
       }],
     ],
     'common_source_files': [
@@ -58,6 +58,9 @@
           'target_name': 'gl3loadtests',
           'type': '<(executable)',
           'mac_bundle': 1,
+          'mac_bundle_resources': [
+            'resources_mac/KTXAppIcons.icns',
+          ],
           'dependencies': [
             'appfwSDL',
             'libktx.gyp:libktx.gl',
@@ -85,7 +88,7 @@
             },
           },
           'xcode_settings': {
-            'INFOPLIST_FILE': '<(infoplist_file)',
+            'INFOPLIST_FILE': '<(glinfoplist_file)',
           },
           'conditions': [
             ['emit_emscripten_configs=="true"', {
@@ -173,7 +176,7 @@
           'xcode_settings': {
             'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
-            'INFOPLIST_FILE': '<(infoplist_file)',
+            'INFOPLIST_FILE': '<(glinfoplist_file)',
           },
           'conditions': [
             ['OS == "ios"', {
@@ -225,7 +228,7 @@
           'xcode_settings': {
             'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
-            'INFOPLIST_FILE': '<(infoplist_file)',
+            'INFOPLIST_FILE': '<(glinfoplist_file)',
           },
           'conditions': [
             ['OS == "ios"', {

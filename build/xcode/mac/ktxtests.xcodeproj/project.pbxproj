@@ -175,6 +175,7 @@
 		A06816B8306B4F00255AD26C /* reflect.vert.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = D4C05B2B1ED6E1D71AA3C2BA /* reflect.vert.spv */; };
 		A0ABE96B02CB1DBEBF8BEECE /* etc2-sRGB.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = A6AB331C6A684ECAEAF81A7C /* etc2-sRGB.ktx */; };
 		A25A742BC5A1BD1CE3EB05BB /* etc2-rgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 040AE20C24637EE75BBCF18C /* etc2-rgb.ktx */; };
+		A3394C8B81DD2463C4DF4CFC /* KTXAppIcons.icns in Resources */ = {isa = PBXBuildFile; fileRef = A5CF77722A6C570FBD29C53F /* KTXAppIcons.icns */; };
 		A4A8E86AE3F0796C8D52F9B4 /* luminance_sized_reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 9BD721FA6D76409AC82AE6B7 /* luminance_sized_reference.ktx */; };
 		A606E1E6780286F63AE438C6 /* texturearray_astc_8x8_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = E2DCA26973609FEC6CC88905 /* texturearray_astc_8x8_unorm.ktx */; };
 		A67C5191FE57F2372B79CFFC /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D95A567BDD85A819DCEF3462 /* rgba-reference.ktx */; };
@@ -189,6 +190,7 @@
 		B06123B768953C2EBF6D4517 /* orient-up-sized.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 1FB71316AB65F2500B8BF847 /* orient-up-sized.ktx */; };
 		B15D5633BD90638BA8AC7636 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A057DBE32ED2E747E88B54A1 /* CoreAudio.framework */; };
 		B3706D5767261064EE9DEDF1 /* rgb-amg-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 51369BEC39EAE34575CECDDC /* rgb-amg-reference.ktx */; };
+		B3F8AC444871992EABD02BBA /* KTXAppIcons.icns in Resources */ = {isa = PBXBuildFile; fileRef = E836F0522A2914AAE42C8B78 /* KTXAppIcons.icns */; };
 		B4271D33BA16DC2D876900F1 /* cubemap_yokohama_bc3_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C83B3A2D31285E5106189968 /* cubemap_yokohama_bc3_unorm.ktx */; };
 		B5F4E85F8752A4DA302CE797 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16077AD7D5B5764AF6D0D478 /* main.cpp */; };
 		B612AE508D2711FF0BA32BF7 /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = 1B659E5AE62BE0762E4941B9 /* shaders.c */; };
@@ -813,6 +815,7 @@
 		A296272858B6528ED1C77A7C /* cube.frag */ = {isa = PBXFileReference; lastKnownFileType = text; path = cube.frag; sourceTree = "<group>"; };
 		A50524FF40EC10C5AE196E67 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
 		A552749546C348CF371B0C82 /* textoverlay.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = textoverlay.vert.spv; sourceTree = "<group>"; };
+		A5CF77722A6C570FBD29C53F /* KTXAppIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = KTXAppIcons.icns; sourceTree = "<group>"; };
 		A6AB331C6A684ECAEAF81A7C /* etc2-sRGB.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGB.ktx"; sourceTree = "<group>"; };
 		A6BD5653BAE61E5BDD600427 /* libSDL2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL2.dylib; path = other_lib/mac/$CONFIGURATION/libSDL2.dylib; sourceTree = "<group>"; };
 		A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libktx.xcodeproj; path = build/xcode/mac/libktx.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -862,6 +865,7 @@
 		E4714125819A33A56657618A /* Texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Texture.h; sourceTree = "<group>"; };
 		E501408C12D624046881AC6E /* reflect.frag */ = {isa = PBXFileReference; lastKnownFileType = text; path = reflect.frag; sourceTree = "<group>"; };
 		E64DE0BB15BC2361DC0EF8EF /* LoadTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoadTests.cpp; sourceTree = "<group>"; };
+		E836F0522A2914AAE42C8B78 /* KTXAppIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = KTXAppIcons.icns; sourceTree = "<group>"; };
 		E8BB03E92135F393E92CAC62 /* unittests.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = unittests.cc; sourceTree = "<group>"; };
 		E8C1845C12E4034B4B66726D /* reflect.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = reflect.vert; sourceTree = "<group>"; };
 		E9F343F6BDCD2869B303FA2D /* TextureArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextureArray.h; sourceTree = "<group>"; };
@@ -977,6 +981,24 @@
 				A6BD5653BAE61E5BDD600427 /* libSDL2.dylib */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		05253A1FDF4E1452CE0A4177 /* resources_mac */ = {
+			isa = PBXGroup;
+			children = (
+				7F2507893EDA2886C3315DED /* Info.plist */,
+				E836F0522A2914AAE42C8B78 /* KTXAppIcons.icns */,
+			);
+			path = resources_mac;
+			sourceTree = "<group>";
+		};
+		0BB08DFE7000AC0AB800E60A /* resources_mac */ = {
+			isa = PBXGroup;
+			children = (
+				B9BF1372E334111E1923B330 /* Info.plist */,
+				A5CF77722A6C570FBD29C53F /* KTXAppIcons.icns */,
+			);
+			path = resources_mac;
 			sourceTree = "<group>";
 		};
 		10ACA7E476CEE2C80E486902 /* loadtests */ = {
@@ -1121,7 +1143,7 @@
 		4EE3BC907002BA5BD5C3D6C9 /* glloadtests */ = {
 			isa = PBXGroup;
 			children = (
-				D427F376F7D4C4D5F7D535F7 /* resources_mac */,
+				0BB08DFE7000AC0AB800E60A /* resources_mac */,
 				E2C8AA82B65C8C0D71C4E627 /* shader-based */,
 				E64DE0BB15BC2361DC0EF8EF /* LoadTests.cpp */,
 				C030110D03A09E5BA98BE15E /* LoadTests.h */,
@@ -1136,14 +1158,6 @@
 				AC8DF30DD2BDAAB5832F302D /* instancing.vert */,
 			);
 			path = texturearray;
-			sourceTree = "<group>";
-		};
-		5C9EAB6320DB9230010A110D /* resources_mac */ = {
-			isa = PBXGroup;
-			children = (
-				7F2507893EDA2886C3315DED /* Info.plist */,
-			);
-			path = resources_mac;
 			sourceTree = "<group>";
 		};
 		6338AE350DA1EE6B0E8A930B /* Products */ = {
@@ -1199,7 +1213,7 @@
 			isa = PBXGroup;
 			children = (
 				D305C905B1A30924AE8C367A /* models */,
-				5C9EAB6320DB9230010A110D /* resources_mac */,
+				05253A1FDF4E1452CE0A4177 /* resources_mac */,
 				E75BACA275BD831DD1B8D79A /* shaders */,
 				F232DA0BDDE440B1465D3392 /* utils */,
 				6AC5108FEA713B666D53851E /* Texture.cpp */,
@@ -1316,14 +1330,6 @@
 			path = models;
 			sourceTree = "<group>";
 		};
-		D427F376F7D4C4D5F7D535F7 /* resources_mac */ = {
-			isa = PBXGroup;
-			children = (
-				B9BF1372E334111E1923B330 /* Info.plist */,
-			);
-			path = resources_mac;
-			sourceTree = "<group>";
-		};
 		E01D2F91237942E8B3336374 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
@@ -1383,6 +1389,7 @@
 				436DD2088FE2AFC3671153B1 /* Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */,
 				34781F1BE4FDAD4E3C9EE175 /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
 				5258AFE69C34E4C99E2DFD12 /* Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */,
+				F6581B4B31769957E515FE97 /* Resources */,
 				AE7BA73273EFEE41AC9D5658 /* Sources */,
 				AD01E9A5820FAE4A34EDED62 /* Frameworks */,
 			);
@@ -1428,6 +1435,7 @@
 				E75E19FBAE4374B1E94F890D /* Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
 				E1329445F444D0A6E76EB906 /* Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */,
 				F626F29A762CC77969D723AF /* Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/models */,
+				EF7741D986674B028E8A4BB6 /* Resources */,
 				D6CC0C963FE76EB66D935232 /* Sources */,
 				D8651B24FC02C79D72F0CB64 /* Frameworks */,
 			);
@@ -1580,6 +1588,25 @@
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		EF7741D986674B028E8A4BB6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B3F8AC444871992EABD02BBA /* KTXAppIcons.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F6581B4B31769957E515FE97 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3394C8B81DD2463C4DF4CFC /* KTXAppIcons.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		660D12B7984FC56DFCFDBAC3 /* Rule "vert2spirv" */ = {
@@ -2364,7 +2391,7 @@
 					other_include,
 					include,
 				);
-				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_mac/Info.plist;
+				INFOPLIST_FILE = tests/loadtests/glloadtests/resources_mac/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
@@ -2471,7 +2498,7 @@
 					other_include,
 					include,
 				);
-				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources_mac/Info.plist;
+				INFOPLIST_FILE = tests/loadtests/glloadtests/resources_mac/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
