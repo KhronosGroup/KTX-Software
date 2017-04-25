@@ -598,7 +598,7 @@ compressedTexImage3DCallback(int miplevel, int face,
     }
 }
 
-/**
+/** @ingroup reader
  * @~English
  * @brief Load a GL texture object from a file represented by a ktxReader.
  *
@@ -664,7 +664,7 @@ compressedTexImage3DCallback(int miplevel, int face,
  *                              is not @c NULL.
  */
 KTX_error_code
-ktxLoadTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
+ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
                GLenum* pGlerror,
                unsigned int* pKvdLen, unsigned char** ppKvd)
@@ -960,8 +960,8 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-    errorCode = ktxLoadTexture(reader, pTexture, pTarget, pDimensions, pIsMipmapped,
-                               pGlerror, pKvdLen, ppKvd);
+    errorCode = ktxReader_loadGLTexture(reader, pTexture, pTarget, pDimensions,
+                                        pIsMipmapped, pGlerror, pKvdLen, ppKvd);
     ktxReader_close(reader);
 
     return errorCode;
@@ -1070,8 +1070,9 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
 	if (errorCode != KTX_SUCCESS)
 		return errorCode;
 
-	errorCode = ktxLoadTexture(reader, pTexture, pTarget, pDimensions,
-                               pIsMipmapped, pGlerror, pKvdLen, ppKvd);
+	errorCode = ktxReader_loadGLTexture(reader, pTexture, pTarget, pDimensions,
+                                        pIsMipmapped, pGlerror, pKvdLen,
+                                        ppKvd);
     ktxReader_close(reader);
     
     return errorCode;
