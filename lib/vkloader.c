@@ -357,7 +357,7 @@ linearTilingCallback(int miplevel, int face,
  * may also be returned.
  */
 KTX_error_code
-ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
+ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                           ktxVulkanTexture* pTexture,
                           VkImageTiling tiling, VkImageUsageFlags usageFlags,
                           unsigned int* pKvdLen, unsigned char** ppKvd)
@@ -809,11 +809,11 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
  *     control.
  */
 KTX_error_code
-ktxReader_LoadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
+ktxReader_loadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                  ktxVulkanTexture *texture,
                  unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-    return ktxReader_LoadVkTextureEx(reader, vdi, texture,
+    return ktxReader_loadVkTextureEx(reader, vdi, texture,
                                      VK_IMAGE_TILING_OPTIMAL,
                                      VK_IMAGE_USAGE_SAMPLED_BIT,
                                      pKvdLen, ppKvd);
@@ -858,7 +858,7 @@ ktxLoadVkTextureExF(ktxVulkanDeviceInfo* vdi, FILE* file,
     if (errorCode != KTX_SUCCESS)
         return errorCode;
 
-    errorCode = ktxReader_LoadVkTextureEx(reader, vdi, pTexture,
+    errorCode = ktxReader_loadVkTextureEx(reader, vdi, pTexture,
                                           tiling, usageFlags,
                                           pKvdLen, ppKvd);
     ktxReader_close(reader);
@@ -998,7 +998,7 @@ ktxLoadVkTextureExM(ktxVulkanDeviceInfo* vdi,
     if (errorCode != KTX_SUCCESS)
         return errorCode;
 
-    errorCode = ktxReader_LoadVkTextureEx(reader, vdi, pTexture,
+    errorCode = ktxReader_loadVkTextureEx(reader, vdi, pTexture,
                                           tiling, usageFlags,
                                           pKvdLen, ppKvd);
     ktxReader_close(reader);
