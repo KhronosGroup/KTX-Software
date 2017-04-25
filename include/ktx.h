@@ -179,18 +179,22 @@ extern "C" {
 #endif
 
 /**
+ * @~English
  * @brief Key String for standard orientation value.
  */
 #define KTX_ORIENTATION_KEY	"KTXorientation"
 /**
+ * @~English
  * @brief Standard format for 2D orientation value.
  */
 #define KTX_ORIENTATION2_FMT "S=%c,T=%c"
 /**
+ * @~English
  * @brief Standard format for 3D orientation value.
  */
 #define KTX_ORIENTATION3_FMT "S=%c,T=%c,R=%c"
 /**
+ * @~English
  * @brief Required unpack alignment
  */
 #define KTX_GL_UNPACK_ALIGNMENT 4
@@ -199,6 +203,7 @@ extern "C" {
 #define KTX_FALSE 0
 
 /**
+ * @~English
  * @brief Error codes returned by library functions.
  */
 typedef enum KTX_error_code_t {
@@ -222,6 +227,7 @@ typedef enum KTX_error_code_t {
 #define KTX_HEADER_SIZE		(64)
     
 /**
+ * @~English
  * @brief KTX file header
  *
  * See the KTX specification for descriptions
@@ -248,6 +254,7 @@ typedef int KTX_header_SIZE_ASSERT [sizeof(KTX_header) == KTX_HEADER_SIZE];
 
 
 /**
+ * @~English
  * @brief Structure for supplemental information about the texture.
  *
  * ktxReadHeader returns supplemental information about the texture that
@@ -260,15 +267,18 @@ typedef struct KTX_supplemental_info
     ktx_uint16_t textureDimension;
 } KTX_supplemental_info;
 /**
- * @var KTX_supplemental_info::compressed
+ * @var ktx_uint8_t KTX_supplemental_info::compressed
+ * @~English
  * @brief KTX_TRUE, if this a compressed texture, KTX_FALSE otherwise?
  */
 /**
- * @var KTX_supplemental_info::generateMipmaps
+ * @var ktx_uint8_t KTX_supplemental_info::generateMipmaps
+ * @~English
  * @brief KTX_TRUE, if mipmap generation is required, KTX_FALSE otherwise.
  */
 /**
- * @var KTX_supplemental_info::textureDimension
+ * @var ktx_uint16_t KTX_supplemental_info::textureDimension
+ * @~English
  * @brief The number of dimensions, 1, 2 or 3, of data in the texture image.
  */
 
@@ -296,6 +306,7 @@ typedef struct KTX_texture_info
 
 /**
  * @var KTX_texture_info::glType
+ * @~English
  * @brief The type of the image data.
  *
  * Values are the same as in the @p type parameter of
@@ -303,6 +314,7 @@ typedef struct KTX_texture_info
  */
 /**
  * @var KTX_texture_info::glTypeSize;
+ * @~English
  * @brief The data type size to be used in case of endianness
  *        conversion.
  *
@@ -312,6 +324,7 @@ typedef struct KTX_texture_info
  */
 /**
  * @var KTX_texture_info::glFormat;
+ * @~English
  * @brief The format of the image(s).
  *
  * Values are the same as in the format parameter
@@ -319,6 +332,7 @@ typedef struct KTX_texture_info
  */
 /**
  * @var KTX_texture_info::glInternalFormat;
+ * @~English
  * @brief The internalformat of the image(s).
  *
  * Values are the same as for the internalformat parameter of
@@ -327,6 +341,7 @@ typedef struct KTX_texture_info
  */
 /**
  * @var KTX_texture_info::glBaseInternalFormat;
+ * @~English
  * @brief The base internalformat of the image(s)
  *
  * For non-compressed textures, should be the same as glFormat.
@@ -335,28 +350,33 @@ typedef struct KTX_texture_info
  */
 /**
  * @var KTX_texture_info::pixelWidth;
+ * @~English
  * @brief Width of the image for texture level 0, in pixels.
  */
 /**
  * @var KTX_texture_info::pixelHeight;
+ * @~English
  * @brief Height of the texture image for level 0, in pixels.
  *
  * Must be 0 for 1D textures.
  */
 /**
  * @var KTX_texture_info::pixelDepth;
+ * @~English
  * @brief Depth of the texture image for level 0, in pixels.
  *
  * Must be 0 for 1D, 2D and cube textures.
  */
 /**
  * @var KTX_texture_info::numberOfArrayElements;
+ * @~English
  * @brief The number of array elements.
  *
  * Must be 0 if not an array texture.
  */
 /**
  * @var KTX_texture_info::numberOfFaces;
+ * @~English
  * @brief The number of cubemap faces.
  *
  * Must be 6 for cubemaps and cubemap arrays, 1 otherwise. Cubemap
@@ -364,6 +384,7 @@ typedef struct KTX_texture_info
  */
 /**
  * @var KTX_texture_info::numberOfMipmapLevels;
+ * @~English
  * @brief The number of mipmap levels.
  *
  * 1 for non-mipmapped texture. 0 indicates that a full mipmap pyramid should
@@ -374,6 +395,7 @@ typedef struct KTX_texture_info
 
 
 /**
+ * @~English
  * @brief Structure used to pass image data to ktxWriteKTX.
  */
 typedef struct KTX_image_info {
@@ -382,6 +404,7 @@ typedef struct KTX_image_info {
 } KTX_image_info;
 
 /**
+ * @~English
  * @brief Structure used by load functions to return texture dimensions
  */
 typedef struct KTX_dimensions {
@@ -391,11 +414,13 @@ typedef struct KTX_dimensions {
 } KTX_dimensions;
     
 /**
+ * @~English
  * @brief Opaque handle to a KTX_hash_table.
  */
 typedef void* KTX_hash_table;
 
 /**
+ * @~English
  * @brief Opaque handle to a KTX_reader.
  */
 typedef void* KTX_reader;
@@ -403,29 +428,34 @@ typedef void* KTX_reader;
 #define KTXAPIENTRY
 #define KTXAPIENTRYP KTXAPIENTRY *
 /**
+ * @~English
  * @brief Signature of function called by ktxReadImages to receive image data.
  *
- * The function parameters give the values which change for each image.
+ * The function parameters are used to pass values which change for each image.
+ * Obtain values which are uniform across all images from the header
+ * returned by ktxReader_readHeader().
+ * 
  *
- * @tparam [in] miplevel        MIP level from 0 to the max level which is
- *                              dependent on the texture size.
- * @tparam [in] face            usually 0; for cube maps and cube map arrays,
- *                              one of the 6 cube faces in the order
- *                              +X, -X, +Y, -Y, +Z, -Z.
- * @tparam [in] width           width of the image.
- * @tparam [in] height          height of the image or, for 1D textures
- *                              textures, 1.
- * @tparam [in] depth           depth of the image or, for 1D & 2D
- *                              textures, 1.
- * @tparam [in] layers          number of array layers in the texture.
- *                              For non array textures, 1.
- * @tparam [in] faceLodSize     number of bytes of data pointed at by
- *                              @p pixels.
- * @tparam [in] pixels          pointer to the image data.
- * @tparam [in,out] userdata    pointer for the application to pass data to and
- *                              from the callback function.
+ * @param [in] miplevel        MIP level from 0 to the max level which is
+ *                             dependent on the texture size.
+ * @param [in] face            usually 0; for cube maps and cube map arrays,
+ *                             one of the 6 cube faces in the order
+ *                             +X, -X, +Y, -Y, +Z, -Z.
+ * @param [in] width           width of the image.
+ * @param [in] height          height of the image or, for 1D textures
+ *                             textures, 1.
+ * @param [in] depth           depth of the image or, for 1D & 2D
+ *                             textures, 1.
+ * @param [in] layers          number of array layers in the texture.
+ *                             For non array textures, 1.
+ * @param [in] faceLodSize     number of bytes of data pointed at by
+ *                             @p pixels.
+ * @param [in] pixels          pointer to the image data.
+ * @param [in,out] userdata    pointer for the application to pass data to and
+ *                             from the callback function.
  */
-typedef KTX_error_code (KTXAPIENTRYP PFNKTXIMAGECB)(int miplevel, int face,
+/* Don't use KTXAPIENTRYP to avoid a Doxygen bug. */
+typedef KTX_error_code (KTXAPIENTRY* PFNKTXIMAGECB)(int miplevel, int face,
                                                int width, int height, int depth,
                                                int layers,
                                                ktx_uint32_t faceLodSize,
@@ -603,11 +633,35 @@ ktxHashTable_Serialize(KTX_hash_table This,
 KTX_error_code
 ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 
-/* For compatibility for users of the interim API */
+/**
+ * @~English
+ * @brief Support deprecated name for backward compatibility with the interim
+ * reader API.
+ */
 #define KTX_context KTX_reader
+/**
+ * @~English
+ * @brief Support deprecated name for backward compatibility with the interim
+ * reader API.
+ */
 #define ktxCloseKTX ktxReader_close
+/**
+ * @~English
+ * @brief Support deprecated name for backward compatibility with the interim
+ * reader API.
+ */
 #define ktxReadHeader ktxReader_readHeader
+/**
+ * @~English
+ * @brief Support deprecated name for backward compatibility with the interim
+ * reader API.
+ */
 #define ktxReadKVData ktxReader_readKVData
+/**
+ * @~English
+ * @brief Support deprecated name for backward compatibility with the interim
+ * reader API.
+ */
 #define ktxReadImages ktxReader_readImages
 
 #ifdef __cplusplus
@@ -615,6 +669,7 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 #endif
 
 /**
+@~English
 @page history KTX Library Revision History
 
 @section v6 Version 3.0.0

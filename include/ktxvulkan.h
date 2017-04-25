@@ -49,38 +49,70 @@ extern "C" {
 #endif
 
 /**
- * The loader fills this in with information about the loaded texture.
+ * A pointer to his structure is passed to the texture image loader functions
+ * which fill it in with information about the loaded texture image.
  */
 typedef struct ktxVulkanTexture
 {
+    /** Handle to the sampler created if @c VK_IMAGE_USAGE_SAMPLED_BIT is
+      * passed to the loading function. */
     VkSampler sampler;
-    VkImage image;
+    VkImage image; /*!< Handle to the Vulkan image created by the loader. */
     // This is only ever set to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL so
     // perhaps it is not needed. It's an enum. Is "enum VkImageView;" sufficient?
-    VkImageLayout imageLayout;
+    VkImageLayout imageLayout; /*!< The layout of the created image. */
+    /** The memory allocated for the image on the Vulkan device. */
     VkDeviceMemory deviceMemory;
-    VkImageView view;
-    uint32_t width;
-    uint32_t height;
-    uint32_t depth;
-    uint32_t mipLevels;
-    uint32_t layerCount;
+    VkImageView view; /*!< Handle to the VkImageView created for the image. */
+    uint32_t width; /*!< The width of the image. */
+    uint32_t height; /*!< The height of the image. */
+    uint32_t depth; /*!< The depth of the image. */
+    uint32_t mipLevels; /*!< The number of MIP levels in the image. */
+    uint32_t layerCount; /*!< The number of array layers in the image. */
     // The information this is duplicated above so perhaps this can be removed
     // too.
-    VkDescriptorImageInfo descriptor;
+    VkDescriptorImageInfo descriptor; /*<! Descriptor image info. */
 } ktxVulkanTexture;
 
 void
 ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device,
 						  const VkAllocationCallbacks* pAllocator);
 
+/**
+ * @brief Struct for passing information about the Vulkan device on which
+ *        to create images to the texture image loading functions.
+ *
+ * Avoids passing a large number of parameters to each loading function.
+ * Use of ktxVulkanDeviceInfo_create() or ktxVulkanDeviceInfo_construct() to
+ * populate this structure is highly recommended.
+ *
+ * @code
+    ktxVulkanDeviceInfo vdi;
+    ktxVulkanTexture texture;
+ 
+    vdi = ktxVulkanDeviceInfo_create(physicalDevice,
+                                     device,
+                                     queue,
+                                     cmdPool,
+                                     &allocator);
+    ktxLoadVkTextureN(vdi, "texture_1.ktx", &texture, NULL, NULL);
+    // ...
+    ktxLoadVkTextureN(vdi, "texture_n.ktx", &texture, NULL, NULL);
+    ktxVulkanDeviceInfo_destroy(vdi);
+ * @endcode
+ */
 typedef struct ktxVulkanDeviceInfo {
-    VkPhysicalDevice physicalDevice;
-    VkDevice device;
-    VkQueue queue;
-    VkCommandBuffer cmdBuffer;
+    VkPhysicalDevice physicalDevice; /*!< Handle of the physical device. */
+    VkDevice device; /*!< Handle of the logical device. */
+    VkQueue queue; /*!< Handle to the queue to which to submit commands. */
+    VkCommandBuffer cmdBuffer; /*!< Handle of the cmdBuffer to use. */
+    /** Handle of the command pool from which to allocate the command buffer. */
     VkCommandPool cmdPool;
+    /** Pointer to the allocator to use for the command buffer and created
+     * images.
+     */
     const VkAllocationCallbacks* pAllocator;
+    /** Memory properties of the Vulkan physical device. */
     VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 } ktxVulkanDeviceInfo;
 

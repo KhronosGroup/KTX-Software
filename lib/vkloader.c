@@ -60,6 +60,23 @@ setImageLayout(
     VkImageLayout newImageLayout,
     VkImageSubresourceRange subresourceRange);
 
+/**
+ * @defgroup vkhelper Vulkan Texture Image Loader Helpers
+ * @{
+ */
+
+/**
+ * @~English
+ * @brief Create a ktxVulkanDeviceInfo object.
+ * 
+ * Allocates CPU memory for a ktxVulkanDeviceInfo object then calls
+ * ktxVulkanDeviceInfo_construct(). See it for documentation of the
+ * parameters.
+ *
+ * @return a pointer to the constructed ktxVulkanDeviceInfo.
+ *
+ * @sa ktxVulkanDeviceInfo_construct(), ktxVulkanDeviceInfo_destroy()
+ */
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
@@ -78,6 +95,32 @@ ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
     return vdi;
 }
 
+/**
+ * @~English
+ * @brief Construct a ktxVulkanDeviceInfo object.
+ *
+ * Records the device information, allocates a command buffer that will be
+ * used to transfer image data to the Vulkan device and retrieves the physical
+ * device memory properties for ease of use when allocating device memory for
+ * the images.
+ *
+ * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
+ * function to provide it with the information.
+ *
+ * @param  vdi            pointer to the ktxVulkanDeviceInfo object to
+ *                        initialize.
+ * @param  physicalDevice handle of the Vulkan physical device.
+ * @param  device         handle of the Vulkan logical device.
+ * @param  queue          handle of the Vulkan queue.
+ * @param  cmdPool        handle of the Vulkan command pool.
+ * @param  pAllocator     pointer to the allocator to use for the image
+ *                        memory. If NULL, the default allocator will be used.
+ *
+ * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
+ *          not be allocated.
+ *
+ * @sa ktxVulkanDeviceInfo_destruct()
+ */
 KTX_error_code
 ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
                               VkPhysicalDevice physicalDevice, VkDevice device,
@@ -109,6 +152,14 @@ ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
     return KTX_SUCCESS;
 }
 
+/**
+ * @~English
+ * @brief Destruct a ktxVulkanDeviceInfo object.
+ *
+ * Frees the command buffer.
+ *
+ * @param vdi pointer to the ktxVulkanDeviceInfo to destruct.
+ */
 void
 ktxVulkanDeviceInfo_destruct(ktxVulkanDeviceInfo* vdi)
 {
@@ -116,6 +167,14 @@ ktxVulkanDeviceInfo_destruct(ktxVulkanDeviceInfo* vdi)
                          &vdi->cmdBuffer);
 }
 
+/**
+ * @~English
+ * @brief Destroy a ktxVulkanDeviceInfo object.
+ *
+ * Calls ktxVulkanDeviceInfo_destruct() then frees the ktxVulkanDeviceInfo.
+ *
+ * @param vdi pointer to the ktxVulkanDeviceInfo to destroy.
+ */
 void
 ktxVulkanDeviceInfo_destroy(ktxVulkanDeviceInfo* vdi)
 {
@@ -124,7 +183,7 @@ ktxVulkanDeviceInfo_destroy(ktxVulkanDeviceInfo* vdi)
     free(vdi);
 }
 
-// Get appropriate memory type index for a memory allocation
+/* Get appropriate memory type index for a memory allocation. */
 static uint32_t
 ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* vdi,
                                   uint32_t typeBits, VkFlags properties)
@@ -243,15 +302,59 @@ linearTilingCallback(int miplevel, int face,
     return KTX_SUCCESS;
 }
 
-/**
+/** @ingroup reader
  * @~English
- * @brief Load a Vulkan texture object from a file represented by a ktxReader.
+ * @brief Create a Vulkan image object from KTX data.
  *
- * Support for linear tiling is mostly limited, so prefer to use
- * optimal tiling instead.
- * On most implementations linear tiling will only support a very
- * limited amount of formats and features (mip maps, cubemaps, arrays, etc.)
+ * Creates a VkImage with format etc. matching the KTX data and uploads the
+ * images. Also creates VkSampler and VkImageView objects for accessing the
+ * image. Returns the
+ * handles of the created objects and information about the texture in the
+ * ktxVulkanTexture pointed at by @p pTexture.
  *
+ * Most Vulkan implementations support VK_IMAGE_TILING_LINEAR only for a very
+ * limited number of formats and features. Generally VK_IMAGE_TILING_OPTIMAL is
+ * preferred. The latter requires a staging buffer so will use more memory
+ * during loading.
+ *
+ * @param [in] reader		handle of the ktxReader opened on the data.
+ * @anchor vdiparam
+ * @param [in] vdi          pointer to a ktxVulkanDeviceInfo structure providing
+ *                          information about the Vulkan device onto which to
+ *                          load the texture.
+ * @anchor ptextureparam
+ * @param [in,out] pTexture pointer to a ktxVulkanTexture structure into which
+ *                          the function writes information about the created
+ *                          VkImage.
+ * @anchor tilingparam
+ * @param [in] tiling       type of tiling to use in the destination image
+ *                          on the Vulkan device.
+ * @anchor usageflagsparam
+ * @param [in] usageFlags   a set of VkImageUsageFlagsBits indicating the
+ *                          intended usage of the destination image.
+ * @anchor pkvdlenparam
+ * @param [in,out] pKvdLen	if not NULL, @p *pKvdLen is set to the number of
+ *                          bytes of key-value data pointed at by @p *ppKvd.
+ *                          Must not be NULL, if @p ppKvd is not NULL.
+ * @anchor ppkvdparam
+ * @param [in,out] ppKvd	if not NULL, @p *ppKvd is set to the point to a
+ *                          block of memory containing key-value data read from
+ *                          the file. The application is responsible for
+ *                          freeing the memory.
+ *
+ * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p reader, @p vdi or @p pTexture is @c NULL or
+ *                              @p reader is not a valid reader handle.
+ * @exception KTX_INVALID_OPERATION There is no VkFormat that matches the KTX
+ *                                  data or the Vulkan device does not support
+ *                                  one or more of the requested @p usageFlags
+ *                                  or requested @p tiling with this format.
+ * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated
+ *                              on either the CPU or the Vulkan device.
+ *
+ * Error conditions from ktxReader_readHeader() and ktxReader_readKVData()
+ * may also be returned.
  */
 KTX_error_code
 ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
@@ -591,9 +694,11 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         // Allocate host memory
-        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator, &mappableMemory));
-
-        // Bind allocated image for use
+        result = vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
+                                  &mappableMemory);
+        if (result != VK_SUCCESS) {
+            return KTX_OUT_OF_MEMORY;
+        }
         VK_CHECK_RESULT(vkBindImageMemory(vdi->device, mappableImage, mappableMemory, 0));
 
         cbData.destImage = mappableImage;
@@ -693,12 +798,15 @@ ktxReader_LoadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
     return KTX_SUCCESS;
 }
 
-/**
+/** @ingroup reader
  * @~English
- * @brief Load a Vulkan texture object from a file represented by a ktxReader.
+ * @brief Create a Vulkan image object from KTX data.
  *
- * The texture is created with the most common options: optimal tiling
- * and for sampling. Use ktxLoadVkTextureEx for complete control.
+ * Calls ktxReader_LoadVkTextureEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
+ * 
+ * @sa ktxReader_LoadVkTextureEx() for details and use that for complete
+ *     control.
  */
 KTX_error_code
 ktxReader_LoadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
@@ -711,12 +819,36 @@ ktxReader_LoadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                                      pKvdLen, ppKvd);
 }
 
-
+/**
+ * @~English
+ * @brief Create a Vulkan image object from KTX data in a stdio FILE.
+ *
+ * Calls ktxReader_LoadVkTextureEx() to do the bulk of the work.
+ *
+ * @param [in] file       stdio FILE pointer
+ * @param [in] vdi        see @ref vdiparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in,out] pTexture see @ref ptextureparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ * @param [in] tiling     see @ref tilingparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @sa ktxReader_LoadVkTextureEx() for description of parameters
+ *     and errors.
+ */
 KTX_error_code
 ktxLoadVkTextureExF(ktxVulkanDeviceInfo* vdi, FILE* file,
-                    ktxVulkanTexture *texture,
+                    ktxVulkanTexture *pTexture,
                     VkImageTiling tiling,
-                    VkImageUsageFlags imageUsageFlags,
+                    VkImageUsageFlags usageFlags,
                     unsigned int* pKvdLen, unsigned char** ppKvd)
 {
     KTX_reader reader;
@@ -726,20 +858,30 @@ ktxLoadVkTextureExF(ktxVulkanDeviceInfo* vdi, FILE* file,
     if (errorCode != KTX_SUCCESS)
         return errorCode;
 
-    errorCode = ktxReader_LoadVkTextureEx(reader, vdi, texture,
-                                          tiling, imageUsageFlags,
+    errorCode = ktxReader_LoadVkTextureEx(reader, vdi, pTexture,
+                                          tiling, usageFlags,
                                           pKvdLen, ppKvd);
     ktxReader_close(reader);
 
     return errorCode;
 }
 
+/**
+ * @~English
+ * @brief Create a Vulkan image object from KTX data in a stdio FILE.
+ *
+ * Calls ktxLoadVkTextureExF() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
+ *
+ * @sa ktxLoadVkTextureExF()
+ * @sa ktxReader_LoadVkTextureEx() for parameter and error details
+ */
 KTX_error_code
 ktxLoadVkTextureF(ktxVulkanDeviceInfo* vdi, FILE* file,
-                         ktxVulkanTexture *texture,
+                         ktxVulkanTexture *pTexture,
                          unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-    return ktxLoadVkTextureExF(vdi, file, texture,
+    return ktxLoadVkTextureExF(vdi, file, pTexture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
                                pKvdLen, ppKvd);
@@ -747,32 +889,45 @@ ktxLoadVkTextureF(ktxVulkanDeviceInfo* vdi, FILE* file,
 
 /**
  * @~English
- * @brief Load a GL texture object from a named file on disk.
+ * @brief Create a Vulkan image object from KTX data in a named file on disk.
  *
- * @param [in] filename     pointer to a C string that contains the path of
- *                          the file to load.
+ * ktxReader_LoadVkTextureEx() does the bulk of the work.
+ *
+ * @param [in] filename   pointer to a C string that contains the path of
+ *                        the file to load
+ * @param [in] vdi        see @ref vdiparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in,out] pTexture see @ref ptextureparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ * @param [in] tiling     see @ref tilingparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_FILE_OPEN_FAILED  The specified file could not be opened.
- * @exception KTX_INVALID_VALUE     See ktxLoadTextureF() for causes.
- * @exception KTX_INVALID_OPERATION See ktxLoadTextureF() for causes.
- * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
  *
- * @exception KTX_GL_ERROR          See ktxLoadTextureF() for causes.
+ * @sa ktxReader_LoadVkTextureEx() for description of parameters
+ *     and errors.
  */
 KTX_error_code
 ktxLoadVkTextureExN(ktxVulkanDeviceInfo* vdi, const char* const filename,
-                    ktxVulkanTexture *texture,
+                    ktxVulkanTexture *pTexture,
                     VkImageTiling tiling,
-                    VkImageUsageFlags imageUsageFlags,
+                    VkImageUsageFlags usageFlags,
                     unsigned int* pKvdLen, unsigned char** ppKvd)
 {
     KTX_error_code errorCode;
     FILE* file = fopen(filename, "rb");
 
     if (file) {
-        errorCode = ktxLoadVkTextureExF(vdi, file, texture,
-                                        tiling, imageUsageFlags,
+        errorCode = ktxLoadVkTextureExF(vdi, file, pTexture,
+                                        tiling, usageFlags,
                                         pKvdLen, ppKvd);
         fclose(file);
     } else
@@ -781,12 +936,22 @@ ktxLoadVkTextureExN(ktxVulkanDeviceInfo* vdi, const char* const filename,
     return errorCode;
 }
 
+/**
+ * @~English
+ * @brief Create a Vulkan image object from KTX data in a named file on disk.
+ *
+ * Calls ktxLoadVkTextureExN() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
+ *
+ * @sa ktxLoadVkTextureExN()
+ * @sa ktxReader_LoadVkTextureEx() for parameter and error details
+ */
 KTX_error_code
 ktxLoadVkTextureN(ktxVulkanDeviceInfo* vdi, const char* const filename,
-                  ktxVulkanTexture *texture,
+                  ktxVulkanTexture *pTexture,
                   unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-    return ktxLoadVkTextureExN(vdi, filename, texture,
+    return ktxLoadVkTextureExN(vdi, filename, pTexture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
                                pKvdLen, ppKvd);
@@ -794,28 +959,36 @@ ktxLoadVkTextureN(ktxVulkanDeviceInfo* vdi, const char* const filename,
 
 /**
  * @~English
- * @brief Load a Vulkan texture object from KTX formatted data in memory.
+ * @brief Create a Vulkan image object from KTX formatted data in memory.
  *
- * @param [in] bytes        pointer to the array of bytes containing
- *                          the KTX format data to load.
- * @param [in] size         size of the memory array containing the
- *                          KTX format data.
+ * ktxReader_LoadVkTextureEx() does the bulk of the work.
+ *
+ * @param [in] bytes      pointer to the location of the KTX data.
+ * @param [in] size       length of the KTX data.
+ * @param [in] vdi        see @ref vdiparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in,out] pTexture see @ref ptextureparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ * @param [in] tiling     see @ref tilingparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
+ * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
+ *                          ktxReader_LoadVkTextureEx().
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_FILE_OPEN_FAILED  The specified memory could not be opened as a file.
- * @exception KTX_INVALID_VALUE     See ktxLoadTextureF() for causes.
- * @exception KTX_INVALID_OPERATION See ktxLoadTextureF() for causes.
- * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
- *
- * @exception KTX_GL_ERROR          See ktxLoadTextureF() for causes.
+ * @sa ktxReader_LoadVkTextureEx() for description of parameters
+ *     and errors.
  */
 KTX_error_code
 ktxLoadVkTextureExM(ktxVulkanDeviceInfo* vdi,
                     const void* bytes, GLsizei size,
-                    ktxVulkanTexture* texture,
+                    ktxVulkanTexture* pTexture,
                     VkImageTiling tiling,
-                    VkImageUsageFlags imageUsageFlags,
+                    VkImageUsageFlags usageFlags,
                     unsigned int* pKvdLen, unsigned char** ppKvd)
 {
     KTX_reader reader;
@@ -825,14 +998,24 @@ ktxLoadVkTextureExM(ktxVulkanDeviceInfo* vdi,
     if (errorCode != KTX_SUCCESS)
         return errorCode;
 
-    errorCode = ktxReader_LoadVkTextureEx(reader, vdi, texture,
-                                          tiling, imageUsageFlags,
+    errorCode = ktxReader_LoadVkTextureEx(reader, vdi, pTexture,
+                                          tiling, usageFlags,
                                           pKvdLen, ppKvd);
     ktxReader_close(reader);
 
     return errorCode;
 }
 
+/**
+ * @~English
+ * @brief Create a Vulkan image object from KTX formattted data in memory.
+ *
+ * Calls ktxLoadVkTextureExM() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
+ *
+ * @sa ktxLoadVkTextureExM()
+ * @sa ktxReader_LoadVkTextureEx() for parameter and error details
+ */
 KTX_error_code
 ktxLoadVkTextureM(ktxVulkanDeviceInfo* vdi,
                   const void* bytes, GLsizei size,
@@ -844,6 +1027,10 @@ ktxLoadVkTextureM(ktxVulkanDeviceInfo* vdi,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
                                pKvdLen, ppKvd);
 }
+
+/**
+ * @}
+ */
 
 //======================================================================
 //  Utilities
@@ -1000,6 +1187,17 @@ setImageLayout(
 //  ktxVulkanTexture utilities
 //======================================================================
 
+/**
+ * @~English
+ * @brief Destructor for the object returned when loading a texture image.
+ *
+ * Frees the Vulkan resources created when the texture image was loaded.
+ *
+ * @param texture    pointer to the ktxVulkanTexture to be destructed.
+ * @param device     handle to the Vulkan logical device to which the texture was
+ *                   loaded.
+ * @param pAllocator pointer to the allocator used during loading.
+ */
 void
 ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device,
 						  const VkAllocationCallbacks* pAllocator)

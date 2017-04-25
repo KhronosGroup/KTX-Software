@@ -450,10 +450,40 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				TargetAttributes = {
+					1DECD74B6E574582E25FE647 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					2C49C1BC3266E196E5B13666 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					362967529B3D7D3E12C3129D = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					53E28E0399F04986CCFA2113 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					555F14739B20F130C104F38F = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					A53C7E625BBCBD48220BD07A = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					CA0BF733B14DB39E93B75C67 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					CCEDC85BF1BE90D7C304C68F = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+				};
 			};
 			buildConfigurationList = B9816C07C4E0E95D8D8C85AB /* Build configuration list for PBXProject "libktx" */;
 			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 30DF960E27ABEF24363F38D0;
 			projectDirPath = ../../..;
 			projectRoot = "";
@@ -502,6 +532,9 @@
 				lib/swap.c,
 				lib/uthash.h,
 				lib/writer.c,
+				include/ktxvulkan.h,
+				lib/vk_format.h,
+				lib/vkloader.c,
 			);
 			name = "Action \"touchTimestamp\"";
 			outputPaths = (
@@ -543,6 +576,9 @@
 				lib/swap.c,
 				lib/uthash.h,
 				lib/writer.c,
+				include/ktxvulkan.h,
+				lib/vk_format.h,
+				lib/vkloader.c,
 			);
 			name = "Action \"buildDoc\"";
 			outputPaths = (

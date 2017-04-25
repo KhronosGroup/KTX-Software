@@ -144,6 +144,7 @@
                 '../<@(doxyConfig)',
                 '../LICENSE.md',
                 '<@(sources)',
+                '<@(vksource_files)',
               ],
               'outputs': [
                 '../build/doc/html',
@@ -223,6 +224,7 @@
                 '../<@(doxyConfig)',
                 '../LICENSE.md',
                 '<@(sources)',
+                '<@(vksource_files)',
               ],
               'outputs': [
                 '<(timestamp)',
