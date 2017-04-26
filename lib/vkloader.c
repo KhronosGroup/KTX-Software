@@ -2,6 +2,7 @@
 /* vi: set sw=2 ts=4: */
 
 /**
+ * @internal
  * @file
  * @~English
  *

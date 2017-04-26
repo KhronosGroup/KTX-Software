@@ -4,6 +4,7 @@
 /* $Id$ */
 
 /**
+ * @internal
  * @file
  * @~English
  *

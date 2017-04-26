@@ -5,6 +5,7 @@
 #define KTX_H_C54B42AEE39611E68E1E4FF8C51D1C66
 
 /**
+ * @internal
  * @file
  * @~English
  *
@@ -49,8 +50,8 @@ extern "C" {
 #endif
 
 /**
- * A pointer to his structure is passed to the texture image loader functions
- * which fill it in with information about the loaded texture image.
+ * @brief Struct for receiving information about the Vulkan image created
+ *        by the texture image loading functions.
  */
 typedef struct ktxVulkanTexture
 {

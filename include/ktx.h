@@ -5,14 +5,15 @@
 #define KTX_H_A55A6F00956F42F3A137C11929827FE1
 
 /**
+ * @internal
  * @file
  * @~English
  *
  * @brief Declares the public functions and structures of the
  *        KTX API.
  *
- * @author Georg Kolling, Imagination Technology
- * @author with modifications by Mark Callow, HI Corporation
+ * @author Mark Callow, Edgewise Consulting and while at HI Corporation
+ * @author based on original work by Georg Kolling, Imagination Technology
  *
  * $Id$
  * $Date$
