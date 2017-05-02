@@ -29,11 +29,15 @@
 # 
 # ---------------------------------------------------------------
 
-# change dir to the testimages folder, a child of the script location.
-cd $(dirname $0)/testimages
+# Depth of this script relative to the project root
+depth=..
 
-# Make paths relative to location of this script.
-depth=../..
+# Change dir to the testimages folder, a child of the script location...
+cd $(dirname $0)/testimages
+# ...and adjust depth
+depth=$depth/..
+
+# Make paths relative to the testimages directory.
 ktx_root=$depth
 toktx_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/toktx.exe
 toktx_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/toktx.exe
