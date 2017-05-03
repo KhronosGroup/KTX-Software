@@ -846,7 +846,7 @@ ktxReader_loadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
  *     and errors.
  */
 KTX_error_code
-ktxLoadVkTextureExF(ktxVulkanDeviceInfo* vdi, FILE* file,
+ktxLoadVkTextureExF(FILE* file, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *pTexture,
                     VkImageTiling tiling,
                     VkImageUsageFlags usageFlags,
@@ -878,11 +878,11 @@ ktxLoadVkTextureExF(ktxVulkanDeviceInfo* vdi, FILE* file,
  * @sa ktxReader_LoadVkTextureEx() for parameter and error details
  */
 KTX_error_code
-ktxLoadVkTextureF(ktxVulkanDeviceInfo* vdi, FILE* file,
-                         ktxVulkanTexture *pTexture,
-                         unsigned int* pKvdLen, unsigned char** ppKvd)
+ktxLoadVkTextureF(FILE* file, ktxVulkanDeviceInfo* vdi,
+                  ktxVulkanTexture *pTexture,
+                  unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-    return ktxLoadVkTextureExF(vdi, file, pTexture,
+    return ktxLoadVkTextureExF(file, vdi, pTexture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
                                pKvdLen, ppKvd);
@@ -917,7 +917,7 @@ ktxLoadVkTextureF(ktxVulkanDeviceInfo* vdi, FILE* file,
  *     and errors.
  */
 KTX_error_code
-ktxLoadVkTextureExN(ktxVulkanDeviceInfo* vdi, const char* const filename,
+ktxLoadVkTextureExN(const char* const filename, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *pTexture,
                     VkImageTiling tiling,
                     VkImageUsageFlags usageFlags,
@@ -927,7 +927,7 @@ ktxLoadVkTextureExN(ktxVulkanDeviceInfo* vdi, const char* const filename,
     FILE* file = fopen(filename, "rb");
 
     if (file) {
-        errorCode = ktxLoadVkTextureExF(vdi, file, pTexture,
+        errorCode = ktxLoadVkTextureExF(file, vdi, pTexture,
                                         tiling, usageFlags,
                                         pKvdLen, ppKvd);
         fclose(file);
@@ -948,11 +948,11 @@ ktxLoadVkTextureExN(ktxVulkanDeviceInfo* vdi, const char* const filename,
  * @sa ktxReader_LoadVkTextureEx() for parameter and error details
  */
 KTX_error_code
-ktxLoadVkTextureN(ktxVulkanDeviceInfo* vdi, const char* const filename,
+ktxLoadVkTextureN(const char* const filename, ktxVulkanDeviceInfo* vdi,
                   ktxVulkanTexture *pTexture,
                   unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-    return ktxLoadVkTextureExN(vdi, filename, pTexture,
+    return ktxLoadVkTextureExN(filename, vdi, pTexture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
                                pKvdLen, ppKvd);
@@ -985,8 +985,8 @@ ktxLoadVkTextureN(ktxVulkanDeviceInfo* vdi, const char* const filename,
  *     and errors.
  */
 KTX_error_code
-ktxLoadVkTextureExM(ktxVulkanDeviceInfo* vdi,
-                    const void* bytes, GLsizei size,
+ktxLoadVkTextureExM(const void* bytes, GLsizei size,
+					ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture* pTexture,
                     VkImageTiling tiling,
                     VkImageUsageFlags usageFlags,
@@ -1018,12 +1018,12 @@ ktxLoadVkTextureExM(ktxVulkanDeviceInfo* vdi,
  * @sa ktxReader_LoadVkTextureEx() for parameter and error details
  */
 KTX_error_code
-ktxLoadVkTextureM(ktxVulkanDeviceInfo* vdi,
-                  const void* bytes, GLsizei size,
+ktxLoadVkTextureM(const void* bytes, GLsizei size,
+				  ktxVulkanDeviceInfo* vdi,
                   ktxVulkanTexture* texture,
                   unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-    return ktxLoadVkTextureExM(vdi, bytes, size, texture,
+    return ktxLoadVkTextureExM(bytes, size, vdi, texture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
                                pKvdLen, ppKvd);

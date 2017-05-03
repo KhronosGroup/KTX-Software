@@ -87,9 +87,9 @@ TextureArray::TextureArray(VulkanContext& vkctx,
                                   vkctx.queue, vkctx.commandPool, nullptr);
 
     KTX_error_code ktxresult;
-    ktxresult = ktxLoadVkTextureN(&kvdi,
-                          (getAssetPath() + szArgs).c_str(),
-                          &textureArray, 0, NULL);
+    ktxresult = ktxLoadVkTextureN((getAssetPath() + szArgs).c_str(),
+    							   &kvdi,
+    		                       &textureArray, 0, NULL);
     ktxVulkanDeviceInfo_destruct(&kvdi);
     if (ktxresult != KTX_SUCCESS) {
         std::stringstream message;

@@ -86,9 +86,9 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
                                   vkctx.queue, vkctx.commandPool, nullptr);
     KTX_error_code ktxresult;
-    ktxresult = ktxLoadVkTextureN(&kvdi,
-                          (getAssetPath() + szArgs).c_str(),
-                          &cubeMap, 0, NULL);
+    ktxresult = ktxLoadVkTextureN((getAssetPath() + szArgs).c_str(),
+    							  &kvdi,
+    		                      &cubeMap, 0, NULL);
     ktxVulkanDeviceInfo_destruct(&kvdi);
     if (ktxresult != KTX_SUCCESS) {
         std::stringstream message;

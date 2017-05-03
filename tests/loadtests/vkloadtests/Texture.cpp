@@ -95,9 +95,9 @@ Texture::Texture(VulkanContext& vkctx,
     uint8_t* pKvData;
     uint32_t  kvDataLen;
     KTX_error_code ktxresult;
-    ktxresult = ktxLoadVkTextureN(&kvdi,
-                          (getAssetPath() + szArgs).c_str(),
-                          &texture, &kvDataLen, &pKvData);
+    ktxresult = ktxLoadVkTextureN((getAssetPath() + szArgs).c_str(),
+    							  &kvdi,
+    		                      &texture, &kvDataLen, &pKvData);
     ktxVulkanDeviceInfo_destruct(&kvdi);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
