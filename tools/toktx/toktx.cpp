@@ -148,60 +148,59 @@ create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
     file's TUPLTYPE and DEPTH.
  
     The following options are always available:
-    <DL>
-    <DT>--automipmap</DT>
-    <DD>A mipmap pyramid will be automatically generated when the KTX
-        file is loaded. This option is mutually exclusive with @b --mipmap.</DD>
-    <DT>--cubemap<DT>
-    <DD>KTX file is for a cubemap. At least 6 @e infiles must be provided,
+    <dl>
+    <dt>--automipmap</dt>
+    <dd>A mipmap pyramid will be automatically generated when the KTX
+        file is loaded. This option is mutually exclusive with @b --mipmap.</dd>
+    <dt>--cubemap</dt>
+    <dd>KTX file is for a cubemap. At least 6 @e infiles must be provided,
         more if --mipmap is also specified. Provide the images in the
-        order: +X, -X, +Y, -Y, +Z, -Z.</DD>
-    <DT>--mipmap</DT>
-    <DD>KTX file is for a mipmap pyramid. One @e infile per level must
+        order: +X, -X, +Y, -Y, +Z, -Z.</dd>
+    <dt>--mipmap</dt>
+    <dd>KTX file is for a mipmap pyramid. One @e infile per level must
         be provided. Provide the base-level image first then in order
         down to the 1x1 image. This option is mutually exclusive with
-        @b --automipmap.</DD>
-    <DT>--nometadata</DT>
-    <DD>Do not write KTXorientation metadata into the output file. Metadata
-        is written by default. Use of this option is not recommended.</DD>
-    <DT>--sized</DT>
-    <DD>Set the texture's internal format to a sized format based on
+        @b --automipmap.</dd>
+    <dt>--nometadata</dt>
+    <dd>Do not write KTXorientation metadata into the output file. Metadata
+        is written by default. Use of this option is not recommended.</dd>
+    <dt>--sized</dt>
+    <dd>Set the texture's internal format to a sized format based on
         the component size of the input file. Otherwise set it to an
-        unsized internal format.</DD>
-    </DD>
-    <DT>--upper_left_maps_to_s0t0</DT>
-    <DD>Map the logical upper left corner of the image to s0,t0.
+        unsized internal format.</dd>
+    <dt>--upper_left_maps_to_s0t0</dt>
+    <dd>Map the logical upper left corner of the image to s0,t0.
         Although opposite to the OpenGL convention, this is the DEFAULT
         BEHAVIOUR. netpbm files have an upper left origin so this option
         does not flip the input files. When this option is in effect,
         toktx writes a KTXorientation value of S=r,T=d into the output file
-        to inform loaders of the logical orientation.</DD>
-    <DT>--lower_left_maps_to_s0t0</DT>
-    <DD>Map the logical lower left corner of the image to s0,t0.
+        to inform loaders of the logical orientation.</dd>
+    <dt>--lower_left_maps_to_s0t0</dt>
+    <dd>Map the logical lower left corner of the image to s0,t0.
         This causes the input netpbm files to be flipped vertically to
         OpenGL's lower-left origin. When this option is in effect, toktx
         writes a KTXorientation value of S=r,T=u into the output file
-        to inform loaders of the logical orientation.</DD>
-    <DT>--help</DT>
-    <DD>Print this usage message and exit.</DD>
-    <DT>--version</DT>
-    <DD>Print the version number of this program and exit.</DD>
-    </DL>
+        to inform loaders of the logical orientation.</dd>
+    <dt>--help</dt>
+    <dd>Print this usage message and exit.</dd>
+    <dt>--version</dt>
+    <dd>Print the version number of this program and exit.</dd>
+    </dl>
  
-    The following options are available if @b toktx is compiled with
+    The following options are available if @b toktx was compiled with
     @p ALLOW_LEGACY_FORMAT_CREATION:
-    <DL>
-    <DT>--alpha</DT>
-    <DD>Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam
+    <dl>
+    <dt>--alpha</dt>
+    <dd>Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam
         infiles. The default is to create RED textures. This is ignored
         for files with 2 or more channels. This option is mutually
-        exclusive with @b --luminance.</DD>
-    <DT>--luminance</DT>
-    <DD>Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and
+        exclusive with @b --luminance.</dd>
+    <dt>--luminance</dt>
+    <dd>Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and
         1 or 2 channel GRAYSCALE .pam infiles. The default is to create
         RED or RG textures. This option is mutually exclusive with
-        @b --alpha.</DD>
-    </DL>
+        @b --alpha.</dd>
+    </dl>
 
     Options can also be set in the environment variable TOKTX_OPTIONS.    
     TOKTX_OPTIONS is parsed first. If conflicting options appear in
