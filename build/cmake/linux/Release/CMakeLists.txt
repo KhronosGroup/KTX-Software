@@ -144,7 +144,8 @@ unset(TARGET)
 set(TARGET "libktx.doc")
 set(TOOLSET "target")
 list(APPEND libktx_doc__buildDoc__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxDoxy"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../libktx.doxy"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
@@ -168,14 +169,17 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c")
 list(APPEND libktx_doc__buildDoc__output
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/html"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/latex"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/man")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/html"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/latex"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/man")
 add_custom_command(OUTPUT ${libktx_doc__buildDoc__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc
-  COMMAND doxygen ktxDoxy
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc/libktx
+  COMMAND ./runDoxygen -o build/doc/libktx -t build/doc/libktx/.gentimestamp libktx.doxy
   DEPENDS ${libktx_doc__buildDoc__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Generating documentation with Doxygen
@@ -185,52 +189,11 @@ add_custom_target(libktx_doc__buildDoc
   DEPENDS ${libktx_doc__buildDoc__output}
   SOURCES ${libktx_doc__buildDoc__input}
 )
-list(APPEND libktx_doc__touchTimestamp__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxDoxy"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcunpack.cxx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_format.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c")
-set(libktx_doc__touchTimestamp__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/.gentimestamp")
-add_custom_command(OUTPUT ${libktx_doc__touchTimestamp__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc
-  COMMAND touch build/doc/.gentimestamp
-  DEPENDS ${libktx_doc__touchTimestamp__input}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT setting generation timestamp
-  VERBATIM
-)
-add_custom_target(libktx_doc__touchTimestamp
-  DEPENDS ${libktx_doc__touchTimestamp__output}
-  SOURCES ${libktx_doc__touchTimestamp__input}
-)
 add_custom_target(libktx_doc SOURCES)
 set_target_properties(libktx_doc PROPERTIES EXCLUDE_FROM_ALL "TRUE")
 set_target_properties(libktx_doc__buildDoc PROPERTIES EXCLUDE_FROM_ALL "TRUE")
-set_target_properties(libktx_doc__touchTimestamp PROPERTIES EXCLUDE_FROM_ALL "TRUE")
 add_dependencies(libktx_doc
   libktx_doc__buildDoc
-  libktx_doc__touchTimestamp
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -370,6 +333,39 @@ add_dependencies(toktx-tests__toktx-tests
 add_dependencies(toktx-tests
   toktx
   toktx-tests__toktx-tests
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:ktxtools.doc#target
+set(TARGET "ktxtools.doc")
+set(TOOLSET "target")
+list(APPEND ktxtools_doc__buildDoc__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxtools.doxy"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp")
+list(APPEND ktxtools_doc__buildDoc__output
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/ktxtools/html"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/ktxtools/man/man1/toktx.1"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/ktxtools/.gentimestamp")
+add_custom_command(OUTPUT ${ktxtools_doc__buildDoc__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc/ktxtools/man/man1
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc/ktxtools
+  COMMAND ./runDoxygen -o build/doc/ktxtools -t build/doc/ktxtools/.gentimestamp ktxtools.doxy
+  DEPENDS ${ktxtools_doc__buildDoc__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating tools documentation with Doxygen
+  VERBATIM
+)
+add_custom_target(ktxtools_doc__buildDoc
+  DEPENDS ${ktxtools_doc__buildDoc__output}
+  SOURCES ${ktxtools_doc__buildDoc__input}
+)
+add_custom_target(ktxtools_doc SOURCES)
+set_target_properties(ktxtools_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktxtools_doc__buildDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(ktxtools_doc
+  ktxtools_doc__buildDoc
 )
 unset(TOOLSET)
 unset(TARGET)
