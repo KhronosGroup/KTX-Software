@@ -1525,52 +1525,10 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				TargetAttributes = {
-					09BA8FB5F992B0DCA38C21BE = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					1548AEB99CD1C5C270961D30 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					1BE6899F85464D2301297B34 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5C02A4F65B8C516F2E3508EB = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5D14C76351FD143925D22373 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					65B9FC0E5B92783625634829 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					B90F68E062B75853DE301BEB = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					C9FA79AED7857DAE20C5CEC8 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					DAA715274807967C046D9300 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					E28123D177A5F5B4703C8895 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					E63EF3CB8887944110516954 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					F7B5E4323F9CF21041EC9677 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-				};
 			};
 			buildConfigurationList = 55F377B00A09F4075C61D1D2 /* Build configuration list for PBXProject "ktxtests" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
 			hasScannedForEncodings = 1;
-			knownRegions = (
-				en,
-			);
 			mainGroup = 910A03D43CEF5CC516BDE4C8;
 			projectDirPath = ../../..;
 			projectReferences = (
@@ -2098,10 +2056,7 @@
 					"$(VULKAN_SDK)/iOS",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
-				OTHER_LDFLAGS = (
-					"-lassimp",
-					"-lz",
-				);
+				OTHER_LDFLAGS = "-lassimp -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -2207,10 +2162,7 @@
 					"$(VULKAN_SDK)/iOS",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
-				OTHER_LDFLAGS = (
-					"-lassimp",
-					"-lz",
-				);
+				OTHER_LDFLAGS = "-lassimp -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = YES;

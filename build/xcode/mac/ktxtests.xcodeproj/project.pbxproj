@@ -1538,55 +1538,10 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				TargetAttributes = {
-					09BA8FB5F992B0DCA38C21BE = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					0B2F68F79FDD3BDDF975D5F6 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					1548AEB99CD1C5C270961D30 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					1BE6899F85464D2301297B34 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					4FBB6398591507EDB9D8D566 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5C02A4F65B8C516F2E3508EB = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5D14C76351FD143925D22373 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5E0373E3E25257167764A6D6 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					6CCD749A06B533143615AAEE = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					9C3634CD4D99CF2D2EBFC2E4 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					C9FA79AED7857DAE20C5CEC8 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					DAA715274807967C046D9300 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					E28123D177A5F5B4703C8895 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-				};
 			};
 			buildConfigurationList = 55F377B00A09F4075C61D1D2 /* Build configuration list for PBXProject "ktxtests" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
 			hasScannedForEncodings = 1;
-			knownRegions = (
-				en,
-			);
 			mainGroup = 910A03D43CEF5CC516BDE4C8;
 			projectDirPath = ../../..;
 			projectReferences = (
@@ -2235,10 +2190,7 @@
 					"$(ASSIMP_HOME)/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				OTHER_LDFLAGS = (
-					"-lassimp",
-					"-lz",
-				);
+				OTHER_LDFLAGS = "-lassimp -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -2346,10 +2298,7 @@
 					"$(ASSIMP_HOME)/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				OTHER_LDFLAGS = (
-					"-lassimp",
-					"-lz",
-				);
+				OTHER_LDFLAGS = "-lassimp -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = YES;

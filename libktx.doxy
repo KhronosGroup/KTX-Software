@@ -32,7 +32,7 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "The Khronos Texture Format, KTX"
+PROJECT_NAME           = "libktx"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -58,7 +58,7 @@ PROJECT_LOGO           =
 # entered, it will be relative to the location where doxygen was started. If
 # left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = build/doc
+OUTPUT_DIRECTORY       = build/doc/libktx
 
 # If the CREATE_SUBDIRS tag is set to YES then doxygen will create 4096 sub-
 # directories (in 2 levels) under the output directory of each output format and
@@ -228,7 +228,7 @@ TAB_SIZE               = 4
 # "Side Effects:". You can put \n's in the value part of an alias to insert
 # newlines.
 
-ALIASES                = "error=\par Errors:\n"
+ALIASES                = error="\par Errors\n"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -761,8 +761,7 @@ WARN_LOGFILE           =
 # Include files by name so only the public API and structures are documented.
 # This works around a Doxygen bug which makes it issue "undocumented compound"
 # warnings for structures documented with @internal when INTERNAL_DOCS = NO.
-INPUT                  = LICENSE.md \
-                         include \
+INPUT                  = include \
                          lib/hashtable.c \
                          lib/glloader.c \
                          lib/ktxreader.c \
@@ -2052,7 +2051,7 @@ TAGFILES               =
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
 
-GENERATE_TAGFILE       =
+GENERATE_TAGFILE       = build/doc/libktx/libktx.tag
 
 # If the ALLEXTERNALS tag is set to YES, all external class will be listed in
 # the class index. If set to NO, only the inherited external classes will be

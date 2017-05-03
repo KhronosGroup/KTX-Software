@@ -114,7 +114,7 @@ These files are part of the SDL2 source distributed by the [SDL project]
 (http://www.zlib.net/zlib_license.html).
 */
 
-/**
+/*
  * @~English
  * @mainpage The KTX Library
  *

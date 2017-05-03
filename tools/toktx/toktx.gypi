@@ -94,8 +94,50 @@
               ],
             }, # toktx-tests action
           ], # actions
-        } # toktx-tests target
-      ], # 'OS == "mac" or OS == "win"' targets
+        }, # toktx-tests target
+        {
+          'target_name': 'ktxtools.doc',
+          'type': 'none',
+          'variables': { # level 1
+            'variables': { # level 2
+              'output_dir': '../../build/doc/ktxtools',
+            },
+            'output_dir': '<(output_dir)',
+            'doxyConfig': 'ktxtools.doxy',
+            'timestamp': '<(output_dir)/.gentimestamp',
+          },
+          # It is not possible to chain commands in an action with
+          # && because the generators will quote such strings.
+          # Instead we use an external script.
+          # these actions
+          'actions': [
+            {
+              'action_name': 'buildDoc',
+              'message': 'Generating tools documentation with Doxygen',
+              'inputs': [
+                '../../<(doxyConfig)',
+                '../../runDoxygen',
+                'toktx.cpp',
+              ],
+              'outputs': [
+                '<(output_dir)/html',
+                '<(output_dir)/man/man1/toktx.1',
+                '<(timestamp)',
+              ],
+              # doxygen must be run in the top-level project directory
+              # so that ancestors of that directory will be removed
+              # from paths displayed in the documentation. That is also
+              # the directory where the .doxy and .gyp files are stored.
+              #
+              # See ../../lib/libktx.gypi for further comments.
+              'msvs_cygwin_shell': 1,
+              'action': [
+                './runDoxygen', '-o', '<(output_dir)', '-t', '<(timestamp)', '<(doxyConfig)',
+              ],
+            }, # buildDoc action
+          ], # actions
+        }, # libktx.doc
+      ], # targets
     }], # 'OS == "mac" or OS == "win"'
   ] # conditions for conditional targets
 }

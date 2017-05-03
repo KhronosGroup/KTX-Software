@@ -1,17 +1,6 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4:
 
-//!
-//! @~English
-//! @mainpage
-//!
-//! toktx: create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
-//!
-//! @author Mark Callow, HI Corporation, www.hicorp.co.jp
-//!
-//! @version 1.1
-//! $Date$
-
 // $Id$
 
 //
@@ -135,6 +124,45 @@ static void dumpImage(_TCHAR* name, int width, int height, int components,
                       int componentSize, bool isLuminance,
                       unsigned char* srcImage);
 #endif
+
+/** @page toktx
+@~English
+
+create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
+ 
+@section synopsis SYNOPSIS
+    toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
+
+@section description DESCRIPTION
+    @b toktx creates Khronos format texture files (KTX) from a set of Netpbm
+    format images. Currently it only supports creating KTX files holding 2D and
+    cube map textures. It writes the destination ktx file to @e outfile,
+    appending ".ktx" if necessary. If @e outfile is '-' the output will be
+    written to stdout.
+ 
+    @b toktx reads each named @e infile which must be in .pam, .ppm or .pgm
+    format. Other formats can be readily converted to these formats using
+    tools such as ImageMagick and XnView. When no infile is specified, a single
+    image will be read from stdin. .ppm files yield RGB textures, .pgm files
+    RED textures and .pam files RED, RG, RGB or RGBA textures according to the
+    file's TUPLTYPE and DEPTH.
+ 
+    The following options are available:
+   --alpha      Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam
+                infiles. The default is to create RED textures. This is ignored
+                for files with 2 or more channels. This option is mutually
+                exclusive with --luminance.
+ 
+
+@section exitstatus EXIT STATUS
+
+@section history HISTORY
+
+@version 1.1
+$Date$
+
+@author Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+*/
 
 static void
 usage(_TCHAR* appName)
