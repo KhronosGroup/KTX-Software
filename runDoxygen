@@ -80,7 +80,6 @@ then
   usage
 fi
 
-echo output = $outputls
 if [ -n "$output" ]
 then
   mkdir -p "$output"
