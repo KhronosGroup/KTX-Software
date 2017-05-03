@@ -147,14 +147,72 @@ create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
     RED textures and .pam files RED, RG, RGB or RGBA textures according to the
     file's TUPLTYPE and DEPTH.
  
-    The following options are available:
-   --alpha      Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam
-                infiles. The default is to create RED textures. This is ignored
-                for files with 2 or more channels. This option is mutually
-                exclusive with --luminance.
+    The following options are always available:
+    <DL>
+    <DT>--automipmap</DT>
+    <DD>A mipmap pyramid will be automatically generated when the KTX
+        file is loaded. This option is mutually exclusive with @b --mipmap.</DD>
+    <DT>--cubemap<DT>
+    <DD>KTX file is for a cubemap. At least 6 @e infiles must be provided,
+        more if --mipmap is also specified. Provide the images in the
+        order: +X, -X, +Y, -Y, +Z, -Z.</DD>
+    <DT>--mipmap</DT>
+    <DD>KTX file is for a mipmap pyramid. One @e infile per level must
+        be provided. Provide the base-level image first then in order
+        down to the 1x1 image. This option is mutually exclusive with
+        @b --automipmap.</DD>
+    <DT>--nometadata</DT>
+    <DD>Do not write KTXorientation metadata into the output file. Metadata
+        is written by default. Use of this option is not recommended.</DD>
+    <DT>--sized</DT>
+    <DD>Set the texture's internal format to a sized format based on
+        the component size of the input file. Otherwise set it to an
+        unsized internal format.</DD>
+    </DD>
+    <DT>--upper_left_maps_to_s0t0</DT>
+    <DD>Map the logical upper left corner of the image to s0,t0.
+        Although opposite to the OpenGL convention, this is the DEFAULT
+        BEHAVIOUR. netpbm files have an upper left origin so this option
+        does not flip the input files. When this option is in effect,
+        toktx writes a KTXorientation value of S=r,T=d into the output file
+        to inform loaders of the logical orientation.</DD>
+    <DT>--lower_left_maps_to_s0t0</DT>
+    <DD>Map the logical lower left corner of the image to s0,t0.
+        This causes the input netpbm files to be flipped vertically to
+        OpenGL's lower-left origin. When this option is in effect, toktx
+        writes a KTXorientation value of S=r,T=u into the output file
+        to inform loaders of the logical orientation.</DD>
+    <DT>--help</DT>
+    <DD>Print this usage message and exit.</DD>
+    <DT>--version</DT>
+    <DD>Print the version number of this program and exit.</DD>
+    </DL>
  
+    The following options are available if @b toktx is compiled with
+    @p ALLOW_LEGACY_FORMAT_CREATION:
+    <DL>
+    <DT>--alpha</DT>
+    <DD>Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam
+        infiles. The default is to create RED textures. This is ignored
+        for files with 2 or more channels. This option is mutually
+        exclusive with @b --luminance.</DD>
+    <DT>--luminance</DT>
+    <DD>Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and
+        1 or 2 channel GRAYSCALE .pam infiles. The default is to create
+        RED or RG textures. This option is mutually exclusive with
+        @b --alpha.</DD>
+    </DL>
+
+    Options can also be set in the environment variable TOKTX_OPTIONS.    
+    TOKTX_OPTIONS is parsed first. If conflicting options appear in
+    TOKTX_OPTIONS or the command line, the last one seen wins. However if both
+    @b --automipmap and @b --mipmap are seen, it is always flagged as an error.
+    You can, for example, set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change
+    the default mapping of the logical image origin to match the GL convention.
 
 @section exitstatus EXIT STATUS
+    @b toktx exits 0 on success, 1 on command line errors and 2 on
+    functional errors.
 
 @section history HISTORY
 
@@ -203,6 +261,7 @@ usage(_TCHAR* appName)
 		"               down to the 1x1 image. This option is mutually exclusive with\n"
 		"               --automipmap.\n"
         "  --nometadata Do not write KTXorientation metadata into the output file.\n"
+        "               Use of this option is not recommended.\n"
 		"  --sized      Set the texture's internal format to a sized format based on\n"
 		"               the component size of the input file. Otherwise set it to an\n"
 		"               unsized internal format.\n"
@@ -210,16 +269,15 @@ usage(_TCHAR* appName)
 		"               Map the logical upper left corner of the image to s0,t0.\n"
 		"               Although opposite to the OpenGL convention, this is the DEFAULT\n"
 		"               BEHAVIOUR. netpbm files have an upper left origin so this option\n"
-		"               means do nothing. When this option is in effect, toktx writes a\n"
-		"               KTXorientation value of S=r,T=d into the output file to inform\n"
-		"               loaders of the logical orientation.\n"
+		"               does not flip the input files. When this option is in effect,\n"
+        "               toktx writes a KTXorientation value of S=r,T=d into the output\n"
+        "               file to inform loaders of the logical orientation.\n"
 		"  --lower_left_maps_to_s0t0\n"
 		"               Map the logical lower left corner of the image to s0,t0.\n"
         "               This causes the input netpbm files to be flipped vertically to\n"
 		"               OpenGL's lower-left origin. When this option is in effect, toktx\n"
 	    "               writes a KTXorientation value of S=r,T=u into the output file\n"
-	    "               to inform loaders of the logical orientation. GL loaders do not\n"
-	    "               need this but it is helpful for Vulkan loaders.\n"
+	    "               to inform loaders of the logical orientation.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
 		"\n"
