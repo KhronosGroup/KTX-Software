@@ -110,6 +110,7 @@ VulkanAppSDL::initialize(int argc, char* argv[])
 	delete[] argv2;
 
 #if defined(DEBUG)
+  // MoltenVK does not support layers (yet?).
   #if !defined(__IPHONEOS__) && !defined(__MACOSX__)
 	validate = true;
   #endif
@@ -118,14 +119,13 @@ VulkanAppSDL::initialize(int argc, char* argv[])
     
 	// Create window.
 	// Vulkan samples do not pass any information from Vulkan initialization
-	// to window creation so this order should be okay...
+	// to window creation so creating the window first should be ok...
     pswMainWindow = SDL_CreateWindow(
                         szName,
                         SDL_WINDOWPOS_UNDEFINED,
                         SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
-                        SDL_WINDOW_RESIZABLE
-                        //SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
+                        SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
                     );
 
     if (pswMainWindow == NULL) {
