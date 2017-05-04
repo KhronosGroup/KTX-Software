@@ -1251,7 +1251,7 @@ void VulkanAppSDL::getOverlayText(VulkanTextOverlay *textOverlay)
 // @brief Find suitable depth format to use.
 //
 // All depth formats are optional. This finds a supported format with at
-// least the specified number of bits and without stencil, if possible and
+// least the required number of bits and without stencil, if possible and
 // not required.
 bool
 VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
@@ -1274,7 +1274,8 @@ VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
 
     for (auto& format : depthFormats)
     {
-        if (format.depth >= requiredDepth && format.stencil >= requiredStencil) {
+        if (format.depth >= requiredDepth
+            && format.stencil >= requiredStencil) {
             vk::FormatProperties formatProps;
             gpu.getFormatProperties(format.vkformat, &formatProps);
             // Format must support depth stencil attachment for optimal tiling
@@ -1284,6 +1285,9 @@ VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
             }
         }
     }
+    (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+            "The VkPhysicalDevice does not support a suitable depth buffer.",
+                                   NULL);
     return false;
 }
 
