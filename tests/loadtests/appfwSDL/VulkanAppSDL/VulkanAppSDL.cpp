@@ -825,14 +825,17 @@ VulkanAppSDL::createSwapchain()
 bool
 VulkanAppSDL::prepareDepthBuffer()
 {
-    const VkFormat depthFormat = VK_FORMAT_D16_UNORM;
-    vkctx.depthBuffer.format = depthFormat;
+    vk::Format depthFormat;
+  
+    if (!getSupportedDepthFormat(vkctx.gpu, eNoStencil, e24bits, &depthFormat))
+      return false;
+    vkctx.depthBuffer.format = static_cast<VkFormat>(depthFormat);
 
     VkImageCreateInfo image = {};
     image.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image.pNext = NULL;
     image.imageType = VK_IMAGE_TYPE_2D;
-    image.format = depthFormat;
+    image.format = static_cast<VkFormat>(depthFormat);
     image.extent.width = w_width;
     image.extent.height = w_height;
     image.extent.depth = 1;
@@ -848,7 +851,7 @@ VulkanAppSDL::prepareDepthBuffer()
     view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     view.pNext = NULL;
     view.image = VK_NULL_HANDLE;
-    view.format = depthFormat;
+    view.format = static_cast<VkFormat>(depthFormat);
     view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
     view.subresourceRange.baseMipLevel = 0;
     view.subresourceRange.levelCount = 1;
@@ -1245,6 +1248,44 @@ void VulkanAppSDL::getOverlayText(VulkanTextOverlay *textOverlay)
 //  Utility functions
 //----------------------------------------------------------------------
 
+// @brief Find suitable depth format to use.
+//
+// All depth formats are optional. This finds a supported format with at
+// least the specified number of bits and without stencil, if possible and
+// not required.
+bool
+VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
+                                      stencilRequirement requiredStencil,
+                                      depthRequirement requiredDepth,
+                                      vk::Format* depthFormat)
+{
+    struct depthFormatDescriptor {
+        stencilRequirement stencil;
+        depthRequirement depth;
+        vk::Format vkformat;
+    };
+    std::vector<depthFormatDescriptor> depthFormats = {
+      { eNoStencil, e16bits, vk::Format::eD16Unorm },
+      { eStencil, e16bits, vk::Format::eD16UnormS8Uint },
+      { eStencil, e24bits, vk::Format::eD24UnormS8Uint },
+      { eNoStencil, e32bits, vk::Format::eD32Sfloat },
+      { eStencil, e32bits, vk::Format::eD32SfloatS8Uint }
+    };
+
+    for (auto& format : depthFormats)
+    {
+        if (format.depth >= requiredDepth && format.stencil >= requiredStencil) {
+            vk::FormatProperties formatProps;
+            gpu.getFormatProperties(format.vkformat, &formatProps);
+            // Format must support depth stencil attachment for optimal tiling
+            if (formatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
+                *depthFormat = format.vkformat;
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 void
 VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,

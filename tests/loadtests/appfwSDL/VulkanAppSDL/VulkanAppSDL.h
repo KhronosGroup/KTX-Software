@@ -109,6 +109,13 @@ class VulkanAppSDL : public AppBaseSDL {
 
     bool setupDebugReporting();
 
+    enum stencilRequirement { eNoStencil = 0, eStencil = 1 };
+    enum depthRequirement { e16bits = 0, e24bits = 1, e32bits = 2 };
+    bool getSupportedDepthFormat(vk::PhysicalDevice gpu,
+                                 stencilRequirement requiredStencil,
+                                 depthRequirement requiredDepth,
+                                 vk::Format* format);
+
     // Sets title to be used on window title bar.
     void setAppTitle(const char* const szExtra);
     // Sets text on window title bar.
