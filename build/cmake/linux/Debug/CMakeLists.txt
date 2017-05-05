@@ -382,8 +382,6 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_space.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_vulkan.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx"
@@ -417,8 +415,6 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${builddir}/testimages/cubemap_space.ktx"
-  "${builddir}/testimages/cubemap_vulkan.ktx"
   "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
   "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx"
@@ -453,8 +449,6 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${bu
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_space.ktx ${builddir}/testimages/cubemap_space.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_vulkan.ktx ${builddir}/testimages/cubemap_vulkan.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx
