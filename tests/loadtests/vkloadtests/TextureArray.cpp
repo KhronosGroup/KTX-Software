@@ -138,7 +138,11 @@ TextureArray::cleanup()
 	// Clean up used Vulkan resources
 
 	// Clean up texture resources
-	ktxVulkanTexture_destruct(&textureArray, vkctx.device, nullptr);
+    if (sampler)
+        vkctx.device.destroySampler(sampler);
+    if (imageView)
+        vkctx.device.destroyImageView(imageView);
+    ktxVulkanTexture_destruct(&textureArray, vkctx.device, nullptr);
 
 	if (pipelines.solid)
 		vkctx.device.destroyPipeline(pipelines.solid);
@@ -347,8 +351,8 @@ TextureArray::setupDescriptorSet()
 
     // Image descriptor for the color map texture
     vk::DescriptorImageInfo texArrayDescriptor(
-            textureArray.sampler,
-            textureArray.view,
+            sampler,
+            imageView,
             vk::ImageLayout::eGeneral);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
@@ -520,8 +524,40 @@ TextureArray::updateUniformBufferMatrices()
 }
 
 void
+TextureArray::prepareSamplerAndView()
+{
+    // Create sampler.
+    vk::SamplerCreateInfo samplerInfo;
+    // Set the non-default values
+    samplerInfo.magFilter = vk::Filter::eLinear;
+    samplerInfo.minFilter = vk::Filter::eLinear;
+    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    samplerInfo.maxLod = textureArray.levelCount;
+    samplerInfo.anisotropyEnable = true;
+    samplerInfo.maxAnisotropy = 8;
+    samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+    sampler = vkctx.device.createSampler(samplerInfo);
+    
+    // Create image view.
+    // Textures are not directly accessed by the shaders and are abstracted
+    // by image views containing additional information and sub resource
+    // ranges.
+    vk::ImageViewCreateInfo viewInfo;
+    // Set the non-default values.
+    viewInfo.image = textureArray.image;
+    viewInfo.format = static_cast<vk::Format>(textureArray.imageFormat);
+    viewInfo.viewType
+    = static_cast<vk::ImageViewType>(textureArray.viewType);
+    viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    viewInfo.subresourceRange.layerCount = textureArray.layerCount;
+    viewInfo.subresourceRange.levelCount = textureArray.levelCount;
+    imageView = vkctx.device.createImageView(viewInfo);
+}
+
+void
 TextureArray::prepare()
 {
+    prepareSamplerAndView();
     setupVertexDescriptions();
     generateQuad();
     prepareUniformBuffers();

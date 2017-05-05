@@ -61,6 +61,8 @@ class TextureArray : public VulkanLoadTestSample
 
   protected:
     ktxVulkanTexture textureArray;
+    vk::Sampler sampler;
+    vk::ImageView imageView;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;
@@ -115,6 +117,8 @@ class TextureArray : public VulkanLoadTestSample
 	void prepareUniformBuffers();
 	void updateUniformBufferMatrices();
 
+    void prepareSamplerAndView();
+    
 	void prepare();
 
     virtual void viewChanged()

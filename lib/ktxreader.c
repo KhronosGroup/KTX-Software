@@ -58,7 +58,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxfilestream.h"
 
 /**
- * @defgroup reader ktxReader
+ * @defgroup ktx_reader Reader Core
+ * @brief Read KTX files independently of OpenGL and Vulkan.
  * @{
  */
 
@@ -690,8 +691,6 @@ ktxReader_getLevelSize(KTX_reader reader, ktx_uint32_t level, size_t* pLevelSize
   return KTX_SUCCESS;
 }
 
-/**
- * @}
- */
+/** @} */
 
 

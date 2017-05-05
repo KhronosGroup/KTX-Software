@@ -126,7 +126,7 @@ Texture::Texture(VulkanContext& vkctx,
         ktxHashTable_Destroy(kvtable);
         free(pKvData);
     }
-
+    
     try {
         prepare();
     } catch (std::exception& e) {
@@ -171,6 +171,11 @@ Texture::cleanup()
     // Clean up used Vulkan resources
 
     vkctx.destroyDrawCommandBuffers();
+
+    if (sampler)
+        vkctx.device.destroySampler(sampler);
+    if (imageView)
+        vkctx.device.destroyImageView(imageView);
 
     ktxVulkanTexture_destruct(&texture, vkctx.device, nullptr);
 
@@ -423,8 +428,8 @@ Texture::setupDescriptorSet()
 
     // Image descriptor for the color map texture
     vk::DescriptorImageInfo texDescriptor(
-            texture.sampler,
-            texture.view,
+            sampler,
+            imageView,
             vk::ImageLayout::eGeneral);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
@@ -574,8 +579,39 @@ Texture::updateUniformBuffers()
 }
 
 void
+Texture::prepareSamplerAndView()
+{
+    // Create sampler.
+    vk::SamplerCreateInfo samplerInfo;
+    // Set the non-default values
+    samplerInfo.magFilter = vk::Filter::eLinear;
+    samplerInfo.minFilter = vk::Filter::eLinear;
+    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    samplerInfo.maxLod = texture.levelCount;
+    samplerInfo.anisotropyEnable = true;
+    samplerInfo.maxAnisotropy = 8;
+    samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+    sampler = vkctx.device.createSampler(samplerInfo);
+    
+    // Create image view.
+    // Textures are not directly accessed by the shaders and are abstracted
+    // by image views containing additional information and sub resource
+    // ranges.
+    vk::ImageViewCreateInfo viewInfo;
+    // Set the non-default values.
+    viewInfo.image = texture.image;
+    viewInfo.format = static_cast<vk::Format>(texture.imageFormat);
+    viewInfo.viewType = static_cast<vk::ImageViewType>(texture.viewType);
+    viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    viewInfo.subresourceRange.layerCount = texture.layerCount;
+    viewInfo.subresourceRange.levelCount = texture.levelCount;
+    imageView = vkctx.device.createImageView(viewInfo);
+}
+
+void
 Texture::prepare()
 {
+    prepareSamplerAndView();
     generateQuad();
     setupVertexDescriptions();
     prepareUniformBuffers();
@@ -595,9 +631,9 @@ Texture::changeLodBias(float delta)
     {
         uboVS.lodBias = 0.0f;
     }
-    if (uboVS.lodBias > texture.mipLevels)
+    if (uboVS.lodBias > texture.levelCount)
     {
-        uboVS.lodBias = (float)texture.mipLevels;
+        uboVS.lodBias = (float)texture.levelCount;
     }
     updateUniformBuffers();
     //updateTextOverlay();

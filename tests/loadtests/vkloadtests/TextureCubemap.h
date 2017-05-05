@@ -63,6 +63,8 @@ class TextureCubemap : public VulkanLoadTestSample
     bool displaySkybox = true;
 
     ktxVulkanTexture cubeMap;
+    vk::Sampler sampler;
+    vk::ImageView imageView;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;
@@ -117,6 +119,8 @@ class TextureCubemap : public VulkanLoadTestSample
 	// Prepare and initialize uniform buffer containing shader uniforms
 	void prepareUniformBuffers();
 	void updateUniformBuffers();
+    
+    void prepareSamplerAndView();
 
 	void prepare();
 	void toggleSkyBox();

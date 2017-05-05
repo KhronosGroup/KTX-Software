@@ -49,7 +49,6 @@ class Texture : public VulkanLoadTestSample
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-
     virtual void getOverlayText(VulkanTextOverlay *textOverlay);
 
     static VulkanLoadTestSample*
@@ -59,6 +58,8 @@ class Texture : public VulkanLoadTestSample
 
   protected:
     ktxVulkanTexture texture;
+    vk::Sampler sampler;
+    vk::ImageView imageView;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;
@@ -101,6 +102,7 @@ class Texture : public VulkanLoadTestSample
 	// Prepare and initialize uniform buffer containing shader uniforms
 	void prepareUniformBuffers();
 	void updateUniformBuffers();
+    void prepareSamplerAndView();
 	void prepare();
 
     virtual void keyPressed(uint32_t keyCode);

@@ -57,6 +57,12 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxfilestream.h"
 #include "ktxmemstream.h"
 
+/**
+ * @defgroup writer KTX Writer
+ * @brief Read KTX files independently of OpenGL and Vulkan.
+ * @{
+ */
+
 static KTX_error_code validateTypeAndFormat(GLenum format, GLenum type);
 static KTX_error_code sizeofGroupAndElement(GLenum format, GLenum type,
 											GLuint* groupBytes, GLuint* elementBytes,
@@ -747,3 +753,5 @@ sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
 	}
 	return KTX_SUCCESS;
 }
+
+/** @} */

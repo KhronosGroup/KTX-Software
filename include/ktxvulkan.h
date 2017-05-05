@@ -50,29 +50,26 @@ extern "C" {
 #endif
 
 /**
- * @brief Struct for receiving information about the Vulkan image created
- *        by the texture image loading functions.
+ * @brief Struct for receiving information about the image created
+ *        by the Vulkan texture image loading functions.
  */
 typedef struct ktxVulkanTexture
 {
-    /** Handle to the sampler created if @c VK_IMAGE_USAGE_SAMPLED_BIT is
-      * passed to the loading function. */
-    VkSampler sampler;
     VkImage image; /*!< Handle to the Vulkan image created by the loader. */
-    // This is only ever set to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL so
-    // perhaps it is not needed. It's an enum. Is "enum VkImageView;" sufficient?
-    VkImageLayout imageLayout; /*!< The layout of the created image. */
-    /** The memory allocated for the image on the Vulkan device. */
-    VkDeviceMemory deviceMemory;
-    VkImageView view; /*!< Handle to the VkImageView created for the image. */
+    VkFormat imageFormat;     /*!< Format of the image data. */
+    VkImageLayout imageLayout; /*!< Layout of the created image. Has the same
+                                    value as @p layout parameter passed to the
+                                    loader. */
+    VkDeviceMemory deviceMemory; /*!< The memory allocated for the image on
+                                  the Vulkan device. */
+    VkImageViewType viewType; /*!< ViewType corresponding to @p image. Reflects
+                                   the dimensionality, cubeness and arrayness
+                                   of the image. */
     uint32_t width; /*!< The width of the image. */
     uint32_t height; /*!< The height of the image. */
     uint32_t depth; /*!< The depth of the image. */
-    uint32_t mipLevels; /*!< The number of MIP levels in the image. */
+    uint32_t levelCount; /*!< The number of MIP levels in the image. */
     uint32_t layerCount; /*!< The number of array layers in the image. */
-    // The information this is duplicated above so perhaps this can be removed
-    // too.
-    VkDescriptorImageInfo descriptor; /*<! Descriptor image info. */
 } ktxVulkanTexture;
 
 void
@@ -135,7 +132,9 @@ ktxVulkanDeviceInfo_destroy(ktxVulkanDeviceInfo* vdi);
 KTX_error_code
 ktxReader_LoadVkTextureEx(KTX_reader This, ktxVulkanDeviceInfo* vdi,
                           ktxVulkanTexture* pTexture,
-                          VkImageTiling tiling, VkImageUsageFlags usageFlags,
+                          VkImageTiling tiling,
+                          VkImageUsageFlags usageFlags,
+                          VkImageLayout layout,
                           unsigned int* pKvdLen, unsigned char** ppKvd);
 
 KTX_error_code
@@ -147,7 +146,8 @@ KTX_error_code
 ktxLoadVkTextureExF(FILE* file, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *texture,
                     VkImageTiling tiling,
-                    VkImageUsageFlags imageUsageFlags,
+                    VkImageUsageFlags usageFlags,
+                    VkImageLayout layout,
                     unsigned int* pKvdLen, unsigned char** ppKvd);
 
 KTX_error_code
@@ -159,7 +159,8 @@ KTX_error_code
 ktxLoadVkTextureExN(const char* const filename, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *texture,
                     VkImageTiling tiling,
-                    VkImageUsageFlags imageUsageFlags,
+                    VkImageUsageFlags usageFlags,
+                    VkImageLayout finalLayout,
                     unsigned int* pKvdLen, unsigned char** ppKvd);
 
 KTX_error_code
@@ -172,7 +173,8 @@ ktxLoadVkTextureExM(const void* bytes, GLsizei size,
 					ktxVulkanDeviceInfo* vdi,
 		            ktxVulkanTexture* texture,
                     VkImageTiling tiling,
-                    VkImageUsageFlags imageUsageFlags,
+                    VkImageUsageFlags usageFlags,
+                    VkImageLayout layout,
                     unsigned int* pKvdLen, unsigned char** ppKvd);
 
 KTX_error_code

@@ -103,6 +103,11 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 DECLARE_GL_FUNCPTRS
 
 /**
+ * @defgroup ktx_glloader OpenGL Texture Image Loader
+ * @{
+ */
+
+/**
  * @internal
  * @~English
  * @brief Additional contextProfile bit indicating an OpenGL ES context.
@@ -599,16 +604,15 @@ compressedTexImage3DCallback(int miplevel, int face,
     }
 }
 
-/** @ingroup reader
+/**
  * @~English
- * @brief Load a GL texture object from a file represented by a ktxReader.
+ * @brief Create a GL texture object from KTX data.
  *
- * The function sets the texture object's GL_TEXTURE_MAX_LEVEL parameter
- * according to the number of levels in the ktxStream, provided the library
- * has been compiled with a version of gl.h where GL_TEXTURE_MAX_LEVEL is
- * defined.
+ * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
+ * number of levels in the KTX data, provided the library has been compiled
+ * with a version of gl.h where GL_TEXTURE_MAX_LEVEL is defined.
  *
- * It will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * Unpacks compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
  * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
@@ -617,8 +621,7 @@ compressedTexImage3DCallback(int miplevel, int face,
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param [in] reader	    handle of the KTX_reader representing the file
- *                          from which to load.
+ * @param [in] reader	    handle of the KTX_reader opened on the data.
  * @param [in,out] pTexture	name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
@@ -887,24 +890,21 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
 
 /**
  * @~English
- * @brief Load a GL texture object from a stdio FILE stream.
+ * @brief Create a GL texture object from KTX data in a stdio FILE stream.
  *
- * The function sets the texture object's GL_TEXTURE_MAX_LEVEL parameter
- * according to the number of levels in the ktxStream, provided the library
- * has been compiled with a version of gl.h where GL_TEXTURE_MAX_LEVEL is
- * defined.
+ * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
+ * number of levels in the ktxStream, provided the library has been compiled
+ * with a version of gl.h where GL_TEXTURE_MAX_LEVEL is defined.
  *
- * It will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
- * textures in software when the format is not supported by the GL context,
- * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
- * defined as 1.
+ * Unpacks compressed GL_ETC1_RGB8_OES and GL_ETC2_* format textures in
+ * software when the format is not supported by the GL context, provided the
+ * library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK defined as 1.
  *
- * It will also convert texture with legacy formats to their modern equivalents
+ * Also converts texture with legacy formats to their modern equivalents
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param [in] file			pointer to the stdio FILE stream from which to
- * 							load.
+ * @param [in] file			stdio FILE pointer
  * @param [in,out] pTexture	name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
@@ -970,7 +970,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 
 /**
  * @~English
- * @brief Load a GL texture object from a named file on disk.
+ * @brief Create a GL texture object from KTX data in a named file on disk.
  *
  * @param [in] filename		pointer to a C string that contains the path of
  * 							the file to load.
@@ -1023,10 +1023,10 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
 
 /**
  * @~English
- * @brief Load a GL texture object from KTX formatted data in memory.
+ * @brief Create a GL texture object from KTX formatted data in memory.
  *
  * @param [in] bytes		pointer to the array of bytes containing
- * 							the KTX format data to load.
+ * 							the KTX data to load.
  * @param [in] size			size of the memory array containing the
  *                          KTX format data.
  * @param [in,out] pTexture	name of the GL texture object to load. See
@@ -1079,4 +1079,4 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
     return errorCode;
 }
 
-
+/** @} */

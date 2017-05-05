@@ -135,7 +135,11 @@ TextureCubemap::cleanup()
 	// Clean up used Vulkan resources
 
 	// Clean up texture resources
-	ktxVulkanTexture_destruct(&cubeMap, vkctx.device, nullptr);
+    if (sampler)
+        vkctx.device.destroySampler(sampler);
+    if (imageView)
+        vkctx.device.destroyImageView(imageView);
+    ktxVulkanTexture_destruct(&cubeMap, vkctx.device, nullptr);
 
 	if (pipelines.reflect)
 		vkctx.device.destroyPipeline(pipelines.reflect);
@@ -364,8 +368,8 @@ TextureCubemap::setupDescriptorSets()
 
 	// Image descriptor for the cubemap texture
 	vk::DescriptorImageInfo cubeMapDescriptor(
-			cubeMap.sampler,
-			cubeMap.view,
+			sampler,
+			imageView,
 			vk::ImageLayout::eGeneral);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets =
@@ -585,8 +589,39 @@ TextureCubemap::updateUniformBuffers()
 }
 
 void
+TextureCubemap::prepareSamplerAndView()
+{
+    // Create sampler.
+    vk::SamplerCreateInfo samplerInfo;
+    // Set the non-default values
+    samplerInfo.magFilter = vk::Filter::eLinear;
+    samplerInfo.minFilter = vk::Filter::eLinear;
+    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    samplerInfo.maxLod = cubeMap.levelCount;
+    samplerInfo.anisotropyEnable = true;
+    samplerInfo.maxAnisotropy = 8;
+    samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+    sampler = vkctx.device.createSampler(samplerInfo);
+    
+    // Create image view.
+    // Textures are not directly accessed by the shaders and are abstracted
+    // by image views containing additional information and sub resource
+    // ranges.
+    vk::ImageViewCreateInfo viewInfo;
+    // Set the non-default values.
+    viewInfo.image = cubeMap.image;
+    viewInfo.format = static_cast<vk::Format>(cubeMap.imageFormat);
+    viewInfo.viewType = static_cast<vk::ImageViewType>(cubeMap.viewType);
+    viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    viewInfo.subresourceRange.layerCount = cubeMap.layerCount;
+    viewInfo.subresourceRange.levelCount = cubeMap.levelCount;
+    imageView = vkctx.device.createImageView(viewInfo);
+}
+
+void
 TextureCubemap::prepare()
 {
+    prepareSamplerAndView();
     loadMeshes();
     setupVertexDescriptions();
     prepareUniformBuffers();
@@ -624,9 +659,9 @@ TextureCubemap::changeLodBias(float delta)
     {
         ubo.lodBias = 0.0f;
     }
-    if (ubo.lodBias > cubeMap.mipLevels)
+    if (ubo.lodBias > cubeMap.levelCount)
     {
-        ubo.lodBias = (float)cubeMap.mipLevels;
+        ubo.lodBias = (float)cubeMap.levelCount;
     }
     updateUniformBuffers();
     //updateTextOverlay();

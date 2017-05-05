@@ -57,12 +57,12 @@ setImageLayout(
     VkCommandBuffer cmdBuffer,
     VkImage image,
     VkImageAspectFlags aspectMask,
-    VkImageLayout oldImageLayout,
-    VkImageLayout newImageLayout,
+    VkImageLayout oldLayout,
+    VkImageLayout newLayout,
     VkImageSubresourceRange subresourceRange);
 
 /**
- * @defgroup vkhelper Vulkan Texture Image Loader Helpers
+ * @defgroup ktx_vkloader Vulkan Texture Image Loader
  * @{
  */
 
@@ -303,7 +303,7 @@ linearTilingCallback(int miplevel, int face,
     return KTX_SUCCESS;
 }
 
-/** @ingroup reader
+/**
  * @~English
  * @brief Create a Vulkan image object from KTX data.
  *
@@ -331,8 +331,11 @@ linearTilingCallback(int miplevel, int face,
  * @param [in] tiling       type of tiling to use in the destination image
  *                          on the Vulkan device.
  * @anchor usageflagsparam
- * @param [in] usageFlags   a set of VkImageUsageFlagsBits indicating the
+ * @param [in] usageFlags   a set of VkImageUsageFlags bits indicating the
  *                          intended usage of the destination image.
+ * @anchor layoutparam
+ * @param [in] layout       a VkImageLayout value indicating the desired
+ *                          layout the destination image.
  * @anchor pkvdlenparam
  * @param [in,out] pKvdLen	if not NULL, @p *pKvdLen is set to the number of
  *                          bytes of key-value data pointed at by @p *ppKvd.
@@ -360,7 +363,9 @@ linearTilingCallback(int miplevel, int face,
 KTX_error_code
 ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                           ktxVulkanTexture* pTexture,
-                          VkImageTiling tiling, VkImageUsageFlags usageFlags,
+                          VkImageTiling tiling,
+                          VkImageUsageFlags usageFlags,
+                          VkImageLayout layout,
                           unsigned int* pKvdLen, unsigned char** ppKvd)
 {
     ktxReader*               This = (ktxReader*)reader;
@@ -381,8 +386,6 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
          .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
          .pNext = NULL
     };
-    VkSamplerCreateInfo sampler;
-    VkImageViewCreateInfo view;
     VkMemoryAllocateInfo     memAllocInfo = {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = NULL,
@@ -392,7 +395,7 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
     VkMemoryRequirements     memReqs;
     VkBool32                 isArray;
     VkBool32                 isCube = VK_FALSE;
-    uint32_t                 arrayLayers;
+    uint32_t                 arrayLayers, mipLevels;
 
     if (ppKvd) {
         *ppKvd = NULL;
@@ -462,9 +465,8 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         viewType = VK_IMAGE_VIEW_TYPE_3D;
         break;
     }
-
-    pTexture->mipLevels = header.numberOfMipmapLevels;
-    pTexture->layerCount = arrayLayers;
+    
+    mipLevels = header.numberOfMipmapLevels;
 
     vkFormat = vkGetFormatFromOpenGLInternalFormat(header.glInternalFormat);
     if (vkFormat == VK_FORMAT_UNDEFINED)
@@ -569,9 +571,9 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         vkUnmapMemory(vdi->device, stagingMemory);
 
         // Create optimal tiled target image
-        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageCreateInfo.imageType = imageType;
         imageCreateInfo.format = vkFormat;
-        imageCreateInfo.mipLevels = pTexture->mipLevels;
+        imageCreateInfo.mipLevels = mipLevels;
         imageCreateInfo.arrayLayers = arrayLayers;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -594,14 +596,15 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
                                           vdi, memReqs.memoryTypeBits,
                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
+        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo,
+                                         vdi->pAllocator,
                                          &pTexture->deviceMemory));
         VK_CHECK_RESULT(vkBindImageMemory(vdi->device, pTexture->image,
                                           pTexture->deviceMemory, 0));
 
         subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         subresourceRange.baseMipLevel = 0;
-        subresourceRange.levelCount = pTexture->mipLevels;
+        subresourceRange.levelCount = mipLevels;
         subresourceRange.baseArrayLayer = 0;
         subresourceRange.layerCount = arrayLayers;
 
@@ -623,13 +626,12 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
             );
 
         // Change texture image layout to shader read after all mip levels have been copied
-        pTexture->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         setImageLayout(
             vdi->cmdBuffer,
             pTexture->image,
             VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            pTexture->imageLayout,
+            layout,
             subresourceRange);
 
         // Submit command buffer containing copy and image layout commands
@@ -665,12 +667,12 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         VkImageSubresourceRange subresourceRange;
         user_cbdata_linear cbData;
 
-        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageCreateInfo.imageType = imageType;
         imageCreateInfo.format = vkFormat;
         imageCreateInfo.extent.width = pTexture->width;
         imageCreateInfo.extent.height = pTexture->height;
         imageCreateInfo.extent.depth = pTexture->depth;
-        imageCreateInfo.mipLevels = pTexture->mipLevels;
+        imageCreateInfo.mipLevels = mipLevels;
         imageCreateInfo.arrayLayers = arrayLayers;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
@@ -719,11 +721,10 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         // and can be directly used as textures
         pTexture->image = mappableImage;
         pTexture->deviceMemory = mappableMemory;
-        pTexture->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         subresourceRange.baseMipLevel = 0;
-        subresourceRange.levelCount = pTexture->mipLevels;
+        subresourceRange.levelCount = mipLevels;
         subresourceRange.baseArrayLayer = 0;
         subresourceRange.layerCount = arrayLayers;
 
@@ -733,7 +734,7 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
             pTexture->image,
             VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_PREINITIALIZED,
-            pTexture->imageLayout,
+            layout,
             subresourceRange);
 
         // Submit command buffer containing image layout commands
@@ -747,54 +748,11 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         VK_CHECK_RESULT(vkQueueWaitIdle(vdi->queue));
     }
 
-    // Create sampler.
-    sampler.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    sampler.magFilter = VK_FILTER_LINEAR;
-    sampler.minFilter = VK_FILTER_LINEAR;
-    sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    sampler.mipLodBias = 0.0f;
-    sampler.unnormalizedCoordinates = VK_FALSE;
-    sampler.compareEnable = VK_FALSE;
-    sampler.compareOp = VK_COMPARE_OP_NEVER;
-    sampler.minLod = 0.0f;
-    // Max level-of-detail should match mip level count
-    sampler.maxLod = (float)pTexture->mipLevels;
-    // Enable anisotropic filtering
-    sampler.maxAnisotropy = 8;
-    sampler.anisotropyEnable = VK_TRUE;
-    sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-    VK_CHECK_RESULT(vkCreateSampler(vdi->device, &sampler,
-                                    vdi->pAllocator, &pTexture->sampler));
-
-    // Create image view.
-    // Textures are not directly accessed by the shaders and are abstracted
-    // by image views containing additional information and sub resource
-    // ranges.
-    view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view.pNext = NULL;
-    view.image = VK_NULL_HANDLE;
-    view.viewType = viewType;
-    view.format = vkFormat;
-    view.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    view.subresourceRange.baseMipLevel = 0;
-    view.subresourceRange.levelCount = pTexture->mipLevels;
-    view.subresourceRange.baseArrayLayer = 0;
-    view.subresourceRange.layerCount = arrayLayers;
-    view.image = pTexture->image;
-    VK_CHECK_RESULT(vkCreateImageView(vdi->device, &view,
-                                      vdi->pAllocator, &pTexture->view));
-
-    // Fill descriptor image info that can be used for setting up descriptor sets
-    pTexture->descriptor.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    pTexture->descriptor.imageView = pTexture->view;
-    pTexture->descriptor.sampler = pTexture->sampler;
+    pTexture->imageFormat = vkFormat;
+    pTexture->imageLayout = layout;
+    pTexture->levelCount = mipLevels;
+    pTexture->layerCount = arrayLayers;
+    pTexture->viewType = viewType;
 
     return KTX_SUCCESS;
 }
@@ -804,7 +762,8 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
  * @brief Create a Vulkan image object from KTX data.
  *
  * Calls ktxReader_LoadVkTextureEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
  * 
  * @sa ktxReader_LoadVkTextureEx() for details and use that for complete
  *     control.
@@ -817,12 +776,13 @@ ktxReader_loadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
     return ktxReader_loadVkTextureEx(reader, vdi, texture,
                                      VK_IMAGE_TILING_OPTIMAL,
                                      VK_IMAGE_USAGE_SAMPLED_BIT,
+                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                      pKvdLen, ppKvd);
 }
 
 /**
  * @~English
- * @brief Create a Vulkan image object from KTX data in a stdio FILE.
+ * @brief Create a Vulkan image object from KTX data in a stdio FILE stream.
  *
  * Calls ktxReader_LoadVkTextureEx() to do the bulk of the work.
  *
@@ -834,6 +794,8 @@ ktxReader_loadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
  * @param [in] tiling     see @ref tilingparam "same parameter" of
  *                        ktxReader_LoadVkTextureEx().
  * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
+ * @param [in] layout     see @ref layoutparam "same parameter" of
  *                        ktxReader_LoadVkTextureEx().
  * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
  *                          ktxReader_LoadVkTextureEx().
@@ -850,6 +812,7 @@ ktxLoadVkTextureExF(FILE* file, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *pTexture,
                     VkImageTiling tiling,
                     VkImageUsageFlags usageFlags,
+                    VkImageLayout layout,
                     unsigned int* pKvdLen, unsigned char** ppKvd)
 {
     KTX_reader reader;
@@ -861,6 +824,7 @@ ktxLoadVkTextureExF(FILE* file, ktxVulkanDeviceInfo* vdi,
 
     errorCode = ktxReader_loadVkTextureEx(reader, vdi, pTexture,
                                           tiling, usageFlags,
+                                          layout,
                                           pKvdLen, ppKvd);
     ktxReader_close(reader);
 
@@ -885,6 +849,7 @@ ktxLoadVkTextureF(FILE* file, ktxVulkanDeviceInfo* vdi,
     return ktxLoadVkTextureExF(file, vdi, pTexture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                pKvdLen, ppKvd);
 }
 
@@ -904,6 +869,8 @@ ktxLoadVkTextureF(FILE* file, ktxVulkanDeviceInfo* vdi,
  *                        ktxReader_LoadVkTextureEx().
  * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
  *                        ktxReader_LoadVkTextureEx().
+ * @param [in] layout     see @ref layoutparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
  * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
  *                          ktxReader_LoadVkTextureEx().
  * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
@@ -921,6 +888,7 @@ ktxLoadVkTextureExN(const char* const filename, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *pTexture,
                     VkImageTiling tiling,
                     VkImageUsageFlags usageFlags,
+                    VkImageLayout layout,
                     unsigned int* pKvdLen, unsigned char** ppKvd)
 {
     KTX_error_code errorCode;
@@ -928,7 +896,7 @@ ktxLoadVkTextureExN(const char* const filename, ktxVulkanDeviceInfo* vdi,
 
     if (file) {
         errorCode = ktxLoadVkTextureExF(file, vdi, pTexture,
-                                        tiling, usageFlags,
+                                        tiling, usageFlags, layout,
                                         pKvdLen, ppKvd);
         fclose(file);
     } else
@@ -955,6 +923,7 @@ ktxLoadVkTextureN(const char* const filename, ktxVulkanDeviceInfo* vdi,
     return ktxLoadVkTextureExN(filename, vdi, pTexture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                pKvdLen, ppKvd);
 }
 
@@ -974,6 +943,8 @@ ktxLoadVkTextureN(const char* const filename, ktxVulkanDeviceInfo* vdi,
  *                        ktxReader_LoadVkTextureEx().
  * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
  *                        ktxReader_LoadVkTextureEx().
+ * @param [in] layout     see @ref layoutparam "same parameter" of
+ *                        ktxReader_LoadVkTextureEx().
  * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
  *                          ktxReader_LoadVkTextureEx().
  * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
@@ -990,6 +961,7 @@ ktxLoadVkTextureExM(const void* bytes, GLsizei size,
                     ktxVulkanTexture* pTexture,
                     VkImageTiling tiling,
                     VkImageUsageFlags usageFlags,
+                    VkImageLayout layout,
                     unsigned int* pKvdLen, unsigned char** ppKvd)
 {
     KTX_reader reader;
@@ -1000,7 +972,7 @@ ktxLoadVkTextureExM(const void* bytes, GLsizei size,
         return errorCode;
 
     errorCode = ktxReader_loadVkTextureEx(reader, vdi, pTexture,
-                                          tiling, usageFlags,
+                                          tiling, usageFlags, layout,
                                           pKvdLen, ppKvd);
     ktxReader_close(reader);
 
@@ -1026,12 +998,11 @@ ktxLoadVkTextureM(const void* bytes, GLsizei size,
     return ktxLoadVkTextureExM(bytes, size, vdi, texture,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_SAMPLED_BIT,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                pKvdLen, ppKvd);
 }
 
-/**
- * @}
- */
+/** @} */
 
 //======================================================================
 //  Utilities
@@ -1050,8 +1021,8 @@ setImageLayout(
     VkCommandBuffer cmdBuffer,
     VkImage image,
     VkImageAspectFlags aspectMask,
-    VkImageLayout oldImageLayout,
-    VkImageLayout newImageLayout,
+    VkImageLayout oldLayout,
+    VkImageLayout newLayout,
     VkImageSubresourceRange subresourceRange)
 {
     // Create an image barrier object
@@ -1063,15 +1034,15 @@ setImageLayout(
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
     };
 
-    imageMemoryBarrier.oldLayout = oldImageLayout;
-    imageMemoryBarrier.newLayout = newImageLayout;
+    imageMemoryBarrier.oldLayout = oldLayout;
+    imageMemoryBarrier.newLayout = newLayout;
     imageMemoryBarrier.image = image;
     imageMemoryBarrier.subresourceRange = subresourceRange;
 
     // Source layouts (old)
     // The source access mask controls actions to be finished on the old
     // layout before it will be transitioned to the new layout.
-    switch (oldImageLayout)
+    switch (oldLayout)
     {
     case VK_IMAGE_LAYOUT_UNDEFINED:
         // Image layout is undefined (or does not matter).
@@ -1125,7 +1096,7 @@ setImageLayout(
     // Target layouts (new)
     // The destination access mask controls the dependency for the new image
     // layout.
-    switch (newImageLayout)
+    switch (newLayout)
     {
     case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
         // Image will be used as a transfer destination.
@@ -1203,8 +1174,6 @@ void
 ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device,
 						  const VkAllocationCallbacks* pAllocator)
 {
-    vkDestroyImageView(device, texture->view, pAllocator);
     vkDestroyImage(device, texture->image, pAllocator);
-    vkDestroySampler(device, texture->sampler, pAllocator);
     vkFreeMemory(device, texture->deviceMemory, pAllocator);
 }
