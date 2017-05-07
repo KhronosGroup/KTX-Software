@@ -104,6 +104,7 @@ DECLARE_GL_FUNCPTRS
 
 /**
  * @defgroup ktx_glloader OpenGL Texture Image Loader
+ * @brief Create texture objects in current OpenGL context.
  * @{
  */
 

@@ -63,6 +63,7 @@ setImageLayout(
 
 /**
  * @defgroup ktx_vkloader Vulkan Texture Image Loader
+ * @brief Create texture images on a Vulkan device.
  * @{
  */
 

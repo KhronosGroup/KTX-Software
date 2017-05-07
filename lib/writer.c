@@ -59,7 +59,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 /**
  * @defgroup writer KTX Writer
- * @brief Read KTX files independently of OpenGL and Vulkan.
+ * @brief Write KTX data.
  * @{
  */
 

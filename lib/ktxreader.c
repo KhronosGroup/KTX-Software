@@ -58,7 +58,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktxfilestream.h"
 
 /**
- * @defgroup ktx_reader Reader Core
+ * @defgroup ktx_reader KTX Reader
  * @brief Read KTX files independently of OpenGL and Vulkan.
  * @{
  */
