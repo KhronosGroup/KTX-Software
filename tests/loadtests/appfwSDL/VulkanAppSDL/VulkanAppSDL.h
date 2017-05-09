@@ -114,7 +114,8 @@ class VulkanAppSDL : public AppBaseSDL {
     bool getSupportedDepthFormat(vk::PhysicalDevice gpu,
                                  stencilRequirement requiredStencil,
                                  depthRequirement requiredDepth,
-                                 vk::Format* format);
+                                 vk::Format& pFormat,
+								 vk::ImageAspectFlags& pAspectMask);
 
     // Sets title to be used on window title bar.
     void setAppTitle(const char* const szExtra);
@@ -124,7 +125,7 @@ class VulkanAppSDL : public AppBaseSDL {
     void setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
                         VkImageLayout old_image_layout,
                         VkImageLayout new_image_layout,
-                        VkAccessFlagBits srcAccessMask);
+                        VkAccessFlags srcAccessMask);
 
     VKAPI_ATTR VkBool32 VKAPI_CALL
     debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,

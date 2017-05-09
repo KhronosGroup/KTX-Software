@@ -826,8 +826,10 @@ bool
 VulkanAppSDL::prepareDepthBuffer()
 {
     vk::Format depthFormat;
+    vk::ImageAspectFlags aspectMask;
   
-    if (!getSupportedDepthFormat(vkctx.gpu, eNoStencil, e24bits, &depthFormat))
+    if (!getSupportedDepthFormat(vkctx.gpu, eNoStencil, e24bits,
+    							 depthFormat, aspectMask))
       return false;
     vkctx.depthBuffer.format = static_cast<VkFormat>(depthFormat);
 
@@ -852,7 +854,8 @@ VulkanAppSDL::prepareDepthBuffer()
     view.pNext = NULL;
     view.image = VK_NULL_HANDLE;
     view.format = static_cast<VkFormat>(depthFormat);
-    view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    view.subresourceRange.aspectMask
+								= static_cast<VkImageAspectFlags>(aspectMask);
     view.subresourceRange.baseMipLevel = 0;
     view.subresourceRange.levelCount = 1;
     view.subresourceRange.baseArrayLayer = 0;
@@ -892,10 +895,11 @@ VulkanAppSDL::prepareDepthBuffer()
                           vkctx.depthBuffer.mem, 0);
     assert(!err);
 
-    setImageLayout(vkctx.depthBuffer.image, VK_IMAGE_ASPECT_DEPTH_BIT,
+    setImageLayout(vkctx.depthBuffer.image,
+    		       static_cast<VkImageAspectFlags>(aspectMask),
                    VK_IMAGE_LAYOUT_UNDEFINED,
                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                   (VkAccessFlagBits)0);
+                   (VkAccessFlags)0);
 
     /* create image view */
     view.image = vkctx.depthBuffer.image;
@@ -1257,7 +1261,8 @@ bool
 VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
                                       stencilRequirement requiredStencil,
                                       depthRequirement requiredDepth,
-                                      vk::Format* depthFormat)
+                                      vk::Format& depthFormat,
+									  vk::ImageAspectFlags& aspectMask)
 {
     struct depthFormatDescriptor {
         stencilRequirement stencil;
@@ -1280,7 +1285,11 @@ VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
             gpu.getFormatProperties(format.vkformat, &formatProps);
             // Format must support depth stencil attachment for optimal tiling
             if (formatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
-                *depthFormat = format.vkformat;
+                depthFormat = format.vkformat;
+                if (format.stencil == eStencil)
+                	aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+                else
+                	aspectMask = vk::ImageAspectFlagBits::eDepth;
                 return true;
             }
         }
@@ -1295,7 +1304,7 @@ void
 VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         VkImageLayout old_image_layout,
         VkImageLayout new_image_layout,
-        VkAccessFlagBits srcAccessMask)
+        VkImageAspectFlags srcAccessMask)
 {
     VkResult U_ASSERT_ONLY err;
 
@@ -1367,13 +1376,11 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
             VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
     }
 
-    VkImageMemoryBarrier *pMemoryBarrier = &imageMemoryBarrier;
-
     VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
     vkCmdPipelineBarrier(setupCmdBuffer, src_stages, dest_stages, 0, 0,
-                         NULL, 0, NULL, 1, pMemoryBarrier);
+                         NULL, 0, NULL, 1, &imageMemoryBarrier);
 } // setImageLayout
 
 
