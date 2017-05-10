@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 13.00
 # Visual Studio 2013
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{CF8C97B9-D943-9443-4DA7-9280213F3D5C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E970AE2C-A8CC-1525-F083-C2C5C18E8997} = {E970AE2C-A8CC-1525-F083-C2C5C18E8997}
@@ -26,6 +28,14 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Release|x64.ActiveCfg = Release|x64
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Release|x64.Build.0 = Release|x64
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Debug|Win32.Build.0 = Debug|Win32
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Debug|x64.ActiveCfg = Debug|x64
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Debug|x64.Build.0 = Debug|x64
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Release|Win32.ActiveCfg = Release|Win32
+		{925FD902-2AD1-C9C6-E3F4-33B8C32C3ECF}.Release|Win32.Build.0 = Release|Win32
 		{BF901279-F70B-1301-01AB-F0921373E4EE}.Release|x64.ActiveCfg = Release|x64
 		{BF901279-F70B-1301-01AB-F0921373E4EE}.Release|x64.Build.0 = Release|x64
 		{BF901279-F70B-1301-01AB-F0921373E4EE}.Debug|Win32.ActiveCfg = Debug|Win32

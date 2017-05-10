@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{6540A4B4-1298-548B-29F4-6F5E5A25EC57}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{E3B55AE9-29D1-5C41-CC60-1C2B93E20039}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7EB67B96-1CDD-18F1-57EA-723625150DEC} = {7EB67B96-1CDD-18F1-57EA-723625150DEC}
@@ -24,6 +26,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6540A4B4-1298-548B-29F4-6F5E5A25EC57}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6540A4B4-1298-548B-29F4-6F5E5A25EC57}.Debug|Win32.Build.0 = Debug|Win32
+		{6540A4B4-1298-548B-29F4-6F5E5A25EC57}.Release|Win32.ActiveCfg = Release|Win32
+		{6540A4B4-1298-548B-29F4-6F5E5A25EC57}.Release|Win32.Build.0 = Release|Win32
 		{67F80747-1AB4-9E17-93AA-13572A685D3A}.Debug|Win32.ActiveCfg = Debug|Win32
 		{67F80747-1AB4-9E17-93AA-13572A685D3A}.Debug|Win32.Build.0 = Debug|Win32
 		{67F80747-1AB4-9E17-93AA-13572A685D3A}.Release|Win32.ActiveCfg = Release|Win32

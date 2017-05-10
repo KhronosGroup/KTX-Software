@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{83E9B8EA-AB22-C6AE-EFC8-0CD8A8B34277}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4C1F94F3-BC04-96B4-0EF4-674E46D6C589} = {4C1F94F3-BC04-96B4-0EF4-674E46D6C589}
@@ -34,6 +36,14 @@ Global
 		{1042A56C-3534-BD56-536E-F09EEB2BAC15}.Debug|x64.Build.0 = Debug|x64
 		{1042A56C-3534-BD56-536E-F09EEB2BAC15}.Release|Win32.ActiveCfg = Release|Win32
 		{1042A56C-3534-BD56-536E-F09EEB2BAC15}.Release|Win32.Build.0 = Release|Win32
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Release|x64.ActiveCfg = Release|x64
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Release|x64.Build.0 = Release|x64
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Debug|Win32.Build.0 = Debug|Win32
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Debug|x64.ActiveCfg = Debug|x64
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Debug|x64.Build.0 = Debug|x64
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Release|Win32.ActiveCfg = Release|Win32
+		{3596CD21-A73F-3A3F-D41F-1C62DF9EF433}.Release|Win32.Build.0 = Release|Win32
 		{4C1F94F3-BC04-96B4-0EF4-674E46D6C589}.Release|x64.ActiveCfg = Release|x64
 		{4C1F94F3-BC04-96B4-0EF4-674E46D6C589}.Release|x64.Build.0 = Release|x64
 		{4C1F94F3-BC04-96B4-0EF4-674E46D6C589}.Debug|Win32.ActiveCfg = Debug|Win32

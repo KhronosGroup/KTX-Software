@@ -193,18 +193,6 @@
     <Filter Include="tests\testimages">
       <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtests.gyp"/>
@@ -218,12 +206,6 @@
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\conftestimage_SIGNED_RG11_EAC.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\cubemap_space.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\cubemap_vulkan.ktx">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\cubemap_yokohama_astc_8x8_unorm.ktx">

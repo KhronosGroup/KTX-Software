@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcproj", "{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcproj", "{3A0FCC32-DE3E-C3E3-6F2A-395B515F5599}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C705BCF3-016D-A09A-5BF5-F891738E6FFD} = {C705BCF3-016D-A09A-5BF5-F891738E6FFD}
@@ -58,6 +60,14 @@ Global
 		{C705BCF3-016D-A09A-5BF5-F891738E6FFD}.Debug|x64.Build.0 = Debug|x64
 		{C705BCF3-016D-A09A-5BF5-F891738E6FFD}.Release|Win32.ActiveCfg = Release|Win32
 		{C705BCF3-016D-A09A-5BF5-F891738E6FFD}.Release|Win32.Build.0 = Release|Win32
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Release|x64.ActiveCfg = Release|x64
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Release|x64.Build.0 = Release|x64
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Debug|Win32.Build.0 = Debug|Win32
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Debug|x64.ActiveCfg = Debug|x64
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Debug|x64.Build.0 = Debug|x64
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Release|Win32.ActiveCfg = Release|Win32
+		{FCE8853A-6506-9A1A-2B1E-EDAFA715ECEC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
