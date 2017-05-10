@@ -39,20 +39,16 @@ then
         break
       fi
     done
-    if [ -z $doxygen ]
+    if [ -z "$doxygen" ]
     then
       echo "Doxygen not found in Applications, /opt/local/bin or /usr/local/bin"
     fi
   fi
-  if [ -z $doxygen ]
+  if [ -z "$doxygen" ]
   then
     echo "Doxygen not found anywhere on $PATH"
   fi
 fi
-
-# XXX Perhaps do this instead of setup_env.bat on Windows...
-# cd to the script's location.
-cd $(dirname $0)
 
 # XXX Use shell builtin getopts instead....
 args=$(getopt o:t: $*)
@@ -89,7 +85,7 @@ then
   fi
 fi
 
-$doxygen $1
+"$doxygen" $1
 if [ $? != 0 ]
 then
   exit 2
