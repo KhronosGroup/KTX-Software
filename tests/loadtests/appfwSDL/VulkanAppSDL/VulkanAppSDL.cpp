@@ -854,8 +854,9 @@ VulkanAppSDL::prepareDepthBuffer()
     view.pNext = NULL;
     view.image = VK_NULL_HANDLE;
     view.format = static_cast<VkFormat>(depthFormat);
-    view.subresourceRange.aspectMask
-								= static_cast<VkImageAspectFlags>(aspectMask);
+    // Set just DEPTH_BIT as we're not using stencil. This is okay even if a
+    // packed depth-stencil format was selected by getSupportedDepthFormat.
+    view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
     view.subresourceRange.baseMipLevel = 0;
     view.subresourceRange.levelCount = 1;
     view.subresourceRange.baseArrayLayer = 0;
