@@ -68,6 +68,11 @@ setImageLayout(
  */
 
 /**
+ * @example vkloader.cpp
+ * This shows how to create and load a Vulkan image using the Vulkan texture
+ * image loading functions. */
+
+/**
  * @~English
  * @brief Create a ktxVulkanDeviceInfo object.
  * 

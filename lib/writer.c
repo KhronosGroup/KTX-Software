@@ -366,7 +366,7 @@ cleanup:
 
 /**
  * @~English
- * @brief Write image(s) in a KTX-formatted stdio FILE stream.
+ * @brief Write image(s) in KTX format to a stdio FILE stream.
  *
  * @param [in] file         pointer to the FILE stream to write to.
  * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
@@ -423,7 +423,7 @@ ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
 
 /**
  * @~English
- * @brief Write image(s) to a KTX file on disk.
+ * @brief Write image(s) in KTX format to a file on disk.
  *
  * @param [in] dstname		pointer to a C string that contains the path of
  * 							the file to load.

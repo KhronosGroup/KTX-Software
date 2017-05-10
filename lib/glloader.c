@@ -109,6 +109,32 @@ DECLARE_GL_FUNCPTRS
  */
 
 /**
+ * @example reader_gl.c
+ * This is an example of using the low-level KTX_reader API to create and load
+ * an OpenGL texture. It is a fragment of the code used by
+ * @ref ktxReader_loadGLTexture which underpins the @c ktxLoadTexture functions.
+ *
+ * @code
+ * #include <ktx.h>
+ * @endcode
+ *
+ * This structure is used to pass to a callback function data that is uniform
+ * across all images.
+ * @snippet this cbdata
+ *
+ * One of these callbacks, selected by @ref ktxReader_loadGLTexture based on the
+ * dimensionality and arrayness of the texture, is called from
+ * @ref ktxReader_readImages to upload the texture data to OpenGL.
+ * @snippet this Image callbacks
+ *
+ * This is internal code so it converts the opaque @c KTX_reader handle to a
+ * pointer to a @c ktxReader so it can test its validity. Apps can simply pass
+ * @c reader instead of the converted @c This to any @c ktxReader function
+ * they call.
+ * @snippet this loadGLTexture
+ */
+
+/**
  * @internal
  * @~English
  * @brief Additional contextProfile bit indicating an OpenGL ES context.
@@ -422,6 +448,7 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalforma
 }
 #endif /* SUPPORT_LEGACY_FORMAT_CONVERSION */
 
+/** [cbdata] */
 typedef struct ktx_cbdata {
     GLenum glTarget;
     GLenum glFormat;
@@ -429,7 +456,9 @@ typedef struct ktx_cbdata {
     GLenum glType;
     GLenum glError;
 } ktx_cbdata;
+/** [cbdata] */
 
+/** [Image callbacks] */
 KTX_error_code KTXAPIENTRY
 texImage1DCallback(int miplevel, int face,
                    int width, int height,
@@ -604,6 +633,7 @@ compressedTexImage3DCallback(int miplevel, int face,
         return KTX_GL_ERROR;
     }
 }
+/** [Image callbacks] */
 
 /**
  * @~English
@@ -668,6 +698,7 @@ compressedTexImage3DCallback(int miplevel, int face,
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
  */
+/** [loadGLTexture] */
 KTX_error_code
 ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
@@ -888,6 +919,7 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
 	}
 	return errorCode;
 }
+/** [loadGLTexture] */
 
 /**
  * @~English

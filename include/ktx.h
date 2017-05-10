@@ -114,32 +114,34 @@ These files are part of the SDL2 source distributed by the [SDL project]
 (http://www.zlib.net/zlib_license.html).
 */
 
-/*
+/**
  * @~English
  * @mainpage The KTX Library
  *
- * @section intro_sec Introduction
- *
- * libktx is a small library of functions for creating KTX (Khronos
+ * libktx is a small library of functions for creating and reading KTX (Khronos
  * TeXture) files and instantiating OpenGL&reg; and OpenGL&reg; ES
- * textures from them.
+ * textures and Vulkan images from them.
  *
  * For information about the KTX format see the
  * <a href="http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/">
  * formal specification.</a>
  *
- * The library is open source software. Most of the code is licensed under a
- * modified BSD license. The code for unpacking ETC1, ETC2 and EAC compressed
- * textures has a separate license that restricts it to uses associated with
- * Khronos Group APIs. See @ref license for more details.
+ * The library is open source software. Source code is available at
+ * <a href="https://github.com/KhronosGroup/KTX">GitHub</a>. The binary form,
+ * @em libktx.{a,dll,so}, and this documentation are
+ * &copy; 2017, The Khronos Group; they can be distributed freely
+ * provided this page <!-- this comment block --> is included prominently in
+ * the accompanying documentation.
  *
  * See @ref history for the list of changes.
  *
- * @author Mark Callow, <a href="http://www.hicorp.co.jp">HI Corporation</a>
- * @author Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>
- * @author Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
+ * @authors
+ * Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a>,
+ *              formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n
+ * Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>\n
+ * Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
  *
- * @version 2.0.X
+ * @version 3.0.0
  *
  * $Date$
  */
