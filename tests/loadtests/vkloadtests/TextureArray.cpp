@@ -532,7 +532,7 @@ TextureArray::prepareSamplerAndView()
     samplerInfo.magFilter = vk::Filter::eLinear;
     samplerInfo.minFilter = vk::Filter::eLinear;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-    samplerInfo.maxLod = textureArray.levelCount;
+    samplerInfo.maxLod = (float)textureArray.levelCount;
     samplerInfo.anisotropyEnable = true;
     samplerInfo.maxAnisotropy = 8;
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;

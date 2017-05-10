@@ -597,7 +597,7 @@ TextureCubemap::prepareSamplerAndView()
     samplerInfo.magFilter = vk::Filter::eLinear;
     samplerInfo.minFilter = vk::Filter::eLinear;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-    samplerInfo.maxLod = cubeMap.levelCount;
+    samplerInfo.maxLod = (float)cubeMap.levelCount;
     samplerInfo.anisotropyEnable = true;
     samplerInfo.maxAnisotropy = 8;
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
