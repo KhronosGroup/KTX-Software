@@ -326,6 +326,8 @@ public:
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 1.0f;
 		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		samplerInfo.anisotropyEnable = VK_FALSE;
+		samplerInfo.maxAnisotropy = 1.0;
 		VK_CHECK_RESULT(vkCreateSampler(device, &samplerInfo, nullptr, &sampler));
 
 		// Descriptor
@@ -400,6 +402,8 @@ public:
 				VK_CULL_MODE_BACK_BIT,
 				VK_FRONT_FACE_CLOCKWISE,
 				0);
+		// Because we haven't enabled the depthClamp device feature.
+		rasterizationState.depthClampEnable = VK_FALSE;
 
 		// Enable blending
 		VkPipelineColorBlendAttachmentState blendAttachmentState =

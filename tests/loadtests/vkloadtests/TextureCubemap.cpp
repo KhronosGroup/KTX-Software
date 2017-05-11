@@ -438,7 +438,8 @@ TextureCubemap::preparePipelines()
 			vk::PrimitiveTopology::eTriangleList);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
-    rasterizationState.depthClampEnable = VK_TRUE;
+    // Must be false because we haven't enabled the depthClamp device feature.
+    rasterizationState.depthClampEnable = false;
     rasterizationState.rasterizerDiscardEnable = VK_FALSE;
     rasterizationState.polygonMode = vk::PolygonMode::eFill;
     rasterizationState.cullMode = vk::CullModeFlagBits::eBack;
@@ -598,8 +599,13 @@ TextureCubemap::prepareSamplerAndView()
     samplerInfo.minFilter = vk::Filter::eLinear;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
     samplerInfo.maxLod = (float)cubeMap.levelCount;
-    samplerInfo.anisotropyEnable = true;
-    samplerInfo.maxAnisotropy = 8;
+    if (vkctx.gpuFeatures.samplerAnisotropy == true) {
+		samplerInfo.anisotropyEnable = true;
+		samplerInfo.maxAnisotropy = 8;
+    } else {
+    	// vulkan.hpp needs fixing
+    	samplerInfo.maxAnisotropy = 1.0;
+    }
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
     sampler = vkctx.device.createSampler(samplerInfo);
     

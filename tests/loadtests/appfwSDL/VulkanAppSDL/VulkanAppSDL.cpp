@@ -691,6 +691,16 @@ VulkanAppSDL::createDevice()
 		queue_priorities
 	);
 
+    vk::PhysicalDeviceFeatures deviceFeatures;
+    // Enable specific required and available features here.
+    if (vkctx.gpuFeatures.samplerAnisotropy)
+    	deviceFeatures.samplerAnisotropy = true;
+    if (vkctx.gpuFeatures.textureCompressionASTC_LDR)
+    	deviceFeatures.textureCompressionASTC_LDR = true;
+    if (vkctx.gpuFeatures.textureCompressionBC)
+    	deviceFeatures.textureCompressionBC = true;
+    if (vkctx.gpuFeatures.textureCompressionETC2)
+    	deviceFeatures.textureCompressionETC2 = true;
 	vk::DeviceCreateInfo deviceInfo(
 			{},
 			1,
@@ -700,9 +710,8 @@ VulkanAppSDL::createDevice()
 								  ? deviceValidationLayers.data()
 								  : NULL),
 			enabledDeviceExtensionCount,
-			(const char *const *)deviceExtensionNames);
-			// If specific features are required, pass them as a final
-			// argument to deviceInfo.
+			(const char *const *)deviceExtensionNames,
+			&deviceFeatures);
 
 	err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
 	if (err != vk::Result::eSuccess) {
