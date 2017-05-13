@@ -152,7 +152,6 @@
               ],
               'outputs': [
                 '<(output_dir)/html',
-                '<(output_dir)/latex',
                 '<(output_dir)/man',
               ],
               # doxygen must be run in the top-level project directory

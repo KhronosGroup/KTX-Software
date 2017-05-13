@@ -241,7 +241,6 @@
 		E3D44A3E3431DE089D06DE94 /* ktxfilestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxfilestream.h; sourceTree = "<group>"; };
 		E4C296305A71370E67B0FDD7 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles3_funcptrs.h; sourceTree = "<group>"; };
-		EA98FC3233AB26B046EFF765 /* latex */ = {isa = PBXFileReference; lastKnownFileType = text; path = latex; sourceTree = "<group>"; };
 		EC2D1C7E43ED8126A628962B /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		EC2F140ED1C840A390FE4436 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
 		F552AA19D91ECB8C25731D64 /* libktx.gl.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libktx.gl.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -305,7 +304,7 @@
 		2FF676AD14C42AC258CD356A /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				735A2F88E4A139CF98680EDC /* build/doc/libktx */,
+				BB48FA2B27E7DDEE883A0A66 /* build/doc/libktx */,
 				57D232CAE30EDA78BEBF64CF /* include */,
 				E56D757058A51D902544D21A /* lib */,
 				1BD886EACF703C7F42DB60DF /* LICENSE.md */,
@@ -346,11 +345,10 @@
 			path = include;
 			sourceTree = "<group>";
 		};
-		735A2F88E4A139CF98680EDC /* build/doc/libktx */ = {
+		BB48FA2B27E7DDEE883A0A66 /* build/doc/libktx */ = {
 			isa = PBXGroup;
 			children = (
 				83748FF1123C3E0F72C1E30C /* html */,
-				EA98FC3233AB26B046EFF765 /* latex */,
 				0C37AD238E31D94DF92E92E5 /* man */,
 			);
 			path = build/doc/libktx;
@@ -509,7 +507,6 @@
 			name = "Action \"buildDoc\"";
 			outputPaths = (
 				build/doc/libktx/html,
-				build/doc/libktx/latex,
 				build/doc/libktx/man,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
