@@ -78,8 +78,7 @@ Texture::Texture(const std::string ktxfile)
     }
 
     try {
-        createSampler();
-        createImageView();
+        prepareSamplerAndView(); // See below  for implementation.
         // Setup a layout with, e.g., a binding for a combined image-sampler.
         setupDescriptorSetLayout();
         // Create a descriptor set and update it with the sampler and image view handles.
@@ -122,11 +121,11 @@ Texture::prepareSamplerAndView()
     samplerInfo.minFilter = vk::Filter::eLinear;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
     samplerInfo.maxLod = texture.levelCount;
-    samplerInfo.anisotropyEnable = true;
-    samplerInfo.maxAnisotropy = 8;
+    samplerInfo.anisotropyEnable = false;
+    samplerInfo.maxAnisotropy = 1.0;
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
     sampler = vkctx.device.createSampler(samplerInfo);
-    
+
     // Create image view.
     // Textures are not directly accessed by the shaders and are abstracted
     // by image views containing additional information and sub resource
