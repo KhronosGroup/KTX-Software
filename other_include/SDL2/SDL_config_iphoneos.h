@@ -139,6 +139,9 @@
 #define SDL_VIDEO_RENDER_OGL_ES 1
 #define SDL_VIDEO_RENDER_OGL_ES2    1
 
+/* enable Vulkan surface support */
+#define SDL_VIDEO_VULKAN_SURFACE 1
+
 /* Enable system power support */
 #define SDL_POWER_UIKIT 1
 

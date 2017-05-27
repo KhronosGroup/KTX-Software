@@ -174,6 +174,9 @@
 #define SDL_VIDEO_OPENGL_GLX    1
 #endif
 
+/* enable Vulkan surface support */
+#define SDL_VIDEO_VULKAN_SURFACE 1
+
 /* Enable system power support */
 #define SDL_POWER_MACOSX 1
 

@@ -177,7 +177,6 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c")
 list(APPEND libktx_doc__buildDoc__output
   "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/html"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/latex"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/man")
 add_custom_command(OUTPUT ${libktx_doc__buildDoc__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory build/doc/libktx

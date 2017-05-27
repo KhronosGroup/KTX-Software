@@ -98,6 +98,7 @@
                 ],
               }], # actions
             }, 'sdl_to_use == "installed_dylib"', {
+              'include_dirs!': [ '../other_include' ],
               'link_settings': {
                 'libraries=': [
                   '-lSDL2-2.0',

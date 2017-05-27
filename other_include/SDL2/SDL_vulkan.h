@@ -25,13 +25,17 @@
  *  Header file for functions to creating Vulkan surfaces on SDL windows.
  */
 
-#ifndef _SDL_vulkan_h
-#define _SDL_vulkan_h
+#ifndef SDL_vulkan_h_
+#define SDL_vulkan_h_
 
 #include "SDL_video.h"
-#if defined(USE_VULKAN_HEADER_IN_SDL_VULKAN_H)
-#include <vulkan/vulkan.h>
-#else
+
+#include "begin_code.h"
+/* Set up for C function definitions, even when using C++ */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Avoid including vulkan.h */
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 
@@ -43,57 +47,166 @@
 
 VK_DEFINE_HANDLE(VkInstance)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef VkInstance SDL_vulkanInstance;
+typedef VkSurfaceKHR SDL_vulkanSurface; /* for compatibility with Tizen */
+
+/**
+ *  \name Vulkan support functions
+ *
+ *  \note SDL_Vulkan_GetInstanceExtensions & SDL_Vulkan_CreateSurface API
+ *        is compatable with Tizen's implementation of Vulkan in SDL.
+ */
+/* @{ */
+
+/**
+ *  \brief Dynamically load a Vulkan loader library.
+ *
+ *  \param [in] path The platform dependent Vulkan loader library name, or
+ *              \c NULL to open the default Vulkan loader library.
+ *
+ *  \return \c 0 on success, or \c -1 if the library couldn't be loaded.
+ *
+ *  This should be done after initializing the video driver, but before
+ *  creating any Vulkan windows. If no Vulkan loader library is loaded, the
+ *  default library will be loaded upon creation of the first Vulkan window.
+ *
+ *  \note If you specify a non-NULL \a path, you should retrieve all of the
+ *        Vulkan functions used in your program from the dynamic library using
+ *        \c SDL_Vulkan_GetVkGetInstanceProcAddr() unless you can guarantee
+ *        \a path points to the same library which will be loaded by the
+ *        Vulkan ICD.
+ *
+ *  \sa SDL_Vulkan_GetVkGetInstanceProcAddr()
+ *  \sa SDL_Vulkan_UnloadLibrary()
+ */
+extern DECLSPEC int SDLCALL SDL_Vulkan_LoadLibrary(const char *path);
+
+/**
+ *  \brief Get the address of the \c vkGetInstanceProcAddr function.
+ */
+extern DECLSPEC void *SDLCALL SDL_Vulkan_GetVkGetInstanceProcAddr(void);
+
+/**
+ *  \brief Unload the Vulkan loader library previously loaded by
+ *         \c SDL_Vulkan_LoadLibrary().
+ *
+ *  \sa SDL_Vulkan_LoadLibrary()
+ */
+extern DECLSPEC void SDLCALL SDL_Vulkan_UnloadLibrary(void);
 
 /**
  *  \brief Get the names of the Vulkan instance extensions needed to create
- *         a surface on the current video driver.
+ *         a surface with \c SDL_Vulkan_CreateSurface().
  *
- *  \param [in]  length   the length of the array pointed to by \a names
- *  \param [out] names    an array of char* into which the names of the
- *                        extensions are written. The length of the array needed
- *                        can be queried by passing NULL.
+ *  \param [in]     window Window for which the required Vulkan instance
+ *                  extensions should be retrieved
+ *  \param [in,out] count pointer to an \c unsigned related to the number of
+ *                  required Vulkan instance extensions
+ *  \param [out]    names \c NULL or a pointer to an array to be filled with the
+ *                  required Vulkan instance extensions
  *
- *  \return the number of extensions, or 0 on error.
+ *  \return \c SDL_TRUE on success, \c SDL_FALSE on error.
  *
- *  \note The extension names queried here must be passed along when calling
+ *  If \a pNames is \c NULL, then the number of required Vulkan instance
+ *  extensions is returned in pCount. Otherwise, \a pCount must point to a
+ *  variable set to the number of elements in the \a pNames array, and on
+ *  return the variable is overwritten with the number of names actually
+ *  written to \a pNames. If \a pCount is less than the number of required
+ *  extensions, at most \a pCount structures will be written. If \a pCount
+ *  is smaller than the number of required extensions, \c SDL_FALSE will be
+ *  returned instead of \c SDL_TRUE, to indicate that not all the required
+ *  extensions were returned.
+ *
+ *  \note The returned list of extensions will contain \c VK_KHR_surface
+ *        and zero or more platform specific extensions
+ *
+ *  \note The extension names queried here must be enabled when calling
  *        VkCreateInstance, otherwise surface creation will fail.
  *
+ *  \note \c window should have been created with the \c SDL_WINDOW_VULKAN flag.
+ *
+ *  \code
+ *  unsigned count;
+ *  // get count of required extensions
+ *  if(!SDL_Vulkan_GetInstanceExtensions(window, &count, NULL))
+ *      handle_error();
+ *
+ *  static const char *const additionalExtensions[] =
+ *  {
+ *      VK_EXT_DEBUG_REPORT_EXTENSION_NAME, // example additional extension
+ *  };
+ *  size_t additionalExtensionsCount = sizeof(additionalExtensions) / sizeof(additionalExtensions[0]);
+ *  size_t extensionCount = count + additionalExtensionsCount;
+ *  const char **names = malloc(sizeof(const char *) * extensionCount);
+ *  if(!names)
+ *      handle_error();
+ *
+ *  // get names of required extensions
+ *  if(!SDL_Vulkan_GetInstanceExtensions(window, &count, names))
+ *      handle_error();
+ *
+ *  // copy additional extensions after required extensions
+ *  for(size_t i = 0; i < additionalExtensionsCount; i++)
+ *      names[i + count] = additionalExtensions[i];
+ *
+ *  VkInstanceCreateInfo instanceCreateInfo = {};
+ *  instanceCreateInfo.enabledExtensionCount = extensionCount;
+ *  instanceCreateInfo.ppEnabledExtensionNames = names;
+ *  // fill in rest of instanceCreateInfo
+ *
+ *  VkInstance instance;
+ *  // create the Vulkan instance
+ *  VkResult result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
+ *  free(names);
+ *  \endcode
  *
  *  \sa SDL_Vulkan_CreateSurface()
  */
-extern DECLSPEC int SDLCALL SDL_Vulkan_GetInstanceExtensions(unsigned int length,
-                                                             const char** names);
+extern DECLSPEC SDL_bool SDLCALL SDL_Vulkan_GetInstanceExtensions(
+														SDL_Window *window,
+														unsigned *pCount,
+														const char **pNames);
 
 /**
- *  \brief Create a Vulkan rendering surface attached to the passed window.
+ *  \brief Create a Vulkan rendering surface for a window.
  *
  *  \param [in]  window   SDL_Window to which to attach the rendering surface.
  *  \param [in]  instance handle to the Vulkan instance to use.
- *  \param [out] surface  a pointer to a VkSurfaceKHR handle to receive the
+ *  \param [out] surface  pointer to a VkSurfaceKHR handle to receive the
  *                        handle of the newly created surface.
  *
- *  \return 0 on success, or -1 on error.
+ *  \return \c SDL_TRUE on success, \c SDL_FALSE on error.
  *
- *  \note Before calling this, the application must call
- *        SDL_Vulkan_GetInstanceExtensions() and pass the needed extensions
- *        along when creating the Vulkan instance \a instance.
+ *  \code
+ *  VkInstance instance;
+ *  SDL_Window *window;
+ *
+ *  // create instance and window
+ *
+ *  // create the Vulkan surface
+ *  VkSurfaceKHR surface;
+ *  if(!SDL_Vulkan_CreateSurface(window, instance, &surface))
+ *      handle_error();
+ *  \endcode
+ *
+ *  \note \a window should have been created with the \c SDL_WINDOW_VULKAN flag.
+ *
+ *  \note \a instance should have been created with the extensions returned
+ *        by \c SDL_Vulkan_CreateSurface() enabled.
  *
  *  \sa SDL_Vulkan_GetInstanceExtensions()
  */
-extern DECLSPEC int SDLCALL SDL_Vulkan_CreateSurface(SDL_Window* window,
-                                                     VkInstance instance,
-                                                     VkSurfaceKHR* surface);
-    
+extern DECLSPEC SDL_bool SDLCALL SDL_Vulkan_CreateSurface(
+												SDL_Window *window,
+												VkInstance instance,
+												VkSurfaceKHR* surface);
+
 /**
  *  \brief Get the size of a window's underlying drawable in pixels (for use
  *         with setting viewport, scissor & etc).
  *
- *  \param window   Window from which the drawable size should be queried
+ *  \param window   SDL_Window from which the drawable size should be queried
  *  \param w        Pointer to variable for storing the width in pixels,
  *                  may be NULL
  *  \param h        Pointer to variable for storing the height in pixels,
@@ -102,7 +215,7 @@ extern DECLSPEC int SDLCALL SDL_Vulkan_CreateSurface(SDL_Window* window,
  * This may differ from SDL_GetWindowSize() if we're rendering to a high-DPI
  * drawable, i.e. the window was created with SDL_WINDOW_ALLOW_HIGHDPI on a
  * platform with high-DPI support (Apple calls this "Retina"), and not disabled
- * by the SDL_HINT_VIDEO_HIGHDPI_DISABLED hint.
+ * by the \c SDL_HINT_VIDEO_HIGHDPI_DISABLED hint.
  *
  *  \sa SDL_GetWindowSize()
  *  \sa SDL_CreateWindow()
@@ -110,9 +223,12 @@ extern DECLSPEC int SDLCALL SDL_Vulkan_CreateSurface(SDL_Window* window,
 extern DECLSPEC void SDLCALL SDL_Vulkan_GetDrawableSize(SDL_Window * window,
                                                         int *w, int *h);
 
+/* @} *//* Vulkan support functions */
 
+/* Ends C function definitions when using C++ */
 #ifdef __cplusplus
 }
 #endif
+#include "close_code.h"
 
-#endif /* _SDL_vulkan_h */
+#endif /* SDL_vulkan_h_ */

@@ -116,7 +116,8 @@ typedef enum
     SDL_WINDOW_SKIP_TASKBAR  = 0x00010000,      /**< window should not be added to the taskbar */
     SDL_WINDOW_UTILITY       = 0x00020000,      /**< window should be treated as a utility window */
     SDL_WINDOW_TOOLTIP       = 0x00040000,      /**< window should be treated as a tooltip */
-    SDL_WINDOW_POPUP_MENU    = 0x00080000       /**< window should be treated as a popup menu */
+    SDL_WINDOW_POPUP_MENU    = 0x00080000,      /**< window should be treated as a popup menu */
+    SDL_WINDOW_VULKAN        = 0x00100000       /**< window usable for Vulkan surface */
 } SDL_WindowFlags;
 
 /**
@@ -223,7 +224,6 @@ typedef enum
     SDL_GL_CONTEXT_RELEASE_BEHAVIOR_NONE   = 0x0000,
     SDL_GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH  = 0x0001
 } SDL_GLcontextReleaseFlag;
-
 
 /* Function prototypes */
 
@@ -870,7 +870,7 @@ extern DECLSPEC float SDLCALL SDL_GetWindowBrightness(SDL_Window * window);
  *  \param window The window which will be made transparent or opaque
  *  \param opacity Opacity (0.0f - transparent, 1.0f - opaque) This will be
  *                 clamped internally between 0.0f and 1.0f.
- * 
+ *
  *  \return 0 on success, or -1 if setting the opacity isn't supported.
  *
  *  \sa SDL_GetWindowOpacity()
@@ -897,7 +897,7 @@ extern DECLSPEC int SDLCALL SDL_GetWindowOpacity(SDL_Window * window, float * ou
  *
  *  \param modal_window The window that should be modal
  *  \param parent_window The parent window
- * 
+ *
  *  \return 0 on success, or -1 otherwise.
  */
 extern DECLSPEC int SDLCALL SDL_SetWindowModalFor(SDL_Window * modal_window, SDL_Window * parent_window);
@@ -910,7 +910,7 @@ extern DECLSPEC int SDLCALL SDL_SetWindowModalFor(SDL_Window * modal_window, SDL
  *  obscured by other windows.
  *
  *  \param window The window that should get the input focus
- * 
+ *
  *  \return 0 on success, or -1 otherwise.
  *  \sa SDL_RaiseWindow()
  */
