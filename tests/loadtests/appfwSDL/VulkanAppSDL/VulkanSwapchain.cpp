@@ -98,7 +98,7 @@ VulkanSwapchain::initSurface(SDL_Window* window)
 {
     VkResult U_ASSERT_ONLY err;
 
-    if (SDL_Vulkan_CreateSurface(window, instance, &surface) < 0) {
+    if (!SDL_Vulkan_CreateSurface(window, instance, &surface)) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
         msg += SDL_GetError();
         ERROR_RETURN(msg.c_str());

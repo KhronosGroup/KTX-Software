@@ -125,7 +125,7 @@ VulkanAppSDL::initialize(int argc, char* argv[])
                         SDL_WINDOWPOS_UNDEFINED,
                         SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
-                        SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
+                        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
                     );
 
     if (pswMainWindow == NULL) {
@@ -495,14 +495,27 @@ VulkanAppSDL::createInstance()
 
 
     /* Build list of needed extensions */
-    uint32_t c = SDL_Vulkan_GetInstanceExtensions(0, nullptr);
-    extensionNames.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    uint32_t c;
+    if (!SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c, nullptr)) {
+        std::string title;
+        std::stringstream msg;
+        title = szName;
+        title += ": SDL_Vulkan_GetInstanceExtensions Failure";
+        msg << "Could not retrieve instance extensions: "
+        	<< SDL_GetError();
+
+    	(void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
+                                   	   msg.str().c_str(), NULL);
+        return false;
+    }
+
     if (validate)
         extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
     uint32_t i = (uint32_t)extensionNames.size();
     extensionNames.resize(i + c);
-    (void)SDL_Vulkan_GetInstanceExtensions(c, &extensionNames.data()[i]);
+    (void)SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c,
+    		                               &extensionNames.data()[i]);
 
     const vk::ApplicationInfo app(szName, 0, szName, 0, vkVersion);
 
