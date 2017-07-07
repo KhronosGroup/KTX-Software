@@ -43,6 +43,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include <assert.h>
 #include <stdlib.h>
+
+#include "GL/glcorearb.h"
 #include "ktx.h"
 #include "ktxint.h"
 

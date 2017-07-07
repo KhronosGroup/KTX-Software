@@ -318,6 +318,16 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,gtest.target.mk)))),)
+  include gtest.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,gtest_main.target.mk)))),)
+  include gtest_main.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,libgl.target.mk)))),)
   include libgl.target.mk
 endif
@@ -348,6 +358,16 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,readtests.target.mk)))),)
+  include readtests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,testimages.target.mk)))),)
+  include testimages.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,toktx-tests.target.mk)))),)
   include toktx-tests.target.mk
 endif
@@ -356,10 +376,15 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
                  $(join ^,toktx.target.mk)))),)
   include toktx.target.mk
 endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,unittests.target.mk)))),)
+  include unittests.target.mk
+endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
 cmd_regen_makefile = cd $(srcdir); /usr/local/bin/gyp -fmake --ignore-environment "--toplevel-dir=." "--depth=." "--generator-output=build/make/linux" "-DOS=linux" ktxtests.gyp ktxtools.gyp
-Makefile: $(srcdir)/ktxtools.gyp $(srcdir)/tools/tools.gypi $(srcdir)/gyp_include/libgles1.gypi $(srcdir)/gyp_include/config.gypi $(srcdir)/lib/libktx.gypi $(srcdir)/gyp_include/libgl.gypi $(srcdir)/ktxtests.gyp $(srcdir)/tests/loadtests/appfwSDL/appfwSDL.gypi $(srcdir)/gyp_include/default.gypi $(srcdir)/libktx.gyp $(srcdir)/gyp_include/libsdl.gypi $(srcdir)/tests/loadtests/loadtests.gypi $(srcdir)/tests/tests.gypi $(srcdir)/gyp_include/libgles3.gypi $(srcdir)/gyp_include/pvremu.gypi $(srcdir)/tools/toktx/toktx.gypi
+Makefile: $(srcdir)/tests/testimages/testimages.gypi $(srcdir)/ktxtools.gyp $(srcdir)/tools/tools.gypi $(srcdir)/tests/appfwSDL/appfwSDL.gypi $(srcdir)/gyp_include/config.gypi $(srcdir)/lib/libktx.gypi $(srcdir)/gyp_include/libgl.gypi $(srcdir)/tests/unittests/unittests.gypi $(srcdir)/ktxtests.gyp $(srcdir)/gyp_include/default.gypi $(srcdir)/libktx.gyp $(srcdir)/gyp_include/libsdl.gypi $(srcdir)/tests/gtest/gtest.gypi $(srcdir)/tests/readtests/readtests.gypi $(srcdir)/tests/tests.gypi $(srcdir)/gyp_include/libgles3.gypi $(srcdir)/tests/glloadtests/glloadtests.gypi $(srcdir)/gyp_include/pvremu.gypi $(srcdir)/tools/toktx/toktx.gypi $(srcdir)/gyp_include/libgles1.gypi
 	$(call do_cmd,regen_makefile)
 
 # "all" is a concatenation of the "all" targets from all the included

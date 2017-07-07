@@ -18,7 +18,6 @@ CFLAGS_C_Debug :=
 CFLAGS_CC_Debug :=
 
 INCS_Debug := \
-	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/other_include
 
 DEFS_Release := \
@@ -35,13 +34,12 @@ CFLAGS_C_Release :=
 CFLAGS_CC_Release :=
 
 INCS_Release := \
-	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/other_include
 
 OBJS := \
-	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/main.o \
-	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/AppBaseSDL.o \
-	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/GLAppSDL.o
+	$(obj).target/$(TARGET)/tests/appfwSDL/main.o \
+	$(obj).target/$(TARGET)/tests/appfwSDL/AppBaseSDL.o \
+	$(obj).target/$(TARGET)/tests/appfwSDL/GLAppSDL.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

@@ -73,8 +73,12 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/pvremu.gypi \
 		 lib/libktx.gypi \
 		 tests/tests.gypi \
-		 tests/loadtests/appfwSDL/appfwSDL.gypi \
-		 tests/loadtests/loadtests.gypi \
+		 tests/appfwSDL/appfwSDL.gypi \
+		 tests/glloadtests/glloadtests.gypi \
+		 tests/gtest/gtest.gypi \
+		 tests/readtests/readtests.gypi \
+		 tests/testimages/testimages.gypi \
+		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
 		 tools/toktx/toktx.gypi
 

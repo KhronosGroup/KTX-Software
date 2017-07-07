@@ -52,7 +52,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
@@ -69,13 +69,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
@@ -93,13 +93,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
@@ -116,13 +116,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -137,13 +137,13 @@
       <AdditionalDependencies></AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
@@ -159,7 +159,7 @@
       <AdditionalDependencies></AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
@@ -167,13 +167,13 @@
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\AppBaseSDL.h"/>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.h"/>
+    <ClInclude Include="..\..\..\..\tests\appfwSDL\AppBaseSDL.h"/>
+    <ClInclude Include="..\..\..\..\tests\appfwSDL\GLAppSDL.h"/>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\main.cpp"/>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\AppBaseSDL.cpp"/>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\appfwSDL\main.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\appfwSDL\AppBaseSDL.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\appfwSDL\GLAppSDL.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libsdl.vcxproj">

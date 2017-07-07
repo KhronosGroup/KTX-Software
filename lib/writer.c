@@ -49,6 +49,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include <stdlib.h>
 #include <assert.h>
 
+#include "GL/glcorearb.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxstream.h"
@@ -66,7 +67,7 @@ static KTX_error_code sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
  * @~English
  * @brief Write image(s) in a KTX-format to a ktxStream.
  *
- * @param [in] stream           pointer to the ktxStream from which to load.
+ * @param [in] stream       pointer to the ktxStream from which to load.
  * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
  *                          information about the images to be included in
  *                          the KTX file.
@@ -186,8 +187,8 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 
 	/* Check texture dimensions. KTX files can store 8 types of textures:
 	 * 1D, 2D, 3D, cube, and array variants of these. There is currently
-	 * no GL extension that would accept 3D array or cube array textures
-	 * but we'll let such files be created.
+	 * no GL extension that would accept 3D array array textures but we'll
+	 * let such files be created.
 	 */
 	if ((header.pixelWidth == 0) ||
 		(header.pixelDepth > 0 && header.pixelHeight == 0))
@@ -458,9 +459,9 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  * @~English
  * @brief Write image(s) in KTX format to memory.
  *
- * @param [out] bytes        pointer to the output with KTX data. Application
+ * @param [out] bytes       pointer to the output with KTX data. Application
 							is responsible for freeing that memory.
- * @param [out] size         pointer to store size of the memory written.
+ * @param [out] size        pointer to store size of the memory written.
  * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
  *                          information about the images to be included in
  *                          the KTX file.

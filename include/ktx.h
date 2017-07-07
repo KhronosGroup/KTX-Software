@@ -163,54 +163,16 @@ typedef int32_t  ktx_int32_t;
 /* This will cause compilation to fail if uint32 != 4. */
 typedef unsigned char ktx_uint32_t_SIZE_ASSERT[sizeof(ktx_uint32_t) == 4];
 
-#if KTX_OPENGL
-
-	#ifdef _WIN32
-	  #include <windows.h>
-      #undef KTX_USE_GETPROC  /* Must use GETPROC on Windows */
-      #define KTX_USE_GETPROC 1
-    #else
-      #if !defined(KTX_USE_GETPROC)
-        #define KTX_USE_GETPROC 0
-      #endif
-    #endif
-    #if KTX_USE_GETPROC
-      #include <GL/glew.h>
-    #else
-      #define GL_GLEXT_PROTOTYPES
-      #include <GL/glcorearb.h>
-	#endif
-
-	#define GL_APIENTRY APIENTRY
-    #define KTX_GLFUNCPTRS "gl_funcptrs.h"
-
-#elif KTX_OPENGL_ES1
-
-	#include <GLES/gl.h>
-	#include <GLES/glext.h>
-
-    #define KTX_GLFUNCPTRS "gles1_funcptrs.h"
-
-#elif KTX_OPENGL_ES2
-
-    #define GL_GLEXT_PROTOTYPES
-	#include <GLES2/gl2.h>
-	#include <GLES2/gl2ext.h>
-
-    #define KTX_GLFUNCPTRS "gles2_funcptrs.h"
-
-#elif KTX_OPENGL_ES3
-
-    #define GL_GLEXT_PROTOTYPES
-	#include <GLES3/gl3.h>
-	#include <GLES2/gl2ext.h>
-
-    #define KTX_GLFUNCPTRS "gles3_funcptrs.h"
-
-#else
-#error Please #define one of KTX_OPENGL, KTX_OPENGL_ES1, KTX_OPENGL_ES2 or KTX_OPENGL_ES3 as 1
-#endif
-
+/*
+ * To avoid including gl.h ...
+ * Compilers don't warn of duplicate typedefs if there is no conflict.
+ */
+typedef unsigned char GLboolean;
+typedef unsigned int GLenum;
+typedef int GLint;
+typedef int GLsizei;
+typedef unsigned int GLuint;
+typedef unsigned char GLubyte;
 
 #ifdef __cplusplus
 extern "C" {

@@ -61,6 +61,7 @@
       #
       'droidolib_dir': '<(otherlibroot_dir)/<(gen_config_var)/$(TARGET_ABI)',
       'iosolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
+      'iosolibr_dir': '<(otherlibroot_dir)/Release-<(gen_platform_var)',
       'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
       'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
@@ -131,15 +132,15 @@
         'library': 'shared_library',
       }, # OS == "mac"
       'OS == "win"', {
+        # Location of glew32.lib.
+        'glew_lib_dir': '<(winolib_dir)',
+        # Location of glew32.dll.
+        'glew_dll_dir': '<(winolib_dir)',
         'sdl_to_use%': 'built_dylib',
         # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',
         # libktx type. Must be static as exports currently not defined.
         'library': 'static_library',
-        # Location of glew32.lib.
-        'glew_lib_dir': '<(winolib_dir)',
-        # Location of glew32.dll.
-        'glew_dll_dir': '<(winolib_dir)',
       }], # OS == "win"
     ], # conditions
   }, # variables level 1

@@ -13,7 +13,6 @@
       'additional_emcc_options': [
         '-s', 'ERROR_ON_UNDEFINED_SYMBOLS=1',
       ],
-      # 'testimages_dir': '../../testimages',
     }, # variables, level 2
     'additional_emcc_options': [ '<@(additional_emcc_options)' ],
     'additional_emlink_options': [
@@ -38,9 +37,6 @@
             'stdafx.h',
             'targetver.h',
             'toktx.cpp',
-          ],
-          'defines': [
-           'KTX_OPENGL=1',
           ],
           'msvs_settings': {
             'VCLinkerTool': {
