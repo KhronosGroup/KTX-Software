@@ -11,6 +11,12 @@
 #include "vulkandebug.h"
 #include <iostream>
 
+#if defined(NDEBUG) && defined(__GNUC__)
+#define U_ASSERT_ONLY __attribute__((unused))
+#else
+#define U_ASSERT_ONLY
+#endif
+
 namespace vkDebug
 {
 	int validationLayerCount = 1;
@@ -97,7 +103,7 @@ namespace vkDebug
 		dbgCreateInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)messageCallback;
 		dbgCreateInfo.flags = flags;
 
-		VkResult err = CreateDebugReportCallback(
+		VkResult U_ASSERT_ONLY err = CreateDebugReportCallback(
 			instance,
 			&dbgCreateInfo,
 			nullptr,

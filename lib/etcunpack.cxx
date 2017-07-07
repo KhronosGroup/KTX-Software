@@ -205,7 +205,8 @@ _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
         break;
 
 	  default:
-	    assert(0); // Upper levels should be passing only one of the above srcFormats.
+	    assert(0); // Upper levels should pass only one of the above srcFormats.
+        return KTX_UNSUPPORTED_TEXTURE_TYPE; // For Release configurations.
 	}
 
     /* active_{width,height} show how many pixels contain active data,

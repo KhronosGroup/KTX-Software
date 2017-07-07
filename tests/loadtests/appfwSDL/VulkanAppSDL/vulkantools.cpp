@@ -14,6 +14,12 @@
 
 #include "vulkantools.h"
 
+#if defined(NDEBUG) && defined(__GNUC__)
+#define U_ASSERT_ONLY __attribute__((unused))
+#else
+#define U_ASSERT_ONLY
+#endif
+
 namespace vkTools
 {
 
@@ -328,7 +334,7 @@ namespace vkTools
 
 		//shaderCode = malloc(size);
 		char *shaderCode = new char[size];
-		size_t retval = fread(shaderCode, size, 1, fp);
+        size_t U_ASSERT_ONLY retval = fread(shaderCode, size, 1, fp);
 		assert(retval == 1);
 		assert(size > 0);
 
