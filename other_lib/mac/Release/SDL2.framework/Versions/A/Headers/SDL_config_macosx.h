@@ -175,7 +175,12 @@
 #endif
 
 /* enable Vulkan surface support */
-#define SDL_VIDEO_VULKAN 1
+#if TARGET_CPU_X86_64
+/* Metal/MoltenVK/Vulkan not supported on 32-bit architectures. */
+#define SDL_VIDEO_VULKAN_SURFACE 1
+#else
+#define  SDL_VIDEO_VULKAN_SURFACE 0
+#endif
 
 /* Enable system power support */
 #define SDL_POWER_MACOSX 1

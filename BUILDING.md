@@ -224,9 +224,9 @@ will have to regenerate the xcode project if you wish to do this.
 
 #### Building SDL from source
 
-The fork of SDL used by KTX can be found at https://github.com/msc-/SDL.
-See the [README](https://github.com/msc-/SDL/README.md) there
-for instructions.
+The fork of SDL and branch used by KTX can be found at https://github.com/msc-/SDL-jake/tree/vulkan-support-rebase. See the
+[README](https://github.com/msc-/SDL-jake/blob/vulkan-support-rebase/docs/README.md)
+there for instructions.
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
