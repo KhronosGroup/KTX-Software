@@ -306,11 +306,11 @@ VulkanContext::getMemoryType(uint32_t typeBits,
 vk::PipelineShaderStageCreateInfo
 VulkanContext::loadShader(std::string filename,
 						  vk::ShaderStageFlagBits stage,
-						  std::string modname)
+						  const char* const modname)
 {
     vk::PipelineShaderStageCreateInfo shaderStage({}, stage);
     shaderStage.module = loadShader(filename);
-    shaderStage.pName = modname.c_str();
+    shaderStage.pName = modname;
     return shaderStage;
 }
 

@@ -129,8 +129,8 @@ struct VulkanContext {
         vk::DescriptorBufferInfo* descriptor);
 
     vk::PipelineShaderStageCreateInfo loadShader(std::string filename,
-											 vk::ShaderStageFlagBits stage,
-											 std::string modname = "main");
+											vk::ShaderStageFlagBits stage,
+											const char* const modname = "main");
     vk::ShaderModule loadShader(std::string filename);
     uint32_t* readSpv(const char *filename, size_t *pSize);
 };
