@@ -599,8 +599,8 @@ TextureCubemap::prepareSamplerAndView()
     samplerInfo.minFilter = vk::Filter::eLinear;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
     samplerInfo.maxLod = (float)cubeMap.levelCount;
-    if (vkctx.gpuFeatures.samplerAnisotropy == true) {
-		samplerInfo.anisotropyEnable = true;
+    if (vkctx.gpuFeatures.samplerAnisotropy == VK_TRUE) {
+		samplerInfo.anisotropyEnable = VK_TRUE;
 		samplerInfo.maxAnisotropy = 8;
     } else {
     	// vulkan.hpp needs fixing
