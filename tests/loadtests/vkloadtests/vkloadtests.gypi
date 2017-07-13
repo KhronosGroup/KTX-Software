@@ -17,9 +17,9 @@
     # to the main .gyp file.
      'conditions': [
       ['OS == "ios"', {
-        'vkinfoplist_file': 'resources_ios/Info.plist',
+        'vkinfoplist_file': 'resources/ios/Info.plist',
       }, 'OS == "mac"', {
-        'vkinfoplist_file': 'resources_mac/Info.plist',
+        'vkinfoplist_file': 'resources/mac/Info.plist',
       }],
     ] # conditions
   }, # variables, level 1
@@ -109,10 +109,10 @@
       'conditions': [
         ['OS == "ios"', {
           'dependencies': [ 'libktx.gyp:libktx.es3' ],
-          'sources': [ 'resources_ios/Info.plist' ],
+          'sources': [ 'resources/ios/Info.plist' ],
           'mac_bundle_resources': [
-            'resources_ios/Images.xcassets',
-            'resources_ios/LaunchScreen.storyboard',
+            'resources/ios/Images.xcassets',
+            'resources/ios/LaunchScreen.storyboard',
           ],
           'xcode_settings': {
             'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
@@ -122,9 +122,9 @@
         }, 'OS == "mac"', {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'mac_bundle_resources': [
-            'resources_mac/KTXAppIcons.icns',
+            'resources/mac/KTXAppIcons.icns',
           ],
-          'sources': [ 'resources_mac/Info.plist' ],
+          'sources': [ 'resources/mac/Info.plist' ],
         }, {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
         }], # OS == "ios"

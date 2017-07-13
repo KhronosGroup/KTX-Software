@@ -27,9 +27,9 @@
     # to the main .gyp file.
     'conditions': [
       ['OS == "ios"', {
-        'glinfoplist_file': 'resources_ios/Info.plist',
+        'glinfoplist_file': 'resources/ios/Info.plist',
       }, {
-        'glinfoplist_file': 'resources_mac/Info.plist',
+        'glinfoplist_file': 'resources/mac/Info.plist',
       }],
     ],
     'common_source_files': [
@@ -59,7 +59,7 @@
           'type': '<(executable)',
           'mac_bundle': 1,
           'mac_bundle_resources': [
-            'resources_mac/KTXAppIcons.icns',
+            'resources/mac/KTXAppIcons.icns',
           ],
           'dependencies': [
             'appfwSDL',
@@ -129,7 +129,7 @@
             }], # emit_emscripten_configs=="true"
             ['OS == "mac"', {
               'sources': [
-                'resources_mac/Info.plist',
+                'resources/mac/Info.plist',
               ],
             }],
           ], # conditions
@@ -181,11 +181,11 @@
           'conditions': [
             ['OS == "ios"', {
               'sources': [
-                'resources_ios/Info.plist',
+                'resources/ios/Info.plist',
               ],
               'mac_bundle_resources': [
-                'resources_ios/Images.xcassets',
-                'resources_ios/LaunchScreen.storyboard',
+                'resources/ios/Images.xcassets',
+                'resources/ios/LaunchScreen.storyboard',
               ],
             }], # OS == "ios"
           ],
@@ -233,11 +233,11 @@
           'conditions': [
             ['OS == "ios"', {
               'sources': [
-                'resources_ios/Info.plist',
+                'resources/ios/Info.plist',
               ],
               'mac_bundle_resources': [
-                'resources_ios/Images.xcassets',
-                'resources_ios/LaunchScreen.storyboard',
+                'resources/ios/Images.xcassets',
+                'resources/ios/LaunchScreen.storyboard',
               ],
             }], # OS == "ios"
           ], # conditions
