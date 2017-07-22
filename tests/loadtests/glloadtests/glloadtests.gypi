@@ -59,7 +59,7 @@
           'type': '<(executable)',
           'mac_bundle': 1,
           'mac_bundle_resources': [
-            'resources/mac/KTXAppIcons.icns',
+            '../../../icons/mac/ktx_app.icns',
           ],
           'dependencies': [
             'appfwSDL',
@@ -174,7 +174,7 @@
             },
           },
           'xcode_settings': {
-            'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
+            'ASSETCATALOG_COMPILER_APPICON_NAME': 'ktx_app',
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
             'INFOPLIST_FILE': '<(glinfoplist_file)',
           },
@@ -184,7 +184,8 @@
                 'resources/ios/Info.plist',
               ],
               'mac_bundle_resources': [
-                'resources/ios/Images.xcassets',
+                '../../../icons/ios/CommonIcons.xcassets',
+                'resources/ios/LaunchImages.xcassets',
                 'resources/ios/LaunchScreen.storyboard',
               ],
             }], # OS == "ios"
@@ -226,7 +227,7 @@
             },
           },
           'xcode_settings': {
-            'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
+            'ASSETCATALOG_COMPILER_APPICON_NAME': 'ktx_app',
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
             'INFOPLIST_FILE': '<(glinfoplist_file)',
           },
@@ -236,7 +237,8 @@
                 'resources/ios/Info.plist',
               ],
               'mac_bundle_resources': [
-                'resources/ios/Images.xcassets',
+              '../../../icons/ios/CommonIcons.xcassets',
+                'resources/ios/LaunchImages.xcassets',
                 'resources/ios/LaunchScreen.storyboard',
               ],
             }], # OS == "ios"

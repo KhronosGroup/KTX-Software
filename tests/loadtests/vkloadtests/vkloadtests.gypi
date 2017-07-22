@@ -111,31 +111,32 @@
           'dependencies': [ 'libktx.gyp:libktx.es3' ],
           'sources': [ 'resources/ios/Info.plist' ],
           'mac_bundle_resources': [
-            'resources/ios/Images.xcassets',
+            '../../../icons/ios/CommonIcons.xcassets',
+            'resources/ios/LaunchImages.xcassets',
             'resources/ios/LaunchScreen.storyboard',
           ],
           'xcode_settings': {
-            'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
+            'ASSETCATALOG_COMPILER_APPICON_NAME': 'ktx_app',
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
             'INFOPLIST_FILE': '<(vkinfoplist_file)',
           },
         }, 'OS == "mac"', {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'mac_bundle_resources': [
-            'resources/mac/KTXAppIcons.icns',
+            '../../../icons/mac/ktx_app.icns',
           ],
           'sources': [ 'resources/mac/Info.plist' ],
         }, {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
         }], # OS == "ios"
         ['OS == "mac" or OS == "ios"', {
-          # This copies the shaders to "Resources/shaders" thus avoiding
-          # polluting "Resources" with all the .spv files and avoiding a
-          # platform dependent path for loading the shaders, as I certainly
-          # don't want to pollute the output directories on other platforms.
-          # With the simpler choice of setting
-          # 'process_outputs_as_mac_bundle_resources' in the glsl2spirv rules
-          # there is no way to set a subdir of "Resources" as the destination.
+          # This copies the shaders to "Resources/shaders". With the simpler
+          # choice of setting 'process_outputs_as_mac_bundle_resources' in the
+          # glsl2spirv rules there is no way to set a subdir of "Resources" as
+          # the destination thus polluting "Resources" with all the .spv
+          # files. As I certainly want to avoid polluting the output directories
+          # on other platforms and don't want to have a platform dependent path
+          # for loading the shaders, this is preferable.
           'copies': [{
             'destination': '<(shader_dest)',
             'files': [
