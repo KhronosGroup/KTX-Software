@@ -159,7 +159,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\KtxIcon.ico"/>
+    <None Include="..\..\..\..\icons\win\ktx_app.ico"/>
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
@@ -169,7 +169,7 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\frame.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\LoadTests.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\mygl.h"/>
-    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\resource.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\resource.h"/>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\at.c"/>
@@ -181,7 +181,7 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\shaders.c"/>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\glloadtests.rc"/>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\glloadtests.rc"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="appfwSDL.vcxproj">

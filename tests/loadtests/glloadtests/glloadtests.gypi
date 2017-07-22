@@ -133,9 +133,9 @@
               'sources': [ 'resources/mac/Info.plist' ],
             }, 'OS == "win"', {
               'sources': [
-                'resources_win/glloadtests.rc',
-                'resources_win/KtxIcon.ico',
-                'resources_win/resource.h',
+                '../../../icons/win/ktx_app.ico',
+                'resources/win/glloadtests.rc',
+                'resources/win/resource.h',
               ],
             }],
           ], # conditions
@@ -198,9 +198,9 @@
               ],
             }, 'OS == "win"', {
               'sources': [
-                'resources_win/glloadtests.rc',
-                'resources_win/KtxIcon.ico',
-                'resources_win/resource.h',
+                '../../../icons/win/ktx_app.ico',
+                'resources/win/glloadtests.rc',
+                'resources/win/resource.h',
               ],
             }], # OS == "ios" else OS = "win"
           ],
@@ -259,9 +259,9 @@
               ],
             }, 'OS == "win"', {
               'sources': [
-                'resources_win/glloadtests.rc',
-                'resources_win/KtxIcon.ico',
-                'resources_win/resource.h',
+                '../../../icons/win/ktx_app.ico',
+                'resources/win/glloadtests.rc',
+                'resources/win/resource.h',
               ],
             }], # OS == "ios"
           ], # conditions

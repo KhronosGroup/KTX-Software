@@ -280,6 +280,42 @@
     <Filter Include="tests\loadtests\vkloadtests">
       <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="icons">
+      <UniqueIdentifier>{DDEC3942-6CA2-0C7B-0012-A575C614C86D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="icons\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources">
+      <UniqueIdentifier>{02993FF4-6DD0-55B6-6A36-E99A964FF863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources">
+      <UniqueIdentifier>{02993FF4-6DD0-55B6-6A36-E99A964FF863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
@@ -410,6 +446,15 @@
     </ClCompile>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.h">
       <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\icons\win\ktx_app.ico">
+      <Filter>icons\win</Filter>
+    </None>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\vkloadtests.rc">
+      <Filter>tests\loadtests\vkloadtests\resources\win</Filter>
+    </ResourceCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\resource.h">
+      <Filter>tests\loadtests\vkloadtests\resources\win</Filter>
     </ClInclude>
     <None Include="..\..\..\..\ktxtests.gyp"/>
     <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\cube.obj">

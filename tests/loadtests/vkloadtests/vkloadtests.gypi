@@ -18,7 +18,7 @@
      'conditions': [
       ['OS == "ios"', {
         'vkinfoplist_file': 'resources/ios/Info.plist',
-      }, 'OS == "mac"', {
+      }, {
         'vkinfoplist_file': 'resources/mac/Info.plist',
       }],
     ] # conditions
@@ -120,14 +120,22 @@
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
             'INFOPLIST_FILE': '<(vkinfoplist_file)',
           },
+        }, 'OS == "linux"', {
+          'dependencies': [ 'libktx.gyp:libktx.gl' ],
         }, 'OS == "mac"', {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'mac_bundle_resources': [
             '../../../icons/mac/ktx_app.icns',
           ],
           'sources': [ 'resources/mac/Info.plist' ],
-        }, {
+        }, 'OS == "win"', {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
+          'sources': [
+             '../../../icons/win/ktx_app.ico',
+             'resources/win/vkloadtests.rc',
+             'resources/win/resource.h',
+          ],
+
         }], # OS == "ios"
         ['OS == "mac" or OS == "ios"', {
           # This copies the shaders to "Resources/shaders". With the simpler

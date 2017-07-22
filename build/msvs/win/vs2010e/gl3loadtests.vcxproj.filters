@@ -127,17 +127,11 @@
     <Filter Include="tests\loadtests\glloadtests\shader-based">
       <UniqueIdentifier>{4F188E2E-49FC-B262-7CCF-1089F4BC0D9F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    <Filter Include="icons">
+      <UniqueIdentifier>{DDEC3942-6CA2-0C7B-0012-A575C614C86D}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests">
-      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\loadtests\glloadtests">
-      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\loadtests\glloadtests\resources_win">
-      <UniqueIdentifier>{3EC1C20E-0E84-0A59-0016-B8E9FA0DD373}</UniqueIdentifier>
+    <Filter Include="icons\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
@@ -148,8 +142,11 @@
     <Filter Include="tests\loadtests\glloadtests">
       <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\glloadtests\resources_win">
-      <UniqueIdentifier>{3EC1C20E-0E84-0A59-0016-B8E9FA0DD373}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\glloadtests\resources">
+      <UniqueIdentifier>{02993FF4-6DD0-55B6-6A36-E99A964FF863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\resources\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
@@ -160,8 +157,11 @@
     <Filter Include="tests\loadtests\glloadtests">
       <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\glloadtests\resources_win">
-      <UniqueIdentifier>{3EC1C20E-0E84-0A59-0016-B8E9FA0DD373}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\glloadtests\resources">
+      <UniqueIdentifier>{02993FF4-6DD0-55B6-6A36-E99A964FF863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\resources\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -201,14 +201,14 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\mygl.h">
       <Filter>tests\loadtests\glloadtests\shader-based</Filter>
     </ClInclude>
-    <ResourceCompile Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\glloadtests.rc">
-      <Filter>tests\loadtests\glloadtests\resources_win</Filter>
-    </ResourceCompile>
-    <None Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\KtxIcon.ico">
-      <Filter>tests\loadtests\glloadtests\resources_win</Filter>
+    <None Include="..\..\..\..\icons\win\ktx_app.ico">
+      <Filter>icons\win</Filter>
     </None>
-    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources_win\resource.h">
-      <Filter>tests\loadtests\glloadtests\resources_win</Filter>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\glloadtests.rc">
+      <Filter>tests\loadtests\glloadtests\resources\win</Filter>
+    </ResourceCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\resource.h">
+      <Filter>tests\loadtests\glloadtests\resources\win</Filter>
     </ClInclude>
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>

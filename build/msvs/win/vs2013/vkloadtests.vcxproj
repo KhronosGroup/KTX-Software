@@ -166,6 +166,7 @@
   <ItemGroup>
     <None Include="..\..\..\..\tests\loadtests\common\vecmath.hpp"/>
     <None Include="..\..\..\..\tests\loadtests\vkloadtests\utils\VulkanMeshLoader.hpp"/>
+    <None Include="..\..\..\..\icons\win\ktx_app.ico"/>
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +176,7 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\resource.h"/>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.cpp"/>
@@ -183,6 +185,9 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.cpp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\vkloadtests.rc"/>
   </ItemGroup>
   <ItemGroup>
     <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cube\cube.frag"/>
