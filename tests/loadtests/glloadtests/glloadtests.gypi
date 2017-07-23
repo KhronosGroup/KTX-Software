@@ -49,6 +49,16 @@
       'shader-based/shaders.c',
       'shader-based/mygl.h',
     ],
+    'ios_resource_files': [
+      '../../../icons/ios/CommonIcons.xcassets',
+      'resources/ios/LaunchImages.xcassets',
+      'resources/ios/LaunchScreen.storyboard',
+    ],
+    'win_resource_files': [
+      '../../../icons/win/ktx_app.ico',
+      'resources/win/glloadtests.rc',
+      'resources/win/resource.h',
+    ]
   }, # variables, level 1
 
   'conditions': [
@@ -130,13 +140,9 @@
               },
             }], # emit_emscripten_configs=="true"
             ['OS == "mac"', {
-              'sources': [ 'resources/mac/Info.plist' ],
+              'sources': [ '<(glinfoplist_file)' ],
             }, 'OS == "win"', {
-              'sources': [
-                '../../../icons/win/ktx_app.ico',
-                'resources/win/glloadtests.rc',
-                'resources/win/resource.h',
-              ],
+              'sources': [ '<@(win_resource_files)' ],
             }],
           ], # conditions
         }, # gl3loadtests
@@ -189,19 +195,11 @@
           'conditions': [
             ['OS == "ios"', {
               'sources': [
-                'resources/ios/Info.plist',
+                '<(glinfoplist_file)',
               ],
-              'mac_bundle_resources': [
-                '../../../icons/ios/CommonIcons.xcassets',
-                'resources/ios/LaunchImages.xcassets',
-                'resources/ios/LaunchScreen.storyboard',
-              ],
+              'mac_bundle_resources': [ '<@(ios_resource_files)' ],
             }, 'OS == "win"', {
-              'sources': [
-                '../../../icons/win/ktx_app.ico',
-                'resources/win/glloadtests.rc',
-                'resources/win/resource.h',
-              ],
+              'sources': [ '<@(win_resource_files)' ],
             }], # OS == "ios" else OS = "win"
           ],
         }, # es3loadtests
@@ -250,19 +248,11 @@
           'conditions': [
             ['OS == "ios"', {
               'sources': [
-                'resources/ios/Info.plist',
+                '<(glinfoplist_file)',
               ],
-              'mac_bundle_resources': [
-              '../../../icons/ios/CommonIcons.xcassets',
-                'resources/ios/LaunchImages.xcassets',
-                'resources/ios/LaunchScreen.storyboard',
-              ],
+              'mac_bundle_resources': [ '<@(ios_resource_files)' ],
             }, 'OS == "win"', {
-              'sources': [
-                '../../../icons/win/ktx_app.ico',
-                'resources/win/glloadtests.rc',
-                'resources/win/resource.h',
-              ],
+                'sources': [ '<@(win_resource_files)' ],
             }], # OS == "ios"
           ], # conditions
         } # es1loadtests

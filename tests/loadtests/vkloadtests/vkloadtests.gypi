@@ -47,6 +47,17 @@
       ],
       'sources': [
         '../common/vecmath.hpp',
+        '<(vkinfoplist_file)',
+        'shaders/cube/cube.frag',
+        'shaders/cube/cube.vert',
+        'shaders/cubemap/reflect.frag',
+        'shaders/cubemap/reflect.vert',
+        'shaders/cubemap/skybox.frag',
+        'shaders/cubemap/skybox.vert',
+        'shaders/texture/texture.frag',
+        'shaders/texture/texture.vert',
+        'shaders/texturearray/instancing.frag',
+        'shaders/texturearray/instancing.vert',
         'Texture.cpp',
         'Texture.h',
         'TextureArray.cpp',
@@ -109,7 +120,6 @@
       'conditions': [
         ['OS == "ios"', {
           'dependencies': [ 'libktx.gyp:libktx.es3' ],
-          'sources': [ 'resources/ios/Info.plist' ],
           'mac_bundle_resources': [
             '../../../icons/ios/CommonIcons.xcassets',
             'resources/ios/LaunchImages.xcassets',
@@ -118,7 +128,6 @@
           'xcode_settings': {
             'ASSETCATALOG_COMPILER_APPICON_NAME': 'ktx_app',
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
-            'INFOPLIST_FILE': '<(vkinfoplist_file)',
           },
         }, 'OS == "linux"', {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
@@ -127,9 +136,9 @@
           'mac_bundle_resources': [
             '../../../icons/mac/ktx_app.icns',
           ],
-          'sources': [ 'resources/mac/Info.plist' ],
         }, 'OS == "win"', {
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
+          'sources!': [ '<(vkinfoplist_file)' ],
           'sources': [
              '../../../icons/win/ktx_app.ico',
              'resources/win/vkloadtests.rc',
