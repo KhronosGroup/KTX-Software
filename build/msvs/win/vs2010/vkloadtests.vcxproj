@@ -165,6 +165,9 @@
     <None Include="..\..\..\..\tests\loadtests\vkloadtests\utils\VulkanMeshLoader.hpp"/>
     <None Include="..\..\..\..\icons\win\ktx_app.ico"/>
     <None Include="..\..\..\..\ktxtests.gyp"/>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\resources\mac\Info.plist">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.h"/>
