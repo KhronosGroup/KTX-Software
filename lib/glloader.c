@@ -562,7 +562,7 @@ compressedTexImage2DCallback(int miplevel, int face,
         if (errorCode != KTX_SUCCESS) {
             return errorCode;
         }
-        if (!sizedFormats & _NON_LEGACY_FORMATS) {
+        if (!(sizedFormats & _NON_LEGACY_FORMATS)) {
             if (internalformat == GL_RGB8)
                 internalformat = GL_RGB;
             else if (internalformat == GL_RGBA8)
