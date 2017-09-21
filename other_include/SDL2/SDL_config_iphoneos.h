@@ -33,16 +33,17 @@
 
 #define HAVE_GCC_ATOMICS    1
 
-#define HAVE_ALLOCA_H       1
-#define HAVE_SYS_TYPES_H    1
-#define HAVE_STDIO_H    1
 #define STDC_HEADERS    1
-#define HAVE_STRING_H   1
-#define HAVE_INTTYPES_H 1
-#define HAVE_STDINT_H   1
+#define HAVE_ALLOCA_H       1
 #define HAVE_CTYPE_H    1
+#define HAVE_INTTYPES_H 1
+#define HAVE_LIMITS_H   1
 #define HAVE_MATH_H 1
 #define HAVE_SIGNAL_H   1
+#define HAVE_STDINT_H   1
+#define HAVE_STDIO_H    1
+#define HAVE_STRING_H   1
+#define HAVE_SYS_TYPES_H    1
 
 /* C library functions */
 #define HAVE_MALLOC 1
@@ -139,8 +140,12 @@
 #define SDL_VIDEO_RENDER_OGL_ES 1
 #define SDL_VIDEO_RENDER_OGL_ES2    1
 
-/* enable Vulkan surface support */
-#define SDL_VIDEO_VULKAN_SURFACE 1
+/* Enable Vulkan support */
+#if !TARGET_OS_SIMULATOR && !TARGET_CPU_ARM // Only 64-bit devices have Metal
+#define SDL_VIDEO_VULKAN 1
+#else
+#define SDL_VIDEO_VULKAN 0
+#endif
 
 /* Enable system power support */
 #define SDL_POWER_UIKIT 1

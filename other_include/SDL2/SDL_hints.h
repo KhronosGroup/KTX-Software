@@ -119,6 +119,17 @@ extern "C" {
 #define SDL_HINT_RENDER_DIRECT3D11_DEBUG    "SDL_RENDER_DIRECT3D11_DEBUG"
 
 /**
+ *  \brief  A variable controlling the scaling policy for SDL_RenderSetLogicalSize.
+ *
+ *  This variable can be set to the following values:
+ *    "0" or "letterbox" - Uses letterbox/sidebars to fit the entire rendering on screen
+ *    "1" or "overscan"  - Will zoom the rendering so it fills the entire screen, allowing edges to be drawn offscreen
+ *
+ *  By default letterbox is used
+ */
+#define SDL_HINT_RENDER_LOGICAL_SIZE_MODE       "SDL_RENDER_LOGICAL_SIZE_MODE"
+
+/**
  *  \brief  A variable controlling the scaling quality
  *
  *  This variable can be set to the following values:
@@ -211,6 +222,12 @@ extern "C" {
 #define SDL_HINT_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN    "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN"
 
 /**
+ * \brief A variable to specify custom icon resource id from RC file on Windows platform 
+ */
+#define SDL_HINT_WINDOWS_INTRESOURCE_ICON       "SDL_WINDOWS_INTRESOURCE_ICON"
+#define SDL_HINT_WINDOWS_INTRESOURCE_ICON_SMALL "SDL_WINDOWS_INTRESOURCE_ICON_SMALL"
+
+/**
  *  \brief  A variable controlling whether the windows message loop is processed by SDL 
  *
  *  This variable can be set to the following values:
@@ -263,6 +280,17 @@ extern "C" {
  *  By default SDL will ignore mouse clicks that activate a window
  */
 #define SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH "SDL_MOUSE_FOCUS_CLICKTHROUGH"
+
+/**
+ *  \brief  A variable controlling whether touch events should generate synthetic mouse events
+ *
+ *  This variable can be set to the following values:
+ *    "0"       - Touch events will not generate mouse events
+ *    "1"       - Touch events will generate mouse events
+ *
+ *  By default SDL will generate mouse events for touch events
+ */
+#define SDL_HINT_TOUCH_MOUSE_EVENTS    "SDL_TOUCH_MOUSE_EVENTS"
 
 /**
  *  \brief Minimize your SDL_Window if it loses key focus when in fullscreen mode. Defaults to true.
@@ -337,7 +365,6 @@ extern "C" {
  */
 #define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "SDL_ACCELEROMETER_AS_JOYSTICK"
 
-
 /**
  *  \brief  A variable that lets you disable the detection and use of Xinput gamepad devices
  *
@@ -346,7 +373,6 @@ extern "C" {
  *    "1"       - Enable XInput detection (the default)
  */
 #define SDL_HINT_XINPUT_ENABLED "SDL_XINPUT_ENABLED"
-
 
 /**
  *  \brief  A variable that causes SDL to use the old axis and button mapping for XInput devices.
@@ -357,9 +383,8 @@ extern "C" {
  */
 #define SDL_HINT_XINPUT_USE_OLD_JOYSTICK_MAPPING "SDL_XINPUT_USE_OLD_JOYSTICK_MAPPING"
 
-
 /**
- *  \brief  A variable that lets you manually hint extra gamecontroller db entries
+ *  \brief  A variable that lets you manually hint extra gamecontroller db entries.
  *
  *  The variable should be newline delimited rows of gamecontroller config data, see SDL_gamecontroller.h
  *
@@ -368,6 +393,31 @@ extern "C" {
  */
 #define SDL_HINT_GAMECONTROLLERCONFIG "SDL_GAMECONTROLLERCONFIG"
 
+/**
+ *  \brief  A variable containing a list of devices to skip when scanning for game controllers.
+ *
+ *  The format of the string is a comma separated list of USB VID/PID pairs
+ *  in hexadecimal form, e.g.
+ *
+ *      0xAAAA/0xBBBB,0xCCCC/0xDDDD
+ *
+ *  The variable can also take the form of @file, in which case the named
+ *  file will be loaded and interpreted as the value of the variable.
+ */
+#define SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES "SDL_GAMECONTROLLER_IGNORE_DEVICES"
+
+/**
+ *  \brief  If set, all devices will be skipped when scanning for game controllers except for the ones listed in this variable.
+ *
+ *  The format of the string is a comma separated list of USB VID/PID pairs
+ *  in hexadecimal form, e.g.
+ *
+ *      0xAAAA/0xBBBB,0xCCCC/0xDDDD
+ *
+ *  The variable can also take the form of @file, in which case the named
+ *  file will be loaded and interpreted as the value of the variable.
+ */
+#define SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT "SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT"
 
 /**
  *  \brief  A variable that lets you enable joystick (and gamecontroller) events even when your app is in the background.
@@ -382,7 +432,6 @@ extern "C" {
  */
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"
 
-
 /**
  *  \brief If set to "0" then never set the top most bit on a SDL Window, even if the video mode expects it.
  *      This is a debugging aid for developers and not expected to be used by end users. The default is "1"
@@ -392,7 +441,6 @@ extern "C" {
  *    "1"       - allow topmost
  */
 #define SDL_HINT_ALLOW_TOPMOST "SDL_ALLOW_TOPMOST"
-
 
 /**
  *  \brief A variable that controls the timer resolution, in milliseconds.
@@ -726,13 +774,18 @@ extern "C" {
 #define SDL_HINT_BMP_SAVE_LEGACY_FORMAT "SDL_BMP_SAVE_LEGACY_FORMAT"
 
 /**
- * \brief Tell SDL not to name threads on Windows.
+ * \brief Tell SDL not to name threads on Windows with the 0x406D1388 Exception.
+ *        The 0x406D1388 Exception is a trick used to inform Visual Studio of a
+ *        thread's name, but it tends to cause problems with other debuggers,
+ *        and the .NET runtime. Note that SDL 2.0.6 and later will still use
+ *        the (safer) SetThreadDescription API, introduced in the Windows 10
+ *        Creators Update, if available.
  *
  * The variable can be set to the following values:
  *   "0"       - SDL will raise the 0x406D1388 Exception to name threads.
- *               This is the default behavior of SDL <= 2.0.4. (default)
- *   "1"       - SDL will not raise this exception, and threads will be unnamed.
- *               For .NET languages this is required when running under a debugger.
+ *               This is the default behavior of SDL <= 2.0.4.
+ *   "1"       - SDL will not raise this exception, and threads will be unnamed. (default)
+ *               This is necessary with .NET languages or debuggers that aren't Visual Studio.
  */
 #define SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING "SDL_WINDOWS_DISABLE_THREAD_NAMING"
 
@@ -802,6 +855,19 @@ extern "C" {
 #define SDL_HINT_AUDIO_RESAMPLING_MODE   "SDL_AUDIO_RESAMPLING_MODE"
 
 /**
+ *  \brief  A variable controlling the audio category on iOS and Mac OS X
+ *
+ *  This variable can be set to the following values:
+ *
+ *    "ambient"     - Use the AVAudioSessionCategoryAmbient audio category, will be muted by the phone mute switch (default)
+ *    "playback"    - Use the AVAudioSessionCategoryPlayback category
+ *
+ *  For more information, see Apple's documentation:
+ *  https://developer.apple.com/library/content/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/AudioSessionCategoriesandModes/AudioSessionCategoriesandModes.html
+ */
+#define SDL_HINT_AUDIO_CATEGORY   "SDL_AUDIO_CATEGORY"
+
+/**
  *  \brief  An enumeration of hint priorities
  */
 typedef enum
@@ -850,7 +916,7 @@ extern DECLSPEC SDL_bool SDLCALL SDL_GetHintBoolean(const char *name, SDL_bool d
 /**
  * \brief type definition of the hint callback function.
  */
-typedef void (*SDL_HintCallback)(void *userdata, const char *name, const char *oldValue, const char *newValue);
+typedef void (SDLCALL *SDL_HintCallback)(void *userdata, const char *name, const char *oldValue, const char *newValue);
 
 /**
  *  \brief Add a function to watch a particular hint

@@ -1,23 +1,23 @@
 /*
- Simple DirectMedia Layer
- Copyright (C) 2017, Mark Callow.
- 
- This software is provided 'as-is', without any express or implied
- warranty.  In no event will the authors be held liable for any damages
- arising from the use of this software.
- 
- Permission is granted to anyone to use this software for any purpose,
- including commercial applications, and to alter it and redistribute it
- freely, subject to the following restrictions:
- 
- 1. The origin of this software must not be misrepresented; you must not
- claim that you wrote the original software. If you use this software
- in a product, an acknowledgment in the product documentation would be
- appreciated but is not required.
- 2. Altered source versions must be plainly marked as such, and must not be
- misrepresented as being the original software.
- 3. This notice may not be removed or altered from any source distribution.
- */
+  Simple DirectMedia Layer
+  Copyright (C) 2017, Mark Callow
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+*/
 
 /**
  *  \file SDL_vulkan.h
@@ -36,7 +36,11 @@
 extern "C" {
 #endif
 
-/* Avoid including vulkan.h */
+/* Avoid including vulkan.h, don't define VkInstance if it's already included */
+#ifdef VULKAN_H_
+#define NO_SDL_VULKAN_TYPEDEFS
+#endif
+#ifndef NO_SDL_VULKAN_TYPEDEFS
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 
 #if defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__)
@@ -47,6 +51,8 @@ extern "C" {
 
 VK_DEFINE_HANDLE(VkInstance)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
+
+#endif /* !NO_SDL_VULKAN_TYPEDEFS */
 
 typedef VkInstance SDL_vulkanInstance;
 typedef VkSurfaceKHR SDL_vulkanSurface; /* for compatibility with Tizen */
@@ -74,8 +80,22 @@ typedef VkSurfaceKHR SDL_vulkanSurface; /* for compatibility with Tizen */
  *  \note If you specify a non-NULL \a path, you should retrieve all of the
  *        Vulkan functions used in your program from the dynamic library using
  *        \c SDL_Vulkan_GetVkGetInstanceProcAddr() unless you can guarantee
- *        \a path points to the same library which will be loaded by the
- *        Vulkan ICD.
+ *        \a path points to the same vulkan loader library that you linked to.
+ *
+ *  \note On Apple devices, if \a path is NULL, SDL will attempt to find
+ *        the vkGetInstanceProcAddr address within all the mach-o images of
+ *        the current process. This is because the currently (v0.17.0)
+ *        recommended MoltenVK (Vulkan on Metal) usage is as a static library.
+ *        If it is not found then SDL will attempt to load \c libMoltenVK.dylib.
+ *        Applications using the dylib alternative therefore do not need to do
+ *        anything special when calling SDL.
+ *
+ *  \note On non-Apple devices, SDL requires you to either not link to the
+ *        Vulkan loader or link to a dynamic library version. This limitation
+ *        may be removed in a future version of SDL.
+ *
+ *  \note This function will fail if there are no working Vulkan drivers
+ *        installed.
  *
  *  \sa SDL_Vulkan_GetVkGetInstanceProcAddr()
  *  \sa SDL_Vulkan_UnloadLibrary()
@@ -84,6 +104,9 @@ extern DECLSPEC int SDLCALL SDL_Vulkan_LoadLibrary(const char *path);
 
 /**
  *  \brief Get the address of the \c vkGetInstanceProcAddr function.
+ *
+ *  \note This should be called after either calling SDL_Vulkan_LoadLibrary
+ *        or creating an SDL_Window with the SDL_WINDOW_VULKAN flag.
  */
 extern DECLSPEC void *SDLCALL SDL_Vulkan_GetVkGetInstanceProcAddr(void);
 
@@ -127,7 +150,7 @@ extern DECLSPEC void SDLCALL SDL_Vulkan_UnloadLibrary(void);
  *  \note \c window should have been created with the \c SDL_WINDOW_VULKAN flag.
  *
  *  \code
- *  unsigned count;
+ *  unsigned int count;
  *  // get count of required extensions
  *  if(!SDL_Vulkan_GetInstanceExtensions(window, &count, NULL))
  *      handle_error();
@@ -165,7 +188,7 @@ extern DECLSPEC void SDLCALL SDL_Vulkan_UnloadLibrary(void);
  */
 extern DECLSPEC SDL_bool SDLCALL SDL_Vulkan_GetInstanceExtensions(
 														SDL_Window *window,
-														unsigned *pCount,
+														unsigned int *pCount,
 														const char **pNames);
 
 /**

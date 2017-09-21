@@ -62,6 +62,9 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#ifdef HAVE_WCHAR_H
+# include <wchar.h>
+#endif
 #if defined(HAVE_INTTYPES_H)
 # include <inttypes.h>
 #elif defined(HAVE_STDINT_H)
@@ -269,7 +272,7 @@ typedef uint64_t Uint64;
 #endif /* SDL_DISABLE_ANALYZE_MACROS */
 
 #define SDL_COMPILE_TIME_ASSERT(name, x)               \
-       typedef int SDL_dummy_ ## name[(x) * 2 - 1]
+       typedef int SDL_compile_time_assert_ ## name[(x) * 2 - 1]
 /** \cond */
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 SDL_COMPILE_TIME_ASSERT(uint8, sizeof(Uint8) == 1);
@@ -386,10 +389,10 @@ SDL_FORCE_INLINE void SDL_memset4(void *dst, Uint32 val, size_t dwords)
         return;
     switch (dwords % 4)
     {
-        case 0: do {    *_p++ = _val;
-        case 3:         *_p++ = _val;
-        case 2:         *_p++ = _val;
-        case 1:         *_p++ = _val;
+        case 0: do {    *_p++ = _val;   /* fallthrough */
+        case 3:         *_p++ = _val;   /* fallthrough */
+        case 2:         *_p++ = _val;   /* fallthrough */
+        case 1:         *_p++ = _val;   /* fallthrough */
         } while ( --_n );
     }
 #endif
@@ -404,6 +407,7 @@ extern DECLSPEC int SDLCALL SDL_memcmp(const void *s1, const void *s2, size_t le
 extern DECLSPEC size_t SDLCALL SDL_wcslen(const wchar_t *wstr);
 extern DECLSPEC size_t SDLCALL SDL_wcslcpy(SDL_OUT_Z_CAP(maxlen) wchar_t *dst, const wchar_t *src, size_t maxlen);
 extern DECLSPEC size_t SDLCALL SDL_wcslcat(SDL_INOUT_Z_CAP(maxlen) wchar_t *dst, const wchar_t *src, size_t maxlen);
+extern DECLSPEC int SDLCALL SDL_wcscmp(const wchar_t *str1, const wchar_t *str2);
 
 extern DECLSPEC size_t SDLCALL SDL_strlen(const char *str);
 extern DECLSPEC size_t SDLCALL SDL_strlcpy(SDL_OUT_Z_CAP(maxlen) char *dst, const char *src, size_t maxlen);

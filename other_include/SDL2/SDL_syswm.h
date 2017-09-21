@@ -125,7 +125,8 @@ typedef enum
     SDL_SYSWM_MIR,
     SDL_SYSWM_WINRT,
     SDL_SYSWM_ANDROID,
-    SDL_SYSWM_VIVANTE
+    SDL_SYSWM_VIVANTE,
+    SDL_SYSWM_OS2
 } SDL_SYSWM_TYPE;
 
 /**
@@ -229,9 +230,9 @@ struct SDL_SysWMinfo
         struct
         {
 #if defined(__OBJC__) && defined(__has_feature) && __has_feature(objc_arc)
-            NSWindow __unsafe_unretained *window; /* The Cocoa window */
+            NSWindow __unsafe_unretained *window; /**< The Cocoa window */
 #else
-            NSWindow *window;                     /* The Cocoa window */
+            NSWindow *window;                     /**< The Cocoa window */
 #endif
         } cocoa;
 #endif
@@ -239,13 +240,13 @@ struct SDL_SysWMinfo
         struct
         {
 #if defined(__OBJC__) && defined(__has_feature) && __has_feature(objc_arc)
-            UIWindow __unsafe_unretained *window; /* The UIKit window */
+            UIWindow __unsafe_unretained *window; /**< The UIKit window */
 #else
-            UIWindow *window;                     /* The UIKit window */
+            UIWindow *window;                     /**< The UIKit window */
 #endif
-            GLuint framebuffer; /* The GL view's Framebuffer Object. It must be bound when rendering to the screen using GL. */
-            GLuint colorbuffer; /* The GL view's color Renderbuffer Object. It must be bound when SDL_GL_SwapWindow is called. */
-            GLuint resolveFramebuffer; /* The Framebuffer Object which holds the resolve color Renderbuffer, when MSAA is used. */
+            GLuint framebuffer; /**< The GL view's Framebuffer Object. It must be bound when rendering to the screen using GL. */
+            GLuint colorbuffer; /**< The GL view's color Renderbuffer Object. It must be bound when SDL_GL_SwapWindow is called. */
+            GLuint resolveFramebuffer; /**< The Framebuffer Object which holds the resolve color Renderbuffer, when MSAA is used. */
         } uikit;
 #endif
 #if defined(SDL_VIDEO_DRIVER_WAYLAND)
@@ -280,8 +281,9 @@ struct SDL_SysWMinfo
         } vivante;
 #endif
 
-        /* Can't have an empty union */
-        int dummy;
+        /* Make sure this union is always 64 bytes (8 64-bit pointers). */
+        /* Be careful not to overflow this if you add a new target! */
+        Uint8 dummy[64];
     } info;
 };
 

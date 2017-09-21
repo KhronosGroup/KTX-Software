@@ -125,7 +125,8 @@ typedef enum
     SDL_SYSWM_MIR,
     SDL_SYSWM_WINRT,
     SDL_SYSWM_ANDROID,
-    SDL_SYSWM_VIVANTE
+    SDL_SYSWM_VIVANTE,
+    SDL_SYSWM_OS2
 } SDL_SYSWM_TYPE;
 
 /**
@@ -280,8 +281,9 @@ struct SDL_SysWMinfo
         } vivante;
 #endif
 
-        /* Can't have an empty union */
-        int dummy;
+        /* Make sure this union is always 64 bytes (8 64-bit pointers). */
+        /* Be careful not to overflow this if you add a new target! */
+        Uint8 dummy[64];
     } info;
 };
 
