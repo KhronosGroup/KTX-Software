@@ -597,7 +597,7 @@ const char* const ktxErrorString(KTX_error_code error);
 /*
  * Creates a key-value hash table
  */
-KTX_hash_table ktxHashTable_Create();
+    KTX_hash_table ktxHashTable_Create(void);
 
 /*
  * Destroys a key-value hash table

@@ -680,13 +680,13 @@ static void stb_font_consolas_24_latin1(stb_fontchar font[STB_FONT_consolas_24_l
         for (j=1; j < STB_FONT_consolas_24_latin1_BITMAP_HEIGHT-1; ++j) {
             for (i=1; i < STB_FONT_consolas_24_latin1_BITMAP_WIDTH-1; ++i) {
                 unsigned int value;
-                if (numbits==0) bitpack = *bits++, numbits=32;
+                if (numbits==0) { bitpack = *bits++; numbits=32; }
                 value = bitpack & 1;
-                bitpack >>= 1, --numbits;
+                bitpack >>= 1; --numbits;
                 if (value) {
-                    if (numbits < 3) bitpack = *bits++, numbits = 32;
+                    if (numbits < 3) { bitpack = *bits++; numbits = 32; }
                     data[j][i] = (bitpack & 7) * 0x20 + 0x1f;
-                    bitpack >>= 3, numbits -= 3;
+                    bitpack >>= 3; numbits -= 3;
                 } else {
                     data[j][i] = 0;
                 }

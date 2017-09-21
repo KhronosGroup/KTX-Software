@@ -540,9 +540,9 @@ VulkanAppSDL::createInstance()
         dbgCreateInfo.pUserData = this;
         dbgCreateInfo.flags =
             VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT
-            | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT,
+            | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
             //| VK_DEBUG_REPORT_INFORMATION_BIT_EXT
-            //| VK_DEBUG_REPORT_DEBUG_BIT_EXT,
+            //| VK_DEBUG_REPORT_DEBUG_BIT_EXT;
         instanceInfo.pNext = &dbgCreateInfo;
     }
 
@@ -1355,10 +1355,10 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         cmdBufHInfo.pipelineStatistics = 0;
 
         VkCommandBufferBeginInfo cmdBufInfo = { };
-        cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        cmdBufInfo.pNext = NULL,
-        cmdBufInfo.flags = 0,
-        cmdBufInfo.pInheritanceInfo = &cmdBufHInfo,
+        cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        cmdBufInfo.pNext = NULL;
+        cmdBufInfo.flags = 0;
+        cmdBufInfo.pInheritanceInfo = &cmdBufHInfo;
 
         err = vkBeginCommandBuffer(setupCmdBuffer, &cmdBufInfo);
         assert(!err);
