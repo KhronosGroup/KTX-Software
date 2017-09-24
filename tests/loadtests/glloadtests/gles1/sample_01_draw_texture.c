@@ -143,9 +143,9 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
 		 	 (PFNGLDRAWTEXFVOESPROC)SDL_GL_GetProcAddress("glDrawTexfvOES");
 	} else {
         /* Can't do anything */
-        atMessageBox("This OpenGL ES implementation does not support "
-                     "OES_draw_texture.",
-                     "Can't Run Test", AT_MB_OK|AT_MB_ICONERROR);
+        atMessageBox("This OpenGL ES implementation does not support"
+                     " OES_draw_texture.",
+                     " Can't Run Test", AT_MB_OK|AT_MB_ICONERROR);
 	   return;
 	}
   
@@ -156,6 +156,7 @@ void atInitialize_01_draw_texture(void** ppAppData, const char* const szArgs,
 
 
     if ((filename = strchr(szArgs, ' ')) != NULL) {
+        npotTexture = GL_FALSE;
         if (!strncmp(szArgs, "--npot ", 7)) {
             npotTexture = GL_TRUE;
 #if defined(DEBUG)

@@ -77,6 +77,7 @@ void atInitialize_02_cube(void** ppAppData, const char* const szArgs,
         npotSupported = GL_FALSE;
     
     if ((filename = strchr(szArgs, ' ')) != NULL) {
+        npotTexture = GL_FALSE;
         if (!strncmp(szArgs, "--npot ", 7)) {
             npotTexture = GL_TRUE;
 #if defined(DEBUG)
