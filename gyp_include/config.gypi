@@ -165,10 +165,21 @@
     # With Mali only one of 64- or 32-bit can be built on any given
     # system. See maliemu.gypi for the full explanation.
     #
-    # PVR v2017_R1 runs all the tests correctly so it has been chosen
-    # as default as we can build and run for both Win32 and x64
-    # platforms (except on VS 2010 and earlier; see note in
-    # pvremu.gypi).
+    # PVR v2017_R1 runs almost correctly. Previous bugs have been 
+    # fixed but there is a new one in the OpenGL ES 1 emulator. It
+    # raises a GL_INVALID_ENUM error at line 157 in sample_02_textured.c,
+    # `glEnableClientState(GL_TEX_COORD_ARRAY);` the first, and only
+    # the first, time a cube test is run. In debug mode this
+    # triggers the later assert at line 211, in atRun_02_cube due to
+    # the uncollected error. In release mode an error message box is
+    # raised during load of the *next* test. After dismissing this,
+    # subsequent invocations of the cube test work and you can loop
+    # through the tests from the beginning again.
+    #
+    # As this is a relatively minor bug, provide you run in release
+    # mode, the PVR emulator has been chosen as default as we can build
+    # and run for both Win32 and x64 platforms (except on VS 2010 and
+    # earlier; see note in pvremu.gypi).
 
     #'adrenoemu.gypi',
     #'angle.gypi',
