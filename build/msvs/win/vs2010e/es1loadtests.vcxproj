@@ -53,7 +53,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
@@ -75,7 +75,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/SAFESEH:NO</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
@@ -97,7 +97,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
     </Link>

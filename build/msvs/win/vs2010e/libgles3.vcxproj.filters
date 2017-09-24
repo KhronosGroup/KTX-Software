@@ -25,19 +25,19 @@
     <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK">
       <UniqueIdentifier>{7D430796-139B-77D8-BC02-B4C08BB1FA54}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0">
-      <UniqueIdentifier>{9F19A78F-07DC-33C6-1859-6BEDD7DAFACB}</UniqueIdentifier>
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1">
+      <UniqueIdentifier>{E132A3D7-7B74-A6C5-6B59-B74EF91A7B05}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds">
       <UniqueIdentifier>{A1143D93-243F-CABF-BC1D-E24DA76FD299}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows">
       <UniqueIdentifier>{FCF99277-4DD1-BB5E-2FD0-3F007CDE9C1F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32">
       <UniqueIdentifier>{1ABDC8AF-7C50-4E57-CCB7-28A7359F4BF0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib">
       <UniqueIdentifier>{5EC823B9-9285-3DC5-0CE4-342CEDFB9990}</UniqueIdentifier>
     </Filter>
     <Filter Include="C:">
@@ -52,19 +52,19 @@
     <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK">
       <UniqueIdentifier>{7D430796-139B-77D8-BC02-B4C08BB1FA54}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0">
-      <UniqueIdentifier>{9F19A78F-07DC-33C6-1859-6BEDD7DAFACB}</UniqueIdentifier>
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1">
+      <UniqueIdentifier>{E132A3D7-7B74-A6C5-6B59-B74EF91A7B05}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds">
       <UniqueIdentifier>{A1143D93-243F-CABF-BC1D-E24DA76FD299}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows">
       <UniqueIdentifier>{FCF99277-4DD1-BB5E-2FD0-3F007CDE9C1F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32">
       <UniqueIdentifier>{1ABDC8AF-7C50-4E57-CCB7-28A7359F4BF0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib">
+    <Filter Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib">
       <UniqueIdentifier>{5EC823B9-9285-3DC5-0CE4-342CEDFB9990}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -72,11 +72,11 @@
     <None Include="..\..\..\..\ktxtests.gyp">
       <Filter>..\..\..\..</Filter>
     </None>
-    <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib\libEGL.dll">
-      <Filter>C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib</Filter>
+    <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib\libEGL.dll">
+      <Filter>C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib</Filter>
     </None>
-    <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib\libGLESv2.dll">
-      <Filter>C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib</Filter>
+    <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib\libGLESv2.dll">
+      <Filter>C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_32\Lib</Filter>
     </None>
   </ItemGroup>
 </Project>

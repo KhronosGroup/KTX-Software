@@ -49,7 +49,7 @@
         'conditions': [
           ['OS == "win"', {            
             'pvrsdk_dir':
-            'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_4.0/Builds/Windows/x86_<(gen_platform_arch_var)/Lib',
+            'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_2017_R1/Builds/Windows/x86_<(gen_platform_arch_var)/Lib',
           }, {
             'pvrsdk_dir': 'somewhere', # TO DO
           }]

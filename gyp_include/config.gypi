@@ -165,17 +165,10 @@
     # With Mali only one of 64- or 32-bit can be built on any given
     # system. See maliemu.gypi for the full explanation.
     #
-    # PVR has some implementation bugs that cause some
-    # of the loadtests to misbehave. It will not load LUMINANCE8_OES
-    # textures even though it advertises support for
-    # GL_OES_require_internal_formats causing a pop-up message box
-    # on that test.  It fails to raise an INVALID_ENUM error when
-    # attempting to load ETC2 formats in the OpenGL ES 1.1 emulator
-    # which causes all the ETC2 tests to fail to display so you see
-    # a yellow quad instead.
-    #
-    # Nevertheless PowerVR has been chosen as default as we can build
-    # and run for both Win32 and x64 platforms.
+    # PVR v2017_R1 runs all the tests correctly so it has been chosen
+    # as default as we can build and run for both Win32 and x64
+    # platforms (except on VS 2010 and earlier; see note in
+    # pvremu.gypi).
 
     #'adrenoemu.gypi',
     #'angle.gypi',
