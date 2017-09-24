@@ -224,11 +224,10 @@ will have to regenerate the xcode project if you wish to do this.
 
 #### Building SDL from source
 
-KTX uses SDL 2.0.6, which is currently in beta / release candidate phase. The canonical
-Mercurial repo is at https://hg.libsdl.org/SDL. An automated GitHub mirror is at
-https://github.com/spurious/SDL-mirror. The current binaries were built from
-[changeset 071deb801690](https://hg.libsdl.org/SDL/rev/071deb801690). They will be
-updated when 2.0.6 is released.
+KTX uses SDL 2.0.6. The canonical Mercurial repo is at https://hg.libsdl.org/SDL. An automated GitHub mirror is at
+https://github.com/spurious/SDL-mirror. The binaries were built from
+tag [release-2.0.6](https://hg.libsdl.org/SDL/rev/8df7a59b5528) which
+is changeset [8df7a59b5528](https://hg.libsdl.org/SDL/rev/8df7a59b5528).
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
