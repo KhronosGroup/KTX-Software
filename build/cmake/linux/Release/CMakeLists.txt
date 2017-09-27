@@ -685,7 +685,7 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PR
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources_mac/Info.plist")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(gl3loadtests
   libgl
@@ -978,10 +978,7 @@ list(APPEND vkloadtests__cxx_srcs
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.cpp")
 list(APPEND vkloadtests__other_srcs
   "../../../../tests/loadtests/common/vecmath.hpp"
-  "../../../../tests/loadtests/vkloadtests/Texture.h"
-  "../../../../tests/loadtests/vkloadtests/TextureArray.h"
-  "../../../../tests/loadtests/vkloadtests/TextureCubemap.h"
-  "../../../../tests/loadtests/vkloadtests/TexturedCube.h"
+  "../../../../tests/loadtests/vkloadtests/resources/mac/Info.plist"
   "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag"
   "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert"
   "../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag"
@@ -992,6 +989,10 @@ list(APPEND vkloadtests__other_srcs
   "../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert"
   "../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag"
   "../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert"
+  "../../../../tests/loadtests/vkloadtests/Texture.h"
+  "../../../../tests/loadtests/vkloadtests/TextureArray.h"
+  "../../../../tests/loadtests/vkloadtests/TextureCubemap.h"
+  "../../../../tests/loadtests/vkloadtests/TexturedCube.h"
   "../../../../tests/loadtests/vkloadtests/utils/VulkanMeshLoader.hpp"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.h"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.h")
@@ -1029,7 +1030,7 @@ set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LE
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_OTHER_LDFLAGS "-lassimp -lz")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources_mac/Info.plist")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources/mac/Info.plist")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(vkloadtests__frag2spirv
   appfwSDL

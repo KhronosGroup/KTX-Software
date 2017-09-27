@@ -9,15 +9,15 @@ cmd_libktx_gyp_libktx_doc_target_buildDoc = LD_LIBRARY_PATH=$(builddir)/lib.host
 build/doc/libktx/html: obj := $(abs_obj)
 build/doc/libktx/html: builddir := $(abs_builddir)
 build/doc/libktx/html: TOOLSET := $(TOOLSET)
-build/doc/libktx/html build/doc/libktx/latex build/doc/libktx/man: libktx_gyp_libktx_doc_target_buildDoc.intermediate
+build/doc/libktx/html build/doc/libktx/man: libktx_gyp_libktx_doc_target_buildDoc.intermediate
 	@:
 .INTERMEDIATE: libktx_gyp_libktx_doc_target_buildDoc.intermediate
 libktx_gyp_libktx_doc_target_buildDoc.intermediate: $(srcdir)/libktx.doxy $(srcdir)/runDoxygen $(srcdir)/LICENSE.md $(srcdir)/include/ktx.h $(srcdir)/lib/checkheader.c $(srcdir)/lib/errstr.c $(srcdir)/lib/etcdec.cxx $(srcdir)/lib/etcunpack.cxx $(srcdir)/lib/gl_format.h $(srcdir)/lib/gl_funcptrs.h $(srcdir)/lib/gles1_funcptrs.h $(srcdir)/lib/gles2_funcptrs.h $(srcdir)/lib/gles3_funcptrs.h $(srcdir)/lib/glloader.c $(srcdir)/lib/hashtable.c $(srcdir)/lib/ktxfilestream.c $(srcdir)/lib/ktxfilestream.h $(srcdir)/lib/ktxint.h $(srcdir)/lib/ktxmemstream.c $(srcdir)/lib/ktxmemstream.h $(srcdir)/lib/ktxstream.h $(srcdir)/lib/ktxreader.c $(srcdir)/lib/ktxreader.h $(srcdir)/lib/swap.c $(srcdir)/lib/uthash.h $(srcdir)/lib/writer.c $(srcdir)/include/ktxvulkan.h $(srcdir)/lib/vk_format.h $(srcdir)/lib/vkloader.c FORCE_DO_CMD
 	$(call do_cmd,touch)
 	$(call do_cmd,libktx_gyp_libktx_doc_target_buildDoc)
 
-all_deps += build/doc/libktx/html build/doc/libktx/latex build/doc/libktx/man
-action_libktx_gyp_libktx_doc_target_buildDoc_outputs := build/doc/libktx/html build/doc/libktx/latex build/doc/libktx/man
+all_deps += build/doc/libktx/html build/doc/libktx/man
+action_libktx_gyp_libktx_doc_target_buildDoc_outputs := build/doc/libktx/html build/doc/libktx/man
 
 
 ### Rules for final target.
