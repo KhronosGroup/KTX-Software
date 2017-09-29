@@ -112,6 +112,12 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
 		}
 		pSuppInfo->compressed = 1;
 	}
+    
+    if (pHeader->glFormat == pHeader->glInternalFormat) {
+        // glInternalFormat is either unsized (which is no longer and should
+        // never have been supported by libktx) or glFormat is sized.
+        return KTX_FILE_DATA_ERROR;
+    }
 
 	/* Check texture dimensions. KTX files can store 8 types of textures:
 	   1D, 2D, 3D, cube, and array variants of these. There is currently

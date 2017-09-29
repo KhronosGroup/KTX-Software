@@ -72,7 +72,7 @@ fi
 $toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx rgb.ppm
 $toktx --automipmap --lower_left_maps_to_s0t0 --nometadata rgb-amg-reference.ktx rgb.ppm
 $toktx --lower_left_maps_to_s0t0 --nometadata orient-up.ktx up.ppm
-$toktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 up.ppm
+$toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx up.ppm
 $toktx orient-down-metadata.ktx up.ppm
 $toktx --lower_left_maps_to_s0t0 --mipmap --nometadata rgb-mipmap-reference.ktx level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 $toktx --lower_left_maps_to_s0t0 --nometadata rgba-reference.ktx rgba.pam

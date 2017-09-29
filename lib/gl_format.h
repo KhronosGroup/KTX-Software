@@ -80,12 +80,6 @@ ENTRY POINTS
 static inline GLenum glGetFormatFromInternalFormat( const GLenum internalFormat );
 static inline GLenum glGetTypeFromInternalFormat( const GLenum internalFormat );
 static inline void glGetFormatSize( const GLenum internalFormat, GlFormatSize * pFormatSize );
-static inline GLenum glGetFormatSizeFromType( const GLenum format, const GLenum type, GlFormatSize * pFormatSize );
-
-MODIFICATIONS
-=============
-
-glGetFormatSizeFromType added 03/13/2017 by Mark Callow, Edgewise Consulting.
 
 ================================================================================================
 */
@@ -2402,124 +2396,6 @@ static inline void glGetFormatSize( const GLenum internalFormat, GlFormatSize * 
 			pFormatSize->blockHeight = 1;
 			pFormatSize->blockDepth = 1;
 			break;
-	}
-}
-
-static inline void glGetFormatSizeFromType( const GLenum format, const GLenum type,
-		                            		GlFormatSize * pFormatSize )
-{
-	unsigned int bitsPerComponent;
-
-	pFormatSize->flags = 0;
-	pFormatSize->paletteSizeInBits = 0;
-	pFormatSize->blockWidth = 1;
-	pFormatSize->blockHeight = 1;
-	pFormatSize->blockDepth = 1;
-
-	switch ( type )
-	{
-		//
-		// 8 bits per component
-		//
-		case GL_UNSIGNED_BYTE:
-		case GL_BYTE:
-			bitsPerComponent = 8;
-			break;
-
-		//
-		// 16 bits per component
-		//
-		case GL_UNSIGNED_SHORT:
-		case GL_SHORT:
-		case GL_HALF_FLOAT:
-		case GL_HALF_FLOAT_OES:
-			bitsPerComponent = 16;
-			break;
-		//
-		// 32 bits per component
-		//
-		case GL_UNSIGNED_INT:
-		case GL_INT:
-		case GL_FLOAT:
-			bitsPerComponent = 32;
-			break;
-
-		//
-		// 64 bits per component
-		//
-		case GL_UNSIGNED_INT64:
-		case GL_INT64:
-		case GL_DOUBLE:
-			bitsPerComponent = 64;
-			break;
-
-		//
-		// Packed
-		//
-		case GL_UNSIGNED_BYTE_3_3_2:
-		case GL_UNSIGNED_BYTE_2_3_3_REV:
-			pFormatSize->flags = GL_FORMAT_SIZE_PACKED_BIT;
-			pFormatSize->blockSizeInBits = 8;
-			return;
-		case GL_UNSIGNED_SHORT_5_6_5:
-		case GL_UNSIGNED_SHORT_5_6_5_REV:
-		case GL_UNSIGNED_SHORT_4_4_4_4:
-		case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-		case GL_UNSIGNED_SHORT_5_5_5_1:
-		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-			pFormatSize->flags = GL_FORMAT_SIZE_PACKED_BIT;
-			pFormatSize->blockSizeInBits = 16;
-			return;
-		case GL_UNSIGNED_INT_8_8_8_8:
-		case GL_UNSIGNED_INT_8_8_8_8_REV:
-		case GL_UNSIGNED_INT_10_10_10_2:
-		case GL_UNSIGNED_INT_2_10_10_10_REV:
-		case GL_UNSIGNED_INT_10F_11F_11F_REV:
-		case GL_UNSIGNED_INT_5_9_9_9_REV:
-			pFormatSize->flags = GL_FORMAT_SIZE_PACKED_BIT;
-			pFormatSize->blockSizeInBits = 16;
-			return;
-		case GL_UNSIGNED_INT_24_8:
-			pFormatSize->flags =  GL_FORMAT_SIZE_PACKED_BIT | GL_FORMAT_SIZE_DEPTH_BIT | GL_FORMAT_SIZE_STENCIL_BIT;
-			pFormatSize->blockSizeInBits = 32;
-			return;
-		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-			pFormatSize->flags =  GL_FORMAT_SIZE_PACKED_BIT | GL_FORMAT_SIZE_DEPTH_BIT | GL_FORMAT_SIZE_STENCIL_BIT;
-			pFormatSize->blockSizeInBits = 40;
-			return;
-	}
-
-	switch (format) {
-		case GL_RED:
-		case GL_RED_INTEGER:
-			pFormatSize->blockSizeInBits = bitsPerComponent;
-			return;
-		case GL_RG:
-		case GL_RG_INTEGER:
-			pFormatSize->blockSizeInBits = bitsPerComponent * 2;
-			return;
-		case GL_RGB:
-		case GL_BGR:
-		case GL_RGB_INTEGER:
-		case GL_BGR_INTEGER:
-			pFormatSize->blockSizeInBits = bitsPerComponent * 3;
-			return;
-		case GL_RGBA:
-		case GL_BGRA:
-		case GL_RGBA_INTEGER:
-		case GL_BGRA_INTEGER:
-			pFormatSize->blockSizeInBits = bitsPerComponent * 4;
-			return;
-		case GL_STENCIL_INDEX:
-			pFormatSize->blockSizeInBits = bitsPerComponent;
-			pFormatSize->flags = GL_FORMAT_SIZE_STENCIL_BIT;
-			return;
-		case GL_DEPTH_COMPONENT:
-			pFormatSize->blockSizeInBits = bitsPerComponent;
-			pFormatSize->flags = GL_FORMAT_SIZE_DEPTH_BIT;
-			return;
-		case GL_DEPTH_STENCIL:
-			assert(0); // DEPTH_STENCIL uses a packed type.
 	}
 }
 

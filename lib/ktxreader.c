@@ -621,11 +621,7 @@ ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
         return KTX_INVALID_OPERATION;
 
     header = &This->header;
-    if (header->glFormat == header->glInternalFormat)
-    	// It's an old unsized texture.
-    	glGetFormatSizeFromType(header->glFormat, header->glType, &formatSize);
-    else
-    	glGetFormatSize(header->glInternalFormat, &formatSize);
+    glGetFormatSize(header->glInternalFormat, &formatSize);
 
     /* XXX Consider setting this and isArray, etc. in check header to
      * avoid multiple instances of similar checks. */
@@ -677,11 +673,7 @@ ktxReader_getLevelSize(KTX_reader reader, ktx_uint32_t level, size_t* pLevelSize
       return KTX_INVALID_OPERATION;
     
     header = &This->header;
-    if (header->glFormat == header->glInternalFormat)
-    	// It's an old unsized texture.
-    	glGetFormatSizeFromType(header->glFormat, header->glType, &formatSize);
-    else
-    	glGetFormatSize(header->glInternalFormat, &formatSize);
+    glGetFormatSize(header->glInternalFormat, &formatSize);
 
     *pLevelSize = levelSize(&formatSize,
                             level,

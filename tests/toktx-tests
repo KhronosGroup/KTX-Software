@@ -152,12 +152,11 @@ fi
 gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgb.ppm 
 gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --nometadata rgb.ppm
 TOKTX_OPTIONS="--lower_left_maps_to_s0t0 --nometadata" gencmpktx orient-up.ktx up.ppm
-gencmpktx orient-up-metadata-sized.ktx --lower_left_maps_to_s0t0 --sized up.ppm
+gencmpktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 up.ppm
 gencmpktx orient-down-metadata.ktx up.ppm
 gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgba.pam
-gencmpktx luminance_unsized_reference.ktx --luminance luminance.pgm
-gencmpktx luminance_sized_reference.ktx --luminance --sized luminance.pgm
+gencmpktx luminance-reference-metadata.ktx --luminance luminance.pgm
 
 numtests=$numtests+1
 TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx --nometadata - rgb.ppm > $tempfile

@@ -105,7 +105,6 @@ struct commandOptions {
 	bool		 luminance;
     bool         metadata;
 	bool		 mipmap;
-	bool		 sized;
 	bool		 useStdin;
 	bool		 lower_left_maps_to_s0t0;
 	_TCHAR*		 outfile;
@@ -164,10 +163,6 @@ create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
     <dt>--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
-    <dt>--sized</dt>
-    <dd>Set the texture's internal format to a sized format based on
-        the component size of the input file. Otherwise set it to an
-        unsized internal format.</dd>
     <dt>--upper_left_maps_to_s0t0</dt>
     <dd>Map the logical upper left corner of the image to s0,t0.
         Although opposite to the OpenGL convention, this is the DEFAULT
@@ -261,9 +256,6 @@ usage(_TCHAR* appName)
 		"               --automipmap.\n"
         "  --nometadata Do not write KTXorientation metadata into the output file.\n"
         "               Use of this option is not recommended.\n"
-		"  --sized      Set the texture's internal format to a sized format based on\n"
-		"               the component size of the input file. Otherwise set it to an\n"
-		"               unsized internal format.\n"
         "  --upper_left_maps_to_s0t0\n"
 		"               Map the logical upper left corner of the image to s0,t0.\n"
 		"               Although opposite to the OpenGL convention, this is the DEFAULT\n"
@@ -391,55 +383,34 @@ int _tmain(int argc, _TCHAR* argv[])
 					  case 1:
 						if (ALLOW_LEGACY_FORMAT_CREATION && options.luminance) {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE;
-							if (options.sized)
-								tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-							else
-								tinfo.glInternalFormat = GL_LUMINANCE;
+                            tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8 : GL_LUMINANCE16;
 						} else if (ALLOW_LEGACY_FORMAT_CREATION && options.alpha) {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_ALPHA;
-							if (options.sized)
-								tinfo.glInternalFormat = componentSize == 1 ? GL_ALPHA8 : GL_ALPHA16;
-							else
-								tinfo.glInternalFormat = GL_ALPHA;
+                            tinfo.glInternalFormat = componentSize == 1 ? GL_ALPHA8 : GL_ALPHA16;
 						} else {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RED;
-							if (options.sized)
-								tinfo.glInternalFormat = componentSize == 1 ? GL_R8 : GL_R16;
-							else
-								tinfo.glInternalFormat = GL_RED;
+                            tinfo.glInternalFormat = componentSize == 1 ? GL_R8 : GL_R16;
 						}
 						break;
 
 					  case 2:
 						if (ALLOW_LEGACY_FORMAT_CREATION && options.luminance) {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_LUMINANCE_ALPHA;
-							if (options.sized)
-								tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
-							else
-								tinfo.glInternalFormat = GL_LUMINANCE_ALPHA;
+                            tinfo.glInternalFormat = componentSize == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
 						} else {
 							tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RG;
-							if (options.sized)
-								tinfo.glInternalFormat = componentSize == 1 ? GL_RG8 : GL_RG16;
-							else
-								tinfo.glInternalFormat = GL_RG;
+                            tinfo.glInternalFormat = componentSize == 1 ? GL_RG8 : GL_RG16;
 						}
 						break;
 
 					  case 3:
 						tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RGB;
-						if (options.sized)
-							tinfo.glInternalFormat = componentSize == 1 ? GL_RGB8 : GL_RGB16;
-						else
-							tinfo.glInternalFormat = GL_RGB;
+                        tinfo.glInternalFormat = componentSize == 1 ? GL_RGB8 : GL_RGB16;
 						break;
 
 					  case 4:
 						tinfo.glFormat = tinfo.glBaseInternalFormat = GL_RGBA;
-						if (options.sized)
-							tinfo.glInternalFormat = componentSize == 1 ? GL_RGBA8 : GL_RGBA16;
-						else
-							tinfo.glInternalFormat = GL_RGBA;
+                        tinfo.glInternalFormat = componentSize == 1 ? GL_RGBA8 : GL_RGBA16;
 						break;
 						break;
 
@@ -568,7 +539,6 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 	options.luminance = false;
 	options.metadata = true;
 	options.mipmap = false;
-	options.sized = false;
 	options.outfile = 0;
 	options.numInputFiles = 0;
 	options.firstInfileIndex = 0;
@@ -708,8 +678,6 @@ processOption(const _TCHAR* option, struct commandOptions& options)
 			options.luminance = true;
         } else if (_tcscmp(&option[2], "nometadata") == 0) {
             options.metadata = false;
-		} else if (_tcscmp(&option[2], "sized") == 0) {
-			options.sized = true;
 		} else if (_tcscmp(&option[2], "upper_left_maps_to_s0t0") == 0) {
 			options.lower_left_maps_to_s0t0 = false;
 		} else if (_tcscmp(&option[2], "lower_left_maps_to_s0t0") == 0) {

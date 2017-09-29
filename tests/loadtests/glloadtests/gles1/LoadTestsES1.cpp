@@ -107,9 +107,10 @@ static const atSample sc_Sample04 = {
 
 const LoadTests::sampleInvocation siSamples[] = {
 	{ &sc_Sample01, "--npot testimages/hi_mark.ktx", "RGB8 NPOT HI Logo" },
-	{ &sc_Sample01, "--npot testimages/luminance_unsized_reference.ktx", "Luminance (Unsized) NPOT" },
-	{ &sc_Sample01, "testimages/orient-up.ktx", "RGB (unsized)" },
-	{ &sc_Sample01, "testimages/orient-down-metadata.ktx", "RGB (unsized) + KTXOrientation down" },
+	{ &sc_Sample01, "--npot testimages/luminance_reference.ktx", "LUMINANCE8 NPOT" },
+	{ &sc_Sample01, "testimages/orient-up.ktx", "RGB8 (no metadata)" },
+    { &sc_Sample01, "testimages/orient-up-metadata.ktx", "RGB8 + KTXOrientation up" },
+	{ &sc_Sample01, "testimages/orient-down-metadata.ktx", "RGB8 + KTXOrientation down" },
 	{ &sc_Sample01, "testimages/etc1.ktx", "ETC1 RGB8"},
 	{ &sc_Sample01, "testimages/etc2-rgb.ktx", "ETC2 RGB8"},
 	{ &sc_Sample01, "testimages/etc2-rgba1.ktx", "ETC2 RGB8A1" },
@@ -117,7 +118,7 @@ const LoadTests::sampleInvocation siSamples[] = {
 	{ &sc_Sample01, "testimages/rgba-reference.ktx", "RGBA8" },
 	{ &sc_Sample02, "testimages/rgb-reference.ktx", "RGB8" },
 	{ &sc_Sample02, "testimages/rgb-amg-reference.ktx", "RGB8 + Auto Mipmap" },
-	{ &sc_Sample02, "testimages/rgb-mipmap-reference.ktx", "Color/level mipmap" },
+	{ &sc_Sample02, "testimages/rgb-mipmap-reference.ktx", "RGB8 Color/level mipmap" },
 	{ &sc_Sample02, "--npot testimages/hi_mark_sq.ktx", "RGB8 NPOT HI Logo" }
 };
 

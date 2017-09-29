@@ -248,8 +248,7 @@ VulkanLoadTests::onFPSUpdate()
 const VulkanLoadTests::sampleInvocation siSamples[] = {
 #if 0
     { &sc_Sample01, "testimages/hi_mark.ktx", "RGB8 NPOT HI Logo" },
-    { &sc_Sample01, "testimages/luminance_unsized_reference.ktx", "Luminance (Unsized)" },
-    { &sc_Sample01, "testimages/luminance_sized_reference.ktx", "Luminance (Sized)" },
+    { &sc_Sample01, "testimages/luminance_reference_metadata.ktx", "Luminance8 + KTXOrientation down" },
     { &sc_Sample01, "testimages/up-reference.ktx", "RGB8" },
     { &sc_Sample01, "testimages/down-reference.ktx", "RGB8 + KTXOrientation"},
     { &sc_Sample01, "testimages/etc1.ktx", "ETC1 RGB8" },
@@ -269,21 +268,20 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     { &sc_Sample02, "testimages/rgb-mipmap-reference.ktx", "Color/level mipmap" },
     { &sc_Sample02, "testimages/hi_mark_sq.ktx", "RGB8 NPOT HI Logo" }
 #endif
-#if 1
     { Texture::create,
       "testimages/rgba-reference.ktx",
       VulkanLoadTests::CompressionType::eNone,
-      "RGBA unsized 2D"
+      "RGBA8 2D"
     },
 #if !defined(__IPHONEOS__) && !defined(__MACOSX__)
     // Uncompressed RGB formats not supported by Metal.
     { Texture::create,
-      "testimages/orient-down-metadata-sized.ktx",
+      "testimages/orient-down-metadata.ktx",
       VulkanLoadTests::CompressionType::eNone,
      "RGB8 2D + KTXOrientation down"
     },
     { Texture::create,
-      "testimages/orient-up-metadata-sized.ktx",
+      "testimages/orient-up-metadata.ktx",
       VulkanLoadTests::CompressionType::eNone,
       "RGB8 2D + KTXOrientation up"
     },
@@ -313,7 +311,6 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         VulkanLoadTests::CompressionType::eBC,
         "BC2 (S3TC DXT3) Compressed 2D"
     },
-#endif
     { TextureArray::create,
         "testimages/texturearray_bc3_unorm.ktx",
         VulkanLoadTests::CompressionType::eBC,
