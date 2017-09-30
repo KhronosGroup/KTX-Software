@@ -181,18 +181,6 @@
     <Filter Include="tests\testimages">
       <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtests.gyp"/>
@@ -244,10 +232,7 @@
     <None Include="..\..\..\..\tests\testimages\hi_mark_sq.ktx">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\luminance_sized_reference.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\luminance_unsized_reference.ktx">
+    <None Include="..\..\..\..\tests\testimages\luminance-reference-metadata.ktx">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\no-npot.ktx">
@@ -256,16 +241,10 @@
     <None Include="..\..\..\..\tests\testimages\orient-down-metadata.ktx">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\orient-down-metadata-sized.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
     <None Include="..\..\..\..\tests\testimages\orient-up.ktx">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\orient-up-metadata-sized.ktx">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\orient-up-sized.ktx">
+    <None Include="..\..\..\..\tests\testimages\orient-up-metadata.ktx">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\pattern_02_bc2.ktx">
@@ -281,6 +260,9 @@
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\rgb-reference.ktx">
+      <Filter>tests\testimages</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\testimages\rgb-reference-metadata.ktx">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\texturearray_astc_8x8_unorm.ktx">

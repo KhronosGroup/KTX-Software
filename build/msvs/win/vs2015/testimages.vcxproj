@@ -157,6 +157,13 @@
       <Outputs>$(OutDir)\testimages\hi_mark.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\rgb-reference-metadata.ktx">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\rgb-reference-metadata.ktx&quot; &quot;$(OutDir)testimages\rgb-reference-metadata.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/rgb-reference-metadata.ktx to $(OutDir)/testimages\rgb-reference-metadata.ktx</Message>
+      <Outputs>$(OutDir)\testimages\rgb-reference-metadata.ktx</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\pattern_02_bc2.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\pattern_02_bc2.ktx&quot; &quot;$(OutDir)testimages\pattern_02_bc2.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
@@ -164,18 +171,18 @@
       <Outputs>$(OutDir)\testimages\pattern_02_bc2.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\orient-up-metadata-sized.ktx">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\orient-up-metadata-sized.ktx&quot; &quot;$(OutDir)testimages\orient-up-metadata-sized.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/orient-up-metadata-sized.ktx to $(OutDir)/testimages\orient-up-metadata-sized.ktx</Message>
-      <Outputs>$(OutDir)\testimages\orient-up-metadata-sized.ktx</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\cubemap_yokohama_bc3_unorm.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\cubemap_yokohama_bc3_unorm.ktx&quot; &quot;$(OutDir)testimages\cubemap_yokohama_bc3_unorm.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/testimages/cubemap_yokohama_bc3_unorm.ktx to $(OutDir)/testimages\cubemap_yokohama_bc3_unorm.ktx</Message>
       <Outputs>$(OutDir)\testimages\cubemap_yokohama_bc3_unorm.ktx</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\luminance-reference-metadata.ktx">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\luminance-reference-metadata.ktx&quot; &quot;$(OutDir)testimages\luminance-reference-metadata.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/luminance-reference-metadata.ktx to $(OutDir)/testimages\luminance-reference-metadata.ktx</Message>
+      <Outputs>$(OutDir)\testimages\luminance-reference-metadata.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\orient-up.ktx">
@@ -192,11 +199,11 @@
       <Outputs>$(OutDir)\testimages\etc1.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\orient-down-metadata-sized.ktx">
+    <CustomBuild Include="..\..\..\..\tests\testimages\rgb-reference.ktx">
       <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\orient-down-metadata-sized.ktx&quot; &quot;$(OutDir)testimages\orient-down-metadata-sized.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/orient-down-metadata-sized.ktx to $(OutDir)/testimages\orient-down-metadata-sized.ktx</Message>
-      <Outputs>$(OutDir)\testimages\orient-down-metadata-sized.ktx</Outputs>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\rgb-reference.ktx&quot; &quot;$(OutDir)testimages\rgb-reference.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/rgb-reference.ktx to $(OutDir)/testimages\rgb-reference.ktx</Message>
+      <Outputs>$(OutDir)\testimages\rgb-reference.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\etc2-rgba1.ktx">
@@ -262,13 +269,6 @@
       <Outputs>$(OutDir)\testimages\etc2-sRGBa8.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\luminance_sized_reference.ktx">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\luminance_sized_reference.ktx&quot; &quot;$(OutDir)testimages\luminance_sized_reference.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/luminance_sized_reference.ktx to $(OutDir)/testimages\luminance_sized_reference.ktx</Message>
-      <Outputs>$(OutDir)\testimages\luminance_sized_reference.ktx</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\conftestimage_R11_EAC.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\conftestimage_R11_EAC.ktx&quot; &quot;$(OutDir)testimages\conftestimage_R11_EAC.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
@@ -297,6 +297,13 @@
       <Outputs>$(OutDir)\testimages\etc2-rgb.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\orient-up-metadata.ktx">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\orient-up-metadata.ktx&quot; &quot;$(OutDir)testimages\orient-up-metadata.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/orient-up-metadata.ktx to $(OutDir)/testimages\orient-up-metadata.ktx</Message>
+      <Outputs>$(OutDir)\testimages\orient-up-metadata.ktx</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\conftestimage_SIGNED_R11_EAC.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\conftestimage_SIGNED_R11_EAC.ktx&quot; &quot;$(OutDir)testimages\conftestimage_SIGNED_R11_EAC.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
@@ -304,25 +311,11 @@
       <Outputs>$(OutDir)\testimages\conftestimage_SIGNED_R11_EAC.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\orient-up-sized.ktx">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\orient-up-sized.ktx&quot; &quot;$(OutDir)testimages\orient-up-sized.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/orient-up-sized.ktx to $(OutDir)/testimages\orient-up-sized.ktx</Message>
-      <Outputs>$(OutDir)\testimages\orient-up-sized.ktx</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\hi_mark_sq.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\hi_mark_sq.ktx&quot; &quot;$(OutDir)testimages\hi_mark_sq.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/testimages/hi_mark_sq.ktx to $(OutDir)/testimages\hi_mark_sq.ktx</Message>
       <Outputs>$(OutDir)\testimages\hi_mark_sq.ktx</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\luminance_unsized_reference.ktx">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\luminance_unsized_reference.ktx&quot; &quot;$(OutDir)testimages\luminance_unsized_reference.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/luminance_unsized_reference.ktx to $(OutDir)/testimages\luminance_unsized_reference.ktx</Message>
-      <Outputs>$(OutDir)\testimages\luminance_unsized_reference.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\rgb-mipmap-reference.ktx">
@@ -344,13 +337,6 @@
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\etc2-rgba8.ktx&quot; &quot;$(OutDir)testimages\etc2-rgba8.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/testimages/etc2-rgba8.ktx to $(OutDir)/testimages\etc2-rgba8.ktx</Message>
       <Outputs>$(OutDir)\testimages\etc2-rgba8.ktx</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\rgb-reference.ktx">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\rgb-reference.ktx&quot; &quot;$(OutDir)testimages\rgb-reference.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/rgb-reference.ktx to $(OutDir)/testimages\rgb-reference.ktx</Message>
-      <Outputs>$(OutDir)\testimages\rgb-reference.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\conftestimage_SIGNED_RG11_EAC.ktx">
