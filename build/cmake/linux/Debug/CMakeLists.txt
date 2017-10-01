@@ -393,19 +393,17 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_sized_reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance_unsized_reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance-reference-metadata.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-sized.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-sized.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-sized.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference-metadata.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx")
@@ -426,19 +424,17 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/etc2-sRGB.ktx"
   "${builddir}/testimages/hi_mark.ktx"
   "${builddir}/testimages/hi_mark_sq.ktx"
-  "${builddir}/testimages/luminance_sized_reference.ktx"
-  "${builddir}/testimages/luminance_unsized_reference.ktx"
+  "${builddir}/testimages/luminance-reference-metadata.ktx"
   "${builddir}/testimages/no-npot.ktx"
   "${builddir}/testimages/orient-down-metadata.ktx"
-  "${builddir}/testimages/orient-down-metadata-sized.ktx"
   "${builddir}/testimages/orient-up.ktx"
-  "${builddir}/testimages/orient-up-metadata-sized.ktx"
-  "${builddir}/testimages/orient-up-sized.ktx"
+  "${builddir}/testimages/orient-up-metadata.ktx"
   "${builddir}/testimages/pattern_02_bc2.ktx"
   "${builddir}/testimages/rgb-amg-reference.ktx"
   "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/rgb-mipmap-reference.ktx"
   "${builddir}/testimages/rgb-reference.ktx"
+  "${builddir}/testimages/rgb-reference-metadata.ktx"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx")
@@ -460,19 +456,17 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/te
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_sized_reference.ktx ${builddir}/testimages/luminance_sized_reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance_unsized_reference.ktx ${builddir}/testimages/luminance_unsized_reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance-reference-metadata.ktx ${builddir}/testimages/luminance-reference-metadata.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-sized.ktx ${builddir}/testimages/orient-down-metadata-sized.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-sized.ktx ${builddir}/testimages/orient-up-metadata-sized.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-sized.ktx ${builddir}/testimages/orient-up-sized.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx ${builddir}/testimages/orient-up-metadata.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx ${builddir}/testimages/pattern_02_bc2.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference-metadata.ktx ${builddir}/testimages/rgb-reference-metadata.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx

@@ -83,16 +83,11 @@ $(builddir)/testimages/hi_mark_sq.ktx: $(srcdir)/tests/testimages/hi_mark_sq.ktx
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/hi_mark_sq.ktx
-$(builddir)/testimages/luminance_sized_reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/luminance_sized_reference.ktx: $(srcdir)/tests/testimages/luminance_sized_reference.ktx FORCE_DO_CMD
+$(builddir)/testimages/luminance-reference-metadata.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/luminance-reference-metadata.ktx: $(srcdir)/tests/testimages/luminance-reference-metadata.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/luminance_sized_reference.ktx
-$(builddir)/testimages/luminance_unsized_reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/luminance_unsized_reference.ktx: $(srcdir)/tests/testimages/luminance_unsized_reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/luminance_unsized_reference.ktx
+all_deps += $(builddir)/testimages/luminance-reference-metadata.ktx
 $(builddir)/testimages/no-npot.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/no-npot.ktx: $(srcdir)/tests/testimages/no-npot.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -103,26 +98,16 @@ $(builddir)/testimages/orient-down-metadata.ktx: $(srcdir)/tests/testimages/orie
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/orient-down-metadata.ktx
-$(builddir)/testimages/orient-down-metadata-sized.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/orient-down-metadata-sized.ktx: $(srcdir)/tests/testimages/orient-down-metadata-sized.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/orient-down-metadata-sized.ktx
 $(builddir)/testimages/orient-up.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/orient-up.ktx: $(srcdir)/tests/testimages/orient-up.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/orient-up.ktx
-$(builddir)/testimages/orient-up-metadata-sized.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/orient-up-metadata-sized.ktx: $(srcdir)/tests/testimages/orient-up-metadata-sized.ktx FORCE_DO_CMD
+$(builddir)/testimages/orient-up-metadata.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up-metadata.ktx: $(srcdir)/tests/testimages/orient-up-metadata.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/orient-up-metadata-sized.ktx
-$(builddir)/testimages/orient-up-sized.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/orient-up-sized.ktx: $(srcdir)/tests/testimages/orient-up-sized.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/orient-up-sized.ktx
+all_deps += $(builddir)/testimages/orient-up-metadata.ktx
 $(builddir)/testimages/pattern_02_bc2.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/pattern_02_bc2.ktx: $(srcdir)/tests/testimages/pattern_02_bc2.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -148,6 +133,11 @@ $(builddir)/testimages/rgb-reference.ktx: $(srcdir)/tests/testimages/rgb-referen
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/rgb-reference.ktx
+$(builddir)/testimages/rgb-reference-metadata.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/rgb-reference-metadata.ktx: $(srcdir)/tests/testimages/rgb-reference-metadata.ktx FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/rgb-reference-metadata.ktx
 $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx: $(srcdir)/tests/testimages/texturearray_astc_8x8_unorm.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -163,7 +153,7 @@ $(builddir)/testimages/texturearray_etc2_unorm.ktx: $(srcdir)/tests/testimages/t
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/texturearray_etc2_unorm.ktx
-ktxtests_gyp_testimages_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx $(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx $(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/orient-down-metadata.ktx $(builddir)/testimages/orient-down-metadata-sized.ktx $(builddir)/testimages/orient-up.ktx $(builddir)/testimages/orient-up-metadata-sized.ktx $(builddir)/testimages/orient-up-sized.ktx $(builddir)/testimages/pattern_02_bc2.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx $(builddir)/testimages/texturearray_bc3_unorm.ktx $(builddir)/testimages/texturearray_etc2_unorm.ktx
+ktxtests_gyp_testimages_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx $(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx $(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance-reference-metadata.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/orient-down-metadata.ktx $(builddir)/testimages/orient-up.ktx $(builddir)/testimages/orient-up-metadata.ktx $(builddir)/testimages/pattern_02_bc2.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/rgb-reference-metadata.ktx $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx $(builddir)/testimages/texturearray_bc3_unorm.ktx $(builddir)/testimages/texturearray_etc2_unorm.ktx
 
 ### Rules for final target.
 # Build our special outputs first.
