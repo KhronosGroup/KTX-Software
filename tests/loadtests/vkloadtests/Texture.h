@@ -57,9 +57,11 @@ class Texture : public VulkanLoadTestSample
            const char* const szArgs, const std::string sBasePath);
 
   protected:
+    std::string filename;
     ktxVulkanTexture texture;
     vk::Sampler sampler;
     vk::ImageView imageView;
+    vk::ImageTiling tiling;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;
@@ -104,6 +106,8 @@ class Texture : public VulkanLoadTestSample
 	void updateUniformBuffers();
     void prepareSamplerAndView();
 	void prepare();
+    
+    void processArgs(std::string sArgs);
 
     virtual void keyPressed(uint32_t keyCode);
 	virtual void viewChanged()

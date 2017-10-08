@@ -273,6 +273,11 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       VulkanLoadTests::CompressionType::eNone,
       "RGBA8 2D"
     },
+    { Texture::create,
+        "--linear-tiling testimages/rgba-reference.ktx",
+        VulkanLoadTests::CompressionType::eNone,
+        "RGBA8 2D using Linear Tiling"
+    },
 #if !defined(__IPHONEOS__) && !defined(__MACOSX__)
     // Uncompressed RGB formats not supported by Metal.
     { Texture::create,

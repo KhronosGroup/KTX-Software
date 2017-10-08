@@ -80,7 +80,7 @@ class VulkanLoadTestSample {
   protected:
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
-
+    
     const std::string getAssetPath() { return sBasePath; }
 
     vk::PipelineShaderStageCreateInfo

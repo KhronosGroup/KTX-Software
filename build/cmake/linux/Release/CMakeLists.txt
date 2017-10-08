@@ -958,6 +958,7 @@ add_custom_target(vkloadtests__copies
   SOURCES ${vkloadtests__copies__input}
 )
 list(APPEND vkloadtests__cxx_srcs
+  "../../../../tests/loadtests/utils/argparser.cpp"
   "../../../../tests/loadtests/vkloadtests/Texture.cpp"
   "../../../../tests/loadtests/vkloadtests/TextureArray.cpp"
   "../../../../tests/loadtests/vkloadtests/TextureCubemap.cpp"
@@ -966,6 +967,7 @@ list(APPEND vkloadtests__cxx_srcs
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.cpp")
 list(APPEND vkloadtests__other_srcs
   "../../../../tests/loadtests/common/vecmath.hpp"
+  "../../../../tests/loadtests/utils/argparser.h"
   "../../../../tests/loadtests/vkloadtests/resources/mac/Info.plist"
   "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag"
   "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert"
@@ -1000,6 +1002,7 @@ set_source_files_properties(${builddir}/vkloadtests PROPERTIES GENERATED "TRUE")
 list(APPEND vkloadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"

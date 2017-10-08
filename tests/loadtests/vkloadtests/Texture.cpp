@@ -56,6 +56,7 @@
 #include <vector>
 
 #include <ktxvulkan.h>
+#include <argparser.h>
 #include "Texture.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
@@ -86,18 +87,24 @@ Texture::Texture(VulkanContext& vkctx,
 {
     zoom = -2.5f;
     rotation = { 0.0f, 15.0f, 0.0f };
+    tiling = vk::ImageTiling::eOptimal;
 
     ktxVulkanDeviceInfo kvdi;
     ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
                                   vkctx.queue, vkctx.commandPool, nullptr);
 
+    processArgs(szArgs);
 
     uint8_t* pKvData;
     uint32_t  kvDataLen;
     KTX_error_code ktxresult;
-    ktxresult = ktxLoadVkTextureN((getAssetPath() + szArgs).c_str(),
-    							  &kvdi,
-    		                      &texture, &kvDataLen, &pKvData);
+    ktxresult = ktxLoadVkTextureExN((getAssetPath() + filename).c_str(),
+    							    &kvdi,
+    		                        &texture,
+                                    static_cast<VkImageTiling>(tiling),
+                                    VK_IMAGE_USAGE_SAMPLED_BIT,
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                    &kvDataLen, &pKvData);
     ktxVulkanDeviceInfo_destruct(&kvdi);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
@@ -157,6 +164,29 @@ Texture::run(uint32_t msTicks)
 {
     // Nothing to do since the scene is not animated.
     // VulkanLoadTests base class redraws from the command buffer we built.
+}
+
+void
+Texture::processArgs(std::string sArgs)
+{
+    // Options descriptor
+    struct argparser::option longopts[] = {
+        "linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear,
+        NULL,            argparser::option::no_argument, NULL,          0
+    };
+
+    argvector argv(sArgs);
+    argparser ap(argv);
+    
+    int ch;
+    while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
+        switch (ch) {
+            case 0: break;
+            default: assert(false); // Error in args in sample table.
+        }
+    }
+    assert(ap.optind < argv.size());
+    filename = argv[ap.optind];
 }
 
 /* ------------------------------------------------------------------------- */
