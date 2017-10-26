@@ -578,6 +578,7 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
 
         // Create optimal tiled target image
         imageCreateInfo.imageType = imageType;
+		imageCreateInfo.flags = createFlags;
         imageCreateInfo.format = vkFormat;
         imageCreateInfo.mipLevels = mipLevels;
         imageCreateInfo.arrayLayers = arrayLayers;
@@ -674,6 +675,7 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         user_cbdata_linear cbData;
 
         imageCreateInfo.imageType = imageType;
+		imageCreateInfo.flags = createFlags;
         imageCreateInfo.format = vkFormat;
         imageCreateInfo.extent.width = pTexture->width;
         imageCreateInfo.extent.height = pTexture->height;
@@ -1147,8 +1149,8 @@ setImageLayout(
     }
 
     // Put barrier on top of pipeline.
-    VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
     // Add the barrier to the passed command buffer
     vkCmdPipelineBarrier(

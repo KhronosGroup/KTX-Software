@@ -968,7 +968,7 @@ VulkanAppSDL::preparePresentCommandBuffers()
         vkCmdPipelineBarrier(
             vkctx.postPresentCmdBuffers[i],
             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
             0,
             0, nullptr,
             0, nullptr,
@@ -1000,7 +1000,7 @@ VulkanAppSDL::preparePresentCommandBuffers()
         vkCmdPipelineBarrier(
             vkctx.prePresentCmdBuffers[i],
             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
             0,
             0, nullptr, // No memory barriers,
             0, nullptr, // No buffer barriers,
@@ -1399,8 +1399,8 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
             VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
     }
 
-    VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
     vkCmdPipelineBarrier(setupCmdBuffer, src_stages, dest_stages, 0, 0,
                          NULL, 0, NULL, 1, &imageMemoryBarrier);
