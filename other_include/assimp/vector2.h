@@ -41,7 +41,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @file vector2.h
  *  @brief 2D vector structure, including operators when compiling in C++
  */
-#pragma once
 #ifndef AI_VECTOR2D_H_INC
 #define AI_VECTOR2D_H_INC
 
@@ -52,7 +51,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "./Compiler/pushpack1.h"
-#include "defs.h"
 
 // ----------------------------------------------------------------------------------
 /** Represents a two-dimensional vector.
@@ -100,12 +98,12 @@ public:
     TReal x, y;
 } PACK_STRUCT;
 
-typedef aiVector2t<ai_real> aiVector2D;
+typedef aiVector2t<float> aiVector2D;
 
 #else
 
 struct aiVector2D {
-    ai_real x, y;
+    float x, y;
 };
 
 #endif // __cplusplus

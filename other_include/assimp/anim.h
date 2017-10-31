@@ -39,17 +39,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
-/** 
-  * @file   anim.h
-  * @brief  Defines the data structures in which the imported animations
-  *         are returned.
-  */
-#pragma once
+/** @file anim.h
+ *  @brief Defines the data structures in which the imported animations
+ *  are returned.
+ */
 #ifndef AI_ANIM_H_INC
 #define AI_ANIM_H_INC
 
-#include <assimp/types.h>
-#include <assimp/quaternion.h>
+#include "types.h"
+#include "quaternion.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,19 +65,15 @@ struct aiVectorKey
 
 #ifdef __cplusplus
 
-    /// @brief  The default constructor.
-    aiVectorKey() 
-    : mTime( 0.0 )
-    , mValue() {
-        // empty
-    }
+    //! Default constructor
+    aiVectorKey(){}
 
-    /// @brief  Construction from a given time and key value.
-
+    //! Construction from a given time and key value
     aiVectorKey(double time, const aiVector3D& value)
         :   mTime   (time)
         ,   mValue  (value)
     {}
+
 
     typedef aiVector3D elem_type;
 
@@ -98,7 +92,7 @@ struct aiVectorKey
     bool operator > (const aiVectorKey& o) const {
         return mTime > o.mTime;
     }
-#endif // __cplusplus
+#endif
 };
 
 // ---------------------------------------------------------------------------
@@ -113,10 +107,7 @@ struct aiQuatKey
     C_STRUCT aiQuaternion mValue;
 
 #ifdef __cplusplus
-    aiQuatKey()
-    : mTime( 0.0 )
-    , mValue() {
-        // empty
+    aiQuatKey(){
     }
 
     /** Construction from a given time and key value */
@@ -153,7 +144,7 @@ struct aiMeshKey
     double mTime;
 
     /** Index into the aiMesh::mAnimMeshes array of the
-     *  mesh corresponding to the #aiMeshAnim hosting this
+     *  mesh coresponding to the #aiMeshAnim hosting this
      *  key frame. The referenced anim mesh is evaluated
      *  according to the rules defined in the docs for #aiAnimMesh.*/
     unsigned int mValue;
@@ -191,39 +182,6 @@ struct aiMeshKey
 };
 
 // ---------------------------------------------------------------------------
-/** Binds a morph anim mesh to a specific point in time. */
-struct aiMeshMorphKey
-{
-    /** The time of this key */
-    double mTime;
-
-    /** The values and weights at the time of this key */
-    unsigned int *mValues;
-    double *mWeights;
-
-    /** The number of values and weights */
-    unsigned int mNumValuesAndWeights;
-#ifdef __cplusplus
-	aiMeshMorphKey()
-		: mTime(0.0)
-		, mValues(NULL)
-		, mWeights(NULL)
-		, mNumValuesAndWeights(0)
-	{
-
-	}
-
-    ~aiMeshMorphKey()
-    {
-        if (mNumValuesAndWeights && mValues && mWeights) {
-            delete [] mValues;
-            delete [] mWeights;
-        }
-    }
-#endif
-};
-
-// ---------------------------------------------------------------------------
 /** Defines how an animation channel behaves outside the defined time
  *  range. This corresponds to aiNodeAnim::mPreState and
  *  aiNodeAnim::mPostState.*/
@@ -244,6 +202,8 @@ enum aiAnimBehaviour
      *  If the animation key go from n to m and the current
      *  time is t, use the value at (t-n) % (|m-n|).*/
     aiAnimBehaviour_REPEAT   = 0x3,
+
+
 
     /** This value is not used, it is just here to force the
      *  the compiler to map this enum to a 32 Bit integer  */
@@ -267,7 +227,8 @@ enum aiAnimBehaviour
  *  Duplicate keys don't pass the validation step. Most likely there
  *  will be no negative time values, but they are not forbidden also ( so
  *  implementations need to cope with them! ) */
-struct aiNodeAnim {
+struct aiNodeAnim
+{
     /** The name of the node affected by this animation. The node
      *  must exist and it must be unique.*/
     C_STRUCT aiString mNodeName;
@@ -293,6 +254,7 @@ struct aiNodeAnim {
      * scaling and one position key. */
     C_STRUCT aiQuatKey* mRotationKeys;
 
+
     /** The number of scaling keys */
     unsigned int mNumScalingKeys;
 
@@ -302,6 +264,7 @@ struct aiNodeAnim {
      * If there are scaling keys, there will also be at least one
      * position and one rotation key.*/
     C_STRUCT aiVectorKey* mScalingKeys;
+
 
     /** Defines how the animation behaves before the first
      *  key is encountered.
@@ -318,19 +281,17 @@ struct aiNodeAnim {
     C_ENUM aiAnimBehaviour mPostState;
 
 #ifdef __cplusplus
-    aiNodeAnim() 
-    : mNumPositionKeys( 0 )
-    , mPositionKeys( NULL )
-    , mNumRotationKeys( 0 )
-    , mRotationKeys( NULL )
-    , mNumScalingKeys( 0 )
-    , mScalingKeys( NULL )
-    , mPreState( aiAnimBehaviour_DEFAULT )
-    , mPostState( aiAnimBehaviour_DEFAULT ) {
-         // empty
+    aiNodeAnim()
+    {
+        mNumPositionKeys = 0; mPositionKeys = NULL;
+        mNumRotationKeys = 0; mRotationKeys = NULL;
+        mNumScalingKeys  = 0; mScalingKeys  = NULL;
+
+        mPreState = mPostState = aiAnimBehaviour_DEFAULT;
     }
 
-    ~aiNodeAnim() {
+    ~aiNodeAnim()
+    {
         delete [] mPositionKeys;
         delete [] mRotationKeys;
         delete [] mScalingKeys;
@@ -348,7 +309,7 @@ struct aiMeshAnim
 {
     /** Name of the mesh to be animated. An empty string is not allowed,
      *  animated meshes need to be named (not necessarily uniquely,
-     *  the name can basically serve as wild-card to select a group
+     *  the name can basically serve as wildcard to select a group
      *  of meshes with similar animation setup)*/
     C_STRUCT aiString mName;
 
@@ -374,40 +335,10 @@ struct aiMeshAnim
 };
 
 // ---------------------------------------------------------------------------
-/** Describes a morphing animation of a given mesh. */
-struct aiMeshMorphAnim
-{
-    /** Name of the mesh to be animated. An empty string is not allowed,
-     *  animated meshes need to be named (not necessarily uniquely,
-     *  the name can basically serve as wildcard to select a group
-     *  of meshes with similar animation setup)*/
-    C_STRUCT aiString mName;
-
-    /** Size of the #mKeys array. Must be 1, at least. */
-    unsigned int mNumKeys;
-
-    /** Key frames of the animation. May not be NULL. */
-    C_STRUCT aiMeshMorphKey* mKeys;
-
-#ifdef __cplusplus
-
-    aiMeshMorphAnim()
-        : mNumKeys()
-        , mKeys()
-    {}
-
-    ~aiMeshMorphAnim()
-    {
-        delete[] mKeys;
-    }
-
-#endif
-};
-
-// ---------------------------------------------------------------------------
-/** An animation consists of key-frame data for a number of nodes. For
+/** An animation consists of keyframe data for a number of nodes. For
  *  each node affected by the animation a separate series of data is given.*/
-struct aiAnimation {
+struct aiAnimation
+{
     /** The name of the animation. If the modeling package this data was
      *  exported from does support only a single animation channel, this
      *  name is usually empty (length is zero). */
@@ -436,68 +367,50 @@ struct aiAnimation {
      *  The array is mNumMeshChannels in size. */
     C_STRUCT aiMeshAnim** mMeshChannels;
 
-    /** The number of mesh animation channels. Each channel affects
-     *  a single mesh and defines morphing animation. */
-    unsigned int mNumMorphMeshChannels;
-
-    /** The morph mesh animation channels. Each channel affects a single mesh.
-     *  The array is mNumMorphMeshChannels in size. */
-    C_STRUCT aiMeshMorphAnim **mMorphMeshChannels;
-
 #ifdef __cplusplus
     aiAnimation()
-    : mDuration(-1.)
-    , mTicksPerSecond(0.)
-    , mNumChannels(0)
-    , mChannels(NULL)
-    , mNumMeshChannels(0)
-    , mMeshChannels(NULL)
-    , mNumMorphMeshChannels(0)
-    , mMorphMeshChannels(NULL) {
-        // empty
+        : mDuration(-1.)
+        , mTicksPerSecond()
+        , mNumChannels()
+        , mChannels()
+        , mNumMeshChannels()
+        , mMeshChannels()
+    {
     }
 
-    ~aiAnimation() {
+    ~aiAnimation()
+    {
         // DO NOT REMOVE THIS ADDITIONAL CHECK
-        if ( mNumChannels && mChannels )  {
+        if (mNumChannels && mChannels)  {
             for( unsigned int a = 0; a < mNumChannels; a++) {
-                delete mChannels[ a ];
+                delete mChannels[a];
             }
 
-            delete [] mChannels;
+        delete [] mChannels;
         }
         if (mNumMeshChannels && mMeshChannels)  {
             for( unsigned int a = 0; a < mNumMeshChannels; a++) {
                 delete mMeshChannels[a];
             }
 
-            delete [] mMeshChannels;
-        }
-        if (mNumMorphMeshChannels && mMorphMeshChannels) {
-                for( unsigned int a = 0; a < mNumMorphMeshChannels; a++) {
-                        delete mMorphMeshChannels[a];
-                }
-            
-            delete [] mMorphMeshChannels;
+        delete [] mMeshChannels;
         }
     }
 #endif // __cplusplus
 };
 
 #ifdef __cplusplus
-
 }
 
-/// @brief  Some C++ utilities for inter- and extrapolation
+
+// some C++ utilities for inter- and extrapolation
 namespace Assimp {
 
 // ---------------------------------------------------------------------------
-/** 
-  * @brief CPP-API: Utility class to simplify interpolations of various data types.
-  *
-  *  The type of interpolation is chosen automatically depending on the
-  *  types of the arguments. 
-  */
+/** @brief CPP-API: Utility class to simplify interpolations of various data types.
+ *
+ *  The type of interpolation is chosen automatically depending on the
+ *  types of the arguments. */
 template <typename T>
 struct Interpolator
 {
@@ -507,7 +420,7 @@ struct Interpolator
      *  The interpolation algorithm depends on the type of the operands.
      *  aiQuaternion's and aiQuatKey's SLERP, the rest does a simple
      *  linear interpolation. */
-    void operator () (T& out,const T& a, const T& b, ai_real d) const {
+    void operator () (T& out,const T& a, const T& b, float d) const {
         out = a + (b-a)*d;
     }
 }; // ! Interpolator <T>
@@ -517,7 +430,7 @@ struct Interpolator
 template <>
 struct Interpolator <aiQuaternion>  {
     void operator () (aiQuaternion& out,const aiQuaternion& a,
-        const aiQuaternion& b, ai_real d) const
+        const aiQuaternion& b, float d) const
     {
         aiQuaternion::Interpolate(out,a,b,d);
     }
@@ -526,16 +439,16 @@ struct Interpolator <aiQuaternion>  {
 template <>
 struct Interpolator <unsigned int>  {
     void operator () (unsigned int& out,unsigned int a,
-        unsigned int b, ai_real d) const
+        unsigned int b, float d) const
     {
         out = d>0.5f ? b : a;
     }
 }; // ! Interpolator <aiQuaternion>
 
 template <>
-struct Interpolator<aiVectorKey>  {
+struct Interpolator  <aiVectorKey>  {
     void operator () (aiVector3D& out,const aiVectorKey& a,
-        const aiVectorKey& b, ai_real d) const
+        const aiVectorKey& b, float d) const
     {
         Interpolator<aiVector3D> ipl;
         ipl(out,a.mValue,b.mValue,d);
@@ -543,9 +456,9 @@ struct Interpolator<aiVectorKey>  {
 }; // ! Interpolator <aiVectorKey>
 
 template <>
-struct Interpolator<aiQuatKey>  {
+struct Interpolator <aiQuatKey>     {
     void operator () (aiQuaternion& out, const aiQuatKey& a,
-        const aiQuatKey& b, ai_real d) const
+        const aiQuatKey& b, float d) const
     {
         Interpolator<aiQuaternion> ipl;
         ipl(out,a.mValue,b.mValue,d);
@@ -553,9 +466,9 @@ struct Interpolator<aiQuatKey>  {
 }; // ! Interpolator <aiQuatKey>
 
 template <>
-struct Interpolator<aiMeshKey>     {
+struct Interpolator <aiMeshKey>     {
     void operator () (unsigned int& out, const aiMeshKey& a,
-        const aiMeshKey& b, ai_real d) const
+        const aiMeshKey& b, float d) const
     {
         Interpolator<unsigned int> ipl;
         ipl(out,a.mValue,b.mValue,d);
@@ -563,9 +476,9 @@ struct Interpolator<aiMeshKey>     {
 }; // ! Interpolator <aiQuatKey>
 
 //! @endcond
-
 } //  ! end namespace Assimp
 
-#endif // __cplusplus
 
+
+#endif // __cplusplus
 #endif // AI_ANIM_H_INC

@@ -43,9 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  @brief Defines the aiLight data structure
  */
 
-#pragma once
-#ifndef AI_LIGHT_H_INC
-#define AI_LIGHT_H_INC
+#ifndef __AI_LIGHT_H_INC__
+#define __AI_LIGHT_H_INC__
 
 #include "types.h"
 
@@ -251,7 +250,7 @@ struct aiLight
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 
-#endif // !! AI_LIGHT_H_INC
+#endif // !! __AI_LIGHT_H_INC__

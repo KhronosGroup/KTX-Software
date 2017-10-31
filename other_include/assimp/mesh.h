@@ -43,9 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  @brief Declares the data structures in which the imported geometry is
     returned by ASSIMP: aiMesh, aiFace and aiBone data structures.
  */
-#pragma once
-#ifndef AI_MESH_H_INC
-#define AI_MESH_H_INC
+#ifndef INCLUDED_AI_MESH_H
+#define INCLUDED_AI_MESH_H
 
 #include "types.h"
 
@@ -378,9 +377,6 @@ struct aiAnimMesh
      */
     unsigned int mNumVertices;
 
-/** Weight of the AnimMesh. */
-    float mWeight;
-
 #ifdef __cplusplus
 
     aiAnimMesh()
@@ -449,27 +445,6 @@ struct aiAnimMesh
 #endif
 };
 
-// ---------------------------------------------------------------------------
-/** @brief Enumerates the methods of mesh morphing supported by Assimp.
- */
-enum aiMorphingMethod
-{
-    /** Interpolation between morph targets */
-    aiMorphingMethod_VERTEX_BLEND       = 0x1,
-
-    /** Normalized morphing between morph targets  */
-    aiMorphingMethod_MORPH_NORMALIZED   = 0x2,
-
-    /** Relative morphing between morph targets  */
-    aiMorphingMethod_MORPH_RELATIVE     = 0x3,
-
-    /** This value is not used. It is just here to force the
-     *  compiler to map this enum to a 32 Bit integer.
-     */
-#ifndef SWIG
-    _aiMorphingMethod_Force32Bit = INT_MAX
-#endif
-}; //! enum aiMorphingMethod
 
 // ---------------------------------------------------------------------------
 /** @brief A mesh represents a geometry or model with a single material.
@@ -624,18 +599,15 @@ struct aiMesh
     C_STRUCT aiString mName;
 
 
-    /** The number of attachment meshes. Note! Currently only works with Collada loader. */
+    /** NOT CURRENTLY IN USE. The number of attachment meshes */
     unsigned int mNumAnimMeshes;
 
-    /** Attachment meshes for this mesh, for vertex-based animation.
+    /** NOT CURRENTLY IN USE. Attachment meshes for this mesh, for vertex-based animation.
      *  Attachment meshes carry replacement data for some of the
-     *  mesh'es vertex components (usually positions, normals).
-     *  Note! Currently only works with Collada loader.*/
+     *  mesh'es vertex components (usually positions, normals). */
     C_STRUCT aiAnimMesh** mAnimMeshes;
 
-    /** Method of morphing when animeshes are specified. */
-    unsigned int mMethod;
-	
+
 #ifdef __cplusplus
 
     //! Default constructor. Initializes all members to 0
@@ -760,8 +732,9 @@ struct aiMesh
 #endif // __cplusplus
 };
 
+
 #ifdef __cplusplus
 }
 #endif //! extern "C"
-#endif // AI_MESH_H_INC
+#endif // __AI_MESH_H_INC
 

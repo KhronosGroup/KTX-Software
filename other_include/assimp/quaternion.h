@@ -41,13 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @file quaternion.h
  *  @brief Quaternion structure, including operators when compiling in C++
  */
-#pragma once
 #ifndef AI_QUATERNION_H_INC
 #define AI_QUATERNION_H_INC
 
 #ifdef __cplusplus
-
-#include "defs.h"
 
 template <typename TReal> class aiVector3t;
 template <typename TReal> class aiMatrix3x3t;
@@ -115,14 +112,15 @@ public:
     TReal w, x, y, z;
 } ;
 
-typedef aiQuaterniont<ai_real> aiQuaternion;
+typedef aiQuaterniont<float> aiQuaternion;
 
 #else
 
 struct aiQuaternion {
-    ai_real w, x, y, z;
+    float w, x, y, z;
 };
 
 #endif
+
 
 #endif // AI_QUATERNION_H_INC

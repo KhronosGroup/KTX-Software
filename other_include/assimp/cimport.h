@@ -42,12 +42,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @file  cimport.h
  *  @brief Defines the C-API to the Open Asset Import Library.
  */
-#pragma once
 #ifndef AI_ASSIMP_H_INC
 #define AI_ASSIMP_H_INC
-
-#include <assimp/config.h>
-#include <assimp/types.h>
+#include "types.h"
 #include "importerdesc.h"
 
 #ifdef __cplusplus
@@ -337,7 +334,7 @@ ASSIMP_API void aiReleaseImport(
  * import process. NULL if there was no error. There can't be an error if you
  * got a non-NULL #aiScene from #aiImportFile/#aiImportFileEx/#aiApplyPostProcessing.
  */
-ASSIMP_API const char* aiGetErrorString(void);
+ASSIMP_API const char* aiGetErrorString();
 
 // --------------------------------------------------------------------------------
 /** Returns whether a given file extension is supported by ASSIMP

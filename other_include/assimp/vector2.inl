@@ -42,7 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @file  vector2.inl
  *  @brief Inline implementation of aiVector2t<TReal> operators
  */
-#pragma once
 #ifndef AI_VECTOR2D_INL_INC
 #define AI_VECTOR2D_INL_INC
 
@@ -222,5 +221,4 @@ inline aiVector2t<TReal> operator - ( const aiVector2t<TReal>& v)
 }
 
 #endif
-
-#endif // AI_VECTOR2D_INL_INC
+#endif

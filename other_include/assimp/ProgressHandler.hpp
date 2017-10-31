@@ -41,12 +41,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @file ProgressHandler.hpp
  *  @brief Abstract base class 'ProgressHandler'.
  */
-#pragma once
-#ifndef AI_PROGRESSHANDLER_H_INC
-#define AI_PROGRESSHANDLER_H_INC
-
+#ifndef INCLUDED_AI_PROGRESSHANDLER_H
+#define INCLUDED_AI_PROGRESSHANDLER_H
 #include "types.h"
-
 namespace Assimp    {
 
 // ------------------------------------------------------------------------------------
@@ -122,4 +119,4 @@ public:
 // ------------------------------------------------------------------------------------
 } // Namespace Assimp
 
-#endif // AI_PROGRESSHANDLER_H_INC
+#endif

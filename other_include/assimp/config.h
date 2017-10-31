@@ -55,9 +55,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  #aiSetImportPropertyFloat,
  *  #aiSetImportPropertyString
  */
-#pragma once
-#ifndef AI_CONFIG_H_INC
-#define AI_CONFIG_H_INC
+#ifndef INCLUDED_AI_CONFIG_H
+#define INCLUDED_AI_CONFIG_H
 
 
 // ###########################################################################
@@ -904,15 +903,5 @@ enum aiComponent
  */
 
 #define AI_CONFIG_EXPORT_XFILE_64BIT "EXPORT_XFILE_64BIT"
-
-
-// ---------- All the Build/Compile-time defines ------------
-
-/** @brief Specifies if double precision is supported inside assimp
- *
- * Property type: Bool. Default value: undefined.
- */
-
-/* #undef ASSIMP_DOUBLE_PRECISION */
 
 #endif // !! AI_CONFIG_H_INC
