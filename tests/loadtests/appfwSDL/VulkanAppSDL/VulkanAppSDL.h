@@ -131,6 +131,10 @@ class VulkanAppSDL : public AppBaseSDL {
     debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
               uint64_t srcObject, size_t location, int32_t msgCode,
               const char *pLayerPrefix, const char *pMsg);
+    std::string& wrapText(std::string& source, size_t width = 70,
+    		              const std::string& whitespace = " \t\r");
+	uint32_t showDebugReport(uint32_t mbFlags, const std::string title,
+                             std::string message, bool enableAbort);
 
     static bool checkLayers(uint32_t nameCount, const char **names,
                             uint32_t layerCount, VkLayerProperties *layers);

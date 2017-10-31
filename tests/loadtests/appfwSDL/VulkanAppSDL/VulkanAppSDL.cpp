@@ -894,8 +894,8 @@ VulkanAppSDL::prepareDepthBuffer()
     err = vkCreateImage(vkctx.device, &image, NULL, &vkctx.depthBuffer.image);
     assert(!err);
 
-    vkGetImageMemoryRequirements(vkctx.device, vkctx.depthBuffer.image, &mem_reqs);
-    assert(!err);
+    vkGetImageMemoryRequirements(vkctx.device, vkctx.depthBuffer.image,
+                                 &mem_reqs);
 
     vkctx.depthBuffer.memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     vkctx.depthBuffer.memAlloc.pNext = NULL;
@@ -1494,20 +1494,26 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
     }
     // Diagnostic info from the Vulkan loader and layers.
 #if 0
-    // Usually not helpful in terms of API usage, but may help to debug layer and loader problems
+    // Usually not helpful in terms of API usage, but may help to debug layer
+    // and loader problems
     if (msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
     {
         mbFlags = SDL_MESSAGEBOX_INFORMATION;
         prefix += "DEBUG:";
     }
 #endif
-    message << prefix << " [" << pLayerPrefix << "] Code " << msgCode
-            << " : " << text;
+    message << prefix << " [" << pLayerPrefix << "] Code "
+    		<< std::showbase << std::internal << std::setfill('0') << std::hex
+			<< std::setw(8) << msgCode << ": " << std::endl << text;
 
-    title += ": alert";
-    (void)SDL_ShowSimpleMessageBox(
-        mbFlags, title.c_str(), message.str().c_str(), NULL
-    );
+    title += " Debug Report";
+    if (showDebugReport(mbFlags, title, message.str(), prepared)) {
+		SDL_Event sdlevent;
+		sdlevent.type = SDL_QUIT;
+		sdlevent.quit.timestamp = SDL_GetTicks();
+
+		(void)SDL_PushEvent(&sdlevent);
+    }
 
     /*
      * false indicates that layer should not bail-out of an
@@ -1517,5 +1523,106 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
      * keep that behavior here.
      */
     return false;
+}
+
+
+std::string&
+VulkanAppSDL::wrapText(std::string& source, size_t width,
+		               const std::string& whitespace)
+{
+	if (source.length() <= width)
+		return source;
+
+	// Find the longest "word" and possibly set @a width to that. The
+	// message box width is set from the longest line and many of
+	// the debug messages contain a long URL reference which could
+	// easily be wider than @a width.
+	size_t ws = source.find_first_not_of(whitespace);
+	size_t we = 0;
+	size_t maxWordLength = 0;
+	for (; ws < source.length(); ws = we + 1) {
+		size_t wl;
+		we = source.find_first_of(whitespace, ws);
+		if (we == std::string::npos) we = source.length();
+		wl = we - ws;
+		if (wl > maxWordLength) maxWordLength = wl;
+	}
+	if (maxWordLength > width)
+		width = maxWordLength;
+
+	// If the string is one long word, nothing further to do.
+	if (source.length() == width)
+		return source;
+
+    size_t  endPos = width, startPos = 0;
+    while (startPos < source.length())
+    {
+        size_t  breakPos, sizeToElim;
+
+        endPos = source.find_last_of(whitespace, endPos);
+        if (endPos == std::string::npos)
+        	break;
+        if (endPos > startPos) {
+			breakPos = source.find_last_not_of(whitespace, endPos) + 1;
+			if (breakPos == std::string::npos)
+				break;
+			endPos = source.find_first_not_of(whitespace, ++endPos);
+			sizeToElim = endPos - breakPos;
+			source.replace( breakPos, sizeToElim , "\n");
+			startPos = endPos;
+        } else { // have to tolerate a long line
+        	startPos += width;
+        }
+        endPos += width;
+    }
+    return source;
+}
+
+
+uint32_t
+VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
+                              std::string message, bool enableAbort)
+{
+    const SDL_MessageBoxButtonData buttons[] = {
+        /* .flags, .buttonid, .text */
+        { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Continue" },
+        { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Abort" },
+    };
+#if 0
+    const SDL_MessageBoxColorScheme colorScheme = {
+        { /* .colors (.r, .g, .b) */
+            /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+            { 255,   0,   0 },
+            /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+            {   0, 255,   0 },
+            /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+            { 255, 255,   0 },
+            /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+            {   0,   0, 255 },
+            /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+            { 255,   0, 255 }
+        }
+    };
+#endif
+    wrapText(message, 70, " \t\r");
+    const SDL_MessageBoxData messageboxdata = {
+        mbFlags,											// .flags
+        NULL,												// .window
+        title.c_str(),										// .title
+        message.c_str(),									// .message
+        (int)(enableAbort ? SDL_arraysize(buttons) : 1),	// .numbuttons
+        buttons,											// .buttons
+        NULL //&colorScheme										// .colorScheme
+    };
+    int buttonid;
+    if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+        SDL_Log("error displaying message box");
+    }
+    if (buttonid == -1) {
+        SDL_Log("no selection");
+        return 0;
+    } else {
+    	return buttonid;
+    }
 }
 
