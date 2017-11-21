@@ -312,7 +312,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "ETC2 sRGB8a8"
     },
     { Texture::create,
-        "testimages/pattern_02_bc2.ktx",
+    	"--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx",
         VulkanLoadTests::CompressionType::eBC,
         "BC2 (S3TC DXT3) Compressed 2D"
     },

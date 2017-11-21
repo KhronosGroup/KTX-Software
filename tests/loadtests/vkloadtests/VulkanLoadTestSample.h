@@ -137,7 +137,6 @@ class VulkanLoadTestSample {
     std::vector<VkShaderModule> shaderModules;
 
     const vk::ClearColorValue defaultClearColor;
-    //const std::array<float,4> defaultClearColor;
 
     glm::vec3 rotation = glm::vec3();
     glm::vec3 cameraPos = glm::vec3();

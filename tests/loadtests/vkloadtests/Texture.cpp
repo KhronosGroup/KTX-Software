@@ -53,6 +53,8 @@
 #include <string.h>
 #include <assert.h>
 #include <exception>
+#include <ios>
+#include <sstream>
 #include <vector>
 
 #include <ktxvulkan.h>
@@ -64,10 +66,10 @@
 
 // Vertex layout for this example
 struct Vertex {
-    float pos[3];
-    float uv[2];
-    float normal[3];
-    float color[3];
+    std::array<float, 3> pos;
+    std::array<float, 2> uv;
+    std::array<float, 3> normal;
+    std::array<float, 3> color;
 };
 
 VulkanLoadTestSample*
@@ -88,6 +90,13 @@ Texture::Texture(VulkanContext& vkctx,
     zoom = -2.5f;
     rotation = { 0.0f, 15.0f, 0.0f };
     tiling = vk::ImageTiling::eOptimal;
+    rgbcolor upperLeftColor{ 0.7f, 0.1f, 0.2f };
+    rgbcolor lowerLeftColor{ 0.8f, 0.9f, 0.3f };
+    rgbcolor upperRightColor{ 0.4f, 1.0f, 0.5f };
+    rgbcolor lowerRightColor{ 0.0f, 0.6f, 0.1f };
+
+    quadColor = { upperLeftColor, lowerLeftColor,
+    		      upperRightColor, lowerRightColor };
 
     ktxVulkanDeviceInfo kvdi;
     ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
@@ -166,13 +175,40 @@ Texture::run(uint32_t msTicks)
     // VulkanLoadTests base class redraws from the command buffer we built.
 }
 
+//================== Helpers for processArgs ========================
+
+// skips the number of characters equal to the length of given text
+// does not check whether the skipped characters are the same as it
+struct skip
+{
+    const char* text;
+    skip(const char* text) : text(text) {}
+};
+
+std::istream& operator >> (std::istream& stream, const skip& x)
+{
+    std::ios_base::fmtflags f = stream.flags();
+    stream >> std::noskipws;
+
+    char c;
+    const char* text = x.text;
+    while (stream && *text++)
+        stream >> c;
+
+    stream.flags(f);
+    return stream;
+}
+
+//===================================================================
+
 void
 Texture::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-        "linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear,
-        NULL,            argparser::option::no_argument, NULL,          0
+        "linear-tiling", argparser::option::no_argument,       (int*)&tiling, (int)vk::ImageTiling::eLinear,
+		"qcolor",        argparser::option::required_argument, NULL,          1,
+        NULL,            argparser::option::no_argument,       NULL,          0
     };
 
     argvector argv(sArgs);
@@ -182,6 +218,25 @@ Texture::processArgs(std::string sArgs)
     while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
         switch (ch) {
             case 0: break;
+            case 1:
+            {
+            	std::istringstream in(ap.optarg);
+            	rgbcolor clr;
+            	int i;
+
+            	for (i = 0; i < 4 && !in.eof(); i++) {
+            		in >> clr[0] >> skip(",") >> clr[1] >> skip(",") >> clr[2];
+					quadColor[i] = clr;
+					if (!in.eof())
+						in >> skip(",");
+            	}
+            	assert(!in.fail() && (i == 1 || i == 4));
+            	if (i == 1) {
+            		for(i; i < 4; i++)
+            			quadColor[i] = quadColor[0];
+            	}
+            	break;
+            }
             default: assert(false); // Error in args in sample table.
         }
     }
@@ -257,14 +312,17 @@ Texture::buildCommandBuffers()
         vkCmdSetScissor(vkctx.drawCmdBuffers[i], 0, 1,
                 &static_cast<const VkRect2D&>(scissor));
 
-        vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                pipelineLayout, 0, 1, &static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
-        vkCmdBindPipeline(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.solid);
+        vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i],
+        		VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+				&static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
+        vkCmdBindPipeline(vkctx.drawCmdBuffers[i],
+        		          VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.solid);
 
         VkDeviceSize offsets[1] = { 0 };
         vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID,
                 1, &static_cast<const VkBuffer&>(quad.vertices.buf), offsets);
-        vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf, 0,
+        		             VK_INDEX_TYPE_UINT32);
 
         vkCmdDrawIndexed(vkctx.drawCmdBuffers[i], quad.indexCount, 1, 0, 0, 0);
 
@@ -279,36 +337,16 @@ Texture::generateQuad()
 {
     // Setup vertices for a single uv-mapped quad
 #define DIM 1.0f
-#define COLOR { 0.75f, 0.65f, 0.0f }
-#if 0
-#define COLOR1 { 0.7f, 0.1f, 0.2f } }
-#define COLOR2 { 0.0f, 0.2f, 0.8f } }
-#define COLOR3 { 0.0f, 0.6f, 0.1f } }
-#define COLOR4 { 0.8f, 0.9f, 0.3f } }
-#else
-#define COLOR1 COLOR
-#define COLOR2 COLOR
-#define COLOR3 COLOR
-#define COLOR4 COLOR
-#endif
 #define NORMAL { 0.0f, 0.0f, 1.0f }
-    std::vector<Vertex> vertexBuffer =
-    {
-#if 0
-        { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL, { 0.7f, 0.1f, 0.2f } },
-        { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL, { 0.0f, 0.2f, 0.8f } },
-        { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL, { 0.0f, 0.6f, 0.1f } },
-        { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL, { 0.8f, 0.9f, 0.3f } }
-#else
-        { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL, COLOR },
-        { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL, COLOR },
-        { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL, COLOR },
-        { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL, COLOR }
-#endif
+    std::vector<Vertex> vertexBuffer = {
+        { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL, { quadColor[0] } },
+        { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL, { quadColor[1] } },
+        { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL, { quadColor[2] } },
+        { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL, { quadColor[3] } }
     };
+#undef DIM
+#undef NORMAL
 
-#undef dim
-#undef normal
     if (sign_s < 0 || sign_t < 0) {
         // Transform the texture coordinates to get correct image orientation.
         for (uint32_t i = 0; i < vertexBuffer.size(); i++) {
@@ -328,7 +366,7 @@ Texture::generateQuad()
         &quad.vertices.mem);
 
     // Setup indices
-    std::vector<uint32_t> indexBuffer = { 0,1,2, 2,3,0 };
+    std::vector<uint32_t> indexBuffer = { 0,1,2,3 };
     quad.indexCount = static_cast<uint32_t>(indexBuffer.size());
 
     vkctx.createBuffer(
@@ -495,7 +533,7 @@ Texture::preparePipelines()
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
-            vk::PrimitiveTopology::eTriangleList);
+    		vk::PrimitiveTopology::eTriangleStrip);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
     // Must be false because we haven't enabled the depthClamp device feature.

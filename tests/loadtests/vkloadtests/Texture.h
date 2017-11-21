@@ -70,6 +70,8 @@ class Texture : public VulkanLoadTestSample
     } vertices;
 
     MeshBuffer quad;
+    typedef std::array<float, 3> rgbcolor;
+    std::array<rgbcolor,4> quadColor;
 
     UniformData uniformDataVS;
 

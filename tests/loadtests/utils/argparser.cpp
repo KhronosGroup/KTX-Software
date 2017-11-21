@@ -111,6 +111,7 @@ argparser::getopt(std::string* shortopts, const struct option* longopts,
                 }
                 break;
             }
+            opt++;
         }
     } else if (shortopts != nullptr && arg.compare(0, 1, "-") == 0) {
         size_t pos = shortopts->find(arg.substr(1, 1));
