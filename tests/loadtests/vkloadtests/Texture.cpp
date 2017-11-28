@@ -232,7 +232,7 @@ Texture::processArgs(std::string sArgs)
             	}
             	assert(!in.fail() && (i == 1 || i == 4));
             	if (i == 1) {
-            		for(i; i < 4; i++)
+                    for(; i < 4; i++)
             			quadColor[i] = quadColor[0];
             	}
             	break;
