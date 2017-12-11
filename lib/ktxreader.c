@@ -534,6 +534,7 @@ cleanup:
     return errorCode;
 }
 
+#if 0
 /*
  * The KTX format does not provide the total size of the image
  * data, so we provide the following functions to calculate it.
@@ -571,8 +572,8 @@ layerSize(const GlFormatSize* formatSize, ktx_uint32_t levels,
 {
     size_t layerSize = 0;
 
-    // The size of a face is the sum of the size of each level.
-    for(ktx_uint32_t level = 0; level <= levels; level++)
+    // The size of a layer is the sum of the size of each level.
+    for(ktx_uint32_t level = 0; level < levels; level++)
         layerSize += levelSize(formatSize, level, width, height, depth);
 
     return layerSize;
@@ -585,11 +586,17 @@ dataSize(const GlFormatSize* formatSize, ktx_uint32_t levels, ktx_uint32_t layer
 	size_t ls = layerSize(formatSize, levels, width, height, depth);
     return (ls * layers) + formatSize->paletteSizeInBits / 8;
 }
+#endif
 
 /**
  * @~English
  * @brief Return the number of bytes needed to store all the images in
  *        a blob of KTX data.
+ *
+ * Currently the size does not include space for storing the @c imageSize
+ * fields of each mip level. This is fine for the current readImages API but
+ * will need to be changed when the API for gulping all the image data in
+ * one read is added.
  *
  * This information is not stored in the KTX data so it must be calculated.
  *
@@ -609,18 +616,23 @@ KTX_error_code
 ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
 {
     ktxReader* This = (ktxReader*)reader;
-	GlFormatSize formatSize;
+	//GlFormatSize formatSize;
 	KTX_header* header;
-	ktx_uint32_t layers;
+	//ktx_uint32_t layers;
+    //size_t sizeFromTable;
+    size_t strSize;
+    //size_t sizeFromCalc;
 
-    if (This == NULL || !This->stream.read || !This->stream.skip)
+    if (This == NULL
+        || !This->stream.read || !This->stream.skip || !This->stream.getsize)
         return KTX_INVALID_VALUE;
 
-    if (This->state == KTX_RS_START)
+    if (This->state < KTX_RS_HEADER_READ)
     	// XXX Consider reading the header instead of erroring.
         return KTX_INVALID_OPERATION;
 
     header = &This->header;
+#if 0
     glGetFormatSize(header->glInternalFormat, &formatSize);
 
     /* XXX Consider setting this and isArray, etc. in check header to
@@ -629,15 +641,22 @@ ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
     		 	 	 	 	 	 	 	 	 1 : header->numberOfArrayElements;
     layers *= header->numberOfFaces;
 
-    *pDataSize = dataSize(&formatSize,
+    sizeFromTable = dataSize(&formatSize,
                           header->numberOfMipmapLevels,
                           layers,
                           header->pixelWidth,
                           header->pixelHeight,
                           header->pixelDepth);
-  return KTX_SUCCESS;
+#endif
+    This->stream.getsize(&This->stream, &strSize);
+    *pDataSize = strSize - KTX_HEADER_SIZE - header->bytesOfKeyValueData
+                    /* Account for imageSize fields at each mipLevel. */
+                   - sizeof(uint32_t) * header->numberOfMipmapLevels;
+
+    return KTX_SUCCESS;
 }
 
+#if 0 // This seems broken. Currently not used. Fix when redoing API.
 /**
  * @~English
  * @brief Return the number of bytes needed to store all the images in
@@ -664,24 +683,33 @@ ktxReader_getLevelSize(KTX_reader reader, ktx_uint32_t level, size_t* pLevelSize
     ktxReader* This = (ktxReader*)reader;
 	KTX_header* header;
     GlFormatSize formatSize;
+    //ktx_uint32_t layers;
 
     if (This == NULL || !This->stream.read || !This->stream.skip)
       return KTX_INVALID_VALUE;
     
-    if (This->state == KTX_RS_START)
+    if (This->state < KTX_RS_HEADER_READ)
       // XXX Consider reading the header instead of erroring.
       return KTX_INVALID_OPERATION;
     
     header = &This->header;
     glGetFormatSize(header->glInternalFormat, &formatSize);
-
-    *pLevelSize = levelSize(&formatSize,
+#if 0
+    /* XXX Consider setting this and isArray, etc. in check header to
+     * avoid multiple instances of similar checks. */
+    layers = header->numberOfArrayElements == 0 ?
+    1 : header->numberOfArrayElements;
+    layers *= header->numberOfFaces;
+#endif
+    
+    *pLevelSize = layerSize(&formatSize,
                             level,
                             header->pixelWidth,
                             header->pixelHeight,
                             header->pixelDepth);
   return KTX_SUCCESS;
 }
+#endif
 
 /** @} */
 

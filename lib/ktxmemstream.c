@@ -126,7 +126,7 @@ KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const GLsizei count)
 /**
  * @internal
  * @~English
- * @brief Skip bytes in a ktxFileStream.
+ * @brief Skip bytes in a ktxMemStream.
  *
  * @param [in] str      pointer to the ktxStream on which to operate.
  * @param [in] count    number of bytes to skip.
@@ -158,7 +158,7 @@ KTX_error_code ktxMemStream_skip(ktxStream* str, const GLsizei count)
 /**
  * @internal
  * @~English
- * @brief Write bytes to a ktxFileStream.
+ * @brief Write bytes to a ktxMemStream.
  *
  * @param [out] str    pointer to the ktxStream that specifies the destination.
  * @param [in] src     pointer to the array of elements to be written,
@@ -193,6 +193,84 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
 	mem->used_size += size*count;
 
 	return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Get the current read/write position in a ktxMemStream.
+ *
+ * @param [in] str      pointer to the ktxStream to query.
+ * @param [in,out] off  pointer to variable to receive the offset value.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p str or @p pos is @c NULL.
+ */
+static
+KTX_error_code ktxMemStream_getpos(ktxStream* str, off_t* pos)
+{
+    if (!str || !pos)
+        return KTX_INVALID_VALUE;
+    
+    assert(str->type == eStreamTypeMemory);
+    
+    *pos = str->data.mem->pos;
+    return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Set the current read/write position in a ktxMemStream.
+ *
+ * Offset of 0 is the start of the file.
+ *
+ * @param [in] str    pointer to the ktxStream whose r/w position is to be set.
+ * @param [in] off    pointer to the offset value to set.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p str is @c NULL.
+ * @exception KTX_INVALID_OPERATION @p pos > size of the allocated memory.
+ */
+static
+KTX_error_code ktxMemStream_setpos(ktxStream* str, off_t pos)
+{
+    if (!str)
+        return KTX_INVALID_VALUE;
+    
+    assert(str->type == eStreamTypeMemory);
+    
+    if (pos > str->data.mem->alloc_size)
+        return KTX_INVALID_OPERATION;
+    
+    str->data.mem->pos = pos;
+    return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Get the size of a ktxMemStream in bytes.
+ *
+ * @param [in] str       pointer to the ktxStream whose size is to be queried.
+ * @param [in,out] size  pointer to a variable in which size will be written.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p str or @p size is @c NULL.
+ */
+static
+KTX_error_code ktxMemStream_getsize(ktxStream* str, size_t* size)
+{
+    if (!str || !size)
+        return KTX_INVALID_VALUE;
+    
+    assert(str->type == eStreamTypeMemory);
+    
+    *size = str->data.mem->used_size;
+    return KTX_SUCCESS;
 }
 
 /**
@@ -246,6 +324,9 @@ KTX_error_code ktxMemStream_construct(ktxStream* str, ktxMem* mem,
 	str->read = ktxMemStream_read;
 	str->skip = ktxMemStream_skip;
 	str->write = ktxMemStream_write;
+    str->getpos = ktxMemStream_getpos;
+    str->setpos = ktxMemStream_setpos;
+    str->getsize = ktxMemStream_getsize;
 
 	return KTX_SUCCESS;
 }

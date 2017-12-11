@@ -41,8 +41,10 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include "ktx.h"
 #include "ktxint.h"
@@ -70,6 +72,8 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const GLsizei size)
 	if (!str || !dst)
 		return KTX_INVALID_VALUE;
 
+    assert(str->type == eStreamTypeFile);
+    
 	if (fread(dst, size, 1, str->data.file) != 1)
 		return KTX_UNEXPECTED_END_OF_FILE;
 
@@ -96,6 +100,8 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const GLsizei count)
 	if (!str || (count < 0))
 		return KTX_INVALID_VALUE;
 
+    assert(str->type == eStreamTypeFile);
+    
 	if (fseek(str->data.file, count, SEEK_CUR) != 0)
 		return KTX_UNEXPECTED_END_OF_FILE;
 
@@ -128,10 +134,106 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
 	if (!str || !src)
 		return KTX_INVALID_VALUE;
 
+    assert(str->type == eStreamTypeFile);
+    
 	if (fwrite(src, size, count, str->data.file) != count)
 		return KTX_FILE_WRITE_ERROR;
 
 	return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Get the current read/write position in a ktxFileStream.
+ *
+ * @param [in] str      pointer to the ktxStream to query.
+ * @param [in,out] off  pointer to variable to receive the offset value.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p str or @p pos is @c NULL.
+ */
+static
+KTX_error_code ktxFileStream_getpos(ktxStream* str, off_t* pos)
+{
+    if (!str || !pos)
+        return KTX_INVALID_VALUE;
+    
+    assert(str->type == eStreamTypeFile);
+    
+    *pos = ftello(str->data.file);
+    
+    return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Set the current read/write position in a ktxFileStream.
+ *
+ * Offset of 0 is the start of the file.
+ *
+ * @param [in] str    pointer to the ktxStream whose r/w position is to be set.
+ * @param [in] off    pointer to the offset value to set.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p str is @c NULL.
+ * @exception KTX_INVALID_OPERATION @p pos is > the size of the file or an
+ *                                  fseek error occurred.
+ */
+static
+KTX_error_code ktxFileStream_setpos(ktxStream* str, off_t pos)
+{
+    size_t fileSize;
+    
+    if (!str)
+        return KTX_INVALID_VALUE;
+
+    assert(str->type == eStreamTypeFile);
+    
+    str->getsize(str, &fileSize);
+    if (pos > fileSize)
+        return KTX_INVALID_OPERATION;
+
+    if (fseeko(str->data.file, pos, SEEK_SET) < 0)
+        /* FIXME. Return a more suitable error. */
+        return KTX_INVALID_OPERATION;
+    
+    return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Get the size of a ktxFileStream in bytes.
+ *
+ * @param [in] str       pointer to the ktxStream whose size is to be queried.
+ * @param [in,out] size  pointer to a variable in which size will be written.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p str or @p size is @c NULL.
+ * @exception KTX_FILE_WRITE_ERROR a system error occurred while getting the
+ *                                 size.
+ */
+static
+KTX_error_code ktxFileStream_getsize(ktxStream* str, size_t* size)
+{
+    struct stat statbuf;
+
+    if (!str || !size)
+        return KTX_INVALID_VALUE;
+    
+    assert(str->type == eStreamTypeFile);
+ 
+    if (fstat(fileno(str->data.file), &statbuf) < 0)
+        /* FIXME. Return a more suitable errors. */
+        return KTX_FILE_WRITE_ERROR;
+    *size = statbuf.st_size;
+    
+    return KTX_SUCCESS;
 }
 
 /**
@@ -156,6 +258,9 @@ KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file)
 	str->read = ktxFileStream_read;
 	str->skip = ktxFileStream_skip;
 	str->write = ktxFileStream_write;
+    str->getpos = ktxFileStream_getpos;
+    str->setpos = ktxFileStream_setpos;
+    str->getsize = ktxFileStream_getsize;
 
 	return KTX_SUCCESS;
 }

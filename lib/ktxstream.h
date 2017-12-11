@@ -71,6 +71,27 @@ typedef KTX_error_code (*ktxStream_write)(ktxStream* str, const void *src,
 /**
  * @internal
  * @~English
+ * @brief type for a pointer to a stream position query function
+ */
+typedef KTX_error_code (*ktxStream_getpos)(ktxStream* str, off_t* offset);
+
+/**
+ * @internal
+ * @~English
+ * @brief type for a pointer to a stream position query function
+ */
+typedef KTX_error_code (*ktxStream_setpos)(ktxStream* str, off_t offset);
+
+/**
+ * @internal
+ * @~English
+ * @brief type for a pointer to a stream size query function
+ */
+typedef KTX_error_code (*ktxStream_getsize)(ktxStream* str, size_t* size);
+
+/**
+ * @internal
+ * @~English
  * @brief KTX stream class
  */
 typedef struct ktxStream
@@ -78,6 +99,9 @@ typedef struct ktxStream
     ktxStream_read read;   /*!< @internal pointer to function for reading bytes. */
     ktxStream_skip skip;   /*!< @internal pointer to function for skipping bytes. */
     ktxStream_write write; /*!< @internal pointer to function for writing bytes. */
+    ktxStream_getpos getpos; /*!< @internal pointer to function for getting current position in stream. */
+    ktxStream_setpos setpos; /*!< @internal pointer to function for setting current position in stream. */
+    ktxStream_getsize getsize; /*!< @internal pointer to function for querying size. */
 
     enum streamType type;
     union {
