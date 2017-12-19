@@ -5,9 +5,9 @@ The Official Khronos KTX Software Repository
 
 |                      |  master  |  incoming  |
 |----------------------| :------: | :--------: |
-| GNU/Linux, iOS & OSX | [![Build Status](https://travis-ci.org/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.org/KhronosGroup/KTX) | [![Build Status](https://travis-ci.org/KhronosGroup/KTX-Software.svg?branch=incoming)](https://travis-ci.org/KhronosGroup/KTX) |
+| GNU/Linux, iOS & OSX | [![Build Status](https://travis-ci.org/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.org/KhronosGroup/KTX-Software) | [![Build Status](https://travis-ci.org/KhronosGroup/KTX-Software.svg?branch=incoming)](https://travis-ci.org/KhronosGroup/KTX-Software) |
 | Windows | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/incoming?svg=true)](https://ci.appveyor.com/project/msc-/ktx) |
-| Documentation | [![Build status](https://codedocs.xyz/KhronosGroup/KTX.svg)](https://codedocs.xyz/KhronosGroup/KTX/) | - |
+| Documentation | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) | - |
 
 This is the offical home of the source code
 for the Khronos KTX library and tools. KTX is a lightweight file format
