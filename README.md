@@ -10,7 +10,8 @@ The Official Khronos KTX Repository
 | Documentation | [![Build status](https://codedocs.xyz/KhronosGroup/KTX.svg)](https://codedocs.xyz/KhronosGroup/KTX/) | - |
 
 This is the offical home of the source code
-for the Khronos KTX library and tools.
+for the Khronos KTX library and tools. KTX is a lightweight file format
+for OpenGL textures, designed around how textures are loaded in OpenGL.
 
 See the Doxygen generated [live documentation](https://codedocs.xyz/KhronosGroup/KTX/)
 for API usage information. Because [CodeDocs](https://codedocs.xyz) does
