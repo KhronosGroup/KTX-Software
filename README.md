@@ -1,4 +1,4 @@
-<img src="http://www.khronos.org/assets/images/khronos-group-logo.png" width="300"/>
+<img src="https://www.khronos.org/assets/images/api_logos/khronos.svg" width="300"/>
 
 The Official Khronos KTX Repository
 ---
