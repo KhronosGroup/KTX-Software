@@ -1,6 +1,6 @@
 <img src="https://www.khronos.org/assets/images/api_logos/khronos.svg" width="300"/>
 
-The Official Khronos KTX Repository
+The Official Khronos KTX Software Repository
 ---
 
 |                      |  master  |  incoming  |
