@@ -17,7 +17,7 @@ The Windows (`win/*.ico`) files were produced from the SVG or PNG files by [Axia
 
 [Axialis IconWorkshop](http://www.axialis.com/iconworkshop/) was originally used to create `.icns` files but the files produced had some strange images at certain sizes. The cause has not been investigated.
 
-[Image2Icon](https://itunes.apple.com/us/app/image2icon-make-your-own-icons/id992115977?mt=12) can be used to create .ico files but an in-app purchase is required to enable this function.
+[Image2Icon](https://itunes.apple.com/us/app/image2icon-make-your-own-icons/id992115977?mt=12) can be used to create .ico files but an in-app purchase is required to enable this function. Furthermore the size is limited to 256x256. Windows 10 wants 768x768.
 
 [Axialis](http://www.axialis.com/iconworkshop/) and [Image2Icon](https://itunes.apple.com/us/app/image2icon-make-your-own-icons/id992115977?mt=12) can also be used to create iOS icon sets.
 

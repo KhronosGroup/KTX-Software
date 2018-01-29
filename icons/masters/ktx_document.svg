@@ -14,11 +14,11 @@
    viewBox="0 0 127.75761 178.23006"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.0 r15299"
-   sodipodi:docname="KTX_document.svg"
-   inkscape:export-filename="D:\Projects\libKTX\Icons\final\PNG\document.png"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96">
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   sodipodi:docname="ktx_document.svg"
+   inkscape:export-filename="../png/ktx_document.png"
+   inkscape:export-xdpi="397.62561"
+   inkscape:export-ydpi="397.62561">
   <defs
      id="defs2">
     <inkscape:perspective
@@ -114,15 +114,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.1"
-     inkscape:cx="242.06187"
+     inkscape:cx="203.4255"
      inkscape:cy="316.98731"
      inkscape:document-units="px"
      inkscape:current-layer="g4683"
      showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     inkscape:window-x="1912"
-     inkscape:window-y="-8"
+     inkscape:window-width="1440"
+     inkscape:window-height="855"
+     inkscape:window-x="0"
+     inkscape:window-y="1"
      inkscape:window-maximized="1"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -245,6 +245,18 @@
          d="m 58.370678,90.475485 3.08461,1.121479 V 158.3369 l -3.08461,-2.08177 z"
          points="61.455288,91.596964 61.455288,158.3369 58.370678,156.25513 58.370678,90.475485 " />
     </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:125%;font-family:Helvetica;-inkscape-font-specification:Helvetica;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="149.23836"
+       y="177.30934"
+       id="text59"><tspan
+         sodipodi:role="line"
+         id="tspan57"
+         x="149.23836"
+         y="177.30934"
+         style="stroke-width:0.26458332px"
+         dx="0">™</tspan></text>
   </g>
   <g
      style="display:inline"
