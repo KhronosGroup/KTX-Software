@@ -80,8 +80,14 @@
         },
       }, 'OS == "win"', {
         'link_settings': {
-         'libraries': [ '-lvulkan-1' ],
-         'library_dirs': [ '$(VULKAN_SDK)/Lib' ],
+          'libraries': [ '-lvulkan-1' ],
+          'conditions': [
+            ['WIN_PLATFORM == "x64"', {
+              'library_dirs': [ '$(VULKAN_SDK)/Lib' ],
+            }, {
+              'library_dirs': [ '$(VULKAN_SDK)/Lib32' ],
+            }]
+          ],
         },
       }, {
         'link_settings': {

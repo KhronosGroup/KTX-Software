@@ -23,9 +23,14 @@
   }, # variables, level 1
 
   'includes': [
-     'appfwSDL/appfwSDL.gypi',
-     'glloadtests/glloadtests.gypi',
-     'vkloadtests/vkloadtests.gypi',
+    'appfwSDL/appfwSDL.gypi',
+    'glloadtests/glloadtests.gypi',
+  ],
+  'conditions': [
+    # Only these versions support C++1 which is needed by vkloadtests.
+    ['GENERATOR != "msvs" or MSVS_VERSION == "2015" or MSVS_VERSION == "2017"', {
+      'includes': [ 'vkloadtests/vkloadtests.gypi' ],
+    }],
   ],
 }
 

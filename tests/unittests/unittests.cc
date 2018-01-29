@@ -111,48 +111,55 @@ TEST_F(CheckHeaderTest, DisallowsInvalidEndianness) {
 //////////////////////////////
 
 TEST(MemStreamTest, Read) {
-    ktxMem memBlock;
     ktxStream stream;
-    const char* data = "28 bytes of rubbish to read.";
+    const ktx_uint8_t* data = (ktx_uint8_t*)"28 bytes of rubbish to read.";
     const size_t size = 28;
     char readBuf[size];
     
-    ktxMemStream_construct(&stream, &memBlock, data, size);
+    ktxMemStream_construct_ro(&stream, data, size);
     stream.read(&stream, readBuf, size);
     EXPECT_EQ(memcmp(data, readBuf, size), 0);
+
+	ktxMemStream_destruct(&stream);
 }
 
 TEST(MemStreamTest, Write) {
-    ktxMem memBlock;
     ktxStream stream;
-    const char* data = "29 bytes of rubbish to write.";
+    const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
     const size_t count = 29;
+	size_t returnedCount;
+	ktx_uint8_t* returnedData;
     
-    ktxMemStream_construct(&stream, &memBlock, 0, count);
+    ktxMemStream_construct(&stream);
     stream.write(&stream, data, 1, count);
     
-    EXPECT_EQ(memBlock.used_size, count);
-    EXPECT_EQ(memcmp(data, memBlock.bytes, count), 0);
+	stream.getsize(&stream, &returnedCount);
+	ktxMemStream_getdata(&stream, &returnedData);
+    EXPECT_EQ(returnedCount, count);
+    EXPECT_EQ(memcmp(data, returnedData, count), 0);
     
-    free(memBlock.bytes);
+	ktxMemStream_destruct(&stream);
 }
     
 TEST(MemStreamTest, WriteExpand) {
-    ktxMem memBlock;
     ktxStream stream;
-    const char* data = "29 bytes of rubbish to write.";
-    const char* data2 = " 26 more bytes of rubbish.";
+    const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
+    const ktx_uint8_t* data2 = (ktx_uint8_t*)" 26 more bytes of rubbish.";
     const size_t count = 29;
     const size_t count2 = 26;
+	size_t returnedCount;
+	ktx_uint8_t* returnedData;
     
-    ktxMemStream_construct(&stream, &memBlock, 0, count);
+    ktxMemStream_construct(&stream);
     stream.write(&stream, data, 1, count);
     stream.write(&stream, data2, 1, count2);
-    EXPECT_EQ(memBlock.used_size, count + count2);
-    EXPECT_EQ(memcmp(data, memBlock.bytes, count), 0);
-    EXPECT_EQ(memcmp(data2, &memBlock.bytes[count], count2), 0);
+	stream.getsize(&stream, &returnedCount);
+	EXPECT_EQ(returnedCount, count + count2);
+	ktxMemStream_getdata(&stream, &returnedData);
+	EXPECT_EQ(memcmp(data, returnedData, count), 0);
+	EXPECT_EQ(memcmp(data2, &returnedData[count], count2), 0);
     
-    free(memBlock.bytes);
+	ktxMemStream_destruct(&stream);
 }
 
 }  // namespace

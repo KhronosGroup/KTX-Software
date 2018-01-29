@@ -9,9 +9,7 @@
 #
 {
   'variables': { # level 1
-
     'variables': { # level 2 defines variables to be used in level 1
-
       'variables': { # level 3 ditto
         # Build system environment variable names.
         #
@@ -64,7 +62,7 @@
       'iosolibr_dir': '<(otherlibroot_dir)/Release-<(gen_platform_var)',
       'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
-      'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
+      'winolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'winolibr_dir': '<(otherlibroot_dir)/Release-$(PlatformName)',
     }, # variables level 2
     # Copy variables out one scope.
@@ -79,6 +77,16 @@
 
     # Directory containing EGL, GL{,ES}*, KHR, etc. include directories.
     'gl_includes_parent_dir': '../other_include',
+
+    # Default platform for Windows builds. Multiple platform solution
+    # & project files are no longer generated. Limitations in GYP
+    # prevent having per-configuration values for link_settings. The
+    # Vulkan SDK unfortunately separates its 32- & 64-bit packages
+    # into directories, {Lib,Bin}{,32}, whose names differ from
+    # the values of the MSVS $(Platform{,Name}) macros and can't be
+    # mapped using other MSVS macros because the 64-bit directories
+    # have no suffix.
+    'WIN_PLATFORM%': 'x64',
 
     # Possible values for 'sdl_to_use' in the following:
     #   built_dylib
@@ -136,9 +144,9 @@
       }, # OS == "mac"
       'OS == "win"', {
         # Location of glew32.lib.
-        'glew_lib_dir': '<(winolib_dir)',
+        'glew_lib_dir': '<(winolibr_dir)',
         # Location of glew32.dll.
-        'glew_dll_dir': '<(winolib_dir)',
+        'glew_dll_dir': '<(winolibr_dir)',
         'sdl_to_use%': 'built_dylib',
         # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',
@@ -178,8 +186,7 @@
     #
     # As this is a relatively minor bug, provide you run in release
     # mode, the PVR emulator has been chosen as default as we can build
-    # and run for both Win32 and x64 platforms (except on VS 2010 and
-    # earlier; see note in pvremu.gypi).
+    # and run for both Win32 and x64 platform
 
     #'adrenoemu.gypi',
     #'angle.gypi',

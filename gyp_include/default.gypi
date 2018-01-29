@@ -23,12 +23,16 @@
         'executable': 'shared_library',
       }],
       ['OS == "win" and GENERATOR == "msvs"', {
-        'emit_vs_win32_configs': 'true',
+        # For now, we'll retain the possiblity of generating multi-platform
+        # solutions so just use WIN_PLATFORM to set the existing
+        # variables.
         'conditions': [
-          # Don't generate x64 configs in certain MSVS Express Edition projects.
-          # Note: 2012e and 2013e support x64.
-          ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
-            'emit_vs_x64_configs': 'true'
+          ['WIN_PLATFORM == "Win32"', {
+            'emit_vs_win32_configs': 'true',
+          }, 'MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
+            # Don't generate x64 configs in certain MSVS Express Edition
+            # projects. Note: 2012e and 2013e support x64.
+            'emit_vs_x64_configs': 'true',
           }],
         ],
       }], # OS == "win" and GENERATOR == "msvs"
@@ -113,14 +117,15 @@
       ],
     },
     'msvs_configuration_attributes': {
-      # Augment these with $(PlatformName) since we generate
-      # multi-platform projects.
-      'OutputDirectory': '$(SolutionDir)$(PlatformName)/$(ConfigurationName)',
+      # When generating multi-platform solutions & projects these
+      # directories must be augmented with $(PlatformName).
+      #'OutputDirectory': '$(SolutionDir)$(PlatformName)/$(ConfigurationName)',
       # Must have $(ProjectName) here to avoid conflicts between the
       # various projects' .tlog files in MSBuild/VS2010 that cause,
       # among other problems, all projects to be cleaned when
       # Project Only -> Clean is selected.
-      'IntermediateDirectory': '$(PlatformName)/$(ConfigurationName)/obj/$(ProjectName)'
+      #'IntermediateDirectory': '$(PlatformName)/$(ConfigurationName)/obj/$(ProjectName)'
+      'IntermediateDirectory': '$(ConfigurationName)/obj/$(ProjectName)'
     },
     'msvs_settings': {
       'VCCLCompilerTool': {
@@ -180,7 +185,9 @@
         'cflags': [ '-Og', '-g' ],
         'defines': [ 'DEBUG', '_DEBUG', ],
         'ldflags': [ '-g' ],
-        'msvs_configuration_platform': 'Win32',
+        # If this isn't set, GYP defaults to Win32 so both platforms
+        # get included when generating x64 configs.
+        'msvs_configuration_platform': '<(WIN_PLATFORM)',
         'msvs_settings': {
           'VCCLCompilerTool': {
             # EditAndContinue
@@ -235,7 +242,7 @@
         ],
         'cflags': [ '-O3' ],
         'defines': [ 'NDEBUG' ],
-        'msvs_configuration_platform': 'Win32',
+        'msvs_configuration_platform': '<(WIN_PLATFORM)',
         'msvs_settings': {
           'VCCLCompilerTool': {
             'Optimization': 3,
@@ -262,6 +269,7 @@
           # The part after '_' must match the msvs_configuration_platform
           'Debug_Win32': {
             'inherit_from': ['Debug'],
+            'defines': [ 'VULKAN_HPP_TYPESAFE_CONVERSION' ],
             'msvs_configuration_platform': 'Win32',
             'msvs_settings': {
               'VCLinkerTool': {
@@ -271,8 +279,11 @@
               },
             },
           },
-          # No need for Release_Win32 as the standard Release settings apply and
-          # we can include msvs_configuration_platform there without problem.
+          'Release_Win32': {
+            'inherit_from': ['Release'],
+            'defines': [ 'VULKAN_HPP_TYPESAFE_CONVERSION' ],
+            'msvs_configuration_platform': 'Win32',
+          },
         }], # emit_vs_win32_configs
         ['emit_vs_x64_configs=="true"', {
           'Debug_x64': {

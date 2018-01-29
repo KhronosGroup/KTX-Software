@@ -153,7 +153,7 @@ GLAppSDL::initialize(int argc, char* argv[])
 			(void)SDL_ShowSimpleMessageBox(
 				SDL_MESSAGEBOX_ERROR,
 				szName,
-				(sName + ": " + (const char*)SDL_GetError()).c_str(),
+				SDL_GetError(),
 				NULL);
 			return false;
 		}
@@ -163,9 +163,18 @@ GLAppSDL::initialize(int argc, char* argv[])
 		PFNGLEWINIT* pGlewInit;
 		PFNGLEWGETERRORSTRING* pGlewGetErrorString;
 		bool error = true;
-		pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, "glewInit");
+#define STR(s) #s
+#if defined(_M_IX86)
+		/* Win32 GLEW uses __stdcall. */
+  #define DNAMESTR(x,n) STR(_##x##@##n)
+#else
+		/* x64 uses __cdecl. */
+  #define DNAMESTR(x,n) STR(x)
+#endif
+		pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, DNAMESTR(glewInit,0));
 		if (pGlewInit != NULL) {
-			pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(glewdll, "glewGetErrorString");
+			pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(
+				    glewdll, DNAMESTR(glewGetErrorString,4));
 			if (pGlewGetErrorString != NULL) {
 				error = false;
 			}
@@ -177,7 +186,7 @@ GLAppSDL::initialize(int argc, char* argv[])
 			(void)SDL_ShowSimpleMessageBox(
 				SDL_MESSAGEBOX_ERROR,
 				szName,
-				(sName + ": " + (const char*)SDL_GetError()).c_str(),
+				SDL_GetError(),
 				NULL);
 			return false;
 		}
@@ -189,7 +198,7 @@ GLAppSDL::initialize(int argc, char* argv[])
             (void)SDL_ShowSimpleMessageBox(
                           SDL_MESSAGEBOX_ERROR,
                           szName,
-						  (sName + (const char*)pGlewGetErrorString(iResult)).c_str(),
+						  (const char*)pGlewGetErrorString(iResult),
                           NULL);
             return false;
         }
@@ -291,7 +300,7 @@ setWindowsIcon(SDL_Window *sdlWindow) {
 		SDL_VERSION(&wminfo.version);
 		if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1){
 			HWND hwnd = wminfo.info.win.window;
-			::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG>(icon));
+			::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
 		}
 	}
 }

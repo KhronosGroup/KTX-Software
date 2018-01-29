@@ -467,7 +467,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
  * @brief Write image(s) in KTX format to memory.
  *
  * @param [out] bytes       pointer to the output with KTX data. Application
-							is responsible for freeing that memory.
+							is responsible for freeing this memory.
  * @param [out] size        pointer to store size of the memory written.
  * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
  *                          information about the images to be included in
@@ -488,13 +488,13 @@ ktxWriteKTXM(unsigned char** bytes, GLsizei* size,
 			 GLsizei bytesOfKeyValueData, const void* keyValueData,
 			 GLuint numImages, KTX_image_info images[])
 {
-	struct ktxMem mem;
 	struct ktxStream stream;
 	KTX_error_code rc;
+	ktx_size_t strSize;
 
 	*bytes = NULL;
 
-	rc = ktxMemStream_construct(&stream, &mem, NULL, 0);
+	rc = ktxMemStream_construct(&stream);
 	if (rc != KTX_SUCCESS)
 		return rc;
 
@@ -502,15 +502,17 @@ ktxWriteKTXM(unsigned char** bytes, GLsizei* size,
                       numImages, images);
 	if(rc != KTX_SUCCESS)
 	{
-		if(mem.bytes)
-		{
-			free(mem.bytes);
-		}
+		ktxMemStream_destruct(&stream);
 		return rc;
 	}
 
-	*bytes = mem.bytes;
-	*size = (GLsizei)mem.used_size;
+	ktxMemStream_getdata(&stream, bytes);
+    stream.getsize(&stream, &strSize);
+	*size = (GLsizei)strSize;
+	/* This function does not free the memory pointed at by the
+	 * value obtained from ktxMemStream_getdata().
+	 */
+	ktxMemStream_destruct(&stream);
 	return KTX_SUCCESS;
 }
 

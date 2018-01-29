@@ -19,26 +19,21 @@
           'gen_platform_arch_var': '64',
           'conditions': [
             ['GENERATOR == "msvs"', {
-              # XXX Crap! The IMG directory names are not easy to map to
-              # using MSVS macros. The only suitable macro (i.e. having
-              # values of 32 or 64) is $(PlatformArchitecture) but it
-              # does not exist in VS2005, 2008 and possibly 2010. For
-              # these, default is chosen according to whether the
-              # version supports x64. 32-bit builds will therefore
-              # not work on those versions.  Users wishing to support
-              # both platforms will need to do something like rename
-              # the IMG folders to Win32 and x64 and use $(PlatformName)
-              # here.
+              # The IMG SDK uses non-standard platform names in its
+              # library directory names. Fortunately a suitable
+              # MSVS macro (i.e. having values of 32 or 64) was introduced
+              # in vs2010: $(PlatformArchitecture). Since we're no longer
+              # supporting vs2005 or vs2008 we can use it. In case anyone
+              # still needs to use these versions the following condition
+              # will set the platform architecture  according to a
+              # variable that can be defined on the GYP command.
               'conditions': [
-                #['int(MSVS_VERSION[:4]) >= 2010', {
-                ['MSVS_VERSION[:4] != "2010" and MSVS_VERSION[:4] != "2008" and MSVS_VERSION[:4] != "2005"', {
+                ['MSVS_VERSION[:4] != "2008" and MSVS_VERSION[:4] != "2005"', {
                   'gen_platform_arch_var': '$(PlatformArchitecture)',
-                }, 'MSVS_VERSION[-1] == "e"', {
-                  # Express ediions of 2005 ~ 2010 do not support
-                  # 64-bit.
-                  'gen_platform_arch_var': '32',
-                }, {
+                }, 'WIN_PLATFORM == "x64"', {
                   'gen_platform_arch_var': '64',
+                }, {
+                  'gen_platform_arch_var': '32',
                 }],
               ],
             }],

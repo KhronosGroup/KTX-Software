@@ -150,9 +150,9 @@ VulkanAppSDL::finalize()
 {
     if (vkctx.descriptorPool)
     {
-        vkDestroyDescriptorPool(vkctx.device, vkctx.descriptorPool, nullptr);
+ 		vkctx.device.destroyDescriptorPool(vkctx.descriptorPool, nullptr);
     }
-    vkDestroyPipelineCache(vkctx.device, vkctx.pipelineCache, nullptr);
+    vkDestroyPipelineCache((VkDevice)vkctx.device, vkctx.pipelineCache, nullptr);
 
     vkctx.swapchain.cleanup();
     for (auto& shaderModule : shaderModules)

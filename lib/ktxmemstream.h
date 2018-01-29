@@ -41,26 +41,20 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "ktx.h"
 #include "ktxstream.h"
 
-/**
- * @internal
- * @brief Structure to store information about data allocated for ktxMemStream.
- */
-typedef struct ktxMem
-{
-	unsigned char* bytes;    /*!< pointer to the data. */
-	size_t alloc_size;       /*!< allocated size of the memory block. */
-	size_t used_size;        /*!< bytes used. Effectively the write position. */
-	size_t pos;              /*!< read position. */
-} ktxMem;
-
 /*
- * Initialize a ktxStream to a ktxMemStream with ktxMem struct and array
- * of bytes.
+ * Initialize a ktxStream to a ktxMemStream with internally
+ * allocated memory. Can be read or written.
  */
-KTX_error_code ktxMemStream_construct(ktxStream* str, struct ktxMem* mem,
-                                      const void* bytes, size_t size);
+KTX_error_code ktxMemStream_construct(ktxStream* str);
+/*
+ * Initialize a ktxStream to a read-only ktxMemStream reading
+ * from an array of bytes.
+ */
+KTX_error_code ktxMemStream_construct_ro(ktxStream* str,
+										 const ktx_uint8_t* pBytes,
+										 const ktx_size_t size);
+void ktxMemStream_destruct(ktxStream* str);
 
-
-void ktxMem_clear(ktxMem* mem);
+KTX_error_code ktxMemStream_getdata(ktxStream* str, ktx_uint8_t** ppBytes);
 
 #endif /* KTXMEMSTREAM_H */

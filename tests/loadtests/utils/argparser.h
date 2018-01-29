@@ -52,7 +52,7 @@ class argparser {
     };
 
     std::string optarg;
-    int optind;
+    unsigned int optind;
     
     argparser(argvector& argv) : argv(argv) {
         optind = 0;

@@ -42,13 +42,28 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
 #include <assert.h>
+#include <errno.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxfilestream.h"
+
+#if defined(_MSC_VER)
+  #if defined(_WIN64)
+    #define ftello _ftelli64
+    #define fseeko _fseeki64
+  #else
+    #define ftello ftell
+    #define fseeko fseek
+  #endif
+  #define fileno _fileno
+#endif
+
+#define KTX_FILE_STREAM_MAX (1 << (sizeof(ktx_off_t) - 1) - 1)
 
 /**
  * @internal
@@ -58,24 +73,30 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * @param [in]  str     pointer to the ktxStream from which to read.
  * @param [out] dst     pointer to a block of memory with a size
  *                      of at least @p size bytes, converted to a void*.
- * @param [in]  size    total size of bytes to be read.
+ * @param [in,out] count   pointer to total count of bytes to be read.
+ *                         On completion set to number of bytes read.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p dst is @c NULL or @p src is @c NULL.
- * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected
- *                                       amount of data.
+ * @exception KTX_FILE_UNEXPECTED_EOF not enough data to satisfy the request.
  */
 static
-KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const GLsizei size)
+KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t count)
 {
+	ktx_size_t nread;
+
 	if (!str || !dst)
 		return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
     
-	if (fread(dst, size, 1, str->data.file) != 1)
-		return KTX_UNEXPECTED_END_OF_FILE;
+	if ((nread = fread(dst, 1, count, str->data.file)) != count) {
+		if (feof(str->data.file)) {
+			return KTX_FILE_UNEXPECTED_EOF;
+		} else
+			return KTX_FILE_READ_ERROR;
+	}
 
 	return KTX_SUCCESS;
 }
@@ -91,19 +112,32 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const GLsizei size)
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p str is @c NULL or @p count is less than zero.
- * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the expected
- *                                       amount of data.
+ * @exception KTX_INVALID_OPERATION skipping @p count bytes would go beyond EOF.
+ * @exception KTX_FILE_UNEXPECTED_EOF not enough data to satisfy the request.
+ *                                    @p count is set to the number of bytes
+ *                                    skipped.
  */
 static
-KTX_error_code ktxFileStream_skip(ktxStream* str, const GLsizei count)
+KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
 {
-	if (!str || (count < 0))
+	ktx_size_t fileSize;
+	ktx_off_t pos, newpos;
+
+	if (!str)
 		return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
     
-	if (fseek(str->data.file, count, SEEK_CUR) != 0)
-		return KTX_UNEXPECTED_END_OF_FILE;
+	str->getsize(str, &fileSize);
+	str->getpos(str, &pos);
+
+	newpos = pos + count;
+    /* First clause checks for overflow. */
+	if (newpos < pos || pos + count > fileSize)
+		return KTX_FILE_UNEXPECTED_EOF;
+
+	if (fseeko(str->data.file, count, SEEK_CUR) != 0)
+		return KTX_FILE_SEEK_ERROR;
 
 	return KTX_SUCCESS;
 }
@@ -124,20 +158,27 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const GLsizei count)
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p str is @c NULL or @p src is @c NULL.
+ * @exception KTX_FILE_OVERFLOW the requested write would caused the file to
+ *                              exceed the maximum supported file size.
  * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the
  *                                 file.
  */
 static
 KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
-                                   const GLsizei size, const GLsizei count)
+                                   const ktx_size_t size,
+	                               const ktx_size_t count)
 {
 	if (!str || !src)
 		return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
     
-	if (fwrite(src, size, count, str->data.file) != count)
-		return KTX_FILE_WRITE_ERROR;
+	if (fwrite(src, size, count, str->data.file) != count) {
+		if (errno == EFBIG || errno == EOVERFLOW)
+			return KTX_FILE_OVERFLOW;
+		else
+			return KTX_FILE_WRITE_ERROR;
+	}
 
 	return KTX_SUCCESS;
 }
@@ -155,7 +196,7 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
  * @exception KTX_INVALID_VALUE @p str or @p pos is @c NULL.
  */
 static
-KTX_error_code ktxFileStream_getpos(ktxStream* str, off_t* pos)
+KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
 {
     if (!str || !pos)
         return KTX_INVALID_VALUE;
@@ -172,7 +213,10 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, off_t* pos)
  * @~English
  * @brief Set the current read/write position in a ktxFileStream.
  *
- * Offset of 0 is the start of the file.
+ * Offset of 0 is the start of the file. This function operates
+ * like Linux > 3.1's @c lseek() when it is passed a @c whence
+ * of @c SEEK_DATA is it returns and error if the seek would
+ * go beyond the end of the file.
  *
  * @param [in] str    pointer to the ktxStream whose r/w position is to be set.
  * @param [in] off    pointer to the offset value to set.
@@ -184,9 +228,9 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, off_t* pos)
  *                                  fseek error occurred.
  */
 static
-KTX_error_code ktxFileStream_setpos(ktxStream* str, off_t pos)
+KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
 {
-    size_t fileSize;
+    ktx_size_t fileSize;
     
     if (!str)
         return KTX_INVALID_VALUE;
@@ -198,8 +242,7 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, off_t pos)
         return KTX_INVALID_OPERATION;
 
     if (fseeko(str->data.file, pos, SEEK_SET) < 0)
-        /* FIXME. Return a more suitable error. */
-        return KTX_INVALID_OPERATION;
+        return KTX_FILE_SEEK_ERROR;
     
     return KTX_SUCCESS;
 }
@@ -219,7 +262,7 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, off_t pos)
  *                                 size.
  */
 static
-KTX_error_code ktxFileStream_getsize(ktxStream* str, size_t* size)
+KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
 {
     struct stat statbuf;
 
@@ -229,8 +272,7 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, size_t* size)
     assert(str->type == eStreamTypeFile);
  
     if (fstat(fileno(str->data.file), &statbuf) < 0)
-        /* FIXME. Return a more suitable errors. */
-        return KTX_FILE_WRITE_ERROR;
+        return KTX_FILE_READ_ERROR;
     *size = statbuf.st_size;
     
     return KTX_SUCCESS;

@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\cube">
+      <UniqueIdentifier>{1D4147EA-1777-C641-AB00-82486816F315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\cube">
+      <UniqueIdentifier>{1D4147EA-1777-C641-AB00-82486816F315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\cubemap">
+      <UniqueIdentifier>{96C9DD87-2F17-8DB7-F204-4A16AFCE318A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\cubemap">
+      <UniqueIdentifier>{96C9DD87-2F17-8DB7-F204-4A16AFCE318A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\cubemap">
+      <UniqueIdentifier>{96C9DD87-2F17-8DB7-F204-4A16AFCE318A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\cubemap">
+      <UniqueIdentifier>{96C9DD87-2F17-8DB7-F204-4A16AFCE318A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\texture">
+      <UniqueIdentifier>{E762003F-FA50-ABEA-E7DE-B90227C7641A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\texture">
+      <UniqueIdentifier>{E762003F-FA50-ABEA-E7DE-B90227C7641A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\texturearray">
+      <UniqueIdentifier>{9CCE115E-3352-2E7F-5632-A7BA301657C4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\texturearray">
+      <UniqueIdentifier>{9CCE115E-3352-2E7F-5632-A7BA301657C4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="icons">
+      <UniqueIdentifier>{DDEC3942-6CA2-0C7B-0012-A575C614C86D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="icons\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources">
+      <UniqueIdentifier>{02993FF4-6DD0-55B6-6A36-E99A964FF863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources">
+      <UniqueIdentifier>{02993FF4-6DD0-55B6-6A36-E99A964FF863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\models">
+      <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\models">
+      <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\models">
+      <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\models">
+      <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="other_lib">
+      <UniqueIdentifier>{DB573744-BA7C-22FF-9F55-5E1E8C007536}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="other_lib\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="other_lib\win\Release-$(PlatformName)">
+      <UniqueIdentifier>{62BD4022-6928-DF96-DE27-D967F70FE3EF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources">
+      <UniqueIdentifier>{02993FF4-6DD0-55B6-6A36-E99A964FF863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources\mac">
+      <UniqueIdentifier>{DDBFF7CF-DBCF-B2FC-793A-DB701B563E8D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\resources\mac\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\tests\loadtests\common\vecmath.hpp">
+      <Filter>tests\loadtests\common</Filter>
+    </None>
+    <ClInclude Include="..\..\..\..\tests\loadtests\utils\argparser.h">
+      <Filter>tests\loadtests\utils</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\utils\argparser.cpp">
+      <Filter>tests\loadtests\utils</Filter>
+    </ClCompile>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cube\cube.frag">
+      <Filter>tests\loadtests\vkloadtests\shaders\cube</Filter>
+    </frag2spirv>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cube\cube.vert">
+      <Filter>tests\loadtests\vkloadtests\shaders\cube</Filter>
+    </vert2spirv>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\reflect.frag">
+      <Filter>tests\loadtests\vkloadtests\shaders\cubemap</Filter>
+    </frag2spirv>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\reflect.vert">
+      <Filter>tests\loadtests\vkloadtests\shaders\cubemap</Filter>
+    </vert2spirv>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\skybox.frag">
+      <Filter>tests\loadtests\vkloadtests\shaders\cubemap</Filter>
+    </frag2spirv>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\skybox.vert">
+      <Filter>tests\loadtests\vkloadtests\shaders\cubemap</Filter>
+    </vert2spirv>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texture\texture.frag">
+      <Filter>tests\loadtests\vkloadtests\shaders\texture</Filter>
+    </frag2spirv>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texture\texture.vert">
+      <Filter>tests\loadtests\vkloadtests\shaders\texture</Filter>
+    </vert2spirv>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturearray\instancing.frag">
+      <Filter>tests\loadtests\vkloadtests\shaders\texturearray</Filter>
+    </frag2spirv>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturearray\instancing.vert">
+      <Filter>tests\loadtests\vkloadtests\shaders\texturearray</Filter>
+    </vert2spirv>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureCubemap.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureCubemap.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\utils\VulkanMeshLoader.hpp">
+      <Filter>tests\loadtests\vkloadtests\utils</Filter>
+    </None>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\icons\win\ktx_app.ico">
+      <Filter>icons\win</Filter>
+    </None>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\vkloadtests.rc">
+      <Filter>tests\loadtests\vkloadtests\resources\win</Filter>
+    </ResourceCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\resource.h">
+      <Filter>tests\loadtests\vkloadtests\resources\win</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\cube.obj">
+      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\sphere.obj">
+      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\teapot.dae">
+      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\torusknot.obj">
+      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    </None>
+    <None Include="..\..\..\..\other_lib\win\Release-$(PlatformName)\assimp.dll">
+      <Filter>other_lib\win\Release-$(PlatformName)</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\resources\mac\Info.plist">
+      <Filter>tests\loadtests\vkloadtests\resources\mac\_excluded_files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

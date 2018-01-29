@@ -137,11 +137,15 @@ you use the MacPorts version, this will be `/opt/local`.
 
 ### Windows
 
-Use the solutions under one of `build/msvs/win/vs20{08,10,10e,13,13e,15}`
-to build the library, load tests and tools for Windows Win32 or x64. Builds
-of the Win32 platform with vs2008 and vs2010 will not work. For the
-explanation see [pvremu.gypi](gyp_include/pvremu.gypi#L22). Builds of the Vulkan
-loader tests require vs2013+ because they use C++11.
+Use the solutions under one of
+`build/msvs/{win32,x64}/vs20{10,10e,13,13e,15,17}` to build the library,
+load tests and tools for Win32 or x64 plaforms. There are separate
+solutions for Win32 and x64 platforms.
+
+**Note:** Builds of the Vulkan loader tests require vs2015+ because they
+use `vulkan.hpp` which needs C++11 & in particular `constexpr`, so solutions
+other than vs2015 and vs2017 do not include a `vkloadtests` project
+and their `appfwSDL` projects do not include Vulkan app support.
 
 Dependencies
 ------------

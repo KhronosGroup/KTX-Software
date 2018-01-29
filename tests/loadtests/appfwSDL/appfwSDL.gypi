@@ -17,7 +17,7 @@
       'dependencies': [
         'libsdl',
         'libktx.gyp:vulkan_headers',
-     ],
+      ],
       'direct_dependent_settings': {
         'conditions': [
           ['OS == "mac" or OS == "ios"', {
@@ -46,9 +46,26 @@
       'include_dirs': [
         '.',
         'VulkanAppSDL',
-        # For stb.
         '../../../other_include',
       ],
+      'variables': {
+        'vulkan_files': [
+          'VulkanAppSDL/VulkanAppSDL.cpp',
+          'VulkanAppSDL/VulkanAppSDL.h',
+          'VulkanAppSDL/vulkancheckres.h',
+          'VulkanAppSDL/VulkanContext.cpp',
+          'VulkanAppSDL/VulkanContext.h',
+          'VulkanAppSDL/VulkanSwapchain.cpp',
+          'VulkanAppSDL/VulkanSwapchain.h',
+          'VulkanAppSDL/vulkandebug.cpp',
+          'VulkanAppSDL/vulkandebug.h',
+          'VulkanAppSDL/vulkantextoverlay.hpp',
+          'VulkanAppSDL/vulkantools.cpp',
+          'VulkanAppSDL/vulkantools.h',
+          'VulkanAppSDL/shaders/textoverlay.frag',
+          'VulkanAppSDL/shaders/textoverlay.vert',
+        ],
+      },
       'sources': [
         # .h files are included so they will appear in IDEs' file lists.
         'main.cpp',
@@ -56,20 +73,7 @@
         'AppBaseSDL.h',
         'GLAppSDL.cpp',
         'GLAppSDL.h',
-        'VulkanAppSDL/VulkanAppSDL.cpp',
-        'VulkanAppSDL/VulkanAppSDL.h',
-        'VulkanAppSDL/vulkancheckres.h',
-        'VulkanAppSDL/VulkanContext.cpp',
-        'VulkanAppSDL/VulkanContext.h',
-        'VulkanAppSDL/VulkanSwapchain.cpp',
-        'VulkanAppSDL/VulkanSwapchain.h',
-        'VulkanAppSDL/vulkandebug.cpp',
-        'VulkanAppSDL/vulkandebug.h',
-        'VulkanAppSDL/vulkantextoverlay.hpp',
-        'VulkanAppSDL/vulkantools.cpp',
-        'VulkanAppSDL/vulkantools.h',
-        'VulkanAppSDL/shaders/textoverlay.frag',
-        'VulkanAppSDL/shaders/textoverlay.vert',
+        '<@(vulkan_files)',
       ],
       'link_settings': {
         'conditions': [
@@ -88,6 +92,24 @@
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
       },
+      'conditions': [
+        # Earlier MSVS Versions do not support C++11 so exclude
+        # VkAppSDL.
+        ['GENERATOR == "msvs" and MSVS_VERSION != "2015" and MSVS_VERSION != "2017"', {
+          'cflags_cc!': [ '-std=c++11' ],
+          'dependencies!': [ 'libktx.gyp:vulkan_headers' ],
+          'direct_dependent_settings': {
+            'include_dirs!': [ 'VulkanAppSDL' ],
+          },
+          'includes!': [
+            '../../../gyp_include/glsl2spirv.gypi'
+          ],
+          'include_dirs!': [
+            'VulkanAppSDL',
+          ],
+          'sources!': [ '<@(vulkan_files)' ],
+        }]
+      ],
     } # target appfwSDL
   ] #targets
 }

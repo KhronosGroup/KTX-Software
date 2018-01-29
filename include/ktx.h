@@ -155,12 +155,14 @@ typedef unsigned short ktx_uint16_t;
 typedef   signed short ktx_int16_t;
 typedef unsigned int   ktx_uint32_t;
 typedef   signed int   ktx_int32_t;
+typedef       size_t   ktx_size_t;
 #else
 #include <stdint.h>
 typedef uint16_t ktx_uint16_t;
-typedef int16_t  ktx_int16_t;
+typedef  int16_t ktx_int16_t;
 typedef uint32_t ktx_uint32_t;
-typedef int32_t  ktx_int32_t;
+typedef  int32_t ktx_int32_t;
+typedef   size_t ktx_size_t;
 #endif
 
 /* This will cause compilation to fail if uint32 != 4. */
@@ -211,15 +213,18 @@ extern "C" {
  */
 typedef enum KTX_error_code_t {
 	KTX_SUCCESS = 0,		 /*!< Operation was successful. */
-	KTX_FILE_OPEN_FAILED,	 /*!< The target file could not be opened. */
-	KTX_FILE_WRITE_ERROR,    /*!< An error occurred while writing to the file. */
     KTX_FILE_DATA_ERROR,     /*!< The data in the file is inconsistent with the spec. */
+	KTX_FILE_OPEN_FAILED,	 /*!< The target file could not be opened. */
+	KTX_FILE_OVERFLOW,       /*!< The operation would exceed the max file size. */
+	KTX_FILE_READ_ERROR,     /*!< An error occurred while reading from the file. */
+	KTX_FILE_SEEK_ERROR,     /*!< An error occurred while seeking in the file. */
+	KTX_FILE_UNEXPECTED_EOF, /*!< File does not have enough data to satisfy request. */
+	KTX_FILE_WRITE_ERROR,    /*!< An error occurred while writing to the file. */
 	KTX_GL_ERROR,            /*!< GL operations resulted in an error. */
 	KTX_INVALID_OPERATION,   /*!< The operation is not allowed in the current state. */
 	KTX_INVALID_VALUE,	     /*!< A parameter value was not valid */
 	KTX_NOT_FOUND,			 /*!< Requested key was not found */
 	KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
-	KTX_UNEXPECTED_END_OF_FILE, /*!< The file did not contain enough data */
 	KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
 	KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
 } KTX_error_code;
@@ -519,7 +524,7 @@ ktxReader_readImages(KTX_reader This, PFNKTXIMAGECB imageCb, void* userdata);
  * KTX file.
  */
 KTX_error_code
-ktxReader_getDataSize(KTX_reader This, size_t* pLevelSize);
+ktxReader_getDataSize(KTX_reader This, ktx_size_t* pDataSize);
 
 /*
  * Return the number of bytes needed to store the image data for the

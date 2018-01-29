@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml"/>
+    <AvailableItemName Include="frag2spirv">
+      <Targets>_frag2spirv</Targets>
+    </AvailableItemName>
+    <AvailableItemName Include="vert2spirv">
+      <Targets>_vert2spirv</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+  <UsingTask AssemblyName="Microsoft.Build.Tasks.v4.0" TaskFactory="XamlTaskFactory" TaskName="frag2spirv">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <UsingTask AssemblyName="Microsoft.Build.Tasks.v4.0" TaskFactory="XamlTaskFactory" TaskName="vert2spirv">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <Target AfterTargets="$(frag2spirvAfterTargets)" BeforeTargets="$(frag2spirvBeforeTargets)" Condition="'@(frag2spirv)' != ''" DependsOnTargets="$(frag2spirvDependsOn);Computefrag2spirvOutput" Inputs="%(frag2spirv.Identity);%(frag2spirv.AdditionalDependencies);$(MSBuildProjectFile)" Name="_frag2spirv" Outputs="%(frag2spirv.Outputs)">
+    <ItemGroup Condition="'@(SelectedFiles)' != ''">
+      <frag2spirv Condition="'%(Identity)' != '@(SelectedFiles)'" Remove="@(frag2spirv)"/>
+    </ItemGroup>
+    <ItemGroup>
+      <frag2spirv_inputs Include="%(frag2spirv.AdditionalDependencies)"/>
+    </ItemGroup>
+    <ItemGroup>
+      <frag2spirv_tlog Condition="'%(frag2spirv.Outputs)' != '' and '%(frag2spirv.ExcludedFromBuild)' != 'true'" Include="%(frag2spirv.Outputs)">
+        <Source>@(frag2spirv, &apos;|&apos;)</Source>
+        <Inputs>@(frag2spirv_inputs -&gt; &apos;%(Fullpath)&apos;, &apos;;&apos;)</Inputs>
+      </frag2spirv_tlog>
+    </ItemGroup>
+    <Message Importance="High" Text="%(frag2spirv.ExecutionDescription)"/>
+    <WriteLinesToFile Condition="'@(frag2spirv_tlog)' != '' and '%(frag2spirv_tlog.ExcludedFromBuild)' != 'true'" File="$(IntDir)$(ProjectName).write.1.tlog" Lines="^%(frag2spirv_tlog.Source);@(frag2spirv_tlog-&gt;'%(Fullpath)')"/>
+    <WriteLinesToFile Condition="'@(frag2spirv_tlog)' != '' and '%(frag2spirv_tlog.ExcludedFromBuild)' != 'true'" File="$(IntDir)$(ProjectName).read.1.tlog" Lines="^%(frag2spirv_tlog.Source);%(frag2spirv_tlog.Inputs)"/>
+    <frag2spirv AdditionalOptions="%(frag2spirv.AdditionalOptions)" CommandLineTemplate="%(frag2spirv.CommandLineTemplate)" Condition="'@(frag2spirv)' != '' and '%(frag2spirv.ExcludedFromBuild)' != 'true'" EchoOff="true" Inputs="%(frag2spirv.Identity)" StandardErrorImportance="High" StandardOutputImportance="High"/>
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>$(ComputeLinkInputsTargets);Computefrag2spirvOutput;</ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>$(ComputeLibInputsTargets);Computefrag2spirvOutput;</ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target Condition="'@(frag2spirv)' != ''" Name="Computefrag2spirvOutput">
+    <ItemGroup>
+      <frag2spirvDirsToMake Condition="'@(frag2spirv)' != '' and '%(frag2spirv.ExcludedFromBuild)' != 'true'" Include="%(frag2spirv.Outputs)"/>
+      <Link Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" Include="%(frag2spirvDirsToMake.Identity)"/>
+      <Lib Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" Include="%(frag2spirvDirsToMake.Identity)"/>
+      <ImpLib Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" Include="%(frag2spirvDirsToMake.Identity)"/>
+    </ItemGroup>
+    <MakeDir Directories="@(frag2spirvDirsToMake-&gt;'%(RootDir)%(Directory)')"/>
+  </Target>
+  <Target AfterTargets="$(vert2spirvAfterTargets)" BeforeTargets="$(vert2spirvBeforeTargets)" Condition="'@(vert2spirv)' != ''" DependsOnTargets="$(vert2spirvDependsOn);Computevert2spirvOutput" Inputs="%(vert2spirv.Identity);%(vert2spirv.AdditionalDependencies);$(MSBuildProjectFile)" Name="_vert2spirv" Outputs="%(vert2spirv.Outputs)">
+    <ItemGroup Condition="'@(SelectedFiles)' != ''">
+      <vert2spirv Condition="'%(Identity)' != '@(SelectedFiles)'" Remove="@(vert2spirv)"/>
+    </ItemGroup>
+    <ItemGroup>
+      <vert2spirv_inputs Include="%(vert2spirv.AdditionalDependencies)"/>
+    </ItemGroup>
+    <ItemGroup>
+      <vert2spirv_tlog Condition="'%(vert2spirv.Outputs)' != '' and '%(vert2spirv.ExcludedFromBuild)' != 'true'" Include="%(vert2spirv.Outputs)">
+        <Source>@(vert2spirv, &apos;|&apos;)</Source>
+        <Inputs>@(vert2spirv_inputs -&gt; &apos;%(Fullpath)&apos;, &apos;;&apos;)</Inputs>
+      </vert2spirv_tlog>
+    </ItemGroup>
+    <Message Importance="High" Text="%(vert2spirv.ExecutionDescription)"/>
+    <WriteLinesToFile Condition="'@(vert2spirv_tlog)' != '' and '%(vert2spirv_tlog.ExcludedFromBuild)' != 'true'" File="$(IntDir)$(ProjectName).write.1.tlog" Lines="^%(vert2spirv_tlog.Source);@(vert2spirv_tlog-&gt;'%(Fullpath)')"/>
+    <WriteLinesToFile Condition="'@(vert2spirv_tlog)' != '' and '%(vert2spirv_tlog.ExcludedFromBuild)' != 'true'" File="$(IntDir)$(ProjectName).read.1.tlog" Lines="^%(vert2spirv_tlog.Source);%(vert2spirv_tlog.Inputs)"/>
+    <vert2spirv AdditionalOptions="%(vert2spirv.AdditionalOptions)" CommandLineTemplate="%(vert2spirv.CommandLineTemplate)" Condition="'@(vert2spirv)' != '' and '%(vert2spirv.ExcludedFromBuild)' != 'true'" EchoOff="true" Inputs="%(vert2spirv.Identity)" StandardErrorImportance="High" StandardOutputImportance="High"/>
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>$(ComputeLinkInputsTargets);Computevert2spirvOutput;</ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>$(ComputeLibInputsTargets);Computevert2spirvOutput;</ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target Condition="'@(vert2spirv)' != ''" Name="Computevert2spirvOutput">
+    <ItemGroup>
+      <vert2spirvDirsToMake Condition="'@(vert2spirv)' != '' and '%(vert2spirv.ExcludedFromBuild)' != 'true'" Include="%(vert2spirv.Outputs)"/>
+      <Link Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" Include="%(vert2spirvDirsToMake.Identity)"/>
+      <Lib Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" Include="%(vert2spirvDirsToMake.Identity)"/>
+      <ImpLib Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" Include="%(vert2spirvDirsToMake.Identity)"/>
+    </ItemGroup>
+    <MakeDir Directories="@(vert2spirvDirsToMake-&gt;'%(RootDir)%(Directory)')"/>
+  </Target>
+</Project>

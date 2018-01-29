@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\shaders\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL">
+      <UniqueIdentifier>{F9C3E849-616F-70CC-D335-D5B93A588FC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL">
+      <UniqueIdentifier>{9CA19D8F-1D3F-F5E2-A13F-C372894DF39F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\appfwSDL\VulkanAppSDL\shaders\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\main.cpp">
+      <Filter>tests\loadtests\appfwSDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\AppBaseSDL.cpp">
+      <Filter>tests\loadtests\appfwSDL</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\AppBaseSDL.h">
+      <Filter>tests\loadtests\appfwSDL</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.cpp">
+      <Filter>tests\loadtests\appfwSDL</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.h">
+      <Filter>tests\loadtests\appfwSDL</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanAppSDL.cpp">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanAppSDL.h">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkancheckres.h">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanContext.cpp">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanContext.h">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanSwapchain.cpp">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanSwapchain.h">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkandebug.cpp">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkandebug.h">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantextoverlay.hpp">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </None>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantools.cpp">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantools.h">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\_excluded_files</Filter>
+    </ClInclude>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\shaders\textoverlay.frag">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\shaders\_excluded_files</Filter>
+    </frag2spirv>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\shaders\textoverlay.vert">
+      <Filter>tests\loadtests\appfwSDL\VulkanAppSDL\shaders\_excluded_files</Filter>
+    </vert2spirv>
+  </ItemGroup>
+</Project>

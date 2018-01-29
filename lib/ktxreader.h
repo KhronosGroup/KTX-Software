@@ -46,6 +46,7 @@
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxstream.h"
+#include "ktxfilestream.h"
 #include "ktxmemstream.h"
 
 typedef enum ktx_reader_state {
@@ -65,7 +66,6 @@ typedef struct ktxReader {
     ktx_reader_state state;  /*!< @internal current context state. */
     ktxStream stream;        /*!< @internal stream representing the KTX file. */
     ktx_uint8_t selfOpenedFile; /*!< @internal file was opened by ktxReader. */
-    ktxMem mem;              /*!< @internal ktxMem used when @a stream is a ktxMemStream. */
     KTX_header header;       /*!< @internal header of the KTX file. */
     int textureDimension;    /*!< @internal number of dimensions in the texture images. */
 } ktxReader;

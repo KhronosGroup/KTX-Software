@@ -30,10 +30,9 @@
 /build/**/*.opensdf
 /build/**/*.suo
 /build/**/*.user
-/build/**/Win32
-/build/**/x64
 /build/msvs/**/Debug*
 /build/msvs/**/Release*
+/build/msvs/**/.vs
 
 # User related stuff in /build/xcode
 /build/xcode/*/*.xcodeproj/project.xcworkspace

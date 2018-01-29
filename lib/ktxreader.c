@@ -55,7 +55,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 #include "gl_format.h"
 
 #include "ktxreader.h"
-#include "ktxfilestream.h"
 
 /**
  * @defgroup ktx_reader KTX Reader
@@ -89,7 +88,7 @@ ktxReader_construct(ktxReader* This)
  * @param [in] file     pointer to the stdio FILE to use.
  */
 KTX_error_code
-ktxReader_constructFromFile(ktxReader* This, FILE* file)
+ktxReader_constructFromFILE(ktxReader* This, FILE* file)
 {
     assert(This != NULL);
     ktxReader_construct(This);
@@ -110,7 +109,7 @@ ktxReader_constructFromMem(ktxReader* This, const void* bytes, size_t size)
 {
     assert(This != NULL);
     ktxReader_construct(This);
-    return ktxMemStream_construct(&This->stream, &This->mem, bytes, size);
+    return ktxMemStream_construct_ro(&This->stream, bytes, size);
 }
 
 /**
@@ -145,7 +144,7 @@ ktxOpenKTXF(FILE* file, KTX_reader* pReader)
     if (This == NULL)
         return KTX_OUT_OF_MEMORY;
     
-    errorCode = ktxReader_constructFromFile(This, file);
+    errorCode = ktxReader_constructFromFILE(This, file);
     if (errorCode == KTX_SUCCESS)
         *pReader = (void*)This;
     
@@ -303,7 +302,7 @@ ktxReader_close(KTX_reader reader)
  */
 KTX_error_code
 ktxReader_readHeader(KTX_reader reader, KTX_header* pHeader,
-                   KTX_supplemental_info* pSuppInfo)
+                     KTX_supplemental_info* pSuppInfo)
 {
     ktxReader* This = (ktxReader*)reader;
     KTX_error_code errorCode;
@@ -613,14 +612,14 @@ dataSize(const GlFormatSize* formatSize, ktx_uint32_t levels, ktx_uint32_t layer
  *                                  handle.
  */
 KTX_error_code
-ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
+ktxReader_getDataSize(KTX_reader reader, ktx_size_t* pDataSize)
 {
     ktxReader* This = (ktxReader*)reader;
 	//GlFormatSize formatSize;
 	KTX_header* header;
 	//ktx_uint32_t layers;
     //size_t sizeFromTable;
-    size_t strSize;
+    ktx_size_t strSize;
     //size_t sizeFromCalc;
 
     if (This == NULL
@@ -651,7 +650,7 @@ ktxReader_getDataSize(KTX_reader reader, size_t* pDataSize)
     This->stream.getsize(&This->stream, &strSize);
     *pDataSize = strSize - KTX_HEADER_SIZE - header->bytesOfKeyValueData
                     /* Account for imageSize fields at each mipLevel. */
-                   - sizeof(uint32_t) * header->numberOfMipmapLevels;
+                   - sizeof(ktx_uint32_t) * header->numberOfMipmapLevels;
 
     return KTX_SUCCESS;
 }
