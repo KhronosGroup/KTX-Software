@@ -175,6 +175,14 @@ static GLboolean supportsCubeMapArrays = GL_FALSE;
 #define glGetString(x) (const char*)glGetString(x)
 
 /**
+* @internal
+* @~English
+* @brief Workaround mismatch of glGetStringi declaration and standard string
+*        function parameters.
+*/
+#define pfGlGetStringi(x,y) (const char*)pfGlGetStringi(x,y)
+
+/**
  * @internal
  * @~English
  * @brief Workaround mismatch of glGetStringi declaration and standard string
@@ -523,7 +531,7 @@ compressedTexImage2DCallback(int miplevel, int face,
         if (errorCode != KTX_SUCCESS) {
             return errorCode;
         }
-        if (!sizedFormats & _NON_LEGACY_FORMATS) {
+        if (!(sizedFormats & _NON_LEGACY_FORMATS)) {
             if (internalformat == GL_RGB8)
                 internalformat = GL_RGB;
             else if (internalformat == GL_RGBA8)
@@ -668,7 +676,6 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
     KTX_header	          header;
     KTX_supplemental_info texinfo;
 	GLint				  previousUnpackAlignment;
-	void*				  data = NULL;
 	GLuint				  texname;
 	int					  texnameUser;
 	KTX_error_code		  errorCode = KTX_SUCCESS;
@@ -836,8 +843,6 @@ ktxLoadTexture(KTX_context ctx, GLuint* pTexture, GLenum* pTarget,
         if (pGlerror)
             *pGlerror = cbData.glError;
     }
-
-	free(data);
 
 	/* restore previous GL state */
 	if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
