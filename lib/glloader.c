@@ -709,7 +709,6 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
     KTX_header	          header;
     KTX_supplemental_info texinfo;
 	GLint				  previousUnpackAlignment;
-	void*				  data = NULL;
 	GLuint				  texname;
 	int					  texnameUser;
 	KTX_error_code		  errorCode = KTX_SUCCESS;
@@ -877,8 +876,6 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
         if (pGlerror)
             *pGlerror = cbData.glError;
     }
-
-	free(data);
 
 	/* restore previous GL state */
 	if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
