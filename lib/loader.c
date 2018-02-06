@@ -716,7 +716,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				if (errorCode != KTX_SUCCESS) {
 					goto cleanup;
 				}
-				if (!sizedFormats & _NON_LEGACY_FORMATS) {
+				if (!(sizedFormats & _NON_LEGACY_FORMATS)) {
 					if (internalFormat == GL_RGB8)
 						internalFormat = GL_RGB;
 					else if (internalFormat == GL_RGBA8)
