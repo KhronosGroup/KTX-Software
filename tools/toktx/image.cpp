@@ -382,7 +382,8 @@ readPAM(FILE* src, unsigned int& width, unsigned int& height,
 		unsigned int &imageSize, unsigned char*& pixels)
 {
 	char line[255];
-	char tupleType[20];	// If you change this, change the width in the sscanf below.
+	char tupleType[21];	// +1 for terminating NUL. If you change this, change
+                        // the width in the sscanf below.
 	int maxval, depth;
 	int numFieldsFound = 0;
 
