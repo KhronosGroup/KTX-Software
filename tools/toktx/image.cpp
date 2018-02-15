@@ -382,12 +382,14 @@ readPAM(FILE* src, unsigned int& width, unsigned int& height,
 		unsigned int &imageSize, unsigned char*& pixels)
 {
 	char line[255];
-	char tupleType[21];	// +1 for terminating NUL. If you change this, change
-                        // the width in the sscanf below.
+#define MAX_TUPLETYPE_SIZE 20
+#define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
+#define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
+	char tupleType[MAX_TUPLETYPE_SIZE+1];	// +1 for terminating NUL.
 	int maxval, depth;
 	int numFieldsFound = 0;
 
-	for (;;) {
+ 	for (;;) {
 		skipNonData(src);
 		if (!fgets(line, sizeof(line), src)) {
 			if (feof(src))
@@ -406,7 +408,8 @@ readPAM(FILE* src, unsigned int& width, unsigned int& height,
 			numFieldsFound++;
 		else if (sscanf(line, "MAXVAL %d", &maxval))
 			numFieldsFound++;
-		else if (sscanf(line, "TUPLTYPE %20s", tupleType))
+		else if (sscanf(line, xtupletype_sscanf_fmt(MAX_TUPLETYPE_SIZE),
+                        tupleType))
 			numFieldsFound++;
 	};
 
