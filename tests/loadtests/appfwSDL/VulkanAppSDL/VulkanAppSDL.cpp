@@ -66,6 +66,9 @@
       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, msg, NULL); \
       return false;
 
+#define WARNING(msg) \
+      (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName, msg, NULL);
+
 #define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                              \
   {                                                                           \
     pfn##entrypoint =                                                         \
@@ -111,7 +114,7 @@ VulkanAppSDL::initialize(int argc, char* argv[])
 
 #if defined(DEBUG)
   // MoltenVK does not support layers (yet?).
-  #if !defined(__IPHONEOS__) && !defined(__MACOSX__)
+  #if !defined(__IPHONEOS__)
 	validate = true;
   #endif
 	// Enable debug layers?
@@ -233,7 +236,10 @@ VulkanAppSDL::resizeWindow()
     prepared = false;
 #endif
 
-    // Recreate swap chain
+    // Recreate swap chain.
+
+    // This call is unnecessary on iOS or macOS. Swapchain creation gets the
+    // correct drawable size from the surface capabilities. Elsewhere?
     SDL_Vulkan_GetDrawableSize(pswMainWindow, (int*)&w_width, (int*)&w_height);
 
     // This destroys any existing swapchain and makes a new one.
@@ -488,8 +494,8 @@ VulkanAppSDL::createInstance()
         }
 
         if (!validationFound) {
-            ERROR_RETURN("vkEnumerateInstanceLayerProperties failed to find "
-                         "required validation layer.\n");
+            WARNING("vkEnumerateInstanceLayerProperties failed to find "
+                    "requested validation layers.\n");
         }
     }
 

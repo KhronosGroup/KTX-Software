@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -106,6 +106,20 @@ typedef enum
 } SDL_JoystickPowerLevel;
 
 /* Function prototypes */
+
+/**
+ * Locking for multi-threaded access to the joystick API
+ *
+ * If you are using the joystick API or handling events from multiple threads
+ * you should use these locking functions to protect access to the joysticks.
+ *
+ * In particular, you are guaranteed that the joystick list won't change, so
+ * the API functions that take a joystick index will be valid, and joystick
+ * and game controller events will not be delivered.
+ */
+extern DECLSPEC void SDLCALL SDL_LockJoysticks(void);
+extern DECLSPEC void SDLCALL SDL_UnlockJoysticks(void);
+
 /**
  *  Count the number of joysticks attached to the system right now
  */

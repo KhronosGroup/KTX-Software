@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -90,14 +90,11 @@ typedef int (SDLCALL * SDL_ThreadFunction) (void *data);
  *  library!
  */
 #define SDL_PASSED_BEGINTHREAD_ENDTHREAD
-#include <process.h>            /* This has _beginthread() and _endthread() defined! */
+#include <process.h> /* _beginthreadex() and _endthreadex() */
 
-typedef uintptr_t(__cdecl * pfnSDL_CurrentBeginThread) (void *, unsigned,
-                                                        unsigned (__stdcall *
-                                                                  func) (void
-                                                                         *),
-                                                        void *arg, unsigned,
-                                                        unsigned *threadID);
+typedef uintptr_t(__cdecl * pfnSDL_CurrentBeginThread)
+                   (void *, unsigned, unsigned (__stdcall *func)(void *),
+                    void * /*arg*/, unsigned, unsigned * /* threadID */);
 typedef void (__cdecl * pfnSDL_CurrentEndThread) (unsigned code);
 
 /**
@@ -124,7 +121,11 @@ SDL_CreateThread(SDL_ThreadFunction fn, const char *name, void *data,
  * into a dll with Watcom's runtime statically linked.
  */
 #define SDL_PASSED_BEGINTHREAD_ENDTHREAD
+#ifndef __EMX__
 #include <process.h>
+#else
+#include <stdlib.h>
+#endif
 typedef int (*pfnSDL_CurrentBeginThread)(void (*func)(void *), void *, unsigned, void * /*arg*/);
 typedef void (*pfnSDL_CurrentEndThread)(void);
 extern DECLSPEC SDL_Thread *SDLCALL

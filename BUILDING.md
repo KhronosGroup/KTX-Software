@@ -1,6 +1,6 @@
 
 Building KTX
-============
+/bin/bash: }fmt: command not found
 
 This document describes how to build the KTX library `libktx`, the
 portable KTX loader tests `ktxtests` and the KTX tools `ktxtools`.
@@ -71,16 +71,27 @@ You can import this into Eclipse via "Import->Existing Project".
 
 ### iOS and macOS
 
-Use the generated projects under `build/xcode/ios` to build the library and
-load tests to run on iOS. The OpenGL tests will use OpenGL ES 1.1 and OpenGL ES 3.0. The Vulkan tests will use MoltenVK.
+Use the generated projects under `build/xcode/ios` to build the
+library and load tests to run on iOS. The OpenGL tests will use
+OpenGL ES 1.1 and OpenGL ES 3.0. The Vulkan tests will use MoltenVK.
 
-Use the generated projects under `build/xcode/mac` to build the library,
-load tests and tools to run on macOS. The OpenGL tests will use OpenGL 3.3. The Vulkan tests will use MoltenVK.
+Use the generated projects under `build/xcode/mac` to build the
+library, load tests and tools to run on macOS. The OpenGL tests
+will use OpenGL 3.3. The Vulkan tests will use the macOS Vulkan SDK
+and MoltenVK.
+
+To find the Vulkan validation layers when running the macOS Vulkan
+load tests set the environment variable `VK_LAYER_PATH` to
+`$(VULKAN_SDK)/macOS/etc/vulkan/explicit_layers.d` when running the
+application. Environment variables are set in the Arguments section
+of Xcode's Scheme Editor. Validation is only enabled by the debug
+configuration.
 
 #### Xcode Preferences
 
 You must create the following Custom Path preferences in Xcode:
-[`DEVELOPMENT_TEAM`](#development_team) & [`VULKAN_SDK`](#vulkan_sdk). If building for macOS you must also set [`ASSIMP_HOME`](#assimp_home).
+[`DEVELOPMENT_TEAM`](#development_team) & [`VULKAN_SDK`](#vulkan_sdk).
+If building for macOS you must also set [`ASSIMP_HOME`](#assimp_home).
 
 ##### DEVELOPMENT_TEAM 
 As of Xcode 8.0, Apple, in its wisdom, decided to require selection of a
@@ -128,7 +139,7 @@ git checkout build/xcode
 
 ##### VULKAN_SDK
 
-Set this to the location where you have installed [MoltenVK](#vulkan-sdk).
+Set this to the location where you have installed the [Vulkan SDK for macOS](#vulkan-sdk).
 
 ##### ASSIMP_HOME
 
@@ -222,16 +233,18 @@ you can install the framework. Open a shell and enter the following command
 cp -R other_lib/mac/<configuration>/SDL2.framework /Library/Frameworks
 ```
 
-replacing `<configuration>` with your choice of `Debug` or `Release`. If you do this, you can modify the projects to use this installed SDL framework instead of copying
-it into every application bundle. See`gyp_include/config.gypi` for details. You
-will have to regenerate the xcode project if you wish to do this.
+replacing `<configuration>` with your choice of `Debug` or `Release`.
+If you do this, you can modify the projects to use this installed
+SDL framework instead of copying it into every application bundle.
+See`gyp_include/config.gypi` for details. You will have to regenerate
+the xcode project if you wish to do this.
 
 #### Building SDL from source
 
-KTX uses SDL 2.0.6. The canonical Mercurial repo is at https://hg.libsdl.org/SDL. An automated GitHub mirror is at
+KTX uses SDL 2.0.7+. The canonical Mercurial repo is at
+https://hg.libsdl.org/SDL. An automated GitHub mirror is at
 https://github.com/spurious/SDL-mirror. The binaries were built from
-tag [release-2.0.6](https://hg.libsdl.org/SDL/rev/8df7a59b5528) which
-is changeset [8df7a59b5528](https://hg.libsdl.org/SDL/rev/8df7a59b5528).
+changeset [d97ab6d1240](https://hg.libsdl.org/SDL/rev/d97ab6d12404).
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
@@ -239,9 +252,14 @@ Copy the results of your build to the appropriate place under the
 ### Vulkan SDK
 
 For GNU/Linux and Windows install the Vulkan SDK from
-[LunarG](https://vulkan.lunarg.com/). Set the environment variable `VULKAN_SDK` as instructed by LunarG.
+[LunarG](https://vulkan.lunarg.com/). Set the environment variable
+`VULKAN_SDK` as instructed by LunarG.
 
-For iOS and macOS, install [MoltenVK](https://moltengl.com/moltenvk/). Click the "Free Trial" button. Don't worry. The trial doesn't expire. Set a `VULKAN_SDK` Custom Path in the Xcode preferences to the `MoltenVK` folder within the downloaded Molten package.
+For iOS and macOS, install the Vulkan SDK for macOS from
+[LunarG](https://vulkan.lunarg.com/). Set a `VULKAN_SDK` Custom
+Path in the Xcode preferences to point to the `vulkansdk-macos-*`
+folder you extracted from the download. This SDK contains MoltenVK
+for both iOS and macOS.
 
 ### libassimp
 
@@ -264,17 +282,21 @@ Install via [MacPorts](https://www.macports.org/) or
 sudo port install assimp
 ```
 
-Set an `ASSIMP_HOME` Custom Path in the Xcode preferences to the parent of the
-`include` and `lib` folders where `libassimp` is installed. For MacPorts this is `/opt/local`.
+Set an `ASSIMP_HOME` Custom Path in the Xcode preferences to the
+parent of the `include` and `lib` folders where `libassimp` is
+installed. For MacPorts this is `/opt/local`.
 
 ### GYP
 
 All the builds use cmake, make or project files generated with
-[GYP](https://gyp.gsrc.io/). A modified version, available
-in the `remaster` branch of [this fork](https://github.com/msc-/gyp/tree/remaster),
-is needed to generate makefiles and vs2013+ projects. To install GYP, follow the [instructions in the
-fork](https://github.com/msc-/gyp/tree/remaster#installing-gyp). These work
-for either version of GYP. There are no install instructions at GYP's home.
+[GYP](https://gyp.gsrc.io/). A modified version, available in the
+`remaster` branch of [this
+fork](https://github.com/msc-/gyp/tree/remaster), is needed to
+generate makefiles and vs2013+ projects. To install GYP, follow the
+[instructions in the
+fork](https://github.com/msc-/gyp/tree/remaster#installing-gyp).
+These work for either version of GYP. There are no install instructions
+at GYP's home.
 
 *You do not need GYP unless you want to re-generate the supplied projects
 or generate additional projects.*

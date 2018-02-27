@@ -37,8 +37,12 @@
             'gen_config_var': '$(ConfigurationName)',
             'gen_platform_var': '$(PlatformName)',
           }, 'GENERATOR == "xcode"', {
-            # $CONFIGURATION is either Debug or Release. PLATFORM_NAME
+            # CONFIGURATION is either Debug or Release. PLATFORM_NAME
             # is either iphoneos or iphonesimulator. Set by xcode during build.
+            # Don't be tempted to put () around these names. There appears to
+            # be a gyp bug when such a variable is the immediate parent of
+            # the source file of a copies operation. Fortunately Xcode
+            # recognizes the names without ().
             'gen_config_var': '$CONFIGURATION',
             'gen_platform_var': '$PLATFORM_NAME',
           }],
