@@ -55,6 +55,9 @@ class AppBaseSDL {
     virtual void finalize();
     // Ticks in milliseconds since start.
     virtual void drawFrame(uint32_t msTicks) { }
+    // When used with SDL_SetEventWatch, return value is ignored. When used
+    // with SDL_SetEventFilter, 1 causes event to be added to SDL's internal
+    // event queue, 0 causes it to be dropped.
     virtual int doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
     virtual SDL_Window* getMainWindow() { return pswMainWindow; }

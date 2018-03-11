@@ -97,7 +97,7 @@ VulkanLoadTests::finalize()
 int
 VulkanLoadTests::doEvent(SDL_Event* event)
 {
-    bool done = true;
+    int result = 0;
     switch (event->type) {
       case SDL_KEYUP:
         switch (event->key.keysym.sym) {
@@ -105,21 +105,20 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             quit = true;
             break;
           case 'n':
-                ++sampleIndex;
+            ++sampleIndex;
             invokeSample(Direction::eForward);
             break;
           case 'p':
             --sampleIndex;
             invokeSample(Direction::eBack);
             break;
-
           default:
-            done = false;
+            result = 1;
         }
         break;
       case SDL_MOUSEBUTTONDOWN:
         // Forward to sample in case this is the start of motion.
-        done = false;
+        result = 1;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
             buttonDown.x = event->button.x;
@@ -132,7 +131,7 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         break;
       case SDL_MOUSEBUTTONUP:
         // Forward to sample so it doesn't get stuck in button down state.
-        done = false;
+        result = 1;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
             if (SDL_abs(event->button.x - buttonDown.x) < 5
@@ -148,19 +147,24 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         }
         break;
       default:
-          done = false;
+          result = 1;
     }
-    if (!done && pCurSample->doEvent(event) != 0)
-        return VulkanAppSDL::doEvent(event);
-    else
-        return 0;
+    
+    if (result == 1) {
+        // Further processing required.
+        if (pCurSample != nullptr)
+            result = pCurSample->doEvent(event);  // Give sample a chance.
+        if (result == 1)
+            return VulkanAppSDL::doEvent(event);  // Pass to base class.
+    }
+    return result;
 }
 
 
 void
 VulkanLoadTests::windowResized()
 {
-    if (pCurSample != NULL)
+    if (pCurSample != nullptr)
         pCurSample->resize(w_width, w_height);
 }
 
@@ -196,6 +200,11 @@ VulkanLoadTests::invokeSample(Direction dir)
     if (pCurSample != nullptr) {
         vkctx.queue.waitIdle(); // Wait for current rendering to finish.
         delete pCurSample;
+        // Certain events can be triggered during new sample initialization
+        // while pCurSample is not valid, e.g. FOCUS_LOST caused by a Vulkan
+        // validation failure raising a message box. Protect against problems
+        // from this by indicating there is no current sample.
+        pCurSample = nullptr;
     }
     sampleInv = &siSamples[sampleIndex];
 
