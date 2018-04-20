@@ -33,40 +33,31 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "LoadTestSample.h"
 #include "VulkanAppSDL.h"
 #include "VulkanContext.h"
 // MeshLoader needs vulkantools.h to be already included. It is included by
 // vulkantextoverlay.hpp via VulkanAppSDL.h.
 #include "utils/VulkanMeshLoader.hpp"
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#if !defined(_MSC_VER)
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-  #pragma clang diagnostic ignored "-Wnested-anon-types"
-#endif
-#include <glm/glm.hpp>
-#if !defined(_MSC_VER)
-  #pragma clang diagnostic pop
-#endif
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
-class VulkanLoadTestSample {
+class VulkanLoadTestSample : public LoadTestSample {
   public:
     typedef uint64_t ticks_t;
     VulkanLoadTestSample(VulkanContext& vkctx,
                      uint32_t width, uint32_t height,
 					 const char* const szArgs,
                      const std::string sBasePath)
-           : vkctx(vkctx), w_width(width), w_height(height),
-             sBasePath(sBasePath),
+           : LoadTestSample(width, height, szArgs, sBasePath, -1),
+             vkctx(vkctx),
              defaultClearColor(std::array<float,4>({0.025f, 0.025f, 0.025f, 1.0f}))
     {
     }
 
     virtual ~VulkanLoadTestSample();
-    virtual int doEvent(SDL_Event* event);
+    //virtual int doEvent(SDL_Event* event);
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void run(uint32_t msTicks) = 0;
 
@@ -81,8 +72,6 @@ class VulkanLoadTestSample {
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
     
-    const std::string getAssetPath() { return sBasePath; }
-
     vk::PipelineShaderStageCreateInfo
     loadShader(std::string filename,
     		   vk::ShaderStageFlagBits stage,
@@ -137,37 +126,6 @@ class VulkanLoadTestSample {
     std::vector<VkShaderModule> shaderModules;
 
     const vk::ClearColorValue defaultClearColor;
-
-    glm::vec3 rotation = glm::vec3();
-    glm::vec3 cameraPos = glm::vec3();
-    glm::vec2 mousePos = glm::vec2();
-    struct {
-        bool left = false;
-        bool right = false;
-        bool middle = false;
-    } mouseButtons;
-    bool quit = false;
-
-    float zoom = 0;
-
-    uint32_t w_width;
-    uint32_t w_height;
-
-    // Defines a frame rate independent timer value clamped from -1.0...1.0
-    // For use in animations, rotations, etc.
-    float timer = 0.0f;
-    // Multiplier for speeding up (or slowing down) the global timer
-    float timerSpeed = 0.25f;
-
-    bool paused = false;
-
-    // Use to adjust mouse rotation speed
-    float rotationSpeed = 1.0f;
-    // Use to adjust mouse zoom speed
-    float zoomSpeed = 1.0f;
-
-    const std::string sBasePath;
 };
-
 
 #endif /* VULKAN_LOAD_TEST_SAMPLE_H */

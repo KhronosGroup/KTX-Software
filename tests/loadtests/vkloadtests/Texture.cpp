@@ -53,8 +53,6 @@
 #include <string.h>
 #include <assert.h>
 #include <exception>
-#include <ios>
-#include <sstream>
 #include <vector>
 
 #include <ktxvulkan.h>
@@ -98,50 +96,53 @@ Texture::Texture(VulkanContext& vkctx,
     quadColor = { upperLeftColor, lowerLeftColor,
     		      upperRightColor, lowerRightColor };
 
-    ktxVulkanDeviceInfo kvdi;
-    ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
+    ktxVulkanDeviceInfo vdi;
+    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
                                   vkctx.queue, vkctx.commandPool, nullptr);
 
     processArgs(szArgs);
 
-    uint8_t* pKvData;
-    uint32_t  kvDataLen;
     KTX_error_code ktxresult;
-    ktxresult = ktxLoadVkTextureExN((getAssetPath() + filename).c_str(),
-    							    &kvdi,
-    		                        &texture,
-                                    static_cast<VkImageTiling>(tiling),
-                                    VK_IMAGE_USAGE_SAMPLED_BIT,
-                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                    &kvDataLen, &pKvData);
-    ktxVulkanDeviceInfo_destruct(&kvdi);
+    ktxTexture* kTexture;
+    ktxresult = ktxTexture_CreateFromNamedFile(
+                                        (getAssetPath() + filename).c_str(),
+                                        KTX_TEXTURE_CREATE_NO_FLAGS,
+                                        &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
-
-        message << "Load of texture \"" << getAssetPath() << szArgs
-                << "\" failed: " << ktxErrorString(ktxresult);
+        
+        message << "Creation of ktxTexture from \"" << getAssetPath()
+                << filename << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
+                                      static_cast<VkImageTiling>(tiling),
+                                      VK_IMAGE_USAGE_SAMPLED_BIT,
+                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "ktxTexture_VkUpload failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
 
-    KTX_hash_table kvtable;
-    ktxresult = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
-    if (KTX_SUCCESS == ktxresult) {
-        char* pValue;
-        uint32_t valueLen;
-
-        if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
-                                                  &valueLen, (void**)&pValue))
-        {
-            char s, t;
-
-            if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-                if (s == 'l') sign_s = -1;
-                if (t == 'u') sign_t = -1;
-            }
+    char* pValue;
+    uint32_t valueLen;
+    if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
+                                             KTX_ORIENTATION_KEY,
+                                             &valueLen, (void**)&pValue))
+    {
+        char s, t;
+        
+        if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
+            if (s == 'l') sign_s = -1;
+            if (t == 'u') sign_t = -1;
         }
-        ktxHashTable_Destroy(kvtable);
-        free(pKvData);
     }
+
+    ktxTexture_Destroy(kTexture);
+    ktxVulkanDeviceInfo_Destruct(&vdi);
     
     try {
         prepare();
@@ -173,30 +174,6 @@ Texture::run(uint32_t msTicks)
 {
     // Nothing to do since the scene is not animated.
     // VulkanLoadTests base class redraws from the command buffer we built.
-}
-
-//================== Helpers for processArgs ========================
-
-// skips the number of characters equal to the length of given text
-// does not check whether the skipped characters are the same as it
-struct skip
-{
-    const char* text;
-    skip(const char* text) : text(text) {}
-};
-
-std::istream& operator >> (std::istream& stream, const skip& x)
-{
-    std::ios_base::fmtflags f = stream.flags();
-    stream >> std::noskipws;
-
-    char c;
-    const char* text = x.text;
-    while (stream && *text++)
-        stream >> c;
-
-    stream.flags(f);
-    return stream;
 }
 
 //===================================================================
@@ -262,7 +239,7 @@ Texture::cleanup()
     if (imageView)
         vkctx.device.destroyImageView(imageView);
 
-    ktxVulkanTexture_destruct(&texture, vkctx.device, nullptr);
+    ktxVulkanTexture_Destruct(&texture, vkctx.device, nullptr);
 
     if (pipelines.solid)
         vkctx.device.destroyPipeline(pipelines.solid);

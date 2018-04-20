@@ -42,6 +42,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
 #include "AppBaseSDL.h"
+#include <iomanip>
+#include <sstream>
 
 bool
 AppBaseSDL::initialize(int argc, char* argv[])
@@ -111,6 +113,37 @@ AppBaseSDL::drawFrame()
         fpsCounter.numFrames = 0;
     }
 }
+
+//----------------------------------------------------------------------
+//  Window title and text overlay functions
+//----------------------------------------------------------------------
+
+
+void
+AppBaseSDL::setAppTitle(const char* const szExtra)
+{
+    appTitle = name();
+    if (szExtra != NULL && szExtra[0] != '\0') {
+        appTitle += ": ";
+        appTitle += szExtra;
+    }
+    setWindowTitle();
+}
+
+
+void
+AppBaseSDL::setWindowTitle()
+{
+    std::stringstream ss;
+    std::string wt;
+
+    ss << std::fixed << std::setprecision(2)
+       << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)" << " ";
+    wt = ss.str();
+    wt += appTitle;
+    SDL_SetWindowTitle(pswMainWindow, wt.c_str());
+}
+
 
 const char* const appName()
 {

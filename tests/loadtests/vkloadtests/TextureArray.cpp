@@ -82,21 +82,35 @@ TextureArray::TextureArray(VulkanContext& vkctx,
     rotationSpeed = 0.25f;
     rotation = { -15.0f, 35.0f, 0.0f };
 
-    ktxVulkanDeviceInfo kvdi;
-    ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
+    ktxVulkanDeviceInfo vdi;
+    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
                                   vkctx.queue, vkctx.commandPool, nullptr);
-
     KTX_error_code ktxresult;
-    ktxresult = ktxLoadVkTextureN((getAssetPath() + szArgs).c_str(),
-    							   &kvdi,
-    		                       &textureArray, 0, NULL);
-    ktxVulkanDeviceInfo_destruct(&kvdi);
-    if (ktxresult != KTX_SUCCESS) {
+    ktxTexture* kTexture;
+    ktxresult =
+           ktxTexture_CreateFromNamedFile((getAssetPath() + szArgs).c_str(),
+                                           KTX_TEXTURE_CREATE_NO_FLAGS,
+                                           &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
-        message << "Load of texture \"" << getAssetPath() << szArgs
-        		<< "\" failed: " << ktxErrorString(ktxresult);
+        
+        message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
+        << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
+    ktxresult = ktxTexture_VkUpload(kTexture, &vdi, &textureArray);
+    
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "ktxTexture_VkUpload failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    
+    // Checking if KVData contains keys of interest would go here.
+    
+    ktxTexture_Destroy(kTexture);
+    ktxVulkanDeviceInfo_Destruct(&vdi);
 
     try {
     	prepare();
@@ -142,7 +156,7 @@ TextureArray::cleanup()
         vkctx.device.destroySampler(sampler);
     if (imageView)
         vkctx.device.destroyImageView(imageView);
-    ktxVulkanTexture_destruct(&textureArray, vkctx.device, nullptr);
+    ktxVulkanTexture_Destruct(&textureArray, vkctx.device, nullptr);
 
 	if (pipelines.solid)
 		vkctx.device.destroyPipeline(pipelines.solid);
@@ -480,7 +494,8 @@ TextureArray::prepareUniformBuffers()
         &uniformDataVS.descriptor);
 
     // Array indices and model matrices are fixed
-    int32_t maxLayers = std::min(textureArray.layerCount, LAYERS_DECLARED_IN_SHADER);
+	// Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
+	int32_t maxLayers = (std::min)(textureArray.layerCount, LAYERS_DECLARED_IN_SHADER);
     float offset = -1.5f;
     float center = (maxLayers * offset) / 2;
     for (int32_t i = 0; i < maxLayers; i++)
@@ -513,6 +528,7 @@ TextureArray::updateUniformBufferMatrices()
 
     // View
     uboVS.matrices.view = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, zoom));
+    uboVS.matrices.view *= glm::translate(glm::mat4(), cameraPos);
     uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));

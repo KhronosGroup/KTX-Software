@@ -188,7 +188,7 @@
     # subsequent invocations of the cube test work and you can loop
     # through the tests from the beginning again.
     #
-    # As this is a relatively minor bug, provide you run in release
+    # As this is a relatively minor bug, provided you run in release
     # mode, the PVR emulator has been chosen as default as we can build
     # and run for both Win32 and x64 platform
 

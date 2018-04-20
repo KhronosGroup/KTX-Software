@@ -53,6 +53,7 @@
 
 #include <vulkan/vulkan.h>
 #include "TextureCubemap.h"
+#include "argparser.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
@@ -82,21 +83,39 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     rotationSpeed = 0.25f;
     rotation = { -7.25f, 120.0f, 0.0f };
 
-    ktxVulkanDeviceInfo kvdi;
-    ktxVulkanDeviceInfo_construct(&kvdi, vkctx.gpu, vkctx.device,
+    ktxVulkanDeviceInfo vdi;
+    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
                                   vkctx.queue, vkctx.commandPool, nullptr);
-    KTX_error_code ktxresult;
-    ktxresult = ktxLoadVkTextureN((getAssetPath() + szArgs).c_str(),
-    							  &kvdi,
-    		                      &cubeMap, 0, NULL);
-    ktxVulkanDeviceInfo_destruct(&kvdi);
-    if (ktxresult != KTX_SUCCESS) {
-        std::stringstream message;
 
-        message << "Load of texture \"" << getAssetPath() << szArgs
-        		<< "\" failed: " << ktxErrorString(ktxresult);
+    processArgs(szArgs);
+
+    KTX_error_code ktxresult;
+    ktxTexture* kTexture;
+    ktxresult = ktxTexture_CreateFromNamedFile(
+                         (getAssetPath() + filename).c_str(),
+                         preloadImages ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT
+                                       : KTX_TEXTURE_CREATE_NO_FLAGS,
+                         &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
+        << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
+    ktxresult = ktxTexture_VkUpload(kTexture, &vdi, &cubeMap);
+    
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "ktxTexture_VkUpload failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    
+    // Checking if KVData contains keys of interest would go here.
+    
+    ktxTexture_Destroy(kTexture);
+    ktxVulkanDeviceInfo_Destruct(&vdi);
 
     try {
     	prepare();
@@ -127,6 +146,32 @@ TextureCubemap::run(uint32_t msTicks)
     // VulkanLoadTests base class redraws from the command buffer we built.
 }
 
+//===================================================================
+
+void
+TextureCubemap::processArgs(std::string sArgs)
+{
+    // Options descriptor
+    struct argparser::option longopts[] = {
+        "preload", argparser::option::no_argument,  &preloadImages, 1,
+        NULL,      argparser::option::no_argument,  NULL,          0
+    };
+
+    argvector argv(sArgs);
+    argparser ap(argv);
+    
+    int ch;
+    while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
+        switch (ch) {
+            case 0: break;
+            default: assert(false); // Error in args in sample table.
+        }
+    }
+    assert(ap.optind < argv.size());
+    filename = argv[ap.optind];
+
+}
+
 /* ------------------------------------------------------------------------- */
 
 void
@@ -139,7 +184,7 @@ TextureCubemap::cleanup()
         vkctx.device.destroySampler(sampler);
     if (imageView)
         vkctx.device.destroyImageView(imageView);
-    ktxVulkanTexture_destruct(&cubeMap, vkctx.device, nullptr);
+    ktxVulkanTexture_Destruct(&cubeMap, vkctx.device, nullptr);
 
 	if (pipelines.reflect)
 		vkctx.device.destroyPipeline(pipelines.reflect);

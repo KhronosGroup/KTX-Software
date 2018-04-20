@@ -50,8 +50,11 @@ extern "C" {
 #endif
 
 /**
- * @brief Struct for receiving information about the image created
- *        by the Vulkan texture image loading functions.
+ * @class ktxVulkanTexture
+ * @brief Struct for returning information about the Vulkan texture image
+ *        created by the ktxTexture_VkUpload* functions.
+ *
+ * Creation of these objects is internal to the upload functions.
  */
 typedef struct ktxVulkanTexture
 {
@@ -73,10 +76,11 @@ typedef struct ktxVulkanTexture
 } ktxVulkanTexture;
 
 void
-ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device,
+ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
 						  const VkAllocationCallbacks* pAllocator);
 
 /**
+ * @class ktxVulkanDeviceInfo
  * @brief Struct for passing information about the Vulkan device on which
  *        to create images to the texture image loading functions.
  *
@@ -115,75 +119,33 @@ typedef struct ktxVulkanDeviceInfo {
 } ktxVulkanDeviceInfo;
 
 ktxVulkanDeviceInfo*
-ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
+ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
 						   const VkAllocationCallbacks* pAllocator);
 KTX_error_code
-ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
+ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
                          VkPhysicalDevice physicalDevice, VkDevice device,
                          VkQueue queue, VkCommandPool cmdPool,
 						 const VkAllocationCallbacks* pAllocator);
 void
-ktxVulkanDeviceInfo_destruct(ktxVulkanDeviceInfo* vdi);
+ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
 void
-ktxVulkanDeviceInfo_destroy(ktxVulkanDeviceInfo* vdi);
+ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
 
 
 KTX_error_code
-ktxReader_LoadVkTextureEx(KTX_reader This, ktxVulkanDeviceInfo* vdi,
-                          ktxVulkanTexture* pTexture,
-                          VkImageTiling tiling,
-                          VkImageUsageFlags usageFlags,
-                          VkImageLayout layout,
-                          unsigned int* pKvdLen, unsigned char** ppKvd);
+ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                      ktxVulkanTexture* vkTexture,
+                      VkImageTiling tiling,
+                      VkImageUsageFlags usageFlags,
+                      VkImageLayout layout);
 
 KTX_error_code
-ktxReader_LoadVkTexture(KTX_reader This, ktxVulkanDeviceInfo* vdi,
-                        ktxVulkanTexture *texture,
-                        unsigned int* pKvdLen, unsigned char** ppKvd);
+ktxTexture_VkUpload(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                    ktxVulkanTexture *vkTexture);
 
-KTX_error_code
-ktxLoadVkTextureExF(FILE* file, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *texture,
-                    VkImageTiling tiling,
-                    VkImageUsageFlags usageFlags,
-                    VkImageLayout layout,
-                    unsigned int* pKvdLen, unsigned char** ppKvd);
-
-KTX_error_code
-ktxLoadVkTextureF(FILE* file, ktxVulkanDeviceInfo* vdi,
-                  ktxVulkanTexture *texture,
-                  unsigned int* pKvdLen, unsigned char** ppKvd);
-
-KTX_error_code
-ktxLoadVkTextureExN(const char* const filename, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *texture,
-                    VkImageTiling tiling,
-                    VkImageUsageFlags usageFlags,
-                    VkImageLayout finalLayout,
-                    unsigned int* pKvdLen, unsigned char** ppKvd);
-
-KTX_error_code
-ktxLoadVkTextureN(const char* const filename, ktxVulkanDeviceInfo* vdi,
-                  ktxVulkanTexture *texture,
-                  unsigned int* pKvdLen, unsigned char** ppKvd);
-
-KTX_error_code
-ktxLoadVkTextureExM(const void* bytes, GLsizei size,
-					ktxVulkanDeviceInfo* vdi,
-		            ktxVulkanTexture* texture,
-                    VkImageTiling tiling,
-                    VkImageUsageFlags usageFlags,
-                    VkImageLayout layout,
-                    unsigned int* pKvdLen, unsigned char** ppKvd);
-
-KTX_error_code
-ktxLoadVkTextureM(const void* bytes, GLsizei size,
-				  ktxVulkanDeviceInfo* vdi,
-		          ktxVulkanTexture* texture,
-                  unsigned int* pKvdLen, unsigned char** ppKvd);
-  
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* KTX_H_A55A6F00956F42F3A137C11929827FE1 */

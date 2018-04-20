@@ -85,7 +85,7 @@ gypfiles=ktxtests.gyp \
 		 tests/loadtests/appfwSDL/appfwSDL.gypi \
 		 tests/loadtests/glloadtests/glloadtests.gypi \
          tests/loadtests/vkloadtests/vkloadtests.gypi \
-		 tests/readtests/readtests.gypi \
+		 tests/texturetests/texturetests.gypi \
 		 tests/testimages/testimages.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \

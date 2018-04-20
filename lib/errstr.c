@@ -45,15 +45,18 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 static const char* const errorStrings[] = {
 	"Operation succeeded",							  /* KTX_SUCCESS */
+    "File data is inconsistent with KTX spec.",       /* KTX_FILE_DATA_ERROR */
 	"File open failed",								  /* KTX_FILE_OPEN_FAILED */
-	"File write failed",							  /* KTX_FILE_WRITE_ERROR */
-    "File data inconsistent with spec.",              /* KTX_FILE_DATA_ERROR */
+    "Operation would exceed the max file size",       /* KTX_FILE_OVERFLOW */
+    "File read error",                                /* KTX_FILE_READ_ERROR */
+    "File seek error",                                /* KTX_FILE_SEEK_ERROR */
+    "File does not have enough data for request",     /* KTX_FILE_UNEXPECTED_EOF */
+	"File write error",							      /* KTX_FILE_WRITE_ERROR */
 	"GL error occurred",							  /* KTX_GL_ERROR */
 	"Operation not allowed in the current state",     /* KTX_INVALID_OPERATION */
 	"Invalid parameter value",						  /* KTX_INVALID_VALUE */
 	"Key not found",								  /* KTX_NOT_FOUND */
 	"Out of memory",								  /* KTX_OUT_OF_MEMORY */
-	"Unexpected end of file",						  /* KTX_UNEXPECTED_END_OF_FILE */
 	"Not a KTX file",								  /* KTX_UNKNOWN_FILE_FORMAT */
 	"Texture type not supported by GL context"		  /* KTX_UNSUPPORTED_TEXTURE_TYPE */
 };

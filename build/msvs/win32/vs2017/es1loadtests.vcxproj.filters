@@ -91,6 +91,30 @@
     <Filter Include="tests\loadtests\glloadtests\gles1">
       <UniqueIdentifier>{D655D013-412A-B922-555C-77DF132C0C2F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
+      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\gles1">
+      <UniqueIdentifier>{D655D013-412A-B922-555C-77DF132C0C2F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests">
+      <UniqueIdentifier>{EDD27133-8072-9B55-8EAD-F6A73583F53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\glloadtests\gles1">
+      <UniqueIdentifier>{D655D013-412A-B922-555C-77DF132C0C2F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="icons">
       <UniqueIdentifier>{DDEC3942-6CA2-0C7B-0012-A575C614C86D}</UniqueIdentifier>
     </Filter>
@@ -129,33 +153,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\tests\loadtests\common\at.h">
-      <Filter>tests\loadtests\common</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\..\..\tests\loadtests\common\at.c">
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp">
       <Filter>tests\loadtests\common</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h">
+      <Filter>tests\loadtests\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\cube.h">
       <Filter>tests\loadtests\geom</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\frame.h">
       <Filter>tests\loadtests\geom</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\LoadTests.cpp">
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.cpp">
       <Filter>tests\loadtests\glloadtests</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\LoadTests.h">
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.h">
       <Filter>tests\loadtests\glloadtests</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\LoadTestsES1.cpp">
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\ES1LoadTests.cpp">
       <Filter>tests\loadtests\glloadtests\gles1</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\sample_01_draw_texture.c">
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\DrawTexture.cpp">
       <Filter>tests\loadtests\glloadtests\gles1</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\sample_02_cube_textured.c">
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\gles1\DrawTexture.h">
+      <Filter>tests\loadtests\glloadtests\gles1</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\TexturedCube.cpp">
       <Filter>tests\loadtests\glloadtests\gles1</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\gles1\TexturedCube.h">
+      <Filter>tests\loadtests\glloadtests\gles1</Filter>
+    </ClInclude>
     <None Include="..\..\..\..\icons\win\ktx_app.ico">
       <Filter>icons\win</Filter>
     </None>

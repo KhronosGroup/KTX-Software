@@ -16,6 +16,33 @@
     <Filter Include="tests\loadtests">
       <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tests\loadtests\utils">
       <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
     </Filter>
@@ -411,6 +438,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp">
+      <Filter>tests\loadtests\common</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h">
+      <Filter>tests\loadtests\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\ltexceptions.h">
+      <Filter>tests\loadtests\common</Filter>
+    </ClInclude>
     <None Include="..\..\..\..\tests\loadtests\common\vecmath.hpp">
       <Filter>tests\loadtests\common</Filter>
     </None>

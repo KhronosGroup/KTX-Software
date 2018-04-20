@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /*
  * Copyright (c) 2017, Mark Callow, www.edgewise-consulting.com.
@@ -49,6 +49,7 @@
 #include "TextureArray.h"
 #include "TextureCubemap.h"
 #include "TexturedCube.h"
+#include "ltexceptions.h"
 
 #define LT_VK_MAJOR_VERSION 1
 #define LT_VK_MINOR_VERSION 0
@@ -56,10 +57,10 @@
 #define LT_VK_VERSION VK_MAKE_VERSION(1, 0, 0)
 
 VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
-								 const int numSamples,
-								 const char* const name)
-				  : siSamples(samples), sampleIndex(numSamples),
-					VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true)
+                                 const int numSamples,
+                                 const char* const name)
+                  : siSamples(samples), sampleIndex(numSamples),
+                    VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true)
 {
     pCurSample = nullptr;
 }
@@ -74,13 +75,12 @@ VulkanLoadTests::~VulkanLoadTests()
 bool
 VulkanLoadTests::initialize(int argc, char* argv[])
 {
-	if (!VulkanAppSDL::initialize(argc, argv))
-		return false;
+    if (!VulkanAppSDL::initialize(argc, argv))
+        return false;
 
-	// Not getting an initialize resize event, at least on Mac OS X.
-	// Therefore use invokeSample which calls the sample's resize func.
-	invokeSample(Direction::eForward);
-	return true;
+    // Launch the first sample.
+    invokeSample(Direction::eForward);
+    return true;
 }
 
 
@@ -90,7 +90,7 @@ VulkanLoadTests::finalize()
     if (pCurSample != nullptr) {
         delete pCurSample;
     }
-	VulkanAppSDL::finalize();
+    VulkanAppSDL::finalize();
 }
 
 
@@ -136,7 +136,7 @@ VulkanLoadTests::doEvent(SDL_Event* event)
           case SDL_BUTTON_LEFT:
             if (SDL_abs(event->button.x - buttonDown.x) < 5
                 && SDL_abs(event->button.y - buttonDown.y) < 5
-				&& (event->button.timestamp - buttonDown.timestamp) < 100) {
+                && (event->button.timestamp - buttonDown.timestamp) < 100) {
                 // Advance to the next sample.
                 ++sampleIndex;
                 invokeSample(Direction::eForward);
@@ -190,11 +190,6 @@ void
 VulkanLoadTests::invokeSample(Direction dir)
 {
     const sampleInvocation* sampleInv;
-    class unsupported_ctype : public std::runtime_error {
-      public:
-       unsupported_ctype()
-            : std::runtime_error("Unsupported compression type") { }
-    };
 
     prepared = false;  // Prevent any more rendering.
     if (pCurSample != nullptr) {
@@ -208,8 +203,8 @@ VulkanLoadTests::invokeSample(Direction dir)
     }
     sampleInv = &siSamples[sampleIndex];
 
-	for (;;) {
-		try {
+    for (;;) {
+        try {
             switch (sampleInv->ctype) {
               case CompressionType::eNone:
                 break;
@@ -226,21 +221,21 @@ VulkanLoadTests::invokeSample(Direction dir)
                     throw unsupported_ctype();
                 break;
             }
-			pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
-									sampleInv->args, sBasePath);
-			break;
+            pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
+                                    sampleInv->args, sBasePath);
+            break;
         } catch (unsupported_ctype& e) {
-			(void)e; // To quiet unused variable warnings from some compilers.
-			dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            (void)e; // To quiet unused variable warnings from some compilers.
+            dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
             sampleInv = &siSamples[sampleIndex];
-		} catch (std::exception& e) {
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-					sampleInv->title,
-					e.what(), NULL);
-        	dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+        } catch (std::exception& e) {
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                    sampleInv->title,
+                    e.what(), NULL);
+            dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
             sampleInv = &siSamples[sampleIndex];
-		}
-	}
+        }
+    }
     prepared = true;
     setAppTitle(sampleInv->title);
 }
@@ -255,28 +250,6 @@ VulkanLoadTests::onFPSUpdate()
 /* ------------------------------------------------------------------------ */
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
-#if 0
-    { &sc_Sample01, "testimages/hi_mark.ktx", "RGB8 NPOT HI Logo" },
-    { &sc_Sample01, "testimages/luminance_reference_metadata.ktx", "Luminance8 + KTXOrientation down" },
-    { &sc_Sample01, "testimages/up-reference.ktx", "RGB8" },
-    { &sc_Sample01, "testimages/down-reference.ktx", "RGB8 + KTXOrientation"},
-    { &sc_Sample01, "testimages/etc1.ktx", "ETC1 RGB8" },
-    { &sc_Sample01, "testimages/etc2-rgb.ktx", "ETC2 RGB8"},
-    { &sc_Sample01, "testimages/etc2-rgba1.ktx", "ETC2 RGB8A1"},
-    { &sc_Sample01, "testimages/etc2-rgba8.ktx", "ETC2 RGB8A8" },
-    { &sc_Sample01, "testimages/etc2-sRGB.ktx", "ETC2 sRGB8"},
-    { &sc_Sample01, "testimages/etc2-sRGBa1.ktx", "ETC2 sRGB8A1"},
-    { &sc_Sample01, "testimages/etc2-sRGBa8.ktx", "ETC2 sRGB8A8" },
-    { &sc_Sample01, "testimages/rgba-reference.ktx", "RGBA8"},
-    { &sc_Sample01, "testimages/rgb-reference.ktx", "RGB8" },
-    { &sc_Sample01, "testimages/conftestimage_R11_EAC.ktx", "ETC2 R11"},
-    { &sc_Sample01, "testimages/conftestimage_SIGNED_R11_EAC.ktx", "ETC2 Signed R11" },
-    { &sc_Sample01, "testimages/conftestimage_RG11_EAC.ktx", "ETC2 RG11" },
-    { &sc_Sample01, "testimages/conftestimage_SIGNED_RG11_EAC.ktx", "ETC2 Signed RG11" },
-    { &sc_Sample02, "testimages/rgb-amg-reference.ktx", "RGB8 + Auto Mipmap" },
-    { &sc_Sample02, "testimages/rgb-mipmap-reference.ktx", "Color/level mipmap" },
-    { &sc_Sample02, "testimages/hi_mark_sq.ktx", "RGB8 NPOT HI Logo" }
-#endif
     { Texture::create,
       "testimages/rgba-reference.ktx",
       VulkanLoadTests::CompressionType::eNone,
@@ -321,7 +294,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "ETC2 sRGB8a8"
     },
     { Texture::create,
-    	"--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx",
+        "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx",
         VulkanLoadTests::CompressionType::eBC,
         "BC2 (S3TC DXT3) Compressed 2D"
     },
@@ -354,6 +327,21 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "testimages/cubemap_yokohama_etc2_unorm.ktx",
         VulkanLoadTests::CompressionType::eETC2,
         "ETC2 Compressed Cube Map"
+    },
+    { TextureCubemap::create,
+        "--preload testimages/cubemap_yokohama_bc3_unorm.ktx",
+        VulkanLoadTests::CompressionType::eBC,
+        "BC2 (S3TC DXT3) Compressed Cube Map from Preloaded Images."
+    },
+    { TextureCubemap::create,
+        "--preload testimages/cubemap_yokohama_astc_8x8_unorm.ktx",
+        VulkanLoadTests::CompressionType::eASTC_LDR,
+        "ASTC Compressed Cube Map from Preloaded Images."
+    },
+    { TextureCubemap::create,
+        "--preload testimages/cubemap_yokohama_etc2_unorm.ktx",
+        VulkanLoadTests::CompressionType::eETC2,
+        "ETC2 Compressed Cube Map from Preloaded Images."
     },
 #if 0
     { TexturedCube::create,

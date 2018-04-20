@@ -146,6 +146,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\ltexceptions.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\utils\argparser.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.h"/>
@@ -156,6 +158,7 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\resource.h"/>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\utils\argparser.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.cpp"/>

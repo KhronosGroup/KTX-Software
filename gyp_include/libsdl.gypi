@@ -64,7 +64,9 @@
               '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
               # On iOS SDL statically links OpenGL ES.
               '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
-             ],
+              # and apparently now Metal.
+              '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+            ],
           },
         }], # OS == "ios"
         ['OS == "linux"', {

@@ -45,6 +45,7 @@
       ],
       'sources': [
         'unittests.cc',
+        'wthelper.h',
       ],
       'include_dirs': [
         '../gtest/include',

@@ -139,18 +139,20 @@
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\tests\loadtests\common\at.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\cube.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\frame.h"/>
-    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\LoadTests.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\gles1\DrawTexture.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\gles1\TexturedCube.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\resource.h"/>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\tests\loadtests\common\at.c"/>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\LoadTests.cpp"/>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\LoadTestsES1.cpp"/>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\sample_01_draw_texture.c"/>
-    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\sample_02_cube_textured.c"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\ES1LoadTests.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\DrawTexture.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\TexturedCube.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\glloadtests.rc"/>

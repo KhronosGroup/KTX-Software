@@ -59,6 +59,7 @@ class GLAppSDL : public AppBaseSDL {
               majorVersion(majorVersion), minorVersion(minorVersion),
               AppBaseSDL(name)
 	{
+        appTitle = name;
 	    w_width = width;
 	    w_height = height;
 	};
@@ -71,8 +72,6 @@ class GLAppSDL : public AppBaseSDL {
     virtual void windowResized();
 
   protected:
-    void setWindowTitle(const char* const szExtra);
-
     SDL_GLContext sgcGLContext;
 
 	int w_width;

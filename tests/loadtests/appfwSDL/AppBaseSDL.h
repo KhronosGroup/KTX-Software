@@ -50,7 +50,7 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 class AppBaseSDL {
   public:
     typedef Uint64 ticks_t;
-    AppBaseSDL(const char* const name) : szName(name) { }
+    AppBaseSDL(const char* const name) : szName(name), appTitle(name) { }
     virtual bool initialize(int argc, char* argv[]);
     virtual void finalize();
     // Ticks in milliseconds since start.
@@ -66,7 +66,11 @@ class AppBaseSDL {
     void initializeFPSTimer();
     const char* const name() { return szName; }
     const std::string getAssetPath() { return sBasePath; }
-    
+
+    // Sets title to be used on window title bar. Content of szExtra ia
+    // appended to the app name.
+    virtual void setAppTitle(const char* const szExtra);
+
     static int onEvent(void* userdata, SDL_Event* event) {
         return ((AppBaseSDL *)userdata)->doEvent(event);
     }
@@ -76,6 +80,9 @@ class AppBaseSDL {
     }
 
   protected:
+    // Sets text on window title bar. Fps value is preprended to appTitle.
+    virtual void setWindowTitle();
+
     ticks_t startTicks;
     float lastFrameTime;  // ms
     struct fpsCounter {
@@ -87,6 +94,7 @@ class AppBaseSDL {
     SDL_Window* pswMainWindow;
     
     const char* const szName;
+    std::string appTitle;
     std::string sBasePath;
 
 };

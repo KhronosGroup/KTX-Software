@@ -60,6 +60,9 @@ class TextureCubemap : public VulkanLoadTestSample
            const char* const szArgs, const std::string sBasePath);
 
   protected:
+    std::string filename;
+    int preloadImages = 0;
+
     bool displaySkybox = true;
 
     ktxVulkanTexture cubeMap;
@@ -126,6 +129,8 @@ class TextureCubemap : public VulkanLoadTestSample
 	void toggleSkyBox();
 	void toggleObject();
 	void changeLodBias(float delta);
+
+    void processArgs(std::string sArgs);
 
 	virtual void keyPressed(uint32_t keyCode);
     virtual void viewChanged()

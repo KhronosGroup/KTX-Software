@@ -48,19 +48,21 @@ enum FileResult { SUCCESS, INVALID_FORMAT, INVALID_VALUE, INVALID_PAM_HEADER,
 
 FileResult readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 					unsigned int& components, unsigned int& componentSize,
-					unsigned int& imageSize, unsigned char*& pixels);
+					unsigned int& imageSize, unsigned char** pixels);
 
 FileResult readPAM(FILE* src, unsigned int& width, unsigned int& height,
 					unsigned int& components, unsigned int& componentSize,
-					unsigned int& imageSize, unsigned char*& pixels);
+					unsigned int& imageSize, unsigned char** pixels);
 
 FileResult readPPM(FILE* src, unsigned int& width, unsigned int& height,
 					unsigned int& components, unsigned int& componentSize,
-					unsigned int& imageSize, unsigned char*& pixels);
+					unsigned int& imageSize, unsigned char** pixels);
 
 FileResult readPGM(FILE* src, unsigned int& width, unsigned int& height,
 					unsigned int& components, unsigned int& componentSize,
-					unsigned int& imageSize, unsigned char*& pixels);
+					unsigned int& imageSize, unsigned char** pixels);
+
+FileResult readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels);
 
 #endif
 

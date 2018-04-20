@@ -198,6 +198,7 @@ INCS_Release := \
 	-I$(srcdir)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
 	$(obj).target/$(TARGET)/tests/loadtests/utils/argparser.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/Texture.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/TextureArray.o \

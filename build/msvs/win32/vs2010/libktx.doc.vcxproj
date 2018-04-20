@@ -115,9 +115,15 @@
     <None Include="..\..\..\..\LICENSE.md">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
+    <None Include="..\..\..\..\TODO.md">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\filestream.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\..\..\lib\gl_format.h">
@@ -135,19 +141,13 @@
     <ClInclude Include="..\..\..\..\lib\gles3_funcptrs.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\ktxfilestream.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\ktxint.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\ktxmemstream.h">
+    <ClInclude Include="..\..\..\..\lib\memstream.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\ktxstream.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\ktxreader.h">
+    <ClInclude Include="..\..\..\..\lib\stream.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\..\..\lib\uthash.h">
@@ -173,25 +173,31 @@
     <ClCompile Include="..\..\..\..\lib\etcunpack.cxx">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\filestream.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\glloader.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\hashlist.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\ktxfilestream.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\ktxmemstream.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\ktxreader.c">
+    <ClCompile Include="..\..\..\..\lib\memstream.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\swap.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\texture.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\writer.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\writer_v1.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\vkloader.c">
@@ -205,7 +211,7 @@
       <Message>Generating documentation with Doxygen</Message>
       <Outputs>..\..\..\..\build\doc\libktx\html;..\..\..\..\build\doc\libktx\man</Outputs>
       <LinkObjects>false</LinkObjects>
-      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\LICENSE.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\gl_format.h;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\glloader.c;..\..\..\..\lib\hashtable.c;..\..\..\..\lib\ktxfilestream.c;..\..\..\..\lib\ktxfilestream.h;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\ktxmemstream.c;..\..\..\..\lib\ktxmemstream.h;..\..\..\..\lib\ktxstream.h;..\..\..\..\lib\ktxreader.c;..\..\..\..\lib\ktxreader.h;..\..\..\..\lib\swap.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\writer.c;..\..\..\..\include\ktxvulkan.h;..\..\..\..\lib\vk_format.h;..\..\..\..\lib\vkloader.c</AdditionalInputs>
+      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\LICENSE.md;..\..\..\..\TODO.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\filestream.c;..\..\..\..\lib\filestream.h;..\..\..\..\lib\gl_format.h;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\glloader.c;..\..\..\..\lib\hashlist.c;..\..\..\..\lib\hashtable.c;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\memstream.c;..\..\..\..\lib\memstream.h;..\..\..\..\lib\stream.h;..\..\..\..\lib\swap.c;..\..\..\..\lib\texture.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\writer.c;..\..\..\..\lib\writer_v1.c;..\..\..\..\include\ktxvulkan.h;..\..\..\..\lib\vk_format.h;..\..\..\..\lib\vkloader.c</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

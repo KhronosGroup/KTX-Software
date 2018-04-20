@@ -1187,24 +1187,12 @@ VulkanAppSDL::flushInitialCommands()
 
 
 void
-VulkanAppSDL::setAppTitle(const char* const szExtra)
-{
-    appTitle = name();
-    if (szExtra != NULL && szExtra[0] != '\0') {
-        appTitle += ": ";
-        appTitle += szExtra;
-    }
-    setWindowTitle();
-}
-
-
-void
 VulkanAppSDL::setWindowTitle()
 {
-    std::stringstream ss;
-    std::string wt;
-
     if (!enableTextOverlay) {
+        std::stringstream ss;
+        std::string wt;
+
         ss << std::fixed << std::setprecision(2)
            << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)" << " ";
         wt = ss.str();

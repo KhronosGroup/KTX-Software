@@ -70,6 +70,9 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
@@ -87,6 +90,12 @@
     <ClCompile Include="..\..\..\..\lib\etcunpack.cxx">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\filestream.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\filestream.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\gl_format.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -105,40 +114,37 @@
     <ClCompile Include="..\..\..\..\lib\glloader.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\hashlist.c">
+      <Filter>lib</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\ktxfilestream.c">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\..\..\lib\ktxfilestream.h">
-      <Filter>lib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\ktxint.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\lib\ktxmemstream.c">
+    <ClCompile Include="..\..\..\..\lib\memstream.c">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\..\lib\ktxmemstream.h">
+    <ClInclude Include="..\..\..\..\lib\memstream.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\ktxstream.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\..\..\lib\ktxreader.c">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\..\..\lib\ktxreader.h">
+    <ClInclude Include="..\..\..\..\lib\stream.h">
       <Filter>lib</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\lib\swap.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\texture.c">
       <Filter>lib</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\lib\uthash.h">
       <Filter>lib</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\lib\writer.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\writer_v1.c">
       <Filter>lib</Filter>
     </ClCompile>
     <None Include="..\..\..\..\libktx.gyp"/>

@@ -382,7 +382,7 @@ INLINE_SIMPLE_STRUCTS  = NO
 # types are typedef'ed and only the typedef is referenced, never the tag name.
 # The default value is: NO.
 
-TYPEDEF_HIDES_STRUCT   = NO
+TYPEDEF_HIDES_STRUCT   = YES
 
 # The size of the symbol lookup cache can be set using LOOKUP_CACHE_SIZE. This
 # cache is used to resolve symbols given their name and scope. Since this can be
@@ -761,13 +761,15 @@ WARN_LOGFILE           =
 # Include files by name so only the public API and structures are documented.
 # This works around a Doxygen bug which makes it issue "undocumented compound"
 # warnings for structures documented with @internal when INTERNAL_DOCS = NO.
-INPUT                  = include \
-                         lib/hashtable.c \
+INPUT                  = LICENSE.md \
+                         TODO.md \
+                         include \
                          lib/glloader.c \
-                         lib/ktxreader.c \
-                         lib/writer.c \
+                         lib/hashtable.c \
+                         lib/texture.c \
                          lib/vkloader.c \
-                         doc/icons.dox
+                         lib/writer.c \
+                         lib/writer_v1.c
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

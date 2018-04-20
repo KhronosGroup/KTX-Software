@@ -62,18 +62,6 @@ extern "C" {
 
 /**
  * @internal
- * @brief _ktxCheckHeader returns texture information in this structure
- *
- * TO DO: document properly
- */
-typedef struct ktx_texinfo {
-	ktx_uint32_t textureDimension;
-	ktx_uint32_t compressed;
-	ktx_uint32_t generateMipmaps;
-} ktx_texinfo;
-
-/**
- * @internal
  * @brief used to pass GL context capabilites to subroutines.
  */
 #define _KTX_NO_R16_FORMATS     0x0
@@ -269,7 +257,70 @@ typedef unsigned short GLhalf;
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #endif
 
-/* CheckHeader
+/**
+ * @internal
+ * @~English
+ * @brief KTX file header
+ *
+ * See the KTX specification for descriptions
+ */
+typedef struct KTX_header {
+    ktx_uint8_t  identifier[12];
+    ktx_uint32_t endianness;
+    ktx_uint32_t glType;
+    ktx_uint32_t glTypeSize;
+    ktx_uint32_t glFormat;
+    ktx_uint32_t glInternalformat;
+    ktx_uint32_t glBaseInternalformat;
+    ktx_uint32_t pixelWidth;
+    ktx_uint32_t pixelHeight;
+    ktx_uint32_t pixelDepth;
+    ktx_uint32_t numberOfArrayElements;
+    ktx_uint32_t numberOfFaces;
+    ktx_uint32_t numberOfMipmapLevels;
+    ktx_uint32_t bytesOfKeyValueData;
+} KTX_header;
+
+/* This will cause compilation to fail if the struct size doesn't match */
+typedef int KTX_header_SIZE_ASSERT [sizeof(KTX_header) == KTX_HEADER_SIZE];
+
+
+/**
+ * @internal
+ * @~English
+ * @brief Structure for supplemental information about the texture.
+ *
+ * _ktxCheckHeader returns supplemental information about the texture in this
+ * structure that is derived during checking of the file header.
+ */
+typedef struct KTX_supplemental_info
+{
+    ktx_uint8_t compressed;
+    ktx_uint8_t generateMipmaps;
+    ktx_uint16_t textureDimension;
+} KTX_supplemental_info;
+/**
+ * @internal
+ * @var ktx_uint8_t KTX_supplemental_info::compressed
+ * @~English
+ * @brief KTX_TRUE, if this a compressed texture, KTX_FALSE otherwise?
+ */
+/**
+ * @internal
+ * @var ktx_uint8_t KTX_supplemental_info::generateMipmaps
+ * @~English
+ * @brief KTX_TRUE, if mipmap generation is required, KTX_FALSE otherwise.
+ */
+/**
+ * @internal
+ * @var ktx_uint16_t KTX_supplemental_info::textureDimension
+ * @~English
+ * @brief The number of dimensions, 1, 2 or 3, of data in the texture image.
+ */
+
+/*
+ * @internal
+ * CheckHeader
  * 
  * Reads the KTX file header and performs some sanity checking on the values
  */
@@ -294,6 +345,28 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
 							 GLubyte** dstImage,
 							 GLenum* format, GLenum* internalFormat, GLenum* type,
 							 GLint R16Formats, GLboolean supportsSRGB);
+
+/*
+ ======================================
+     Internal ktxTexture functions
+ ======================================
+*/
+
+KTX_error_code
+ktxTexture_iterateLoadedImages(ktxTexture* This, PFNKTXITERCB iterCb,
+                               void* userdata);
+KTX_error_code
+ktxTexture_iterateSourceImages(ktxTexture* This, PFNKTXITERCB iterCb,
+                               void* userdata);
+    
+ktx_uint32_t ktxTexture_glTypeSize(ktxTexture* This);
+ktx_size_t ktxTexture_imageSize(ktxTexture* This, ktx_uint32_t level);
+ktx_bool_t ktxTexture_isActiveStream(ktxTexture* This);
+ktx_size_t ktxTexture_levelSize(ktxTexture* This, ktx_uint32_t level);
+ktx_size_t ktxTexture_faceLodSize(ktxTexture* This, ktx_uint32_t level);
+void ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
+                        ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
+                        ktx_uint32_t* rowRounding);
 
 #ifdef __cplusplus
 }

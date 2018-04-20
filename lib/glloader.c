@@ -1,7 +1,21 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
-/* $Id$ */
+/*
+ * ©2010-2018 Mark Callow.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 /**
  * @internal
@@ -11,37 +25,8 @@
  * @brief Functions for instantiating GL or GLES textures from KTX files.
  *
  * @author Georg Kolling, Imagination Technology
- * @author Mark Callow, HI Corporation
+ * @author Mark Callow, HI Corporation & Edgewise Consulting
  */
-
-/*
-Copyright (c) 2010 The Khronos Group Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and/or associated documentation files (the
-"Materials"), to deal in the Materials without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Materials, and to
-permit persons to whom the Materials are furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-unaltered in all copies or substantial portions of the Materials.
-Any additions, deletions, or changes to the original source files
-must be clearly indicated in accompanying documentation.
-
-If only executable code is distributed, then the accompanying
-documentation must state that "this software is based in part on the
-work of the Khronos Group".
-
-THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
@@ -98,7 +83,6 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "ktxreader.h"
 
 DECLARE_GL_FUNCPTRS
 
@@ -109,10 +93,10 @@ DECLARE_GL_FUNCPTRS
  */
 
 /**
- * @example reader_gl.c
- * This is an example of using the low-level KTX_reader API to create and load
+ * @example glloader.c
+ * This is an example of using the low-level ktxTexture API to create and load
  * an OpenGL texture. It is a fragment of the code used by
- * @ref ktxReader_loadGLTexture which underpins the @c ktxLoadTexture functions.
+ * @ref ktxTexture_GLUpload which underpins the @c ktxLoadTexture* functions.
  *
  * @code
  * #include <ktx.h>
@@ -122,15 +106,13 @@ DECLARE_GL_FUNCPTRS
  * across all images.
  * @snippet this cbdata
  *
- * One of these callbacks, selected by @ref ktxReader_loadGLTexture based on the
+ * One of these callbacks, selected by @ref ktxTexture_GLUpload based on the
  * dimensionality and arrayness of the texture, is called from
- * @ref ktxReader_readImages to upload the texture data to OpenGL.
+ * @ref ktxTexture_IterateLevelFaces to upload the texture data to OpenGL.
  * @snippet this Image callbacks
  *
- * This is internal code so it converts the opaque @c KTX_reader handle to a
- * pointer to a @c ktxReader so it can test its validity. Apps can simply pass
- * @c reader instead of the converted @c This to any @c ktxReader function
- * they call.
+ * This function creates the GL texture object and sets up the callbacks to
+ * load the image data into it.
  * @snippet this loadGLTexture
  */
 
@@ -183,7 +165,8 @@ static GLboolean supportsSwizzle = GL_TRUE;
 /**
  * @internal
  * @~English
- * @brief Indicates which R16 & RG16 formats are supported by the current context.
+ * @brief Indicates which R16 & RG16 formats are supported by the current
+ *        context.
  */
 static GLint R16Formats = _KTX_ALL_R16_FORMATS;
 /**
@@ -296,7 +279,8 @@ discoverContextCapabilities(void)
 		// There are no OES extensions for sRGB textures or R16 formats.
 	} else {
 		// PROFILE_MASK was introduced in OpenGL 3.2.
-		// Profiles: CONTEXT_CORE_PROFILE_BIT 0x1, CONTEXT_COMPATIBILITY_PROFILE_BIT 0x2.
+		// Profiles: CONTEXT_CORE_PROFILE_BIT 0x1,
+        //           CONTEXT_COMPATIBILITY_PROFILE_BIT 0x2.
 		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &contextProfile);
 		if (glGetError() == GL_NO_ERROR) {
 			// >= 3.2
@@ -341,15 +325,15 @@ discoverContextCapabilities(void)
  * The function sets the GL_TEXTURE_SWIZZLEs necessary to get the same
  * behavior as the legacy format.
  *
- * @param [in] target       texture target on which the swizzle will
+ * @param[in] target       texture target on which the swizzle will
  *                          be set.
- * @param [in, out] pFormat pointer to variable holding the base format of the
+ * @param[in,out] pFormat  pointer to variable holding the base format of the
  *                          texture. The new base format is written here.
- * @param [in, out] pInternalformat  pointer to variable holding the internalformat
- *                                   of the texture. The new internalformat is
- *                                   written here.
- * @return void unrecognized formats will be passed on to OpenGL. Any loading error
- *              that arises will be handled in the usual way.
+ * @param[in,out] pInternalformat  pointer to variable holding the
+ *                                  internalformat of the texture. The new
+ *                                  internalformat is written here.
+ * @return void unrecognized formats will be passed on to OpenGL. Any loading
+ *              error that arises will be handled in the usual way.
  */
 static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalformat) {
 	switch (*pFormat) {
@@ -455,14 +439,16 @@ typedef struct ktx_cbdata {
     GLenum glInternalformat;
     GLenum glType;
     GLenum glError;
+    GLuint numLayers;
 } ktx_cbdata;
 /** [cbdata] */
 
 /** [Image callbacks] */
+
 KTX_error_code KTXAPIENTRY
 texImage1DCallback(int miplevel, int face,
                    int width, int height,
-                   int depth, int layers,
+                   int depth,
                    ktx_uint32_t faceLodSize,
                    void* pixels, void* userdata)
 {
@@ -483,7 +469,7 @@ texImage1DCallback(int miplevel, int face,
 KTX_error_code KTXAPIENTRY
 compressedTexImage1DCallback(int miplevel, int face,
                              int width, int height,
-                             int depth, int layers,
+                             int depth,
                              ktx_uint32_t faceLodSize,
                              void* pixels, void* userdata)
 {
@@ -492,7 +478,7 @@ compressedTexImage1DCallback(int miplevel, int face,
     assert(pfGlCompressedTexImage1D != NULL);
     pfGlCompressedTexImage1D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat, width, 0,
-                             cbData->glType, pixels);
+                             faceLodSize, pixels);
     
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;
@@ -504,7 +490,7 @@ compressedTexImage1DCallback(int miplevel, int face,
 KTX_error_code KTXAPIENTRY
 texImage2DCallback(int miplevel, int face,
                    int width, int height,
-                   int depth, int layers,
+                   int depth,
                    ktx_uint32_t faceLodSize,
                    void* pixels, void* userdata)
 {
@@ -512,8 +498,7 @@ texImage2DCallback(int miplevel, int face,
  
     glTexImage2D(cbData->glTarget + face, miplevel,
                  cbData->glInternalformat, width,
-                 /* height will be 1, for a single layer 1D array texture. */
-                 layers == 1 ? height : layers, 0,
+                 cbData->numLayers == 0 ? height : cbData->numLayers, 0,
                  cbData->glFormat, cbData->glType, pixels);
 
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
@@ -527,20 +512,21 @@ texImage2DCallback(int miplevel, int face,
 KTX_error_code KTXAPIENTRY
 compressedTexImage2DCallback(int miplevel, int face,
                              int width, int height,
-                             int depth, int layers,
+                             int depth,
                              ktx_uint32_t faceLodSize,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
     GLenum glerror;
-    KTX_error_code errorCode;
+    KTX_error_code result;
     
-    // It is simpler to just attempt to load the format, rather than divine which
-    // formats are supported by the implementation. In the event of an error,
-    // software unpacking can be attempted.
+    // It is simpler to just attempt to load the format, rather than divine
+    // which formats are supported by the implementation. In the event of an
+    // error, software unpacking can be attempted.
     glCompressedTexImage2D(cbData->glTarget + face, miplevel,
                            cbData->glInternalformat, width,
-                           layers == 1 ? height : layers, 0,
+                           cbData->numLayers == 0 ? height : cbData->numLayers,
+                           0,
                            faceLodSize, pixels);
     
     glerror = glGetError();
@@ -555,12 +541,12 @@ compressedTexImage2DCallback(int miplevel, int face,
         GLubyte* unpacked;
         GLenum format, internalformat, type;
         
-        errorCode = _ktxUnpackETC((GLubyte*)pixels, cbData->glInternalformat,
+        result = _ktxUnpackETC((GLubyte*)pixels, cbData->glInternalformat,
                                   width, height, &unpacked,
                                   &format, &internalformat,
                                   &type, R16Formats, supportsSRGB);
-        if (errorCode != KTX_SUCCESS) {
-            return errorCode;
+        if (result != KTX_SUCCESS) {
+            return result;
         }
         if (!(sizedFormats & _NON_LEGACY_FORMATS)) {
             if (internalformat == GL_RGB8)
@@ -569,8 +555,8 @@ compressedTexImage2DCallback(int miplevel, int face,
                 internalformat = GL_RGBA;
         }
         glTexImage2D(cbData->glTarget + face, miplevel,
-                     internalformat,
-                     width, layers == 1 ? height : layers, 0,
+                     internalformat, width,
+                     cbData->numLayers == 0 ? height : cbData->numLayers, 0,
                      format, type, unpacked);
         
         free(unpacked);
@@ -588,7 +574,7 @@ compressedTexImage2DCallback(int miplevel, int face,
 KTX_error_code KTXAPIENTRY
 texImage3DCallback(int miplevel, int face,
                    int width, int height,
-                   int depth, int layers,
+                   int depth,
                    ktx_uint32_t faceLodSize,
                    void* pixels, void* userdata)
 {
@@ -598,8 +584,7 @@ texImage3DCallback(int miplevel, int face,
     pfGlTexImage3D(cbData->glTarget + face, miplevel,
                    cbData->glInternalformat,
                    width, height,
-                   /* depth will be 1 for single layer 2D array texture. */
-                   layers == 1 ? depth : layers,
+                   cbData->numLayers == 0 ? depth : cbData->numLayers,
                    0,
                    cbData->glFormat, cbData->glType, pixels);
     
@@ -613,7 +598,7 @@ texImage3DCallback(int miplevel, int face,
 KTX_error_code KTXAPIENTRY
 compressedTexImage3DCallback(int miplevel, int face,
                              int width, int height,
-                             int depth, int layers,
+                             int depth,
                              ktx_uint32_t faceLodSize,
                              void* pixels, void* userdata)
 {
@@ -623,9 +608,9 @@ compressedTexImage3DCallback(int miplevel, int face,
     pfGlCompressedTexImage3D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat,
                              width, height,
-                             layers == 1 ? depth : layers,
+                             cbData->numLayers == 0 ? depth : cbData->numLayers,
                              0,
-                             cbData->glType, pixels);
+                             faceLodSize, pixels);
     
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;
@@ -636,8 +621,9 @@ compressedTexImage3DCallback(int miplevel, int face,
 /** [Image callbacks] */
 
 /**
+ * @memberof ktxTexture
  * @~English
- * @brief Create a GL texture object from KTX data.
+ * @brief Create a GL texture object from a ktxTexture object.
  *
  * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
  * number of levels in the KTX data, provided the library has been compiled
@@ -652,8 +638,8 @@ compressedTexImage3DCallback(int miplevel, int face,
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param [in] reader	    handle of the KTX_reader opened on the data.
- * @param [in,out] pTexture	name of the GL texture object to load. If NULL or if
+ * @param[in] This	        handle of the ktxTexture to upload.
+ * @param[in,out] pTexture	name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
  *                          generated name or the name given in @p *pTexture
@@ -661,84 +647,47 @@ compressedTexImage3DCallback(int miplevel, int face,
  * 						    before loading the texture data. If @p pTexture
  *                          is not NULL and a name was generated, the generated
  *                          name will be returned in *pTexture.
- * @param [out] pTarget 	@p *pTarget is set to the texture target used. The
+ * @param[out] pTarget 	    @p *pTarget is set to the texture target used. The
  * 						    target is chosen based on the file contents.
- * @param [out] pDimensions	If @p pDimensions is not NULL, the width, height and
- *							depth of the texture's base level are returned in
- *                          the fields of the KTX_dimensions structure to which
- *                          it points.
- * @param [out] pIsMipmapped
- *	                        If @p pIsMipmapped is not NULL, @p *pIsMipmapped is
- *                          set to GL_TRUE if the KTX texture is mipmapped,
- *                          GL_FALSE otherwise.
- * @param [out] pGlerror    @p *pGlerror is set to the value returned by
+ * @param[out] pGlerror     @p *pGlerror is set to the value returned by
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. glerror can be NULL.
- * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of
- *                          bytes of key-value data pointed at by @p *ppKvd.
- *                          Must not be NULL, if @p ppKvd is not NULL.
- * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a
- *                          block of memory containing key-value data read from
- *                          the file. The application is responsible for freeing
- *                          the memory.
- *
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE @p target is @c NULL or the size of a mip
- * 							    level is greater than the size of the
+ * @exception KTX_INVALID_VALUE @p This or @p target is @c NULL or the size of
+ *                              a mip level is greater than the size of the
  * 							    preceding level.
- * @exception KTX_INVALID_OPERATION @p ppKvd is not NULL but pKvdLen is NULL.
- * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the
- * 										 expected amount of data.
- * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated to
- *                              store the requested key-value data.
  * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
  * 								glGenTextures or gl*TexImage*. The GL error
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
+ *                                         by the current OpenGL context.
  */
 /** [loadGLTexture] */
 KTX_error_code
-ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
-               KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-               GLenum* pGlerror,
-               unsigned int* pKvdLen, unsigned char** ppKvd)
+ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
+                    GLenum* pGlerror)
 {
-    ktxReader*           This = (ktxReader*)reader;
-    KTX_header	          header;
-    KTX_supplemental_info texinfo;
 	GLint				  previousUnpackAlignment;
 	GLuint				  texname;
 	int					  texnameUser;
-	KTX_error_code		  errorCode = KTX_SUCCESS;
-    PFNKTXIMAGECB         imageCb = NULL;
+	KTX_error_code		  result = KTX_SUCCESS;
+    PFNKTXITERCB          iterCb = NULL;
     ktx_cbdata            cbData;
-    int                   dimension;
+    int                   dimensions;
 
 	if (pGlerror)
 		*pGlerror = GL_NO_ERROR;
 
-	if (ppKvd) {
-		*ppKvd = NULL;
-	}
-
-	if (!This || !This->stream.read || !This->stream.skip) {
+	if (!This) {
 		return KTX_INVALID_VALUE;
 	}
 
 	if (!pTarget) {
 		return KTX_INVALID_VALUE;
 	}
-
-    errorCode = ktxReader_readHeader(This, &header, &texinfo);
-	if (errorCode != KTX_SUCCESS)
-		return errorCode;
-
-    ktxReader_readKVData(This, pKvdLen, ppKvd);
-    if (errorCode != KTX_SUCCESS) {
-        return errorCode;
-    }
 
 	if (contextProfile == 0)
 		discoverContextCapabilities();
@@ -749,9 +698,9 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
 		glPixelStorei(GL_UNPACK_ALIGNMENT, KTX_GL_UNPACK_ALIGNMENT);
 	}
 
-    cbData.glFormat = header.glFormat;
-    cbData.glInternalformat = header.glInternalFormat;
-    cbData.glType = header.glType;
+    cbData.glFormat = This->glFormat;
+    cbData.glInternalformat = This->glInternalformat;
+    cbData.glType = This->glType;
 
 	texnameUser = pTexture && *pTexture;
 	if (texnameUser) {
@@ -760,48 +709,50 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
 		glGenTextures(1, &texname);
 	}
 
-    dimension = texinfo.textureDimension;
-    if (header.numberOfArrayElements > 0) {
-        dimension += 1;
-        if (header.numberOfFaces == 6) {
+    dimensions = This->numDimensions;
+    if (This->isArray) {
+        dimensions += 1;
+        if (This->numFaces == 6) {
             /* _ktxCheckHeader should have caught this. */
-            assert(texinfo.textureDimension == 2);
+            assert(This->numDimensions == 2);
             cbData.glTarget = GL_TEXTURE_CUBE_MAP_ARRAY;
         } else {
-            switch (texinfo.textureDimension) {
+            switch (This->numDimensions) {
               case 1: cbData.glTarget = GL_TEXTURE_1D_ARRAY_EXT; break;
               case 2: cbData.glTarget = GL_TEXTURE_2D_ARRAY_EXT; break;
-                /* _ktxCheckHeader should have caught this. */
+              /* _ktxCheckHeader should have caught this. */
               default: assert(KTX_TRUE);
             }
         }
+        cbData.numLayers = This->numLayers;
     } else {
-        if (header.numberOfFaces == 6) {
+        if (This->numFaces == 6) {
             /* _ktxCheckHeader should have caught this. */
-            assert(texinfo.textureDimension == 2);
+            assert(This->numDimensions == 2);
             cbData.glTarget = GL_TEXTURE_CUBE_MAP;
         } else {
-            switch (texinfo.textureDimension) {
+            switch (This->numDimensions) {
               case 1: cbData.glTarget = GL_TEXTURE_1D; break;
               case 2: cbData.glTarget = GL_TEXTURE_2D; break;
-                case 3: cbData.glTarget = GL_TEXTURE_3D; break;
+              case 3: cbData.glTarget = GL_TEXTURE_3D; break;
               /* _ktxCheckHeader shold have caught this. */
               default: assert(KTX_TRUE);
             }
         }
+        cbData.numLayers = 0;
     }
     
     if (cbData.glTarget == GL_TEXTURE_1D &&
-        ((texinfo.compressed && (pfGlCompressedTexImage1D == NULL)) ||
-         (!texinfo.compressed && (pfGlTexImage1D == NULL))))
+        ((This->isCompressed && (pfGlCompressedTexImage1D == NULL)) ||
+         (!This->isCompressed && (pfGlTexImage1D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
     
     /* Reject 3D texture if unsupported. */
     if (cbData.glTarget == GL_TEXTURE_3D &&
-        ((texinfo.compressed && (pfGlCompressedTexImage3D == NULL)) ||
-         (!texinfo.compressed && (pfGlTexImage3D == NULL))))
+        ((This->isCompressed && (pfGlCompressedTexImage3D == NULL)) ||
+         (!This->isCompressed && (pfGlTexImage3D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
@@ -813,17 +764,17 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
     
     /* XXX Need to reject other array textures & cube maps if not supported. */
     
-    switch (dimension) {
+    switch (dimensions) {
       case 1:
-        imageCb = texinfo.compressed
+        iterCb = This->isCompressed
                   ? compressedTexImage1DCallback : texImage1DCallback;
         break;
       case 2:
-        imageCb = texinfo.compressed
+        iterCb = This->isCompressed
                   ? compressedTexImage2DCallback : texImage2DCallback;
             break;
       case 3:
-        imageCb = texinfo.compressed
+        iterCb = This->isCompressed
                   ? compressedTexImage3DCallback : texImage3DCallback;
         break;
       default:
@@ -833,46 +784,50 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
     glBindTexture(cbData.glTarget, texname);
     
     // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-    if (texinfo.generateMipmaps && (pfGlGenerateMipmap == NULL)) {
+    if (This->generateMipmaps && (pfGlGenerateMipmap == NULL)) {
         glTexParameteri(cbData.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
     }
 #ifdef GL_TEXTURE_MAX_LEVEL
-	if (!texinfo.generateMipmaps)
-		glTexParameteri(cbData.glTarget, GL_TEXTURE_MAX_LEVEL, header.numberOfMipmapLevels - 1);
+	if (!This->generateMipmaps)
+		glTexParameteri(cbData.glTarget, GL_TEXTURE_MAX_LEVEL, This->numLevels - 1);
 #endif
 
 	if (cbData.glTarget == GL_TEXTURE_CUBE_MAP) {
 		cbData.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 	}
     
-	cbData.glInternalformat = header.glInternalFormat;
-	cbData.glFormat = header.glFormat;
-	if (!texinfo.compressed) {
+	cbData.glInternalformat = This->glInternalformat;
+	cbData.glFormat = This->glFormat;
+	if (!This->isCompressed) {
 #if SUPPORT_LEGACY_FORMAT_CONVERSION
 		// If sized legacy formats are supported there is no need to convert.
-		// If only unsized formats are supported, there is no point in converting
-		// as the modern formats aren't supported either.
+		// If only unsized formats are supported, there is no point in
+        // converting as the modern formats aren't supported either.
 		if (sizedFormats == _NON_LEGACY_FORMATS && supportsSwizzle) {
 			convertFormat(cbData.glTarget, &cbData.glFormat, &cbData.glInternalformat);
 		} else if (sizedFormats == _NO_SIZED_FORMATS)
-			cbData.glInternalformat = header.glBaseInternalFormat;
+			cbData.glInternalformat = This->glBaseInternalformat;
 #else
 		// When no sized formats are supported, or legacy sized formats are not
 		// supported, must change internal format.
 		if (sizedFormats == _NO_SIZED_FORMATS
 			|| (!(sizedFormats & _LEGACY_FORMATS) &&
-				(header.glBaseInternalFormat == GL_ALPHA
-				|| header.glBaseInternalFormat == GL_LUMINANCE
-				|| header.glBaseInternalFormat == GL_LUMINANCE_ALPHA
-				|| header.glBaseInternalFormat == GL_INTENSITY))) {
-			cbData.glInternalformat = header.glBaseInternalFormat;
+				(This->glBaseInternalformat == GL_ALPHA
+				|| This->glBaseInternalformat == GL_LUMINANCE
+				|| This->glBaseInternalformat == GL_LUMINANCE_ALPHA
+				|| This->glBaseInternalformat == GL_INTENSITY))) {
+			cbData.glInternalformat = This->glBaseInternalformat;
 		}
 #endif
 	}
 
-    errorCode = ktxReader_readImages((void*)This, imageCb, &cbData);
+    if (ktxTexture_isActiveStream(This))
+        result = ktxTexture_IterateLoadLevelFaces(This, iterCb, &cbData);
+    else
+        result = ktxTexture_IterateLevelFaces(This, iterCb, &cbData);
+
     /* GL errors are the only reason for failure. */
-    if (errorCode != KTX_SUCCESS && cbData.glError != GL_NO_ERROR) {
+    if (result != KTX_SUCCESS && cbData.glError != GL_NO_ERROR) {
         if (pGlerror)
             *pGlerror = cbData.glError;
     }
@@ -882,44 +837,26 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
 		glPixelStorei(GL_UNPACK_ALIGNMENT, previousUnpackAlignment);
 	}
 
-	if (errorCode == KTX_SUCCESS)
+	if (result == KTX_SUCCESS)
 	{
         // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-        if (texinfo.generateMipmaps && pfGlGenerateMipmap) {
+        if (This->generateMipmaps && pfGlGenerateMipmap) {
 			pfGlGenerateMipmap(cbData.glTarget);
 		}
 		*pTarget = cbData.glTarget;
 		if (pTexture) {
 			*pTexture = texname;
 		}
-		if (pDimensions) {
-			pDimensions->width = header.pixelWidth;
-			pDimensions->height = header.pixelHeight;
-			pDimensions->depth = header.pixelDepth;
-		}
-		if (pIsMipmapped) {
-			if (texinfo.generateMipmaps || header.numberOfMipmapLevels > 1)
-				*pIsMipmapped = GL_TRUE;
-			else
-				*pIsMipmapped = GL_FALSE;
-		}
-	} else {
-		if (ppKvd && *ppKvd)
-		{
-			free(*ppKvd);
-			*ppKvd = NULL;
-		}
-
-		if (!texnameUser) {
-			glDeleteTextures(1, &texname);
-		}
+	} else if (!texnameUser) {
+        glDeleteTextures(1, &texname);
 	}
-	return errorCode;
+	return result;
 }
 /** [loadGLTexture] */
 
 /**
  * @~English
+ * @deprecated Use ktxTexture_CreateFromStdioStream() and ktxTexture_GLUpload().
  * @brief Create a GL texture object from KTX data in a stdio FILE stream.
  *
  * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
@@ -934,34 +871,35 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param [in] file			stdio FILE pointer
- * @param [in,out] pTexture	name of the GL texture object to load. If NULL or if
- *                          <tt>*pTexture == 0</tt> the function will generate
- *                          a texture name. The function binds either the
- *                          generated name or the name given in @p *pTexture
- * 						    to the texture target returned in @p *pTarget,
- * 						    before loading the texture data. If @p pTexture
- *                          is not NULL and a name was generated, the generated
- *                          name will be returned in *pTexture.
- * @param [out] pTarget 	@p *pTarget is set to the texture target used. The
- * 						    target is chosen based on the file contents.
- * @param [out] pDimensions	If @p pDimensions is not NULL, the width, height and
- *							depth of the texture's base level are returned in the
- *                          fields of the KTX_dimensions structure to which it points.
- * @param [out] pIsMipmapped
- *	                        If @p pIsMipmapped is not NULL, @p *pIsMipmapped is set
- *                          to GL_TRUE if the KTX texture is mipmapped, GL_FALSE
- *                          otherwise.
- * @param [out] pGlerror    @p *pGlerror is set to the value returned by
- *                          glGetError when this function returns the error
- *                          KTX_GL_ERROR. glerror can be NULL.
- * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
- *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.
- * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
- *                          memory containing key-value data read from the file.
- *                          The application is responsible for freeing the memory.
- *
+ * @param[in] file		   stdio stream FILE pointer
+ * @param[in,out] pTexture name of the GL texture object to load. If NULL or if
+ *                         <tt>*pTexture == 0</tt> the function will generate
+ *                         a texture name. The function binds either the
+ *                         generated name or the name given in @p *pTexture
+ * 						   to the texture target returned in @p *pTarget,
+ * 						   before loading the texture data. If @p pTexture
+ *                         is not NULL and a name was generated, the generated
+ *                         name will be returned in *pTexture.
+ * @param[out] pTarget 	   @p *pTarget is set to the texture target used. The
+ * 						   target is chosen based on the file contents.
+ * @param[out] pDimensions If @p pDimensions is not NULL, the width, height and
+ *						   depth of the texture's base level are returned in
+ *                         the fields of the KTX_dimensions structure to which
+ *                         it points.
+ * @param[out] pIsMipmapped
+ *	                       If @p pIsMipmapped is not NULL, @p *pIsMipmapped is
+ *                         set to GL_TRUE if the KTX texture is mipmapped,
+ *                         GL_FALSE otherwise.
+ * @param[out] pGlerror    @p *pGlerror is set to the value returned by
+ *                         glGetError when this function returns the error
+ *                         KTX_GL_ERROR. glerror can be NULL.
+ * @param[in,out] pKvdLen  If not NULL, @p *pKvdLen is set to the number of
+ *                         bytes of key-value data pointed at by @p *ppKvd.
+ *                         Must not be NULL, if @p ppKvd is not NULL.
+ * @param[in,out] ppKvd	   If not NULL, @p *ppKvd is set to the point to a
+ *                         block of memory containing key-value data read from
+ *                         the file. The application is responsible for freeing
+ *                         the memory.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -971,12 +909,15 @@ ktxReader_loadGLTexture(KTX_reader reader, GLuint* pTexture, GLenum* pTarget,
  * @exception KTX_INVALID_OPERATION @p ppKvd is not NULL but pKvdLen is NULL.
  * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the
  * 										 expected amount of data.
- * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated to store
- *                              the requested key-value data.
+ * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated for the
+ *                              underlying ktxTexture object or to store the
+ *                              requested key-value data.
  * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
  * 								glGenTextures or gl*TexImage*. The GL error
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
+ *                                         by the current OpenGL context.
  */
 KTX_error_code
 ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
@@ -984,53 +925,82 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	KTX_reader reader;
-	KTX_error_code errorCode = KTX_SUCCESS;
+	ktxTexture* texture;
+	KTX_error_code result = KTX_SUCCESS;
+    
+    if (ppKvd != NULL && pKvdLen == NULL)
+        return KTX_INVALID_VALUE;
 
-	errorCode = ktxOpenKTXF(file, &reader);
-	if (errorCode != KTX_SUCCESS)
-		return errorCode;
+	result = ktxTexture_CreateFromStdioStream(file,
+                                              KTX_TEXTURE_CREATE_RAW_KVDATA_BIT,
+                                              &texture);
+	if (result != KTX_SUCCESS)
+		return result;
 
-    errorCode = ktxReader_loadGLTexture(reader, pTexture, pTarget, pDimensions,
-                                        pIsMipmapped, pGlerror, pKvdLen, ppKvd);
-    ktxReader_close(reader);
+    result = ktxTexture_GLUpload(texture, pTexture, pTarget, pGlerror);
+    
+    if (result == KTX_SUCCESS) {
+        if (ppKvd != NULL) {
+            *ppKvd = texture->kvData;
+            *pKvdLen = texture->kvDataLen;
+            /* Remove to avoid it being freed when texture is destroyed. */
+            texture->kvData = NULL;
+            texture->kvDataLen = 0;
+        }
+        if (pDimensions) {
+            pDimensions->width = texture->baseWidth;
+            pDimensions->height = texture->baseHeight;
+            pDimensions->depth = texture->baseDepth;
+        }
+        if (pIsMipmapped) {
+            if (texture->generateMipmaps || texture->numLevels > 1)
+                *pIsMipmapped = GL_TRUE;
+            else
+                *pIsMipmapped = GL_FALSE;
+        }
+    }
 
-    return errorCode;
+    ktxTexture_Destroy(texture);
+
+    return result;
 }
 
 /**
  * @~English
+ * @deprecated Use ktxTexture_CreateFromNamedFile() and ktxTexture_GLUpload().
  * @brief Create a GL texture object from KTX data in a named file on disk.
  *
- * @param [in] filename		pointer to a C string that contains the path of
+ * @param[in] filename		pointer to a C string that contains the path of
  * 							the file to load.
- * @param [in,out] pTexture	name of the GL texture object to load. See
+ * @param[in,out] pTexture	name of the GL texture object to load. See
  *                          ktxLoadTextureF() for details.
- * @param [out] pTarget 	@p *pTarget is set to the texture target used. See
+ * @param[out] pTarget 	    @p *pTarget is set to the texture target used. See
  *                          ktxLoadTextureF() for details.
- * @param [out] pDimensions @p the texture's base level width depth and height
+ * @param[out] pDimensions  @p the texture's base level width depth and height
  *                          are returned in structure to which this points.
  *                          See ktxLoadTextureF() for details.
- * @param [out] pIsMipmapped @p pIsMipMapped is set to indicate if the loaded
+ * @param[out] pIsMipmapped @p pIsMipMapped is set to indicate if the loaded
  *                          texture is mipmapped. See ktxLoadTextureF() for
  *                          details.
- * @param [out] pGlerror    @p *pGlerror is set to the value returned by
+ * @param[out] pGlerror     @p *pGlerror is set to the value returned by
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. glerror can be NULL.
- * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
- *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.
- * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
- *                          memory containing key-value data read from the file.
- *                          The application is responsible for freeing the memory.*
+ * @param[in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of
+ *                          bytes of key-value data pointed at by @p *ppKvd.
+ *                          Must not be NULL, if @p ppKvd is not NULL.
+ * @param[in,out] ppKvd	    If not NULL, @p *ppKvd is set to the point to a
+ *                          block of memory containing key-value data read from
+ *                          the file. The application is responsible for freeing
+ *                          the memory.
+ *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
  * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
  * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
- *
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE See ktxLoadTextureF() for causes.
  */
 KTX_error_code
 ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
@@ -1038,55 +1008,59 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
 				GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	KTX_error_code errorCode;
-	FILE* file = fopen(filename, "rb");
+	KTX_error_code result;
 
+    FILE* file = fopen(filename, "rb");
 	if (file) {
-		errorCode = ktxLoadTextureF(file, pTexture, pTarget, pDimensions,
-								    pIsMipmapped, pGlerror, pKvdLen, ppKvd);
+		result = ktxLoadTextureF(file, pTexture, pTarget, pDimensions,
+                                 pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 		fclose(file);
 	} else
-		errorCode = KTX_FILE_OPEN_FAILED;
+		result = KTX_FILE_OPEN_FAILED;
 
-	return errorCode;
+	return result;
 }
 
 /**
  * @~English
+ * @deprecated Use ktxTexture_CreateFromMemory() and ktxTexture_GLUpload().
  * @brief Create a GL texture object from KTX formatted data in memory.
  *
- * @param [in] bytes		pointer to the array of bytes containing
+ * @param[in] bytes		    pointer to the array of bytes containing
  * 							the KTX data to load.
- * @param [in] size			size of the memory array containing the
+ * @param[in] size			size of the memory array containing the
  *                          KTX format data.
- * @param [in,out] pTexture	name of the GL texture object to load. See
+ * @param[in,out] pTexture	name of the GL texture object to load. See
  *                          ktxLoadTextureF() for details.
- * @param [out] pTarget 	@p *pTarget is set to the texture target used. See
+ * @param[out] pTarget 	    @p *pTarget is set to the texture target used. See
  *                          ktxLoadTextureF() for details.
- * @param [out] pDimensions @p the texture's base level width depth and height
+ * @param[out] pDimensions  @p the texture's base level width depth and height
  *                          are returned in structure to which this points.
  *                          See ktxLoadTextureF() for details.
- * @param [out] pIsMipmapped @p *pIsMipMapped is set to indicate if the loaded
+ * @param[out] pIsMipmapped @p *pIsMipMapped is set to indicate if the loaded
  *                          texture is mipmapped. See ktxLoadTextureF() for
  *                          details.
- * @param [out] pGlerror    @p *pGlerror is set to the value returned by
+ * @param[out] pGlerror     @p *pGlerror is set to the value returned by
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. glerror can be NULL.
- * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
- *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.
- * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
- *                          memory containing key-value data read from the file.
- *                          The application is responsible for freeing the memory.*
+ * @param[in,out] pKvdLen   If not NULL, @p *pKvdLen is set to the number of
+ *                          bytes of key-value data pointed at by @p *ppKvd.
+ *                          Must not be NULL, if @p ppKvd is not NULL.
+ * @param[in,out] ppKvd     If not NULL, @p *ppKvd is set to the point to a
+ *                          block of memory containing key-value data read from
+ *                          the file. The application is responsible for freeing
+ *                          the memory.
  *
  * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_FILE_OPEN_FAILED	The specified memory could not be opened as a file.
+ * @exception KTX_FILE_OPEN_FAILED	The specified memory could not be opened as
+ *                                  a file.
  * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
  * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
  *
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE See ktxLoadTextureF() for causes.
  */
 KTX_error_code
 ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
@@ -1094,19 +1068,44 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
                 GLboolean* pIsMipmapped, GLenum* pGlerror,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	KTX_reader reader;
-	KTX_error_code errorCode = KTX_SUCCESS;
+	ktxTexture* texture;
+	KTX_error_code result = KTX_SUCCESS;
 
-	errorCode = ktxOpenKTXM(bytes, size, &reader);
-	if (errorCode != KTX_SUCCESS)
-		return errorCode;
-
-	errorCode = ktxReader_loadGLTexture(reader, pTexture, pTarget, pDimensions,
-                                        pIsMipmapped, pGlerror, pKvdLen,
-                                        ppKvd);
-    ktxReader_close(reader);
+    if (ppKvd != NULL && pKvdLen == NULL)
+        return KTX_INVALID_VALUE;
     
-    return errorCode;
+    result = ktxTexture_CreateFromMemory(bytes, size,
+                                         KTX_TEXTURE_CREATE_RAW_KVDATA_BIT,
+                                         &texture);
+
+	if (result != KTX_SUCCESS)
+		return result;
+
+	result = ktxTexture_GLUpload(texture, pTexture, pTarget, pGlerror);
+    if (result == KTX_SUCCESS) {
+        if (ppKvd != NULL) {
+            *ppKvd = texture->kvData;
+            *pKvdLen = texture->kvDataLen;
+            /* Remove to avoid it being freed when texture is destroyed. */
+            texture->kvData = NULL;
+            texture->kvDataLen = 0;
+        }
+        if (pDimensions) {
+            pDimensions->width = texture->baseWidth;
+            pDimensions->height = texture->baseHeight;
+            pDimensions->depth = texture->baseDepth;
+        }
+        if (pIsMipmapped) {
+            if (texture->generateMipmaps || texture->numLevels > 1)
+                *pIsMipmapped = GL_TRUE;
+            else
+                *pIsMipmapped = GL_FALSE;
+        }
+    }
+    
+    ktxTexture_Destroy(texture);
+
+    return result;
 }
 
 /** @} */

@@ -48,7 +48,6 @@
 #include "image.h"
 
 static int tupleSize(const char* tupleType);
-static FileResult readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels);
 
 // Skips over comments in a netpbm file
 // (i.e., lines starting with #)
@@ -129,7 +128,7 @@ void skipNonData(FILE *src)
 FileResult
 readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 		 unsigned int& components, unsigned int& componentSize,
-		 unsigned int &imageSize, unsigned char*& pixels)
+		 unsigned int &imageSize, unsigned char** pixels)
 {
 	char line[255];
 	int numvals;
@@ -197,7 +196,7 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 FileResult
 readPPM(FILE* src, unsigned int& width, unsigned int& height,
 		unsigned int& components, unsigned int& componentSize,
-		unsigned int &imageSize, unsigned char*& pixels)
+		unsigned int &imageSize, unsigned char** pixels)
 {
 	int maxval;
 	int numvals;
@@ -243,7 +242,10 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 		numvals = fscanf(src, "%c", &c);
 	
 	imageSize = width * height * components * componentSize;
-	return readImage(src, imageSize, pixels);
+    if (pixels)
+	    return readImage(src, imageSize, *pixels);
+    else
+        return SUCCESS;
 }
 
 
@@ -289,7 +291,7 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 FileResult
 readPGM(FILE* src, unsigned int& width, unsigned int& height,
 		unsigned int& components, unsigned int& componentSize,
-		unsigned int &imageSize, unsigned char*& pixels)
+		unsigned int &imageSize, unsigned char** pixels)
 {
 	int maxval;
 	int numvals;
@@ -330,7 +332,10 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 	while(ch!='\n') numvals = fscanf(src,"%c",&ch);
 
 	imageSize = width * height * componentSize;
-	return readImage(src, imageSize, pixels);
+    if (pixels)
+        return readImage(src, imageSize, *pixels);
+    else
+        return SUCCESS;
 }
 
 
@@ -379,7 +384,7 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 FileResult
 readPAM(FILE* src, unsigned int& width, unsigned int& height,
 		unsigned int& components, unsigned int& componentSize,
-		unsigned int &imageSize, unsigned char*& pixels)
+		unsigned int &imageSize, unsigned char** pixels)
 {
 	char line[255];
 #define MAX_TUPLETYPE_SIZE 20
@@ -432,7 +437,10 @@ readPAM(FILE* src, unsigned int& width, unsigned int& height,
 		componentSize = 1;
 
 	imageSize = width * height * components * componentSize;
-    return readImage(src, imageSize, pixels);
+    if (pixels)
+        return readImage(src, imageSize, *pixels);
+    else
+        return SUCCESS;
 }
 
 
@@ -454,7 +462,7 @@ tupleSize(const char* tupleType)
 }
 
 
-static FileResult
+FileResult
 readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels)
 {
 	pixels = new unsigned char[imageSize];

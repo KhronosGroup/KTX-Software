@@ -3,52 +3,36 @@ License                       {#license}
 
 LibKTX contains code
 
-* (c) 2010 & (c) 2013 The Khronos Group Inc.
-* (c) 2008 and (c) 2010 HI Corporation
-* (c) 2005 Ericsson AB
-* (c) 2003-2010, Troy D. Hanson
-* (c) 2015-2016 Mark Callow
+* &copy; 2010 & &copy; 2013 The Khronos Group Inc.
+* &copy; 2008 and &copy; 2010 HI Corporation
+* &copy; 2005 Ericsson AB
+* &copy; 2003-2010, Troy D. Hanson
+* &copy; 2015-2018 Mark Callow
+* &copy; 2016 Oculus VR, LLC.
 
 The KTX load tests contain code
 
-* (c) 2013 The Khronos Group Inc.
-* (c) 2008 and (c) 2010 HI Corporation
-* (c) 1997-2014 Sam Lantinga
-* (c) 2016 Sascha Willems
-* (c) 2015-2017 Mark Callow
+* &copy; 2013 The Khronos Group Inc.
+* &copy; 2008 and &copy; 2010 HI Corporation
+* &copy; 1997-2014 Sam Lantinga
+* &copy; 2016 Sascha Willems
+* &copy; 2015-2018 Mark Callow
 
 Default License
 ---------------
 
 With the exception of the files listed explicitly below, the source
-files are made available under the following BSD-like license. Most
-files contain this license explicitly. Some files refer to this
-file (LICENSE.md) Such files are licensed under this Default License.
+files are made available the Apache License, Version 2.0 (the "License");
+you may not use these files except in compliance with the License.
+You may obtain a copy of the License at
 
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and/or associated documentation files (the
-"Materials"), to deal in the Materials without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Materials, and to
-permit persons to whom the Materials are furnished to do so, subject to
-the following conditions:
+&ensp;&ensp;&ensp;&ensp;http://www.apache.org/licenses/LICENSE-2.0
 
-The above copyright notice and this permission notice shall be included
-unaltered in all copies or substantial portions of the Materials.
-Any additions, deletions, or changes to the original source files
-must be clearly indicated in accompanying documentation.
-
-If only executable code is distributed, then the accompanying
-documentation must state that "this software is based in part on the
-work of the Khronos Group."
-
-THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 -----------------
 
@@ -185,7 +169,7 @@ uthash.h
 
 uthash.h is made available under the following revised BSD license.
 
-Copyright &copy 2003-2010, Troy D. Hanson   http://uthash.sourceforge.net
+Copyright &copy; 2003-2010, Troy D. Hanson   http://uthash.sourceforge.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -216,31 +200,12 @@ These files are part of the SDL2 source distributed by the [SDL project]
 {VulkanMeshLoader,vulkantextoverlay}.hpp, vulkandebug.*
 -------------------------------------------------------
 
-Copyright &copy 2016 Sascha Willems - www.saschawillems.de
+Copyright &copy; 2016 Sascha Willems - www.saschawillems.de
 
 {VulkanMeshLoader,vulkantextoverlay}.hpp and vulkandebug.* are licensed
-under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+under the [MIT license](http://opensource.org/licenses/MIT)
 
 OpenGL Mathematics (GLM)
 -----------------------------------
 
-OpenGL Mathematics is licensed under the Happy Bunny License (Modified MIT)
-or the MIT License (https://github.com/g-truc/glm/blob/master/manual.md#section0)
-
-{gl,vk}_format.h
----------------------
-
-Copyright (c) 2016 Oculus VR, LLC.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+OpenGL Mathematics is licensed under the [Happy Bunny (Modified MIT) License](https://github.com/g-truc/glm/blob/master/manual.md#section0)

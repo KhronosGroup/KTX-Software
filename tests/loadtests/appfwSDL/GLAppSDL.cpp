@@ -265,7 +265,19 @@ void
 GLAppSDL::onFPSUpdate()
 {
     // Using onFPSUpdate avoids rewriting the title every frame.
-    setWindowTitle("");
+    setWindowTitle();
+}
+
+#if 0
+void
+GLAppSDL::setAppTitle(const char* const szExtra)
+{
+    appTitle = name();
+    if (szExtra != NULL && szExtra[0] != '\0') {
+        appTitle += ": ";
+        appTitle += szExtra;
+    }
+    setWindowTitle();
 }
 
 
@@ -283,6 +295,13 @@ GLAppSDL::setWindowTitle(const char* const szExtra)
     }
     SDL_SetWindowTitle(pswMainWindow, ss.str().c_str());
 }
+
+void
+GLAppSDL::setWindowTitle()
+{
+    SDL_SetWindowTitle(pswMainWindow, appTitle.c_str());
+}
+#endif
 
 #if __WINDOWS__
 // Windows specific code to use icon in module

@@ -55,12 +55,13 @@ INCS_Release := \
 	-I$(srcdir)/include
 
 OBJS := \
-	$(obj).target/$(TARGET)/tests/loadtests/common/at.o \
-	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/LoadTests.o \
-	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/LoadTestsGL3.o \
-	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/sample_01_draw_texture.o \
-	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/sample_02_cube_textured.o \
-	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/shaderfuncs.o \
+	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/GLLoadTests.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/DrawTexture.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTests.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/TextureArray.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/TexturedCube.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/shaders.o
 
 # Add to the list of files we specially track dependencies for.
@@ -77,22 +78,13 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(B
 
 # Suffix rules, putting all outputs into $(obj).
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
-
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # Try building from generated source, too.
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
-
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
-
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)

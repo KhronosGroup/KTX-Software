@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 cmake_policy(VERSION 2.8.8)
-project(readtests)
+project(texturetests)
 set(configuration "Release")
 enable_language(ASM)
 set(builddir "${CMAKE_CURRENT_BINARY_DIR}")
@@ -37,29 +37,30 @@ set(TOOLSET "target")
 list(APPEND libktx_es3__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
+  "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
+  "../../../../lib/hashlist.c"
   "../../../../lib/hashtable.c"
-  "../../../../lib/ktxfilestream.c"
-  "../../../../lib/ktxmemstream.c"
-  "../../../../lib/ktxreader.c"
+  "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
+  "../../../../lib/texture.c"
   "../../../../lib/writer.c"
+  "../../../../lib/writer_v1.c"
   "../../../../lib/vkloader.c")
 list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es3__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/filestream.h"
   "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
-  "../../../../lib/ktxmemstream.h"
-  "../../../../lib/ktxstream.h"
-  "../../../../lib/ktxreader.h"
+  "../../../../lib/memstream.h"
+  "../../../../lib/stream.h"
   "../../../../lib/uthash.h"
   "../../../../include/ktxvulkan.h"
   "../../../../lib/vk_format.h")
@@ -95,28 +96,29 @@ set(TOOLSET "target")
 list(APPEND libktx_es1__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
+  "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
+  "../../../../lib/hashlist.c"
   "../../../../lib/hashtable.c"
-  "../../../../lib/ktxfilestream.c"
-  "../../../../lib/ktxmemstream.c"
-  "../../../../lib/ktxreader.c"
+  "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
-  "../../../../lib/writer.c")
+  "../../../../lib/texture.c"
+  "../../../../lib/writer.c"
+  "../../../../lib/writer_v1.c")
 list(APPEND libktx_es1__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es1__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/filestream.h"
   "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
-  "../../../../lib/ktxmemstream.h"
-  "../../../../lib/ktxstream.h"
-  "../../../../lib/ktxreader.h"
+  "../../../../lib/memstream.h"
+  "../../../../lib/stream.h"
   "../../../../lib/uthash.h")
 add_library(libktx_es1 STATIC ${libktx_es1__c_srcs} ${libktx_es1__cxx_srcs} ${libktx_es1__other_srcs})
 set_target_properties(libktx_es1 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
@@ -147,29 +149,31 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../libktx.doxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcunpack.cxx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/filestream.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/filestream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashlist.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxfilestream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxmemstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxreader.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/stream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_v1.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c")
@@ -211,29 +215,30 @@ set(TOOLSET "target")
 list(APPEND libktx_gl__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/errstr.c"
+  "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
+  "../../../../lib/hashlist.c"
   "../../../../lib/hashtable.c"
-  "../../../../lib/ktxfilestream.c"
-  "../../../../lib/ktxmemstream.c"
-  "../../../../lib/ktxreader.c"
+  "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
+  "../../../../lib/texture.c"
   "../../../../lib/writer.c"
+  "../../../../lib/writer_v1.c"
   "../../../../lib/vkloader.c")
 list(APPEND libktx_gl__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_gl__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/filestream.h"
   "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxfilestream.h"
   "../../../../lib/ktxint.h"
-  "../../../../lib/ktxmemstream.h"
-  "../../../../lib/ktxstream.h"
-  "../../../../lib/ktxreader.h"
+  "../../../../lib/memstream.h"
+  "../../../../lib/stream.h"
   "../../../../lib/uthash.h"
   "../../../../include/ktxvulkan.h"
   "../../../../lib/vk_format.h")
@@ -630,24 +635,29 @@ unset(TARGET)
 #ktxtests.gyp:gl3loadtests#target
 set(TARGET "gl3loadtests")
 set(TOOLSET "target")
-list(APPEND gl3loadtests__c_srcs
-  "../../../../tests/loadtests/common/at.c"
-  "../../../../tests/loadtests/glloadtests/shader-based/sample_01_draw_texture.c"
-  "../../../../tests/loadtests/glloadtests/shader-based/sample_02_cube_textured.c"
-  "../../../../tests/loadtests/glloadtests/shader-based/shaderfuncs.c"
-  "../../../../tests/loadtests/glloadtests/shader-based/shaders.c")
 list(APPEND gl3loadtests__cxx_srcs
-  "../../../../tests/loadtests/glloadtests/LoadTests.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/LoadTestsGL3.cpp")
+  "../../../../tests/loadtests/common/LoadTestSample.cpp"
+  "../../../../tests/loadtests/glloadtests/GLLoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/shaders.cpp")
 list(APPEND gl3loadtests__other_srcs
-  "../../../../tests/loadtests/common/at.h"
+  "../../../../tests/loadtests/common/LoadTestSample.h"
   "../../../../tests/loadtests/geom/cube.h"
   "../../../../tests/loadtests/geom/frame.h"
-  "../../../../tests/loadtests/glloadtests/LoadTests.h"
+  "../../../../tests/loadtests/glloadtests/GLLoadTests.h"
+  "../../../../tests/loadtests/common/ltexceptions.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.h"
   "../../../../tests/loadtests/glloadtests/shader-based/mygl.h")
 link_directories( ../../../../other_lib/linux/${configuration}-x64
 )
-add_executable(gl3loadtests ${gl3loadtests__c_srcs} ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
+add_executable(gl3loadtests ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
 set_target_properties(gl3loadtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${gl3loadtests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
@@ -958,6 +968,7 @@ add_custom_target(vkloadtests__copies
   SOURCES ${vkloadtests__copies__input}
 )
 list(APPEND vkloadtests__cxx_srcs
+  "../../../../tests/loadtests/common/LoadTestSample.cpp"
   "../../../../tests/loadtests/utils/argparser.cpp"
   "../../../../tests/loadtests/vkloadtests/Texture.cpp"
   "../../../../tests/loadtests/vkloadtests/TextureArray.cpp"
@@ -966,6 +977,8 @@ list(APPEND vkloadtests__cxx_srcs
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.cpp"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.cpp")
 list(APPEND vkloadtests__other_srcs
+  "../../../../tests/loadtests/common/LoadTestSample.h"
+  "../../../../tests/loadtests/common/ltexceptions.h"
   "../../../../tests/loadtests/common/vecmath.hpp"
   "../../../../tests/loadtests/utils/argparser.h"
   "../../../../tests/loadtests/vkloadtests/resources/mac/Info.plist"
@@ -1131,8 +1144,10 @@ unset(TARGET)
 set(TARGET "unittests")
 set(TOOLSET "target")
 set(unittests__cxx_srcs "../../../../tests/unittests/unittests.cc")
-add_executable(unittests ${unittests__cxx_srcs})
+set(unittests__other_srcs "../../../../tests/unittests/wthelper.h")
+add_executable(unittests ${unittests__cxx_srcs} ${unittests__other_srcs})
 set_target_properties(unittests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${unittests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(unittests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(unittests PROPERTIES PREFIX "")
 set_target_properties(unittests PROPERTIES RUNTIME_OUTPUT_NAME "unittests")
@@ -1164,34 +1179,37 @@ target_link_libraries(unittests
 unset(TOOLSET)
 unset(TARGET)
 
-#ktxtests.gyp:readtests#target
-set(TARGET "readtests")
+#ktxtests.gyp:texturetests#target
+set(TARGET "texturetests")
 set(TOOLSET "target")
-set(readtests__cxx_srcs "../../../../tests/readtests/readtests.cc")
-add_executable(readtests ${readtests__cxx_srcs})
-set_target_properties(readtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(readtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
-set_target_properties(readtests PROPERTIES PREFIX "")
-set_target_properties(readtests PROPERTIES RUNTIME_OUTPUT_NAME "readtests")
-set_target_properties(readtests PROPERTIES SUFFIX "")
-set_source_files_properties(${builddir}/readtests PROPERTIES GENERATED "TRUE")
-list(APPEND readtests__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
+set(texturetests__cxx_srcs "../../../../tests/texturetests/texturetests.cc")
+set(texturetests__other_srcs "../../../../tests/unittests/wthelper.h")
+add_executable(texturetests ${texturetests__cxx_srcs} ${texturetests__other_srcs})
+set_target_properties(texturetests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${texturetests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(texturetests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(texturetests PROPERTIES PREFIX "")
+set_target_properties(texturetests PROPERTIES RUNTIME_OUTPUT_NAME "texturetests")
+set_target_properties(texturetests PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/texturetests PROPERTIES GENERATED "TRUE")
+list(APPEND texturetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/unittests"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
-set_property(TARGET readtests APPEND PROPERTY INCLUDE_DIRECTORIES ${readtests__include_dirs})
-set_target_properties(readtests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(readtests PROPERTIES COMPILE_FLAGS "-O3 ")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(readtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-target_link_libraries(readtests
+set_property(TARGET texturetests APPEND PROPERTY INCLUDE_DIRECTORIES ${texturetests__include_dirs})
+set_target_properties(texturetests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
+set_target_properties(texturetests PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+target_link_libraries(texturetests
 -Wl,--start-group
   gtest
   gtest_main

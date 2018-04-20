@@ -47,6 +47,9 @@
         '../utils',
       ],
       'sources': [
+        '../common/LoadTestSample.cpp',
+        '../common/LoadTestSample.h',
+        '../common/ltexceptions.h',
         '../common/vecmath.hpp',
         '../utils/argparser.h',
         '../utils/argparser.cpp',

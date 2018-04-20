@@ -113,7 +113,7 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
 		pSuppInfo->compressed = 1;
 	}
     
-    if (pHeader->glFormat == pHeader->glInternalFormat) {
+    if (pHeader->glFormat == pHeader->glInternalformat) {
         // glInternalFormat is either unsized (which is no longer and should
         // never have been supported by libktx) or glFormat is sized.
         return KTX_FILE_DATA_ERROR;

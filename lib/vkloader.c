@@ -1,6 +1,22 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
+/*
+ * ©2018 Mark Callow.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
 /**
  * @internal
  * @file
@@ -25,7 +41,6 @@
 
 #include "ktxvulkan.h"
 #include "ktxint.h"
-#include "ktxreader.h"
 #include "vk_format.h"
 
 // Macro to check and display Vulkan return results.
@@ -68,11 +83,13 @@ setImageLayout(
  */
 
 /**
- * @example vkloader.cpp
+ * @example vkload.cpp
  * This shows how to create and load a Vulkan image using the Vulkan texture
- * image loading functions. */
+ * image loading functions.
+ */
 
 /**
+ * @memberof ktxVulkanDeviceInfo
  * @~English
  * @brief Create a ktxVulkanDeviceInfo object.
  * 
@@ -85,24 +102,25 @@ setImageLayout(
  * @sa ktxVulkanDeviceInfo_construct(), ktxVulkanDeviceInfo_destroy()
  */
 ktxVulkanDeviceInfo*
-ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
+ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
-						   const VkAllocationCallbacks* pAllocator)
+                           const VkAllocationCallbacks* pAllocator)
 {
-    ktxVulkanDeviceInfo* vdi;
-    vdi = (ktxVulkanDeviceInfo*)malloc(sizeof(ktxVulkanDeviceInfo));
-    if (vdi != NULL) {
-        if (ktxVulkanDeviceInfo_construct(vdi, physicalDevice, device,
+    ktxVulkanDeviceInfo* newvdi;
+    newvdi = (ktxVulkanDeviceInfo*)malloc(sizeof(ktxVulkanDeviceInfo));
+    if (newvdi != NULL) {
+        if (ktxVulkanDeviceInfo_Construct(newvdi, physicalDevice, device,
                                     queue, cmdPool, pAllocator) != KTX_SUCCESS)
         {
-            free(vdi);
-            vdi = 0;
+            free(newvdi);
+            newvdi = 0;
         }
     }
-    return vdi;
+    return newvdi;
 }
 
 /**
+ * @memberof ktxVulkanDeviceInfo
  * @~English
  * @brief Construct a ktxVulkanDeviceInfo object.
  *
@@ -114,7 +132,7 @@ ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
  * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
  * function to provide it with the information.
  *
- * @param  vdi            pointer to the ktxVulkanDeviceInfo object to
+ * @param  This            pointer to the ktxVulkanDeviceInfo object to
  *                        initialize.
  * @param  physicalDevice handle of the Vulkan physical device.
  * @param  device         handle of the Vulkan logical device.
@@ -129,30 +147,30 @@ ktxVulkanDeviceInfo_create(VkPhysicalDevice physicalDevice, VkDevice device,
  * @sa ktxVulkanDeviceInfo_destruct()
  */
 KTX_error_code
-ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
+ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
                               VkPhysicalDevice physicalDevice, VkDevice device,
                               VkQueue queue, VkCommandPool cmdPool,
-							  const VkAllocationCallbacks* pAllocator)
+                              const VkAllocationCallbacks* pAllocator)
 {
     VkCommandBufferAllocateInfo cmdBufInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
     };
     VkResult result;
 
-    vdi->physicalDevice = physicalDevice;
-    vdi->device = device;
-    vdi->queue = queue;
-    vdi->cmdPool = cmdPool;
-    vdi->pAllocator = pAllocator;
+    This->physicalDevice = physicalDevice;
+    This->device = device;
+    This->queue = queue;
+    This->cmdPool = cmdPool;
+    This->pAllocator = pAllocator;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice,
-                                        &vdi->deviceMemoryProperties);
+                                        &This->deviceMemoryProperties);
 
     // Use a separate command buffer for texture loading. Needed for
     // submitting image barriers and converting tilings.
     cmdBufInfo.commandPool = cmdPool;
     cmdBufInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cmdBufInfo.commandBufferCount = 1;
-    result = vkAllocateCommandBuffers(device, &cmdBufInfo, &vdi->cmdBuffer);
+    result = vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
     if (result != VK_SUCCESS) {
         return KTX_OUT_OF_MEMORY; // XXX Consider an equivalent to pGlError
     }
@@ -160,46 +178,48 @@ ktxVulkanDeviceInfo_construct(ktxVulkanDeviceInfo* vdi,
 }
 
 /**
+ * @memberof ktxVulkanDeviceInfo
  * @~English
  * @brief Destruct a ktxVulkanDeviceInfo object.
  *
  * Frees the command buffer.
  *
- * @param vdi pointer to the ktxVulkanDeviceInfo to destruct.
+ * @param This pointer to the ktxVulkanDeviceInfo to destruct.
  */
 void
-ktxVulkanDeviceInfo_destruct(ktxVulkanDeviceInfo* vdi)
+ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This)
 {
-    vkFreeCommandBuffers(vdi->device, vdi->cmdPool, 1,
-                         &vdi->cmdBuffer);
+    vkFreeCommandBuffers(This->device, This->cmdPool, 1,
+                         &This->cmdBuffer);
 }
 
 /**
+ * @memberof ktxVulkanDeviceInfo
  * @~English
  * @brief Destroy a ktxVulkanDeviceInfo object.
  *
  * Calls ktxVulkanDeviceInfo_destruct() then frees the ktxVulkanDeviceInfo.
  *
- * @param vdi pointer to the ktxVulkanDeviceInfo to destroy.
+ * @param This pointer to the ktxVulkanDeviceInfo to destroy.
  */
 void
-ktxVulkanDeviceInfo_destroy(ktxVulkanDeviceInfo* vdi)
+ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This)
 {
-    assert(vdi != NULL);
-    ktxVulkanDeviceInfo_destruct(vdi);
-    free(vdi);
+    assert(This != NULL);
+    ktxVulkanDeviceInfo_Destruct(This);
+    free(This);
 }
 
 /* Get appropriate memory type index for a memory allocation. */
 static uint32_t
-ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* vdi,
+ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* This,
                                   uint32_t typeBits, VkFlags properties)
 {
     for (uint32_t i = 0; i < 32; i++)
     {
         if ((typeBits & 1) == 1)
         {
-            if ((vdi->deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+            if ((This->deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
             {
                 return i;
             }
@@ -217,30 +237,25 @@ ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* vdi,
 
 typedef struct user_cbdata_optimal {
     VkBufferImageCopy* region; // specify destination region in final image.
-    VkDeviceSize offset;       // Offset of current image in staging buffer
-    uint8_t* dest;             // Pointer to staging buffer
+    VkDeviceSize offset;       // Offset of current level in staging buffer
+    ktx_uint32_t numFaces;
+    ktx_uint32_t numLayers;
 #if defined(_DEBUG)
-    size_t stagingBufferSize;  // Bytes.
     VkBufferImageCopy* regionsArrayEnd;   //  "
 #endif
 } user_cbdata_optimal;
 
 /*
- * Callback for an optimally tiled texture.
- * Copy the image data to the staging buffer.
+ * Callback for an optimally tiled texture. Set up a copy region for
+ * the miplevel.
  */
 KTX_error_code KTXAPIENTRY
 optimalTilingCallback(int miplevel, int face,
                       int width, int height, int depth,
-                      int layers,
                       ktx_uint32_t faceLodSize,
                       void* pixels, void* userdata)
 {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
-
-    // Copy image to staging buffer
-    assert((size_t)ud->offset < ud->stagingBufferSize);
-    memcpy(ud->dest + ud->offset, pixels, faceLodSize);
 
     // Set up copy to destination region in final image
     assert(ud->region < ud->regionsArrayEnd);
@@ -255,7 +270,7 @@ optimalTilingCallback(int miplevel, int face,
     ud->region->imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     ud->region->imageSubresource.mipLevel = miplevel;
     ud->region->imageSubresource.baseArrayLayer = face;
-    ud->region->imageSubresource.layerCount = layers;
+    ud->region->imageSubresource.layerCount = ud->numLayers * ud->numFaces;
     ud->region->imageOffset.x = 0;
     ud->region->imageOffset.y = 0;
     ud->region->imageOffset.z = 0;
@@ -282,7 +297,6 @@ typedef struct user_cbdata_linear {
 KTX_error_code KTXAPIENTRY
 linearTilingCallback(int miplevel, int face,
                       int width, int height, int depth,
-                      int layers,
                       ktx_uint32_t faceLodSize,
                       void* pixels, void* userdata)
 {
@@ -310,29 +324,29 @@ linearTilingCallback(int miplevel, int face,
 }
 
 /**
+ * @memberof ktxTexture
  * @~English
- * @brief Create a Vulkan image object from KTX data.
+ * @brief Create a Vulkan image object from a ktxTexture object.
  *
  * Creates a VkImage with format etc. matching the KTX data and uploads the
  * images. Also creates VkSampler and VkImageView objects for accessing the
- * image. Returns the
- * handles of the created objects and information about the texture in the
- * ktxVulkanTexture pointed at by @p pTexture.
+ * image. Returns the handles of the created objects and information about
+ * the texture in the ktxVulkanTexture pointed at by @p vkTexture.
  *
  * Most Vulkan implementations support VK_IMAGE_TILING_LINEAR only for a very
  * limited number of formats and features. Generally VK_IMAGE_TILING_OPTIMAL is
  * preferred. The latter requires a staging buffer so will use more memory
  * during loading.
  *
- * @param [in] reader		handle of the ktxReader opened on the data.
+ * @param[in] This          pointer to the ktxTexture from which to upload.
  * @anchor vdiparam
  * @param [in] vdi          pointer to a ktxVulkanDeviceInfo structure providing
  *                          information about the Vulkan device onto which to
  *                          load the texture.
  * @anchor ptextureparam
- * @param [in,out] pTexture pointer to a ktxVulkanTexture structure into which
- *                          the function writes information about the created
- *                          VkImage.
+ * @param [in,out] vkTexture pointer to a ktxVulkanTexture structure into which
+ *                           the function writes information about the created
+ *                           VkImage.
  * @anchor tilingparam
  * @param [in] tiling       type of tiling to use in the destination image
  *                          on the Vulkan device.
@@ -342,48 +356,29 @@ linearTilingCallback(int miplevel, int face,
  * @anchor layoutparam
  * @param [in] layout       a VkImageLayout value indicating the desired
  *                          layout the destination image.
- * @anchor pkvdlenparam
- * @param [in,out] pKvdLen	if not NULL, @p *pKvdLen is set to the number of
- *                          bytes of key-value data pointed at by @p *ppKvd.
- *                          Must not be NULL, if @p ppKvd is not NULL.
- * @anchor ppkvdparam
- * @param [in,out] ppKvd	if not NULL, @p *ppKvd is set to the point to a
- *                          block of memory containing key-value data read from
- *                          the file. The application is responsible for
- *                          freeing the memory.
  *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE @p reader, @p vdi or @p pTexture is @c NULL or
- *                              @p reader is not a valid reader handle.
- * @exception KTX_INVALID_OPERATION There is no VkFormat that matches the KTX
- *                                  data or the Vulkan device does not support
- *                                  one or more of the requested @p usageFlags
- *                                  or requested @p tiling with this format.
+ * @exception KTX_INVALID_VALUE @p This, @p vdi or @p vkTexture is @c NULL.
+ * @exception KTX_INVALID_OPERATION The ktxTexture contains neither images nor
+ *                                  an active stream from which to read them.
  * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated
  *                              on either the CPU or the Vulkan device.
- *
- * Error conditions from ktxReader_readHeader() and ktxReader_readKVData()
- * may also be returned.
  */
 KTX_error_code
-ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
-                          ktxVulkanTexture* pTexture,
-                          VkImageTiling tiling,
-                          VkImageUsageFlags usageFlags,
-                          VkImageLayout layout,
-                          unsigned int* pKvdLen, unsigned char** ppKvd)
+ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                      ktxVulkanTexture* vkTexture,
+                      VkImageTiling tiling,
+                      VkImageUsageFlags usageFlags,
+                      VkImageLayout layout)
 {
-    ktxReader*               This = (ktxReader*)reader;
-    KTX_header               header;
-    KTX_supplemental_info    texinfo;
-    KTX_error_code           errorCode;
-    VkFormat				 vkFormat;
+    KTX_error_code           kResult;
+    VkFormat                 vkFormat;
     VkImageType              imageType;
     VkImageViewType          viewType;
     VkImageCreateFlags       createFlags = 0;
     VkImageFormatProperties  formatProperties;
-    VkResult                 result;
+    VkResult                 vResult;
     VkCommandBufferBeginInfo cmdBufBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = NULL
@@ -399,97 +394,70 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         .memoryTypeIndex = 0
     };
     VkMemoryRequirements     memReqs;
-    VkBool32                 isArray;
-    VkBool32                 isCube = VK_FALSE;
-    uint32_t                 arrayLayers, mipLevels;
+    uint32_t                 arrayLayers;
 
-    if (ppKvd) {
-        *ppKvd = NULL;
-    }
-
-    if (!vdi) {
+    if (!vdi || !This || !vkTexture) {
         return KTX_INVALID_VALUE;
     }
 
-    if (!This || !This->stream.read || !This->stream.skip) {
-        return KTX_INVALID_VALUE;
-    }
-
-    if (!pTexture) {
-        return KTX_INVALID_VALUE;
-    }
-
-    errorCode = ktxReader_readHeader(This, &header, &texinfo);
-    if (errorCode != KTX_SUCCESS)
-        return errorCode;
-
-    ktxReader_readKVData(This, pKvdLen, ppKvd);
-    if (errorCode != KTX_SUCCESS) {
-        return errorCode;
+    if (!This->pData && !ktxTexture_isActiveStream(This)) {
+        /* Nothing to upload. */
+        return KTX_INVALID_OPERATION;
     }
 
     /* _ktxCheckHeader should have caught this. */
-    assert(header.numberOfFaces == 6 ? texinfo.textureDimension == 2 : VK_TRUE);
+    assert(This->numFaces == 6 ? This->numDimensions == 2 : VK_TRUE);
 
-    if (header.numberOfArrayElements > 0) {
-        arrayLayers = header.numberOfArrayElements;
-        isArray = VK_TRUE;
-    } else {
-        arrayLayers = 1;
-        isArray = VK_FALSE;
-    }
-    if (header.numberOfFaces == 6) {
+    arrayLayers = This->numLayers;
+    if (This->isCubemap) {
         arrayLayers *= 6;
         createFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-        isCube = VK_TRUE;
     }
 
-    pTexture->width = header.pixelWidth;
-    switch (texinfo.textureDimension) {
+    vkTexture->width = This->baseWidth;
+    vkTexture->height = This->baseHeight;
+    vkTexture->depth = This->baseDepth;
+    switch (This->numDimensions) {
       case 1:
         imageType = VK_IMAGE_TYPE_1D;
-        viewType = isArray ?
+        viewType = This->isArray ?
                         VK_IMAGE_VIEW_TYPE_1D_ARRAY : VK_IMAGE_VIEW_TYPE_1D;
-        pTexture->height = pTexture->depth = 1;
         break;
       case 2:
         imageType = VK_IMAGE_TYPE_2D;
-        pTexture->height = header.pixelHeight;
-        pTexture->depth = 1;
-        if (isCube)
-            viewType = isArray ?
+        if (This->isCubemap)
+            viewType = This->isArray ?
                         VK_IMAGE_VIEW_TYPE_CUBE_ARRAY : VK_IMAGE_VIEW_TYPE_CUBE;
         else
-            viewType = isArray ?
+            viewType = This->isArray ?
                         VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
         break;
       case 3:
         imageType = VK_IMAGE_TYPE_3D;
-        pTexture->height = header.pixelHeight;
-        pTexture->depth = header.pixelWidth;
-        assert(!isArray); // 3D array textures not yet supported in Vulkan.
+        /* 3D array textures not supported in Vulkan. Attempts to create or
+         * load them should have been trapped long before this.
+         */
+        assert(!This->isArray);
         viewType = VK_IMAGE_VIEW_TYPE_3D;
         break;
     }
-    
-    mipLevels = header.numberOfMipmapLevels;
 
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(header.glInternalFormat);
+    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
     if (vkFormat == VK_FORMAT_UNDEFINED)
-    	vkFormat = vkGetFormatFromOpenGLFormat(header.glFormat, header.glType);
+        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
     if (vkFormat == VK_FORMAT_UNDEFINED) {
         return KTX_INVALID_OPERATION;
     }
 
-    // Get device properties for the requested texture format
-    result = vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
-    												  vkFormat,
+    /* Get device properties for the requested texture format */
+    vResult = vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
+                                                      vkFormat,
                                                       imageType,
                                                       tiling,
                                                       usageFlags,
                                                       createFlags,
                                                       &formatProperties);
-    if (result == VK_ERROR_FORMAT_NOT_SUPPORTED) {
+    if (vResult == VK_ERROR_FORMAT_NOT_SUPPORTED) {
         return KTX_INVALID_OPERATION;
     }
 
@@ -517,16 +485,19 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = NULL
         };
+        ktx_uint8_t* pMappedStagingBuffer;
 
-        // Because all array layers are the same size they can be copied
-        // in a single operation so there'll be 1 copy per mip level.
-        uint32_t numCopyRegions = header.numberOfMipmapLevels * header.numberOfFaces;
+        /*
+         * Because all array layers and faces are the same size they can be
+         * copied in a single operation so there'll be 1 copy per mip level.
+         */
+        uint32_t numCopyRegions = This->numLevels;
         user_cbdata_optimal cbData;
 
-        (void)ktxReader_getDataSize(reader, (size_t*)&textureSize);
+        textureSize = ktxTexture_GetSize(This);
 
         copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy)
-        										   * numCopyRegions);
+                                                   * numCopyRegions);
         if (copyRegions == NULL) {
             return KTX_OUT_OF_MEMORY;
         }
@@ -552,51 +523,67 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
 
-        result = vkAllocateMemory(vdi->device, &memAllocInfo,
+        vResult = vkAllocateMemory(vdi->device, &memAllocInfo,
                                   vdi->pAllocator, &stagingMemory);
-        if (result != VK_SUCCESS) {
+        if (vResult != VK_SUCCESS) {
             return KTX_OUT_OF_MEMORY;
         }
         VK_CHECK_RESULT(vkBindBufferMemory(vdi->device, stagingBuffer,
                                            stagingMemory, 0));
 
         VK_CHECK_RESULT(vkMapMemory(vdi->device, stagingMemory, 0,
-                                    memReqs.size, 0, (void **)&cbData.dest));
+                                    memReqs.size, 0,
+                                    (void **)&pMappedStagingBuffer));
 
         cbData.offset = 0;
         cbData.region = copyRegions;
+        cbData.numFaces = This->numFaces;
+        cbData.numLayers = This->numLayers;
 #if defined(_DEBUG)
-        cbData.stagingBufferSize = (size_t)memAllocInfo.allocationSize;
         cbData.regionsArrayEnd = copyRegions + numCopyRegions;
 #endif
 
-        // Call ReadImages to copy texture data into staging buffer
-        errorCode = ktxReader_readImages((void*)This, optimalTilingCallback, &cbData);
+        if (This->pData) {
+            /* Image data has already been loaded. Copy to staging buffer. */
+            assert(This->dataSize <= memAllocInfo.allocationSize);
+            memcpy(pMappedStagingBuffer, This->pData, This->dataSize);
+        } else {
+            /* Load the image data directly into the staging buffer. */
+            kResult = ktxTexture_LoadImageData(This, pMappedStagingBuffer,
+                                               memAllocInfo.allocationSize);
+            if (kResult != KTX_SUCCESS)
+                return kResult;
+        }
+        
+        // Iterate over mip levels to set up the copy regions.
+        kResult = ktxTexture_IterateLevels(This,
+                                           optimalTilingCallback,
+                                           &cbData);
         // XXX Check for possible errors
 
         vkUnmapMemory(vdi->device, stagingMemory);
 
         // Create optimal tiled target image
         imageCreateInfo.imageType = imageType;
-		imageCreateInfo.flags = createFlags;
+        imageCreateInfo.flags = createFlags;
         imageCreateInfo.format = vkFormat;
-        imageCreateInfo.mipLevels = mipLevels;
+        imageCreateInfo.mipLevels = This->numLevels;
         imageCreateInfo.arrayLayers = arrayLayers;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageCreateInfo.usage = usageFlags;
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageCreateInfo.extent.width = pTexture->width;
-        imageCreateInfo.extent.height = pTexture->height;
-        imageCreateInfo.extent.depth = pTexture->depth;
+        imageCreateInfo.extent.width = vkTexture->width;
+        imageCreateInfo.extent.height = vkTexture->height;
+        imageCreateInfo.extent.depth = vkTexture->depth;
         imageCreateInfo.usage
                 = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
         VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
-                                      vdi->pAllocator, &pTexture->image));
+                                      vdi->pAllocator, &vkTexture->image));
 
-        vkGetImageMemoryRequirements(vdi->device, pTexture->image, &memReqs);
+        vkGetImageMemoryRequirements(vdi->device, vkTexture->image, &memReqs);
 
         memAllocInfo.allocationSize = memReqs.size;
 
@@ -605,13 +592,13 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo,
                                          vdi->pAllocator,
-                                         &pTexture->deviceMemory));
-        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, pTexture->image,
-                                          pTexture->deviceMemory, 0));
+                                         &vkTexture->deviceMemory));
+        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, vkTexture->image,
+                                          vkTexture->deviceMemory, 0));
 
         subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         subresourceRange.baseMipLevel = 0;
-        subresourceRange.levelCount = mipLevels;
+        subresourceRange.levelCount = This->numLevels;
         subresourceRange.baseArrayLayer = 0;
         subresourceRange.layerCount = arrayLayers;
 
@@ -619,7 +606,7 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         // Optimal image will be used as destination for the copy
         setImageLayout(
             vdi->cmdBuffer,
-            pTexture->image,
+            vkTexture->image,
             VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_UNDEFINED,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -628,14 +615,15 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         // Copy mip levels from staging buffer
         vkCmdCopyBufferToImage(
             vdi->cmdBuffer, stagingBuffer,
-            pTexture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            vkTexture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             numCopyRegions, copyRegions
             );
 
-        // Change texture image layout to shader read after all mip levels have been copied
+        // Change texture image layout to shader read after all mip levels
+        // have been copied
         setImageLayout(
             vdi->cmdBuffer,
-            pTexture->image,
+            vkTexture->image,
             VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             layout,
@@ -644,7 +632,8 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         // Submit command buffer containing copy and image layout commands
         VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
 
-        // Create a fence to make sure that the copies have finished before continuing
+        // Create a fence to make sure that the copies have finished before
+        // continuing
         VK_CHECK_RESULT(vkCreateFence(vdi->device, &fenceCreateInfo,
                                       vdi->pAllocator, &copyFence));
 
@@ -675,12 +664,12 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         user_cbdata_linear cbData;
 
         imageCreateInfo.imageType = imageType;
-		imageCreateInfo.flags = createFlags;
+        imageCreateInfo.flags = createFlags;
         imageCreateInfo.format = vkFormat;
-        imageCreateInfo.extent.width = pTexture->width;
-        imageCreateInfo.extent.height = pTexture->height;
-        imageCreateInfo.extent.depth = pTexture->depth;
-        imageCreateInfo.mipLevels = mipLevels;
+        imageCreateInfo.extent.width = vkTexture->width;
+        imageCreateInfo.extent.height = vkTexture->height;
+        imageCreateInfo.extent.depth = vkTexture->depth;
+        imageCreateInfo.mipLevels = This->numLevels;
         imageCreateInfo.arrayLayers = arrayLayers;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
@@ -705,12 +694,13 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         // Allocate host memory
-        result = vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
+        vResult = vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
                                   &mappableMemory);
-        if (result != VK_SUCCESS) {
+        if (vResult != VK_SUCCESS) {
             return KTX_OUT_OF_MEMORY;
         }
-        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, mappableImage, mappableMemory, 0));
+        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, mappableImage,
+                                          mappableMemory, 0));
 
         cbData.destImage = mappableImage;
         cbData.device = vdi->device;
@@ -719,27 +709,35 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         VK_CHECK_RESULT(vkMapMemory(vdi->device, mappableMemory, 0,
                         memReqs.size, 0, (void **)&cbData.dest));
 
-        // Call ReadImages to copy texture data into mapped image memory.
-        errorCode = ktxReader_readImages((void*)This, linearTilingCallback, &cbData);
+        // Iterate over images to copy texture data into mapped image memory.
+        if (ktxTexture_isActiveStream(This)) {
+            kResult = ktxTexture_IterateLoadLevelFaces(This,
+                                                       linearTilingCallback,
+                                                       &cbData);
+        } else {
+            kResult = ktxTexture_IterateLevelFaces(This,
+                                                   linearTilingCallback,
+                                                   &cbData);
+        }
         // XXX Check for possible errors
 
         vkUnmapMemory(vdi->device, mappableMemory);
 
         // Linear tiled images don't need to be staged
         // and can be directly used as textures
-        pTexture->image = mappableImage;
-        pTexture->deviceMemory = mappableMemory;
+        vkTexture->image = mappableImage;
+        vkTexture->deviceMemory = mappableMemory;
 
         subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         subresourceRange.baseMipLevel = 0;
-        subresourceRange.levelCount = mipLevels;
+        subresourceRange.levelCount = This->numLevels;
         subresourceRange.baseArrayLayer = 0;
         subresourceRange.layerCount = arrayLayers;
 
         // Setup image memory barrier
         setImageLayout(
             vdi->cmdBuffer,
-            pTexture->image,
+            vkTexture->image,
             VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_PREINITIALIZED,
             layout,
@@ -756,18 +754,18 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
         VK_CHECK_RESULT(vkQueueWaitIdle(vdi->queue));
     }
 
-    pTexture->imageFormat = vkFormat;
-    pTexture->imageLayout = layout;
-    pTexture->levelCount = mipLevels;
-    pTexture->layerCount = arrayLayers;
-    pTexture->viewType = viewType;
+    vkTexture->imageFormat = vkFormat;
+    vkTexture->imageLayout = layout;
+    vkTexture->levelCount = This->numLevels;
+    vkTexture->layerCount = arrayLayers;
+    vkTexture->viewType = viewType;
 
     return KTX_SUCCESS;
 }
 
-/** @ingroup reader
+/** @memberof ktxTexture
  * @~English
- * @brief Create a Vulkan image object from KTX data.
+ * @brief Create a Vulkan image object from a ktxTexture object.
  *
  * Calls ktxReader_LoadVkTextureEx() with the most commonly used options:
  * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
@@ -777,246 +775,20 @@ ktxReader_loadVkTextureEx(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
  *     control.
  */
 KTX_error_code
-ktxReader_loadVkTexture(KTX_reader reader, ktxVulkanDeviceInfo* vdi,
-                 ktxVulkanTexture *texture,
-                 unsigned int* pKvdLen, unsigned char** ppKvd)
+ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
+                    ktxVulkanTexture *vkTexture)
 {
-    return ktxReader_loadVkTextureEx(reader, vdi, texture,
-                                     VK_IMAGE_TILING_OPTIMAL,
-                                     VK_IMAGE_USAGE_SAMPLED_BIT,
-                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                     pKvdLen, ppKvd);
+    return ktxTexture_VkUploadEx(texture, vdi, vkTexture,
+                                 VK_IMAGE_TILING_OPTIMAL,
+                                 VK_IMAGE_USAGE_SAMPLED_BIT,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
-
-/**
- * @~English
- * @brief Create a Vulkan image object from KTX data in a stdio FILE stream.
- *
- * Calls ktxReader_LoadVkTextureEx() to do the bulk of the work.
- *
- * @param [in] file       stdio FILE pointer
- * @param [in] vdi        see @ref vdiparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in,out] pTexture see @ref ptextureparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- * @param [in] tiling     see @ref tilingparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in] layout     see @ref layoutparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @sa ktxReader_LoadVkTextureEx() for description of parameters
- *     and errors.
- */
-KTX_error_code
-ktxLoadVkTextureExF(FILE* file, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *pTexture,
-                    VkImageTiling tiling,
-                    VkImageUsageFlags usageFlags,
-                    VkImageLayout layout,
-                    unsigned int* pKvdLen, unsigned char** ppKvd)
-{
-    KTX_reader reader;
-    KTX_error_code errorCode = KTX_SUCCESS;
-
-    errorCode = ktxOpenKTXF(file, &reader);
-    if (errorCode != KTX_SUCCESS)
-        return errorCode;
-
-    errorCode = ktxReader_loadVkTextureEx(reader, vdi, pTexture,
-                                          tiling, usageFlags,
-                                          layout,
-                                          pKvdLen, ppKvd);
-    ktxReader_close(reader);
-
-    return errorCode;
-}
-
-/**
- * @~English
- * @brief Create a Vulkan image object from KTX data in a stdio FILE.
- *
- * Calls ktxLoadVkTextureExF() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
- *
- * @sa ktxLoadVkTextureExF()
- * @sa ktxReader_LoadVkTextureEx() for parameter and error details
- */
-KTX_error_code
-ktxLoadVkTextureF(FILE* file, ktxVulkanDeviceInfo* vdi,
-                  ktxVulkanTexture *pTexture,
-                  unsigned int* pKvdLen, unsigned char** ppKvd)
-{
-    return ktxLoadVkTextureExF(file, vdi, pTexture,
-                               VK_IMAGE_TILING_OPTIMAL,
-                               VK_IMAGE_USAGE_SAMPLED_BIT,
-                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                               pKvdLen, ppKvd);
-}
-
-/**
- * @~English
- * @brief Create a Vulkan image object from KTX data in a named file on disk.
- *
- * ktxReader_LoadVkTextureEx() does the bulk of the work.
- *
- * @param [in] filename   pointer to a C string that contains the path of
- *                        the file to load
- * @param [in] vdi        see @ref vdiparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in,out] pTexture see @ref ptextureparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- * @param [in] tiling     see @ref tilingparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in] layout     see @ref layoutparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_OPEN_FAILED  The specified file could not be opened.
- *
- * @sa ktxReader_LoadVkTextureEx() for description of parameters
- *     and errors.
- */
-KTX_error_code
-ktxLoadVkTextureExN(const char* const filename, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *pTexture,
-                    VkImageTiling tiling,
-                    VkImageUsageFlags usageFlags,
-                    VkImageLayout layout,
-                    unsigned int* pKvdLen, unsigned char** ppKvd)
-{
-    KTX_error_code errorCode;
-    FILE* file = fopen(filename, "rb");
-
-    if (file) {
-        errorCode = ktxLoadVkTextureExF(file, vdi, pTexture,
-                                        tiling, usageFlags, layout,
-                                        pKvdLen, ppKvd);
-        fclose(file);
-    } else
-        errorCode = KTX_FILE_OPEN_FAILED;
-
-    return errorCode;
-}
-
-/**
- * @~English
- * @brief Create a Vulkan image object from KTX data in a named file on disk.
- *
- * Calls ktxLoadVkTextureExN() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
- *
- * @sa ktxLoadVkTextureExN()
- * @sa ktxReader_LoadVkTextureEx() for parameter and error details
- */
-KTX_error_code
-ktxLoadVkTextureN(const char* const filename, ktxVulkanDeviceInfo* vdi,
-                  ktxVulkanTexture *pTexture,
-                  unsigned int* pKvdLen, unsigned char** ppKvd)
-{
-    return ktxLoadVkTextureExN(filename, vdi, pTexture,
-                               VK_IMAGE_TILING_OPTIMAL,
-                               VK_IMAGE_USAGE_SAMPLED_BIT,
-                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                               pKvdLen, ppKvd);
-}
-
-/**
- * @~English
- * @brief Create a Vulkan image object from KTX formatted data in memory.
- *
- * ktxReader_LoadVkTextureEx() does the bulk of the work.
- *
- * @param [in] bytes      pointer to the location of the KTX data.
- * @param [in] size       length of the KTX data.
- * @param [in] vdi        see @ref vdiparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in,out] pTexture see @ref ptextureparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- * @param [in] tiling     see @ref tilingparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in] usageFlags see @ref usageflagsparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in] layout     see @ref layoutparam "same parameter" of
- *                        ktxReader_LoadVkTextureEx().
- * @param [in,out] pKvdLen  see @ref pkvdlenparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- * @param [in,out] ppKvd    see @ref ppkvdparam "same parameter" of
- *                          ktxReader_LoadVkTextureEx().
- *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @sa ktxReader_LoadVkTextureEx() for description of parameters
- *     and errors.
- */
-KTX_error_code
-ktxLoadVkTextureExM(const void* bytes, GLsizei size,
-					ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture* pTexture,
-                    VkImageTiling tiling,
-                    VkImageUsageFlags usageFlags,
-                    VkImageLayout layout,
-                    unsigned int* pKvdLen, unsigned char** ppKvd)
-{
-    KTX_reader reader;
-    KTX_error_code errorCode = KTX_SUCCESS;
-
-    errorCode = ktxOpenKTXM(bytes, size, &reader);
-    if (errorCode != KTX_SUCCESS)
-        return errorCode;
-
-    errorCode = ktxReader_loadVkTextureEx(reader, vdi, pTexture,
-                                          tiling, usageFlags, layout,
-                                          pKvdLen, ppKvd);
-    ktxReader_close(reader);
-
-    return errorCode;
-}
-
-/**
- * @~English
- * @brief Create a Vulkan image object from KTX formattted data in memory.
- *
- * Calls ktxLoadVkTextureExM() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL and VK_IMAGE_USAGE_SAMPLED_BIT.
- *
- * @sa ktxLoadVkTextureExM()
- * @sa ktxReader_LoadVkTextureEx() for parameter and error details
- */
-KTX_error_code
-ktxLoadVkTextureM(const void* bytes, GLsizei size,
-				  ktxVulkanDeviceInfo* vdi,
-                  ktxVulkanTexture* texture,
-                  unsigned int* pKvdLen, unsigned char** ppKvd)
-{
-    return ktxLoadVkTextureExM(bytes, size, vdi, texture,
-                               VK_IMAGE_TILING_OPTIMAL,
-                               VK_IMAGE_USAGE_SAMPLED_BIT,
-                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                               pKvdLen, ppKvd);
-}
-
-/** @} */
 
 //======================================================================
 //  Utilities
 //======================================================================
 
-/*
+/**
  * @internal
  * @~English
  * @brief Create an image memory barrier for changing the layout of an image.
@@ -1168,20 +940,23 @@ setImageLayout(
 //======================================================================
 
 /**
+ * @memberof ktxVulkanTexture
  * @~English
  * @brief Destructor for the object returned when loading a texture image.
  *
  * Frees the Vulkan resources created when the texture image was loaded.
  *
- * @param texture    pointer to the ktxVulkanTexture to be destructed.
+ * @param vkTexture  pointer to the ktxVulkanTexture to be destructed.
  * @param device     handle to the Vulkan logical device to which the texture was
  *                   loaded.
  * @param pAllocator pointer to the allocator used during loading.
  */
 void
-ktxVulkanTexture_destruct(ktxVulkanTexture* texture, VkDevice device,
-						  const VkAllocationCallbacks* pAllocator)
+ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
+                          const VkAllocationCallbacks* pAllocator)
 {
-    vkDestroyImage(device, texture->image, pAllocator);
-    vkFreeMemory(device, texture->deviceMemory, pAllocator);
+    vkDestroyImage(device, vkTexture->image, pAllocator);
+    vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
 }
+
+/** @} */

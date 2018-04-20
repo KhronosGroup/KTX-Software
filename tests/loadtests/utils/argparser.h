@@ -33,6 +33,8 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
+#include <ios>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -64,5 +66,16 @@ class argparser {
     argvector& argv;
 };
 
+//================== Helper for apps' processArgs ========================
+
+// skips the number of characters equal to the length of given text
+// does not check whether the skipped characters are the same as it
+struct skip
+{
+    const char* text;
+    skip(const char* text) : text(text) {}
+};
+
+std::istream& operator >> (std::istream& stream, const skip& x);
 
 #endif /* ARGPARSER_H */

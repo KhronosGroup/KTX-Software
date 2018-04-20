@@ -28,9 +28,7 @@
           'target_name': 'toktx',
           'type': '<(executable)',
           'mac_bundle': 0,
-          'dependencies': [
-            'libktx.gyp:libktx.gl',
-          ],
+          'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'sources': [
             'image.cpp',
             'image.h',
@@ -49,9 +47,7 @@
               'configurations': {
                 'Debug_Emscripten': {
                   'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [
-                    '<(additional_emlink_options)',
-                  ],
+                  'ldflags': [ '<(additional_emlink_options)' ],
                   'msvs_settings': {
                     'VCCLCompilerTool': {
                       'AdditionalOptions': '<(additional_emcc_options)',
@@ -63,9 +59,7 @@
                 },
                 'Release_Emscripten': {
                   'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [
-                    '<(additional_emlink_options)',
-                  ],
+                  'ldflags': [ '<(additional_emlink_options)' ],
                   'msvs_settings': {
                     'VCCLCompilerTool': {
                       'AdditionalOptions': '<(additional_emcc_options)',
@@ -75,7 +69,7 @@
                     },
                   },
                 },
-              },
+              }, # configurations
             }], # emit_emscripten_configs=="true"
           ], # conditions
         }, # toktx target

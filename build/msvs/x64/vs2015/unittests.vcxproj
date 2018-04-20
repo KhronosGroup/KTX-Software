@@ -133,6 +133,9 @@
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\tests\unittests\wthelper.h"/>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\unittests\unittests.cc"/>
   </ItemGroup>
   <ItemGroup>

@@ -16,16 +16,18 @@ file format
 library
 -------
 
+- [] Find a way so that applications do not have to define KTX_OPENGL{,_ES*} when
+     using the library.
 - [x] make reader that is usable without OpenGL context
 - [ ] use TexStorage in GL texture loader when available
-- [ ] add Vulkan texture loader
+- [x ] add Vulkan texture loader
 - [ ] support new features when added to file format
 
 library testing
 ---------------
 
 - [x] test for GL-context-free reader
-- [ ] test for Vulkan loader
+- [x] test for Vulkan loader
 - [ ] proper mipmap test (multiple planes each showing a different miplevel)
 - [ ] GLES2 load tests
 - [ ] cubemap, 3D & array texture loading tests

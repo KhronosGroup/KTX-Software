@@ -117,8 +117,6 @@ class VulkanAppSDL : public AppBaseSDL {
                                  vk::Format& pFormat,
 								 vk::ImageAspectFlags& pAspectMask);
 
-    // Sets title to be used on window title bar.
-    void setAppTitle(const char* const szExtra);
     // Sets text on window title bar.
     void setWindowTitle();
 
@@ -142,8 +140,6 @@ class VulkanAppSDL : public AppBaseSDL {
     debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
               uint64_t srcObject, size_t location, int32_t msgCode,
               const char *pLayerPrefix, const char *pMsg, void *pUserData);
-
-    std::string appTitle;
 
     bool prepared = false;
     // Set true if want presents v-sync'ed.
