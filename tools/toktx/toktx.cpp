@@ -204,6 +204,11 @@ Create a KTX file from netpbm format files.
 
 @section history HISTORY
 
+@version 1.3:
+Tue Apr 24 15:44:46 2018 +0900
+ - Switch to ktxTexture API.
+ - Add --2d option.
+ 
 @version 1.2:
 Fri Oct 13 18:15:05 2017 +0900
  - Remove --sized; always create sized format.
@@ -293,7 +298,7 @@ usage(_TCHAR* appName)
 static void
 version(_TCHAR* appName)
 {
-    fprintf(stderr, "%s version 1.2\n", appName);
+    fprintf(stderr, "%s version 1.3\n", appName);
 }
 
 
