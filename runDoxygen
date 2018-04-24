@@ -30,8 +30,8 @@ then
     # Doxygen in the standard installation locations including those of
     # MacPorts and Homebrew.
     for i in /Applications/Doxygen.app/Contents/Resources/doxygen \
-             /opt/local/bin/doxygen \
-             /usr/local/bin/doxygen
+             /usr/local/bin/doxygen \
+             /opt/local/bin/doxygen
     do
       if [ -e $i ]
       then
@@ -47,6 +47,7 @@ then
   if [ -z "$doxygen" ]
   then
     echo "Doxygen not found anywhere on $PATH"
+    exit 1
   fi
 fi
 

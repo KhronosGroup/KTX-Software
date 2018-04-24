@@ -49,12 +49,6 @@
 #include "memstream.h"
 #include "gl_format.h"
 
-/**
- * @defgroup writer KTX Writer
- * @brief Write KTX data.
- * @{
- */
-
 static GLenum getFormatFromInternalFormatLegacy(GLenum internalFormat);
 static GLenum getTypeFromInternalFormatLegacy(GLenum internalFormat);
 static void getFormatSizeLegacy(GLenum internalFormat,
@@ -62,6 +56,7 @@ static void getFormatSizeLegacy(GLenum internalFormat,
 
 /**
  * @internal
+ * @ingroup writer
  * @~English
  * @deprecated Use ktxTexture_writeToStream().
  * @brief Write image(s) in a KTX-format to a ktxStream.
@@ -380,6 +375,7 @@ cleanup:
 
 /**
  * @~English
+ * @ingroup writer
  * @deprecated Use ktxTexture_WriteToStdioStream().
  * @brief Write image(s) in KTX format to a stdio FILE stream.
  *
@@ -449,7 +445,8 @@ ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
 
 /**
  * @~English
- * @deprecated Use ktxTexture_WriteToNamedfile().
+ * @ingroup writer
+ * @deprecated Use ktxTexture_WriteToNamedFile().
  * @brief Write image(s) in KTX format to a file on disk.
  *
  * @note textureInfo directly reflects what is written to the KTX file
@@ -497,6 +494,7 @@ ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
 
 /**
  * @~English
+ * @ingroup writer
  * @deprecated Use ktxTexture_WriteToMemory().
  * @brief Write image(s) in KTX format to memory.
  *
@@ -710,5 +708,3 @@ getFormatSizeLegacy(GLenum internalFormat, GlFormatSize* pFormatSize)
         glGetFormatSize(internalFormat, pFormatSize);
     }
 }
-
-/** @} */

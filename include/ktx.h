@@ -24,7 +24,6 @@
  */
 
 /**
- * @internal
  * @file
  * @~English
  *
@@ -34,46 +33,11 @@
  * @author Mark Callow, Edgewise Consulting and while at HI Corporation
  * @author Based on original work by Georg Kolling, Imagination Technology
  *
- * $Id$
- * $Date$
+ * $Id: c61a2def94a76991fbd2fd8be197c63c1bd575c0 $
+ * $Date: Sun Apr 22 22:05:39 2018 +0900 $
  *
  * @todo Find a way so that applications do not have to define KTX_OPENGL{,_ES*}
  *       when using the library.
- */
-
-/**
- * @~English
- * @mainpage The KTX Library
- *
- * libktx is a small library of functions for creating and reading KTX (Khronos
- * TeXture) files and instantiating OpenGL&reg; and OpenGL&reg; ES
- * textures and Vulkan images from them.
- *
- * For information about the KTX format see the
- * <a href="http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/">
- * formal specification.</a>
- *
- * The library is open source software. Source code is available at
- * <a href="https://github.com/KhronosGroup/KTX">GitHub</a>. Most of the source
- * code is licensed under the Apache 2.0 license. See @ref license for details.
- * The binary form, @em libktx.{a,dll,so}, and this documentation are
- * &copy; 2018, The Khronos Group; they can be distributed freely
- * provided this page <!-- this comment block --> is included prominently in
- * the accompanying documentation.
- *
- * See @ref history for the list of changes.
- *
- * See @ref todo for the current To Do list.
- *
- * @authors
- * Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a>,
- *              formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n
- * Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>\n
- * Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
- *
- * @version 3.0.0
- *
- * $Date$
  */
 
 #include <stdio.h>
@@ -96,7 +60,7 @@ typedef  int32_t ktx_int32_t;
 typedef   size_t ktx_size_t;
 #endif
 
-/* This will cause compilation to fail if uint32 != 4. */
+/* This will cause compilation to fail if size of uint32 != 4. */
 typedef unsigned char ktx_uint32_t_SIZE_ASSERT[sizeof(ktx_uint32_t) == 4];
 
 /*
@@ -166,6 +130,12 @@ typedef enum KTX_error_code_t {
 #define KTX_HEADER_SIZE		(64)
 
 /**
+ * @~English
+ * @brief Result codes returned by library functions.
+ */
+ typedef enum KTX_error_code_t ktxResult;
+
+/**
  * @class ktxHashList
  * @~English
  * @brief Opaque handle to a ktxHashList.
@@ -176,6 +146,9 @@ typedef struct ktxKVListEntry* ktxHashList;
  * @class ktxTexture
  * @~English
  * @brief Class representing a texture.
+ *
+ * ktxTextures should be only by one of the ktxTexture_Create* functions and
+ * these fields should be considered read-only.
  */
 typedef struct {
     ktx_uint32_t glFormat; /*!< Format of the texture data, e.g., GL_RGB. */
@@ -624,12 +597,13 @@ typedef struct KTX_texture_info
 
 /**
  * @~English
- * @deprecated Use ktxTexture_Create() and @c ktxTexture_SetImage*.
+ * @deprecated Use ktxTexture_Create() and @c ktxTexture_SetImageFromMemory()
+ *             or ktxTexture_SetImageFromStdioStream().
  * @brief Structure used to pass image data to ktxWriteKTX.
  *
  * @sa ktxTextureCreate()
- * @sa ktxTexture_SetImageFromMemoryWithPad()
- * @sa ktxTexture_SetImageFromStdioStreamWithPad()
+ * @sa ktxTexture_SetImageFromMemory()
+ * @sa ktxTexture_SetImageFromStdioStream()
  *
  * Retained for backward compatibility with Versions 1 & 2.
  */
@@ -681,16 +655,28 @@ KTX_hash_table ktxHashTable_Create(void);
 /**
  * @~English
  * @deprecated Use ktxHashList_Destroy().
+ * @brief Destroy a KTX_hash_table.
+ *
+ * Should be documented as a member of KTX_hash_table but a doxygen limitation
+ * prevents that.
  */
 #define ktxHashTable_Destroy(a) ktxHashList_Destroy(a);
 /**
  * @~English
  * @deprecated Use ktxHashList_AddKVPair().
+ * @brief Add a key-value pair to a KTX_hash_table.
+ *
+ * Should be documented as a member of KTX_hash_table but a doxygen limitation
+ * prevents that.
  */
 #define ktxHashTable_AddKVPair(a, b, c, d) ktxHashList_AddKVPair(a, b, c, d)
 /**
  * @~English
  * @deprecated Use ktxHashList_FindValue().
+ * @brief Looks up a key and returns its value.
+ *
+ * Should be documented as a member of KTX_hash_table but a doxygen limitation
+ * prevents that.
  */
 #define ktxHashTable_FindValue(a, b, c, d) ktxHashList_FindValue(a, b, c, d)
 
@@ -738,7 +724,7 @@ ktxWriteKTXM(unsigned char** dst, GLsizei* size,
 
 /**
 @~English
-@page history KTX Library Revision History
+@page history Revision History
 
 @section v6 Version 3.0.0
 Added:

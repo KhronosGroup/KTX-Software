@@ -6,7 +6,7 @@
 # /build/
 /build/*.tgz
 /build/*.zip
-/build/doc
+/build/docs
 
 # /build/GNUmake/lib/
 /build/GNUmake/lib/*.d

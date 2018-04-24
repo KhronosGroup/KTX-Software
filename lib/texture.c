@@ -537,6 +537,7 @@ ktxTextureInt_destruct(ktxTextureInt* This)
 
 /**
  * @memberof ktxTexture
+ * @ingroup writer
  * @brief Create a new empty ktxTexture.
  *
  * The address of the newly created ktxTexture is written to the location
@@ -597,6 +598,12 @@ ktxTexture_Create(ktxTextureCreateInfo* createInfo,
         *newTex = NULL;
     return result;
 }
+
+/**
+ * @defgroup reader Reader
+ * @brief Read KTX-formatted data.
+ * @{
+ */
 
 /**
  * @memberof ktxTexture
@@ -1516,3 +1523,6 @@ ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
 
     return KTX_SUCCESS;
 }
+
+/** @} */
+

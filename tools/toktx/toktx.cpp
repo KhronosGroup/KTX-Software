@@ -4,38 +4,25 @@
 // $Id$
 
 //
-// Copyright (c) 2010 The Khronos Group Inc.
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and/or associated documentation files (the
-// "Materials"), to deal in the Materials without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Materials, and to
-// permit persons to whom the Materials are furnished to do so, subject to
-// the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included
-// unaltered in all copies or substantial portions of the Materials.
-// Any additions, deletions, or changes to the original source files
-// must be clearly indicated in accompanying documentation.
-// 
-// If only executable code is distributed, then the accompanying
-// documentation must state that "this software is based in part on the
-// work of the Khronos Group."
-// 
-// THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+// ©2010-2018 The Khronos Group, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 
 // To use, download from http://www.billbaxter.com/projects/imdebug/
 // Put imdebug.dll in %SYSTEMROOT% (usually C:\WINDOWS), imdebug.h in
-// ../../include, imdebug.lib in ../../build/vc9 & add ..\imdebug.lib
-// to the libraries list in the project properties.
+// ../../include, imdebug.lib in ../../build/msvs/<platform>/vs<ver> &
+// add ..\imdebug.lib to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
 #include "stdafx.h"
@@ -125,20 +112,20 @@ static void dumpImage(_TCHAR* name, int width, int height, int components,
                       unsigned char* srcImage);
 #endif
 
-/** @page toktx
+/** @page toktx toktx
 @~English
 
-create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
+Create a KTX file from netpbm format files.
  
 @section synopsis SYNOPSIS
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
 
 @section description DESCRIPTION
     @b toktx creates Khronos format texture files (KTX) from a set of Netpbm
-    format images. Currently it only supports creating KTX files holding 2D and
-    cube map textures. It writes the destination ktx file to @e outfile,
-    appending ".ktx" if necessary. If @e outfile is '-' the output will be
-    written to stdout.
+    format  (.pam, .pgm, .ppm) images. Currently it only supports creating KTX
+    files holding 2D and cube map textures. It writes the destination ktx file
+    to @e outfile, appending ".ktx" if necessary. If @e outfile is '-' the
+    output will be written to stdout.
  
     @b toktx reads each named @e infile which must be in .pam, .ppm or .pgm
     format. Other formats can be readily converted to these formats using
@@ -173,13 +160,16 @@ create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
         BEHAVIOUR. netpbm files have an upper left origin so this option
         does not flip the input files. When this option is in effect,
         toktx writes a KTXorientation value of S=r,T=d into the output file
-        to inform loaders of the logical orientation.</dd>
+        to inform loaders of the logical orientation. If an OpenGL {,ES}
+        loader ignores the orientation value, the image will appear upside
+        down.</dd>
     <dt>--lower_left_maps_to_s0t0</dt>
     <dd>Map the logical lower left corner of the image to s0,t0.
-        This causes the input netpbm files to be flipped vertically to
-        OpenGL's lower-left origin. When this option is in effect, toktx
+        This causes the input netpbm images to be flipped vertically to a
+        lower-left origin. When this option is in effect, toktx
         writes a KTXorientation value of S=r,T=u into the output file
-        to inform loaders of the logical orientation.</dd>
+        to inform loaders of the logical orientation. If a Vulkan loader
+        ignores the orientation value, the image will appear upside down.</dd>
     <dt>--help</dt>
     <dd>Print this usage message and exit.</dd>
     <dt>--version</dt>
@@ -201,7 +191,7 @@ create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
         @b --alpha.</dd>
     </dl>
 
-    Options can also be set in the environment variable TOKTX_OPTIONS.    
+    Options can also be set in the environment variable TOKTX_OPTIONS.
     TOKTX_OPTIONS is parsed first. If conflicting options appear in
     TOKTX_OPTIONS or the command line, the last one seen wins. However if both
     @b --automipmap and @b --mipmap are seen, it is always flagged as an error.
@@ -214,10 +204,18 @@ create a KTX file from netpbm  (.pam, .pgm, .ppm) format files.
 
 @section history HISTORY
 
-@version 1.1
-$Date$
+@version 1.2:
+Fri Oct 13 18:15:05 2017 +0900
+ - Remove --sized; always create sized format.
+ - Write metadata by default.
+ - Bug fixes.
 
-@author Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+@version 1.1:
+Sun Dec 25 07:02:41 2016 -0200
+ - Moved --alpha and --luminance to legacy.
+
+@section author AUTHOR
+    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
 */
 
 static void
@@ -268,14 +266,17 @@ usage(_TCHAR* appName)
         "               Although opposite to the OpenGL convention, this is the DEFAULT\n"
         "               BEHAVIOUR. netpbm files have an upper left origin so this option\n"
         "               does not flip the input files. When this option is in effect,\n"
-        "               toktx writes a KTXorientation value of S=r,T=d into the output\n"
-        "               file to inform loaders of the logical orientation.\n"
+        "               toktx writes a KTXorientation value of S=r,T=d into the output file\n"
+        "               to inform loaders of the logical orientation. If an OpenGL {,ES}\n"
+        "               loader ignores the orientation value, the image will appear upside\n"
+        "               down.\n"
         "  --lower_left_maps_to_s0t0\n"
         "               Map the logical lower left corner of the image to s0,t0.\n"
-        "               This causes the input netpbm files to be flipped vertically to\n"
-        "               OpenGL's lower-left origin. When this option is in effect, toktx\n"
+        "               This causes the input netpbm images to be flipped vertically to a\n"
+        "               lower-left origin. When this option is in effect, toktx\n"
         "               writes a KTXorientation value of S=r,T=u into the output file\n"
-        "               to inform loaders of the logical orientation.\n"
+        "               to inform loaders of the logical orientation. If a Vulkan loader\n"
+        "               ignores the orientation value, the image will appear upside down.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
         "\n"
@@ -292,7 +293,7 @@ usage(_TCHAR* appName)
 static void
 version(_TCHAR* appName)
 {
-    fprintf(stderr, "%s version 1.1\n", appName);
+    fprintf(stderr, "%s version 1.2\n", appName);
 }
 
 
@@ -314,7 +315,7 @@ int _tmain(int argc, _TCHAR* argv[])
       createInfo.numFaces = 6;
     else
       createInfo.numFaces = 1;
-  
+
     // TO DO: handle array textures
     createInfo.numLayers = 1;
     createInfo.isArray = KTX_FALSE;
@@ -364,19 +365,19 @@ int _tmain(int argc, _TCHAR* argv[])
                       case 1:
                         createInfo.glInternalformat = componentSize == 1 ? GL_R8 : GL_R16;
                         break;
-                      
+
                       case 2:
                         createInfo.glInternalformat = componentSize == 1 ? GL_RG8 : GL_RG16;
                         break;
-                      
+
                       case 3:
                         createInfo.glInternalformat = componentSize == 1 ? GL_RGB8 : GL_RGB16;
                         break;
-                      
+
                       case 4:
                         createInfo.glInternalformat = componentSize == 1 ? GL_RGBA8 : GL_RGBA16;
                         break;
-                      
+
                       default:
                         /* If we get here there's a bug in readPAM */
                         assert(0);

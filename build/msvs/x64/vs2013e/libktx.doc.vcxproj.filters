@@ -7,6 +7,12 @@
     <Filter Include="_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
@@ -183,6 +189,9 @@
     </None>
     <None Include="..\..\..\..\runDoxygen">
       <Filter>_excluded_files</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\mainpage.md">
+      <Filter>lib\_excluded_files</Filter>
     </None>
     <None Include="..\..\..\..\LICENSE.md">
       <Filter>_excluded_files</Filter>

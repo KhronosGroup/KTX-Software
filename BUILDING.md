@@ -356,10 +356,12 @@ If using the GitHub for Windows shell (*Git Shell*) copy this to
 
 ### Doxygen
 
-You need this if you want to generate the _libktx_ documentation. You can download
-binaries and also find instructions for building it from source at
-[Doxygen downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make sure
-the directory containing the `doxygen` executable is in your `$PATH`.
+You need this if you want to generate the _libktx_ and _ktxtools_
+documentation. You need a minimum of version 1.8.14 to generate
+the documentation correctly. You can download binaries and
+also find instructions for building it from source at [Doxygen
+downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
+sure the directory containing the `doxygen` executable is in your `$PATH`.
 
 
 Generating Projects

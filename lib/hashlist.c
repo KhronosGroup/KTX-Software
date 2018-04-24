@@ -59,11 +59,7 @@ typedef struct ktxKVListEntry {
 	void* value;			/*!< Pointer to the value */
 	UT_hash_handle hh;		/*!< handle used by UT hash */
 } ktxKVListEntry;
-/**
- * @internal
- * @typedef ktxKVListEntry
- * @brief type of a hash list entry.
- */
+
 
 /**
  * @memberof ktxHashList @public

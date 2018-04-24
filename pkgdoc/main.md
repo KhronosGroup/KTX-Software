@@ -22,7 +22,11 @@ See @ref history for the list of changes.
 @author Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>
 @author Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
 
-@pversion 3.0.0
+@version 3.0.0
 
 $Date: Mon Mar 6 16:47:00 2017 +0900 $
+
+@subpage index
+
+@page toktx
 

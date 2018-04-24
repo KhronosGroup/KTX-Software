@@ -43,6 +43,12 @@
 #include "memstream.h"
 
 /**
+ * @defgroup writer Writer
+ * @brief Write KTX-formatted data.
+ * @{
+ */
+
+/**
  * @internal
  * @memberof ktxTexture @private
  * @~English
@@ -467,4 +473,6 @@ ktxTexture_WriteToMemory(ktxTexture* This,
     return KTX_SUCCESS;
 
 }
+
+/** @} */
 

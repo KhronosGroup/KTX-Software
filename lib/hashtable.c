@@ -44,6 +44,7 @@ ktxHashTable_Create(void) {
 }
 
 /**
+ * @memberof KTX_hash_table
  * @~English
  * @deprecated Use ktxHashList_Serialize().
  * @brief Serializes the hash table to a block of memory suitable for

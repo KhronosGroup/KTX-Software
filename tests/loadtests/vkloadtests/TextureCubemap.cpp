@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /*
  * Copyright (c) 2017, Mark Callow, www.edgewise-consulting.com.
@@ -61,9 +61,9 @@
 // Vertex layout for this example
 std::vector<vkMeshLoader::VertexLayout> vertexLayout =
 {
-	vkMeshLoader::VERTEX_LAYOUT_POSITION,
-	vkMeshLoader::VERTEX_LAYOUT_NORMAL,
-	vkMeshLoader::VERTEX_LAYOUT_UV
+    vkMeshLoader::VERTEX_LAYOUT_POSITION,
+    vkMeshLoader::VERTEX_LAYOUT_NORMAL,
+    vkMeshLoader::VERTEX_LAYOUT_UV
 };
 
 VulkanLoadTestSample*
@@ -76,7 +76,7 @@ TextureCubemap::create(VulkanContext& vkctx,
 
 TextureCubemap::TextureCubemap(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
-				 const char* const szArgs, const std::string sBasePath)
+                 const char* const szArgs, const std::string sBasePath)
         : VulkanLoadTestSample(vkctx, width, height, szArgs, sBasePath)
 {
     zoom = -4.0f;
@@ -118,17 +118,17 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     ktxVulkanDeviceInfo_Destruct(&vdi);
 
     try {
-    	prepare();
+        prepare();
     } catch (std::exception& e) {
-		(void)e; // To quiet unused variable warnings from some compilers.
-		cleanup();
-    	throw;
+        (void)e; // To quiet unused variable warnings from some compilers.
+        cleanup();
+        throw;
     }
 }
 
 TextureCubemap::~TextureCubemap()
 {
-	cleanup();
+    cleanup();
 }
 
 void TextureCubemap::resize(uint32_t width, uint32_t height)
@@ -177,34 +177,34 @@ TextureCubemap::processArgs(std::string sArgs)
 void
 TextureCubemap::cleanup()
 {
-	// Clean up used Vulkan resources
+    // Clean up used Vulkan resources
 
-	// Clean up texture resources
+    // Clean up texture resources
     if (sampler)
         vkctx.device.destroySampler(sampler);
     if (imageView)
         vkctx.device.destroyImageView(imageView);
     ktxVulkanTexture_Destruct(&cubeMap, vkctx.device, nullptr);
 
-	if (pipelines.reflect)
-		vkctx.device.destroyPipeline(pipelines.reflect);
-	if (pipelines.skybox)
-		vkctx.device.destroyPipeline(pipelines.skybox);
-	if (pipelineLayout)
-		vkctx.device.destroyPipelineLayout(pipelineLayout);
-	if (descriptorSetLayout)
-		vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
+    if (pipelines.reflect)
+        vkctx.device.destroyPipeline(pipelines.reflect);
+    if (pipelines.skybox)
+        vkctx.device.destroyPipeline(pipelines.skybox);
+    if (pipelineLayout)
+        vkctx.device.destroyPipelineLayout(pipelineLayout);
+    if (descriptorSetLayout)
+        vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
 
-	vkctx.destroyDrawCommandBuffers();
+    vkctx.destroyDrawCommandBuffers();
 
-	for (size_t i = 0; i < meshes.objects.size(); i++)
-	{
-		vkMeshLoader::freeMeshBufferResources(vkctx.device, &meshes.objects[i]);
-	}
-	vkMeshLoader::freeMeshBufferResources(vkctx.device, &meshes.skybox);
+    for (size_t i = 0; i < meshes.objects.size(); i++)
+    {
+        vkMeshLoader::freeMeshBufferResources(vkctx.device, &meshes.objects[i]);
+    }
+    vkMeshLoader::freeMeshBufferResources(vkctx.device, &meshes.skybox);
 
-	uniformData.object.freeResources(vkctx.device);
-	uniformData.skybox.freeResources(vkctx.device);
+    uniformData.object.freeResources(vkctx.device);
+    uniformData.skybox.freeResources(vkctx.device);
 }
 
 void
@@ -228,10 +228,10 @@ TextureCubemap::buildCommandBuffers()
     clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassBeginInfo(vkctx.renderPass,
-    		nullptr,
-			{{0, 0}, {w_width, w_height}},
-			2,
-			clearValues);
+            nullptr,
+            {{0, 0}, {w_width, w_height}},
+            2,
+            clearValues);
 
     for (uint32_t i = 0; i < vkctx.drawCmdBuffers.size(); ++i)
     {
@@ -242,18 +242,18 @@ TextureCubemap::buildCommandBuffers()
                 &static_cast<const VkCommandBufferBeginInfo&>(cmdBufInfo)));
 
         vkCmdBeginRenderPass(vkctx.drawCmdBuffers[i],
-            	&static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
-				VK_SUBPASS_CONTENTS_INLINE);
+                &static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
+                VK_SUBPASS_CONTENTS_INLINE);
 
         vk::Viewport viewport(0, 0,
-        					  (float)w_width, (float)w_height,
-							  0.0f, 1.0f);
+                              (float)w_width, (float)w_height,
+                              0.0f, 1.0f);
         vkCmdSetViewport(vkctx.drawCmdBuffers[i], 0, 1,
-        		&static_cast<const VkViewport&>(viewport));
+                &static_cast<const VkViewport&>(viewport));
 
         vk::Rect2D scissor({0, 0}, {w_width, w_height});
         vkCmdSetScissor(vkctx.drawCmdBuffers[i], 0, 1,
-        		&static_cast<const VkRect2D&>(scissor));
+                &static_cast<const VkRect2D&>(scissor));
 
         VkDeviceSize offsets[1] = { 0 };
 
@@ -261,8 +261,8 @@ TextureCubemap::buildCommandBuffers()
         if (displaySkybox)
         {
             vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-            		pipelineLayout, 0, 1,
-					&static_cast<const VkDescriptorSet&>(descriptorSets.skybox), 0, NULL);
+                    pipelineLayout, 0, 1,
+                    &static_cast<const VkDescriptorSet&>(descriptorSets.skybox), 0, NULL);
             vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, 1, &meshes.skybox.vertices.buf, offsets);
             vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], meshes.skybox.indices.buf, 0, VK_INDEX_TYPE_UINT32);
             vkCmdBindPipeline(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.skybox);
@@ -271,8 +271,8 @@ TextureCubemap::buildCommandBuffers()
 
         // 3D object
         vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-        		pipelineLayout, 0, 1,
-				&static_cast<const VkDescriptorSet&>(descriptorSets.object), 0, NULL);
+                pipelineLayout, 0, 1,
+                &static_cast<const VkDescriptorSet&>(descriptorSets.object), 0, NULL);
         vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, 1, &meshes.objects[meshes.objectIndex].vertices.buf, offsets);
         vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], meshes.objects[meshes.objectIndex].indices.buf, 0, VK_INDEX_TYPE_UINT32);
         vkCmdBindPipeline(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.reflect);
@@ -330,7 +330,7 @@ TextureCubemap::setupVertexDescriptions()
     vertices.attributeDescriptions[2] =
         vk::VertexInputAttributeDescription(
             2,
-			VERTEX_BUFFER_BIND_ID,
+            VERTEX_BUFFER_BIND_ID,
             vk::Format::eR32G32Sfloat,
             sizeof(float) * 6);
 
@@ -349,7 +349,7 @@ TextureCubemap::setupDescriptorPool()
     // Example uses one ubo and one image sampler
     std::vector<vk::DescriptorPoolSize> poolSizes =
     {
-    	{vk::DescriptorType::eUniformBuffer, 2},
+        {vk::DescriptorType::eUniformBuffer, 2},
         {vk::DescriptorType::eCombinedImageSampler, 2}
     };
 
@@ -359,7 +359,7 @@ TextureCubemap::setupDescriptorPool()
                                         static_cast<uint32_t>(poolSizes.size()),
                                         poolSizes.data());
     vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
-    		                          &descriptorPool);
+                                      &descriptorPool);
 }
 
 void
@@ -368,14 +368,14 @@ TextureCubemap::setupDescriptorSetLayout()
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings =
     {
         // Binding 0 : Vertex shader uniform buffer
-    	{
+        {
             0,
             vk::DescriptorType::eUniformBuffer,
             1,
             vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
         },
         // Binding 1 : Fragment shader image sampler
-		{
+        {
             1,
             vk::DescriptorType::eCombinedImageSampler,
             1,
@@ -389,16 +389,16 @@ TextureCubemap::setupDescriptorSetLayout()
                               setLayoutBindings.data());
 
     vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
-    									   &descriptorSetLayout);
+                                           &descriptorSetLayout);
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo(
-    												{},
-													1,
-													&descriptorSetLayout);
+                                                    {},
+                                                    1,
+                                                    &descriptorSetLayout);
 
     vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
-    								  nullptr,
-									  &pipelineLayout);
+                                      nullptr,
+                                      &pipelineLayout);
 }
 
 void
@@ -406,36 +406,36 @@ TextureCubemap::setupDescriptorSets()
 {
     vk::DescriptorSetAllocateInfo allocInfo(
             descriptorPool,
-			1,
-			&descriptorSetLayout);
+            1,
+            &descriptorSetLayout);
 
     vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSets.object);
 
-	// Image descriptor for the cubemap texture
-	vk::DescriptorImageInfo cubeMapDescriptor(
-			sampler,
-			imageView,
-			vk::ImageLayout::eGeneral);
+    // Image descriptor for the cubemap texture
+    vk::DescriptorImageInfo cubeMapDescriptor(
+            sampler,
+            imageView,
+            vk::ImageLayout::eGeneral);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets =
     {
-		// Binding 0 : Vertex shader uniform buffer
-		vk::WriteDescriptorSet(
-				descriptorSets.object,
-				0,
-				0,
-				1,
-				vk::DescriptorType::eUniformBuffer,
-				nullptr,
-				&uniformData.object.descriptor),
-		// Binding 1 : Fragment shader cubemap sampler
-		vk::WriteDescriptorSet(
-				descriptorSets.object,
-				1,
-				0,
-				1,
-				vk::DescriptorType::eCombinedImageSampler,
-				&cubeMapDescriptor)
+        // Binding 0 : Vertex shader uniform buffer
+        vk::WriteDescriptorSet(
+                descriptorSets.object,
+                0,
+                0,
+                1,
+                vk::DescriptorType::eUniformBuffer,
+                nullptr,
+                &uniformData.object.descriptor),
+        // Binding 1 : Fragment shader cubemap sampler
+        vk::WriteDescriptorSet(
+                descriptorSets.object,
+                1,
+                0,
+                1,
+                vk::DescriptorType::eCombinedImageSampler,
+                &cubeMapDescriptor)
     };
 
     vkctx.device.updateDescriptorSets(
@@ -449,23 +449,23 @@ TextureCubemap::setupDescriptorSets()
 
     writeDescriptorSets =
     {
-		// Binding 0 : Vertex shader uniform buffer
-		vk::WriteDescriptorSet(
-				descriptorSets.skybox,
-				0,
-				0,
-				1,
-				vk::DescriptorType::eUniformBuffer,
-				nullptr,
-				&uniformData.skybox.descriptor),
-		// Binding 1 : Fragment shader texture sampler
-		vk::WriteDescriptorSet(
-				descriptorSets.skybox,
-				1,
-				0,
-				1,
-				vk::DescriptorType::eCombinedImageSampler,
-				&cubeMapDescriptor)
+        // Binding 0 : Vertex shader uniform buffer
+        vk::WriteDescriptorSet(
+                descriptorSets.skybox,
+                0,
+                0,
+                1,
+                vk::DescriptorType::eUniformBuffer,
+                nullptr,
+                &uniformData.skybox.descriptor),
+        // Binding 1 : Fragment shader texture sampler
+        vk::WriteDescriptorSet(
+                descriptorSets.skybox,
+                1,
+                0,
+                1,
+                vk::DescriptorType::eCombinedImageSampler,
+                &cubeMapDescriptor)
     };
 
     vkctx.device.updateDescriptorSets(
@@ -480,7 +480,7 @@ TextureCubemap::preparePipelines()
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
-			vk::PrimitiveTopology::eTriangleList);
+            vk::PrimitiveTopology::eTriangleList);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
     // Must be false because we haven't enabled the depthClamp device feature.
@@ -495,9 +495,9 @@ TextureCubemap::preparePipelines()
     blendAttachmentState.blendEnable = VK_FALSE;
     //blendAttachmentState.colorWriteMask = 0xf;
     blendAttachmentState.colorWriteMask = vk::ColorComponentFlagBits::eR
-    									  | vk::ColorComponentFlagBits::eG
-										  | vk::ColorComponentFlagBits::eB
-										  | vk::ColorComponentFlagBits::eA;
+                                          | vk::ColorComponentFlagBits::eG
+                                          | vk::ColorComponentFlagBits::eB
+                                          | vk::ColorComponentFlagBits::eA;
 
     vk::PipelineColorBlendStateCreateInfo colorBlendState;
     colorBlendState.attachmentCount = 1;
@@ -516,11 +516,11 @@ TextureCubemap::preparePipelines()
     multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
 
     std::vector<vk::DynamicState> dynamicStateEnables = {
-    	vk::DynamicState::eViewport,
-		vk::DynamicState::eScissor
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor
     };
     vk::PipelineDynamicStateCreateInfo dynamicState(
-    		{},
+            {},
             static_cast<uint32_t>(dynamicStateEnables.size()),
             dynamicStateEnables.data());
 
@@ -528,9 +528,9 @@ TextureCubemap::preparePipelines()
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
     std::string filepath = getAssetPath() + "shaders/";
     shaderStages[0] = loadShader(filepath + "skybox.vert.spv",
-    							vk::ShaderStageFlagBits::eVertex);
+                                vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = loadShader(filepath + "skybox.frag.spv",
-    							vk::ShaderStageFlagBits::eFragment);
+                                vk::ShaderStageFlagBits::eFragment);
 
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
     pipelineCreateInfo.layout = pipelineLayout;
@@ -547,14 +547,14 @@ TextureCubemap::preparePipelines()
     pipelineCreateInfo.pStages = shaderStages.data();
 
     vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-    		                             &pipelineCreateInfo, nullptr,
-										 &pipelines.skybox);
+                                         &pipelineCreateInfo, nullptr,
+                                         &pipelines.skybox);
 
     // Cube map reflect pipeline
     shaderStages[0] = loadShader(filepath + "reflect.vert.spv",
-    							vk::ShaderStageFlagBits::eVertex);
+                                vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = loadShader(filepath + "reflect.frag.spv",
-    							vk::ShaderStageFlagBits::eFragment);
+                                vk::ShaderStageFlagBits::eFragment);
 
     // Enable depth test and write
     depthStencilState.depthWriteEnable = VK_TRUE;
@@ -563,8 +563,8 @@ TextureCubemap::preparePipelines()
     rasterizationState.cullMode = vk::CullModeFlagBits::eFront;
 
     vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-    									 &pipelineCreateInfo, nullptr,
-										 &pipelines.reflect);
+                                         &pipelineCreateInfo, nullptr,
+                                         &pipelines.reflect);
 }
 
 // Prepare and initialize uniform buffer containing shader uniforms
@@ -573,8 +573,8 @@ TextureCubemap::prepareUniformBuffers()
 {
     // 3D objact
     vkctx.createBuffer(
-    	vk::BufferUsageFlagBits::eUniformBuffer,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
         sizeof(ubo),
         nullptr,
         &uniformData.object.buffer,
@@ -584,7 +584,7 @@ TextureCubemap::prepareUniformBuffers()
     // Skybox
     vkctx.createBuffer(
         vk::BufferUsageFlagBits::eUniformBuffer,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
         sizeof(ubo),
         nullptr,
         &uniformData.skybox.buffer,
@@ -645,11 +645,11 @@ TextureCubemap::prepareSamplerAndView()
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
     samplerInfo.maxLod = (float)cubeMap.levelCount;
     if (vkctx.gpuFeatures.samplerAnisotropy == VK_TRUE) {
-		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = 8;
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = 8;
     } else {
-    	// vulkan.hpp needs fixing
-    	samplerInfo.maxAnisotropy = 1.0;
+        // vulkan.hpp needs fixing
+        samplerInfo.maxAnisotropy = 1.0;
     }
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
     sampler = vkctx.device.createSampler(samplerInfo);

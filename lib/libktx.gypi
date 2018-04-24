@@ -134,7 +134,7 @@
           'type': 'none',
           'variables': {
             'variables': { # level 2
-              'output_dir': '../build/doc/libktx',
+              'output_dir': '../build/docs/libktx',
             },
             'output_dir': '<(output_dir)',
             'doxyConfig': 'libktx.doxy',
@@ -147,6 +147,7 @@
               'inputs': [
                 '../<(doxyConfig)',
                 '../runDoxygen',
+                '../lib/mainpage.md',
                 '../LICENSE.md',
                 '../TODO.md',
                 '<@(sources)',

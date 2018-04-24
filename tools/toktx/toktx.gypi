@@ -94,7 +94,7 @@
           'type': 'none',
           'variables': { # level 1
             'variables': { # level 2
-              'output_dir': '../../build/doc/ktxtools',
+              'output_dir': '../../build/docs/ktxtools',
             },
             'output_dir': '<(output_dir)',
             'doxyConfig': 'ktxtools.doxy',

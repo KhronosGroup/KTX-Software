@@ -148,6 +148,7 @@ set(TOOLSET "target")
 list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../libktx.doxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/mainpage.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
@@ -178,11 +179,11 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c")
 list(APPEND libktx_doc__buildDoc__output
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/html"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/libktx/man")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/libktx/html"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/libktx/man")
 add_custom_command(OUTPUT ${libktx_doc__buildDoc__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc/libktx
-  COMMAND ./runDoxygen -o build/doc/libktx -t build/doc/libktx/.gentimestamp libktx.doxy
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs/libktx
+  COMMAND ./runDoxygen -o build/docs/libktx -t build/docs/libktx/.gentimestamp libktx.doxy
   DEPENDS ${libktx_doc__buildDoc__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Generating documentation with Doxygen
@@ -349,13 +350,13 @@ list(APPEND ktxtools_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp")
 list(APPEND ktxtools_doc__buildDoc__output
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/ktxtools/html"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/ktxtools/man/man1/toktx.1"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/doc/ktxtools/.gentimestamp")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/ktxtools/html"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/ktxtools/man/man1/toktx.1"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/ktxtools/.gentimestamp")
 add_custom_command(OUTPUT ${ktxtools_doc__buildDoc__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc/ktxtools/man/man1
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/doc/ktxtools
-  COMMAND ./runDoxygen -o build/doc/ktxtools -t build/doc/ktxtools/.gentimestamp ktxtools.doxy
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs/ktxtools
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs/ktxtools/man/man1
+  COMMAND ./runDoxygen -o build/docs/ktxtools -t build/docs/ktxtools/.gentimestamp ktxtools.doxy
   DEPENDS ${ktxtools_doc__buildDoc__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
   COMMENT Generating tools documentation with Doxygen

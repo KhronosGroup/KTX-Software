@@ -4,20 +4,20 @@ TOOLSET := target
 TARGET := ktxtools.doc
 ### Rules for action "buildDoc":
 quiet_cmd_ktxtools_gyp_ktxtools_doc_target_buildDoc = ACTION Generating tools documentation with Doxygen $@
-cmd_ktxtools_gyp_ktxtools_doc_target_buildDoc = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p build/doc/ktxtools/man/man1 build/doc/ktxtools; ./runDoxygen -o build/doc/ktxtools -t build/doc/ktxtools/.gentimestamp ktxtools.doxy
+cmd_ktxtools_gyp_ktxtools_doc_target_buildDoc = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p build/docs/ktxtools build/docs/ktxtools/man/man1; ./runDoxygen -o build/docs/ktxtools -t build/docs/ktxtools/.gentimestamp ktxtools.doxy
 
-build/doc/ktxtools/html: obj := $(abs_obj)
-build/doc/ktxtools/html: builddir := $(abs_builddir)
-build/doc/ktxtools/html: TOOLSET := $(TOOLSET)
-build/doc/ktxtools/html build/doc/ktxtools/man/man1/toktx.1 build/doc/ktxtools/.gentimestamp: ktxtools_gyp_ktxtools_doc_target_buildDoc.intermediate
+build/docs/ktxtools/html: obj := $(abs_obj)
+build/docs/ktxtools/html: builddir := $(abs_builddir)
+build/docs/ktxtools/html: TOOLSET := $(TOOLSET)
+build/docs/ktxtools/html build/docs/ktxtools/man/man1/toktx.1 build/docs/ktxtools/.gentimestamp: ktxtools_gyp_ktxtools_doc_target_buildDoc.intermediate
 	@:
 .INTERMEDIATE: ktxtools_gyp_ktxtools_doc_target_buildDoc.intermediate
 ktxtools_gyp_ktxtools_doc_target_buildDoc.intermediate: $(srcdir)/ktxtools.doxy $(srcdir)/runDoxygen $(srcdir)/tools/toktx/toktx.cpp FORCE_DO_CMD
 	$(call do_cmd,touch)
 	$(call do_cmd,ktxtools_gyp_ktxtools_doc_target_buildDoc)
 
-all_deps += build/doc/ktxtools/html build/doc/ktxtools/man/man1/toktx.1 build/doc/ktxtools/.gentimestamp
-action_ktxtools_gyp_ktxtools_doc_target_buildDoc_outputs := build/doc/ktxtools/html build/doc/ktxtools/man/man1/toktx.1 build/doc/ktxtools/.gentimestamp
+all_deps += build/docs/ktxtools/html build/docs/ktxtools/man/man1/toktx.1 build/docs/ktxtools/.gentimestamp
+action_ktxtools_gyp_ktxtools_doc_target_buildDoc_outputs := build/docs/ktxtools/html build/docs/ktxtools/man/man1/toktx.1 build/docs/ktxtools/.gentimestamp
 
 
 ### Rules for final target.
