@@ -96,7 +96,7 @@ VulkanContext::flushCommandBuffer(vk::CommandBuffer& cmdBuffer,
     queue.waitIdle();
 
     if (free) {
-    	device.freeCommandBuffers(commandPool, 1, &cmdBuffer);
+        device.freeCommandBuffers(commandPool, 1, &cmdBuffer);
     }
 }
 
@@ -142,21 +142,21 @@ VulkanContext::createPresentCommandBuffers()
 void
 VulkanContext::destroyDrawCommandBuffers()
 {
-	if (drawCmdBuffers.size() > 0)
-		vkFreeCommandBuffers(device, commandPool,
-						static_cast<uint32_t>(drawCmdBuffers.size()),
-						drawCmdBuffers.data());
+    if (drawCmdBuffers.size() > 0)
+        vkFreeCommandBuffers(device, commandPool,
+                        static_cast<uint32_t>(drawCmdBuffers.size()),
+                        drawCmdBuffers.data());
 }
 
 void
 VulkanContext::destroyPresentCommandBuffers()
 {
     vkFreeCommandBuffers(device, commandPool,
-    				static_cast<uint32_t>(drawCmdBuffers.size()),
-					prePresentCmdBuffers.data());
+                    static_cast<uint32_t>(drawCmdBuffers.size()),
+                    prePresentCmdBuffers.data());
     vkFreeCommandBuffers(device, commandPool,
-    				static_cast<uint32_t>(drawCmdBuffers.size()),
-					postPresentCmdBuffers.data());
+                    static_cast<uint32_t>(drawCmdBuffers.size()),
+                    postPresentCmdBuffers.data());
 }
 
 bool
@@ -174,11 +174,11 @@ VulkanContext::checkDrawCommandBuffers()
 
 bool
 VulkanContext::createBuffer(vk::BufferUsageFlags usageFlags,
-							vk::MemoryPropertyFlags memoryPropertyFlags,
-							vk::DeviceSize size,
-							void * data,
-							vk::Buffer* buffer,
-							vk::DeviceMemory* memory)
+                            vk::MemoryPropertyFlags memoryPropertyFlags,
+                            vk::DeviceSize size,
+                            void * data,
+                            vk::Buffer* buffer,
+                            vk::DeviceMemory* memory)
 {
     vk::MemoryRequirements memReqs;
     vk::MemoryAllocateInfo memAlloc(0, 0);
@@ -208,22 +208,22 @@ VulkanContext::createBuffer(vk::BufferUsageFlags usageFlags,
 
 bool
 VulkanContext::createBuffer(vk::BufferUsageFlags usage,
-							vk::DeviceSize size,
-							void* data,
-							vk::Buffer* buffer,
-							vk::DeviceMemory* memory)
+                            vk::DeviceSize size,
+                            void* data,
+                            vk::Buffer* buffer,
+                            vk::DeviceMemory* memory)
 {
     return createBuffer(usage, vk::MemoryPropertyFlagBits::eHostVisible,
-    					size, data, buffer, memory);
+                        size, data, buffer, memory);
 }
 
 bool
 VulkanContext::createBuffer(vk::BufferUsageFlags usage,
-							vk::DeviceSize size,
-							void* data,
-							vk::Buffer* buffer,
-							vk::DeviceMemory* memory,
-							vk::DescriptorBufferInfo* descriptor)
+                            vk::DeviceSize size,
+                            void* data,
+                            vk::Buffer* buffer,
+                            vk::DeviceMemory* memory,
+                            vk::DescriptorBufferInfo* descriptor)
 {
     bool res = createBuffer(usage, size, data, buffer, memory);
     if (res)
@@ -241,12 +241,12 @@ VulkanContext::createBuffer(vk::BufferUsageFlags usage,
 
 bool
 VulkanContext::createBuffer(vk::BufferUsageFlags usage,
-							vk::MemoryPropertyFlags memoryPropertyFlags,
-							vk::DeviceSize size,
-							void* data,
-							vk::Buffer* buffer,
-							vk::DeviceMemory* memory,
-							vk::DescriptorBufferInfo* descriptor)
+                            vk::MemoryPropertyFlags memoryPropertyFlags,
+                            vk::DeviceSize size,
+                            void* data,
+                            vk::Buffer* buffer,
+                            vk::DeviceMemory* memory,
+                            vk::DescriptorBufferInfo* descriptor)
 {
     bool res = createBuffer(usage, memoryPropertyFlags, size, data, buffer, memory);
     if (res)
@@ -264,7 +264,7 @@ VulkanContext::createBuffer(vk::BufferUsageFlags usage,
 
 bool
 VulkanContext::getMemoryType(uint32_t typeBits,
-							 vk::MemoryPropertyFlags requirementsMask,
+                             vk::MemoryPropertyFlags requirementsMask,
                              uint32_t *typeIndex) const
 {
     // Search memtypes to find first index with desired properties
@@ -285,7 +285,7 @@ VulkanContext::getMemoryType(uint32_t typeBits,
 
 uint32_t
 VulkanContext::getMemoryType(uint32_t typeBits,
-							 vk::MemoryPropertyFlags requirementsMask) const
+                             vk::MemoryPropertyFlags requirementsMask) const
 {
     // Search memtypes to find first index with desired properties
     for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
@@ -305,8 +305,8 @@ VulkanContext::getMemoryType(uint32_t typeBits,
 
 vk::PipelineShaderStageCreateInfo
 VulkanContext::loadShader(std::string filename,
-						  vk::ShaderStageFlagBits stage,
-						  const char* const modname)
+                          vk::ShaderStageFlagBits stage,
+                          const char* const modname)
 {
     vk::PipelineShaderStageCreateInfo shaderStage({}, stage);
     shaderStage.module = loadShader(filename);
@@ -317,17 +317,17 @@ VulkanContext::loadShader(std::string filename,
 vk::ShaderModule
 VulkanContext::loadShader(std::string filename)
 {
-	size_t codeSize;
-	uint32_t* shaderCode;
+    size_t codeSize;
+    uint32_t* shaderCode;
 
-	shaderCode = readSpv(filename.c_str(), &codeSize);
+    shaderCode = readSpv(filename.c_str(), &codeSize);
 
-	vk::ShaderModule shaderModule;
-	vk::ShaderModuleCreateInfo moduleCreateInfo({}, codeSize, shaderCode);
+    vk::ShaderModule shaderModule;
+    vk::ShaderModuleCreateInfo moduleCreateInfo({}, codeSize, shaderCode);
 
-	device.createShaderModule(&moduleCreateInfo, NULL, &shaderModule);
+    device.createShaderModule(&moduleCreateInfo, NULL, &shaderModule);
 
-	delete[] shaderCode;
+    delete[] shaderCode;
 
     assert(shaderModule);
     return shaderModule;

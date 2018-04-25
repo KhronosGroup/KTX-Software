@@ -52,18 +52,18 @@
 
 class VulkanAppSDL : public AppBaseSDL {
   public:
-	VulkanAppSDL(const char* const name,
+    VulkanAppSDL(const char* const name,
              int width, int height,
              const uint32_t version,
              bool enableTextOverlay)
             : w_width(width), w_height(height), vkVersion(version),
               enableTextOverlay(enableTextOverlay), AppBaseSDL(name)
-	{
-	    // The overridden new below will zero the storage. Thus
-	    // we avoid a long list of initializers.
-	    appTitle = name;
-	};
-	virtual ~VulkanAppSDL();
+    {
+        // The overridden new below will zero the storage. Thus
+        // we avoid a long list of initializers.
+        appTitle = name;
+    };
+    virtual ~VulkanAppSDL();
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
@@ -115,7 +115,7 @@ class VulkanAppSDL : public AppBaseSDL {
                                  stencilRequirement requiredStencil,
                                  depthRequirement requiredDepth,
                                  vk::Format& pFormat,
-								 vk::ImageAspectFlags& pAspectMask);
+                                 vk::ImageAspectFlags& pAspectMask);
 
     // Sets text on window title bar.
     void setWindowTitle();
@@ -130,8 +130,8 @@ class VulkanAppSDL : public AppBaseSDL {
               uint64_t srcObject, size_t location, int32_t msgCode,
               const char *pLayerPrefix, const char *pMsg);
     std::string& wrapText(std::string& source, size_t width = 70,
-    		              const std::string& whitespace = " \t\r");
-	uint32_t showDebugReport(uint32_t mbFlags, const std::string title,
+                          const std::string& whitespace = " \t\r");
+    uint32_t showDebugReport(uint32_t mbFlags, const std::string title,
                              std::string message, bool enableAbort);
 
     static bool checkLayers(uint32_t nameCount, const char **names,
@@ -145,11 +145,11 @@ class VulkanAppSDL : public AppBaseSDL {
     // Set true if want presents v-sync'ed.
     bool enableVSync = false;
 
-	uint32_t w_width;
-	uint32_t w_height;
+    uint32_t w_width;
+    uint32_t w_height;
 
-	bool subOptimalPresentWarned;
-	bool validate;
+    bool subOptimalPresentWarned;
+    bool validate;
 
     std::vector<const char*> extensionNames;
     std::vector<const char*> deviceValidationLayers;

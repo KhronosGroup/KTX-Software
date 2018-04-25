@@ -42,9 +42,9 @@ class Texture : public VulkanLoadTestSample
   public:
     Texture(VulkanContext& vkctx,
             uint32_t width, uint32_t height,
-			const char* const szArgs,
+            const char* const szArgs,
             const std::string sBasePath);
-	~Texture();
+    ~Texture();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
@@ -95,29 +95,29 @@ class Texture : public VulkanLoadTestSample
     int sign_s = 1;
     int sign_t = 1;
 
-	void cleanup();
-	void buildCommandBuffers();
-	void generateQuad();
-	void setupVertexDescriptions();
-	void setupDescriptorPool();
-	void setupDescriptorSetLayout();
-	void setupDescriptorSet();
-	void preparePipelines();
-	// Prepare and initialize uniform buffer containing shader uniforms
-	void prepareUniformBuffers();
-	void updateUniformBuffers();
+    void cleanup();
+    void buildCommandBuffers();
+    void generateQuad();
+    void setupVertexDescriptions();
+    void setupDescriptorPool();
+    void setupDescriptorSetLayout();
+    void setupDescriptorSet();
+    void preparePipelines();
+    // Prepare and initialize uniform buffer containing shader uniforms
+    void prepareUniformBuffers();
+    void updateUniformBuffers();
     void prepareSamplerAndView();
-	void prepare();
+    void prepare();
     
     void processArgs(std::string sArgs);
 
     virtual void keyPressed(uint32_t keyCode);
-	virtual void viewChanged()
-	{
-		updateUniformBuffers();
-	}
+    virtual void viewChanged()
+    {
+        updateUniformBuffers();
+    }
 
-	void changeLodBias(float delta);
+    void changeLodBias(float delta);
 };
 
 

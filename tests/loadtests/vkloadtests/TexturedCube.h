@@ -45,8 +45,8 @@ class TexturedCube : public VulkanLoadTestSample {
   public:
     TexturedCube(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
-				 const char* const szArgs,
-				 const std::string sBasePath);
+                 const char* const szArgs,
+                 const std::string sBasePath);
     virtual ~TexturedCube();
 
     virtual void resize(uint32_t width, uint32_t height);

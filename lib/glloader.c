@@ -239,81 +239,81 @@ hasExtension(const char* extension)
 static void
 discoverContextCapabilities(void)
 {
-	GLint majorVersion = 1;
-	GLint minorVersion = 0;
+    GLint majorVersion = 1;
+    GLint minorVersion = 0;
 
     // Done here so things will work when GLEW, or equivalent, is being used
     // and GL function names are defined as pointers. Initialization at
     // declaration would happen before these pointers have been initialized.
     INITIALIZE_GL_FUNCPTRS
 
-	if (strstr(glGetString(GL_VERSION), "GL ES") != NULL)
-		contextProfile = _CONTEXT_ES_PROFILE_BIT;
-	// MAJOR & MINOR only introduced in GL {,ES} 3.0
-	glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
-	glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
-	if (glGetError() != GL_NO_ERROR) {
-		// < v3.0; resort to the old-fashioned way.
-		if (contextProfile & _CONTEXT_ES_PROFILE_BIT)
-			sscanf(glGetString(GL_VERSION), "OpenGL ES %d.%d ",
+    if (strstr(glGetString(GL_VERSION), "GL ES") != NULL)
+        contextProfile = _CONTEXT_ES_PROFILE_BIT;
+    // MAJOR & MINOR only introduced in GL {,ES} 3.0
+    glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+    glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+    if (glGetError() != GL_NO_ERROR) {
+        // < v3.0; resort to the old-fashioned way.
+        if (contextProfile & _CONTEXT_ES_PROFILE_BIT)
+            sscanf(glGetString(GL_VERSION), "OpenGL ES %d.%d ",
                    &majorVersion, &minorVersion);
-		else
-			sscanf(glGetString(GL_VERSION), "OpenGL %d.%d ",
+        else
+            sscanf(glGetString(GL_VERSION), "OpenGL %d.%d ",
                    &majorVersion, &minorVersion);
-	}
-	if (contextProfile & _CONTEXT_ES_PROFILE_BIT) {
-		if (majorVersion < 3) {
-			supportsSwizzle = GL_FALSE;
-			sizedFormats = _NO_SIZED_FORMATS;
-			R16Formats = _KTX_NO_R16_FORMATS;
-			supportsSRGB = GL_FALSE;
-		} else {
-			sizedFormats = _NON_LEGACY_FORMATS;
+    }
+    if (contextProfile & _CONTEXT_ES_PROFILE_BIT) {
+        if (majorVersion < 3) {
+            supportsSwizzle = GL_FALSE;
+            sizedFormats = _NO_SIZED_FORMATS;
+            R16Formats = _KTX_NO_R16_FORMATS;
+            supportsSRGB = GL_FALSE;
+        } else {
+            sizedFormats = _NON_LEGACY_FORMATS;
             if (hasExtension("GL_EXT_texture_cube_map_array")) {
                 supportsCubeMapArrays = GL_TRUE;
             }
-		}
-		if (hasExtension("GL_OES_required_internalformat")) {
-			sizedFormats |= _ALL_SIZED_FORMATS;
-		}
-		// There are no OES extensions for sRGB textures or R16 formats.
-	} else {
-		// PROFILE_MASK was introduced in OpenGL 3.2.
-		// Profiles: CONTEXT_CORE_PROFILE_BIT 0x1,
+        }
+        if (hasExtension("GL_OES_required_internalformat")) {
+            sizedFormats |= _ALL_SIZED_FORMATS;
+        }
+        // There are no OES extensions for sRGB textures or R16 formats.
+    } else {
+        // PROFILE_MASK was introduced in OpenGL 3.2.
+        // Profiles: CONTEXT_CORE_PROFILE_BIT 0x1,
         //           CONTEXT_COMPATIBILITY_PROFILE_BIT 0x2.
-		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &contextProfile);
-		if (glGetError() == GL_NO_ERROR) {
-			// >= 3.2
-			if (majorVersion == 3 && minorVersion < 3)
-				supportsSwizzle = GL_FALSE;
-			if ((contextProfile & GL_CONTEXT_CORE_PROFILE_BIT))
-				sizedFormats &= ~_LEGACY_FORMATS;
+        glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &contextProfile);
+        if (glGetError() == GL_NO_ERROR) {
+            // >= 3.2
+            if (majorVersion == 3 && minorVersion < 3)
+                supportsSwizzle = GL_FALSE;
+            if ((contextProfile & GL_CONTEXT_CORE_PROFILE_BIT))
+                sizedFormats &= ~_LEGACY_FORMATS;
             if (majorVersion >= 4)
                 supportsCubeMapArrays = GL_TRUE;
         } else {
-			// < 3.2
-			contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
-			supportsSwizzle = GL_FALSE;
-			// sRGB textures introduced in 2.0
-			if (majorVersion < 2 && hasExtension("GL_EXT_texture_sRGB")) {
-				supportsSRGB = GL_FALSE;
-			}
-			// R{,G]16 introduced in 3.0; R{,G}16_SNORM introduced in 3.1.
-			if (majorVersion == 3) {
-				if (minorVersion == 0)
-					R16Formats &= ~_KTX_R16_FORMATS_SNORM;
-			} else if (hasExtension("GL_ARB_texture_rg")) {
-				R16Formats &= ~_KTX_R16_FORMATS_SNORM;
-			} else {
-				R16Formats = _KTX_NO_R16_FORMATS;
-			}
-		}
+            // < 3.2
+            contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
+            supportsSwizzle = GL_FALSE;
+            // sRGB textures introduced in 2.0
+            if (majorVersion < 2 && hasExtension("GL_EXT_texture_sRGB")) {
+                supportsSRGB = GL_FALSE;
+            }
+            // R{,G]16 introduced in 3.0; R{,G}16_SNORM introduced in 3.1.
+            if (majorVersion == 3) {
+                if (minorVersion == 0)
+                    R16Formats &= ~_KTX_R16_FORMATS_SNORM;
+            } else if (hasExtension("GL_ARB_texture_rg")) {
+                R16Formats &= ~_KTX_R16_FORMATS_SNORM;
+            } else {
+                R16Formats = _KTX_NO_R16_FORMATS;
+            }
+        }
         if (!supportsCubeMapArrays) {
             if (hasExtension("GL_ARB_texture_cube_map_array")) {
                 supportsCubeMapArrays = GL_TRUE;
             }
         }
-	}
+    }
 }
 
 #if SUPPORT_LEGACY_FORMAT_CONVERSION
@@ -336,99 +336,99 @@ discoverContextCapabilities(void)
  *              error that arises will be handled in the usual way.
  */
 static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalformat) {
-	switch (*pFormat) {
-	  case GL_ALPHA:
-		{
-		  GLint swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
-		  *pFormat = GL_RED;
-		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalformat) {
-	        case GL_ALPHA:
-		    case GL_ALPHA4:
-		    case GL_ALPHA8:
-			  *pInternalformat = GL_R8;
-			  break;
-		    case GL_ALPHA12:
-		    case GL_ALPHA16:
-			  *pInternalformat = GL_R16;
-			  break;
-		  }
-		}
-	  case GL_LUMINANCE:
-		{
-		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-		  *pFormat = GL_RED;
-		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalformat) {
-			case GL_LUMINANCE:
-		    case GL_LUMINANCE4:
-		    case GL_LUMINANCE8:
-			  *pInternalformat = GL_R8;
-			  break;
-		    case GL_LUMINANCE12:
-		    case GL_LUMINANCE16:
-			  *pInternalformat = GL_R16;
-			  break;
+    switch (*pFormat) {
+      case GL_ALPHA:
+        {
+          GLint swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
+          *pFormat = GL_RED;
+          glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+          switch (*pInternalformat) {
+            case GL_ALPHA:
+            case GL_ALPHA4:
+            case GL_ALPHA8:
+              *pInternalformat = GL_R8;
+              break;
+            case GL_ALPHA12:
+            case GL_ALPHA16:
+              *pInternalformat = GL_R16;
+              break;
+          }
+        }
+      case GL_LUMINANCE:
+        {
+          GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+          *pFormat = GL_RED;
+          glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+          switch (*pInternalformat) {
+            case GL_LUMINANCE:
+            case GL_LUMINANCE4:
+            case GL_LUMINANCE8:
+              *pInternalformat = GL_R8;
+              break;
+            case GL_LUMINANCE12:
+            case GL_LUMINANCE16:
+              *pInternalformat = GL_R16;
+              break;
 #if 0
-		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
+            // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
             // XXX Must manually swizzle.
-			case GL_SLUMINANCE:
-			case GL_SLUMINANCE8:
-			  *pInternalformat = GL_SRGB8;
-			  break;
+            case GL_SLUMINANCE:
+            case GL_SLUMINANCE8:
+              *pInternalformat = GL_SRGB8;
+              break;
 #endif
-		  }
-		  break;
-		}
-	  case GL_LUMINANCE_ALPHA:
-		{
-		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
-		  *pFormat = GL_RG;
-		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalformat) {
-			case GL_LUMINANCE_ALPHA:
-		    case GL_LUMINANCE4_ALPHA4:
-			case GL_LUMINANCE6_ALPHA2:
-		    case GL_LUMINANCE8_ALPHA8:
-			  *pInternalformat = GL_RG8;
-			  break;
-		    case GL_LUMINANCE12_ALPHA4:
-			case GL_LUMINANCE12_ALPHA12:
-		    case GL_LUMINANCE16_ALPHA16:
-			  *pInternalformat = GL_RG16;
-			  break;
+          }
+          break;
+        }
+      case GL_LUMINANCE_ALPHA:
+        {
+          GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
+          *pFormat = GL_RG;
+          glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+          switch (*pInternalformat) {
+            case GL_LUMINANCE_ALPHA:
+            case GL_LUMINANCE4_ALPHA4:
+            case GL_LUMINANCE6_ALPHA2:
+            case GL_LUMINANCE8_ALPHA8:
+              *pInternalformat = GL_RG8;
+              break;
+            case GL_LUMINANCE12_ALPHA4:
+            case GL_LUMINANCE12_ALPHA12:
+            case GL_LUMINANCE16_ALPHA16:
+              *pInternalformat = GL_RG16;
+              break;
 #if 0
-		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
+            // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
             // XXX Must manually swizzle.
-			case GL_SLUMINANCE_ALPHA:
-			case GL_SLUMINANCE8_ALPHA8:
-			  *pInternalformat = GL_SRGB8_ALPHA8;
-			  break;
+            case GL_SLUMINANCE_ALPHA:
+            case GL_SLUMINANCE8_ALPHA8:
+              *pInternalformat = GL_SRGB8_ALPHA8;
+              break;
 #endif
-		  }
-		  break;
-		}
-	  case GL_INTENSITY:
-		{
-		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
-		  *pFormat = GL_RED;
-		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		  switch (*pInternalformat) {
-			case GL_INTENSITY:
-		    case GL_INTENSITY4:
-		    case GL_INTENSITY8:
-			  *pInternalformat = GL_R8;
-			  break;
-		    case GL_INTENSITY12:
-		    case GL_INTENSITY16:
-			  *pInternalformat = GL_R16;
-			  break;
-		  }
-		  break;
-		}
-	  default:
-	    break;
-	}
+          }
+          break;
+        }
+      case GL_INTENSITY:
+        {
+          GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
+          *pFormat = GL_RED;
+          glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+          switch (*pInternalformat) {
+            case GL_INTENSITY:
+            case GL_INTENSITY4:
+            case GL_INTENSITY8:
+              *pInternalformat = GL_R8;
+              break;
+            case GL_INTENSITY12:
+            case GL_INTENSITY16:
+              *pInternalformat = GL_R16;
+              break;
+          }
+          break;
+        }
+      default:
+        break;
+    }
 }
 #endif /* SUPPORT_LEGACY_FORMAT_CONVERSION */
 
@@ -638,28 +638,28 @@ compressedTexImage3DCallback(int miplevel, int face,
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param[in] This	        handle of the ktxTexture to upload.
- * @param[in,out] pTexture	name of the GL texture object to load. If NULL or if
+ * @param[in] This          handle of the ktxTexture to upload.
+ * @param[in,out] pTexture  name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
  *                          generated name or the name given in @p *pTexture
- * 						    to the texture target returned in @p *pTarget,
- * 						    before loading the texture data. If @p pTexture
+ *                          to the texture target returned in @p *pTarget,
+ *                          before loading the texture data. If @p pTexture
  *                          is not NULL and a name was generated, the generated
  *                          name will be returned in *pTexture.
- * @param[out] pTarget 	    @p *pTarget is set to the texture target used. The
- * 						    target is chosen based on the file contents.
+ * @param[out] pTarget      @p *pTarget is set to the texture target used. The
+ *                          target is chosen based on the file contents.
  * @param[out] pGlerror     @p *pGlerror is set to the value returned by
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. glerror can be NULL.
  *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p This or @p target is @c NULL or the size of
  *                              a mip level is greater than the size of the
- * 							    preceding level.
+ *                              preceding level.
  * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
- * 								glGenTextures or gl*TexImage*. The GL error
+ *                              glGenTextures or gl*TexImage*. The GL error
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
@@ -670,44 +670,44 @@ KTX_error_code
 ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
                     GLenum* pGlerror)
 {
-	GLint				  previousUnpackAlignment;
-	GLuint				  texname;
-	int					  texnameUser;
-	KTX_error_code		  result = KTX_SUCCESS;
+    GLint                 previousUnpackAlignment;
+    GLuint                texname;
+    int                   texnameUser;
+    KTX_error_code        result = KTX_SUCCESS;
     PFNKTXITERCB          iterCb = NULL;
     ktx_cbdata            cbData;
     int                   dimensions;
 
-	if (pGlerror)
-		*pGlerror = GL_NO_ERROR;
+    if (pGlerror)
+        *pGlerror = GL_NO_ERROR;
 
-	if (!This) {
-		return KTX_INVALID_VALUE;
-	}
+    if (!This) {
+        return KTX_INVALID_VALUE;
+    }
 
-	if (!pTarget) {
-		return KTX_INVALID_VALUE;
-	}
+    if (!pTarget) {
+        return KTX_INVALID_VALUE;
+    }
 
-	if (contextProfile == 0)
-		discoverContextCapabilities();
+    if (contextProfile == 0)
+        discoverContextCapabilities();
 
-	/* KTX files require an unpack alignment of 4 */
-	glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
-	if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, KTX_GL_UNPACK_ALIGNMENT);
-	}
+    /* KTX files require an unpack alignment of 4 */
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
+    if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, KTX_GL_UNPACK_ALIGNMENT);
+    }
 
     cbData.glFormat = This->glFormat;
     cbData.glInternalformat = This->glInternalformat;
     cbData.glType = This->glType;
 
-	texnameUser = pTexture && *pTexture;
-	if (texnameUser) {
-		texname = *pTexture;
-	} else {
-		glGenTextures(1, &texname);
-	}
+    texnameUser = pTexture && *pTexture;
+    if (texnameUser) {
+        texname = *pTexture;
+    } else {
+        glGenTextures(1, &texname);
+    }
 
     dimensions = This->numDimensions;
     if (This->isArray) {
@@ -788,38 +788,38 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
         glTexParameteri(cbData.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
     }
 #ifdef GL_TEXTURE_MAX_LEVEL
-	if (!This->generateMipmaps)
-		glTexParameteri(cbData.glTarget, GL_TEXTURE_MAX_LEVEL, This->numLevels - 1);
+    if (!This->generateMipmaps)
+        glTexParameteri(cbData.glTarget, GL_TEXTURE_MAX_LEVEL, This->numLevels - 1);
 #endif
 
-	if (cbData.glTarget == GL_TEXTURE_CUBE_MAP) {
-		cbData.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-	}
+    if (cbData.glTarget == GL_TEXTURE_CUBE_MAP) {
+        cbData.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+    }
     
-	cbData.glInternalformat = This->glInternalformat;
-	cbData.glFormat = This->glFormat;
-	if (!This->isCompressed) {
+    cbData.glInternalformat = This->glInternalformat;
+    cbData.glFormat = This->glFormat;
+    if (!This->isCompressed) {
 #if SUPPORT_LEGACY_FORMAT_CONVERSION
-		// If sized legacy formats are supported there is no need to convert.
-		// If only unsized formats are supported, there is no point in
+        // If sized legacy formats are supported there is no need to convert.
+        // If only unsized formats are supported, there is no point in
         // converting as the modern formats aren't supported either.
-		if (sizedFormats == _NON_LEGACY_FORMATS && supportsSwizzle) {
-			convertFormat(cbData.glTarget, &cbData.glFormat, &cbData.glInternalformat);
-		} else if (sizedFormats == _NO_SIZED_FORMATS)
-			cbData.glInternalformat = This->glBaseInternalformat;
+        if (sizedFormats == _NON_LEGACY_FORMATS && supportsSwizzle) {
+            convertFormat(cbData.glTarget, &cbData.glFormat, &cbData.glInternalformat);
+        } else if (sizedFormats == _NO_SIZED_FORMATS)
+            cbData.glInternalformat = This->glBaseInternalformat;
 #else
-		// When no sized formats are supported, or legacy sized formats are not
-		// supported, must change internal format.
-		if (sizedFormats == _NO_SIZED_FORMATS
-			|| (!(sizedFormats & _LEGACY_FORMATS) &&
-				(This->glBaseInternalformat == GL_ALPHA
-				|| This->glBaseInternalformat == GL_LUMINANCE
-				|| This->glBaseInternalformat == GL_LUMINANCE_ALPHA
-				|| This->glBaseInternalformat == GL_INTENSITY))) {
-			cbData.glInternalformat = This->glBaseInternalformat;
-		}
+        // When no sized formats are supported, or legacy sized formats are not
+        // supported, must change internal format.
+        if (sizedFormats == _NO_SIZED_FORMATS
+            || (!(sizedFormats & _LEGACY_FORMATS) &&
+                (This->glBaseInternalformat == GL_ALPHA
+                || This->glBaseInternalformat == GL_LUMINANCE
+                || This->glBaseInternalformat == GL_LUMINANCE_ALPHA
+                || This->glBaseInternalformat == GL_INTENSITY))) {
+            cbData.glInternalformat = This->glBaseInternalformat;
+        }
 #endif
-	}
+    }
 
     if (ktxTexture_isActiveStream(This))
         result = ktxTexture_IterateLoadLevelFaces(This, iterCb, &cbData);
@@ -832,25 +832,25 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
             *pGlerror = cbData.glError;
     }
 
-	/* restore previous GL state */
-	if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, previousUnpackAlignment);
-	}
+    /* restore previous GL state */
+    if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, previousUnpackAlignment);
+    }
 
-	if (result == KTX_SUCCESS)
-	{
+    if (result == KTX_SUCCESS)
+    {
         // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
         if (This->generateMipmaps && pfGlGenerateMipmap) {
-			pfGlGenerateMipmap(cbData.glTarget);
-		}
-		*pTarget = cbData.glTarget;
-		if (pTexture) {
-			*pTexture = texname;
-		}
-	} else if (!texnameUser) {
+            pfGlGenerateMipmap(cbData.glTarget);
+        }
+        *pTarget = cbData.glTarget;
+        if (pTexture) {
+            *pTexture = texname;
+        }
+    } else if (!texnameUser) {
         glDeleteTextures(1, &texname);
-	}
-	return result;
+    }
+    return result;
 }
 /** [loadGLTexture] */
 
@@ -871,23 +871,23 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
  * when the format is not supported by the GL context, provided the library
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
- * @param[in] file		   stdio stream FILE pointer
+ * @param[in] file         stdio stream FILE pointer
  * @param[in,out] pTexture name of the GL texture object to load. If NULL or if
  *                         <tt>*pTexture == 0</tt> the function will generate
  *                         a texture name. The function binds either the
  *                         generated name or the name given in @p *pTexture
- * 						   to the texture target returned in @p *pTarget,
- * 						   before loading the texture data. If @p pTexture
+ *                         to the texture target returned in @p *pTarget,
+ *                         before loading the texture data. If @p pTexture
  *                         is not NULL and a name was generated, the generated
  *                         name will be returned in *pTexture.
- * @param[out] pTarget 	   @p *pTarget is set to the texture target used. The
- * 						   target is chosen based on the file contents.
+ * @param[out] pTarget     @p *pTarget is set to the texture target used. The
+ *                         target is chosen based on the file contents.
  * @param[out] pDimensions If @p pDimensions is not NULL, the width, height and
- *						   depth of the texture's base level are returned in
+ *                         depth of the texture's base level are returned in
  *                         the fields of the KTX_dimensions structure to which
  *                         it points.
  * @param[out] pIsMipmapped
- *	                       If @p pIsMipmapped is not NULL, @p *pIsMipmapped is
+ *                         If @p pIsMipmapped is not NULL, @p *pIsMipmapped is
  *                         set to GL_TRUE if the KTX texture is mipmapped,
  *                         GL_FALSE otherwise.
  * @param[out] pGlerror    @p *pGlerror is set to the value returned by
@@ -896,24 +896,24 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
  * @param[in,out] pKvdLen  If not NULL, @p *pKvdLen is set to the number of
  *                         bytes of key-value data pointed at by @p *ppKvd.
  *                         Must not be NULL, if @p ppKvd is not NULL.
- * @param[in,out] ppKvd	   If not NULL, @p *ppKvd is set to the point to a
+ * @param[in,out] ppKvd    If not NULL, @p *ppKvd is set to the point to a
  *                         block of memory containing key-value data read from
  *                         the file. The application is responsible for freeing
  *                         the memory.
  *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p target is @c NULL or the size of a mip
- * 							    level is greater than the size of the
- * 							    preceding level.
+ *                              level is greater than the size of the
+ *                              preceding level.
  * @exception KTX_INVALID_OPERATION @p ppKvd is not NULL but pKvdLen is NULL.
  * @exception KTX_UNEXPECTED_END_OF_FILE the file does not contain the
- * 										 expected amount of data.
+ *                                       expected amount of data.
  * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated for the
  *                              underlying ktxTexture object or to store the
  *                              requested key-value data.
  * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
- * 								glGenTextures or gl*TexImage*. The GL error
+ *                              glGenTextures or gl*TexImage*. The GL error
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
@@ -921,21 +921,21 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
  */
 KTX_error_code
 ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
-				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-				GLenum* pGlerror,
-				unsigned int* pKvdLen, unsigned char** ppKvd)
+                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+                GLenum* pGlerror,
+                unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	ktxTexture* texture;
-	KTX_error_code result = KTX_SUCCESS;
+    ktxTexture* texture;
+    KTX_error_code result = KTX_SUCCESS;
     
     if (ppKvd != NULL && pKvdLen == NULL)
         return KTX_INVALID_VALUE;
 
-	result = ktxTexture_CreateFromStdioStream(file,
+    result = ktxTexture_CreateFromStdioStream(file,
                                               KTX_TEXTURE_CREATE_RAW_KVDATA_BIT,
                                               &texture);
-	if (result != KTX_SUCCESS)
-		return result;
+    if (result != KTX_SUCCESS)
+        return result;
 
     result = ktxTexture_GLUpload(texture, pTexture, pTarget, pGlerror);
     
@@ -970,11 +970,11 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
  * @deprecated Use ktxTexture_CreateFromNamedFile() and ktxTexture_GLUpload().
  * @brief Create a GL texture object from KTX data in a named file on disk.
  *
- * @param[in] filename		pointer to a C string that contains the path of
- * 							the file to load.
- * @param[in,out] pTexture	name of the GL texture object to load. See
+ * @param[in] filename      pointer to a C string that contains the path of
+ *                          the file to load.
+ * @param[in,out] pTexture  name of the GL texture object to load. See
  *                          ktxLoadTextureF() for details.
- * @param[out] pTarget 	    @p *pTarget is set to the texture target used. See
+ * @param[out] pTarget      @p *pTarget is set to the texture target used. See
  *                          ktxLoadTextureF() for details.
  * @param[out] pDimensions  @p the texture's base level width depth and height
  *                          are returned in structure to which this points.
@@ -985,40 +985,40 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
  * @param[out] pGlerror     @p *pGlerror is set to the value returned by
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. glerror can be NULL.
- * @param[in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of
+ * @param[in,out] pKvdLen   If not NULL, @p *pKvdLen is set to the number of
  *                          bytes of key-value data pointed at by @p *ppKvd.
  *                          Must not be NULL, if @p ppKvd is not NULL.
- * @param[in,out] ppKvd	    If not NULL, @p *ppKvd is set to the point to a
+ * @param[in,out] ppKvd     If not NULL, @p *ppKvd is set to the point to a
  *                          block of memory containing key-value data read from
  *                          the file. The application is responsible for freeing
  *                          the memory.
  *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_FILE_OPEN_FAILED	The specified file could not be opened.
- * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
- * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
+ * @exception KTX_FILE_OPEN_FAILED  The specified file could not be opened.
+ * @exception KTX_INVALID_VALUE     See ktxLoadTextureF() for causes.
+ * @exception KTX_INVALID_OPERATION See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
- * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
+ * @exception KTX_GL_ERROR          See ktxLoadTextureF() for causes.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE See ktxLoadTextureF() for causes.
  */
 KTX_error_code
 ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
-				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-				GLenum* pGlerror,
-				unsigned int* pKvdLen, unsigned char** ppKvd)
+                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+                GLenum* pGlerror,
+                unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	KTX_error_code result;
+    KTX_error_code result;
 
     FILE* file = fopen(filename, "rb");
-	if (file) {
-		result = ktxLoadTextureF(file, pTexture, pTarget, pDimensions,
+    if (file) {
+        result = ktxLoadTextureF(file, pTexture, pTarget, pDimensions,
                                  pIsMipmapped, pGlerror, pKvdLen, ppKvd);
-		fclose(file);
-	} else
-		result = KTX_FILE_OPEN_FAILED;
+        fclose(file);
+    } else
+        result = KTX_FILE_OPEN_FAILED;
 
-	return result;
+    return result;
 }
 
 /**
@@ -1026,13 +1026,13 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  * @deprecated Use ktxTexture_CreateFromMemory() and ktxTexture_GLUpload().
  * @brief Create a GL texture object from KTX formatted data in memory.
  *
- * @param[in] bytes		    pointer to the array of bytes containing
- * 							the KTX data to load.
- * @param[in] size			size of the memory array containing the
+ * @param[in] bytes         pointer to the array of bytes containing
+ *                          the KTX data to load.
+ * @param[in] size          size of the memory array containing the
  *                          KTX format data.
- * @param[in,out] pTexture	name of the GL texture object to load. See
+ * @param[in,out] pTexture  name of the GL texture object to load. See
  *                          ktxLoadTextureF() for details.
- * @param[out] pTarget 	    @p *pTarget is set to the texture target used. See
+ * @param[out] pTarget      @p *pTarget is set to the texture target used. See
  *                          ktxLoadTextureF() for details.
  * @param[out] pDimensions  @p the texture's base level width depth and height
  *                          are returned in structure to which this points.
@@ -1051,25 +1051,25 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
  *                          the file. The application is responsible for freeing
  *                          the memory.
  *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_FILE_OPEN_FAILED	The specified memory could not be opened as
+ * @exception KTX_FILE_OPEN_FAILED  The specified memory could not be opened as
  *                                  a file.
- * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
- * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
+ * @exception KTX_INVALID_VALUE     See ktxLoadTextureF() for causes.
+ * @exception KTX_INVALID_OPERATION See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
  *
- * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
+ * @exception KTX_GL_ERROR          See ktxLoadTextureF() for causes.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE See ktxLoadTextureF() for causes.
  */
 KTX_error_code
 ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
                 GLenum* pTarget, KTX_dimensions* pDimensions,
                 GLboolean* pIsMipmapped, GLenum* pGlerror,
-				unsigned int* pKvdLen, unsigned char** ppKvd)
+                unsigned int* pKvdLen, unsigned char** ppKvd)
 {
-	ktxTexture* texture;
-	KTX_error_code result = KTX_SUCCESS;
+    ktxTexture* texture;
+    KTX_error_code result = KTX_SUCCESS;
 
     if (ppKvd != NULL && pKvdLen == NULL)
         return KTX_INVALID_VALUE;
@@ -1078,10 +1078,10 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
                                          KTX_TEXTURE_CREATE_RAW_KVDATA_BIT,
                                          &texture);
 
-	if (result != KTX_SUCCESS)
-		return result;
+    if (result != KTX_SUCCESS)
+        return result;
 
-	result = ktxTexture_GLUpload(texture, pTexture, pTarget, pGlerror);
+    result = ktxTexture_GLUpload(texture, pTexture, pTarget, pGlerror);
     if (result == KTX_SUCCESS) {
         if (ppKvd != NULL) {
             *ppKvd = texture->kvData;

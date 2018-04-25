@@ -45,7 +45,7 @@
 
 #if defined(_WIN32)
   #if _MSC_VER < 1900
-	#define snprintf _snprintf
+    #define snprintf _snprintf
   #endif
   #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -87,29 +87,29 @@ TexturedCube::TexturedCube(VulkanContext& vkctx,
     uniforms.lodBias = 0.0;
 
     try {
-		prepareUniformBuffer();
-		prepareCubeDataBuffers();
-		setupVertexDescriptions();
-		createDescriptorSetLayout();
-		preparePipeline();
-		prepareDescriptorPool();
-		prepareDescriptorSet();
+        prepareUniformBuffer();
+        prepareCubeDataBuffers();
+        setupVertexDescriptions();
+        createDescriptorSetLayout();
+        preparePipeline();
+        prepareDescriptorPool();
+        prepareDescriptorSet();
 
-		vkctx.createDrawCommandBuffers();
-		for (uint32_t i = 0; i < vkctx.swapchain.imageCount; i++) {
-			buildCommandBuffer(i);
-		}
+        vkctx.createDrawCommandBuffers();
+        for (uint32_t i = 0; i < vkctx.swapchain.imageCount; i++) {
+            buildCommandBuffer(i);
+        }
     } catch (std::exception& e) {
-		(void)e; // To quiet unused variable warnings from some compilers.
-		cleanup();
-    	throw;
+        (void)e; // To quiet unused variable warnings from some compilers.
+        cleanup();
+        throw;
     }
 }
 
 
 TexturedCube::~TexturedCube()
 {
-	cleanup();
+    cleanup();
 }
 
 
@@ -554,9 +554,9 @@ TexturedCube::preparePipeline()
 #else
     std::string filepath = getAssetPath() + "shaders/";
     shaderStages[0] = loadShader(filepath + "cube.vert.spv",
-    							vk::ShaderStageFlagBits::eVertex);
+                                vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = loadShader(filepath + "cube.frag.spv",
-    							vk::ShaderStageFlagBits::eFragment);
+                                vk::ShaderStageFlagBits::eFragment);
 
 #endif
 
@@ -570,7 +570,7 @@ TexturedCube::preparePipeline()
     pipelineCreateInfo.renderPass = vkctx.renderPass;
     pipelineCreateInfo.layout = pipelineLayout;
     pipelineCreateInfo.pVertexInputState =
-    	&static_cast<const VkPipelineVertexInputStateCreateInfo&>(vertices.inputState);
+        &static_cast<const VkPipelineVertexInputStateCreateInfo&>(vertices.inputState);
     pipelineCreateInfo.pInputAssemblyState = &ias;
     pipelineCreateInfo.pRasterizationState = &rs;
     pipelineCreateInfo.pColorBlendState = &cbs;

@@ -50,7 +50,7 @@
 
 class GLAppSDL : public AppBaseSDL {
   public:
-	  GLAppSDL(const char* const name,
+      GLAppSDL(const char* const name,
                int width, int height,
                const SDL_GLprofile profile,
                const int majorVersion,
@@ -58,11 +58,11 @@ class GLAppSDL : public AppBaseSDL {
             : profile(profile),
               majorVersion(majorVersion), minorVersion(minorVersion),
               AppBaseSDL(name)
-	{
+    {
         appTitle = name;
-	    w_width = width;
-	    w_height = height;
-	};
+        w_width = width;
+        w_height = height;
+    };
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
@@ -74,12 +74,12 @@ class GLAppSDL : public AppBaseSDL {
   protected:
     SDL_GLContext sgcGLContext;
 
-	int w_width;
-	int w_height;
+    int w_width;
+    int w_height;
 
-	const SDL_GLprofile profile;
-	const int majorVersion;
-	const int minorVersion;
+    const SDL_GLprofile profile;
+    const int majorVersion;
+    const int minorVersion;
 };
 
 #endif /* GL_APP_SDL_H_1456211188 */

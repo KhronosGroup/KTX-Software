@@ -52,8 +52,8 @@ KTX_error_code ktxMemStream_construct(ktxStream* str,
  * from an array of bytes.
  */
 KTX_error_code ktxMemStream_construct_ro(ktxStream* str,
-										 const ktx_uint8_t* pBytes,
-										 const ktx_size_t size);
+                                         const ktx_uint8_t* pBytes,
+                                         const ktx_size_t size);
 void ktxMemStream_destruct(ktxStream* str);
 
 KTX_error_code ktxMemStream_getdata(ktxStream* str, ktx_uint8_t** ppBytes);

@@ -45,7 +45,7 @@ class TextureCubemap : public VulkanLoadTestSample
   public:
     TextureCubemap(VulkanContext& vkctx,
             uint32_t width, uint32_t height,
-			const char* const szArgs,
+            const char* const szArgs,
             const std::string sBasePath);
     ~TextureCubemap();
 
@@ -109,30 +109,30 @@ class TextureCubemap : public VulkanLoadTestSample
 
     void cleanup();
 
-	void rebuildCommandBuffers();
-	void buildCommandBuffers();
-	void loadMeshes();
+    void rebuildCommandBuffers();
+    void buildCommandBuffers();
+    void loadMeshes();
 
-	void setupVertexDescriptions();
-	void setupDescriptorPool();
-	void setupDescriptorSetLayout();
-	void setupDescriptorSets();
-	void preparePipelines();
+    void setupVertexDescriptions();
+    void setupDescriptorPool();
+    void setupDescriptorSetLayout();
+    void setupDescriptorSets();
+    void preparePipelines();
 
-	// Prepare and initialize uniform buffer containing shader uniforms
-	void prepareUniformBuffers();
-	void updateUniformBuffers();
+    // Prepare and initialize uniform buffer containing shader uniforms
+    void prepareUniformBuffers();
+    void updateUniformBuffers();
     
     void prepareSamplerAndView();
 
-	void prepare();
-	void toggleSkyBox();
-	void toggleObject();
-	void changeLodBias(float delta);
+    void prepare();
+    void toggleSkyBox();
+    void toggleObject();
+    void changeLodBias(float delta);
 
     void processArgs(std::string sArgs);
 
-	virtual void keyPressed(uint32_t keyCode);
+    virtual void keyPressed(uint32_t keyCode);
     virtual void viewChanged()
     {
         updateUniformBuffers();

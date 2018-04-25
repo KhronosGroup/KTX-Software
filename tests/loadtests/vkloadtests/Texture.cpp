@@ -94,7 +94,7 @@ Texture::Texture(VulkanContext& vkctx,
     rgbcolor lowerRightColor{ 0.0f, 0.6f, 0.1f };
 
     quadColor = { upperLeftColor, lowerLeftColor,
-    		      upperRightColor, lowerRightColor };
+                  upperRightColor, lowerRightColor };
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
@@ -147,7 +147,7 @@ Texture::Texture(VulkanContext& vkctx,
     try {
         prepare();
     } catch (std::exception& e) {
-		(void)e; // To quiet unused variable warnings from some compilers.
+        (void)e; // To quiet unused variable warnings from some compilers.
         cleanup();
         throw;
     }
@@ -184,7 +184,7 @@ Texture::processArgs(std::string sArgs)
     // Options descriptor
     struct argparser::option longopts[] = {
         "linear-tiling", argparser::option::no_argument,       (int*)&tiling, (int)vk::ImageTiling::eLinear,
-		"qcolor",        argparser::option::required_argument, NULL,          1,
+        "qcolor",        argparser::option::required_argument, NULL,          1,
         NULL,            argparser::option::no_argument,       NULL,          0
     };
 
@@ -197,22 +197,22 @@ Texture::processArgs(std::string sArgs)
             case 0: break;
             case 1:
             {
-            	std::istringstream in(ap.optarg);
-            	rgbcolor clr;
-            	int i;
+                std::istringstream in(ap.optarg);
+                rgbcolor clr;
+                int i;
 
-            	for (i = 0; i < 4 && !in.eof(); i++) {
-            		in >> clr[0] >> skip(",") >> clr[1] >> skip(",") >> clr[2];
-					quadColor[i] = clr;
-					if (!in.eof())
-						in >> skip(",");
-            	}
-            	assert(!in.fail() && (i == 1 || i == 4));
-            	if (i == 1) {
+                for (i = 0; i < 4 && !in.eof(); i++) {
+                    in >> clr[0] >> skip(",") >> clr[1] >> skip(",") >> clr[2];
+                    quadColor[i] = clr;
+                    if (!in.eof())
+                        in >> skip(",");
+                }
+                assert(!in.fail() && (i == 1 || i == 4));
+                if (i == 1) {
                     for(; i < 4; i++)
-            			quadColor[i] = quadColor[0];
-            	}
-            	break;
+                        quadColor[i] = quadColor[0];
+                }
+                break;
             }
             default: assert(false); // Error in args in sample table.
         }
@@ -290,16 +290,16 @@ Texture::buildCommandBuffers()
                 &static_cast<const VkRect2D&>(scissor));
 
         vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i],
-        		VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-				&static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
+                VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                &static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
         vkCmdBindPipeline(vkctx.drawCmdBuffers[i],
-        		          VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.solid);
+                          VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.solid);
 
         VkDeviceSize offsets[1] = { 0 };
         vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID,
                 1, &static_cast<const VkBuffer&>(quad.vertices.buf), offsets);
         vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf, 0,
-        		             VK_INDEX_TYPE_UINT32);
+                             VK_INDEX_TYPE_UINT32);
 
         vkCmdDrawIndexed(vkctx.drawCmdBuffers[i], quad.indexCount, 1, 0, 0, 0);
 
@@ -510,7 +510,7 @@ Texture::preparePipelines()
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
-    		vk::PrimitiveTopology::eTriangleStrip);
+            vk::PrimitiveTopology::eTriangleStrip);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
     // Must be false because we haven't enabled the depthClamp device feature.
@@ -635,11 +635,11 @@ Texture::prepareSamplerAndView()
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
     samplerInfo.maxLod = (float)texture.levelCount;
     if (vkctx.gpuFeatures.samplerAnisotropy == VK_TRUE) {
-		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = 8;
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = 8;
     } else {
-    	// vulkan.hpp needs fixing
-    	samplerInfo.maxAnisotropy = 1.0;
+        // vulkan.hpp needs fixing
+        samplerInfo.maxAnisotropy = 1.0;
     }
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
     sampler = vkctx.device.createSampler(samplerInfo);

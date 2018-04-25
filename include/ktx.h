@@ -82,7 +82,7 @@ extern "C" {
  * @~English
  * @brief Key String for standard orientation value.
  */
-#define KTX_ORIENTATION_KEY	"KTXorientation"
+#define KTX_ORIENTATION_KEY "KTXorientation"
 /**
  * @~English
  * @brief Standard format for 2D orientation value.
@@ -107,27 +107,27 @@ extern "C" {
  * @brief Error codes returned by library functions.
  */
 typedef enum KTX_error_code_t {
-	KTX_SUCCESS = 0,		 /*!< Operation was successful. */
+    KTX_SUCCESS = 0,         /*!< Operation was successful. */
     KTX_FILE_DATA_ERROR,     /*!< The data in the file is inconsistent with the spec. */
-	KTX_FILE_OPEN_FAILED,	 /*!< The target file could not be opened. */
-	KTX_FILE_OVERFLOW,       /*!< The operation would exceed the max file size. */
-	KTX_FILE_READ_ERROR,     /*!< An error occurred while reading from the file. */
-	KTX_FILE_SEEK_ERROR,     /*!< An error occurred while seeking in the file. */
-	KTX_FILE_UNEXPECTED_EOF, /*!< File does not have enough data to satisfy request. */
-	KTX_FILE_WRITE_ERROR,    /*!< An error occurred while writing to the file. */
-	KTX_GL_ERROR,            /*!< GL operations resulted in an error. */
-	KTX_INVALID_OPERATION,   /*!< The operation is not allowed in the current state. */
-	KTX_INVALID_VALUE,	     /*!< A parameter value was not valid */
-	KTX_NOT_FOUND,			 /*!< Requested key was not found */
-	KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
-	KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
-	KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
+    KTX_FILE_OPEN_FAILED,    /*!< The target file could not be opened. */
+    KTX_FILE_OVERFLOW,       /*!< The operation would exceed the max file size. */
+    KTX_FILE_READ_ERROR,     /*!< An error occurred while reading from the file. */
+    KTX_FILE_SEEK_ERROR,     /*!< An error occurred while seeking in the file. */
+    KTX_FILE_UNEXPECTED_EOF, /*!< File does not have enough data to satisfy request. */
+    KTX_FILE_WRITE_ERROR,    /*!< An error occurred while writing to the file. */
+    KTX_GL_ERROR,            /*!< GL operations resulted in an error. */
+    KTX_INVALID_OPERATION,   /*!< The operation is not allowed in the current state. */
+    KTX_INVALID_VALUE,       /*!< A parameter value was not valid */
+    KTX_NOT_FOUND,           /*!< Requested key was not found */
+    KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
+    KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
+    KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
 } KTX_error_code;
 
 #define KTX_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
 #define KTX_ENDIAN_REF      (0x04030201)
 #define KTX_ENDIAN_REF_REV  (0x01020304)
-#define KTX_HEADER_SIZE		(64)
+#define KTX_HEADER_SIZE     (64)
 
 /**
  * @~English
@@ -617,18 +617,18 @@ typedef struct KTX_image_info {
  */
 KTX_error_code
 ktxLoadTextureF(FILE*, GLuint* pTexture, GLenum* pTarget,
-				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-				GLenum* pGlerror,
-				unsigned int* pKvdLen, unsigned char** ppKvd);
+                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+                GLenum* pGlerror,
+                unsigned int* pKvdLen, unsigned char** ppKvd);
 
 /*
  * Loads a texture from a KTX file on disk.
  */
 KTX_error_code
 ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
-				KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
-				GLenum* pGlerror,
-				unsigned int* pKvdLen, unsigned char** ppKvd);
+                KTX_dimensions* pDimensions, GLboolean* pIsMipmapped,
+                GLenum* pGlerror,
+                unsigned int* pKvdLen, unsigned char** ppKvd);
 
 /*
  * Loads a texture from a KTX file in memory.
@@ -637,7 +637,7 @@ KTX_error_code
 ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
                 GLenum* pTarget, KTX_dimensions* pDimensions,
                 GLboolean* pIsMipmapped, GLenum* pGlerror,
-				unsigned int* pKvdLen, unsigned char** ppKvd);
+                unsigned int* pKvdLen, unsigned char** ppKvd);
 
 /**
  * @class KTX_hash_table
@@ -760,11 +760,11 @@ Added:
     decoder.
 @li support for converting textures with legacy LUMINANCE, LUMINANCE_ALPHA,
     etc. formats to the equivalent R, RG, etc. format with an
-	appropriate swizzle, when loading in OpenGL Core Profile contexts.
+    appropriate swizzle, when loading in OpenGL Core Profile contexts.
 @li ktxErrorString function to return a string corresponding to an error code.
-@li	tests for ktxLoadTexture[FN] that run under OpenGL ES 3.0 and OpenGL 3.3.
+@li tests for ktxLoadTexture[FN] that run under OpenGL ES 3.0 and OpenGL 3.3.
     The latter includes an EGL on WGL wrapper that makes porting apps between
-	OpenGL ES and OpenGL easier on Windows.
+    OpenGL ES and OpenGL easier on Windows.
 @li more texture formats to ktxLoadTexture[FN] and toktx tests.
 
 Changed:

@@ -41,54 +41,54 @@
 #endif
 
 typedef struct _SwapchainBuffers {
-	VkImage image;
-	VkImageView view;
+    VkImage image;
+    VkImageView view;
 } SwapchainBuffer;
 
 class VulkanSwapchain
 {
   public:
-	VkFormat colorFormat;
-	VkColorSpaceKHR colorSpace;
+    VkFormat colorFormat;
+    VkColorSpaceKHR colorSpace;
 
-	VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 
-	uint32_t imageCount;
-	std::vector<VkImage> images;
-	std::vector<SwapchainBuffer> buffers;
+    uint32_t imageCount;
+    std::vector<VkImage> images;
+    std::vector<SwapchainBuffer> buffers;
 
-	// Index of the detected graphics- and present-capable device queue.
-	uint32_t queueIndex = UINT32_MAX;
+    // Index of the detected graphics- and present-capable device queue.
+    uint32_t queueIndex = UINT32_MAX;
 
-	// Creates an OS specific surface.
-	// Looks for a graphics and a present queue
-	bool initSurface(struct SDL_Window* window);
+    // Creates an OS specific surface.
+    // Looks for a graphics and a present queue
+    bool initSurface(struct SDL_Window* window);
 
-	// Connect to device and get required device function pointers.
-	bool connectDevice(VkDevice device);
+    // Connect to device and get required device function pointers.
+    bool connectDevice(VkDevice device);
 
     // Connect to instance and get required instance function pointers.
     bool connectInstance(VkInstance instance,
                          VkPhysicalDevice physicalDevice);
 
-	// Create the swap chain and get images with given width and height
-	void create(uint32_t *width, uint32_t *height,
-	            bool vsync = false);
+    // Create the swap chain and get images with given width and height
+    void create(uint32_t *width, uint32_t *height,
+                bool vsync = false);
 
-	// Acquires the next image in the swap chain
-	VkResult acquireNextImage(VkSemaphore presentCompleteSemaphore,
-	                          uint32_t *currentBuffer);
+    // Acquires the next image in the swap chain
+    VkResult acquireNextImage(VkSemaphore presentCompleteSemaphore,
+                              uint32_t *currentBuffer);
 
-	// Present the current image to the queue
-	VkResult queuePresent(VkQueue queue, uint32_t currentBuffer);
+    // Present the current image to the queue
+    VkResult queuePresent(VkQueue queue, uint32_t currentBuffer);
 
-	// Present the current image to the queue
-	VkResult queuePresent(VkQueue queue, uint32_t currentBuffer,
-	                      VkSemaphore waitSemaphore);
+    // Present the current image to the queue
+    VkResult queuePresent(VkQueue queue, uint32_t currentBuffer,
+                          VkSemaphore waitSemaphore);
 
 
-	// Free all Vulkan resources used by the swap chain
-	void cleanup();
+    // Free all Vulkan resources used by the swap chain
+    void cleanup();
 
   private:
     VkInstance instance;

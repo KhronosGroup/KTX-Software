@@ -147,7 +147,7 @@ Format to glTexImage2D and glTexImage3D.
 #define GL_INTENSITY									0x8049	// deprecated, same as GL_INTENSITY_EXT
 #endif
 #if !defined( GL_RG )
-#define GL_RG											0x8227	// same as GL_RG_EXT  
+#define GL_RG											0x8227	// same as GL_RG_EXT
 #endif
 #if !defined( GL_RGB )
 #define GL_RGB											0x1907

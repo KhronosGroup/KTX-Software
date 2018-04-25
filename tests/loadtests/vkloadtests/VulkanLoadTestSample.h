@@ -48,7 +48,7 @@ class VulkanLoadTestSample : public LoadTestSample {
     typedef uint64_t ticks_t;
     VulkanLoadTestSample(VulkanContext& vkctx,
                      uint32_t width, uint32_t height,
-					 const char* const szArgs,
+                     const char* const szArgs,
                      const std::string sBasePath)
            : LoadTestSample(width, height, szArgs, sBasePath, -1),
              vkctx(vkctx),
@@ -64,9 +64,9 @@ class VulkanLoadTestSample : public LoadTestSample {
     virtual void getOverlayText(VulkanTextOverlay *textOverlay) { };
 
     typedef VulkanLoadTestSample* (*PFN_create)(VulkanContext&,
-									uint32_t width, uint32_t height,
-									const char* const szArgs,
-									const std::string sBasePath);
+                                    uint32_t width, uint32_t height,
+                                    const char* const szArgs,
+                                    const std::string sBasePath);
 
   protected:
     virtual void keyPressed(uint32_t keyCode) { }
@@ -74,50 +74,50 @@ class VulkanLoadTestSample : public LoadTestSample {
     
     vk::PipelineShaderStageCreateInfo
     loadShader(std::string filename,
-    		   vk::ShaderStageFlagBits stage,
-			   std::string modname = "main");
+               vk::ShaderStageFlagBits stage,
+               std::string modname = "main");
     void loadMesh(std::string filename,
                   vkMeshLoader::MeshBuffer* meshBuffer,
                   std::vector<vkMeshLoader::VertexLayout> vertexLayout,
                   float scale);
 
-	struct MeshBufferInfo
-	{
-		vk::Buffer buf;
-		vk::DeviceMemory mem;
-		vk::DeviceSize size = 0;
-
-		void freeResources(vk::Device& device) {
-		    if (buf) device.destroyBuffer(buf);
-		    if (mem) device.freeMemory(mem);
-		}
-	};
-
-	struct MeshBuffer
-	{
-		MeshBufferInfo vertices;
-		MeshBufferInfo indices;
-		uint32_t indexCount;
-		glm::vec3 dim;
-
-		void freeResources(vk::Device& device) {
-			vertices.freeResources(device);
-			indices.freeResources(device);
-		}
-	};
-
-	struct UniformData
+    struct MeshBufferInfo
     {
-    	vk::Buffer buffer;
-    	vk::DeviceMemory memory;
-    	vk::DescriptorBufferInfo descriptor;
-    	uint32_t allocSize;
-    	void* mapped = nullptr;
+        vk::Buffer buf;
+        vk::DeviceMemory mem;
+        vk::DeviceSize size = 0;
 
-    	void freeResources(vk::Device& device) {
-    	    device.destroyBuffer(buffer);
-    	    device.freeMemory(memory);
-    	}
+        void freeResources(vk::Device& device) {
+            if (buf) device.destroyBuffer(buf);
+            if (mem) device.freeMemory(mem);
+        }
+    };
+
+    struct MeshBuffer
+    {
+        MeshBufferInfo vertices;
+        MeshBufferInfo indices;
+        uint32_t indexCount;
+        glm::vec3 dim;
+
+        void freeResources(vk::Device& device) {
+            vertices.freeResources(device);
+            indices.freeResources(device);
+        }
+    };
+
+    struct UniformData
+    {
+        vk::Buffer buffer;
+        vk::DeviceMemory memory;
+        vk::DescriptorBufferInfo descriptor;
+        uint32_t allocSize;
+        void* mapped = nullptr;
+
+        void freeResources(vk::Device& device) {
+            device.destroyBuffer(buffer);
+            device.freeMemory(memory);
+        }
     };
 
     VulkanContext& vkctx;

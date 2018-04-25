@@ -45,15 +45,15 @@ class LoadTestSample {
            : w_width(width), w_height(height), yflip(yflip),
              sBasePath(sBasePath)
     {
-		// Some compilers. e.g. VS2013, do not support initializers in the class
-		// definition yet compile without warnings. So initialize the
-		// old-fashioned way.
-		mouseButtons.left = mouseButtons.middle = mouseButtons.right = false;
-		quit = false;
-		paused = false;
-		timer = 0.f;
-		timerSpeed = 0.25f;
-		rotationSpeed = zoomSpeed = 1.f;
+        // Some compilers. e.g. VS2013, do not support initializers in the class
+        // definition yet compile without warnings. So initialize the
+        // old-fashioned way.
+        mouseButtons.left = mouseButtons.middle = mouseButtons.right = false;
+        quit = false;
+        paused = false;
+        timer = 0.f;
+        timerSpeed = 0.25f;
+        rotationSpeed = zoomSpeed = 1.f;
     }
 
     virtual ~LoadTestSample() { };
@@ -73,9 +73,9 @@ class LoadTestSample {
     
     const std::string getAssetPath() { return sBasePath; }
 
-	glm::vec3 rotation;
-	glm::vec3 cameraPos;
-	glm::vec2 mousePos;
+    glm::vec3 rotation;
+    glm::vec3 cameraPos;
+    glm::vec2 mousePos;
     struct {
         bool left = false;
         bool right = false;

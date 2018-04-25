@@ -63,38 +63,38 @@ void setWindowsIcon(SDL_Window *sdlWindow);
 bool
 GLAppSDL::initialize(int argc, char* argv[])
 {
-	if (!AppBaseSDL::initialize(argc, argv))
-		return false;
+    if (!AppBaseSDL::initialize(argc, argv))
+        return false;
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
 #if defined(DEBUG)
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-	if (profile == SDL_GL_CONTEXT_PROFILE_ES) {
+    if (profile == SDL_GL_CONTEXT_PROFILE_ES) {
 #if 0
-		int numVideoDrivers = SDL_GetNumVideoDrivers();
-		int i;
-		const char** drivers;
+        int numVideoDrivers = SDL_GetNumVideoDrivers();
+        int i;
+        const char** drivers;
 
-		drivers = (const char**)SDL_malloc(sizeof(const char*) * numVideoDrivers);
-		for (i = 0; i < numVideoDrivers; i++) {
-			drivers[i] = SDL_GetVideoDriver(i);
-		}
+        drivers = (const char**)SDL_malloc(sizeof(const char*) * numVideoDrivers);
+        for (i = 0; i < numVideoDrivers; i++) {
+            drivers[i] = SDL_GetVideoDriver(i);
+        }
 #endif
 
-		// Only the indicated platforms pay attention to these hints
-		// but they could be set on any platform.
+        // Only the indicated platforms pay attention to these hints
+        // but they could be set on any platform.
 #if __WINDOWS__ || __LINUX__
-		SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
+        SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
 #endif
 
 #if __WINDOWS__
-		// If using ANGLE copied from Chrome should set to "d3dcompiler_46.dll"
-		// Should set value via compiler -D definition from gyp file.
-		SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none");
+        // If using ANGLE copied from Chrome should set to "d3dcompiler_46.dll"
+        // Should set value via compiler -D definition from gyp file.
+        SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none");
 #endif
     }
 
@@ -113,92 +113,92 @@ GLAppSDL::initialize(int argc, char* argv[])
     }
 
 #if __WINDOWS__
-	// Set the applications own icon in place of the Windows default set by SDL.
-	// Needs to be done here to avoid change being visible.
-	setWindowsIcon(pswMainWindow);
+    // Set the applications own icon in place of the Windows default set by SDL.
+    // Needs to be done here to avoid change being visible.
+    setWindowsIcon(pswMainWindow);
 #endif
 
     sgcGLContext = SDL_GL_CreateContext(pswMainWindow);
-	// Work around bug in SDL. It returns a 2.x context when 3.x is requested.
-	// It does though internally record an error.
-	const char* error = SDL_GetError();
+    // Work around bug in SDL. It returns a 2.x context when 3.x is requested.
+    // It does though internally record an error.
+    const char* error = SDL_GetError();
     if (sgcGLContext == NULL
-		|| (error[0] != '\0'
-		    && majorVersion >= 3
-	        && (profile == SDL_GL_CONTEXT_PROFILE_CORE
-			    || profile == SDL_GL_CONTEXT_PROFILE_COMPATIBILITY))
-		) {
+        || (error[0] != '\0'
+            && majorVersion >= 3
+            && (profile == SDL_GL_CONTEXT_PROFILE_CORE
+                || profile == SDL_GL_CONTEXT_PROFILE_COMPATIBILITY))
+        ) {
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
 
 #if __WINDOWS__
-	if (profile != SDL_GL_CONTEXT_PROFILE_ES)
+    if (profile != SDL_GL_CONTEXT_PROFILE_ES)
     {
         // No choice but to use GLEW for GL on Windows; there is no .lib with static
         // bindings. For ES we use one of the hardware vendor SDKs all of which have
         // static bindings.
-		// TODO: Figure out how to support {GLX,WGL}_EXT_create_context_es2_profile
+        // TODO: Figure out how to support {GLX,WGL}_EXT_create_context_es2_profile
         //       were there are no static bindings. Need a GLEW equivalent for ES and
         //       different compile options. Perhaps can borrow function loading stuff
         //       from SDL's testgles2.c.
 
-		// So one build of this library can be linked in to applications using GLEW and
-		// applications not using GLEW, do not call any GLEW functions directly.
-		// Call via queried function pointers.
-		void* glewdll = SDL_LoadObject("glew32.dll");
-		if (glewdll == NULL) {
-			std::string sName(szName);
+        // So one build of this library can be linked in to applications using GLEW and
+        // applications not using GLEW, do not call any GLEW functions directly.
+        // Call via queried function pointers.
+        void* glewdll = SDL_LoadObject("glew32.dll");
+        if (glewdll == NULL) {
+            std::string sName(szName);
 
-			(void)SDL_ShowSimpleMessageBox(
-				SDL_MESSAGEBOX_ERROR,
-				szName,
-				SDL_GetError(),
-				NULL);
-			return false;
-		}
-		
-		typedef GLenum(GLEWAPIENTRY PFNGLEWINIT)(void);
-		typedef const GLubyte * GLEWAPIENTRY PFNGLEWGETERRORSTRING(GLenum error);
-		PFNGLEWINIT* pGlewInit;
-		PFNGLEWGETERRORSTRING* pGlewGetErrorString;
-		bool error = true;
+            (void)SDL_ShowSimpleMessageBox(
+                SDL_MESSAGEBOX_ERROR,
+                szName,
+                SDL_GetError(),
+                NULL);
+            return false;
+        }
+        
+        typedef GLenum(GLEWAPIENTRY PFNGLEWINIT)(void);
+        typedef const GLubyte * GLEWAPIENTRY PFNGLEWGETERRORSTRING(GLenum error);
+        PFNGLEWINIT* pGlewInit;
+        PFNGLEWGETERRORSTRING* pGlewGetErrorString;
+        bool error = true;
 #define STR(s) #s
 #if defined(_M_IX86)
-		/* Win32 GLEW uses __stdcall. */
+        /* Win32 GLEW uses __stdcall. */
   #define DNAMESTR(x,n) STR(_##x##@##n)
 #else
-		/* x64 uses __cdecl. */
+        /* x64 uses __cdecl. */
   #define DNAMESTR(x,n) STR(x)
 #endif
-		pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, DNAMESTR(glewInit,0));
-		if (pGlewInit != NULL) {
-			pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(
-				    glewdll, DNAMESTR(glewGetErrorString,4));
-			if (pGlewGetErrorString != NULL) {
-				error = false;
-			}
-		}
+        pGlewInit = (PFNGLEWINIT*)SDL_LoadFunction(glewdll, DNAMESTR(glewInit,0));
+        if (pGlewInit != NULL) {
+            pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(
+                    glewdll, DNAMESTR(glewGetErrorString,4));
+            if (pGlewGetErrorString != NULL) {
+                error = false;
+            }
+        }
 
-		if (error) {
-			std::string sName(szName);
+        if (error) {
+            std::string sName(szName);
 
-			(void)SDL_ShowSimpleMessageBox(
-				SDL_MESSAGEBOX_ERROR,
-				szName,
-				SDL_GetError(),
-				NULL);
-			return false;
-		}
+            (void)SDL_ShowSimpleMessageBox(
+                SDL_MESSAGEBOX_ERROR,
+                szName,
+                SDL_GetError(),
+                NULL);
+            return false;
+        }
 
         int iResult = pGlewInit();
         if (iResult != GLEW_OK) {
-			std::string sName(szName);
+            std::string sName(szName);
 
             (void)SDL_ShowSimpleMessageBox(
                           SDL_MESSAGEBOX_ERROR,
                           szName,
-						  (const char*)pGlewGetErrorString(iResult),
+                          (const char*)pGlewGetErrorString(iResult),
                           NULL);
             return false;
         }
@@ -216,7 +216,7 @@ GLAppSDL::initialize(int argc, char* argv[])
 void
 GLAppSDL::finalize()
 {
-	SDL_GL_DeleteContext(sgcGLContext);
+    SDL_GL_DeleteContext(sgcGLContext);
 }
 
 
@@ -230,7 +230,7 @@ GLAppSDL::doEvent(SDL_Event* event)
             // Size given in event is in 'points' on some platforms.
             // Resize window will figure out the drawable pixel size.
             resizeWindow(/*event->window.data1, event->window.data2*/);
-		    return 0;
+            return 0;
         }
         break;
             
@@ -310,18 +310,18 @@ GLAppSDL::setWindowTitle()
 #include <SDL2/SDL_syswm.h>
 void
 setWindowsIcon(SDL_Window *sdlWindow) {
-	HINSTANCE handle = ::GetModuleHandle(nullptr);
-	// Identify icon by name rather than IDI_ macro to avoid having to
-	// include application's resource.h.
-	HICON icon = ::LoadIcon(handle, "MAIN_ICON");// MAKEINTRESOURCE(IDI_ICON1));
-	if (icon != nullptr){
-		SDL_SysWMinfo wminfo;
-		SDL_VERSION(&wminfo.version);
-		if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1){
-			HWND hwnd = wminfo.info.win.window;
-			::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
-		}
-	}
+    HINSTANCE handle = ::GetModuleHandle(nullptr);
+    // Identify icon by name rather than IDI_ macro to avoid having to
+    // include application's resource.h.
+    HICON icon = ::LoadIcon(handle, "MAIN_ICON");// MAKEINTRESOURCE(IDI_ICON1));
+    if (icon != nullptr){
+        SDL_SysWMinfo wminfo;
+        SDL_VERSION(&wminfo.version);
+        if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1){
+            HWND hwnd = wminfo.info.win.window;
+            ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
+        }
+    }
 }
 #endif
 

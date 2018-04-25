@@ -52,9 +52,9 @@ VulkanLoadTestSample::~VulkanLoadTestSample()
 
 void
 VulkanLoadTestSample::loadMesh(std::string filename,
-							   vkMeshLoader::MeshBuffer* meshBuffer,
-							   std::vector<vkMeshLoader::VertexLayout> vertexLayout,
-							   float scale)
+                               vkMeshLoader::MeshBuffer* meshBuffer,
+                               std::vector<vkMeshLoader::VertexLayout> vertexLayout,
+                               float scale)
 {
     VulkanMeshLoader *mesh = new VulkanMeshLoader();
 
@@ -67,7 +67,7 @@ VulkanLoadTestSample::loadMesh(std::string filename,
     assert(mesh->m_Entries.size() > 0);
 
     vk::CommandBuffer copyCmd =
-    		vkctx.createCommandBuffer(vk::CommandBufferLevel::ePrimary, false);
+            vkctx.createCommandBuffer(vk::CommandBufferLevel::ePrimary, false);
 
     mesh->createBuffers(
         vkctx.device,
@@ -88,8 +88,8 @@ VulkanLoadTestSample::loadMesh(std::string filename,
 
 vk::PipelineShaderStageCreateInfo
 VulkanLoadTestSample::loadShader(std::string filename,
-								 vk::ShaderStageFlagBits stage,
-								 std::string modname)
+                                 vk::ShaderStageFlagBits stage,
+                                 std::string modname)
 {
     vk::PipelineShaderStageCreateInfo shaderStage({}, stage);
     shaderStage.module = vkctx.loadShader(filename);

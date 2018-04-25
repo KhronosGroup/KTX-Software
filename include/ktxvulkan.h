@@ -77,7 +77,7 @@ typedef struct ktxVulkanTexture
 
 void
 ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
-						  const VkAllocationCallbacks* pAllocator);
+                          const VkAllocationCallbacks* pAllocator);
 
 /**
  * @class ktxVulkanDeviceInfo
@@ -121,12 +121,12 @@ typedef struct ktxVulkanDeviceInfo {
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
-						   const VkAllocationCallbacks* pAllocator);
+                           const VkAllocationCallbacks* pAllocator);
 KTX_error_code
 ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
                          VkPhysicalDevice physicalDevice, VkDevice device,
                          VkQueue queue, VkCommandPool cmdPool,
-						 const VkAllocationCallbacks* pAllocator);
+                         const VkAllocationCallbacks* pAllocator);
 void
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
 void

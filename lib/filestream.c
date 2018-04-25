@@ -84,21 +84,21 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 static
 KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t count)
 {
-	ktx_size_t nread;
+    ktx_size_t nread;
 
-	if (!str || !dst)
-		return KTX_INVALID_VALUE;
+    if (!str || !dst)
+        return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
     
-	if ((nread = fread(dst, 1, count, str->data.file)) != count) {
-		if (feof(str->data.file)) {
-			return KTX_FILE_UNEXPECTED_EOF;
-		} else
-			return KTX_FILE_READ_ERROR;
-	}
+    if ((nread = fread(dst, 1, count, str->data.file)) != count) {
+        if (feof(str->data.file)) {
+            return KTX_FILE_UNEXPECTED_EOF;
+        } else
+            return KTX_FILE_READ_ERROR;
+    }
 
-	return KTX_SUCCESS;
+    return KTX_SUCCESS;
 }
 
 /**
@@ -120,26 +120,26 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
 static
 KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
 {
-	ktx_size_t fileSize;
-	ktx_off_t pos, newpos;
+    ktx_size_t fileSize;
+    ktx_off_t pos, newpos;
 
-	if (!str)
-		return KTX_INVALID_VALUE;
+    if (!str)
+        return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
     
-	str->getsize(str, &fileSize);
-	str->getpos(str, &pos);
+    str->getsize(str, &fileSize);
+    str->getpos(str, &pos);
 
-	newpos = pos + count;
+    newpos = pos + count;
     /* First clause checks for overflow. */
-	if (newpos < pos || pos + count > fileSize)
-		return KTX_FILE_UNEXPECTED_EOF;
+    if (newpos < pos || pos + count > fileSize)
+        return KTX_FILE_UNEXPECTED_EOF;
 
-	if (fseeko(str->data.file, count, SEEK_CUR) != 0)
-		return KTX_FILE_SEEK_ERROR;
+    if (fseeko(str->data.file, count, SEEK_CUR) != 0)
+        return KTX_FILE_SEEK_ERROR;
 
-	return KTX_SUCCESS;
+    return KTX_SUCCESS;
 }
 
 /**
@@ -166,21 +166,21 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
 static
 KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
                                    const ktx_size_t size,
-	                               const ktx_size_t count)
+                                   const ktx_size_t count)
 {
-	if (!str || !src)
-		return KTX_INVALID_VALUE;
+    if (!str || !src)
+        return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
     
-	if (fwrite(src, size, count, str->data.file) != count) {
-		if (errno == EFBIG || errno == EOVERFLOW)
-			return KTX_FILE_OVERFLOW;
-		else
-			return KTX_FILE_WRITE_ERROR;
-	}
+    if (fwrite(src, size, count, str->data.file) != count) {
+        if (errno == EFBIG || errno == EOVERFLOW)
+            return KTX_FILE_OVERFLOW;
+        else
+            return KTX_FILE_WRITE_ERROR;
+    }
 
-	return KTX_SUCCESS;
+    return KTX_SUCCESS;
 }
 
 /**
@@ -293,21 +293,21 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
 KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file,
                                        ktx_bool_t closeFileOnDestruct)
 {
-	if (!str || !file)
-		return KTX_INVALID_VALUE;
+    if (!str || !file)
+        return KTX_INVALID_VALUE;
 
-	str->data.file = file;
+    str->data.file = file;
     str->type = eStreamTypeFile;
-	str->read = ktxFileStream_read;
-	str->skip = ktxFileStream_skip;
-	str->write = ktxFileStream_write;
+    str->read = ktxFileStream_read;
+    str->skip = ktxFileStream_skip;
+    str->write = ktxFileStream_write;
     str->getpos = ktxFileStream_getpos;
     str->setpos = ktxFileStream_setpos;
     str->getsize = ktxFileStream_getsize;
     str->destruct = ktxFileStream_destruct;
     str->closeOnDestruct = closeFileOnDestruct;
 
-	return KTX_SUCCESS;
+    return KTX_SUCCESS;
 }
 
 /**

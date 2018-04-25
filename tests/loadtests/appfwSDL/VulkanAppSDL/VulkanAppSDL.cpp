@@ -100,29 +100,29 @@ VulkanAppSDL::initialize(int argc, char* argv[])
     char** argv2 = new char*[argc];
     int argc2 = argc;
     validate = false;
-	for (int i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "--validate") == 0) {
-			validate = true;
-			argc2--;
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--validate") == 0) {
+            validate = true;
+            argc2--;
         } else {
             argv2[i] = argv[i];
         }
-	}
-	if (!AppBaseSDL::initialize(argc2, argv2))
-		return false;
-	delete[] argv2;
+    }
+    if (!AppBaseSDL::initialize(argc2, argv2))
+        return false;
+    delete[] argv2;
 
 #if defined(DEBUG)
   // MoltenVK does not support layers (yet?).
   #if !defined(__IPHONEOS__)
-	validate = true;
+    validate = true;
   #endif
-	// Enable debug layers?
+    // Enable debug layers?
 #endif
     
-	// Create window.
-	// Vulkan samples do not pass any information from Vulkan initialization
-	// to window creation so creating the window first should be ok...
+    // Create window.
+    // Vulkan samples do not pass any information from Vulkan initialization
+    // to window creation so creating the window first should be ok...
     pswMainWindow = SDL_CreateWindow(
                         szName,
                         SDL_WINDOWPOS_UNDEFINED,
@@ -137,11 +137,11 @@ VulkanAppSDL::initialize(int argc, char* argv[])
         return false;
     }
 
-	if (!initializeVulkan()) {
-	    return false;
-	}
+    if (!initializeVulkan()) {
+        return false;
+    }
 
-	subOptimalPresentWarned = false;
+    subOptimalPresentWarned = false;
 
     initializeFPSTimer();
     return true;
@@ -153,7 +153,7 @@ VulkanAppSDL::finalize()
 {
     if (vkctx.descriptorPool)
     {
- 		vkctx.device.destroyDescriptorPool(vkctx.descriptorPool, nullptr);
+        vkctx.device.destroyDescriptorPool(vkctx.descriptorPool, nullptr);
     }
     vkDestroyPipelineCache((VkDevice)vkctx.device, vkctx.pipelineCache, nullptr);
 
@@ -186,7 +186,7 @@ VulkanAppSDL::doEvent(SDL_Event* event)
             // Size given in event is in 'points' on some platforms.
             // Resize window will figure out the drawable pixel size.
             resizeWindow(/*event->window.data1, event->window.data2*/);
-		    return 0;
+            return 0;
         }
         break;
             
@@ -508,10 +508,10 @@ VulkanAppSDL::createInstance()
         title = szName;
         title += ": SDL_Vulkan_GetInstanceExtensions Failure";
         msg << "Could not retrieve instance extensions: "
-        	<< SDL_GetError();
+            << SDL_GetError();
 
-    	(void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
-                                   	   msg.str().c_str(), NULL);
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
+                                       msg.str().c_str(), NULL);
         return false;
     }
 
@@ -521,7 +521,7 @@ VulkanAppSDL::createInstance()
     uint32_t i = (uint32_t)extensionNames.size();
     extensionNames.resize(i + c);
     (void)SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c,
-    		                               &extensionNames.data()[i]);
+                                           &extensionNames.data()[i]);
 
     const vk::ApplicationInfo app(szName, 0, szName, 0, vkVersion);
 
@@ -623,8 +623,8 @@ VulkanAppSDL::findGpu()
     assert(err == vk::Result::eSuccess);
 
     if (gpuCount > 0) {
-    	std::vector<vk::PhysicalDevice> gpus;
-    	gpus.resize(gpuCount);
+        std::vector<vk::PhysicalDevice> gpus;
+        gpus.resize(gpuCount);
         err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
         assert(err == vk::Result::eSuccess);
         // For now just grab the first physical device */
@@ -704,36 +704,36 @@ VulkanAppSDL::createDevice()
 
     float queue_priorities[1] = {0.0};
     const vk::DeviceQueueCreateInfo queueInfo(
-		{},
-		vkQueueFamilyIndex,
-		1,
-		queue_priorities
-	);
+        {},
+        vkQueueFamilyIndex,
+        1,
+        queue_priorities
+    );
 
     vk::PhysicalDeviceFeatures deviceFeatures;
     // Enable specific required and available features here.
     if (vkctx.gpuFeatures.samplerAnisotropy)
-    	deviceFeatures.samplerAnisotropy = true;
+        deviceFeatures.samplerAnisotropy = true;
     if (vkctx.gpuFeatures.textureCompressionASTC_LDR)
-    	deviceFeatures.textureCompressionASTC_LDR = true;
+        deviceFeatures.textureCompressionASTC_LDR = true;
     if (vkctx.gpuFeatures.textureCompressionBC)
-    	deviceFeatures.textureCompressionBC = true;
+        deviceFeatures.textureCompressionBC = true;
     if (vkctx.gpuFeatures.textureCompressionETC2)
-    	deviceFeatures.textureCompressionETC2 = true;
-	vk::DeviceCreateInfo deviceInfo(
-			{},
-			1,
-			&queueInfo,
-			(uint32_t)deviceValidationLayers.size(),
-			(const char *const *)((validate)
-								  ? deviceValidationLayers.data()
-								  : NULL),
-			enabledDeviceExtensionCount,
-			(const char *const *)deviceExtensionNames,
-			&deviceFeatures);
+        deviceFeatures.textureCompressionETC2 = true;
+    vk::DeviceCreateInfo deviceInfo(
+            {},
+            1,
+            &queueInfo,
+            (uint32_t)deviceValidationLayers.size(),
+            (const char *const *)((validate)
+                                  ? deviceValidationLayers.data()
+                                  : NULL),
+            enabledDeviceExtensionCount,
+            (const char *const *)deviceExtensionNames,
+            &deviceFeatures);
 
-	err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
-	if (err != vk::Result::eSuccess) {
+    err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
+    if (err != vk::Result::eSuccess) {
         std::string title;
         std::stringstream msg;
         title = szName;
@@ -743,7 +743,7 @@ VulkanAppSDL::createDevice()
             uint32_t deviceExtensionCount = 0;
 
             err = vkctx.gpu.enumerateDeviceExtensionProperties(
-            										   NULL,
+                                                       NULL,
                                                        &deviceExtensionCount,
                                                        NULL);
             assert(err == vk::Result::eSuccess);
@@ -753,7 +753,7 @@ VulkanAppSDL::createDevice()
 
             if (deviceExtensionCount > 0) {
                 err = vkctx.gpu.enumerateDeviceExtensionProperties(
-                										NULL,
+                                                        NULL,
                                                         &deviceExtensionCount,
                                                         deviceExtensions.data());
                 assert(err == vk::Result::eSuccess);
@@ -783,7 +783,7 @@ VulkanAppSDL::createDevice()
     }
 
     const vk::CommandPoolCreateInfo cmdPoolInfo(
-    	vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
         vkctx.swapchain.queueIndex
     );
     err = vkctx.device.createCommandPool(&cmdPoolInfo,
@@ -857,7 +857,7 @@ VulkanAppSDL::prepareDepthBuffer()
     vk::ImageAspectFlags aspectMask;
   
     if (!getSupportedDepthFormat(vkctx.gpu, eNoStencil, e24bits,
-    							 depthFormat, aspectMask))
+                                 depthFormat, aspectMask))
       return false;
     vkctx.depthBuffer.format = static_cast<VkFormat>(depthFormat);
 
@@ -925,7 +925,7 @@ VulkanAppSDL::prepareDepthBuffer()
     assert(!err);
 
     setImageLayout(vkctx.depthBuffer.image,
-    		       static_cast<VkImageAspectFlags>(aspectMask),
+                   static_cast<VkImageAspectFlags>(aspectMask),
                    VK_IMAGE_LAYOUT_UNDEFINED,
                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                    (VkAccessFlags)0);
@@ -1279,7 +1279,7 @@ VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
                                       stencilRequirement requiredStencil,
                                       depthRequirement requiredDepth,
                                       vk::Format& depthFormat,
-									  vk::ImageAspectFlags& aspectMask)
+                                      vk::ImageAspectFlags& aspectMask)
 {
     struct depthFormatDescriptor {
         stencilRequirement stencil;
@@ -1304,9 +1304,9 @@ VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
             if (formatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
                 depthFormat = format.vkformat;
                 if (format.stencil == eStencil)
-                	aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+                    aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
                 else
-                	aspectMask = vk::ImageAspectFlagBits::eDepth;
+                    aspectMask = vk::ImageAspectFlagBits::eDepth;
                 return true;
             }
         }
@@ -1497,16 +1497,16 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
     }
 #endif
     message << prefix << " [" << pLayerPrefix << "] Code "
-    		<< std::showbase << std::internal << std::setfill('0') << std::hex
-			<< std::setw(8) << msgCode << ": " << std::endl << text;
+            << std::showbase << std::internal << std::setfill('0') << std::hex
+            << std::setw(8) << msgCode << ": " << std::endl << text;
 
     title += " Debug Report";
     if (showDebugReport(mbFlags, title, message.str(), prepared)) {
-		SDL_Event sdlevent;
-		sdlevent.type = SDL_QUIT;
-		sdlevent.quit.timestamp = SDL_GetTicks();
+        SDL_Event sdlevent;
+        sdlevent.type = SDL_QUIT;
+        sdlevent.quit.timestamp = SDL_GetTicks();
 
-		(void)SDL_PushEvent(&sdlevent);
+        (void)SDL_PushEvent(&sdlevent);
     }
 
     /*
@@ -1522,31 +1522,31 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
 
 std::string&
 VulkanAppSDL::wrapText(std::string& source, size_t width,
-		               const std::string& whitespace)
+                       const std::string& whitespace)
 {
-	if (source.length() <= width)
-		return source;
+    if (source.length() <= width)
+        return source;
 
-	// Find the longest "word" and possibly set @a width to that. The
-	// message box width is set from the longest line and many of
-	// the debug messages contain a long URL reference which could
-	// easily be wider than @a width.
-	size_t ws = source.find_first_not_of(whitespace);
-	size_t we = 0;
-	size_t maxWordLength = 0;
-	for (; ws < source.length(); ws = we + 1) {
-		size_t wl;
-		we = source.find_first_of(whitespace, ws);
-		if (we == std::string::npos) we = source.length();
-		wl = we - ws;
-		if (wl > maxWordLength) maxWordLength = wl;
-	}
-	if (maxWordLength > width)
-		width = maxWordLength;
+    // Find the longest "word" and possibly set @a width to that. The
+    // message box width is set from the longest line and many of
+    // the debug messages contain a long URL reference which could
+    // easily be wider than @a width.
+    size_t ws = source.find_first_not_of(whitespace);
+    size_t we = 0;
+    size_t maxWordLength = 0;
+    for (; ws < source.length(); ws = we + 1) {
+        size_t wl;
+        we = source.find_first_of(whitespace, ws);
+        if (we == std::string::npos) we = source.length();
+        wl = we - ws;
+        if (wl > maxWordLength) maxWordLength = wl;
+    }
+    if (maxWordLength > width)
+        width = maxWordLength;
 
-	// If the string is one long word, nothing further to do.
-	if (source.length() == width)
-		return source;
+    // If the string is one long word, nothing further to do.
+    if (source.length() == width)
+        return source;
 
     size_t  endPos = width, startPos = 0;
     while (startPos < source.length())
@@ -1555,17 +1555,17 @@ VulkanAppSDL::wrapText(std::string& source, size_t width,
 
         endPos = source.find_last_of(whitespace, endPos);
         if (endPos == std::string::npos)
-        	break;
+            break;
         if (endPos > startPos) {
-			breakPos = source.find_last_not_of(whitespace, endPos) + 1;
-			if (breakPos == std::string::npos)
-				break;
-			endPos = source.find_first_not_of(whitespace, ++endPos);
-			sizeToElim = endPos - breakPos;
-			source.replace( breakPos, sizeToElim , "\n");
-			startPos = endPos;
+            breakPos = source.find_last_not_of(whitespace, endPos) + 1;
+            if (breakPos == std::string::npos)
+                break;
+            endPos = source.find_first_not_of(whitespace, ++endPos);
+            sizeToElim = endPos - breakPos;
+            source.replace( breakPos, sizeToElim , "\n");
+            startPos = endPos;
         } else { // have to tolerate a long line
-        	startPos += width;
+            startPos += width;
         }
         endPos += width;
     }
@@ -1600,13 +1600,13 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
 #endif
     wrapText(message, 70, " \t\r");
     const SDL_MessageBoxData messageboxdata = {
-        mbFlags,											// .flags
-        NULL,												// .window
-        title.c_str(),										// .title
-        message.c_str(),									// .message
-        (int)(enableAbort ? SDL_arraysize(buttons) : 1),	// .numbuttons
-        buttons,											// .buttons
-        NULL //&colorScheme										// .colorScheme
+        mbFlags,                                            // .flags
+        NULL,                                               // .window
+        title.c_str(),                                      // .title
+        message.c_str(),                                    // .message
+        (int)(enableAbort ? SDL_arraysize(buttons) : 1),    // .numbuttons
+        buttons,                                            // .buttons
+        NULL //&colorScheme                                     // .colorScheme
     };
     int buttonid;
     if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
@@ -1616,7 +1616,7 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
         SDL_Log("no selection");
         return 0;
     } else {
-    	return buttonid;
+        return buttonid;
     }
 }
 

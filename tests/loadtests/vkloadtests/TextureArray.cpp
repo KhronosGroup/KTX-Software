@@ -61,8 +61,8 @@
 
 // Vertex layout for this example
 struct TAVertex {
-	float pos[3];
-	float uv[2];
+    float pos[3];
+    float uv[2];
 };
 
 VulkanLoadTestSample*
@@ -75,7 +75,7 @@ TextureArray::create(VulkanContext& vkctx,
 
 TextureArray::TextureArray(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
-				 const char* const szArgs, const std::string sBasePath)
+                 const char* const szArgs, const std::string sBasePath)
         : VulkanLoadTestSample(vkctx, width, height, szArgs, sBasePath)
 {
     zoom = -15.0f;
@@ -113,17 +113,17 @@ TextureArray::TextureArray(VulkanContext& vkctx,
     ktxVulkanDeviceInfo_Destruct(&vdi);
 
     try {
-    	prepare();
+        prepare();
     } catch (std::exception& e) {
-		(void)e; // To quiet unused variable warnings from some compilers.
-		cleanup();
-    	throw;
+        (void)e; // To quiet unused variable warnings from some compilers.
+        cleanup();
+        throw;
     }
 }
 
 TextureArray::~TextureArray()
 {
-	cleanup();
+    cleanup();
 }
 
 void
@@ -149,28 +149,28 @@ TextureArray::run(uint32_t msTicks)
 void
 TextureArray::cleanup()
 {
-	// Clean up used Vulkan resources
+    // Clean up used Vulkan resources
 
-	// Clean up texture resources
+    // Clean up texture resources
     if (sampler)
         vkctx.device.destroySampler(sampler);
     if (imageView)
         vkctx.device.destroyImageView(imageView);
     ktxVulkanTexture_Destruct(&textureArray, vkctx.device, nullptr);
 
-	if (pipelines.solid)
-		vkctx.device.destroyPipeline(pipelines.solid);
-	if (pipelineLayout)
-		vkctx.device.destroyPipelineLayout(pipelineLayout);
-	if (descriptorSetLayout)
-		vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
+    if (pipelines.solid)
+        vkctx.device.destroyPipeline(pipelines.solid);
+    if (pipelineLayout)
+        vkctx.device.destroyPipelineLayout(pipelineLayout);
+    if (descriptorSetLayout)
+        vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
 
-	vkctx.destroyDrawCommandBuffers();
-	quad.freeResources(vkctx.device);
-	uniformDataVS.freeResources(vkctx.device);
+    vkctx.destroyDrawCommandBuffers();
+    quad.freeResources(vkctx.device);
+    uniformDataVS.freeResources(vkctx.device);
 
-	if (uboVS.instance != nullptr)
-		delete[] uboVS.instance;
+    if (uboVS.instance != nullptr)
+        delete[] uboVS.instance;
 }
 
 void
@@ -183,10 +183,10 @@ TextureArray::buildCommandBuffers()
     clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassBeginInfo(vkctx.renderPass,
-    		nullptr,
-			{{0, 0}, {w_width, w_height}},
-			2,
-			clearValues);
+            nullptr,
+            {{0, 0}, {w_width, w_height}},
+            2,
+            clearValues);
 
     for (uint32_t i = 0; i < vkctx.drawCmdBuffers.size(); ++i)
     {
@@ -197,26 +197,26 @@ TextureArray::buildCommandBuffers()
                 &static_cast<const VkCommandBufferBeginInfo&>(cmdBufInfo)));
 
         vkCmdBeginRenderPass(vkctx.drawCmdBuffers[i],
-            	&static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
-				VK_SUBPASS_CONTENTS_INLINE);
+                &static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
+                VK_SUBPASS_CONTENTS_INLINE);
 
         vk::Viewport viewport(0, 0,
-        					  (float)w_width, (float)w_height,
-							  0.0f, 1.0f);
+                              (float)w_width, (float)w_height,
+                              0.0f, 1.0f);
         vkCmdSetViewport(vkctx.drawCmdBuffers[i], 0, 1,
-        		&static_cast<const VkViewport&>(viewport));
+                &static_cast<const VkViewport&>(viewport));
 
         vk::Rect2D scissor({0, 0}, {w_width, w_height});
         vkCmdSetScissor(vkctx.drawCmdBuffers[i], 0, 1,
-        		&static_cast<const VkRect2D&>(scissor));
+                &static_cast<const VkRect2D&>(scissor));
 
         vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-        		pipelineLayout, 0, 1,
-				&static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
+                pipelineLayout, 0, 1,
+                &static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
 
         VkDeviceSize offsets[1] = { 0 };
         vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, 1,
-        		&static_cast<const VkBuffer&>(quad.vertices.buf), offsets);
+                &static_cast<const VkBuffer&>(quad.vertices.buf), offsets);
         vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf, 0, VK_INDEX_TYPE_UINT32);
         vkCmdBindPipeline(vkctx.drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.solid);
 
@@ -243,7 +243,7 @@ TextureArray::generateQuad()
 #undef dim
 
     vkctx.createBuffer(
-		vk::BufferUsageFlagBits::eVertexBuffer,
+        vk::BufferUsageFlagBits::eVertexBuffer,
         vertexBuffer.size() * sizeof(TAVertex),
         vertexBuffer.data(),
         &quad.vertices.buf,
@@ -254,7 +254,7 @@ TextureArray::generateQuad()
     quad.indexCount = static_cast<uint32_t>(indexBuffer.size());
 
     vkctx.createBuffer(
-    	vk::BufferUsageFlagBits::eIndexBuffer,
+        vk::BufferUsageFlagBits::eIndexBuffer,
         indexBuffer.size() * sizeof(uint32_t),
         indexBuffer.data(),
         &quad.indices.buf,
@@ -286,7 +286,7 @@ TextureArray::setupVertexDescriptions()
     vertices.attributeDescriptions[1] =
         vk::VertexInputAttributeDescription(
             1,
-			VERTEX_BUFFER_BIND_ID,
+            VERTEX_BUFFER_BIND_ID,
             vk::Format::eR32G32Sfloat,
             sizeof(float) * 3);
 
@@ -305,7 +305,7 @@ TextureArray::setupDescriptorPool()
     // Example uses one ubo and one image sampler
     std::vector<vk::DescriptorPoolSize> poolSizes =
     {
-    	{vk::DescriptorType::eUniformBuffer, 1},
+        {vk::DescriptorType::eUniformBuffer, 1},
         {vk::DescriptorType::eCombinedImageSampler, 1}
     };
 
@@ -315,7 +315,7 @@ TextureArray::setupDescriptorPool()
                                         static_cast<uint32_t>(poolSizes.size()),
                                         poolSizes.data());
     vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
-    		                          &descriptorPool);
+                                      &descriptorPool);
 }
 
 void
@@ -324,14 +324,14 @@ TextureArray::setupDescriptorSetLayout()
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings =
     {
         // Binding 0 : Vertex shader uniform buffer
-    	{0,
+        {0,
          vk::DescriptorType::eUniformBuffer,
-		 1,
+         1,
          vk::ShaderStageFlagBits::eVertex},
         // Binding 1 : Fragment shader image sampler
-		{1,
-		 vk::DescriptorType::eCombinedImageSampler,
-		 1,
+        {1,
+         vk::DescriptorType::eCombinedImageSampler,
+         1,
          vk::ShaderStageFlagBits::eFragment},
     };
 
@@ -341,16 +341,16 @@ TextureArray::setupDescriptorSetLayout()
                               setLayoutBindings.data());
 
     vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
-    									   &descriptorSetLayout);
+                                           &descriptorSetLayout);
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo(
-    												{},
-													1,
-													&descriptorSetLayout);
+                                                    {},
+                                                    1,
+                                                    &descriptorSetLayout);
 
     vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
-    								  nullptr,
-									  &pipelineLayout);
+                                      nullptr,
+                                      &pipelineLayout);
 }
 
 void
@@ -358,8 +358,8 @@ TextureArray::setupDescriptorSet()
 {
     vk::DescriptorSetAllocateInfo allocInfo(
             descriptorPool,
-			1,
-			&descriptorSetLayout);
+            1,
+            &descriptorSetLayout);
 
     vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSet);
 
@@ -373,20 +373,20 @@ TextureArray::setupDescriptorSet()
     // Binding 0 : Vertex shader uniform buffer
     writeDescriptorSets.push_back(vk::WriteDescriptorSet(
             descriptorSet,
-			0,
-			0,
-			1,
-			vk::DescriptorType::eUniformBuffer,
-			nullptr,
+            0,
+            0,
+            1,
+            vk::DescriptorType::eUniformBuffer,
+            nullptr,
             &uniformDataVS.descriptor)
-    	);
-	// Binding 1 : Fragment shader texture sampler
-	writeDescriptorSets.push_back(vk::WriteDescriptorSet(
-			descriptorSet,
-			1,
-			0,
-			1,
-			vk::DescriptorType::eCombinedImageSampler,
+        );
+    // Binding 1 : Fragment shader texture sampler
+    writeDescriptorSets.push_back(vk::WriteDescriptorSet(
+            descriptorSet,
+            1,
+            0,
+            1,
+            vk::DescriptorType::eCombinedImageSampler,
             &texArrayDescriptor)
     );
 
@@ -402,7 +402,7 @@ TextureArray::preparePipelines()
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
-			vk::PrimitiveTopology::eTriangleList);
+            vk::PrimitiveTopology::eTriangleList);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
     // Must be false because we haven't enabled the depthClamp device feature.
@@ -417,9 +417,9 @@ TextureArray::preparePipelines()
     blendAttachmentState.blendEnable = false;
     //blendAttachmentState.colorWriteMask = 0xf;
     blendAttachmentState.colorWriteMask = vk::ColorComponentFlagBits::eR
-    									  | vk::ColorComponentFlagBits::eG
-										  | vk::ColorComponentFlagBits::eB
-										  | vk::ColorComponentFlagBits::eA;
+                                          | vk::ColorComponentFlagBits::eG
+                                          | vk::ColorComponentFlagBits::eB
+                                          | vk::ColorComponentFlagBits::eA;
 
     vk::PipelineColorBlendStateCreateInfo colorBlendState;
     colorBlendState.attachmentCount = 1;
@@ -438,11 +438,11 @@ TextureArray::preparePipelines()
     multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
 
     std::vector<vk::DynamicState> dynamicStateEnables = {
-    	vk::DynamicState::eViewport,
-		vk::DynamicState::eScissor
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor
     };
     vk::PipelineDynamicStateCreateInfo dynamicState(
-    		{},
+            {},
             static_cast<uint32_t>(dynamicStateEnables.size()),
             dynamicStateEnables.data());
 
@@ -450,9 +450,9 @@ TextureArray::preparePipelines()
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
     std::string filepath = getAssetPath() + "shaders/";
     shaderStages[0] = loadShader(filepath + "instancing.vert.spv",
-    							vk::ShaderStageFlagBits::eVertex);
+                                vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = loadShader(filepath + "instancing.frag.spv",
-    							vk::ShaderStageFlagBits::eFragment);
+                                vk::ShaderStageFlagBits::eFragment);
 
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
     pipelineCreateInfo.layout = pipelineLayout;
@@ -469,8 +469,8 @@ TextureArray::preparePipelines()
     pipelineCreateInfo.pStages = shaderStages.data();
 
     vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-    		                             &pipelineCreateInfo, nullptr,
-										 &pipelines.solid);
+                                         &pipelineCreateInfo, nullptr,
+                                         &pipelines.solid);
 }
 
 #define LAYERS_DECLARED_IN_SHADER 8U
@@ -485,8 +485,8 @@ TextureArray::prepareUniformBuffers()
 
     // Vertex shader uniform buffer block
     vkctx.createBuffer(
-    	vk::BufferUsageFlagBits::eUniformBuffer,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
         uboSize,
         nullptr,
         &uniformDataVS.buffer,
@@ -494,8 +494,8 @@ TextureArray::prepareUniformBuffers()
         &uniformDataVS.descriptor);
 
     // Array indices and model matrices are fixed
-	// Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
-	int32_t maxLayers = (std::min)(textureArray.layerCount, LAYERS_DECLARED_IN_SHADER);
+    // Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
+    int32_t maxLayers = (std::min)(textureArray.layerCount, LAYERS_DECLARED_IN_SHADER);
     float offset = -1.5f;
     float center = (maxLayers * offset) / 2;
     for (int32_t i = 0; i < maxLayers; i++)
@@ -551,11 +551,11 @@ TextureArray::prepareSamplerAndView()
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
     samplerInfo.maxLod = (float)textureArray.levelCount;
     if (vkctx.gpuFeatures.samplerAnisotropy == VK_TRUE) {
-		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = 8;
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = 8;
     } else {
-    	// vulkan.hpp needs fixing
-    	samplerInfo.maxAnisotropy = 1.0;
+        // vulkan.hpp needs fixing
+        samplerInfo.maxAnisotropy = 1.0;
     }
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
     sampler = vkctx.device.createSampler(samplerInfo);

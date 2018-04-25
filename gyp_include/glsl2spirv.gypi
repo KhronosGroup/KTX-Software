@@ -15,13 +15,13 @@
     ],
   },
   'rules': [
-	{
-	  'rule_name': 'frag2spirv',
+    {
+      'rule_name': 'frag2spirv',
       # Very irritating! A rule can have only 1 extension. Common practice is
       # to use .frag and .vert, so we have to duplicate this rule. Some tools,
       # though not glslc, distinguish shader type by the extension too.
-	  'extension': '.frag',
-	  'message': 'Compiling <(RULE_INPUT_NAME).',
+      'extension': '.frag',
+      'message': 'Compiling <(RULE_INPUT_NAME).',
       # This causes the output to be copied to the "Resources" folder but
       # we don't want to pollute that with all the shaders. We want them in
       # a subdir but there is no way to specify that. Instead we have
@@ -47,10 +47,10 @@
         '<(RULE_INPUT_PATH)'
       ], # action
     }, # frag2spirv
-	{
-	  'rule_name': 'vert2spirv',
-	  'extension': '.vert',
-	  'message': 'Compiling <(RULE_INPUT_NAME).',
+    {
+      'rule_name': 'vert2spirv',
+      'extension': '.vert',
+      'message': 'Compiling <(RULE_INPUT_NAME).',
       #'process_outputs_as_mac_bundle_resources': 1,
       'conditions': [
         ['OS == "mac" or OS == "ios"', {

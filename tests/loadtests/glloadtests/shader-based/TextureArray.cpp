@@ -301,7 +301,7 @@ TextureArray::prepareUniformBuffers()
     glBufferData(GL_UNIFORM_BUFFER, uboSize, 0, GL_DYNAMIC_DRAW);
 
     // Array indices and model matrices are fixed
-	// Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
+    // Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
     int32_t maxLayers = (std::min)(numLayers, LAYERS_DECLARED_IN_SHADER);
     float offset = 1.5f;
     float center = (maxLayers * offset) / 2;

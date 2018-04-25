@@ -95,7 +95,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     
 
     ktxresult = ktxLoadTextureN(pathname.c_str(), &texture, &target, NULL,
-		                        &isMipmapped, &glerror, 0, NULL);
+                                &isMipmapped, &glerror, 0, NULL);
 
     if (KTX_SUCCESS == ktxresult) {
         if (target != GL_TEXTURE_2D) {
@@ -131,7 +131,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     /* By default dithering is enabled. Dithering does not provide visual
      * improvement in this sample so disable it to improve performance. 
      */
-	glDisable(GL_DITHER);
+    glDisable(GL_DITHER);
 
     glEnable(GL_CULL_FACE);
     glClearColor(0.2f,0.3f,0.4f,1.0f);
@@ -170,7 +170,7 @@ TexturedCube::resize(uint32_t uWidth, uint32_t uHeight)
     glLoadMatrixf(glm::value_ptr(matProj));
 
     glMatrixMode( GL_MODELVIEW );
-	assert(GL_NO_ERROR == glGetError());
+    assert(GL_NO_ERROR == glGetError());
 }
 
 void
@@ -186,7 +186,7 @@ TexturedCube::run(uint32_t msTicks)
     glm::mat4 matView = glm::lookAt( eye, look, up );
 
     glLoadIdentity();
-	glLoadMatrixf(glm::value_ptr(matView));
+    glLoadMatrixf(glm::value_ptr(matView));
 
     /* Draw */
     glClear( GL_COLOR_BUFFER_BIT );

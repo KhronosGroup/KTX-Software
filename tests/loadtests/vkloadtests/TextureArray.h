@@ -45,7 +45,7 @@ class TextureArray : public VulkanLoadTestSample
   public:
     TextureArray(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
-				 const char* const szArgs,
+                 const char* const szArgs,
                  const std::string sBasePath);
     ~TextureArray();
 
@@ -103,23 +103,23 @@ class TextureArray : public VulkanLoadTestSample
 
     void cleanup();
 
-	void buildCommandBuffers();
+    void buildCommandBuffers();
 
-	// Setup vertices for a single uv-mapped quad
-	void generateQuad();
+    // Setup vertices for a single uv-mapped quad
+    void generateQuad();
 
-	void setupVertexDescriptions();
-	void setupDescriptorPool();
-	void setupDescriptorSetLayout();
-	void setupDescriptorSet();
-	void preparePipelines();
+    void setupVertexDescriptions();
+    void setupDescriptorPool();
+    void setupDescriptorSetLayout();
+    void setupDescriptorSet();
+    void preparePipelines();
 
-	void prepareUniformBuffers();
-	void updateUniformBufferMatrices();
+    void prepareUniformBuffers();
+    void updateUniformBufferMatrices();
 
     void prepareSamplerAndView();
     
-	void prepare();
+    void prepare();
 
     virtual void viewChanged()
     {

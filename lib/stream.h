@@ -78,7 +78,7 @@ typedef KTX_error_code (*ktxStream_read)(ktxStream* str, void* dst,
  * @brief type for a pointer to a stream skipping function
  */
 typedef KTX_error_code (*ktxStream_skip)(ktxStream* str,
-	                                     const ktx_size_t count);
+                                         const ktx_size_t count);
 
 /**
  * @internal

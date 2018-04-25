@@ -90,15 +90,15 @@ struct VulkanContext {
 
 
     bool getMemoryType(uint32_t typeBits,
-    				   vk::MemoryPropertyFlags requirementsMask,
+                       vk::MemoryPropertyFlags requirementsMask,
                        uint32_t *typeIndex) const;
     uint32_t getMemoryType(uint32_t typeBits,
-    					   vk::MemoryPropertyFlags requirementsMask) const;
+                           vk::MemoryPropertyFlags requirementsMask) const;
 
     // Create a buffer, fill it with data (if != NULL) and bind buffer memory
     bool createBuffer(
         vk::BufferUsageFlags usageFlags,
-		vk::MemoryPropertyFlags memoryPropertyFlags,
+        vk::MemoryPropertyFlags memoryPropertyFlags,
         vk::DeviceSize size,
         void *data,
         vk::Buffer *buffer,
@@ -121,7 +121,7 @@ struct VulkanContext {
     // Overload to pass memory property flags
     bool createBuffer(
         vk::BufferUsageFlags usage,
-		vk::MemoryPropertyFlags memoryPropertyFlags,
+        vk::MemoryPropertyFlags memoryPropertyFlags,
         vk::DeviceSize size,
         void* data,
         vk::Buffer* buffer,
@@ -129,8 +129,8 @@ struct VulkanContext {
         vk::DescriptorBufferInfo* descriptor);
 
     vk::PipelineShaderStageCreateInfo loadShader(std::string filename,
-											vk::ShaderStageFlagBits stage,
-											const char* const modname = "main");
+                                            vk::ShaderStageFlagBits stage,
+                                            const char* const modname = "main");
     vk::ShaderModule loadShader(std::string filename);
     uint32_t* readSpv(const char *filename, size_t *pSize);
 };
