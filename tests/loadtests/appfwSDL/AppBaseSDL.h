@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 #ifndef APP_BASE_SDL_H_1456211087
 #define APP_BASE_SDL_H_1456211087

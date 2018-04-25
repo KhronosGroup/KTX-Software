@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 #ifndef VULKAN_LOAD_TEST_SAMPLE_H
 #define VULKAN_LOAD_TEST_SAMPLE_H

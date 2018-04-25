@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /*
 Copyright (c) 2010 The Khronos Group Inc.

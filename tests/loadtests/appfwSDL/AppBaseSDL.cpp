@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /* $Id: f63e0a9e6eed51ed84a8eea1eff0708c8a6af22b $ */
 

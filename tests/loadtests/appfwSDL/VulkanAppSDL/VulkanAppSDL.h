@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 #ifndef VULKAN_APP_SDL_H_1456211188
 #define VULKAN_APP_SDL_H_1456211188

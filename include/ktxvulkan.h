@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 #ifndef KTX_H_C54B42AEE39611E68E1E4FF8C51D1C66
 #define KTX_H_C54B42AEE39611E68E1E4FF8C51D1C66

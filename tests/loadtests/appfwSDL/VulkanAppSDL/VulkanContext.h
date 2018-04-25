@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 #ifndef VULKAN_TEXTURE_H_229895365400979164311947449304284143508
 #define VULKAN_TEXTURE_H_229895365400979164311947449304284143508
