@@ -21,7 +21,7 @@
  * @file    shaders.c
  * @brief   Shaders used by the DrawTexture and TexturedCube samples.
  *
- * @author    Mark Callow
+ * @author Mark Callow, www.edgewise-consulting.com
  */
 
 #include "GL/glcorearb.h"

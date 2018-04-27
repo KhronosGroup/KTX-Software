@@ -1,16 +1,6 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
-/**
- * @internal
- * @file wthelper.h
- * @~English
- *
- * @brief Helper class for writer tests.
- *
- * @author Mark Callow, Edgewise Consulting
- */
-
 /*
  * ©2018 Mark Callow.
  *
@@ -25,6 +15,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ */
+
+/**
+ * @internal
+ * @file wthelper.h
+ * @~English
+ *
+ * @brief Helper class for writer tests.
+ *
+ * @author Mark Callow, Edgewise Consulting
  */
 
 #include "gl_format.h"

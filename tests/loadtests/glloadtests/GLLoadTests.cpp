@@ -2,7 +2,7 @@
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
- * ©2015 - 2018 Mark Callow, <khronos at callow dot im>.
+ * ©2015-2018 Mark Callow.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@
  *
  * @brief Implementation of app for running a set of OpenGL load tests.
  *
- * @author Mark Callow
- * @copyright (c) 2015, Mark Callow.
+ * @author Mark Callow, www.edgewise-consulting.com
+ * @copyright © 2015-2018, Mark Callow.
  */
 
 #include <exception>
