@@ -148,7 +148,8 @@ createInfo.baseWidth = 2048;
 createInfo.baseHeight = 1024;
 createInfo.baseDepth = 16;
 createInfo.numDimensions = 3.
-createInfo.numLevels = log2(2048) + 1
+// Note: it is not necessary to provide a full mipmpa pyramid.
+createInfo.numLevels = log2(createInfo.baseWidth) + 1
 createInfo.numLayers = 1;
 createInfo.numFaces = 1;
 createInfo.isArray = KTX_FALSE;
@@ -165,7 +166,8 @@ layer = 0;
 faceSlice = 0;                           
 result = ktxTexture_SetImageFromMemory(texture, level, layer, faceSlice,
                                        src, srcSize);
-// Repeat for the other 15 slices of the base level and all other levels.
+// Repeat for the other 15 slices of the base level and all other levels
+// up to createInfo.numLevels.
 
 ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
 ~~~~~~~~~~~~~~~~

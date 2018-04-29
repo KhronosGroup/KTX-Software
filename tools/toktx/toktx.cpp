@@ -25,11 +25,15 @@
 // add ..\imdebug.lib to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
+#include <cstdlib>
+#include <sstream>
+#include <vector>
+#include <getopt.h>
+
 #include "stdafx.h"
 #include "GL/glcorearb.h"
 #include "ktx.h"
 #include "image.h"
-#include <cstdlib>
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
@@ -86,16 +90,17 @@
 
 struct commandOptions {
     _TCHAR*      appName;
-    bool         alpha;
-    bool         automipmap;
-    bool         cubemap;
-    bool         luminance;
-    bool         metadata;
-    bool         mipmap;
-    bool         two_d;
-    bool         useStdin;
-    bool         lower_left_maps_to_s0t0;
+    int          alpha;
+    int          automipmap;
+    int          cubemap;
+    int          luminance;
+    int          metadata;
+    int          mipmap;
+    int          two_d;
+    int          useStdin;
+    int          lower_left_maps_to_s0t0;
     _TCHAR*      outfile;
+    unsigned int levels;
     unsigned int numInputFiles;
     unsigned int firstInfileIndex;
 };
@@ -103,7 +108,8 @@ struct commandOptions {
 static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
-static bool processOption(const _TCHAR* option, struct commandOptions& options);
+static void processOptions(int argc, _TCHAR* const argv[],
+                           struct commandOptions& options);
 static void yflip(unsigned char*& srcImage, unsigned int imageSize,
                   unsigned int w, unsigned int h, unsigned int pixelSize);
 #if IMAGE_DEBUG
@@ -141,16 +147,23 @@ Create a KTX file from netpbm format files.
         created. With this option one for a 2D texture is created instead.</dd>
     <dt>--automipmap</dt>
     <dd>A mipmap pyramid will be automatically generated when the KTX
-        file is loaded. This option is mutually exclusive with @b --mipmap.</dd>
+        file is loaded. This option is mutually exclusive with @b --levels and
+        @b --mipmap.</dd>
     <dt>--cubemap</dt>
     <dd>KTX file is for a cubemap. At least 6 @e infiles must be provided,
         more if --mipmap is also specified. Provide the images in the
         order: +X, -X, +Y, -Y, +Z, -Z.</dd>
+    <dt>--levels levels</dt>
+    <dd>KTX file is for a mipmap pyramid with @e levels rather than a
+        full pyramid. @e levels must be <= the maximum number of levels
+        determined from the size of the base image. Provide the base level
+        image first. This option is mutually exclusive with @b --automipmap
+        amd @b --mipmap.
     <dt>--mipmap</dt>
-    <dd>KTX file is for a mipmap pyramid. One @e infile per level must
+    <dd>KTX file is for a full mipmap pyramid. One @e infile per level must
         be provided. Provide the base-level image first then in order
         down to the 1x1 image. This option is mutually exclusive with
-        @b --automipmap.</dd>
+        @b --automipmap and --levels.</dd>
     <dt>--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
@@ -205,8 +218,9 @@ Create a KTX file from netpbm format files.
 @section history HISTORY
 
 @version 1.3:
-Tue Apr 24 15:44:46 2018 +0900
+Sat, 28 Apr 2018 14:41:22 +0900
  - Switch to ktxTexture API.
+ - Add --levels option.
  - Add --2d option.
  
 @version 1.2:
@@ -250,7 +264,8 @@ usage(_TCHAR* appName)
         "               exclusive with --luminance.\n"
 #endif
         "  --automipmap A mipmap pyramid will be automatically generated when the KTX\n"
-        "               file is loaded. This option is mutually exclusive with --mipmap.\n"
+        "               file is loaded. This option is mutually exclusive with --levels\n"
+        "               and --mipmap.\n"
         "  --cubemap    KTX file is for a cubemap. At least 6 <infile>s must be provided,\n"
         "               more if --mipmap is also specified. Provide the images in the\n"
         "               order: +X, -X, +Y, -Y, +Z, -Z.\n"
@@ -260,10 +275,16 @@ usage(_TCHAR* appName)
         "               RED or RG textures. This option is mutually exclusive with\n"
         "               --alpha.\n"
 #endif
-        "  --mipmap     KTX file is for a mipmap pyramid. One <infile> per level must\n"
-        "               be provided. Provide the base-level image first then in order\n"
-        "               down to the 1x1 image. This option is mutually exclusive with\n"
-        "               --automipmap.\n"
+        "  --levels levels\n"
+        "               KTX file is for a mipmap pyramid with @e levels rather than a\n"
+        "               full pyramid. @e levels must be <= the maximum number of levels\n"
+        "               determined from the size of the base image. Provide the base\n"
+        "               level image first. This option is mutually exclusive with\n"
+        "               --automipmap and --mipmap."
+        "  --mipmap     KTX file is for a full mipmap pyramid. One <infile> per level\n"
+        "               must be provided. Provide the base-level image first then in\n"
+        "               order down to the 1x1 image. This option is mutually exclusive\n"
+        "               with --automipmap and --levels.\n"
         "  --nometadata Do not write KTXorientation metadata into the output file.\n"
         "               Use of this option is not recommended.\n"
         "  --upper_left_maps_to_s0t0\n"
@@ -399,22 +420,30 @@ int _tmain(int argc, _TCHAR* argv[])
                         createInfo.generateMipmaps = KTX_TRUE;
                     } else {
                         createInfo.generateMipmaps = KTX_FALSE;
+                        GLuint levels = 0;
                         if (options.mipmap) {
                             // Calculate number of miplevels
                             GLuint max_dim = w > h ? w : h;
-                            GLint levels = log2(max_dim) + 1;
-                            // Check we have enough.
-                            if (levels * createInfo.numFaces > options.numInputFiles) {
-                                fprintf(stderr,
-                                        "%s: not enough input files for %d mipmap levels and %d faces\n",
-                                        options.appName, levels,
-                                        createInfo.numFaces);
-                                exitCode = 1;
-                                goto cleanup;
-                            }
-                            createInfo.numLevels = levels;
-                        } else
-                            createInfo.numLevels = 1;
+                            levels = log2(max_dim) + 1;
+                        } else {
+                            levels = options.levels;
+                        }
+                        // Check we have enough.
+                        if (levels * createInfo.numFaces > options.numInputFiles) {
+                            fprintf(stderr,
+                                    "%s: too few files for %d mipmap levels and %d faces.\n",
+                                    options.appName, levels,
+                                    createInfo.numFaces);
+                            exitCode = 1;
+                            goto cleanup;
+                        } else if (levels * createInfo.numFaces < options.numInputFiles) {
+                            fprintf(stderr,
+                                    "%s: too many files for %d mipmap levels and %d faces."
+                                    " Extras will be ignored.\n",
+                                    options.appName, levels,
+                                    createInfo.numFaces);
+                        }
+                        createInfo.numLevels = levels;
                     }
                     ret = ktxTexture_Create(&createInfo,
                                             KTX_TEXTURE_CREATE_ALLOC_STORAGE,
@@ -447,9 +476,9 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
 #endif
                 } else {
-                    if (options.mipmap) {
-                        if (face == (options.cubemap ? 6 : 1)) {
-                            level++;
+                    if (face == (options.cubemap ? 6 : 1)) {
+                        level++;
+                        if (level < createInfo.numLevels) {
                             levelWidth >>= 1;
                             levelHeight >>= 1;
                             if (w != levelWidth || h != levelHeight) {
@@ -459,6 +488,8 @@ int _tmain(int argc, _TCHAR* argv[])
                                 goto cleanup;
                             }
                             face = 0;
+                        } else {
+                            break;
                         }
                     }
                 }
@@ -563,23 +594,23 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     int i, addktx = 0;
     unsigned int outfilenamelen;
     const _TCHAR* toktx_options;
-    _TCHAR option[31];
     _TCHAR* slash;
 
-    options.alpha = false;
-    options.automipmap = false;
-    options.cubemap = false;
-    options.luminance = false;
-    options.metadata = true;
-    options.mipmap = false;
+    options.alpha = 0;
+    options.automipmap = 0;
+    options.cubemap = 0;
+    options.luminance = 0;
+    options.metadata = 1;
+    options.mipmap = 0;
     options.outfile = 0;
     options.numInputFiles = 0;
     options.firstInfileIndex = 0;
     options.useStdin = false;
+    options.levels = 1;
     /* The OGLES WG recommended approach, even though it is opposite
-     * to the OpenGL convention. Suki dewa nai.
+     * to the OpenGL convention. Suki ja nai.
      */
-    options.lower_left_maps_to_s0t0 = false;
+    options.lower_left_maps_to_s0t0 = 0;
 
     slash = _tcsrchr(argv[0], '\\');
     if (slash == NULL)
@@ -588,43 +619,62 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 
     // NOTE: If options with arguments are ever added, this option handling
     // code will need revamping.
+
     toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
-    while (toktx_options && _stscanf(toktx_options, "%30s", (char*)&option) != EOF) {
-        if (processOption(option, options) == 0) {
-            fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable\n");
+    if (toktx_options) {
+        std::istringstream iss(toktx_options);
+        std::vector<std::string> sarglist;
+        std::vector<const _TCHAR*> arglist;
+        // There seems no way to get getopt_long (processOptions) to start at
+        // index 0 so...
+        arglist.push_back("");
+        // Why the double loop? It's because in clang 902.0.39.1, if both
+        // push_backs are in a single loop the first item in arglist turns
+        // to an empty string on the second sarglist.push_back.
+        for (std::string w; iss >> w; )
+            sarglist.push_back(w);
+        for (ktx_uint32_t i = 0; i < (ktx_uint32_t)sarglist.size(); i++)
+            arglist.push_back(sarglist[i].c_str());
+
+        processOptions((int)arglist.size(), (char* const*)&arglist.front(),
+                        options);
+        if (optind != (int)arglist.size()) {
+            fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable.\n");
             usage(options.appName);
             exit(1);
         }
-        toktx_options = _tcschr(toktx_options, ' ');
-        if (toktx_options)
-            while (*toktx_options == ' ') toktx_options++;
     }
 
-    if (argc > 2
-        && _tcscmp(argv[argc-2], "-NSDocumentRevisionsDebugMode") == 0
-        && _tcscmp(argv[argc-1], "YES") == 0) {
-        // -NSDocumentRevisionsDebugMode YES is appended to the end
-        // of the command by Xcode when debugging and "Allow debugging when
-        // using document Versions Browser" is checked in the scheme. It
-        // defaults to checked and is saved in a user-specific file not the
-        // pbxproj file so it can't be disabled in a generated project.
-        // Remove these from the arguments under consideration.
-        argc -= 2;
-    }
-    for (i = 1; i < argc; i++) {
-        if (!processOption(argv[i], options))
-            break; // No more options
-    }
-    
-    if (argc - i < 1) {
+    optreset = 1;
+    optind = 1;
+    processOptions(argc, argv, options);
+
+    if (options.alpha && (!ALLOW_LEGACY_FORMAT_CREATION || options.luminance)) {
         usage(options.appName);
         exit(1);
     }
-    if (options.cubemap && (argc - i < 7)) {
+    if (options.luminance && !ALLOW_LEGACY_FORMAT_CREATION) {
         usage(options.appName);
         exit(1);
     }
+    if (options.mipmap && options.levels > 1) {
+        usage(options.appName);
+        exit(1);
+    }
+    if (options.automipmap && (options.mipmap || options.levels > 1)) {
+        usage(options.appName);
+        exit(1);
+    }
+    ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
+    if (argc - optind < requiredInputFiles + 1) {
+        // stdin is permitted for a single input file.
+        if (requiredInputFiles != 1 || argc - optind < 1) {
+            usage(options.appName);
+            exit(1);
+        }
+    }
 
+    i = optind;
     outfilenamelen = (unsigned int)_tcslen(argv[i]) + 1;
     if (_tcscmp(argv[i], "-") != 0 && _tcsrchr(argv[i], '.') == NULL) {
         addktx = 1;
@@ -661,75 +711,66 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
      */
 }
 
-
 /*
- * @brief process a potential command line option
- * 
- * @return  false, if not an option; true, if it is an option
+ * @brief process potential command line options
  *
- * @param[in]    option        a word from the command line.
- * @param[inout] options       commandOptions struct in which option information
- *                             is set.
+ * @return
+ *
+ * @param[in]     argc,       number of words in the command line.
+ * @param[in]     argv        words from the command line.
+ * @param[in,out] options     commandOptions struct in which option information
+ *                            is set.
  */
-static bool
-processOption(const _TCHAR* option, struct commandOptions& options)
+static void
+processOptions(int argc, _TCHAR* const argv[],
+               struct commandOptions& options)
 {
-    bool retVal = true;
+    char ch;
+    static struct option option_list[] = {
+        { "help", no_argument, NULL, 'h' },
+        { "version", no_argument, NULL, 'v' },
+        { "2d", no_argument, &options.two_d, 1 },
+        { "alpha", no_argument, &options.alpha, 1 },
+        { "automipmap", no_argument, &options.automipmap, 1 },
+        { "cubemap", no_argument, &options.cubemap, 1 },
+        { "levels", required_argument, NULL, 'l' },
+        { "luminance", no_argument, &options.luminance, 1 },
+        { "mipmap", no_argument, &options.mipmap, 1 },
+        { "nometadata", no_argument, &options.metadata, 0 },
+        { "lower_left_maps_to_s0t0", no_argument, &options.lower_left_maps_to_s0t0, 1 },
+        { "upper_left_maps_to_s0t0", no_argument, &options.lower_left_maps_to_s0t0, 0 },
+        // -NSDocumentRevisionsDebugMode YES is appended to the end
+        // of the command by Xcode when debugging and "Allow debugging when
+        // using document Versions Browser" is checked in the scheme. It
+        // defaults to checked and is saved in a user-specific file not the
+        // pbxproj file so it can't be disabled in a generated project.
+        // Remove these from the arguments under consideration.
+        { "-NSDocumentRevisionsDebugMode", required_argument, NULL, 'i' },
+        { NULL, 0, NULL, 0 }
+    };
 
-    if (_tcsncmp(option, "--", 2) == 0) {
-        if (_tcscmp(&option[2], "help") == 0) {
+    while ((ch = getopt_long(argc, argv, "hvl:", option_list, NULL)) != -1) {
+        switch (ch) {
+          case 0:
+            break;
+          case 'l':
+            options.levels = atoi(optarg);
+            break;
+          case 'h':
             usage(options.appName);
             exit(0);
-        } else if (_tcscmp(&option[2], "version") == 0) {
+          case 'v':
             version(options.appName);
             exit(0);
-        } else if (_tcscmp(&option[2], "alpha") == 0) {
-            if (!ALLOW_LEGACY_FORMAT_CREATION || options.luminance) {
-                usage(options.appName);
-                exit(1);
-            }
-            options.alpha = true;
-        } else if (_tcscmp(&option[2], "automipmap") == 0) {
-            if (options.mipmap) {
-                usage(options.appName);
-                exit(1);
-            } else
-                options.automipmap = 1;
-        } else if (_tcscmp(&option[2], "mipmap") == 0) {
-            if (options.automipmap) {
-                usage(options.appName);
-                exit(1);
-            } else
-                options.mipmap = 1;
-        } else if (_tcscmp(&option[2], "cubemap") == 0) {
-            options.cubemap = true;
-        } else if (_tcscmp(&option[2], "luminance") == 0) {
-            if (!ALLOW_LEGACY_FORMAT_CREATION || options.alpha) {
-                usage(options.appName);
-                exit(1);
-            }
-            options.luminance = true;
-        } else if (_tcscmp(&option[2], "nometadata") == 0) {
-            options.metadata = false;
-        } else if (_tcscmp(&option[2], "upper_left_maps_to_s0t0") == 0) {
-            options.lower_left_maps_to_s0t0 = false;
-        } else if (_tcscmp(&option[2], "lower_left_maps_to_s0t0") == 0) {
-            options.lower_left_maps_to_s0t0 = true;
-        } else if (_tcscmp(&option[2], "2d") == 0) {
-            options.two_d = true;
-        } else {
-            // unrecognized argument
+          case 'i':
+            break;
+          case '?':
+          case ':':
+          default:
             usage(options.appName);
             exit(1);
         }
-    } else if (option[0] == _T('-') && option[1] != _T('\0')) {
-            // old style option specification
-            usage(options.appName);
-            exit(1);
-    } else
-        retVal = false;
-
-    return retVal;
+    }
 }
 
 static ktx_uint32_t
@@ -756,8 +797,8 @@ log2(ktx_uint32_t v)
 
 
 static void
-yflip(unsigned char*& srcImage, unsigned int imageSize, unsigned int w, unsigned int h,
-      unsigned int pixelSize)
+yflip(unsigned char*& srcImage, unsigned int imageSize,
+      unsigned int w, unsigned int h, unsigned int pixelSize)
 {
     int rowSize = w * pixelSize;
     unsigned char *flipped, *temp;

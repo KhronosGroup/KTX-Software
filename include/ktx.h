@@ -147,8 +147,8 @@ typedef struct ktxKVListEntry* ktxHashList;
  * @~English
  * @brief Class representing a texture.
  *
- * ktxTextures should be only by one of the ktxTexture_Create* functions and
- * these fields should be considered read-only.
+ * ktxTextures should be created only by one of the ktxTexture_Create*
+ * functions and these fields should be considered read-only.
  */
 typedef struct {
     ktx_uint32_t glFormat; /*!< Format of the texture data, e.g., GL_RGB. */
@@ -162,15 +162,17 @@ typedef struct {
       ktx_bool_t isCompressed; /*!< KTX_TRUE if @c glInternalFormat is that of
                                     a compressed texture. */
       ktx_bool_t generateMipmaps; /*!< KTX_TRUE if mipmaps should be generated
-                                       for the texture when loading into
-                                       OpenGL. */
+                                       for the texture by ktxTexture_GLUpload()
+                                       or ktx_Texture_VkUpload(). */
     ktx_uint32_t baseWidth;  /*!< Width of the base level of the texture. */
     ktx_uint32_t baseHeight; /*!< Height of the base level of the texture. */
     ktx_uint32_t baseDepth;  /*!< Depth of the base level of the texture. */
     ktx_uint32_t numDimensions; /*!< Number of dimensions in the texture: 1, 2
                                      or 3. */
     ktx_uint32_t numLevels; /*!< Number of mip levels in the texture. Should be
-                                 1, if @c generateMipmaps is KTX_TRUE; */
+                                 1, if @c generateMipmaps is KTX_TRUE. Can be
+                                 less than a full pyramid but always starts at
+                                 the base level. */
     ktx_uint32_t numLayers; /*!< Number of array layers in the texture. */
     ktx_uint32_t numFaces; /*!< Number of faces, 6 for cube maps, 1 otherwise.*/
      ktxHashList kvDataHead; /*!< Head of the hash list of metadata. */
