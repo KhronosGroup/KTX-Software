@@ -32,72 +32,58 @@
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
       "--npot testimages/hi_mark.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
       "--npot testimages/luminance_reference.ktx",
-      GLLoadTests::CompressionType::eNone,
       "LUMINANCE8 NPOT"
     },
     { DrawTexture::create,
       "testimages/orient-up.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8 (no metadata)"
     },
     { DrawTexture::create,
       "testimages/orient-up-metadata.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8 + KTXOrientation up"
     },
     { DrawTexture::create,
       "testimages/orient-down-metadata.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8 + KTXOrientation down"
     },
     { DrawTexture::create,
       "testimages/etc1.ktx",
-      GLLoadTests::CompressionType::eNone,
       "ETC1 RGB8"
     },
     { DrawTexture::create,
       "testimages/etc2-rgb.ktx",
-      GLLoadTests::CompressionType::eNone,
       "ETC2 RGB8"
     },
     { DrawTexture::create,
       "testimages/etc2-rgba1.ktx",
-      GLLoadTests::CompressionType::eNone,
       "ETC2 RGB8A1"
     },
     { DrawTexture::create,
       "testimages/etc2-rgba8.ktx",
-      GLLoadTests::CompressionType::eNone,
       "ETC2 RGB8A8"
     },
     { DrawTexture::create,
       "testimages/rgba-reference.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGBA8"
     },
     { TexturedCube::create,
       "testimages/rgb-reference.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8"
     },
     { TexturedCube::create,
       "testimages/rgb-amg-reference.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8 + Auto Mipmap"
     },
     { TexturedCube::create,
       "testimages/rgb-mipmap-reference.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8 Color/level mipmap"
     },
     { TexturedCube::create,
       "--npot testimages/hi_mark_sq.ktx",
-      GLLoadTests::CompressionType::eNone,
       "RGB8 NPOT HI Logo"
     },
 };

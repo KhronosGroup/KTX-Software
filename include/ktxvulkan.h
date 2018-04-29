@@ -160,6 +160,9 @@ KTX_error_code
 ktxTexture_VkUpload(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
 
+VkFormat
+ktxTexture_GetVkFormat(ktxTexture* This);
+
 #ifdef __cplusplus
 }
 #endif

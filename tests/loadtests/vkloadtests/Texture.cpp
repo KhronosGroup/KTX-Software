@@ -41,10 +41,11 @@
 #include <assert.h>
 #include <exception>
 #include <vector>
-
 #include <ktxvulkan.h>
-#include <argparser.h>
+
+#include "argparser.h"
 #include "Texture.h"
+#include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
@@ -102,6 +103,22 @@ Texture::Texture(VulkanContext& vkctx,
                 << filename << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
+
+    vk::Format vkFormat
+                = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    vk::FormatProperties properties;
+    vkctx.gpu.getFormatProperties(vkFormat, &properties);
+    vk::FormatFeatureFlags& features =  tiling == vk::ImageTiling::eLinear ?
+                                        properties.linearTilingFeatures :
+                                        properties.optimalTilingFeatures;
+    vk::FormatFeatureFlags wantedFeatures =
+             vk::FormatFeatureFlagBits::eSampledImage
+           | vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
+    if (!(features & wantedFeatures)) {
+        ktxTexture_Destroy(kTexture);
+        throw unsupported_ttype();
+    }
+
     ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
                                       static_cast<VkImageTiling>(tiling),
                                       VK_IMAGE_USAGE_SAMPLED_BIT,

@@ -192,26 +192,10 @@ VulkanLoadTests::invokeSample(Direction dir)
 
     for (;;) {
         try {
-            switch (sampleInv->ctype) {
-              case CompressionType::eNone:
-                break;
-              case CompressionType::eBC:
-                if (!vkctx.gpuFeatures.textureCompressionBC)
-                    throw unsupported_ctype();
-                break;
-              case CompressionType::eASTC_LDR:
-                if (!vkctx.gpuFeatures.textureCompressionASTC_LDR)
-                    throw unsupported_ctype();
-                break;
-              case CompressionType::eETC2:
-                if (!vkctx.gpuFeatures.textureCompressionETC2)
-                    throw unsupported_ctype();
-                break;
-            }
             pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
                                     sampleInv->args, sBasePath);
             break;
-        } catch (unsupported_ctype& e) {
+        } catch (unsupported_ttype& e) {
             (void)e; // To quiet unused variable warnings from some compilers.
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
             sampleInv = &siSamples[sampleIndex];
@@ -238,96 +222,75 @@ VulkanLoadTests::onFPSUpdate()
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
-      "testimages/rgba-reference.ktx",
-      VulkanLoadTests::CompressionType::eNone,
-      "RGBA8 2D"
-    },
-    { Texture::create,
-        "--linear-tiling testimages/rgba-reference.ktx",
-        VulkanLoadTests::CompressionType::eNone,
-        "RGBA8 2D using Linear Tiling"
-    },
-#if !defined(__IPHONEOS__) && !defined(__MACOSX__)
-    // Uncompressed RGB formats not supported by Metal.
-    { Texture::create,
       "testimages/orient-down-metadata.ktx",
-      VulkanLoadTests::CompressionType::eNone,
      "RGB8 2D + KTXOrientation down"
     },
     { Texture::create,
       "testimages/orient-up-metadata.ktx",
-      VulkanLoadTests::CompressionType::eNone,
       "RGB8 2D + KTXOrientation up"
     },
-#endif
+    { Texture::create,
+      "testimages/rgba-reference.ktx",
+      "RGBA8 2D"
+    },
+    { Texture::create,
+        "--linear-tiling testimages/rgba-reference.ktx",
+        "RGBA8 2D using Linear Tiling"
+    },
     { Texture::create,
       "testimages/etc2-rgb.ktx",
-      VulkanLoadTests::CompressionType::eETC2,
       "ETC2 RGB8"
     },
     { Texture::create,
       "testimages/etc2-rgba8.ktx",
-      VulkanLoadTests::CompressionType::eETC2,
       "ETC2 RGB8A8"
     },
     { Texture::create,
       "testimages/etc2-sRGB.ktx",
-      VulkanLoadTests::CompressionType::eETC2,
       "ETC2 sRGB8"
     },
     { Texture::create,
         "testimages/etc2-sRGBa8.ktx",
-        VulkanLoadTests::CompressionType::eETC2,
         "ETC2 sRGB8a8"
     },
     { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx",
-        VulkanLoadTests::CompressionType::eBC,
         "BC2 (S3TC DXT3) Compressed 2D"
     },
     { TextureArray::create,
         "testimages/texturearray_bc3_unorm.ktx",
-        VulkanLoadTests::CompressionType::eBC,
         "BC3 (S3TC DXT5) Compressed Texture Array"
     },
     { TextureArray::create,
         "testimages/texturearray_astc_8x8_unorm.ktx",
-        VulkanLoadTests::CompressionType::eASTC_LDR,
         "ASTC 8x8 Compressed Texture Array"
     },
     { TextureArray::create,
         "testimages/texturearray_etc2_unorm.ktx",
-        VulkanLoadTests::CompressionType::eETC2,
         "ETC2 Compressed Texture Array"
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_bc3_unorm.ktx",
-        VulkanLoadTests::CompressionType::eBC,
         "BC2 (S3TC DXT3) Compressed Cube Map"
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_astc_8x8_unorm.ktx",
-        VulkanLoadTests::CompressionType::eASTC_LDR,
         "ASTC Compressed Cube Map"
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_etc2_unorm.ktx",
-        VulkanLoadTests::CompressionType::eETC2,
         "ETC2 Compressed Cube Map"
     },
     { TextureCubemap::create,
         "--preload testimages/cubemap_yokohama_bc3_unorm.ktx",
-        VulkanLoadTests::CompressionType::eBC,
         "BC2 (S3TC DXT3) Compressed Cube Map from Preloaded Images."
     },
     { TextureCubemap::create,
         "--preload testimages/cubemap_yokohama_astc_8x8_unorm.ktx",
-        VulkanLoadTests::CompressionType::eASTC_LDR,
         "ASTC Compressed Cube Map from Preloaded Images."
     },
     { TextureCubemap::create,
         "--preload testimages/cubemap_yokohama_etc2_unorm.ktx",
-        VulkanLoadTests::CompressionType::eETC2,
         "ETC2 Compressed Cube Map from Preloaded Images."
     },
 #if 0

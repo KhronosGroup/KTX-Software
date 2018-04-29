@@ -42,6 +42,7 @@
 #include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 #include "TextureArray.h"
+#include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
@@ -85,6 +86,19 @@ TextureArray::TextureArray(VulkanContext& vkctx,
         << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
+
+    vk::Format vkFormat
+                = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    vk::FormatProperties properties;
+    vkctx.gpu.getFormatProperties(vkFormat, &properties);
+    vk::FormatFeatureFlags wantedFeatures =
+             vk::FormatFeatureFlagBits::eSampledImage
+           | vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
+    if (!(properties.optimalTilingFeatures & wantedFeatures)) {
+         ktxTexture_Destroy(kTexture);
+         throw unsupported_ttype();
+    }
+
     ktxresult = ktxTexture_VkUpload(kTexture, &vdi, &textureArray);
     
     if (KTX_SUCCESS != ktxresult) {

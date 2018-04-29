@@ -784,6 +784,24 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
+/** @memberof ktxTexture
+ * @~English
+ * @brief Return the VkFormat enum of a ktxTexture object.
+ *
+ * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
+ *         there is no mapping from the GL internalformat and format.
+ */
+VkFormat
+ktxTexture_GetVkFormat(ktxTexture* This)
+{
+    VkFormat vkFormat;
+
+    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
+    if (vkFormat == VK_FORMAT_UNDEFINED)
+        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
+    return vkFormat;
+}
+
 //======================================================================
 //  Utilities
 //======================================================================

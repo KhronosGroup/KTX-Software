@@ -33,6 +33,11 @@
 class unsupported_ctype : public std::runtime_error {
   public:
     unsupported_ctype()
-         : std::runtime_error("Unsupported compression type") { }
+         : std::runtime_error("Unsupported compression format") { }
 };
 
+class unsupported_ttype : public std::runtime_error {
+  public:
+    unsupported_ttype()
+         : std::runtime_error("Unsupported texture format") { }
+};

@@ -38,17 +38,10 @@
 
 class GLLoadTests : public GLAppSDL {
   public:
-    enum class CompressionType {
-        eNone,
-        eBC,
-        eASTC_LDR,
-        eETC2
-    };
     /** A table of samples and arguments */
     typedef struct sampleInvocation_ {
         const LoadTestSample::PFN_create createSample;
         const char* const args;
-        const CompressionType ctype;
         const char* const title;
     } sampleInvocation;
     
