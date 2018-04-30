@@ -1087,8 +1087,6 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
             VK_IMAGE_LAYOUT_UNDEFINED,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             mipSubRange);
-            //VK_PIPELINE_STAGE_TRANSFER_BIT,
-            //VK_PIPELINE_STAGE_HOST_BIT);
 
         // Blit from previous level
         vkCmdBlitImage(
@@ -1109,8 +1107,6 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             mipSubRange);
-            //VK_PIPELINE_STAGE_HOST_BIT,
-            //VK_PIPELINE_STAGE_TRANSFER_BIT);
     }
 
     // After the loop, all mip layers are in TRANSFER_SRC layout.
