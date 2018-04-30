@@ -32,6 +32,7 @@
 #endif
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vulkan/vulkan.h>
@@ -71,10 +72,13 @@ static void
 setImageLayout(
     VkCommandBuffer cmdBuffer,
     VkImage image,
-    VkImageAspectFlags aspectMask,
     VkImageLayout oldLayout,
     VkImageLayout newLayout,
     VkImageSubresourceRange subresourceRange);
+
+static void
+generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
+                VkFilter filter, VkImageLayout initialLayout);
 
 /**
  * @defgroup ktx_vkloader Vulkan Texture Image Loader
@@ -354,14 +358,20 @@ linearTilingCallback(int miplevel, int face,
  * @param [in] usageFlags   a set of VkImageUsageFlags bits indicating the
  *                          intended usage of the destination image.
  * @anchor layoutparam
- * @param [in] layout       a VkImageLayout value indicating the desired
- *                          layout the destination image.
+ * @param [in] finalLayout  a VkImageLayout value indicating the desired
+ *                          final layout of the created image.
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p This, @p vdi or @p vkTexture is @c NULL.
  * @exception KTX_INVALID_OPERATION The ktxTexture contains neither images nor
  *                                  an active stream from which to read them.
+ * @exception KTX_INVALID_OPERATION The combination of the ktxTexture's format,
+ *                                  @p tiling and @p usageFlags is not supported
+ *                                  by the physical device.
+ * @exception KTX_INVALID_OPERATION Requested mipmap generation is not supported
+ *                                  by the physical device for the combination
+ *                                  of the ktxTexture's format and @p tiling.
  * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated
  *                              on either the CPU or the Vulkan device.
  */
@@ -370,14 +380,15 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
                       VkImageTiling tiling,
                       VkImageUsageFlags usageFlags,
-                      VkImageLayout layout)
+                      VkImageLayout finalLayout)
 {
     KTX_error_code           kResult;
+    VkFilter                 blitFilter;
     VkFormat                 vkFormat;
     VkImageType              imageType;
     VkImageViewType          viewType;
     VkImageCreateFlags       createFlags = 0;
-    VkImageFormatProperties  formatProperties;
+    VkImageFormatProperties  imageFormatProperties;
     VkResult                 vResult;
     VkCommandBufferBeginInfo cmdBufBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -394,7 +405,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         .memoryTypeIndex = 0
     };
     VkMemoryRequirements     memReqs;
-    uint32_t                 arrayLayers;
+    uint32_t                 numImageLayers, numImageLevels;
 
     if (!vdi || !This || !vkTexture) {
         return KTX_INVALID_VALUE;
@@ -408,15 +419,12 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
     /* _ktxCheckHeader should have caught this. */
     assert(This->numFaces == 6 ? This->numDimensions == 2 : VK_TRUE);
 
-    arrayLayers = This->numLayers;
+    numImageLayers = This->numLayers;
     if (This->isCubemap) {
-        arrayLayers *= 6;
+        numImageLayers *= 6;
         createFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
 
-    vkTexture->width = This->baseWidth;
-    vkTexture->height = This->baseHeight;
-    vkTexture->depth = This->baseDepth;
     switch (This->numDimensions) {
       case 1:
         imageType = VK_IMAGE_TYPE_1D;
@@ -449,21 +457,67 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         return KTX_INVALID_OPERATION;
     }
 
-    /* Get device properties for the requested texture format */
+    /* Get device properties for the requested image format */
+    if (tiling == VK_IMAGE_TILING_OPTIMAL) {
+        // Ensure we can copy from staging buffer to image.
+        usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    }
+    if (This->generateMipmaps) {
+        // Ensure we can blit between levels.
+        usageFlags |= (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+    }
     vResult = vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
                                                       vkFormat,
                                                       imageType,
                                                       tiling,
                                                       usageFlags,
                                                       createFlags,
-                                                      &formatProperties);
+                                                      &imageFormatProperties);
     if (vResult == VK_ERROR_FORMAT_NOT_SUPPORTED) {
         return KTX_INVALID_OPERATION;
     }
 
+    if (This->generateMipmaps) {
+        uint32_t max_dim;
+        VkFormatProperties    formatProperties;
+        VkFormatFeatureFlags  formatFeatureFlags;
+        VkFormatFeatureFlags  wantedFeatures
+            = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
+        vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice,
+                                            vkFormat,
+                                            &formatProperties);
+        assert(vResult == VK_SUCCESS);
+        if (tiling == VK_IMAGE_TILING_OPTIMAL)
+            formatFeatureFlags = formatProperties.optimalTilingFeatures;
+        else
+            formatFeatureFlags = formatProperties.linearTilingFeatures;
+
+        if (!(formatFeatureFlags & wantedFeatures))
+            return KTX_INVALID_OPERATION;
+
+        if (formatFeatureFlags & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)
+            blitFilter = VK_FILTER_LINEAR;
+        else
+            blitFilter = VK_FILTER_NEAREST; // XXX INVALID_OP?
+
+        max_dim = MAX(MAX(This->baseWidth, This->baseHeight), This->baseDepth);
+        numImageLevels = floor(log2(max_dim)) + 1;
+    } else {
+        numImageLevels = This->numLevels;
+    }
+
+    vkTexture->width = This->baseWidth;
+    vkTexture->height = This->baseHeight;
+    vkTexture->depth = This->baseDepth;
+    vkTexture->imageLayout = finalLayout;
+    vkTexture->imageFormat = vkFormat;
+    vkTexture->levelCount = numImageLevels;
+    vkTexture->layerCount = numImageLayers;
+    vkTexture->viewType = viewType;
+
     VK_CHECK_RESULT(vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo));
 
-    if (tiling != VK_IMAGE_TILING_LINEAR)
+    if (tiling == VK_IMAGE_TILING_OPTIMAL)
     {
         // Create a host-visible staging buffer that contains the raw image data
         VkBuffer stagingBuffer;
@@ -567,8 +621,9 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         imageCreateInfo.imageType = imageType;
         imageCreateInfo.flags = createFlags;
         imageCreateInfo.format = vkFormat;
-        imageCreateInfo.mipLevels = This->numLevels;
-        imageCreateInfo.arrayLayers = arrayLayers;
+        // numImageLevels ensures enough levels for generateMipmaps.
+        imageCreateInfo.mipLevels = numImageLevels;
+        imageCreateInfo.arrayLayers = numImageLayers;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageCreateInfo.usage = usageFlags;
@@ -577,8 +632,6 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         imageCreateInfo.extent.width = vkTexture->width;
         imageCreateInfo.extent.height = vkTexture->height;
         imageCreateInfo.extent.depth = vkTexture->depth;
-        imageCreateInfo.usage
-                = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
         VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
                                       vdi->pAllocator, &vkTexture->image));
@@ -600,14 +653,14 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         subresourceRange.baseMipLevel = 0;
         subresourceRange.levelCount = This->numLevels;
         subresourceRange.baseArrayLayer = 0;
-        subresourceRange.layerCount = arrayLayers;
+        subresourceRange.layerCount = numImageLayers;
 
-        // Image barrier for optimal image (target)
-        // Optimal image will be used as destination for the copy
+        // Image barrier to transition, possibly only the base level, image
+        // layout to TRANSFER_DST_OPTIMAL so it can be used as the copy
+        // destination.
         setImageLayout(
             vdi->cmdBuffer,
             vkTexture->image,
-            VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_UNDEFINED,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             subresourceRange);
@@ -619,15 +672,22 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             numCopyRegions, copyRegions
             );
 
-        // Change texture image layout to shader read after all mip levels
-        // have been copied
-        setImageLayout(
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_ASPECT_COLOR_BIT,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            layout,
-            subresourceRange);
+        if (This->generateMipmaps) {
+            generateMipmaps(vkTexture, vdi,
+                            blitFilter, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        } else {
+            // Transition image layout to finalLayout after all mip levels
+            // have been copied.
+            // In this case numImageLevels == This->numLevels
+            //subresourceRange.levelCount = numImageLevels;
+            setImageLayout(
+                vdi->cmdBuffer,
+                vkTexture->image,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                //currentLayout,
+                finalLayout,
+                subresourceRange);
+        }
 
         // Submit command buffer containing copy and image layout commands
         VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
@@ -660,7 +720,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = NULL
         };
-        VkImageSubresourceRange subresourceRange;
+        //VkImageSubresourceRange subresourceRange;
         user_cbdata_linear cbData;
 
         imageCreateInfo.imageType = imageType;
@@ -669,8 +729,9 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         imageCreateInfo.extent.width = vkTexture->width;
         imageCreateInfo.extent.height = vkTexture->height;
         imageCreateInfo.extent.depth = vkTexture->depth;
-        imageCreateInfo.mipLevels = This->numLevels;
-        imageCreateInfo.arrayLayers = arrayLayers;
+        // numImageLevels ensures enough levels for generateMipmaps.
+        imageCreateInfo.mipLevels = numImageLevels;
+        imageCreateInfo.arrayLayers = numImageLayers;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
         imageCreateInfo.usage = usageFlags;
@@ -723,25 +784,30 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
 
         vkUnmapMemory(vdi->device, mappableMemory);
 
-        // Linear tiled images don't need to be staged
-        // and can be directly used as textures
+        // Linear tiled images can be directly used as textures.
         vkTexture->image = mappableImage;
         vkTexture->deviceMemory = mappableMemory;
 
-        subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        subresourceRange.baseMipLevel = 0;
-        subresourceRange.levelCount = This->numLevels;
-        subresourceRange.baseArrayLayer = 0;
-        subresourceRange.layerCount = arrayLayers;
+        if (This->generateMipmaps) {
+            generateMipmaps(vkTexture, vdi,
+                            blitFilter,
+                            VK_IMAGE_LAYOUT_PREINITIALIZED);
+        } else {
+            VkImageSubresourceRange subresourceRange;
+            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.baseMipLevel = 0;
+            subresourceRange.levelCount = numImageLevels;
+            subresourceRange.baseArrayLayer = 0;
+            subresourceRange.layerCount = numImageLayers;
 
-        // Setup image memory barrier
-        setImageLayout(
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_ASPECT_COLOR_BIT,
-            VK_IMAGE_LAYOUT_PREINITIALIZED,
-            layout,
-            subresourceRange);
+           // Transition image layout to finalLayout.
+            setImageLayout(
+                vdi->cmdBuffer,
+                vkTexture->image,
+                VK_IMAGE_LAYOUT_PREINITIALIZED,
+                finalLayout,
+                subresourceRange);
+        }
 
         // Submit command buffer containing image layout commands
         VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
@@ -753,13 +819,6 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         VK_CHECK_RESULT(vkQueueSubmit(vdi->queue, 1, &submitInfo, nullFence));
         VK_CHECK_RESULT(vkQueueWaitIdle(vdi->queue));
     }
-
-    vkTexture->imageFormat = vkFormat;
-    vkTexture->imageLayout = layout;
-    vkTexture->levelCount = This->numLevels;
-    vkTexture->layerCount = arrayLayers;
-    vkTexture->viewType = viewType;
-
     return KTX_SUCCESS;
 }
 
@@ -818,7 +877,6 @@ static void
 setImageLayout(
     VkCommandBuffer cmdBuffer,
     VkImage image,
-    VkImageAspectFlags aspectMask,
     VkImageLayout oldLayout,
     VkImageLayout newLayout,
     VkImageSubresourceRange subresourceRange)
@@ -951,6 +1009,119 @@ setImageLayout(
         0, NULL,
         0, NULL,
         1, &imageMemoryBarrier);
+}
+
+/** @internal
+ * @~English
+ * @brief Generate mipmaps from base using @c VkCmdBlitImage.
+ *
+ * Mipmaps are generated by blitting level n from level n-1 as it should
+ * be faster than the alternative of blitting all levels from the base level.
+ *
+ * After generation, the image is transitioned to the layout indicated by
+ * @c vkTexture->imageLayout.
+ *
+ * @param[in] vkTexture     pointer to an object with information about the
+ *                          image for which to generate mipmaps.
+ * @param[in] vdi           pointer to an object with information about the
+ *                          Vulkan device and command buffer to use.
+ * @param[in] blitFilter    the type of filter to use in the @c VkCmdBlitImage.
+ * @param[in] initialLayout the layout of the image on entry to the function.
+ */
+static void
+generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
+                VkFilter blitFilter, VkImageLayout initialLayout)
+{
+    VkImageSubresourceRange subresourceRange;
+    memset(&subresourceRange, 0, sizeof(subresourceRange));
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = vkTexture->layerCount;
+
+    // Transition base level to SRC_OPTIMAL for blitting.
+    setImageLayout(
+        vdi->cmdBuffer,
+        vkTexture->image,
+        initialLayout,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        subresourceRange);
+
+    // Generate the mip chain
+    // ----------------------
+    // Blit level n from level n-1.
+    for (uint32_t i = 1; i < vkTexture->levelCount; i++)
+    {
+        VkImageBlit imageBlit;
+        memset(&imageBlit, 0, sizeof(imageBlit));
+
+        // Source
+        imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageBlit.srcSubresource.layerCount = vkTexture->layerCount;
+        imageBlit.srcSubresource.mipLevel = i-1;
+        imageBlit.srcOffsets[1].x = MAX(1, vkTexture->width >> (i - 1));
+        imageBlit.srcOffsets[1].y = MAX(1, vkTexture->height >> (i - 1));
+        imageBlit.srcOffsets[1].z = MAX(1, vkTexture->depth >> (i - 1));;
+
+        // Destination
+        imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageBlit.dstSubresource.layerCount = 1;
+        imageBlit.dstSubresource.mipLevel = i;
+        imageBlit.dstOffsets[1].x = MAX(1, vkTexture->width >> i);
+        imageBlit.dstOffsets[1].y = MAX(1, vkTexture->height >> i);
+        imageBlit.dstOffsets[1].z = MAX(1, vkTexture->depth >> i);
+
+        VkImageSubresourceRange mipSubRange;
+        memset(&mipSubRange, 0, sizeof(mipSubRange));
+
+        mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        mipSubRange.baseMipLevel = i;
+        mipSubRange.levelCount = 1;
+        mipSubRange.layerCount = vkTexture->layerCount;
+
+        // Transiton current mip level to transfer dest
+        setImageLayout(
+            vdi->cmdBuffer,
+            vkTexture->image,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            mipSubRange);
+            //VK_PIPELINE_STAGE_TRANSFER_BIT,
+            //VK_PIPELINE_STAGE_HOST_BIT);
+
+        // Blit from previous level
+        vkCmdBlitImage(
+            vdi->cmdBuffer,
+            vkTexture->image,
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            vkTexture->image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &imageBlit,
+            blitFilter);
+
+        // Transiton current mip level to transfer source for read in
+        // next iteration.
+        setImageLayout(
+            vdi->cmdBuffer,
+            vkTexture->image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            mipSubRange);
+            //VK_PIPELINE_STAGE_HOST_BIT,
+            //VK_PIPELINE_STAGE_TRANSFER_BIT);
+    }
+
+    // After the loop, all mip layers are in TRANSFER_SRC layout.
+    // Transition all to final layout.
+    subresourceRange.levelCount = vkTexture->levelCount;
+    setImageLayout(
+        vdi->cmdBuffer,
+        vkTexture->image,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        vkTexture->imageLayout,
+        subresourceRange);
 }
 
 //======================================================================
