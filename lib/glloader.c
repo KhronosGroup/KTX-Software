@@ -109,7 +109,7 @@ DECLARE_GL_FUNCPTRS
  * One of these callbacks, selected by @ref ktxTexture_GLUpload based on the
  * dimensionality and arrayness of the texture, is called from
  * @ref ktxTexture_IterateLevelFaces to upload the texture data to OpenGL.
- * @snippet this Image callbacks
+ * @snippet this imageCallbacks
  *
  * This function creates the GL texture object and sets up the callbacks to
  * load the image data into it.
@@ -432,7 +432,7 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalforma
 }
 #endif /* SUPPORT_LEGACY_FORMAT_CONVERSION */
 
-/** [cbdata] */
+/* [cbdata] */
 typedef struct ktx_cbdata {
     GLenum glTarget;
     GLenum glFormat;
@@ -441,9 +441,9 @@ typedef struct ktx_cbdata {
     GLenum glError;
     GLuint numLayers;
 } ktx_cbdata;
-/** [cbdata] */
+/* [cbdata] */
 
-/** [Image callbacks] */
+/* [imageCallbacks] */
 
 KTX_error_code KTXAPIENTRY
 texImage1DCallback(int miplevel, int face,
@@ -618,7 +618,7 @@ compressedTexImage3DCallback(int miplevel, int face,
         return KTX_GL_ERROR;
     }
 }
-/** [Image callbacks] */
+/* [imageCallbacks] */
 
 /**
  * @memberof ktxTexture
@@ -665,7 +665,7 @@ compressedTexImage3DCallback(int miplevel, int face,
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
  *                                         by the current OpenGL context.
  */
-/** [loadGLTexture] */
+/* [loadGLTexture] */
 KTX_error_code
 ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
                     GLenum* pGlerror)
@@ -852,7 +852,7 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
     }
     return result;
 }
-/** [loadGLTexture] */
+/* [loadGLTexture] */
 
 /**
  * @~English

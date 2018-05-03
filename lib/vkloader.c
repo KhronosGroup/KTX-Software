@@ -333,9 +333,10 @@ linearTilingCallback(int miplevel, int face,
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
  * Creates a VkImage with format etc. matching the KTX data and uploads the
- * images. Also creates VkSampler and VkImageView objects for accessing the
- * image. Returns the handles of the created objects and information about
- * the texture in the ktxVulkanTexture pointed at by @p vkTexture.
+ * images. Also creates a VkImageView object for accessing the
+ * image. Mipmaps will be generated if the @c ktxTexture's @c generateMipmaps
+ * flag is set. Returns the handles of the created objects and information
+ * about the texture in the @c ktxVulkanTexture pointed at by @p vkTexture.
  *
  * Most Vulkan implementations support VK_IMAGE_TILING_LINEAR only for a very
  * limited number of formats and features. Generally VK_IMAGE_TILING_OPTIMAL is

@@ -158,12 +158,12 @@ Create a KTX file from netpbm format files.
         full pyramid. @e levels must be <= the maximum number of levels
         determined from the size of the base image. Provide the base level
         image first. This option is mutually exclusive with @b --automipmap
-        amd @b --mipmap.
+        and @b --mipmap.
     <dt>--mipmap</dt>
     <dd>KTX file is for a full mipmap pyramid. One @e infile per level must
         be provided. Provide the base-level image first then in order
         down to the 1x1 image. This option is mutually exclusive with
-        @b --automipmap and --levels.</dd>
+        @b --automipmap and @b --levels.</dd>
     <dt>--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
@@ -280,7 +280,7 @@ usage(_TCHAR* appName)
         "               full pyramid. @e levels must be <= the maximum number of levels\n"
         "               determined from the size of the base image. Provide the base\n"
         "               level image first. This option is mutually exclusive with\n"
-        "               --automipmap and --mipmap."
+        "               --automipmap and --mipmap.\n"
         "  --mipmap     KTX file is for a full mipmap pyramid. One <infile> per level\n"
         "               must be provided. Provide the base-level image first then in\n"
         "               order down to the 1x1 image. This option is mutually exclusive\n"
