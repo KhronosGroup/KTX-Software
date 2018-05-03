@@ -3,7 +3,8 @@ all: \
     $(SHARED_INTERMEDIATE_DIR)/reflect.frag.spv \
     $(SHARED_INTERMEDIATE_DIR)/skybox.frag.spv \
     $(SHARED_INTERMEDIATE_DIR)/texture.frag.spv \
-    $(SHARED_INTERMEDIATE_DIR)/instancing.frag.spv
+    $(SHARED_INTERMEDIATE_DIR)/instancing.frag.spv \
+    $(SHARED_INTERMEDIATE_DIR)/instancinglod.frag.spv
 
 $(SHARED_INTERMEDIATE_DIR)/cube.frag.spv \
     : \
@@ -39,3 +40,10 @@ $(SHARED_INTERMEDIATE_DIR)/instancing.frag.spv \
 	@mkdir -p "$(SHARED_INTERMEDIATE_DIR)"
 	@echo note: "Compiling instancing.frag."
 	"$(VULKAN_SDK)/macOS/bin/glslc" "-fshader-stage=fragment" -o "$(SHARED_INTERMEDIATE_DIR)/instancing.frag.spv" "tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag"
+
+$(SHARED_INTERMEDIATE_DIR)/instancinglod.frag.spv \
+    : \
+    tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag
+	@mkdir -p "$(SHARED_INTERMEDIATE_DIR)"
+	@echo note: "Compiling instancinglod.frag."
+	"$(VULKAN_SDK)/macOS/bin/glslc" "-fshader-stage=fragment" -o "$(SHARED_INTERMEDIATE_DIR)/instancinglod.frag.spv" "tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag"

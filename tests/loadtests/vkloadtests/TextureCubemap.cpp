@@ -65,7 +65,7 @@ TextureCubemap::create(VulkanContext& vkctx,
 TextureCubemap::TextureCubemap(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
                  const char* const szArgs, const std::string sBasePath)
-        : VulkanLoadTestSample(vkctx, width, height, szArgs, sBasePath)
+        : VulkanLoadTestSample(vkctx, width, height, sBasePath)
 {
     zoom = -4.0f;
     rotationSpeed = 0.25f;

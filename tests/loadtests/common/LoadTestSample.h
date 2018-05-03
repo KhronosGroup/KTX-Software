@@ -39,7 +39,6 @@ class LoadTestSample {
   public:
     typedef uint64_t ticks_t;
     LoadTestSample(uint32_t width, uint32_t height,
-                   const char* const szArgs,
                    const std::string sBasePath,
                    int32_t yflip = 1)
            : w_width(width), w_height(height), yflip(yflip),

@@ -31,7 +31,7 @@ class GL3LoadTestSample : public LoadTestSample {
     GL3LoadTestSample(uint32_t width, uint32_t height,
                      const char* const szArgs,
                      const std::string sBasePath)
-           : LoadTestSample(width, height, szArgs, sBasePath)
+           : LoadTestSample(width, height, sBasePath)
     {
     }
 

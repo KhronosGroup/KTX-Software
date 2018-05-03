@@ -19,7 +19,7 @@
 
 /**
  * @internal
- * @class TextureArray
+ * @class TextureMipmap
  * @~English
  *
  * @brief Test loading of 2D texture arrays.
@@ -31,46 +31,46 @@
  * the VulkanTextOverlay class and the shaders used by this test.
  */
 
+#include <assert.h>
+#include <algorithm>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <algorithm>
-#include <time.h> 
+#include <time.h>
 #include <vector>
 
 #include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
-#include "TextureArray.h"
+#include "TextureMipmap.h"
 #include "ltexceptions.h"
 
 VulkanLoadTestSample*
-TextureArray::create(VulkanContext& vkctx,
+TextureMipmap::create(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
                  const char* const szArgs, const std::string sBasePath)
 {
-    return new TextureArray(vkctx, width, height, szArgs, sBasePath);
+    return new TextureMipmap(vkctx, width, height, szArgs, sBasePath);
 }
 
-TextureArray::TextureArray(VulkanContext& vkctx,
+TextureMipmap::TextureMipmap(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
                  const char* const szArgs, const std::string sBasePath)
         : InstancedSampleBase(vkctx, width, height, szArgs, sBasePath)
 {
-    zoom = -15.0f;
+    zoom = -18.0f;
 
-
-    if (texture.layerCount == 1) {
+    if (texture.levelCount == 1) {
         std::stringstream message;
 
         cleanup();
-        message << "TextureArray requires an array texture.";
+        message << "TextureMipmap requires a mipmapped texture.";
         throw std::runtime_error(message.str());
     }
-    instanceCount = texture.layerCount;
+    instanceCount = texture.levelCount;
 
     try {
-        prepare("instancing.frag.spv", "instancing.vert.spv", 8U);
+        prepare("instancinglod.frag.spv", "instancinglod.vert.spv", 20U);
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.
         cleanup();

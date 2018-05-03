@@ -645,7 +645,6 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         }
     }
 
-    optreset = 1;
     optind = 1;
     processOptions(argc, argv, options);
 

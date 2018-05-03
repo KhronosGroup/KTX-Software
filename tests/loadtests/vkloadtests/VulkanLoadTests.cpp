@@ -36,6 +36,7 @@
 #include "TextureArray.h"
 #include "TextureCubemap.h"
 #include "TexturedCube.h"
+#include "TextureMipmap.h"
 #include "ltexceptions.h"
 
 #define LT_VK_MAJOR_VERSION 1
@@ -254,16 +255,24 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "ETC2 sRGB8a8"
     },
     { Texture::create,
-      "testimages/metalplate-amg-rgba8.ktx",
-     "RGBA8 2D + Auto Mipmap"
-    },
-    { Texture::create,
-      "--linear-tiling testimages/metalplate-amg-rgba8.ktx",
-     "RGBA8 2D + Auto Mipmap using Linear Tiling"
-    },
-    { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx",
         "BC2 (S3TC DXT3) Compressed 2D"
+    },
+    { TextureMipmap::create,
+      "testimages/rgb-amg-reference.ktx",
+      "RGB8 + Auto Mipmap"
+    },
+    { TextureMipmap::create,
+      "--linear-tiling testimages/rgb-amg-reference.ktx",
+      "RGB8 + Auto Mipmap using Linear Tiling"
+    },
+    { TextureMipmap::create,
+      "testimages/metalplate-amg-rgba8.ktx",
+      "RGBA8 2D + Auto Mipmap"
+    },
+    { TextureMipmap::create,
+      "--linear-tiling testimages/metalplate-amg-rgba8.ktx",
+      "RGBA8 2D + Auto Mipmap using Linear Tiling"
     },
     { TextureArray::create,
         "testimages/texturearray_bc3_unorm.ktx",

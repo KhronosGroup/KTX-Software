@@ -53,7 +53,18 @@ all_deps += $(builddir)/shaders/$(notdir $<).spv
 cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_4 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_4 $@
 
+$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
+$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
+$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag
+	$(call do_cmd,ktxtests_gyp_vkloadtests_target_frag2spirv_5)
+
+all_deps += $(builddir)/shaders/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_5 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+quiet_cmd_ktxtests_gyp_vkloadtests_target_frag2spirv_5 = RULE ktxtests_gyp_vkloadtests_target_frag2spirv_5 $@
+
 rule_ktxtests_gyp_vkloadtests_target_frag2spirv_outputs := \
+	$(builddir)/shaders/$(notdir $<).spv \
 	$(builddir)/shaders/$(notdir $<).spv \
 	$(builddir)/shaders/$(notdir $<).spv \
 	$(builddir)/shaders/$(notdir $<).spv \
@@ -113,7 +124,18 @@ all_deps += $(builddir)/shaders/$(notdir $<).spv
 cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
 quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_4 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_4 $@
 
+$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
+$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
+$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert
+	$(call do_cmd,ktxtests_gyp_vkloadtests_target_vert2spirv_5)
+
+all_deps += $(builddir)/shaders/$(notdir $<).spv
+cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_5 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+quiet_cmd_ktxtests_gyp_vkloadtests_target_vert2spirv_5 = RULE ktxtests_gyp_vkloadtests_target_vert2spirv_5 $@
+
 rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs := \
+	$(builddir)/shaders/$(notdir $<).spv \
 	$(builddir)/shaders/$(notdir $<).spv \
 	$(builddir)/shaders/$(notdir $<).spv \
 	$(builddir)/shaders/$(notdir $<).spv \
@@ -200,10 +222,12 @@ INCS_Release := \
 OBJS := \
 	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
 	$(obj).target/$(TARGET)/tests/loadtests/utils/argparser.o \
+	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/InstancedSampleBase.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/Texture.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/TextureArray.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/TextureCubemap.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/TexturedCube.o \
+	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/TextureMipmap.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/VulkanLoadTests.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/VulkanLoadTestSample.o
 

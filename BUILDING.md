@@ -255,6 +255,16 @@ For GNU/Linux and Windows install the Vulkan SDK from
 [LunarG](https://vulkan.lunarg.com/). Set the environment variable
 `VULKAN_SDK` as instructed by LunarG.
 
+For GNU/Linux you will need to build `glslc` whose binary for some reason LunarG has decided not to include in the SDK. To do this:
+
+```bash
+cd $VULKAN_SDK
+./build_tools.sh --shaderc
+```
+
+It takes a while.  10 minutes or more! Add a comment to
+[issue 671 at LunarG](https://vulkan.lunarg.com/issue/view/58e4e57be46ffe7e73becd83) to apply pressure on them to include this binary.
+
 For iOS and macOS, install the Vulkan SDK for macOS from
 [LunarG](https://vulkan.lunarg.com/). Set a `VULKAN_SDK` Custom
 Path in the Xcode preferences to point to the `vulkansdk-macos-*`

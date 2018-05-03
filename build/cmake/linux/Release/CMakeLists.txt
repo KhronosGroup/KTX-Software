@@ -396,6 +396,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance-reference-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/metalplate-amg-rgba8.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
@@ -427,6 +428,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/hi_mark.ktx"
   "${builddir}/testimages/hi_mark_sq.ktx"
   "${builddir}/testimages/luminance-reference-metadata.ktx"
+  "${builddir}/testimages/metalplate-amg-rgba8.ktx"
   "${builddir}/testimages/no-npot.ktx"
   "${builddir}/testimages/orient-down-metadata.ktx"
   "${builddir}/testimages/orient-up.ktx"
@@ -459,6 +461,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/test
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance-reference-metadata.ktx ${builddir}/testimages/luminance-reference-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/metalplate-amg-rgba8.ktx ${builddir}/testimages/metalplate-amg-rgba8.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
@@ -816,18 +819,40 @@ unset(RULE_INPUT_DIRNAME)
 unset(RULE_INPUT_NAME)
 unset(RULE_INPUT_ROOT)
 unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texturemipmap")
+set(RULE_INPUT_NAME "instancinglod.frag")
+set(RULE_INPUT_ROOT "instancinglod")
+set(RULE_INPUT_EXT ".frag")
+set(vkloadtests__frag2spirv_5_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__frag2spirv_5_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslc "-fshader-stage=fragment" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__frag2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
 add_custom_target(vkloadtests__frag2spirv DEPENDS
   ${vkloadtests__frag2spirv_0_0}
   ${vkloadtests__frag2spirv_1_0}
   ${vkloadtests__frag2spirv_2_0}
   ${vkloadtests__frag2spirv_3_0}
   ${vkloadtests__frag2spirv_4_0}
+  ${vkloadtests__frag2spirv_5_0}
 SOURCES ${vkloadtests__frag2spirv__input}
   ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag
   ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag
   ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag
   ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.frag
   ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag
+  ../../../../tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag
 )
 set(vkloadtests__vert2spirv__input "")
 set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/cube/cube.vert")
@@ -930,18 +955,40 @@ unset(RULE_INPUT_DIRNAME)
 unset(RULE_INPUT_NAME)
 unset(RULE_INPUT_ROOT)
 unset(RULE_INPUT_EXT)
+set(RULE_INPUT_PATH "tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert")
+set(RULE_INPUT_DIRNAME "tests/loadtests/vkloadtests/shaders/texturemipmap")
+set(RULE_INPUT_NAME "instancinglod.vert")
+set(RULE_INPUT_ROOT "instancinglod")
+set(RULE_INPUT_EXT ".vert")
+set(vkloadtests__vert2spirv_5_0 "${builddir}/shaders/${RULE_INPUT_NAME}.spv")
+add_custom_command(OUTPUT
+  ${vkloadtests__vert2spirv_5_0}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/shaders
+  COMMAND glslc "-fshader-stage=vertex" -o "${builddir}/shaders/${RULE_INPUT_NAME}.spv" "${RULE_INPUT_PATH}"
+  DEPENDS ${vkloadtests__vert2spirv__input} ../../../../tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Compiling ${RULE_INPUT_NAME}.
+  VERBATIM
+)
+unset(RULE_INPUT_PATH)
+unset(RULE_INPUT_DIRNAME)
+unset(RULE_INPUT_NAME)
+unset(RULE_INPUT_ROOT)
+unset(RULE_INPUT_EXT)
 add_custom_target(vkloadtests__vert2spirv DEPENDS
   ${vkloadtests__vert2spirv_0_0}
   ${vkloadtests__vert2spirv_1_0}
   ${vkloadtests__vert2spirv_2_0}
   ${vkloadtests__vert2spirv_3_0}
   ${vkloadtests__vert2spirv_4_0}
+  ${vkloadtests__vert2spirv_5_0}
 SOURCES ${vkloadtests__vert2spirv__input}
   ../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert
   ../../../../tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert
   ../../../../tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert
   ../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert
   ../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert
+  ../../../../tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert
 )
 list(APPEND vkloadtests__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/cube.obj"
@@ -971,10 +1018,12 @@ add_custom_target(vkloadtests__copies
 list(APPEND vkloadtests__cxx_srcs
   "../../../../tests/loadtests/common/LoadTestSample.cpp"
   "../../../../tests/loadtests/utils/argparser.cpp"
+  "../../../../tests/loadtests/vkloadtests/InstancedSampleBase.cpp"
   "../../../../tests/loadtests/vkloadtests/Texture.cpp"
   "../../../../tests/loadtests/vkloadtests/TextureArray.cpp"
   "../../../../tests/loadtests/vkloadtests/TextureCubemap.cpp"
   "../../../../tests/loadtests/vkloadtests/TexturedCube.cpp"
+  "../../../../tests/loadtests/vkloadtests/TextureMipmap.cpp"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.cpp"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.cpp")
 list(APPEND vkloadtests__other_srcs
@@ -993,10 +1042,14 @@ list(APPEND vkloadtests__other_srcs
   "../../../../tests/loadtests/vkloadtests/shaders/texture/texture.vert"
   "../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag"
   "../../../../tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert"
+  "../../../../tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag"
+  "../../../../tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert"
+  "../../../../tests/loadtests/vkloadtests/InstancedSampleBase.h"
   "../../../../tests/loadtests/vkloadtests/Texture.h"
   "../../../../tests/loadtests/vkloadtests/TextureArray.h"
   "../../../../tests/loadtests/vkloadtests/TextureCubemap.h"
   "../../../../tests/loadtests/vkloadtests/TexturedCube.h"
+  "../../../../tests/loadtests/vkloadtests/TextureMipmap.h"
   "../../../../tests/loadtests/vkloadtests/utils/VulkanMeshLoader.hpp"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.h"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.h")

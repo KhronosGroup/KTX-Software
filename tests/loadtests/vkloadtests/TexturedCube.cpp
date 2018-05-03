@@ -66,7 +66,7 @@ TexturedCube::TexturedCube(VulkanContext& vkctx,
                            uint32_t width, uint32_t height,
                            const char* const szArgs,
                            const std::string sBasePath)
-        : VulkanLoadTestSample(vkctx, width, height, szArgs, sBasePath),
+        : VulkanLoadTestSample(vkctx, width, height, sBasePath),
           numTextures(1)
 {
     zoom = 1.0f;

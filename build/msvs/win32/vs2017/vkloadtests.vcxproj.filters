@@ -214,6 +214,72 @@
     <Filter Include="tests\loadtests\vkloadtests">
       <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\texturemipmap">
+      <UniqueIdentifier>{1AACEF35-2CB5-E995-5399-AF94B8875556}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders">
+      <UniqueIdentifier>{467D5622-06CC-2CF1-19E5-3CDD46A4008C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\shaders\texturemipmap">
+      <UniqueIdentifier>{1AACEF35-2CB5-E995-5399-AF94B8875556}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
@@ -486,6 +552,18 @@
     <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturearray\instancing.vert">
       <Filter>tests\loadtests\vkloadtests\shaders\texturearray</Filter>
     </vert2spirv>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturemipmap\instancinglod.frag">
+      <Filter>tests\loadtests\vkloadtests\shaders\texturemipmap</Filter>
+    </frag2spirv>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturemipmap\instancinglod.vert">
+      <Filter>tests\loadtests\vkloadtests\shaders\texturemipmap</Filter>
+    </vert2spirv>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\InstancedSampleBase.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\InstancedSampleBase.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.cpp">
       <Filter>tests\loadtests\vkloadtests</Filter>
     </ClCompile>
@@ -508,6 +586,12 @@
       <Filter>tests\loadtests\vkloadtests</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.h">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureMipmap.cpp">
+      <Filter>tests\loadtests\vkloadtests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureMipmap.h">
       <Filter>tests\loadtests\vkloadtests</Filter>
     </ClInclude>
     <None Include="..\..\..\..\tests\loadtests\vkloadtests\utils\VulkanMeshLoader.hpp">

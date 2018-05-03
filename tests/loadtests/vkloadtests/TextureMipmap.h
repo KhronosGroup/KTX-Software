@@ -2,7 +2,7 @@
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
- * ©2018 Mark Callow, <khronos at callow dot im>.
+ * ©2017 Mark Callow.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,28 @@
  * limitations under the License.
  */
 
-/**
- * @internal
- * @file ltexceptions.h
- * @~English
- *
- * @brief Custom exceptions for the load tests.
- *
- * @author Mark Callow
- * @copyright (c) 2018, Mark Callow.
- */
+#ifndef _TEXTURE_MIPMAP_H_
+#define _TEXTURE_MIPMAP_H_
 
-#include <stdexcept>
+#include <vector>
 
-class unsupported_ctype : public std::runtime_error {
+#include <ktxvulkan.h>
+#include "InstancedSampleBase.h"
+
+#include <glm/gtc/matrix_transform.hpp>
+
+class TextureMipmap : public InstancedSampleBase
+{
   public:
-    unsupported_ctype()
-         : std::runtime_error("Unsupported compression format") { }
+    TextureMipmap(VulkanContext& vkctx,
+                 uint32_t width, uint32_t height,
+                 const char* const szArgs,
+                 const std::string sBasePath);
+
+    static VulkanLoadTestSample*
+    create(VulkanContext& vkctx,
+           uint32_t width, uint32_t height,
+           const char* const szArgs, const std::string sBasePath);
 };
 
-class unsupported_ttype : public std::runtime_error {
-  public:
-    unsupported_ttype()
-         : std::runtime_error("Implementation does not support needed operations on image format") { }
-};
+#endif /* _TEXTURE_MIPMAP_H_ */

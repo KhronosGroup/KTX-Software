@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4 expandtab : */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /*
  * ©2017 Mark Callow.
@@ -19,10 +19,10 @@
 
 /**
  * @internal
- * @class Texture
+ * @class InstancedSampleBase
  * @~English
  *
- * @brief Test loading of 2D textures.
+ * @brief Base for tests that need instanced drawing of textured quads.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  *
@@ -31,58 +31,38 @@
  * the VulkanTextOverlay class and the shaders used by this test.
  */
 
-#if defined(_WIN32)
-  #define _CRT_SECURE_NO_WARNINGS // For sscanf
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <exception>
+#include <algorithm>
+#include <time.h> 
 #include <vector>
+
+#include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 
 #include "argparser.h"
-#include "Texture.h"
+#include "InstancedSampleBase.h"
 #include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
 
 // Vertex layout for this example
-struct Vertex {
-    std::array<float, 3> pos;
-    std::array<float, 2> uv;
-    std::array<float, 3> normal;
-    std::array<float, 3> color;
+struct TAVertex {
+    float pos[3];
+    float uv[2];
 };
 
-VulkanLoadTestSample*
-Texture::create(VulkanContext& vkctx,
+InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath)
-{
-    return new Texture(vkctx, width, height, szArgs, sBasePath);
-}
-
-Texture::Texture(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath)
+                 const char* const szArgs, const std::string sBasePath)
         : VulkanLoadTestSample(vkctx, width, height, sBasePath)
 {
-    zoom = -2.5f;
-    rotation = { 0.0f, 15.0f, 0.0f };
-    tiling = vk::ImageTiling::eOptimal;
-    rgbcolor upperLeftColor{ 0.7f, 0.1f, 0.2f };
-    rgbcolor lowerLeftColor{ 0.8f, 0.9f, 0.3f };
-    rgbcolor upperRightColor{ 0.4f, 1.0f, 0.5f };
-    rgbcolor lowerRightColor{ 0.0f, 0.6f, 0.1f };
-
-    quadColor = { upperLeftColor, lowerLeftColor,
-                  upperRightColor, lowerRightColor };
+    zoom = -15.0f;
+    rotationSpeed = 0.25f;
+    rotation = { -15.0f, 35.0f, 0.0f };
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
@@ -92,15 +72,15 @@ Texture::Texture(VulkanContext& vkctx,
 
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
-    ktxresult = ktxTexture_CreateFromNamedFile(
-                                        (getAssetPath() + filename).c_str(),
-                                        KTX_TEXTURE_CREATE_NO_FLAGS,
-                                        &kTexture);
+    ktxresult =
+           ktxTexture_CreateFromNamedFile((getAssetPath() + filename).c_str(),
+                                           KTX_TEXTURE_CREATE_NO_FLAGS,
+                                           &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
         
-        message << "Creation of ktxTexture from \"" << getAssetPath()
-                << filename << "\" failed: " << ktxErrorString(ktxresult);
+        message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
+        << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
 
@@ -108,21 +88,26 @@ Texture::Texture(VulkanContext& vkctx,
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
     vk::FormatProperties properties;
     vkctx.gpu.getFormatProperties(vkFormat, &properties);
-    vk::FormatFeatureFlags& features =  tiling == vk::ImageTiling::eLinear ?
+    vk::FormatFeatureFlags features =  tiling == vk::ImageTiling::eLinear ?
                                         properties.linearTilingFeatures :
                                         properties.optimalTilingFeatures;
-    vk::FormatFeatureFlags wantedFeatures =
+    vk::FormatFeatureFlags neededFeatures =
              vk::FormatFeatureFlagBits::eSampledImage
-           | vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
-    if (!(features & wantedFeatures)) {
+#if !defined(__MACOSX__) // Until MoltenVK correctly reports for RGBA8_UNORM.
+           | vk::FormatFeatureFlagBits::eSampledImageFilterLinear
+#endif
+           ;
+    if (kTexture->generateMipmaps) {
+		neededFeatures |=  vk::FormatFeatureFlagBits::eBlitDst
+			             | vk::FormatFeatureFlagBits::eBlitSrc;
+    }
+
+    if ((features & neededFeatures) != neededFeatures) {
         ktxTexture_Destroy(kTexture);
         throw unsupported_ttype();
     }
 
-    ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
-                                      static_cast<VkImageTiling>(tiling),
-                                      VK_IMAGE_USAGE_SAMPLED_BIT,
-                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    ktxresult = ktxTexture_VkUpload(kTexture, &vdi, &texture);
     
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
@@ -130,51 +115,31 @@ Texture::Texture(VulkanContext& vkctx,
         message << "ktxTexture_VkUpload failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
-
-    char* pValue;
-    uint32_t valueLen;
-    if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
-                                             KTX_ORIENTATION_KEY,
-                                             &valueLen, (void**)&pValue))
-    {
-        char s, t;
-        
-        if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-            if (s == 'l') sign_s = -1;
-            if (t == 'u') sign_t = -1;
-        }
-    }
-
+    
+    // Checking if KVData contains keys of interest would go here.
+    
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&vdi);
-    
-    try {
-        prepare();
-    } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
-        cleanup();
-        throw;
-    }
 }
 
-Texture::~Texture()
+InstancedSampleBase::~InstancedSampleBase()
 {
     cleanup();
 }
 
 void
-Texture::resize(uint32_t width, uint32_t height)
+InstancedSampleBase::resize(uint32_t width, uint32_t height)
 {
     this->w_width = width;
     this->w_height = height;
     vkctx.destroyDrawCommandBuffers();
     vkctx.createDrawCommandBuffers();
     buildCommandBuffers();
-    updateUniformBuffers();
+    updateUniformBufferMatrices();
 }
 
 void
-Texture::run(uint32_t msTicks)
+InstancedSampleBase::run(uint32_t msTicks)
 {
     // Nothing to do since the scene is not animated.
     // VulkanLoadTests base class redraws from the command buffer we built.
@@ -183,41 +148,21 @@ Texture::run(uint32_t msTicks)
 //===================================================================
 
 void
-Texture::processArgs(std::string sArgs)
+InstancedSampleBase::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-        "linear-tiling", argparser::option::no_argument,       (int*)&tiling, (int)vk::ImageTiling::eLinear,
-        "qcolor",        argparser::option::required_argument, NULL,          1,
-        NULL,            argparser::option::no_argument,       NULL,          0
+        "linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear,
+        NULL,            argparser::option::no_argument, NULL,          0
     };
 
     argvector argv(sArgs);
     argparser ap(argv);
-    
+
     int ch;
     while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
         switch (ch) {
             case 0: break;
-            case 1:
-            {
-                std::istringstream in(ap.optarg);
-                rgbcolor clr;
-                int i;
-
-                for (i = 0; i < 4 && !in.eof(); i++) {
-                    in >> clr[0] >> skip(",") >> clr[1] >> skip(",") >> clr[2];
-                    quadColor[i] = clr;
-                    if (!in.eof())
-                        in >> skip(",");
-                }
-                assert(!in.fail() && (i == 1 || i == 4));
-                if (i == 1) {
-                    for(; i < 4; i++)
-                        quadColor[i] = quadColor[0];
-                }
-                break;
-            }
             default: assert(false); // Error in args in sample table.
         }
     }
@@ -227,22 +172,16 @@ Texture::processArgs(std::string sArgs)
 
 /* ------------------------------------------------------------------------- */
 
-// It is difficult to have these members clean up up their own mess, hence
-// this. Some of them are vulkan.hpp objects that have no destructors and
-// no record of the device. We could add destructors for our own but each
-// would have to remember the device.
 void
-Texture::cleanup()
+InstancedSampleBase::cleanup()
 {
     // Clean up used Vulkan resources
 
-    vkctx.destroyDrawCommandBuffers();
-
+    // Clean up texture resources
     if (sampler)
         vkctx.device.destroySampler(sampler);
     if (imageView)
         vkctx.device.destroyImageView(imageView);
-
     ktxVulkanTexture_Destruct(&texture, vkctx.device, nullptr);
 
     if (pipelines.solid)
@@ -252,12 +191,16 @@ Texture::cleanup()
     if (descriptorSetLayout)
         vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
 
+    vkctx.destroyDrawCommandBuffers();
     quad.freeResources(vkctx.device);
     uniformDataVS.freeResources(vkctx.device);
+
+    if (uboVS.instance != nullptr)
+        delete[] uboVS.instance;
 }
 
 void
-Texture::buildCommandBuffers()
+InstancedSampleBase::buildCommandBuffers()
 {
     vk::CommandBufferBeginInfo cmdBufInfo({}, nullptr);
 
@@ -277,11 +220,11 @@ Texture::buildCommandBuffers()
         renderPassBeginInfo.framebuffer = vkctx.framebuffers[i];
 
         VK_CHECK_RESULT(vkBeginCommandBuffer(vkctx.drawCmdBuffers[i],
-            &static_cast<const VkCommandBufferBeginInfo&>(cmdBufInfo)));
+                &static_cast<const VkCommandBufferBeginInfo&>(cmdBufInfo)));
 
         vkCmdBeginRenderPass(vkctx.drawCmdBuffers[i],
-            &static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
-            VK_SUBPASS_CONTENTS_INLINE);
+                &static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
+                VK_SUBPASS_CONTENTS_INLINE);
 
         vk::Viewport viewport(0, 0,
                               (float)w_width, (float)w_height,
@@ -294,18 +237,24 @@ Texture::buildCommandBuffers()
                 &static_cast<const VkRect2D&>(scissor));
 
         vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i],
-                VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                &static_cast<const VkDescriptorSet&>(descriptorSet), 0, NULL);
-        vkCmdBindPipeline(vkctx.drawCmdBuffers[i],
-                          VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.solid);
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        pipelineLayout, 0, 1,
+                        &static_cast<const VkDescriptorSet&>(descriptorSet),
+                        0, NULL);
 
         VkDeviceSize offsets[1] = { 0 };
-        vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID,
-                1, &static_cast<const VkBuffer&>(quad.vertices.buf), offsets);
-        vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf, 0,
-                             VK_INDEX_TYPE_UINT32);
+        vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i],
+                        VERTEX_BUFFER_BIND_ID, 1,
+                        &static_cast<const VkBuffer&>(quad.vertices.buf),
+                        offsets);
+        vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf,
+                             0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindPipeline(vkctx.drawCmdBuffers[i],
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          pipelines.solid);
 
-        vkCmdDrawIndexed(vkctx.drawCmdBuffers[i], quad.indexCount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(vkctx.drawCmdBuffers[i], quad.indexCount,
+                         instanceCount, 0, 0, 0);
 
         vkCmdEndRenderPass(vkctx.drawCmdBuffers[i]);
 
@@ -313,41 +262,29 @@ Texture::buildCommandBuffers()
     }
 }
 
+// Setup vertices for a single uv-mapped quad
 void
-Texture::generateQuad()
+InstancedSampleBase::generateQuad()
 {
-    // Setup vertices for a single uv-mapped quad
-#define DIM 1.0f
-#define NORMAL { 0.0f, 0.0f, 1.0f }
-    std::vector<Vertex> vertexBuffer = {
-        { { -DIM, -DIM, 0.0f }, { 0.0f, 0.0f }, NORMAL, { quadColor[0] } },
-        { { -DIM,  DIM, 0.0f }, { 0.0f, 1.0f }, NORMAL, { quadColor[1] } },
-        { {  DIM, -DIM, 0.0f }, { 1.0f, 0.0f }, NORMAL, { quadColor[2] } },
-        { {  DIM,  DIM, 0.0f }, { 1.0f, 1.0f }, NORMAL, { quadColor[3] } }
+#define dim 2.5f
+    std::vector<TAVertex> vertexBuffer =
+    {
+        { {  dim,  dim, 0.0f }, { 1.0f, 1.0f } },
+        { { -dim,  dim, 0.0f }, { 0.0f, 1.0f } },
+        { { -dim, -dim, 0.0f }, { 0.0f, 0.0f } },
+        { {  dim, -dim, 0.0f }, { 1.0f, 0.0f } }
     };
-#undef DIM
-#undef NORMAL
+#undef dim
 
-    if (sign_s < 0 || sign_t < 0) {
-        // Transform the texture coordinates to get correct image orientation.
-        for (uint32_t i = 0; i < vertexBuffer.size(); i++) {
-            if (sign_t < 1) {
-                vertexBuffer[i].uv[1] = vertexBuffer[i].uv[1] * -1 + 1;
-            }
-            if (sign_s < 1) {
-                vertexBuffer[i].uv[0] = vertexBuffer[i].uv[0] * -1 + 1;
-            }
-        }
-    }
     vkctx.createBuffer(
         vk::BufferUsageFlagBits::eVertexBuffer,
-        vertexBuffer.size() * sizeof(Vertex),
+        vertexBuffer.size() * sizeof(TAVertex),
         vertexBuffer.data(),
         &quad.vertices.buf,
         &quad.vertices.mem);
 
     // Setup indices
-    std::vector<uint32_t> indexBuffer = { 0,1,2,3 };
+    std::vector<uint32_t> indexBuffer = { 0,1,2, 2,3,0 };
     quad.indexCount = static_cast<uint32_t>(indexBuffer.size());
 
     vkctx.createBuffer(
@@ -359,19 +296,19 @@ Texture::generateQuad()
 }
 
 void
-Texture::setupVertexDescriptions()
+InstancedSampleBase::setupVertexDescriptions()
 {
     // Binding description
     vertices.bindingDescriptions.resize(1);
     vertices.bindingDescriptions[0] =
         vk::VertexInputBindingDescription(
             VERTEX_BUFFER_BIND_ID,
-            sizeof(Vertex),
+            sizeof(TAVertex),
             vk::VertexInputRate::eVertex);
-//#define OFFSET(f) (&(((struct Vertex*)0)->f) - &(struct Vertex*)0)
+
     // Attribute descriptions
     // Describes memory layout and shader positions
-    vertices.attributeDescriptions.resize(4);
+    vertices.attributeDescriptions.resize(2);
     // Location 0 : Position
     vertices.attributeDescriptions[0] =
         vk::VertexInputAttributeDescription(
@@ -386,33 +323,18 @@ Texture::setupVertexDescriptions()
             VERTEX_BUFFER_BIND_ID,
             vk::Format::eR32G32Sfloat,
             sizeof(float) * 3);
-    // Location 2 : Vertex normal
-    vertices.attributeDescriptions[2] =
-        vk::VertexInputAttributeDescription(
-            2,
-            VERTEX_BUFFER_BIND_ID,
-            vk::Format::eR32G32B32Sfloat,
-            sizeof(float) * 5);
-    // Location 3 : Color
-    vertices.attributeDescriptions[3] =
-        vk::VertexInputAttributeDescription(
-            3,
-            VERTEX_BUFFER_BIND_ID,
-            vk::Format::eR32G32B32Sfloat,
-            sizeof(float) * 8);
-
 
     vertices.inputState = vk::PipelineVertexInputStateCreateInfo();
     vertices.inputState.vertexBindingDescriptionCount =
-                static_cast<uint32_t>(vertices.bindingDescriptions.size());
+                  static_cast<uint32_t>(vertices.bindingDescriptions.size());
     vertices.inputState.pVertexBindingDescriptions = vertices.bindingDescriptions.data();
     vertices.inputState.vertexAttributeDescriptionCount =
-                static_cast<uint32_t>(vertices.attributeDescriptions.size());
+                  static_cast<uint32_t>(vertices.attributeDescriptions.size());
     vertices.inputState.pVertexAttributeDescriptions = vertices.attributeDescriptions.data();
 }
 
 void
-Texture::setupDescriptorPool()
+InstancedSampleBase::setupDescriptorPool()
 {
     // Example uses one ubo and one image sampler
     std::vector<vk::DescriptorPoolSize> poolSizes =
@@ -431,7 +353,7 @@ Texture::setupDescriptorPool()
 }
 
 void
-Texture::setupDescriptorSetLayout()
+InstancedSampleBase::setupDescriptorSetLayout()
 {
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings =
     {
@@ -466,7 +388,7 @@ Texture::setupDescriptorSetLayout()
 }
 
 void
-Texture::setupDescriptorSet()
+InstancedSampleBase::setupDescriptorSet()
 {
     vk::DescriptorSetAllocateInfo allocInfo(
             descriptorPool,
@@ -503,18 +425,19 @@ Texture::setupDescriptorSet()
     );
 
     vkctx.device.updateDescriptorSets(
-                             static_cast<uint32_t>(writeDescriptorSets.size()),
-                             writeDescriptorSets.data(),
-                             0,
-                             nullptr);
+                            static_cast<uint32_t>(writeDescriptorSets.size()),
+                            writeDescriptorSets.data(),
+                            0,
+                            nullptr);
 }
 
 void
-Texture::preparePipelines()
+InstancedSampleBase::preparePipelines(const char* const fragShaderName,
+                                      const char* const vertShaderName)
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
-            vk::PrimitiveTopology::eTriangleStrip);
+            vk::PrimitiveTopology::eTriangleList);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
     // Must be false because we haven't enabled the depthClamp device feature.
@@ -561,9 +484,9 @@ Texture::preparePipelines()
     // Load shaders
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
     std::string filepath = getAssetPath() + "shaders/";
-    shaderStages[0] = loadShader(filepath + "texture.vert.spv",
+    shaderStages[0] = loadShader(filepath + vertShaderName,
                                 vk::ShaderStageFlagBits::eVertex);
-    shaderStages[1] = loadShader(filepath + "texture.frag.spv",
+    shaderStages[1] = loadShader(filepath + fragShaderName,
                                 vk::ShaderStageFlagBits::eFragment);
 
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
@@ -585,51 +508,74 @@ Texture::preparePipelines()
                                          &pipelines.solid);
 }
 
-// Prepare and initialize uniform buffer containing shader uniforms
 void
-Texture::prepareUniformBuffers()
+InstancedSampleBase::prepareUniformBuffers(uint32_t shaderDeclaredInstances,
+                                           uint32_t instanceCount)
 {
+    uboVS.instance = new UboInstanceData[instanceCount];
+
+    uint32_t uboSize = sizeof(uboVS.matrices)
+             + shaderDeclaredInstances * sizeof(UboInstanceData);
+
     // Vertex shader uniform buffer block
     vkctx.createBuffer(
         vk::BufferUsageFlagBits::eUniformBuffer,
-        sizeof(uboVS),
-        &uboVS,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        uboSize,
+        nullptr,
         &uniformDataVS.buffer,
         &uniformDataVS.memory,
         &uniformDataVS.descriptor);
 
-    updateUniformBuffers();
+    // Array indices and model matrices are fixed
+    // Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
+    int32_t maxLayers = (std::min)(instanceCount, shaderDeclaredInstances);
+    float offset = -1.5f;
+    float center = (maxLayers * offset) / 2;
+    for (int32_t i = 0; i < maxLayers; i++)
+    {
+        // Instance model matrix
+        uboVS.instance[i].model = glm::translate(glm::mat4(), glm::vec3(0.0f, i * offset - center, 0.0f));
+        uboVS.instance[i].model = glm::rotate(uboVS.instance[i].model, glm::radians(60.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        // Instance array index
+        uboVS.instance[i].arrayIndex.x = (float)i;
+    }
+
+    // Update instanced part of the uniform buffer
+    uint8_t *pData;
+    uint32_t dataOffset = sizeof(uboVS.matrices);
+    uint32_t dataSize = instanceCount * sizeof(UboInstanceData);
+    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformDataVS.memory, dataOffset, dataSize, 0, (void **)&pData));
+    memcpy(pData, uboVS.instance, dataSize);
+    vkUnmapMemory(vkctx.device, uniformDataVS.memory);
+
+    updateUniformBufferMatrices();
 }
 
 void
-Texture::updateUniformBuffers()
+InstancedSampleBase::updateUniformBufferMatrices()
 {
-    if (w_width == 0 || w_height == 0)
-        return;
-    // Vertex shader
-    uboVS.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
-    glm::mat4 viewMatrix = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, zoom));
+    // Only updates the uniform buffer block part containing the global matrices
 
-    uboVS.model = viewMatrix * glm::translate(glm::mat4(), cameraPos);
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    uboVS.model = glm::rotate(uboVS.model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    // Because MetalSL does not have a matrix inverse function...
-    // It looks like the glm::mat3(glm::mat4) does something different than
-    // GLSL. If I convert to mat3 here, only half the quad is lit. Do it in
-    // the shader.
-    uboVS.normal = inverse(transpose(uboVS.model));
+    // Projection
+    uboVS.matrices.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
 
-    uboVS.viewPos = glm::vec4(0.0f, 0.0f, -zoom, 0.0f);
+    // View
+    uboVS.matrices.view = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, zoom));
+    uboVS.matrices.view *= glm::translate(glm::mat4(), cameraPos);
+    uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
+    // Only update the matrices part of the uniform buffer
     uint8_t *pData;
-    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformDataVS.memory, 0, sizeof(uboVS), 0, (void **)&pData));
-    memcpy(pData, &uboVS, sizeof(uboVS));
+    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformDataVS.memory, 0, sizeof(uboVS.matrices), 0, (void **)&pData));
+    memcpy(pData, &uboVS.matrices, sizeof(uboVS.matrices));
     vkUnmapMemory(vkctx.device, uniformDataVS.memory);
 }
 
 void
-Texture::prepareSamplerAndView()
+InstancedSampleBase::prepareSamplerAndView()
 {
     // Create sampler.
     vk::SamplerCreateInfo samplerInfo;
@@ -656,7 +602,8 @@ Texture::prepareSamplerAndView()
     // Set the non-default values.
     viewInfo.image = texture.image;
     viewInfo.format = static_cast<vk::Format>(texture.imageFormat);
-    viewInfo.viewType = static_cast<vk::ImageViewType>(texture.viewType);
+    viewInfo.viewType
+    = static_cast<vk::ImageViewType>(texture.viewType);
     viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
     viewInfo.subresourceRange.layerCount = texture.layerCount;
     viewInfo.subresourceRange.levelCount = texture.levelCount;
@@ -664,57 +611,20 @@ Texture::prepareSamplerAndView()
 }
 
 void
-Texture::prepare()
+InstancedSampleBase::prepare(const char* const fragShaderName,
+                             const char* const vertShaderName,
+                             uint32_t shaderDeclaredInstances)
 {
     prepareSamplerAndView();
-    generateQuad();
     setupVertexDescriptions();
-    prepareUniformBuffers();
+    generateQuad();
+    prepareUniformBuffers(shaderDeclaredInstances, instanceCount);
     setupDescriptorSetLayout();
-    preparePipelines();
+    preparePipelines(fragShaderName, vertShaderName);
     setupDescriptorPool();
     setupDescriptorSet();
     vkctx.createDrawCommandBuffers();
     buildCommandBuffers();
-}
-
-void
-Texture::changeLodBias(float delta)
-{
-    uboVS.lodBias += delta;
-    if (uboVS.lodBias < 0.0f)
-    {
-        uboVS.lodBias = 0.0f;
-    }
-    if (uboVS.lodBias > texture.levelCount)
-    {
-        uboVS.lodBias = (float)texture.levelCount;
-    }
-    updateUniformBuffers();
-    //updateTextOverlay();
-}
-
-void
-Texture::keyPressed(uint32_t keyCode)
-{
-    switch (keyCode)
-    {
-    case SDLK_KP_PLUS:
-        changeLodBias(0.1f);
-        break;
-    case SDLK_KP_MINUS:
-        changeLodBias(-0.1f);
-        break;
-    }
-}
-
-void
-Texture::getOverlayText(VulkanTextOverlay *textOverlay)
-{
-    std::stringstream ss;
-    ss << std::setprecision(2) << std::fixed << uboVS.lodBias;
-    textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
-                         5.0f, 85.0f, VulkanTextOverlay::alignLeft);
 }
 
 

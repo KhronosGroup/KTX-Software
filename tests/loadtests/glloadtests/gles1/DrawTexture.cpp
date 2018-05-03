@@ -65,7 +65,7 @@ DrawTexture::create(uint32_t width, uint32_t height,
 DrawTexture::DrawTexture(uint32_t width, uint32_t height,
                          const char* const szArgs,
                          const std::string sBasePath)
-        : LoadTestSample(width, height, szArgs, sBasePath)
+        : LoadTestSample(width, height, sBasePath)
 {
     GLint           iCropRect[4] = {0, 0, 0, 0};
     const GLchar*  szExtensions  = (const GLchar*)glGetString(GL_EXTENSIONS);

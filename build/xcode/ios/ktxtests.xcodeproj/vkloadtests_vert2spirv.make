@@ -3,7 +3,8 @@ all: \
     $(SHARED_INTERMEDIATE_DIR)/reflect.vert.spv \
     $(SHARED_INTERMEDIATE_DIR)/skybox.vert.spv \
     $(SHARED_INTERMEDIATE_DIR)/texture.vert.spv \
-    $(SHARED_INTERMEDIATE_DIR)/instancing.vert.spv
+    $(SHARED_INTERMEDIATE_DIR)/instancing.vert.spv \
+    $(SHARED_INTERMEDIATE_DIR)/instancinglod.vert.spv
 
 $(SHARED_INTERMEDIATE_DIR)/cube.vert.spv \
     : \
@@ -39,3 +40,10 @@ $(SHARED_INTERMEDIATE_DIR)/instancing.vert.spv \
 	@mkdir -p "$(SHARED_INTERMEDIATE_DIR)"
 	@echo note: "Compiling instancing.vert."
 	"$(VULKAN_SDK)/macOS/bin/glslc" "-fshader-stage=vertex" -o "$(SHARED_INTERMEDIATE_DIR)/instancing.vert.spv" "tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert"
+
+$(SHARED_INTERMEDIATE_DIR)/instancinglod.vert.spv \
+    : \
+    tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert
+	@mkdir -p "$(SHARED_INTERMEDIATE_DIR)"
+	@echo note: "Compiling instancinglod.vert."
+	"$(VULKAN_SDK)/macOS/bin/glslc" "-fshader-stage=vertex" -o "$(SHARED_INTERMEDIATE_DIR)/instancinglod.vert.spv" "tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert"

@@ -56,7 +56,7 @@ TexturedCube::create(uint32_t width, uint32_t height,
 TexturedCube::TexturedCube(uint32_t width, uint32_t height,
                          const char* const szArgs,
                          const std::string sBasePath)
-        : LoadTestSample(width, height, szArgs, sBasePath)
+        : LoadTestSample(width, height, sBasePath)
 {
     const GLchar*  szExtensions = (const GLchar*)glGetString(GL_EXTENSIONS);
     const char* filename;

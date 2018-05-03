@@ -481,8 +481,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         uint32_t max_dim;
         VkFormatProperties    formatProperties;
         VkFormatFeatureFlags  formatFeatureFlags;
-        VkFormatFeatureFlags  wantedFeatures
-            = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
+        VkFormatFeatureFlags  neededFeatures
+            = VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
         vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice,
                                             vkFormat,
                                             &formatProperties);
@@ -492,7 +492,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         else
             formatFeatureFlags = formatProperties.linearTilingFeatures;
 
-        if (!(formatFeatureFlags & wantedFeatures))
+        if ((formatFeatureFlags & neededFeatures) != neededFeatures)
             return KTX_INVALID_OPERATION;
 
         if (formatFeatureFlags & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)
@@ -501,7 +501,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             blitFilter = VK_FILTER_NEAREST; // XXX INVALID_OP?
 
         max_dim = MAX(MAX(This->baseWidth, This->baseHeight), This->baseDepth);
-        numImageLevels = floor(log2(max_dim)) + 1;
+        numImageLevels = (uint32_t)floor(log2(max_dim)) + 1;
     } else {
         numImageLevels = This->numLevels;
     }

@@ -148,10 +148,12 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\ltexceptions.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\utils\argparser.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\InstancedSampleBase.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureCubemap.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureMipmap.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\resource.h"/>
@@ -159,10 +161,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\utils\argparser.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\InstancedSampleBase.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureCubemap.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureMipmap.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.cpp"/>
   </ItemGroup>
@@ -180,6 +184,8 @@
     <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texture\texture.vert"/>
     <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturearray\instancing.frag"/>
     <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturearray\instancing.vert"/>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturemipmap\instancinglod.frag"/>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturemipmap\instancinglod.vert"/>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\torusknot.obj">
