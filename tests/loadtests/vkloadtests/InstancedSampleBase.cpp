@@ -92,11 +92,7 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
                                         properties.linearTilingFeatures :
                                         properties.optimalTilingFeatures;
     vk::FormatFeatureFlags neededFeatures =
-             vk::FormatFeatureFlagBits::eSampledImage
-#if !defined(__MACOSX__) // Until MoltenVK correctly reports for RGBA8_UNORM.
-           | vk::FormatFeatureFlagBits::eSampledImageFilterLinear
-#endif
-           ;
+             vk::FormatFeatureFlagBits::eSampledImage;
     if (kTexture->generateMipmaps) {
 		neededFeatures |=  vk::FormatFeatureFlagBits::eBlitDst
 			             | vk::FormatFeatureFlagBits::eBlitSrc;
@@ -106,6 +102,11 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
         ktxTexture_Destroy(kTexture);
         throw unsupported_ttype();
     }
+
+    if (features & vk::FormatFeatureFlagBits::eSampledImageFilterLinear)
+        filter = vk::Filter::eLinear;
+    else
+        filter = vk::Filter::eNearest;
 
     ktxresult = ktxTexture_VkUpload(kTexture, &vdi, &texture);
     
@@ -580,8 +581,8 @@ InstancedSampleBase::prepareSamplerAndView()
     // Create sampler.
     vk::SamplerCreateInfo samplerInfo;
     // Set the non-default values
-    samplerInfo.magFilter = vk::Filter::eLinear;
-    samplerInfo.minFilter = vk::Filter::eLinear;
+    samplerInfo.magFilter = filter;
+    samplerInfo.minFilter = filter;
     samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
     samplerInfo.maxLod = (float)texture.levelCount;
     if (vkctx.gpuFeatures.samplerAnisotropy == VK_TRUE) {

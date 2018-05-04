@@ -47,6 +47,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
     vk::Sampler sampler;
     vk::ImageView imageView;
     vk::ImageTiling tiling;
+    vk::Filter filter;
 
 
     uint32_t instanceCount;
