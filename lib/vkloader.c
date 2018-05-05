@@ -332,11 +332,18 @@ linearTilingCallback(int miplevel, int face,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
- * Creates a VkImage with format etc. matching the KTX data and uploads the
- * images. Also creates a VkImageView object for accessing the
- * image. Mipmaps will be generated if the @c ktxTexture's @c generateMipmaps
+ * Creates a VkImage with @c VkFormat etc. matching the KTX data and uploads
+ * the images. Also creates a VkImageView object for accessing the image.
+ * Mipmaps will be generated if the @c ktxTexture's @c generateMipmaps
  * flag is set. Returns the handles of the created objects and information
  * about the texture in the @c ktxVulkanTexture pointed at by @p vkTexture.
+ *
+ * @p usageFlags and thus acceptable usage of the created image may be
+ * augmented as follows:
+ * - with @c VK_IMAGE_USAGE_TRANSFER_DST_BIT if @p tiling is
+ *   @c VK_IMAGE_TILING_OPTIMAL
+ * - with <code>VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT</code>
+ *   if @c generateMipmaps is set in the @c ktxTexture.
  *
  * Most Vulkan implementations support VK_IMAGE_TILING_LINEAR only for a very
  * limited number of formats and features. Generally VK_IMAGE_TILING_OPTIMAL is
@@ -827,11 +834,11 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
- * Calls ktxReader_LoadVkTextureEx() with the most commonly used options:
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
  * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
  * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
  * 
- * @sa ktxReader_LoadVkTextureEx() for details and use that for complete
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
  *     control.
  */
 KTX_error_code
