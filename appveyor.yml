@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: 3.0.{build}
 
 branches:
   only:
@@ -6,6 +6,10 @@ branches:
     - master
 
 os: Visual Studio 2015
+#image:
+#  - Visual Studio 2013
+#  - Visual Studio 2015
+#  - Visual Studio 2017
 
 configuration:
   - Debug
@@ -17,9 +21,12 @@ platform:
 
 environment:
   GIT_TRACE: 1
+  VULKAN_SDK_VER: 1.1.73.0
 
 on_failure:
   - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+
+clone_folder: c:\projects\ktx
 
 init:
   - ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
@@ -34,15 +41,28 @@ install:
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
+    REM Install VulkanSDK
+    curl -O https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe
+    .\VulkanSDK-%VULKAN_SDK_VER%-Installer.exe
     REM cd back to cloned repo.
     cd C:\projects\ktx
+    REM Pull only Windows binaries.
+    git lfs pull --include=other_lib/win
 
-cache:
-  - other_lib
+#cache:
+#  - other_lib
 
 build_script:
 - cmd: |-
-    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtests.sln
-    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtools.sln
-    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtests.sln
-    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtools.sln
+    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2013/ktxtests.sln
+    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2013/ktxtests.sln
+    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2013/ktxtools.sln
+    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2013/ktxtools.sln
+    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2015/ktxtests.sln
+    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2015/ktxtests.sln
+    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2015/ktxtools.sln
+    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2015/ktxtools.sln
+    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2017/ktxtests.sln
+    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2017/ktxtests.sln
+    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2017/ktxtools.sln
+    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2017/ktxtools.sln
