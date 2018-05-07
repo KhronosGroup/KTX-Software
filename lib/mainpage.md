@@ -48,12 +48,21 @@ ktx_uint32_t level, layer, faceSlice;
 result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                         &texture);
+
+// Retrieve information about the texture from fields in the ktxTexture
+// such as:
+ktx_uint32 numLevels = texture->numLevels;
+ktx_uint32 baseWidth = texture->baseWidth;
+ktx_bool_t isArray = texture->isArray;
+
 // Retrieve a pointer to the image for a specific mip level, array layer
-// & faceSlice.
+// & face or depth slice.
 level = 1; layer = 0; faceSlice = 3;
 result = ktxTexture_GetImageOffset(texture, level, layer, faceSlice, &offset);
 image = ktxTexture_GetData(texture) + offset;
+// ...
 // Do something with the texture image.
+// ...
 ktxTexture_destroy(texture);
 ~~~~~~~~~~~~~~~~
 
@@ -76,6 +85,9 @@ result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
 glGenTextures(1, &texture); // Optional. GLUpload can generate a texture.
 result = ktxtexture_GLUpload(kTexture, &texture, &target, &glerror);
 ktxTexture_destroy(texture);
+// ...
+// GL rendering using the texture
+// ...
 ~~~~~~~~~~~~~~~~
 
 ## Creating a Vulkan image object from a KTX file.  {#createVulkan}
@@ -91,8 +103,10 @@ ktx_uint32_t level, layer, faceSlice;
 ktxVulkanDeviceInfo vdi;
 ktxVulkanTexture texture;
 
-// Set up Vulkan physical & logical devices, queue and command pool.
-// Save the handles to these in a struct called vkctx.
+// Set up Vulkan physical device (gpu), logical device (device), queue
+// and command pool. Save the handles to these in a struct called vkctx.
+// ktx VulkanDeviceInfo is used to pass these with the expectation that
+// apps are likely to upload a large number of textures.
 ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
                               vkctx.queue, vkctx.commandPool, nullptr);
 
@@ -107,7 +121,10 @@ ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
 
 ktxTexture_Destroy(kTexture);
 ktxVulkanDeviceInfo_Destruct(&vdi);
-// And at some point in the future when done using the image in Vulkan
+// ...
+// Vulkan rendering using the texture
+// ...
+// When done using the image in Vulkan...
 ktxVulkanTexture_Destruct(&texture, vkctx.device, nullptr);
 ~~~~~~~~~~~~~~~~
 
@@ -148,7 +165,7 @@ createInfo.baseWidth = 2048;
 createInfo.baseHeight = 1024;
 createInfo.baseDepth = 16;
 createInfo.numDimensions = 3.
-// Note: it is not necessary to provide a full mipmpa pyramid.
+// Note: it is not necessary to provide a full mipmap pyramid.
 createInfo.numLevels = log2(createInfo.baseWidth) + 1
 createInfo.numLayers = 1;
 createInfo.numFaces = 1;
