@@ -13,16 +13,17 @@ library
 - [x] make reader that is usable without OpenGL context
 - [ ] use TexStorage in GL texture loader when available
 - [x ] add Vulkan texture loader
-- [ ] support new features when added to file format
 
 library testing
 ---------------
 
 - [x] test for GL-context-free reader
 - [x] test for Vulkan loader
-- [ ] proper mipmap test (multiple planes each showing a different miplevel)
+- [x] proper mipmap test (multiple planes each showing a different miplevel)
 - [ ] GLES2 load tests
-- [ ] cubemap, 3D & array texture loading tests
+- [x] cubemap & array texture loading tests for Vulkan
+- [ ] 3D texture test for Vulkan
+- [ ] cubemap, 3D & array texture loading tests for OpenGL
 - [ ] port test framework to Android.
 
 toktx
