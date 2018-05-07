@@ -215,7 +215,7 @@ Create a KTX file from netpbm format files.
     @b toktx exits 0 on success, 1 on command line errors and 2 on
     functional errors.
 
-@section history HISTORY
+@section toktx_history HISTORY
 
 @version 1.3:
 Sat, 28 Apr 2018 14:41:22 +0900

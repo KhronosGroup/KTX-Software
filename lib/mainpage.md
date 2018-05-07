@@ -18,7 +18,7 @@ The binary form, @em libktx.{a,dll,so}, and this documentation are
 provided this page <!-- this comment block --> is included prominently in
 the accompanying documentation.
 
-See @ref history for the list of changes.
+See @ref libktx_history for the list of changes.
 
 See @ref todo for the current To Do list.
 

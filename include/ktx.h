@@ -726,7 +726,7 @@ ktxWriteKTXM(unsigned char** dst, GLsizei* size,
 
 /**
 @~English
-@page history Revision History
+@page libktx_history Revision History
 
 @section v6 Version 3.0.0
 Added:

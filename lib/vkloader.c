@@ -351,21 +351,16 @@ linearTilingCallback(int miplevel, int face,
  * during loading.
  *
  * @param[in] This          pointer to the ktxTexture from which to upload.
- * @anchor vdiparam
  * @param [in] vdi          pointer to a ktxVulkanDeviceInfo structure providing
  *                          information about the Vulkan device onto which to
  *                          load the texture.
- * @anchor ptextureparam
  * @param [in,out] vkTexture pointer to a ktxVulkanTexture structure into which
  *                           the function writes information about the created
  *                           VkImage.
- * @anchor tilingparam
  * @param [in] tiling       type of tiling to use in the destination image
  *                          on the Vulkan device.
- * @anchor usageflagsparam
  * @param [in] usageFlags   a set of VkImageUsageFlags bits indicating the
  *                          intended usage of the destination image.
- * @anchor layoutparam
  * @param [in] finalLayout  a VkImageLayout value indicating the desired
  *                          final layout of the created image.
  *
