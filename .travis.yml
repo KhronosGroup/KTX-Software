@@ -6,9 +6,9 @@ os:
 - osx
 
 sudo: required
-dist: trusty
+dist: artful
 
-osx_image: xcode7.3
+osx_image: xcode9.3
 
 language:
 - cpp
@@ -23,13 +23,20 @@ branches:
   only:
     - master
     - incoming
-    - noglcontext
 
+cache:
+  directories:
+    - VulkanSDK
+
+# VULKAN_SDK & ASSIMP_HOME should be set only for macOS. How? Will source setenv.sh override in linux?
 env:
   global:
-    - GIT_LFS_VERSION="1.1.0"
+    - GIT_LFS_VERSION="2.4.0"
+    - VULKAN_SDK="~/vulkansdk-macos-1.1.73.0"
+    - ASSIMP_HOME="/usr/local"
 
 before_install:
+- echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
@@ -39,7 +46,7 @@ before_install:
     pushd ../.. &&
     wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    export PATH=`pwd`/git-lfs-1.1.0:$PATH &&
+    export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
     popd &&
     git lfs install &&
     git lfs pull --include="other_lib/linux"
@@ -56,10 +63,20 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    sudo apt-get -qq update; sudo apt-get -qq install doxygen
+    sudo apt-get -qq update; sudo apt-get -qq install doxygen &&
+    sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
+    sudo apt-get -qq update; sudo apt-get -qq install libassimp4 && libassimp-dev &&
+     wget https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/1.1.73.0/linux/vulkansdk-linux-x86_64-1.1.73.0.run &&
+    chmod ugo+x *.run &&
+    ./*.run &&
+    source VulkanSDK/1.1.73.0/setup-env.sh &&
+    cd VulkanSDK && ./build_tools.sh --shaderc && cd .. &&
     ;;
   osx)
-    brew install doxygen
+    brew install doxygen &&
+    brew install assimp &&
+    wget https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/1.1.73.0/mac/vulkansdk-macos-1.1.73.0.tar.gz &&
+    tar -xzf vulkansdk-macos-1.1.73.0.tar.gz &&
     ;;
   esac
 - pushd ../..
@@ -86,10 +103,11 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    cd build/make/linux &&
-    make BUILDTYPE=Debug &&
-    make BUILDTYPE=Release &&
-    cd ../../cmake/linux/Debug &&
+    #cd build/make/linux &&
+    #make BUILDTYPE=Debug &&
+    #make BUILDTYPE=Release &&
+    #cd ../../cmake/linux/Debug &&
+    cd build/cmake/linux/Debug &&
     cmake . && make &&
     cd ../Release &&
     cmake . && make
