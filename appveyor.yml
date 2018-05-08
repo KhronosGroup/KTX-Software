@@ -44,8 +44,8 @@ install:
     REM Install VulkanSDK
     set VULKAN_SDK_VER=1.1.73.0
     cd C:\
-    #curl -O https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
-    #.\VulkanSDK-%VULKAN_SDK_VER%-Installer.exe
+    REM curl -O https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
+    REM .\VulkanSDK-%VULKAN_SDK_VER%-Installer.exe
     curl -O https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/1.1.73.0/windows/VulkanSDK-1.1.73.0-Installer.exe?Human=true
     .\VulkanSDK-%1.1.73.0%-Installer.exe
     REM cd back to cloned repo.
