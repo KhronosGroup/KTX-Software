@@ -517,14 +517,6 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 	if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, KTX_GL_UNPACK_ALIGNMENT);
 	}
-
-	texnameUser = pTexture && *pTexture;
-	if (texnameUser) {
-		texname = *pTexture;
-	} else {
-		glGenTextures(1, &texname);
-	}
-	glBindTexture(texinfo.glTarget, texname);
     
     /* load as 2D texture if 1D textures are not supported */
     if (texinfo.textureDimensions == 1 &&
@@ -571,6 +563,14 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
+
+	texnameUser = pTexture && *pTexture;
+	if (texnameUser) {
+		texname = *pTexture;
+	} else {
+		glGenTextures(1, &texname);
+	}
+	glBindTexture(texinfo.glTarget, texname);
 
 	// Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
 	if (texinfo.generateMipmaps && (pfGlGenerateMipmap == NULL)) {
