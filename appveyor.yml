@@ -70,8 +70,8 @@ build_script:
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2017”) {$env:KTX_VSVER = “vs2017"}
     echo  build/msvs/%PLATFORM%/%KTX_VSVER%/ktxtests.sln
     dir build/msvs/x64/vs2013/ktxtests.sln
-    MSBuild /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/%PLATFORM%/%KTX_VSVER%/ktxtests.sln
-    MSBuild /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/%PLATFORM%/%KTX_VSVER%/ktxtools.sln
+    MSBuild /p:Configuration="%CONFIGURATION%" /p:Platform="$PLATFORM" build/msvs/$PLATFORM/$KTX_VSVER/ktxtests.sln
+    MSBuild /p:Configuration="%CONFIGURATION%" /p:Platform="$PLATFORM" build/msvs/$PLATFORM/$KTX_VSVER/ktxtools.sln
 #- cmd: |-
 #    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2013/ktxtests.sln
 #    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2013/ktxtests.sln
