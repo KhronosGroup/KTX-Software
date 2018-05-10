@@ -27,10 +27,17 @@ environment:
 #on_failure:
 #  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
+# Following is to stop RDP exiting at end of build.
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 clone_folder: c:\projects\ktx
 
+# ps command is enables RDP and provides the login details. blockRdp variant stops the build
+# proceeding until RDP is connected.
 init:
-  - ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
+#  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - git config --global core.autocrlf true # workaround Git LFS bug
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
