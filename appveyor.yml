@@ -21,7 +21,7 @@ platform:
 
 environment:
   GIT_TRACE: 0
-  #VULKAN_SDK_VER: 1.1.73.0
+  VULKAN_SDK_VER: 1.1.73.0
 
 # Following is for GIT_TRACE: 1 above.
 #on_failure:
@@ -43,14 +43,16 @@ init:
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:
 - cmd: |-
+    echo %PATH%
     choco install doxygen.install
+    echo %PATH%
     REM Copy PowerVR OpenGL ES Emulator libraries
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
     REM Install VulkanSDK
-    set VULKAN_SDK_VER=1.1.73.0
+    REM set VULKAN_SDK_VER=1.1.73.0
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     REM curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/1.1.73.0/windows/VulkanSDK-1.1.73.0-Installer.exe?Human=true
