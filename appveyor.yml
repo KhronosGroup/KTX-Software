@@ -52,7 +52,6 @@ install:
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
     REM Install VulkanSDK
-    REM set VULKAN_SDK_VER=1.1.73.0
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
@@ -77,16 +76,9 @@ build_script:
     dir build/msvs/x64/vs2013/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
-#- cmd: |-
-#    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2013/ktxtests.sln
-#    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2013/ktxtests.sln
-#    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2013/ktxtools.sln
-#    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2013/ktxtools.sln
-#    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2015/ktxtests.sln
-#    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2015/ktxtests.sln
-#    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2015/ktxtools.sln
-#    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2015/ktxtools.sln
-#    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2017/ktxtests.sln
-#    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2017/ktxtests.sln
-#    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="Win32" build/msvs/win32/vs2017/ktxtools.sln
-#    "C:\Program Files (x86)\MSBuild\15.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="x64" build/msvs/x64/vs2017/ktxtools.sln
+
+test_script:
+- ps: |-
+    cd build\msvs\$env:PLATFORM\$env:KTX_VSVER\$env:CONFIGURATION
+    .\texturetests.exe
+    .\unittests.exe
