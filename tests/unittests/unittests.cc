@@ -153,9 +153,11 @@ class ktxWriteKTXRGB8Test : public ktxWriteKTXTestBase<GLubyte, 3, GL_RGB8> { };
 // CheckHeaderTest
 //////////////////////////////
 
+#if defined(DEBUG)
 TEST_F(CheckHeaderTest, AssertsOnNullArguments) {
     ASSERT_DEATH_IF_SUPPORTED(_ktxCheckHeader(0, 0), "Assert*");
 }
+#endif
 
 TEST_F(CheckHeaderTest, ValidatesIdentifier) {
     KTX_supplemental_info suppInfo;
