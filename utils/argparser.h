@@ -25,10 +25,20 @@
 #include <string>
 #include <vector>
 
-class argvector : public std::vector<std::string> {
+#if !defined(_TCHAR)
+  #define _TCHAR char
+#endif
+#if !defined(_T)
+  #define _T
+#endif
+typedef std::basic_string<_TCHAR> tstring;
+
+
+class argvector : public std::vector<tstring> {
   public:
-    argvector(const std::string& argstring);
-    argvector(int argc, const char* const* argv);
+    argvector() { };
+    argvector(const tstring& argstring);
+    argvector(int argc, const _TCHAR* const* argv);
 };
 
 class argparser {
@@ -40,17 +50,20 @@ class argparser {
         int val;
     };
 
-    std::string optarg;
+    tstring optarg;
     unsigned int optind;
     
-    argparser(argvector& argv) : argv(argv) {
-        optind = 0;
-    }
-    int getopt(std::string* shortopts, const struct option* longopts,
-                int* longindex);
+    argparser(argvector& argv, unsigned int startindex = 0)
+        : argv(argv), optind(startindex) { }
+
+    argparser(int argc, const _TCHAR* const* argv1)
+       : argv(argc, argv1), optind(1) { }
+
+    int getopt(tstring* shortopts, const struct option* longopts,
+               int* longindex = nullptr);
     
   protected:
-    argvector& argv;
+    argvector argv;
 };
 
 //================== Helper for apps' processArgs ========================
@@ -59,8 +72,8 @@ class argparser {
 // does not check whether the skipped characters are the same as it
 struct skip
 {
-    const char* text;
-    skip(const char* text) : text(text) {}
+    const _TCHAR* text;
+    skip(const _TCHAR* text) : text(text) {}
 };
 
 std::istream& operator >> (std::istream& stream, const skip& x);

@@ -186,9 +186,9 @@ CFLAGS_C_Debug :=
 CFLAGS_CC_Debug :=
 
 INCS_Debug := \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
-	-I$(srcdir)/tests/loadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
@@ -210,9 +210,9 @@ CFLAGS_C_Release :=
 CFLAGS_CC_Release :=
 
 INCS_Release := \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
-	-I$(srcdir)/tests/loadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
@@ -220,8 +220,8 @@ INCS_Release := \
 	-I$(srcdir)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
-	$(obj).target/$(TARGET)/tests/loadtests/utils/argparser.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/InstancedSampleBase.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/Texture.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/TextureArray.o \

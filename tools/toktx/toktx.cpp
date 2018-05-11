@@ -25,14 +25,14 @@
 // add ..\imdebug.lib to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
+#include "stdafx.h"
 #include <cstdlib>
 #include <sstream>
 #include <vector>
-#include <getopt.h>
 
-#include "stdafx.h"
 #include "GL/glcorearb.h"
 #include "ktx.h"
+#include "argparser.h"
 #include "image.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
@@ -108,8 +108,7 @@ struct commandOptions {
 static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
-static void processOptions(int argc, _TCHAR* const argv[],
-                           struct commandOptions& options);
+static void processOptions(argparser& parser, struct commandOptions& options);
 static void yflip(unsigned char*& srcImage, unsigned int imageSize,
                   unsigned int w, unsigned int h, unsigned int pixelSize);
 #if IMAGE_DEBUG
@@ -623,30 +622,21 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
     if (toktx_options) {
         std::istringstream iss(toktx_options);
-        std::vector<std::string> sarglist;
-        std::vector<const _TCHAR*> arglist;
-        // There seems no way to get getopt_long (processOptions) to start at
-        // index 0 so...
-        arglist.push_back("");
-        // Why the double loop? It's because in clang 902.0.39.1, if both
-        // push_backs are in a single loop the first item in arglist turns
-        // to an empty string on the second sarglist.push_back.
+        argvector arglist;
         for (std::string w; iss >> w; )
-            sarglist.push_back(w);
-        for (ktx_uint32_t i = 0; i < (ktx_uint32_t)sarglist.size(); i++)
-            arglist.push_back(sarglist[i].c_str());
+            arglist.push_back(w);
 
-        processOptions((int)arglist.size(), (char* const*)&arglist.front(),
-                        options);
-        if (optind != (int)arglist.size()) {
+        argparser optparser(arglist, 0);
+        processOptions(optparser, options);
+        if (optparser.optind != (int)arglist.size()) {
             fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable.\n");
             usage(options.appName);
             exit(1);
         }
     }
 
-    optind = 1;
-    processOptions(argc, argv, options);
+    argparser parser(argc, argv);
+    processOptions(parser, options);
 
     if (options.alpha && (!ALLOW_LEGACY_FORMAT_CREATION || options.luminance)) {
         usage(options.appName);
@@ -665,15 +655,15 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         exit(1);
     }
     ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
-    if (argc - optind < requiredInputFiles + 1) {
+    if (argc - parser.optind < requiredInputFiles + 1) {
         // stdin is permitted for a single input file.
-        if (requiredInputFiles != 1 || argc - optind < 1) {
+        if (requiredInputFiles != 1 || argc - parser.optind < 1) {
             usage(options.appName);
             exit(1);
         }
     }
 
-    i = optind;
+    i = parser.optind;
     outfilenamelen = (unsigned int)_tcslen(argv[i]) + 1;
     if (_tcscmp(argv[i], "-") != 0 && _tcsrchr(argv[i], '.') == NULL) {
         addktx = 1;
@@ -715,45 +705,45 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
  *
  * @return
  *
- * @param[in]     argc,       number of words in the command line.
- * @param[in]     argv        words from the command line.
+ * @param[in]     parser,     an @c argparser holding the options to process.
  * @param[in,out] options     commandOptions struct in which option information
  *                            is set.
  */
 static void
-processOptions(int argc, _TCHAR* const argv[],
+processOptions(argparser& parser,
                struct commandOptions& options)
 {
-    char ch;
-    static struct option option_list[] = {
-        { "help", no_argument, NULL, 'h' },
-        { "version", no_argument, NULL, 'v' },
-        { "2d", no_argument, &options.two_d, 1 },
-        { "alpha", no_argument, &options.alpha, 1 },
-        { "automipmap", no_argument, &options.automipmap, 1 },
-        { "cubemap", no_argument, &options.cubemap, 1 },
-        { "levels", required_argument, NULL, 'l' },
-        { "luminance", no_argument, &options.luminance, 1 },
-        { "mipmap", no_argument, &options.mipmap, 1 },
-        { "nometadata", no_argument, &options.metadata, 0 },
-        { "lower_left_maps_to_s0t0", no_argument, &options.lower_left_maps_to_s0t0, 1 },
-        { "upper_left_maps_to_s0t0", no_argument, &options.lower_left_maps_to_s0t0, 0 },
+    _TCHAR ch;
+    static struct argparser::option option_list[] = {
+        { "help", argparser::option::no_argument, NULL, 'h' },
+        { "version", argparser::option::no_argument, NULL, 'v' },
+        { "2d", argparser::option::no_argument, &options.two_d, 1 },
+        { "alpha", argparser::option::no_argument, &options.alpha, 1 },
+        { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
+        { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
+        { "levels", argparser::option::required_argument, NULL, 'l' },
+        { "luminance", argparser::option::no_argument, &options.luminance, 1 },
+        { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
+        { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
+        { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
+        { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It
         // defaults to checked and is saved in a user-specific file not the
         // pbxproj file so it can't be disabled in a generated project.
         // Remove these from the arguments under consideration.
-        { "-NSDocumentRevisionsDebugMode", required_argument, NULL, 'i' },
-        { NULL, 0, NULL, 0 }
+        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 'i' },
+        { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    while ((ch = getopt_long(argc, argv, "hvl:", option_list, NULL)) != -1) {
+    tstring shortopts("hvl:");
+    while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
             break;
           case 'l':
-            options.levels = atoi(optarg);
+            options.levels = atoi(parser.optarg.c_str());
             break;
           case 'h':
             usage(options.appName);

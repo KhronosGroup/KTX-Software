@@ -280,9 +280,11 @@ unset(TARGET)
 set(TARGET "toktx")
 set(TOOLSET "target")
 list(APPEND toktx__cxx_srcs
+  "../../../../utils/argparser.cpp"
   "../../../../tools/toktx/image.cpp"
   "../../../../tools/toktx/toktx.cpp")
 list(APPEND toktx__other_srcs
+  "../../../../utils/argparser.h"
   "../../../../tools/toktx/image.h"
   "../../../../tools/toktx/stdafx.h"
   "../../../../tools/toktx/targetver.h")
@@ -295,6 +297,7 @@ set_target_properties(toktx PROPERTIES RUNTIME_OUTPUT_NAME "toktx")
 set_target_properties(toktx PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/toktx PROPERTIES GENERATED "TRUE")
 list(APPEND toktx__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
@@ -1016,8 +1019,8 @@ add_custom_target(vkloadtests__copies
   SOURCES ${vkloadtests__copies__input}
 )
 list(APPEND vkloadtests__cxx_srcs
+  "../../../../utils/argparser.cpp"
   "../../../../tests/loadtests/common/LoadTestSample.cpp"
-  "../../../../tests/loadtests/utils/argparser.cpp"
   "../../../../tests/loadtests/vkloadtests/InstancedSampleBase.cpp"
   "../../../../tests/loadtests/vkloadtests/Texture.cpp"
   "../../../../tests/loadtests/vkloadtests/TextureArray.cpp"
@@ -1027,10 +1030,10 @@ list(APPEND vkloadtests__cxx_srcs
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.cpp"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.cpp")
 list(APPEND vkloadtests__other_srcs
+  "../../../../utils/argparser.h"
   "../../../../tests/loadtests/common/LoadTestSample.h"
   "../../../../tests/loadtests/common/ltexceptions.h"
   "../../../../tests/loadtests/common/vecmath.hpp"
-  "../../../../tests/loadtests/utils/argparser.h"
   "../../../../tests/loadtests/vkloadtests/resources/mac/Info.plist"
   "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.frag"
   "../../../../tests/loadtests/vkloadtests/shaders/cube/cube.vert"
@@ -1067,9 +1070,9 @@ set_target_properties(vkloadtests PROPERTIES RUNTIME_OUTPUT_NAME "vkloadtests")
 set_target_properties(vkloadtests PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/vkloadtests PROPERTIES GENERATED "TRUE")
 list(APPEND vkloadtests__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"

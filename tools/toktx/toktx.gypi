@@ -27,9 +27,12 @@
         {
           'target_name': 'toktx',
           'type': '<(executable)',
+          'include_dirs' : [ '../../utils' ],
           'mac_bundle': 0,
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'sources': [
+            '../../utils/argparser.cpp',
+            '../../utils/argparser.h',
             'image.cpp',
             'image.h',
             'stdafx.h',

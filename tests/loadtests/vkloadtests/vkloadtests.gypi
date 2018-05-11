@@ -42,18 +42,18 @@
       'include_dirs': [
         # Uncomment if we #include .spv files in the c++ files.
         #'<(SHARED_INTERMEDIATE_DIR)',
+        '../../../utils',
         '../common',
         '../geom',
-        '../utils',
       ],
       'sources': [
+        '../../../utils/argparser.h',
+        '../../../utils/argparser.cpp',
         '../common/LoadTestSample.cpp',
         '../common/LoadTestSample.h',
         '../common/ltexceptions.h',
         '../common/vecmath.hpp',
-        '../utils/argparser.h',
-        '../utils/argparser.cpp',
-       '<(vkinfoplist_file)',
+        '<(vkinfoplist_file)',
         'shaders/cube/cube.frag',
         'shaders/cube/cube.vert',
         'shaders/cubemap/reflect.frag',

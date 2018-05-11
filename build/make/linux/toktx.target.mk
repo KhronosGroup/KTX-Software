@@ -18,6 +18,7 @@ CFLAGS_C_Debug :=
 CFLAGS_CC_Debug :=
 
 INCS_Debug := \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
@@ -35,10 +36,12 @@ CFLAGS_C_Release :=
 CFLAGS_CC_Release :=
 
 INCS_Release := \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
 OBJS := \
+	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tools/toktx/image.o \
 	$(obj).target/$(TARGET)/tools/toktx/toktx.o
 

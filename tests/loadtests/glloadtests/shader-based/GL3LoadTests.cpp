@@ -104,16 +104,16 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "ETC2 Signed RG11"
     },
     { TextureArray::create,
-        "testimages/texturearray_bc3_unorm.ktx",
-        "BC3 (S3TC DXT5) Compressed Texture Array"
+      "testimages/texturearray_bc3_unorm.ktx",
+      "BC3 (S3TC DXT5) Compressed Texture Array"
     },
     { TextureArray::create,
-        "testimages/texturearray_astc_8x8_unorm.ktx",
-        "ASTC 8x8 Compressed Texture Array"
+      "testimages/texturearray_astc_8x8_unorm.ktx",
+      "ASTC 8x8 Compressed Texture Array"
     },
     { TextureArray::create,
-        "testimages/texturearray_etc2_unorm.ktx",
-        "ETC2 Compressed Texture Array"
+      "testimages/texturearray_etc2_unorm.ktx",
+      "ETC2 Compressed Texture Array"
     },
     { TexturedCube::create,
       "testimages/rgb-amg-reference.ktx",
