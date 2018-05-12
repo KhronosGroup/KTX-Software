@@ -83,7 +83,7 @@ build_script:
     dir build/msvs/x64/vs2013/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
-    runDoxygen ktxpkg.doxy
+    .\runDoxygen ktxpkg.doxy
 
 test_script:
 - ps: |-
