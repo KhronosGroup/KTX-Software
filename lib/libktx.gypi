@@ -134,7 +134,7 @@
           'type': 'none',
           'variables': {
             'variables': { # level 2
-              'output_dir': '../build/docs/libktx',
+              'output_dir': '../build/docs',
             },
             'output_dir': '<(output_dir)',
             'doxyConfig': 'libktx.doxy',
@@ -154,8 +154,8 @@
                 '<@(vksource_files)',
               ],
               'outputs': [
-                '<(output_dir)/html',
-                '<(output_dir)/man',
+                '<(output_dir)/html/libktx',
+                '<(output_dir)/man/libktx',
               ],
               # doxygen must be run in the top-level project directory
               # so that ancestors of that directory will be removed
@@ -194,7 +194,7 @@
               # directory during project build is the one we need.
               'msvs_cygwin_shell': 1,
               'action': [
-                './runDoxygen', '-o', '<(output_dir)', '-t', '<(timestamp)', '<(doxyConfig)',
+                './runDoxygen', '-t', '<(timestamp)', '<(doxyConfig)',
               ],
             }, # buildDoc action
           ], # actions

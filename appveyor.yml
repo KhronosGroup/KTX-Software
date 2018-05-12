@@ -65,6 +65,13 @@ install:
 #cache:
 #  - other_lib
 
+before_build:
+# Expand date keywords.
+- ps: |-
+    ./install-gitconfig.bat
+    rm TODO.md lib/mainpage.md pkgdoc/mainpage.md
+    git checkout TODO.md lib/mainpage.md pkgdpc/mainpage.md
+
 build_script:
 - ps: |-
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
@@ -76,6 +83,7 @@ build_script:
     dir build/msvs/x64/vs2013/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
+    runDoxygen ktxpkg.doxy
 
 test_script:
 - ps: |-

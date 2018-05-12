@@ -1,6 +1,5 @@
- Introduction             {#mainpage}
- =========
-
+Introduction             {#mainpage}
+=========
 
 libktx is a small library of functions for creating and reading KTX (Khronos
 TeXture) files and instantiating OpenGL&reg; and OpenGL&reg; ES
@@ -12,11 +11,10 @@ formal specification.</a>
 
 The library is open source software. Source code is available at
 <a href="https://github.com/KhronosGroup/KTX">GitHub</a>. Most of the source
-code is licensed under the Apache 2.0 license. See @ref license for details.
-The binary form, @em libktx.{a,dll,so}, and this documentation are
-&copy; 2018, The Khronos Group; they can be distributed freely
-provided this page <!-- this comment block --> is included prominently in
-the accompanying documentation.
+code and the documentation is licensed under the Apache 2.0 license. See @ref license
+for details. When distributing the library, whether in source or binary form, this
+documentation must be included in the distribution or otherwise made available to
+recipients.
 
 See @ref libktx_history for the list of changes.
 
@@ -63,7 +61,7 @@ image = ktxTexture_GetData(texture) + offset;
 // ...
 // Do something with the texture image.
 // ...
-ktxTexture_destroy(texture);
+ktxTexture_Destroy(texture);
 ~~~~~~~~~~~~~~~~
 
 ## Creating a GL texture object from a KTX file.   {#createGL}
@@ -84,7 +82,7 @@ result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
                                         &kTexture);
 glGenTextures(1, &texture); // Optional. GLUpload can generate a texture.
 result = ktxtexture_GLUpload(kTexture, &texture, &target, &glerror);
-ktxTexture_destroy(texture);
+ktxTexture_Destroy(texture);
 // ...
 // GL rendering using the texture
 // ...
@@ -187,5 +185,30 @@ result = ktxTexture_SetImageFromMemory(texture, level, layer, faceSlice,
 // up to createInfo.numLevels.
 
 ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
+ktxTexture_Destroy(texture);
+~~~~~~~~~~~~~~~~
+
+## Modifying a KTX file         {#modifyktx}
+
+~~~~~~~~~~~~~~~~{.c}
+#include <ktx.h>
+
+ktxTexture* texture;
+KTX_error_code result;
+ktx_size_t offset;
+ktx_uint8_t* image;
+ktx_uint32_t level, layer, faceSlice;
+
+result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
+                                        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                        &texture);
+// The file is closed after all the data has been read.
+
+// It is the responsibilty of the application to make sure its
+// modifications are valid.
+texture->generateMipmaps = KTX_TRUE;
+
+ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
+ktxTexture_Destroy(texture);
 ~~~~~~~~~~~~~~~~
 

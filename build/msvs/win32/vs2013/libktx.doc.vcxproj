@@ -213,9 +213,9 @@
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\libktx.doxy">
       <FileType>Document</FileType>
-      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-o\&quot; \&quot;build/docs/libktx\&quot; \&quot;-t\&quot; \&quot;build/docs/libktx/.gentimestamp\&quot; \&quot;libktx.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-t\&quot; \&quot;build/docs/.gentimestamp\&quot; \&quot;libktx.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Generating documentation with Doxygen</Message>
-      <Outputs>..\..\..\..\build\docs\libktx\html;..\..\..\..\build\docs\libktx\man</Outputs>
+      <Outputs>..\..\..\..\build\docs\html\libktx;..\..\..\..\build\docs\man\libktx</Outputs>
       <LinkObjects>false</LinkObjects>
       <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\lib\mainpage.md;..\..\..\..\LICENSE.md;..\..\..\..\TODO.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\filestream.c;..\..\..\..\lib\filestream.h;..\..\..\..\lib\gl_format.h;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\glloader.c;..\..\..\..\lib\hashlist.c;..\..\..\..\lib\hashtable.c;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\memstream.c;..\..\..\..\lib\memstream.h;..\..\..\..\lib\stream.h;..\..\..\..\lib\swap.c;..\..\..\..\lib\texture.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\writer.c;..\..\..\..\lib\writer_v1.c;..\..\..\..\include\ktxvulkan.h;..\..\..\..\lib\vk_format.h;..\..\..\..\lib\vkloader.c</AdditionalInputs>
     </CustomBuild>

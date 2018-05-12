@@ -26,9 +26,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-libKTX is the work of Mark Callow based on work by Georg Kolling, Jacob
-Ström, Troy Hanson and Johannes van Waveren. The source contains
-code
+libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
+Ström with contributions borrowed from Troy Hanson and Johannes van Waveren.
+The source contains code
 
     © 2010 & © 2013 The Khronos Group Inc.
     © 2008 and © 2010 HI Corporation
@@ -37,9 +37,9 @@ code
     © 2015-2018 Mark Callow
     © 2016 Oculus VR, LLC.
 
-The KTX load tests are the work of Mark Callow with a few small portions taken from
-Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL for portability. The
-source contains code
+The KTX load tests are the work of Mark Callow with a few small portions borrowed
+from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL for portability.
+The source contains code
 
     © 2013 The Khronos Group Inc.
     © 2008 and © 2010 HI Corporation

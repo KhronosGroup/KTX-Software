@@ -97,7 +97,7 @@
           'type': 'none',
           'variables': { # level 1
             'variables': { # level 2
-              'output_dir': '../../build/docs/ktxtools',
+              'output_dir': '../../build/docs',
             },
             'output_dir': '<(output_dir)',
             'doxyConfig': 'ktxtools.doxy',
@@ -117,8 +117,8 @@
                 'toktx.cpp',
               ],
               'outputs': [
-                '<(output_dir)/html',
-                '<(output_dir)/man/man1/toktx.1',
+                '<(output_dir)/html/ktxtools',
+                '<(output_dir)/man/ktxtools/man1/toktx.1',
                 '<(timestamp)',
               ],
               # doxygen must be run in the top-level project directory
@@ -129,7 +129,7 @@
               # See ../../lib/libktx.gypi for further comments.
               'msvs_cygwin_shell': 1,
               'action': [
-                './runDoxygen', '-o', '<(output_dir)', '-t', '<(timestamp)', '<(doxyConfig)',
+                './runDoxygen', '-t', '<(timestamp)', '<(doxyConfig)',
               ],
             }, # buildDoc action
           ], # actions

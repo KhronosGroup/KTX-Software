@@ -14,7 +14,7 @@
 # the directory where the .doxy and .gyp files are stored.
 
 function usage() {
-  echo "Usage: $0 -o <output> -t <timestampfile> <doxyFile>"
+  echo "Usage: $0 [[-o <output>] ...] [-t <timestampfile>] <doxyFile>"
   exit 1
 }
 
@@ -58,14 +58,13 @@ then
   usage
 fi
 
-output=
 timestamp=
 set -- $args
 for i
 do
   case "$i" in
-    -o) output=$2 ; shift ;
-        shift ;;
+    -o) mkdir -p $2 ; if [ $? != 0 ]; then exit 1; fi ;
+        shift; shift ;;
     -t) timestamp=$2 ; shift ;
         shift ;;
     --) shift; break;;
@@ -75,15 +74,6 @@ done
 if [ $# != 1 ]
 then
   usage
-fi
-
-if [ -n "$output" ]
-then
-  mkdir -p "$output"
-  if [ $? != 0 ]
-  then
-    exit 1
-  fi
 fi
 
 "$doxygen" $1
