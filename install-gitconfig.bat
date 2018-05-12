@@ -1,3 +1,4 @@
+echo OFF
 REM Add [include] of repo's .gitconfig in clone's .git/config.
 REM This only needs to be run once.
 

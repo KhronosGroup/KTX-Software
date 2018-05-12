@@ -69,7 +69,7 @@ before_build:
 # Expand date keywords.
 - ps: |-
     ./install-gitconfig.bat
-    rm TODO.md lib/mainpage.md pkgdoc/mainpage.md
+    rm TODO.md, lib/mainpage.md, pkgdoc/mainpage.md
     git checkout TODO.md lib/mainpage.md pkgdpc/mainpage.md
 
 build_script:
