@@ -44,12 +44,12 @@ before_install:
     # The already installed GIT LFS is very old - 0.5.0. Need a more recent
     # one to work with the GitHub server.
     # Current directory is .../build/KhronosGroup/KTX. cd to 'build'.
-    #pushd ../.. &&
-    #wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    #tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    #export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
-    #popd &&
-    #git lfs install &&
+    pushd ../.. &&
+    wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
+    popd &&
+    git lfs install &&
     git lfs version &&
     git lfs pull --include=other_lib/linux
     ;;
@@ -83,7 +83,7 @@ install:
     wget https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
     tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
     export VULKAN_SDK=$(pwd)/vulkansdk-macos-$VULKAN_SDK_VER &&
-    popd &&
+    popd
     ;;
   esac
 - pushd ../..
