@@ -32,7 +32,8 @@ cache:
 env:
   global:
     - GIT_LFS_VERSION="2.4.0"
-    - VULKAN_SDK="~/vulkansdk-macos-1.1.73.0"
+    - VULKAN_SDK_VER="1.1.73.0"
+#    - VULKAN_SDK="~/vulkansdk-macos-1.1.73.0"
     - ASSIMP_HOME="/usr/local"
 
 before_install:
@@ -43,19 +44,21 @@ before_install:
     # The already installed GIT LFS is very old - 0.5.0. Need a more recent
     # one to work with the GitHub server.
     # Current directory is .../build/KhronosGroup/KTX. cd to 'build'.
-    pushd ../.. &&
-    wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
-    popd &&
-    git lfs install &&
-    git lfs pull --include="other_lib/linux"
+    #pushd ../.. &&
+    #wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    #tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    #export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
+    #popd &&
+    #git lfs install &&
+    git lfs version &&
+    git lfs pull --include=other_lib/linux
     ;;
   osx)
     brew update > /dev/null &&
     brew install git-lfs &&
     git lfs install &&
-    git lfs version
+    git lfs version &&
+    git lfs pull --include="other_lib/ios other_lib_mac"
     ;;
   esac
 
@@ -66,17 +69,21 @@ install:
     sudo apt-get -qq update; sudo apt-get -qq install doxygen &&
     sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
     sudo apt-get -qq update; sudo apt-get -qq install libassimp4 && libassimp-dev &&
-     wget https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/1.1.73.0/linux/vulkansdk-linux-x86_64-1.1.73.0.run &&
+    wget https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
     chmod ugo+x *.run &&
     ./*.run &&
-    source VulkanSDK/1.1.73.0/setup-env.sh &&
+    source VulkanSDK/$VULKAN_SDK_VER/setup-env.sh &&
     cd VulkanSDK && ./build_tools.sh --shaderc && cd .. &&
     ;;
   osx)
     brew install doxygen &&
     brew install assimp &&
-    wget https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/1.1.73.0/mac/vulkansdk-macos-1.1.73.0.tar.gz &&
-    tar -xzf vulkansdk-macos-1.1.73.0.tar.gz &&
+    # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
+    pushd ../.. &&
+    wget https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
+    tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
+    export VULKAN_SDK=$(pwd)/vulkansdk-macos-$VULKAN_SDK_VER &&
+    popd &&
     ;;
   esac
 - pushd ../..
