@@ -22,7 +22,7 @@ compiler:
 branches:
   only:
     - master
-    - incoming
+    - travis
 
 cache:
   directories:
