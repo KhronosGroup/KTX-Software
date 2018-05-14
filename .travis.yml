@@ -32,7 +32,8 @@ cache:
 env:
   global:
     - GIT_LFS_VERSION="2.4.0"
-    - VULKAN_SDK_VER="1.1.73.0"
+    - VULKAN_SDK_VER="1.0.69.0"
+#    - VULKAN_SDK_VER="1.1.73.0"
 #    - VULKAN_SDK="~/vulkansdk-macos-1.1.73.0"
     - ASSIMP_HOME="/usr/local"
 
