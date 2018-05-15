@@ -26,7 +26,7 @@ branches:
 
 cache:
   directories:
-    - VulkanSDK
+    - build/VulkanSDK
 
 # VULKAN_SDK & ASSIMP_HOME should be set only for macOS. How? Will source setenv.sh override in linux?
 env:
@@ -77,6 +77,8 @@ install:
     pushd VulkanSDK/$VULKAN_SDK_VER &&
     source ./setup-env.sh &&
     ./build_tools.sh --shaderc &&
+    echo dirstack: &&
+    dirs &&
     popd &&
     popd
     ;;
