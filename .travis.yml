@@ -139,8 +139,12 @@ script:
     #cd ../../cmake/linux/Debug &&
     cd build/cmake/linux/Debug &&
     cmake . && make &&
+    ./texturetests &&
+    ./unittests &&
     cd ../Release &&
     cmake . && make
+    ./texturetests &&
+    ./unittests
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
@@ -165,6 +169,10 @@ script:
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
     cd ../ios &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
+    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    pwd &&
+    ls &&
+    ./texturetests &&
+    ./unittests
     ;;
   esac
