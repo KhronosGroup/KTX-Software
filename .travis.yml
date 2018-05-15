@@ -67,14 +67,12 @@ before_install:
     popd &&
     git lfs install &&
     git lfs version &&
-    git lfs pull --include=other_lib/linux
     ;;
   osx)
     brew update > /dev/null &&
     brew install git-lfs &&
     git lfs install &&
     git lfs version &&
-    git lfs pull --include="other_lib/ios other_lib_mac"
     ;;
   esac
 
