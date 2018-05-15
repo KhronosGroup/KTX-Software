@@ -123,7 +123,7 @@
         # Minimum targets for Metal/MoltenVK.
         'conditions': [
           ['OS == "ios"', {
-            'IPHONEOS_DEPLOYMENT_TARGET': '9.0',
+            'IPHONEOS_DEPLOYMENT_TARGET': '11.0',
           }, 'OS == "mac"', {
             'MACOSX_DEPLOYMENT_TARGET': '10.11',
           }],
