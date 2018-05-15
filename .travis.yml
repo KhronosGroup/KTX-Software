@@ -71,7 +71,7 @@ install:
     #sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
     sudo apt-get -qq update; sudo apt-get -qq install libassimp3 libassimp-dev &&
     pushd ../.. &&
-    wget https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
+    wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
     chmod ugo+x *.run &&
     ./*.run &&
     source VulkanSDK/$VULKAN_SDK_VER/setup-env.sh &&
