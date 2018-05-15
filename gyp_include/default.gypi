@@ -106,6 +106,11 @@
         'ENABLE_TESTABILITY': 'YES',
       },
     },
+    'Release': {
+      'xcode_settings': {
+        'ONLY_ACTIVE_ARCH': 'NO',
+      },
+    },
   },
   'target_defaults': {
     # Sadly variable values cannot be dictionaries. If they could, it
@@ -152,9 +157,9 @@
         }, 'OS == "mac"', {
           # Need 10.9 for GL 4.1 or ARB_ES2_compatibility, 10.11 for Metal
           # compatibility.
-          'MACOSX_DEPLOYMENT_TARGET': '10.11', #.7',
+          'MACOSX_DEPLOYMENT_TARGET': '10.11',
           # Comment this out if deployment target >= 10.9
-          'CLANG_CXX_LIBRARY': 'libc++',
+          #'CLANG_CXX_LIBRARY': 'libc++',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
@@ -228,6 +233,7 @@
           ],
         },
         'xcode_settings':  {
+          'ONLY_ACTIVE_ARCH': 'YES',
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
           'GCC_OPTIMIZATION_LEVEL': 0,
           'target_conditions': [

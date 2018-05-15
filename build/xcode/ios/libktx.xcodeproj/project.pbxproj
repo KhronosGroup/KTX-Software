@@ -528,7 +528,6 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.gl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -548,6 +547,7 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libgl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -567,6 +567,7 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = vulkan_headers;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -644,6 +645,7 @@
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/include";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libvulkan;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -687,7 +689,6 @@
 					other_include,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -744,7 +745,6 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -782,7 +782,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
 			};
@@ -810,7 +810,7 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = ktx.gl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -838,7 +838,7 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -864,7 +864,7 @@
 					other_include,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

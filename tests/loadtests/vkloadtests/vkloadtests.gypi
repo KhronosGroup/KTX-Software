@@ -121,13 +121,13 @@
         'GCC_C_LANGUAGE_STANDARD': 'c99',
         'INFOPLIST_FILE': '<(vkinfoplist_file)',
         # Minimum targets for Metal/MoltenVK.
-        'conditions': [
-          ['OS == "ios"', {
-            'IPHONEOS_DEPLOYMENT_TARGET': '11.0',
-          }, 'OS == "mac"', {
-            'MACOSX_DEPLOYMENT_TARGET': '10.11',
-          }],
-        ], # conditions
+        #'conditions': [
+        #  ['OS == "ios"', {
+        #    'IPHONEOS_DEPLOYMENT_TARGET': '11.0',
+        #  }, 'OS == "mac"', {
+        #    'MACOSX_DEPLOYMENT_TARGET': '10.11',
+        #  }],
+        #], # conditions
       }, # xcode_settings
       'conditions': [
         ['OS == "ios"', {

@@ -22,12 +22,26 @@
     'shader_dest': '<(datadest)/shaders',
   }, # variables, level 1
 
+  # Modify target_defaults for the loadtests.
+  'target_defaults': {
+    'xcode_settings': {
+      'ONLY_ACTIVE_ARCH': 'YES',
+      # Minimum targets for Metal/MoltenVK.
+      'conditions': [
+        ['OS == "ios"', {
+          'IPHONEOS_DEPLOYMENT_TARGET': '11.0',
+        }, 'OS == "mac"', {
+          'MACOSX_DEPLOYMENT_TARGET': '10.11',
+        }],
+      ], # conditions
+    },
+  },
   'includes': [
     'appfwSDL/appfwSDL.gypi',
     'glloadtests/glloadtests.gypi',
   ],
   'conditions': [
-    # Only these versions support C++1 which is needed by vkloadtests.
+    # Only these versions support C++11 which is needed by vkloadtests.
     ['GENERATOR != "msvs" or MSVS_VERSION == "2015" or MSVS_VERSION == "2017"', {
       'includes': [ 'vkloadtests/vkloadtests.gypi' ],
     }],
