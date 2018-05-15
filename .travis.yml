@@ -66,13 +66,13 @@ before_install:
     export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
     popd &&
     git lfs install &&
-    git lfs version &&
+    git lfs version
     ;;
   osx)
     brew update > /dev/null &&
     brew install git-lfs &&
     git lfs install &&
-    git lfs version &&
+    git lfs version
     ;;
   esac
 
