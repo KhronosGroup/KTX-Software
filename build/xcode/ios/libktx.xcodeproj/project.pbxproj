@@ -528,6 +528,7 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.gl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -686,6 +687,7 @@
 					other_include,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -742,6 +744,7 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -807,6 +810,7 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.gl;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -834,6 +838,7 @@
 					"$(VULKAN_SDK)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -859,6 +864,7 @@
 					other_include,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

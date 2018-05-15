@@ -63,6 +63,9 @@
         '<@(sources)',
         '<@(vksource_files)',
       ],
+      'xcode_settings': {
+        'ONLY_ACTIVE_ARCH': 'NO',
+      },
       'conditions': [
         ['_type == "shared_library"', {
           'dependencies': [ 'libgl', 'libvulkan' ],
@@ -109,6 +112,9 @@
       },
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'xcode_settings': {
+        'ONLY_ACTIVE_ARCH': 'NO',
+      },
     }, # libktx.es1
     {
       'target_name': 'libktx.es3',
@@ -123,6 +129,9 @@
         '<@(vksource_files)',
       ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'xcode_settings': {
+        'ONLY_ACTIVE_ARCH': 'NO',
+      },
     }, # libktx.es3
   ], # targets
   'conditions': [

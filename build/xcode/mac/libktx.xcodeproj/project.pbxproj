@@ -753,6 +753,7 @@
 					"$(VULKAN_SDK)/macOS/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Release;
@@ -934,6 +935,7 @@
 					other_include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es1;
 			};
 			name = Release;
@@ -992,6 +994,7 @@
 					"$(VULKAN_SDK)/macOS/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es3;
 			};
 			name = Release;
@@ -1063,6 +1066,7 @@
 					"$(VULKAN_SDK)/macOS/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Debug;
@@ -1091,6 +1095,7 @@
 					"$(VULKAN_SDK)/macOS/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es3;
 			};
 			name = Debug;
@@ -1137,6 +1142,7 @@
 					other_include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = ktx.es1;
 			};
 			name = Debug;
