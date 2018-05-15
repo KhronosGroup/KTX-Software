@@ -74,8 +74,10 @@ install:
     wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
     chmod ugo+x *.run &&
     ./*.run &&
-    source VulkanSDK/$VULKAN_SDK_VER/setup-env.sh &&
-    cd VulkanSDK && ./build_tools.sh --shaderc && cd .. &&
+    pushd VulkanSDK/$VULKAN_SDK_VER &&
+    source ./setup-env.sh &&
+    ./build_tools.sh --shaderc &&
+    popd &&
     popd
     ;;
   osx)
