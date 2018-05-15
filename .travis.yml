@@ -1,6 +1,19 @@
 # CI build script for Travis.
 # See https://docs.travis-ci.com/user/multi-os/ for more info.
 
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env:
+         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+
 os:
 - linux
 - osx
@@ -38,6 +51,7 @@ env:
     - ASSIMP_HOME="/usr/local"
 
 before_install:
+- eval "${MATRIX_EVAL}"
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
@@ -88,7 +102,7 @@ install:
     brew install assimp &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
-    wget https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
+    wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
     tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
     export VULKAN_SDK=$(pwd)/vulkansdk-macos-$VULKAN_SDK_VER &&
     popd
