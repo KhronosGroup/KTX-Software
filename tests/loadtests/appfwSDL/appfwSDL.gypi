@@ -92,14 +92,6 @@
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
         'GCC_C_LANGUAGE_STANDARD': 'c99',
-        # Minimum targets for Metal/MoltenVK.
-        #'conditions': [
-        #  ['OS == "ios"', {
-        #    'IPHONEOS_DEPLOYMENT_TARGET': '11.0',
-        #  }, 'OS == "mac"', {
-        #    'MACOSX_DEPLOYMENT_TARGET': '10.11',
-        #  }],
-        #], # conditions
       }, # xcode_settings
       'conditions': [
         # Earlier MSVS Versions do not support C++11 so exclude

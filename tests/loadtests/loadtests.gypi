@@ -22,7 +22,8 @@
     'shader_dest': '<(datadest)/shaders',
   }, # variables, level 1
 
-  # Modify target_defaults for the loadtests.
+  # Modify target_defaults for the loadtests. Inclusion of VkAppSDL in
+  # appfwSDL means these settings are needed for all interactive tests.
   'target_defaults': {
     'xcode_settings': {
       'ONLY_ACTIVE_ARCH': 'YES',

@@ -771,7 +771,6 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libgl;
 			};
 			name = Debug;
@@ -807,7 +806,6 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = vulkan_headers;
 			};
 			name = Debug;
@@ -885,7 +883,6 @@
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libvulkan;
 			};
 			name = Debug;
@@ -1055,7 +1052,6 @@
 					"$(VULKAN_SDK)/macOS/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Debug;
@@ -1083,7 +1079,6 @@
 					"$(VULKAN_SDK)/macOS/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = ktx.es3;
 			};
 			name = Debug;
@@ -1103,7 +1098,6 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libktx.doc;
 			};
 			name = Debug;
@@ -1129,7 +1123,6 @@
 					other_include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = ktx.es1;
 			};
 			name = Debug;

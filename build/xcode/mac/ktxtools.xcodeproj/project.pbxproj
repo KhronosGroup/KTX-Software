@@ -437,7 +437,6 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = ktxtools.doc;
 			};
 			name = Debug;
@@ -502,7 +501,6 @@
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = toktx;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
@@ -632,7 +630,6 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "toktx-tests";
 			};
 			name = Debug;

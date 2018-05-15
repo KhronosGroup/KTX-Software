@@ -233,7 +233,6 @@
           ],
         },
         'xcode_settings':  {
-          'ONLY_ACTIVE_ARCH': 'YES',
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
           'GCC_OPTIMIZATION_LEVEL': 0,
           'target_conditions': [
