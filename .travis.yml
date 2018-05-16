@@ -78,7 +78,7 @@ install:
   linux)
     sudo apt-get -qq update; sudo apt-get -qq install doxygen &&
     sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
-    sudo apt-get -qq update; sudo apt-get -qq install libassimp4 libassimp-dev &&
+    sudo apt-get -qq update; sudo apt-get -qq install libassimp3 libassimp-dev &&
     pushd ../.. &&
     wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
     chmod ugo+x *.run &&
