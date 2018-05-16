@@ -10,7 +10,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-4.9
+            - g++-7.2
       env:
          - MATRIX_EVAL="CC=gcc-7.2 && CXX=g++-7.2"
     - os: osx
