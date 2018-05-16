@@ -12,7 +12,7 @@ matrix:
           packages:
             - g++-4.9
       env:
-         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+         - MATRIX_EVAL="CC=gcc-7.2 && CXX=g++-7.2"
     - os: osx
 
 #os:
