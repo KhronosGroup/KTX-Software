@@ -77,6 +77,7 @@ install:
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     sudo apt-get -qq update; sudo apt-get -qq install doxygen &&
+    sudo apt-get -qq update; sudo apt-get -qq install libgl1 &&
     sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
     sudo apt-get -qq update; sudo apt-get -qq install libassimp3v5 libassimp-dev &&
     pushd ../.. &&
