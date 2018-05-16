@@ -176,6 +176,7 @@ script:
   esac
 
 after_success:
+  - pwd && ls
   - ./runDoxygen ktxpkg.doxy
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
