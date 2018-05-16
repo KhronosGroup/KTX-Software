@@ -11,16 +11,20 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
+      cache:
+        directories:
+          - build/VulkanSDK
       env:
-         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: osx
+      env:
+        - ASSIMP_HOME="/usr/local"
+        #- VULKAN_SDK="~/vulkansdk-macos-1.1.73.0"
 
-#os:
-#- linux
-#- osx
 
 sudo: required
-dist: trusty
+dist: xenial
+group: edge
 
 osx_image: xcode9.3
 
@@ -38,18 +42,10 @@ branches:
     - master
     - travis
 
-cache:
-  directories:
-    - build/VulkanSDK
-
-# VULKAN_SDK & ASSIMP_HOME should be set only for macOS. How? Will source setenv.sh override in linux?
 env:
   global:
     - GIT_LFS_VERSION="2.4.0"
-#    - VULKAN_SDK_VER="1.0.69.0"
     - VULKAN_SDK_VER="1.1.73.0"
-#    - VULKAN_SDK="~/vulkansdk-macos-1.1.73.0"
-    - ASSIMP_HOME="/usr/local"
 
 before_install:
   - eval "${MATRIX_EVAL}"
@@ -81,8 +77,8 @@ install:
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     sudo apt-get -qq update; sudo apt-get -qq install doxygen &&
-    #sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
-    sudo apt-get -qq update; sudo apt-get -qq install libassimp3 libassimp-dev &&
+    sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
+    sudo apt-get -qq update; sudo apt-get -qq install libassimp4 libassimp-dev &&
     pushd ../.. &&
     wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
     chmod ugo+x *.run &&
