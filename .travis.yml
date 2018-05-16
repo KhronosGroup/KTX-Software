@@ -25,12 +25,12 @@ dist: trusty
 osx_image: xcode9.3
 
 language:
-- cpp
+  - cpp
 
 compiler:
-# clang compilation will be tested by xcode.
-#- clang
-- gcc
+  # clang compilation will be tested by xcode.
+  #- clang
+  - gcc
 
 # whitelist
 branches:
@@ -52,29 +52,29 @@ env:
     - ASSIMP_HOME="/usr/local"
 
 before_install:
-- eval "${MATRIX_EVAL}"
-- echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS
-- |
-  case "${TRAVIS_OS_NAME:-linux}" in
-  linux)
-    # The already installed GIT LFS is very old - 0.5.0. Need a more recent
-    # one to work with the GitHub server.
-    # Current directory is .../build/KhronosGroup/KTX. cd to 'build'.
-    pushd ../.. &&
-    wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
-    popd &&
-    git lfs install &&
-    git lfs version
-    ;;
-  osx)
-    brew update > /dev/null &&
-    brew install git-lfs &&
-    git lfs install &&
-    git lfs version
-    ;;
-  esac
+  - eval "${MATRIX_EVAL}"
+  - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS
+  - |
+    case "${TRAVIS_OS_NAME:-linux}" in
+    linux)
+      # The already installed GIT LFS is very old - 0.5.0. Need a more recent
+      # one to work with the GitHub server.
+      # Current directory is .../build/KhronosGroup/KTX. cd to 'build'.
+      pushd ../.. &&
+      wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+      tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+      export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
+      popd &&
+      git lfs install &&
+      git lfs version
+      ;;
+    osx)
+      brew update > /dev/null &&
+      brew install git-lfs &&
+      git lfs install &&
+      git lfs version
+      ;;
+    esac
 
 install:
 - |
@@ -113,19 +113,19 @@ install:
 - popd
 
 before_script:
-- |
-  # Pull just the linux or mac/ios files to save time.
-  case "${TRAVIS_OS_NAME:-linux}" in
-  linux)
-    # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
-    # See Git LFS issue https://github.com/github/git-lfs/issues/880.
-    git lfs pull --include=other_lib/linux | cat
-    ;;
-  osx)
-    git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
-    sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
-    ;;
-  esac
+  - |
+    # Pull just the linux or mac/ios files to save time.
+    case "${TRAVIS_OS_NAME:-linux}" in
+    linux)
+      # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
+      # See Git LFS issue https://github.com/github/git-lfs/issues/880.
+      git lfs pull --include=other_lib/linux | cat
+      ;;
+    osx)
+      git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
+      sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
+      ;;
+    esac
 
 script:
 - |
@@ -170,7 +170,6 @@ script:
   esac
 
 after_success:
-  - pwd && ls
   - ./runDoxygen ktxpkg.doxy
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
@@ -195,3 +194,4 @@ after_success:
     esac
     # Uploads of builds would go here.
 
+# vim:ai:ts=4:sts=2:sw=2:expandtab
