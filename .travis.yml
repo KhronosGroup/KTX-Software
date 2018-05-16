@@ -135,14 +135,11 @@ script:
     #make BUILDTYPE=Debug &&
     #make BUILDTYPE=Release &&
     #cd ../../cmake/linux/Debug &&
-    cd build/cmake/linux/Debug &&
+    pushd build/cmake/linux/Debug &&
     cmake . && make &&
-    #./texturetests &&
-    #./unittests &&
     cd ../Release &&
-    cmake . && make
-    #./texturetests &&
-    #./unittests
+    cmake . && make &&
+    popd
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
@@ -160,18 +157,15 @@ script:
     #security unlock-keychain -p travis $KEY_CHAIN
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
-    cd build/xcode/mac &&
+    pushd build/xcode/mac &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
-    #../../Debug/unittests &&
-    #../../Debug/texturetests &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    #../../Release/unittests &&
-    #../../Release/texturetests &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
     cd ../ios &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
+    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    popd
     ;;
   esac
 
@@ -181,16 +175,22 @@ after_success:
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
-      ./build/cmake/linux/Debug/unittests &&
-      ./build/cmake/linux/Debug/texturetests &&
-      ./build/cmake/linux/Release/unittests &&
-      ./build/cmake/linux/Release/texturetests
+      pushd build/cmake/linux/Debug &&
+      ./unittests &&
+      ./texturetests &&
+      cd ../Release &&
+      ./unittests &&
+      ./texturetests &&
+      popd
       ;;
     osx)
-      ./build/Debug/unittests &&
-      ./build/Debug/texturetests &&
-      ./build/Release/unittests &&
-      ./build/Release/texturetests
+      pushd build/Debug &&
+      ./unittests &&
+      ./texturetests &&
+      cd ../Release &&
+      ./unittests &&
+      ./texturetests &&
+      popd
       ;;
     esac
     # Uploads of builds would go here.
