@@ -137,12 +137,12 @@ script:
     #cd ../../cmake/linux/Debug &&
     cd build/cmake/linux/Debug &&
     cmake . && make &&
-    ./texturetests &&
-    ./unittests &&
+    #./texturetests &&
+    #./unittests &&
     cd ../Release &&
     cmake . && make
-    ./texturetests &&
-    ./unittests
+    #./texturetests &&
+    #./unittests
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
@@ -162,11 +162,11 @@ script:
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
     cd build/xcode/mac &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
-    ../../Debug/unittests &&
-    ../../Debug/texturetests &&
+    #../../Debug/unittests &&
+    #../../Debug/texturetests &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    ../../Release/unittests &&
-    ../../Release/texturetests &&
+    #../../Release/unittests &&
+    #../../Release/texturetests &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
     cd ../ios &&
@@ -174,3 +174,23 @@ script:
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
     ;;
   esac
+
+after_success:
+  - ./runDoxygen ktxpkg.doxy
+  - |
+    case "${TRAVIS_OS_NAME:-linux}" in
+    linux)
+      ./build/cmake/linux/Debug/unittests &&
+      ./build/cmake/linux/Debug/texturetests &&
+      ./build/cmake/linux/Release/unittests &&
+      ./build/cmake/linux/Release/texturetests
+      ;;
+    osx)
+      ./Debug/unittests &&
+      ./Debug/texturetests &&
+      ./Release/unittests &&
+      ./Release/texturetests
+      ;;
+    esac
+    # Uploads of builds would go here.
+
