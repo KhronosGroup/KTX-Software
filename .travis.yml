@@ -187,10 +187,10 @@ after_success:
       ./build/cmake/linux/Release/texturetests
       ;;
     osx)
-      ./Debug/unittests &&
-      ./Debug/texturetests &&
-      ./Release/unittests &&
-      ./Release/texturetests
+      ./build/Debug/unittests &&
+      ./build/Debug/texturetests &&
+      ./build/Release/unittests &&
+      ./build/Release/texturetests
       ;;
     esac
     # Uploads of builds would go here.
