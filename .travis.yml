@@ -14,8 +14,8 @@ matrix:
       cache:
         directories:
           - VulkanSDK
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+#      env:
+#        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: osx
       env:
         - ASSIMP_HOME="/usr/local"
