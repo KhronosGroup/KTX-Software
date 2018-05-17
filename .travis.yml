@@ -84,11 +84,10 @@ install:
     wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
     chmod ugo+x *.run &&
     ./*.run &&
-    pushd VulkanSDK/$VULKAN_SDK_VER &&
+    cd VulkanSDK/$VULKAN_SDK_VER &&
     source ./setup-env.sh &&
     ./build_tools.sh --shaderc &&
-    #echo "build_tools.sh exit status: " $?
-    popd &&
+    echo "build_tools.sh exit status: " $? &&
     popd
     ;;
   osx)
