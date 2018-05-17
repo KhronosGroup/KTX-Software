@@ -5,17 +5,17 @@ matrix:
   include:
     # works on Precise and Trusty
     - os: linux
-#      addons:
-#        apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
-#          packages:
-#            - g++-7
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r/test
+          packages:
+            - g++-7
       cache:
         directories:
           - VulkanSDK
-#      env:
-#        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: osx
       env:
         - ASSIMP_HOME="/usr/local"
@@ -87,9 +87,7 @@ install:
     pushd VulkanSDK/$VULKAN_SDK_VER &&
     source ./setup-env.sh &&
     ./build_tools.sh --shaderc &&
-    echo "build_tools.sh exit status: " $?
-    echo "dirstack: " &&
-    dirs &&
+    #echo "build_tools.sh exit status: " $?
     popd &&
     popd
     ;;
