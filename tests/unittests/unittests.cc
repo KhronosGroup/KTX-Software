@@ -95,7 +95,6 @@ template<typename component_type, ktx_uint32_t numComponents,
          GLenum internalformat>
 class WriterTestHelperTestBase : public ::testing::Test {
   public:
-    using createFlags = typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags;
     WriterTestHelperTestBase() { }
 
     WriterTestHelper<component_type, numComponents, internalformat> helper;
@@ -113,7 +112,6 @@ template<typename component_type, ktx_uint32_t numComponents,
          GLenum internalformat>
 class ktxWriteKTXTestBase : public ::testing::Test {
   public:
-    using createFlags = typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags;
     ktxWriteKTXTestBase() { }
     
     void runTest(bool writeMetadata) {

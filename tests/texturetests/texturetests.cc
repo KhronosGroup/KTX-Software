@@ -55,8 +55,8 @@ template<typename component_type, ktx_uint32_t numComponents,
 class TextureWriterTestHelper
     : public WriterTestHelper<component_type, numComponents, internalformat> {
   public:
-    using createFlags = typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags;
-    using createFlagBits = typename WriterTestHelper<component_type, numComponents, internalformat>::createFlagBits;
+    typedef typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags createFlags;
+    typedef typename WriterTestHelper<component_type, numComponents, internalformat>::createFlagBits createFlagBits;
     using WriterTestHelper<component_type, numComponents, internalformat>::images;
     using WriterTestHelper<component_type, numComponents, internalformat>::imageList;
     using WriterTestHelper<component_type, numComponents, internalformat>::width;
