@@ -87,9 +87,7 @@ install:
     pushd VulkanSDK/$VULKAN_SDK_VER &&
     source ./setup-env.sh &&
     ./build_tools.sh --shaderc &&
-    echo "build_tools.sh exit status: " $?
-    echo "dirstack: " &&
-    dirs &&
+    #echo "build_tools.sh exit status: " $?
     popd &&
     popd
     ;;
