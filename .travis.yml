@@ -13,7 +13,7 @@ matrix:
 #            - g++-7
       cache:
         directories:
-          - VulkanSDK
+          - $HOME/build/VulkanSDK
 #      env:
 #        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: osx
