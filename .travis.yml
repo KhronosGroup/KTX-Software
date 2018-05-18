@@ -82,18 +82,15 @@ install:
     sudo apt-get -qq update; sudo apt-get -qq install libassimp3v5 libassimp-dev &&
      # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
+    wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
+    chmod ugo+x *.run &&
+    ./*.run &&
+    cd VulkanSDK/$VULKAN_SDK_VER &&
+    source ./setup-env.sh &&
     if [ ! -x $VULKAN_SDK/bin/glslc ]; then
-      wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
-      chmod ugo+x *.run &&
-      ./*.run &&
-      cd VulkanSDK/$VULKAN_SDK_VER &&
-      source ./setup-env.sh &&
       ./build_tools.sh --shaderc ;
       # This swallows a bogus error exit status of 1 from build_tools.sh
       echo "build_tools.sh exit status: " $?;
-    else
-      cd VulkanSDK/$VULKAN_SDK_VER &&
-      source ./setup-env.sh;
     fi &&
     popd
     ;;
