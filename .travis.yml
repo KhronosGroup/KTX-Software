@@ -5,17 +5,18 @@ matrix:
   include:
     # works on Precise and Trusty
     - os: linux
-#      addons:
-#        apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
-#          packages:
-#            - g++-7
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-7
+            - g++-7
       cache:
         directories:
           - $HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin
       env:
-#        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64"
     - os: osx
       env:
@@ -74,11 +75,11 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test &&
+#    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test &&
     sudo apt-get -qq update &&
     sudo apt-get -qq install doxygen &&
-    sudo apt-get -qq install -y gcc-7 g++-7 &&
-    export CC=gcc-7 && export CXX=g++-7 &&
+#    sudo apt-get -qq install -y gcc-7 g++-7 &&
+#    export CC=gcc-7 && export CXX=g++-7 &&
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq install libvulkan1 libvulkan-dev &&
     sudo apt-get -qq install libassimp3v5 libassimp-dev &&
