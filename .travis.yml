@@ -16,7 +16,7 @@ matrix:
           - $HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin
       env:
 #        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-        - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86-64"
+        - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64"
     - os: osx
       env:
         - ASSIMP_HOME="/usr/local"
