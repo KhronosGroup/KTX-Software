@@ -91,7 +91,8 @@
       },
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-      },
+        'GCC_C_LANGUAGE_STANDARD': 'c99',
+      }, # xcode_settings
       'conditions': [
         # Earlier MSVS Versions do not support C++11 so exclude
         # VkAppSDL.
