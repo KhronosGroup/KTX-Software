@@ -75,7 +75,7 @@ install:
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     sudo apt-get -qq update; sudo apt-get -qq install doxygen &&
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt-get-qq update && apt-get -qq install -y gcc-7 g++-7 &&
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt-get -qq update && apt-get -qq install -y gcc-7 g++-7 &&
     export CC=gcc-7 && export CXX=g++-7 &&
     sudo apt-get -qq update; sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
