@@ -13,15 +13,14 @@ matrix:
 #            - g++-7
       cache:
         directories:
-          - $HOME/build/VulkanSDK
-        timeout: 1000
-#      env:
+          - $HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin
+      env:
 #        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86-64"
     - os: osx
       env:
         - ASSIMP_HOME="/usr/local"
-        #- VULKAN_SDK="~/vulkansdk-macos-1.1.73.0"
-
+        - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
 
 sudo: required
 dist: xenial
@@ -54,7 +53,7 @@ before_install:
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
-      # Current directory is .../build/KhronosGroup/KTX. cd to 'build'.
+      # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
       pushd ../.. &&
       wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
       tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
@@ -81,8 +80,9 @@ install:
     sudo apt-get -qq update; sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq update; sudo apt-get -qq install libvulkan1 libvulkan-dev &&
     sudo apt-get -qq update; sudo apt-get -qq install libassimp3v5 libassimp-dev &&
+     # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
-    if [ ! -d VulkanSDK/$VULKAN_SDK_VER ]; then
+    if [ ! -x $VULKAN_SDK/bin/glslc ]; then
       wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
       chmod ugo+x *.run &&
       ./*.run &&
@@ -104,8 +104,7 @@ install:
     pushd ../.. &&
     wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
     tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
-    export VULKAN_SDK=$(pwd)/vulkansdk-macos-$VULKAN_SDK_VER &&
-    popd
+   popd
     ;;
   esac
 - pushd ../..
@@ -132,6 +131,8 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
+    # Due to a gyp bug in the generation of dependencies for the .frag & .vert shader files
+    # make fails in building the load tests.
     #cd build/make/linux &&
     #make BUILDTYPE=Debug &&
     #make BUILDTYPE=Release &&
