@@ -189,8 +189,10 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
         return KTX_INVALID_VALUE;
     
     assert(str->type == eStreamTypeFile);
-    
-    *pos = ftello(str->data.file);
+
+    /* The cast quiets an Xcode warning when building for "Generic iOS Device".
+     * For some reason, even when ARCHS is arm64, size_t is only a long. */
+    *pos = (ktx_off_t)ftello(str->data.file);
     
     return KTX_SUCCESS;
 }
@@ -260,7 +262,7 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
  
     if (fstat(fileno(str->data.file), &statbuf) < 0)
         return KTX_FILE_READ_ERROR;
-    *size = statbuf.st_size;
+    *size = (ktx_size_t)statbuf.st_size; /* See _getpos for why this cast. */
     
     return KTX_SUCCESS;
 }

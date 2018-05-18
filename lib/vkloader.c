@@ -606,8 +606,12 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             memcpy(pMappedStagingBuffer, This->pData, This->dataSize);
         } else {
             /* Load the image data directly into the staging buffer. */
-            kResult = ktxTexture_LoadImageData(This, pMappedStagingBuffer,
-                                               memAllocInfo.allocationSize);
+            /* The strange cast quiets an Xcode warning when building for
+             * Generic iOS Device where size_t is 32-bit even when building
+             * for arm64. */
+            kResult = ktxTexture_LoadImageData(This,
+                                      pMappedStagingBuffer,
+                                      (ktx_size_t)memAllocInfo.allocationSize);
             if (kResult != KTX_SUCCESS)
                 return kResult;
         }
