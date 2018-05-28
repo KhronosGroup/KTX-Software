@@ -51,7 +51,7 @@ env:
 before_install:
   - eval "${MATRIX_EVAL}"
   - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS
-  - echo "machine $FTP_SERVER\n  login $FTP_USER\n  password $FTP_CRED" >> ~/.netrc
+  - echo -e "machine $FTP_SERVER\n  login $FTP_USER\n  password $FTP_CRED" >> ~/.netrc
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
