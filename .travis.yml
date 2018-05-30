@@ -141,7 +141,15 @@ script:
     cmake . && make &&
     cd ../Release &&
     cmake . && make &&
-    popd
+    popd &&
+    pushd build/cmake/linux/Debug &&
+    ./unittests &&
+    ./texturetests &&
+    cd ../Release &&
+    ./unittests &&
+    ./texturetests &&
+    popd &&
+    ./runDoxygen ktxpkg.doxy
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
@@ -167,54 +175,33 @@ script:
     cd ../ios &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    popd
+    popd &&
+    pushd build/Debug &&
+    ./unittests &&
+    ./texturetests &&
+    cd ../Release &&
+    ./unittests &&
+    ./texturetests &&
+    popd &&
+    ./runDoxygen ktxpkg.doxy &&
+    # Upload doxygen generated docs to khronos.org
+    if [ $TRAVIS_PULL_REQUEST = "false" ]; then
+      pushd build/docs/html
+      echo "In doc upload"
+      ftp -u "$FTP_USER:$FTP_CRED@$FTP_SERVER:21/documentation" ktxtools libktx package
+      #cat <<EOF
+      #foo
+      #bar
+      #snafu
+      #EOF
+      #ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
+      #cd documentation
+      #rmdir ktxtools libktx package
+      #put -r *
+      #EOF
+      popd
+    fi
     ;;
   esac
-
-after_success:
-  - ./runDoxygen ktxpkg.doxy
-  - |
-    case "${TRAVIS_OS_NAME:-linux}" in
-    linux)
-      pushd build/cmake/linux/Debug &&
-      ./unittests &&
-      ./texturetests &&
-      cd ../Release &&
-      ./unittests &&
-      ./texturetests &&
-      popd
-      ;;
-    osx)
-      pushd build/Debug &&
-      ./unittests &&
-      ./texturetests &&
-      cd ../Release &&
-      ./unittests &&
-      ./texturetests &&
-      popd
-      ;;
-    esac
-  - |
-    case "${TRAVIS_OS_NAME:-linux}" in
-    osx)
-      # Upload doxygen generated docs to khronos.org
-      if [ $TRAVIS_PULL_REQUEST = "false" ]; then
-        pushd build/docs/html
-        echo "In doc upload"
-        ftp -u "$FTP_USER:$FTP_CRED@$FTP_SERVER:21/documentation" ktxtools libktx package
-        #cat <<EOF
-        #foo
-        #bar
-        #snafu
-        #EOF
-        #ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
-        #cd documentation
-        #rmdir ktxtools libktx package
-        #put -r *
-        #EOF
-        popd
-      fi
-      ;;
-    esac
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
