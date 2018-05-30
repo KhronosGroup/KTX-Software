@@ -82,6 +82,7 @@ build_script:
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/libktx.doc.vcxproj
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
+- cmd: |-
     .\setup_env.bat && bash -c ./runDoxygen ktxpkg.doxy
 
 test_script:
