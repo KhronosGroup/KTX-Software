@@ -51,7 +51,7 @@ env:
 before_install:
   - eval "${MATRIX_EVAL}"
   - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS
-  - echo -e "machine $FTP_SERVER\n  login $FTP_USER\n  password secret" >> ~/.netrc
+  #- echo -e "machine $FTP_SERVER\n  login $FTP_USER\n  password secret" >> ~/.netrc
   - cat ~/.netrc
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
@@ -99,6 +99,7 @@ install:
   osx)
     brew install doxygen &&
     brew install assimp &&
+    brew install tnftp &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
     wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
@@ -190,15 +191,18 @@ after_success:
       cd ../Release &&
       ./unittests &&
       ./texturetests &&
-      popd && pushd build/docs/html &&
-      ftp -P 21 $FTP_SERVER <<EOF
-      cd documentation
-      rmdir ktxtools libktx package
-      put -r *
-      EOF &&
-      popd
+      popd &&
+      # Upload doxygen generated docs to khronos.org
+      if [ $TRAVIS_PULL_REQUEST = "false" ]; then
+        pushd build/docs/html &&
+        ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
+        cd documentation
+        rmdir ktxtools libktx package
+        put -r *
+        EOF ;
+        popd; 
+      fi
       ;;
     esac
-    # Uploads of builds would go here.
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
