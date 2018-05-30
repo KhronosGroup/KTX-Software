@@ -82,7 +82,8 @@ build_script:
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/libktx.doc.vcxproj
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
-    .\runDoxygen ktxpkg.doxy
+    REM Need to make sure git bash is installed before trying this.
+    REM .\setup_env.bat && bash ./runDoxygen ktxpkg.doxy
 
 test_script:
 - ps: |-
