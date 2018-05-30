@@ -200,6 +200,7 @@ after_success:
       # Upload doxygen generated docs to khronos.org
       if [ $TRAVIS_PULL_REQUEST = "false" ]; then
         pushd build/docs/html
+        echo "In doc upload"
         #ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
         #cd documentation
         #rmdir ktxtools libktx package
