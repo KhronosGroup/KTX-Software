@@ -191,15 +191,20 @@ after_success:
       cd ../Release &&
       ./unittests &&
       ./texturetests &&
-      popd &&
+      popd
+      ;;
+    esac
+  - |
+    case "${TRAVIS_OS_NAME:-linux}" in
+    osx)
       # Upload doxygen generated docs to khronos.org
       if [ $TRAVIS_PULL_REQUEST = "false" ]; then
         pushd build/docs/html
-        ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
-        cd documentation
-        rmdir ktxtools libktx package
-        put -r *
-        EOF
+        #ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
+        #cd documentation
+        #rmdir ktxtools libktx package
+        #put -r *
+        #EOF
         popd
       fi
       ;;
