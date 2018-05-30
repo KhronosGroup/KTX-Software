@@ -82,7 +82,7 @@ build_script:
     echo  build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     dir build/msvs/x64/vs2013/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
-    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" /target:libktx.doc build/msvs/$env:PLATFORM/$env:KTX_VSVER/libktx.sln
+    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/libktx.doc.vcxproj
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
     .\runDoxygen ktxpkg.doxy
 
