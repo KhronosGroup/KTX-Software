@@ -1,78 +1,67 @@
-# CI build script for Travis.
-# See https://docs.travis-ci.com/user/multi-os/ for more info.
-
 matrix:
   include:
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          packages:
-            - gcc-7
-            - g++-7
-      cache:
-        directories:
-          - $HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-        - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64"
-    - os: osx
-      env:
-        - ASSIMP_HOME="/usr/local"
-        - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
-
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - sourceline: ppa:ubuntu-toolchain-r/test
+        packages:
+        - gcc-7
+        - g++-7
+    cache:
+      directories:
+      - "$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin"
+    env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+    - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64"
+  - os: osx
+    env:
+    - ASSIMP_HOME="/usr/local"
+    - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
 sudo: required
 dist: xenial
 group: edge
-
 osx_image: xcode9.3
-
 language:
-  - cpp
-
+- cpp
 compiler:
-  # clang compilation will be tested by xcode.
-  #- clang
-  - gcc
-
-# whitelist
+- gcc
 branches:
   only:
-    - master
-    - incoming
-
+  - master
+  - incoming
 env:
   global:
-    - GIT_LFS_VERSION="2.4.0"
-    - VULKAN_SDK_VER="1.1.73.0"
+  - GIT_LFS_VERSION="2.4.0"
+  - VULKAN_SDK_VER="1.1.73.0"
+  matrix:
+  - secure: BYDBVWevpu6vI0VOVITFy1/IDE1M3EXXKBScop7RARPJb/oky2ZLb7SpEHqfez4aFt4ok5NKKJ2dw1/RMb8moXYxM3mqh28wM4NvWDvT1ruiqnxBsnNlMu2Ol+HfymcWRgZQn9/JpGzpSGxiinrSJB0Z5G+7SIYcHl0ein8aUgmCOD7JiUv305qqxugPc9TveJcvZU3+0goIj3tD7CYG2MUKmQnDOFOPXt6Fr3ltmLRJ9JhKEg31lQ5JqmZ3TQt3wc/w0JS1yJ+OpO8aA3P1nZtawcijwci9Tka8XNIvngvFdK9+M5JGWRx7QmsmWWsb0RJjNskPerAvURVDPPq96LZVVCE02AxLizUi7PftCznbsoxqPWLOIM9SKdUACPrjGz1Y6xMzyXk5wbTP8o4K1ksUeGrXLzvkdoa18DlM6qUEUeXdYa+U9/yzR4pMo/FToynmYazNA0H6slWSPAonbvw+qDE6/Udd/De2a6Wf0//NclRX6n8uY8nExLAHBdiBgGiqLjN2SfOycI9jIrNuGRG27h9/HJVkC6VVOBFJ+qE2LyXpDP/hz+KPJo/dBl9hwBlxREEhKpQX8chuRc5+k3aAP1vEfq/cRPS/5MOCHwQD+IPQdQdN0agM/AlSSeL+Fc468rH942ZjgkpDvCTK0WIqC/euYcC96S90+wisc2c=
+  - secure: N1zLqUkp/gWepymS/32BYp0/z78c+ux76LKlAun8qL9mNywOJP1UUPzqOp2wvbaIVEr7fsO4eiThey76Dzh1p91M6gNwV9iM8uvVZCPDukMisFJtBDFiD4YcAyX//X2DgyUGgGhRzKh4f4wTYmGyl02tIHPi5gaj0SqYQny3p7cB1rkuGSQ2XAhhzpthTYlnPUiajmulRaxujNfJAQQz5Atzn4x+lseE8RhLE5tBP98kbQHDxtAyHEbAI8bBf77Rtto3JSI+WD2IioZnKDQikhrCsIZiqEej3Jnn4WV3Bk74kpOJxLcJSCp7C3AnaSEM4vyfXt2IZNxF+komhHNwhJSA3uFCa37Qzk2mNhzSX7SqsTMrhSCPdEfKsE5tudO6GP8QRxp3UDxeYUpsMGbBsWCdVXXMa3VtjS9o2J/VquMq5MeBEFqzwYXA2CCXYGc9bGxHIZlsNtH52xTPEasIR02MQUguXZnitUCXEESwCmLg1L8bBH6IZyKjx2FUcsVrQlSRUa2Pc9uVALC2OZqYAOHPotkYmcWvyO6JRK5Ft1vFzqPKrp9SFs45zxEvIpoi36KP3cr8Ko8V16oyn2yOJ1knBpAjVpPE5RE+CtAAsaardTRkHEFmZ5+xh6mu0kjq7VX+djp4nAP6psmZ+fPvL6qLRCN4YkbIT67mYntXH1w=
+  - secure: QR4EVpGMwIoZOHiyTM55kwr6+5Ol4wQVscZa631Xc6B3bo0zA6LW14SXcgnw4YAWw0RK3VcADqA6KMoYGtCkvp2oK9xgR/K56zSsMMEmvlenWJN5E/pxQxR0g5/lSJdHChHrF+9iEOa4IlQi1q4x0dIojN6Mgjlin6/ixSSLCRgX268S45nggV3n8qrX41rwQtu5dQgEJv8dtpKhuRKbNH3BumCZyEIpbZ4VO15Dr1jVTrdey74a2cRKtLP46B/29SHXqhJJ60reZ/dZo7t+oToCboS2/fHz5oI+Ogg+9iWbpDCf8gZpPGh9tpP1eRsydOykOmd0yfogd4Y99Z6IL5Tozy5/zM3P5OXkAxUH7d7V8gZ6JhxNDodXHiTgt+rl9zyDCaI2cqbTLvdu6j7YAEdr1EF9GBJPfv8ICaTeJUfIOTF77SMPG/FeW1UVcyzqmVnnKkJcEmYKNR85wEKoGfuRiw/5NfCe8xiGkZdnTQfHyIvJ1f+cphDwKsW6OgtTBRu6/AGP4WKK02j1pnpMR/6tZgqsfZ3PPcUTZu+pFFq0wn/EG9miwFj7ieSb2xWlmzy613kD4KRUWyceXRnGT0yPtYBMJH9+Z8xZ02xpACdJlZ7djptVHR4DSmAzwDkM5IYewNOERapwE0naUi9/y/KcYh6RH+Pr2okAYQ4j1MI=
 
 before_install:
-  - eval "${MATRIX_EVAL}"
-  - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS
-  #- echo -e "machine $FTP_SERVER\n  login $FTP_USER\n  password secret" >> ~/.netrc
-  - cat ~/.netrc
-  - |
-    case "${TRAVIS_OS_NAME:-linux}" in
-    linux)
-      # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
-      pushd ../.. &&
-      wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-      tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-      export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
-      popd &&
-      git lfs install &&
-      git lfs version
-      ;;
-    osx)
-      brew update > /dev/null &&
-      brew install git-lfs &&
-      git lfs install &&
-      git lfs version
-      ;;
-    esac
-
+- eval "${MATRIX_EVAL}"
+- echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc
+- cat ~/.netrc
+- |
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
+    pushd ../.. &&
+    wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
+    export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
+    popd &&
+    git lfs install &&
+    git lfs version
+    ;;
+  osx)
+    brew update > /dev/null &&
+    brew install git-lfs &&
+    git lfs install &&
+    git lfs version
+    ;;
+  esac
 install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
@@ -111,22 +100,20 @@ install:
 - git clone https://github.com/msc-/gyp
 - cd gyp && sudo ./setup.py install && cd ..
 - popd
-
 before_script:
-  - |
-    # Pull just the linux or mac/ios files to save time.
-    case "${TRAVIS_OS_NAME:-linux}" in
-    linux)
-      # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
-      # See Git LFS issue https://github.com/github/git-lfs/issues/880.
-      git lfs pull --include=other_lib/linux | cat
-      ;;
-    osx)
-      git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
-      sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
-      ;;
-    esac
-
+- |
+  # Pull just the linux or mac/ios files to save time.
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
+    # See Git LFS issue https://github.com/github/git-lfs/issues/880.
+    git lfs pull --include=other_lib/linux | cat
+    ;;
+  osx)
+    git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
+    sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
+    ;;
+  esac
 script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
@@ -188,7 +175,7 @@ script:
     if [ $TRAVIS_PULL_REQUEST = "false" ]; then
       pushd build/docs/html
       echo "In doc upload"
-      ftp -u "$FTP_USER:$FTP_CRED@$FTP_SERVER:21/documentation" ktxtools libktx package
+      ftp -u "$FTP_USER:$FTP_CRED@$FTP_HOST:21/documentation" ktxtools libktx package
       #cat <<EOF
       #foo
       #bar
@@ -203,5 +190,3 @@ script:
     fi
     ;;
   esac
-
-# vim:ai:ts=4:sts=2:sw=2:expandtab
