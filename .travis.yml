@@ -201,11 +201,12 @@ after_success:
       if [ $TRAVIS_PULL_REQUEST = "false" ]; then
         pushd build/docs/html
         echo "In doc upload"
-        cat <<EOF
-        foo
-        bar
-        snafu
-        EOF
+        ftp -u "$FTP_USER:$FTP_CRED@$FTP_SERVER:21/documentation" ktxtools libktx package
+        #cat <<EOF
+        #foo
+        #bar
+        #snafu
+        #EOF
         #ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
         #cd documentation
         #rmdir ktxtools libktx package
