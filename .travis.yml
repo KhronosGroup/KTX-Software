@@ -30,6 +30,7 @@ branches:
   only:
   - master
   - incoming
+  - travis
 env:
   global:
   - GIT_LFS_VERSION="2.4.0"
@@ -175,7 +176,8 @@ script:
     if [ $TRAVIS_PULL_REQUEST = "false" ]; then
       pushd build/docs/html
       echo "In doc upload"
-      ftp -u "$FTP_USER:$FTP_CRED@$FTP_HOST:21/documentation" ktxtools libktx package
+      #ftp -u "$FTP_USER:$FTP_CRED@$FTP_HOST:21/documentation" ktxtools libktx package
+      ftp -u ftptest@erewhon0.net:(ftptest)@ftp.erewhon0.net:21 package
       #cat <<EOF
       #foo
       #bar
