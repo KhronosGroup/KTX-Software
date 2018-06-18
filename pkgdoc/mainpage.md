@@ -16,7 +16,7 @@ The software is open source software. See @ref license for details.
 libktx
 ======
 
-Read the [libktx Reference](../libktx/index.html)a.
+Read the [libktx Reference](../libktx/index.html).
 
 Current version is 3.0.0.
 
