@@ -209,5 +209,14 @@ script:
 
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  local-dir: build/docs
+  on:
+    branch: incoming
+    condition: $TRAVIS_OS_NAME = osx
+    #tags: true
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
