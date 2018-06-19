@@ -43,5 +43,7 @@ for portability.
 
 `toktx` is the work of Mark Callow.
 
+The KTX application and file icons were designed by Manmohan Bishnoi.
+
 $Date$
 
