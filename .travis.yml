@@ -124,6 +124,7 @@ before_script:
       ;;
     esac
   # Make sure embedded dates are correct.
+  - ./install-gitconfig.sh
   - rm TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cpp
   - git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cpp
 
