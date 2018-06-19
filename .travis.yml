@@ -27,11 +27,6 @@ matrix:
         - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
       osx_image: xcode9.3
 
-#sudo: required
-#dist: xenial
-#group: edge
-
-#osx_image: xcode9.3
 language:
   - cpp
 
@@ -44,7 +39,7 @@ compiler:
 branches:
   only:
     - master
-    - travis
+    - incoming
 
 env:
   global:
@@ -215,8 +210,7 @@ deploy:
   github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
   local-dir: build/docs/html
   on:
-    branch: travis
-    #branch: incoming
+    branch: incoming
     condition: $TRAVIS_OS_NAME = osx
     #tags: true
 
