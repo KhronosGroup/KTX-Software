@@ -186,7 +186,7 @@ script:
     ./unittests &&
     ./texturetests &&
     popd &&
-    ./runDoxygen ktxpkg.doxy &&
+    ./runDoxygen ktxpkg.doxy
     # Upload doxygen generated docs to khronos.org
     #if [ $TRAVIS_PULL_REQUEST = "false" ]; then
       #pushd build/docs/html
@@ -205,7 +205,7 @@ script:
       #popd
     #fi
     ;;
-  esac
+    esac
 
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 
@@ -213,9 +213,10 @@ deploy:
   provider: pages
   skip-cleanup: true
   github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  local-dir: build/docs
+  local-dir: build/docs/html
   on:
-    branch: incoming
+    branch: travis
+    #branch: incoming
     condition: $TRAVIS_OS_NAME = osx
     #tags: true
 
