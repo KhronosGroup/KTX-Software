@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="other_lib">
+      <UniqueIdentifier>{DB573744-BA7C-22FF-9F55-5E1E8C007536}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="other_lib\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="other_lib\win\Release-$(PlatformName)">
+      <UniqueIdentifier>{62BD4022-6928-DF96-DE27-D967F70FE3EF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\libktx.gyp"/>
+    <None Include="..\..\..\..\other_lib\win\Release-$(PlatformName)\glew32.dll">
+      <Filter>other_lib\win\Release-$(PlatformName)</Filter>
+    </None>
+  </ItemGroup>
+</Project>

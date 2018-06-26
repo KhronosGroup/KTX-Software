@@ -2,6 +2,40 @@
 
 TOOLSET := target
 TARGET := appfwSDL
+### Generated for rule ktxtests_gyp_appfwSDL_target_frag2spirv:
+$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
+$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
+$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag
+	$(call do_cmd,ktxtests_gyp_appfwSDL_target_frag2spirv_0)
+
+all_deps += $(builddir)/shaders/$(notdir $<).spv
+cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=fragment" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+quiet_cmd_ktxtests_gyp_appfwSDL_target_frag2spirv_0 = RULE ktxtests_gyp_appfwSDL_target_frag2spirv_0 $@
+
+rule_ktxtests_gyp_appfwSDL_target_frag2spirv_outputs := \
+	$(builddir)/shaders/$(notdir $<).spv
+
+### Finished generating for rule: ktxtests_gyp_appfwSDL_target_frag2spirv
+
+### Generated for rule ktxtests_gyp_appfwSDL_target_vert2spirv:
+$(builddir)/shaders/$(notdir $<).spv: obj := $(abs_obj)
+$(builddir)/shaders/$(notdir $<).spv: builddir := $(abs_builddir)
+$(builddir)/shaders/$(notdir\ $<).spv: TOOLSET := $(TOOLSET)
+$(builddir)/shaders/$(notdir\ $<).spv: $(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert
+	$(call do_cmd,ktxtests_gyp_appfwSDL_target_vert2spirv_0)
+
+all_deps += $(builddir)/shaders/$(notdir $<).spv
+cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p $(builddir)/shaders; glslc "-fshader-stage=vertex" -o "$(builddir)/shaders/$(notdir $<).spv" "$(abspath $<)"
+quiet_cmd_ktxtests_gyp_appfwSDL_target_vert2spirv_0 = RULE ktxtests_gyp_appfwSDL_target_vert2spirv_0 $@
+
+rule_ktxtests_gyp_appfwSDL_target_vert2spirv_outputs := \
+	$(builddir)/shaders/$(notdir $<).spv
+
+### Finished generating for rule: ktxtests_gyp_appfwSDL_target_vert2spirv
+
+### Finished generating for all rules
+
 DEFS_Debug := \
 	'-DDEBUG' \
 	'-D_DEBUG'
@@ -15,10 +49,14 @@ CFLAGS_Debug := \
 CFLAGS_C_Debug :=
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
-	-I$(srcdir)/other_include
+	-I$(srcdir)/tests/loadtests/appfwSDL \
+	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
+	-I$(srcdir)/other_include \
+	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
 	'-DNDEBUG'
@@ -31,21 +69,33 @@ CFLAGS_Release := \
 CFLAGS_C_Release :=
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
-	-I$(srcdir)/other_include
+	-I$(srcdir)/tests/loadtests/appfwSDL \
+	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
+	-I$(srcdir)/other_include \
+	-I$(VULKAN_SDK)/include
 
 OBJS := \
-	$(obj).target/$(TARGET)/tests/appfwSDL/main.o \
-	$(obj).target/$(TARGET)/tests/appfwSDL/AppBaseSDL.o \
-	$(obj).target/$(TARGET)/tests/appfwSDL/GLAppSDL.o
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/main.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/AppBaseSDL.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/GLAppSDL.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/VulkanAppSDL.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/VulkanContext.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/VulkanSwapchain.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/vulkandebug.o \
+	$(obj).target/$(TARGET)/tests/loadtests/appfwSDL/VulkanAppSDL/vulkantools.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libsdl.stamp
+$(OBJS): | $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp
+
+# Make sure our actions/rules run before any of us.
+$(OBJS): | $(rule_ktxtests_gyp_appfwSDL_target_frag2spirv_outputs) $(rule_ktxtests_gyp_appfwSDL_target_vert2spirv_outputs)
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -68,6 +118,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
+# Build our special outputs first.
+$(obj).target/libappfwSDL.a: | $(rule_ktxtests_gyp_appfwSDL_target_frag2spirv_outputs) $(rule_ktxtests_gyp_appfwSDL_target_vert2spirv_outputs)
+
+# Preserve order dependency of special output on deps.
+$(rule_ktxtests_gyp_appfwSDL_target_frag2spirv_outputs) $(rule_ktxtests_gyp_appfwSDL_target_vert2spirv_outputs): | $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp
+
 LDFLAGS_Debug := \
 	-g
 

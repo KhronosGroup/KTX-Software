@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\readtests">
+      <UniqueIdentifier>{B46C4C5F-A294-EF4F-F1DA-3A762C58ACBA}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\tests\readtests\readtests.cc">
+      <Filter>tests\readtests</Filter>
+    </ClCompile>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
+  </ItemGroup>
+</Project>

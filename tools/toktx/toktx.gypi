@@ -27,11 +27,12 @@
         {
           'target_name': 'toktx',
           'type': '<(executable)',
+          'include_dirs' : [ '../../utils' ],
           'mac_bundle': 0,
-          'dependencies': [
-            'libktx.gyp:libktx.gl',
-          ],
+          'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'sources': [
+            '../../utils/argparser.cpp',
+            '../../utils/argparser.h',
             'image.cpp',
             'image.h',
             'stdafx.h',
@@ -49,9 +50,7 @@
               'configurations': {
                 'Debug_Emscripten': {
                   'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [
-                    '<(additional_emlink_options)',
-                  ],
+                  'ldflags': [ '<(additional_emlink_options)' ],
                   'msvs_settings': {
                     'VCCLCompilerTool': {
                       'AdditionalOptions': '<(additional_emcc_options)',
@@ -63,9 +62,7 @@
                 },
                 'Release_Emscripten': {
                   'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [
-                    '<(additional_emlink_options)',
-                  ],
+                  'ldflags': [ '<(additional_emlink_options)' ],
                   'msvs_settings': {
                     'VCCLCompilerTool': {
                       'AdditionalOptions': '<(additional_emcc_options)',
@@ -75,7 +72,7 @@
                     },
                   },
                 },
-              },
+              }, # configurations
             }], # emit_emscripten_configs=="true"
           ], # conditions
         }, # toktx target
@@ -94,8 +91,50 @@
               ],
             }, # toktx-tests action
           ], # actions
-        } # toktx-tests target
-      ], # 'OS == "mac" or OS == "win"' targets
+        }, # toktx-tests target
+        {
+          'target_name': 'ktxtools.doc',
+          'type': 'none',
+          'variables': { # level 1
+            'variables': { # level 2
+              'output_dir': '../../build/docs',
+            },
+            'output_dir': '<(output_dir)',
+            'doxyConfig': 'ktxtools.doxy',
+            'timestamp': '<(output_dir)/.gentimestamp',
+          },
+          # It is not possible to chain commands in an action with
+          # && because the generators will quote such strings.
+          # Instead we use an external script.
+          # these actions
+          'actions': [
+            {
+              'action_name': 'buildDoc',
+              'message': 'Generating tools documentation with Doxygen',
+              'inputs': [
+                '../../<(doxyConfig)',
+                '../../runDoxygen',
+                'toktx.cpp',
+              ],
+              'outputs': [
+                '<(output_dir)/html/ktxtools',
+                '<(output_dir)/man/ktxtools/man1/toktx.1',
+                '<(timestamp)',
+              ],
+              # doxygen must be run in the top-level project directory
+              # so that ancestors of that directory will be removed
+              # from paths displayed in the documentation. That is also
+              # the directory where the .doxy and .gyp files are stored.
+              #
+              # See ../../lib/libktx.gypi for further comments.
+              'msvs_cygwin_shell': 1,
+              'action': [
+                './runDoxygen', '-t', '<(timestamp)', '<(doxyConfig)',
+              ],
+            }, # buildDoc action
+          ], # actions
+        }, # libktx.doc
+      ], # targets
     }], # 'OS == "mac" or OS == "win"'
   ] # conditions for conditional targets
 }

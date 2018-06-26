@@ -6,15 +6,14 @@
 #
 {
   'includes': [
-     'appfwSDL/appfwSDL.gypi',
-     'glloadtests/glloadtests.gypi',
+     'loadtests/loadtests.gypi',
      'testimages/testimages.gypi',
   ],
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
       'includes': [
         'gtest/gtest.gypi',
-        'readtests/readtests.gypi',
+        'texturetests/texturetests.gypi',
         'unittests/unittests.gypi',
       ]
     }]

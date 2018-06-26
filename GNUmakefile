@@ -27,13 +27,17 @@ builddir := build
 stampfile := .${pname}-stamp
 
 msvs_buildd := $(builddir)/msvs
-msvs_platforms := win# web wingl
-msvs_vernames := vs2008 vs2010 vs2010e vs2013 vs2013e vs2015
-# Build list of names "${platform}/vs{2010,2010e,2008}/.ktx-stamp"
-msvs_targets = $(addprefix ${platform}/,$(addsuffix /${stampfile},${msvs_vernames}))
-msvs_platform_dirs := $(addprefix ${msvs_buildd}/,${msvs_platforms})
-# Expand the ${platform} in each of name in msvs_targets
-msvs_targets := $(foreach platform,${msvs_platform_dirs},${msvs_targets})
+msvs_platforms := x64 win32
+# vs2010e does not support 64-bit builds.
+msvs_x64_vernames := vs2010 vs2013 vs2013e vs2015 vs2017
+msvs_win32_vernames := $(msvs_x64_vernames) vs2010e
+# Build a set of targets by in form
+# "$(msvs_buildd)/{x64,win32}/vs{2010,2010e,2008}/.ktx-stamp"
+# by prefixing the list of msvs versions (${2}) with the platform (${1}).
+msvs_target_set = $(addprefix ${msvs_buildd}/${1}/,$(addsuffix /${stampfile},${2}))
+msvs_x64_targets = $(call msvs_target_set,x64,${msvs_x64_vernames})
+msvs_win32_targets = $(call msvs_target_set,win32,${msvs_win32_vernames})
+msvs_all_targets := $(msvs_x64_targets) $(msvs_win32_targets)
 
 xcode_buildd := $(builddir)/xcode
 xcode_platforms := ios mac
@@ -64,19 +68,24 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/angle.gypi \
 		 gyp_include/config.gypi \
 		 gyp_include/default.gypi \
+		 gyp_include/glsl2spirv.gypi \
+		 gyp_include/libassimp.gypi \
 		 gyp_include/libgl.gypi \
 		 gyp_include/libgles1.gypi \
 		 gyp_include/libgles2.gypi \
 		 gyp_include/libgles3.gypi \
 		 gyp_include/libsdl.gypi \
+		 gyp_include/libvulkan.gypi \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
 		 lib/libktx.gypi \
 		 tests/tests.gypi \
-		 tests/appfwSDL/appfwSDL.gypi \
-		 tests/glloadtests/glloadtests.gypi \
 		 tests/gtest/gtest.gypi \
-		 tests/readtests/readtests.gypi \
+         tests/loadtests/loadtests.gypi \
+		 tests/loadtests/appfwSDL/appfwSDL.gypi \
+		 tests/loadtests/glloadtests/glloadtests.gypi \
+         tests/loadtests/vkloadtests/vkloadtests.gypi \
+		 tests/texturetests/texturetests.gypi \
 		 tests/testimages/testimages.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
@@ -106,11 +115,17 @@ gyp=$(gypdir)gyp# --debug=all
 .PHONY: msvs xcode default
 
 default:
-	@echo Pick one of "\"make {all,cmake,make,msvs,xcode}\""
+	@echo Pick one of "\"make {all,cmake,make,msvs,msvs64,msvs32,xcode}\""
 
 all: $(formats)
 
-msvs: $(msvs_targets)
+msvs32: win_platform := Win32
+msvs32: $(msvs_win32_targets)
+
+msvs64: win_platform := x64
+msvs64: $(msvs_x64_targets)
+
+msvs: msvs64 msvs32
 
 xcode: $(xcode_targets)
 
@@ -123,8 +138,8 @@ make: $(make_targets)
 # Can't use wildcards in target patterns so have to match the whole
 # {win+web,wingl}/vs<version> part of the target name. Uses the
 # msvs_version macro above to extract the version.
-$(msvs_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f msvs -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. ktxtests.gyp ktxtools.gyp
+$(msvs_all_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
+	$(gyp) -f msvs -DWIN_PLATFORM=$(win_platform) -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. ktxtests.gyp ktxtools.gyp
 	@date -R > $@
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\unittests">
+      <UniqueIdentifier>{5B5C6057-DDBC-ACE2-7478-453914D140F9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\unittests">
+      <UniqueIdentifier>{5B5C6057-DDBC-ACE2-7478-453914D140F9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\tests\unittests\unittests.cc">
+      <Filter>tests\unittests</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\unittests\wthelper.h">
+      <Filter>tests\unittests</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
+  </ItemGroup>
+</Project>

@@ -1,7 +1,23 @@
 // -*- tab-width: 4; -*-
-// vi: set sw=2 ts=4:
+// vi: set sw=2 ts=4 expandtab:
 
 // $Id$
+
+//
+// ©2010 The Khronos Group, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 
 //!
 //! @internal
@@ -11,44 +27,14 @@
 //! @brief Read netpbm format (.pam, .pbm or .pgm) files.
 //!
 //! @author Mark Callow, HI Corporation.
-//! @author Jacob Str&oumlm, Ericsson AB.
+//! @author Jacob Str&ouml;m, Ericsson AB.
 //!
-
-//
-// Copyright (c) 2010 The Khronos Group Inc.
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and/or associated documentation files (the
-// "Materials"), to deal in the Materials without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Materials, and to
-// permit persons to whom the Materials are furnished to do so, subject to
-// the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included
-// unaltered in all copies or substantial portions of the Materials.
-// Any additions, deletions, or changes to the original source files
-// must be clearly indicated in accompanying documentation.
-// 
-// If only executable code is distributed, then the accompanying
-// documentation must state that "this software is based in part on the
-// work of the Khronos Group."
-// 
-// THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-//
 
 #include "stdafx.h"
 #include <stdlib.h>
 #include "image.h"
 
 static int tupleSize(const char* tupleType);
-static FileResult readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels);
 
 // Skips over comments in a netpbm file
 // (i.e., lines starting with #)
@@ -58,16 +44,16 @@ static FileResult readImage(FILE* src, unsigned int imageSize, unsigned char*& p
 static
 void skipComments(FILE *src)
 {
-	int c;
+    int c;
 
-	while((c = getc(src)) == '#')
-	{
-		char line[1024];
+    while((c = getc(src)) == '#')
+    {
+        char line[1024];
                 // This is to silence -Wunused-result from GCC 4.8+.
-		char* retval;
-		retval = fgets(line, 1024, src);
-	}
-	ungetc(c, src);
+        char* retval;
+        retval = fgets(line, 1024, src);
+    }
+    ungetc(c, src);
 }
 
 
@@ -78,14 +64,14 @@ void skipComments(FILE *src)
 static
 void skipSpaces(FILE *src)
 {
-	int c;
+    int c;
 
-	c = getc(src);
-	while(c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r')
-	{
-		c = getc(src);
-	}
-	ungetc(c, src);
+    c = getc(src);
+    while(c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r')
+    {
+        c = getc(src);
+    }
+    ungetc(c, src);
 }
 
 
@@ -93,9 +79,9 @@ void skipSpaces(FILE *src)
 static
 void skipNonData(FILE *src)
 {
-	skipSpaces(src);
-	skipComments(src);
-	skipSpaces(src);
+    skipSpaces(src);
+    skipComments(src);
+    skipSpaces(src);
 }
 
 
@@ -107,17 +93,17 @@ void skipNonData(FILE *src)
 //! The file type is determined from the magic number.
 //! P5 is a PGM file. P6 is a PPM binary file, P7 is a PAM file.
 //!
-//! @param [in]  src		pointer to FILE stream to read
-//! @param [out] width		reference to variable in which to store the image width
-//! @param [out] height		reference to variable in which to store the image height
-//! @param [out] components	reference to variable in which to store the number of
+//! @param [in]  src        pointer to FILE stream to read
+//! @param [out] width      reference to variable in which to store the image width
+//! @param [out] height     reference to variable in which to store the image height
+//! @param [out] components reference to variable in which to store the number of
 //!                         components in an image pixel
 //! @param [out] componentSize
 //!                         reference to variable in which to store the size in bytes
 //!                         of each component of a pixel.
 //! @param [out] imageSize  reference to variable in which to store the size in bytes
 //!                         of the image.
-//! @param [out] pixels		reference to variable in which to store a pointer to the
+//! @param [out] pixels     reference to variable in which to store a pointer to the
 //!                         image's pixels.
 //!
 //! @return an error indicator or SUCCESS
@@ -128,29 +114,29 @@ void skipNonData(FILE *src)
 //!
 FileResult
 readNPBM(FILE* src, unsigned int& width, unsigned int& height,
-		 unsigned int& components, unsigned int& componentSize,
-		 unsigned int &imageSize, unsigned char*& pixels)
+         unsigned int& components, unsigned int& componentSize,
+         unsigned int &imageSize, unsigned char** pixels)
 {
-	char line[255];
-	int numvals;
+    char line[255];
+    int numvals;
 
-	skipNonData(src);
+    skipNonData(src);
 
-	numvals = fscanf(src, "%3s", line);
+    numvals = fscanf(src, "%3s", line);
         if (numvals == 0) {
-		fprintf(stderr, "Error: PBM type string missing.\n");
-		return INVALID_FORMAT;
+        fprintf(stderr, "Error: PBM type string missing.\n");
+        return INVALID_FORMAT;
         }
 
-	if (strcmp(line, "P6") == 0) {
-		return readPPM(src, width, height, components, componentSize, imageSize, pixels);
-	} else if (strcmp(line, "P5") == 0) {
-		components = 1;
-		return readPGM(src, width, height, components, componentSize, imageSize, pixels);
-	} else if (strcmp(line, "P7") == 0) {
-		return readPAM(src, width, height, components, componentSize, imageSize, pixels);
-	} else
-		return INVALID_FORMAT;
+    if (strcmp(line, "P6") == 0) {
+        return readPPM(src, width, height, components, componentSize, imageSize, pixels);
+    } else if (strcmp(line, "P5") == 0) {
+        components = 1;
+        return readPGM(src, width, height, components, componentSize, imageSize, pixels);
+    } else if (strcmp(line, "P7") == 0) {
+        return readPAM(src, width, height, components, componentSize, imageSize, pixels);
+    } else
+        return INVALID_FORMAT;
 }
 
 
@@ -169,17 +155,17 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 //! after that follows RGBRGBRGB...
 //!
-//! @param [in]  src		pointer to FILE stream to read
-//! @param [out] width		reference to variable in which to store the image width
-//! @param [out] height		reference to variable in which to store the image height
-//! @param [out] components	reference to variable in which to store the number of
+//! @param [in]  src        pointer to FILE stream to read
+//! @param [out] width      reference to variable in which to store the image width
+//! @param [out] height     reference to variable in which to store the image height
+//! @param [out] components reference to variable in which to store the number of
 //!                         components in an image pixel. Always set to 3.
 //! @param [out] componentSize
 //!                         reference to variable in which to store the size in bytes
 //!                         of each component of a pixel. Set to 1 or 2.
 //! @param [out] imageSize  reference to variable in which to store the size in bytes
 //!                         of the image.
-//! @param [out] pixels		reference to variable in which to store a pointer to the
+//! @param [out] pixels     reference to variable in which to store a pointer to the
 //!                         image's pixels.
 //!
 //! @return an error indicator or SUCCESS
@@ -196,54 +182,57 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 FileResult
 readPPM(FILE* src, unsigned int& width, unsigned int& height,
-		unsigned int& components, unsigned int& componentSize,
-		unsigned int &imageSize, unsigned char*& pixels)
+        unsigned int& components, unsigned int& componentSize,
+        unsigned int &imageSize, unsigned char** pixels)
 {
-	int maxval;
-	int numvals;
+    int maxval;
+    int numvals;
 
-	skipNonData(src);
-	
-	numvals = fscanf(src, "%d %d", &width, &height);
-	if (numvals != 2)
-	{
-		fprintf(stderr, "Error: width or height missing.\n");
-		fclose(src);
-		return INVALID_VALUE;
+    skipNonData(src);
+    
+    numvals = fscanf(src, "%d %d", &width, &height);
+    if (numvals != 2)
+    {
+        fprintf(stderr, "Error: width or height missing.\n");
+        fclose(src);
+        return INVALID_VALUE;
         }
-	if( width<=0 || height <=0)
-	{
-		fprintf(stderr, "Error: width or height negative.\n");
-		fclose(src);
-		return INVALID_VALUE;
-	}
+    if( width<=0 || height <=0)
+    {
+        fprintf(stderr, "Error: width or height negative.\n");
+        fclose(src);
+        return INVALID_VALUE;
+    }
 
-	skipNonData(src);
+    skipNonData(src);
 
-	components = 3;
+    components = 3;
 
-	numvals = fscanf(src, "%d", &maxval);
+    numvals = fscanf(src, "%d", &maxval);
         if (numvals == 0) {
-		fprintf(stderr, "Error: maxval must be an integer.\n");
-		return INVALID_VALUE;
+        fprintf(stderr, "Error: maxval must be an integer.\n");
+        return INVALID_VALUE;
         }
-	if (maxval <= 0 || maxval >= (1<<16)) {
-		fprintf(stderr, "Error: Color resolution must be > 0 && < 65536.\n");
-		return INVALID_VALUE;
-	}
-	//fprintf(stderr, "maxval is %d\n",maxval);
-	if (maxval > 255)
-		componentSize=2;
-	else
-		componentSize=1;
+    if (maxval <= 0 || maxval >= (1<<16)) {
+        fprintf(stderr, "Error: Color resolution must be > 0 && < 65536.\n");
+        return INVALID_VALUE;
+    }
+    //fprintf(stderr, "maxval is %d\n",maxval);
+    if (maxval > 255)
+        componentSize=2;
+    else
+        componentSize=1;
 
-	// We need to remove the newline.
-	char c = 0;
-	while(c != '\n')
-		numvals = fscanf(src, "%c", &c);
-	
-	imageSize = width * height * components * componentSize;
-	return readImage(src, imageSize, pixels);
+    // We need to remove the newline.
+    char c = 0;
+    while(c != '\n')
+        numvals = fscanf(src, "%c", &c);
+    
+    imageSize = width * height * components * componentSize;
+    if (pixels)
+        return readImage(src, imageSize, *pixels);
+    else
+        return SUCCESS;
 }
 
 
@@ -261,17 +250,17 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 //! then follows GRAYGRAYGRAYGRAY...
 //!
-//! @param [in]  src		pointer to FILE stream to read
-//! @param [out] width		reference to variable in which to store the image width
-//! @param [out] height		reference to variable in which to store the image height
-//! @param [out] components	reference to variable in which to store the number of
+//! @param [in]  src        pointer to FILE stream to read
+//! @param [out] width      reference to variable in which to store the image width
+//! @param [out] height     reference to variable in which to store the image height
+//! @param [out] components reference to variable in which to store the number of
 //!                         components in an image pixel. Always set to 1.
 //! @param [out] componentSize
 //!                         reference to variable in which to store the size in bytes
 //!                         of each component of a pixel. Set to 1 or 2.
 //! @param [out] imageSize  reference to variable in which to store the size in bytes
 //!                         of the image.
-//! @param [out] pixels		reference to variable in which to store a pointer to the
+//! @param [out] pixels     reference to variable in which to store a pointer to the
 //!                         image's pixels.
 //!
 //! @return an error indicator or SUCCESS
@@ -288,49 +277,52 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 FileResult
 readPGM(FILE* src, unsigned int& width, unsigned int& height,
-		unsigned int& components, unsigned int& componentSize,
-		unsigned int &imageSize, unsigned char*& pixels)
+        unsigned int& components, unsigned int& componentSize,
+        unsigned int &imageSize, unsigned char** pixels)
 {
-	int maxval;
-	int numvals;
+    int maxval;
+    int numvals;
 
-	skipNonData(src);
-	numvals = fscanf(src,"%d %d", &width, &height);
-	if (numvals != 2)
-	{
-		fprintf(stderr, "Error: image width or height missing.\n");
-		fclose(src);
-		return INVALID_VALUE;
+    skipNonData(src);
+    numvals = fscanf(src,"%d %d", &width, &height);
+    if (numvals != 2)
+    {
+        fprintf(stderr, "Error: image width or height missing.\n");
+        fclose(src);
+        return INVALID_VALUE;
         }
-	if (width<=0 || height<=0)
-	{
-		fprintf(stderr, "Error: width and height of the image must be greater than zero.\n");
-		return INVALID_VALUE;
-	}
-	skipNonData(src);
+    if (width<=0 || height<=0)
+    {
+        fprintf(stderr, "Error: width and height of the image must be greater than zero.\n");
+        return INVALID_VALUE;
+    }
+    skipNonData(src);
 
-	components = 1;
+    components = 1;
 
-	numvals = fscanf(src,"%d",&maxval);
+    numvals = fscanf(src,"%d",&maxval);
         if (numvals == 0) {
-		fprintf(stderr, "Error: maxval must be an integer.\n");
-		return INVALID_VALUE;
+        fprintf(stderr, "Error: maxval must be an integer.\n");
+        return INVALID_VALUE;
         }
-	if (maxval <= 0 || maxval >= (1<<16)) {
-		fprintf(stderr, "Error: maxval must be > 1 && < 65536.\n");
-		return INVALID_VALUE;
-	}
-	if (maxval>255)
-		componentSize = 2;
-	else
-		componentSize = 1;
+    if (maxval <= 0 || maxval >= (1<<16)) {
+        fprintf(stderr, "Error: maxval must be > 1 && < 65536.\n");
+        return INVALID_VALUE;
+    }
+    if (maxval>255)
+        componentSize = 2;
+    else
+        componentSize = 1;
 
-	/* gotta eat the newline too */
-	char ch=0;
-	while(ch!='\n') numvals = fscanf(src,"%c",&ch);
+    /* gotta eat the newline too */
+    char ch=0;
+    while(ch!='\n') numvals = fscanf(src,"%c",&ch);
 
-	imageSize = width * height * componentSize;
-	return readImage(src, imageSize, pixels);
+    imageSize = width * height * componentSize;
+    if (pixels)
+        return readImage(src, imageSize, *pixels);
+    else
+        return SUCCESS;
 }
 
 
@@ -352,17 +344,17 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 //! then follows TUPLETUPLETUPLETUPLE...
 //!
-//! @param [in]  src		pointer to FILE stream to read
-//! @param [out] width		reference to variable in which to store the image width
-//! @param [out] height		reference to variable in which to store the image height
-//! @param [out] components	reference to variable in which to store the number of
+//! @param [in]  src        pointer to FILE stream to read
+//! @param [out] width      reference to variable in which to store the image width
+//! @param [out] height     reference to variable in which to store the image height
+//! @param [out] components reference to variable in which to store the number of
 //!                         components in an image pixel.
 //! @param [out] componentSize
 //!                         reference to variable in which to store the size in bytes
 //!                         of each component of a pixel.
 //! @param [out] imageSize  reference to variable in which to store the size in bytes
 //!                         of the image.
-//! @param [out] pixels		reference to variable in which to store a pointer to the
+//! @param [out] pixels     reference to variable in which to store a pointer to the
 //!                         image's pixels.
 //!
 //! @return an error indicator or SUCCESS
@@ -378,95 +370,101 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 FileResult
 readPAM(FILE* src, unsigned int& width, unsigned int& height,
-		unsigned int& components, unsigned int& componentSize,
-		unsigned int &imageSize, unsigned char*& pixels)
+        unsigned int& components, unsigned int& componentSize,
+        unsigned int &imageSize, unsigned char** pixels)
 {
-	char line[255];
-	char tupleType[21];	// +1 for terminating NUL. If you change this, change
-                        // the width in the sscanf below.
-	int maxval, depth;
-	int numFieldsFound = 0;
+    char line[255];
+#define MAX_TUPLETYPE_SIZE 20
+#define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
+#define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
+    char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
+    int maxval, depth;
+    int numFieldsFound = 0;
 
-	for (;;) {
-		skipNonData(src);
-		if (!fgets(line, sizeof(line), src)) {
-			if (feof(src))
-				return UNEXPECTED_EOF;
-			else
-				return IO_ERROR;
-		}
-		if (strcmp(line, "ENDHDR\n") == 0)
-			break;
+    for (;;) {
+        skipNonData(src);
+        if (!fgets(line, sizeof(line), src)) {
+            if (feof(src))
+                return UNEXPECTED_EOF;
+            else
+                return IO_ERROR;
+        }
+        if (strcmp(line, "ENDHDR\n") == 0)
+            break;
 
-		if (sscanf(line, "HEIGHT %d", &height))
-			numFieldsFound++;
-		else if (sscanf(line, "WIDTH %d", &width))
-			numFieldsFound++;
-		else if (sscanf(line, "DEPTH %d", &depth))
-			numFieldsFound++;
-		else if (sscanf(line, "MAXVAL %d", &maxval))
-			numFieldsFound++;
-		else if (sscanf(line, "TUPLTYPE %20s", tupleType))
-			numFieldsFound++;
-	};
+        if (sscanf(line, "HEIGHT %d", &height))
+            numFieldsFound++;
+        else if (sscanf(line, "WIDTH %d", &width))
+            numFieldsFound++;
+        else if (sscanf(line, "DEPTH %d", &depth))
+            numFieldsFound++;
+        else if (sscanf(line, "MAXVAL %d", &maxval))
+            numFieldsFound++;
+        else if (sscanf(line, xtupletype_sscanf_fmt(MAX_TUPLETYPE_SIZE),
+                        tupleType))
+            numFieldsFound++;
+    };
 
-	if (numFieldsFound < 5)
-		return INVALID_PAM_HEADER;
+    if (numFieldsFound < 5)
+        return INVALID_PAM_HEADER;
 
     if ((components = tupleSize(tupleType)) < 1)
-		return INVALID_TUPLETYPE;
+        return INVALID_TUPLETYPE;
 
-	if (components != depth)
-		return INVALID_VALUE;
+    if (components != depth)
+        return INVALID_VALUE;
 
-	if (maxval <= 0 || maxval >= (1<<16)) {
-		fprintf(stderr, "Error: maxval must be > 1 && < 65536.\n");
-		return INVALID_VALUE;
-	}
-	if (maxval > 255)
-		componentSize = 2;
-	else
-		componentSize = 1;
+    if (maxval <= 0 || maxval >= (1<<16)) {
+        fprintf(stderr, "Error: maxval must be > 1 && < 65536.\n");
+        return INVALID_VALUE;
+    }
+    if (maxval > 255)
+        componentSize = 2;
+    else
+        componentSize = 1;
 
-	imageSize = width * height * components * componentSize;
-    return readImage(src, imageSize, pixels);
+    imageSize = width * height * components * componentSize;
+    if (pixels)
+        return readImage(src, imageSize, *pixels);
+    else
+        return SUCCESS;
 }
 
 
 static int
 tupleSize(const char* tupleType)
 {
-	if (strcmp(tupleType, "BLACKANDWHITE") == 0)
-		return -1;
-	else if (strcmp(tupleType, "GRAYSCALE") == 0)
-		return 1;
-	else if (strcmp(tupleType, "GRAYSCALE_ALPHA") == 0)
-		return 2;
-	else if (strcmp(tupleType, "RGB") == 0)
-		return 3;
-	else if (strcmp(tupleType, "RGB_ALPHA") == 0)
-		return 4;
-	else
-		return -1;
+    if (strcmp(tupleType, "BLACKANDWHITE") == 0)
+        return -1;
+    else if (strcmp(tupleType, "GRAYSCALE") == 0)
+        return 1;
+    else if (strcmp(tupleType, "GRAYSCALE_ALPHA") == 0)
+        return 2;
+    else if (strcmp(tupleType, "RGB") == 0)
+        return 3;
+    else if (strcmp(tupleType, "RGB_ALPHA") == 0)
+        return 4;
+    else
+        return -1;
 }
 
 
-static FileResult
+FileResult
 readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels)
 {
-	pixels = new unsigned char[imageSize];
-	if (!pixels)
-	{
-		fprintf(stderr, "Error: could not allocate memory for the pixels of the texture.\n");
-		return OUT_OF_MEMORY;	 
-	}
+    pixels = new unsigned char[imageSize];
+    if (!pixels)
+    {
+        fprintf(stderr, "Error: could not allocate memory for the pixels of the texture.\n");
+        return OUT_OF_MEMORY;    
+    }
 
-	if (fread(pixels, imageSize, 1, src) != 1)
-	{
-		fprintf(stderr, "Error: could not read %d bytes of pixel data.\n",imageSize);
-		free(pixels);
-		pixels = 0;
-		return UNEXPECTED_EOF;
-	}
-	return SUCCESS;
+    if (fread(pixels, imageSize, 1, src) != 1)
+    {
+        fprintf(stderr, "Error: could not read %d bytes of pixel data.\n",imageSize);
+        free(pixels);
+        pixels = 0;
+        return UNEXPECTED_EOF;
+    }
+    return SUCCESS;
 }

@@ -1,11 +1,15 @@
-version: 1.0.{build}
+version: 3.0.{build}
 
 branches:
   only:
     - incoming
     - master
 
-os: Visual Studio 2015
+#os: Visual Studio 2017
+image:
+  - Visual Studio 2013
+  - Visual Studio 2015
+  - Visual Studio 2017
 
 configuration:
   - Debug
@@ -16,13 +20,26 @@ platform:
   - Win32
 
 environment:
-  GIT_TRACE: 1
+  GIT_TRACE: 0
+  VULKAN_SDK_VER: 1.1.73.0
+  PVR_SDK_GH_VER: 4.3
+  PVR_SDK_DL_VER: 2017_R1
 
-on_failure:
-  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+# Following is for GIT_TRACE: 1 above.
+#on_failure:
+#  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
+# Following is for when we want to stop RDP exiting at end of build.
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+clone_folder: c:\projects\ktx
+
+# ps command is enables RDP and provides the login details. blockRdp variant stops the build
+# proceeding until RDP is connected.
 init:
-  - ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
+#  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
+  - ps: #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - git config --global core.autocrlf true # workaround Git LFS bug
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
@@ -30,19 +47,46 @@ install:
 - cmd: |-
     choco install doxygen.install
     REM Copy PowerVR OpenGL ES Emulator libraries
-    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib
-    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
-    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib
-    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
+    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
+    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
+    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
+    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
+    REM Install VulkanSDK
+    cd C:\
+    curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
+    .\VulkanSDK-Installer.exe /S
+    refreshenv
+    echo %VULKAN_SDK%
     REM cd back to cloned repo.
     cd C:\projects\ktx
+    REM Pull only Windows binaries.
+    git lfs pull --include=other_lib/win
 
-cache:
-  - other_lib
+#cache:
+#  - other_lib
+
+before_build:
+# Expand date keywords.
+- ps: |-
+    ./install-gitconfig.bat
+    rm TODO.md, lib/mainpage.md, pkgdoc/mainpage.md
+    git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md
 
 build_script:
+- ps: |-
+    # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
+    refreshenv
+    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2013”) {$env:KTX_VSVER = “vs2013"}
+    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2015”) {$env:KTX_VSVER = “vs2015"}
+    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2017”) {$env:KTX_VSVER = “vs2017"}
+    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
+    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/libktx.doc.vcxproj
+    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
 - cmd: |-
-    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtests.sln
-    "C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2013/ktxtools.sln
-    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtests.sln
-    "C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild" /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" build/msvs/win/vs2015/ktxtools.sln
+    .\setup_env.bat && bash -c "./runDoxygen ktxpkg.doxy"
+
+test_script:
+- ps: |-
+    cd build\msvs\$env:PLATFORM\$env:KTX_VSVER\$env:CONFIGURATION
+    .\texturetests.exe
+    .\unittests.exe

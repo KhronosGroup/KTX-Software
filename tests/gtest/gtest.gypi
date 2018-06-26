@@ -14,7 +14,7 @@
         '_HAS_EXCEPTIONS=1',
       ],
       'direct_dependent_settings': {
-        'include_dirs': [ '../gtest/include' ],
+        'include_dirs': [ 'include' ],
         'xcode_settings': {
           # For variadic macros
           'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
@@ -54,13 +54,16 @@
       'target_name': 'gtest_main',
       'type': 'static_library',
       'direct_dependent_settings': {
-        'include_dirs': [ '../gtest/include' ],
+        'include_dirs': [ 'include' ],
         'xcode_settings': {
           'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
           'GCC_C_LANGUAGE_STANDARD': 'c99',
         },
       },
-      'include_dirs': [ '../gtest/include', '.' ],
+      'include_dirs': [
+        'include',
+        '.'
+      ],
       'sources': [
         'src/gtest_main.cc'
       ],

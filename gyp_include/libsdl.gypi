@@ -31,7 +31,7 @@
               # libraries above, to force its inclusion in the
               # output .so. This is necessary because the contained
               # functions are only referenced from Java.
-              '<(sdl_lib_dir)/SDL_android_main.o',
+              '<(sdl2_lib_dir)/SDL_android_main.o',
             ],
             # Copy the .so to where the APK builder will find it.
             # Strip the symbols to reduce download time to the
@@ -57,12 +57,16 @@
         ['OS == "ios"', {
           'link_settings': {
             'libraries=': [
-              '<@(otherlibroot_dir)/$CONFIGURATION-$(PLATFORM_NAME)/libSDL2.a',
+              '<@(iosolib_dir)/libSDL2.a',
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreMotion.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
               '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
-             ],
+              # On iOS SDL statically links OpenGL ES.
+              '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+              # and apparently now Metal.
+              '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+            ],
           },
         }], # OS == "ios"
         ['OS == "linux"', {
@@ -78,12 +82,10 @@
               },
               'copies': [{
                 'destination': '<(PRODUCT_DIR)',
-                'files': [
-                  '<(sdl2_lib_dir)/libSDL2-2.0.so.0',
-                  '<(sdl2_lib_dir)/libSDL2-2.0.so.0.4.0',
-                ],
-              }], # copies
+                'files': [ '<(sdl2_lib_dir)/libSDL2-2.0.so' ],
+              }],
             }, 'sdl_to_use == "installed_dylib"', {
+              'include_dirs!': [ '../other_include' ],
               'link_settings': {
                 'libraries=': [
                   '-lSDL2-2.0',
@@ -94,7 +96,9 @@
               'link_settings': {
                 'libraries=': [
                   '-lSDL2', '-lSDL2main',
-                  '-ldl', '-lpthread'
+                  '-ldl', '-lpthread',
+                  # This is because of SDL_vulkan
+                  '-lX11-xcb',
                 ],
                 'library_dirs': [ '<(sdl2_lib_dir)' ],
               },
@@ -138,19 +142,17 @@
                   'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
                 },
                 'copies': [{
-                  # A small change to GYP was required to use
-                  # FRAMEWORKS_FOLDER_PATH
-                  'destination': '$(FRAMEWORKS_FOLDER_PATH)',
+                  'xcode_code_sign': 1,
+                  'destination': '$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                   'files': [ '<(sdl2_lib_dir)/SDL2.framework' ],
                 }],
               }, 'sdl_to_use == "built_dylib"', {
                 'xcode_settings': {
-                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/.' ],
+                  'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
                 },
                 'copies': [{
-                  # A small change to GYP was required to use
-                  # EXECUTABLE_FOLDER_PATH.
-                  'destination': '$(EXECUTABLE_FOLDER_PATH)',
+                  'xcode_code_sign': 1,
+                  'destination': '$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                   'files': [ '<@(sdl2_lib_dir)/libSDL2.dylib' ],
                 }],
               }],
@@ -162,6 +164,7 @@
             'libraries=': [
               '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
+              '$(SDKROOT)/System/Library/Frameworks/AVFoundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/GameController.framework',
             ],

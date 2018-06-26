@@ -12,7 +12,6 @@
     'direct_dependent_settings': {
       'include_dirs': [
         '<(gl_includes_parent_dir)',
-        #'../other_include',
       ]
     },
     'variables': {

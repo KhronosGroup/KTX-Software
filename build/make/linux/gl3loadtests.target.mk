@@ -2,119 +2,6 @@
 
 TOOLSET := target
 TARGET := gl3loadtests
-### Generated for copy rule.
-$(builddir)/testimages/conftestimage_R11_EAC.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/conftestimage_R11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_R11_EAC.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/conftestimage_R11_EAC.ktx
-$(builddir)/testimages/conftestimage_RG11_EAC.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/conftestimage_RG11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_RG11_EAC.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/conftestimage_RG11_EAC.ktx
-$(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_SIGNED_R11_EAC.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx
-$(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx: $(srcdir)/tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-$(builddir)/testimages/down-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/down-reference.ktx: $(srcdir)/tests/testimages/down-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/down-reference.ktx
-$(builddir)/testimages/etc1.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc1.ktx: $(srcdir)/tests/testimages/etc1.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc1.ktx
-$(builddir)/testimages/etc2-rgba1.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-rgba1.ktx: $(srcdir)/tests/testimages/etc2-rgba1.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc2-rgba1.ktx
-$(builddir)/testimages/etc2-rgba8.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-rgba8.ktx: $(srcdir)/tests/testimages/etc2-rgba8.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc2-rgba8.ktx
-$(builddir)/testimages/etc2-rgb.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-rgb.ktx: $(srcdir)/tests/testimages/etc2-rgb.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc2-rgb.ktx
-$(builddir)/testimages/etc2-sRGBa1.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-sRGBa1.ktx: $(srcdir)/tests/testimages/etc2-sRGBa1.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc2-sRGBa1.ktx
-$(builddir)/testimages/etc2-sRGBa8.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-sRGBa8.ktx: $(srcdir)/tests/testimages/etc2-sRGBa8.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc2-sRGBa8.ktx
-$(builddir)/testimages/etc2-sRGB.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/etc2-sRGB.ktx: $(srcdir)/tests/testimages/etc2-sRGB.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/etc2-sRGB.ktx
-$(builddir)/testimages/hi_mark.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/hi_mark.ktx: $(srcdir)/tests/testimages/hi_mark.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/hi_mark.ktx
-$(builddir)/testimages/hi_mark_sq.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/hi_mark_sq.ktx: $(srcdir)/tests/testimages/hi_mark_sq.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/hi_mark_sq.ktx
-$(builddir)/testimages/luminance_sized_reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/luminance_sized_reference.ktx: $(srcdir)/tests/testimages/luminance_sized_reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/luminance_sized_reference.ktx
-$(builddir)/testimages/luminance_unsized_reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/luminance_unsized_reference.ktx: $(srcdir)/tests/testimages/luminance_unsized_reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/luminance_unsized_reference.ktx
-$(builddir)/testimages/no-npot.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/no-npot.ktx: $(srcdir)/tests/testimages/no-npot.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/no-npot.ktx
-$(builddir)/testimages/rgb-amg-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/rgb-amg-reference.ktx: $(srcdir)/tests/testimages/rgb-amg-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/rgb-amg-reference.ktx
-$(builddir)/testimages/rgba-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/rgba-reference.ktx: $(srcdir)/tests/testimages/rgba-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/rgba-reference.ktx
-$(builddir)/testimages/rgb-mipmap-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/rgb-mipmap-reference.ktx: $(srcdir)/tests/testimages/rgb-mipmap-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/rgb-mipmap-reference.ktx
-$(builddir)/testimages/rgb-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/rgb-reference.ktx: $(srcdir)/tests/testimages/rgb-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/rgb-reference.ktx
-$(builddir)/testimages/up-reference.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/up-reference.ktx: $(srcdir)/tests/testimages/up-reference.ktx FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/testimages/up-reference.ktx
-ktxtests_gyp_gl3loadtests_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/down-reference.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance_sized_reference.ktx $(builddir)/testimages/luminance_unsized_reference.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/up-reference.ktx
-
 DEFS_Debug := \
 	'-DGL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE' \
 	'-DGL_CONTEXT_MAJOR_VERSION=3' \
@@ -134,8 +21,11 @@ CFLAGS_C_Debug :=
 CFLAGS_CC_Debug :=
 
 INCS_Debug := \
-	-I$(srcdir)/tests/appfwSDL \
-	-I$(srcdir)/tests/glloadtests/common \
+	-I$(srcdir)/tests/loadtests/glloadtests \
+	-I$(srcdir)/tests/loadtests/common \
+	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/tests/loadtests/appfwSDL \
+	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include
 
@@ -156,28 +46,29 @@ CFLAGS_C_Release :=
 CFLAGS_CC_Release :=
 
 INCS_Release := \
-	-I$(srcdir)/tests/appfwSDL \
-	-I$(srcdir)/tests/glloadtests/common \
+	-I$(srcdir)/tests/loadtests/glloadtests \
+	-I$(srcdir)/tests/loadtests/common \
+	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/tests/loadtests/appfwSDL \
+	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include
 
 OBJS := \
-	$(obj).target/$(TARGET)/tests/glloadtests/common/at.o \
-	$(obj).target/$(TARGET)/tests/glloadtests/common/LoadTests.o \
-	$(obj).target/$(TARGET)/tests/glloadtests/shader-based/LoadTestsGL3.o \
-	$(obj).target/$(TARGET)/tests/glloadtests/shader-based/sample_01_draw_texture.o \
-	$(obj).target/$(TARGET)/tests/glloadtests/shader-based/sample_02_cube_textured.o \
-	$(obj).target/$(TARGET)/tests/glloadtests/shader-based/shaderfuncs.o \
-	$(obj).target/$(TARGET)/tests/glloadtests/shader-based/shaders.o
+	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/GLLoadTests.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/DrawTexture.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTests.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/TextureArray.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/TexturedCube.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/shaders.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
-
-# Make sure our actions/rules run before any of us.
-$(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
+$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -187,34 +78,19 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(B
 
 # Suffix rules, putting all outputs into $(obj).
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
-
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # Try building from generated source, too.
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
-
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
-
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.c FORCE_DO_CMD
-	@$(call do_cmd,cc,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # End of this set of suffix rules
 ### Rules for final target.
-# Build our special outputs first.
-$(builddir)/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
-
-# Preserve order dependency of special output on deps.
-$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/libktx.gl.so
-
 LDFLAGS_Debug := \
 	-Wl,-rpath,. \
 	-g \

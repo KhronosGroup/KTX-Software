@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx">
+      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx">
+      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx">
+      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx">
+      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx">
+      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\utils\argparser.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\utils\argparser.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tools\toktx\image.cpp">
+      <Filter>tools\toktx</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tools\toktx\image.h">
+      <Filter>tools\toktx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\tools\toktx\stdafx.h">
+      <Filter>tools\toktx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\tools\toktx\targetver.h">
+      <Filter>tools\toktx</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
+      <Filter>tools\toktx</Filter>
+    </ClCompile>
+    <None Include="..\..\..\..\ktxtools.gyp"/>
+  </ItemGroup>
+</Project>

@@ -11,7 +11,8 @@
 # both 64- and 32-bit packages, there is no suitable VS macro to use
 # in *_{bin,lib}_dir so VS can find the appropriate files at build
 # time. The files are installed in C:/Program Files/ARM/... and
-# C:/Program Files (x86)/ARM/...
+# C:/Program Files (x86)/ARM/... Use the solution appropriate to
+# the emulator version you have installed.
 #
 
 {
