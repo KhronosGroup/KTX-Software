@@ -15,7 +15,7 @@ platform:
   - x64
   - Win32
 
-environment:
+#environment:
   #GIT_TRACE: 1
 
 on_failure:
