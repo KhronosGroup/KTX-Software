@@ -16,7 +16,7 @@ platform:
   - Win32
 
 environment:
-  GIT_TRACE: 1
+  #GIT_TRACE: 1
 
 on_failure:
   - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
@@ -35,7 +35,7 @@ install:
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
     REM cd back to cloned repo.
-    cd C:\projects\ktx
+    cd C:\projects\ktx-software
 
 cache:
   - other_lib
