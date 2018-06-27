@@ -30,13 +30,12 @@ install:
 - cmd: |-
     choco install doxygen.install
     REM Copy PowerVR OpenGL ES Emulator libraries
-    cd
+    pushd %cd%
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib
-    pushd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
+    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
     REM popd back to cloned repo.
-    cd
     popd
 
 cache:
