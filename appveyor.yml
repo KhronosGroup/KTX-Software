@@ -25,18 +25,22 @@ init:
   - ps: #'$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
   - git config --global core.autocrlf true # workaround Git LFS bug
 
+# This is necessary because when building the KhronosGroup origin AV still uses the old
+# repo name "ktx" which confuses the cd back to cloned repo below. I tried pushd/popd
+# but the popd always exited with errors for reasons I could not determine.
+clone_folder: c:\projects\ktx-software
+
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:
 - cmd: |-
     choco install doxygen.install
     REM Copy PowerVR OpenGL ES Emulator libraries
-    pushd %cd%
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
     md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib
     cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_4.0\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/4.0/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
-    REM popd back to cloned repo.
-    popd
+    REM cd back to cloned repo.
+    cd c:\projects\ktx-software
 
 cache:
   - other_lib
