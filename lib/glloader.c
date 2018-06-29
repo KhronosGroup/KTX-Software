@@ -672,6 +672,7 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
 {
     GLint                 previousUnpackAlignment;
     GLuint                texname;
+    GLenum                target = GL_TEXTURE_2D;
     int                   texnameUser;
     KTX_error_code        result = KTX_SUCCESS;
     PFNKTXITERCB          iterCb = NULL;
@@ -715,11 +716,11 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
         if (This->numFaces == 6) {
             /* _ktxCheckHeader should have caught this. */
             assert(This->numDimensions == 2);
-            cbData.glTarget = GL_TEXTURE_CUBE_MAP_ARRAY;
+            target = GL_TEXTURE_CUBE_MAP_ARRAY;
         } else {
             switch (This->numDimensions) {
-              case 1: cbData.glTarget = GL_TEXTURE_1D_ARRAY_EXT; break;
-              case 2: cbData.glTarget = GL_TEXTURE_2D_ARRAY_EXT; break;
+              case 1: target = GL_TEXTURE_1D_ARRAY_EXT; break;
+              case 2: target = GL_TEXTURE_2D_ARRAY_EXT; break;
               /* _ktxCheckHeader should have caught this. */
               default: assert(KTX_TRUE);
             }
@@ -729,12 +730,13 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
         if (This->numFaces == 6) {
             /* _ktxCheckHeader should have caught this. */
             assert(This->numDimensions == 2);
-            cbData.glTarget = GL_TEXTURE_CUBE_MAP;
+            target = GL_TEXTURE_CUBE_MAP;
+            target = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
         } else {
             switch (This->numDimensions) {
-              case 1: cbData.glTarget = GL_TEXTURE_1D; break;
-              case 2: cbData.glTarget = GL_TEXTURE_2D; break;
-              case 3: cbData.glTarget = GL_TEXTURE_3D; break;
+              case 1: target = GL_TEXTURE_1D; break;
+              case 2: target = GL_TEXTURE_2D; break;
+              case 3: target = GL_TEXTURE_3D; break;
               /* _ktxCheckHeader shold have caught this. */
               default: assert(KTX_TRUE);
             }
@@ -742,7 +744,7 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
         cbData.numLayers = 0;
     }
     
-    if (cbData.glTarget == GL_TEXTURE_1D &&
+    if (target == GL_TEXTURE_1D &&
         ((This->isCompressed && (pfGlCompressedTexImage1D == NULL)) ||
          (!This->isCompressed && (pfGlTexImage1D == NULL))))
     {
@@ -750,7 +752,7 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
     }
     
     /* Reject 3D texture if unsupported. */
-    if (cbData.glTarget == GL_TEXTURE_3D &&
+    if (target == GL_TEXTURE_3D &&
         ((This->isCompressed && (pfGlCompressedTexImage3D == NULL)) ||
          (!This->isCompressed && (pfGlTexImage3D == NULL))))
     {
@@ -758,7 +760,7 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
     }
     
     /* Reject cube map arrays if not supported. */
-    if (cbData.glTarget == GL_TEXTURE_CUBE_MAP_ARRAY && !supportsCubeMapArrays) {
+    if (target == GL_TEXTURE_CUBE_MAP_ARRAY && !supportsCubeMapArrays) {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
     
@@ -781,19 +783,21 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
             assert(KTX_TRUE);
     }
    
-    glBindTexture(cbData.glTarget, texname);
+    glBindTexture(target, texname);
     
     // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
     if (This->generateMipmaps && (pfGlGenerateMipmap == NULL)) {
-        glTexParameteri(cbData.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
+        glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
     }
 #ifdef GL_TEXTURE_MAX_LEVEL
     if (!This->generateMipmaps)
-        glTexParameteri(cbData.glTarget, GL_TEXTURE_MAX_LEVEL, This->numLevels - 1);
+        glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, This->numLevels - 1);
 #endif
 
-    if (cbData.glTarget == GL_TEXTURE_CUBE_MAP) {
+    if (target == GL_TEXTURE_CUBE_MAP) {
         cbData.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+    } else {
+        cbData.glTarget = target;
     }
     
     cbData.glInternalformat = This->glInternalformat;
@@ -804,7 +808,7 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
         // If only unsized formats are supported, there is no point in
         // converting as the modern formats aren't supported either.
         if (sizedFormats == _NON_LEGACY_FORMATS && supportsSwizzle) {
-            convertFormat(cbData.glTarget, &cbData.glFormat, &cbData.glInternalformat);
+            convertFormat(target, &cbData.glFormat, &cbData.glInternalformat);
         } else if (sizedFormats == _NO_SIZED_FORMATS)
             cbData.glInternalformat = This->glBaseInternalformat;
 #else
@@ -841,9 +845,9 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
     {
         // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
         if (This->generateMipmaps && pfGlGenerateMipmap) {
-            pfGlGenerateMipmap(cbData.glTarget);
+            pfGlGenerateMipmap(target);
         }
-        *pTarget = cbData.glTarget;
+        *pTarget = target;
         if (pTexture) {
             *pTexture = texname;
         }
