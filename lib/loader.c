@@ -752,7 +752,11 @@ cleanup:
 		if (texinfo.generateMipmaps && pfGlGenerateMipmap) {
 			pfGlGenerateMipmap(texinfo.glTarget);
 		}
-		*pTarget = texinfo.glTarget;
+        if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP_POSITIVE_X) {
+            *pTarget = GL_TEXTURE_CUBE_MAP;
+        } else {
+		    *pTarget = texinfo.glTarget;
+        }
 		if (pTexture) {
 			*pTexture = texname;
 		}
