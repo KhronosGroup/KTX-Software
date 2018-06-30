@@ -75,11 +75,11 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
                               ktxStream* src, ktx_size_t srcSize)
 {
-    ktx_uint32_t packedRowBytes, rowBytes, rowRounding, numRows;
+    ktx_uint32_t packedRowBytes, rowBytes, rowPadding, numRows;
     ktx_size_t packedBytes, unpackedBytes;
     ktx_size_t imageOffset;
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
-    ktx_uint32_t faceLodRounding;
+    ktx_uint32_t faceLodPadding;
 #endif
     
     if (!This || !src)
@@ -92,16 +92,16 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
 
     if (This->isCompressed) {
         packedBytes = ktxTexture_imageSize(This, level);
-        rowRounding = 0;
-        // These 2 are not used when rowRounding == 0. Quiets compiler warning.
+        rowPadding = 0;
+        // These 2 are not used when rowPadding == 0. Quiets compiler warning.
         packedRowBytes = 0;
         rowBytes = 0;
     } else {
         // Block size for uncompressed is 1 x 1.
-        ktxTexture_rowInfo(This, level, &numRows, &rowBytes, &rowRounding);
+        ktxTexture_rowInfo(This, level, &numRows, &rowBytes, &rowPadding);
         unpackedBytes = rowBytes * numRows;
-        if (rowRounding) {
-            packedRowBytes = rowBytes - rowRounding;
+        if (rowPadding) {
+            packedRowBytes = rowBytes - rowPadding;
             packedBytes = packedRowBytes * numRows;
         } else {
             packedRowBytes = rowBytes;
@@ -116,10 +116,10 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
     assert (imageOffset + srcSize <= This->dataSize);
     
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
-    faceLodRounding = 3 - ((faceLodSize + 3) % 4);
+    faceLodPadding = _KTX_PAD4_LEN(faceLodSize);
 #endif
     
-    if (rowRounding == 0) {
+    if (rowPadding == 0) {
         /* Can copy whole image at once */
         src->read(src, This->pData + imageOffset, srcSize);
     } else {
@@ -130,18 +130,18 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
         for (row = 0; row < numRows; row++) {
             ktx_uint32_t rowOffset = rowBytes * row;
             src->read(src, dst + rowOffset, packedRowBytes);
-            memcpy(dst + rowOffset + packedRowBytes, pad, rowRounding);
+            memcpy(dst + rowOffset + packedRowBytes, pad, rowPadding);
         }
     }
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
     /*
      * When KTX_GL_UNPACK_ALIGNMENT == 4, rows, and therefore everything else,
-     * are always 4-byte aligned and faceLodRounding is always 0. It is always
+     * are always 4-byte aligned and faceLodPadding is always 0. It is always
      * 0 for compressed formats too because they all have multiple-of-4 block
      * sizes.
      */
-    if (faceLodRounding)
-        memcpy(This->pData + faceLodSize, pad, faceLodRounding);
+    if (faceLodPadding)
+        memcpy(This->pData + faceLodSize, pad, faceLodPadding);
 #endif
     return KTX_SUCCESS;
 }

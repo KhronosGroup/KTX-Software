@@ -255,10 +255,10 @@ ktxHashList_Serialize(ktxHashList* pHead,
         char padding[4] = {0, 0, 0, 0};
 
         for (kv = *pHead; kv != NULL; kv = kv->hh.next) {
-            /* sizeof(*sd) is to make space to write keyAndValueByteSize */
+            /* sizeof(sd) is to make space to write keyAndValueByteSize */
             keyValueLen = kv->keyLen + kv->valueLen + sizeof(ktx_uint32_t);
             /* Add valuePadding */
-            keyValueLen += 3 - ((keyValueLen + 3) % 4);
+            keyValueLen = _KTX_PAD4(keyValueLen);
             bytesOfKeyValueData += keyValueLen;
         }
         sd = malloc(bytesOfKeyValueData);
@@ -278,7 +278,7 @@ ktxHashList_Serialize(ktxHashList* pHead,
             sd += kv->keyLen;
             memcpy(sd, kv->value, kv->valueLen);
             sd += kv->valueLen;
-            padLen = 3 - ((keyValueLen + 3) % 4);
+            padLen = _KTX_PAD4_LEN(keyValueLen);
             memcpy(sd, padding, padLen);
             sd += padLen;
         }
@@ -293,6 +293,8 @@ ktxHashList_Serialize(ktxHashList* pHead,
  * @~English
  * @brief Construct a hash list from a block of serialized key-value
  *        data read from a file.
+ * @note The bytes of the 32-bit key-value lengths within the serialized data
+ *       are expected to be in native endianness.
  *
  * @param [in]      pHead       pointer to the head of the target hash list.
  * @param [in]      kvdLen      the length of the serialized key-value data.
@@ -333,9 +335,7 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
         result = ktxHashList_AddKVPair(pHead, key, keyAndValueByteSize - keyLen,
                                        value);
         if (result == KTX_SUCCESS) {
-        /* Round keyAndValueByteSize */
-            keyAndValueByteSize = (keyAndValueByteSize + 3) & ~(ktx_uint32_t)3;
-            src += keyAndValueByteSize;
+            src += _KTX_PAD4(keyAndValueByteSize);
         }
     }
     return result;
