@@ -269,11 +269,11 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
     {
         GLuint faceSlice, faceLodSize;
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
-        GLuint faceLodRounding;
+        GLuint faceLodPadding;
 #endif
         GLuint pixelWidth, pixelHeight, pixelDepth;
         GLsizei imageBytes, packedImageBytes;
-        GLsizei packedRowBytes, rowBytes, rowRounding;
+        GLsizei packedRowBytes, rowBytes, rowPadding;
         GLuint numImages;
 
         pixelWidth  = MAX(1, header.pixelWidth  >> level);
@@ -285,18 +285,17 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
                            * pixelWidth
                            * pixelHeight;
 
-        rowRounding = 0;
+        rowPadding = 0;
         packedRowBytes = groupBytes * pixelWidth;
         /* KTX format specifies UNPACK_ALIGNMENT==4 */
         /* GL spec: rows are not to be padded when elementBytes != 1, 2, 4 or 8.
          * As GL currently has no such elements, no test is necessary.
          */
         if (!compressed) {
-            // Equivalent to UNPACK_ALIGNMENT * ceil((groupSize * pixelWidth) / UNPACK_ALIGNMENT)
-            rowRounding = 3 - ((packedRowBytes + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
-            rowBytes = packedRowBytes + rowRounding;
+            rowBytes = _KTX_PAD_UNPACK_ALIGN(packedRowBytes);
+            rowPadding = rowBytes - packedRowBytes;
         }
-        if (rowRounding == 0) {
+        if (rowPadding == 0) {
             imageBytes = packedImageBytes;
         } else {
             /* Need to pad the rows to meet the required UNPACK_ALIGNMENT */
@@ -313,9 +312,8 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
             faceLodSize = imageBytes * numImages;
         }
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
-        faceLodRounding = 3 - ((faceLodSize + 3) % 4);
+        faceLodPadding = _KTX_PAD4_LEN(faceLodSize);
 #endif
-
  
         result = stream->write(stream, &faceLodSize, sizeof(faceLodSize), 1);
         if (result != KTX_SUCCESS)
@@ -329,7 +327,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
                     goto cleanup;
                 }
             }
-            if (rowRounding == 0) {
+            if (rowPadding == 0) {
                 /* Can write whole face at once */
                 result = stream->write(stream, images[i].data, images[i].size,
                                        1);
@@ -347,7 +345,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
                         goto cleanup;
 
                     result = stream->write(stream, pad, sizeof(GLbyte),
-                                              rowRounding);
+                                              rowPadding);
                     if (result != KTX_SUCCESS)
                         goto cleanup;
                 }
@@ -355,13 +353,13 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
             /*
              * When KTX_GL_UNPACK_ALIGNMENT == 4, rows, and therefore everything
-             * else, are always 4-byte aligned and faceLodRounding is always 0.
+             * else, are always 4-byte aligned and faceLodPadding is always 0.
              * It is always 0 for compressed formats too because they all have
              * multiple-of-4 block sizes.
              */
-            if (faceLodRounding) {
+            if (faceLodPadding) {
                 result = stream->write(stream, pad, sizeof(GLbyte),
-                                          faceLodRounding);
+                                       faceLodPadding);
                 if (result != KTX_SUCCESS)
                     goto cleanup;
             }

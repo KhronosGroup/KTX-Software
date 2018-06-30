@@ -360,6 +360,17 @@ ktxTextureInt_constructFromStream(ktxTextureInt* This,
             result = stream->read(stream, pKvd, kvdLen);
             if (result != KTX_SUCCESS)
                 return result;
+
+            if (This->needSwap) {
+                /* Swap the counts inside the key & value data. */
+                ktx_uint8_t* src = pKvd;
+                ktx_uint8_t* end = pKvd + kvdLen;
+                while (src < end) {
+                    ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t*)src);
+                    _ktxSwapEndian32(&keyAndValueByteSize, 1);
+                    src += _KTX_PAD4(keyAndValueByteSize);
+                }
+            }
             
             if (!(createFlags & KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)) {
                 result = ktxHashList_Deserialize(&super->kvDataHead,
@@ -840,7 +851,7 @@ ktxTexture_LoadImageData(ktxTexture* This,
 {
     ktxTextureInt*  subthis = (ktxTextureInt*)This;
     ktx_uint32_t    faceLodSize;
-    ktx_uint32_t    faceLodSizeRounded;
+    ktx_uint32_t    faceLodSizePadded;
     ktx_uint32_t    miplevel;
     ktx_uint32_t    face;
     ktx_uint8_t*    pDest;
@@ -876,15 +887,15 @@ ktxTexture_LoadImageData(ktxTexture* This,
             _ktxSwapEndian32(&faceLodSize, 1);
         }
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
-        faceLodSizeRounded = (faceLodSize + 3) & ~(ktx_uint32_t)3;
+        faceLodSizePadded = _KTX_PAD4(faceLodSize);
 #else
-        faceLodSizeRounded = faceLodSize;
+        faceLodSizePadded = faceLodSize;
 #endif
         
         for (face = 0; face < This->numFaces; ++face)
         {
             result = subthis->stream.read(&subthis->stream, pDest,
-                                          faceLodSizeRounded);
+                                          faceLodSizePadded);
             if (result != KTX_SUCCESS) {
                 goto cleanup;
             }
@@ -897,7 +908,7 @@ ktxTexture_LoadImageData(ktxTexture* This,
                     _ktxSwapEndian32((ktx_uint32_t*)pDest, faceLodSize / 4);
             }
             
-            pDest += faceLodSizeRounded;
+            pDest += faceLodSizePadded;
         }
     }
 
@@ -1029,7 +1040,7 @@ ktxTexture_IterateLoadLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
     ktxTextureInt*  subthis = (ktxTextureInt*)This;
     ktx_uint32_t    dataSize = 0;
     ktx_uint32_t    faceLodSize;
-    ktx_uint32_t    faceLodSizeRounded;
+    ktx_uint32_t    faceLodSizePadded;
     ktx_uint32_t    miplevel;
     ktx_uint32_t    face;
     KTX_error_code  result = KTX_SUCCESS;
@@ -1063,20 +1074,20 @@ ktxTexture_IterateLoadLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
             _ktxSwapEndian32(&faceLodSize, 1);
         }
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
-        faceLodSizeRounded = (faceLodSize + 3) & ~(ktx_uint32_t)3;
+        faceLodSizePadded = _KTX_PAD4(faceLodSize);
 #else
-        faceLodSizeRounded = faceLodSize;
+        faceLodSizePadded = faceLodSize;
 #endif
         if (!data) {
             /* allocate memory sufficient for the base miplevel */
-            data = malloc(faceLodSizeRounded);
+            data = malloc(faceLodSizePadded);
             if (!data) {
                 result = KTX_OUT_OF_MEMORY;
                 goto cleanup;
             }
-            dataSize = faceLodSizeRounded;
+            dataSize = faceLodSizePadded;
         }
-        else if (dataSize < faceLodSizeRounded) {
+        else if (dataSize < faceLodSizePadded) {
             /* subsequent miplevels cannot be larger than the base miplevel */
             result = KTX_FILE_DATA_ERROR;
             goto cleanup;
@@ -1092,7 +1103,7 @@ ktxTexture_IterateLoadLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
              *    for (z_slice = 0; z_slice < This->depth)
              */
             result = subthis->stream.read(&subthis->stream, data,
-                                          faceLodSizeRounded);
+                                          faceLodSizePadded);
             if (result != KTX_SUCCESS) {
                 goto cleanup;
             }
@@ -1189,30 +1200,28 @@ ktxTexture_IterateLevels(ktxTexture* This, PFNKTXITERCB iterCb, void* userdata)
     return result;
 }
 
-/*
- * Calculate and apply the rounding needed to comply with
- * KTX_GL_UNPACK_ALIGNMENT.
+/**
+ * @internal
+ * @brief  Calculate and apply the padding needed to comply with
+ *         KTX_GL_UNPACK_ALIGNMENT.
+ *
+ * For uncompressed textures, KTX format specifies KTX_GL_UNPACK_ALIGNMENT = 4.
+ *
+ * @param[in,out] rowBytes    pointer to variable containing the packed no. of
+ *                            bytes in a row. The no. of bytes after padding
+ *                            is written into this location.
+ * @return the no. of bytes of padding.
  */
 static ktx_uint32_t
-roundRow(ktx_uint32_t* rowBytes)
+padRow(ktx_uint32_t* rowBytes)
 {
-    ktx_uint32_t rowRounding;
+    ktx_uint32_t rowPadding;
 
     assert (rowBytes != NULL);
-    
-    /*
-     * For uncompressed textures, KTX format specifies
-     * KTX_GL_UNPACK_ALIGNMENT==4. Round to this alignment. rowBytes is the
-     * packed no. of bytes in a row since formatInfo.blockWidth is 1 for
-     * uncompressed.
-     *
-     * GL spec: rows are not to be padded when elementBytes != 1, 2, 4 or 8.
-     * As GL currently has no such elements, no test for this is necessary.
-     */
-    // Equivalent to UNPACK_ALIGNMENT * ceil((groupSize * pixelWidth) / UNPACK_ALIGNMENT)
-    rowRounding = 3 - ((*rowBytes + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
-    *rowBytes += rowRounding;
-    return rowRounding;
+
+    rowPadding = _KTX_PAD_UNPACK_ALIGN_LEN(*rowBytes);
+    *rowBytes += rowPadding;
+    return rowPadding;
 }
 
 /**
@@ -1220,7 +1229,7 @@ roundRow(ktx_uint32_t* rowBytes)
  * @~English
  * @brief Calculate the size of an image at the specified mip level.
  *
- * The size reflects the rounding of each row to KTX_GL_UNPACK_ALIGNMENT.
+ * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.
  *
  * @param[in]  This     pointer to the ktxTexture object of interest.
  * @param[in] level     level whose image size to return.
@@ -1250,7 +1259,7 @@ ktxTexture_imageSize(ktxTexture* This, ktx_uint32_t level)
     } else {
         assert(formatInfo->blockWidth == formatInfo->blockHeight == formatInfo->blockDepth == 1);
         rowBytes = blockCount.x * blockSizeInBytes;
-        (void)roundRow(&rowBytes);
+        (void)padRow(&rowBytes);
         return rowBytes * blockCount.y;
     }
 }
@@ -1416,21 +1425,21 @@ ktxTexture_glTypeSize(ktxTexture* This)
  * @brief Get information about rows of a texture image at a specified level.
  *
  * For an image at @p level of a ktxTexture provide the number of rows, the
- * unrounded number of bytes in a row and the rounding necessary to comply
- * with KTX_GL_UNPACK_ALIGNMENT.
+ * packed (unpadded) number of bytes in a row and the padding necessary to
+ * comply with KTX_GL_UNPACK_ALIGNMENT.
  *
  * @param[in]     This     pointer to the ktxTexture object of interest.
  * @param[in]     level    level of interest.
  * @param[in,out] numRows  pointer to location to store the number of rows.
  * @param[in,out] rowBytes pointer to location to store number of bytes in
  *                         a row.
- * @param[in.out] rowRounding pointer to location to store the number of bytes
- *                            of rounding.
+ * @param[in.out] rowPadding pointer to location to store the number of bytes
+ *                           of padding.
  */
 void
 ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
                    ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
-                   ktx_uint32_t* rowRounding)
+                   ktx_uint32_t* rowPadding)
 {
     GlFormatSize* formatInfo;
     struct blockCount {
@@ -1446,7 +1455,7 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
     *numRows = MAX(1, (This->baseHeight / formatInfo->blockHeight)  >> level);
 
     *rowBytes = blockCount.x * formatInfo->blockSizeInBits / 8;
-    *rowRounding = roundRow(rowBytes);
+    *rowPadding = padRow(rowBytes);
 }
 
 /**

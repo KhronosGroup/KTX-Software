@@ -82,7 +82,7 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* pKvd, KTX_hash_table* pHt)
 {
     ktxHashList* pHl;
     KTX_error_code result;
-      result = ktxHashList_Create(&pHl);
+    result = ktxHashList_Create(&pHl);
     if (result != KTX_SUCCESS)
         return result;
 

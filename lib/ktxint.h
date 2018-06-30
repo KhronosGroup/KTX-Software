@@ -326,13 +326,44 @@ void _ktxSwapEndian16(ktx_uint16_t* pData16, int count);
 void _ktxSwapEndian32(ktx_uint32_t* pData32, int count);
 
 /*
- * UncompressETC: uncompresses an ETC compressed texture image
+ * UnpackETC: uncompresses an ETC compressed texture image
  */
 KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
                              ktx_uint32_t active_width, ktx_uint32_t active_height,
                              GLubyte** dstImage,
                              GLenum* format, GLenum* internalFormat, GLenum* type,
                              GLint R16Formats, GLboolean supportsSRGB);
+
+/*
+ * Pad nbytes to next multiple of n
+ */
+/* Equivalent to n * ceil(nbytes / n) */
+#define _KTX_PADN(n, nbytes) (nbytes + (n-1) & ~(ktx_uint32_t)(n-1))
+/*
+ * Calculate bytes of of padding needed to reach next multiple of n.
+ */
+/* Equivalent to (n * ceil(nbytes / n)) - nbytes */
+#define _KTX_PADN_LEN(n, nbytes) ((n-1) - (nbytes + (n-1) & (n-1)))
+
+/*
+ * Pad nbytes to next multiple of 4
+ */
+#define _KTX_PAD4(nbytes) _KTX_PADN(4, nbytes)
+/*
+ * Calculate bytes of of padding needed to reach next multiple of 4.
+ */
+#define _KTX_PAD4_LEN(nbytes) _KTX_PADN_LEN(4, nbytes)
+
+/*
+ * Pad nbytes to KTX_GL_UNPACK_ALIGNMENT
+ */
+#define _KTX_PAD_UNPACK_ALIGN(nbytes)  \
+        _KTX_PADN(KTX_GL_UNPACK_ALIGNMENT, nbytes)
+/*
+ * Calculate bytes of of padding needed to reach KTX_GL_UNPACK_ALIGNMENT.
+ */
+#define _KTX_PAD_UNPACK_ALIGN_LEN(nbytes)  \
+        _KTX_PADN_LEN(KTX_GL_UNPACK_ALIGNMENT, nbytes)
 
 /*
  ======================================
@@ -354,7 +385,7 @@ ktx_size_t ktxTexture_levelSize(ktxTexture* This, ktx_uint32_t level);
 ktx_size_t ktxTexture_faceLodSize(ktxTexture* This, ktx_uint32_t level);
 void ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
                         ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
-                        ktx_uint32_t* rowRounding);
+                        ktx_uint32_t* rowPadding);
 
 #ifdef __cplusplus
 }
