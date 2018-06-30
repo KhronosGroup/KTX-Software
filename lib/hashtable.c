@@ -283,6 +283,9 @@ ktxHashTable_Serialize(KTX_hash_table This, unsigned int* pKvdLen, unsigned char
  *
  * The caller is responsible for freeing the returned hash table.
  *
+ * @note The bytes of the 32-bit key-value lengths within the serialized data
+ *       are expected to be in native endianness.
+ *
  * @param [in]		kvdLen		the length of the serialized key-value data.
  * @param [in]		pKvd		pointer to the serialized key-value data.
  * @param [in,out]	pHt			@p *pHt is set to point to the created hash

@@ -500,6 +500,18 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 				return errorCode;
 			}
+            if (header.endianness == KTX_ENDIAN_REF_REV) {
+                /* Swap the counts inside the key & value data. */
+                unsigned char* src = *ppKvd;
+                unsigned char* end = *ppKvd + *pKvdLen;
+                while (src < end) {
+                    khronos_uint32_t keyAndValueLen = *((khronos_uint32_t*)src);
+                    _ktxSwapEndian32(&keyAndValueLen, 1);
+                    /* Pad keyAndValueByteSize to multiple of 4. */
+                    keyAndValueLen = (keyAndValueLen+3) & ~(khronos_uint32_t)3;
+                    src += keyAndValueLen;
+                }
+            }
 		}
 	} else {
 		/* skip key/value metadata */
