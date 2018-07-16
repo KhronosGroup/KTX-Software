@@ -138,7 +138,7 @@ These files are part of the SDL2 source distributed by the [SDL project]
  * @author Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>
  * @author Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
  *
- * @version 2.0.X
+ * @version 2.0.2
  *
  * $Date$
  */
@@ -451,9 +451,20 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 /**
 @page history KTX Library Revision History
 
-@section v5 Version 2.0.X
+@section v5 Version 2.0.2
+Added:
+@li Support for cubemap arrays.
+
 Changed:
 @li New build system
+
+Fixed:
+@li GitHub issue #40: failure to byte-swap key-value lengths.
+@li GitHub issue #33: returning incorrect target when loading cubemaps.
+@li GitHub PR #42: loading of texture arrays.
+@li GitHub PR #41: compilation error when KTX_OPENGL_ES2=1 defined.
+@li GitHub issue #39: stack-buffer-overflow in toktx
+@li Don't use GL_EXTENSIONS on recent OpenGL versions.
 
 @section v4 Version 2.0.1
 Added:
