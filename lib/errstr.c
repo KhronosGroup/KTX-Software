@@ -1,7 +1,23 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /* $Id$ */
+
+/*
+ * ©2010-2018 The khronos Group, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 /**
  * @file errstr.c
@@ -12,49 +28,24 @@
  * @author Mark Callow, HI Corporation
  */
 
-/*
-Copyright (c) 2010 The Khronos Group Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and/or associated documentation files (the
-"Materials"), to deal in the Materials without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Materials, and to
-permit persons to whom the Materials are furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-unaltered in all copies or substantial portions of the Materials.
-Any additions, deletions, or changes to the original source files
-must be clearly indicated in accompanying documentation.
-
-If only executable code is distributed, then the accompanying
-documentation must state that "this software is based in part on the
-work of the Khronos Group."
-
-THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/
-
 #include "ktx.h"
 
 static const char* const errorStrings[] = {
-	"Operation succeeded",							  /* KTX_SUCCESS */
-	"File open failed",								  /* KTX_FILE_OPEN_FAILED */
-	"File write failed",							  /* KTX_FILE_WRITE_ERROR */
-	"GL error occurred",							  /* KTX_GL_ERROR */
-	"Operation not allowed in the current state",     /* KTX_INVALID_OPERATION */
-	"Invalid parameter value",						  /* KTX_INVALID_VALUE */
-	"Key not found",								  /* KTX_NOT_FOUND */
-	"Out of memory",								  /* KTX_OUT_OF_MEMORY */
-	"Unexpected end of file",						  /* KTX_UNEXPECTED_END_OF_FILE */
-	"Not a KTX file",								  /* KTX_UNKNOWN_FILE_FORMAT */
-	"Texture type not supported by GL context"		  /* KTX_UNSUPPORTED_TEXTURE_TYPE */
+    "Operation succeeded",                            /* KTX_SUCCESS */
+    "File data is inconsistent with KTX spec.",       /* KTX_FILE_DATA_ERROR */
+    "File open failed",                               /* KTX_FILE_OPEN_FAILED */
+    "Operation would exceed the max file size",       /* KTX_FILE_OVERFLOW */
+    "File read error",                                /* KTX_FILE_READ_ERROR */
+    "File seek error",                                /* KTX_FILE_SEEK_ERROR */
+    "File does not have enough data for request",     /* KTX_FILE_UNEXPECTED_EOF */
+    "File write error",                               /* KTX_FILE_WRITE_ERROR */
+    "GL error occurred",                              /* KTX_GL_ERROR */
+    "Operation not allowed in the current state",     /* KTX_INVALID_OPERATION */
+    "Invalid parameter value",                        /* KTX_INVALID_VALUE */
+    "Key not found",                                  /* KTX_NOT_FOUND */
+    "Out of memory",                                  /* KTX_OUT_OF_MEMORY */
+    "Not a KTX file",                                 /* KTX_UNKNOWN_FILE_FORMAT */
+    "Texture type not supported by GL context"        /* KTX_UNSUPPORTED_TEXTURE_TYPE */
 };
 static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
 
@@ -63,7 +54,7 @@ static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
  * @~English
  * @brief Return a string corresponding to a KTX error code.
  *
- * @param error		the error code for which to return a string
+ * @param error     the error code for which to return a string
  *
  * @return pointer to the message string.
  *
@@ -73,7 +64,7 @@ static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
  */
 const char* const ktxErrorString(KTX_error_code error)
 {
-	if (error > lastErrorCode)
-		return "Unrecognized error code";
-	return errorStrings[error];
+    if (error > lastErrorCode)
+        return "Unrecognized error code";
+    return errorStrings[error];
 }

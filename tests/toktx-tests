@@ -4,38 +4,40 @@
 
 # Regression tests for toktx
 
-# ---------------------------------------------------------------
+# -------------------------------------------------------------------------
 #
-# Copyright (c) 2010 The Khronos Group Inc.
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and/or associated documentation files (the
-# "Materials"), to deal in the Materials without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Materials, and to
-# permit persons to whom the Materials are furnished to do so, subject to
-# the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included
-# in all copies or substantial portions of the Materials.
-# 
-# THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-# 
-# ---------------------------------------------------------------
+# ©2010 The Khronos Group, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# -------------------------------------------------------------------------
 
-# Make paths relative to location of this script.
-mydir=${0%/*}/..
-toktx_vs2013=$mydir/build/msvs/win/vs2013/x64/Release/toktx.exe
-toktx_vs2015=$mydir/build/msvs/win/vs2015/x64/Release/toktx.exe
-toktx_cmake=$mydir/build/cmake/toktx/toktx
-toktx_gmake=$mydir/build/GNUmake/toktx/toktx
-testimages=$mydir/testimages
+# Depth of this script relative to the project root
+depth=..
+
+# Change dir to the testimages folder, a child of the script location...
+cd $(dirname $0)/testimages
+# ...and adjust depth
+depth=$depth/..
+
+# Make paths relative to the testimages directory.
+ktx_root=$depth
+toktx_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/toktx.exe
+toktx_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/toktx.exe
+toktx_cmake=$ktx_root/build/cmake/linux/Release/toktx
+toktx_cmake_d=$ktx_root/build/cmake/linux/Debug/toktx
+toktx_make=$ktx_root/build/make/linux/out/Release/toktx
+toktx_make_d=$ktx_root/build/make/linux/out/Debug/toktx
 
 declare -i numtests=0
 declare -i passed=0
@@ -50,10 +52,14 @@ elif [ -x "$toktx_vs2013" ]; then
   toktx=$toktx_vs2013
 elif [ -x "$toktx_vs2015" ]; then
   toktx=$toktx_vs2015
-elif [ -x "$toktx_gmake" ]; then
-  toktx=$toktx_cmake
 elif [ -x "$toktx_cmake" ]; then
   toktx=$toktx_cmake
+elif [ -x "$toktx_cmake_d" ]; then
+  toktx=$toktx_cmake_d
+elif [ -x "$toktx_make" ]; then
+  toktx=$toktx_gmake
+elif [ -x "$toktx_make_d" ]; then
+  toktx=$toktx_gmake
 else
   echo $0: None of $toktx_vs2013, $toktx_vs2015, $toktx_gmake or $toktx_cmake found.
   echo $0: Aborting test
@@ -127,7 +133,8 @@ function gencmpktx() {
   rm $tempfile
 }
 
-cd $testimages
+#---------------- Tests start here -----------------------
+
 # Git Bash does not include mktemp.
 if which mktemp > /dev/null; then
   tempfile=$(mktemp toktxXXXX.ktx)
@@ -135,27 +142,27 @@ else
   tempfile=/tmp/toktxXXXX.ktx
 fi
 
-gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 rgb.ppm 
-gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 rgb.ppm
-TOKTX_OPTIONS=--lower_left_maps_to_s0t0 gencmpktx up-reference.ktx up.ppm
-gencmpktx down-reference.ktx up.ppm
-gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
-gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 rgba.pam
-gencmpktx luminance_unsized_reference.ktx --luminance luminance.pgm
-gencmpktx luminance_sized_reference.ktx --luminance --sized luminance.pgm
+gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgb.ppm 
+gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --nometadata rgb.ppm
+TOKTX_OPTIONS="--lower_left_maps_to_s0t0 --nometadata" gencmpktx orient-up.ktx up.ppm
+gencmpktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 up.ppm
+gencmpktx orient-down-metadata.ktx up.ppm
+gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
+gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgba.pam
+gencmpktx luminance-reference-metadata.ktx --luminance luminance.pgm
 
 numtests=$numtests+1
-TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx - rgb.ppm > $tempfile
+TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx --nometadata - rgb.ppm > $tempfile
 cmpktx $tempfile rgb-reference.ktx
 rm $tempfile
 
 numtests=$numtests+1
-cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 - > $tempfile
+cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 --nometadata - > $tempfile
 cmpktx $tempfile rgb-reference.ktx
 rm $tempfile
 
 numtests=$numtests+1
-cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 $tempfile
+cat rgb.ppm | $toktx --lower_left_maps_to_s0t0 --nometadata $tempfile
 cmpktx $tempfile rgb-reference.ktx
 rm $tempfile
 

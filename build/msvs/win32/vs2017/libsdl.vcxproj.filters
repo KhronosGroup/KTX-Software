@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="other_lib">
+      <UniqueIdentifier>{DB573744-BA7C-22FF-9F55-5E1E8C007536}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="other_lib\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="other_lib\win\$(ConfigurationName)-$(PlatformName)">
+      <UniqueIdentifier>{432539F6-08E3-7C3E-777C-B7813DD19BDE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
+    <None Include="..\..\..\..\other_lib\win\$(ConfigurationName)-$(PlatformName)\SDL2.dll">
+      <Filter>other_lib\win\$(ConfigurationName)-$(PlatformName)</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -23,12 +23,16 @@
         'executable': 'shared_library',
       }],
       ['OS == "win" and GENERATOR == "msvs"', {
-        'emit_vs_win32_configs': 'true',
+        # For now, we'll retain the possiblity of generating multi-platform
+        # solutions so just use WIN_PLATFORM to set the existing
+        # variables.
         'conditions': [
-          # Don't generate x64 configs in certain MSVS Express Edition projects.
-          # Note: 2012e and 2013e support x64.
-          ['MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
-            'emit_vs_x64_configs': 'true'
+          ['WIN_PLATFORM == "Win32"', {
+            'emit_vs_win32_configs': 'true',
+          }, 'MSVS_VERSION != "2010e" and MSVS_VERSION != "2008e" and MSVS_VERSION != "2005e"', {
+            # Don't generate x64 configs in certain MSVS Express Edition
+            # projects. Note: 2012e and 2013e support x64.
+            'emit_vs_x64_configs': 'true',
           }],
         ],
       }], # OS == "win" and GENERATOR == "msvs"
@@ -57,13 +61,20 @@
         'SDKROOT': 'macosx',
       }],
     ],
-    # These have to project-wide. If in target_defaults', and
+    # Because libassimp is built with this disabled. It's not important unless
+    # submitting to the App Store and currently bitcode is optional.
+    'ENABLE_BITCODE': 'NO',
+    # These have to be project-wide. If in target_defaults', and
     # therefore set in each target, Xcode 8 will warn that the project
     # settings are not the recommended settings and suggest it turns
     # all these on, even though they *will* all be turned on. Xcode
     # bug?
+    'CLANG_ENABLE_OBJC_WEAK': 'YES',
+    'CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING': 'YES',
     'CLANG_WARN_BOOL_CONVERSION': 'YES',
+    'CLANG_WARN_COMMA': 'YES',
     'CLANG_WARN_CONSTANT_CONVERSION': 'YES',
+    'CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS': 'YES',
     'CLANG_WARN_EMPTY_BODY': 'YES',
     'CLANG_WARN_ENUM_CONVERSION': 'YES',
     'CLANG_WARN_INFINITE_RECURSION': 'YES',
@@ -71,6 +82,11 @@
     'CLANG_WARN_SUSPICIOUS_MOVE': 'YES',
     'CLANG_WARN_UNREACHABLE_CODE': 'YES',
     'CLANG_WARN__DUPLICATE_METHOD_MATCH': 'YES',
+    'CLANG_WARN_NON_LITERAL_NULL_CONVERSION': 'YES',
+    'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF': 'YES',
+    'CLANG_WARN_OBJC_LITERAL_CONVERSION': 'YES',
+    'CLANG_WARN_RANGE_LOOP_ANALYSIS': 'YES',
+    'CLANG_WARN_STRICT_PROTOTYPES': 'YES',
     'ENABLE_STRICT_OBJC_MSGSEND': 'YES',
     'GCC_NO_COMMON_BLOCKS': 'YES',
     'GCC_WARN_64_TO_32_BIT_CONVERSION': 'YES',
@@ -80,6 +96,7 @@
     'GCC_WARN_UNINITIALIZED_AUTOS': 'YES',
     'GCC_WARN_UNUSED_FUNCTION': 'YES',
     'GCC_WARN_UNUSED_VARIABLE': 'YES',
+    #-----------------------------------------------------
   }, # xcode_settings
   # This has to be project-wide too. If in target_defaults' Debug config
   # Xcode 7+ will warn that this recommended value is not set.
@@ -87,6 +104,11 @@
     'Debug': {
       'xcode_settings': {
         'ENABLE_TESTABILITY': 'YES',
+      },
+    },
+    'Release': {
+      'xcode_settings': {
+        'ONLY_ACTIVE_ARCH': 'NO',
       },
     },
   },
@@ -103,14 +125,15 @@
       ],
     },
     'msvs_configuration_attributes': {
-      # Augment these with $(PlatformName) since we generate
-      # multi-platform projects.
-      'OutputDirectory': '$(SolutionDir)$(PlatformName)/$(ConfigurationName)',
+      # When generating multi-platform solutions & projects these
+      # directories must be augmented with $(PlatformName).
+      #'OutputDirectory': '$(SolutionDir)$(PlatformName)/$(ConfigurationName)',
       # Must have $(ProjectName) here to avoid conflicts between the
       # various projects' .tlog files in MSBuild/VS2010 that cause,
       # among other problems, all projects to be cleaned when
       # Project Only -> Clean is selected.
-      'IntermediateDirectory': '$(PlatformName)/$(ConfigurationName)/obj/$(ProjectName)'
+      #'IntermediateDirectory': '$(PlatformName)/$(ConfigurationName)/obj/$(ProjectName)'
+      'IntermediateDirectory': '$(ConfigurationName)/obj/$(ProjectName)'
     },
     'msvs_settings': {
       'VCCLCompilerTool': {
@@ -120,6 +143,11 @@
     },
     'xcode_settings': {
       'COPY_PHASE_STRIP': 'NO',
+      # Avoid linker warnings about "Direct access in function'. These need
+      # to be NO or YES everywhere. When not set here, for some reason, appfwSDL
+      # had them set to NO while vkloadtests had them set to YES.
+      'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
+      'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
@@ -127,7 +155,11 @@
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
           'TARGETED_DEVICE_FAMILY': '1,2',
         }, 'OS == "mac"', {
-          'MACOSX_DEPLOYMENT_TARGET': '10.9',
+          # Need 10.9 for GL 4.1 or ARB_ES2_compatibility, 10.11 for Metal
+          # compatibility.
+          'MACOSX_DEPLOYMENT_TARGET': '10.11',
+          # Comment this out if deployment target >= 10.9
+          #'CLANG_CXX_LIBRARY': 'libc++',
           'CODE_SIGN_IDENTITY': 'Mac Developer',
           'COMBINE_HIDPI_IMAGES': 'YES',
         }],
@@ -141,7 +173,7 @@
               # syntax.
               'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
             }],
-          ],
+          ], # target_conditions, _mac_bundle
           # Starting with Xcode 8, DEVELOPMENT_TEAM must be specified
           # to successfully build a project. Since it will be different
           # for each user of this project, do not specify it here. See
@@ -158,18 +190,20 @@
           }], # OS == "linux" and library == "shared_library"
         ],
 
-        'cflags': [ '-O0' ],
-        'defines': [
-          'DEBUG', '_DEBUG',
-        ],
-        'msvs_configuration_platform': 'Win32',
+        'cflags': [ '-Og', '-g' ],
+        'defines': [ 'DEBUG', '_DEBUG', ],
+        'ldflags': [ '-g' ],
+        # If this isn't set, GYP defaults to Win32 so both platforms
+        # get included when generating x64 configs.
+        'msvs_configuration_platform': '<(WIN_PLATFORM)',
         'msvs_settings': {
           'VCCLCompilerTool': {
             # EditAndContinue
             'DebugInformationFormat': 4,
             'Optimization': 0,
             # Use MultiThreadedDebugDLL (/MDd) to get extra checking.
-            # Default is MultiThreaded (/MD).
+            # Default in msvs is probably version dependent. In
+            # VS2010 it is MultiThreaded (/MT).
             'RuntimeLibrary': 3,
           },
           # Changing OutputFile causes an MSB8012 warning from MSBuild
@@ -199,9 +233,8 @@
           ],
         },
         'xcode_settings':  {
-          'COPY_PHASE_STRIP': 'NO',
-          'GCC_OPTIMIZATION_LEVEL': 0,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
+          'GCC_OPTIMIZATION_LEVEL': 0,
           'target_conditions': [
             ['_type == "executable"', {
               'STRIP_INSTALLED_PRODUCT': 'NO',
@@ -216,10 +249,8 @@
           }], # OS == "linux" and library == "shared_library"
         ],
         'cflags': [ '-O3' ],
-        'defines': [
-          'NDEBUG',
-        ],
-        'msvs_configuration_platform': 'Win32',
+        'defines': [ 'NDEBUG' ],
+        'msvs_configuration_platform': '<(WIN_PLATFORM)',
         'msvs_settings': {
           'VCCLCompilerTool': {
             'Optimization': 3,
@@ -231,10 +262,9 @@
           },
         },
         'xcode_settings':  {
-          'COPY_PHASE_STRIP': 'NO',
-          'GCC_OPTIMIZATION_LEVEL': 3,
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
-          'target_conditions': [
+          'GCC_OPTIMIZATION_LEVEL': 3,
+           'target_conditions': [
             ['_type == "executable"', {
               'STRIP_INSTALLED_PRODUCT': 'YES',
             }],
@@ -247,6 +277,7 @@
           # The part after '_' must match the msvs_configuration_platform
           'Debug_Win32': {
             'inherit_from': ['Debug'],
+            'defines': [ 'VULKAN_HPP_TYPESAFE_CONVERSION' ],
             'msvs_configuration_platform': 'Win32',
             'msvs_settings': {
               'VCLinkerTool': {
@@ -256,8 +287,11 @@
               },
             },
           },
-          # No need for Release_Win32 as the standard Release settings apply and
-          # we can include msvs_configuration_platform there without problem.
+          'Release_Win32': {
+            'inherit_from': ['Release'],
+            'defines': [ 'VULKAN_HPP_TYPESAFE_CONVERSION' ],
+            'msvs_configuration_platform': 'Win32',
+          },
         }], # emit_vs_win32_configs
         ['emit_vs_x64_configs=="true"', {
           'Debug_x64': {

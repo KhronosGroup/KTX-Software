@@ -9,9 +9,7 @@
 #
 {
   'variables': { # level 1
-
     'variables': { # level 2 defines variables to be used in level 1
-
       'variables': { # level 3 ditto
         # Build system environment variable names.
         #
@@ -39,8 +37,12 @@
             'gen_config_var': '$(ConfigurationName)',
             'gen_platform_var': '$(PlatformName)',
           }, 'GENERATOR == "xcode"', {
-            # $CONFIGURATION is either Debug or Release. PLATFORM_NAME
+            # CONFIGURATION is either Debug or Release. PLATFORM_NAME
             # is either iphoneos or iphonesimulator. Set by xcode during build.
+            # Don't be tempted to put () around these names. There appears to
+            # be a gyp bug when such a variable is the immediate parent of
+            # the source file of a copies operation. Fortunately Xcode
+            # recognizes the names without ().
             'gen_config_var': '$CONFIGURATION',
             'gen_platform_var': '$PLATFORM_NAME',
           }],
@@ -61,20 +63,34 @@
       #
       'droidolib_dir': '<(otherlibroot_dir)/<(gen_config_var)/$(TARGET_ABI)',
       'iosolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
+      'iosolibr_dir': '<(otherlibroot_dir)/Release-<(gen_platform_var)',
       'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
-      'winolib_dir': '<(otherlibroot_dir)/$(ConfigurationName)-$(PlatformName)',
+      'winolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
+      'winolibr_dir': '<(otherlibroot_dir)/Release-$(PlatformName)',
     }, # variables level 2
     # Copy variables out one scope.
     'otherlibroot_dir%': '<(otherlibroot_dir)',
     'droidolib_dir%': '<(droidolib_dir)',
     'iosolib_dir%': '<(iosolib_dir)',
+    'iosolibr_dir%': '<(iosolibr_dir)',
     'linuxolib_dir%': '<(linuxolib_dir)',
     'macolib_dir%': '<(macolib_dir)',
     'winolib_dir%': '<(winolib_dir)',
+    'winolibr_dir%': '<(winolibr_dir)',
 
     # Directory containing EGL, GL{,ES}*, KHR, etc. include directories.
     'gl_includes_parent_dir': '../other_include',
+
+    # Default platform for Windows builds. Multiple platform solution
+    # & project files are no longer generated. Limitations in GYP
+    # prevent having per-configuration values for link_settings. The
+    # Vulkan SDK unfortunately separates its 32- & 64-bit packages
+    # into directories, {Lib,Bin}{,32}, whose names differ from
+    # the values of the MSVS $(Platform{,Name}) macros and can't be
+    # mapped using other MSVS macros because the 64-bit directories
+    # have no suffix.
+    'WIN_PLATFORM%': 'x64',
 
     # Possible values for 'sdl_to_use' in the following:
     #   built_dylib
@@ -120,7 +136,7 @@
         'glew_dll_dir': '<(linuxolib_dir)',
       }, # OS == "linux"
       'OS == "mac"', {
-        'sdl_to_use%': 'installed_framework',
+        'sdl_to_use%': 'built_dylib',
         # Used when sdl_to_use == "installed_framework"
         'sdl2.framework_dir': '/Library/Frameworks',
         # Used when sdl_to_use != "installed_framework". This is the
@@ -131,15 +147,15 @@
         'library': 'shared_library',
       }, # OS == "mac"
       'OS == "win"', {
+        # Location of glew32.lib.
+        'glew_lib_dir': '<(winolibr_dir)',
+        # Location of glew32.dll.
+        'glew_dll_dir': '<(winolibr_dir)',
         'sdl_to_use%': 'built_dylib',
         # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',
         # libktx type. Must be static as exports currently not defined.
         'library': 'static_library',
-        # Location of glew32.lib.
-        'glew_lib_dir': '<(winolib_dir)',
-        # Location of glew32.dll.
-        'glew_dll_dir': '<(winolib_dir)',
       }], # OS == "win"
     ], # conditions
   }, # variables level 1
@@ -161,17 +177,20 @@
     # With Mali only one of 64- or 32-bit can be built on any given
     # system. See maliemu.gypi for the full explanation.
     #
-    # PVR has some implementation bugs that cause some
-    # of the loadtests to misbehave. It will not load LUMINANCE8_OES
-    # textures even though it advertises support for
-    # GL_OES_require_internal_formats causing a pop-up message box
-    # on that test.  It fails to raise an INVALID_ENUM error when
-    # attempting to load ETC2 formats in the OpenGL ES 1.1 emulator
-    # which causes all the ETC2 tests to fail to display so you see
-    # a yellow quad instead.
+    # PVR v2017_R1 runs almost correctly. Previous bugs have been 
+    # fixed but there is a new one in the OpenGL ES 1 emulator. It
+    # raises a GL_INVALID_ENUM error at line 157 in sample_02_textured.c,
+    # `glEnableClientState(GL_TEX_COORD_ARRAY);` the first, and only
+    # the first, time a cube test is run. In debug mode this
+    # triggers the later assert at line 211, in atRun_02_cube due to
+    # the uncollected error. In release mode an error message box is
+    # raised during load of the *next* test. After dismissing this,
+    # subsequent invocations of the cube test work and you can loop
+    # through the tests from the beginning again.
     #
-    # Nevertheless PowerVR has been chosen as default as we can build
-    # and run for both Win32 and x64 platforms.
+    # As this is a relatively minor bug, provided you run in release
+    # mode, the PVR emulator has been chosen as default as we can build
+    # and run for both Win32 and x64 platform
 
     #'adrenoemu.gypi',
     #'angle.gypi',

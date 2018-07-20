@@ -1,0 +1,53 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{7A46E6AA-5956-579D-49DC-637999C729AA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C0581BBC-1787-ED34-891A-7FE6F165432D} = {C0581BBC-1787-ED34-891A-7FE6F165432D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx", "toktx.vcxproj", "{36A2749A-827C-3A44-2781-D57C186840E9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22} = {146482F4-8E09-5716-2AD9-5F7FC2EB0D22}
+		{C0581BBC-1787-ED34-891A-7FE6F165432D} = {C0581BBC-1787-ED34-891A-7FE6F165432D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.vcxproj", "{09FDD56C-5540-9D50-BE23-180E4767F635}"
+	ProjectSection(ProjectDependencies) = postProject
+		{36A2749A-827C-3A44-2781-D57C186840E9} = {36A2749A-827C-3A44-2781-D57C186840E9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{C0581BBC-1787-ED34-891A-7FE6F165432D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{09FDD56C-5540-9D50-BE23-180E4767F635}.Debug|Win32.ActiveCfg = Debug|Win32
+		{09FDD56C-5540-9D50-BE23-180E4767F635}.Debug|Win32.Build.0 = Debug|Win32
+		{09FDD56C-5540-9D50-BE23-180E4767F635}.Release|Win32.ActiveCfg = Release|Win32
+		{09FDD56C-5540-9D50-BE23-180E4767F635}.Release|Win32.Build.0 = Release|Win32
+		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}.Debug|Win32.ActiveCfg = Debug|Win32
+		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}.Debug|Win32.Build.0 = Debug|Win32
+		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}.Release|Win32.ActiveCfg = Release|Win32
+		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}.Release|Win32.Build.0 = Release|Win32
+		{36A2749A-827C-3A44-2781-D57C186840E9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{36A2749A-827C-3A44-2781-D57C186840E9}.Debug|Win32.Build.0 = Debug|Win32
+		{36A2749A-827C-3A44-2781-D57C186840E9}.Release|Win32.ActiveCfg = Release|Win32
+		{36A2749A-827C-3A44-2781-D57C186840E9}.Release|Win32.Build.0 = Release|Win32
+		{7A46E6AA-5956-579D-49DC-637999C729AA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7A46E6AA-5956-579D-49DC-637999C729AA}.Debug|Win32.Build.0 = Debug|Win32
+		{7A46E6AA-5956-579D-49DC-637999C729AA}.Release|Win32.ActiveCfg = Release|Win32
+		{7A46E6AA-5956-579D-49DC-637999C729AA}.Release|Win32.Build.0 = Release|Win32
+		{C0581BBC-1787-ED34-891A-7FE6F165432D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C0581BBC-1787-ED34-891A-7FE6F165432D}.Debug|Win32.Build.0 = Debug|Win32
+		{C0581BBC-1787-ED34-891A-7FE6F165432D}.Release|Win32.ActiveCfg = Release|Win32
+		{C0581BBC-1787-ED34-891A-7FE6F165432D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

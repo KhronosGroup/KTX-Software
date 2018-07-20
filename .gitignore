@@ -6,7 +6,7 @@
 # /build/
 /build/*.tgz
 /build/*.zip
-/build/doc
+/build/docs
 
 # /build/GNUmake/lib/
 /build/GNUmake/lib/*.d
@@ -30,10 +30,9 @@
 /build/**/*.opensdf
 /build/**/*.suo
 /build/**/*.user
-/build/**/Win32
-/build/**/x64
 /build/msvs/**/Debug*
 /build/msvs/**/Release*
+/build/msvs/**/.vs
 
 # User related stuff in /build/xcode
 /build/xcode/*/*.xcodeproj/project.xcworkspace
@@ -53,3 +52,6 @@
 /testimages/hi_mark_sq_unpack_alignment_1.ktx
 
 /.project
+
+# macOS noise
+.DS_Store

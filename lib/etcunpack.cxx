@@ -3,6 +3,22 @@
 
 /* $Id$ */
 
+/*
+ * ©2010 The khronos Group, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /* @internal
  * @~English
  * @file
@@ -12,37 +28,10 @@
  * @author Mark Callow, HI Corporation.
  */
 
-/*
-Copyright (c) 2010 The Khronos Group Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and/or associated documentation files (the
-"Materials"), to deal in the Materials without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Materials, and to
-permit persons to whom the Materials are furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-unaltered in all copies or substantial portions of the Materials.
-Any additions, deletions, or changes to the original source files
-must be clearly indicated in accompanying documentation.
-
-If only executable code is distributed, then the accompanying
-documentation must state that "this software is based in part on the
-work of the Khronos Group."
-
-THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/
-
 #include <assert.h>
 #include <stdlib.h>
+
+#include "GL/glcorearb.h"
 #include "ktx.h"
 #include "ktxint.h"
 
@@ -65,7 +54,7 @@ extern void setupAlphaTable();
 extern int formatSigned;
 
 static void
-readBigEndian4byteWord(khronos_uint32_t* pBlock, const GLubyte *s)
+readBigEndian4byteWord(ktx_uint32_t* pBlock, const GLubyte *s)
 {
 	*pBlock = (s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3];
 }
@@ -74,7 +63,7 @@ readBigEndian4byteWord(khronos_uint32_t* pBlock, const GLubyte *s)
 /* Unpack an ETC1_RGB8_OES format compressed texture */
 extern "C" KTX_error_code
 _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
-			  khronos_uint32_t activeWidth, khronos_uint32_t activeHeight,
+			  ktx_uint32_t activeWidth, ktx_uint32_t activeHeight,
 			  GLubyte** dstImage,
 			  GLenum* format, GLenum* internalFormat, GLenum* type,
 			  GLint R16Formats, GLboolean supportsSRGB)
@@ -203,7 +192,8 @@ _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
         break;
 
 	  default:
-	    assert(0); // Upper levels should be passing only one of the above srcFormats.
+	    assert(0); // Upper levels should pass only one of the above srcFormats.
+        return KTX_UNSUPPORTED_TEXTURE_TYPE; // For Release configurations.
 	}
 
     /* active_{width,height} show how many pixels contain active data,
