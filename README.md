@@ -14,15 +14,8 @@ for the Khronos KTX library and tools. KTX is a lightweight file format
 for OpenGL textures, designed around how textures are loaded in OpenGL.
 
 See the Doxygen generated live documentation for
-[`master`](https://codedocs.xyz/KhronosGroup/KTX-Software/) or
-[`incoming`](https://github.khronos.org/KTX-Software/)
+[`master`](https://github.khronos.org/KTX-Software/)
 for API usage information.
-
-**IMPORTANT:** The interim API in `reader.c` on the `incoming`
-branch for opening a KTX file and reading its images has been
-replaced by the ktxTexture API. Apologies if this change has caught
-you.  Switching to ktxTexture should only require changes to a
-handful of lines of code.
 
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
