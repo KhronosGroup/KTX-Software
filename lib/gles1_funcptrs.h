@@ -1,36 +1,23 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /* $Id$ */
 
 /*
-Copyright (c) 2010 The Khronos Group Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and/or associated documentation files (the
-"Materials"), to deal in the Materials without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Materials, and to
-permit persons to whom the Materials are furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-unaltered in all copies or substantial portions of the Materials.
-Any additions, deletions, or changes to the original source files
-must be clearly indicated in accompanying documentation.
-
-If only executable code is distributed, then the accompanying
-documentation must state that "this software is based in part on the
-work of the Khronos Group."
-
-THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/
+ * ©2010-2017 The khronos Group, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 /*
  * Author: Mark Callow based on code from Georg Kolling
@@ -49,7 +36,7 @@ typedef void (GL_APIENTRY* PFNGLTEXIMAGE3DPROC) (GLenum target, GLint level, GLi
 typedef void (GL_APIENTRY* PFNGLCOMPRESSEDTEXIMAGE1DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const GLvoid *data);
 typedef void (GL_APIENTRY* PFNGLCOMPRESSEDTEXIMAGE3DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *data);
 typedef void (GL_APIENTRY* PFNGLGENERATEMIPMAPPROC) (GLenum target);
-typedef const GLubyte* (GL_APIENTRY* PFNGLGETSTRINGIPROC) (GLenum name, GLuint index);
+typedef const GLubyte* (GL_APIENTRY* PFNGLGETSTRINGIPROC) (GLenum name, GLint index);
 
 extern PFNGLTEXIMAGE1DPROC pfGlTexImage1D;
 extern PFNGLTEXIMAGE3DPROC pfGlTexImage3D;
@@ -64,7 +51,7 @@ extern PFNGLGETSTRINGIPROC pfGlGetStringi;
     PFNGLCOMPRESSEDTEXIMAGE1DPROC pfGlCompressedTexImage1D; \
     PFNGLCOMPRESSEDTEXIMAGE3DPROC pfGlCompressedTexImage3D; \
     PFNGLGENERATEMIPMAPPROC pfGlGenerateMipmap; \
-	PFNGLGETSTRINGIPROC pfGlGetStringi;
+    PFNGLGETSTRINGIPROC pfGlGetStringi;
 
 #define INITIALIZE_GL_FUNCPTRS \
     pfGlTexImage1D = 0; \
@@ -72,7 +59,7 @@ extern PFNGLGETSTRINGIPROC pfGlGetStringi;
     pfGlCompressedTexImage1D = 0; \
     pfGlCompressedTexImage3D = 0; \
     pfGlGenerateMipmap = 0; \
-	pfGlGetStringi = 0;
+    pfGlGetStringi = 0;
 
 #ifdef __cplusplus
 }

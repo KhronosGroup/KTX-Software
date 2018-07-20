@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C8103AF8-0A13-B8C8-02C6-8C27BD13A0B1}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>es1loadtests</RootNamespace>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Locals">
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets">
+    <Import Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"/>
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\bin\;$(MSBuildProjectDirectory)\..\..\..\..\bin\</ExecutablePath>
+    <IntDir>$(Configuration)\obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetPath>$(OutDir)\$(ProjectName)$(TargetExt)</TargetPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;VULKAN_HPP_TYPESAFE_CONVERSION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/SAFESEH:NO</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;VULKAN_HPP_TYPESAFE_CONVERSION;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NDEBUG;VULKAN_HPP_TYPESAFE_CONVERSION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;libGLES_CM.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;VULKAN_HPP_TYPESAFE_CONVERSION;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\icons\win\ktx_app.ico"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\geom\cube.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\geom\frame.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\gles1\DrawTexture.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\gles1\TexturedCube.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\resource.h"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\ES1LoadTests.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\DrawTexture.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\gles1\TexturedCube.cpp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\glloadtests.rc"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="appfwSDL.vcxproj">
+      <Project>{5FD5DEF3-290B-A5C8-DBF5-D57E713FFCC5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libktx.es1.vcxproj">
+      <Project>{1F4CA093-A5A8-F24A-1FFC-C6A72F3C72C7}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libgles1.vcxproj">
+      <Project>{829C3CF2-24A6-226F-AFFC-E0CF121D5E61}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="testimages.vcxproj">
+      <Project>{EA090F08-A819-C33E-7C27-16D3A01CDE5F}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libsdl.vcxproj">
+      <Project>{7601CE4B-5CD5-B00E-C98C-65908767583F}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="vulkan_headers.vcxproj">
+      <Project>{889393A8-7835-0CF0-61EF-DF9EE93229D4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+</Project>

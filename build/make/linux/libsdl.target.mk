@@ -3,17 +3,12 @@
 TOOLSET := target
 TARGET := libsdl
 ### Generated for copy rule.
-$(builddir)/libSDL2-2.0.so.0: TOOLSET := $(TOOLSET)
-$(builddir)/libSDL2-2.0.so.0: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.0 FORCE_DO_CMD
+$(builddir)/libSDL2-2.0.so: TOOLSET := $(TOOLSET)
+$(builddir)/libSDL2-2.0.so: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/libSDL2-2.0.so.0
-$(builddir)/libSDL2-2.0.so.0.4.0: TOOLSET := $(TOOLSET)
-$(builddir)/libSDL2-2.0.so.0.4.0: $(srcdir)/other_lib/linux/$(BUILDTYPE)-x64/libSDL2-2.0.so.0.4.0 FORCE_DO_CMD
-	$(call do_cmd,copy)
-
-all_deps += $(builddir)/libSDL2-2.0.so.0.4.0
-ktxtests_gyp_libsdl_target_copies = $(builddir)/libSDL2-2.0.so.0 $(builddir)/libSDL2-2.0.so.0.4.0
+all_deps += $(builddir)/libSDL2-2.0.so
+ktxtests_gyp_libsdl_target_copies = $(builddir)/libSDL2-2.0.so
 
 ### Rules for final target.
 # Build our special outputs first.

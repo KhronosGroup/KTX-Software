@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F931D6E8-A789-EC31-23D0-3E4D96AD8013}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>vkloadtests</RootNamespace>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Locals">
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="vkloadtests.props"/>
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"/>
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\bin\;$(MSBuildProjectDirectory)\..\..\..\..\bin\</ExecutablePath>
+    <IntDir>$(Configuration)\obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetPath>$(OutDir)\$(ProjectName)$(TargetExt)</TargetPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\utils;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;$(ASSIMP_HOME)\include;$(VULKAN_SDK)\include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\tests\loadtests\common\vecmath.hpp"/>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\utils\VulkanMeshLoader.hpp"/>
+    <None Include="..\..\..\..\icons\win\ktx_app.ico"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\resources\mac\Info.plist">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\tests\loadtests\utils\argparser.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureCubemap.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\resource.h"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\tests\loadtests\utils\argparser.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureCubemap.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TexturedCube.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTests.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\VulkanLoadTestSample.cpp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\..\tests\loadtests\vkloadtests\resources\win\vkloadtests.rc"/>
+  </ItemGroup>
+  <ItemGroup>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cube\cube.frag"/>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cube\cube.vert"/>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\reflect.frag"/>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\reflect.vert"/>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\skybox.frag"/>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\cubemap\skybox.vert"/>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texture\texture.frag"/>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texture\texture.vert"/>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturearray\instancing.frag"/>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\vkloadtests\shaders\texturearray\instancing.vert"/>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\torusknot.obj">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\torusknot.obj&quot; &quot;$(OutDir)models\torusknot.obj&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/loadtests/vkloadtests/models/torusknot.obj to $(OutDir)\models</Message>
+      <Outputs>$(OutDir)\models\torusknot.obj</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\cube.obj">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\cube.obj&quot; &quot;$(OutDir)models\cube.obj&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/loadtests/vkloadtests/models/cube.obj to $(OutDir)\models</Message>
+      <Outputs>$(OutDir)\models\cube.obj</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\other_lib\win\Release-$(PlatformName)\assimp.dll">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\other_lib\win\Release-$(Platform)\assimp.dll&quot; &quot;$(OutDir)assimp.dll&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying other_lib/win/Release-$(PlatformName)/assimp.dll to $(OutDir)</Message>
+      <Outputs>$(OutDir)\assimp.dll</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\teapot.dae">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\teapot.dae&quot; &quot;$(OutDir)models\teapot.dae&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/loadtests/vkloadtests/models/teapot.dae to $(OutDir)\models</Message>
+      <Outputs>$(OutDir)\models\teapot.dae</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\loadtests\vkloadtests\models\sphere.obj">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)models&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\loadtests\vkloadtests\models\sphere.obj&quot; &quot;$(OutDir)models\sphere.obj&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/loadtests/vkloadtests/models/sphere.obj to $(OutDir)\models</Message>
+      <Outputs>$(OutDir)\models\sphere.obj</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="appfwSDL.vcxproj">
+      <Project>{5EBC5530-540A-F333-5108-4752FEA8C6F8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libassimp.vcxproj">
+      <Project>{BF21BE91-8AF3-3AA9-D44B-1305B6FF011C}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libvulkan.vcxproj">
+      <Project>{E4135EA9-CC89-D003-CAED-303A05D879F2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="testimages.vcxproj">
+      <Project>{E57EB32A-4A7E-A3CD-5DA6-53541ADCAA20}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libktx.gl.vcxproj">
+      <Project>{A6C91074-B3D2-2720-17DE-4A746D889D4B}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libsdl.vcxproj">
+      <Project>{46FA6D0A-17FC-C326-B0C8-B30C698B5481}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="vulkan_headers.vcxproj">
+      <Project>{84853937-96E9-0F28-AC58-98BF144FF574}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="vkloadtests.targets"/>
+  </ImportGroup>
+</Project>

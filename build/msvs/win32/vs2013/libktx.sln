@@ -1,0 +1,64 @@
+Microsoft Visual Studio Solution File, Format Version 13.00
+# Visual Studio 2013
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{7CCD91F4-26D2-BE53-616F-6B75EF2AC1B1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.es1", "libktx.es1.vcxproj", "{733DCA30-C3D9-CACE-DF95-5B09BCED8533}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.es3", "libktx.es3.vcxproj", "{345FEB76-1427-E417-5A15-F4AF75FE16B2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F567CB33-C4DE-048D-0E6E-C431D7AA32DE} = {F567CB33-C4DE-048D-0E6E-C431D7AA32DE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{02605E0A-D90B-2735-2CAE-665290C7F0EC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F567CB33-C4DE-048D-0E6E-C431D7AA32DE} = {F567CB33-C4DE-048D-0E6E-C431D7AA32DE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan", "libvulkan.vcxproj", "{E9C541B6-6078-446C-7C82-6C51F3AE7056}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F567CB33-C4DE-048D-0E6E-C431D7AA32DE} = {F567CB33-C4DE-048D-0E6E-C431D7AA32DE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{F567CB33-C4DE-048D-0E6E-C431D7AA32DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{02605E0A-D90B-2735-2CAE-665290C7F0EC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{02605E0A-D90B-2735-2CAE-665290C7F0EC}.Debug|Win32.Build.0 = Debug|Win32
+		{02605E0A-D90B-2735-2CAE-665290C7F0EC}.Release|Win32.ActiveCfg = Release|Win32
+		{02605E0A-D90B-2735-2CAE-665290C7F0EC}.Release|Win32.Build.0 = Release|Win32
+		{345FEB76-1427-E417-5A15-F4AF75FE16B2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{345FEB76-1427-E417-5A15-F4AF75FE16B2}.Debug|Win32.Build.0 = Debug|Win32
+		{345FEB76-1427-E417-5A15-F4AF75FE16B2}.Release|Win32.ActiveCfg = Release|Win32
+		{345FEB76-1427-E417-5A15-F4AF75FE16B2}.Release|Win32.Build.0 = Release|Win32
+		{733DCA30-C3D9-CACE-DF95-5B09BCED8533}.Debug|Win32.ActiveCfg = Debug|Win32
+		{733DCA30-C3D9-CACE-DF95-5B09BCED8533}.Debug|Win32.Build.0 = Debug|Win32
+		{733DCA30-C3D9-CACE-DF95-5B09BCED8533}.Release|Win32.ActiveCfg = Release|Win32
+		{733DCA30-C3D9-CACE-DF95-5B09BCED8533}.Release|Win32.Build.0 = Release|Win32
+		{7CCD91F4-26D2-BE53-616F-6B75EF2AC1B1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7CCD91F4-26D2-BE53-616F-6B75EF2AC1B1}.Debug|Win32.Build.0 = Debug|Win32
+		{7CCD91F4-26D2-BE53-616F-6B75EF2AC1B1}.Release|Win32.ActiveCfg = Release|Win32
+		{7CCD91F4-26D2-BE53-616F-6B75EF2AC1B1}.Release|Win32.Build.0 = Release|Win32
+		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}.Debug|Win32.Build.0 = Debug|Win32
+		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}.Release|Win32.ActiveCfg = Release|Win32
+		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}.Release|Win32.Build.0 = Release|Win32
+		{E9C541B6-6078-446C-7C82-6C51F3AE7056}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E9C541B6-6078-446C-7C82-6C51F3AE7056}.Debug|Win32.Build.0 = Debug|Win32
+		{E9C541B6-6078-446C-7C82-6C51F3AE7056}.Release|Win32.ActiveCfg = Release|Win32
+		{E9C541B6-6078-446C-7C82-6C51F3AE7056}.Release|Win32.Build.0 = Release|Win32
+		{F567CB33-C4DE-048D-0E6E-C431D7AA32DE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F567CB33-C4DE-048D-0E6E-C431D7AA32DE}.Debug|Win32.Build.0 = Debug|Win32
+		{F567CB33-C4DE-048D-0E6E-C431D7AA32DE}.Release|Win32.ActiveCfg = Release|Win32
+		{F567CB33-C4DE-048D-0E6E-C431D7AA32DE}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

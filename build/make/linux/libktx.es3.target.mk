@@ -9,7 +9,8 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-O0
+	-Og \
+	-g
 
 # Flags passed to only C files.
 CFLAGS_C_Debug :=
@@ -19,7 +20,8 @@ CFLAGS_CC_Debug :=
 
 INCS_Debug := \
 	-I$(srcdir)/include \
-	-I$(srcdir)/other_include
+	-I$(srcdir)/other_include \
+	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
 	'-DKTX_OPENGL_ES3=1' \
@@ -37,22 +39,30 @@ CFLAGS_CC_Release :=
 
 INCS_Release := \
 	-I$(srcdir)/include \
-	-I$(srcdir)/other_include
+	-I$(srcdir)/other_include \
+	-I$(VULKAN_SDK)/include
 
 OBJS := \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
 	$(obj).target/$(TARGET)/lib/errstr.o \
 	$(obj).target/$(TARGET)/lib/etcdec.o \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \
+	$(obj).target/$(TARGET)/lib/filestream.o \
+	$(obj).target/$(TARGET)/lib/glloader.o \
+	$(obj).target/$(TARGET)/lib/hashlist.o \
 	$(obj).target/$(TARGET)/lib/hashtable.o \
-	$(obj).target/$(TARGET)/lib/ktxfilestream.o \
-	$(obj).target/$(TARGET)/lib/ktxmemstream.o \
-	$(obj).target/$(TARGET)/lib/loader.o \
+	$(obj).target/$(TARGET)/lib/memstream.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
-	$(obj).target/$(TARGET)/lib/writer.o
+	$(obj).target/$(TARGET)/lib/texture.o \
+	$(obj).target/$(TARGET)/lib/writer.o \
+	$(obj).target/$(TARGET)/lib/writer_v1.o \
+	$(obj).target/$(TARGET)/lib/vkloader.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
+
+# Make sure our dependencies are built before any of us.
+$(OBJS): | $(obj).target/vulkan_headers.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -84,7 +94,8 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cxx FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
-LDFLAGS_Debug :=
+LDFLAGS_Debug := \
+	-g
 
 LDFLAGS_Release :=
 

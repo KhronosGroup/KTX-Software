@@ -3,13 +3,13 @@
 TOOLSET := target
 TARGET := toktx
 DEFS_Debug := \
-	'-DKTX_OPENGL=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-O0
+	-Og \
+	-g
 
 # Flags passed to only C files.
 CFLAGS_C_Debug :=
@@ -18,11 +18,11 @@ CFLAGS_C_Debug :=
 CFLAGS_CC_Debug :=
 
 INCS_Debug := \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
 DEFS_Release := \
-	'-DKTX_OPENGL=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
@@ -36,10 +36,12 @@ CFLAGS_C_Release :=
 CFLAGS_CC_Release :=
 
 INCS_Release := \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
 OBJS := \
+	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tools/toktx/image.o \
 	$(obj).target/$(TARGET)/tools/toktx/toktx.o
 
@@ -71,6 +73,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := \
+	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/
 

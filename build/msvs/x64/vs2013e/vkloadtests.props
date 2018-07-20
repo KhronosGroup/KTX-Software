@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(frag2spirvBeforeTargets)' == '' and '$(frag2spirvAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <frag2spirvBeforeTargets>Midl</frag2spirvBeforeTargets>
+    <frag2spirvAfterTargets>CustomBuild</frag2spirvAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <frag2spirvDependsOn Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(frag2spirvDependsOn)</frag2spirvDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <frag2spirv>
+      <CommandLineTemplate>call glslc &quot;-fshader-stage=fragment&quot; &quot;-o&quot; &quot;$(OutDir)shaders\%(Filename)%(Extension).spv&quot; &quot;%(Identity)&quot;</CommandLineTemplate>
+      <Outputs>$(OutDir)shaders\%(Filename)%(Extension).spv</Outputs>
+      <ExecutionDescription>Compiling %(Filename)%(Extension).</ExecutionDescription>
+      <AdditionalDependencies></AdditionalDependencies>
+    </frag2spirv>
+  </ItemDefinitionGroup>
+  <PropertyGroup Condition="'$(vert2spirvBeforeTargets)' == '' and '$(vert2spirvAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <vert2spirvBeforeTargets>Midl</vert2spirvBeforeTargets>
+    <vert2spirvAfterTargets>CustomBuild</vert2spirvAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <vert2spirvDependsOn Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(vert2spirvDependsOn)</vert2spirvDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <vert2spirv>
+      <CommandLineTemplate>call glslc &quot;-fshader-stage=vertex&quot; &quot;-o&quot; &quot;$(OutDir)shaders\%(Filename)%(Extension).spv&quot; &quot;%(Identity)&quot;</CommandLineTemplate>
+      <Outputs>$(OutDir)shaders\%(Filename)%(Extension).spv</Outputs>
+      <ExecutionDescription>Compiling %(Filename)%(Extension).</ExecutionDescription>
+      <AdditionalDependencies></AdditionalDependencies>
+    </vert2spirv>
+  </ItemDefinitionGroup>
+</Project>

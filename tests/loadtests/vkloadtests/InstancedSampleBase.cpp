@@ -1,0 +1,631 @@
+/* -*- tab-width: 4; -*- */
+/* vi: set sw=2 ts=4 expandtab: */
+
+/*
+ * ©2017 Mark Callow.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @internal
+ * @class InstancedSampleBase
+ * @~English
+ *
+ * @brief Base for tests that need instanced drawing of textured quads.
+ *
+ * @author Mark Callow, www.edgewise-consulting.com.
+ *
+ * @par Acknowledgement
+ * Thanks to Sascha Willems' - www.saschawillems.de - for the concept,
+ * the VulkanTextOverlay class and the shaders used by this test.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <algorithm>
+#include <time.h> 
+#include <vector>
+
+#include <vulkan/vulkan.h>
+#include <ktxvulkan.h>
+
+#include "argparser.h"
+#include "InstancedSampleBase.h"
+#include "ltexceptions.h"
+
+#define VERTEX_BUFFER_BIND_ID 0
+#define ENABLE_VALIDATION false
+
+// Vertex layout for this example
+struct TAVertex {
+    float pos[3];
+    float uv[2];
+};
+
+InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
+                 uint32_t width, uint32_t height,
+                 const char* const szArgs, const std::string sBasePath)
+        : VulkanLoadTestSample(vkctx, width, height, sBasePath)
+{
+    zoom = -15.0f;
+    rotationSpeed = 0.25f;
+    rotation = { -15.0f, 35.0f, 0.0f };
+
+    ktxVulkanDeviceInfo vdi;
+    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
+                                  vkctx.queue, vkctx.commandPool, nullptr);
+
+    processArgs(szArgs);
+
+    KTX_error_code ktxresult;
+    ktxTexture* kTexture;
+    ktxresult =
+           ktxTexture_CreateFromNamedFile((getAssetPath() + filename).c_str(),
+                                           KTX_TEXTURE_CREATE_NO_FLAGS,
+                                           &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
+        << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+
+    vk::Format vkFormat
+                = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    vk::FormatProperties properties;
+    vkctx.gpu.getFormatProperties(vkFormat, &properties);
+    vk::FormatFeatureFlags features =  tiling == vk::ImageTiling::eLinear ?
+                                        properties.linearTilingFeatures :
+                                        properties.optimalTilingFeatures;
+    vk::FormatFeatureFlags neededFeatures =
+             vk::FormatFeatureFlagBits::eSampledImage;
+    if (kTexture->generateMipmaps) {
+		neededFeatures |=  vk::FormatFeatureFlagBits::eBlitDst
+			             | vk::FormatFeatureFlagBits::eBlitSrc;
+    }
+
+    if ((features & neededFeatures) != neededFeatures) {
+        ktxTexture_Destroy(kTexture);
+        throw unsupported_ttype();
+    }
+
+    if (features & vk::FormatFeatureFlagBits::eSampledImageFilterLinear)
+        filter = vk::Filter::eLinear;
+    else
+        filter = vk::Filter::eNearest;
+
+    ktxresult = ktxTexture_VkUpload(kTexture, &vdi, &texture);
+    
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "ktxTexture_VkUpload failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    
+    // Checking if KVData contains keys of interest would go here.
+    
+    ktxTexture_Destroy(kTexture);
+    ktxVulkanDeviceInfo_Destruct(&vdi);
+}
+
+InstancedSampleBase::~InstancedSampleBase()
+{
+    cleanup();
+}
+
+void
+InstancedSampleBase::resize(uint32_t width, uint32_t height)
+{
+    this->w_width = width;
+    this->w_height = height;
+    vkctx.destroyDrawCommandBuffers();
+    vkctx.createDrawCommandBuffers();
+    buildCommandBuffers();
+    updateUniformBufferMatrices();
+}
+
+void
+InstancedSampleBase::run(uint32_t msTicks)
+{
+    // Nothing to do since the scene is not animated.
+    // VulkanLoadTests base class redraws from the command buffer we built.
+}
+
+//===================================================================
+
+void
+InstancedSampleBase::processArgs(std::string sArgs)
+{
+    // Options descriptor
+    struct argparser::option longopts[] = {
+        "linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear,
+        NULL,            argparser::option::no_argument, NULL,          0
+    };
+
+    argvector argv(sArgs);
+    argparser ap(argv);
+
+    int ch;
+    while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
+        switch (ch) {
+            case 0: break;
+            default: assert(false); // Error in args in sample table.
+        }
+    }
+    assert(ap.optind < argv.size());
+    filename = argv[ap.optind];
+}
+
+/* ------------------------------------------------------------------------- */
+
+void
+InstancedSampleBase::cleanup()
+{
+    // Clean up used Vulkan resources
+
+    // Clean up texture resources
+    if (sampler)
+        vkctx.device.destroySampler(sampler);
+    if (imageView)
+        vkctx.device.destroyImageView(imageView);
+    ktxVulkanTexture_Destruct(&texture, vkctx.device, nullptr);
+
+    if (pipelines.solid)
+        vkctx.device.destroyPipeline(pipelines.solid);
+    if (pipelineLayout)
+        vkctx.device.destroyPipelineLayout(pipelineLayout);
+    if (descriptorSetLayout)
+        vkctx.device.destroyDescriptorSetLayout(descriptorSetLayout);
+
+    vkctx.destroyDrawCommandBuffers();
+    quad.freeResources(vkctx.device);
+    uniformDataVS.freeResources(vkctx.device);
+
+    if (uboVS.instance != nullptr)
+        delete[] uboVS.instance;
+}
+
+void
+InstancedSampleBase::buildCommandBuffers()
+{
+    vk::CommandBufferBeginInfo cmdBufInfo({}, nullptr);
+
+    vk::ClearValue clearValues[2];
+    clearValues[0].color = defaultClearColor;
+    clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
+
+    vk::RenderPassBeginInfo renderPassBeginInfo(vkctx.renderPass,
+            nullptr,
+            {{0, 0}, {w_width, w_height}},
+            2,
+            clearValues);
+
+    for (uint32_t i = 0; i < vkctx.drawCmdBuffers.size(); ++i)
+    {
+        // Set target frame buffer
+        renderPassBeginInfo.framebuffer = vkctx.framebuffers[i];
+
+        VK_CHECK_RESULT(vkBeginCommandBuffer(vkctx.drawCmdBuffers[i],
+                &static_cast<const VkCommandBufferBeginInfo&>(cmdBufInfo)));
+
+        vkCmdBeginRenderPass(vkctx.drawCmdBuffers[i],
+                &static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
+                VK_SUBPASS_CONTENTS_INLINE);
+
+        vk::Viewport viewport(0, 0,
+                              (float)w_width, (float)w_height,
+                              0.0f, 1.0f);
+        vkCmdSetViewport(vkctx.drawCmdBuffers[i], 0, 1,
+                &static_cast<const VkViewport&>(viewport));
+
+        vk::Rect2D scissor({0, 0}, {w_width, w_height});
+        vkCmdSetScissor(vkctx.drawCmdBuffers[i], 0, 1,
+                &static_cast<const VkRect2D&>(scissor));
+
+        vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i],
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        pipelineLayout, 0, 1,
+                        &static_cast<const VkDescriptorSet&>(descriptorSet),
+                        0, NULL);
+
+        VkDeviceSize offsets[1] = { 0 };
+        vkCmdBindVertexBuffers(vkctx.drawCmdBuffers[i],
+                        VERTEX_BUFFER_BIND_ID, 1,
+                        &static_cast<const VkBuffer&>(quad.vertices.buf),
+                        offsets);
+        vkCmdBindIndexBuffer(vkctx.drawCmdBuffers[i], quad.indices.buf,
+                             0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindPipeline(vkctx.drawCmdBuffers[i],
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          pipelines.solid);
+
+        vkCmdDrawIndexed(vkctx.drawCmdBuffers[i], quad.indexCount,
+                         instanceCount, 0, 0, 0);
+
+        vkCmdEndRenderPass(vkctx.drawCmdBuffers[i]);
+
+        VK_CHECK_RESULT(vkEndCommandBuffer(vkctx.drawCmdBuffers[i]));
+    }
+}
+
+// Setup vertices for a single uv-mapped quad
+void
+InstancedSampleBase::generateQuad()
+{
+#define dim 2.5f
+    std::vector<TAVertex> vertexBuffer =
+    {
+        { {  dim,  dim, 0.0f }, { 1.0f, 1.0f } },
+        { { -dim,  dim, 0.0f }, { 0.0f, 1.0f } },
+        { { -dim, -dim, 0.0f }, { 0.0f, 0.0f } },
+        { {  dim, -dim, 0.0f }, { 1.0f, 0.0f } }
+    };
+#undef dim
+
+    vkctx.createBuffer(
+        vk::BufferUsageFlagBits::eVertexBuffer,
+        vertexBuffer.size() * sizeof(TAVertex),
+        vertexBuffer.data(),
+        &quad.vertices.buf,
+        &quad.vertices.mem);
+
+    // Setup indices
+    std::vector<uint32_t> indexBuffer = { 0,1,2, 2,3,0 };
+    quad.indexCount = static_cast<uint32_t>(indexBuffer.size());
+
+    vkctx.createBuffer(
+        vk::BufferUsageFlagBits::eIndexBuffer,
+        indexBuffer.size() * sizeof(uint32_t),
+        indexBuffer.data(),
+        &quad.indices.buf,
+        &quad.indices.mem);
+}
+
+void
+InstancedSampleBase::setupVertexDescriptions()
+{
+    // Binding description
+    vertices.bindingDescriptions.resize(1);
+    vertices.bindingDescriptions[0] =
+        vk::VertexInputBindingDescription(
+            VERTEX_BUFFER_BIND_ID,
+            sizeof(TAVertex),
+            vk::VertexInputRate::eVertex);
+
+    // Attribute descriptions
+    // Describes memory layout and shader positions
+    vertices.attributeDescriptions.resize(2);
+    // Location 0 : Position
+    vertices.attributeDescriptions[0] =
+        vk::VertexInputAttributeDescription(
+            0,
+            VERTEX_BUFFER_BIND_ID,
+            vk::Format::eR32G32B32Sfloat,
+            0);
+    // Location 1 : Texture coordinates
+    vertices.attributeDescriptions[1] =
+        vk::VertexInputAttributeDescription(
+            1,
+            VERTEX_BUFFER_BIND_ID,
+            vk::Format::eR32G32Sfloat,
+            sizeof(float) * 3);
+
+    vertices.inputState = vk::PipelineVertexInputStateCreateInfo();
+    vertices.inputState.vertexBindingDescriptionCount =
+                  static_cast<uint32_t>(vertices.bindingDescriptions.size());
+    vertices.inputState.pVertexBindingDescriptions = vertices.bindingDescriptions.data();
+    vertices.inputState.vertexAttributeDescriptionCount =
+                  static_cast<uint32_t>(vertices.attributeDescriptions.size());
+    vertices.inputState.pVertexAttributeDescriptions = vertices.attributeDescriptions.data();
+}
+
+void
+InstancedSampleBase::setupDescriptorPool()
+{
+    // Example uses one ubo and one image sampler
+    std::vector<vk::DescriptorPoolSize> poolSizes =
+    {
+        {vk::DescriptorType::eUniformBuffer, 1},
+        {vk::DescriptorType::eCombinedImageSampler, 1}
+    };
+
+    vk::DescriptorPoolCreateInfo descriptorPoolInfo(
+                                        {},
+                                        2,
+                                        static_cast<uint32_t>(poolSizes.size()),
+                                        poolSizes.data());
+    vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
+                                      &descriptorPool);
+}
+
+void
+InstancedSampleBase::setupDescriptorSetLayout()
+{
+    std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings =
+    {
+        // Binding 0 : Vertex shader uniform buffer
+        {0,
+         vk::DescriptorType::eUniformBuffer,
+         1,
+         vk::ShaderStageFlagBits::eVertex},
+        // Binding 1 : Fragment shader image sampler
+        {1,
+         vk::DescriptorType::eCombinedImageSampler,
+         1,
+         vk::ShaderStageFlagBits::eFragment},
+    };
+
+    vk::DescriptorSetLayoutCreateInfo descriptorLayout(
+                              {},
+                              static_cast<uint32_t>(setLayoutBindings.size()),
+                              setLayoutBindings.data());
+
+    vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
+                                           &descriptorSetLayout);
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo(
+                                                    {},
+                                                    1,
+                                                    &descriptorSetLayout);
+
+    vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
+                                      nullptr,
+                                      &pipelineLayout);
+}
+
+void
+InstancedSampleBase::setupDescriptorSet()
+{
+    vk::DescriptorSetAllocateInfo allocInfo(
+            descriptorPool,
+            1,
+            &descriptorSetLayout);
+
+    vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSet);
+
+    // Image descriptor for the color map texture
+    vk::DescriptorImageInfo texDescriptor(
+            sampler,
+            imageView,
+            vk::ImageLayout::eGeneral);
+
+    std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
+    // Binding 0 : Vertex shader uniform buffer
+    writeDescriptorSets.push_back(vk::WriteDescriptorSet(
+            descriptorSet,
+            0,
+            0,
+            1,
+            vk::DescriptorType::eUniformBuffer,
+            nullptr,
+            &uniformDataVS.descriptor)
+        );
+    // Binding 1 : Fragment shader texture sampler
+    writeDescriptorSets.push_back(vk::WriteDescriptorSet(
+            descriptorSet,
+            1,
+            0,
+            1,
+            vk::DescriptorType::eCombinedImageSampler,
+            &texDescriptor)
+    );
+
+    vkctx.device.updateDescriptorSets(
+                            static_cast<uint32_t>(writeDescriptorSets.size()),
+                            writeDescriptorSets.data(),
+                            0,
+                            nullptr);
+}
+
+void
+InstancedSampleBase::preparePipelines(const char* const fragShaderName,
+                                      const char* const vertShaderName)
+{
+    vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
+            {},
+            vk::PrimitiveTopology::eTriangleList);
+
+    vk::PipelineRasterizationStateCreateInfo rasterizationState;
+    // Must be false because we haven't enabled the depthClamp device feature.
+    rasterizationState.depthClampEnable = false;
+    rasterizationState.rasterizerDiscardEnable = false;
+    rasterizationState.polygonMode = vk::PolygonMode::eFill;
+    rasterizationState.cullMode = vk::CullModeFlagBits::eNone;
+    rasterizationState.frontFace = vk::FrontFace::eCounterClockwise;
+    rasterizationState.lineWidth = 1.0f;
+
+    vk::PipelineColorBlendAttachmentState blendAttachmentState;
+    blendAttachmentState.blendEnable = false;
+    //blendAttachmentState.colorWriteMask = 0xf;
+    blendAttachmentState.colorWriteMask = vk::ColorComponentFlagBits::eR
+                                          | vk::ColorComponentFlagBits::eG
+                                          | vk::ColorComponentFlagBits::eB
+                                          | vk::ColorComponentFlagBits::eA;
+
+    vk::PipelineColorBlendStateCreateInfo colorBlendState;
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = &blendAttachmentState;
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencilState;
+    depthStencilState.depthTestEnable = true;
+    depthStencilState.depthWriteEnable = true;
+    depthStencilState.depthCompareOp = vk::CompareOp::eLessOrEqual;
+
+    vk::PipelineViewportStateCreateInfo viewportState;
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+
+    vk::PipelineMultisampleStateCreateInfo multisampleState;
+    multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+
+    std::vector<vk::DynamicState> dynamicStateEnables = {
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor
+    };
+    vk::PipelineDynamicStateCreateInfo dynamicState(
+            {},
+            static_cast<uint32_t>(dynamicStateEnables.size()),
+            dynamicStateEnables.data());
+
+    // Load shaders
+    std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
+    std::string filepath = getAssetPath() + "shaders/";
+    shaderStages[0] = loadShader(filepath + vertShaderName,
+                                vk::ShaderStageFlagBits::eVertex);
+    shaderStages[1] = loadShader(filepath + fragShaderName,
+                                vk::ShaderStageFlagBits::eFragment);
+
+    vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
+    pipelineCreateInfo.layout = pipelineLayout;
+    pipelineCreateInfo.renderPass = vkctx.renderPass;
+    pipelineCreateInfo.pVertexInputState = &vertices.inputState;
+    pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+    pipelineCreateInfo.pRasterizationState = &rasterizationState;
+    pipelineCreateInfo.pColorBlendState = &colorBlendState;
+    pipelineCreateInfo.pMultisampleState = &multisampleState;
+    pipelineCreateInfo.pViewportState = &viewportState;
+    pipelineCreateInfo.pDepthStencilState = &depthStencilState;
+    pipelineCreateInfo.pDynamicState = &dynamicState;
+    pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
+    pipelineCreateInfo.pStages = shaderStages.data();
+
+    vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
+                                         &pipelineCreateInfo, nullptr,
+                                         &pipelines.solid);
+}
+
+void
+InstancedSampleBase::prepareUniformBuffers(uint32_t shaderDeclaredInstances,
+                                           uint32_t instanceCount)
+{
+    uboVS.instance = new UboInstanceData[instanceCount];
+
+    uint32_t uboSize = sizeof(uboVS.matrices)
+             + shaderDeclaredInstances * sizeof(UboInstanceData);
+
+    // Vertex shader uniform buffer block
+    vkctx.createBuffer(
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        uboSize,
+        nullptr,
+        &uniformDataVS.buffer,
+        &uniformDataVS.memory,
+        &uniformDataVS.descriptor);
+
+    // Array indices and model matrices are fixed
+    // Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
+    int32_t maxLayers = (std::min)(instanceCount, shaderDeclaredInstances);
+    float offset = -1.5f;
+    float center = (maxLayers * offset) / 2;
+    for (int32_t i = 0; i < maxLayers; i++)
+    {
+        // Instance model matrix
+        uboVS.instance[i].model = glm::translate(glm::mat4(), glm::vec3(0.0f, i * offset - center, 0.0f));
+        uboVS.instance[i].model = glm::rotate(uboVS.instance[i].model, glm::radians(60.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        // Instance array index
+        uboVS.instance[i].arrayIndex.x = (float)i;
+    }
+
+    // Update instanced part of the uniform buffer
+    uint8_t *pData;
+    uint32_t dataOffset = sizeof(uboVS.matrices);
+    uint32_t dataSize = instanceCount * sizeof(UboInstanceData);
+    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformDataVS.memory, dataOffset, dataSize, 0, (void **)&pData));
+    memcpy(pData, uboVS.instance, dataSize);
+    vkUnmapMemory(vkctx.device, uniformDataVS.memory);
+
+    updateUniformBufferMatrices();
+}
+
+void
+InstancedSampleBase::updateUniformBufferMatrices()
+{
+    // Only updates the uniform buffer block part containing the global matrices
+
+    // Projection
+    uboVS.matrices.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
+
+    // View
+    uboVS.matrices.view = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, zoom));
+    uboVS.matrices.view *= glm::translate(glm::mat4(), cameraPos);
+    uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    uboVS.matrices.view = glm::rotate(uboVS.matrices.view, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    // Only update the matrices part of the uniform buffer
+    uint8_t *pData;
+    VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformDataVS.memory, 0, sizeof(uboVS.matrices), 0, (void **)&pData));
+    memcpy(pData, &uboVS.matrices, sizeof(uboVS.matrices));
+    vkUnmapMemory(vkctx.device, uniformDataVS.memory);
+}
+
+void
+InstancedSampleBase::prepareSamplerAndView()
+{
+    // Create sampler.
+    vk::SamplerCreateInfo samplerInfo;
+    // Set the non-default values
+    samplerInfo.magFilter = filter;
+    samplerInfo.minFilter = filter;
+    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    samplerInfo.maxLod = (float)texture.levelCount;
+    if (vkctx.gpuFeatures.samplerAnisotropy == VK_TRUE) {
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = 8;
+    } else {
+        // vulkan.hpp needs fixing
+        samplerInfo.maxAnisotropy = 1.0;
+    }
+    samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+    sampler = vkctx.device.createSampler(samplerInfo);
+    
+    // Create image view.
+    // Textures are not directly accessed by the shaders and are abstracted
+    // by image views containing additional information and sub resource
+    // ranges.
+    vk::ImageViewCreateInfo viewInfo;
+    // Set the non-default values.
+    viewInfo.image = texture.image;
+    viewInfo.format = static_cast<vk::Format>(texture.imageFormat);
+    viewInfo.viewType
+    = static_cast<vk::ImageViewType>(texture.viewType);
+    viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    viewInfo.subresourceRange.layerCount = texture.layerCount;
+    viewInfo.subresourceRange.levelCount = texture.levelCount;
+    imageView = vkctx.device.createImageView(viewInfo);
+}
+
+void
+InstancedSampleBase::prepare(const char* const fragShaderName,
+                             const char* const vertShaderName,
+                             uint32_t shaderDeclaredInstances)
+{
+    prepareSamplerAndView();
+    setupVertexDescriptions();
+    generateQuad();
+    prepareUniformBuffers(shaderDeclaredInstances, instanceCount);
+    setupDescriptorSetLayout();
+    preparePipelines(fragShaderName, vertShaderName);
+    setupDescriptorPool();
+    setupDescriptorSet();
+    vkctx.createDrawCommandBuffers();
+    buildCommandBuffers();
+}
+
+

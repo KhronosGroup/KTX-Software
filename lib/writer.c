@@ -1,9 +1,8 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
-
-/* $Id$ */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /**
+ * @internal
  * @file writer.c
  * @~English
  *
@@ -13,727 +12,467 @@
  */
 
 /*
-Copyright (c) 2010 The Khronos Group Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and/or associated documentation files (the
-"Materials"), to deal in the Materials without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Materials, and to
-permit persons to whom the Materials are furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-unaltered in all copies or substantial portions of the Materials.
-Any additions, deletions, or changes to the original source files
-must be clearly indicated in accompanying documentation.
-
-If only executable code is distributed, then the accompanying
-documentation must state that "this software is based in part on the
-work of the Khronos Group".
-
-THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/
+ * ©2018 Mark Callow.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <string.h>
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "ktxstream.h"
-#include "ktxfilestream.h"
-#include "ktxmemstream.h"
-
-static KTX_error_code validateTypeAndFormat(GLenum format, GLenum type);
-static KTX_error_code sizeofGroupAndElement(GLenum format, GLenum type,
-											GLuint* groupBytes, GLuint* elementBytes,
-											GLboolean* packed);
-static KTX_error_code sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed);
-
+#include "stream.h"
+#include "filestream.h"
+#include "memstream.h"
 
 /**
- * @~English
- * @brief Write image(s) in a KTX-format to a ktxStream.
- *
- * @param [in] stream           pointer to the ktxStream from which to load.
- * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
- *                          information about the images to be included in
- *                          the KTX file.
- * @param [in] bytesOfKeyValueData
- *                          specifies the number of bytes of key-value data.
- * @param [in] keyValueData a pointer to the keyValue data.
- * @param [in] numImages    number of images in the following array
- * @param [in] images       array of KTX_image_info providing image size and
- *                          data.
- *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE @p dst or @p target are @c NULL
- * @exception KTX_INVALID_VALUE @c glTypeSize in @p textureInfo is not 1, 2, or 4 or
- *                              is different from the size of the type specified
- *                              in @c glType.
- * @exception KTX_INVALID_VALUE @c pixelWidth in @p textureInfo is 0 or pixelDepth != 0
- *                              && pixelHeight == 0.
- * @exception KTX_INVALID_VALUE @c numberOfFaces != 1 || numberOfFaces != 6 or
- *                              numberOfArrayElements or numberOfMipmapLevels are < 0.
- * @exception KTX_INVALID_VALUE @c glType in @p textureInfo is an unrecognized type.
- * @exception KTX_INVALID_OPERATION
- *                              numberOfFaces == 6 and images are either not 2D or
- *                              are not square.
- * @exception KTX_INVALID_OPERATION
- *							    number of images is insufficient for the specified
- *                              number of mipmap levels and faces.
- * @exception KTX_INVALID_OPERATION
- *                              the size of a provided image is different than that
- *                              required for the specified width, height or depth
- *                              or for the mipmap level being processed.
- * @exception KTX_INVALID_OPERATION
- *								@c glType and @c glFormat in @p textureInfo are mismatched.
- *								See OpenGL 4.4 specification section 8.4.4 and
- *                              table 8.5.
- * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the file.
- * @exception KTX_OUT_OF_MEMORY system failed to allocate sufficient memory.
+ * @defgroup writer Writer
+ * @brief Write KTX-formatted data.
+ * @{
  */
-static
+
+/**
+ * @internal
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Set image for level, layer, faceSlice from a ktxStream source.
+ *
+ * @param[in] This      pointer to the target ktxTexture object.
+ * @param[in] level     mip level of the image to set.
+ * @param[in] layer     array layer of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] src       ktxStream pointer to the source.
+ * @param[in] srcSize   size of the source image in bytes.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This or @p src is NULL.
+ * @exception KTX_INVALID_VALUE @p srcSize != the expected image size for the
+ *                              specified level, layer & faceSlice.
+ * @exception KTX_INVALID_OPERATION
+ *                              No storage was allocated when the texture was
+ *                              created.
+ */
 KTX_error_code
-ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
-			 GLsizei bytesOfKeyValueData, const void* keyValueData,
-			 GLuint numImages, KTX_image_info images[])
+ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
+                              ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                              ktxStream* src, ktx_size_t srcSize)
 {
-	KTX_header header = KTX_IDENTIFIER_REF;
-	GLuint i, level, dimension, cubemap = 0;
-	GLuint numMipmapLevels, numArrayElements;
-	GLbyte pad[4] = { 0, 0, 0, 0 };
-	KTX_error_code errorCode = KTX_SUCCESS;
-	GLboolean compressed = GL_FALSE;
-	GLuint groupBytes, elementBytes;
-
-	if (!stream) {
-		return KTX_INVALID_VALUE;
-	}
-
-	//endianess int.. if this comes out reversed, all of the other ints will too.
-	header.endianness = KTX_ENDIAN_REF;
-	header.glType = textureInfo->glType;
-	header.glTypeSize = textureInfo->glTypeSize;
-	header.glFormat = textureInfo->glFormat;
-	header.glInternalFormat = textureInfo->glInternalFormat;
-	header.glBaseInternalFormat = textureInfo->glBaseInternalFormat;
-	header.pixelWidth = textureInfo->pixelWidth;
-	header.pixelHeight = textureInfo->pixelHeight;
-	header.pixelDepth = textureInfo->pixelDepth;
-	header.numberOfArrayElements = textureInfo->numberOfArrayElements;
-	header.numberOfFaces = textureInfo->numberOfFaces;
-	header.numberOfMipmapLevels = textureInfo->numberOfMipmapLevels;
-	header.bytesOfKeyValueData = bytesOfKeyValueData;
-
-	/* Do some sanity checking */
-	if (header.glTypeSize != 1 &&
-		header.glTypeSize != 2 &&
-		header.glTypeSize != 4)
-	{
-		/* Only 8, 16, and 32-bit types are supported for byte-swapping.
-		 * See UNPACK_SWAP_BYTES & table 8.4 in the OpenGL 4.4 spec.
-		 */
-		return KTX_INVALID_VALUE;
-	}
-
-	if (header.glType == 0 || header.glFormat == 0)
-	{
-		if (header.glType + header.glFormat != 0) {
-			/* either both or neither of glType & glFormat must be zero */
-			return KTX_INVALID_VALUE;
-		} else
-			compressed = GL_TRUE;
-	}
-	else
-	{
-		GLboolean packed;
-
-		/* Get size of group and element */
-		if ((errorCode = sizeofGroupAndElement(header.glFormat, header.glType,
-											   &groupBytes, &elementBytes, &packed)) != KTX_SUCCESS)
-		{
-			return errorCode;
-		}
-
-		/* Check validity of type/format combination for packed types */
-		if (packed && (errorCode = validateTypeAndFormat(header.glFormat, header.glType)) != KTX_SUCCESS)
-		{
-			return errorCode;
-		}
-
-		if (header.glTypeSize != elementBytes)
-		{
-#if defined(GL_FLOAT_32_UNSIGNED_INT_24_8_REV)
-			if (header.glType != GL_FLOAT_32_UNSIGNED_INT_24_8_REV || header.glTypeSize != 1)
+    ktx_uint32_t packedRowBytes, rowBytes, rowPadding, numRows;
+    ktx_size_t packedBytes, unpackedBytes;
+    ktx_size_t imageOffset;
+#if (KTX_GL_UNPACK_ALIGNMENT != 4)
+    ktx_uint32_t faceLodPadding;
 #endif
-			return KTX_INVALID_VALUE;
-		}
-	}
+    
+    if (!This || !src)
+        return KTX_INVALID_VALUE;
+    
+    if (!This->pData)
+        return KTX_INVALID_OPERATION;
+    
+    ktxTexture_GetImageOffset(This, level, layer, faceSlice, &imageOffset);
 
+    if (This->isCompressed) {
+        packedBytes = ktxTexture_imageSize(This, level);
+        rowPadding = 0;
+        // These 2 are not used when rowPadding == 0. Quiets compiler warning.
+        packedRowBytes = 0;
+        rowBytes = 0;
+    } else {
+        // Block size for uncompressed is 1 x 1.
+        ktxTexture_rowInfo(This, level, &numRows, &rowBytes, &rowPadding);
+        unpackedBytes = rowBytes * numRows;
+        if (rowPadding) {
+            packedRowBytes = rowBytes - rowPadding;
+            packedBytes = packedRowBytes * numRows;
+        } else {
+            packedRowBytes = rowBytes;
+            packedBytes = unpackedBytes;
+        }
+    }
+    
+    if (srcSize != packedBytes)
+        return KTX_INVALID_OPERATION;
+    // The above will catch a flagrantly invalid srcSize. This is an
+    // additional check of the internal calculations.
+    assert (imageOffset + srcSize <= This->dataSize);
+    
+#if (KTX_GL_UNPACK_ALIGNMENT != 4)
+    faceLodPadding = _KTX_PAD4_LEN(faceLodSize);
+#endif
+    
+    if (rowPadding == 0) {
+        /* Can copy whole image at once */
+        src->read(src, This->pData + imageOffset, srcSize);
+    } else {
+        /* Copy the rows individually, padding each one */
+        ktx_uint32_t row;
+        ktx_uint8_t* dst = This->pData + imageOffset;
+        ktx_uint8_t pad[4] = { 0, 0, 0, 0 };
+        for (row = 0; row < numRows; row++) {
+            ktx_uint32_t rowOffset = rowBytes * row;
+            src->read(src, dst + rowOffset, packedRowBytes);
+            memcpy(dst + rowOffset + packedRowBytes, pad, rowPadding);
+        }
+    }
+#if (KTX_GL_UNPACK_ALIGNMENT != 4)
+    /*
+     * When KTX_GL_UNPACK_ALIGNMENT == 4, rows, and therefore everything else,
+     * are always 4-byte aligned and faceLodPadding is always 0. It is always
+     * 0 for compressed formats too because they all have multiple-of-4 block
+     * sizes.
+     */
+    if (faceLodPadding)
+        memcpy(This->pData + faceLodSize, pad, faceLodPadding);
+#endif
+    return KTX_SUCCESS;
+}
 
-	/* Check texture dimensions. KTX files can store 8 types of textures:
-	 * 1D, 2D, 3D, cube, and array variants of these. There is currently
-	 * no GL extension that would accept 3D array or cube array textures
-	 * but we'll let such files be created.
-	 */
-	if ((header.pixelWidth == 0) ||
-		(header.pixelDepth > 0 && header.pixelHeight == 0))
-	{
-		/* texture must have width */
-		/* texture must have height if it has depth */
-		return KTX_INVALID_VALUE;
-	}
-	if (header.pixelHeight > 0 && header.pixelDepth > 0)
-		dimension = 3;
-	else if (header.pixelHeight > 0)
-		dimension = 2;
-	else
-		dimension = 1;
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Set image for level, layer, faceSlice from a stdio stream source.
+ *
+ * Uncompressed images read from the stream are expected to have their rows
+ * tightly packed as is the norm for most image file formats. The copied image
+ * is padded as necessary to achieve the KTX-specified row alignment. No
+ * padding is done if the ktxTexture's @c isCompressed field is @c KTX_TRUE.
+ *
+ * Level, layer, faceSlice rather than offset are specified to enable some
+ * validation.
+ *
+ * @param[in] This      pointer to the target ktxTexture object.
+ * @param[in] level     mip level of the image to set.
+ * @param[in] layer     array layer of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] src       stdio stream pointer to the source.
+ * @param[in] srcSize   size of the source image in bytes.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This or @p src is NULL.
+ * @exception KTX_INVALID_VALUE @p srcSize != the expected image size for the
+ *                              specified level, layer & faceSlice.
+ * @exception KTX_INVALID_OPERATION
+ *                              No storage was allocated when the texture was
+ *                              created.
+ */
+KTX_error_code
+ktxTexture_SetImageFromStdioStream(ktxTexture* This, ktx_uint32_t level,
+                                   ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                                   FILE* src, ktx_size_t srcSize)
+{
+    ktxStream srcstr;
+    KTX_error_code result;
+    
+    result = ktxFileStream_construct(&srcstr, src, KTX_FALSE);
+    if (result != KTX_SUCCESS)
+        return result;
+    result = ktxTexture_setImageFromStream(This, level, layer, faceSlice,
+                                           &srcstr, srcSize);
+    ktxFileStream_destruct(&srcstr);
+    return result;
+}
 
-	if (header.numberOfFaces == 6)
-	{
-		if (dimension != 2)
-		{
-			/* cube map needs 2D faces */
-			return KTX_INVALID_OPERATION;
-		}
-		if (header.pixelWidth != header.pixelHeight)
-		{
-			/* cube maps require square images */
-			return KTX_INVALID_OPERATION;
-		}
-	}
-	else if (header.numberOfFaces != 1)
-	{
-		/* numberOfFaces must be either 1 or 6 */
-		return KTX_INVALID_VALUE;
-	}
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Set image for level, layer, faceSlice from an image in memory.
+ *
+ * Uncompressed images in memory are expected to have their rows tightly packed
+ * as is the norm for most image file formats. The copied image is padded as
+ * necessary to achieve the KTX-specified row alignment. No padding is done if
+ * the ktxTexture's @c isCompressed field is @c KTX_TRUE.
+ *
+ * Level, layer, faceSlice rather than offset are specified to enable some
+ * validation.
+ *
+ * @warning Do not use @c memcpy for this as it will not pad when necessary.
+ *
+ * @param[in] This      pointer to the target ktxTexture object.
+ * @param[in] level     mip level of the image to set.
+ * @param[in] layer     array layer of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] src       pointer to the image source in memory.
+ * @param[in] srcSize   size of the source image in bytes.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This or @p src is NULL.
+ * @exception KTX_INVALID_VALUE @p srcSize != the expected image size for the
+ *                              specified level, layer & faceSlice.
+ * @exception KTX_INVALID_OPERATION
+ *                              No storage was allocated when the texture was
+ *                              created.
+ */
+KTX_error_code
+ktxTexture_SetImageFromMemory(ktxTexture* This, ktx_uint32_t level,
+                              ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                              const ktx_uint8_t* src, ktx_size_t srcSize)
+{
+    ktxStream srcstr;
+    KTX_error_code result;
+    
+    result = ktxMemStream_construct_ro(&srcstr, src, srcSize);
+    if (result != KTX_SUCCESS)
+        return result;
+    result = ktxTexture_setImageFromStream(This, level, layer, faceSlice,
+                                           &srcstr, srcSize);
+    ktxMemStream_destruct(&srcstr);
+    return result;
+}
 
-	if (header.numberOfArrayElements == 0)
-	{
-		numArrayElements = 1;
-		if (header.numberOfFaces == 6)
-			cubemap = 1;
-	}
-	else
-		numArrayElements = header.numberOfArrayElements;
+/**
+ * @internal
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Write a ktxTexture object to a ktxStream in KTX format.
+ *
+ * @param[in] This      pointer to the target ktxTexture object.
+ * @param[in] dststr    destination ktxStream.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This or @p dststr is NULL.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain any image data.
+ * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
+ *                              the system.
+ * @exception KTX_FILE_WRITE_ERROR
+ *                              An error occurred while writing the file.
+ */
+static KTX_error_code
+ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
+{
+    KTX_header header = KTX_IDENTIFIER_REF;
+    KTX_error_code result = KTX_SUCCESS;
+    ktx_uint32_t kvdLen;
+    ktx_uint8_t* pKvd;
+    ktx_uint32_t level, levelOffset;
+    
+    if (!dststr) {
+        return KTX_INVALID_VALUE;
+    }
+    
+    if (This->pData == NULL)
+        return KTX_INVALID_OPERATION;
 
-	/* Check number of mipmap levels */
-	if (header.numberOfMipmapLevels == 0)
-	{
-		numMipmapLevels = 1;
-	}
-	else
-		numMipmapLevels = header.numberOfMipmapLevels;
-	if (numMipmapLevels > 1) {
-		GLuint max_dim = MAX(MAX(header.pixelWidth, header.pixelHeight), header.pixelDepth);
-		if (max_dim < ((GLuint)1 << (header.numberOfMipmapLevels - 1)))
-		{
-			/* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
-			return KTX_INVALID_VALUE;
-		}
-	}
+    //endianess int.. if this comes out reversed, all of the other ints will too.
+    header.endianness = KTX_ENDIAN_REF;
+    header.glInternalformat = This->glInternalformat;
+    header.glFormat = This->glFormat;
+    header.glBaseInternalformat = This->glBaseInternalformat;
+    header.glType = This->glType;
+    header.glTypeSize = ktxTexture_glTypeSize(This);
+    header.pixelWidth = This->baseWidth;
+    header.pixelHeight = This->baseHeight;
+    header.pixelDepth = This->baseDepth;
+    header.numberOfArrayElements = This->isArray ? This->numLayers : 0;
+    assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
+    header.numberOfFaces = This->numFaces;
+    assert (This->generateMipmaps ? This->numLevels == 1 : This->numLevels >= 1);
+    header.numberOfMipmapLevels = This->generateMipmaps ? 0 : This->numLevels;
+    
+    ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
+    header.bytesOfKeyValueData = kvdLen;
 
-	if (numImages < numMipmapLevels * header.numberOfFaces)
-	{
-		/* Not enough images */
-		return KTX_INVALID_OPERATION;
-	}
+    //write header
+    result = dststr->write(dststr, &header, sizeof(KTX_header), 1);
+    if (result != KTX_SUCCESS)
+        return result;
+    
+    //write keyValueData
+    if (kvdLen != 0) {
+        assert(pKvd != NULL);
 
-	//write header
-	errorCode = stream->write(&header, sizeof(KTX_header), 1, stream->src);
-	if (errorCode != KTX_SUCCESS)
-		return errorCode;
+        result = dststr->write(dststr, pKvd, 1, kvdLen);
+        free(pKvd);
+        if (result != KTX_SUCCESS)
+            return result;
+    }
+    
+    /* Write the image data */
+    for (level = 0, levelOffset=0; level < This->numLevels; ++level)
+    {
+        ktx_uint32_t faceLodSize, layer, levelDepth, numImages;
+        ktx_size_t imageSize;
+        
+        faceLodSize = (ktx_uint32_t)ktxTexture_faceLodSize(This, level);
+        imageSize = ktxTexture_imageSize(This, level);
+        levelDepth = MAX(1, This->baseDepth >> level);
+        if (This->isCubemap && !This->isArray)
+            numImages = This->numFaces;
+        else
+            numImages = This->isCubemap ? This->numFaces : levelDepth;
+        
+        result = dststr->write(dststr, &faceLodSize, sizeof(faceLodSize), 1);
+        if (result != KTX_SUCCESS)
+            goto cleanup;
 
-	//write keyValueData
-	if (bytesOfKeyValueData != 0) {
-		if (keyValueData == NULL)
-			return KTX_INVALID_OPERATION;
-
-		errorCode = stream->write(keyValueData, 1, bytesOfKeyValueData, stream->src);
-		if (errorCode != KTX_SUCCESS)
-			return errorCode;
-	}
-
-	/* Write the image data */
-	for (level = 0, i = 0; level < numMipmapLevels; ++level)
-	{
-		GLsizei expectedFaceSize;
-		GLuint face, faceLodSize, faceLodRounding;
-		GLuint pixelWidth, pixelHeight, pixelDepth;
-		GLuint packedRowBytes, rowBytes, rowRounding;
-
-		pixelWidth  = MAX(1, header.pixelWidth  >> level);
-		pixelHeight = MAX(1, header.pixelHeight >> level);
-		pixelDepth  = MAX(1, header.pixelDepth  >> level);
-
-		/* Calculate face sizes for this LoD based on glType, glFormat, width & height */
-		expectedFaceSize = groupBytes
-						   * pixelWidth
-						   * pixelHeight
-						   * pixelDepth
-						   * numArrayElements;
-
-		rowRounding = 0;
-		packedRowBytes = groupBytes * pixelWidth;
-		/* KTX format specifies UNPACK_ALIGNMENT==4 */
-		/* GL spec: rows are not to be padded when elementBytes != 1, 2, 4 or 8.
-		 * As GL currently has no such elements, no test is necessary.
-		 */
-		if (!compressed && elementBytes < KTX_GL_UNPACK_ALIGNMENT) {
-			// Equivalent to UNPACK_ALIGNMENT * ceil((groupSize * pixelWidth) / UNPACK_ALIGNMENT)
-			rowRounding = 3 - ((packedRowBytes + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
-			rowBytes = packedRowBytes + rowRounding;
-		}
-
-		if (rowRounding == 0) {
-			faceLodSize = images[i].size;
-		} else {
-			/* Need to pad the rows to meet the required UNPACK_ALIGNMENT */
-			faceLodSize = rowBytes * pixelHeight * pixelDepth * numArrayElements;
-		}
-		faceLodRounding = 3 - ((faceLodSize + 3) % 4);
-
-		errorCode = stream->write(&faceLodSize, sizeof(faceLodSize), 1, stream->src);
-		if (errorCode != KTX_SUCCESS)
-			goto cleanup;
-
-		for (face = 0; face < header.numberOfFaces; ++face, ++i) {
-			if (!compressed) {
-				/* Sanity check. */
-				if (images[i].size != expectedFaceSize) {
-					errorCode = KTX_INVALID_OPERATION;
-					goto cleanup;
-				}
-			}
-			if (rowRounding == 0) {
-				/* Can write whole face at once */
-				errorCode = stream->write(images[i].data, faceLodSize, 1, stream->src);
-				if (errorCode != KTX_SUCCESS)
-					goto cleanup;
-			} else {
-				/* Write the rows individually, padding each one */
-				GLuint row;
-				GLuint numRows = pixelHeight
-								* pixelDepth
-								* numArrayElements;
-				for (row = 0; row < numRows; row++) {
-					errorCode = stream->write(&images[i].data[row*packedRowBytes], packedRowBytes, 1, stream->src);
-					if (errorCode != KTX_SUCCESS)
-						goto cleanup;
-
-					errorCode = stream->write(pad, sizeof(GLbyte), rowRounding, stream->src);
-					if (errorCode != KTX_SUCCESS)
-						goto cleanup;
-				}
-			}
-			if (faceLodRounding) {
-				errorCode = stream->write(pad, sizeof(GLbyte), faceLodRounding, stream->src);
-				if (errorCode != KTX_SUCCESS)
-					goto cleanup;
-			}
-		}
-	}
-
+        for (layer = 0; layer < This->numLayers; layer++) {
+            ktx_uint32_t faceSlice;
+            
+            for (faceSlice = 0; faceSlice < numImages; faceSlice++) {
+                result = dststr->write(dststr, This->pData + levelOffset,
+                                       imageSize, 1);
+                levelOffset += (ktx_uint32_t)imageSize;
+            }
+        }
+    }
+    
 cleanup:
-	return errorCode;
+    return result;
 }
 
 /**
+ * @memberof ktxTexture
  * @~English
- * @brief Write image(s) in a KTX-formatted stdio FILE stream.
+ * @brief Write a ktxTexture object to a stdio stream in KTX format.
  *
- * @param [in] file         pointer to the FILE stream to write to.
- * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
- *                          information about the images to be included in
- *                          the KTX file.
- * @param [in] bytesOfKeyValueData
- *                          specifies the number of bytes of key-value data.
- * @param [in] keyValueData a pointer to the keyValue data.
- * @param [in] numImages    number of images in the following array
- * @param [in] images       array of KTX_image_info providing image size and
- *                          data.
+ * @param[in] This      pointer to the target ktxTexture object.
+ * @param[in] dstsstr   destination stdio stream.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE @p dst or @p target are @c NULL
- * @exception KTX_INVALID_VALUE @c glTypeSize in @p textureInfo is not 1, 2, or 4 or
- *                              is different from the size of the type specified
- *                              in @c glType.
- * @exception KTX_INVALID_VALUE @c pixelWidth in @p textureInfo is 0 or pixelDepth != 0
- *                              && pixelHeight == 0.
- * @exception KTX_INVALID_VALUE @c numberOfFaces != 1 || numberOfFaces != 6 or
- *                              numberOfArrayElements or numberOfMipmapLevels are < 0.
- * @exception KTX_INVALID_VALUE @c glType in @p textureInfo is an unrecognized type.
+ * @exception KTX_INVALID_VALUE @p This or @p dstsstr is NULL.
  * @exception KTX_INVALID_OPERATION
- *                              numberOfFaces == 6 and images are either not 2D or
- *                              are not square.
- * @exception KTX_INVALID_OPERATION
- *                                                          number of images is insufficient for the specified
- *                              number of mipmap levels and faces.
- * @exception KTX_INVALID_OPERATION
- *                              the size of a provided image is different than that
- *                              required for the specified width, height or depth
- *                              or for the mipmap level being processed.
- * @exception KTX_INVALID_OPERATION
- *                                                              @c glType and @c glFormat in @p textureInfo are mismatched.
- *                                                              See OpenGL 4.4 specification section 8.4.4 and
- *                              table 8.5.
- * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the file.
+ *                              The ktxTexture does not contain any image data.
+ * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
+ *                              the system.
+ * @exception KTX_FILE_WRITE_ERROR
+ *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
-						 GLsizei bytesOfKeyValueData, const void* keyValueData,
-						 GLuint numImages, KTX_image_info images[])
+ktxTexture_WriteToStdioStream(ktxTexture* This, FILE* dstsstr)
 {
-		struct ktxStream stream;
-		KTX_error_code errorCode = KTX_SUCCESS;
-
-		errorCode = ktxFileInit(&stream, file);
-		if (errorCode != KTX_SUCCESS)
-				return errorCode;
-
-		return ktxWriteKTXS(&stream, textureInfo, bytesOfKeyValueData, keyValueData, numImages, images);
+    ktxStream stream;
+    KTX_error_code result = KTX_SUCCESS;
+    
+    if (!This)
+        return KTX_INVALID_VALUE;
+    
+    result = ktxFileStream_construct(&stream, dstsstr, KTX_FALSE);
+    if (result != KTX_SUCCESS)
+        return result;
+    
+    return ktxTexture_writeToStream(This, &stream);
 }
 
 /**
+ * @memberof ktxTexture
  * @~English
- * @brief Write image(s) to a KTX file on disk.
+ * @brief Write a ktxTexture object to a named file in KTX format.
  *
- * @param [in] dstname		pointer to a C string that contains the path of
- * 							the file to load.
- * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
- *                          information about the images to be included in
- *                          the KTX file.
- * @param [in] bytesOfKeyValueData
- *                          specifies the number of bytes of key-value data.
- * @param [in] keyValueData a pointer to the keyValue data.
- * @param [in] numImages    number of images in the following array.
- * @param [in] images       array of KTX_image_info providing image size and
- *                          data.
- *
- * @return	KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_OPEN_FAILED unable to open the specified file for
- *                                 writing.
- *
- * For other exceptions, see ktxWriteKTXF().
- */
-KTX_error_code
-ktxWriteKTXN(const char* dstname, const KTX_texture_info* textureInfo,
-			 GLsizei bytesOfKeyValueData, const void* keyValueData,
-			 GLuint numImages, KTX_image_info images[])
-{
-	KTX_error_code errorCode;
-	FILE* dst = fopen(dstname, "wb");
-
-	if (dst) {
-		errorCode = ktxWriteKTXF(dst, textureInfo, bytesOfKeyValueData, keyValueData,
-								 numImages, images);
-		fclose(dst);
-	} else
-		errorCode = KTX_FILE_OPEN_FAILED;
-
-	return errorCode;
-}
-
-/**
- * @~English
- * @brief Write image(s) in KTX format to memory.
- *
- * @param [out] bytes        pointer to the output with KTX data. Application
-							is responsible for freeing that memory.
- * @param [out] size         pointer to store size of the memory written.
- * @param [in] textureInfo  pointer to a KTX_texture_info structure providing
- *                          information about the images to be included in
- *                          the KTX file.
- * @param [in] bytesOfKeyValueData
- *                          specifies the number of bytes of key-value data.
- * @param [in] keyValueData a pointer to the keyValue data.
- * @param [in] numImages    number of images in the following array.
- * @param [in] images       array of KTX_image_info providing image size and
- *                          data.
+ * @param[in] This      pointer to the target ktxTexture object.
+ * @param[in] dstname   destination file name.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
+ * @exception KTX_INVALID_VALUE @p This or @p dstname is NULL.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain any image data.
+ * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
+ *                              the system.
+ * @exception KTX_FILE_WRITE_ERROR
+ *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textureInfo,
-			GLsizei bytesOfKeyValueData, const void* keyValueData,
-			GLuint numImages, KTX_image_info images[])
+ktxTexture_WriteToNamedFile(ktxTexture* This, const char* const dstname)
 {
-	struct ktxMem mem;
-	struct ktxStream stream;
-	KTX_error_code rc;
+    KTX_error_code result;
+    FILE* dst;
 
-	*bytes = NULL;
+    if (!This)
+        return KTX_INVALID_VALUE;
 
-	rc = ktxMemInit(&stream, &mem, NULL, 0);
-	if (rc != KTX_SUCCESS)
-		return rc;
-
-	rc = ktxWriteKTXS(&stream, textureInfo, bytesOfKeyValueData, keyValueData, numImages, images);
-	if(rc != KTX_SUCCESS)
-	{
-		if(mem.bytes)
-		{
-			free(mem.bytes);
-		}
-		return rc;
-	}
-
-	*bytes = mem.bytes;
-	*size = mem.used_size;
-	return KTX_SUCCESS;
+    dst = fopen(dstname, "wb");
+    if (dst) {
+        result = ktxTexture_WriteToStdioStream(This, dst);
+        fclose(dst);
+    } else
+        result = KTX_FILE_OPEN_FAILED;
+    
+    return result;
 }
 
-/*
- * @brief Check format and type matching as required by OpenGL.
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Write a ktxTexture object to block of memory in KTX format.
  *
- * @param [in] format	the format of the image data
- * @param [in] type		the type of the image data
+ * Memory is allocated by the function and the caller is responsible for
+ * freeing it.
  *
- * @return	KTX_SUCCESS if matched, KTX_INVALID_OPERATION, if mismatched
- *			or KTX_INVALID_VALUE if @p type is invalid.
+ * @param[in]     This       pointer to the target ktxTexture object.
+ * @param[in,out] ppDstBytes pointer to location to write the address of
+ *                           the destination memory. The Application is
+ *                           responsible for freeing this memory.
+ * @param[in,out] pSize      pointer to location to write the size in bytes of
+ *                           the KTX data.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This, @p ppDstBytes or @p pSize is NULL.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain any image data.
+ * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
+ *                              the system.
+ * @exception KTX_FILE_WRITE_ERROR
+ *                              An error occurred while writing the file.
  */
-static KTX_error_code
-validateTypeAndFormat(GLenum format, GLenum type)
+KTX_error_code
+ktxTexture_WriteToMemory(ktxTexture* This,
+                         ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
-	KTX_error_code retVal = KTX_SUCCESS;
+    struct ktxStream dststr;
+    KTX_error_code result;
+    ktx_size_t strSize;
 
-	if ((format >= GL_RED_INTEGER && format <= GL_BGRA_INTEGER) && (type == GL_FLOAT || type == GL_HALF_FLOAT))
-	{
-		retVal = KTX_INVALID_OPERATION; // Note: OpenGL 4.4 says GL_INVALID_VALUE but we'll mirror the others.
-	}
+    if (!This || !ppDstBytes || !pSize)
+        return KTX_INVALID_VALUE;
 
-	switch (type)
-	{
-		case GL_UNSIGNED_BYTE_3_3_2:
-		case GL_UNSIGNED_BYTE_2_3_3_REV:
-			if (format != GL_RGB && format != GL_RGB_INTEGER)
-				retVal = KTX_INVALID_OPERATION; // Matches OpenGL 4.4
-			break;
+    *ppDstBytes = NULL;
+    
+    result = ktxMemStream_construct(&dststr, KTX_FALSE);
+    if (result != KTX_SUCCESS)
+        return result;
+    
+    result = ktxTexture_writeToStream(This, &dststr);
+    if(result != KTX_SUCCESS)
+    {
+        ktxMemStream_destruct(&dststr);
+        return result;
+    }
+    
+    ktxMemStream_getdata(&dststr, ppDstBytes);
+    dststr.getsize(&dststr, &strSize);
+    *pSize = (GLsizei)strSize;
+    /* This function does not free the memory pointed at by the
+     * value obtained from ktxMemStream_getdata() thanks to the
+     * KTX_FALSE passed to the constructor above.
+     */
+    ktxMemStream_destruct(&dststr);
+    return KTX_SUCCESS;
 
-		case GL_UNSIGNED_SHORT_5_6_5:
-		case GL_UNSIGNED_SHORT_5_6_5_REV:
-			if (format != GL_RGB && format != GL_RGB_INTEGER)
-				retVal = KTX_INVALID_OPERATION;
-			break;
-
-		case GL_UNSIGNED_SHORT_4_4_4_4:
-		case GL_UNSIGNED_SHORT_5_5_5_1:
-		case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-			if (format != GL_RGBA && format != GL_BGRA
-				&& format != GL_RGBA_INTEGER && format != GL_BGRA_INTEGER)
-			{
-				retVal = KTX_INVALID_OPERATION;
-			}
-			break;
-
-		case GL_UNSIGNED_INT_8_8_8_8:
-		case GL_UNSIGNED_INT_8_8_8_8_REV:
-		case GL_UNSIGNED_INT_10_10_10_2:
-		case GL_UNSIGNED_INT_2_10_10_10_REV:
-			if (format != GL_RGBA && format != GL_BGRA
-				&& format != GL_RGBA_INTEGER && format != GL_BGRA_INTEGER)
-			{
-				retVal = KTX_INVALID_OPERATION;
-			}
-			break;
-
-		case GL_UNSIGNED_INT_24_8:
-			if (format != GL_DEPTH_STENCIL)
-				retVal = KTX_INVALID_OPERATION;
-			break;
-
-		case GL_UNSIGNED_INT_10F_11F_11F_REV:
-		case GL_UNSIGNED_INT_5_9_9_9_REV:
-			if (format != GL_RGB && format != GL_BGR)
-				retVal = KTX_INVALID_OPERATION;
-			break;
-
-		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-			// Note: OpenGL 4.4 says GL_INVALID_VALUE in one place,
-			// GL_INVALID_OPERATION in another. The latter is more logical.
-			retVal = KTX_INVALID_OPERATION;
-
-		default:
-			retVal = KTX_INVALID_VALUE;
-	}
-
-	return retVal;
 }
 
+/** @} */
 
-/*
- * @brief Get the size of the group of elements constituting a pixel in
- *        the given @p type and @p format and the size of an element.
- *
- * Sizes are returned in basic machine units (bytes). The function also
- * indicates if @type is a packed pixel format.
- *
- * @param [in]  format		the format of the image data
- * @param [in]  type		the type of the image data
- * @param [out] groupBytes	pointer to location where to write the size of a group
- * @param [out] size		pointer to location where to write the size of an element
- * @param [out] packed		pointer to location where to write flag indicating
- *							if the type is a packed type.
- *
- * @return	KTX_INVALID_VALUE if the @p type or @p format is invalid.
- */
-static KTX_error_code
-sizeofGroupAndElement(GLenum format, GLenum type, GLuint* groupBytes,
-					  GLuint* elementBytes, GLboolean* packed)
-{
-	KTX_error_code retVal;
-
-	if ((retVal = sizeofGLtype(type, elementBytes, packed)) != KTX_SUCCESS)
-	{
-		return retVal;
-	}
-
-	if (*packed)
-	{
-		*groupBytes = *elementBytes;
-		return retVal;
-	}
-
-	switch (format) {
-	case GL_ALPHA:
-	case GL_RED:
-	case GL_GREEN:
-	case GL_BLUE:
-	case GL_LUMINANCE: /* deprecated but needed for ES 1 & 2 */
-	case GL_ALPHA_INTEGER:
-	case GL_RED_INTEGER:
-	case GL_GREEN_INTEGER:
-	case GL_BLUE_INTEGER:
-	/* case GL_LUMINANCE_INTEGER: deprecated */
-		*groupBytes = *elementBytes;
-		break;
-	case GL_LUMINANCE_ALPHA:
-	case GL_RG:
-	/* case GL_LUMINANCE_ALPHA_INTEGER: deprecated */
-	case GL_RG_INTEGER:
-		*groupBytes = *elementBytes * 2;
-		break;
-	case GL_RGB:
-	case GL_BGR:
-	case GL_RGB_INTEGER:
-	case GL_BGR_INTEGER:
-		*groupBytes = *elementBytes * 3;
-		break;
-	case GL_RGBA:
-	case GL_BGRA:
-	case GL_RGBA_INTEGER:
-	case GL_BGRA_INTEGER:
-		*groupBytes = *elementBytes * 4;
-		break;
-	default:
-		retVal = KTX_INVALID_VALUE;
-	}
-
-	return retVal;
-}
-
-/*
- * @brief Get the size of a GL type in basic machine units
- *        and indicate whether or not it is a packed type.
- *
- * @param [in]  type	the type whose size is to be returned.
- * @param [out] size	pointer to location where to write the size
- * @param [out] packed	pointer to location where to write flag indicating
- *                      if the type is a packed type.
- *
- * @return KTX_INVALID_VALUE if the @p type is unrecognized.
- */
-static KTX_error_code
-sizeofGLtype(GLenum type, GLuint* size, GLboolean* packed)
-{
-	assert(packed && size);
-	*packed = GL_FALSE;
-
-	switch (type) {
-		case GL_BYTE:
-			*size = sizeof(GLbyte);
-			break;
-
-		case GL_UNSIGNED_BYTE:
-			*size = sizeof(GLubyte);
-			break;
-
-		case GL_UNSIGNED_BYTE_3_3_2:
-		case GL_UNSIGNED_BYTE_2_3_3_REV:
-			*packed = GL_TRUE;
-			*size = sizeof(GLubyte);
-			break;
-
-		case GL_SHORT:
-			*size = sizeof(GLshort);
-			break;
-
-		case GL_UNSIGNED_SHORT:
-			*size = sizeof(GLushort);
-			break;
-
-		case GL_UNSIGNED_SHORT_5_6_5:
-		case GL_UNSIGNED_SHORT_4_4_4_4:
-		case GL_UNSIGNED_SHORT_5_5_5_1:
-		case GL_UNSIGNED_SHORT_5_6_5_REV:
-		case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-			*packed = GL_TRUE;
-			*size = sizeof(GLushort);
-			break;
-
-		case GL_INT:
-			*size = sizeof(GLint);
-			break;
-
-		case GL_UNSIGNED_INT:
-			*size = sizeof(GLuint);
-			break;
-
-		case GL_UNSIGNED_INT_8_8_8_8:
-		case GL_UNSIGNED_INT_8_8_8_8_REV:
-		case GL_UNSIGNED_INT_10_10_10_2:
-		case GL_UNSIGNED_INT_2_10_10_10_REV:
-		case GL_UNSIGNED_INT_24_8:
-		case GL_UNSIGNED_INT_10F_11F_11F_REV:
-		case GL_UNSIGNED_INT_5_9_9_9_REV:
-			*packed = GL_TRUE;
-			*size = sizeof(GLuint);
-			break;
-
-		case GL_HALF_FLOAT:
-			*size = sizeof(GLhalf);
-			break;
-
-		case GL_FLOAT:
-			*size = sizeof(GLfloat);
-			break;
-
-		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-			*packed = GL_TRUE;
-			*size = sizeof(GLfloat) + sizeof(GLint);
-			break;
-
-		default:
-			return KTX_INVALID_VALUE;
-	}
-	return KTX_SUCCESS;
-}

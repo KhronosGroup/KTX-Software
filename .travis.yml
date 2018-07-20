@@ -1,41 +1,60 @@
 # CI build script for Travis.
 # See https://docs.travis-ci.com/user/multi-os/ for more info.
 
-os:
-- linux
-- osx
-
-sudo: required
-dist: trusty
-
-osx_image: xcode7.3
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          packages:
+            - gcc-7
+            - g++-7
+      cache:
+        directories:
+          - $HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin
+      dist: xenial
+      group: edge
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64"
+      sudo: required
+    - os: osx
+      env:
+        - ASSIMP_HOME="/usr/local"
+        - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
+      osx_image: xcode9.3
 
 language:
-- cpp
+  - cpp
 
 compiler:
-# clang compilation will be tested by xcode.
-#- clang
-- gcc
+  # clang compilation will be tested by xcode.
+  #- clang
+  - gcc
 
 env:
   global:
-    - GIT_LFS_VERSION="1.1.0"
+    - GIT_LFS_VERSION="2.4.0"
+    - VULKAN_SDK_VER="1.1.73.0"
 
 before_install:
+- eval "${MATRIX_EVAL}"
+- echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
+- cat ~/.netrc
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    # The already installed GIT LFS is very old - 0.5.0. Need a more recent
-    # one to work with the GitHub server.
-    # Current directory is .../build/KhronosGroup/KTX. cd to 'build'.
+    # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
     wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    export PATH=`pwd`/git-lfs-1.1.0:$PATH &&
+    export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
     popd &&
     git lfs install &&
-    git lfs pull --include="other_lib/linux"
+    git lfs version
     ;;
   osx)
     brew update > /dev/null &&
@@ -49,10 +68,34 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    sudo apt-get -qq update; sudo apt-get -qq install doxygen
+    sudo apt-get -qq update &&
+    sudo apt-get -qq install doxygen &&
+    sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
+    sudo apt-get -qq install libvulkan1 libvulkan-dev &&
+    sudo apt-get -qq install libassimp3v5 libassimp-dev &&
+    # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
+    pushd ../.. &&
+    wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
+    chmod ugo+x *.run &&
+    ./*.run &&
+    cd VulkanSDK/$VULKAN_SDK_VER &&
+    source ./setup-env.sh &&
+    if [ ! -x $VULKAN_SDK/bin/glslc ]; then
+      ./build_tools.sh --shaderc ;
+      # This swallows a bogus error exit status of 1 from build_tools.sh
+      echo "build_tools.sh exit status: " $?;
+    fi &&
+    popd
     ;;
   osx)
-    brew install doxygen
+    brew install doxygen &&
+    brew install assimp &&
+    #brew install lftp &&
+    # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
+    pushd ../.. &&
+    wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
+    tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
+   popd
     ;;
   esac
 - pushd ../..
@@ -61,37 +104,53 @@ install:
 - popd
 
 before_script:
-- |
-  # Pull just the linux or mac/ios files to save time.
-  case "${TRAVIS_OS_NAME:-linux}" in
-  linux)
-    # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
-    # See Git LFS issue https://github.com/github/git-lfs/issues/880.
-    git lfs pull --include=other_lib/linux | cat
-    ;;
-  osx)
-    git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
-    sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
-    ;;
-  esac
+  - |
+    # Pull just the linux or mac/ios files to save time.
+    case "${TRAVIS_OS_NAME:-linux}" in
+    linux)
+      # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
+      # See Git LFS issue https://github.com/github/git-lfs/issues/880.
+      git lfs pull --include=other_lib/linux | cat
+      ;;
+    osx)
+      git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
+      sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
+      ;;
+    esac
+  # Make sure embedded dates are correct.
+  - ./install-gitconfig.sh
+  - rm TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cpp
+  - git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cpp
 
 script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    cd build/make/linux &&
-    make BUILDTYPE=Debug &&
-    make BUILDTYPE=Release &&
-    cd ../../cmake/linux/Debug &&
+    # Due to a gyp bug in the generation of dependencies for the .frag & .vert shader files
+    # make fails in building the load tests.
+    #cd build/make/linux &&
+    #make BUILDTYPE=Debug &&
+    #make BUILDTYPE=Release &&
+    #cd ../../cmake/linux/Debug &&
+    pushd build/cmake/linux/Debug &&
     cmake . && make &&
     cd ../Release &&
-    cmake . && make
+    cmake . && make &&
+    popd &&
+    pushd build/cmake/linux/Debug &&
+    ./unittests &&
+    ./texturetests &&
+    cd ../Release &&
+    ./unittests &&
+    ./texturetests &&
+    popd &&
+    ./runDoxygen ktxpkg.doxy
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
     # destination args can be expanded to a single word.
-    OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64" -destination "platform=OS X,arch=i386")
-    IOS_XCODE_OPTIONS=(-alltargets -destination "platform=generic/iOS" -destination "platform=iOS Simulator,OS=latest")
+    OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
+    IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
     XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO'
     # The following and more is needed if you want to actually sign the code.
     # See http://stackoverflow.com/questions/27671854/travis-ci-fails-to-build-with-a-code-signing-error.
@@ -103,13 +162,54 @@ script:
     #security unlock-keychain -p travis $KEY_CHAIN
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
-    cd build/xcode/mac &&
+    pushd build/xcode/mac &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    xcodebuild -project libktx.xcodeproj -target libktx.doc -destination "platform=OS X,arch=x86_64" -configuration Release $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
     cd ../ios &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV
+    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
+    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    popd &&
+    pushd build/Debug &&
+    ./unittests &&
+    ./texturetests &&
+    cd ../Release &&
+    ./unittests &&
+    ./texturetests &&
+    popd &&
+    ./runDoxygen ktxpkg.doxy
+    # Upload doxygen generated docs to khronos.org
+    #if [ $TRAVIS_PULL_REQUEST = "false" ]; then
+      #pushd build/docs/html
+      #echo "In doc upload"
+      #ftp -u "$FTP_USER:$FTP_CRED@$FTP_HOST:21/documentation" ktxtools libktx package
+      #cat <<EOF
+      #foo
+      #bar
+      #snafu
+      #EOF
+      #ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
+      #cd documentation
+      #rmdir ktxtools libktx package
+      #put -r *
+      #EOF
+      #popd
+    #fi
     ;;
-  esac
+    esac
+
+# Errors in something run in after_success: don't cause the build to fail so don't use. 
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  local-dir: build/docs/html
+  on:
+    branch: master
+    condition: $TRAVIS_OS_NAME = osx
+    #tags: true
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab

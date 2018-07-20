@@ -1,35 +1,29 @@
-
-KTX Project TO DO List
-======================
+To Do List                     {#todo}
+=======
 
 $Date$
 
 === **Volunteers welcome!** ===
 
-file format
------------
-
-- [ ] support swizzles
-- [ ] support max (smallest) to base (largest) ordering of mipmap levels to help when streaming
-- [ ] support use of Crunch on DX/S3TC images
-- [ ] support use of zlib compression on images
-
 library
 -------
 
-- [ ] make reader that is usable without OpenGL context
+- [ ] Find a way so that applications do not have to define KTX_OPENGL{,_ES*} when
+      using the library.
+- [x] make reader that is usable without OpenGL context
 - [ ] use TexStorage in GL texture loader when available
-- [ ] add Vulkan texture loader
-- [ ] support new features when added to file format
+- [x ] add Vulkan texture loader
 
 library testing
 ---------------
 
-- [ ] test for GL-context-free reader
-- [ ] test for Vulkan loader
-- [ ] proper mipmap test (multiple planes each showing a different miplevel)
+- [x] test for GL-context-free reader
+- [x] test for Vulkan loader
+- [x] proper mipmap test (multiple planes each showing a different miplevel)
 - [ ] GLES2 load tests
-- [ ] cubemap, 3D & array texture loading tests
+- [x] cubemap & array texture loading tests for Vulkan
+- [ ] 3D texture test for Vulkan
+- [ ] cubemap, 3D & array texture loading tests for OpenGL
 - [ ] port test framework to Android.
 
 toktx
@@ -40,8 +34,3 @@ toktx
 - [ ] support 3D and array textures
 - [ ] PPM & reference ktx files for 1D textures
 - [ ] PPM & reference ktx files for cubemap, 3D & array texture creation tests
-
-general
--------
-
-- [ ] design icon for KTX files
