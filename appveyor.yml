@@ -37,11 +37,6 @@ init:
   - ps: #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - git config --global core.autocrlf true # workaround Git LFS bug
 
-# This is necessary because when building the KhronosGroup origin AV still uses the old
-# repo name "ktx" which confuses the cd back to cloned repo below. I tried pushd/popd
-# but the popd always exited with errors for reasons I could not determine.
-clone_folder: c:\projects\ktx-software
-
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:
 - cmd: |-
