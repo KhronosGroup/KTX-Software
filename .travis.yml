@@ -208,7 +208,7 @@ deploy:
   github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
   local-dir: build/docs/html
   on:
-    branch: incoming
+    branch: master
     condition: $TRAVIS_OS_NAME = osx
     #tags: true
 
