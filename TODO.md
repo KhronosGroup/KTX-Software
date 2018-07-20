@@ -12,7 +12,7 @@ library
       using the library.
 - [x] make reader that is usable without OpenGL context
 - [ ] use TexStorage in GL texture loader when available
-- [x ] add Vulkan texture loader
+- [x] add Vulkan texture loader
 
 library testing
 ---------------
