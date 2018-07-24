@@ -63,6 +63,7 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
     zoom = -15.0f;
     rotationSpeed = 0.25f;
     rotation = { -15.0f, 35.0f, 0.0f };
+    tiling = vk::ImageTiling::eOptimal;
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,

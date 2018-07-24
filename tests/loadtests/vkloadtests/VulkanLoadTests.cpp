@@ -276,7 +276,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { TextureArray::create,
         "testimages/texturearray_bc3_unorm.ktx",
-        "BC3 (S3TC DXT5) Compressed Texture Array"
+        "BC2 (S3TC DXT3) Compressed Texture Array"
     },
     { TextureArray::create,
         "testimages/texturearray_astc_8x8_unorm.ktx",
