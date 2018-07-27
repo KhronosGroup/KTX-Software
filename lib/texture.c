@@ -1271,7 +1271,8 @@ ktxTexture_imageSize(ktxTexture* This, ktx_uint32_t level)
  *
  * The size of a layer is the size of an image * either the number of faces
  * or the number of depth slices. This is the size of a layer as needed to
- * find the offset within the array of images of a level and layer.
+ * find the offset within the array of images of a level and layer so the size
+ * reflects any @c cubePadding.
  *
  * @param[in]  This     pointer to the ktxTexture object of interest.
  * @param[in] level     level whose layer size to return.
@@ -1289,14 +1290,21 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level)
      */
     GlFormatSize* formatInfo;
     ktx_uint32_t blockCountZ;
-    ktx_size_t imageSize;
+    ktx_size_t imageSize, layerSize;
 
     assert (This != NULL);
     
     formatInfo = &((ktxTextureInt*)This)->formatInfo;
     blockCountZ = MAX(1, (This->baseDepth / formatInfo->blockDepth)  >> level);
     imageSize = ktxTexture_imageSize(This, level);
-    return imageSize * This->numFaces * blockCountZ;
+    layerSize = imageSize * blockCountZ;
+#if (KTX_GL_UNPACK_ALIGNMENT != 4)
+    if (This->isCubemap && !This->isArray) {
+        /* cubePadding. NOTE: this adds padding after the last face too. */
+        _KTX_PAD4(layerSize);
+    }
+#endif
+    return layerSize * This->numFaces;
 }
 
 /**
@@ -1354,7 +1362,7 @@ ktxTexture_faceLodSize(ktxTexture* This, ktx_uint32_t level)
  *        of levels.
  *
  * The data size is the sum of the sizes of each level up to the number
- * specified.
+ * specified and includes any @c mipPadding.
  *
  * @param[in] This     pointer to the ktxTexture object of interest.
  * @param[in] levels   number of levels whose data size to return.
@@ -1371,11 +1379,8 @@ ktxTexture_dataSize(ktxTexture* This, ktx_uint32_t levels)
     for (i = 0; i < levels; i++) {
         ktx_size_t levelSize = ktxTexture_levelSize(This, i);
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
-        {
-            ktx_uint32_t mipPadding;
-            mipPadding = 3 - ((levelSize + 3) % 4);
-            dataSize += levelSize + mipPadding;
-        }
+        /* mipPadding. NOTE: this adds padding after the last level too. */
+        dataSize += _KTX_PAD4(levelSize);
 #else
         dataSize += levelSize;
 #endif
@@ -1527,6 +1532,10 @@ ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
     if (faceSlice != 0) {
         ktx_size_t imageSize;
         imageSize = ktxTexture_imageSize(This, level);
+#if (KTX_GL_UNPACK_ALIGNMENT != 4)
+        if (This->isCubemap)
+            _KTX_PAD4(imageSize); // Account for cubePadding.
+#endif
         *pOffset += faceSlice * imageSize;
     }
 
