@@ -850,10 +850,7 @@ ktxTexture_LoadImageData(ktxTexture* This,
                          ktx_uint8_t* pBuffer, ktx_size_t bufSize)
 {
     ktxTextureInt*  subthis = (ktxTextureInt*)This;
-    ktx_uint32_t    faceLodSize;
-    ktx_uint32_t    faceLodSizePadded;
     ktx_uint32_t    miplevel;
-    ktx_uint32_t    face;
     ktx_uint8_t*    pDest;
     KTX_error_code  result = KTX_SUCCESS;
 
@@ -878,6 +875,11 @@ ktxTexture_LoadImageData(ktxTexture* This,
     // Need to loop through for correct byte swapping
     for (miplevel = 0; miplevel < This->numLevels; ++miplevel)
     {
+        ktx_uint32_t faceLodSize;
+        ktx_uint32_t faceLodSizePadded;
+        ktx_uint32_t face;
+        ktx_uint32_t innerIterations;
+
         result = subthis->stream.read(&subthis->stream, &faceLodSize,
                                       sizeof(ktx_uint32_t));
         if (result != KTX_SUCCESS) {
@@ -892,7 +894,11 @@ ktxTexture_LoadImageData(ktxTexture* This,
         faceLodSizePadded = faceLodSize;
 #endif
         
-        for (face = 0; face < This->numFaces; ++face)
+        if (This->isCubemap && !This->isArray)
+            innerIterations = This->numFaces;
+        else
+            innerIterations = 1;
+        for (face = 0; face < innerIterations; ++face)
         {
             result = subthis->stream.read(&subthis->stream, pDest,
                                           faceLodSizePadded);
@@ -953,9 +959,7 @@ KTX_error_code
 ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
                              void* userdata)
 {
-    ktx_uint32_t    faceLodSize;
     ktx_uint32_t    miplevel;
-    ktx_uint32_t    face;
     KTX_error_code  result = KTX_SUCCESS;
     
     if (This == NULL)
@@ -966,7 +970,10 @@ ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
     
     for (miplevel = 0; miplevel < This->numLevels; ++miplevel)
     {
-        GLsizei width, height, depth;
+        ktx_uint32_t faceLodSize;
+        ktx_uint32_t face;
+        ktx_uint32_t innerIterations;
+        GLsizei      width, height, depth;
         
         /* Array textures have the same number of layers at each mip level. */
         width = MAX(1, This->baseWidth  >> miplevel);
@@ -979,7 +986,11 @@ ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
          * GL & Vulkan need them. Hence no
          *    for (layer = 0; layer < This->numLayers)
          */
-        for (face = 0; face < This->numFaces; ++face)
+        if (This->isCubemap && !This->isArray)
+            innerIterations = This->numFaces;
+        else
+            innerIterations = 1;
+        for (face = 0; face < innerIterations; ++face)
         {
             /* And all z_slices are also passed as a group hence no
              *    for (slice = 0; slice < This->depth)
@@ -1039,10 +1050,7 @@ ktxTexture_IterateLoadLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
 {
     ktxTextureInt*  subthis = (ktxTextureInt*)This;
     ktx_uint32_t    dataSize = 0;
-    ktx_uint32_t    faceLodSize;
-    ktx_uint32_t    faceLodSizePadded;
     ktx_uint32_t    miplevel;
-    ktx_uint32_t    face;
     KTX_error_code  result = KTX_SUCCESS;
     void*           data = NULL;
     
@@ -1058,7 +1066,11 @@ ktxTexture_IterateLoadLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
     
     for (miplevel = 0; miplevel < This->numLevels; ++miplevel)
     {
-        GLsizei width, height, depth;
+        ktx_uint32_t faceLodSize;
+        ktx_uint32_t faceLodSizePadded;
+        ktx_uint32_t face;
+        ktx_uint32_t innerIterations;
+        GLsizei      width, height, depth;
         
         /* Array textures have the same number of layers at each mip level. */
         width = MAX(1, This->baseWidth  >> miplevel);
@@ -1097,7 +1109,11 @@ ktxTexture_IterateLoadLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
          * GL & Vulkan need them. Hence no
          *    for (layer = 0; layer < This->numLayers)
          */
-        for (face = 0; face < This->numFaces; ++face)
+        if (This->isCubemap && !This->isArray)
+            innerIterations = This->numFaces;
+        else
+            innerIterations = 1;
+        for (face = 0; face < innerIterations; ++face)
         {
             /* And all z_slices are also passed as a group hence no
              *    for (z_slice = 0; z_slice < This->depth)
