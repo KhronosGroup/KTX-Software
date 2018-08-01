@@ -66,6 +66,8 @@ KTX_error_code ktxTexture_LoadImageData(ktxTexture* This,
                                         ktx_size_t bufSize);
 
 static ktx_size_t ktxTexture_calcDataSize(ktxTexture* This);
+static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
+
 
 /**
  * @memberof ktxTexture @private
@@ -814,15 +816,60 @@ ktxTexture_GetData(ktxTexture* This)
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Return the size of the texture image data in bytes.
+ * @brief Return the total size of the texture image data in bytes.
  *
  * @param[in] This pointer to the ktxTexture object of interest.
  */
 ktx_size_t
 ktxTexture_GetSize(ktxTexture* This)
 {
+    assert(This != NULL);
     return This->dataSize;
 }
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Calculate & return the size in bytes of an image at the specified
+ *        mip level.
+ *
+ * For arrays, this is the size of layer, for cubemaps, the size of a face
+ * and for 3D textures, the size of a depth slice.
+ *
+ * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.
+ *
+ * @param[in]     This     pointer to the ktxTexture object of interest.
+ * @param[in]     level    level of interest. *
+ */
+ktx_size_t
+ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level)
+{
+    GlFormatSize* formatInfo;
+    struct blockCount {
+        ktx_uint32_t x, y, z;
+    } blockCount;
+    ktx_uint32_t blockSizeInBytes;
+    ktx_uint32_t rowBytes;
+
+    assert (This != NULL);
+
+    formatInfo = &((ktxTextureInt*)This)->formatInfo;
+    blockCount.x = MAX(1, (This->baseWidth / formatInfo->blockWidth)  >> level);
+    blockCount.y = MAX(1, (This->baseHeight / formatInfo->blockHeight)  >> level);
+    blockSizeInBytes = formatInfo->blockSizeInBits / 8;
+
+    if (formatInfo->flags & GL_FORMAT_SIZE_COMPRESSED_BIT) {
+        assert(This->isCompressed);
+        return blockCount.x * blockCount.y * blockSizeInBytes;
+    } else {
+        assert(formatInfo->blockWidth == formatInfo->blockHeight == formatInfo->blockDepth == 1);
+        rowBytes = blockCount.x * blockSizeInBytes;
+        (void)padRow(&rowBytes);
+        return rowBytes * blockCount.y;
+    }
+}
+
+
 
 /**
  * @memberof ktxTexture
@@ -1243,46 +1290,6 @@ padRow(ktx_uint32_t* rowBytes)
 /**
  * @memberof ktxTexture @private
  * @~English
- * @brief Calculate the size of an image at the specified mip level.
- *
- * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.
- *
- * @param[in]  This     pointer to the ktxTexture object of interest.
- * @param[in] level     level whose image size to return.
- *
- * @return the image size in bytes.
- */
-ktx_size_t
-ktxTexture_imageSize(ktxTexture* This, ktx_uint32_t level)
-{
-    GlFormatSize* formatInfo;
-    struct blockCount {
-        ktx_uint32_t x, y, z;
-    } blockCount;
-    ktx_uint32_t blockSizeInBytes;
-    ktx_uint32_t rowBytes;
-
-    assert (This != NULL);
-    
-    formatInfo = &((ktxTextureInt*)This)->formatInfo;
-    blockCount.x = MAX(1, (This->baseWidth / formatInfo->blockWidth)  >> level);
-    blockCount.y = MAX(1, (This->baseHeight / formatInfo->blockHeight)  >> level);
-    blockSizeInBytes = formatInfo->blockSizeInBits / 8;
-
-    if (formatInfo->flags & GL_FORMAT_SIZE_COMPRESSED_BIT) {
-        assert(This->isCompressed);
-        return blockCount.x * blockCount.y * blockSizeInBytes;
-    } else {
-        assert(formatInfo->blockWidth == formatInfo->blockHeight == formatInfo->blockDepth == 1);
-        rowBytes = blockCount.x * blockSizeInBytes;
-        (void)padRow(&rowBytes);
-        return rowBytes * blockCount.y;
-    }
-}
-
-/**
- * @memberof ktxTexture @private
- * @~English
  * @brief Calculate the size of an array layer at the specified mip level.
  *
  * The size of a layer is the size of an image * either the number of faces
@@ -1312,7 +1319,7 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level)
     
     formatInfo = &((ktxTextureInt*)This)->formatInfo;
     blockCountZ = MAX(1, (This->baseDepth / formatInfo->blockDepth)  >> level);
-    imageSize = ktxTexture_imageSize(This, level);
+    imageSize = ktxTexture_GetImageSize(This, level);
     layerSize = imageSize * blockCountZ;
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
     if (This->isCubemap && !This->isArray) {
@@ -1366,7 +1373,7 @@ ktxTexture_faceLodSize(ktxTexture* This, ktx_uint32_t level)
      * else it is the size of the level.
      */
     if (This->isCubemap && !This->isArray)
-        return ktxTexture_imageSize(This, level);
+        return ktxTexture_GetImageSize(This, level);
     else
         return ktxTexture_levelSize(This, level);
 }
@@ -1443,7 +1450,8 @@ ktxTexture_glTypeSize(ktxTexture* This)
 /**
  * @memberof ktxTexture @private
  * @~English
- * @brief Get information about rows of a texture image at a specified level.
+ * @brief Get information about rows of an uncompresssed texture image at a
+ *        specified level.
  *
  * For an image at @p level of a ktxTexture provide the number of rows, the
  * packed (unpadded) number of bytes in a row and the padding necessary to
@@ -1452,15 +1460,15 @@ ktxTexture_glTypeSize(ktxTexture* This)
  * @param[in]     This     pointer to the ktxTexture object of interest.
  * @param[in]     level    level of interest.
  * @param[in,out] numRows  pointer to location to store the number of rows.
- * @param[in,out] rowBytes pointer to location to store number of bytes in
- *                         a row.
- * @param[in.out] rowPadding pointer to location to store the number of bytes
- *                           of padding.
+ * @param[in,out] pRowLengthBytes pointer to location to store number of bytes
+ *                                in a row.
+ * @param[in.out] pRowPadding pointer to location to store the number of bytes
+ *                            of padding.
  */
 void
 ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
-                   ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
-                   ktx_uint32_t* rowPadding)
+                   ktx_uint32_t* numRows, ktx_uint32_t* pRowLengthBytes,
+                   ktx_uint32_t* pRowPadding)
 {
     GlFormatSize* formatInfo;
     struct blockCount {
@@ -1470,14 +1478,55 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
     assert (This != NULL);
     
     formatInfo = &((ktxTextureInt*)This)->formatInfo;
+    assert(!This->isCompressed);
     assert(formatInfo->blockWidth == formatInfo->blockHeight == formatInfo->blockDepth == 1);
 
     blockCount.x = MAX(1, (This->baseWidth / formatInfo->blockWidth)  >> level);
     *numRows = MAX(1, (This->baseHeight / formatInfo->blockHeight)  >> level);
 
-    *rowBytes = blockCount.x * formatInfo->blockSizeInBits / 8;
-    *rowPadding = padRow(rowBytes);
+    *pRowLengthBytes = blockCount.x * formatInfo->blockSizeInBits / 8;
+    *pRowPadding = padRow(pRowLengthBytes);
 }
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Return length of a texture image level's row in bytes.
+ *
+ * This query is only useful for uncompressed images. It returns 0 for
+ * compressed images. This makes it suitable for setting a VkBufferImageCopy
+ * region's bufferRowLength;
+ *
+ * @param[in]     This     pointer to the ktxTexture object of interest.
+ * @param[in]     level    level of interest.
+ * @param[in,out] pRowLengthBytes
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALID @p This is NULL.
+ */
+ KTX_error_code
+ ktxTexture_GetRowLengthBytes(ktxTexture* This, ktx_uint32_t level,
+                              ktx_uint32_t* pRowLengthBytes)
+ {
+    GlFormatSize* formatInfo;
+    struct blockCount {
+        ktx_uint32_t x;
+    } blockCount;
+
+    if (This == NULL)
+        return KTX_INVALID_VALUE;
+
+    if (This->isCompressed)
+        *pRowLengthBytes = 0;
+
+    formatInfo = &((ktxTextureInt*)This)->formatInfo;
+    blockCount.x = MAX(1, (This->baseWidth / formatInfo->blockWidth)  >> level);
+    *pRowLengthBytes = blockCount.x * formatInfo->blockSizeInBits / 8;
+    (void)padRow(pRowLengthBytes);
+
+    return KTX_SUCCESS;
+ }
 
 /**
  * @memberof ktxTexture @private
@@ -1518,12 +1567,16 @@ ktxTexture_isActiveStream(ktxTexture* This)
  * @exception KTX_INVALID_OPERATION
  *                         @p level, @p layer or @p faceSlice exceed the
  *                         dimensions of the texture.
+ * @exception KTX_INVALID_VALID @p This is NULL.
  */
 KTX_error_code
 ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
                           ktx_uint32_t layer, ktx_uint32_t faceSlice,
                           ktx_size_t* pOffset)
 {
+    if (This == NULL)
+        return KTX_INVALID_VALUE;
+
     if (level >= This->numLevels || layer >= This->numLayers)
         return KTX_INVALID_OPERATION;
     
@@ -1547,7 +1600,7 @@ ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
     }
     if (faceSlice != 0) {
         ktx_size_t imageSize;
-        imageSize = ktxTexture_imageSize(This, level);
+        imageSize = ktxTexture_GetImageSize(This, level);
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
         if (This->isCubemap)
             _KTX_PAD4(imageSize); // Account for cubePadding.

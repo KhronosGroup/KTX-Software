@@ -279,6 +279,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "BC2 (S3TC DXT3) Compressed Texture Array"
     },
     { TextureArray::create,
+        "--linear-tiling testimages/texturearray_bc3_unorm.ktx",
+        "BC2 (S3TC DXT3) Compressed Texture Array using Linear Tiling"
+    },
+    { TextureArray::create,
         "testimages/texturearray_astc_8x8_unorm.ktx",
         "ASTC 8x8 Compressed Texture Array"
     },
