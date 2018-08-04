@@ -842,8 +842,6 @@ ktx_uint32_t
 ktxTexture_GetElementSize(ktxTexture* This)
 {
     GlFormatSize* formatInfo;
-    ktx_uint32_t blockSizeInBytes;
-    ktx_uint32_t rowBytes;
 
     assert (This != NULL);
 
