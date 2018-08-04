@@ -334,7 +334,7 @@ optimalTilingPadCallback(int miplevel, int face,
     if (mod4 || modes) {
         ktx_uint32_t lcm = ud->elementSize * 4;
         //_KTX_PADN(lcm, roundedSize);
-        roundedSize = lcm * ceil((float)roundedSize / lcm);
+        roundedSize = (ktx_uint32_t)(lcm * ceil((float)roundedSize / lcm));
     }
     ud->offset += roundedSize;
     // XXX Handle row padding for uncompressed textures. KTX specifies
@@ -370,7 +370,6 @@ typedef struct user_cbdata_linear {
 } user_cbdata_linear;
 
 /*
-/*
  * Callback for linear tiled textures with no source row padding.
  * Copy the image data into the Vulkan image.
  */
@@ -394,6 +393,7 @@ linearTilingCallback(int miplevel, int face,
                                 &subResLayout);
     // Copies all images of the miplevel (for array & 3d) or a single face.
     memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
+    return KTX_SUCCESS;
 }
 
 /*
@@ -477,7 +477,7 @@ linearTilingPadCallback(int miplevel, int face,
     offset = subResLayout.offset;
     // Copy image data to destImage via its mapped memory.
     for (image = 0; image < imageIterations; image++) {
-        pSrc = pixels + imageSize * image;
+        pSrc = (ktx_uint8_t*)pixels + imageSize * image;
         for (row = 0; row < rowIterations; row++) {
             memcpy(ud->dest + offset, pSrc, copySize);
             offset += subResLayout.rowPitch;
