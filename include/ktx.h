@@ -347,12 +347,17 @@ ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
                           ktx_size_t* pOffset);
 
 /*
- * Returns the length of a row of an image at the specified level. Returns 0
- * if the texture has a compressed format.
+ * Returns the pitch of a row of an image at the specified level.
+ * Similar to the rowPitch in a VkSubResourceLayout.
  */
- KTX_error_code
- ktxTexture_GetRowLengthBytes(ktxTexture* This, ktx_uint32_t level,
-                              ktx_uint32_t* pRowLengthBytes);
+ ktx_uint32_t
+ ktxTexture_GetRowPitch(ktxTexture* This, ktx_uint32_t level);
+
+ /*
+  * Return the element size of the texture's images.
+  */
+ ktx_uint32_t
+ ktxTexture_GetElementSize(ktxTexture* This);
 
 /*
  * Returns the size of all the image data of a ktxTexture object in bytes.

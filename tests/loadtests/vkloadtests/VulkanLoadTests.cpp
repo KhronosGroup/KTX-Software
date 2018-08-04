@@ -222,13 +222,25 @@ VulkanLoadTests::onFPSUpdate()
 /* ------------------------------------------------------------------------ */
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
+    { TextureMipmap::create,
+      "--linear-tiling testimages/not4_rgb888_srgb.ktx",
+      "RGB8 2D, Row length not Multiple of 4 using Linear Tiling"
+    },
+    { TextureMipmap::create,
+      "testimages/not4_rgb888_srgb.ktx",
+      "RGB8 2D, Row length not Multiple of 4"
+    },
     { Texture::create,
       "testimages/orient-down-metadata.ktx",
-     "RGB8 2D + KTXOrientation down"
-    },
+      "RGB8 2D + KTXOrientation down"
+     },
     { Texture::create,
       "testimages/orient-up-metadata.ktx",
       "RGB8 2D + KTXOrientation up"
+    },
+    { Texture::create,
+      "--linear-tiling testimages/orient-up-metadata.ktx",
+      "RGB8 2D + KTXOrientation up with Linear Tiling"
     },
     { Texture::create,
       "testimages/rgba-reference.ktx",

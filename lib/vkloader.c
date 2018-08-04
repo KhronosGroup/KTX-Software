@@ -244,15 +244,15 @@ typedef struct user_cbdata_optimal {
     VkDeviceSize offset;       // Offset of current level in staging buffer
     ktx_uint32_t numFaces;
     ktx_uint32_t numLayers;
-    ktxTexture* texture;
 #if defined(_DEBUG)
     VkBufferImageCopy* regionsArrayEnd;   //  "
 #endif
 } user_cbdata_optimal;
 
 /*
- * Callback for an optimally tiled texture. Set up a copy region for
- * the miplevel.
+ * Callback for an optimally tiled texture with no source row
+ * padding. Images have been preloaded into the staging buffer.
+ * Set up a copy region for the miplevel.
  */
 KTX_error_code KTXAPIENTRY
 optimalTilingCallback(int miplevel, int face,
@@ -266,6 +266,77 @@ optimalTilingCallback(int miplevel, int face,
     assert(ud->region < ud->regionsArrayEnd);
     ud->region->bufferOffset = ud->offset;
     ud->offset += faceLodSize;
+    // These are expressed in texels.
+    ud->region->bufferRowLength = 0;
+    ud->region->bufferImageHeight = 0;
+    ud->region->imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    ud->region->imageSubresource.mipLevel = miplevel;
+    ud->region->imageSubresource.baseArrayLayer = face;
+    ud->region->imageSubresource.layerCount = ud->numLayers * ud->numFaces;
+    ud->region->imageOffset.x = 0;
+    ud->region->imageOffset.y = 0;
+    ud->region->imageOffset.z = 0;
+    ud->region->imageExtent.width = width;
+    ud->region->imageExtent.height = height;
+    ud->region->imageExtent.depth = depth;
+
+    ud->region += 1;
+
+    return KTX_SUCCESS;
+}
+
+typedef struct user_cbdata_optimal_pad {
+    VkBufferImageCopy* region; // specify destination region in final image.
+    VkDeviceSize offset;       // Offset of current level in staging buffer.
+    ktx_uint8_t* dest;         // Pointer to mapped staging buffer.
+    ktx_uint32_t elementSize;
+    ktx_uint32_t numFaces;
+    ktx_uint32_t numLayers;
+    ktxTexture* texture;
+#if defined(_DEBUG)
+    VkBufferImageCopy* regionsArrayEnd;   //  "
+#endif
+} user_cbdata_optimal_pad;
+
+/*
+ * Callback for optimally tiled texture with possible source row
+ * padding. Figure out the padding for the miplevel, copy data to
+ * staging buffer at an appropriate common multiple of the element
+ * size and 4, while removing padding, then set up a copy region
+ * for the face/lod.
+ *
+ * Need to use this long method as row padding is different
+ * between KTX (pad to 4) and Vulkan (none) and region->bufferOffset,
+ * i.e. the start of each image, has to be a multiple of 4 and also
+ * a multiple of the element size.
+ *
+ */
+KTX_error_code KTXAPIENTRY
+optimalTilingPadCallback(int miplevel, int face,
+                         int width, int height, int depth,
+                         ktx_uint32_t faceLodSize,
+                         void* pixels, void* userdata)
+{
+    user_cbdata_optimal_pad* ud = (user_cbdata_optimal_pad*)userdata;
+    ktx_uint32_t roundedSize, modes, mod4;
+
+    // Copy data into staging buffer
+    memcpy(ud->dest + ud->offset, pixels, faceLodSize);
+
+    // Set up copy to destination region in final image
+    assert(ud->region < ud->regionsArrayEnd);
+    ud->region->bufferOffset = ud->offset;
+    // Round to needed multiples, if necessary.
+    roundedSize = faceLodSize;
+    modes = faceLodSize % ud->elementSize;
+    mod4 = faceLodSize % 4;
+    //if (faceLodSize % ud->elementSize != 0 || faceLodSize % 4 != 0) {
+    if (mod4 || modes) {
+        ktx_uint32_t lcm = ud->elementSize * 4;
+        //_KTX_PADN(lcm, roundedSize);
+        roundedSize = lcm * ceil((float)roundedSize / lcm);
+    }
+    ud->offset += roundedSize;
     // XXX Handle row padding for uncompressed textures. KTX specifies
     // GL_UNPACK_ALIGNMENT of 4 so need to pad this from actual width.
     // That means I need the element size and group size for the format
@@ -298,9 +369,9 @@ typedef struct user_cbdata_linear {
     ktxTexture* texture;
 } user_cbdata_linear;
 
-
 /*
- * Callback for linear tiled textures.
+/*
+ * Callback for linear tiled textures with no source row padding.
  * Copy the image data into the Vulkan image.
  */
 KTX_error_code KTXAPIENTRY
@@ -316,34 +387,68 @@ linearTilingCallback(int miplevel, int face,
       .mipLevel = miplevel,
       .arrayLayer = face
     };
+
+    // Get sub resources layout. Includes row pitch, size,
+    // offsets, etc.
+    vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
+                                &subResLayout);
+    // Copies all images of the miplevel (for array & 3d) or a single face.
+    memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
+}
+
+/*
+ * Callback for linear tiled textures with possible source row
+ * padding. Copy the image data into the Vulkan image.
+ *
+ * Need to use this long method as row padding is different
+ * between KTX (pad to 4) and Vulkan (none).
+ *
+ * In theory this should work for the non-padded case too
+ * but I am seeing weird subResLayout results with a
+ * BC2_UNORM texture in the only real Vulkan implementation
+ * I have available. The reported image stride appears to be
+ * for an R8G8B8A8_UNORM of the same size. Having the separate
+ * callback above helps avoid this issue as well as improving
+ * performance.
+ */
+KTX_error_code KTXAPIENTRY
+linearTilingPadCallback(int miplevel, int face,
+                      int width, int height, int depth,
+                      ktx_uint32_t faceLodSize,
+                      void* pixels, void* userdata)
+{
+    user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
+    VkSubresourceLayout subResLayout;
+    VkImageSubresource subRes = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = miplevel,
+      .arrayLayer = face
+    };
     VkDeviceSize offset;
     ktx_size_t   imageSize = 0;
     VkDeviceSize imagePitch = 0;
-    ktx_uint32_t rowLengthBytes;
+    ktx_uint32_t srcRowPitch;
     ktx_uint32_t rowIterations = 1;
     ktx_uint32_t imageIterations = 1;
     ktx_uint32_t row, image;
     ktx_uint8_t* pSrc;
     ktx_size_t   copySize;
 
-    // Get sub resources layout
-    // Includes row pitch, size offsets, etc.
-    vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes, &subResLayout);
+    // Get sub resources layout. Includes row pitch, size,
+    // offsets, etc.
+    vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
+                                &subResLayout);
 
-    ktxTexture_GetRowLengthBytes(ud->texture, miplevel, &rowLengthBytes);
+    srcRowPitch = ktxTexture_GetRowPitch(ud->texture, miplevel);
 
-    // Copy image data to destImage via its mapped memory.
-    //
-    // Note from the Vulkan spec:
-    //     arrayPitch is undefined for images that were not created as arrays.
-    //     depthPitch is defined only for 3D images.
-    // XXX How to handle subResLayout.{array,depth,row}Pitch?
-    //     Problem if rowPitch is not a multiple of 4. Really don't want
-    //     copy a row at a time. For now
-    if (subResLayout.rowPitch != rowLengthBytes)
+    if (subResLayout.rowPitch != srcRowPitch)
         rowIterations = height;
 
     // Arrays, including cube map arrays, or 3D textures
+    // Note from the Vulkan spec:
+    //  *  arrayPitch is undefined for images that were not
+    //     created as arrays.
+    //  *  depthPitch is defined only for 3D images.
     if (ud->texture->numLayers > 1 || ud->texture->numDimensions == 3) {
         imageSize = ktxTexture_GetImageSize(ud->texture, miplevel);
         if (ud->texture->numLayers > 1) {
@@ -357,69 +462,30 @@ linearTilingCallback(int miplevel, int face,
         }
         assert(imageSize <= imagePitch);
     }
-
-    offset = subResLayout.offset;
-    pSrc = pixels;
-    if (rowIterations > 1)
-        // XXX rowLengthBytes is the padded size. May need unpadded.
-        copySize = rowLengthBytes;
-    else if (imageIterations > 1)
+    if (rowIterations > 1) {
+        // srcRowPitch is the GL_UNPACK_ALIGNMENT padded size. Check
+        // for tight padding in the destination.
+        if (subResLayout.rowPitch < srcRowPitch)
+            copySize = subResLayout.rowPitch;
+        else
+            copySize = srcRowPitch;
+    } else if (imageIterations > 1)
         copySize = faceLodSize / imageIterations;
     else
         copySize = faceLodSize;
+
+    offset = subResLayout.offset;
+    // Copy image data to destImage via its mapped memory.
     for (image = 0; image < imageIterations; image++) {
+        pSrc = pixels + imageSize * image;
         for (row = 0; row < rowIterations; row++) {
-            memcpy(ud->dest + offset, pSrc, faceLodSize);
+            memcpy(ud->dest + offset, pSrc, copySize);
             offset += subResLayout.rowPitch;
-        }
+            pSrc += srcRowPitch;
+          }
         offset += imagePitch;
     }
-
     return KTX_SUCCESS;
-#if 0
-    if (ud->texture->numLayers == 1 && ud->texture->numDimensions != 3) {
-        memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
-        return KTX_SUCCESS;
-    }
-
-    // XXX What about cubemap arrays? Each layer has the 6 faces. For these
-    // faceLodSize will (should) be the size of the level including all layers
-    // and faces.
-    if (ud->texture->numLayers > 1) {
-        imageSize = ktxTexture_GetImageSize(ud->texture, miplevel);
-        // arrayPitch is only defined for array textures.
-        if (subResLayout.arrayPitch == imageSize) {
-            memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
-            return KTX_SUCCESS;
-        } else {
-            ktx_int32_t i;
-            ktx_uint8_t* destBase = ud->dest + subResLayout.offset;
-            for (i = 0; i < ud->texture->numLayers; i++) {
-                memcpy(destBase + subResLayout.depthPitch * i,
-                       pixels + imageSize * i, imageSize);
-            }
-        }
-    }
-
-    if (ud->texture->numDimensions == 3) {
-        imageSize = ktxTexture_GetImageSize(ud->texture, miplevel);
-        // depthPitch is only defined for 3D textures.
-        if (subResLayout.depthPitch == imageSize) {
-            memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
-        } else {
-            ktx_int32_t i;
-            ktx_uint8_t* destBase = ud->dest + subResLayout.offset;
-            for (i = 0; i < depth; i++) {
-                memcpy(destBase + subResLayout.depthPitch * i,
-                       pixels + imageSize * i, imageSize);
-            }
-        }
-        return KTX_SUCCESS;
-    }
-
-    /* XXX Fix me. Need to copy layers & slices individually. */
-    return KTX_INVALID_OPERATION;
-#endif
 }
 
 /**
@@ -503,7 +569,9 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         .memoryTypeIndex = 0
     };
     VkMemoryRequirements     memReqs;
-    uint32_t                 numImageLayers, numImageLevels;
+    ktx_uint32_t             numImageLayers, numImageLevels;
+    ktx_uint32_t elementSize = ktxTexture_GetElementSize(This);
+    ktx_bool_t               canUseOptimalPath;
 
     if (!vdi || !This || !vkTexture) {
         return KTX_INVALID_VALUE;
@@ -604,6 +672,17 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         numImageLevels = This->numLevels;
     }
 
+    {
+        ktx_uint32_t actualRowPitch = ktxTexture_GetRowPitch(This, 0);
+        ktx_uint32_t tightRowPitch = elementSize * This->baseWidth;
+        if (elementSize % 4 == 0  /* There'll be no padding at any level. */
+               /* There is no padding at level 0 and no other levels. */
+            || (This->numLevels == 1 && actualRowPitch == tightRowPitch))
+            canUseOptimalPath = KTX_TRUE;
+        else
+            canUseOptimalPath = KTX_FALSE;
+    }
+
     vkTexture->width = This->baseWidth;
     vkTexture->height = This->baseHeight;
     vkTexture->depth = This->baseDepth;
@@ -638,23 +717,39 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             .pNext = NULL
         };
         ktx_uint8_t* pMappedStagingBuffer;
-
-        /*
-         * Because all array layers and faces are the same size they can be
-         * copied in a single operation so there'll be 1 copy per mip level.
-         */
-        uint32_t numCopyRegions = This->numLevels;
-        user_cbdata_optimal cbData;
+        ktx_uint32_t numCopyRegions;
 
         textureSize = ktxTexture_GetSize(This);
-
+        bufferCreateInfo.size = textureSize;
+        if (canUseOptimalPath) {
+            /*
+             * Because all array layers and faces are the same size they can
+             * be copied in a single operation so there'll be 1 copy per mip
+             * level.
+             */
+            numCopyRegions = This->numLevels;
+        } else {
+            /*
+             * Have to copy all images individually into the staging
+             * buffer so we can place them at correct multiples of
+             * elementSize and 4 and also need a copy region per image
+             * in case they end up with padding between them.
+             */
+            numCopyRegions = This->isArray ? This->numLevels
+                                  : This->numLevels * This->numFaces;
+            /* 
+             * Add extra space to allow for possible padding described
+             * above. A bit ad-hoc but it's only a small amount of
+             * memory.
+             */
+            bufferCreateInfo.size += numCopyRegions * elementSize * 4;
+        }
         copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy)
                                                    * numCopyRegions);
         if (copyRegions == NULL) {
             return KTX_OUT_OF_MEMORY;
         }
 
-        bufferCreateInfo.size = textureSize;
         // This buffer is used as a transfer source for the buffer copy
         bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -687,36 +782,71 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                                     memReqs.size, 0,
                                     (void **)&pMappedStagingBuffer));
 
-        cbData.offset = 0;
-        cbData.region = copyRegions;
-        cbData.numFaces = This->numFaces;
-        cbData.numLayers = This->numLayers;
-        cbData.texture = This;
+        if (canUseOptimalPath) {
+            // Bulk load the data to the staging buffer and iterate
+            // over levels.
+            user_cbdata_optimal cbData;
+            cbData.offset = 0;
+            cbData.region = copyRegions;
+            cbData.numFaces = This->numFaces;
+            cbData.numLayers = This->numLayers;
 #if defined(_DEBUG)
-        cbData.regionsArrayEnd = copyRegions + numCopyRegions;
+            cbData.regionsArrayEnd = copyRegions + numCopyRegions;
 #endif
 
-        if (This->pData) {
-            /* Image data has already been loaded. Copy to staging buffer. */
-            assert(This->dataSize <= memAllocInfo.allocationSize);
-            memcpy(pMappedStagingBuffer, This->pData, This->dataSize);
-        } else {
-            /* Load the image data directly into the staging buffer. */
-            /* The strange cast quiets an Xcode warning when building for
-             * Generic iOS Device where size_t is 32-bit even when building
-             * for arm64. */
-            kResult = ktxTexture_LoadImageData(This,
+            if (This->pData) {
+                // Image data has already been loaded. Copy to staging
+                // buffer.
+                assert(This->dataSize <= memAllocInfo.allocationSize);
+                memcpy(pMappedStagingBuffer, This->pData, This->dataSize);
+            } else {
+                /* Load the image data directly into the staging buffer. */
+                /* The strange cast quiets an Xcode warning when building
+                 * for the Generic iOS Device where size_t is 32-bit even
+                 * when building for arm64. */
+                kResult = ktxTexture_LoadImageData(This,
                                       pMappedStagingBuffer,
                                       (ktx_size_t)memAllocInfo.allocationSize);
-            if (kResult != KTX_SUCCESS)
-                return kResult;
+                if (kResult != KTX_SUCCESS)
+                    return kResult;
+            }
+
+            // Iterate over mip levels to set up the copy regions.
+            kResult = ktxTexture_IterateLevels(This,
+                                               optimalTilingCallback,
+                                               &cbData);
+            // XXX Check for possible errors.
+        } else {
+            // Iterate a face-LoD at a time so images can be
+            // copied to Vulkan-valid offsets in the staging buffer
+            // and padding removed. This also minimizes
+            // pre-staging-buffer buffering in the event the data is
+            // not already loaded.
+            user_cbdata_optimal_pad cbData;
+            cbData.offset = 0;
+            cbData.region = copyRegions;
+            cbData.dest = pMappedStagingBuffer;
+            cbData.elementSize = elementSize;
+            cbData.numFaces = This->numFaces;
+            cbData.numLayers = This->numLayers;
+            cbData.texture = This;
+#if defined(_DEBUG)
+            cbData.regionsArrayEnd = copyRegions + numCopyRegions;
+#endif
+
+            if (This->pData) {
+                kResult = ktxTexture_IterateLevelFaces(
+                                            This,
+                                            optimalTilingPadCallback,
+                                            &cbData);
+            } else {
+                kResult = ktxTexture_IterateLoadLevelFaces(
+                                            This,
+                                            optimalTilingPadCallback,
+                                            &cbData);
+                // XXX Check for possible errors.
+            }
         }
-        
-        // Iterate over mip levels to set up the copy regions.
-        kResult = ktxTexture_IterateLevels(This,
-                                           optimalTilingCallback,
-                                           &cbData);
-        // XXX Check for possible errors
 
         vkUnmapMemory(vdi->device, stagingMemory);
 
@@ -823,8 +953,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = NULL
         };
-        //VkImageSubresourceRange subresourceRange;
         user_cbdata_linear cbData;
+        PFNKTXITERCB callback;
 
         imageCreateInfo.imageType = imageType;
         imageCreateInfo.flags = createFlags;
@@ -869,6 +999,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         cbData.destImage = mappableImage;
         cbData.device = vdi->device;
         cbData.texture = This;
+        callback = canUseOptimalPath ?
+                         linearTilingCallback : linearTilingPadCallback;
 
         // Map image memory
         VK_CHECK_RESULT(vkMapMemory(vdi->device, mappableMemory, 0,
@@ -877,11 +1009,11 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         // Iterate over images to copy texture data into mapped image memory.
         if (ktxTexture_isActiveStream(This)) {
             kResult = ktxTexture_IterateLoadLevelFaces(This,
-                                                       linearTilingCallback,
+                                                       callback,
                                                        &cbData);
         } else {
             kResult = ktxTexture_IterateLevelFaces(This,
-                                                   linearTilingCallback,
+                                                   callback,
                                                    &cbData);
         }
         // XXX Check for possible errors

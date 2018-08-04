@@ -830,6 +830,30 @@ ktxTexture_GetSize(ktxTexture* This)
 /**
  * @memberof ktxTexture
  * @~English
+ * @brief Return the size in bytes of an elements of a texture's
+ *        images.
+ *
+ * For uncompressed textures an element is one texel. For compressed
+ * textures it is one block.
+ *
+ * @param[in]     This     pointer to the ktxTexture object of interest.
+ */
+ktx_uint32_t
+ktxTexture_GetElementSize(ktxTexture* This)
+{
+    GlFormatSize* formatInfo;
+    ktx_uint32_t blockSizeInBytes;
+    ktx_uint32_t rowBytes;
+
+    assert (This != NULL);
+
+    formatInfo = &((ktxTextureInt*)This)->formatInfo;
+    return (formatInfo->blockSizeInBits / 8);
+}
+
+/**
+ * @memberof ktxTexture
+ * @~English
  * @brief Calculate & return the size in bytes of an image at the specified
  *        mip level.
  *
@@ -868,8 +892,6 @@ ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level)
         return rowBytes * blockCount.y;
     }
 }
-
-
 
 /**
  * @memberof ktxTexture
@@ -1491,41 +1513,34 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Return length of a texture image level's row in bytes.
+ * @brief Return pitch betweeb rows of a texture image level in bytes.
  *
- * This query is only useful for uncompressed images. It returns 0 for
- * compressed images. This makes it suitable for setting a VkBufferImageCopy
- * region's bufferRowLength;
+ * For uncompressed textures the pitch is the number of bytes between
+ * rows of texels. For compressed textures it is the number of bytes
+ * between rows of blocks. The value is padded to GL_UNPACK_ALIGNMENT,
+ * if necessary. For all currently known compressed formats padding
+ * will not be necessary.
  *
  * @param[in]     This     pointer to the ktxTexture object of interest.
  * @param[in]     level    level of interest.
- * @param[in,out] pRowLengthBytes
  *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALID @p This is NULL.
+ * @return  the row pitch in bytes.
  */
- KTX_error_code
- ktxTexture_GetRowLengthBytes(ktxTexture* This, ktx_uint32_t level,
-                              ktx_uint32_t* pRowLengthBytes)
+ ktx_uint32_t
+ ktxTexture_GetRowPitch(ktxTexture* This, ktx_uint32_t level)
  {
     GlFormatSize* formatInfo;
     struct blockCount {
         ktx_uint32_t x;
     } blockCount;
-
-    if (This == NULL)
-        return KTX_INVALID_VALUE;
-
-    if (This->isCompressed)
-        *pRowLengthBytes = 0;
+    ktx_uint32_t pitch;
 
     formatInfo = &((ktxTextureInt*)This)->formatInfo;
     blockCount.x = MAX(1, (This->baseWidth / formatInfo->blockWidth)  >> level);
-    *pRowLengthBytes = blockCount.x * formatInfo->blockSizeInBits / 8;
-    (void)padRow(pRowLengthBytes);
+    pitch = blockCount.x * formatInfo->blockSizeInBits / 8;
+    (void)padRow(&pitch);
 
-    return KTX_SUCCESS;
+    return pitch;
  }
 
 /**
