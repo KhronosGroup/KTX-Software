@@ -290,6 +290,7 @@ typedef struct user_cbdata_optimal_pad {
     VkDeviceSize offset;       // Offset of current level in staging buffer.
     ktx_uint8_t* dest;         // Pointer to mapped staging buffer.
     ktx_uint32_t elementSize;
+    ktx_uint32_t numDimensions;
     ktx_uint32_t numFaces;
     ktx_uint32_t numLayers;
     ktxTexture* texture;
@@ -320,31 +321,48 @@ optimalTilingPadCallback(int miplevel, int face,
     user_cbdata_optimal_pad* ud = (user_cbdata_optimal_pad*)userdata;
     ktx_uint32_t roundedSize, modes, mod4;
 
-    // Copy data into staging buffer
-    memcpy(ud->dest + ud->offset, pixels, faceLodSize);
-
-    // Set up copy to destination region in final image
+    // Set bufferOffset in destination region in final image
     assert(ud->region < ud->regionsArrayEnd);
     ud->region->bufferOffset = ud->offset;
-    // Round to needed multiples, if necessary.
-    roundedSize = faceLodSize;
-    modes = faceLodSize % ud->elementSize;
-    mod4 = faceLodSize % 4;
-    //if (faceLodSize % ud->elementSize != 0 || faceLodSize % 4 != 0) {
-    if (mod4 || modes) {
-        ktx_uint32_t lcm = ud->elementSize * 4;
-        //_KTX_PADN(lcm, roundedSize);
-        roundedSize = (ktx_uint32_t)(lcm * ceil((float)roundedSize / lcm));
+
+    // Copy data into staging buffer
+    if (_KTX_PAD_UNPACK_ALIGN_LEN(width * ud->elementSize) == 0) {
+        // No padding. Can copy in bulk.
+        memcpy(ud->dest + ud->offset, pixels, faceLodSize);
+        ud->offset += faceLodSize;
+    } else {
+        // Must remove padding by copying a row at a time.
+        ktx_uint32_t image, imageIterations, row;
+        ktx_uint32_t rowPitch, paddedRowPitch;
+
+        if (ud->numDimensions == 3)
+            imageIterations = depth;
+        else
+            imageIterations = ud->numLayers * ud->numFaces;
+        rowPitch = paddedRowPitch = width * ud->elementSize;
+        paddedRowPitch = _KTX_PAD_UNPACK_ALIGN(paddedRowPitch);
+        for (image = 0; image < imageIterations; image++) {
+            for (row = 0; row < height; row++) {
+                memcpy(ud->dest + ud->offset, pixels, rowPitch);
+                ud->offset += rowPitch;
+                pixels = (ktx_uint8_t*)pixels + paddedRowPitch;
+            }
+        }
     }
-    ud->offset += roundedSize;
-    // XXX Handle row padding for uncompressed textures. KTX specifies
-    // GL_UNPACK_ALIGNMENT of 4 so need to pad this from actual width.
-    // That means I need the element size and group size for the format
-    // to calculate bufferRowLength.
-    // These are expressed in texels.
+
+    // Round to needed multiples for next region, if necessary.
+    //modes = ud->offset % ud->elementSize;
+    //mod4 = ud->offset % 4;
+    if (ud->offset % ud->elementSize != 0 || ud->offset % 4 != 0) {
+    //if (mod4 || modes) {
+        ktx_uint32_t lcm = ud->elementSize * 4;
+        // Can't use _KTX_PADN shortcut because lcm is likely not
+        // a power of 2.
+        ud->offset = (ktx_uint32_t)(lcm * ceil((float)ud->offset / lcm));
+    }
+    // These are expressed in texels so not suitable for dealing with
+    // padding.
     ud->region->bufferRowLength = 0;
-    //ktxTexture_GetRowLengthBytes(ud->texture, miplevel,
-    //                             &ud->region->bufferRowLength);
     ud->region->bufferImageHeight = 0;
     ud->region->imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     ud->region->imageSubresource.mipLevel = miplevel;
@@ -827,6 +845,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             cbData.region = copyRegions;
             cbData.dest = pMappedStagingBuffer;
             cbData.elementSize = elementSize;
+            cbData.numDimensions = This->numDimensions;
             cbData.numFaces = This->numFaces;
             cbData.numLayers = This->numLayers;
             cbData.texture = This;
