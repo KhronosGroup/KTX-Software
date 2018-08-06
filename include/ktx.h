@@ -267,9 +267,9 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
  *
  * @param [in] miplevel        MIP level from 0 to the max level which is
  *                             dependent on the texture size.
- * @param [in] face            usually 0; for cube maps and cube map arrays,
- *                             one of the 6 cube faces in the order
- *                             +X, -X, +Y, -Y, +Z, -Z.
+ * @param [in] face            usually 0; for cube maps, one of the 6 cube
+ *                             faces in the order +X, -X, +Y, -Y, +Z, -Z,
+ *                             0 to 5.
  * @param [in] width           width of the image.
  * @param [in] height          height of the image or, for 1D textures
  *                             textures, 1.
