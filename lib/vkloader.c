@@ -248,16 +248,15 @@ typedef struct user_cbdata_optimal {
     ktx_uint8_t* dest;         // Pointer to mapped staging buffer.
     ktx_uint32_t elementSize;
     ktx_uint32_t numDimensions;
-    ktx_bool_t   isArray;
 #if defined(_DEBUG)
-    VkBufferImageCopy* regionsArrayEnd;   //  "
+    VkBufferImageCopy* regionsArrayEnd;
 #endif
 } user_cbdata_optimal;
 
 /**
  * @internal
  * @~English
- * @brief Callback for an optimally tiled texture with no source row padding.
+ * @brief Callback for optimally tiled textures with no source row padding.
  *
  * Images must be preloaded into the staging buffer. Each iteration, i.e.
  * the value of @p faceLodSize must be for a complete mip level, regardless of
@@ -304,7 +303,7 @@ optimalTilingCallback(int miplevel, int face,
 /**
  * @internal
  * @~English
- * @brief Callback for an optimally tiled texture with possible source row
+ * @brief Callback for optimally tiled textures with possible source row
  *        padding.
  *
  * Copies data to the staging buffer removing row padding, if necessary.
@@ -319,10 +318,10 @@ optimalTilingCallback(int miplevel, int face,
  * element size.
  *
  * This should be used with @c ktx_Texture_IterateFaceLevels or
- * @c ktx_Texture_IterateLoadFaceLevels. Face-level interation has been
+ * @c ktx_Texture_IterateLoadFaceLevels. Face-level iteration has been
  * selected to minimize the buffering needed between reading the file and
  * copying the data into the staging buffer. Obviously when
- * @c ktx_Texture_IterateFaceLevels is being used, this point it moot.
+ * @c ktx_Texture_IterateFaceLevels is being used, this is a moot point.
 *
  * @copydetails PFNKTXITERCB
  */
@@ -351,7 +350,7 @@ optimalTilingPadCallback(int miplevel, int face,
 
         if (ud->numDimensions == 3)
             imageIterations = depth;
-        else if (ud->isArray)
+        else if (ud->numLayers > 1)
             imageIterations = ud->numLayers * ud->numFaces;
         else
             imageIterations = 1;
@@ -400,9 +399,12 @@ typedef struct user_cbdata_linear {
     ktxTexture* texture;
 } user_cbdata_linear;
 
-/*
- * Callback for linear tiled textures with no source row padding.
- * Copy the image data into the Vulkan image.
+/**
+ * @internal
+ * @~English
+ * @brief Callback for linear tiled textures with no source row padding.
+ *
+ * Copy the image data into the mapped Vulkan image.
  */
 KTX_error_code KTXAPIENTRY
 linearTilingCallback(int miplevel, int face,
@@ -427,20 +429,22 @@ linearTilingCallback(int miplevel, int face,
     return KTX_SUCCESS;
 }
 
-/*
- * Callback for linear tiled textures with possible source row
- * padding. Copy the image data into the Vulkan image.
+/**
+ * @internal
+ * @~English
+ * @brief Callback for linear tiled textures with possible source row
+ *        padding.
  *
  * Need to use this long method as row padding is different
  * between KTX (pad to 4) and Vulkan (none).
  *
- * In theory this should work for the non-padded case too
- * but I am seeing weird subResLayout results with a
- * BC2_UNORM texture in the only real Vulkan implementation
- * I have available. The reported image stride appears to be
- * for an R8G8B8A8_UNORM of the same size. Having the separate
- * callback above helps avoid this issue as well as improving
- * performance.
+ * In theory this should work for the no-padding case too but it is much
+ * clearer and a bit faster to use the simple callback above. It also avoids
+ * potential Vulkan implementation bugs.
+ *
+ * I have seen weird subResLayout results with a BC2_UNORM texture in the only
+ * real Vulkan implementation I have available (Mesa). The reported row & image
+ * strides appears to be for an R8G8B8A8_UNORM of the same texel size.
  */
 KTX_error_code KTXAPIENTRY
 linearTilingPadCallback(int miplevel, int face,
@@ -459,8 +463,8 @@ linearTilingPadCallback(int miplevel, int face,
     ktx_size_t   imageSize = 0;
     VkDeviceSize imagePitch = 0;
     ktx_uint32_t srcRowPitch;
-    ktx_uint32_t rowIterations = 1;
-    ktx_uint32_t imageIterations = 1;
+    ktx_uint32_t rowIterations;
+    ktx_uint32_t imageIterations;
     ktx_uint32_t row, image;
     ktx_uint8_t* pSrc;
     ktx_size_t   copySize;
@@ -474,6 +478,8 @@ linearTilingPadCallback(int miplevel, int face,
 
     if (subResLayout.rowPitch != srcRowPitch)
         rowIterations = height;
+    else
+        rowIterations = 1;
 
     // Arrays, including cube map arrays, or 3D textures
     // Note from the Vulkan spec:
@@ -493,10 +499,12 @@ linearTilingPadCallback(int miplevel, int face,
                 imageIterations = depth;
         }
         assert(imageSize <= imagePitch);
-    }
+    } else
+        imageIterations = 1;
+
     if (rowIterations > 1) {
-        // srcRowPitch is the GL_UNPACK_ALIGNMENT padded size. Check
-        // for tight padding in the destination.
+        // Copy the minimum of srcRowPitch, the GL_UNPACK_ALIGNMENT padded size,
+        // and subResLayout.rowPitch.
         if (subResLayout.rowPitch < srcRowPitch)
             copySize = subResLayout.rowPitch;
         else
@@ -837,7 +845,6 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         cbData.dest = pMappedStagingBuffer;
         cbData.elementSize = elementSize;
         cbData.numDimensions = This->numDimensions;
-        cbData.isArray = This->isArray;
 #if defined(_DEBUG)
         cbData.regionsArrayEnd = copyRegions + numCopyRegions;
 #endif
