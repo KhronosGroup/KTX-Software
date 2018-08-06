@@ -63,6 +63,7 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
     zoom = -15.0f;
     rotationSpeed = 0.25f;
     rotation = { -15.0f, 35.0f, 0.0f };
+    tiling = vk::ImageTiling::eOptimal;
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
@@ -93,9 +94,14 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
                                         properties.optimalTilingFeatures;
     vk::FormatFeatureFlags neededFeatures =
              vk::FormatFeatureFlagBits::eSampledImage;
+    if (kTexture->numLevels > 1) {
+        neededFeatures |=
+                vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
+    }
     if (kTexture->generateMipmaps) {
 		neededFeatures |=  vk::FormatFeatureFlagBits::eBlitDst
-			             | vk::FormatFeatureFlagBits::eBlitSrc;
+			    | vk::FormatFeatureFlagBits::eBlitSrc
+		       | vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
     }
 
     if ((features & neededFeatures) != neededFeatures) {
@@ -108,7 +114,11 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
     else
         filter = vk::Filter::eNearest;
 
-    ktxresult = ktxTexture_VkUpload(kTexture, &vdi, &texture);
+    ktxresult =
+      ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
+                            static_cast<VkImageTiling>(tiling),
+                            VK_IMAGE_USAGE_SAMPLED_BIT,
+                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;

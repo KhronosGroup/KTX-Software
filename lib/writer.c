@@ -91,13 +91,12 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
     ktxTexture_GetImageOffset(This, level, layer, faceSlice, &imageOffset);
 
     if (This->isCompressed) {
-        packedBytes = ktxTexture_imageSize(This, level);
+        packedBytes = ktxTexture_GetImageSize(This, level);
         rowPadding = 0;
         // These 2 are not used when rowPadding == 0. Quiets compiler warning.
         packedRowBytes = 0;
         rowBytes = 0;
     } else {
-        // Block size for uncompressed is 1 x 1.
         ktxTexture_rowInfo(This, level, &numRows, &rowBytes, &rowPadding);
         unpackedBytes = rowBytes * numRows;
         if (rowPadding) {
@@ -316,7 +315,7 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
         ktx_size_t imageSize;
         
         faceLodSize = (ktx_uint32_t)ktxTexture_faceLodSize(This, level);
-        imageSize = ktxTexture_imageSize(This, level);
+        imageSize = ktxTexture_GetImageSize(This, level);
         levelDepth = MAX(1, This->baseDepth >> level);
         if (This->isCubemap && !This->isArray)
             numImages = This->numFaces;

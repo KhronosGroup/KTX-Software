@@ -156,8 +156,10 @@ typedef struct {
     ktx_uint32_t glBaseInternalformat; /*!< Base format of the texture data,
                                             e.g., GL_RGB. */
     ktx_uint32_t glType; /*!< Type of the texture data, e.g, GL_UNSIGNED_BYTE.*/
-      ktx_bool_t isArray; /*!< KTX_TRUE if the texture is an array texture. */
-      ktx_bool_t isCubemap; /*!< KTX_TRUE if the texture is a cubemap/ */
+      ktx_bool_t isArray; /*!< KTX_TRUE if the texture is an array texture, i.e,
+                               a GL_TEXTURE_*_ARRAY target is to be used. */
+      ktx_bool_t isCubemap; /*!< KTX_TRUE if the texture is a cubemap or
+                                 cubemap array. */
       ktx_bool_t isCompressed; /*!< KTX_TRUE if @c glInternalFormat is that of
                                     a compressed texture. */
       ktx_bool_t generateMipmaps; /*!< KTX_TRUE if mipmaps should be generated
@@ -265,9 +267,9 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
  *
  * @param [in] miplevel        MIP level from 0 to the max level which is
  *                             dependent on the texture size.
- * @param [in] face            usually 0; for cube maps and cube map arrays,
- *                             one of the 6 cube faces in the order
- *                             +X, -X, +Y, -Y, +Z, -Z.
+ * @param [in] face            usually 0; for cube maps, one of the 6 cube
+ *                             faces in the order +X, -X, +Y, -Y, +Z, -Z,
+ *                             0 to 5.
  * @param [in] width           width of the image.
  * @param [in] height          height of the image or, for 1D textures
  *                             textures, 1.
@@ -283,7 +285,8 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
 typedef KTX_error_code (KTXAPIENTRY* PFNKTXITERCB)(int miplevel, int face,
                                                int width, int height, int depth,
                                                ktx_uint32_t faceLodSize,
-                                               void* pixels, void* userdata);
+                                               void* pixels,
+                                               void* userdata);
 
 /*
  * See the implementation files for the full documentation of the following
@@ -344,11 +347,30 @@ ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
                           ktx_size_t* pOffset);
 
 /*
- * Returns the size of the image data of a ktxTexture object in bytes.
+ * Returns the pitch of a row of an image at the specified level.
+ * Similar to the rowPitch in a VkSubResourceLayout.
+ */
+ ktx_uint32_t
+ ktxTexture_GetRowPitch(ktxTexture* This, ktx_uint32_t level);
+
+ /*
+  * Return the element size of the texture's images.
+  */
+ ktx_uint32_t
+ ktxTexture_GetElementSize(ktxTexture* This);
+
+/*
+ * Returns the size of all the image data of a ktxTexture object in bytes.
  */
 ktx_size_t
 ktxTexture_GetSize(ktxTexture* This);
     
+/*
+ * Returns the size of an image at the specified level.
+ */
+ ktx_size_t
+ ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level);
+
 /*
  * Uploads the image data from a ktxTexture object to an OpenGL {,ES} texture
  * object.

@@ -224,11 +224,15 @@ VulkanLoadTests::onFPSUpdate()
 const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
       "testimages/orient-down-metadata.ktx",
-     "RGB8 2D + KTXOrientation down"
+      "RGB8 2D + KTXOrientation down"
     },
     { Texture::create,
       "testimages/orient-up-metadata.ktx",
       "RGB8 2D + KTXOrientation up"
+    },
+    { Texture::create,
+      "--linear-tiling testimages/orient-up-metadata.ktx",
+      "RGB8 2D + KTXOrientation up with Linear Tiling"
     },
     { Texture::create,
       "testimages/rgba-reference.ktx",
@@ -274,9 +278,21 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "--linear-tiling testimages/metalplate-amg-rgba8.ktx",
       "RGBA8 2D + Auto Mipmap using Linear Tiling"
     },
+    { TextureMipmap::create,
+      "testimages/not4_rgb888_srgb.ktx",
+      "RGB8 2D, Row length not Multiple of 4"
+    },
+    { TextureMipmap::create,
+      "--linear-tiling testimages/not4_rgb888_srgb.ktx",
+      "RGB8 2D, Row length not Multiple of 4 using Linear Tiling"
+    },
     { TextureArray::create,
         "testimages/texturearray_bc3_unorm.ktx",
-        "BC3 (S3TC DXT5) Compressed Texture Array"
+        "BC2 (S3TC DXT3) Compressed Texture Array"
+    },
+    { TextureArray::create,
+        "--linear-tiling testimages/texturearray_bc3_unorm.ktx",
+        "BC2 (S3TC DXT3) Compressed Texture Array using Linear Tiling"
     },
     { TextureArray::create,
         "testimages/texturearray_astc_8x8_unorm.ktx",

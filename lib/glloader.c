@@ -731,7 +731,6 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
             /* _ktxCheckHeader should have caught this. */
             assert(This->numDimensions == 2);
             target = GL_TEXTURE_CUBE_MAP;
-            target = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
         } else {
             switch (This->numDimensions) {
               case 1: target = GL_TEXTURE_1D; break;
