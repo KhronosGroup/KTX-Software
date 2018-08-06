@@ -177,6 +177,13 @@
       <Outputs>$(OutDir)\testimages\etc1.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\not4_rgb888_srgb.ktx">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\not4_rgb888_srgb.ktx&quot; &quot;$(OutDir)testimages\not4_rgb888_srgb.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/not4_rgb888_srgb.ktx to $(OutDir)\testimages</Message>
+      <Outputs>$(OutDir)\testimages\not4_rgb888_srgb.ktx</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\rgb-reference.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\rgb-reference.ktx&quot; &quot;$(OutDir)testimages\rgb-reference.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
