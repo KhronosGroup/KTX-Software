@@ -52,6 +52,10 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "RGB8 + KTXOrientation down"
     },
     { DrawTexture::create,
+      "testimages/not4_rgb888_srgb.ktx",
+      "RGB8 2D, Row length not Multiple of 4"
+    },
+    { DrawTexture::create,
       "testimages/etc1.ktx",
       "ETC1 RGB8"
     },
