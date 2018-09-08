@@ -178,8 +178,8 @@ public:
 
         VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, cmdBuffers.data()));
 
-        // Vertex buffer
-        VkDeviceSize bufferSize = MAX_CHAR_COUNT * sizeof(glm::vec4);
+        // Vertex buffer, 4 per character.
+        VkDeviceSize bufferSize = MAX_CHAR_COUNT * sizeof(glm::vec4) * 4;
 
         VkBufferCreateInfo bufferInfo = vkTools::initializers::bufferCreateInfo(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, bufferSize);
         VK_CHECK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
@@ -553,6 +553,9 @@ public:
     // todo : drop shadow? color attribute?
     void addText(std::string text, float x, float y, TextAlign align)
     {
+        if (numLetters == MAX_CHAR_COUNT)
+            return;
+
         assert(mapped != nullptr);
 
         const float charW = 1.5f / *frameBufferWidth;
@@ -615,6 +618,9 @@ public:
             x += charData->advance * charW;
 
             numLetters++;
+
+            if (numLetters == MAX_CHAR_COUNT)
+                break; // Truncate the text.
         }
     }
 
