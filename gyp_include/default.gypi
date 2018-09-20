@@ -148,6 +148,9 @@
       # had them set to NO while vkloadtests had them set to YES.
       'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
       'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
+      # Avoid Xcode 10 warning: "Traditional headermap style is no
+      # longer supported".
+      'ALWAYS_SEARCH_USER_PATHS': 'NO',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
