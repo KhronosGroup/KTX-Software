@@ -1,6 +1,6 @@
 
 Building KTX
-/bin/bash: }fmt: command not found
+============
 
 This document describes how to build the KTX library `libktx`, the
 portable KTX loader tests `ktxtests` and the KTX tools `ktxtools`.
