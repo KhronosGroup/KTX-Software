@@ -377,8 +377,10 @@ ktxTextureInt_constructFromStream(ktxTextureInt* This,
             if (!(createFlags & KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)) {
                 result = ktxHashList_Deserialize(&super->kvDataHead,
                                                  kvdLen, pKvd);
-                if (result != KTX_SUCCESS)
+                if (result != KTX_SUCCESS) {
+                    free(pKvd);
                     return result;
+                }
             } else {
                 super->kvDataLen = kvdLen;
                 super->kvData = pKvd;
@@ -607,8 +609,10 @@ ktxTexture_Create(ktxTextureCreateInfo* createInfo,
     result = ktxTextureInt_construct(tex, createInfo, storageAllocation);
     if (result == KTX_SUCCESS)
         *newTex = (ktxTexture*)tex;
-    else
+    else {
+        free(tex);
         *newTex = NULL;
+    }
     return result;
 }
 
@@ -675,8 +679,10 @@ ktxTexture_CreateFromStdioStream(FILE* stdioStream,
                                                     createFlags);
     if (result == KTX_SUCCESS)
         *newTex = (ktxTexture*)tex;
-    else
+    else {
+        free(tex);
         *newTex = NULL;
+    }
     return result;
 }
 
@@ -726,8 +732,10 @@ ktxTexture_CreateFromNamedFile(const char* const filename,
     result = ktxTextureInt_constructFromNamedFile(tex, filename, createFlags);
     if (result == KTX_SUCCESS)
         *newTex = (ktxTexture*)tex;
-    else
+    else {
+        free(tex);
         *newTex = NULL;
+    }
     return result;
 }
 
@@ -777,8 +785,10 @@ ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                                                createFlags);
     if (result == KTX_SUCCESS)
         *newTex = (ktxTexture*)tex;
-    else
+    else {
+        free(tex);
         *newTex = NULL;
+    }
     return result;
 }
 
