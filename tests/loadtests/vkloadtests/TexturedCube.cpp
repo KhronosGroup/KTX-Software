@@ -691,7 +691,7 @@ TexturedCube::prepareDescriptorSet()
     vk::DescriptorImageInfo texDescriptor(
             texture.sampler,
             texture.view,
-            vk::ImageLayout::eGeneral);
+            vk::ImageLayout::eShaderReadOnlyOptimal);
 
 #endif
 

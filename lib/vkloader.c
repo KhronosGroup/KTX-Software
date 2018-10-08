@@ -962,7 +962,6 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                 vdi->cmdBuffer,
                 vkTexture->image,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                //currentLayout,
                 finalLayout,
                 subresourceRange);
         }
