@@ -647,7 +647,6 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/include";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_NAME = libvulkan;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -667,7 +666,6 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/include";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_NAME = libvulkan;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
