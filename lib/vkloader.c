@@ -35,7 +35,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vulkan/vulkan.h>
 /* For GL format tokens */
 #include "GL/glcorearb.h"
 #include "GL/glext.h"

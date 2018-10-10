@@ -37,6 +37,9 @@
     'vksource_files': [
       '../include/ktxvulkan.h',
       'vk_format.h',
+      'vk_funclist.inl',
+      'vk_funcs.c',
+      'vk_funcs.h',
       'vkloader.c',
     ],
     'include_dirs': [
@@ -59,13 +62,15 @@
       },
       'include_dirs': [ '<@(include_dirs)' ],
       'mac_bundle': 0,
+      'dependencies': [ 'vulkan_headers' ],
       'sources': [
         '<@(sources)',
         '<@(vksource_files)',
       ],
       'conditions': [
         ['_type == "shared_library"', {
-          'dependencies': [ 'libgl', 'libvulkan' ],
+          'dependencies': [ 'libgl', 'libvulkan.lazy' ],
+          #'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
@@ -95,8 +100,6 @@
               },
             }] # OS == "mac or OS == "ios"
           ], # conditions
-        }, {
-          'dependencies': [ 'vulkan_headers' ],
         }] # _type == "shared_library"
       ], # conditions
     }, # libktx.gl target

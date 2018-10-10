@@ -67,7 +67,7 @@
   {
     'target_name': 'libvulkan',
     'type': 'none',
-    'dependencies': [ 'vulkan_headers' ],
+    'dependencies': [ 'vulkan_headers', ],
     'export_dependent_settings': [ 'vulkan_headers' ],
     'conditions': [
       ['OS == "ios" or OS == "mac"', {
@@ -157,7 +157,32 @@
         },
       }] # OS == 'ios' or OS == "mac", etc
     ], # conditions
-  }], # libvulkan target & targets
+  }, # libvulkan target
+  {
+    'target_name': 'libvulkan.lazy',
+    'type': 'none',
+    'conditions': [
+      ['OS == "ios"', {
+        # Shared library, & therefore this target, not used on iOS.
+      }, 'OS == "mac"', {
+        'direct_dependent_settings': {
+          'xcode_settings': {
+            'OTHER_LDFLAGS': '-lazy_library <(fwdir)/vulkan.framework/vulkan',
+          },
+        },
+      }, 'OS == "win"', {
+        'msvs_settings': {
+          'VCLinkerTool': {
+            'DelayLoadDLLs': 'vulkan-1',
+          }
+        }
+      }, {
+        'link_settings': {
+         'libraries': [ '-lazy-lvulkan' ],
+        },
+      }], # OS == "ios", etc.
+    ],
+  }], # vulkan.framework target & targets
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
