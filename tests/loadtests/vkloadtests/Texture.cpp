@@ -479,7 +479,7 @@ Texture::setupDescriptorSet()
     vk::DescriptorImageInfo texDescriptor(
             sampler,
             imageView,
-            vk::ImageLayout::eGeneral);
+            vk::ImageLayout::eShaderReadOnlyOptimal);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
     // Binding 0 : Vertex shader uniform buffer

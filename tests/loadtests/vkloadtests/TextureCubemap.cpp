@@ -416,7 +416,7 @@ TextureCubemap::setupDescriptorSets()
     vk::DescriptorImageInfo cubeMapDescriptor(
             sampler,
             imageView,
-            vk::ImageLayout::eGeneral);
+            vk::ImageLayout::eShaderReadOnlyOptimal);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets =
     {
