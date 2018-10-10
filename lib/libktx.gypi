@@ -37,9 +37,6 @@
     'vksource_files': [
       '../include/ktxvulkan.h',
       'vk_format.h',
-      'vk_funclist.inl',
-      'vk_funcs.c',
-      'vk_funcs.h',
       'vkloader.c',
     ],
     'include_dirs': [
@@ -70,7 +67,6 @@
       'conditions': [
         ['_type == "shared_library"', {
           'dependencies': [ 'libgl', 'libvulkan.lazy' ],
-          #'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
