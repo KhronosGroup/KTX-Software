@@ -167,7 +167,10 @@
       }, 'OS == "mac"', {
         'direct_dependent_settings': {
           'xcode_settings': {
-            'OTHER_LDFLAGS': '-lazy_library <(fwdir)/vulkan.framework/vulkan',
+            'OTHER_LDFLAGS': [
+              '-lazy_library',
+              '<(fwdir)/vulkan.framework/vulkan',
+            ],
           },
         },
       }, 'OS == "win"', {

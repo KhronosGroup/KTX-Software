@@ -709,7 +709,10 @@
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				OTHER_LDFLAGS = "-lazy_library $(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan";
+				OTHER_LDFLAGS = (
+					"-lazy_library",
+					"$(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan",
+				);
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Release;
@@ -1052,7 +1055,10 @@
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				OTHER_LDFLAGS = "-lazy_library $(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan";
+				OTHER_LDFLAGS = (
+					"-lazy_library",
+					"$(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan",
+				);
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Debug;
