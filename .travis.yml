@@ -78,7 +78,7 @@ install:
     wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz?Human=true &&
     mkdir -p VulkanSDK &&
     cd VulkanSDK &&
-    tar zxf ../vulkansdk-linux-x86_64-1.1.xx.y.tar.gz &&
+    tar zxf ../vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz &&
     cd $VULKAN_SDK_VER &&
     source ./setup-env.sh &&
     if [ ! -x $VULKAN_SDK/bin/glslc ]; then
