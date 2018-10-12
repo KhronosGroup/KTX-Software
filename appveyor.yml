@@ -16,7 +16,7 @@ platform:
 
 environment:
   GIT_TRACE: 0
-  VULKAN_SDK_VER: 1.1.73.0
+  VULKAN_SDK_VER: 1.1.85.0
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2017_R1
 

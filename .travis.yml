@@ -38,7 +38,7 @@ compiler:
 env:
   global:
     - GIT_LFS_VERSION="2.4.0"
-    - VULKAN_SDK_VER="1.1.73.0"
+    - VULKAN_SDK_VER="1.1.85.0"
 
 before_install:
 - eval "${MATRIX_EVAL}"
