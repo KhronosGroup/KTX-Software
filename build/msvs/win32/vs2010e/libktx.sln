@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan", "libvulkan.vcxp
 		{C0581BBC-1787-ED34-891A-7FE6F165432D} = {C0581BBC-1787-ED34-891A-7FE6F165432D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan.lazy", "libvulkan.lazy.vcxproj", "{0E187664-F338-8BAD-139A-A72D968336FE}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{C0581BBC-1787-ED34-891A-7FE6F165432D}"
 EndProject
 Global
@@ -29,6 +31,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E187664-F338-8BAD-139A-A72D968336FE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0E187664-F338-8BAD-139A-A72D968336FE}.Debug|Win32.Build.0 = Debug|Win32
+		{0E187664-F338-8BAD-139A-A72D968336FE}.Release|Win32.ActiveCfg = Release|Win32
+		{0E187664-F338-8BAD-139A-A72D968336FE}.Release|Win32.Build.0 = Release|Win32
 		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}.Debug|Win32.ActiveCfg = Debug|Win32
 		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}.Debug|Win32.Build.0 = Debug|Win32
 		{146482F4-8E09-5716-2AD9-5F7FC2EB0D22}.Release|Win32.ActiveCfg = Release|Win32

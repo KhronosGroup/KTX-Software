@@ -181,6 +181,24 @@
     <Filter Include="lib\_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\libktx.gyp"/>
@@ -280,5 +298,14 @@
     <ClCompile Include="..\..\..\..\lib\vkloader.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
+    <None Include="..\..\..\..\lib\vk_funclist.inl">
+      <Filter>lib\_excluded_files</Filter>
+    </None>
+    <ClCompile Include="..\..\..\..\lib\vk_funcs.c">
+      <Filter>lib\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\vk_funcs.h">
+      <Filter>lib\_excluded_files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

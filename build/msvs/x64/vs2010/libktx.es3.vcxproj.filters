@@ -82,6 +82,15 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
@@ -165,6 +174,15 @@
     <ClCompile Include="..\..\..\..\lib\vkloader.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <None Include="..\..\..\..\lib\vk_funclist.inl">
+      <Filter>lib</Filter>
+    </None>
+    <ClCompile Include="..\..\..\..\lib\vk_funcs.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\vk_funcs.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <None Include="..\..\..\..\libktx.gyp"/>
   </ItemGroup>
 </Project>
