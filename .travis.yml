@@ -75,10 +75,11 @@ install:
     sudo apt-get -qq install libassimp3v5 libassimp-dev &&
     # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
-    wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.run?Human=true &&
-    chmod ugo+x *.run &&
-    ./*.run &&
-    cd VulkanSDK/$VULKAN_SDK_VER &&
+    wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz?Human=true &&
+    mkdir VulkanSDK &&
+    cd VulkanSDK &&
+    tar zxf ../vulkansdk-linux-x86_64-1.1.xx.y.tar.gz &&
+    cd $VULKAN_SDK_VER &&
     source ./setup-env.sh &&
     if [ ! -x $VULKAN_SDK/bin/glslc ]; then
       ./build_tools.sh --shaderc ;
