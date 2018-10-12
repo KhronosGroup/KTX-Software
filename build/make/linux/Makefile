@@ -368,6 +368,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,libvulkan.lazy.target.mk)))),)
+  include libvulkan.lazy.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,libvulkan.target.mk)))),)
   include libvulkan.target.mk
 endif

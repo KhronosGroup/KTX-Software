@@ -35,11 +35,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vulkan/vulkan.h>
 /* For GL format tokens */
 #include "GL/glcorearb.h"
 #include "GL/glext.h"
 
+#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
+#include "vk_funcs.h"   // Must be included before ktxvulkan.h.
+#endif
 #include "ktxvulkan.h"
 #include "ktxint.h"
 #include "vk_format.h"
@@ -160,6 +162,23 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
     };
     VkResult result;
+
+#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
+    // Delay loading not supported so must do it ourselves.
+    if (!ktxVulkanLibrary) {
+        if (!ktxVulkanLoadLibrary())
+            // Normal use is for this constructor to be called by an application
+            // that has completed Vulkan initialization. In that case the only
+            // cause for failure would be an incompatible in the version of libvulkan
+            // that is loaded. The only other cause would be an application calling
+            // Vulkan functions without having initialized Vulkan.
+            //
+            // In these cases, an abort along with the messages sent to stderr by
+            // ktxVulkanLoadLibrary is sufficient as released applications should
+            // never suffer these.
+            abort();
+    }
+#endif
 
     This->physicalDevice = physicalDevice;
     This->device = device;

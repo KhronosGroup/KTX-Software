@@ -98,14 +98,6 @@ VulkanAppSDL::initialize(int argc, char* argv[])
     if (!AppBaseSDL::initialize(argc2, argv2))
         return false;
     delete[] argv2;
-
-#if defined(DEBUG)
-  // MoltenVK does not support layers (yet?).
-  #if !defined(__IPHONEOS__)
-    validate = true;
-  #endif
-    // Enable debug layers?
-#endif
     
     // Create window.
     // Vulkan samples do not pass any information from Vulkan initialization

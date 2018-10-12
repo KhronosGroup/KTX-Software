@@ -133,6 +133,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\lib\vk_funclist.inl"/>
     <None Include="..\..\..\..\libktx.gyp"/>
   </ItemGroup>
   <ItemGroup>
@@ -149,6 +150,7 @@
     <ClInclude Include="..\..\..\..\lib\uthash.h"/>
     <ClInclude Include="..\..\..\..\include\ktxvulkan.h"/>
     <ClInclude Include="..\..\..\..\lib\vk_format.h"/>
+    <ClInclude Include="..\..\..\..\lib\vk_funcs.h"/>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\lib\checkheader.c"/>
@@ -165,6 +167,7 @@
     <ClCompile Include="..\..\..\..\lib\writer.c"/>
     <ClCompile Include="..\..\..\..\lib\writer_v1.c"/>
     <ClCompile Include="..\..\..\..\lib\vkloader.c"/>
+    <ClCompile Include="..\..\..\..\lib\vk_funcs.c"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vulkan_headers.vcxproj">

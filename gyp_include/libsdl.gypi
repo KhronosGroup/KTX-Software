@@ -59,6 +59,7 @@
             'libraries=': [
               '<@(iosolib_dir)/libSDL2.a',
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
+              '$(SDKROOT)/System/Library/Frameworks/CoreBluetooth.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreMotion.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
               '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',

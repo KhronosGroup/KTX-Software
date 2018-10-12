@@ -38,6 +38,9 @@
       '../include/ktxvulkan.h',
       'vk_format.h',
       'vkloader.c',
+      'vk_funclist.inl',
+      'vk_funcs.c',
+      'vk_funcs.h'
     ],
     'include_dirs': [
       '../include',
@@ -59,13 +62,14 @@
       },
       'include_dirs': [ '<@(include_dirs)' ],
       'mac_bundle': 0,
+      'dependencies': [ 'vulkan_headers' ],
       'sources': [
         '<@(sources)',
         '<@(vksource_files)',
       ],
       'conditions': [
         ['_type == "shared_library"', {
-          'dependencies': [ 'libgl', 'libvulkan' ],
+          'dependencies': [ 'libgl', 'libvulkan.lazy' ],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
@@ -88,15 +92,21 @@
                   }], # _mac_bundle == 1
                 ], # target_conditions
               }, # direct_dependent_settings
+              'sources!': [
+                'vk_funclist.inl',
+                'vk_funcs.c',
+                'vk_funcs.h',
+              ],
               'xcode_settings': {
                 # This is so dyld can find the dylib when it is installed by
                 # the copy command above.
                 'INSTALL_PATH': '@rpath',
               },
+            }, 'OS == "linux"', {
+              'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
+              'dependencies!': [ 'libvulkan.lazy' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
-        }, {
-          'dependencies': [ 'vulkan_headers' ],
         }] # _type == "shared_library"
       ], # conditions
     }, # libktx.gl target

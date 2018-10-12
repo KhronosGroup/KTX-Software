@@ -67,7 +67,7 @@
   {
     'target_name': 'libvulkan',
     'type': 'none',
-    'dependencies': [ 'vulkan_headers' ],
+    'dependencies': [ 'vulkan_headers', ],
     'export_dependent_settings': [ 'vulkan_headers' ],
     'conditions': [
       ['OS == "ios" or OS == "mac"', {
@@ -98,9 +98,6 @@
           #  'OTHER_LDFLAGS': '-lc++',
           #}
         }, # link_settings
-        'xcode_settings': {
-            'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
-        },
         'conditions': [
           ['OS == "mac"', {
             'link_settings': {
@@ -114,26 +111,33 @@
             },
             # dds is needed because each app target gets its own directory.
             'direct_dependent_settings': {
-              # Can't use mac_bundle_resources because that puts the files
-              # into $(UNLOCALIZED_RESOURCES_FOLDER_PATH).
-              'copies': [{
-                'xcode_code_sign': 1,
-                'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
-                'files': [
-                  '<(fwdir)/vulkan.framework',
-                  '<(mvklib)/libMoltenVK.dylib',
-                ],
+              'xcode_settings': {
+                'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
               },
-              {
-                'xcode_code_sign': 1,
-                'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/icd.d',
-                'files': [ '<(mvklib)/MoltenVK_icd.json' ],
-              }], # copies
+              'target_conditions': [
+                ['_mac_bundle == 1', {
+                  # Can't use mac_bundle_resources because that puts the files
+                  # into $(UNLOCALIZED_RESOURCES_FOLDER_PATH).
+                  'copies': [{
+                    'xcode_code_sign': 1,
+                    'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+                    'files': [
+                      '<(fwdir)/vulkan.framework',
+                      '<(mvklib)/libMoltenVK.dylib',
+                    ],
+                  },
+                  {
+                    'xcode_code_sign': 1,
+                    'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/icd.d',
+                    'files': [ '<(otherlibroot_dir)/resources/MoltenVK_icd.json' ],
+                  }], # copies
+                }], # mac_bundle
+              ], # target_conditions
             }, # direct_dependent_settings
           }, 'OS == "ios"', {
-              'link_settings': {
-                'libraries!': [ '<(fwdir)/vulkan.framework' ],
-              },
+            'link_settings': {
+              'libraries!': [ '<(fwdir)/vulkan.framework' ],
+            },
           }]
         ]
       }, 'OS == "win"', {
@@ -153,7 +157,34 @@
         },
       }] # OS == 'ios' or OS == "mac", etc
     ], # conditions
-  }], # libvulkan target & targets
+  }, # libvulkan target
+  {
+    'target_name': 'libvulkan.lazy',
+    'type': 'none',
+    'conditions': [
+      ['OS == "ios"', {
+        # Shared library, & therefore this target, not used on iOS.
+      }, 'OS == "mac"', {
+        'direct_dependent_settings': {
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-lazy_library',
+              '<(fwdir)/vulkan.framework/vulkan',
+            ],
+          },
+        },
+      }, 'OS == "win"', {
+        'msvs_settings': {
+          'VCLinkerTool': {
+            'DelayLoadDLLs': 'vulkan-1',
+          }
+        }
+      }, {
+        # Boo! Hiss! GCC & therefore linux does not support delay
+        # loading. Have to use dlopen/dlsym.
+     }], # OS == "ios", etc.
+    ],
+  }], # vulkan.framework target & targets
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
