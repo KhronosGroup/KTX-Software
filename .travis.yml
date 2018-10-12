@@ -76,7 +76,7 @@ install:
     # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
     wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz?Human=true &&
-    mkdir VulkanSDK &&
+    mkdir -p VulkanSDK &&
     cd VulkanSDK &&
     tar zxf ../vulkansdk-linux-x86_64-1.1.xx.y.tar.gz &&
     cd $VULKAN_SDK_VER &&
