@@ -46,7 +46,8 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/texture.c"
   "../../../../lib/writer.c"
   "../../../../lib/writer_v1.c"
-  "../../../../lib/vkloader.c")
+  "../../../../lib/vkloader.c"
+  "../../../../lib/vk_funcs.c")
 list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
@@ -63,7 +64,9 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/stream.h"
   "../../../../lib/uthash.h"
   "../../../../include/ktxvulkan.h"
-  "../../../../lib/vk_format.h")
+  "../../../../lib/vk_format.h"
+  "../../../../lib/vk_funclist.inl"
+  "../../../../lib/vk_funcs.h")
 add_library(libktx_es3 STATIC ${libktx_es3__c_srcs} ${libktx_es3__cxx_srcs} ${libktx_es3__other_srcs})
 set_target_properties(libktx_es3 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
 set_source_files_properties(${libktx_es3__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -81,13 +84,22 @@ set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=
 set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-Og -g ")
 set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(libktx_es3
   vulkan_headers
 )
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libvulkan.lazy#target
+set(TARGET "libvulkan.lazy")
+set(TOOLSET "target")
+add_custom_target(libvulkan_lazy SOURCES)
+set_target_properties(libvulkan_lazy PROPERTIES EXCLUDE_FROM_ALL "TRUE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -137,10 +149,11 @@ set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=
 set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-Og -g ")
 set_target_properties(libktx_es1 PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
-set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -179,7 +192,10 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_v1.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funclist.inl"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.h")
 list(APPEND libktx_doc__buildDoc__output
   "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/html/libktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/libktx")
@@ -228,7 +244,8 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/texture.c"
   "../../../../lib/writer.c"
   "../../../../lib/writer_v1.c"
-  "../../../../lib/vkloader.c")
+  "../../../../lib/vkloader.c"
+  "../../../../lib/vk_funcs.c")
 list(APPEND libktx_gl__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
@@ -245,7 +262,9 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/stream.h"
   "../../../../lib/uthash.h"
   "../../../../include/ktxvulkan.h"
-  "../../../../lib/vk_format.h")
+  "../../../../lib/vk_format.h"
+  "../../../../lib/vk_funclist.inl"
+  "../../../../lib/vk_funcs.h")
 link_directories()
 add_library(libktx_gl SHARED ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
 set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
@@ -260,22 +279,21 @@ list(APPEND libktx_gl__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
-set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;DEBUG;_DEBUG;")
+set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;DEBUG;_DEBUG;")
 set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-Og -g -fPIC ")
 set_target_properties(libktx_gl PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(libktx_gl
-  libgl
-  libvulkan
   vulkan_headers
+  libgl
 )
 target_link_libraries(libktx_gl
   "-lGL"
-  "-lvulkan"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -313,6 +331,7 @@ set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SY
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 target_link_libraries(toktx
   libktx_gl
@@ -633,6 +652,7 @@ set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STA
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 add_dependencies(appfwSDL__frag2spirv
   libsdl
@@ -704,6 +724,7 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PR
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 add_dependencies(gl3loadtests
   libgl
@@ -1106,6 +1127,7 @@ set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRI
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources/mac/Info.plist")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 add_dependencies(vkloadtests__frag2spirv
   appfwSDL
@@ -1182,6 +1204,7 @@ set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_S
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 unset(TOOLSET)
 unset(TARGET)
@@ -1211,6 +1234,7 @@ set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDA
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 unset(TOOLSET)
 unset(TARGET)
@@ -1244,8 +1268,9 @@ set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODU
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 target_link_libraries(unittests
 -Wl,--start-group
   gtest
@@ -1286,8 +1311,9 @@ set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PR
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 target_link_libraries(texturetests
 -Wl,--start-group
   gtest

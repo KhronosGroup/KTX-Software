@@ -32,14 +32,14 @@
 #ifndef _VK_FUNCS_H_
 #define _VK_FUNCS_H_
 
-#if KTX_USE_FUNCPTRS_FOR_VULKAN
+#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 #define VK_NO_PROTOTYPES
 #endif
 
 #include <vulkan/vulkan.h>
 #include "ktx.h"
 
-#if KTX_USE_FUNCPTRS_FOR_VULKAN
+#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 
 #if defined(_WIN32)
 extern HMODULE ktxVulkanLibary;
@@ -47,7 +47,7 @@ extern HMODULE ktxVulkanLibary;
 extern void* ktxVulkanLibrary;
 #endif
 
-extern ktxResult ktxVulkanLoadLibrary(void);
+extern ktx_bool_t VulkanLoadLibrary(void);
 
 /* Declare pointers for functions libktx is using. */
 #define VK_FUNCTION(fun) extern PFN_##fun ktx_##fun;

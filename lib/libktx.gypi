@@ -38,6 +38,9 @@
       '../include/ktxvulkan.h',
       'vk_format.h',
       'vkloader.c',
+      'vk_funclist.inl',
+      'vk_funcs.c',
+      'vk_funcs.h'
     ],
     'include_dirs': [
       '../include',
@@ -89,11 +92,19 @@
                   }], # _mac_bundle == 1
                 ], # target_conditions
               }, # direct_dependent_settings
+              'sources!': [
+                'vk_funclist.inl',
+                'vk_funcs.c',
+                'vk_funcs.h',
+              ],
               'xcode_settings': {
                 # This is so dyld can find the dylib when it is installed by
                 # the copy command above.
                 'INSTALL_PATH': '@rpath',
               },
+            }, 'OS == "linux"', {
+              'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
+              'dependencies!': [ 'libvulkan.lazy' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
         }] # _type == "shared_library"

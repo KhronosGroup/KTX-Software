@@ -25,7 +25,7 @@
  * @brief Retrieve Vulkan function pointers needed by libktx
  */
 
-#if KTX_USE_FUNCPTRS_FOR_VULKAN
+#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 
 #define UNUX 0
 #define MACOS 0
@@ -49,7 +49,7 @@
 #endif
 
 #if (IOS + MACOS + UNIX + WINDOWS) > 1
-#error Multiple OS's defined
+#error "Multiple OS\'s defined"
 #endif 
 
 #if WINDOWS
@@ -70,7 +70,7 @@ HMODULE ktxVulkanLibary;
 #define LoadProcAddr dlsym
 void* ktxVulkanLibrary;
 #else
-#error Don't know how to load symbols on this OS.
+#error "Don\'t know how to load symbols on this OS."
 #endif
 
 #if WINDOWS
@@ -90,37 +90,56 @@ static PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 
 #undef VK_FUNCTION
 
-#define VK_FUNCTION(fun)                                                   \
-  if ( !(ktx_##fun = (PFN_##fun)vkGetInstanceProcAddr(ktxVulkanLibrary, #fun )) ) {      \
-    fprintf(stderr, "Could not load vulkan function: %s!\n", #fun);        \
-    return KTX_FILE_OPEN_FAILED;                                           \
+#if 0
+// The Vulkan spec. recommends using vkGetInstanceProcAddr over dlsym (or whatever).
+// Doing so would require a backward incompatible change to he libktx API to provide
+// the information. We have no choice but dlsym. We can't use vkGetDeviceProcAddr
+// because libktx also uses none-device-level functions.
+#define VK_FUNCTION(fun)                                                     \
+  if ( !(ktx_##fun = (PFN_##fun)vkGetInstanceProcAddr(instance, #fun )) ) {  \
+    fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);          \
+    return KTX_FALSE;                                             \
   }
+#else
+#define VK_FUNCTION(fun)                                                   \
+  if ( !(ktx_##fun = (PFN_##fun)LoadProcAddr(ktxVulkanLibrary, #fun)) ) {  \
+    fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);        \
+    return KTX_FALSE;                                           \
+  }
+#endif
 
-ktxResult
-ktxVulkanLoadLibrary()
+ktx_bool_t
+ktxVulkanLoadLibrary(void)
 {
     if (ktxVulkanLibrary)
-        return KTX_SUCCESS;
+        return KTX_TRUE;
 
     ktxVulkanLibrary = LoadLibrary(VULKANLIB, RTLD_LAZY);
-    if (ktxVulkanLibrary == NULL)
-        return(KTX_FILE_OPEN_FAILED);
+    if (ktxVulkanLibrary == NULL) {
+        fprintf(stderr, "Could not load Vulkan library.\n");
+        return(KTX_FALSE);
+    }
 
+#if 0
     vkGetInstanceProcAddr =
             (PFN_vkGetInstanceProcAddr)LoadProcAddr(ktxVulkanLibrary,
-                                                    "vkGetInstanceProcAddr");
-    if (!vkGetInstanceProcAddr)
-        return(KTX_FILE_OPEN_FAILED);
+                                                  "vkGetInstanceProcAddr");
+    if (!vkGetInstanceProcAddr) {
+       fprintf(stderr, "Could not load Vulkan command: %s!\n",
+               "vkGetInstanceProcAddr");
+       return(KTX_FALSE);
+    }
+#endif
 
 #include "vk_funclist.inl"
 
-    return KTX_SUCCESS;
+    return KTX_TRUE;
 }
 
 #undef VK_FUNCTION
 
 #else
 
-extern int keepISOCompilerHappy;
+extern int keepISOCompilersHappy;
 
 #endif /* KTX_USE_FUNCPTRS_FOR_VULKAN */

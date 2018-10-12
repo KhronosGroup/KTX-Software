@@ -4,6 +4,7 @@ TOOLSET := target
 TARGET := libktx.gl
 DEFS_Debug := \
 	'-DKTX_OPENGL=1' \
+	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -26,6 +27,7 @@ INCS_Debug := \
 
 DEFS_Release := \
 	'-DKTX_OPENGL=1' \
+	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
@@ -58,13 +60,14 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/texture.o \
 	$(obj).target/$(TARGET)/lib/writer.o \
 	$(obj).target/$(TARGET)/lib/writer_v1.o \
-	$(obj).target/$(TARGET)/lib/vkloader.o
+	$(obj).target/$(TARGET)/lib/vkloader.o \
+	$(obj).target/$(TARGET)/lib/vk_funcs.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libgl.stamp $(obj).target/libvulkan.stamp $(obj).target/vulkan_headers.stamp
+$(OBJS): | $(obj).target/vulkan_headers.stamp $(obj).target/libgl.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -102,8 +105,7 @@ LDFLAGS_Debug := \
 LDFLAGS_Release :=
 
 LIBS := \
-	-lGL \
-	-lvulkan
+	-lGL
 
 $(obj).target/libktx.gl.so: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(obj).target/libktx.gl.so: LIBS := $(LIBS)

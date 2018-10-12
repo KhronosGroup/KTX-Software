@@ -180,10 +180,9 @@
           }
         }
       }, {
-        'link_settings': {
-         'libraries': [ '-lazy-lvulkan' ],
-        },
-      }], # OS == "ios", etc.
+        # Boo! Hiss! GCC & therefore linux does not support delay
+        # loading. Have to use dlopen/dlsym.
+     }], # OS == "ios", etc.
     ],
   }], # vulkan.framework target & targets
 }
