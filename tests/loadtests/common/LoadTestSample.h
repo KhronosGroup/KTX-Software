@@ -75,6 +75,10 @@ class LoadTestSample {
     glm::vec3 rotation;
     glm::vec3 cameraPos;
     glm::vec2 mousePos;
+    float accumDist;
+    float accumTheta;
+    bool zooming;
+    bool rotating;
     struct {
         bool left = false;
         bool right = false;

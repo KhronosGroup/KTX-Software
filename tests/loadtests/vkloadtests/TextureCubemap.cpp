@@ -740,11 +740,14 @@ TextureCubemap::keyPressed(uint32_t keyCode)
 }
 
 void
-TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay)
+TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
 {
     std::stringstream ss;
     ss << std::setprecision(2) << std::fixed << ubo.lodBias;
-    textOverlay->addText("Press \"s\" to toggle skybox", 5.0f, 85.0f, VulkanTextOverlay::alignLeft);
-    textOverlay->addText("Press \"space\" to toggle object", 5.0f, 100.0f, VulkanTextOverlay::alignLeft);
-    textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)", 5.0f, 115.0f, VulkanTextOverlay::alignLeft);
+    textOverlay->addText("Press \"s\" to toggle skybox", 5.0f,
+                         yOffset, VulkanTextOverlay::alignLeft);
+    textOverlay->addText("Press \"space\" to toggle object", 5.0f,
+                         yOffset+20.0f, VulkanTextOverlay::alignLeft);
+    textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
+                         5.0f, yOffset+40.0f, VulkanTextOverlay::alignLeft);
 }

@@ -55,7 +55,7 @@ class GLLoadTests : public GLAppSDL {
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
-   // virtual void getOverlayText(TextOverlay * textOverlay);
+    //virtual void getOverlayText(TextOverlay* textOverlay, float yOffset);
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();
     virtual void windowResized();

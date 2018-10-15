@@ -29,6 +29,9 @@
 
 #include <exception>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include <SDL2/SDL_vulkan.h>
 
 #include "VulkanLoadTests.h"
@@ -38,6 +41,86 @@
 #include "TexturedCube.h"
 #include "TextureMipmap.h"
 #include "ltexceptions.h"
+
+
+namespace Swipe {
+    enum Direction {
+        up,
+        down,
+        left,
+        right
+    };
+
+    /**
+     * @~English
+     * @brief Find the angle between two points in a plane.
+     *
+     * The angle is measured with 0/360 being the X-axis to the right, angles
+     * increase counter clockwise.
+     *
+     * @param x1 the x position of the first point
+     * @param y1 the y position of the first point
+     * @param x2 the x position of the second point
+     * @param y2 the y position of the second point
+     *
+     * @return the angle between two points
+     */
+    double getAngle(float x1, float y1, float x2, float y2) {
+        double rad = atan2(y1-y2,x2-x1) + M_PI;
+        return fmod(rad*180/M_PI + 180, 360);
+    }
+
+    /**
+     * @param angle an angle
+     * @param init the initial bound
+     * @param end the final bound
+     *
+     * @return true if the given angle is in the interval [init, end), false
+     *         otherwise.
+     */
+    static bool inRange(double angle, float init, float end){
+        return (angle >= init) && (angle < end);
+    }
+
+    /**
+     * Returns a direction given an angle.
+     * Directions are defined as follows:
+     *
+     * Up: [45, 135]
+     * Right: [0,45] and [315, 360]
+     * Down: [225, 315]
+     * Left: [135, 225]
+     *
+     * @param angle an angle from 0 to 360 - e
+     * @return the direction of an angle
+     */
+    static Direction getDirection(double angle){
+        if (inRange(angle, 45, 135)) {
+            return Direction::up;
+        } else if (inRange(angle, 0,45) || inRange(angle, 315, 360)) {
+            return Direction::right;
+        } else if (inRange(angle, 225, 315)) {
+            return Direction::down;
+        } else {
+           return Direction::left;
+       }
+    }
+
+    /**
+     * Given two points in the plane p1=(x1, x2) and p2=(y1, y1), this method
+     * returns the direction that an arrow pointing from p1 to p2 would have.
+     *
+     * @param x1 the x position of the first point
+     * @param y1 the y position of the first point
+     * @param x2 the x position of the second point
+     * @param y2 the y position of the second point
+     * @return the direction
+     */
+    Direction getDirection(float x1, float y1, float x2, float y2){
+        double angle = getAngle(x1, y1, x2, y2);
+        return getDirection(angle);
+    }
+};
 
 #define LT_VK_MAJOR_VERSION 1
 #define LT_VK_MINOR_VERSION 0
@@ -51,6 +134,10 @@ VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
                     VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true)
 {
     pCurSample = nullptr;
+    //eventWrite = 0;
+    //swipe.start.timestamp = 0;
+    mgestureFirstNotSaved = true;
+    mgestureNotSwipe = true;
 }
 
 VulkanLoadTests::~VulkanLoadTests()
@@ -86,6 +173,8 @@ int
 VulkanLoadTests::doEvent(SDL_Event* event)
 {
     int result = 0;
+    float distanceSq = 0;
+
     switch (event->type) {
       case SDL_KEYUP:
         switch (event->key.keysym.sym) {
@@ -104,35 +193,113 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             result = 1;
         }
         break;
-      case SDL_MOUSEBUTTONDOWN:
-        // Forward to sample in case this is the start of motion.
-        result = 1;
-        switch (event->button.button) {
-          case SDL_BUTTON_LEFT:
-            buttonDown.x = event->button.x;
-            buttonDown.y = event->button.y;
-            buttonDown.timestamp = event->button.timestamp;
-            break;
-          default:
-            break;
-        }
+#define VERBOSE 1
+#if 0
+      case SDL_FINGERDOWN:
+#if VERBOSE
+        SDL_Log("Finger: %"SDL_PRIs64" down - x: %f, y: %f",
+           event->tfinger.fingerId,event->tfinger.x,event->tfinger.y);
+#endif
+        fingerDownTimestamp = event->tfinger.timestamp;
+
         break;
-      case SDL_MOUSEBUTTONUP:
-        // Forward to sample so it doesn't get stuck in button down state.
-        result = 1;
-        switch (event->button.button) {
-          case SDL_BUTTON_LEFT:
-            if (SDL_abs(event->button.x - buttonDown.x) < 5
-                && SDL_abs(event->button.y - buttonDown.y) < 5
-                && (event->button.timestamp - buttonDown.timestamp) < 100) {
-                // Advance to the next sample.
+#endif
+      case SDL_FINGERUP:
+#if VERBOSE
+        SDL_Log("Finger: %" SDL_PRIs64 " up - x: %f, y: %f",
+               event->tfinger.fingerId,event->tfinger.x,event->tfinger.y);
+#endif
+#if 0
+        if (swipe.start.timestamp != 0) {
+            Swipe::Direction direction = Swipe::getDirection(swipe.start.x, swipe.start.y, swipe.last.x, swipe.last.y);
+            if (direction == Swipe::left) {
                 ++sampleIndex;
                 invokeSample(Direction::eForward);
+            } else if (direction == Swipe::right) {
+                --sampleIndex;
+                invokeSample(Direction::eBack);
             }
-            break;
-          default:
-            break;
+            // else ignore. Up & down 2-fingered swipes are equivalent to
+            // right button down & drag on some systems. RDD is used for
+            // zooming.
+            swipe.start.timestamp = 0;
         }
+        mgestureNotSwipe = false;
+#endif
+        mgestureNotSwipe = true;
+        mgestureFirstNotSaved = true;
+        //eventWrite = 0;
+        break;
+      case SDL_MULTIGESTURE:
+#if VERBOSE
+        SDL_Log("MG: x = %f, y = %f, dAng = %f, dR = %f, numFingers = %i",
+           event->mgesture.x,
+           event->mgesture.y,
+           event->mgesture.dTheta,
+           event->mgesture.dDist,
+           event->mgesture.numFingers);
+        //SDL_Log("eventWrite = %i, mgestureNotSwipe = %i", eventWrite, mgestureNotSwipe);
+        SDL_Log("mgestureNotSwipe = %i", mgestureNotSwipe);
+#endif
+        if (mgestureFirstNotSaved) {
+            mgestureFirst = event->mgesture;
+            mgestureFirstNotSaved = false;
+        }
+        //events[eventWrite] = *event;
+        //eventWrite++;
+        //eventWrite &= eventBufSize - 1; // Rotate to 0, if necessary.
+        if (mgestureNotSwipe) {
+            float dx, dy, velocitySq;
+            dx = event->mgesture.x - mgestureFirst.x;
+            dy = event->mgesture.y - mgestureFirst.y;
+            distanceSq = dx * dx + dy * dy;
+            velocitySq = distanceSq / (event->mgesture.timestamp - fingerDownTimestamp);
+#if VERBOSE
+            SDL_Log("MG: distanceSq = %f, velocitySq = %f",
+                    distanceSq, velocitySq);
+#endif
+            //if (distanceSq > 0.10) {
+            if (velocitySq > 0.000005) {
+                Swipe::Direction direction
+                    = Swipe::getDirection(mgestureFirst.x, mgestureFirst.y,
+                                          event->mgesture.x, event->mgesture.y);
+                if (direction == Swipe::left) {
+                    ++sampleIndex;
+                    invokeSample(Direction::eForward);
+                } else if (direction == Swipe::right) {
+                    --sampleIndex;
+                    invokeSample(Direction::eBack);
+                }
+                mgestureNotSwipe = false;
+            } else
+                result = 1;
+        }
+#if 0
+        if (mgestureNotSwipe) {
+            result = 1;
+        } else if (swipe.start.timestamp == 0) {
+            if (event->mgesture.numFingers == 2 && distanceSq > 0.05f) {
+                // We've got a swipe
+                swipe.start.timestamp = events[0].mgesture.timestamp;
+                swipe.start.x = events[0].mgesture.x;
+                swipe.start.y = events[0].mgesture.y;
+                eventWrite = 0;
+            } else if (eventWrite > 40) {
+                // Not a swipe. Pass accumulated events to sample.
+                if (pCurSample != nullptr) {
+                    for (uint32_t i = 0; i < eventWrite; i++)
+                        result = pCurSample->doEvent(&events[i]);
+                }
+                eventWrite = 0;
+                mgestureNotSwipe = true;
+            }
+        } else {
+            swipe.last.timestamp = event->mgesture.timestamp;
+            swipe.last.x = event->mgesture.x;
+            swipe.last.y = event->mgesture.y;
+            eventWrite = 0;
+        }
+#endif
         break;
       default:
           result = 1;
@@ -167,10 +334,16 @@ VulkanLoadTests::drawFrame(uint32_t msTicks)
 
 
 void
-VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay)
+VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay, float yOffset)
 {
-    if (enableTextOverlay && pCurSample != nullptr) {
-        pCurSample->getOverlayText(textOverlay);
+    if (enableTextOverlay) {
+        textOverlay->addText("Press \"n\" or 2-finger swipe left for next sample, "
+                             "\"p\" or swipe right for previous.",
+                             5.0f, yOffset, VulkanTextOverlay::alignLeft);
+
+        if (pCurSample != nullptr) {
+            pCurSample->getOverlayText(textOverlay, yOffset+20);
+        }
     }
 }
 

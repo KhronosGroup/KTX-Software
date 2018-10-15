@@ -41,7 +41,7 @@ class VulkanLoadTests : public VulkanAppSDL {
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
-    virtual void getOverlayText(VulkanTextOverlay * textOverlay);
+    virtual void getOverlayText(VulkanTextOverlay * textOverlay, float yOffset);
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();
     virtual void windowResized();
@@ -85,6 +85,23 @@ class VulkanLoadTests : public VulkanAppSDL {
         int32_t y;
         uint32_t timestamp;
     } buttonDown;
+
+    struct {
+        struct mgesture {
+            float x;
+            float y;
+            uint32_t timestamp;
+        } start;
+        struct mgesture last;
+    } swipe;
+
+    //static const uint32_t eventBufSize = 256; // Must be power of 2.
+    //SDL_Event events[eventBufSize];
+    //uint32_t eventWrite;
+    uint32_t fingerDownTimestamp;
+    SDL_MultiGestureEvent mgestureFirst;
+    bool mgestureFirstNotSaved;
+    bool mgestureNotSwipe;
 };
 
 #endif /* VULKAN_LOAD_TESTS_H */

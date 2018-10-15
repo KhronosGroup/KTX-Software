@@ -1230,13 +1230,14 @@ void VulkanAppSDL::updateTextOverlay()
     textOverlay->addText(vkctx.gpuProperties.deviceName, 5.0f, 45.0f,
                          VulkanTextOverlay::alignLeft);
 
-    getOverlayText(textOverlay);
+    // Leave a blank line between us and the derived class's text.
+    getOverlayText(textOverlay, 85.0f);
 
     textOverlay->endTextUpdate();
 }
 
 
-void VulkanAppSDL::getOverlayText(VulkanTextOverlay *textOverlay)
+void VulkanAppSDL::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
 {
     // Can be overriden in derived class
 }
