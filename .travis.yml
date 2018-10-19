@@ -15,7 +15,8 @@ matrix:
       #cache:
       #  directories:
       #    - $HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin
-      dist: xenial
+      dist: bionic
+      #dist: xenial
       group: edge
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
