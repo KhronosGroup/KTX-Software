@@ -34,7 +34,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
                  uint32_t width, uint32_t height,
                  const char* const szArgs,
                  const std::string sBasePath);
-    ~InstancedSampleBase();
+    virtual ~InstancedSampleBase();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
