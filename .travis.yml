@@ -12,18 +12,16 @@ matrix:
           packages:
             - gcc-7
             - g++-7
-      cache:
-        directories:
-          - $HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64/bin
       dist: xenial
       group: edge
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-        - VULKAN_SDK="$HOME/build/VulkanSDK/$VULKAN_SDK_VER/x86_64"
+        - VULKAN_SDK_VER="1.1.85"
       sudo: required
     - os: osx
       env:
         - ASSIMP_HOME="/usr/local"
+        - VULKAN_SDK_VER="1.1.85.0"
         - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
       osx_image: xcode9.3
 
@@ -38,7 +36,6 @@ compiler:
 env:
   global:
     - GIT_LFS_VERSION="2.4.0"
-    - VULKAN_SDK_VER="1.1.85.0"
 
 before_install:
 - eval "${MATRIX_EVAL}"
@@ -73,25 +70,14 @@ install:
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq install libvulkan1 libvulkan-dev &&
     sudo apt-get -qq install libassimp3v5 libassimp-dev &&
-    # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
-    pushd ../.. &&
-    wget -O vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz?Human=true &&
-    mkdir -p VulkanSDK &&
-    cd VulkanSDK &&
-    tar zxf ../vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.gz &&
-    cd $VULKAN_SDK_VER &&
-    source ./setup-env.sh &&
-    if [ ! -x $VULKAN_SDK/bin/glslc ]; then
-      ./build_tools.sh --shaderc ;
-      # This swallows a bogus error exit status of 1 from build_tools.sh
-      echo "build_tools.sh exit status: " $?;
-    fi &&
-    popd
+    wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add - &&
+    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-xenial.list http://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-xenial.list &&
+    sudo apt update &&
+    sudo apt install lunarg-vulkan-sdk
     ;;
   osx)
     brew install doxygen &&
     brew install assimp &&
-    #brew install lftp &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
     wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
@@ -181,23 +167,6 @@ script:
     ./texturetests &&
     popd &&
     ./runDoxygen ktxpkg.doxy
-    # Upload doxygen generated docs to khronos.org
-    #if [ $TRAVIS_PULL_REQUEST = "false" ]; then
-      #pushd build/docs/html
-      #echo "In doc upload"
-      #ftp -u "$FTP_USER:$FTP_CRED@$FTP_HOST:21/documentation" ktxtools libktx package
-      #cat <<EOF
-      #foo
-      #bar
-      #snafu
-      #EOF
-      #ftp -n "$FTP_USER:$FTP_CRED@$FTP_SERVER:21" <<EOF
-      #cd documentation
-      #rmdir ktxtools libktx package
-      #put -r *
-      #EOF
-      #popd
-    #fi
     ;;
     esac
 

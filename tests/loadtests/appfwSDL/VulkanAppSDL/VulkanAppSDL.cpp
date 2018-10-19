@@ -86,7 +86,7 @@ VulkanAppSDL::initialize(int argc, char* argv[])
 {
     char** argv2 = new char*[argc];
     int argc2 = argc;
-    validate = false;
+
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--validate") == 0) {
             validate = true;
@@ -119,8 +119,6 @@ VulkanAppSDL::initialize(int argc, char* argv[])
     if (!initializeVulkan()) {
         return false;
     }
-
-    subOptimalPresentWarned = false;
 
     initializeFPSTimer();
     return true;
