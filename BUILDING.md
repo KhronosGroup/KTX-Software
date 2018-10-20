@@ -169,9 +169,8 @@ The MSVS `ktxtests` solutions on Windows include OpenGL ES versions.
 To build a complete solution and run the OpenGL ES versions you need to
 install an OpenGL ES emulator.
 
-The KTX loader tests in `ktxtests` use a custom version of libSDL 2.0.5+
-with support for creating Vulkan surfaces. You do not need SDL if you only
-wish to build `libktx` or `ktxtools`.
+The KTX loader tests in `ktxtests` use libSDL 2.0.8+. You do not
+need SDL if you only wish to build `libktx` or `ktxtools`.
 
 Binaries of these dependencies are included in the KTX Git repo.
 
@@ -241,29 +240,40 @@ the xcode project if you wish to do this.
 
 #### Building SDL from source
 
-KTX uses SDL 2.0.7+. The canonical Mercurial repo is at
+KTX uses SDL 2.0.8+. The canonical Mercurial repo is at
 https://hg.libsdl.org/SDL. An automated GitHub mirror is at
 https://github.com/spurious/SDL-mirror. The binaries were built from
-changeset [d97ab6d1240](https://hg.libsdl.org/SDL/rev/d97ab6d12404).
+changeset [12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac).
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
 
 ### Vulkan SDK
 
-For GNU/Linux and Windows install the Vulkan SDK from
+For GNU/Linux install the Vulkan SDK using the `.tar.gz` file from
 [LunarG](https://vulkan.lunarg.com/). Set the environment variable
 `VULKAN_SDK` as instructed by LunarG.
 
-For GNU/Linux you will need to build `glslc` whose binary for some reason LunarG has decided not to include in the SDK. To do this:
+You will need to build `glslc` whose binary is not included in the
+SDK. To do this:
 
 ```bash
 cd $VULKAN_SDK
 ./build_tools.sh --shaderc
 ```
 
-It takes a while.  10 minutes or more! Add a comment to
-[issue 671 at LunarG](https://vulkan.lunarg.com/issue/view/58e4e57be46ffe7e73becd83) to apply pressure on them to include this binary.
+It takes a while.  10 minutes or more! Add a comment to [issue 671
+at LunarG](https://vulkan.lunarg.com/issue/view/58e4e57be46ffe7e73becd83)
+to apply pressure on them to include this binary.
+
+For Ubuntu Xenial (16.04) & Bionic (18.04) you can install the
+Vulkan SDK from the Ubuntu distribution. Follow the instructions
+give at [LunarG](https://vulkan.lunarg.com/). The `glslc` binary
+is included.
+
+For Windows install the Vulkan SDK for Windows from
+[LunarG](https://vulkan.lunarg.com/). Set the environment variable
+`VULKAN_SDK` as instructed by LunarG.
 
 For iOS and macOS, install the Vulkan SDK for macOS from
 [LunarG](https://vulkan.lunarg.com/). Set a `VULKAN_SDK` Custom
