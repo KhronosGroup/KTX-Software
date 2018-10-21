@@ -221,12 +221,17 @@ that ANGLE's OpenGL ES 3 support is not yet complete.
 
 ### SDL
 
-Builds of SDL are provided in the KTX Git repo.
+Builds of SDL are provided in the KTX Git repo. These binaries
+were built from a post 2.0.8 changeset given below. This changeset
+includes a fix for an issue with OpenGL applications on macOS Mojave.
+Standard SDL 2.0.8 works fine on all other platforms so you can download
+binaries from [libsdl.org](https://libsdl.org), if you prefer.
 
-#### macOS
+#### macOS Notes
 
-If you wish to use the provided version of SDL in other applications on your system,
-you can install the framework. Open a shell and enter the following command
+If you wish to use the provided version of SDL in other applications
+on your system, you can install the framework. Open a shell and enter
+the following command
 
 ```bash
 cp -R other_lib/mac/<configuration>/SDL2.framework /Library/Frameworks
@@ -240,10 +245,12 @@ the xcode project if you wish to do this.
 
 #### Building SDL from source
 
-KTX uses SDL 2.0.8+. The canonical Mercurial repo is at
-https://hg.libsdl.org/SDL. An automated GitHub mirror is at
-https://github.com/spurious/SDL-mirror. The binaries were built from
-changeset [12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac).
+As noted above, KTX uses a post SDL 2.0.8 changeset, no.
+[12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac) in the canonical
+Mercurial repo at https://hg.libsdl.org/SDL or the automated GitHub
+mirror at https://github.com/spurious/SDL-mirror. Clone the repo,
+checkout changeset [12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac)
+and follow the SDL build instructions.
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
@@ -269,7 +276,7 @@ to apply pressure on them to include this binary.
 For Ubuntu Xenial (16.04) & Bionic (18.04) you can install the
 Vulkan SDK from the Ubuntu distribution. Follow the instructions
 give at [LunarG](https://vulkan.lunarg.com/). The `glslc` binary
-is included.
+is included hence use of this distribution is highly recommended.
 
 For Windows install the Vulkan SDK for Windows from
 [LunarG](https://vulkan.lunarg.com/). Set the environment variable
