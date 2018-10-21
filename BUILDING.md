@@ -169,9 +169,8 @@ The MSVS `ktxtests` solutions on Windows include OpenGL ES versions.
 To build a complete solution and run the OpenGL ES versions you need to
 install an OpenGL ES emulator.
 
-The KTX loader tests in `ktxtests` use a custom version of libSDL 2.0.5+
-with support for creating Vulkan surfaces. You do not need SDL if you only
-wish to build `libktx` or `ktxtools`.
+The KTX loader tests in `ktxtests` use libSDL 2.0.8+. You do not
+need SDL if you only wish to build `libktx` or `ktxtools`.
 
 Binaries of these dependencies are included in the KTX Git repo.
 
@@ -222,12 +221,17 @@ that ANGLE's OpenGL ES 3 support is not yet complete.
 
 ### SDL
 
-Builds of SDL are provided in the KTX Git repo.
+Builds of SDL are provided in the KTX Git repo. These binaries
+were built from a post 2.0.8 changeset given below. This changeset
+includes a fix for an issue with OpenGL applications on macOS Mojave.
+Standard SDL 2.0.8 works fine on all other platforms so you can download
+binaries from [libsdl.org](https://libsdl.org), if you prefer.
 
-#### macOS
+#### macOS Notes
 
-If you wish to use the provided version of SDL in other applications on your system,
-you can install the framework. Open a shell and enter the following command
+If you wish to use the provided version of SDL in other applications
+on your system, you can install the framework. Open a shell and enter
+the following command
 
 ```bash
 cp -R other_lib/mac/<configuration>/SDL2.framework /Library/Frameworks
@@ -241,29 +245,42 @@ the xcode project if you wish to do this.
 
 #### Building SDL from source
 
-KTX uses SDL 2.0.7+. The canonical Mercurial repo is at
-https://hg.libsdl.org/SDL. An automated GitHub mirror is at
-https://github.com/spurious/SDL-mirror. The binaries were built from
-changeset [d97ab6d1240](https://hg.libsdl.org/SDL/rev/d97ab6d12404).
+As noted above, KTX uses a post SDL 2.0.8 changeset, no.
+[12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac) in the canonical
+Mercurial repo at https://hg.libsdl.org/SDL or the automated GitHub
+mirror at https://github.com/spurious/SDL-mirror. Clone the repo,
+checkout changeset [12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac)
+and follow the SDL build instructions.
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
 
 ### Vulkan SDK
 
-For GNU/Linux and Windows install the Vulkan SDK from
+For GNU/Linux install the Vulkan SDK using the `.tar.gz` file from
 [LunarG](https://vulkan.lunarg.com/). Set the environment variable
 `VULKAN_SDK` as instructed by LunarG.
 
-For GNU/Linux you will need to build `glslc` whose binary for some reason LunarG has decided not to include in the SDK. To do this:
+You will need to build `glslc` whose binary is not included in the
+SDK. To do this:
 
 ```bash
 cd $VULKAN_SDK
 ./build_tools.sh --shaderc
 ```
 
-It takes a while.  10 minutes or more! Add a comment to
-[issue 671 at LunarG](https://vulkan.lunarg.com/issue/view/58e4e57be46ffe7e73becd83) to apply pressure on them to include this binary.
+It takes a while.  10 minutes or more! Add a comment to [issue 671
+at LunarG](https://vulkan.lunarg.com/issue/view/58e4e57be46ffe7e73becd83)
+to apply pressure on them to include this binary.
+
+For Ubuntu Xenial (16.04) & Bionic (18.04) you can install the
+Vulkan SDK from the Ubuntu distribution. Follow the instructions
+give at [LunarG](https://vulkan.lunarg.com/). The `glslc` binary
+is included hence use of this distribution is highly recommended.
+
+For Windows install the Vulkan SDK for Windows from
+[LunarG](https://vulkan.lunarg.com/). Set the environment variable
+`VULKAN_SDK` as instructed by LunarG.
 
 For iOS and macOS, install the Vulkan SDK for macOS from
 [LunarG](https://vulkan.lunarg.com/). Set a `VULKAN_SDK` Custom
