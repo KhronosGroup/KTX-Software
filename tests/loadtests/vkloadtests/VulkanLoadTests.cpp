@@ -136,8 +136,8 @@ VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
     pCurSample = nullptr;
     //eventWrite = 0;
     //swipe.start.timestamp = 0;
-    mgestureFirstNotSaved = true;
-    mgestureNotSwipe = true;
+    mgestureFirstSaved = false;
+    mgestureSwipe = false;
 }
 
 VulkanLoadTests::~VulkanLoadTests()
@@ -169,11 +169,20 @@ VulkanLoadTests::finalize()
 }
 
 
+#if !defined(LOG_GESTURE_EVENTS)
+  #define LOG_GESTURE_EVENTS 0
+#endif
+#if !defined(LOG_GESTURE_DETECTION)
+  #define LOG_GESTURE_DETECTION 1
+#endif
+
 int
 VulkanLoadTests::doEvent(SDL_Event* event)
 {
     int result = 0;
+#if 0
     float distanceSq = 0;
+#endif
 
     switch (event->type) {
       case SDL_KEYUP:
@@ -193,113 +202,90 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             result = 1;
         }
         break;
-#define VERBOSE 1
+
 #if 0
       case SDL_FINGERDOWN:
-#if VERBOSE
-        SDL_Log("Finger: %"SDL_PRIs64" down - x: %f, y: %f",
+#if LOG_GESTURE_EVENTS
+        SDL_Log("Finger: %" SDL_PRIs64 " down - x: %f, y: %f",
            event->tfinger.fingerId,event->tfinger.x,event->tfinger.y);
 #endif
+        SDL_Log("*********************************************************************");
         fingerDownTimestamp = event->tfinger.timestamp;
-
+        result = 1;
         break;
 #endif
       case SDL_FINGERUP:
-#if VERBOSE
+#if LOG_GESTURE_EVENTS
         SDL_Log("Finger: %" SDL_PRIs64 " up - x: %f, y: %f",
                event->tfinger.fingerId,event->tfinger.x,event->tfinger.y);
 #endif
-#if 0
-        if (swipe.start.timestamp != 0) {
-            Swipe::Direction direction = Swipe::getDirection(swipe.start.x, swipe.start.y, swipe.last.x, swipe.last.y);
-            if (direction == Swipe::left) {
-                ++sampleIndex;
-                invokeSample(Direction::eForward);
-            } else if (direction == Swipe::right) {
-                --sampleIndex;
-                invokeSample(Direction::eBack);
-            }
-            // else ignore. Up & down 2-fingered swipes are equivalent to
-            // right button down & drag on some systems. RDD is used for
-            // zooming.
-            swipe.start.timestamp = 0;
+        SDL_Log("----------------------- FINGERUP ---------------------------");
+
+        // SDL_GetNumTouchFingers appears to return the number of fingers
+        // down *before* the event was generated, so 1 means the last finger
+        // just lifted.
+        if (SDL_GetNumTouchFingers(event->tfinger.touchId) == 1) {
+            mgestureFirstSaved = false;
         }
-        mgestureNotSwipe = false;
-#endif
-        mgestureNotSwipe = true;
-        mgestureFirstNotSaved = true;
         //eventWrite = 0;
         break;
       case SDL_MULTIGESTURE:
-#if VERBOSE
-        SDL_Log("MG: x = %f, y = %f, dAng = %f, dR = %f, numFingers = %i",
+#if LOG_GESTURE_EVENTS
+        SDL_Log("MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i",
            event->mgesture.x,
            event->mgesture.y,
+           event->mgesture.dTheta * 180.0 / M_PI,
            event->mgesture.dTheta,
            event->mgesture.dDist,
            event->mgesture.numFingers);
-        //SDL_Log("eventWrite = %i, mgestureNotSwipe = %i", eventWrite, mgestureNotSwipe);
-        SDL_Log("mgestureNotSwipe = %i", mgestureNotSwipe);
 #endif
-        if (mgestureFirstNotSaved) {
+#if LOG_GESTURE_DETECTION
+        SDL_Log("mgestureSwipe = %i, time = %i",
+                 mgestureSwipe,
+                 event->mgesture.timestamp - mgestureFirst.timestamp);
+#endif
+        if (!mgestureFirstSaved) {
+#if LOG_GESTURE_DETECTION
+            SDL_Log("***************** MULTIGESTURE START *******************");
+#endif
             mgestureFirst = event->mgesture;
-            mgestureFirstNotSaved = false;
-        }
-        //events[eventWrite] = *event;
-        //eventWrite++;
-        //eventWrite &= eventBufSize - 1; // Rotate to 0, if necessary.
-        if (mgestureNotSwipe) {
-            float dx, dy, velocitySq;
-            dx = event->mgesture.x - mgestureFirst.x;
-            dy = event->mgesture.y - mgestureFirst.y;
-            distanceSq = dx * dx + dy * dy;
-            velocitySq = distanceSq / (event->mgesture.timestamp - fingerDownTimestamp);
-#if VERBOSE
-            SDL_Log("MG: distanceSq = %f, velocitySq = %f",
-                    distanceSq, velocitySq);
-#endif
-            //if (distanceSq > 0.10) {
-            if (velocitySq > 0.000005) {
-                Swipe::Direction direction
-                    = Swipe::getDirection(mgestureFirst.x, mgestureFirst.y,
-                                          event->mgesture.x, event->mgesture.y);
-                if (direction == Swipe::left) {
-                    ++sampleIndex;
-                    invokeSample(Direction::eForward);
-                } else if (direction == Swipe::right) {
-                    --sampleIndex;
-                    invokeSample(Direction::eBack);
-                }
-                mgestureNotSwipe = false;
-            } else
-                result = 1;
-        }
-#if 0
-        if (mgestureNotSwipe) {
-            result = 1;
-        } else if (swipe.start.timestamp == 0) {
-            if (event->mgesture.numFingers == 2 && distanceSq > 0.05f) {
-                // We've got a swipe
-                swipe.start.timestamp = events[0].mgesture.timestamp;
-                swipe.start.x = events[0].mgesture.x;
-                swipe.start.y = events[0].mgesture.y;
-                eventWrite = 0;
-            } else if (eventWrite > 40) {
-                // Not a swipe. Pass accumulated events to sample.
-                if (pCurSample != nullptr) {
-                    for (uint32_t i = 0; i < eventWrite; i++)
-                        result = pCurSample->doEvent(&events[i]);
-                }
-                eventWrite = 0;
-                mgestureNotSwipe = true;
-            }
+            mgestureFirstSaved = true;
+            mgestureSwipe = false;
         } else {
-            swipe.last.timestamp = event->mgesture.timestamp;
-            swipe.last.x = event->mgesture.x;
-            swipe.last.y = event->mgesture.y;
-            eventWrite = 0;
-        }
+            if (!mgestureSwipe) {
+                float dx, dy, distanceSq, velocitySq;
+                dx = event->mgesture.x - mgestureFirst.x;
+                dy = event->mgesture.y - mgestureFirst.y;
+                distanceSq = dx * dx + dy * dy;
+                //velocitySq = distanceSq / (event->mgesture.timestamp - fingerDownTimestamp);
+                //assert(event->mgesture.timestamp != mgestureFirst.timestamp);
+                velocitySq = distanceSq / (event->mgesture.timestamp - mgestureFirst.timestamp);
+#if LOG_GESTURE_DETECTION
+                SDL_Log("MG: distanceSq = %f, velocitySq = %f",
+                        distanceSq, velocitySq);
 #endif
+                //if (distanceSq > 0.10) {
+                // We're seeing multiple events with the same timestamp hence the
+                // isinf check.
+                if (!isinf(velocitySq) && velocitySq > 0.0002) { // 0.08
+#if LOG_GESTURE_DETECTION
+                    SDL_Log("Swipe detected.");
+#endif
+                    Swipe::Direction direction
+                        = Swipe::getDirection(mgestureFirst.x, mgestureFirst.y,
+                                              event->mgesture.x, event->mgesture.y);
+                    if (direction == Swipe::left) {
+                        ++sampleIndex;
+                        invokeSample(Direction::eForward);
+                    } else if (direction == Swipe::right) {
+                        --sampleIndex;
+                        invokeSample(Direction::eBack);
+                    }
+                    mgestureSwipe = true;
+                } else
+                    result = 1;
+            }
+        }
         break;
       default:
           result = 1;

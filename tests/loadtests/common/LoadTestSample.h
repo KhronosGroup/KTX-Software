@@ -66,6 +66,9 @@ class LoadTestSample {
                                           const char* const szArgs,
                                           const std::string sBasePath);
 
+    bool zooming;
+    bool rotating;
+
   protected:
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
@@ -77,8 +80,6 @@ class LoadTestSample {
     glm::vec2 mousePos;
     float accumDist;
     float accumTheta;
-    bool zooming;
-    bool rotating;
     struct {
         bool left = false;
         bool right = false;

@@ -100,8 +100,8 @@ class VulkanLoadTests : public VulkanAppSDL {
     //uint32_t eventWrite;
     uint32_t fingerDownTimestamp;
     SDL_MultiGestureEvent mgestureFirst;
-    bool mgestureFirstNotSaved;
-    bool mgestureNotSwipe;
+    bool mgestureFirstSaved;
+    bool mgestureSwipe;
 };
 
 #endif /* VULKAN_LOAD_TESTS_H */

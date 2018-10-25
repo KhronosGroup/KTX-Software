@@ -30,6 +30,10 @@
 #include "SDL2/SDL_log.h"
 #include "LoadTestSample.h"
 
+#if !defined(LOG_GESTURE_DETECTION)
+  #define LOG_GESTURE_DETECTION 1
+#endif
+
 int
 LoadTestSample::doEvent(SDL_Event* event)
 {
@@ -130,27 +134,41 @@ LoadTestSample::doEvent(SDL_Event* event)
         return 1;
 #endif
       case SDL_MULTIGESTURE:
+        accumDist += event->mgesture.dDist;
+        accumTheta += event->mgesture.dTheta * 180.0 / M_PI;
+#if LOG_GESTURE_DETECTION
+        SDL_Log("dDist = %f, accumDist = %f", event->mgesture.dDist, accumDist);
+        SDL_Log("dTheta = %f°, accumTheta = %f°", event->mgesture.dTheta * 180.0 / M_PI, accumTheta);
+#endif
         if (zooming) {
             zoom += event->mgesture.dDist * 10.0f;
         } else {
-            accumDist += event->mgesture.dDist;
             if (fabs(accumDist) > 0.018) {
+            //if (fabs(accumDist) > 0.3) {
+#if LOG_GESTURE_DETECTION
+                SDL_Log("zooming detected");
+#endif
                 zooming = true;
                 zoom += accumDist * 10.0f;
             }
-            SDL_Log("accumDist = %f", accumDist);
         }
         if (rotating) {
             rotation.z += event->mgesture.dTheta * 180.0 / M_PI;
-            accumTheta += event->mgesture.dTheta * 180.0 / M_PI;
-            SDL_Log("**** accumTheta = %f", accumTheta);
+#if LOG_GESTURE_DETECTION
+            SDL_Log("rotation.z = %f°", rotation.z);
+#endif
        } else {
-            accumTheta += event->mgesture.dTheta;
-            if (fabs(accumTheta) > 0.2) {
+            //if (fabs(accumTheta) > 0.2) {
+            if (fabs(accumTheta) > 20) {
+#if LOG_GESTURE_DETECTION
+                SDL_Log("rotation detected, accumTheta = %f°, rotation.z = %f°",
+                        accumTheta,
+                        rotation.z);
+#endif
                 rotating = true;
-                rotation.z += accumTheta * 180.0 / M_PI;
+                rotation.z += accumTheta;
+                SDL_Log("rotation.z = %f°", rotation.z);
             }
-            SDL_Log("accumTheta = %f", accumTheta);
         }
         viewChanged();
         return 0;
