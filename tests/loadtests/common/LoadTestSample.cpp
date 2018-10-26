@@ -135,7 +135,7 @@ LoadTestSample::doEvent(SDL_Event* event)
 #endif
       case SDL_MULTIGESTURE:
         accumDist += event->mgesture.dDist;
-        accumTheta += event->mgesture.dTheta * 180.0 / M_PI;
+        accumTheta += static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
 #if LOG_GESTURE_DETECTION
         SDL_Log("dDist = %f, accumDist = %f", event->mgesture.dDist, accumDist);
         SDL_Log("dTheta = %f°, accumTheta = %f°",
@@ -153,7 +153,7 @@ LoadTestSample::doEvent(SDL_Event* event)
             }
         }
         if (rotating) {
-            rotation.z += event->mgesture.dTheta * 180.0 / M_PI;
+            rotation.z += static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
 #if LOG_GESTURE_DETECTION
             SDL_Log("rotation.z = %f°", rotation.z);
 #endif
