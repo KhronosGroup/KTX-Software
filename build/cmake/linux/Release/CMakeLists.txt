@@ -671,6 +671,7 @@ set(TARGET "gl3loadtests")
 set(TOOLSET "target")
 list(APPEND gl3loadtests__cxx_srcs
   "../../../../tests/loadtests/common/LoadTestSample.cpp"
+  "../../../../tests/loadtests/common/SwipeDetector.cpp"
   "../../../../tests/loadtests/glloadtests/GLLoadTests.cpp"
   "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.cpp"
   "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTests.cpp"
@@ -680,6 +681,7 @@ list(APPEND gl3loadtests__cxx_srcs
   "../../../../tests/loadtests/glloadtests/shader-based/shaders.cpp")
 list(APPEND gl3loadtests__other_srcs
   "../../../../tests/loadtests/common/LoadTestSample.h"
+  "../../../../tests/loadtests/common/SwipeDetector.h"
   "../../../../tests/loadtests/geom/cube.h"
   "../../../../tests/loadtests/geom/frame.h"
   "../../../../tests/loadtests/glloadtests/GLLoadTests.h"
@@ -1050,6 +1052,7 @@ add_custom_target(vkloadtests__copies
 list(APPEND vkloadtests__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tests/loadtests/common/LoadTestSample.cpp"
+  "../../../../tests/loadtests/common/SwipeDetector.cpp"
   "../../../../tests/loadtests/vkloadtests/InstancedSampleBase.cpp"
   "../../../../tests/loadtests/vkloadtests/Texture.cpp"
   "../../../../tests/loadtests/vkloadtests/TextureArray.cpp"
@@ -1061,6 +1064,7 @@ list(APPEND vkloadtests__cxx_srcs
 list(APPEND vkloadtests__other_srcs
   "../../../../utils/argparser.h"
   "../../../../tests/loadtests/common/LoadTestSample.h"
+  "../../../../tests/loadtests/common/SwipeDetector.h"
   "../../../../tests/loadtests/common/ltexceptions.h"
   "../../../../tests/loadtests/common/vecmath.hpp"
   "../../../../tests/loadtests/vkloadtests/resources/mac/Info.plist"
