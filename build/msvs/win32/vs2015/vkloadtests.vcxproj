@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\SwipeDetector.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\ltexceptions.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\InstancedSampleBase.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.h"/>
@@ -161,6 +162,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\SwipeDetector.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\InstancedSampleBase.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\Texture.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\vkloadtests\TextureArray.cpp"/>

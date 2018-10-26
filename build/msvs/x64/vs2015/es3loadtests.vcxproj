@@ -140,6 +140,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\quad.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\SwipeDetector.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\cube.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\frame.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.h"/>
@@ -153,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\SwipeDetector.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\DrawTexture.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\GL3LoadTests.cpp"/>
