@@ -66,9 +66,6 @@ class LoadTestSample {
                                           const char* const szArgs,
                                           const std::string sBasePath);
 
-    bool zooming;
-    bool rotating;
-
   protected:
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
@@ -86,6 +83,8 @@ class LoadTestSample {
         bool middle = false;
     } mouseButtons;
     bool quit = false;
+    bool rotating;
+    bool zooming;
 
     float zoom = 0;
 

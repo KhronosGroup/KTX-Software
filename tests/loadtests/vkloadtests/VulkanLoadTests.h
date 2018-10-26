@@ -95,10 +95,6 @@ class VulkanLoadTests : public VulkanAppSDL {
         struct mgesture last;
     } swipe;
 
-    //static const uint32_t eventBufSize = 256; // Must be power of 2.
-    //SDL_Event events[eventBufSize];
-    //uint32_t eventWrite;
-    uint32_t fingerDownTimestamp;
     SDL_MultiGestureEvent mgestureFirst;
     bool mgestureFirstSaved;
     bool mgestureSwipe;

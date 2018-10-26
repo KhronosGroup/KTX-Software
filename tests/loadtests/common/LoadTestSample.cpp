@@ -138,13 +138,13 @@ LoadTestSample::doEvent(SDL_Event* event)
         accumTheta += event->mgesture.dTheta * 180.0 / M_PI;
 #if LOG_GESTURE_DETECTION
         SDL_Log("dDist = %f, accumDist = %f", event->mgesture.dDist, accumDist);
-        SDL_Log("dTheta = %f°, accumTheta = %f°", event->mgesture.dTheta * 180.0 / M_PI, accumTheta);
+        SDL_Log("dTheta = %f°, accumTheta = %f°",
+                event->mgesture.dTheta * 180.0 / M_PI, accumTheta);
 #endif
         if (zooming) {
             zoom += event->mgesture.dDist * 10.0f;
         } else {
             if (fabs(accumDist) > 0.018) {
-            //if (fabs(accumDist) > 0.3) {
 #if LOG_GESTURE_DETECTION
                 SDL_Log("zooming detected");
 #endif
@@ -158,7 +158,6 @@ LoadTestSample::doEvent(SDL_Event* event)
             SDL_Log("rotation.z = %f°", rotation.z);
 #endif
        } else {
-            //if (fabs(accumTheta) > 0.2) {
             if (fabs(accumTheta) > 20) {
 #if LOG_GESTURE_DETECTION
                 SDL_Log("rotation detected, accumTheta = %f°, rotation.z = %f°",

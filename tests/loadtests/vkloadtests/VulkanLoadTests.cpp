@@ -180,9 +180,6 @@ int
 VulkanLoadTests::doEvent(SDL_Event* event)
 {
     int result = 0;
-#if 0
-    float distanceSq = 0;
-#endif
 
     switch (event->type) {
       case SDL_KEYUP:
@@ -203,17 +200,6 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         }
         break;
 
-#if 0
-      case SDL_FINGERDOWN:
-#if LOG_GESTURE_EVENTS
-        SDL_Log("Finger: %" SDL_PRIs64 " down - x: %f, y: %f",
-           event->tfinger.fingerId,event->tfinger.x,event->tfinger.y);
-#endif
-        SDL_Log("*********************************************************************");
-        fingerDownTimestamp = event->tfinger.timestamp;
-        result = 1;
-        break;
-#endif
       case SDL_FINGERUP:
 #if LOG_GESTURE_EVENTS
         SDL_Log("Finger: %" SDL_PRIs64 " up - x: %f, y: %f",
@@ -227,7 +213,6 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         if (SDL_GetNumTouchFingers(event->tfinger.touchId) == 1) {
             mgestureFirstSaved = false;
         }
-        //eventWrite = 0;
         break;
       case SDL_MULTIGESTURE:
 #if LOG_GESTURE_EVENTS
@@ -254,19 +239,18 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         } else {
             if (!mgestureSwipe) {
                 float dx, dy, distanceSq, velocitySq;
+                uint32_t duration;
                 dx = event->mgesture.x - mgestureFirst.x;
                 dy = event->mgesture.y - mgestureFirst.y;
                 distanceSq = dx * dx + dy * dy;
-                //velocitySq = distanceSq / (event->mgesture.timestamp - fingerDownTimestamp);
-                //assert(event->mgesture.timestamp != mgestureFirst.timestamp);
-                velocitySq = distanceSq / (event->mgesture.timestamp - mgestureFirst.timestamp);
+                duration = (event->mgesture.timestamp - mgestureFirst.timestamp);
+                velocitySq = distanceSq / duration;
 #if LOG_GESTURE_DETECTION
                 SDL_Log("MG: distanceSq = %f, velocitySq = %f",
                         distanceSq, velocitySq);
 #endif
-                //if (distanceSq > 0.10) {
-                // We're seeing multiple events with the same timestamp hence the
-                // isinf check.
+                // Multiple events with the same timestamp is a possibility
+                // hence the isinf() check.
                 if (!isinf(velocitySq) && velocitySq > 0.0002) { // 0.08
 #if LOG_GESTURE_DETECTION
                     SDL_Log("Swipe detected.");
