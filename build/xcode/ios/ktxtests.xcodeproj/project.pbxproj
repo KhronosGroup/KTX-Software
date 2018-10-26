@@ -128,7 +128,6 @@
 		0E56D0257988B5CB44A85CBC /* conftestimage_RG11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F86AECEE217AC2AFBBB2A8DA /* conftestimage_RG11_EAC.ktx */; };
 		0ED0C98B51C3B4B446B5CC2F /* instancing.vert.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = 497D295C57475B5C10CEC35E /* instancing.vert.spv */; };
 		0F4FC2A218F3854E306AB442 /* no-npot.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 00FCCEC4D4635AAE13ED2689 /* no-npot.ktx */; };
-		0FFFAB6119A276702E0BA02A /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
 		138F00C1ED0AB40575E71381 /* etc2-rgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 040AE20C24637EE75BBCF18C /* etc2-rgb.ktx */; };
 		1509765E977DB4F5CD2C6724 /* GLLoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA33A6B84B1A950E7B2DCB /* GLLoadTests.cpp */; };
 		1542AC7E1B6DD910BC73FE1A /* CommonIcons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2C160FA02F6129C5F6D4544 /* CommonIcons.xcassets */; };
@@ -137,6 +136,7 @@
 		17E4330E5D2D91D22BF80FE1 /* TextureArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 819FD758A2654BFA2018400B /* TextureArray.cpp */; };
 		1855174929D052246ACF4322 /* not4_rgb888_srgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D4D8FDF4262C06D294FD5233 /* not4_rgb888_srgb.ktx */; };
 		1AEC9F33D1C614CEBCCEC9B8 /* orient-up-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 0C0C552E9898B6893411C2DE /* orient-up-metadata.ktx */; };
+		1CA5A265F58204C50F5E8804 /* SwipeDetector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 881AD3F35C2BDC4ACD99A326 /* SwipeDetector.cpp */; };
 		1DC5E5905885F35E6A455C9D /* etc2-sRGBa1.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 9750A85567094C55E715E899 /* etc2-sRGBa1.ktx */; };
 		1E4FBDC07D710EE6C0A76B45 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F72E191E6D512390AECB3D67 /* LaunchScreen.storyboard */; };
 		1F6656EB4FB2BFE789CAF681 /* rgb-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 950C8C60F3478061F24DC0B5 /* rgb-reference.ktx */; };
@@ -197,6 +197,7 @@
 		6F293417D94B6F69B1D9F6D7 /* VulkanSwapchain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9C5F6128161287DF02BEC277 /* VulkanSwapchain.cpp */; };
 		70C9DBE0F43F79A90F78633E /* texture.vert.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = 8C46DD44D7B07F6B2E45F6CF /* texture.vert.spv */; };
 		70FB52C796E154947C0DB425 /* VulkanAppSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7EEBBC88E39AFE278CCF1DDD /* VulkanAppSDL.cpp */; };
+		72453EBE60C54F6D5F285BF1 /* SwipeDetector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 881AD3F35C2BDC4ACD99A326 /* SwipeDetector.cpp */; };
 		75FEC10FD30A7C2037C74541 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D8E679046C6DF857DC47217 /* libSDL2.a */; };
 		77775F05084DEBDDFBD80723 /* hi_mark.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 94DD1C49F443105D08BF84A6 /* hi_mark.ktx */; };
 		780146DA59EC968A3060B1CA /* rgb-mipmap-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F88C1A31D6E7CA23FC0F3F12 /* rgb-mipmap-reference.ktx */; };
@@ -224,6 +225,8 @@
 		89BD1345688BFFABF7C5BBC4 /* cubemap_yokohama_bc3_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C83B3A2D31285E5106189968 /* cubemap_yokohama_bc3_unorm.ktx */; };
 		89D0A6593D79A357D3F89756 /* metalplate-amg-rgba8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C707F95193941B98DDEC867A /* metalplate-amg-rgba8.ktx */; };
 		8B216F8615441FC36F26E0CE /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */; };
+		8B8A6FB15435F411CB01A4B8 /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
+		8BBC6B2CBADA93F6FB5F2D21 /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
 		8BF42B919EC3D83002EDB923 /* cubemap_yokohama_etc2_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 14B24AD912E30484471DB38D /* cubemap_yokohama_etc2_unorm.ktx */; };
 		8C2C3C0A164BA6EAC898560E /* AppBaseSDL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA26834A86BC93BFB21BE6EF /* AppBaseSDL.cpp */; };
 		8C8939F56F01FDB8B95FC27E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAABAD93EC42FF0666FD02E /* Foundation.framework */; };
@@ -282,16 +285,15 @@
 		CFF7FF64ED5E69ECA2728931 /* VulkanContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA3DC6AAF119B8A3F074A795 /* VulkanContext.cpp */; };
 		D111AFEB2426EDBC96BF4C3C /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D95A567BDD85A819DCEF3462 /* rgba-reference.ktx */; };
 		D135E82465B09A16C3C172F9 /* VulkanLoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FF2B887314CE42EA371646D /* VulkanLoadTestSample.cpp */; };
-		D20B48173FBF68BBBD47DD5A /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
 		D2B948F247E80DDAA39DFECA /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D8E679046C6DF857DC47217 /* libSDL2.a */; };
 		D6AC2C4111A6C52B4CF0122B /* TextureMipmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E347F73F0E8FD330C3720F1 /* TextureMipmap.cpp */; };
-		D769BD73455FDE1DC8B3055C /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
 		D8011BD7471B7B5C0DDC6AB8 /* LaunchImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 680BCC58F701C28FF0DD5F9A /* LaunchImages.xcassets */; };
 		DB674C8A79954B23CC94A1C7 /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
 		DC7A9EC05A89352BB214DE6D /* skybox.vert.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = D42FAB561192D81AB1CDBCE4 /* skybox.vert.spv */; };
 		E0970DDDA71F47D8730CCED1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2CBF6A312EB51005A1EF3420 /* LaunchScreen.storyboard */; };
 		E2D937F659E03A68D10D9F10 /* cube.vert.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = 327CD7DE4A7F3E6B637F6811 /* cube.vert.spv */; };
 		E37C0C01D763130D7696D137 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4064762A5A368ADCC9CC334F /* OpenGLES.framework */; };
+		E5EF4D7F5D85630163E748F7 /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
 		E7BED66042E22F4413A14877 /* cubemap_yokohama_etc2_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 14B24AD912E30484471DB38D /* cubemap_yokohama_etc2_unorm.ktx */; };
 		E904C8E0E6D21FFEBCCF0DBE /* rgb-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 950C8C60F3478061F24DC0B5 /* rgb-reference.ktx */; };
 		EA7D90998EA677C2F8B6A389 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C49A77B05E3CA35A468F87A /* IOSurface.framework */; };
@@ -299,6 +301,7 @@
 		EBBE0EB423A1631DDEAF95E3 /* rgb-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 43DA556B988369A49E1AD800 /* rgb-reference-metadata.ktx */; };
 		ECF7F70A9694E3A75DBD4177 /* not4_rgb888_srgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D4D8FDF4262C06D294FD5233 /* not4_rgb888_srgb.ktx */; };
 		ED26F6C90A51FD34774E4128 /* pattern_02_bc2.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 719014864F2C657873113F4A /* pattern_02_bc2.ktx */; };
+		EED58D094AA8A249BA526623 /* SwipeDetector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 881AD3F35C2BDC4ACD99A326 /* SwipeDetector.cpp */; };
 		EF1118748D1E1831AF498EB5 /* cubemap_yokohama_bc3_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C83B3A2D31285E5106189968 /* cubemap_yokohama_bc3_unorm.ktx */; };
 		EF2337DDDCD466E2C33EA93D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E112A84CE9183658432C21B /* GameController.framework */; };
 		EF2A809FDB8891144D7BEE82 /* hi_mark.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 94DD1C49F443105D08BF84A6 /* hi_mark.ktx */; };
@@ -866,6 +869,7 @@
 		443BA60BE91B83D924E4DD4E /* tests.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tests.gypi; path = tests/tests.gypi; sourceTree = "<group>"; };
 		497D295C57475B5C10CEC35E /* instancing.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancing.vert.spv; sourceTree = "<group>"; };
 		4A5339F9AA357DA06AC88019 /* instancing.frag */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancing.frag; sourceTree = "<group>"; };
+		4B1751F92D65644448BB3E64 /* SwipeDetector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwipeDetector.h; sourceTree = "<group>"; };
 		4D53BD2F51C127B942371603 /* etc2-sRGBa8.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa8.ktx"; sourceTree = "<group>"; };
 		51369BEC39EAE34575CECDDC /* rgb-amg-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-amg-reference.ktx"; sourceTree = "<group>"; };
 		54DD4918BAC962C9A285FAE5 /* DrawTexture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DrawTexture.h; sourceTree = "<group>"; };
@@ -906,6 +910,7 @@
 		82D6C8D1FD6FE42F934D49E0 /* etc1.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = etc1.ktx; sourceTree = "<group>"; };
 		836A8521939E8424A65E396A /* TextureArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextureArray.h; sourceTree = "<group>"; };
 		83C1B5B5C7591FC49A217ED7 /* gtest.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = gtest.gypi; path = tests/gtest/gtest.gypi; sourceTree = "<group>"; };
+		881AD3F35C2BDC4ACD99A326 /* SwipeDetector.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwipeDetector.cpp; sourceTree = "<group>"; };
 		8C46DD44D7B07F6B2E45F6CF /* texture.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = texture.vert.spv; sourceTree = "<group>"; };
 		8C7D3515FD7573157773746E /* cube.obj */ = {isa = PBXFileReference; lastKnownFileType = text; path = cube.obj; sourceTree = "<group>"; };
 		92CB0232B7589E025144EAAC /* skybox.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = skybox.frag.spv; sourceTree = "<group>"; };
@@ -1082,6 +1087,19 @@
 			path = utils;
 			sourceTree = "<group>";
 		};
+		09894A23707A15936483F72A /* common */ = {
+			isa = PBXGroup;
+			children = (
+				EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */,
+				37D7E3D6E01F63C2AEAFB401 /* LoadTestSample.h */,
+				881AD3F35C2BDC4ACD99A326 /* SwipeDetector.cpp */,
+				4B1751F92D65644448BB3E64 /* SwipeDetector.h */,
+				DDCA3692AA0E124F8A3AE1CC /* ltexceptions.h */,
+				C2CF8174AA7F89454CBDA8F6 /* vecmath.hpp */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
 		0A7F5EA342F58C74360A560C /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -1096,7 +1114,7 @@
 			isa = PBXGroup;
 			children = (
 				ABA375C46522C22FC4AC5650 /* appfwSDL */,
-				66299B27A5603564C2F5BA30 /* common */,
+				09894A23707A15936483F72A /* common */,
 				78547628B931BBE4AFEE7611 /* geom */,
 				99557F79659A5F1ECF29E9C1 /* glloadtests */,
 				D5468F8884EB8894AD607FC3 /* vkloadtests */,
@@ -1219,17 +1237,6 @@
 				AC8DF30DD2BDAAB5832F302D /* instancing.vert */,
 			);
 			path = texturearray;
-			sourceTree = "<group>";
-		};
-		66299B27A5603564C2F5BA30 /* common */ = {
-			isa = PBXGroup;
-			children = (
-				EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */,
-				37D7E3D6E01F63C2AEAFB401 /* LoadTestSample.h */,
-				DDCA3692AA0E124F8A3AE1CC /* ltexceptions.h */,
-				C2CF8174AA7F89454CBDA8F6 /* vecmath.hpp */,
-			);
-			path = common;
 			sourceTree = "<group>";
 		};
 		6B4375ECEDE8A83AB5DF3F8D /* cube */ = {
@@ -1761,7 +1768,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0FFFAB6119A276702E0BA02A /* LoadTestSample.cpp in Sources */,
+				8B8A6FB15435F411CB01A4B8 /* LoadTestSample.cpp in Sources */,
+				1CA5A265F58204C50F5E8804 /* SwipeDetector.cpp in Sources */,
 				1509765E977DB4F5CD2C6724 /* GLLoadTests.cpp in Sources */,
 				3D6C7E21C119872B7EFB5E64 /* DrawTexture.cpp in Sources */,
 				83A507CF1BB8CEA3671DF76D /* GL3LoadTests.cpp in Sources */,
@@ -1777,7 +1785,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A1BB6C28533FD2A0AAE7D04 /* argparser.cpp in Sources */,
-				D769BD73455FDE1DC8B3055C /* LoadTestSample.cpp in Sources */,
+				E5EF4D7F5D85630163E748F7 /* LoadTestSample.cpp in Sources */,
+				72453EBE60C54F6D5F285BF1 /* SwipeDetector.cpp in Sources */,
 				86E19929F7BEE2A9C4DB7E61 /* InstancedSampleBase.cpp in Sources */,
 				51F60E68BA5FCCF73155F71B /* Texture.cpp in Sources */,
 				17E4330E5D2D91D22BF80FE1 /* TextureArray.cpp in Sources */,
@@ -1793,7 +1802,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D20B48173FBF68BBBD47DD5A /* LoadTestSample.cpp in Sources */,
+				8BBC6B2CBADA93F6FB5F2D21 /* LoadTestSample.cpp in Sources */,
+				EED58D094AA8A249BA526623 /* SwipeDetector.cpp in Sources */,
 				FFE8A4F1F3472F1A674F24C8 /* GLLoadTests.cpp in Sources */,
 				581292DE6DBC35D198C397B8 /* ES1LoadTests.cpp in Sources */,
 				0336879A075D92520CCBDEAF /* DrawTexture.cpp in Sources */,

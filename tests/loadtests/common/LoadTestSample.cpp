@@ -31,7 +31,7 @@
 #include "LoadTestSample.h"
 
 #if !defined(LOG_GESTURE_DETECTION)
-  #define LOG_GESTURE_DETECTION 1
+  #define LOG_GESTURE_DETECTION 0
 #endif
 
 int
@@ -166,7 +166,9 @@ LoadTestSample::doEvent(SDL_Event* event)
 #endif
                 rotating = true;
                 rotation.z += accumTheta;
+#if LOG_GESTURE_DETECTION
                 SDL_Log("rotation.z = %f°", rotation.z);
+#endif
             }
         }
         viewChanged();

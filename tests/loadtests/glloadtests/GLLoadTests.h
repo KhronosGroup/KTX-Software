@@ -35,6 +35,7 @@
 
 #include "GLAppSDL.h"
 #include "LoadTestSample.h"
+#include "SwipeDetector.h"
 
 class GLLoadTests : public GLAppSDL {
   public:
@@ -99,6 +100,8 @@ class GLLoadTests : public GLAppSDL {
         int32_t y;
         uint32_t timestamp;
     } buttonDown;
+
+    SwipeDetector swipeDetector;
 };
 
 #endif /* GL_LOAD_TESTS_H */

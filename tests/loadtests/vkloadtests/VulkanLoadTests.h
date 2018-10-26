@@ -22,6 +22,7 @@
 
 #include "VulkanAppSDL.h"
 #include "utils/VulkanMeshLoader.hpp"
+#include "SwipeDetector.h"
 #include "VulkanLoadTestSample.h"
 #include <string>
 
@@ -86,18 +87,7 @@ class VulkanLoadTests : public VulkanAppSDL {
         uint32_t timestamp;
     } buttonDown;
 
-    struct {
-        struct mgesture {
-            float x;
-            float y;
-            uint32_t timestamp;
-        } start;
-        struct mgesture last;
-    } swipe;
-
-    SDL_MultiGestureEvent mgestureFirst;
-    bool mgestureFirstSaved;
-    bool mgestureSwipe;
+    SwipeDetector swipeDetector;
 };
 
 #endif /* VULKAN_LOAD_TESTS_H */
