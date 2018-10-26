@@ -27,6 +27,7 @@
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
+#include <math.h>
 #include "SDL2/SDL_log.h"
 #include "SwipeDetector.h"
 
