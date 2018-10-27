@@ -22,7 +22,7 @@
  * @class SwipeDetector
  * @~English
  *
- * @brief Definition of a base class for texture loading test samples.
+ * @brief Definition of a class for detecting swipes.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */

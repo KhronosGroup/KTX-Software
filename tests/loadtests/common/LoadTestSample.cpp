@@ -134,41 +134,45 @@ LoadTestSample::doEvent(SDL_Event* event)
         return 1;
 #endif
       case SDL_MULTIGESTURE:
-        accumDist += event->mgesture.dDist;
-        accumTheta += static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
-#if LOG_GESTURE_DETECTION
-        SDL_Log("dDist = %f, accumDist = %f", event->mgesture.dDist, accumDist);
-        SDL_Log("dTheta = %f°, accumTheta = %f°",
-                event->mgesture.dTheta * 180.0 / M_PI, accumTheta);
-#endif
+        if (!zooming && !rotating) {
+            accumDist += event->mgesture.dDist;
+            accumTheta +=
+                    static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
+            if (LOG_GESTURE_DETECTION) {
+                SDL_Log("dDist = %f, accumDist = %f",
+                        event->mgesture.dDist,
+                        accumDist);
+                SDL_Log("dTheta = %f°, accumTheta = %f°",
+                        event->mgesture.dTheta * 180.0 / M_PI, accumTheta);
+            }
+        }
         if (zooming) {
             zoom += event->mgesture.dDist * 10.0f;
         } else {
             if (fabs(accumDist) > 0.018) {
-#if LOG_GESTURE_DETECTION
-                SDL_Log("zooming detected");
-#endif
+                if (LOG_GESTURE_DETECTION) SDL_Log("zooming detected");
                 zooming = true;
                 zoom += accumDist * 10.0f;
             }
         }
         if (rotating) {
-            rotation.z += static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
-#if LOG_GESTURE_DETECTION
-            SDL_Log("rotation.z = %f°", rotation.z);
-#endif
+            rotation.z +=
+                static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
+            if (LOG_GESTURE_DETECTION) {
+                SDL_Log("rotation.z = %f°", rotation.z);
+            }
        } else {
             if (fabs(accumTheta) > 20) {
-#if LOG_GESTURE_DETECTION
-                SDL_Log("rotation detected, accumTheta = %f°, rotation.z = %f°",
-                        accumTheta,
-                        rotation.z);
-#endif
+                if (LOG_GESTURE_DETECTION) {
+                    SDL_Log("rotation detected, accumTheta = %f°, rotation.z = %f°",
+                            accumTheta,
+                            rotation.z);
+                }
                 rotating = true;
                 rotation.z += accumTheta;
-#if LOG_GESTURE_DETECTION
-                SDL_Log("rotation.z = %f°", rotation.z);
-#endif
+                if (LOG_GESTURE_DETECTION) {
+                    SDL_Log("rotation.z = %f°", rotation.z);
+                }
             }
         }
         viewChanged();
