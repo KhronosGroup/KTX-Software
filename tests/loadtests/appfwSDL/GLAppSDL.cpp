@@ -87,6 +87,9 @@ GLAppSDL::initialize(int argc, char* argv[])
 #endif
     }
 
+#if __MACOSX__
+    SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+#endif
     
     pswMainWindow = SDL_CreateWindow(
                         szName,

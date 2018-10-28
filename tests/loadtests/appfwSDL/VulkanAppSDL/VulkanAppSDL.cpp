@@ -98,7 +98,9 @@ VulkanAppSDL::initialize(int argc, char* argv[])
     if (!AppBaseSDL::initialize(argc2, argv2))
         return false;
     delete[] argv2;
-    
+
+    SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+
     // Create window.
     // Vulkan samples do not pass any information from Vulkan initialization
     // to window creation so creating the window first should be ok...
