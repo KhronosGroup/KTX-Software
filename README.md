@@ -9,7 +9,7 @@ The Official Khronos KTX Software Repository
 | Windows | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/incoming?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/incoming) |
 | Documentation | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) | - |
 
-This is the offical home of the source code
+This is the official home of the source code
 for the Khronos KTX library and tools. KTX is a lightweight file format
 for OpenGL textures, designed around how textures are loaded in OpenGL.
 
