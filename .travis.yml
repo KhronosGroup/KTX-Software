@@ -46,6 +46,7 @@ before_install:
   linux)
     # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
     wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
