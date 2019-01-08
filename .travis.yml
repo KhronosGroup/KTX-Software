@@ -35,7 +35,6 @@ compiler:
 
 #env:
   #global:
-  #  - GIT_LFS_VERSION="2.4.0"
 
 before_install:
 - eval "${MATRIX_EVAL}"
@@ -48,9 +47,7 @@ before_install:
     pushd ../.. &&
     # Import packagecloud.io GPG key. This script also runs apt-get update.
     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-    #wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    #tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    #export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
+    # Must be prior to pulling code from git.
     sudo apt-get -qq install git-lfs &&
     popd &&
     git lfs install &&
