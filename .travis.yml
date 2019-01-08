@@ -85,7 +85,9 @@ install:
 
 before_script:
   - |
-    # Pull just the linux or mac/ios files to save time.
+    # Pull just the linux or mac/ios files to save time. git clone
+    # was done before any code we control so before we could install
+    # git-lfs. Therefore we have to pull the files stored in git LFS.
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
