@@ -36,35 +36,24 @@ compiler:
 #env:
   #global:
 
+# Phase 1: Git clone - done automatically.
+# Phase 2: Install apt addons.
+# Phase 3: Install cache components - Currently not using a cache
+# then the following phases:
 before_install:
 - eval "${MATRIX_EVAL}"
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
 - cat ~/.netrc
-- |
-  case "${TRAVIS_OS_NAME:-linux}" in
-  linux)
-    # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
-    pushd ../.. &&
-    # Import packagecloud.io GPG key. This script also runs apt-get update.
-    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-    # Must be prior to pulling code from git.
-    sudo apt-get -qq install git-lfs &&
-    popd &&
-    git lfs install &&
-    git lfs version
-    ;;
-  osx)
-    brew update > /dev/null &&
-    brew install git-lfs &&
-    git lfs install &&
-    git lfs version
-    ;;
-  esac
 
 install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
+    # Import packagecloud.io GPG key. This script also runs apt-get update.
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+    sudo apt-get -qq install git-lfs &&
+    git lfs install &&
+    git lfs version &&
     #sudo apt-get -qq update &&
     sudo apt-get -qq install doxygen &&
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
@@ -76,13 +65,17 @@ install:
     sudo apt install lunarg-vulkan-sdk
     ;;
   osx)
+    brew update > /dev/null &&
+    brew install git-lfs &&
+    git lfs install &&
+    git lfs version &&
     brew install doxygen &&
     brew install assimp &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
     wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
     tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
-   popd
+    popd
     ;;
   esac
 - pushd ../..
@@ -92,7 +85,9 @@ install:
 
 before_script:
   - |
-    # Pull just the linux or mac/ios files to save time.
+    # Pull just the linux or mac/ios files to save time. git clone
+    # was done before any code we control so before we could install
+    # git-lfs. Therefore we have to pull the files stored in git LFS.
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
