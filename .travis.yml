@@ -6,12 +6,12 @@ matrix:
     # works on Precise and Trusty
     - os: linux
       addons:
-        apt:
-          sources:
-            - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          packages:
-            - gcc-7
-            - g++-7
+#        apt:
+#          sources:
+#            - sourceline: 'ppa:ubuntu-toolchain-r/test'
+#          packages:
+#            - gcc-7
+#            - g++-7
       dist: xenial
       group: edge
       env:
