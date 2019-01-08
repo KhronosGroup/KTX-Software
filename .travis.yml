@@ -51,7 +51,7 @@ before_install:
     #wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     #tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     #export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
-    sudo apt-get -qq install git-lfs
+    sudo apt-get -qq install git-lfs &&
     popd &&
     git lfs install &&
     git lfs version
