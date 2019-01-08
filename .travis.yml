@@ -47,7 +47,7 @@ before_install:
     # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
     # Import packagecloud.io GPG key. This script also runs apt-get update.
-    #curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
     #wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     #tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
     #export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
