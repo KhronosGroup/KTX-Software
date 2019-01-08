@@ -33,9 +33,8 @@ compiler:
   #- clang
   - gcc
 
-env:
-  global:
-    - GIT_LFS_VERSION="2.4.0"
+#env:
+  #global:
 
 before_install:
 - eval "${MATRIX_EVAL}"
@@ -46,9 +45,10 @@ before_install:
   linux)
     # Current directory is $HOME/build/{KhronosGroup,msc-}/KTX. cd to 'build'.
     pushd ../.. &&
-    wget https://github.com/github/git-lfs/releases/download/v$GIT_LFS_VERSION/git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    tar -zxvf git-lfs-linux-amd64-$GIT_LFS_VERSION.tar.gz &&
-    export PATH=`pwd`/git-lfs-$GIT_LFS_VERSION:$PATH &&
+    # Import packagecloud.io GPG key. This script also runs apt-get update.
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+    # Must be prior to pulling code from git.
+    sudo apt-get -qq install git-lfs &&
     popd &&
     git lfs install &&
     git lfs version
@@ -65,7 +65,7 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    sudo apt-get -qq update &&
+    #sudo apt-get -qq update &&
     sudo apt-get -qq install doxygen &&
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq install libvulkan1 libvulkan-dev &&
