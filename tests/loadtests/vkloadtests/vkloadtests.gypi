@@ -51,6 +51,8 @@
         '../../../utils/argparser.cpp',
         '../common/LoadTestSample.cpp',
         '../common/LoadTestSample.h',
+        '../common/SwipeDetector.cpp',
+        '../common/SwipeDetector.h',
         '../common/ltexceptions.h',
         '../common/vecmath.hpp',
         '<(vkinfoplist_file)',

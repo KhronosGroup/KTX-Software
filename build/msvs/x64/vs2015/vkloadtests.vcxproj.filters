@@ -49,6 +49,24 @@
     <Filter Include="tests\loadtests">
       <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tests\loadtests\vkloadtests">
       <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
     </Filter>
@@ -502,6 +520,12 @@
       <Filter>tests\loadtests\common</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h">
+      <Filter>tests\loadtests\common</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tests\loadtests\common\SwipeDetector.cpp">
+      <Filter>tests\loadtests\common</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tests\loadtests\common\SwipeDetector.h">
       <Filter>tests\loadtests\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\ltexceptions.h">

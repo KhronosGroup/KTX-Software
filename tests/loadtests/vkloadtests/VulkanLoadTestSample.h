@@ -48,7 +48,8 @@ class VulkanLoadTestSample : public LoadTestSample {
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void run(uint32_t msTicks) = 0;
 
-    virtual void getOverlayText(VulkanTextOverlay *textOverlay) { };
+    virtual void getOverlayText(VulkanTextOverlay *textOverlay,
+                                float yoffset) { };
 
     typedef VulkanLoadTestSample* (*PFN_create)(VulkanContext&,
                                     uint32_t width, uint32_t height,

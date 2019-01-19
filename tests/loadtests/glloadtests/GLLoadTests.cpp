@@ -127,7 +127,22 @@ GLLoadTests::doEvent(SDL_Event* event)
         }
         break;
       default:
-          result = 1;
+        switch(swipeDetector.doEvent(event)) {
+          case SwipeDetector::eSwipeUp:
+          case SwipeDetector::eSwipeDown:
+          case SwipeDetector::eEventConsumed:
+            break;
+          case SwipeDetector::eSwipeLeft:
+            ++sampleIndex;
+            invokeSample(Direction::eForward);
+            break;
+          case SwipeDetector::eSwipeRight:
+            --sampleIndex;
+            invokeSample(Direction::eBack);
+            break;
+          case SwipeDetector::eEventNotConsumed:
+            result = 1;
+          }
     }
     
     if (result == 1) {

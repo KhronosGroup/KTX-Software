@@ -56,6 +56,7 @@ INCS_Release := \
 
 OBJS := \
 	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
+	$(obj).target/$(TARGET)/tests/loadtests/common/SwipeDetector.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/GLLoadTests.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/DrawTexture.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTests.o \

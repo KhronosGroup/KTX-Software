@@ -709,12 +709,12 @@ Texture::keyPressed(uint32_t keyCode)
 }
 
 void
-Texture::getOverlayText(VulkanTextOverlay *textOverlay)
+Texture::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
 {
     std::stringstream ss;
     ss << std::setprecision(2) << std::fixed << uboVS.lodBias;
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
-                         5.0f, 85.0f, VulkanTextOverlay::alignLeft);
+                         5.0f, yOffset, VulkanTextOverlay::alignLeft);
 }
 
 

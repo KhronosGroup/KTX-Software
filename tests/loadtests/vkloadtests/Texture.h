@@ -36,7 +36,7 @@ class Texture : public VulkanLoadTestSample
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    virtual void getOverlayText(VulkanTextOverlay *textOverlay);
+    virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
 
     static VulkanLoadTestSample*
     create(VulkanContext& vkctx,

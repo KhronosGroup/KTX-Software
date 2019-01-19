@@ -222,6 +222,7 @@ INCS_Release := \
 OBJS := \
 	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
+	$(obj).target/$(TARGET)/tests/loadtests/common/SwipeDetector.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/InstancedSampleBase.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/Texture.o \
 	$(obj).target/$(TARGET)/tests/loadtests/vkloadtests/TextureArray.o \

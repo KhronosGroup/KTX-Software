@@ -29,6 +29,9 @@
 
 #include <exception>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include <SDL2/SDL_vulkan.h>
 
 #include "VulkanLoadTests.h"
@@ -71,7 +74,6 @@ VulkanLoadTests::initialize(int argc, char* argv[])
     return true;
 }
 
-
 void
 VulkanLoadTests::finalize()
 {
@@ -81,11 +83,11 @@ VulkanLoadTests::finalize()
     VulkanAppSDL::finalize();
 }
 
-
 int
 VulkanLoadTests::doEvent(SDL_Event* event)
 {
     int result = 0;
+
     switch (event->type) {
       case SDL_KEYUP:
         switch (event->key.keysym.sym) {
@@ -104,38 +106,24 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             result = 1;
         }
         break;
-      case SDL_MOUSEBUTTONDOWN:
-        // Forward to sample in case this is the start of motion.
-        result = 1;
-        switch (event->button.button) {
-          case SDL_BUTTON_LEFT:
-            buttonDown.x = event->button.x;
-            buttonDown.y = event->button.y;
-            buttonDown.timestamp = event->button.timestamp;
-            break;
-          default:
-            break;
-        }
-        break;
-      case SDL_MOUSEBUTTONUP:
-        // Forward to sample so it doesn't get stuck in button down state.
-        result = 1;
-        switch (event->button.button) {
-          case SDL_BUTTON_LEFT:
-            if (SDL_abs(event->button.x - buttonDown.x) < 5
-                && SDL_abs(event->button.y - buttonDown.y) < 5
-                && (event->button.timestamp - buttonDown.timestamp) < 100) {
-                // Advance to the next sample.
-                ++sampleIndex;
-                invokeSample(Direction::eForward);
-            }
-            break;
-          default:
-            break;
-        }
-        break;
+
       default:
-          result = 1;
+        switch(swipeDetector.doEvent(event)) {
+          case SwipeDetector::eSwipeUp:
+          case SwipeDetector::eSwipeDown:
+          case SwipeDetector::eEventConsumed:
+            break;
+          case SwipeDetector::eSwipeLeft:
+            ++sampleIndex;
+            invokeSample(Direction::eForward);
+            break;
+          case SwipeDetector::eSwipeRight:
+            --sampleIndex;
+            invokeSample(Direction::eBack);
+            break;
+          case SwipeDetector::eEventNotConsumed:
+            result = 1;
+          }
     }
     
     if (result == 1) {
@@ -167,10 +155,23 @@ VulkanLoadTests::drawFrame(uint32_t msTicks)
 
 
 void
-VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay)
+VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay, float yOffset)
 {
-    if (enableTextOverlay && pCurSample != nullptr) {
-        pCurSample->getOverlayText(textOverlay);
+    if (enableTextOverlay) {
+        textOverlay->addText("Press \"n\" or 2-finger swipe left for next "
+                             "sample, \"p\" or swipe right for previous.",
+                             5.0f, yOffset, VulkanTextOverlay::alignLeft);
+        yOffset += 20;
+        textOverlay->addText("2-finger rotate or left mouse + drag to rotate.",
+                             5.0f, yOffset, VulkanTextOverlay::alignLeft);
+        yOffset += 20;
+        textOverlay->addText("Pinch/zoom or right mouse + drag to change "
+                             "object size.",
+                             5.0f, yOffset, VulkanTextOverlay::alignLeft);
+        yOffset += 20;
+        if (pCurSample != nullptr) {
+            pCurSample->getOverlayText(textOverlay, yOffset);
+        }
     }
 }
 

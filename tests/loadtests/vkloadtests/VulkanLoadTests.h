@@ -22,6 +22,7 @@
 
 #include "VulkanAppSDL.h"
 #include "utils/VulkanMeshLoader.hpp"
+#include "SwipeDetector.h"
 #include "VulkanLoadTestSample.h"
 #include <string>
 
@@ -41,7 +42,7 @@ class VulkanLoadTests : public VulkanAppSDL {
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
-    virtual void getOverlayText(VulkanTextOverlay * textOverlay);
+    virtual void getOverlayText(VulkanTextOverlay * textOverlay, float yOffset);
     virtual bool initialize(int argc, char* argv[]);
     virtual void onFPSUpdate();
     virtual void windowResized();
@@ -85,6 +86,8 @@ class VulkanLoadTests : public VulkanAppSDL {
         int32_t y;
         uint32_t timestamp;
     } buttonDown;
+
+    SwipeDetector swipeDetector;
 };
 
 #endif /* VULKAN_LOAD_TESTS_H */

@@ -35,6 +35,8 @@
     'common_source_files': [
       '../common/LoadTestSample.cpp',
       '../common/LoadTestSample.h',
+      '../common/SwipeDetector.cpp',
+      '../common/SwipeDetector.h',
       '../geom/cube.h',
       '../geom/frame.h',
       'GLLoadTests.cpp',

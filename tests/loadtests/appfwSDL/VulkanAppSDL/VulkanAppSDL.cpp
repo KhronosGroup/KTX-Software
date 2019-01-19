@@ -98,7 +98,9 @@ VulkanAppSDL::initialize(int argc, char* argv[])
     if (!AppBaseSDL::initialize(argc2, argv2))
         return false;
     delete[] argv2;
-    
+
+    SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+
     // Create window.
     // Vulkan samples do not pass any information from Vulkan initialization
     // to window creation so creating the window first should be ok...
@@ -1230,13 +1232,14 @@ void VulkanAppSDL::updateTextOverlay()
     textOverlay->addText(vkctx.gpuProperties.deviceName, 5.0f, 45.0f,
                          VulkanTextOverlay::alignLeft);
 
-    getOverlayText(textOverlay);
+    // Leave a blank line between us and the derived class's text.
+    getOverlayText(textOverlay, 85.0f);
 
     textOverlay->endTextUpdate();
 }
 
 
-void VulkanAppSDL::getOverlayText(VulkanTextOverlay *textOverlay)
+void VulkanAppSDL::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
 {
     // Can be overriden in derived class
 }

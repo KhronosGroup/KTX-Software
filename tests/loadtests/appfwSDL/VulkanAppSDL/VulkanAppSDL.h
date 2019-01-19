@@ -70,7 +70,7 @@ class VulkanAppSDL : public AppBaseSDL {
 
     // Called when the text overlay is updating
     // Can be overridden in derived class to add custom text to the overlay
-    virtual void getOverlayText(VulkanTextOverlay * textOverlay);
+    virtual void getOverlayText(VulkanTextOverlay * textOverlay, float yOffset);
 
   protected:
     bool createDevice();
