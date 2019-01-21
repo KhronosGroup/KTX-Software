@@ -1,12 +1,13 @@
 ##
 # @internal
-# @copyright © 2015, Mark Callow. For license see LICENSE.md.
+# @copyright © 2019, Mark Callow. For license see LICENSE.md.
 #
-# @brief Generate project files for building KTX tests.
+# @brief Generate project files for building KTX tools.
 #
 {
   'includes': [
      'toktx/toktx.gypi',
+     'toolsdoc.gypi',
   ],
 }
 

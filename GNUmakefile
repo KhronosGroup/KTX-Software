@@ -60,8 +60,11 @@ msvs_version=$(strip $(foreach platform,${msvs_platforms},$(if $(findstring ${pl
 # Returns ktxtools.gyp if the OS set in $* is a desktop OS, otherwise an
 # empty string.
 ktxtools.gyp=$(if $(or $(findstring linux,$*),$(findstring mac,$*),$(findstring win,$*)),ktxtools.gyp)
+# Likewise for ktxdoc.gyp
+ktxdoc.gyp=$(if $(or $(findstring linux,$*),$(findstring mac,$*),$(findstring win,$*)),ktxdoc.gyp)
 
 gypfiles=ktxtests.gyp \
+		 ktxdoc.gyp \
 		 ktxtools.gyp \
 		 libktx.gyp \
 		 gyp_include/adrenoemu.gypi \
@@ -79,16 +82,20 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
 		 lib/libktx.gypi \
+		 lib/libktxdoc.gypi \
+		 lib/sources.gypi \
+		 pkgdoc/pkgdoc.gypi \
 		 tests/tests.gypi \
 		 tests/gtest/gtest.gypi \
-         tests/loadtests/loadtests.gypi \
+		 tests/loadtests/loadtests.gypi \
 		 tests/loadtests/appfwSDL/appfwSDL.gypi \
 		 tests/loadtests/glloadtests/glloadtests.gypi \
-         tests/loadtests/vkloadtests/vkloadtests.gypi \
+		 tests/loadtests/vkloadtests/vkloadtests.gypi \
 		 tests/texturetests/texturetests.gypi \
 		 tests/testimages/testimages.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
+		 tools/toolsdoc.gypi \
 		 tools/toktx/toktx.gypi
 
 # Uncomment these 2 lines if you do not want to install our modified
@@ -139,19 +146,20 @@ make: $(make_targets)
 # {win+web,wingl}/vs<version> part of the target name. Uses the
 # msvs_version macro above to extract the version.
 $(msvs_all_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f msvs -DWIN_PLATFORM=$(win_platform) -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. ktxtests.gyp ktxtools.gyp
+	$(gyp) -f msvs -DWIN_PLATFORM=$(win_platform) -G
+	msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. ktxtests.gyp ktxtools.gyp ktxdoc.gyp
 	@date -R > $@
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
+	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=. --depth=. ktxtests.gyp $(ktxtools.gyp)
+	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=. --depth=. ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
 $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp)
+	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
 # vim:ai:noexpandtab:ts=4:sts=4:sw=2:textwidth=75
