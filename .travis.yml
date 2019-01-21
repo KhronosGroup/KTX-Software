@@ -13,7 +13,6 @@ matrix:
             - gcc-7
             - g++-7
       dist: xenial
-      group: edge
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - VULKAN_SDK_VER="1.1.85"
