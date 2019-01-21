@@ -26,7 +26,7 @@
           'actions': [
             {
               'action_name': 'buildDoc',
-              'message': 'Generating documentation with Doxygen',
+              'message': 'Generating libktx documentation with Doxygen',
               'inputs': [
                 '../<(doxyConfig)',
                 '../runDoxygen',
