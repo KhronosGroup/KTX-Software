@@ -152,7 +152,7 @@ script:
     cd ../Release &&
     ./unittests &&
     ./texturetests &&
-    pop
+    popd
     ;;
     esac
 
