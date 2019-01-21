@@ -13,7 +13,6 @@ matrix:
             - gcc-7
             - g++-7
       dist: xenial
-      group: edge
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - VULKAN_SDK_VER="1.1.85"
@@ -49,12 +48,8 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    # Import packagecloud.io GPG key. This script also runs apt-get update.
-    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-    sudo apt-get -qq install git-lfs &&
-    git lfs install &&
-    git lfs version &&
-    #sudo apt-get -qq update &&
+    # No need to install git-lfs. It is part of Travis's Xenial environment.
+    sudo apt-get -qq update &&
     sudo apt-get -qq install doxygen &&
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq install libvulkan1 libvulkan-dev &&
@@ -90,9 +85,6 @@ before_script:
     # git-lfs. Therefore we have to pull the files stored in git LFS.
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
-      # The "| cat" avoids a Go panic when LFS can't get the "terminal" width.
-      # See Git LFS issue https://github.com/github/git-lfs/issues/880.
-      git lfs pull --include=other_lib/linux | cat
       ;;
     osx)
       git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
