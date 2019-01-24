@@ -202,7 +202,6 @@
 		53941C3F4EB820F20A47DA0E /* vkloader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkloader.c; sourceTree = "<group>"; };
 		5F80151F983F77C60709E872 /* memstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = memstream.c; sourceTree = "<group>"; };
 		78750DEB71973541DB221CBA /* libktx.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libktx.gyp; sourceTree = "<group>"; };
-		7A8F496CEDC8470DC8D25741 /* libktxdoc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libktxdoc.gypi; path = lib/libktxdoc.gypi; sourceTree = "<group>"; };
 		7ABEC8601DA2251BB3038768 /* libktx.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libktx.gypi; path = lib/libktx.gypi; sourceTree = "<group>"; };
 		7DFB01C2A0C66136843F9C90 /* libktx.es1.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es1.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_funcptrs.h; sourceTree = "<group>"; };
@@ -219,7 +218,6 @@
 		BE607367214BBF5824644530 /* default.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = default.gypi; path = gyp_include/default.gypi; sourceTree = "<group>"; };
 		C2E7B90F693D2ADDEB68C765 /* ktx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktx.h; sourceTree = "<group>"; };
 		D085D834087565F1CD69EFD7 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
-		D29855738EB5C07E125742F9 /* sources.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = sources.gypi; path = lib/sources.gypi; sourceTree = "<group>"; };
 		D4E93BE5260F9F886F788BE7 /* filestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filestream.h; sourceTree = "<group>"; };
 		D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxvulkan.h; sourceTree = "<group>"; };
 		D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcunpack.cxx; sourceTree = "<group>"; };
@@ -265,6 +263,20 @@
 			name = Source;
 			sourceTree = "<group>";
 		};
+		115FD997276BE6B2F9D71D3B /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				D085D834087565F1CD69EFD7 /* config.gypi */,
+				BE607367214BBF5824644530 /* default.gypi */,
+				0DF732D4865EBE87E6C2B6E5 /* libgl.gypi */,
+				78750DEB71973541DB221CBA /* libktx.gyp */,
+				7ABEC8601DA2251BB3038768 /* libktx.gypi */,
+				8D8A16A926722E6CEA139B2E /* libvulkan.gypi */,
+				E4C296305A71370E67B0FDD7 /* pvremu.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		3AE5B8C2D5A6F84F3C6DB984 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -280,7 +292,7 @@
 			children = (
 				0066CBEBE45AFAA06792E05F /* Source */,
 				3AE5B8C2D5A6F84F3C6DB984 /* Products */,
-				7904BFFCA3BCD66A0707DC01 /* Build */,
+				115FD997276BE6B2F9D71D3B /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -291,22 +303,6 @@
 				D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */,
 			);
 			path = include;
-			sourceTree = "<group>";
-		};
-		7904BFFCA3BCD66A0707DC01 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				D085D834087565F1CD69EFD7 /* config.gypi */,
-				BE607367214BBF5824644530 /* default.gypi */,
-				0DF732D4865EBE87E6C2B6E5 /* libgl.gypi */,
-				78750DEB71973541DB221CBA /* libktx.gyp */,
-				7ABEC8601DA2251BB3038768 /* libktx.gypi */,
-				7A8F496CEDC8470DC8D25741 /* libktxdoc.gypi */,
-				8D8A16A926722E6CEA139B2E /* libvulkan.gypi */,
-				E4C296305A71370E67B0FDD7 /* pvremu.gypi */,
-				D29855738EB5C07E125742F9 /* sources.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		D3386B0DF9DDC7F87C4E3A5A /* lib */ = {

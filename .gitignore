@@ -37,6 +37,7 @@
 # User related stuff in /build/xcode
 /build/xcode/*/*.xcodeproj/project.xcworkspace
 /build/xcode/*/*.xcodeproj/xcuserdata
+/build/xcode/*/*.xcodeproj/xcshareddata
 
 # /include/
 /include/imdebug.h

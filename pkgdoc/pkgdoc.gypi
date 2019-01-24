@@ -14,7 +14,7 @@
           'type': 'none',
           'dependencies': [
             'libktx.gyp:libktx.doc',
-            'ktxtools.gyp:tools.doc',
+            'ktxtools.gyp:toktx.doc',
           ],
           'variables': { # level 1
             'variables': { # level 2

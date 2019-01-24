@@ -15,7 +15,7 @@
 			);
 			dependencies = (
 				484350E9655F8AF9ED1A5F68 /* PBXTargetDependency */,
-				DF0AE41DE65237A621749BDE /* PBXTargetDependency */,
+				2F4F87582F2414CC5DF4A9AF /* PBXTargetDependency */,
 			);
 			name = ktxpkg.doc;
 			productName = ktxpkg.doc;
@@ -37,13 +37,6 @@
 			remoteGlobalIDString = 53718F849477FE4A99643D3C;
 			remoteInfo = toktx;
 		};
-		086E78D6C8EB2FC2D0CB2922 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 87A2CAA1F96397FF011ADC69;
-			remoteInfo = tools.doc;
-		};
 		3079ADF769C2044F2FC6729A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */;
@@ -64,6 +57,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1DECD74B6E574582E25FE647;
 			remoteInfo = libktx.doc;
+		};
+		8A35204DBE998CEFE75B6592 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BCE88AC04AA437E00153253;
+			remoteInfo = toktx.doc;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -250,15 +250,15 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2F4F87582F2414CC5DF4A9AF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = toktx.doc;
+			targetProxy = 8A35204DBE998CEFE75B6592 /* PBXContainerItemProxy */;
+		};
 		484350E9655F8AF9ED1A5F68 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = libktx.doc;
 			targetProxy = 6E3ADCBD6903DB7AF83B8A3C /* PBXContainerItemProxy */;
-		};
-		DF0AE41DE65237A621749BDE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = tools.doc;
-			targetProxy = 086E78D6C8EB2FC2D0CB2922 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

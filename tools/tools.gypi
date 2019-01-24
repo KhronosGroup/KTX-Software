@@ -7,7 +7,6 @@
 {
   'includes': [
      'toktx/toktx.gypi',
-     'toolsdoc.gypi',
   ],
 }
 

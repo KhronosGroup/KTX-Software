@@ -82,8 +82,6 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
 		 lib/libktx.gypi \
-		 lib/libktxdoc.gypi \
-		 lib/sources.gypi \
 		 pkgdoc/pkgdoc.gypi \
 		 tests/tests.gypi \
 		 tests/gtest/gtest.gypi \
@@ -95,7 +93,6 @@ gypfiles=ktxtests.gyp \
 		 tests/testimages/testimages.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
-		 tools/toolsdoc.gypi \
 		 tools/toktx/toktx.gypi
 
 # Uncomment these 2 lines if you do not want to install our modified
