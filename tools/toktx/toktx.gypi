@@ -118,7 +118,7 @@
               ],
               'outputs': [
                 '<(output_dir)/html/ktxtools',
-                '<(output_dir)/man/ktxtools/man1/toktx.1',
+                '<(output_dir)/man/man1/toktx.1',
                 '<(timestamp)',
               ],
               # doxygen must be run in the top-level project directory

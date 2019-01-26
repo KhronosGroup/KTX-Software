@@ -1,7 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2017
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{A1A4933E-BBFB-A51B-FDED-306933C5CEF4}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{620E7140-06AD-551D-2FA9-8C20620B9DF8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{3912F5B3-26E3-AF72-E487-5542E0D023A2} = {3912F5B3-26E3-AF72-E487-5542E0D023A2}
@@ -17,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.
 	ProjectSection(ProjectDependencies) = postProject
 		{65B0422F-8176-85AA-B148-CD8DEFCBDDE2} = {65B0422F-8176-85AA-B148-CD8DEFCBDDE2}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx.doc", "toktx.doc.vcxproj", "{5B09E209-71D8-3AB6-A106-702B10960E9E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{3912F5B3-26E3-AF72-E487-5542E0D023A2}"
 EndProject
@@ -34,6 +34,10 @@ Global
 		{4BB32952-113B-4F99-96C1-F837CFFA879C}.Debug|x64.Build.0 = Debug|x64
 		{4BB32952-113B-4F99-96C1-F837CFFA879C}.Release|x64.ActiveCfg = Release|x64
 		{4BB32952-113B-4F99-96C1-F837CFFA879C}.Release|x64.Build.0 = Release|x64
+		{5B09E209-71D8-3AB6-A106-702B10960E9E}.Debug|x64.ActiveCfg = Debug|x64
+		{5B09E209-71D8-3AB6-A106-702B10960E9E}.Debug|x64.Build.0 = Debug|x64
+		{5B09E209-71D8-3AB6-A106-702B10960E9E}.Release|x64.ActiveCfg = Release|x64
+		{5B09E209-71D8-3AB6-A106-702B10960E9E}.Release|x64.Build.0 = Release|x64
 		{620E7140-06AD-551D-2FA9-8C20620B9DF8}.Debug|x64.ActiveCfg = Debug|x64
 		{620E7140-06AD-551D-2FA9-8C20620B9DF8}.Debug|x64.Build.0 = Debug|x64
 		{620E7140-06AD-551D-2FA9-8C20620B9DF8}.Release|x64.ActiveCfg = Release|x64
@@ -42,10 +46,6 @@ Global
 		{65B0422F-8176-85AA-B148-CD8DEFCBDDE2}.Debug|x64.Build.0 = Debug|x64
 		{65B0422F-8176-85AA-B148-CD8DEFCBDDE2}.Release|x64.ActiveCfg = Release|x64
 		{65B0422F-8176-85AA-B148-CD8DEFCBDDE2}.Release|x64.Build.0 = Release|x64
-		{A1A4933E-BBFB-A51B-FDED-306933C5CEF4}.Debug|x64.ActiveCfg = Debug|x64
-		{A1A4933E-BBFB-A51B-FDED-306933C5CEF4}.Debug|x64.Build.0 = Debug|x64
-		{A1A4933E-BBFB-A51B-FDED-306933C5CEF4}.Release|x64.ActiveCfg = Release|x64
-		{A1A4933E-BBFB-A51B-FDED-306933C5CEF4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

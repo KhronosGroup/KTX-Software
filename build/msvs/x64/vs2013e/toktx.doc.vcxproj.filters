@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx">
+      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\ktxtools.gyp"/>
+    <None Include="..\..\..\..\ktxtools.doxy">
+      <Filter>_excluded_files</Filter>
+    </None>
+    <None Include="..\..\..\..\runDoxygen">
+      <Filter>_excluded_files</Filter>
+    </None>
+    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
+      <Filter>tools\toktx\_excluded_files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

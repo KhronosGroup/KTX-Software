@@ -1,7 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 13.00
 # Visual Studio 2013
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{248F1B3C-516C-3661-195D-1699328C5CE9}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{340C4A10-7FD4-9F78-E86F-4FF78B7D0F79}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8AED410F-B838-67C7-AF7A-DF412424674F} = {8AED410F-B838-67C7-AF7A-DF412424674F}
@@ -18,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.
 		{E56656F1-DCDF-912A-3036-38FBDA70D62D} = {E56656F1-DCDF-912A-3036-38FBDA70D62D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx.doc", "toktx.doc.vcxproj", "{3C9D7A52-A776-7A35-D007-28F17A181AC7}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{8AED410F-B838-67C7-AF7A-DF412424674F}"
 EndProject
 Global
@@ -26,14 +26,14 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{248F1B3C-516C-3661-195D-1699328C5CE9}.Debug|x64.ActiveCfg = Debug|x64
-		{248F1B3C-516C-3661-195D-1699328C5CE9}.Debug|x64.Build.0 = Debug|x64
-		{248F1B3C-516C-3661-195D-1699328C5CE9}.Release|x64.ActiveCfg = Release|x64
-		{248F1B3C-516C-3661-195D-1699328C5CE9}.Release|x64.Build.0 = Release|x64
 		{340C4A10-7FD4-9F78-E86F-4FF78B7D0F79}.Debug|x64.ActiveCfg = Debug|x64
 		{340C4A10-7FD4-9F78-E86F-4FF78B7D0F79}.Debug|x64.Build.0 = Debug|x64
 		{340C4A10-7FD4-9F78-E86F-4FF78B7D0F79}.Release|x64.ActiveCfg = Release|x64
 		{340C4A10-7FD4-9F78-E86F-4FF78B7D0F79}.Release|x64.Build.0 = Release|x64
+		{3C9D7A52-A776-7A35-D007-28F17A181AC7}.Debug|x64.ActiveCfg = Debug|x64
+		{3C9D7A52-A776-7A35-D007-28F17A181AC7}.Debug|x64.Build.0 = Debug|x64
+		{3C9D7A52-A776-7A35-D007-28F17A181AC7}.Release|x64.ActiveCfg = Release|x64
+		{3C9D7A52-A776-7A35-D007-28F17A181AC7}.Release|x64.Build.0 = Release|x64
 		{8AED410F-B838-67C7-AF7A-DF412424674F}.Debug|x64.ActiveCfg = Debug|x64
 		{8AED410F-B838-67C7-AF7A-DF412424674F}.Debug|x64.Build.0 = Debug|x64
 		{8AED410F-B838-67C7-AF7A-DF412424674F}.Release|x64.ActiveCfg = Release|x64

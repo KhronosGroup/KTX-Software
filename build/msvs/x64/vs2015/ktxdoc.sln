@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxpkg.doc", "ktxpkg.doc.vcxproj", "{71159F06-1EE8-0475-AC0F-828F81AD02B7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{967359B1-4F65-53AC-1706-811F22BD00A6} = {967359B1-4F65-53AC-1706-811F22BD00A6}
+		{5F8055BE-F071-B9A2-DAE7-B26E458080AB} = {5F8055BE-F071-B9A2-DAE7-B26E458080AB}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{967359B1-4F65-53AC-1706-811F22BD00A6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx.doc", "toktx.doc.vcxproj", "{5F8055BE-F071-B9A2-DAE7-B26E458080AB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F8055BE-F071-B9A2-DAE7-B26E458080AB}.Debug|x64.ActiveCfg = Debug|x64
+		{5F8055BE-F071-B9A2-DAE7-B26E458080AB}.Debug|x64.Build.0 = Debug|x64
+		{5F8055BE-F071-B9A2-DAE7-B26E458080AB}.Release|x64.ActiveCfg = Release|x64
+		{5F8055BE-F071-B9A2-DAE7-B26E458080AB}.Release|x64.Build.0 = Release|x64
+		{71159F06-1EE8-0475-AC0F-828F81AD02B7}.Debug|x64.ActiveCfg = Debug|x64
+		{71159F06-1EE8-0475-AC0F-828F81AD02B7}.Debug|x64.Build.0 = Debug|x64
+		{71159F06-1EE8-0475-AC0F-828F81AD02B7}.Release|x64.ActiveCfg = Release|x64
+		{71159F06-1EE8-0475-AC0F-828F81AD02B7}.Release|x64.Build.0 = Release|x64
+		{967359B1-4F65-53AC-1706-811F22BD00A6}.Debug|x64.ActiveCfg = Debug|x64
+		{967359B1-4F65-53AC-1706-811F22BD00A6}.Debug|x64.Build.0 = Debug|x64
+		{967359B1-4F65-53AC-1706-811F22BD00A6}.Release|x64.ActiveCfg = Release|x64
+		{967359B1-4F65-53AC-1706-811F22BD00A6}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,7 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{224A9AEB-A600-E384-3E22-F94B96D4BBD4}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{B62A5A66-FB38-9D77-CDC7-9850FD6C091D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D6CD3125-1B54-0F97-AEDB-1735A881F7A9} = {D6CD3125-1B54-0F97-AEDB-1735A881F7A9}
@@ -18,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.
 		{39181481-F323-BC51-11E2-CF74FA7C0883} = {39181481-F323-BC51-11E2-CF74FA7C0883}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx.doc", "toktx.doc.vcxproj", "{077ABA6D-8CD4-23AF-7F10-EF070630BA25}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{D6CD3125-1B54-0F97-AEDB-1735A881F7A9}"
 EndProject
 Global
@@ -26,10 +26,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{224A9AEB-A600-E384-3E22-F94B96D4BBD4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{224A9AEB-A600-E384-3E22-F94B96D4BBD4}.Debug|Win32.Build.0 = Debug|Win32
-		{224A9AEB-A600-E384-3E22-F94B96D4BBD4}.Release|Win32.ActiveCfg = Release|Win32
-		{224A9AEB-A600-E384-3E22-F94B96D4BBD4}.Release|Win32.Build.0 = Release|Win32
+		{077ABA6D-8CD4-23AF-7F10-EF070630BA25}.Debug|Win32.ActiveCfg = Debug|Win32
+		{077ABA6D-8CD4-23AF-7F10-EF070630BA25}.Debug|Win32.Build.0 = Debug|Win32
+		{077ABA6D-8CD4-23AF-7F10-EF070630BA25}.Release|Win32.ActiveCfg = Release|Win32
+		{077ABA6D-8CD4-23AF-7F10-EF070630BA25}.Release|Win32.Build.0 = Release|Win32
 		{39181481-F323-BC51-11E2-CF74FA7C0883}.Debug|Win32.ActiveCfg = Debug|Win32
 		{39181481-F323-BC51-11E2-CF74FA7C0883}.Debug|Win32.Build.0 = Debug|Win32
 		{39181481-F323-BC51-11E2-CF74FA7C0883}.Release|Win32.ActiveCfg = Release|Win32
