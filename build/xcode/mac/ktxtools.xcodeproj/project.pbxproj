@@ -118,6 +118,7 @@
 		1C312A0C225756C5AB337B0B /* .toktxdoc_gentimestamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = .toktxdoc_gentimestamp; sourceTree = "<group>"; };
 		203503E5D73963F434684DDB /* toktx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = toktx.cpp; sourceTree = "<group>"; };
 		2201D1E541CC854E40264DE2 /* runDoxygen */ = {isa = PBXFileReference; lastKnownFileType = text; path = runDoxygen; sourceTree = "<group>"; };
+		31B09D0BB9744706703438EC /* toktx.1 */ = {isa = PBXFileReference; lastKnownFileType = text; path = toktx.1; sourceTree = "<group>"; };
 		443108B5D46423C057E80865 /* argparser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = argparser.cpp; sourceTree = "<group>"; };
 		53718F849477FE4A99643D3C /* toktx */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = toktx; sourceTree = BUILT_PRODUCTS_DIR; };
 		60CB42EA6BD3CA61486652F2 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
@@ -129,7 +130,6 @@
 		A70ADC63B30492A0A8FE4CEC /* testsrun */ = {isa = PBXFileReference; lastKnownFileType = text; path = testsrun; sourceTree = "<group>"; };
 		ABDA085C0BCC5D2B8629A83C /* default.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = default.gypi; path = gyp_include/default.gypi; sourceTree = "<group>"; };
 		B6C3F24523648045AB33FCA3 /* tools.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tools.gypi; path = tools/tools.gypi; sourceTree = "<group>"; };
-		C608311F3788AA5DAB2063EB /* toktx.1 */ = {isa = PBXFileReference; lastKnownFileType = text; path = toktx.1; sourceTree = "<group>"; };
 		D03F8B42599E13BB361A336C /* image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = image.h; sourceTree = "<group>"; };
 		D2C3FD552A0E9500694FADD5 /* stdafx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
 		DA82593AE378BC3E1F06CD53 /* toktx.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = toktx.gypi; path = tools/toktx/toktx.gypi; sourceTree = "<group>"; };
@@ -171,12 +171,22 @@
 			);
 			sourceTree = "<group>";
 		};
-		8442536E478852B5D42F58B3 /* man/ktxtools/man1 */ = {
+		7629D78BDAB2F189AC4C1F3A /* man/man1 */ = {
 			isa = PBXGroup;
 			children = (
-				C608311F3788AA5DAB2063EB /* toktx.1 */,
+				31B09D0BB9744706703438EC /* toktx.1 */,
 			);
-			path = man/ktxtools/man1;
+			path = man/man1;
+			sourceTree = "<group>";
+		};
+		78D114B9BCAFC08BEC9646B5 /* build/docs */ = {
+			isa = PBXGroup;
+			children = (
+				CBFC098D2AEF17015BFF7B59 /* html */,
+				7629D78BDAB2F189AC4C1F3A /* man/man1 */,
+				1C312A0C225756C5AB337B0B /* .toktxdoc_gentimestamp */,
+			);
+			path = build/docs;
 			sourceTree = "<group>";
 		};
 		9E2B0B1103C809BC9CE294BD /* Projects */ = {
@@ -185,16 +195,6 @@
 				0AEF50F1B637980A330FE517 /* libktx.xcodeproj */,
 			);
 			name = Projects;
-			sourceTree = "<group>";
-		};
-		A6895F59894B0417249486B2 /* build/docs */ = {
-			isa = PBXGroup;
-			children = (
-				CBFC098D2AEF17015BFF7B59 /* html */,
-				8442536E478852B5D42F58B3 /* man/ktxtools/man1 */,
-				1C312A0C225756C5AB337B0B /* .toktxdoc_gentimestamp */,
-			);
-			path = build/docs;
 			sourceTree = "<group>";
 		};
 		AC3BEC6CB2F10CEADFB04473 /* Products */ = {
@@ -231,7 +231,7 @@
 		C3164E0A2C534F71F76E6B2B /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				A6895F59894B0417249486B2 /* build/docs */,
+				78D114B9BCAFC08BEC9646B5 /* build/docs */,
 				E368DE5878720C42889C7AC5 /* tests */,
 				B9DBBD2BDC0AB56FD77FF34F /* tools/toktx */,
 				C54AB62367C72E3390DCD433 /* utils */,
@@ -370,7 +370,7 @@
 			name = "Action \"buildToktxDoc\"";
 			outputPaths = (
 				build/docs/html/ktxtools,
-				build/docs/man/ktxtools/man1/toktx.1,
+				build/docs/man/man1/toktx.1,
 				build/docs/.toktxdoc_gentimestamp,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
