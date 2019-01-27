@@ -36,9 +36,10 @@ init:
 #  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
   - ps: #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - curl -L -O https://github.com/git-lfs/git-lfs/releases/download/v2.6.1/git-lfs-windows-v2.6.1.exe
-  - dir
-  - git-lfs-windows-v2.6.1.exe
+  - git lfs version
+  - git-lfs-windows-v2.6.1.exe /S
   - git lfs install
+  - git lfs version
   - git config --global core.autocrlf true # workaround Git LFS bug
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
