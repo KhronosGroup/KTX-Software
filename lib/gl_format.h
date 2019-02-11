@@ -2089,7 +2089,7 @@ static inline void glGetFormatSize( const GLenum internalFormat, GlFormatSize * 
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 128;
 			pFormatSize->blockWidth = 5;
-			pFormatSize->blockHeight = 6;
+			pFormatSize->blockHeight = 5;
 			pFormatSize->blockDepth = 1;
 			break;
 		case GL_COMPRESSED_RGBA_ASTC_6x5_KHR:					// 4-component ASTC, 6x5 blocks, unsigned normalized
