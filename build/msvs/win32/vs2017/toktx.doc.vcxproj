@@ -125,9 +125,9 @@
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\ktxtools.doxy">
       <FileType>Document</FileType>
-      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-t\&quot; \&quot;build/docs/.toktxdoc_gentimestamp\&quot; \&quot;ktxtools.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-t\&quot; \&quot;build/docs/.toktxdoc_gentimestamp\&quot; \&quot;-o\&quot; \&quot;build/docs/html\&quot; \&quot;ktxtools.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Generating toktx documentation with Doxygen</Message>
-      <Outputs>..\..\..\..\build\docs\html\ktxtools;..\..\..\..\build\docs\man\man1\toktx.1;..\..\..\..\build\docs\.toktxdoc_gentimestamp</Outputs>
+      <Outputs>..\..\..\..\build\docs\.toktxdoc_gentimestamp</Outputs>
       <LinkObjects>false</LinkObjects>
       <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\tools\toktx\toktx.cpp</AdditionalInputs>
     </CustomBuild>

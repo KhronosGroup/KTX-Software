@@ -125,9 +125,9 @@
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\ktxpkg.doxy">
       <FileType>Document</FileType>
-      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-t\&quot; \&quot;build/docs/.package_gentimestamp\&quot; \&quot;ktxpkg.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-t\&quot; \&quot;build/docs/.package_gentimestamp\&quot; \&quot;-o\&quot; \&quot;build/docs/html\&quot; \&quot;ktxpkg.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Generating package documentation with Doxygen</Message>
-      <Outputs>..\..\..\..\build\docs\html;..\..\..\..\build\docs\.package_gentimestamp</Outputs>
+      <Outputs>..\..\..\..\build\docs\.package_gentimestamp</Outputs>
       <LinkObjects>false</LinkObjects>
       <AdditionalInputs>..\..\..\..\LICENSE.md;..\..\..\..\runDoxygen;..\..\..\..\TODO.md;..\..\..\..\pkgdoc\mainpage.md</AdditionalInputs>
     </CustomBuild>
