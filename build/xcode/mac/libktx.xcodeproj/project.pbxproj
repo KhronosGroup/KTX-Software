@@ -232,8 +232,8 @@
 		41AC4CE9B5DACEC15D433221 /* gl_format.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_format.h; sourceTree = "<group>"; };
 		44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcdec.cxx; sourceTree = "<group>"; };
 		474075FAD32D60D3E886E1E4 /* uthash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = uthash.h; sourceTree = "<group>"; };
+		48363FA746691DE4D4E16E13 /* .libktx_gentimestamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = .libktx_gentimestamp; sourceTree = "<group>"; };
 		4E0FC251435360C63D168913 /* errstr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = errstr.c; sourceTree = "<group>"; };
-		50B1EA3897E50F3CB7E6D9A8 /* libktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = libktx; sourceTree = "<group>"; };
 		53941C3F4EB820F20A47DA0E /* vkloader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkloader.c; sourceTree = "<group>"; };
 		56F65688C8403CD76F6AEB58 /* runDoxygen */ = {isa = PBXFileReference; lastKnownFileType = text; path = runDoxygen; sourceTree = "<group>"; };
 		575B7A621B55E274E543AE05 /* mainpage.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = mainpage.md; sourceTree = "<group>"; };
@@ -260,7 +260,6 @@
 		D4E93BE5260F9F886F788BE7 /* filestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filestream.h; sourceTree = "<group>"; };
 		D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxvulkan.h; sourceTree = "<group>"; };
 		D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcunpack.cxx; sourceTree = "<group>"; };
-		DDD5049A93D134F22F8636C1 /* libktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = libktx; sourceTree = "<group>"; };
 		E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles1_funcptrs.h; sourceTree = "<group>"; };
 		E4C296305A71370E67B0FDD7 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		E7BEA620A978C1E63E5AD6CB /* writer_v1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer_v1.c; sourceTree = "<group>"; };
@@ -296,14 +295,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		048C61E104E2F090310A6E2B /* html */ = {
-			isa = PBXGroup;
-			children = (
-				DDD5049A93D134F22F8636C1 /* libktx */,
-			);
-			path = html;
-			sourceTree = "<group>";
-		};
 		081591EA16B4CF19E1457839 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -312,15 +303,6 @@
 				998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		09308B30A1F38FBAB9ACB80E /* build/docs */ = {
-			isa = PBXGroup;
-			children = (
-				048C61E104E2F090310A6E2B /* html */,
-				636527166B02699ADCA9398B /* man */,
-			);
-			path = build/docs;
 			sourceTree = "<group>";
 		};
 		115FD997276BE6B2F9D71D3B /* Build */ = {
@@ -350,7 +332,7 @@
 		5400062DAD93FBAA69D108AD /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				09308B30A1F38FBAB9ACB80E /* build/docs */,
+				F28B6BEC0F9162487EC0E07B /* build/docs */,
 				57D232CAE30EDA78BEBF64CF /* include */,
 				6574B599E643E60A50CFACAA /* lib */,
 				1BD886EACF703C7F42DB60DF /* LICENSE.md */,
@@ -368,14 +350,6 @@
 				D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */,
 			);
 			path = include;
-			sourceTree = "<group>";
-		};
-		636527166B02699ADCA9398B /* man */ = {
-			isa = PBXGroup;
-			children = (
-				50B1EA3897E50F3CB7E6D9A8 /* libktx */,
-			);
-			path = man;
 			sourceTree = "<group>";
 		};
 		6574B599E643E60A50CFACAA /* lib */ = {
@@ -412,6 +386,14 @@
 				E7BEA620A978C1E63E5AD6CB /* writer_v1.c */,
 			);
 			path = lib;
+			sourceTree = "<group>";
+		};
+		F28B6BEC0F9162487EC0E07B /* build/docs */ = {
+			isa = PBXGroup;
+			children = (
+				48363FA746691DE4D4E16E13 /* .libktx_gentimestamp */,
+			);
+			path = build/docs;
 			sourceTree = "<group>";
 		};
 		F4FFA1782492E825706FCBFA /* Frameworks */ = {
@@ -550,12 +532,11 @@
 			);
 			name = "Action \"buildLibktxDoc\"";
 			outputPaths = (
-				build/docs/html/libktx,
-				build/docs/man/libktx,
+				build/docs/.libktx_gentimestamp,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating libktx documentation with Doxygen\"\nexec ./runDoxygen -t build/docs/.libktx_gentimestamp libktx.doxy\nexit 1\n";
+			shellScript = "echo note: \"Generating libktx documentation with Doxygen\"\nexec ./runDoxygen -t build/docs/.libktx_gentimestamp -o build/docs/html libktx.doxy\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

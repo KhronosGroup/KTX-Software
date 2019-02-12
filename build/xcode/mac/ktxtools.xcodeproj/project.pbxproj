@@ -118,12 +118,10 @@
 		1C312A0C225756C5AB337B0B /* .toktxdoc_gentimestamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = .toktxdoc_gentimestamp; sourceTree = "<group>"; };
 		203503E5D73963F434684DDB /* toktx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = toktx.cpp; sourceTree = "<group>"; };
 		2201D1E541CC854E40264DE2 /* runDoxygen */ = {isa = PBXFileReference; lastKnownFileType = text; path = runDoxygen; sourceTree = "<group>"; };
-		31B09D0BB9744706703438EC /* toktx.1 */ = {isa = PBXFileReference; lastKnownFileType = text; path = toktx.1; sourceTree = "<group>"; };
 		443108B5D46423C057E80865 /* argparser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = argparser.cpp; sourceTree = "<group>"; };
 		53718F849477FE4A99643D3C /* toktx */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = toktx; sourceTree = BUILT_PRODUCTS_DIR; };
 		60CB42EA6BD3CA61486652F2 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		7E34B6FCD7D2C06100AC83B8 /* toktx-tests */ = {isa = PBXFileReference; lastKnownFileType = text; path = "toktx-tests"; sourceTree = "<group>"; };
-		828E36FE1B273FDAABA1A003 /* ktxtools */ = {isa = PBXFileReference; lastKnownFileType = text; path = ktxtools; sourceTree = "<group>"; };
 		86AEB87A4794F64BCABB0F56 /* argparser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = argparser.h; sourceTree = "<group>"; };
 		9FDEDCE310E000EE3C1F8868 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		A17ED16C420B2458BFAFE7CD /* ktxtools.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = ktxtools.gyp; sourceTree = "<group>"; };
@@ -171,24 +169,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		7629D78BDAB2F189AC4C1F3A /* man/man1 */ = {
-			isa = PBXGroup;
-			children = (
-				31B09D0BB9744706703438EC /* toktx.1 */,
-			);
-			path = man/man1;
-			sourceTree = "<group>";
-		};
-		78D114B9BCAFC08BEC9646B5 /* build/docs */ = {
-			isa = PBXGroup;
-			children = (
-				CBFC098D2AEF17015BFF7B59 /* html */,
-				7629D78BDAB2F189AC4C1F3A /* man/man1 */,
-				1C312A0C225756C5AB337B0B /* .toktxdoc_gentimestamp */,
-			);
-			path = build/docs;
-			sourceTree = "<group>";
-		};
 		9E2B0B1103C809BC9CE294BD /* Projects */ = {
 			isa = PBXGroup;
 			children = (
@@ -220,6 +200,14 @@
 			path = tools/toktx;
 			sourceTree = "<group>";
 		};
+		BC937D462167E9F8831025CE /* build/docs */ = {
+			isa = PBXGroup;
+			children = (
+				1C312A0C225756C5AB337B0B /* .toktxdoc_gentimestamp */,
+			);
+			path = build/docs;
+			sourceTree = "<group>";
+		};
 		BEF05C43CC7571E38C50D279 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -231,7 +219,7 @@
 		C3164E0A2C534F71F76E6B2B /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				78D114B9BCAFC08BEC9646B5 /* build/docs */,
+				BC937D462167E9F8831025CE /* build/docs */,
 				E368DE5878720C42889C7AC5 /* tests */,
 				B9DBBD2BDC0AB56FD77FF34F /* tools/toktx */,
 				C54AB62367C72E3390DCD433 /* utils */,
@@ -248,14 +236,6 @@
 				86AEB87A4794F64BCABB0F56 /* argparser.h */,
 			);
 			path = utils;
-			sourceTree = "<group>";
-		};
-		CBFC098D2AEF17015BFF7B59 /* html */ = {
-			isa = PBXGroup;
-			children = (
-				828E36FE1B273FDAABA1A003 /* ktxtools */,
-			);
-			path = html;
 			sourceTree = "<group>";
 		};
 		E368DE5878720C42889C7AC5 /* tests */ = {
@@ -369,13 +349,11 @@
 			);
 			name = "Action \"buildToktxDoc\"";
 			outputPaths = (
-				build/docs/html/ktxtools,
-				build/docs/man/man1/toktx.1,
 				build/docs/.toktxdoc_gentimestamp,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating toktx documentation with Doxygen\"\nexec ./runDoxygen -t build/docs/.toktxdoc_gentimestamp ktxtools.doxy\nexit 1\n";
+			shellScript = "echo note: \"Generating toktx documentation with Doxygen\"\nexec ./runDoxygen -t build/docs/.toktxdoc_gentimestamp -o build/docs/html ktxtools.doxy\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

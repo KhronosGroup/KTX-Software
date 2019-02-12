@@ -72,7 +72,6 @@
 		1B1F976EC113DB121F7457DF /* .package_gentimestamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = .package_gentimestamp; sourceTree = "<group>"; };
 		1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ktxtools.xcodeproj; path = build/xcode/mac/ktxtools.xcodeproj; sourceTree = SOURCE_ROOT; };
 		5B761FA2386FF1725FB969A1 /* pkgdoc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pkgdoc.gypi; path = pkgdoc/pkgdoc.gypi; sourceTree = "<group>"; };
-		5FD7D1D2E2FB90AEAB77B0E6 /* html */ = {isa = PBXFileReference; lastKnownFileType = text; path = html; sourceTree = "<group>"; };
 		7298FBF93C93B6EF0997FC73 /* ktxdoc.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = ktxdoc.gyp; sourceTree = "<group>"; };
 		951E499DD075863CF6649264 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.md; sourceTree = "<group>"; };
 		AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libktx.xcodeproj; path = build/xcode/mac/libktx.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -118,7 +117,7 @@
 		3D442337216649803607D54D /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				48DE6F60B6AC3E6BB57CDC48 /* build/docs */,
+				94460DA796B8ACC170ECC8D5 /* build/docs */,
 				BF6BBCF6FD1598C3AA7A53FC /* pkgdoc */,
 				951E499DD075863CF6649264 /* LICENSE.md */,
 				DBA01DF293FE47400D3AB52C /* TODO.md */,
@@ -126,15 +125,6 @@
 				B2C056A0F49C36DCED42A6A0 /* runDoxygen */,
 			);
 			name = Source;
-			sourceTree = "<group>";
-		};
-		48DE6F60B6AC3E6BB57CDC48 /* build/docs */ = {
-			isa = PBXGroup;
-			children = (
-				1B1F976EC113DB121F7457DF /* .package_gentimestamp */,
-				5FD7D1D2E2FB90AEAB77B0E6 /* html */,
-			);
-			path = build/docs;
 			sourceTree = "<group>";
 		};
 		5BACDF29B66A980CA2CC006C /* Products */ = {
@@ -153,6 +143,14 @@
 				6527CB59EC7BD66F84551A43 /* toktx */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		94460DA796B8ACC170ECC8D5 /* build/docs */ = {
+			isa = PBXGroup;
+			children = (
+				1B1F976EC113DB121F7457DF /* .package_gentimestamp */,
+			);
+			path = build/docs;
 			sourceTree = "<group>";
 		};
 		BF6BBCF6FD1598C3AA7A53FC /* pkgdoc */ = {
@@ -239,12 +237,11 @@
 			);
 			name = "Action \"buildPackageDoc\"";
 			outputPaths = (
-				build/docs/html,
 				build/docs/.package_gentimestamp,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating package documentation with Doxygen\"\nexec ./runDoxygen -t build/docs/.package_gentimestamp ktxpkg.doxy\nexit 1\n";
+			shellScript = "echo note: \"Generating package documentation with Doxygen\"\nexec ./runDoxygen -t build/docs/.package_gentimestamp -o build/docs/html ktxpkg.doxy\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
