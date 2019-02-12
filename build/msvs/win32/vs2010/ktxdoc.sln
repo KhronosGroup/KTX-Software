@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxpkg.doc", "ktxpkg.doc.vcxproj", "{0F051FDD-E510-099D-8199-7C6F00646EB7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22FF30F7-734D-B8A4-E5ED-0426B09F3E6A} = {22FF30F7-734D-B8A4-E5ED-0426B09F3E6A}
+		{D3F2E3A2-BDEC-5A82-6EE9-14EDEFFCA3C6} = {D3F2E3A2-BDEC-5A82-6EE9-14EDEFFCA3C6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{22FF30F7-734D-B8A4-E5ED-0426B09F3E6A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx.doc", "toktx.doc.vcxproj", "{D3F2E3A2-BDEC-5A82-6EE9-14EDEFFCA3C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0F051FDD-E510-099D-8199-7C6F00646EB7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0F051FDD-E510-099D-8199-7C6F00646EB7}.Debug|Win32.Build.0 = Debug|Win32
+		{0F051FDD-E510-099D-8199-7C6F00646EB7}.Release|Win32.ActiveCfg = Release|Win32
+		{0F051FDD-E510-099D-8199-7C6F00646EB7}.Release|Win32.Build.0 = Release|Win32
+		{22FF30F7-734D-B8A4-E5ED-0426B09F3E6A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{22FF30F7-734D-B8A4-E5ED-0426B09F3E6A}.Debug|Win32.Build.0 = Debug|Win32
+		{22FF30F7-734D-B8A4-E5ED-0426B09F3E6A}.Release|Win32.ActiveCfg = Release|Win32
+		{22FF30F7-734D-B8A4-E5ED-0426B09F3E6A}.Release|Win32.Build.0 = Release|Win32
+		{D3F2E3A2-BDEC-5A82-6EE9-14EDEFFCA3C6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D3F2E3A2-BDEC-5A82-6EE9-14EDEFFCA3C6}.Debug|Win32.Build.0 = Debug|Win32
+		{D3F2E3A2-BDEC-5A82-6EE9-14EDEFFCA3C6}.Release|Win32.ActiveCfg = Release|Win32
+		{D3F2E3A2-BDEC-5A82-6EE9-14EDEFFCA3C6}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

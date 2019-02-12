@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxpkg.doc", "ktxpkg.doc.vcxproj", "{C2C0590A-F8EB-72DB-5AE5-1533BA2ED55B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E5B47EB-6EEC-53B2-C379-4CB0D965BF8F} = {4E5B47EB-6EEC-53B2-C379-4CB0D965BF8F}
+		{0E5B8095-1273-C4E1-CEDE-AD7B271CA95F} = {0E5B8095-1273-C4E1-CEDE-AD7B271CA95F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{4E5B47EB-6EEC-53B2-C379-4CB0D965BF8F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx.doc", "toktx.doc.vcxproj", "{0E5B8095-1273-C4E1-CEDE-AD7B271CA95F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E5B8095-1273-C4E1-CEDE-AD7B271CA95F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0E5B8095-1273-C4E1-CEDE-AD7B271CA95F}.Debug|Win32.Build.0 = Debug|Win32
+		{0E5B8095-1273-C4E1-CEDE-AD7B271CA95F}.Release|Win32.ActiveCfg = Release|Win32
+		{0E5B8095-1273-C4E1-CEDE-AD7B271CA95F}.Release|Win32.Build.0 = Release|Win32
+		{4E5B47EB-6EEC-53B2-C379-4CB0D965BF8F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4E5B47EB-6EEC-53B2-C379-4CB0D965BF8F}.Debug|Win32.Build.0 = Debug|Win32
+		{4E5B47EB-6EEC-53B2-C379-4CB0D965BF8F}.Release|Win32.ActiveCfg = Release|Win32
+		{4E5B47EB-6EEC-53B2-C379-4CB0D965BF8F}.Release|Win32.Build.0 = Release|Win32
+		{C2C0590A-F8EB-72DB-5AE5-1533BA2ED55B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C2C0590A-F8EB-72DB-5AE5-1533BA2ED55B}.Debug|Win32.Build.0 = Debug|Win32
+		{C2C0590A-F8EB-72DB-5AE5-1533BA2ED55B}.Release|Win32.ActiveCfg = Release|Win32
+		{C2C0590A-F8EB-72DB-5AE5-1533BA2ED55B}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

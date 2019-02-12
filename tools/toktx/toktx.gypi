@@ -20,8 +20,8 @@
     ],
   },
   'conditions': [
-    # No point in building this command line utility for iOS or
-    # Android.
+    #  # No point in building this command line utility for Android
+    # or iOS.
     ['OS == "linux" or OS == "mac" or OS == "win"', {
       'targets': [
         {
@@ -93,7 +93,7 @@
           ], # actions
         }, # toktx-tests target
         {
-          'target_name': 'ktxtools.doc',
+          'target_name': 'toktx.doc',
           'type': 'none',
           'variables': { # level 1
             'variables': { # level 2
@@ -101,7 +101,7 @@
             },
             'output_dir': '<(output_dir)',
             'doxyConfig': 'ktxtools.doxy',
-            'timestamp': '<(output_dir)/.gentimestamp',
+            'timestamp': '<(output_dir)/.toktxdoc_gentimestamp',
           },
           # It is not possible to chain commands in an action with
           # && because the generators will quote such strings.
@@ -109,18 +109,16 @@
           # these actions
           'actions': [
             {
-              'action_name': 'buildDoc',
-              'message': 'Generating tools documentation with Doxygen',
+              'action_name': 'buildToktxDoc',
+              'message': 'Generating toktx documentation with Doxygen',
               'inputs': [
                 '../../<(doxyConfig)',
                 '../../runDoxygen',
                 'toktx.cpp',
               ],
-              'outputs': [
-                '<(output_dir)/html/ktxtools',
-                '<(output_dir)/man/ktxtools/man1/toktx.1',
-                '<(timestamp)',
-              ],
+              # See ../../lib/libktx.gypi for comment about why only
+              # timestamp is in this list.
+              'outputs': [ '<(timestamp)' ],
               # doxygen must be run in the top-level project directory
               # so that ancestors of that directory will be removed
               # from paths displayed in the documentation. That is also
@@ -129,13 +127,16 @@
               # See ../../lib/libktx.gypi for further comments.
               'msvs_cygwin_shell': 1,
               'action': [
-                './runDoxygen', '-t', '<(timestamp)', '<(doxyConfig)',
+                './runDoxygen',
+                '-t', '<(timestamp)',
+                '-o', '<(output_dir)/html',
+                '<(doxyConfig)',
               ],
-            }, # buildDoc action
+            }, # buildToktxDoc action
           ], # actions
-        }, # libktx.doc
+        }, # toktx.doc
       ], # targets
-    }], # 'OS == "mac" or OS == "win"'
+    }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ] # conditions for conditional targets
 }
 

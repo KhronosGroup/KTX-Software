@@ -752,7 +752,7 @@ ktxWriteKTXM(unsigned char** dst, GLsizei* size,
 @section v6 Version 3.0
 Added:
 @li new ktxTexture object based API for reading KTX files without an OpenGL context.
-@li Vulkan loader. #include <ktxvulkan.h> to use it.
+@li Vulkan loader. @#include <ktxvulkan.h> to use it.
 
 Changed:
 @li ktx.h to not depend on KHR/khrplatform.h and GL{,ES*}/gl{corearb,}.h.

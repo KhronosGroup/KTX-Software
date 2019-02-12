@@ -35,6 +35,12 @@ clone_folder: c:\projects\ktx
 init:
 #  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
   - ps: #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - curl -L -O https://github.com/git-lfs/git-lfs/releases/download/v2.6.1/git-lfs-windows-v2.6.1.exe
+  - git lfs version
+  - git-lfs-windows-v2.6.1.exe /SILENT
+  - git lfs install
+  - git lfs version
+  - rm git-lfs-windows-v2.6.1.exe
   - git config --global core.autocrlf true # workaround Git LFS bug
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
@@ -75,8 +81,8 @@ build_script:
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2015”) {$env:KTX_VSVER = “vs2015"}
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2017”) {$env:KTX_VSVER = “vs2017"}
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
-    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/libktx.doc.vcxproj
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
+    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxdoc.sln
 - cmd: |-
     .\setup_env.bat && bash -c "./runDoxygen ktxpkg.doxy"
 

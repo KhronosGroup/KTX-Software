@@ -148,12 +148,12 @@
             },
             'output_dir': '<(output_dir)',
             'doxyConfig': 'libktx.doxy',
-            'timestamp': '<(output_dir)/.gentimestamp',
+            'timestamp': '<(output_dir)/.libktx_gentimestamp',
           },
           'actions': [
             {
-              'action_name': 'buildDoc',
-              'message': 'Generating documentation with Doxygen',
+              'action_name': 'buildLibktxDoc',
+              'message': 'Generating libktx documentation with Doxygen',
               'inputs': [
                 '../<(doxyConfig)',
                 '../runDoxygen',
@@ -163,10 +163,12 @@
                 '<@(sources)',
                 '<@(vksource_files)',
               ],
-              'outputs': [
-                '<(output_dir)/html/libktx',
-                '<(output_dir)/man/libktx',
-              ],
+              # If other partial Doxygen outputs are included, e.g.
+              # (<(output_dir)/html/libktx), CMake's make generator
+              # on Linux (at least), makes timestamp dependent on
+              # those other outputs. If those outputs exist, then
+              # neither timestamp nor the document is updated.
+              'outputs': [ '<(timestamp)' ],
               # doxygen must be run in the top-level project directory
               # so that ancestors of that directory will be removed
               # from paths displayed in the documentation. That is
@@ -204,7 +206,10 @@
               # directory during project build is the one we need.
               'msvs_cygwin_shell': 1,
               'action': [
-                './runDoxygen', '-t', '<(timestamp)', '<(doxyConfig)',
+                './runDoxygen',
+                '-t', '<(timestamp)',
+                '-o', '<(output_dir)/html',
+                '<(doxyConfig)',
               ],
             }, # buildDoc action
           ], # actions

@@ -139,9 +139,9 @@ script:
     pushd build/xcode/mac &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    xcodebuild -project libktx.xcodeproj -target libktx.doc -destination "platform=OS X,arch=x86_64" -configuration Release $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    xcodebuild -project ktxdoc.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
     cd ../ios &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
@@ -152,8 +152,7 @@ script:
     cd ../Release &&
     ./unittests &&
     ./texturetests &&
-    popd &&
-    ./runDoxygen ktxpkg.doxy
+    popd
     ;;
     esac
 
