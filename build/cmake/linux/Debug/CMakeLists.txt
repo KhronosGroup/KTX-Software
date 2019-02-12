@@ -160,7 +160,7 @@ unset(TARGET)
 #libktx.gyp:libktx.doc#target
 set(TARGET "libktx.doc")
 set(TOOLSET "target")
-list(APPEND libktx_doc__buildDoc__input
+list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../libktx.doxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/mainpage.md"
@@ -196,27 +196,24 @@ list(APPEND libktx_doc__buildDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funclist.inl"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.h")
-list(APPEND libktx_doc__buildDoc__output
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/html/libktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/libktx")
-add_custom_command(OUTPUT ${libktx_doc__buildDoc__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs/html
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs/man
-  COMMAND ./runDoxygen -t build/docs/.gentimestamp libktx.doxy
-  DEPENDS ${libktx_doc__buildDoc__input}
+set(libktx_doc__buildLibktxDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.libktx_gentimestamp")
+add_custom_command(OUTPUT ${libktx_doc__buildLibktxDoc__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
+  COMMAND ./runDoxygen -t build/docs/.libktx_gentimestamp -o build/docs/html libktx.doxy
+  DEPENDS ${libktx_doc__buildLibktxDoc__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Generating documentation with Doxygen
+  COMMENT Generating libktx documentation with Doxygen
   VERBATIM
 )
-add_custom_target(libktx_doc__buildDoc
-  DEPENDS ${libktx_doc__buildDoc__output}
-  SOURCES ${libktx_doc__buildDoc__input}
+add_custom_target(libktx_doc__buildLibktxDoc
+  DEPENDS ${libktx_doc__buildLibktxDoc__output}
+  SOURCES ${libktx_doc__buildLibktxDoc__input}
 )
 add_custom_target(libktx_doc SOURCES)
-set_target_properties(libktx_doc PROPERTIES EXCLUDE_FROM_ALL "TRUE")
-set_target_properties(libktx_doc__buildDoc PROPERTIES EXCLUDE_FROM_ALL "TRUE")
+set_target_properties(libktx_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(libktx_doc__buildLibktxDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(libktx_doc
-  libktx_doc__buildDoc
+  libktx_doc__buildLibktxDoc
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -369,36 +366,68 @@ add_dependencies(toktx-tests
 unset(TOOLSET)
 unset(TARGET)
 
-#ktxtools.gyp:ktxtools.doc#target
-set(TARGET "ktxtools.doc")
+#ktxtools.gyp:toktx.doc#target
+set(TARGET "toktx.doc")
 set(TOOLSET "target")
-list(APPEND ktxtools_doc__buildDoc__input
+list(APPEND toktx_doc__buildToktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxtools.doxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp")
-list(APPEND ktxtools_doc__buildDoc__output
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/html/ktxtools"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/ktxtools/man1/toktx.1"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.gentimestamp")
-add_custom_command(OUTPUT ${ktxtools_doc__buildDoc__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs/man/ktxtools/man1
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs/html
+set(toktx_doc__buildToktxDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.toktxdoc_gentimestamp")
+add_custom_command(OUTPUT ${toktx_doc__buildToktxDoc__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
-  COMMAND ./runDoxygen -t build/docs/.gentimestamp ktxtools.doxy
-  DEPENDS ${ktxtools_doc__buildDoc__input}
+  COMMAND ./runDoxygen -t build/docs/.toktxdoc_gentimestamp -o build/docs/html ktxtools.doxy
+  DEPENDS ${toktx_doc__buildToktxDoc__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Generating tools documentation with Doxygen
+  COMMENT Generating toktx documentation with Doxygen
   VERBATIM
 )
-add_custom_target(ktxtools_doc__buildDoc
-  DEPENDS ${ktxtools_doc__buildDoc__output}
-  SOURCES ${ktxtools_doc__buildDoc__input}
+add_custom_target(toktx_doc__buildToktxDoc
+  DEPENDS ${toktx_doc__buildToktxDoc__output}
+  SOURCES ${toktx_doc__buildToktxDoc__input}
 )
-add_custom_target(ktxtools_doc SOURCES)
-set_target_properties(ktxtools_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(ktxtools_doc__buildDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-add_dependencies(ktxtools_doc
-  ktxtools_doc__buildDoc
+add_custom_target(toktx_doc SOURCES)
+set_target_properties(toktx_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(toktx_doc__buildToktxDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(toktx_doc
+  toktx_doc__buildToktxDoc
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxdoc.gyp:ktxpkg.doc#target
+set(TARGET "ktxpkg.doc")
+set(TOOLSET "target")
+list(APPEND ktxpkg_doc__buildPackageDoc__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxpkg.doxy"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../pkgdoc/mainpage.md")
+set(ktxpkg_doc__buildPackageDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.package_gentimestamp")
+add_custom_command(OUTPUT ${ktxpkg_doc__buildPackageDoc__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
+  COMMAND ./runDoxygen -t build/docs/.package_gentimestamp -o build/docs/html ktxpkg.doxy
+  DEPENDS ${ktxpkg_doc__buildPackageDoc__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating package documentation with Doxygen
+  VERBATIM
+)
+add_custom_target(ktxpkg_doc__buildPackageDoc
+  DEPENDS ${ktxpkg_doc__buildPackageDoc__output}
+  SOURCES ${ktxpkg_doc__buildPackageDoc__input}
+)
+add_custom_target(ktxpkg_doc SOURCES)
+set_target_properties(ktxpkg_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktxpkg_doc__buildPackageDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(ktxpkg_doc__buildPackageDoc
+  libktx_doc
+  toktx_doc
+)
+add_dependencies(ktxpkg_doc
+  libktx_doc
+  toktx_doc
+  ktxpkg_doc__buildPackageDoc
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -415,12 +444,12 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance-reference-metadata.ktx"
@@ -428,14 +457,14 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/not4_rgb888_srgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference-metadata.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference-metadata.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx")
@@ -448,12 +477,12 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx"
   "${builddir}/testimages/etc1.ktx"
-  "${builddir}/testimages/etc2-rgb.ktx"
   "${builddir}/testimages/etc2-rgba1.ktx"
   "${builddir}/testimages/etc2-rgba8.ktx"
-  "${builddir}/testimages/etc2-sRGB.ktx"
+  "${builddir}/testimages/etc2-rgb.ktx"
   "${builddir}/testimages/etc2-sRGBa1.ktx"
   "${builddir}/testimages/etc2-sRGBa8.ktx"
+  "${builddir}/testimages/etc2-sRGB.ktx"
   "${builddir}/testimages/hi_mark.ktx"
   "${builddir}/testimages/hi_mark_sq.ktx"
   "${builddir}/testimages/luminance-reference-metadata.ktx"
@@ -461,14 +490,14 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/no-npot.ktx"
   "${builddir}/testimages/not4_rgb888_srgb.ktx"
   "${builddir}/testimages/orient-down-metadata.ktx"
-  "${builddir}/testimages/orient-up-metadata.ktx"
   "${builddir}/testimages/orient-up.ktx"
+  "${builddir}/testimages/orient-up-metadata.ktx"
   "${builddir}/testimages/pattern_02_bc2.ktx"
   "${builddir}/testimages/rgb-amg-reference.ktx"
-  "${builddir}/testimages/rgb-mipmap-reference.ktx"
-  "${builddir}/testimages/rgb-reference-metadata.ktx"
-  "${builddir}/testimages/rgb-reference.ktx"
   "${builddir}/testimages/rgba-reference.ktx"
+  "${builddir}/testimages/rgb-mipmap-reference.ktx"
+  "${builddir}/testimages/rgb-reference.ktx"
+  "${builddir}/testimages/rgb-reference-metadata.ktx"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx")
@@ -482,12 +511,12 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unor
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance-reference-metadata.ktx ${builddir}/testimages/luminance-reference-metadata.ktx
@@ -495,14 +524,14 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/metalplate-amg-rgba8.ktx ${bui
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/not4_rgb888_srgb.ktx ${builddir}/testimages/not4_rgb888_srgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx ${builddir}/testimages/orient-up-metadata.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx ${builddir}/testimages/orient-up-metadata.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx ${builddir}/testimages/pattern_02_bc2.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference-metadata.ktx ${builddir}/testimages/rgb-reference-metadata.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference-metadata.ktx ${builddir}/testimages/rgb-reference-metadata.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
