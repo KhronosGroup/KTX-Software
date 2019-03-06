@@ -23,6 +23,7 @@
       'glloader.c',
       'hashlist.c',
       'hashtable.c',
+      'ktxgl.h',
       'ktxint.h',
       'memstream.c',
       'memstream.h',
