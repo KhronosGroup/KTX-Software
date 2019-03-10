@@ -46,14 +46,14 @@
  * @internal
  * @brief Structure to store information about data allocated for ktxMemStream.
  */
-typedef struct ktxMem
+struct ktxMem
 {
     const ktx_uint8_t* robytes;/*!< pointer to read-only data */
     ktx_uint8_t* bytes;        /*!< pointer to rw data. */
     ktx_size_t alloc_size;       /*!< allocated size of the memory block. */
     ktx_size_t used_size;        /*!< bytes used. Effectively the write position. */
     ktx_off_t pos;               /*!< read position. */
-} ktxMem;
+};
 
 static KTX_error_code ktxMem_expand(ktxMem* pMem, const ktx_size_t size);
 

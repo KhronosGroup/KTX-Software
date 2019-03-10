@@ -148,6 +148,8 @@
       # had them set to NO while vkloadtests had them set to YES.
       'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
       'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
+      # Use C99 for maximum portability. Sigh!
+      'GCC_C_LANGUAGE_STANDARD': 'c99',
       # Avoid Xcode 10 warning: "Traditional headermap style is no
       # longer supported".
       'ALWAYS_SEARCH_USER_PATHS': 'NO',

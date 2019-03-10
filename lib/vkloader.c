@@ -35,9 +35,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-/* For GL format tokens */
-#include "GL/glcorearb.h"
-#include "GL/glext.h"
 
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 #include "vk_funcs.h"   // Must be included before ktxvulkan.h.

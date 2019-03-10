@@ -36,7 +36,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include "GL/glcorearb.h"
 #include "ktx.h"
 #include "ktxint.h"
 
