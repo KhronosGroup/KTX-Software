@@ -113,7 +113,7 @@ namespace Swipe {
         double angle = getAngle(x1, y1, x2, y2);
         return getDirection(angle);
     }
-};
+}
 
 #if !defined(LOG_GESTURE_EVENTS)
   #define LOG_GESTURE_EVENTS 0

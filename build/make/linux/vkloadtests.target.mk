@@ -175,6 +175,7 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
+	-pedantic \
 	-std=c++11 \
 	-Og \
 	-g
@@ -200,6 +201,7 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
+	-pedantic \
 	-std=c++11 \
 	-O3
 

@@ -190,7 +190,7 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 
     skipNonData(src);
     
-    numvals = fscanf(src, "%d %d", &width, &height);
+    numvals = fscanf(src, "%u %u", &width, &height);
     if (numvals != 2)
     {
         fprintf(stderr, "Error: width or height missing.\n");
@@ -284,7 +284,7 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
     int numvals;
 
     skipNonData(src);
-    numvals = fscanf(src,"%d %d", &width, &height);
+    numvals = fscanf(src,"%u %u", &width, &height);
     if (numvals != 2)
     {
         fprintf(stderr, "Error: image width or height missing.\n");
@@ -378,8 +378,8 @@ readPAM(FILE* src, unsigned int& width, unsigned int& height,
 #define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
 #define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
     char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
-    int maxval, depth;
-    int numFieldsFound = 0;
+    unsigned int maxval, depth;
+    unsigned int numFieldsFound = 0;
 
     for (;;) {
         skipNonData(src);
@@ -392,13 +392,13 @@ readPAM(FILE* src, unsigned int& width, unsigned int& height,
         if (strcmp(line, "ENDHDR\n") == 0)
             break;
 
-        if (sscanf(line, "HEIGHT %d", &height))
+        if (sscanf(line, "HEIGHT %u", &height))
             numFieldsFound++;
-        else if (sscanf(line, "WIDTH %d", &width))
+        else if (sscanf(line, "WIDTH %u", &width))
             numFieldsFound++;
-        else if (sscanf(line, "DEPTH %d", &depth))
+        else if (sscanf(line, "DEPTH %u", &depth))
             numFieldsFound++;
-        else if (sscanf(line, "MAXVAL %d", &maxval))
+        else if (sscanf(line, "MAXVAL %u", &maxval))
             numFieldsFound++;
         else if (sscanf(line, xtupletype_sscanf_fmt(MAX_TUPLETYPE_SIZE),
                         tupleType))

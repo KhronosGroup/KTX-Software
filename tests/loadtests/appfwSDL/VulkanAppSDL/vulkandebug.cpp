@@ -285,7 +285,7 @@ namespace vkDebug
         {
             setObjectName(device, (uint64_t)_event, VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT, name);
         }
-    };
+    }
 
 }
 
