@@ -124,6 +124,7 @@
         }],
       ],
     },
+    'cflags': [ '-std=c99', '-pedantic' ],
     'msvs_configuration_attributes': {
       # When generating multi-platform solutions & projects these
       # directories must be augmented with $(PlatformName).
