@@ -40,10 +40,11 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 
 /* To avoid including <KHR/khrplatform.h> define our own types. */
 typedef unsigned char ktx_uint8_t;
-typedef unsigned char ktx_bool_t;
+typedef bool ktx_bool_t;
 #ifdef _MSC_VER
 typedef unsigned short ktx_uint16_t;
 typedef   signed short ktx_int16_t;
@@ -108,8 +109,8 @@ extern "C" {
  */
 #define KTX_GL_UNPACK_ALIGNMENT 4
     
-#define KTX_TRUE  1
-#define KTX_FALSE 0
+#define KTX_TRUE  true
+#define KTX_FALSE false
 
 /**
  * @~English
