@@ -59,6 +59,7 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxgl.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
@@ -81,9 +82,10 @@ list(APPEND libktx_es3__include_dirs
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
 set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;NDEBUG;")
-set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-pedantic -std=c99 -O3 ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
@@ -128,6 +130,7 @@ list(APPEND libktx_es1__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxgl.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
@@ -145,9 +148,10 @@ list(APPEND libktx_es1__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es1 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es1__include_dirs})
 set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;NDEBUG;")
-set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-pedantic -std=c99 -O3 ")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
@@ -179,6 +183,7 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashlist.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxgl.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.h"
@@ -252,6 +257,7 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/gles1_funcptrs.h"
   "../../../../lib/gles2_funcptrs.h"
   "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxgl.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
@@ -275,9 +281,10 @@ list(APPEND libktx_gl__include_dirs
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
 set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;")
-set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-O3 -fPIC ")
+set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-pedantic -std=c99 -O3 -fPIC ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
@@ -318,9 +325,10 @@ list(APPEND toktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
 set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
@@ -440,12 +448,12 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance-reference-metadata.ktx"
@@ -453,14 +461,14 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/not4_rgb888_srgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx")
@@ -473,12 +481,12 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx"
   "${builddir}/testimages/etc1.ktx"
+  "${builddir}/testimages/etc2-rgb.ktx"
   "${builddir}/testimages/etc2-rgba1.ktx"
   "${builddir}/testimages/etc2-rgba8.ktx"
-  "${builddir}/testimages/etc2-rgb.ktx"
+  "${builddir}/testimages/etc2-sRGB.ktx"
   "${builddir}/testimages/etc2-sRGBa1.ktx"
   "${builddir}/testimages/etc2-sRGBa8.ktx"
-  "${builddir}/testimages/etc2-sRGB.ktx"
   "${builddir}/testimages/hi_mark.ktx"
   "${builddir}/testimages/hi_mark_sq.ktx"
   "${builddir}/testimages/luminance-reference-metadata.ktx"
@@ -486,14 +494,14 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/no-npot.ktx"
   "${builddir}/testimages/not4_rgb888_srgb.ktx"
   "${builddir}/testimages/orient-down-metadata.ktx"
-  "${builddir}/testimages/orient-up.ktx"
   "${builddir}/testimages/orient-up-metadata.ktx"
+  "${builddir}/testimages/orient-up.ktx"
   "${builddir}/testimages/pattern_02_bc2.ktx"
   "${builddir}/testimages/rgb-amg-reference.ktx"
-  "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/rgb-mipmap-reference.ktx"
-  "${builddir}/testimages/rgb-reference.ktx"
   "${builddir}/testimages/rgb-reference-metadata.ktx"
+  "${builddir}/testimages/rgb-reference.ktx"
+  "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx")
@@ -507,12 +515,12 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unor
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance-reference-metadata.ktx ${builddir}/testimages/luminance-reference-metadata.ktx
@@ -520,14 +528,14 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/metalplate-amg-rgba8.ktx ${bui
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/not4_rgb888_srgb.ktx ${builddir}/testimages/not4_rgb888_srgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx ${builddir}/testimages/orient-up-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx ${builddir}/testimages/pattern_02_bc2.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference-metadata.ktx ${builddir}/testimages/rgb-reference-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
@@ -668,16 +676,16 @@ list(APPEND appfwSDL__include_dirs
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-O3 -std=c++11 ")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(appfwSDL__frag2spirv
   libsdl
   vulkan_headers
@@ -740,18 +748,19 @@ list(APPEND gl3loadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
 set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;NDEBUG;")
-set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
 set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(gl3loadtests
   libgl
   testimages
@@ -1142,7 +1151,7 @@ list(APPEND vkloadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET vkloadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${vkloadtests__include_dirs})
 set_target_properties(vkloadtests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-std=c++11 -O3 ")
+set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-pedantic -std=c++11 -O3 ")
 set_target_properties(vkloadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
@@ -1153,10 +1162,10 @@ set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LE
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_OTHER_LDFLAGS "-lassimp -lz")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
-set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources/mac/Info.plist")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
-set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(vkloadtests__frag2spirv
   appfwSDL
   libktx_gl
@@ -1223,16 +1232,16 @@ list(APPEND gtest_main__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
 set_property(TARGET gtest_main APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest_main__include_dirs})
 set_target_properties(gtest_main PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -1252,16 +1261,16 @@ list(APPEND gtest__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
 set_property(TARGET gtest APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest__include_dirs})
 set_target_properties(gtest PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;")
-set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -1285,7 +1294,7 @@ list(APPEND unittests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET unittests APPEND PROPERTY INCLUDE_DIRECTORIES ${unittests__include_dirs})
 set_target_properties(unittests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(unittests PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(unittests PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1327,7 +1336,7 @@ list(APPEND texturetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET texturetests APPEND PROPERTY INCLUDE_DIRECTORIES ${texturetests__include_dirs})
 set_target_properties(texturetests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(texturetests PROPERTIES COMPILE_FLAGS "-O3 ")
+set_target_properties(texturetests PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")

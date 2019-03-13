@@ -31,6 +31,9 @@
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
+/* I need these on Linux. Why? */
+#define __USE_LARGEFILE 1  // For declaration of ftello, etc.
+#define __USE_POSIX 1      // For declaration of fileno.
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>

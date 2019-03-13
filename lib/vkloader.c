@@ -35,9 +35,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-/* For GL format tokens */
-#include "GL/glcorearb.h"
-#include "GL/glext.h"
 
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 #include "vk_funcs.h"   // Must be included before ktxvulkan.h.
@@ -364,7 +361,8 @@ optimalTilingPadCallback(int miplevel, int face,
         ud->offset += faceLodSize;
     } else {
         // Must remove padding. Copy a row at a time.
-        ktx_uint32_t image, imageIterations, row;
+		ktx_uint32_t image, imageIterations;
+		ktx_int32_t row;
         ktx_uint32_t rowPitch, paddedRowPitch;
 
         if (ud->numDimensions == 3)

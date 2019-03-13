@@ -27,7 +27,7 @@
 
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 
-#define UNUX 0
+#define UNIX 0
 #define MACOS 0
 #define WINDOWS 0
 
@@ -91,21 +91,36 @@ static PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 #undef VK_FUNCTION
 
 #if 0
-// The Vulkan spec. recommends using vkGetInstanceProcAddr over dlsym (or whatever).
-// Doing so would require a backward incompatible change to he libktx API to provide
-// the information. We have no choice but dlsym. We can't use vkGetDeviceProcAddr
-// because libktx also uses none-device-level functions.
+// The Vulkan spec. recommends using vkGetInstanceProcAddr over dlsym
+// (or whatever). Doing so would require a backward incompatible
+// change to the libktx API to provide the VkInstance. We have no
+// choice but dlsym. We can't use vkGetDeviceProcAddr because libktx
+// also uses none-device-level functions.
 #define VK_FUNCTION(fun)                                                     \
   if ( !(ktx_##fun = (PFN_##fun)vkGetInstanceProcAddr(instance, #fun )) ) {  \
     fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);          \
     return KTX_FALSE;                                             \
   }
 #else
+#if defined(__GNUC__)
+// This strange casting is because dlsym returns a void* thus is not
+// compatible with ISO C which forbids conversion of object pointers
+// to function pointers. The cast masks the conversion from the
+// compiler thus no warning even though -pedantic is set. Since the
+// platform supports dlsym, conversion to function pointers must
+// work, despite the mandated ISO C warning.
+#define VK_FUNCTION(fun)                                                   \
+  if ( !(*(void **)(&ktx_##fun) = LoadProcAddr(ktxVulkanLibrary, #fun)) ) {\
+    fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);         \
+    return KTX_FALSE;                                                      \
+  }
+#else
 #define VK_FUNCTION(fun)                                                   \
   if ( !(ktx_##fun = (PFN_##fun)LoadProcAddr(ktxVulkanLibrary, #fun)) ) {  \
-    fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);        \
-    return KTX_FALSE;                                           \
+    fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);         \
+    return KTX_FALSE;                                                      \
   }
+#endif
 #endif
 
 ktx_bool_t
@@ -140,6 +155,10 @@ ktxVulkanLoadLibrary(void)
 
 #else
 
-extern int keepISOCompilersHappy;
+extern
+#if defined(__GNUC__)
+__attribute__((unused))
+#endif
+int keepISOCompilersHappy;
 
 #endif /* KTX_USE_FUNCPTRS_FOR_VULKAN */

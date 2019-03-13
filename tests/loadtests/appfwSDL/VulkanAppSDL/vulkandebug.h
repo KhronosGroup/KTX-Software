@@ -102,7 +102,7 @@ namespace vkDebug
         void setSemaphoreName(VkDevice device, VkSemaphore semaphore, const char * name);
         void setFenceName(VkDevice device, VkFence fence, const char * name);
         void setEventName(VkDevice device, VkEvent _event, const char * name);
-    };
+    }
 
 }
 

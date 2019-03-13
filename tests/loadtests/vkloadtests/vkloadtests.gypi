@@ -119,8 +119,8 @@
         },
       },
       'xcode_settings': {
+        # For C++11
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-        'GCC_C_LANGUAGE_STANDARD': 'c99',
         'INFOPLIST_FILE': '<(vkinfoplist_file)',
       }, # xcode_settings
       'conditions': [

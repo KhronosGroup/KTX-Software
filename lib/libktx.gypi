@@ -23,6 +23,7 @@
       'glloader.c',
       'hashlist.c',
       'hashtable.c',
+      'ktxgl.h',
       'ktxint.h',
       'memstream.c',
       'memstream.h',
@@ -56,6 +57,7 @@
     {
       'target_name': 'libktx.gl',
       'type': '<(library)',
+      'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL=1' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
@@ -113,6 +115,7 @@
     {
       'target_name': 'libktx.es1',
       'type': 'static_library',
+      'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL_ES1=1' ],
       'direct_dependent_settings': {
         'include_dirs': [ '<@(include_dirs)' ],
@@ -123,6 +126,7 @@
     {
       'target_name': 'libktx.es3',
       'type': 'static_library',
+      'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL_ES3=1' ],
       'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {

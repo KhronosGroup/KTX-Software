@@ -32,6 +32,8 @@
 #include <stdlib.h>
 
 #include "GL/glcorearb.h"
+// Not defined in glcorearb.h.
+#define GL_ETC1_RGB8_OES                0x8D64
 #include "ktx.h"
 #include "ktxint.h"
 

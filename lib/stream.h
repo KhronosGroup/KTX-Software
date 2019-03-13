@@ -116,7 +116,7 @@ typedef void (*ktxStream_destruct)(ktxStream* str);
  * @~English
  * @brief KTX stream class
  */
-typedef struct ktxStream
+struct ktxStream
 {
     ktxStream_read read;   /*!< @internal pointer to function for reading bytes. */
     ktxStream_skip skip;   /*!< @internal pointer to function for skipping bytes. */
@@ -132,6 +132,6 @@ typedef struct ktxStream
         ktxMem* mem;
     } data;                /**< @internal pointer to the stream data. */
     ktx_bool_t closeOnDestruct; /**< @internal Close FILE* or dispose of memory on destruct. */
-} ktxStream;
+};
 
 #endif /* KTXSTREAM_H */

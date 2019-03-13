@@ -1,4 +1,4 @@
-/*
+﻿/*
 ================================================================================================
 
 Description	:	OpenGL formats/types and properties.
@@ -86,6 +86,7 @@ MODIFICATIONS for use in libktx
 ===============================
  
 2018.3.23 Added glGetTypeSizeFromType. Mark Callow, Edgewise Consulting.
+2019.3.09 #if 0 around GL type declarations. Mark Callow,     〃
 
 ================================================================================================
 */
@@ -103,9 +104,18 @@ MODIFICATIONS for use in libktx
 #endif // __cplusplus
 #endif
 
+/*
+===========================================================================
+Avoid warnings or even errors when using strict C99. "Redefinition of
+(type) is a C11 feature." All includers in libktx also include ktx.h where
+they are also defined.
+===========================================================================
+*/
+#if 0
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
 typedef unsigned int GLuint;
+#endif
 
 #if !defined( GL_INVALID_VALUE )
 #define GL_INVALID_VALUE								0x0501

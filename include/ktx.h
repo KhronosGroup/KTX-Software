@@ -40,10 +40,11 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 
 /* To avoid including <KHR/khrplatform.h> define our own types. */
 typedef unsigned char ktx_uint8_t;
-typedef unsigned char ktx_bool_t;
+typedef bool ktx_bool_t;
 #ifdef _MSC_VER
 typedef unsigned short ktx_uint16_t;
 typedef   signed short ktx_int16_t;
@@ -63,15 +64,25 @@ typedef   size_t ktx_size_t;
 typedef unsigned char ktx_uint32_t_SIZE_ASSERT[sizeof(ktx_uint32_t) == 4];
 
 /*
- * To avoid including gl.h ...
- * Compilers don't warn of duplicate typedefs if there is no conflict.
+ * This #if allows libktx to be compiled with strict c99. It avoids
+ * compiler warnings or even errors when a gl.h is already included.
+ * "Redefinition of (type) is a c11 feature". Obviously this doesn't help if
+ * gl.h comes after. However nobody has complained about the unguarded typedefs
+ * since they were introduced so this is unlikely to be a problem in practice.
+ * Presumably everybody is using platform default compilers not c99 or else
+ * they are using C++.
  */
-typedef unsigned char GLboolean;
-typedef unsigned int GLenum;
-typedef int GLint;
-typedef int GLsizei;
-typedef unsigned int GLuint;
-typedef unsigned char GLubyte;
+#if !defined(GL_NO_ERROR)
+  /*
+   * To avoid having to including gl.h ...
+   */
+  typedef unsigned char GLboolean;
+  typedef unsigned int GLenum;
+  typedef int GLint;
+  typedef int GLsizei;
+  typedef unsigned int GLuint;
+  typedef unsigned char GLubyte;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -98,8 +109,8 @@ extern "C" {
  */
 #define KTX_GL_UNPACK_ALIGNMENT 4
     
-#define KTX_TRUE  1
-#define KTX_FALSE 0
+#define KTX_TRUE  true
+#define KTX_FALSE false
 
 /**
  * @~English

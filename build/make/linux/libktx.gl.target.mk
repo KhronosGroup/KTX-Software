@@ -10,6 +10,8 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
+	-pedantic \
+	-std=c99 \
 	-Og \
 	-g \
 	-fPIC
@@ -32,6 +34,8 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
+	-pedantic \
+	-std=c99 \
 	-O3 \
 	-fPIC
 

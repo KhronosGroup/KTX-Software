@@ -41,8 +41,6 @@
 #include "gl_format.h"
 #include "uthash.h"
 
-#include "GL/glcorearb.h"
-
 /**
  * @internal
  * @~English

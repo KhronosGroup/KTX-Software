@@ -68,49 +68,49 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		07C3BEA5EF32E744C34BA977 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		0ACB40F2C79E401718D8C24E /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		0AFC126E8C49BB0B6FA797CC /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		0E93DA1D2D6412BC012A681B /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		1F0EFF440187092AF4E91356 /* writer_v1.c in Sources */ = {isa = PBXBuildFile; fileRef = E7BEA620A978C1E63E5AD6CB /* writer_v1.c */; };
-		225F20AA2A63218434184029 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		2ED530837D83B21D1FA85D7E /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		3656F1C9E844BC8188F68D6D /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
-		3D5B9C8ED4621D3A2508D714 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		498795F89B57CC6E2175C0F9 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		50F24842C9CCCC8F32A7065A /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		57D1ECF8D5B18EE2DB419049 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		5844253EE73F0BDF8B329EB6 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
-		59510FE5EB6E80ABB0F5AA7C /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		5CB380C6532651310553CE8E /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		6AAC96E22540E3579C2CEA66 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		76CE106CF015B4CA8D3B68C4 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		7C8284875DCBA40E83D8AD95 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		7FD6EC1A3C9A8E87829C6F0D /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		88675CEC74144DAE96A526DC /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		8CC315D93EC3162B756ACB3E /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		8FB9C5E08766C6D7CDE1E917 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		913684AD0EECA1252A1BAE17 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		97076A5B5BDB6020381896E9 /* writer_v1.c in Sources */ = {isa = PBXBuildFile; fileRef = E7BEA620A978C1E63E5AD6CB /* writer_v1.c */; };
-		9AA3BCFD79BFD85267327496 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		9E3460066E45005F4F3EF701 /* writer_v1.c in Sources */ = {isa = PBXBuildFile; fileRef = E7BEA620A978C1E63E5AD6CB /* writer_v1.c */; };
-		A02FC9F06716BAE45904EBB1 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		AB3C125CBCE026A0AFDA11F0 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		AC1A2DB032C53ACEB7572234 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		AEA65BE0ACFF865EC6B80434 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		B16EBAF6967EBD455F82FE41 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		C098BE703FAD0BBB193CED22 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		C72797407742D20A6594553D /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		CE98EA5E6AAE37C54C485C75 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		D77B7EB2D121F52D74F0F1AF /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		DADF1977ED05E467204FF9A5 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		E744B721F0BA683F14B5829A /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		EEACC68F2A19C235290F08FA /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		F0F7E498B00942B870667DC0 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		F2AEECAF5D31CCB8D2F21247 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		FAE5EC1B986EB6E94A409016 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		FB3872D883ACC644EF007DB0 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		FE317F04F1178B453634447C /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		0F151AACC4528AB18D511D88 /* writer_v1.c in Sources */ = {isa = PBXBuildFile; fileRef = E7BEA620A978C1E63E5AD6CB /* writer_v1.c */; };
+		1208DB244A25D77E25E36CF1 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		13FB069C8C62BB8CCF7DEB2A /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
+		14B2A4BD5C627C7950D354E6 /* writer_v1.c in Sources */ = {isa = PBXBuildFile; fileRef = E7BEA620A978C1E63E5AD6CB /* writer_v1.c */; };
+		20EFED3E8993B1D9D4D21B03 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		2563221F7773574B95949D00 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		32C9DE267C4117C1AA20EF35 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		357D5310046D4F0201C6FB7E /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		3AF84762FF21FA498223294E /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		3DDC0D1BA18CAC5113F1CF75 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		476C098AAA04586D1E3AF6A6 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		4A7D2BCD28E37AA0F22E0EA7 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		4D0EEA43E5658018C9EF427B /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		4D4BE05D1BA1590740577863 /* writer_v1.c in Sources */ = {isa = PBXBuildFile; fileRef = E7BEA620A978C1E63E5AD6CB /* writer_v1.c */; };
+		53904C98F96EC88FE49BD3F2 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		54EED292D58C01761C2127AB /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
+		56C647DCF4D41A38C4674F5C /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		5C1F315A5C04B8892A107E20 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
+		5E3A7ADB2974E7D244C07328 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		6197ADF92CEC6960D5105730 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		625BD7D4B599C3A22AFF031C /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		62E182593CD12CEC57A1488F /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		62F89DC862DA18A412930E46 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		64E25FE2A85067870FD26BED /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		7B0BADBB777011FE4955C612 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		7EFE8D84E6EA2BB087A0773D /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		8459CC3F3ADCD98ADAFFF227 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		89E2817DBEB7B1E216A41603 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		89E3472654ED53C165974B6A /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		8D50D29DE67E1417C980C9FE /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		91733D21A59ED762414CE9C1 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		9303393EE7A058B4747F8EF5 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		9A571BA45255757B2716BFC6 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		ABD3E45DC81743B39D7F2EF5 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		B774FF2D62CF4FACF41EB0F3 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		BA18A40931E8B5B7180CFBB7 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
+		BE4189A5BB12B18BAACE39F5 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		BFE824784FCA52EE48A5E09E /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		C87470D1A7F9E208ED9A84AB /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		C8A4ABB86AE279F9AD51ECE4 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		D4EE9288E04C251A28E0C0CE /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		E583AC49B9A6FDA1F872E5A5 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		F64AABE7F00B7BB9289F08B7 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -208,6 +208,7 @@
 		8AB3EA425110875438DBA37A /* filestream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = filestream.c; sourceTree = "<group>"; };
 		8D421DB86018062B6870C747 /* glloader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = glloader.c; sourceTree = "<group>"; };
 		8D8A16A926722E6CEA139B2E /* libvulkan.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libvulkan.gypi; path = gyp_include/libvulkan.gypi; sourceTree = "<group>"; };
+		9253F9C086E3603C90DC1D0D /* ktxgl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxgl.h; sourceTree = "<group>"; };
 		92794EBE6DABF950FC03CFE8 /* texture.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture.c; sourceTree = "<group>"; };
 		998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es3.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E18A3FB89097EF93836206A /* vk_funcs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vk_funcs.h; sourceTree = "<group>"; };
@@ -258,7 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				57D232CAE30EDA78BEBF64CF /* include */,
-				D3386B0DF9DDC7F87C4E3A5A /* lib */,
+				51589CAC6EFF04D0671C80B8 /* lib */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -296,16 +297,7 @@
 			);
 			sourceTree = "<group>";
 		};
-		57D232CAE30EDA78BEBF64CF /* include */ = {
-			isa = PBXGroup;
-			children = (
-				C2E7B90F693D2ADDEB68C765 /* ktx.h */,
-				D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
-		D3386B0DF9DDC7F87C4E3A5A /* lib */ = {
+		51589CAC6EFF04D0671C80B8 /* lib */ = {
 			isa = PBXGroup;
 			children = (
 				EC2F140ED1C840A390FE4436 /* checkheader.c */,
@@ -322,6 +314,7 @@
 				8D421DB86018062B6870C747 /* glloader.c */,
 				FC5A736041E56A19740046E1 /* hashlist.c */,
 				384624CA76049217B70E9012 /* hashtable.c */,
+				9253F9C086E3603C90DC1D0D /* ktxgl.h */,
 				2C4E8C270B5BECA345ACBF85 /* ktxint.h */,
 				5F80151F983F77C60709E872 /* memstream.c */,
 				04DBA4650A63E0877B604E27 /* memstream.h */,
@@ -338,6 +331,15 @@
 				E7BEA620A978C1E63E5AD6CB /* writer_v1.c */,
 			);
 			path = lib;
+			sourceTree = "<group>";
+		};
+		57D232CAE30EDA78BEBF64CF /* include */ = {
+			isa = PBXGroup;
+			children = (
+				C2E7B90F693D2ADDEB68C765 /* ktx.h */,
+				D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */,
+			);
+			path = include;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -425,21 +427,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FB3872D883ACC644EF007DB0 /* checkheader.c in Sources */,
-				AB3C125CBCE026A0AFDA11F0 /* errstr.c in Sources */,
-				AEA65BE0ACFF865EC6B80434 /* etcdec.cxx in Sources */,
-				F2AEECAF5D31CCB8D2F21247 /* etcunpack.cxx in Sources */,
-				FE317F04F1178B453634447C /* filestream.c in Sources */,
-				913684AD0EECA1252A1BAE17 /* glloader.c in Sources */,
-				76CE106CF015B4CA8D3B68C4 /* hashlist.c in Sources */,
-				C72797407742D20A6594553D /* hashtable.c in Sources */,
-				50F24842C9CCCC8F32A7065A /* memstream.c in Sources */,
-				59510FE5EB6E80ABB0F5AA7C /* swap.c in Sources */,
-				C098BE703FAD0BBB193CED22 /* texture.c in Sources */,
-				0ACB40F2C79E401718D8C24E /* writer.c in Sources */,
-				97076A5B5BDB6020381896E9 /* writer_v1.c in Sources */,
-				FAE5EC1B986EB6E94A409016 /* vkloader.c in Sources */,
-				5844253EE73F0BDF8B329EB6 /* vk_funcs.c in Sources */,
+				E583AC49B9A6FDA1F872E5A5 /* checkheader.c in Sources */,
+				8459CC3F3ADCD98ADAFFF227 /* errstr.c in Sources */,
+				64E25FE2A85067870FD26BED /* etcdec.cxx in Sources */,
+				9303393EE7A058B4747F8EF5 /* etcunpack.cxx in Sources */,
+				F64AABE7F00B7BB9289F08B7 /* filestream.c in Sources */,
+				4D0EEA43E5658018C9EF427B /* glloader.c in Sources */,
+				62F89DC862DA18A412930E46 /* hashlist.c in Sources */,
+				625BD7D4B599C3A22AFF031C /* hashtable.c in Sources */,
+				91733D21A59ED762414CE9C1 /* memstream.c in Sources */,
+				B774FF2D62CF4FACF41EB0F3 /* swap.c in Sources */,
+				357D5310046D4F0201C6FB7E /* texture.c in Sources */,
+				476C098AAA04586D1E3AF6A6 /* writer.c in Sources */,
+				14B2A4BD5C627C7950D354E6 /* writer_v1.c in Sources */,
+				BA18A40931E8B5B7180CFBB7 /* vkloader.c in Sources */,
+				13FB069C8C62BB8CCF7DEB2A /* vk_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,19 +449,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				88675CEC74144DAE96A526DC /* checkheader.c in Sources */,
-				498795F89B57CC6E2175C0F9 /* errstr.c in Sources */,
-				AC1A2DB032C53ACEB7572234 /* etcdec.cxx in Sources */,
-				E744B721F0BA683F14B5829A /* etcunpack.cxx in Sources */,
-				5CB380C6532651310553CE8E /* filestream.c in Sources */,
-				D77B7EB2D121F52D74F0F1AF /* glloader.c in Sources */,
-				A02FC9F06716BAE45904EBB1 /* hashlist.c in Sources */,
-				B16EBAF6967EBD455F82FE41 /* hashtable.c in Sources */,
-				0AFC126E8C49BB0B6FA797CC /* memstream.c in Sources */,
-				3D5B9C8ED4621D3A2508D714 /* swap.c in Sources */,
-				9AA3BCFD79BFD85267327496 /* texture.c in Sources */,
-				7FD6EC1A3C9A8E87829C6F0D /* writer.c in Sources */,
-				9E3460066E45005F4F3EF701 /* writer_v1.c in Sources */,
+				6197ADF92CEC6960D5105730 /* checkheader.c in Sources */,
+				ABD3E45DC81743B39D7F2EF5 /* errstr.c in Sources */,
+				20EFED3E8993B1D9D4D21B03 /* etcdec.cxx in Sources */,
+				56C647DCF4D41A38C4674F5C /* etcunpack.cxx in Sources */,
+				7B0BADBB777011FE4955C612 /* filestream.c in Sources */,
+				2563221F7773574B95949D00 /* glloader.c in Sources */,
+				7EFE8D84E6EA2BB087A0773D /* hashlist.c in Sources */,
+				D4EE9288E04C251A28E0C0CE /* hashtable.c in Sources */,
+				8D50D29DE67E1417C980C9FE /* memstream.c in Sources */,
+				BE4189A5BB12B18BAACE39F5 /* swap.c in Sources */,
+				9A571BA45255757B2716BFC6 /* texture.c in Sources */,
+				C87470D1A7F9E208ED9A84AB /* writer.c in Sources */,
+				0F151AACC4528AB18D511D88 /* writer_v1.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,21 +469,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C8284875DCBA40E83D8AD95 /* checkheader.c in Sources */,
-				DADF1977ED05E467204FF9A5 /* errstr.c in Sources */,
-				225F20AA2A63218434184029 /* etcdec.cxx in Sources */,
-				0E93DA1D2D6412BC012A681B /* etcunpack.cxx in Sources */,
-				F0F7E498B00942B870667DC0 /* filestream.c in Sources */,
-				8FB9C5E08766C6D7CDE1E917 /* glloader.c in Sources */,
-				8CC315D93EC3162B756ACB3E /* hashlist.c in Sources */,
-				2ED530837D83B21D1FA85D7E /* hashtable.c in Sources */,
-				6AAC96E22540E3579C2CEA66 /* memstream.c in Sources */,
-				CE98EA5E6AAE37C54C485C75 /* swap.c in Sources */,
-				EEACC68F2A19C235290F08FA /* texture.c in Sources */,
-				07C3BEA5EF32E744C34BA977 /* writer.c in Sources */,
-				1F0EFF440187092AF4E91356 /* writer_v1.c in Sources */,
-				57D1ECF8D5B18EE2DB419049 /* vkloader.c in Sources */,
-				3656F1C9E844BC8188F68D6D /* vk_funcs.c in Sources */,
+				53904C98F96EC88FE49BD3F2 /* checkheader.c in Sources */,
+				BFE824784FCA52EE48A5E09E /* errstr.c in Sources */,
+				89E2817DBEB7B1E216A41603 /* etcdec.cxx in Sources */,
+				32C9DE267C4117C1AA20EF35 /* etcunpack.cxx in Sources */,
+				3DDC0D1BA18CAC5113F1CF75 /* filestream.c in Sources */,
+				3AF84762FF21FA498223294E /* glloader.c in Sources */,
+				4A7D2BCD28E37AA0F22E0EA7 /* hashlist.c in Sources */,
+				5E3A7ADB2974E7D244C07328 /* hashtable.c in Sources */,
+				62E182593CD12CEC57A1488F /* memstream.c in Sources */,
+				1208DB244A25D77E25E36CF1 /* swap.c in Sources */,
+				89E3472654ED53C165974B6A /* texture.c in Sources */,
+				C8A4ABB86AE279F9AD51ECE4 /* writer.c in Sources */,
+				4D4BE05D1BA1590740577863 /* writer_v1.c in Sources */,
+				54EED292D58C01761C2127AB /* vkloader.c in Sources */,
+				5C1F315A5C04B8892A107E20 /* vk_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -549,6 +551,7 @@
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -574,6 +577,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -594,6 +598,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -614,6 +619,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -631,6 +637,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -651,6 +658,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -708,6 +716,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -730,6 +739,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -749,6 +759,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -780,6 +791,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -806,6 +818,7 @@
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -871,6 +884,7 @@
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -899,6 +913,7 @@
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -926,6 +941,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;

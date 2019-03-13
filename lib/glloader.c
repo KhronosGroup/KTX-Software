@@ -83,6 +83,7 @@
 
 #include "ktx.h"
 #include "ktxint.h"
+#include "ktxgl.h"
 
 DECLARE_GL_FUNCPTRS
 

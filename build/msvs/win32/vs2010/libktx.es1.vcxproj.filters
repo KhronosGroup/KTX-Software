@@ -73,6 +73,9 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
@@ -120,6 +123,9 @@
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\ktxgl.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\ktxint.h">
       <Filter>lib</Filter>
     </ClInclude>

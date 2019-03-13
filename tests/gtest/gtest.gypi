@@ -18,7 +18,6 @@
         'xcode_settings': {
           # For variadic macros
           'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-          'GCC_C_LANGUAGE_STANDARD': 'c99',
         },
       },
       'include_dirs': [
@@ -37,7 +36,6 @@
       'xcode_settings': {
         # For variadic macros
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-        'GCC_C_LANGUAGE_STANDARD': 'c99',
       },
       'configurations': {
         'Debug': {
@@ -57,7 +55,6 @@
         'include_dirs': [ 'include' ],
         'xcode_settings': {
           'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-          'GCC_C_LANGUAGE_STANDARD': 'c99',
         },
       },
       'include_dirs': [
@@ -75,7 +72,6 @@
       },
       'xcode_settings' : {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-        'GCC_C_LANGUAGE_STANDARD': 'c99',
       },
       'configurations': {
         'Debug': {

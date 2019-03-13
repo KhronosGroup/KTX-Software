@@ -88,22 +88,24 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
 
     typedef void (*PFN_voidFunction)(void);
     if (strstr(szExtensions, "OES_draw_texture") != NULL) {
-       glDrawTexsOES =
-             (PFNGLDRAWTEXSOESPROC)SDL_GL_GetProcAddress("glDrawTexsOES");
-       glDrawTexiOES =
-             (PFNGLDRAWTEXIOESPROC)SDL_GL_GetProcAddress("glDrawTexiOES");
-       glDrawTexxOES =
-             (PFNGLDRAWTEXXOESPROC)SDL_GL_GetProcAddress("glDrawTexxOES");
-       glDrawTexfOES =
-             (PFNGLDRAWTEXFOESPROC)SDL_GL_GetProcAddress("glDrawTexfOES");
-       glDrawTexsvOES =
-             (PFNGLDRAWTEXSVOESPROC)SDL_GL_GetProcAddress("glDrawTexsvOES");
-       glDrawTexivOES =
-             (PFNGLDRAWTEXIVOESPROC)SDL_GL_GetProcAddress("glDrawTexivOES");
-       glDrawTexxvOES =
-             (PFNGLDRAWTEXXVOESPROC)SDL_GL_GetProcAddress("glDrawTexxvOES");
-       glDrawTexfvOES =
-             (PFNGLDRAWTEXFVOESPROC)SDL_GL_GetProcAddress("glDrawTexfvOES");
+       /*
+        * This strange casting is because SDL_GL_GetProcAddress returns a
+        * void* thus is not compatible with ISO C which forbids conversion
+        * of object pointers to function pointers. The cast masks the
+        * conversion from the compiler thus no warning even though -pedantic
+        * is set. Ideally, if SDL_GL_GetPRocAddress returned a (void*)(void),
+        * the assignment would be
+        *
+        *    glDrawFooOES = (PFNHLDRAWFOOOESPROC)SDL_GetProcAddress(...)
+        */                                                  \
+       *(void **)(&glDrawTexsOES) = SDL_GL_GetProcAddress("glDrawTexsOES");
+       *(void **)(&glDrawTexiOES) = SDL_GL_GetProcAddress("glDrawTexiOES");
+       *(void **)(&glDrawTexxOES) = SDL_GL_GetProcAddress("glDrawTexxOES");
+       *(void **)(&glDrawTexfOES) = SDL_GL_GetProcAddress("glDrawTexfOES");
+       *(void **)(&glDrawTexsvOES) = SDL_GL_GetProcAddress("glDrawTexsvOES");
+       *(void **)(&glDrawTexivOES) = SDL_GL_GetProcAddress("glDrawTexivOES");
+       *(void **)(&glDrawTexxvOES) = SDL_GL_GetProcAddress("glDrawTexxvOES");
+       *(void **)(&glDrawTexfvOES) = SDL_GL_GetProcAddress("glDrawTexfvOES");
     } else {
         /* Can't do anything */
         std::stringstream message;
