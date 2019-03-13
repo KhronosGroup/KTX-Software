@@ -144,6 +144,7 @@
     <ClInclude Include="..\..\..\..\lib\gles1_funcptrs.h"/>
     <ClInclude Include="..\..\..\..\lib\gles2_funcptrs.h"/>
     <ClInclude Include="..\..\..\..\lib\gles3_funcptrs.h"/>
+    <ClInclude Include="..\..\..\..\lib\ktxgl.h"/>
     <ClInclude Include="..\..\..\..\lib\ktxint.h"/>
     <ClInclude Include="..\..\..\..\lib\memstream.h"/>
     <ClInclude Include="..\..\..\..\lib\stream.h"/>

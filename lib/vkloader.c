@@ -361,7 +361,8 @@ optimalTilingPadCallback(int miplevel, int face,
         ud->offset += faceLodSize;
     } else {
         // Must remove padding. Copy a row at a time.
-        ktx_uint32_t image, imageIterations, row;
+		ktx_uint32_t image, imageIterations;
+		ktx_int32_t row;
         ktx_uint32_t rowPitch, paddedRowPitch;
 
         if (ud->numDimensions == 3)
