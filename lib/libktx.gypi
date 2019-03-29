@@ -10,6 +10,11 @@
       # .h files are included so they will appear in IDEs' file lists.
       '../include/ktx.h',
       'checkheader.c',
+      'dfdutils/createdfd.c',
+      'dfdutils/dfd.h',
+      'dfdutils/dfd4vkformat.c',
+      'dfdutils/printdfd.c',
+      'dfdutils/vkdfdswitchbody.inl',
       'errstr.c',
       'etcdec.cxx',
       'etcunpack.cxx',
@@ -31,8 +36,9 @@
       'swap.c',
       'texture.c',
       'uthash.h',
+      'vkformat_enum.h',
       'writer.c',
-      'writer_v1.c'
+      'writer_v1.c',
     ],
     # Use _files to get the names relativized
     'vksource_files': [

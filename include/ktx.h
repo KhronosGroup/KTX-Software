@@ -46,11 +46,13 @@
 typedef unsigned char ktx_uint8_t;
 typedef bool ktx_bool_t;
 #ifdef _MSC_VER
-typedef unsigned short ktx_uint16_t;
-typedef   signed short ktx_int16_t;
-typedef unsigned int   ktx_uint32_t;
-typedef   signed int   ktx_int32_t;
-typedef       size_t   ktx_size_t;
+typedef unsigned __int16 ktx_uint16_t;
+typedef   signed __int16 ktx_int16_t;
+typedef unsigned __int32 ktx_uint32_t;
+typedef   signed __int32 ktx_int32_t;
+typedef          size_t  ktx_size_t;
+typedef unsigned __int64 ktx_uint64_t;
+typedef   signed __int64 ktx_int64_t;
 #else
 #include <stdint.h>
 typedef uint16_t ktx_uint16_t;
@@ -58,6 +60,8 @@ typedef  int16_t ktx_int16_t;
 typedef uint32_t ktx_uint32_t;
 typedef  int32_t ktx_int32_t;
 typedef   size_t ktx_size_t;
+typedef uint64_t ktx_uint64_t;
+typedef  int64_t ktx_int64_t;
 #endif
 
 /* This will cause compilation to fail if size of uint32 != 4. */
