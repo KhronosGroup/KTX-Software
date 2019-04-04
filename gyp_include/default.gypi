@@ -97,7 +97,6 @@
     'GCC_WARN_UNUSED_FUNCTION': 'YES',
     'GCC_WARN_UNUSED_VARIABLE': 'YES',
     #-----------------------------------------------------
-    'knownRegions': 'en Base',
   }, # xcode_settings
   # This has to be project-wide too. If in target_defaults' Debug config
   # Xcode 7+ will warn that this recommended value is not set.
