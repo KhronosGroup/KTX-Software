@@ -2129,7 +2129,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
-				knownRegions = "en Base";
 			};
 			name = Debug;
 		};
@@ -2385,7 +2384,6 @@
 				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
-				knownRegions = "en Base";
 			};
 			name = Release;
 		};
