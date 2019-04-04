@@ -531,7 +531,7 @@ TEST_F(createDFDUnpackedTest4, FormatSRGBA8) {
                 {24, 7, KHR_DF_CHANNEL_RGBSDA_ALPHA | KHR_DF_SAMPLE_DATATYPE_LINEAR,
                 0, 0, 0, 0, 0, 255}
               }
-              );
+             );
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_SRGB);
 
@@ -551,7 +551,7 @@ TEST_F(createDFDUnpackedTest4, FormatSBGRA8) {
                 {24, 7, KHR_DF_CHANNEL_RGBSDA_ALPHA | KHR_DF_SAMPLE_DATATYPE_LINEAR,
                 0, 0, 0, 0, 0, 255}
               }
-              );
+             );
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_TRUE, s_SRGB);
 
@@ -570,7 +570,7 @@ TEST_F(createDFDUnpackedTest4, FormatRGBA8) {
                 {16, 7, KHR_DF_CHANNEL_RGBSDA_BLUE, 0, 0, 0, 0, 0, 255},
                 {24, 7, KHR_DF_CHANNEL_RGBSDA_ALPHA, 0, 0, 0, 0, 0, 255}
               }
-              );
+             );
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_UNORM);
 
@@ -588,7 +588,7 @@ TEST_F(createDFDUnpackedTest3, FormatSRGB8) {
                 {8, 7, KHR_DF_CHANNEL_RGBSDA_GREEN, 0, 0, 0, 0, 0, 255},
                 {16, 7, KHR_DF_CHANNEL_RGBSDA_BLUE, 0, 0, 0, 0, 0, 255},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 3, 1, KTX_FALSE, s_SRGB);
 
@@ -606,7 +606,7 @@ TEST_F(createDFDPackedTest3, FormatRGB565) {
                 {5, 5, KHR_DF_CHANNEL_RGBSDA_GREEN, 0, 0, 0, 0, 0, 63},
                 {11, 4, KHR_DF_CHANNEL_RGBSDA_RED, 0, 0, 0, 0, 0, 31},
               }
-              );
+             );
 
     // In order from LSB.
     int bits[] = {5, 6, 5, 0};
@@ -624,6 +624,40 @@ TEST_F(createDFDPackedTest3, FormatRGB565) {
     free(dfd);
 }
 
+TEST_F(createDFDCompressedTest1, FormatETC1S_R8B8G8) {
+    customize(KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709,
+              KHR_DF_TRANSFER_LINEAR, KHR_DF_FLAG_ALPHA_STRAIGHT,
+              3, 3,
+              {
+                {0, 63, KHR_DF_CHANNEL_ETC1S_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
+              }
+             );
+
+    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, s_UNORM);
+
+    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
+
+    free(dfd);
+}
+
+TEST_F(createDFDCompressedTest1, FormatETC1S_SR8B8G8) {
+    customize(KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709,
+              KHR_DF_TRANSFER_SRGB, KHR_DF_FLAG_ALPHA_STRAIGHT,
+              3, 3,
+              {
+                {0, 63, KHR_DF_CHANNEL_ETC1S_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
+              }
+             );
+
+    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, s_SRGB);
+
+    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
+
+    free(dfd);
+}
+
 TEST_F(createDFDCompressedTest1, FormatETC2_R8B8G8) {
     customize(KHR_DF_MODEL_ETC2, KHR_DF_PRIMARIES_BT709,
               KHR_DF_TRANSFER_LINEAR, KHR_DF_FLAG_ALPHA_STRAIGHT,
@@ -631,7 +665,7 @@ TEST_F(createDFDCompressedTest1, FormatETC2_R8B8G8) {
               {
                 {0, 63, KHR_DF_CHANNEL_ETC2_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, s_UNORM);
 
@@ -649,7 +683,7 @@ TEST_F(createDFDCompressedTest2, FormatETC2_R8G8B8A8) {
                 {0, 63, KHR_DF_CHANNEL_ETC2_ALPHA, 0, 0, 0, 0, 0, 0xFFFFFFFF},
                 {64, 63, KHR_DF_CHANNEL_ETC2_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, s_UNORM);
 
@@ -666,7 +700,7 @@ TEST_F(createDFDCompressedTest1, FormatETC2_SR8B8G8) {
               {
                 {0, 63, KHR_DF_CHANNEL_ETC2_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, s_SRGB);
 
@@ -685,7 +719,7 @@ TEST_F(createDFDCompressedTest2, FormatETC2_SR8G8B8A8) {
                  0, 0, 0, 0, 0, 0xFFFFFFFF},
                 {64, 63, KHR_DF_CHANNEL_ETC2_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, s_SRGB);
 
@@ -702,7 +736,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_12x12_SRGB) {
               {
                 {0, 127, KHR_DF_CHANNEL_ASTC_DATA, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 12, 12, s_SRGB);
 
@@ -719,7 +753,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x5_SRGB) {
               {
                 {0, 127, KHR_DF_CHANNEL_ASTC_DATA, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 5, s_SRGB);
 
@@ -736,7 +770,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_5x4) {
               {
                 {0, 127, KHR_DF_CHANNEL_ASTC_DATA, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 5, 4, s_UNORM);
 
@@ -753,9 +787,26 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x8) {
               {
                 {0, 127, KHR_DF_CHANNEL_ASTC_DATA, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
-              );
+             );
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 8, s_UNORM);
+
+    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
+
+    free(dfd);
+}
+
+TEST_F(createDFDCompressedTest1, FormatBC1) {
+    customize(KHR_DF_MODEL_BC1A, KHR_DF_PRIMARIES_BT709,
+              KHR_DF_TRANSFER_LINEAR, KHR_DF_FLAG_ALPHA_STRAIGHT,
+              3, 3,
+              {
+                {0, 63, KHR_DF_CHANNEL_BC1A_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
+              }
+             );
+
+    uint32_t* dfd = createDFDCompressed(c_BC1_RGB, 4, 4, s_UNORM);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);

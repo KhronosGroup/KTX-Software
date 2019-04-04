@@ -310,7 +310,8 @@ static khr_df_model_e compModelMapping[] = {
     KHR_DF_MODEL_ETC2, /*!< ETC2 independent alpha. */
     KHR_DF_MODEL_ETC2, /*!< R11 ETC2 single-channel. */
     KHR_DF_MODEL_ETC2, /*!< R11G11 ETC2 dual-channel. */
-    KHR_DF_MODEL_ASTC  /*!< ASTC. */
+    KHR_DF_MODEL_ASTC, /*!< ASTC. */
+    KHR_DF_MODEL_ETC1S /*!< ETC1S. */
 };
 
 
@@ -328,7 +329,8 @@ static uint32_t compSampleCount[] = {
     2U, /*!< ETC2 independent alpha. */
     1U, /*!< R11 ETC2 single-channel. */
     2U, /*!< R11G11 ETC2 dual-channel. */
-    1U  /*!< ASTC. */
+    1U, /*!< ASTC. */
+    1U  /*!< ETC1S. */
 };
 
 static khr_df_model_channels_e compFirstChannel[] = {
@@ -345,7 +347,8 @@ static khr_df_model_channels_e compFirstChannel[] = {
     KHR_DF_CHANNEL_ETC2_ALPHA,        /*!< ETC2 independent alpha. */
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11 ETC2 single-channel. */
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11G11 ETC2 dual-channel. */
-    KHR_DF_CHANNEL_ASTC_DATA          /*!< ASTC. */
+    KHR_DF_CHANNEL_ASTC_DATA,         /*!< ASTC. */
+    KHR_DF_CHANNEL_ETC1S_COLOR        /*!< ETC1S. */
 };
 
 static khr_df_model_channels_e compSecondChannel[] = {
@@ -362,7 +365,8 @@ static khr_df_model_channels_e compSecondChannel[] = {
     KHR_DF_CHANNEL_ETC2_COLOR,        /*!< ETC2 independent alpha. */
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11 ETC2 single-channel. */
     KHR_DF_CHANNEL_ETC2_GREEN,        /*!< R11G11 ETC2 dual-channel. */
-    KHR_DF_CHANNEL_ASTC_DATA          /*!< ASTC. */
+    KHR_DF_CHANNEL_ASTC_DATA,         /*!< ASTC. */
+    KHR_DF_CHANNEL_ETC1S_COLOR        /*!< ETC1S. */
 };
 
 static uint32_t compSecondChannelOffset[] = {
@@ -379,7 +383,8 @@ static uint32_t compSecondChannelOffset[] = {
     64U, /*!< ETC2 independent alpha. */
     0U,  /*!< R11 ETC2 single-channel. */
     64U, /*!< R11G11 ETC2 dual-channel. */
-    0U   /*!< ASTC. */
+    0U,  /*!< ASTC. */
+    0U   /*!< ETC1S. */
 };
 
 static uint32_t compChannelBits[] = {
@@ -396,7 +401,8 @@ static uint32_t compChannelBits[] = {
     64U,  /*!< ETC2 independent alpha. */
     64U,  /*!< R11 ETC2 single-channel. */
     64U,  /*!< R11G11 ETC2 dual-channel. */
-    128U  /*!< ASTC. */
+    128U, /*!< ASTC. */
+    64U   /*!< ETC1S. */
 };
 
 static uint32_t compBytes[] = {
@@ -413,7 +419,8 @@ static uint32_t compBytes[] = {
     16U, /*!< ETC2 independent alpha. */
     8U,  /*!< R11 ETC2 single-channel. */
     16U, /*!< R11G11 ETC2 dual-channel. */
-    16U  /*!< ASTC. */
+    16U, /*!< ASTC. */
+    8U   /*!< ETC1S. */
 };
 
 /**

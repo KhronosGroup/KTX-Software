@@ -55,7 +55,8 @@ enum VkCompScheme {
     c_ETC2_R8G8B8A8, /*!< ETC2 independent alpha. */
     c_EAC_R11,       /*!< R11 ETC2 single-channel. */
     c_EAC_R11G11,    /*!< R11G11 ETC2 dual-channel. */
-    c_ASTC           /*!< ASTC. */
+    c_ASTC,          /*!< ASTC. */
+    c_ETC1S          /*!< ETC1S. */
 };
 
 typedef unsigned int uint32_t;
