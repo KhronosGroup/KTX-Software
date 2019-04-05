@@ -267,7 +267,7 @@
 #              'message': 'Generating VkFormat/DFD switch body',
 #              'inputs': [
 #                'vkformat_enum.h',
-#                'dfdutils/makevkswitch.pl',
+#                #'dfdutils/makevkswitch.pl',
 #              ],
 #              'outputs': [
 #                'dfdutils/vkdfdswitchbody.inl',
