@@ -266,7 +266,7 @@
 #              'message': 'Generating VkFormat/DFD switch body',
 #              'inputs': [
 #                'vkformat_enum.h',
-#                'dfdutils/makevkswitch.pl',
+#                #'dfdutils/makevkswitch.pl',
 #              ],
 #              'outputs': [
 #                'dfdutils/vkdfdswitchbody.inl',
@@ -276,8 +276,8 @@
 #              'msvs_cygwin_shell': 1,
 #              'action': [
 #                'lib/dfdutils/makevkswitch.pl',
+#                '-o', '<@(_outputs)',
 #                '<@(_inputs)',
-#                '<@(_outputs)',
 #              ],
 #            }, # run makevkswitch action
 #          ], # actions
