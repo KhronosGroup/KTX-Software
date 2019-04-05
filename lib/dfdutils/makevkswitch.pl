@@ -1,5 +1,21 @@
 #!/usr/bin/perl
 
+use autodie;
+use Getopt::Std;
+
+my %options=();
+getopts("o:", \%options);
+
+print $options;
+
+if (defined $options{o}) {
+    open (my $output, '>', $options{o});
+    select $output
+} else {
+    die "-o requires an argument.";
+}
+
+
 # Endianness is a parameter to the (non-block-compressed) generators
 # This doesn't have to be a number: $bigEndian = "myBigEndianFlag" will drop this argument in the generated code
 $bigEndian = 0;

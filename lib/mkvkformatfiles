@@ -13,9 +13,6 @@
 
 BEGIN {
     vulkan_core = "vulkan_core.h"
-    format_hdr = "vkformat_enum.h"
-    format_strings = "vkformat_str.c"
-    format_prohibited = "vkformat_prohibited.c"
     processing_core_formats = 0
     processing_extension_formats = 0
     # Range pattern matches 2nd line to avoid other comments so need
@@ -27,6 +24,13 @@ BEGIN {
     extension_formats = ""
     end_range = ""
     prohibited = "#include <stdint.h>\n\n#include \"vkformat_enum.h\"\n\nuint32_t prohibitedFormats[] = {\n"
+    if (ARGC == 2) {
+        output_dir = ARGV[1] "/";
+    }
+    print "output_dir: " output_dir
+    format_hdr = output_dir "vkformat_enum.h"
+    format_strings = output_dir "vkformat_str.c"
+    format_prohibited = output_dir "vkformat_prohibited.c"
     ARGV[1] = ENVIRON["VULKAN_SDK"]"/macOS/include/vulkan/"vulkan_core; ARGC = 2
 }
 

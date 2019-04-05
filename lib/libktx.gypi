@@ -147,7 +147,7 @@
   ], # targets
   'conditions': [
     ['OS == "linux" or OS == "mac" or OS == "win"', {
-      # Can only build doc on desktops
+      # Can only build doc and onlny need to generate source files on desktops
       'targets': [
         {
           'target_name': 'libktx.doc',
@@ -221,9 +221,55 @@
                 '-o', '<(output_dir)/html',
                 '<(doxyConfig)',
               ],
-            }, # buildDoc action
+            }, # buildLibktxDoc action
           ], # actions
         }, # libktx.doc
+        {
+          'target_name': 'mkvkformatfiles',
+          'type': 'none',
+          'variables': {
+              'vkformatfiles_dir': '.',
+          },
+          'actions': [
+            {
+              'action_name': 'run_mkvkformatfiles',
+              'message': 'Generating VkFormat-related source files',
+              'inputs': [
+                '$(VULKAN_SDK)/macOS/include/vulkan/vulkan_core.h',
+                'mkvkformatfiles',
+              ],
+              'outputs': [
+                'vkformat_enum.h',
+                'vkformat_prohibited.c',
+                'vkformat_str.c',
+              ],
+              # The current directory during project is that of
+              # the .gyp file. See above. Hence the annoying "lib/"
+              'msvs_cygwin_shell': 1,
+              'action': [
+                'lib/mkvkformatfiles', '<(vkformatfiles_dir)',
+              ],
+            }, # run mkvkformatfiles action
+            {
+              'action_name': 'run_makevkswitch',
+              'message': 'Generating VkFormat/DFD switch body',
+              'inputs': [
+                'vkformat_enum.h',
+              ],
+              'outputs': [
+                'dfdutils/vkdfdswitchbody.inl',
+              ],
+              # The current directory during project is that of
+              # the .gyp file. See above. Hence the annoying "lib/"
+              'msvs_cygwin_shell': 1,
+              'action': [
+                'lib/dfdutils/makevkswitch.pl',
+                '-o', '<@(_outputs)',
+                '<@(_inputs)',
+              ],
+            }, # run makevkswitch action
+          ], # actions
+        }, # mkvkformatfiles
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ], # conditions
