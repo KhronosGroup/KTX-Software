@@ -85,9 +85,13 @@ class WriterTestHelper {
                 ktx_uint32_t numImages = numFaces == 6 ? numFaces : levelDepth;
                 images[level][layer].resize(numImages);
                 for (ktx_uint32_t faceSlice = 0; faceSlice < numImages; faceSlice++) {
-                    ktx_uint32_t pixelCount;
+                    ktx_uint32_t componentCount, pixelCount;
                     pixelCount = levelWidth * levelHeight;
-                    images[level][layer][faceSlice].resize(pixelCount);
+                    componentCount = pixelCount * numComponents;
+                    images[level][layer][faceSlice].resize(componentCount);
+                    // Using std::vector avoids warnings in the following
+                    // switch due to access past the end of the array, if we
+                    // were using an array and numComponents < 4.
                     std::vector<component_type> color;
                     color.resize(numComponents);
                     switch (numComponents) {
@@ -101,12 +105,17 @@ class WriterTestHelper {
                         color[0] = (component_type)level;
                         break;
                     }
-                    images[level][layer][faceSlice].assign(pixelCount, color);
+                    for (ktx_uint32_t i = 0; i < pixelCount; i++) {
+                        for (ktx_uint32_t j = 0; j < numComponents; j++) {
+                            ktx_uint32_t ci = i * numComponents + j;
+                            images[level][layer][faceSlice][ci] = color[j];
+                        }
+                    }
                     imageList[count].size
                          = pixelCount * numComponents * sizeof(component_type);
                     imageDataSize += imageList[count].size;
                     imageList[count++].data
-                         = (GLubyte*)&images[level][layer][faceSlice].front();
+                         = (GLubyte*)images[level][layer][faceSlice].data();
                 }
             }
         }
@@ -130,45 +139,44 @@ class WriterTestHelper {
             ktx_uint32_t levelHeight = MAX(1, height >> level);
             ktx_uint32_t levelDepth = MAX(1, depth >> level);
             ktx_uint32_t numImages;
-            ktx_uint32_t rowRounding;
-            ktx_size_t imageByteSize, packedImageByteSize;
-            ktx_size_t rowByteSize, packedRowByteSize;
+            ktx_uint32_t rowPadding;
+            ktx_size_t paddedImageBytes, imageBytes;
+            ktx_size_t paddedRowBytes, rowBytes;
             ktx_size_t expectedFaceLodSize;
 
-            packedImageByteSize = images[level][0][0].size()
-                                 * sizeof(component_type)
-                                 * numComponents;
-            packedRowByteSize = levelWidth
-                                * sizeof(component_type)
-                                * numComponents;
-            rowRounding = 3 - ((packedRowByteSize + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
-            rowByteSize = packedRowByteSize + rowRounding;
-            imageByteSize = rowByteSize * levelHeight;
+            imageBytes = images[level][0][0].size() * sizeof(component_type);
+            rowBytes = levelWidth
+                            * sizeof(component_type)
+                            * numComponents;
+            rowPadding = 3 - ((rowBytes + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT);
+            paddedRowBytes = rowBytes + rowPadding;
+            paddedImageBytes = paddedRowBytes * levelHeight;
             if (numFaces == 6 && !isArray) {
                 // Non-array cubemap.
                 numImages = numFaces;
-                expectedFaceLodSize = imageByteSize;
+                expectedFaceLodSize = paddedImageBytes;
             } else {
                 numImages = numFaces == 6 ? numFaces : levelDepth;
-                expectedFaceLodSize = imageByteSize * numImages * numLayers;
+                expectedFaceLodSize = paddedImageBytes * numImages * numLayers;
             }
             if (faceLodSize != expectedFaceLodSize)
                return false;
             pData += sizeof(ktx_uint32_t);
             for (ktx_uint32_t layer = 0; layer < numLayers; layer++) {
                 for (ktx_uint32_t faceSlice = 0; faceSlice < numImages; faceSlice++) {
-                    if (rowRounding == 0) {
-                        if (memcmp(&images[level][layer][faceSlice].front(), pData,
-                                   packedImageByteSize))
+                    if (rowPadding == 0) {
+                        if (memcmp(images[level][layer][faceSlice].data(),
+                                   pData,
+                                   images[level][layer][faceSlice].size() * sizeof(component_type)))
                             return false;
-                        pData += packedImageByteSize;
+                        pData += paddedImageBytes;
                     } else {
-                        ktx_uint8_t* pImage = (ktx_uint8_t*)&images[level][layer][faceSlice].front();
+                        ktx_uint8_t* pImage = (ktx_uint8_t*)images[level][layer][faceSlice].data();
                         for (ktx_uint32_t row = 0; row < levelHeight; row++) {
-                            if (memcmp(pImage, pData, packedRowByteSize))
+                            if (memcmp(pImage, pData, rowBytes))
                                 return false;
-                            pImage += packedRowByteSize;
-                            pData += rowByteSize;
+                            pImage += rowBytes;
+                            pData += paddedRowBytes;
                         }
                     }
                 }
@@ -198,7 +206,7 @@ class WriterTestHelper {
     char orientation[10];
 
     ktx_size_t imageDataSize;
-    std::vector< std::vector < std::vector < std::vector< std::vector<component_type> > > > > images;
+    std::vector< std::vector < std::vector < std::vector<component_type> > > > images;
     std::vector<KTX_image_info> imageList;
 
     class texinfo : public KTX_texture_info {

@@ -91,17 +91,19 @@ ktx_uint8_t CheckHeaderTest::ktxId[12] = {
 // Base fixture for WriterTestHelper tests.
 //--------------------------------------------
 
-template<typename component_type, ktx_uint32_t numComponents,
+template<typename component_type, ktx_uint32_t num_components,
          GLenum internalformat>
 class WriterTestHelperTestBase : public ::testing::Test {
   public:
     WriterTestHelperTestBase() { }
 
-    WriterTestHelper<component_type, numComponents, internalformat> helper;
+    WriterTestHelper<component_type, num_components, internalformat> helper;
+
+   ktx_uint32_t numComponents() { return num_components; }
 };
 
-class WriterTestHelperRGBA8Test : public WriterTestHelperTestBase<GLubyte, 4, GL_RGBA8>{ };
-class WriterTestHelperRGB8Test : public WriterTestHelperTestBase < GLubyte, 3, GL_RGB8 > { };
+class WriterTestHelperRGBA8Test : public WriterTestHelperTestBase<GLubyte, 4, GL_RGBA8> { };
+class WriterTestHelperRGB8Test : public WriterTestHelperTestBase<GLubyte, 3, GL_RGB8> { };
 typedef WriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits createFlagBits;
 
 //--------------------------------------------
@@ -125,7 +127,7 @@ class ktxWriteKTXTestBase : public ::testing::Test {
                               writeMetadata ? helper.kvDataLen : 0,
                               writeMetadata ? helper.kvData : nullptr,
                               (GLuint)helper.imageList.size(),
-                              &helper.imageList.front());
+                              helper.imageList.data());
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxWriteKTXM failed: "
                                            << ktxErrorString(result);
         EXPECT_EQ(memcmp(ktxMemFile, CheckHeaderTest::ktxId,
@@ -238,8 +240,8 @@ TEST_F(WriterTestHelperRGB8Test, Construct2D) {
     EXPECT_EQ(helper.images.size(), 1);
     EXPECT_EQ(helper.images[0].size(), 1);
     EXPECT_EQ(helper.images[0][0].size(), 1);
-    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32);
-    EXPECT_EQ(helper.images[0][0][0][0].size(), 3);
+    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32 * 3);
+    EXPECT_EQ(numComponents(), 3);
 }
 
 TEST_F(WriterTestHelperRGB8Test, Construct3D) {
@@ -247,8 +249,8 @@ TEST_F(WriterTestHelperRGB8Test, Construct3D) {
     EXPECT_EQ(helper.images.size(), 1);
     EXPECT_EQ(helper.images[0].size(), 1);
     EXPECT_EQ(helper.images[0][0].size(), 32);
-    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32);
-    EXPECT_EQ(helper.images[0][0][0][0].size(), 3);
+    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32 * 3);
+    EXPECT_EQ(numComponents(), 3);
 }
 
 //////////////////////////////
@@ -267,7 +269,7 @@ TEST_F(ktxWriteKTXRGBA8Test, InvalidOpOnMismatchedFormats) {
     result = ktxWriteKTXM(&ktxMemFile, &ktxMemFileLen,
                           &helper.texinfo, 0, nullptr,
                           (GLuint)helper.imageList.size(),
-                          &helper.imageList.front());
+                          helper.imageList.data());
 
     EXPECT_EQ(result, KTX_INVALID_OPERATION);
 }
