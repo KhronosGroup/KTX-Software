@@ -80,27 +80,34 @@ class TextureWriterTestHelper
 
     // Compare images as loaded into a ktxTexture object with our image.
     bool
-    compareTextureImages(ktx_uint8_t* data)
+    compareTextureImages(ktx_uint8_t* pData)
     {
-        bool match = true;
         for (ktx_uint32_t level = 0; level < images.size(); level++) {
             ktx_uint32_t levelWidth = MAX(1, width >> level);
             ktx_uint32_t levelHeight = MAX(1, height >> level);
             ktx_size_t rowBytes = levelWidth * sizeof(component_type) * numComponents;
-            ktx_uint32_t rowRounding = ROUNDING(rowBytes);
-            ktx_size_t paddedImageBytes = (rowBytes + rowRounding) * levelHeight;
+            ktx_uint32_t rowPadding = ROUNDING(rowBytes);
+            ktx_size_t paddedImageBytes = (rowBytes + rowPadding) * levelHeight;
             for (ktx_uint32_t layer = 0; layer < images[0].size(); layer++) {
                 for (ktx_uint32_t faceSlice = 0; faceSlice < images[level][layer].size(); faceSlice++) {
-                    if (memcmp(&images[level][layer][faceSlice].front(), data,
-                               images[level][layer][faceSlice].size())) {
-                        match = false;
-                        break;
+                    if (rowPadding == 0) {
+                        if (memcmp(images[level][layer][faceSlice].data(), pData,
+                                   images[level][layer][faceSlice].size() * sizeof(component_type)))
+                            return false;
+                        pData += paddedImageBytes;
+                    } else {
+                        ktx_uint8_t* pImage = (ktx_uint8_t*)images[level][layer][faceSlice].data();
+                        for (ktx_uint32_t row = 0; row < levelHeight; row++) {
+                            if (memcmp(pImage, pData, rowBytes))
+                                return false;
+                            pImage += rowBytes;
+                            pData += rowBytes + rowPadding;
+                        }
                     }
-                    data += paddedImageBytes;
                 }
             }
         }
-        return match;
+        return true;
     }
 
     KTX_error_code
@@ -110,8 +117,8 @@ class TextureWriterTestHelper
         for (ktx_uint32_t level = 0; level < images.size(); level++) {
             for (ktx_uint32_t layer = 0; layer < images[level].size(); layer++) {
                 for (ktx_uint32_t faceSlice = 0; faceSlice < images[level][layer].size(); faceSlice++) {
-                    ktx_size_t imageBytes = images[level][layer][faceSlice].size() * sizeof(component_type) * numComponents;
-                    ktx_uint8_t* imageDataPtr = (ktx_uint8_t*)(&images[level][layer][faceSlice].front());
+                    ktx_size_t imageBytes = images[level][layer][faceSlice].size() * sizeof(component_type);
+                    ktx_uint8_t* imageDataPtr = (ktx_uint8_t*)(images[level][layer][faceSlice].data());
                     result = ktxTexture_SetImageFromMemory(texture,
                                                            level, layer,
                                                            faceSlice,
@@ -265,7 +272,7 @@ class ktxTextureTestBase : public ::testing::Test {
     unsigned int iterCbCalls;
 
     ktx_size_t& imageDataSize = helper.imageDataSize;
-    std::vector< std::vector < std::vector < std::vector< std::vector<GLubyte> > > > >& imageData = helper.images;
+    std::vector< std::vector < std::vector < std::vector<GLubyte>  > > >& imageData = helper.images;
     std::vector<KTX_image_info>& images = helper.imageList;
 };
 
