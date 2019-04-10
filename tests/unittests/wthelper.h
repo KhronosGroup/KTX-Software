@@ -105,9 +105,9 @@ class WriterTestHelper {
                         color[0] = (component_type)level;
                         break;
                     }
-                    for (uint32_t i = 0; i < pixelCount; i++) {
-                        for (uint32_t j = 0; j < numComponents; j++) {
-                            uint32_t ci = i * numComponents + j;
+                    for (ktx_uint32_t i = 0; i < pixelCount; i++) {
+                        for (ktx_uint32_t j = 0; j < numComponents; j++) {
+                            ktx_uint32_t ci = i * numComponents + j;
                             images[level][layer][faceSlice][ci] = color[j];
                         }
                     }
