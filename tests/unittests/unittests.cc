@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4: */
+/* vi: set sw=2 ts=4 expandtab: */
 
 /*
  * ©2010-2018 Mark Callow.
@@ -47,7 +47,7 @@ extern "C" {
 #include "wthelper.h"
 
 namespace {
-    
+
 ///////////////////////////////////////////////////////////
 // Test fixtures
 ///////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ class CheckHeaderTest : public ::testing::Test {
         // Done this way rather than by using an initializer here
         // so it will compile on VS 2008.
         memcpy(testHeader.identifier, ktxId, sizeof(ktxId));
- 
+
         testHeader.endianness = 0x04030201;
         testHeader.glType = GL_UNSIGNED_BYTE;
         testHeader.glTypeSize = 1;
@@ -77,7 +77,7 @@ class CheckHeaderTest : public ::testing::Test {
         testHeader.numberOfMipmapLevels = 5;
         testHeader.bytesOfKeyValueData = 0;
     }
-    
+
     KTX_header testHeader;
   public:
     static ktx_uint8_t ktxId[12];
@@ -86,7 +86,7 @@ class CheckHeaderTest : public ::testing::Test {
 ktx_uint8_t CheckHeaderTest::ktxId[12] = {
     0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A
 };
-    
+
 //--------------------------------------------
 // Base fixture for WriterTestHelper tests.
 //--------------------------------------------
@@ -115,7 +115,7 @@ template<typename component_type, ktx_uint32_t numComponents,
 class ktxWriteKTXTestBase : public ::testing::Test {
   public:
     ktxWriteKTXTestBase() { }
-    
+
     void runTest(bool writeMetadata) {
         unsigned char* ktxMemFile;
         GLsizei ktxMemFileLen;
@@ -167,14 +167,14 @@ TEST_F(CheckHeaderTest, ValidatesIdentifier) {
     testHeader.identifier[9] = 0;
     EXPECT_EQ(_ktxCheckHeader(&testHeader, &suppInfo), KTX_UNKNOWN_FILE_FORMAT);
 }
-    
+
 TEST_F(CheckHeaderTest, DisallowsInvalidEndianness) {
     KTX_supplemental_info suppInfo;
 
     testHeader.endianness = 0;
     EXPECT_EQ(_ktxCheckHeader(&testHeader, &suppInfo), KTX_FILE_DATA_ERROR);
 }
-    
+
 //////////////////////////////
 // MemStreamTest
 //////////////////////////////
@@ -184,51 +184,51 @@ TEST(MemStreamTest, Read) {
     const ktx_uint8_t* data = (ktx_uint8_t*)"28 bytes of rubbish to read.";
     const size_t size = 28;
     char readBuf[size];
-    
+
     ktxMemStream_construct_ro(&stream, data, size);
     stream.read(&stream, readBuf, size);
     EXPECT_EQ(memcmp(data, readBuf, size), 0);
 
-	ktxMemStream_destruct(&stream);
+    ktxMemStream_destruct(&stream);
 }
 
 TEST(MemStreamTest, Write) {
     ktxStream stream;
     const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
     const size_t count = 29;
-	size_t returnedCount;
-	ktx_uint8_t* returnedData;
-    
+    size_t returnedCount;
+    ktx_uint8_t* returnedData;
+
     ktxMemStream_construct(&stream, KTX_TRUE);
     stream.write(&stream, data, 1, count);
-    
-	stream.getsize(&stream, &returnedCount);
-	ktxMemStream_getdata(&stream, &returnedData);
+
+    stream.getsize(&stream, &returnedCount);
+    ktxMemStream_getdata(&stream, &returnedData);
     EXPECT_EQ(returnedCount, count);
     EXPECT_EQ(memcmp(data, returnedData, count), 0);
-    
-	ktxMemStream_destruct(&stream);
+
+    ktxMemStream_destruct(&stream);
 }
-    
+
 TEST(MemStreamTest, WriteExpand) {
     ktxStream stream;
     const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
     const ktx_uint8_t* data2 = (ktx_uint8_t*)" 26 more bytes of rubbish.";
     const size_t count = 29;
     const size_t count2 = 26;
-	size_t returnedCount;
-	ktx_uint8_t* returnedData;
-    
+    size_t returnedCount;
+    ktx_uint8_t* returnedData;
+
     ktxMemStream_construct(&stream, KTX_TRUE);
     stream.write(&stream, data, 1, count);
     stream.write(&stream, data2, 1, count2);
-	stream.getsize(&stream, &returnedCount);
-	EXPECT_EQ(returnedCount, count + count2);
-	ktxMemStream_getdata(&stream, &returnedData);
-	EXPECT_EQ(memcmp(data, returnedData, count), 0);
-	EXPECT_EQ(memcmp(data2, &returnedData[count], count2), 0);
-    
-	ktxMemStream_destruct(&stream);
+    stream.getsize(&stream, &returnedCount);
+    EXPECT_EQ(returnedCount, count + count2);
+    ktxMemStream_getdata(&stream, &returnedData);
+    EXPECT_EQ(memcmp(data, returnedData, count), 0);
+    EXPECT_EQ(memcmp(data2, &returnedData[count], count2), 0);
+
+    ktxMemStream_destruct(&stream);
 }
 
 //////////////////////////////
