@@ -541,7 +541,7 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 
 
 /*===========================================================*
- * For library versions 1 and 2 compatibility                        *
+ * For library versions 1 and 2 compatibility                *
  *===========================================================*/
 
 /**
@@ -881,3 +881,4 @@ Initial release.
 */
 
 #endif /* KTX_H_A55A6F00956F42F3A137C11929827FE1 */
+
