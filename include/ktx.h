@@ -112,7 +112,7 @@ extern "C" {
  * @brief Required unpack alignment
  */
 #define KTX_GL_UNPACK_ALIGNMENT 4
-    
+
 #define KTX_TRUE  true
 #define KTX_FALSE false
 
@@ -200,7 +200,7 @@ typedef struct {
     ktx_uint8_t* pData; /*!< Pointer to the image data. */
 } ktxTexture;
 
-    
+
 /**
  * @memberof ktxTexture
  * @~English
@@ -379,7 +379,7 @@ ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
  */
 ktx_size_t
 ktxTexture_GetSize(ktxTexture* This);
-    
+
 /*
  * Returns the size of an image at the specified level.
  */
@@ -505,7 +505,7 @@ ktxHashList_Serialize(ktxHashList* pHead,
  */
 KTX_error_code
 ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
-    
+
 
 /*===========================================================*
  * For Versions 1 and 2 compatibility                        *

@@ -274,7 +274,7 @@ typedef enum _khr_df_model_e {
     KHR_DF_MODEL_ETC2          = 161U,
     /* Adaptive Scalable Texture Compression */
     /* ASTC HDR vs LDR is determined by the float flag in the channel */
-    /* ASTC block size can be distinguished by texel block size */ 
+    /* ASTC block size can be distinguished by texel block size */
     KHR_DF_MODEL_ASTC          = 162U,
     /* ETC1S is a simplified subset of ETC1 */
     KHR_DF_MODEL_ETC1S         = 163U,
