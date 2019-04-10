@@ -13,6 +13,9 @@
 
 BEGIN {
     vulkan_core = "vulkan_core.h"
+    format_hdr = "vkformat_enum.h"
+    format_strings = "vkformat_str.c"
+    format_prohibited = "vkformat_prohibited.c"
     processing_core_formats = 0
     processing_extension_formats = 0
     # Range pattern matches 2nd line to avoid other comments so need
