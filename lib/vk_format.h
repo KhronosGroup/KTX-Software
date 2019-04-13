@@ -1321,7 +1321,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockHeight = 6;
 			pFormatSize->blockDepth = 1;
 			break;
-		case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: 
+		case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
 			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;

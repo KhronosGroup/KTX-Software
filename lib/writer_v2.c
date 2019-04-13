@@ -84,11 +84,11 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     ktxLevelIndexEntry* levelIndex;
     ktx_uint32_t levelIndexSize;
     ktx_uint32_t offset;
-    
+
     if (!dststr) {
         return KTX_INVALID_VALUE;
     }
-    
+
     if (This->pData == NULL)
         return KTX_INVALID_OPERATION;
 
@@ -212,7 +212,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
             numImages = This->numFaces;
         else
             numImages = This->isCubemap ? This->numFaces : levelDepth;
-        
+
         ktx_uint32_t  numRows = 0, rowBytes = 0, rowPadding = 0;
         if (!This->isCompressed) {
             ktxTexture_rowInfo(This, level, &numRows, &rowBytes, &rowPadding);
@@ -222,7 +222,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         srcOffset = srcLevelOffset;
         for (layer = 0; layer < This->numLayers; layer++) {
             ktx_uint32_t faceSlice;
-            
+
             for (faceSlice = 0; faceSlice < numImages; faceSlice++) {
 #if DUMP_IMAGE
                 dststr->getsize(dststr, &pos);
@@ -263,7 +263,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
                                    _KTX_PAD8_LEN(srcOffset - srcLevelOffset));
         }
     }
-    
+
     free(dfd);
     free(levelIndex);
     return result;
@@ -292,14 +292,14 @@ ktxTexture_WriteKTX2ToStdioStream(ktxTexture* This, FILE* dstsstr)
 {
     ktxStream stream;
     KTX_error_code result = KTX_SUCCESS;
-    
+
     if (!This)
         return KTX_INVALID_VALUE;
-    
+
     result = ktxFileStream_construct(&stream, dstsstr, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
-    
+
     return ktxTexture_writeKTX2ToStream(This, &stream);
 }
 
@@ -336,7 +336,7 @@ ktxTexture_WriteKTX2ToNamedFile(ktxTexture* This, const char* const dstname)
         fclose(dst);
     } else
         result = KTX_FILE_OPEN_FAILED;
-    
+
     return result;
 }
 
@@ -377,18 +377,18 @@ ktxTexture_WriteKTX2ToMemory(ktxTexture* This,
         return KTX_INVALID_VALUE;
 
     *ppDstBytes = NULL;
-    
+
     result = ktxMemStream_construct(&dststr, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
-    
+
     result = ktxTexture_writeKTX2ToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
         ktxMemStream_destruct(&dststr);
         return result;
     }
-    
+
     ktxMemStream_getdata(&dststr, ppDstBytes);
     dststr.getsize(&dststr, &strSize);
     *pSize = (GLsizei)strSize;

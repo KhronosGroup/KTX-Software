@@ -38,7 +38,7 @@ _ktxSwapEndian16(khronos_uint16_t* pData16, int count)
 /*
  * SwapEndian32: Swaps endianness in an array of 32-bit values
  */
-void 
+void
 _ktxSwapEndian32(khronos_uint32_t* pData32, int count)
 {
     int i;

@@ -83,7 +83,7 @@ using namespace std;
 @~English
 
 Create a KTX 2 file from a KTX file.
- 
+
 @section ktx2ktx2_synopsis SYNOPSIS
     ktx2ktx2 [options] [@e infile ...]
 
@@ -93,7 +93,7 @@ Create a KTX 2 file from a KTX file.
     @e infile. Output files have the same name as the input but with the
     extension changed to @c .ktx2. When no infile is specified, a single
     image will be read from stdin and the output written to standard out.
- 
+
     The following options are available:
     <dl>
     <dt>-o outfile, --output=outfile</dt>
@@ -126,7 +126,7 @@ Sat, 28 Apr 2018 14:41:22 +0900
 static void
 usage(_TCHAR* appName)
 {
-    fprintf(stderr, 
+    fprintf(stderr,
         "Usage: %s [options] [<infile> ...]\n"
         "\n"
         "  infile       The source ktx file. The output is written to a file of the\n"

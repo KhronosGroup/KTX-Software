@@ -93,5 +93,5 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* pKvd, KTX_hash_table* pHt)
     if (result == KTX_SUCCESS)
         *pHt = pHl;
     return result;
-}  
+}
 

@@ -80,7 +80,7 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
         return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
-    
+
     if ((nread = fread(dst, 1, count, str->data.file)) != count) {
         if (feof(str->data.file)) {
             return KTX_FILE_UNEXPECTED_EOF;
@@ -117,7 +117,7 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
         return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
-    
+
     str->getsize(str, &fileSize);
     str->getpos(str, &pos);
 
@@ -162,7 +162,7 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
         return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
-    
+
     if (fwrite(src, size, count, str->data.file) != count) {
         if (errno == EFBIG || errno == EOVERFLOW)
             return KTX_FILE_OVERFLOW;
@@ -195,7 +195,7 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
 
     if (!str || !pos)
         return KTX_INVALID_VALUE;
-    
+
     assert(str->type == eStreamTypeFile);
 
     /* The cast quiets an Xcode warning when building for "Generic iOS Device".
@@ -210,7 +210,7 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
     }
 
     *pos = ftellval;
-    
+
     return KTX_SUCCESS;
 }
 
@@ -241,12 +241,12 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
 {
     ktx_size_t fileSize;
     KTX_error_code result;
-    
+
     if (!str)
         return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
-    
+
     result = str->getsize(str, &fileSize);
 
     if (result != KTX_SUCCESS) {
@@ -291,7 +291,7 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
 
     if (!str || !size)
         return KTX_INVALID_VALUE;
-    
+
     assert(str->type == eStreamTypeFile);
 
     // Need to flush so that fstat will return the current size.
@@ -316,7 +316,7 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
         return KTX_INVALID_OPERATION;
 
     *size = (ktx_size_t)statbuf.st_size; /* See _getpos for why this cast. */
-    
+
     return KTX_SUCCESS;
 }
 
@@ -367,7 +367,7 @@ void
 ktxFileStream_destruct(ktxStream* str)
 {
     assert(str && str->type == eStreamTypeFile);
-    
+
     if (str->closeOnDestruct)
         fclose(str->data.file);
     str->data.file = 0;

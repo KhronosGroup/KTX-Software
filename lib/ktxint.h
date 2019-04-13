@@ -20,7 +20,7 @@
  */
 
 
-/* 
+/*
  * Author: Mark Callow from original code by Georg Kolling
  */
 
@@ -178,7 +178,7 @@ typedef struct KTX_supplemental_info
 /*
  * @internal
  * CheckHeader
- * 
+ *
  * Reads the KTX file header and performs some sanity checking on the values
  */
 KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
@@ -260,7 +260,7 @@ ktxTexture_iterateLoadedImages(ktxTexture* This, PFNKTXITERCB iterCb,
 KTX_error_code
 ktxTexture_iterateSourceImages(ktxTexture* This, PFNKTXITERCB iterCb,
                                void* userdata);
-    
+
 ktx_size_t ktxTexture_calcDataSizeTexture(ktxTexture* This,
                                           ktxFormatVersionEnum fv);
 ktx_size_t ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,

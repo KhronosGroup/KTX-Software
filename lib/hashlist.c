@@ -90,7 +90,7 @@ ktxHashList_Destruct(ktxHashList* pHead)
 {
     ktxKVListEntry* kv;
     ktxKVListEntry* head = *pHead;
-    
+
     for(kv = head; kv != NULL;) {
         ktxKVListEntry* tmp = (ktxKVListEntry*)kv->hh.next;
         HASH_DELETE(hh, head, kv);
@@ -115,7 +115,7 @@ ktxHashList_Create(ktxHashList** ppHl)
     ktxHashList* hl = (ktxHashList*)malloc(sizeof (ktxKVListEntry*));
     if (hl == NULL)
         return KTX_OUT_OF_MEMORY;
-    
+
     ktxHashList_Construct(hl);
     *ppHl = hl;
     return KTX_SUCCESS;
@@ -316,7 +316,7 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
 
     if (kvdLen == 0 || pKvd == NULL || pHead == NULL)
         return KTX_INVALID_VALUE;
-    
+
     if (*pHead != NULL)
         return KTX_INVALID_OPERATION;
 
