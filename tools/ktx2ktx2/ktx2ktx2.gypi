@@ -1,8 +1,8 @@
 ##
 # @internal
-# @copyright © 2015, Mark Callow. For license see LICENSE.md.
+# @copyright © 2019, Mark Callow. For license see LICENSE.md.
 #
-# @brief Generate project files for building the toktx tool.
+# @brief Generate project files for building ktx2ktx2.
 #
 {
   'variables': { # level 1
@@ -25,7 +25,7 @@
     ['OS == "linux" or OS == "mac" or OS == "win"', {
       'targets': [
         {
-          'target_name': 'toktx',
+          'target_name': 'ktx2ktx2',
           'type': '<(executable)',
           'include_dirs' : [ '../../utils' ],
           'mac_bundle': 0,
@@ -33,11 +33,8 @@
           'sources': [
             '../../utils/argparser.cpp',
             '../../utils/argparser.h',
-            'image.cpp',
-            'image.h',
+            'ktx2ktx2.cpp',
             'stdafx.h',
-            'targetver.h',
-            'toktx.cpp',
           ],
           'msvs_settings': {
             'VCLinkerTool': {
@@ -75,23 +72,23 @@
               }, # configurations
             }], # emit_emscripten_configs=="true"
           ], # conditions
-        }, # toktx target
-        {
-          'target_name': 'toktx-tests',
-          'type': 'none',
-          'dependencies': [ 'toktx' ],
-          'actions': [
-            {
-              'action_name': 'toktx-tests',
-              'message': 'Running toktx tests',
-              'inputs': [ '../../tests/toktx-tests' ],
-              'outputs': [ 'testsrun' ],
-              'action': [
-                '<(_inputs)', '<(PRODUCT_DIR)/toktx',
-              ],
-            }, # toktx-tests action
-          ], # actions
-        }, # toktx-tests target
+        }, # ktx2ktx2 target
+#        {
+#          'target_name': 'ktx2ktx2-tests',
+#          'type': 'none',
+#          'dependencies': [ 'ktx2ktx2' ],
+#          'actions': [
+#            {
+#              'action_name': 'ktx2ktx2-tests',
+#              'message': 'Running ktx2ktx2 tests',
+#              'inputs': [ '../../tests/ktx2ktx2-tests' ],
+#              'outputs': [ 'testsrun' ],
+#              'action': [
+#                '<(_inputs)', '<(PRODUCT_DIR)/ktx2ktx2',
+#              ],
+#            }, # ktx2ktx2-tests action
+#          ], # actions
+#        }, # toktx-tests target
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ] # conditions for conditional targets

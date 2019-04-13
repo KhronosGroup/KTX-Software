@@ -148,7 +148,7 @@
   ], # targets
   'conditions': [
     ['OS == "linux" or OS == "mac" or OS == "win"', {
-      # Can only build doc and onlny need to generate source files on desktops
+      # Can only build doc and only need to generate source files on desktops
       'targets': [
         {
           'target_name': 'libktx.doc',

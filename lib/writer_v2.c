@@ -199,8 +199,12 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         imageSize = ktxTexture_calcImageSize(This, level,
                                              KTX_FORMAT_VERSION_TWO);
 #if defined(DEBUG)
-        dststr->getsize(dststr, &pos);
-        assert(pos == levelIndex[level].offset);
+        result = dststr->getpos(dststr, &pos);
+        // Could fail if stdout is a pipe
+        if (result == KTX_SUCCESS)
+            assert(pos == levelIndex[level].offset);
+        else
+            assert(result == KTX_FILE_ISPIPE);
 #endif
 
         levelDepth = MAX(1, This->baseDepth >> level);
