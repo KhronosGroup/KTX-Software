@@ -1,21 +1,5 @@
 #!/usr/bin/perl
 
-use autodie;
-use Getopt::Std;
-
-my %options=();
-getopts("o:", \%options);
-
-print $options;
-
-if (defined $options{o}) {
-    open (my $output, '>', $options{o});
-    select $output
-} else {
-    die "-o requires an argument.";
-}
-
-
 # Endianness is a parameter to the (non-block-compressed) generators
 # This doesn't have to be a number: $bigEndian = "myBigEndianFlag" will drop this argument in the generated code
 $bigEndian = 0;
@@ -75,37 +59,6 @@ while ($line = <>) {
                 # The number of channels we've found is the array length we've built
                 $numChannels = @packChannels;
 
-                # Packed output needs a C block for local variables
-                print "case $format: {\n";
-
-                # Start with a null list of channel ids
-                $channelIds = "";
-
-                # Loop over the channel names we've found
-                foreach (@packChannels) {
-
-                    # Use a comma as a separator, so don't add it if the $channelIds string is empty
-                    if ($channelIds ne "") { $channelIds .= ","; }
-
-                    # Map the channel names to our internal numbering
-                    if ($_ eq 'R') { $channelIds .= "0"; }
-                    elsif ($_ eq 'G') { $channelIds .= "1"; }
-                    elsif ($_ eq 'B') { $channelIds .= "2"; }
-                    elsif ($_ eq 'A') { $channelIds .= "3"; }
-                }
-
-                # Channel bit counts are easier: we can use join() to make a comma-separated
-                # string of the numbers in the array
-                $channelBits = join (',', @packBits);
-
-                # Print initialisation for the two arrays we've created
-                print "    int channels[] = {" . $channelIds . "}; ";
-                print "int bits[] = {" . $channelBits . "};\n";
-
-                # Now print the function call and close the block
-                print "    return createDFDPacked($bigEndian, $numChannels, bits, channels, s_$suffix);\n";
-                print "}\n";
-
                 # Add the format we've processed to our "done" hash
                 $foundFormats{$format} = 1;
 
@@ -120,9 +73,7 @@ while ($line = <>) {
 
                 # Non-packed format either start with red (R8G8B8A8) or blue (B8G8R8A8)
                 # We have a special case to notice when we start with blue
-                if (substr($channels,0,1) eq "B") {
-
-
+                if (substr($channels,0,1) eq "B") {                    
                     # Red and blue are swapped (B, G, R, A) - record this
                     # N.B. createDFDUnpacked() just knows this and R,G,B,A channel order, not arbitrary
                     $rbswap = 1;
@@ -156,16 +107,17 @@ while ($line = <>) {
 
                 # For unpacked, we need bytes per channel, not bits
                 $bytesPerChannel = $1 / 8;
-
-                # Output the case entry
-                print "case $format: return createDFDUnpacked($bigEndian, $numChannels, $bytesPerChannel, $rbswap, s_$suffix);\n";
+                
                 # Add the format we've processed to our "done" hash
                 $foundFormats{$format} = 1;
             }
         }
 
-    # If we weren't VK_FORMAT_ plus a channel, we might be a compressed format, that ends "_BLOCK"
-    } elsif ($line =~ m/(VK_FORMAT_[A-Z0-9x_]+_BLOCK)/) {
+        # If we weren't VK_FORMAT_ plus a channel, we might be a compressed format, that ends "_BLOCK"
+        # N.B. We don't currently process compressed formats here.
+        # They're essentially all special cases anyway.
+        # The decoding code that this is derived from is retained for future work.
+    } elsif (0 && $line =~ m/(VK_FORMAT_[A-Z0-9x_]+_BLOCK)/) {
 
         # Extract the format identifier from the rest of the line
         $format = $1;
@@ -228,3 +180,108 @@ while ($line = <>) {
 
     # ...and continue to the next line
 }
+
+# Now generate the output for any formats we've seen.
+
+sub checkSuffices {
+    my $formatPrefix = shift(@_);
+    my $packSuffix = shift(@_);
+
+    # Only output tests for formats that exist.
+    # Simplify things by picking off sRGB and float (always signed for unpacked) first.
+    if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SRGB" . $packSuffix})) {
+        print "        if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SRGB;\n";
+    }
+    if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SFLOAT" . $packSuffix})) {
+        print "        if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SFLOAT;\n";
+    }
+    if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_UNORM" . $packSuffix})) {
+        print "        if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UNORM;\n";
+    }
+    if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SNORM" . $packSuffix})) {
+        print "        if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SNORM;\n";
+    }
+    if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_UINT" . $packSuffix})) {
+        print "        if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UINT;\n";
+    }
+    if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SINT" . $packSuffix})) {
+        print "        if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SINT;\n";
+    }
+    # N.B. Drop through if the VKFORMAT doesn't exist.
+}
+
+$prefix = <<'END_PREFIX';
+InterpretDFDResult r;
+InterpretedDFDChannel R = {0,0};
+InterpretedDFDChannel G = {0,0};
+InterpretedDFDChannel B = {0,0};
+InterpretedDFDChannel A = {0,0};
+uint32_t wordBytes;
+
+r = interpretDFD(dfd, &R, &G, &B, &A, &wordBytes);
+
+if (r & i_UNSUPPORTED_ERROR_BIT) return VK_FORMAT_UNDEFINED;
+
+if (r & i_PACKED_FORMAT_BIT) {
+END_PREFIX
+
+print $prefix;
+
+# Packed format decode.
+# There aren't many of these, so we hard-wire them (and identify them minimally).
+
+$packedDecode = << 'END_PACKED';
+  if (wordBytes == 1) return VK_fORMAT_R4G4_UNORM_PACK8;
+  else if (wordBytes == 2) { /* PACK16 */
+    if (A.size == 4) {
+      if (R.offset == 12) return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+      else return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+    } else if (A.size == 0) { /* Three channels */
+      if (B.offset == 0) return VK_FORMAT_R5G6B5_UNORM_PACK16;
+      else return VK_FORMAT_B5G6R5_UNORM_PACK16;
+    } else return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+  } else if (wordBytes == 4) { /* PACK32 */
+END_PACKED
+
+print $packedDecode;
+
+print "  if (A.size == 8) {\n";
+checkSuffices("A8B8G8R8", "_PACK32");
+print "  } else if (A.size == 2 && B.offset == 0) {\n";
+checkSuffices("A2R10G10B10", "_PACK32");
+print "  } else if (A.size == 2 && R.offset == 0) {\n";
+checkSuffices("A2B10G10R10", "_PACK32");
+print "  } else if (R.size == 11) return VK_FORMAT_B10G11R11_UFLOAT_PACK32;\n";
+print "} else { /* Not a packed format */\n";
+
+# Start by checking sizes
+for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
+    if ($byteSize == 1) {
+        print "  if (wordBytes == $byteSize) {\n";
+    } else {
+        print "  } else if (wordBytes == $byteSize) {\n";
+    }
+    # If we have an alpha channel...
+    print "    if (A.size > 0) { /* 4 channels */\n";
+    print "      if (R.offset == 0) { /* RGBA */\n";
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize . "A" . 8 * $byteSize, "");
+    print "      } else { /* BGRA */\n";
+    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize . "A" . 8 * $byteSize, "");
+    print "      }\n";
+    print "    } else if (B.size > 0) { /* 3 channels */\n";
+    print "      if (R.offset == 0) { /* RGB */\n";
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize, "");
+    print "      } else { /* BGR */\n";
+    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize, "");
+    print "      }\n";
+    print "    } else if (G.size > 0) { /* 2 channels */\n";
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize, "");
+    print "    } else { /* 1 channel */\n"; # Red only
+    checkSuffices("R" . 8 * $byteSize, "");
+    print "    }\n";
+}
+print "  }\n";
+print "}\n";
+
+# Failed to match.
+print "return VK_FORMAT_UNDEFINED; /* Drop-through for unmatched formats. */\n";

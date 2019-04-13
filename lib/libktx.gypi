@@ -255,11 +255,12 @@
               'message': 'Generating VkFormat/DFD switch body',
               'inputs': [
                 'vkformat_enum.h',
+                'dfdutils/makevkswitch.pl',
               ],
               'outputs': [
                 'dfdutils/vkdfdswitchbody.inl',
               ],
-              # The current directory during project is that of
+              # The current directory during this action is that of
               # the .gyp file. See above. Hence the annoying "lib/"
               'msvs_cygwin_shell': 1,
               'action': [

@@ -75,7 +75,48 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
                           enum VkSuffix suffix);
 
 /* Create a Data Format Descriptor for a compressed format. */
-    uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bheight, enum VkSuffix suffix);
+uint32_t *createDFDCompressed(enum VkCompScheme compScheme,
+                              int bwidth, int bheight,
+                              enum VkSuffix suffix);
+
+/*! Result of interpreting the data format descriptor. */
+enum InterpretDFDResult {
+    i_LITTLE_ENDIAN_FORMAT_BIT = 0, /*!< Confirmed little-endian (default for 8bpc). */
+    i_BIG_ENDIAN_FORMAT_BIT = 1,    /*!< Confirmed big-endian. */
+    i_PACKED_FORMAT_BIT = 2,        /*!< Packed format. */
+    i_SRGB_FORMAT_BIT = 4,          /*!< sRGB transfer function. */
+    i_NORMALIZED_FORMAT_BIT = 8,    /*!< Normalized (UNORM or SNORM). */
+    i_SIGNED_FORMAT_BIT = 16,       /*!< Format is signed. */
+    i_FLOAT_FORMAT_BIT = 32,        /*!< Format is floating point. */
+    i_UNSUPPORTED_ERROR_BIT = 64,   /*!< Format not successfully interpreted. */
+    /** "NONTRIVIAL_ENDIANNESS" means not big-endian, not little-endian
+     * (a channel has bits that are not consecutive in either order). **/
+    i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS     = i_UNSUPPORTED_ERROR_BIT,
+    /** "MULTIPLE_SAMPLE_LOCATIONS" is an error because only single-sample
+     * texel blocks (with coordinates 0,0,0,0 for all samples) are supported. **/
+    i_UNSUPPORTED_MULTIPLE_SAMPLE_LOCATIONS = i_UNSUPPORTED_ERROR_BIT + 1,
+    /** "MULTIPLE_PLANES" is an error because only contiguous data is supported. */
+    i_UNSUPPORTED_MULTIPLE_PLANES           = i_UNSUPPORTED_ERROR_BIT + 2,
+    /** Only channels R, G, B and A are supported. */
+    i_UNSUPPORTED_CHANNEL_TYPES             = i_UNSUPPORTED_ERROR_BIT + 3,
+    /** Only channels with the same flags are supported
+     * (e.g. we don't support float red with integer green). */
+    i_UNSUPPORTED_MIXED_CHANNELS            = i_UNSUPPORTED_ERROR_BIT + 4
+};
+
+/*! Interpretation of a channel from the data format descriptor. */
+typedef struct _InterpretedDFDChannel {
+    uint32_t offset; /*!< Offset in bits for packed, bytes for unpacked. */
+    uint32_t size;   /*!< Size in bits for packed, bytes for unpacked. */
+} InterpretedDFDChannel;
+
+/* Interpret a Data Format Descriptor. */
+enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
+                                     InterpretedDFDChannel *R,
+                                     InterpretedDFDChannel *G,
+                                     InterpretedDFDChannel *B,
+                                     InterpretedDFDChannel *A,
+                                     uint32_t *wordBytes);
 
 /* Print a human-readable interpretation of a data format descriptor. */
 void printDFD(uint32_t *DFD);
@@ -85,4 +126,3 @@ void printDFD(uint32_t *DFD);
 #endif
 
 #endif /* _DFD_H_ */
-
