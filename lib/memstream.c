@@ -52,7 +52,7 @@ struct ktxMem
     ktx_uint8_t* bytes;        /*!< pointer to rw data. */
     ktx_size_t alloc_size;       /*!< allocated size of the memory block. */
     ktx_size_t used_size;        /*!< bytes used. Effectively the write position. */
-    ktx_off_t pos;               /*!< read position. */
+    ktx_off_t pos;               /*!< read/write position. */
 };
 
 static KTX_error_code ktxMem_expand(ktxMem* pMem, const ktx_size_t size);
@@ -346,8 +346,10 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
     if (mem->robytes)
         return KTX_INVALID_OPERATION; /* read-only */
 
-    new_size = mem->used_size + size*count;
-    if (new_size < mem->used_size)
+    //new_size = mem->used_size + size*count;
+    new_size = mem->pos + size*count;
+    //if (new_size < mem->used_size)
+    if (new_size < mem->pos)
         return KTX_FILE_OVERFLOW;
 
     if (mem->alloc_size < new_size) {
@@ -356,8 +358,11 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
             return rc;
     }
 
-    memcpy(mem->bytes + mem->used_size, src, size*count);
-    mem->used_size += size*count;
+    memcpy(mem->bytes + mem->pos, src, size*count);
+    mem->pos += size*count;
+    if (mem->pos > mem->used_size)
+        mem->used_size = mem->pos;
+
 
     return KTX_SUCCESS;
 }

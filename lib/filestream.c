@@ -183,19 +183,33 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
+ * @exception KTX_FILE_ISPIPE file descriptor underlying stream is associated
+ *                            with a pipe or FIFO so does not have a
+ *                            file-position indicator.
  * @exception KTX_INVALID_VALUE @p str or @p pos is @c NULL.
  */
 static
 KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
 {
+    ktx_off_t ftellval;
+
     if (!str || !pos)
         return KTX_INVALID_VALUE;
     
     assert(str->type == eStreamTypeFile);
 
     /* The cast quiets an Xcode warning when building for "Generic iOS Device".
-     * For some reason, even when ARCHS is arm64, size_t is only a long. */
-    *pos = (ktx_off_t)ftello(str->data.file);
+     * I'm not sure why.
+     */
+    ftellval = (ktx_off_t)ftello(str->data.file);
+    if (ftellval < 0) {
+        switch (errno) {
+          case ESPIPE: return KTX_FILE_ISPIPE;
+          case EOVERFLOW: return KTX_FILE_OVERFLOW;
+        }
+    }
+
+    *pos = ftellval;
     
     return KTX_SUCCESS;
 }
@@ -215,6 +229,9 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
+ * Throws the same exceptions as ktxFileStream_getsize() for the reasons given
+ * there plus the following:
+ *
  * @exception KTX_INVALID_VALUE @p str is @c NULL.
  * @exception KTX_INVALID_OPERATION @p pos is > the size of the file or an
  *                                  fseek error occurred.
@@ -223,20 +240,27 @@ static
 KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
 {
     ktx_size_t fileSize;
+    KTX_error_code result;
     
     if (!str)
         return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
     
-    str->getsize(str, &fileSize);
+    result = str->getsize(str, &fileSize);
+
+    if (result != KTX_SUCCESS) {
+        // Device is likely not seekable.
+        return result;
+    }
+
     if (pos > fileSize)
         return KTX_INVALID_OPERATION;
 
     if (fseeko(str->data.file, pos, SEEK_SET) < 0)
-        return KTX_FILE_SEEK_ERROR;
-    
-    return KTX_SUCCESS;
+            return KTX_FILE_SEEK_ERROR;
+    else
+            return KTX_SUCCESS;
 }
 
 /**
@@ -247,24 +271,50 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
  * @param [in] str       pointer to the ktxStream whose size is to be queried.
  * @param [in,out] size  pointer to a variable in which size will be written.
  *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
  *
+ * @exception KTX_FILE_OVERFLOW size is too large to be returned in a
+ *                              @c ktx_size_t.
+ * @exception KTX_FILE_ISPIPE file descriptor underlying stream is associated
+ *                            with a pipe or FIFO so does not have a
+ *                            file-position indicator.
+ * @exception KTX_FILE_READ_ERROR a system error occurred while getting the
+ *                                size.
  * @exception KTX_INVALID_VALUE @p str or @p size is @c NULL.
- * @exception KTX_FILE_WRITE_ERROR a system error occurred while getting the
- *                                 size.
+ * @exception KTX_INVALID_OPERATION stream is a tty.
  */
 static
 KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
 {
     struct stat statbuf;
+    int statret;
 
     if (!str || !size)
         return KTX_INVALID_VALUE;
     
     assert(str->type == eStreamTypeFile);
- 
-    if (fstat(fileno(str->data.file), &statbuf) < 0)
-        return KTX_FILE_READ_ERROR;
+
+    // Need to flush so that fstat will return the current size.
+    // Can ignore return value. The only error that can happen is to tell you
+    // it was a NOP because the file is read only.
+    (void)fflush(str->data.file);
+    statret = fstat(fileno(str->data.file), &statbuf);
+    if (statret < 0) {
+        switch (errno) {
+          case EOVERFLOW: return KTX_FILE_OVERFLOW;
+          case EIO:
+          default:
+            return KTX_FILE_READ_ERROR;
+        }
+    }
+
+    mode_t ftype = statbuf.st_mode & S_IFMT;
+    if (ftype == S_IFIFO || ftype == S_IFSOCK)
+        return KTX_FILE_ISPIPE;
+
+    if (statbuf.st_mode & S_IFCHR)
+        return KTX_INVALID_OPERATION;
+
     *size = (ktx_size_t)statbuf.st_size; /* See _getpos for why this cast. */
     
     return KTX_SUCCESS;
