@@ -74,7 +74,7 @@ static KTX_error_code
 ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
 {
     KTX_header2 header = KTX2_IDENTIFIER_REF;
-    KTX_error_code result = KTX_SUCCESS;
+    KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
     ktx_uint32_t align8PadLen;
@@ -123,7 +123,33 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     header.dataFormatDescriptor.bytesOf = *dfd;
     offset += header.dataFormatDescriptor.bytesOf;
 
-    // XXX FIXME Need to convert KTXorientation before serializing.
+    ktxHashListEntryPtr pEntry;
+    result = ktxHashList_FindEntry(&This->kvDataHead, KTX_ORIENTATION_KEY,
+                                   &pEntry);
+    // Rewrite the orientation value in the KTX2 form.
+    if (result == KTX_SUCCESS) {
+        int count;
+        char* orientation;
+        ktx_uint32_t orientationLen;
+        char newOrient[4] = {0, 0, 0, 0};
+
+        result = ktxHashListEntry_GetValue(pEntry,
+                                   &orientationLen, (void**)&orientation);
+        count = sscanf(orientation, "S=%c,T=%c,R=%c",
+                       &newOrient[0],
+                       &newOrient[1],
+                       &newOrient[2]);
+
+        if (count != This->numDimensions) {
+            // There needs to be an entry for each dimension of the texture.
+            result = KTX_FILE_DATA_ERROR;
+            goto cleanup;
+        }
+
+        ktxHashList_DeleteEntry(&This->kvDataHead, pEntry);
+        ktxHashList_AddKVPair(&This->kvDataHead, KTX_ORIENTATION_KEY,
+                              count+1, newOrient);
+    }
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.keyValueData.offset = kvdLen != 0 ? offset : 0;
     header.keyValueData.bytesOf = kvdLen;

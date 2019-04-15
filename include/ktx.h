@@ -99,6 +99,11 @@ extern "C" {
 #define KTX_ORIENTATION_KEY "KTXorientation"
 /**
  * @~English
+ * @brief Standard format for 1D orientation value.
+ */
+#define KTX_ORIENTATION1_FMT "S=%c"
+/**
+ * @~English
  * @brief Standard format for 2D orientation value.
  */
 #define KTX_ORIENTATION2_FMT "S=%c,T=%c"
@@ -153,9 +158,9 @@ typedef enum KTX_error_code_t {
 /**
  * @class ktxHashList
  * @~English
- * @brief Opaque handle to a ktxHashList.
+ * @brief Opaque handles to ktxHashList and ktxHashListEntryPtr.
  */
-typedef struct ktxKVListEntry* ktxHashList;
+typedef struct ktxKVListEntry *ktxHashList, *ktxHashListEntryPtr;
 
 /**
  * @class ktxTexture
@@ -504,6 +509,25 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key,
                       unsigned int valueLen, const void* value);
 
 /*
+ * Deletes a ktxHashListEntry from a ktxHashList.
+ */
+KTX_error_code
+ktxHashList_DeleteEntry(ktxHashList* pHead,  ktxHashListEntryPtr pEntry);
+
+/*
+ * Finds the entry for a key in a ktxHashList and deletes it.
+ */
+KTX_error_code
+ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key);
+
+/*
+ * Looks up a key and returns the ktxHashListEntry.
+ */
+KTX_error_code
+ktxHashList_FindEntry(ktxHashList* pHead, const char* key,
+                      ktxHashListEntryPtr* ppEntry);
+
+/*
  * Looks up a key and returns the value.
  */
 KTX_error_code
@@ -518,7 +542,6 @@ KTX_error_code
 ktxHashList_Serialize(ktxHashList* pHead,
                       unsigned int* kvdLen, unsigned char** kvd);
 
-
 /*
  * Creates a hash table from the serialized data read from a
  * a KTX file.
@@ -526,6 +549,12 @@ ktxHashList_Serialize(ktxHashList* pHead,
 KTX_error_code
 ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 
+/*
+ * Get the value from a ktxHashListEntry
+ */
+KTX_error_code
+ktxHashListEntry_GetValue(ktxHashListEntryPtr This,
+                          unsigned int* pValueLen, void** ppValue);
 
 /*===========================================================*
  * For KTX format version 2                                  *

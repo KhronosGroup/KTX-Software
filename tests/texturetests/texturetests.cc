@@ -1308,10 +1308,12 @@ class ktxTextureWriteKTX2TestBase
         ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                      << ktxErrorString(result);
 
-        if (writeMetadata)
+        if (writeMetadata) {
+            // Reminder: this is for the KTX 1 texture we have just created.
             ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY,
                                   (unsigned int)strlen(helper.orientation) + 1,
                                   helper.orientation);
+        }
 
         result = helper.copyImagesToTexture(texture);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -1331,8 +1333,9 @@ class ktxTextureWriteKTX2TestBase
 
         // Check the format descriptor.
         // This uses the same code to generate the comparator DFD as the code
-        // under test. However we have separate tests for the generator and
-        // this test ensures there is a DFD in the file.
+        // under test. However we have separate tests for the generator, so can
+        // be reasonably confident in it. This test ensures there is a DFD in
+        // the file.
         ktx_uint32_t* dfd = createDFD4VkFormat(
                                 static_cast<VkFormat>(header->vkFormat));
         EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.offset,
@@ -1342,8 +1345,8 @@ class ktxTextureWriteKTX2TestBase
         // Check the metadata.
         if (writeMetadata) {
             filePtr = ktxMemFile + header->keyValueData.offset;
-            EXPECT_EQ(header->keyValueData.bytesOf, helper.kvDataLen);
-            EXPECT_EQ(memcmp(filePtr, helper.kvData, helper.kvDataLen), 0);
+            EXPECT_EQ(header->keyValueData.bytesOf, helper.kvDataLen_ktx2);
+            EXPECT_EQ(memcmp(filePtr, helper.kvData_ktx2, helper.kvDataLen_ktx2), 0);
             filePtr += helper.kvDataLen;
         } else {
             EXPECT_EQ(header->keyValueData.bytesOf, 0);
@@ -1403,7 +1406,7 @@ TEST_F(ktxTextureWriteKTX2TestRGBA8, Write1DArrayMipmap) {
 
 TEST_F(ktxTextureWriteKTX2TestRGBA8, Write2DNoMetadata) {
     helper.resize(createFlagBits::eNone, 1, 1, 2, 32, 32, 1);
-    runTest(true);
+    runTest(false);
 }
 
 TEST_F(ktxTextureWriteKTX2TestRGB8, Write2DMipmap) {
