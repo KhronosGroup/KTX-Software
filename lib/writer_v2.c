@@ -94,8 +94,9 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
 
     header.vkFormat
             = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
+    // The above function does not return any formats in the prohibited list.
     if (header.vkFormat == VK_FORMAT_UNDEFINED) {
-        // XXX FIXME. Need to handle ASTC HDR & 3D.
+        // XXX TODO. Handle ASTC HDR & 3D.
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
     header.typeSize = ktxTexture_glTypeSize(This);
@@ -112,8 +113,6 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     levelIndex = (ktxLevelIndexEntry*) malloc(levelIndexSize);
 
     offset = sizeof(header) + levelIndexSize;
-
-    //VkFormatSize formatInfo = &((ktxTextureInt*)This)->formatInfo;
 
     ktx_uint32_t* dfd = createDFD4VkFormat(header.vkFormat);
     if (!dfd)
