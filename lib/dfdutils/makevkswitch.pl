@@ -6,8 +6,6 @@ use Getopt::Std;
 my %options=();
 getopts("o:", \%options);
 
-print $options;
-
 if (defined $options{o}) {
     open (my $output, '>', $options{o});
     select $output
