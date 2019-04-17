@@ -24,6 +24,9 @@
             'doxyConfig': 'ktxtools.doxy',
             'timestamp': '<(output_dir)/.ktxtoolsdoc_gentimestamp',
           },
+          'xcode_settings': {
+              'INSTALL_PATH': '/usr/local/share/man/man1',
+          },
           # It is not possible to chain commands in an action with
           # && because the generators will quote such strings.
           # Instead we use an external script.

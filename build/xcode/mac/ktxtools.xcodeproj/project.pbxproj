@@ -545,6 +545,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = /usr/local/share/man/man1;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktxtools.doc;
 			};
@@ -753,6 +754,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = /usr/local/share/man/man1;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktxtools.doc;
 			};
