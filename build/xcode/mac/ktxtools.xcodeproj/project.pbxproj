@@ -277,6 +277,10 @@
 			buildConfigurationList = 2A8D28551940E151FF5E3DA3 /* Build configuration list for PBXProject "ktxtools" */;
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+				Base,
+			);
 			mainGroup = 507390469E1B37461768D63F;
 			projectDirPath = ../../..;
 			projectReferences = (

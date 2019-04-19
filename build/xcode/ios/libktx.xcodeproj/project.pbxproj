@@ -406,6 +406,10 @@
 			buildConfigurationList = B9816C07C4E0E95D8D8C85AB /* Build configuration list for PBXProject "libktx" */;
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+				Base,
+			);
 			mainGroup = 3B7169D373FF61455E9607CB;
 			projectDirPath = ../../..;
 			projectRoot = "";
