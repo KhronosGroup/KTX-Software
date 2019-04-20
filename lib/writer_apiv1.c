@@ -135,7 +135,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
     header.pixelDepth = textureInfo->pixelDepth;
     header.numberOfArrayElements = textureInfo->numberOfArrayElements;
     header.numberOfFaces = textureInfo->numberOfFaces;
-    header.numberOfMipmapLevels = textureInfo->numberOfMipmapLevels;
+    header.numberOfMipLevels = textureInfo->numberOfMipLevels;
     header.bytesOfKeyValueData = bytesOfKeyValueData;
 
     /* Do some sanity checking */
@@ -228,15 +228,15 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
         cubemap = 1;
 
     /* Check number of mipmap levels */
-    if (header.numberOfMipmapLevels == 0)
+    if (header.numberOfMipLevels == 0)
     {
         numMipmapLevels = 1;
     }
     else
-        numMipmapLevels = header.numberOfMipmapLevels;
+        numMipmapLevels = header.numberOfMipLevels;
     if (numMipmapLevels > 1) {
         GLuint max_dim = MAX(MAX(header.pixelWidth, header.pixelHeight), header.pixelDepth);
-        if (max_dim < ((GLuint)1 << (header.numberOfMipmapLevels - 1)))
+        if (max_dim < ((GLuint)1 << (header.numberOfMipLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
             return KTX_INVALID_VALUE;

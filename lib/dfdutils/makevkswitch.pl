@@ -133,7 +133,6 @@ while ($line = <>) {
                 # We have a special case to notice when we start with blue
                 if (substr($channels,0,1) eq "B") {
 
-
                     # Red and blue are swapped (B, G, R, A) - record this
                     # N.B. createDFDUnpacked() just knows this and R,G,B,A channel order, not arbitrary
                     $rbswap = 1;

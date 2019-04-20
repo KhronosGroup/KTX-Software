@@ -468,6 +468,25 @@ ktxTexture_WriteToMemory(ktxTexture* This,
                          ktx_uint8_t** bytes, ktx_size_t* size);
 
 /*
+ * Write a ktxTexture object to a stdio stream in KTX format.
+ */
+KTX_error_code
+ktxTexture_WriteKTX2ToStdioStream(ktxTexture* This, FILE* dstsstr);
+
+/*
+ * Write a ktxTexture object to a named file in KTX format.
+ */
+KTX_error_code
+ktxTexture_WriteKTX2ToNamedFile(ktxTexture* This, const char* const dstname);
+
+/*
+ * Write a ktxTexture object to a block of memory in KTX format.
+ */
+KTX_error_code
+ktxTexture_WriteKTX2ToMemory(ktxTexture* This,
+                             ktx_uint8_t** bytes, ktx_size_t* size);
+
+/*
  * Returns a string corresponding to a KTX error code.
  */
 const char* const ktxErrorString(KTX_error_code error);
@@ -508,7 +527,21 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 
 
 /*===========================================================*
- * For Versions 1 and 2 compatibility                        *
+ * For KTX format version 2                                  *
+ *===========================================================*/
+
+ typedef enum {
+    KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
+    KTX_SUPERCOMPRESSION_CRNC = 1,  /*!< Crunch supercompression. */
+    KTX_SUPERCOMPRESSION_ZLIB = 2,  /*!< Zlib supercompression. */
+    KTX_SUPERCOMPRESSION_ZSTD = 3,  /*!< ZStd supercompression. */
+    KTX_SUPERCOMPRESSION_BEGIN_RANGE = KTX_SUPERCOMPRESSION_NONE,
+    KTX_SUPERCOMPRESSION_END_RANGE = KTX_SUPERCOMPRESSION_ZSTD
+} ktxSupercompressionSchemeEnum;
+
+
+/*===========================================================*
+ * For library versions 1 and 2 compatibility                        *
  *===========================================================*/
 
 /**
@@ -541,7 +574,8 @@ typedef struct KTX_texture_info
     ktx_uint32_t pixelDepth;
     ktx_uint32_t numberOfArrayElements;
     ktx_uint32_t numberOfFaces;
-    ktx_uint32_t numberOfMipmapLevels;
+    ktx_uint32_t numberOfMipLevels;
+//#define numberOfMipmapLevels numberOfMipLevels
 } KTX_texture_info;
 
 /**

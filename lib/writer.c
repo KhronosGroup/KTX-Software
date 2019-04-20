@@ -288,7 +288,7 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
     header.numberOfFaces = This->numFaces;
     assert (This->generateMipmaps ? This->numLevels == 1 : This->numLevels >= 1);
-    header.numberOfMipmapLevels = This->generateMipmaps ? 0 : This->numLevels;
+    header.numberOfMipLevels = This->generateMipmaps ? 0 : This->numLevels;
     
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.bytesOfKeyValueData = kvdLen;
@@ -314,7 +314,9 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
         ktx_uint32_t faceLodSize, layer, levelDepth, numImages;
         ktx_size_t imageSize;
         
-        faceLodSize = (ktx_uint32_t)ktxTexture_faceLodSize(This, level);
+        faceLodSize = (ktx_uint32_t)ktxTexture_calcFaceLodSize(This,
+                                                    level,
+                                                    KTX_FORMAT_VERSION_ONE);
         imageSize = ktxTexture_GetImageSize(This, level);
         levelDepth = MAX(1, This->baseDepth >> level);
         if (This->isCubemap && !This->isArray)

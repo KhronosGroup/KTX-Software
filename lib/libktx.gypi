@@ -38,7 +38,8 @@
       'uthash.h',
       'vkformat_enum.h',
       'writer.c',
-      'writer_v1.c',
+      'writer_apiv1.c',
+      'writer_v2.c',
     ],
     # Use _files to get the names relativized
     'vksource_files': [
