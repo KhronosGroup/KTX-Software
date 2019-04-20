@@ -1617,6 +1617,10 @@
 			buildConfigurationList = 55F377B00A09F4075C61D1D2 /* Build configuration list for PBXProject "ktxtests" */;
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+				Base,
+			);
 			mainGroup = 910A03D43CEF5CC516BDE4C8;
 			projectDirPath = ../../..;
 			projectReferences = (
@@ -1707,9 +1711,11 @@
 			files = (
 			);
 			inputPaths = (
+				tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.vert,
 			);
 			name = "Rule \"vert2spirv\"";
 			outputPaths = (
+				"$(SHARED_INTERMEDIATE_DIR)/textoverlay.vert.spv",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1722,9 +1728,21 @@
 			files = (
 			);
 			inputPaths = (
+				tests/loadtests/vkloadtests/shaders/cube/cube.vert,
+				tests/loadtests/vkloadtests/shaders/cubemap/reflect.vert,
+				tests/loadtests/vkloadtests/shaders/cubemap/skybox.vert,
+				tests/loadtests/vkloadtests/shaders/texture/texture.vert,
+				tests/loadtests/vkloadtests/shaders/texturearray/instancing.vert,
+				tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert,
 			);
 			name = "Rule \"vert2spirv\"";
 			outputPaths = (
+				"$(SHARED_INTERMEDIATE_DIR)/cube.vert.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/reflect.vert.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/skybox.vert.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/texture.vert.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/instancing.vert.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/instancinglod.vert.spv",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1737,9 +1755,11 @@
 			files = (
 			);
 			inputPaths = (
+				tests/loadtests/appfwSDL/VulkanAppSDL/shaders/textoverlay.frag,
 			);
 			name = "Rule \"frag2spirv\"";
 			outputPaths = (
+				"$(SHARED_INTERMEDIATE_DIR)/textoverlay.frag.spv",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1752,9 +1772,21 @@
 			files = (
 			);
 			inputPaths = (
+				tests/loadtests/vkloadtests/shaders/cube/cube.frag,
+				tests/loadtests/vkloadtests/shaders/cubemap/reflect.frag,
+				tests/loadtests/vkloadtests/shaders/cubemap/skybox.frag,
+				tests/loadtests/vkloadtests/shaders/texture/texture.frag,
+				tests/loadtests/vkloadtests/shaders/texturearray/instancing.frag,
+				tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.frag,
 			);
 			name = "Rule \"frag2spirv\"";
 			outputPaths = (
+				"$(SHARED_INTERMEDIATE_DIR)/cube.frag.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/reflect.frag.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/skybox.frag.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/texture.frag.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/instancing.frag.spv",
+				"$(SHARED_INTERMEDIATE_DIR)/instancinglod.frag.spv",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

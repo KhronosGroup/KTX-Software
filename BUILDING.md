@@ -319,7 +319,7 @@ All the builds use cmake, make or project files generated with
 [GYP](https://gyp.gsrc.io/). A modified version, available in the
 `remaster` branch of [this
 fork](https://github.com/msc-/gyp/tree/remaster), is needed to
-generate makefiles and vs2013+ projects. To install GYP, follow the
+generate makefiles, vs2013+ & Xcode projects. To install GYP, follow the
 [instructions in the
 fork](https://github.com/msc-/gyp/tree/remaster#installing-gyp).
 These work for either version of GYP. There are no install instructions

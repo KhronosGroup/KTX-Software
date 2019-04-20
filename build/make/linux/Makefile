@@ -63,7 +63,7 @@ CFLAGS.host ?= $(CPPFLAGS_host) $(CFLAGS_host)
 CXX.host ?= g++
 CXXFLAGS.host ?= $(CPPFLAGS_host) $(CXXFLAGS_host)
 LINK.host ?= $(CXX.host)
-LDFLAGS.host ?=
+LDFLAGS.host ?= $(LDFLAGS_host)
 AR.host ?= ar
 
 # Define a dir function that can handle spaces.

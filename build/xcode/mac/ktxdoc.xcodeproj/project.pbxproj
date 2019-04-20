@@ -172,6 +172,10 @@
 			buildConfigurationList = 253C3DB8204812599E5ADE11 /* Build configuration list for PBXProject "ktxdoc" */;
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+				Base,
+			);
 			mainGroup = 1C2458A14BCA3DC0EA020732;
 			projectDirPath = ../../..;
 			projectReferences = (
