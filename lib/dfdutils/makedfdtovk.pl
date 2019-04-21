@@ -1,5 +1,13 @@
 #!/usr/bin/perl
 
+# N.B. 0 arguments, read stdin, write stdout.
+# 1 argument, read ARGV[0], write stdout.
+# 2 arguments, read ARGV[1], write ARGV[2].
+if (@ARGV > 1) {
+    open (my $output, '>', $ARGV[1]);
+    select $output;
+}
+
 # Endianness is a parameter to the (non-block-compressed) generators
 # This doesn't have to be a number: $bigEndian = "myBigEndianFlag" will drop this argument in the generated code
 $bigEndian = 0;
@@ -211,18 +219,19 @@ sub checkSuffices {
 }
 
 $prefix = <<'END_PREFIX';
-InterpretDFDResult r;
-InterpretedDFDChannel R = {0,0};
-InterpretedDFDChannel G = {0,0};
-InterpretedDFDChannel B = {0,0};
-InterpretedDFDChannel A = {0,0};
-uint32_t wordBytes;
+if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
+  InterpretDFDResult r;
+  InterpretedDFDChannel R = {0,0};
+  InterpretedDFDChannel G = {0,0};
+  InterpretedDFDChannel B = {0,0};
+  InterpretedDFDChannel A = {0,0};
+  uint32_t wordBytes;
 
-r = interpretDFD(dfd, &R, &G, &B, &A, &wordBytes);
+  r = interpretDFD(dfd, &R, &G, &B, &A, &wordBytes);
 
-if (r & i_UNSUPPORTED_ERROR_BIT) return VK_FORMAT_UNDEFINED;
+  if (r & i_UNSUPPORTED_ERROR_BIT) return VK_FORMAT_UNDEFINED;
 
-if (r & i_PACKED_FORMAT_BIT) {
+  if (r & i_PACKED_FORMAT_BIT) {
 END_PREFIX
 
 print $prefix;
@@ -231,57 +240,252 @@ print $prefix;
 # There aren't many of these, so we hard-wire them (and identify them minimally).
 
 $packedDecode = << 'END_PACKED';
-  if (wordBytes == 1) return VK_fORMAT_R4G4_UNORM_PACK8;
-  else if (wordBytes == 2) { /* PACK16 */
-    if (A.size == 4) {
-      if (R.offset == 12) return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
-      else return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
-    } else if (A.size == 0) { /* Three channels */
-      if (B.offset == 0) return VK_FORMAT_R5G6B5_UNORM_PACK16;
-      else return VK_FORMAT_B5G6R5_UNORM_PACK16;
-    } else return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
-  } else if (wordBytes == 4) { /* PACK32 */
+    if (wordBytes == 1) return VK_fORMAT_R4G4_UNORM_PACK8;
+    else if (wordBytes == 2) { /* PACK16 */
+      if (A.size == 4) {
+        if (R.offset == 12) return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+        else return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+      } else if (A.size == 0) { /* Three channels */
+        if (B.offset == 0) return VK_FORMAT_R5G6B5_UNORM_PACK16;
+        else return VK_FORMAT_B5G6R5_UNORM_PACK16;
+      } else return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+    } else if (wordBytes == 4) { /* PACK32 */
 END_PACKED
 
 print $packedDecode;
 
-print "  if (A.size == 8) {\n";
+print "    if (A.size == 8) {\n";
 checkSuffices("A8B8G8R8", "_PACK32");
-print "  } else if (A.size == 2 && B.offset == 0) {\n";
+print "    } else if (A.size == 2 && B.offset == 0) {\n";
 checkSuffices("A2R10G10B10", "_PACK32");
-print "  } else if (A.size == 2 && R.offset == 0) {\n";
+print "    } else if (A.size == 2 && R.offset == 0) {\n";
 checkSuffices("A2B10G10R10", "_PACK32");
-print "  } else if (R.size == 11) return VK_FORMAT_B10G11R11_UFLOAT_PACK32;\n";
-print "} else { /* Not a packed format */\n";
+print "    } else if (R.size == 11) return VK_FORMAT_B10G11R11_UFLOAT_PACK32;\n";
+print "  } else { /* Not a packed format */\n";
 
 # Start by checking sizes
 for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
     if ($byteSize == 1) {
-        print "  if (wordBytes == $byteSize) {\n";
+        print "    if (wordBytes == $byteSize) {\n";
     } else {
-        print "  } else if (wordBytes == $byteSize) {\n";
+        print "    } else if (wordBytes == $byteSize) {\n";
     }
     # If we have an alpha channel...
-    print "    if (A.size > 0) { /* 4 channels */\n";
-    print "      if (R.offset == 0) { /* RGBA */\n";
+    print "      if (A.size > 0) { /* 4 channels */\n";
+    print "        if (R.offset == 0) { /* RGBA */\n";
     checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize . "A" . 8 * $byteSize, "");
-    print "      } else { /* BGRA */\n";
+    print "        } else { /* BGRA */\n";
     checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize . "A" . 8 * $byteSize, "");
-    print "      }\n";
-    print "    } else if (B.size > 0) { /* 3 channels */\n";
-    print "      if (R.offset == 0) { /* RGB */\n";
+    print "        }\n";
+    print "      } else if (B.size > 0) { /* 3 channels */\n";
+    print "        if (R.offset == 0) { /* RGB */\n";
     checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize, "");
-    print "      } else { /* BGR */\n";
+    print "        } else { /* BGR */\n";
     checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize, "");
-    print "      }\n";
-    print "    } else if (G.size > 0) { /* 2 channels */\n";
+    print "        }\n";
+    print "      } else if (G.size > 0) { /* 2 channels */\n";
     checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize, "");
-    print "    } else { /* 1 channel */\n"; # Red only
+    print "      } else { /* 1 channel */\n"; # Red only
     checkSuffices("R" . 8 * $byteSize, "");
-    print "    }\n";
+    print "      }\n";
 }
+print "    }\n";
 print "  }\n";
-print "}\n";
+
+$compressedDecode = << 'END_COMPRESSED';
+} else if (KHR_DFDVAL((dfd + 1), MODEL) >= 128) {
+  const uint32_t *bdb = dfd + 1;
+  switch (KHR_DFDVAL(bdb, MODEL)) {
+  case KHR_KHR_DF_MODEL_BC1A:
+    if (KHR_DFDSVAL(bdb, 0, CHANNELID) == KHR_DF_CHANNEL_BC1A_COLOR) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_BC1_RGB_SRGB_BLOCK;
+      }
+    } else {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+      }
+    }
+  case KHR_DF_MODEL_BC2:
+    if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+      return VK_FORMAT_BC2_UNORM_BLOCK;
+    } else {
+      return VK_FORMAT_BC2_SRGB_BLOCK;
+    }
+  case KHR_DF_MODEL_BC3:
+    if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+      return VK_FORMAT_BC3_UNORM_BLOCK;
+    } else {
+      return VK_FORMAT_BC3_SRGB_BLOCK;
+    }
+  case KHR_DF_MODEL_BC4:
+    if (!(KHR_DFDSVAL(bdb, 0, FLAGS) & KHR_DF_SAMPLE_DATATYPE_SIGNED)) {
+      return VK_FORMAT_BC4_UNORM_BLOCK;
+    } else {
+      return VK_FORMAT_BC4_SNORM_BLOCK;
+    }
+  case KHR_DF_MODEL_BC5:
+    if (!(KHR_DFDSVAL(bdb, 0, FLAGS) & KHR_DF_SAMPLE_DATATYPE_SIGNED)) {
+      return VK_FORMAT_BC5_UNORM_BLOCK;
+    } else {
+      return VK_FORMAT_BC5_SNORM_BLOCK;
+    }
+  case KHR_DF_MODEL_BC6H:
+    if (!(KHR_DFDSVAL(bdb, 0, FLAGS) & KHR_DF_SAMPLE_DATATYPE_SIGNED)) {
+      return VK_FORMAT_BC6H_UFLOAT_BLOCK;
+    } else {
+      return VK_FORMAT_BC6H_SFLOAT_BLOCK;
+    }
+  case KHR_DF_MODEL_BC7:
+    if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+      return VK_FORMAT_BC7_UNORM_BLOCK;
+    } else {
+      return VK_FORMAT_BC7_SRGB_BLOCK;
+    }
+  case KHR_DF_MODEL_ETC2:
+    if (KHR_DFDSVAL(bdb, 0, CHANNELID) == KHR_DF_CHANNEL_ETC2_COLOR) {
+      if (KHR_DFDVAL(bdb, DESCRIPTORBLOCKSIZE) == 40) {
+        if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+          return VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
+        } else {
+          return VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;
+        }
+      } else {
+        if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+          return VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK;
+        } else {
+          return VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK;
+        }
+      }
+    } else if (KHR_DFDSVAL(bdb, 0, CHANNELID) == KHR_DF_CHANNEL_ETC2_ALPHA) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;
+      }
+    } else if (KHR_DFDVAL(bdb, DESCRIPTORBLOCKSIZE) == 40) {
+      if (!(KHR_DFDSVAL(bdb, 0, FLAGS) & KHR_DF_SAMPLE_DATATYPE_SIGNED)) {
+        return VK_FORMAT_EAC_R11_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_EAC_R11_SNORM_BLOCK;
+      }
+    } else {
+      if (!(KHR_DFDSVAL(bdb, 0, FLAGS) & KHR_DF_SAMPLE_DATATYPE_SIGNED)) {
+        return VK_FORMAT_EAC_R11G11_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_EAC_R11G11_SNORM_BLOCK;
+      }
+    }
+  case KHR_DF_MODEL_ASTC:
+    if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 7) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 7) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 7) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 7)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 9) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 9) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 9) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 7)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 9) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 9)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 11) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 9)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
+      }
+    } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 11) &&
+        (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 11)) {
+      if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+        return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
+      } else {
+        return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
+      }
+    }
+  default:
+  }
+}
+END_COMPRESSED
+
+print $compressedDecode;
 
 # Failed to match.
 print "return VK_FORMAT_UNDEFINED; /* Drop-through for unmatched formats. */\n";

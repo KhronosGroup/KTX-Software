@@ -598,7 +598,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating VkFormat/DFD switch body\"\nexec lib/dfdutils/makevkswitch.pl -o lib/dfdutils/vkdfdswitchbody.inl lib/vkformat_enum.h\nexit 1\n";
+			shellScript = "echo note: \"Generating VkFormat/DFD switch body\"\nexec lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vkdfdswitchbody.inl\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		F15D02DD548099D9CFB68DCE /* Action "buildLibktxDoc" */ = {

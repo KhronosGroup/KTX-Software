@@ -110,7 +110,7 @@ typedef enum _khr_df_mask_e {
 /* Helper macro:
    Extract field X from basic descriptor block BDB */
 #define KHR_DFDVAL(BDB, X) \
-    ((BDB[KHR_DF_WORD_ ## X] >> (KHR_DF_SHIFT_ ## X)) \
+    (((BDB)[KHR_DF_WORD_ ## X] >> (KHR_DF_SHIFT_ ## X)) \
      & (KHR_DF_MASK_ ## X))
 
 /* Offsets relative to the start of a sample */
@@ -161,10 +161,16 @@ typedef enum _khr_df_samplemask_e {
 /* Helper macro:
    Extract field X of sample S from basic descriptor block BDB */
 #define KHR_DFDSVAL(BDB, S, X) \
-    ((BDB[KHR_DF_WORD_SAMPLESTART + \
+    (((BDB)[KHR_DF_WORD_SAMPLESTART +       \
           ((S) * KHR_DF_WORD_SAMPLEWORDS) + \
           KHR_DF_SAMPLEWORD_ ## X] >> (KHR_DF_SAMPLESHIFT_ ## X)) \
      & (KHR_DF_SAMPLEMASK_ ## X))
+
+/* Helper macro:
+   Number of samples in basic descriptor block BDB */
+#define KHR_DFDSAMPLECOUNT(BDB) \
+    (((KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE) >> 2) - KHR_DF_WORD_SAMPLESTART) \
+     / KHR_DF_WORD_SAMPLEWORDS)
 
 /* Vendor ids */
 typedef enum _khr_df_vendorid_e {
@@ -175,9 +181,15 @@ typedef enum _khr_df_vendorid_e {
 
 /* Descriptor types */
 typedef enum _khr_df_khr_descriptortype_e {
-    /* Default Khronos descriptor */
+    /* Default Khronos basic descriptor block */
     KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT = 0U,
+    /* Extension descriptor block for additional planes */
+    KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES = 0x6001U,
+    /* Extension descriptor block for additional dimensions */
+    KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS = 0x6002U,
+    /* Bit indicates modifying requires understanding this extension */
     KHR_DF_KHR_DESCRIPTORTYPE_NEEDED_FOR_WRITE_BIT = 0x2000U,
+    /* Bit indicates processing requires understanding this extension */
     KHR_DF_KHR_DESCRIPTORTYPE_NEEDED_FOR_DECODE_BIT = 0x4000U,
     KHR_DF_KHR_DESCRIPTORTYPE_MAX         = 0x7FFFU
 } khr_df_khr_descriptortype_e;
