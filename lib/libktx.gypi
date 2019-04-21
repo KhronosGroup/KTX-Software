@@ -276,8 +276,8 @@
 #              'msvs_cygwin_shell': 1,
 #              'action': [
 #                'lib/dfdutils/makevkswitch.pl',
-#                '-o', '<@(_outputs)',
 #                '<@(_inputs)',
+#                '<@(_outputs)',
 #              ],
 #            }, # run makevkswitch action
 #          ], # actions
