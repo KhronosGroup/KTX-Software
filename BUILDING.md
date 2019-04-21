@@ -329,7 +329,7 @@ at GYP's home.
 or generate additional projects.*
 
 *You can use the standard version of GYP if you do not need to generate
-make projects or Visual Studio 2013 or later projects.*
+make, Visual Studio 2013 or later or Xcode projects.*
 
 ### GNU make 3.81+
 
