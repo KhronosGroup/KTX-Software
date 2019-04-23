@@ -122,7 +122,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     header.dataFormatDescriptor.bytesOf = *dfd;
     offset += header.dataFormatDescriptor.bytesOf;
 
-    ktxHashListEntryPtr pEntry;
+    ktxHashListEntry* pEntry;
     result = ktxHashList_FindEntry(&This->kvDataHead, KTX_ORIENTATION_KEY,
                                    &pEntry);
     // Rewrite the orientation value in the KTX2 form.

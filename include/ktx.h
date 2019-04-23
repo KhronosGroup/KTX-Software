@@ -158,9 +158,16 @@ typedef enum KTX_error_code_t {
 /**
  * @class ktxHashList
  * @~English
- * @brief Opaque handles to ktxHashList and ktxHashListEntryPtr.
+ * @brief Opaque handle to a ktxHashList.
  */
-typedef struct ktxKVListEntry *ktxHashList, *ktxHashListEntryPtr;
+typedef struct ktxKVListEntry* ktxHashList;
+
+/**
+ * @class ktxHashListEntry
+ * @~English
+ * @brief Opaque handle to an entry in a @ref ktxHashList.
+ */
+typedef struct ktxKVListEntry ktxHashListEntry;
 
 /**
  * @class ktxTexture
@@ -512,7 +519,7 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key,
  * Deletes a ktxHashListEntry from a ktxHashList.
  */
 KTX_error_code
-ktxHashList_DeleteEntry(ktxHashList* pHead,  ktxHashListEntryPtr pEntry);
+ktxHashList_DeleteEntry(ktxHashList* pHead,  ktxHashListEntry* pEntry);
 
 /*
  * Finds the entry for a key in a ktxHashList and deletes it.
@@ -525,7 +532,7 @@ ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key);
  */
 KTX_error_code
 ktxHashList_FindEntry(ktxHashList* pHead, const char* key,
-                      ktxHashListEntryPtr* ppEntry);
+                      ktxHashListEntry** ppEntry);
 
 /*
  * Looks up a key and returns the value.
@@ -553,14 +560,19 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
  * Get the value from a ktxHashListEntry
  */
 KTX_error_code
-ktxHashListEntry_GetValue(ktxHashListEntryPtr This,
+ktxHashListEntry_GetValue(ktxHashListEntry* This,
                           unsigned int* pValueLen, void** ppValue);
 
 /*===========================================================*
  * For KTX format version 2                                  *
  *===========================================================*/
 
- typedef enum {
+/**
+ * @~English
+ * @brief Enum identifying supercompression scheme.
+ */
+
+typedef enum {
     KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
     KTX_SUPERCOMPRESSION_CRNC = 1,  /*!< Crunch supercompression. */
     KTX_SUPERCOMPRESSION_ZLIB = 2,  /*!< Zlib supercompression. */
@@ -687,7 +699,7 @@ typedef struct KTX_texture_info
  * faces must be provided in the order: +X, -X, +Y, -Y, +Z, -Z.
  */
 /**
- * @var KTX_texture_info::numberOfMipmapLevels;
+ * @var KTX_texture_info::numberOfMipLevels;
  * @~English
  * @brief The number of mipmap levels.
  *
