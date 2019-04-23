@@ -759,7 +759,6 @@
 					other_include,
 					"$(VULKAN_SDK)/include",
 				);
-				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
@@ -1117,7 +1116,6 @@
 					other_include,
 					"$(VULKAN_SDK)/include",
 				);
-				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
