@@ -162,6 +162,37 @@ solutions for Win32 and x64 platforms.
 **Note:** Builds of the Vulkan loader tests require vs2015+ because they
 use `vulkan.hpp` which needs C++11 & in particular `constexpr`, so solutions other than vs2015 and vs2017 do not include a `vkloadtests` project and their `appfwSDL` projects do not include Vulkan app support.
 
+Installing
+----------
+
+The `install.lib` target in the `libktx` project builds a distribution directory hierarchy containing `libktx.gl`, the public include files and library man pages. Similarly `install.tools` in the `ktxtools` project builds a hierarchy with the tools, `libktx.gl` and the tools man pages. These targets are only available on GNU/Linux, macOS and Windows.
+
+To install these for use, the distribution hierarchies must be copied to the system root `/` on GNU/Linux & macOS. Everything is located in the distribution hierarchy at `usr/local/...` so the final home will be `/usr/local/...`.
+
+To skip building the distributions and install directly you can run the following commands:
+
+### GNU/Linux
+
+```bash
+cd build/cmake/linux/Release      # or Debug
+DSTROOT=/ sudo make install.tools # or install.lib
+```
+
+### macOS
+
+```bash
+cd build/xcode/mac
+sudo xcodebuild -project ktxtools.xcodeproj -configuration Release -target install.tools DEVELOPMENT_TEAM=<Your team id> VULKAN_SDK=<Your Vulkan SDK location> DSTROOT=/
+```
+
+`DEVELOPMENT_TEAM` and `VULKAN_SDK` must be set in Xcode's _Custom Paths_ preferences, as described above, but those IDE preferences are not seen by `xcodebuild`. 
+
+In theory `DEVELOPMENT_TEAM` and `VULKAN_SDK` can be set in your environment instead of at the end of the command but I have had bad luck with Xcode and environment variables. You will likely need to issue the following command first:
+
+```bash
+defaults write com.apple.dt.Xcode UseSanitizedBuildSystemEnvironment -bool NO
+```
+
 Dependencies
 ------------
 

@@ -83,7 +83,7 @@
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
                 'target_conditions': [
-                  ['_mac_bundle == 1', {
+                  ['_type != "none" and _mac_bundle == 1', {
 #                    'actions': [{
 #                      # This could potentially break non-bundle apps built as
 #                      # part of the same project. At present those are in
@@ -139,6 +139,15 @@
           ], # conditions
         }] # _type == "shared_library"
       ], # conditions
+      'xcode_settings': {
+          # These actually Xcode's defaults here for documentation.
+          #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
+          #'INSTALL_PATH': '/usr/local/lib',
+          # This is used by a Copy Headers phase which gyp only allows to be
+          # be created for a framework bundle. Remember in case we want to
+          # switch the lib to a framework.
+          #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
+      },
     }, # libktx.gl target
     {
       'target_name': 'libktx.es1',
@@ -304,6 +313,55 @@
 #            }, # run makevkswitch action
 #          ], # actions
 #        }, # mkvkformatfiles
+        {
+          'target_name': 'install.lib',
+          'type': 'none',
+          # These variables duplicate those in ktxtools.gyp:install_tools.
+          # See there for explanation.
+          'variables': {
+            'conditions': [
+              ['GENERATOR == "xcode"', {
+                # This weird path is because Xcode ignores its DSTROOT setting
+                # when the path is an absolute path. WRAPPER_NAME defaults to
+                # /Applications/$(PRODUCT_NAME).app. Use DSTROOT so that
+                # xcodebuild ... install will put the .dylib in the same place.
+                'dstroot': '$(WRAPPER_NAME)/../../$(DSTROOT)',
+                'installpath': '$(INSTALL_PATH)',
+              }, 'OS == "win"', {
+                'dstroot': 'somewhere',
+                'installpath': 'somesubdir',
+              }, {
+                # XXX Need to figure out how to set & propagate DSTROOT to the
+                # environment.
+                'dstroot': '$DSTROOT',
+                'installpath': '/usr/local',
+              }],
+            ], # conditions
+          }, # variables
+          'dependencies': [ 'libktx.gl', 'libktx.doc' ],
+          'xcode_settings': {
+            'INSTALL_PATH': '/usr/local',
+          },
+          'copies': [{
+            'xcode_code_sign': 1,
+            'destination': '<(dstroot)/<(installpath)/lib',
+            'conditions': [
+              ['"<(library)" == "shared_library"', {
+                'files': [ '<(PRODUCT_DIR)/<(SHARED_LIB_PREFIX)ktx.gl<(SHARED_LIB_SUFFIX)' ],
+              }, {
+                'files': [ '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)ktx.gl<(STATIC_LIB_SUFFIX)' ],
+              }],
+            ], # conditions
+          },
+          {
+            'destination': '<(dstroot)/<(installpath)/include',
+            'files': [ '../include/ktx.h', '../include/ktxvulkan.h' ],
+          },
+          {
+            'destination': '<(dstroot)/<(installpath)/share/man',
+            'files': [ '../build/docs/man/man3' ],
+          }]
+        } # install_lib target
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ], # conditions
