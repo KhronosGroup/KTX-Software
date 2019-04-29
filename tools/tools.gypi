@@ -104,7 +104,7 @@
           },
           'copies': [{
             # Do our own copy of the library because libktx:install.lib will,
-            # at least on Xcode, to a different DSTROOT.
+            # at least on Xcode, install to a different DSTROOT.
             'xcode_code_sign': 1,
             'destination': '<(dstroot)/<(installpath)/lib',
             'conditions': [
@@ -123,8 +123,27 @@
             'destination': '<(dstroot)/<(installpath)/share/man',
             'files': [ '../build/docs/man/man1' ],
           }]
-        } # install target
-
+        }, # install.tools target
+        {
+          'target_name': 'package.tools',
+          'type': 'none',
+          'dependencies': [ 'install.tools' ],
+          'actions': [{
+            'action_name': 'buildToolsPackage',
+            'message': 'Assembling distribution package',
+            'inputs': [
+              'ktxtools.pkgproj',
+            ],
+            'outputs': [ '../build/packages/mac/ktxtools.pkg' ],
+            'conditions': [
+              ['OS == "mac"', {
+                'action': [
+                  'packagesbuild', '<@(_inputs)',
+                ],
+              }],
+            ], # conditions
+          }], # actions
+        }, # package target
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ] # conditions for conditional targets

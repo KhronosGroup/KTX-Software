@@ -46,6 +46,9 @@ build/XCBuildData
 build/ktxtools.build
 build/libktx.build
 
+# built packages
+build/packages
+
 # /include/
 /include/imdebug.h
 
