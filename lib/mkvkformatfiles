@@ -4,10 +4,8 @@
 #
 # - vkformat_enum.h, the VkFormat enum declaration for those who don't
 #   want to include vulkan_core.h.
-# - vkformat_str.c, declaration of strings corresponding to the format
-#   names in 2 arrays: vkFormatStrings & vkFormatStringsExt. The
-#   latter is formats that were once extensions so have enum values
-#   too large to be in a straightforward table.
+# - vkformat_str.c, a switch statement for converting VkFormat enums to
+#   to strings corresponding to the format names.
 # - vkformat_prohibited.h, an array listing the formats not allowed in
 #   KTX2.
 
@@ -23,7 +21,10 @@ BEGIN {
     core_formats = ""
     extension_formats = ""
     end_range = ""
-    prohibited = "#include <stdint.h>\n\n#include \"vkformat_enum.h\"\n\nuint32_t prohibitedFormats[] = {\n"
+    prohibited = "#include <stdint.h>\n#include <stdbool.h>\n\n"
+    prohibited = prohibited "#include \"vkformat_enum.h\"\n\n"
+    prohibited = prohibited "bool\nisProhibitedFormat(VkFormat format)\n{\n"
+    prohibited = prohibited "    switch (format) {\n";
     if (ARGC == 2) {
         output_dir = ARGV[1] "/";
     }
@@ -67,33 +68,14 @@ BEGIN {
   end_range = "#define VK_FORMAT_END_RANGE " $3 "\n";
 }
 
-/.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "    " $1 ",\n"; }
-/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "    " $1 ",\n"; }
+/.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
+#/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
 
 # Extract VK_FORMAT token names. [^F] avoids the VK_FORMAT_FEATURE* tokens.
 /    VK_FORMAT_[^F].*/ {
-  if (!processing_core_formats) {
-    core_formats = "#include <stdint.h>\n\nchar* vkFormatStrings[] = {\n"
-    processing_core_formats = 1;
-  }
-  if ($3 !~ /VK_FORMAT_.*/) { # Avoid values defined as existing values.
-    sub(/,$/, "", $3);
-    # The +0 is to force conversion to a number. Preceding $3 with 0
-    # sees it treated as an octal value.
-    if ($3+0 < 1000000000) {
-      core_formats = core_formats "    \"" $1 "\",\n"
-    } else {
-      if (!processing_extension_formats) {
-        # Close vkFormatStrings array.
-        core_formats = core_formats "};\n"
-        extension_formats = extension_formats "struct ext_format {\n"
-        extension_formats = extension_formats "    uint32_t value;\n"
-        extension_formats = extension_formats "    char* string;\n"
-        extension_formats = extension_formats "} vkFormatStringsExt[] = {\n"
-        processing_extension_formats = 1;
-      }
-      extension_formats = extension_formats "    {" $3 ", \"" $1 "\"},\n"
-    }
+  # Avoid values defined as existing values and avoid the MAX_ENUM value.
+  if ($3 !~ /VK_FORMAT_.*/ && $1 !~ /.*MAX_ENUM/) {
+    switch_body = switch_body "      case " $1 ":\n        return \"" $1 "\";\n"
   }
 }
 
@@ -116,14 +98,21 @@ END {
     # vkformat_enum.h
     write_header_file("_VKFORMAT_ENUM_H_", format_decl "\n" end_range, format_hdr);
 
-    # vkformat_prohibited.h
-    prohibited = prohibited "};"
+    # vkformat_prohibited.c
+    prohibited = prohibited "        return true;\n"
+    prohibited = prohibited "      default:\n        return false;\n    }\n}\n";
     write_source_file(prohibited, format_prohibited)
 
     # vkformat_str.c
-    # Close vkFormatStringsExt array.
-    extension_formats = extension_formats "};"
-    write_source_file(core_formats "\n" extension_formats, format_strings);
+    prelude = "\n";
+    prelude = prelude "#include <stdint.h>\n\n";
+    prelude = prelude "#include \"vkformat_enum.h\"\n\n";
+    prelude = prelude "char*\nvkFormatString(VkFormat format)\n{\n";
+    prelude = prelude "    switch (format) {\n";
+    postscript = "      default:\n        return \"VK_UNKNOWN_FORMAT\";\n";
+    postscript = postscript "    }\n";
+    postscript = postscript "}\n";
+    write_source_file(prelude switch_body postscript, format_strings);
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

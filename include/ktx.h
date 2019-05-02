@@ -153,6 +153,9 @@ typedef enum KTX_error_code_t {
 #define KTX_ENDIAN_REF      (0x04030201)
 #define KTX_ENDIAN_REF_REV  (0x01020304)
 #define KTX_HEADER_SIZE     (64)
+#define KTX2_IDENTIFIER_REF { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x32, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
+#define KTX2_HEADER_SIZE    (96)
+
 
 /**
  * @~English
@@ -209,7 +212,7 @@ typedef struct {
                                  the base level. */
     ktx_uint32_t numLayers; /*!< Number of array layers in the texture. */
     ktx_uint32_t numFaces; /*!< Number of faces, 6 for cube maps, 1 otherwise.*/
-     ktxHashList kvDataHead; /*!< Head of the hash list of metadata. */
+    ktxHashList  kvDataHead; /*!< Head of the hash list of metadata. */
     ktx_uint32_t kvDataLen; /*!< Length of the metadata, if it has been
                                  extracted in its raw form, otherwise 0. */
     ktx_uint8_t* kvData; /*!< Pointer to the metadata, if it has been extracted
@@ -547,19 +550,19 @@ ktxHashList_FindValue(ktxHashList* pHead, const char* key,
                       unsigned int* pValueLen, void** pValue);
 
 /*
- * Returns the next entry in a ktxHashList.
+ * Return the next entry in a ktxHashList.
  */
 ktxHashListEntry*
 ktxHashList_Next(ktxHashListEntry* entry);
 
 /*
- * Sorts the hash list into order of the key codepoints.
+ * Sorts a ktxHashList into order of the key codepoints.
  */
 KTX_error_code
 ktxHashList_Sort(ktxHashList* pHead);
 
 /*
- * Serializes the hash lsit to a block of memory suitable for
+ * Serializes a ktxHashList to a block of memory suitable for
  * writing to a KTX file.
  */
 KTX_error_code
@@ -579,6 +582,13 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 KTX_error_code
 ktxHashListEntry_GetKey(ktxHashListEntry* This,
                         unsigned int* pKeyLen, char** ppKey);
+
+/*
+ * Get the value from a ktxHashListEntry
+ */
+KTX_error_code
+ktxHashListEntry_GetKey(ktxHashListEntry* This,
+                        unsigned int* pValueLen, char** ppValue);
 
 /*
  * Get the value from a ktxHashListEntry
@@ -605,6 +615,13 @@ typedef enum {
     KTX_SUPERCOMPRESSION_END_RANGE = KTX_SUPERCOMPRESSION_ZSTD
 } ktxSupercompressionSchemeEnum;
 
+/*===========================================================*
+ * Utilities for printing ingo about a KTX file.             *
+ *===========================================================*/
+
+KTX_error_code ktxPrintInfoForStdioStream(FILE* stdioStream);
+KTX_error_code ktxPrintInfoForNamedFile(const char* const filename);
+KTX_error_code ktxPrintInfoForMemory(const ktx_uint8_t* bytes, ktx_size_t size);
 
 /*===========================================================*
  * For library versions 1 and 2 compatibility                *
