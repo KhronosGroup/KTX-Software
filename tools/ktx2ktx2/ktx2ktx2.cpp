@@ -30,7 +30,6 @@
 #include <sstream>
 #include <vector>
 
-#include "GL/glcorearb.h"
 #include "ktx.h"
 #include "argparser.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
