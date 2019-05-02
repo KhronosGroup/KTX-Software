@@ -130,14 +130,14 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
 
     // XXX FIXME Need to convert KTXorientation before serializing.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
-    header.keyValueData.offset = offset;
+    header.keyValueData.offset = kvdLen != 0 ? offset : 0;
     header.keyValueData.bytesOf = kvdLen;
 
     align8PadLen = _KTX_PAD8_LEN(offset + kvdLen);
     offset += kvdLen + align8PadLen;
 
     sgdLen = 0;
-    header.supercompressionGlobalData.offset = offset;
+    header.supercompressionGlobalData.offset = sgdLen != 0 ? offset : 0;
     header.supercompressionGlobalData.bytesOf = sgdLen;
 
     sgdPadLen = _KTX_PAD8_LEN(sgdLen);
