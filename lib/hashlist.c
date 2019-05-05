@@ -305,6 +305,38 @@ ktxHashList_FindValue(ktxHashList *pHead, const char* key, unsigned int* pValueL
 /**
  * @memberof ktxHashList @public
  * @~English
+ * @brief Returns the next entry in a ktxHashList.
+ *
+ * Use for iterating through the list:
+ * @code
+ *    ktxHashListEntry* entry;
+ *    for (entry = listHead; entry != NULL; entry = ktxHashList_Next(entry)) {
+ *       ...
+ *    };
+ * @endcode
+ *
+ * Note
+ *
+ * @param [in]  entry   pointer to a hash list entry. Note that a ktxHashList*,
+ *                      i.e. the list head, is also a pointer to an entry so
+ *                      can be passed to this function.
+ *
+ * @return a pointer to the next entry or NULL.
+ *
+ */
+ktxHashListEntry*
+ktxHashList_Next(ktxHashListEntry* entry)
+{
+    if (entry) {
+        return ((ktxKVListEntry*)entry)->hh.next;
+    } else
+        return NULL;
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
  * @brief Serialize a hash list to a block of data suitable for writing
  *        to a file.
  *
@@ -420,6 +452,35 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
         }
     }
     return result;
+}
+
+
+/**
+ * @memberof ktxHashListEntry @public
+ * @~English
+ * @brief Return the key of a ktxHashListEntry
+ *
+ * @param [in]      This        The target hash list entry.
+ * @param [in,out] pValueLen    @p *pValueLen is set to the number of bytes of
+ *                              data in the returned value.
+ * @param [in,out] ppValue      @p *ppValue is set to the point to the value for
+ *                              @p key.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ *
+ * @exception KTX_INVALID_VALUE if @p pKvd or @p pHt is NULL or kvdLen == 0.
+ */
+KTX_error_code
+ktxHashListEntry_GetKey(ktxHashListEntry* This,
+                        unsigned int* pKeyLen, char** ppKey)
+{
+    if (pKeyLen && ppKey) {
+        ktxKVListEntry* kv = (ktxKVListEntry*)This;
+        *pKeyLen = kv->keyLen;
+        *ppKey = kv->key;
+        return KTX_SUCCESS;
+    } else
+        return KTX_INVALID_VALUE;
 }
 
 
