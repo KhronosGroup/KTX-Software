@@ -151,9 +151,17 @@ usage(_TCHAR* appName)
 
 
 static void
+writeId(std::ostream& dst, _TCHAR* appName)
+{
+    dst << appName << " version " << VERSION << ". Commit " << COMMIT;
+}
+
+
+static void
 version(_TCHAR* appName)
 {
-    fprintf(stderr, "%s version %s. Commit %s\n", appName, VERSION, COMMIT);
+    writeId(cerr, appName);
+    cerr << std::endl;
 }
 
 
@@ -245,6 +253,10 @@ int _tmain(int argc, _TCHAR* argv[])
                     exitCode = 2;
                     goto cleanup;
                 }
+
+                // Add required writer metadata.
+                std::stringstream writer;
+                writeId(writer, options.appName);
 
                 result = ktxTexture_WriteKTX2ToStdioStream(texture, outf);
                 ktxTexture_Destroy(texture);

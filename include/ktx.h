@@ -99,17 +99,22 @@ extern "C" {
 #define KTX_ORIENTATION_KEY "KTXorientation"
 /**
  * @~English
- * @brief Standard format for 1D orientation value.
+ * @brief Key String for standard writer value.
+ */
+#define KTX_WRITER_KEY "KTXwriter"
+/**
+ * @~English
+ * @brief Standard KTX 1 format for 1D orientation value.
  */
 #define KTX_ORIENTATION1_FMT "S=%c"
 /**
  * @~English
- * @brief Standard format for 2D orientation value.
+ * @brief Standard KTX 1 format for 2D orientation value.
  */
 #define KTX_ORIENTATION2_FMT "S=%c,T=%c"
 /**
  * @~English
- * @brief Standard format for 3D orientation value.
+ * @brief Standard KTX 1 format for 3D orientation value.
  */
 #define KTX_ORIENTATION3_FMT "S=%c,T=%c,R=%c"
 /**
@@ -542,7 +547,13 @@ ktxHashList_FindValue(ktxHashList* pHead, const char* key,
                       unsigned int* pValueLen, void** pValue);
 
 /*
- * Serializes the hash table to a block of memory suitable for
+ * Sorts the hash list into order of the key codepoints.
+ */
+KTX_error_code
+ktxHashList_Sort(ktxHashList* pHead);
+
+/*
+ * Serializes the hash lsit to a block of memory suitable for
  * writing to a KTX file.
  */
 KTX_error_code

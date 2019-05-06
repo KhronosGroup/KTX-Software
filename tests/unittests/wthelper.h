@@ -156,10 +156,16 @@ class WriterTestHelper {
         ktxHashList_Destruct(hl);
 
         ktxHashList_Create(&hl);
+        ktxHashList_AddKVPair(hl, KTX_WRITER_KEY,
+                              sizeof(writer_ktx2),
+                              writer_ktx2);
+
+        ktxHashList_Serialize(hl, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
         ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY,
                               numDimensions + 1,
                               orientation_ktx2);
-        ktxHashList_Serialize(hl, &kvDataLen_ktx2, &kvData_ktx2);
+        ktxHashList_Sort(hl);
+        ktxHashList_Serialize(hl, &kvDataLenAll_ktx2, &kvDataAll_ktx2);
         ktxHashList_Destruct(hl);
     }
 
@@ -278,9 +284,12 @@ class WriterTestHelper {
     ktx_uint32_t kvDataLen;
     char orientation[15];
 
-    ktx_uint8_t* kvData_ktx2;
-    ktx_uint32_t kvDataLen_ktx2;
+    ktx_uint8_t* kvDataWriter_ktx2;
+    ktx_uint32_t kvDataLenWriter_ktx2;
+    ktx_uint8_t* kvDataAll_ktx2;
+    ktx_uint32_t kvDataLenAll_ktx2;
     char orientation_ktx2[4];
+    char writer_ktx2[20] = "WriteTestHelper 1.0";
 
     ktx_size_t imageDataSize;
     std::vector< std::vector < std::vector < std::vector<component_type> > > > images;

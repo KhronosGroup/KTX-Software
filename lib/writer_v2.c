@@ -65,6 +65,9 @@
  * @exception KTX_INVALID_VALUE @p This or @p dststr is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain KTXwriter
+ *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -127,7 +130,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
                                    &pEntry);
     // Rewrite the orientation value in the KTX2 form.
     if (result == KTX_SUCCESS) {
-        int count;
+        unsigned int count;
         char* orientation;
         ktx_uint32_t orientationLen;
         char newOrient[4] = {0, 0, 0, 0};
@@ -149,6 +152,15 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         ktxHashList_AddKVPair(&This->kvDataHead, KTX_ORIENTATION_KEY,
                               count+1, newOrient);
     }
+    result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
+                                   &pEntry);
+    if (result != KTX_SUCCESS) {
+        // KTXwriter is required in KTX2. Caller must set it.
+        result = KTX_INVALID_OPERATION;
+        goto cleanup;
+    }
+
+    ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.keyValueData.offset = kvdLen != 0 ? offset : 0;
     header.keyValueData.bytesOf = kvdLen;

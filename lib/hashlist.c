@@ -198,7 +198,7 @@ KTX_error_code
 ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key)
 {
     if (pHead && key) {
-         ktxKVListEntry* kv;
+        ktxKVListEntry* kv;
 
         HASH_FIND_STR( *pHead, key, kv );  /* kv: pointer to target entry. */
         HASH_DEL(*pHead, kv);
@@ -398,6 +398,35 @@ ktxHashList_Serialize(ktxHashList* pHead,
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;
+}
+
+
+int sort_by_key_codepoint(ktxKVListEntry* a, ktxKVListEntry* b) {
+  return strcmp(a->key,b->key);
+}
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Sort a hash list in order of the UTF8 codepoints.
+ *
+ * @param [in]     pHead        pointer to the head of the target hash list.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ *
+ * @exception KTX_INVALID_VALUE if @p This is NULL.
+ */
+KTX_error_code
+ktxHashList_Sort(ktxHashList* pHead)
+{
+    if (pHead) {
+        //ktxKVListEntry* kv = (ktxKVListEntry*)pHead;
+
+        HASH_SORT(*pHead, sort_by_key_codepoint);
+        return KTX_SUCCESS;
+    } else {
+        return KTX_INVALID_VALUE;
+    }
 }
 
 
