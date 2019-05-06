@@ -1,6 +1,8 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 sts=4 expandtab:
 
+// $Id$
+
 //
 // ©2019 The Khronos Group, Inc.
 //
@@ -39,7 +41,6 @@
 #  define IMAGE_DEBUG 0
 #endif
 
-#define COMMIT "$Id$"
 #define VERSION "1.0.0"
 
 struct commandOptions {
@@ -153,7 +154,7 @@ usage(_TCHAR* appName)
 static void
 writeId(std::ostream& dst, _TCHAR* appName)
 {
-    dst << appName << " version " << VERSION << ". Commit " << COMMIT;
+    dst << appName << " version " << VERSION;
 }
 
 
