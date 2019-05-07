@@ -79,8 +79,11 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
                 // valueLen includes the terminating NUL, if any.
                 if (value[valueLen-1] == '\0')
                     fprintf(stdout, "%s\n", value);
-                else for (int i=0; i < valueLen; i++) {
-                        fputs(&value[i], stdout);
+                else {
+                    for (int i=0; i < valueLen; i++) {
+                        fputc(value[i], stdout);
+                    }
+                    fputc('\n', stdout);
                 }
             }
         }
