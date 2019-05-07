@@ -167,6 +167,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
             // KTX 1 is less strict than KTX2 so there is a chance of having
             // more dimensions than needed.
             count = This->numDimensions;
+            newOrient[count] = '\0';
         }
 
         ktxHashList_DeleteEntry(&This->kvDataHead, pEntry);

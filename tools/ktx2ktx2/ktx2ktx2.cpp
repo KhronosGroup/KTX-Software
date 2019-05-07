@@ -310,7 +310,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 std::stringstream writer;
                 writeId(writer, options.appName);
                 ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                                      (ktx_uint32_t)writer.str().length(),
+                                      (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
 
                 result = ktxTexture_WriteKTX2ToStdioStream(texture, outf);
