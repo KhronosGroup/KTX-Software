@@ -49,6 +49,7 @@ struct commandOptions {
     _TCHAR*      outdir;
     bool         useStdin;
     bool         force;
+    bool         rewriteBadOrientation;
     unsigned int numInputFiles;
     unsigned int firstInfileIndex;
 
@@ -60,6 +61,7 @@ struct commandOptions {
         firstInfileIndex = 0;
         useStdin = false;
         force = false;
+        rewriteBadOrientation = false;
     }
 
     ~commandOptions() {
@@ -94,8 +96,16 @@ Create a KTX 2 file from a KTX file.
     extension changed to @c .ktx2. When no infile is specified, a single
     image will be read from stdin and the output written to standard out.
 
+    If unrecognized metadata with keys beginning "KTX" or "ktx" is found in
+    the input file, it is dropped and a warning is written to standard error.
+
     The following options are available:
     <dl>
+    <dt>-b, --rewritebado</dt>
+    <dd>Rewrite bad orientation metadata. Some in-the-wild KTX files
+        have orientation metadata with the key "KTXOrientation"
+        instead of KTXorientaion. This option will rewrite such
+        bad metadata instead of dropping it.
     <dt>-o outfile, --output=outfile</dt>
     <dd>Name the output file @e outfile. If there is more than 1 input
         file, the command prints its usage message and exits.</dd>
@@ -136,6 +146,11 @@ usage(_TCHAR* appName)
         "\n"
         "  Options are:\n"
         "\n"
+        "  -b, --rewritebado\n"
+        "               Rewrite bad orientation metadata. Some in-the-wild KTX files\n"
+        "               have orientation metadata with the key \"KTXOrientation\"\n"
+        "               instead of \"KTXorientaion\". This option will rewrite such\n"
+        "               bad metadata instead of dropping it.\n"
         "  -o outfile, --output=outfile\n"
         "               Name the output file outfile. If there is more than 1 input\n"
         "               file, the command prints its usage message and exits.\n"
@@ -249,20 +264,66 @@ int _tmain(int argc, _TCHAR* argv[])
 
                 if (result != KTX_SUCCESS) {
                     cerr << options.appName
-                         << " failed to create ktxTexture; KTX error: "
+                         << " failed to create ktxTexture; "
                          << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
                 }
 
+                // Some in-the-wild KTX 2 files have incorrect KTXOrientation
+                // Warn about dropping invalid metadata.
+                ktxHashListEntry* pEntry;
+                for (pEntry = texture->kvDataHead;
+                     pEntry != NULL;
+                     pEntry = ktxHashList_Next(pEntry)) {
+                    unsigned int keyLen;
+                    char* key;
+
+                    ktxHashListEntry_GetKey(pEntry, &keyLen, &key);
+                    if (strncasecmp(key, "KTX", 3) == 0) {
+                        if (strcmp(key, KTX_ORIENTATION_KEY)
+                            && strcmp(key, KTX_WRITER_KEY)) {
+                            if (strcmp(key, "KTXOrientation") == 0
+                                && options.rewriteBadOrientation) {
+                                    unsigned int orientLen;
+                                    char* orientation;
+                                    ktxHashListEntry_GetValue(pEntry,
+                                                        &orientLen,
+                                                        (void**)&orientation);
+                                    ktxHashList_AddKVPair(&texture->kvDataHead,
+                                                          KTX_ORIENTATION_KEY,
+                                                          orientLen,
+                                                          orientation);
+                           } else {
+                                cerr << options.appName
+                                     << ": Warning: Dropping unrecognized "
+                                     << "metadata \"" << key << "\""
+                                     << std::endl;
+                            }
+                            ktxHashList_DeleteEntry(&texture->kvDataHead,
+                                                    pEntry);
+                        }
+                    }
+                }
+
                 // Add required writer metadata.
                 std::stringstream writer;
                 writeId(writer, options.appName);
+                ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+                                      (ktx_uint32_t)writer.str().length(),
+                                      writer.str().c_str());
 
                 result = ktxTexture_WriteKTX2ToStdioStream(texture, outf);
                 ktxTexture_Destroy(texture);
                 (void)fclose(inf);
                 (void)fclose(outf);
+                if (result != KTX_SUCCESS) {
+                    cerr << options.appName
+                         << " failed to write KTX2 file; "
+                         << ktxErrorString(result) << endl;
+                    exitCode = 2;
+                    goto cleanup;
+                }
             } else {
                 cerr << options.appName
                      << " could not open output file \""
@@ -359,6 +420,7 @@ processOptions(argparser& parser,
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "outfile", argparser::option::required_argument, NULL, 'o' },
         { "outdir", argparser::option::required_argument, NULL, 'd' },
+        { "rewritebado", argparser::option::no_argument, NULL, 'b' },
         { "version", argparser::option::no_argument, NULL, 'v' },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
@@ -370,10 +432,13 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    tstring shortopts("fd:ho:v");
+    tstring shortopts("bfd:ho:v");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
+            break;
+          case 'b':
+            options.rewriteBadOrientation = true;
             break;
           case 'd':
             filename = parser.optarg.c_str();

@@ -547,6 +547,12 @@ ktxHashList_FindValue(ktxHashList* pHead, const char* key,
                       unsigned int* pValueLen, void** pValue);
 
 /*
+ * Returns the next entry in a ktxHashList.
+ */
+ktxHashListEntry*
+ktxHashList_Next(ktxHashListEntry* entry);
+
+/*
  * Sorts the hash list into order of the key codepoints.
  */
 KTX_error_code
@@ -566,6 +572,13 @@ ktxHashList_Serialize(ktxHashList* pHead,
  */
 KTX_error_code
 ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
+
+/*
+ * Get the key from a ktxHashListEntry
+ */
+KTX_error_code
+ktxHashListEntry_GetKey(ktxHashListEntry* This,
+                        unsigned int* pKeyLen, char** ppKey);
 
 /*
  * Get the value from a ktxHashListEntry

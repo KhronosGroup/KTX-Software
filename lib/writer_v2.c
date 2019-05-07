@@ -68,6 +68,9 @@
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain KTXwriter
  *                              metadata.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture contains unknownY KTX- or ktx-
+ *                              prefixed metadata keys.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -126,6 +129,20 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     offset += header.dataFormatDescriptor.bytesOf;
 
     ktxHashListEntry* pEntry;
+    // Check for invalid metadata.
+    for (pEntry = This->kvDataHead; pEntry != NULL; pEntry = ktxHashList_Next(pEntry)) {
+        unsigned int keyLen;
+        char* key;
+
+        ktxHashListEntry_GetKey(pEntry, &keyLen, &key);
+        if (strncasecmp(key, "KTX", 3) == 0) {
+            if (strcmp(key, KTX_ORIENTATION_KEY) && strcmp(key, KTX_WRITER_KEY)) {
+                result = KTX_INVALID_OPERATION;
+                goto cleanup;
+            }
+        }
+    }
+
     result = ktxHashList_FindEntry(&This->kvDataHead, KTX_ORIENTATION_KEY,
                                    &pEntry);
     // Rewrite the orientation value in the KTX2 form.
@@ -142,10 +159,14 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
                        &newOrient[1],
                        &newOrient[2]);
 
-        if (count != This->numDimensions) {
+        if (count < This->numDimensions) {
             // There needs to be an entry for each dimension of the texture.
             result = KTX_FILE_DATA_ERROR;
             goto cleanup;
+        } else if (count > This->numDimensions) {
+            // KTX 1 is less strict than KTX2 so there is a chance of having
+            // more dimensions than needed.
+            count = This->numDimensions;
         }
 
         ktxHashList_DeleteEntry(&This->kvDataHead, pEntry);
