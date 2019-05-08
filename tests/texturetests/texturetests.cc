@@ -1380,11 +1380,110 @@ class ktxTextureWriteKTX2TestBase
             }
 
             EXPECT_EQ(helper.compareRawImages(levelIndex, ktxMemFile), true);
-            ktxTexture_Destroy(texture);
+            delete ktxMemFile;
         } else {
             EXPECT_EQ(result, KTX_INVALID_OPERATION);
         }
-        delete ktxMemFile;
+        ktxTexture_Destroy(texture);
+    }
+
+    // Test rejecttion of unrecognized keys and passing of proprietary keys.
+    void runTest(const char* unrecognizedKey, const char* proprietaryKey) {
+        ktxTexture* texture;
+        KTX_error_code result;
+        ktx_uint8_t* ktxMemFile;
+        ktx_size_t ktxMemFileLen;
+        ktx_uint8_t* filePtr;
+        ktx_uint8_t* kvData;
+        ktx_uint32_t kvDataLen;
+
+        result = ktxTexture_Create(&helper.createInfo,
+                                   KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                   &texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
+                                     << ktxErrorString(result);
+
+        ktxHashList* hl;
+        ktxHashList_Create(&hl);
+        ktxHashList* hlists[2] = {&texture->kvDataHead, hl};
+        // Add desired keys & values to both the texture and a comparator.
+        char rubbishValue[] = "some rubbish value";
+        for (uint32_t i = 0; i < 2; i++) {
+            ktxHashList_AddKVPair(hlists[i], KTX_WRITER_KEY,
+                                  sizeof(helper.writer_ktx2),
+                                  helper.writer_ktx2);
+            if (unrecognizedKey) {
+                ktxHashList_AddKVPair(hlists[i], unrecognizedKey,
+                                      sizeof(rubbishValue),
+                                      rubbishValue);
+            }
+            if (proprietaryKey) {
+                ktxHashList_AddKVPair(hlists[i], proprietaryKey,
+                                      sizeof(rubbishValue),
+                                      rubbishValue);
+            }
+            ktxHashList_Sort(hlists[i]);
+        }
+        ktxHashList_Serialize(hl, &kvDataLen, &kvData);
+        ktxHashList_Destruct(hl);
+
+        result = helper.copyImagesToTexture(texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        EXPECT_EQ(helper.compareTextureImages(texture->pData), true);
+
+        result = ktxTexture_WriteKTX2ToMemory(texture,
+                                              &ktxMemFile,
+                                              &ktxMemFileLen);
+
+        if (unrecognizedKey == NULL) {
+            ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteKTX2ToMemory failed: "
+                                               << ktxErrorString(result);
+
+            KTX_header2* header = (KTX_header2*)ktxMemFile;
+
+            EXPECT_EQ(memcmp(header, ktxId2, sizeof(ktxId2)), 0);
+            EXPECT_EQ(helper.texinfo.compare(header), true);
+
+            // Check the format descriptor.
+            ktx_uint32_t* dfd = createDFD4VkFormat(
+                                    static_cast<VkFormat>(header->vkFormat));
+            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.offset,
+                             dfd,
+                             *dfd), 0);
+
+            // Check the metadata.
+            filePtr = ktxMemFile + header->keyValueData.offset;
+            EXPECT_EQ(header->keyValueData.bytesOf, kvDataLen);
+            EXPECT_EQ(memcmp(filePtr, kvData, kvDataLen), 0);
+            filePtr += helper.kvDataLen;
+
+            // Offset of level 0 is first item in leveIndex after header.
+            ktxLevelIndexEntry* levelIndex =
+                reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
+
+            ktx_uint64_t offset = LONG_MAX;
+            for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
+                ktx_uint64_t levelOffset = levelIndex[level].offset;
+                // Check offset is properly aligned.
+                EXPECT_EQ(levelOffset & 0x7, 0);
+                // Check mipmaps are in order of increasing size in the file
+                // therefore each offset should be smaller than the previous.
+                EXPECT_LE(levelOffset, offset);
+                offset = levelOffset;
+            }
+
+            EXPECT_EQ(helper.compareRawImages(levelIndex, ktxMemFile), true);
+
+            delete ktxMemFile;
+        } else {
+            EXPECT_EQ(result, KTX_INVALID_OPERATION);
+        }
+
+        ktxTexture_Destroy(texture);
+        delete kvData;
+
     }
 };
 
@@ -1438,6 +1537,25 @@ TEST_F(ktxTextureWriteKTX2TestRGB8, Write2DMipmap) {
     runTest(true);
 }
 
+TEST_F(ktxTextureWriteKTX2TestRGB8, Write2DMipmapUnrecognizedMetadata1) {
+    helper.resize(createFlagBits::eMipmapped, 1, 1, 2, 32, 32, 1);
+    runTest("KTXOrientation", NULL);
+}
+
+TEST_F(ktxTextureWriteKTX2TestRGB8, Write2DMipmapUnrecognizedMetadata2) {
+    helper.resize(createFlagBits::eMipmapped, 1, 1, 2, 32, 32, 1);
+    runTest("ktxOrientation", NULL);
+}
+
+TEST_F(ktxTextureWriteKTX2TestRGB8, Write2DMipmapProprietaryMetadata) {
+    helper.resize(createFlagBits::eMipmapped, 1, 1, 2, 32, 32, 1);
+    runTest(NULL, "MyProprietaryKey");
+}
+
+TEST_F(ktxTextureWriteKTX2TestRGB8, Write2DMipmapUnrecogAndPropMetadata) {
+    helper.resize(createFlagBits::eMipmapped, 1, 1, 2, 32, 32, 1);
+    runTest("KTXOrientation", "MyProprietaryKey");
+}
 TEST_F(ktxTextureWriteKTX2TestRGBA8, Write2DArray) {
     helper.resize(createFlagBits::eArray, 4, 1, 2, 32, 32, 1);
     runTest(true);
