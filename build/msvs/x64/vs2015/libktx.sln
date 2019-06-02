@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan", "libvulkan.vcxp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan.lazy", "libvulkan.lazy.vcxproj", "{93493E38-9073-B0D9-E203-42CF29AC8F35}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mkvkformatfiles", "mkvkformatfiles.vcxproj", "{0AABC900-B2A9-0152-EC2E-B307045F56A8}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{D5786794-E205-1340-D109-A32073028A53}"
 EndProject
 Global
@@ -35,6 +37,10 @@ Global
 		{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}.Debug|x64.Build.0 = Debug|x64
 		{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}.Release|x64.ActiveCfg = Release|x64
 		{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}.Release|x64.Build.0 = Release|x64
+		{0AABC900-B2A9-0152-EC2E-B307045F56A8}.Debug|x64.ActiveCfg = Debug|x64
+		{0AABC900-B2A9-0152-EC2E-B307045F56A8}.Debug|x64.Build.0 = Debug|x64
+		{0AABC900-B2A9-0152-EC2E-B307045F56A8}.Release|x64.ActiveCfg = Release|x64
+		{0AABC900-B2A9-0152-EC2E-B307045F56A8}.Release|x64.Build.0 = Release|x64
 		{41CEBDB2-D52F-C759-BE77-94847732446D}.Debug|x64.ActiveCfg = Debug|x64
 		{41CEBDB2-D52F-C759-BE77-94847732446D}.Debug|x64.Build.0 = Debug|x64
 		{41CEBDB2-D52F-C759-BE77-94847732446D}.Release|x64.ActiveCfg = Release|x64
