@@ -235,7 +235,7 @@
               'action_name': 'run_mkvkformatfiles',
               'message': 'Generating VkFormat-related source files',
               'inputs': [
-                '$(VULKAN_SDK)/macOS/include/vulkan/vulkan_core.h',
+                '$(VULKAN_SDK)/include/vulkan/vulkan_core.h',
                 'mkvkformatfiles',
               ],
               'outputs': [

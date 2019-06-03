@@ -90,8 +90,9 @@ configuration.
 #### Xcode Preferences
 
 You must create the following Custom Path preferences in Xcode:
-[`DEVELOPMENT_TEAM`](#development_team) & [`VULKAN_SDK`](#vulkan_sdk).
-If building for macOS you must also set [`ASSIMP_HOME`](#assimp_home).
+[`DEVELOPMENT_TEAM`](#development_team), [`VULKAN_SDK`](#vulkan_sdk)
+and [`MOLTENVK`](#moltenvk). If building for macOS you must also set
+[`ASSIMP_HOME`](#assimp_home).
 
 ##### DEVELOPMENT_TEAM 
 As of Xcode 8.0, Apple, in its wisdom, decided to require selection of a
@@ -139,7 +140,13 @@ git checkout build/xcode
 
 ##### VULKAN_SDK
 
-Set this to the location where you have installed the [Vulkan SDK for macOS](#vulkan-sdk).
+Set this to `macOS` directory of the location where you have installed the
+[Vulkan SDK for macOS](#vulkan-sdk).
+
+##### MOLTENVK
+
+Set this to the `MoltenVK` directory of the location where you have installed the
+[Vulkan SDK for macOS](#vulkan-sdk).
 
 ##### ASSIMP_HOME
 

@@ -267,6 +267,7 @@
 		53941C3F4EB820F20A47DA0E /* vkloader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkloader.c; sourceTree = "<group>"; };
 		56F65688C8403CD76F6AEB58 /* runDoxygen */ = {isa = PBXFileReference; lastKnownFileType = text; path = runDoxygen; sourceTree = "<group>"; };
 		575B7A621B55E274E543AE05 /* mainpage.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = mainpage.md; sourceTree = "<group>"; };
+		5A8583BC0446856614E918F4 /* vulkan_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkan_core.h; sourceTree = "<group>"; };
 		5C8BD124834875302BD54E96 /* vkformat_str.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_str.c; sourceTree = "<group>"; };
 		5F80151F983F77C60709E872 /* memstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = memstream.c; sourceTree = "<group>"; };
 		6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_prohibited.c; sourceTree = "<group>"; };
@@ -284,7 +285,6 @@
 		9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dfd4vkformat.c; sourceTree = "<group>"; };
 		952FB97003C3A1793841B79D /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es3.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9BE240060E16AF2547DE1A31 /* vulkan_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkan_core.h; sourceTree = "<group>"; };
 		9E18A3FB89097EF93836206A /* vk_funcs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vk_funcs.h; sourceTree = "<group>"; };
 		AC0CACCCF0FBD49B4554BB80 /* makevkswitch.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = makevkswitch.pl; sourceTree = "<group>"; };
 		B173E34FD52E42EBF0F24CF0 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
@@ -376,7 +376,7 @@
 		2848633E997A48D1835B3818 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				E4A9FA0A8D3468DB9754258A /* VULKAN_SDK */,
+				369DE9B2E4B2BC3C5C2736BE /* VULKAN_SDK */,
 				F28B6BEC0F9162487EC0E07B /* build/docs */,
 				57D232CAE30EDA78BEBF64CF /* include */,
 				665C7898C20D85E1FF026835 /* lib */,
@@ -397,6 +397,15 @@
 				115FD997276BE6B2F9D71D3B /* Build */,
 			);
 			sourceTree = "<group>";
+		};
+		369DE9B2E4B2BC3C5C2736BE /* VULKAN_SDK */ = {
+			isa = PBXGroup;
+			children = (
+				5A8583BC0446856614E918F4 /* vulkan_core.h */,
+			);
+			name = VULKAN_SDK;
+			path = include/vulkan;
+			sourceTree = VULKAN_SDK;
 		};
 		57D232CAE30EDA78BEBF64CF /* include */ = {
 			isa = PBXGroup;
@@ -448,15 +457,6 @@
 			);
 			path = lib;
 			sourceTree = "<group>";
-		};
-		E4A9FA0A8D3468DB9754258A /* VULKAN_SDK */ = {
-			isa = PBXGroup;
-			children = (
-				9BE240060E16AF2547DE1A31 /* vulkan_core.h */,
-			);
-			name = VULKAN_SDK;
-			path = macOS/include/vulkan;
-			sourceTree = VULKAN_SDK;
 		};
 		F28B6BEC0F9162487EC0E07B /* build/docs */ = {
 			isa = PBXGroup;
@@ -569,7 +569,7 @@
 			files = (
 			);
 			inputPaths = (
-				"$(VULKAN_SDK)/macOS/include/vulkan/vulkan_core.h",
+				"$(VULKAN_SDK)/include/vulkan/vulkan_core.h",
 				lib/mkvkformatfiles,
 			);
 			name = "Action \"run_mkvkformatfiles\"";
@@ -818,7 +818,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -831,14 +831,14 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
 					"-lazy_library",
-					"$(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan",
+					"$(VULKAN_SDK)/Frameworks/vulkan.framework/vulkan",
 				);
 				PRODUCT_NAME = ktx.gl;
 			};
@@ -1007,7 +1007,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1017,7 +1017,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = libvulkan;
 			};
@@ -1030,14 +1030,14 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = libvulkan;
 			};
@@ -1130,7 +1130,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1143,7 +1143,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx.es3;
@@ -1196,7 +1196,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1210,14 +1210,14 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
 					"-lazy_library",
-					"$(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan",
+					"$(VULKAN_SDK)/Frameworks/vulkan.framework/vulkan",
 				);
 				PRODUCT_NAME = ktx.gl;
 			};
@@ -1249,7 +1249,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1263,7 +1263,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx.es3;

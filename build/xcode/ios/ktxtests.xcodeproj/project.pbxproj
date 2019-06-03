@@ -281,7 +281,6 @@
 		C313E6792003E9B159920B39 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBEB39731669F1BFB32B9CF4 /* QuartzCore.framework */; };
 		C343236712582A4B8B553105 /* texturearray_astc_8x8_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = E2DCA26973609FEC6CC88905 /* texturearray_astc_8x8_unorm.ktx */; };
 		C367B57CCD10AAA5F354CB43 /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D95A567BDD85A819DCEF3462 /* rgba-reference.ktx */; };
-		C81016E2E3F4C0E9EA6E10B8 /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62C83994A2A83EF030217704 /* MoltenVK.framework */; };
 		CFF7FF64ED5E69ECA2728931 /* VulkanContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA3DC6AAF119B8A3F074A795 /* VulkanContext.cpp */; };
 		D111AFEB2426EDBC96BF4C3C /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D95A567BDD85A819DCEF3462 /* rgba-reference.ktx */; };
 		D135E82465B09A16C3C172F9 /* VulkanLoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FF2B887314CE42EA371646D /* VulkanLoadTestSample.cpp */; };
@@ -319,6 +318,7 @@
 		F9D7150E943263DE796CA988 /* etc2-sRGB.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = A6AB331C6A684ECAEAF81A7C /* etc2-sRGB.ktx */; };
 		FBF2D8233F8135F6A60E8DC0 /* orient-up-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 0C0C552E9898B6893411C2DE /* orient-up-metadata.ktx */; };
 		FDDF6B3A9E7FDCDAC9421C09 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBEB39731669F1BFB32B9CF4 /* QuartzCore.framework */; };
+		FF0E39124EFE6C96EA15E8B3 /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 32F3C107849FCA9E030EEF61 /* MoltenVK.framework */; };
 		FFE8A4F1F3472F1A674F24C8 /* GLLoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0AA33A6B84B1A950E7B2DCB /* GLLoadTests.cpp */; };
 /* End PBXBuildFile section */
 
@@ -858,6 +858,7 @@
 		302E1A2843C10512C03DF10A /* ES1LoadTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ES1LoadTests.cpp; sourceTree = "<group>"; };
 		318C079F5709CE3BE6391E24 /* libktx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libktx.xcodeproj; path = build/xcode/ios/libktx.xcodeproj; sourceTree = SOURCE_ROOT; };
 		327CD7DE4A7F3E6B637F6811 /* cube.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = cube.vert.spv; sourceTree = "<group>"; };
+		32F3C107849FCA9E030EEF61 /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = iOS/MoltenVK.framework; sourceTree = MOLTENVK; };
 		3648C28B173126F28F3E5297 /* TexturedCube.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TexturedCube.cpp; sourceTree = "<group>"; };
 		37D7E3D6E01F63C2AEAFB401 /* LoadTestSample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadTestSample.h; sourceTree = "<group>"; };
 		3C3189261CFEBD5203C9545F /* vulkancheckres.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkancheckres.h; sourceTree = "<group>"; };
@@ -880,7 +881,6 @@
 		5DCA7F0AD2F673F02EAD425D /* texture.frag */ = {isa = PBXFileReference; lastKnownFileType = text; path = texture.frag; sourceTree = "<group>"; };
 		61079C41F37F26C67FF5441D /* etc2-rgba8.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-rgba8.ktx"; sourceTree = "<group>"; };
 		61F0537A8FDB659A23E3F0BE /* conftestimage_SIGNED_RG11_EAC.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = conftestimage_SIGNED_RG11_EAC.ktx; sourceTree = "<group>"; };
-		62C83994A2A83EF030217704 /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = MoltenVK/iOS/MoltenVK.framework; sourceTree = VULKAN_SDK; };
 		62C8ED7D4BE000BE8F05196F /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		6328927DB4CEC2FA75D584FE /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		63DF9C03B0D4DC23476EECBE /* frame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = frame.h; sourceTree = "<group>"; };
@@ -1070,7 +1070,7 @@
 				393BCC3BCF0958DC2E5ADE45 /* AVFoundation.framework in Frameworks */,
 				8C8939F56F01FDB8B95FC27E /* Foundation.framework in Frameworks */,
 				EF2337DDDCD466E2C33EA93D /* GameController.framework in Frameworks */,
-				C81016E2E3F4C0E9EA6E10B8 /* MoltenVK.framework in Frameworks */,
+				FF0E39124EFE6C96EA15E8B3 /* MoltenVK.framework in Frameworks */,
 				EA7D90998EA677C2F8B6A389 /* IOSurface.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1160,7 +1160,7 @@
 				0E112A84CE9183658432C21B /* GameController.framework */,
 				9C49A77B05E3CA35A468F87A /* IOSurface.framework */,
 				95B55C26B3D2ADC1077F74FA /* Metal.framework */,
-				62C83994A2A83EF030217704 /* MoltenVK.framework */,
+				32F3C107849FCA9E030EEF61 /* MoltenVK.framework */,
 				4064762A5A368ADCC9CC334F /* OpenGLES.framework */,
 				BBEB39731669F1BFB32B9CF4 /* QuartzCore.framework */,
 				66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */,
@@ -2175,7 +2175,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(MOLTENVK)/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2193,7 +2193,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					"$(ASSIMP_HOME)/include",
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"<(moltenvk)/include",
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/ios/Info.plist;
@@ -2201,7 +2201,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
-					"$(VULKAN_SDK)/MoltenVK/iOS",
+					"$(MOLTENVK)/iOS",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				ONLY_ACTIVE_ARCH = YES;
@@ -2302,7 +2302,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(MOLTENVK)/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2317,7 +2317,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					"$(ASSIMP_HOME)/include",
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"<(moltenvk)/include",
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/ios/Info.plist;
@@ -2325,7 +2325,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
-					"$(VULKAN_SDK)/MoltenVK/iOS",
+					"$(MOLTENVK)/iOS",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				ONLY_ACTIVE_ARCH = YES;
@@ -2631,7 +2631,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(MOLTENVK)/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2642,7 +2642,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"<(moltenvk)/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2681,7 +2681,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(MOLTENVK)/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2695,7 +2695,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"<(moltenvk)/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;

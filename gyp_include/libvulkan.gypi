@@ -7,20 +7,21 @@
 {
   'variables': { # level 1
     'variables': { # level 2
-      'variables': { # level 3
-        # NB for XCODE: Due to difficulties passing env. vars to Xcode, set
-        # VULKAN_SDK in Xcode Preferences, Locations tab, Custom Paths. It
-        # should point to whereever you have the Vulkan SDK installed.
-        'moltenvk': '$(VULKAN_SDK)/MoltenVK',
-      }, # end level 3
-      'moltenvk': '<(moltenvk)',
+      # NB for XCODE: Due to difficulties passing env. vars to Xcode, set
+      # VULKAN_SDK in Xcode Preferences | Locations tab | Custom Paths. As
+      # directed by the SDK instructions, like $VULKAN_SDK, it should point
+      # to the macOS folder of whereever you have the Vulkan SDK installed.
+      # Also set MOLTENVK to point to the MoltenVK folder of the Vulkan SDK
+      # installation. You can set this as $(VULKAN_SDK)/../MoltenVK. Doing that
+      # here falls afoul of the gyp generators which strip off the env. var.
+      # and ...
       'conditions': [
         ['OS == "ios"', {
-          'mvklib': '<(moltenvk)/iOS',
+          'mvklib': '$(MOLTENVK)/iOS',
           'vksdk': '<(moltenvk)' # Until there's an official SDK.
         }, 'OS == "mac"', {
-          'mvklib': '<(moltenvk)/macOS',
-          'vksdk': '$(VULKAN_SDK)/macOS',
+          'mvklib': '$(MOLTENVK)/macOS',
+          'vksdk': '$(VULKAN_SDK)',
         }]
       ], # conditions
     }, # end level 2
