@@ -229,9 +229,10 @@
           'type': 'none',
           'variables': {
             'vkformatfiles_dir': '.',
-            'conditions': [
+            'conditions': [ 
               ['GENERATOR == "cmake"', {
-                'vkinclude_dir': '/$ENV{VULKAN_SDK}/include',
+                # FIXME Need to find a way to use $VULKAN_SDK *if* set.
+                'vkinclude_dir': '/usr/include',
               }, {
                 'vkinclude_dir': '$(VULKAN_SDK)/include',
               }],
