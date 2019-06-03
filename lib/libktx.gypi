@@ -228,14 +228,21 @@
           'target_name': 'mkvkformatfiles',
           'type': 'none',
           'variables': {
-              'vkformatfiles_dir': '.',
+            'vkformatfiles_dir': '.',
+            'conditions': [
+              ['GENERATOR == "cmake"', {
+                'vkinclude_dir': '/$ENV{VULKAN_SDK}/include',
+              }, {
+                'vkinclude_dir': '$(VULKAN_SDK)/include',
+              }],
+            ], # conditions
           },
           'actions': [
             {
               'action_name': 'run_mkvkformatfiles',
               'message': 'Generating VkFormat-related source files',
               'inputs': [
-                '$(VULKAN_SDK)/include/vulkan/vulkan_core.h',
+                '<(vkinclude_dir)/vulkan/vulkan_core.h',
                 'mkvkformatfiles',
               ],
               'outputs': [
