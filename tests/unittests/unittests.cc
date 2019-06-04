@@ -458,8 +458,9 @@ class createDFDTestBaseUncomp : public createDFDTestBase<numComponents, bytesPla
        expected.texelBlockDimension3 = 0;
     }
 
-    void customize(uint8_t model, uint8_t primaries, uint8_t transfer,
-                   uint8_t flags,
+    void customize(ktx_uint8_t model,
+                   ktx_uint8_t primaries, ktx_uint8_t transfer,
+                   ktx_uint8_t flags,
                    std::initializer_list<sampleType> samples) {
         expected.model = model;
         expected.primaries = primaries;
@@ -487,8 +488,9 @@ class createDFDTestBaseComp : public createDFDTestBase<numComponents, bytesPlane
        expected.texelBlockDimension3 = 0;
     }
 
-    void customize(uint8_t model, uint8_t primaries, uint8_t transfer,
-                   uint8_t flags, ktx_uint32_t dim0, ktx_uint32_t dim1,
+    void customize(ktx_uint8_t model,
+                   ktx_uint8_t primaries, ktx_uint8_t transfer,
+                   ktx_uint8_t flags, ktx_uint32_t dim0, ktx_uint32_t dim1,
                    std::initializer_list<sampleType> samples) {
         expected.model = model;
         expected.primaries = primaries;
