@@ -22,6 +22,7 @@ matrix:
         - ASSIMP_HOME="/usr/local"
         - VULKAN_SDK_VER="1.1.85.0"
         - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER/macOS"
+        - MOLTENVK="$VULKAN_SDK/../MoltenVK"
       osx_image: xcode9.3
 
 language:
