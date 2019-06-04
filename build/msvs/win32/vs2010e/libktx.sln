@@ -23,8 +23,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan", "libvulkan.vcxp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvulkan.lazy", "libvulkan.lazy.vcxproj", "{0E187664-F338-8BAD-139A-A72D968336FE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mkvkformatfiles", "mkvkformatfiles.vcxproj", "{A64A9B77-594D-7F35-76B1-40B33ACBF28F}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{C0581BBC-1787-ED34-891A-7FE6F165432D}"
 EndProject
 Global
@@ -61,10 +59,6 @@ Global
 		{77118699-ED35-6023-495F-623A34336544}.Debug|Win32.Build.0 = Debug|Win32
 		{77118699-ED35-6023-495F-623A34336544}.Release|Win32.ActiveCfg = Release|Win32
 		{77118699-ED35-6023-495F-623A34336544}.Release|Win32.Build.0 = Release|Win32
-		{A64A9B77-594D-7F35-76B1-40B33ACBF28F}.Debug|Win32.ActiveCfg = Debug|Win32
-		{A64A9B77-594D-7F35-76B1-40B33ACBF28F}.Debug|Win32.Build.0 = Debug|Win32
-		{A64A9B77-594D-7F35-76B1-40B33ACBF28F}.Release|Win32.ActiveCfg = Release|Win32
-		{A64A9B77-594D-7F35-76B1-40B33ACBF28F}.Release|Win32.Build.0 = Release|Win32
 		{C0581BBC-1787-ED34-891A-7FE6F165432D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{C0581BBC-1787-ED34-891A-7FE6F165432D}.Debug|Win32.Build.0 = Debug|Win32
 		{C0581BBC-1787-ED34-891A-7FE6F165432D}.Release|Win32.ActiveCfg = Release|Win32
