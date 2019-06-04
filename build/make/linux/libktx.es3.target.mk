@@ -48,6 +48,9 @@ INCS_Release := \
 
 OBJS := \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/createdfd.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/dfd4vkformat.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/printdfd.o \
 	$(obj).target/$(TARGET)/lib/errstr.o \
 	$(obj).target/$(TARGET)/lib/etcdec.o \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \

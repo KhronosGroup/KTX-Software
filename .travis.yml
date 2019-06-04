@@ -21,7 +21,8 @@ matrix:
       env:
         - ASSIMP_HOME="/usr/local"
         - VULKAN_SDK_VER="1.1.85.0"
-        - VULKAN_SDK="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
+        - VULKAN_INSTALL_DIR="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
+        - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       osx_image: xcode9.3
 
 language:

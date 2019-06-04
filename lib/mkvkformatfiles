@@ -1,0 +1,128 @@
+#! /usr/bin/awk -f
+
+# This script creates 3 files from vulkan/vulkan_core.h:
+#
+# - vkformat_enum.h, the VkFormat enum declaration for those who don't
+#   want to include vulkan_core.h.
+# - vkformat_str.c, declaration of strings corresponding to the format
+#   names in 2 arrays: vkFormatStrings & vkFormatStringsExt. The
+#   latter is formats that were once extensions so have enum values
+#   too large to be in a straightforward table.
+# - vkformat_prohibited.h, an array listing the formats not allowed in
+#   KTX2.
+
+BEGIN {
+    vulkan_core = "vulkan_core.h"
+    format_hdr = "vkformat_enum.h"
+    format_strings = "vkformat_str.c"
+    format_prohibited = "vkformat_prohibited.c"
+    processing_core_formats = 0
+    processing_extension_formats = 0
+    # Range pattern matches 2nd line to avoid other comments so need
+    # comment opening.
+    copyright = "/*\n"
+    banner = ""
+    format_decl = ""
+    core_formats = ""
+    extension_formats = ""
+    end_range = ""
+    prohibited = "#include <stdint.h>\n\n#include \"vkformat_enum.h\"\n\nuint32_t prohibitedFormats[] = {\n"
+    if (ARGC == 2) {
+        output_dir = ARGV[1] "/";
+    }
+    format_hdr = output_dir "vkformat_enum.h"
+    format_strings = output_dir "vkformat_str.c"
+    format_prohibited = output_dir "vkformat_prohibited.c"
+    if (ENVIRON["VULKAN_SDK"]) {
+        vulkan_include_root = ENVIRON["VULKAN_SDK"];
+    } else {
+        vulkan_include_root = "/usr";
+    }
+    ARGV[1] = vulkan_include_root"/include/vulkan/"vulkan_core; ARGC = 2
+}
+
+# A range pattern to extract the copyright message.
+/\*\* Copyright*/,/\*\// { copyright = copyright $0 "\n" }
+
+/VK_HEADER_VERSION/ {
+  banner = "\n"
+  banner = banner "/***************************** Do not edit.  *****************************\n"
+  banner = banner " Automatically generated from " vulkan_core " version " $3 " by mkvkformatfiles.\n"
+  banner = banner " *************************************************************************/\n"
+}
+
+# Extract VkFlags definition.
+/typedef .* VkFlags/ { format_decl = format_decl $0 "\n\n" }
+
+# A range pattern to extract the VkFormat declaration.
+/^typedef enum VkFormat {/,/^} VkFormat;/ {
+  if ($3 !~ /VK_FORMAT_.*/) { # Avoid values defined as existing values.
+    format_decl = format_decl $0 "\n"}
+  }
+
+/^    VK_FORMAT_END_RANGE/ {
+  sub(/,$/, "", $3);
+  end_range = "#define VK_FORMAT_END_RANGE " $3 "\n";
+}
+
+/.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "    " $1 ",\n"; }
+/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "    " $1 ",\n"; }
+
+# Extract VK_FORMAT token names. [^F] avoids the VK_FORMAT_FEATURE* tokens.
+/    VK_FORMAT_[^F].*/ {
+  if (!processing_core_formats) {
+    core_formats = "#include <stdint.h>\n\nchar* vkFormatStrings[] = {\n"
+    processing_core_formats = 1;
+  }
+  if ($3 !~ /VK_FORMAT_.*/) { # Avoid values defined as existing values.
+    sub(/,$/, "", $3);
+    # The +0 is to force conversion to a number. Preceding $3 with 0
+    # sees it treated as an octal value.
+    if ($3+0 < 1000000000) {
+      core_formats = core_formats "    \"" $1 "\",\n"
+    } else {
+      if (!processing_extension_formats) {
+        # Close vkFormatStrings array.
+        core_formats = core_formats "};\n"
+        extension_formats = extension_formats "struct ext_format {\n"
+        extension_formats = extension_formats "    uint32_t value;\n"
+        extension_formats = extension_formats "    char* string;\n"
+        extension_formats = extension_formats "} vkFormatStringsExt[] = {\n"
+        processing_extension_formats = 1;
+      }
+      extension_formats = extension_formats "    {" $3 ", \"" $1 "\"},\n"
+    }
+  }
+}
+
+function write_header_file(guard, body, filename) {
+    print "#ifndef "guard > filename
+    print "#define "guard > filename
+    print banner > filename
+    print copyright > filename
+    print body > filename
+    print "#endif /* "guard" */" > filename
+}
+
+function write_source_file(body, filename) {
+    print banner > filename
+    print copyright > filename
+    print body > filename
+}
+
+END {
+    # vkformat_enum.h
+    write_header_file("_VKFORMAT_ENUM_H_", format_decl "\n" end_range, format_hdr);
+
+    # vkformat_prohibited.h
+    prohibited = prohibited "};"
+    write_source_file(prohibited, format_prohibited)
+
+    # vkformat_str.c
+    # Close vkFormatStringsExt array.
+    extension_formats = extension_formats "};"
+    write_source_file(core_formats "\n" extension_formats, format_strings);
+}
+
+# vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
+

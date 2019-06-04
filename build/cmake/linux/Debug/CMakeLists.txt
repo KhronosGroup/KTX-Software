@@ -36,6 +36,9 @@ set(TARGET "libktx.es3")
 set(TOOLSET "target")
 list(APPEND libktx_es3__c_srcs
   "../../../../lib/checkheader.c"
+  "../../../../lib/dfdutils/createdfd.c"
+  "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/printdfd.c"
   "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
@@ -53,6 +56,8 @@ list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es3__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/dfdutils/dfd.h"
+  "../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "../../../../lib/filestream.h"
   "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
@@ -64,6 +69,7 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
   "../../../../lib/uthash.h"
+  "../../../../lib/vkformat_enum.h"
   "../../../../include/ktxvulkan.h"
   "../../../../lib/vk_format.h"
   "../../../../lib/vk_funclist.inl"
@@ -110,6 +116,9 @@ set(TARGET "libktx.es1")
 set(TOOLSET "target")
 list(APPEND libktx_es1__c_srcs
   "../../../../lib/checkheader.c"
+  "../../../../lib/dfdutils/createdfd.c"
+  "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/printdfd.c"
   "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
@@ -125,6 +134,8 @@ list(APPEND libktx_es1__cxx_srcs
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es1__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/dfdutils/dfd.h"
+  "../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "../../../../lib/filestream.h"
   "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
@@ -135,7 +146,8 @@ list(APPEND libktx_es1__other_srcs
   "../../../../lib/ktxint.h"
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
-  "../../../../lib/uthash.h")
+  "../../../../lib/uthash.h"
+  "../../../../lib/vkformat_enum.h")
 add_library(libktx_es1 STATIC ${libktx_es1__c_srcs} ${libktx_es1__cxx_srcs} ${libktx_es1__other_srcs})
 set_target_properties(libktx_es1 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
 set_source_files_properties(${libktx_es1__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -172,6 +184,11 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd4vkformat.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/printdfd.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcunpack.cxx"
@@ -193,6 +210,7 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_v1.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
@@ -236,6 +254,9 @@ set(TARGET "libktx.gl")
 set(TOOLSET "target")
 list(APPEND libktx_gl__c_srcs
   "../../../../lib/checkheader.c"
+  "../../../../lib/dfdutils/createdfd.c"
+  "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/printdfd.c"
   "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
@@ -253,6 +274,8 @@ list(APPEND libktx_gl__cxx_srcs
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_gl__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/dfdutils/dfd.h"
+  "../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "../../../../lib/filestream.h"
   "../../../../lib/gl_format.h"
   "../../../../lib/gl_funcptrs.h"
@@ -264,6 +287,7 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
   "../../../../lib/uthash.h"
+  "../../../../lib/vkformat_enum.h"
   "../../../../include/ktxvulkan.h"
   "../../../../lib/vk_format.h"
   "../../../../lib/vk_funclist.inl"

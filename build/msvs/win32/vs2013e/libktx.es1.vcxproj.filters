@@ -10,6 +10,39 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
@@ -84,6 +117,21 @@
     <ClCompile Include="..\..\..\..\lib\checkheader.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\createdfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\dfdutils\dfd.h">
+      <Filter>lib\dfdutils</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\dfd4vkformat.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <None Include="..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl">
+      <Filter>lib\dfdutils</Filter>
+    </None>
     <ClCompile Include="..\..\..\..\lib\errstr.c">
       <Filter>lib</Filter>
     </ClCompile>
@@ -145,6 +193,9 @@
       <Filter>lib</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\lib\uthash.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\vkformat_enum.h">
       <Filter>lib</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\lib\writer.c">
