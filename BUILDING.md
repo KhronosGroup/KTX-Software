@@ -82,7 +82,7 @@ and MoltenVK.
 
 To find the Vulkan validation layers when running the macOS Vulkan
 load tests set the environment variable `VK_LAYER_PATH` to
-`$(VULKAN_SDK)/macOS/etc/vulkan/explicit_layers.d` when running the
+`$(VULKAN_SDK)/etc/vulkan/explicit_layers.d` when running the
 application. Environment variables are set in the Arguments section
 of Xcode's Scheme Editor. Validation is only enabled by the debug
 configuration.
@@ -138,19 +138,18 @@ git diff | grep DEVELOPMENT_TEAM
 git checkout build/xcode
 ```
 
+##### VULKAN\_INSTALL\_DIR
+
+Set this to directory where you have installed the
+[Vulkan SDK for macOS](#vulkan-sdk).
+
 ##### VULKAN_SDK
 
-Set this to `macOS` directory of the location where you have installed the
-[Vulkan SDK for macOS](#vulkan-sdk).
-
-##### MOLTENVK
-
-Set this to the `MoltenVK` directory of the location where you have installed the
-[Vulkan SDK for macOS](#vulkan-sdk).
+Set this to `macOS` directory of `$(VULKAN_INSTALL_DIR)`.
 
 ##### ASSIMP_HOME
 
-Set this to the location where [`libassimp`](#libassimp) is installed. If
+Set this to the directory where [`libassimp`](#libassimp) is installed. If
 you use the MacPorts version, this will be `/opt/local`.
 
 ### Windows
@@ -161,9 +160,7 @@ load tests and tools for Win32 or x64 plaforms. There are separate
 solutions for Win32 and x64 platforms.
 
 **Note:** Builds of the Vulkan loader tests require vs2015+ because they
-use `vulkan.hpp` which needs C++11 & in particular `constexpr`, so solutions
-other than vs2015 and vs2017 do not include a `vkloadtests` project
-and their `appfwSDL` projects do not include Vulkan app support.
+use `vulkan.hpp` which needs C++11 & in particular `constexpr`, so solutions other than vs2015 and vs2017 do not include a `vkloadtests` project and their `appfwSDL` projects do not include Vulkan app support.
 
 Dependencies
 ------------

@@ -8,24 +8,24 @@
   'variables': { # level 1
     'variables': { # level 2
       # NB for XCODE: Due to difficulties passing env. vars to Xcode, set
-      # VULKAN_SDK in Xcode Preferences | Locations tab | Custom Paths. As
-      # directed by the SDK instructions, like $VULKAN_SDK, it should point
-      # to the macOS folder of whereever you have the Vulkan SDK installed.
-      # Also set MOLTENVK to point to the MoltenVK folder of the Vulkan SDK
-      # installation. You can set this as $(VULKAN_SDK)/../MoltenVK. Doing that
-      # here falls afoul of the gyp generators which strip off the env. var.
-      # and ...
+      # the following in Xcode Preferences | Locations tab | Custom Paths.
+      #
+      # - VULKAN_INSTALL_DIR to the directory where you have installed
+      #                      the Khronos Vulkan SDK.
+      # - VULKAN_SDK as directed by the SDK instructions, like $VULKAN_SDK, to
+      #              the macOS folder of $(VULKAN_INSTALL_DIR). We can't just
+      #              create this here because it is needed in the environment
+      #              by some of the build commands.
       'conditions': [
         ['OS == "ios"', {
-          'mvklib': '$(MOLTENVK)/iOS',
-          'vksdk': '<(moltenvk)' # Until there's an official SDK.
+          'vksdk': '$(VULKAN_SDK)',  # Until there is an official iOS SDK.
+          'mvklib': '$(VULKAN_INSTALL_DIR)/MoltenVK/iOS',
         }, 'OS == "mac"', {
-          'mvklib': '$(MOLTENVK)/macOS',
-          'vksdk': '$(VULKAN_SDK)',
+          'vksdk': '$(VULKAN_SDK)',  # Until there is an official iOS SDK.
+          'mvklib': '$(VULKAN_INSTALL_DIR)/MoltenVK/macOS',
         }]
       ], # conditions
     }, # end level 2
-    'moltenvk': '<(moltenvk)',
     'mvklib': '<(mvklib)',
     'vksdk': '<(vksdk)',
     'conditions': [
