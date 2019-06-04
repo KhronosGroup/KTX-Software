@@ -16,6 +16,10 @@
       #              the macOS folder of $(VULKAN_INSTALL_DIR). We can't just
       #              create this here because it is needed in the environment
       #              by some of the build commands.
+      #
+      # Note we can't just set VULKAN_INSTALL_DIR here to $(VULKAN_SDK)/..
+      # because gyp generators, at least the xcode one, will remove any leading
+      # component of a path that includes a '..'.
       'conditions': [
         ['OS == "ios"', {
           'vksdk': '$(VULKAN_SDK)',  # Until there is an official iOS SDK.
