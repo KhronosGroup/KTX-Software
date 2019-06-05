@@ -171,7 +171,8 @@
     <ClCompile Include="..\..\..\..\lib\swap.c"/>
     <ClCompile Include="..\..\..\..\lib\texture.c"/>
     <ClCompile Include="..\..\..\..\lib\writer.c"/>
-    <ClCompile Include="..\..\..\..\lib\writer_v1.c"/>
+    <ClCompile Include="..\..\..\..\lib\writer_apiv1.c"/>
+    <ClCompile Include="..\..\..\..\lib\writer_v2.c"/>
     <ClCompile Include="..\..\..\..\lib\vkloader.c"/>
     <ClCompile Include="..\..\..\..\lib\vk_funcs.c"/>
   </ItemGroup>

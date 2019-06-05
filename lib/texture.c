@@ -63,7 +63,6 @@ KTX_error_code ktxTexture_LoadImageData(ktxTexture* This,
                                         ktx_uint8_t* pBuffer,
                                         ktx_size_t bufSize);
 
-static ktx_size_t ktxTexture_calcDataSize(ktxTexture* This);
 static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
 
 
@@ -213,7 +212,8 @@ ktxTextureInt_construct(ktxTextureInt* This, ktxTextureCreateInfo* createInfo,
     super->generateMipmaps = createInfo->generateMipmaps;
  
     if (createInfo->numLevels > 1) {
-        GLuint max_dim = MAX(MAX(createInfo->baseWidth, createInfo->baseHeight), createInfo->baseDepth);
+        GLuint max_dim = MAX(MAX(createInfo->baseWidth, createInfo->baseHeight),
+                             createInfo->baseDepth);
         if (max_dim < ((GLuint)1 << (super->numLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
@@ -226,7 +226,9 @@ ktxTextureInt_construct(ktxTextureInt* This, ktxTextureCreateInfo* createInfo,
     
     ktxHashList_Construct(&super->kvDataHead);
     if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
-        super->dataSize = ktxTexture_calcDataSize(super);
+        super->dataSize
+                    = ktxTexture_calcDataSizeTexture(super,
+                                                     KTX_FORMAT_VERSION_ONE);
         super->pData = malloc(super->dataSize);
         if (super->pData == NULL)
             return KTX_OUT_OF_MEMORY;
@@ -334,7 +336,7 @@ ktxTextureInt_constructFromStream(ktxTextureInt* This,
         super->isCubemap = KTX_TRUE;
     else
         super->isCubemap = KTX_FALSE;
-    super->numLevels = header.numberOfMipmapLevels;
+    super->numLevels = header.numberOfMipLevels;
     super->isCompressed = suppInfo.compressed;
     super->generateMipmaps = suppInfo.generateMipmaps;
     if (header.endianness == KTX_ENDIAN_REF_REV)
@@ -858,7 +860,7 @@ ktxTexture_GetElementSize(ktxTexture* This)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture @private
  * @~English
  * @brief Calculate & return the size in bytes of an image at the specified
  *        mip level.
@@ -869,10 +871,13 @@ ktxTexture_GetElementSize(ktxTexture* This)
  * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.
  *
  * @param[in]     This     pointer to the ktxTexture object of interest.
- * @param[in]     level    level of interest. *
+ * @param[in]     level    level of interest.
+ * @param[in]     fv       enum specifying format version for which to calculate
+ *                         image size.
  */
 ktx_size_t
-ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level)
+ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
+                         ktxFormatVersionEnum fv)
 {
     GlFormatSize* formatInfo;
     struct blockCount {
@@ -894,9 +899,30 @@ ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level)
     } else {
         assert(formatInfo->blockWidth == formatInfo->blockHeight == formatInfo->blockDepth == 1);
         rowBytes = blockCount.x * blockSizeInBytes;
-        (void)padRow(&rowBytes);
+        if (fv == KTX_FORMAT_VERSION_ONE)
+            (void)padRow(&rowBytes);
         return rowBytes * blockCount.y;
     }
+}
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Calculate & return the size in bytes of an image at the specified
+ *        mip level.
+ *
+ * For arrays, this is the size of layer, for cubemaps, the size of a face
+ * and for 3D textures, the size of a depth slice.
+ *
+ * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.
+ *
+ * @param[in]     This     pointer to the ktxTexture object of interest.
+ * @param[in]     level    level of interest. *
+ */
+ktx_size_t
+ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level)
+{
+    return ktxTexture_calcImageSize(This, level, KTX_FORMAT_VERSION_ONE);
 }
 
 /**
@@ -1055,7 +1081,9 @@ ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
         height = MAX(1, This->baseHeight >> miplevel);
         depth = MAX(1, This->baseDepth  >> miplevel);
 
-        faceLodSize = (ktx_uint32_t)ktxTexture_faceLodSize(This, miplevel);
+        faceLodSize = (ktx_uint32_t)ktxTexture_calcFaceLodSize(
+                                                    This, miplevel,
+                                                    KTX_FORMAT_VERSION_ONE);
 
         /* All array layers are passed in a group because that is how
          * GL & Vulkan need them. Hence no
@@ -1275,7 +1303,8 @@ ktxTexture_IterateLevels(ktxTexture* This, PFNKTXITERCB iterCb, void* userdata)
         height = MAX(1, This->baseHeight >> miplevel);
         depth = MAX(1, This->baseDepth  >> miplevel);
 
-        levelSize = (ktx_uint32_t)ktxTexture_levelSize(This, miplevel);
+        levelSize = (ktx_uint32_t)ktxTexture_calcLevelSize(This, miplevel,
+                                                       KTX_FORMAT_VERSION_ONE);
 
         /* All array layers are passed in a group because that is how
          * GL & Vulkan need them. Hence no
@@ -1331,7 +1360,8 @@ padRow(ktx_uint32_t* rowBytes)
  * @return the layer size in bytes.
  */
 static inline ktx_size_t
-ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level)
+ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
+                    ktxFormatVersionEnum fv)
 {
     /*
      * As there are no 3D cubemaps, the image's z block count will always be
@@ -1347,14 +1377,14 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level)
     
     formatInfo = &((ktxTextureInt*)This)->formatInfo;
     blockCountZ = MAX(1, (This->baseDepth / formatInfo->blockDepth)  >> level);
-    imageSize = ktxTexture_GetImageSize(This, level);
+    imageSize = ktxTexture_calcImageSize(This, level, fv);
     layerSize = imageSize * blockCountZ;
-#if (KTX_GL_UNPACK_ALIGNMENT != 4)
-    if (This->isCubemap && !This->isArray) {
-        /* cubePadding. NOTE: this adds padding after the last face too. */
-        _KTX_PAD4(layerSize);
+    if (fv == KTX_FORMAT_VERSION_ONE && KTX_GL_UNPACK_ALIGNMENT != 4) {
+        if (This->isCubemap && !This->isArray) {
+            /* cubePadding. NOTE: this adds padding after the last face too. */
+            _KTX_PAD4(layerSize);
+        }
     }
-#endif
     return layerSize * This->numFaces;
 }
 
@@ -1371,10 +1401,12 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level)
  * @return the level size in bytes.
  */
 ktx_size_t
-ktxTexture_levelSize(ktxTexture* This, ktx_uint32_t level)
+ktxTexture_calcLevelSize(ktxTexture* This, ktx_uint32_t level,
+                         ktxFormatVersionEnum fv)
 {
     assert (This != NULL);
-    return ktxTexture_layerSize(This, level) * This->numLayers;
+    assert (level < This->numLevels);
+    return ktxTexture_layerSize(This, level, fv) * This->numLayers;
 }
 
 /**
@@ -1394,16 +1426,17 @@ ktxTexture_levelSize(ktxTexture* This, ktx_uint32_t level)
  * @return the faceLodSize size in bytes.
  */
 ktx_size_t
-ktxTexture_faceLodSize(ktxTexture* This, ktx_uint32_t level)
+ktxTexture_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
+                           ktxFormatVersionEnum fv)
 {
     /*
      * For non-array cubemaps this is the size of a face. For everything
      * else it is the size of the level.
      */
     if (This->isCubemap && !This->isArray)
-        return ktxTexture_GetImageSize(This, level);
+        return ktxTexture_calcImageSize(This, level, KTX_FORMAT_VERSION_ONE);
     else
-        return ktxTexture_levelSize(This, level);
+        return ktxTexture_calcLevelSize(This, level, KTX_FORMAT_VERSION_ONE);
 }
 
 /**
@@ -1421,22 +1454,60 @@ ktxTexture_faceLodSize(ktxTexture* This, ktx_uint32_t level)
  * @return the data size in bytes.
  */
 static inline ktx_size_t
-ktxTexture_dataSize(ktxTexture* This, ktx_uint32_t levels)
+ktxTexture_calcDataSizeLevels(ktxTexture* This, ktx_uint32_t levels,
+                              ktxFormatVersionEnum fv)
 {
     ktx_uint32_t i;
     ktx_size_t dataSize = 0;
 
-    assert (This != NULL);
+    assert(This != NULL);
+    assert(levels <= This->numLevels);
     for (i = 0; i < levels; i++) {
-        ktx_size_t levelSize = ktxTexture_levelSize(This, i);
-#if (KTX_GL_UNPACK_ALIGNMENT != 4)
+        ktx_size_t levelSize = ktxTexture_calcLevelSize(This, i, fv);
         /* mipPadding. NOTE: this adds padding after the last level too. */
-        dataSize += _KTX_PAD4(levelSize);
-#else
-        dataSize += levelSize;
-#endif
+        if (fv == KTX_FORMAT_VERSION_TWO)
+            dataSize += _KTX_PAD8(levelSize);
+        else if (KTX_GL_UNPACK_ALIGNMENT != 4)
+            dataSize += _KTX_PAD4(levelSize);
+        else
+            dataSize += levelSize;
     }
     return dataSize;
+}
+
+/**
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Return the offset of a level in bytes from the start of the image
+ *        data in a ktxTexture.
+ *
+ * The caclulated size does not include space for storing the @c imageSize
+ * fields of each mip level.
+ *
+ * @param[in]     This  pointer to the ktxTexture object of interest.
+ * @param[in]     level level whose offset to return.
+ * @param[in]     fv    enum specifying format version for which to calculate
+ *                      image size.
+ *
+ * @return the data size in bytes.
+ */
+ktx_size_t
+ktxTexture_calcLevelOffset(ktxTexture* This, ktx_uint32_t level,
+                           ktxFormatVersionEnum fv)
+{
+    assert (This != NULL);
+    assert (level < This->numLevels);
+    if (fv == KTX_FORMAT_VERSION_ONE) {
+        return ktxTexture_calcDataSizeLevels(This, level, fv);
+    } else {
+        ktx_size_t levelOffset = 0;
+        for (ktx_uint32_t i = This->numLevels - 1; i > level; i--) {
+            ktx_size_t levelSize;
+            levelSize = ktxTexture_calcLevelSize(This, i, fv);
+            levelOffset += _KTX_PAD8(levelSize);
+        }
+        return levelOffset;
+    }
 }
 
 /**
@@ -1448,15 +1519,17 @@ ktxTexture_dataSize(ktxTexture* This, ktx_uint32_t levels)
  * The caclulated size does not include space for storing the @c imageSize
  * fields of each mip level.
  *
- * @param[in]     This       pointer to the ktxTexture object of interest.
+ * @param[in]     This  pointer to the ktxTexture object of interest.
+ * @param[in]     fv    enum specifying format version for which to calculate
+ *                      image size.
  *
  * @return the data size in bytes.
  */
-static ktx_size_t
-ktxTexture_calcDataSize(ktxTexture* This)
+ktx_size_t
+ktxTexture_calcDataSizeTexture(ktxTexture* This, ktxFormatVersionEnum fv)
 {
     assert (This != NULL);
-    return ktxTexture_dataSize(This, This->numLevels);
+    return ktxTexture_calcDataSizeLevels(This, This->numLevels, fv);
 }
 
 /**
@@ -1611,12 +1684,13 @@ ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
     }
     
     // Get the size of the data up to the start of the indexed level.
-    *pOffset = ktxTexture_dataSize(This, level);
+    *pOffset = ktxTexture_calcDataSizeLevels(This, level,
+                                             KTX_FORMAT_VERSION_ONE);
     
     // All layers, faces & slices within a level are the same size.
     if (layer != 0) {
         ktx_size_t layerSize;
-        layerSize = ktxTexture_layerSize(This, level);
+        layerSize = ktxTexture_layerSize(This, level, KTX_FORMAT_VERSION_ONE);
         *pOffset += layer * layerSize;
     }
     if (faceSlice != 0) {

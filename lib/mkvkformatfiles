@@ -13,9 +13,6 @@
 
 BEGIN {
     vulkan_core = "vulkan_core.h"
-    format_hdr = "vkformat_enum.h"
-    format_strings = "vkformat_str.c"
-    format_prohibited = "vkformat_prohibited.c"
     processing_core_formats = 0
     processing_extension_formats = 0
     # Range pattern matches 2nd line to avoid other comments so need
@@ -52,7 +49,11 @@ BEGIN {
 }
 
 # Extract VkFlags definition.
-/typedef .* VkFlags/ { format_decl = format_decl $0 "\n\n" }
+/typedef .* VkFlags/ {
+  format_decl = format_decl "#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.\n"
+  format_decl = format_decl "typedef unsigned __int32 VkFlags;\n#else\n"
+  format_decl = format_decl $0 "\n#endif\n\n"
+}
 
 # A range pattern to extract the VkFormat declaration.
 /^typedef enum VkFormat {/,/^} VkFormat;/ {

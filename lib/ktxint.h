@@ -40,7 +40,7 @@
 #endif
 
 #define KTX2_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x30, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
-#define KTX2_HEADER_SIZE     (64)
+#define KTX2_HEADER_SIZE     (80)
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,9 +60,9 @@ extern GLboolean _ktxSupportsSRGB;
 /**
  * @internal
  * @~English
- * @brief KTX file header
+ * @brief KTX file header.
  *
- * See the KTX specification for descriptions
+ * See the KTX specification for descriptions.
  */
 typedef struct KTX_header {
     ktx_uint8_t  identifier[12];
@@ -77,12 +77,70 @@ typedef struct KTX_header {
     ktx_uint32_t pixelDepth;
     ktx_uint32_t numberOfArrayElements;
     ktx_uint32_t numberOfFaces;
-    ktx_uint32_t numberOfMipmapLevels;
+    ktx_uint32_t numberOfMipLevels;
     ktx_uint32_t bytesOfKeyValueData;
 } KTX_header;
 
 /* This will cause compilation to fail if the struct size doesn't match */
 typedef int KTX_header_SIZE_ASSERT [sizeof(KTX_header) == KTX_HEADER_SIZE];
+
+/**
+ * @internal
+ * @~English
+ * @brief 32-bit KTX 2 index entry.
+ */
+typedef struct ktxIndexEntry32 {
+    ktx_uint32_t offset;  /*!< Offset of item from start of file. */
+    ktx_uint32_t bytesOf; /*!< Number of bytes of data in the item. */
+} ktxIndexEntry32;
+/**
+ * @internal
+ * @~English
+ * @brief 64-bit KTX 2 index entry.
+ */
+typedef struct ktxIndexEntry64 {
+    ktx_uint64_t offset;  /*!< Offset of item from start of file. */
+    ktx_uint64_t bytesOf; /*!< Number of bytes of data in the item. */
+} ktxIndexEntry64;
+
+/**
+ * @internal
+ * @~English
+ * @brief KTX 2 file header.
+ *
+ * See the KTX 2 specification for descriptions.
+ */
+typedef struct KTX_header2 {
+    ktx_uint8_t  identifier[12];
+    ktx_uint32_t vkFormat;
+    ktx_uint32_t typeSize;
+    ktx_uint32_t pixelWidth;
+    ktx_uint32_t pixelHeight;
+    ktx_uint32_t pixelDepth;
+    ktx_uint32_t arrayElementCount;
+    ktx_uint32_t faceCount;
+    ktx_uint32_t levelCount;
+    ktx_uint32_t supercompressionScheme;
+    ktxIndexEntry32 dataFormatDescriptor;
+    ktxIndexEntry32 keyValueData;
+    ktxIndexEntry64 supercompressionGlobalData;
+} KTX_header2;
+
+/* This will cause compilation to fail if the struct size doesn't match */
+typedef int KTX_header2_SIZE_ASSERT [sizeof(KTX_header2) == KTX2_HEADER_SIZE];
+
+/**
+ * @internal
+ * @~English
+ * @brief KTX 2 level index entry.
+ */
+typedef struct ktxLevelIndexEntry {
+    ktx_uint64_t offset; /*!< Offset of level from start of file. */
+    ktx_uint64_t bytesOfCompressedImages;
+                /*!< Number of bytes of compressed image data in the level. */
+    ktx_uint64_t bytesOfUncompressedImages;
+                /*!< Number of bytes of uncompressed image data in the level. */
+} ktxLevelIndexEntry;
 
 /**
  * @internal
@@ -166,6 +224,15 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
 #define _KTX_PAD4_LEN(nbytes) _KTX_PADN_LEN(4, nbytes)
 
 /*
+ * Pad nbytes to next multiple of 8
+ */
+#define _KTX_PAD8(nbytes) _KTX_PADN(8, nbytes)
+/*
+ * Calculate bytes of of padding needed to reach next multiple of 8.
+ */
+#define _KTX_PAD8_LEN(nbytes) _KTX_PADN_LEN(8, nbytes)
+
+/*
  * Pad nbytes to KTX_GL_UNPACK_ALIGNMENT
  */
 #define _KTX_PAD_UNPACK_ALIGN(nbytes)  \
@@ -182,6 +249,11 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
  ======================================
 */
 
+typedef enum {
+    KTX_FORMAT_VERSION_ONE = 1,
+    KTX_FORMAT_VERSION_TWO = 2
+} ktxFormatVersionEnum;
+
 KTX_error_code
 ktxTexture_iterateLoadedImages(ktxTexture* This, PFNKTXITERCB iterCb,
                                void* userdata);
@@ -189,11 +261,18 @@ KTX_error_code
 ktxTexture_iterateSourceImages(ktxTexture* This, PFNKTXITERCB iterCb,
                                void* userdata);
     
+ktx_size_t ktxTexture_calcDataSizeTexture(ktxTexture* This,
+                                          ktxFormatVersionEnum fv);
+ktx_size_t ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
+                                    ktxFormatVersionEnum fv);
 ktx_uint32_t ktxTexture_glTypeSize(ktxTexture* This);
-ktx_size_t ktxTexture_imageSize(ktxTexture* This, ktx_uint32_t level);
 ktx_bool_t ktxTexture_isActiveStream(ktxTexture* This);
-ktx_size_t ktxTexture_levelSize(ktxTexture* This, ktx_uint32_t level);
-ktx_size_t ktxTexture_faceLodSize(ktxTexture* This, ktx_uint32_t level);
+ktx_size_t ktxTexture_calcLevelOffset(ktxTexture* This, ktx_uint32_t level,
+                                  ktxFormatVersionEnum fv);
+ktx_size_t ktxTexture_calcLevelSize(ktxTexture* This, ktx_uint32_t level,
+                                    ktxFormatVersionEnum fv);
+ktx_size_t ktxTexture_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
+                                      ktxFormatVersionEnum fv);
 void ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
                         ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
                         ktx_uint32_t* rowPadding);

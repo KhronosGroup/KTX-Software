@@ -150,10 +150,10 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
     }
     
     /* Check number of mipmap levels */
-    if (pHeader->numberOfMipmapLevels == 0)
+    if (pHeader->numberOfMipLevels == 0)
     {
         pSuppInfo->generateMipmaps = 1;
-        pHeader->numberOfMipmapLevels = 1;
+        pHeader->numberOfMipLevels = 1;
     }
     else
     {
@@ -162,7 +162,7 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
 
     /* This test works for arrays too because height or depth will be 0. */
     max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (pHeader->numberOfMipmapLevels - 1)))
+    if (max_dim < ((ktx_uint32_t)1 << (pHeader->numberOfMipLevels - 1)))
     {
         /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
         return KTX_FILE_DATA_ERROR;

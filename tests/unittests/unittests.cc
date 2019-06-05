@@ -74,7 +74,7 @@ class CheckHeaderTest : public ::testing::Test {
         testHeader.pixelDepth = 16;
         testHeader.numberOfArrayElements = 0;
         testHeader.numberOfFaces = 1;
-        testHeader.numberOfMipmapLevels = 5;
+        testHeader.numberOfMipLevels = 5;
         testHeader.bytesOfKeyValueData = 0;
     }
 

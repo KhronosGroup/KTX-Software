@@ -60,7 +60,8 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/texture.o \
 	$(obj).target/$(TARGET)/lib/writer.o \
-	$(obj).target/$(TARGET)/lib/writer_v1.o
+	$(obj).target/$(TARGET)/lib/writer_apiv1.o \
+	$(obj).target/$(TARGET)/lib/writer_v2.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

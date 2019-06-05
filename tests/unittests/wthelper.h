@@ -28,6 +28,8 @@
  */
 
 #include "gl_format.h"
+#include "vkformat_enum.h"
+#include "vk_format.h"
 #include "ktx.h"
 extern "C" {
   #include "ktxint.h"
@@ -61,7 +63,7 @@ class WriterTestHelper {
                 ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
     {
         assert(numFaces == 1 || depth == 1);
-        
+
         this->width = width;
         this->height = height;
         this->depth = depth;
@@ -119,7 +121,7 @@ class WriterTestHelper {
                 }
             }
         }
-        
+
         assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
         snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
                  'r', 'd');
@@ -132,6 +134,8 @@ class WriterTestHelper {
         ktxHashList_Destruct(hl);
     }
 
+    // Compare the raw images, which are tightly packed, with potentially
+    // row padded images from KTX texture.
     bool compareRawImages(ktx_uint8_t* pData) {
         for (ktx_uint32_t level = 0; level < numLevels; level++) {
             ktx_uint32_t faceLodSize = *(ktx_uint32_t*)pData;
@@ -185,6 +189,46 @@ class WriterTestHelper {
         return true;
     }
 
+
+    // Compare the raw images, which are tightly packed, with the images from
+    // a KTX 2 texture, which are also tightly packed but have reversed order
+    // for mip levels.
+    bool compareRawImages(ktxLevelIndexEntry levelIndex[], ktx_uint8_t* baseAddr) {
+        for (ktx_uint32_t level = 0; level < numLevels; level++) {
+            ktx_uint64_t levelSize = levelIndex[level].bytesOfUncompressedImages;
+            ktx_uint32_t levelDepth = MAX(1, depth >> level);
+            ktx_uint32_t numImages;
+            ktx_size_t imageBytes;
+            ktx_size_t expectedLevelSize;
+
+            imageBytes = images[level][0][0].size() * sizeof(component_type);
+            numImages = numFaces == 6 ? numFaces : levelDepth;
+            expectedLevelSize = imageBytes * numImages * numLayers;
+
+            if (levelSize != expectedLevelSize)
+               return false;
+
+            ktx_uint8_t* pData = baseAddr + levelIndex[level].offset;
+            for (ktx_uint32_t layer = 0; layer < numLayers; layer++) {
+                for (ktx_uint32_t faceSlice = 0; faceSlice < numImages; faceSlice++) {
+#if 0 //DUMP_IMAGE
+                    fprintf(stdout, "Reading level %d, layer %d, faceSlice %d at offset %#" PRIx64 "\n",
+                            level, layer, faceSlice, levelIndex[level].offset);
+                    for (uint32_t i = 0; i < imageBytes; i++)
+                        fprintf(stdout, "%#x, ", *(pData + i));
+                    fprintf(stdout, "\n");
+#endif
+
+                    if (memcmp(images[level][layer][faceSlice].data(), pData,
+                                imageBytes))
+                        return false;
+                    pData += imageBytes;
+                }
+            }
+        }
+        return true;
+    }
+
     static ktx_uint32_t
     levelsFromSize(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth) {
         ktx_uint32_t mipLevels;
@@ -224,7 +268,7 @@ class WriterTestHelper {
                     GLsizei width, GLsizei height, GLsizei depth) {
             numberOfArrayElements = isArray ? numLayers: 0;
             numberOfFaces = numFaces;
-            numberOfMipmapLevels = numLevels;
+            numberOfMipLevels = numLevels;
             pixelWidth = width;
             pixelHeight = numDimensions >= 2 ? height : 0;
             pixelDepth = numDimensions == 3 ? depth : 0;
@@ -241,10 +285,31 @@ class WriterTestHelper {
                 && header->pixelDepth == pixelDepth
                 && header->numberOfArrayElements == numberOfArrayElements
                 && header->numberOfFaces == numberOfFaces
-                && header->numberOfMipmapLevels == numberOfMipmapLevels)
+                && header->numberOfMipLevels == numberOfMipLevels)
                 return true;
             else
                 return false;
         }
+
+        bool compare(KTX_header2* header) {
+        VkFormat format =
+          vkGetFormatFromOpenGLInternalFormat(glInternalFormat);
+
+        // Should find better way to test this. Code we're testing uses the
+        // same switch to convert format.
+        if (header->vkFormat == format
+            && header->pixelWidth == pixelWidth
+            && header->pixelHeight == pixelHeight
+            && header->pixelDepth == pixelDepth
+            && header->arrayElementCount == numberOfArrayElements
+            && header->faceCount == numberOfFaces
+            && header->levelCount == numberOfMipLevels
+            && header->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
+            && header->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
+            return true;
+        else
+            return false;
+    }
+
     } texinfo;
 };
