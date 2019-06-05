@@ -41,6 +41,10 @@
 #  define IMAGE_DEBUG 0
 #endif
 
+#if defined(_MSC_VER)
+  #define strncasecmp _strnicmp
+#endif
+
 #define VERSION "1.0.0"
 
 struct commandOptions {
@@ -207,7 +211,7 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 
         if (inf) {
-            unsigned long basenamelen;
+            size_t basenamelen;
             outfile = options.outfile;
             if (!options.useStdin && !outfile) {
                 size_t outfilelen = _tcslen(infile) + 1;
@@ -216,7 +220,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     basenamelen = outfilelen;
                     outfilelen += 5;
                 } else {
-                    unsigned long extlen = _tcslen(extension);
+                    size_t extlen = _tcslen(extension);
                     basenamelen = extension - infile;
                     if (extlen < 5) {
                         outfilelen += 5 - extlen;
@@ -242,7 +246,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
             if (!outf && errno == EEXIST) {
                 if (!options.force) {
-                    if (isatty(fileno(stdin))) {
+                    if (_isatty(_fileno(stdin))) {
                         char answer;
                         cout << "Output file " << outfile
                              << "exists. Overwrite? [Y or n] ";

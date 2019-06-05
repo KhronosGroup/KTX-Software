@@ -36,6 +36,7 @@
 #define __USE_POSIX 1      // For declaration of fileno.
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>     // For stat.h on Windows
 #define __USE_MISC 1       // For declaration of S_IF...
 #include <sys/stat.h>
 
@@ -43,6 +44,7 @@
 #include "ktxint.h"
 #include "filestream.h"
 
+// Gotta love Windows :-(
 #if defined(_MSC_VER)
   #if defined(_WIN64)
     #define ftello _ftelli64
@@ -52,6 +54,11 @@
     #define fseeko fseek
   #endif
   #define fileno _fileno
+  #define fstat _fstat
+  #define stat _stat
+  #define S_IFIFO _S_IFIFO
+  #define S_IFSOCK 0xC000
+  typedef unsigned short mode_t;
 #endif
 
 #define KTX_FILE_STREAM_MAX (1 << (sizeof(ktx_off_t) - 1) - 1)

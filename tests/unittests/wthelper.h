@@ -56,7 +56,9 @@ class WriterTestHelper {
     };
     typedef ktx_uint32_t createFlags;
 
-    WriterTestHelper() { }
+    WriterTestHelper() { 
+        memcpy(writer_ktx2, "WriteTestHelper 1.0", sizeof(writer_ktx2));
+    }
 
     void resize(createFlags flags,
                 ktx_uint32_t numLayers, ktx_uint32_t numFaces,
@@ -289,7 +291,7 @@ class WriterTestHelper {
     ktx_uint8_t* kvDataAll_ktx2;
     ktx_uint32_t kvDataLenAll_ktx2;
     char orientation_ktx2[4];
-    char writer_ktx2[20] = "WriteTestHelper 1.0";
+    char writer_ktx2[20];
 
     ktx_size_t imageDataSize;
     std::vector< std::vector < std::vector < std::vector<component_type> > > > images;

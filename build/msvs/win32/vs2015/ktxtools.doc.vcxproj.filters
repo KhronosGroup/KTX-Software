@@ -16,6 +16,15 @@
     <Filter Include="tools\toktx\_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\ktx2ktx2">
+      <UniqueIdentifier>{F903D08D-6D9F-A1B5-CB58-35DA8B95E3CD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\ktx2ktx2\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtools.gyp"/>
@@ -27,6 +36,9 @@
     </None>
     <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
       <Filter>tools\toktx\_excluded_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp">
+      <Filter>tools\ktx2ktx2\_excluded_files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

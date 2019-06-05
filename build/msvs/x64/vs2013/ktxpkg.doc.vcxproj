@@ -140,8 +140,8 @@
       <Project>{5BC75E14-5CAF-40BD-C652-4DB9425F7109}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="toktx.doc.vcxproj">
-      <Project>{770FF635-15C3-8254-495A-44FEFE19610B}</Project>
+    <ProjectReference Include="ktxtools.doc.vcxproj">
+      <Project>{58872D14-EBEB-4C67-71C4-721188165521}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

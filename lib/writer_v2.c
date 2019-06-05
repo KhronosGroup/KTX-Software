@@ -35,7 +35,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
+#if defined(__GNUC__)
+#include <strings.h>  // For strncasecmp on GNU/Linux
+#endif
 #include "ktx.h"
 #include "ktxint.h"
 #include "stream.h"
@@ -45,6 +47,10 @@
 #include "dfdutils/dfd.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
+
+#if defined(_MSC_VER)
+#define strncasecmp _strnicmp
+#endif
 
 /**
  * @defgroup writer Writer
