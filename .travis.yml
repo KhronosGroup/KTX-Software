@@ -157,6 +157,10 @@ script:
     ;;
     esac
 
+# See if this helps with truncated logs.
+after_script:
+ - sleep 10
+
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 
 deploy:
