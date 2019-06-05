@@ -35,8 +35,8 @@
               'action_name': 'buildKtxtoolsDoc',
               'message': 'Generating KTX Tools documentation with Doxygen',
               'inputs': [
-                '../../<(doxyConfig)',
-                '../../runDoxygen',
+                '../<(doxyConfig)',
+                '../runDoxygen',
                 'toktx/toktx.cpp',
                 'ktx2ktx2/ktx2ktx2.cpp',
               ],
