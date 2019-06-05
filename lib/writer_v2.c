@@ -250,7 +250,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         ktx_size_t imageSize;
 #define DUMP_IMAGE 0
 #if defined(DEBUG) || DUMP_IMAGE
-        ktx_size_t pos;
+        ktx_off_t pos;
 #endif
 
         --level; // Calc proper level number for below. Conveniently
@@ -323,6 +323,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         }
     }
 
+cleanup:
     free(dfd);
     free(levelIndex);
     return result;
