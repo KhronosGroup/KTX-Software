@@ -36,6 +36,7 @@
 #define __USE_POSIX 1      // For declaration of fileno.
 #include <stdio.h>
 #include <stdlib.h>
+#define __USE_MISC 1       // For declaration of S_IF...
 #include <sys/stat.h>
 
 #include "ktx.h"

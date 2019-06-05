@@ -489,11 +489,11 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
  * @~English
  * @brief Return the key of a ktxHashListEntry
  *
- * @param [in]      This        The target hash list entry.
- * @param [in,out] pValueLen    @p *pValueLen is set to the number of bytes of
- *                              data in the returned value.
- * @param [in,out] ppValue      @p *ppValue is set to the point to the value for
- *                              @p key.
+ * @param [in]     This       The target hash list entry.
+ * @param [in,out] pKeyLen    @p *pKeyLen is set to the byte length of
+ *                            the returned key.
+ * @param [in,out] ppKey      @p *ppKey is set to the point to the value of
+ *                            @p the key.
  *
  * @return KTX_SUCCESS or one of the following error codes.
  *

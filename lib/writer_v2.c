@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include "ktx.h"
 #include "ktxint.h"
 #include "stream.h"

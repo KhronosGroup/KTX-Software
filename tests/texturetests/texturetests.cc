@@ -34,6 +34,7 @@
   #endif
 #endif
 
+#include <limits.h>
 #include <stdint.h>
 #include <string.h>
 #include "GL/glcorearb.h"
@@ -1463,7 +1464,7 @@ class ktxTextureWriteKTX2TestBase
             ktxLevelIndexEntry* levelIndex =
                 reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
 
-            ktx_uint64_t offset = LONG_MAX;
+            ktx_uint64_t offset = UINT64_MAX;
             for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
                 ktx_uint64_t levelOffset = levelIndex[level].offset;
                 // Check offset is properly aligned.
