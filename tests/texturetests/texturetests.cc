@@ -818,7 +818,7 @@ TEST(ktxTexture_calcImageSize, ImageSizeAtEachLevelRGBA2D) {
     EXPECT_EQ(result, KTX_SUCCESS);
     ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                  << ktxErrorString(result);
-    for (int i = 0; i < createInfo.numLevels; i++) {
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t imageSize;
         imageSize = ktxTexture_calcImageSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(imageSize, ktx1sizes[i]);
@@ -843,7 +843,7 @@ TEST(ktxTexture_calcImageSize, ImageSizeAtEachLevelRGB2D) {
     EXPECT_EQ(result, KTX_SUCCESS);
     ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                  << ktxErrorString(result);
-    for (int i = 0; i < createInfo.numLevels; i++) {
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t imageSize;
         imageSize = ktxTexture_calcImageSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(imageSize, ktx1sizes[i]);
@@ -872,7 +872,7 @@ TEST(ktxTexture_calcLevelSize, SizeOfEachLevelRGBA2D) {
     EXPECT_EQ(result, KTX_SUCCESS);
     ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                  << ktxErrorString(result);
-    for (int i = 0; i < createInfo.numLevels; i++) {
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelSize;
         levelSize = ktxTexture_calcLevelSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(levelSize, ktx1sizes[i]);
@@ -897,7 +897,7 @@ TEST(ktxTexture_calcLevelSize, SizeOfEachLevelRGB2D) {
     EXPECT_EQ(result, KTX_SUCCESS);
     ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                  << ktxErrorString(result);
-    for (int i = 0; i < createInfo.numLevels; i++) {
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelSize;
         levelSize = ktxTexture_calcLevelSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(levelSize, ktx1sizes[i]);
@@ -927,7 +927,7 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGBA2D) {
     EXPECT_EQ(result, KTX_SUCCESS);
     ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                  << ktxErrorString(result);
-    for (int i = 0; i < createInfo.numLevels; i++) {
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelOffset;
         levelOffset = ktxTexture_calcLevelOffset(texture, i,
                                                  KTX_FORMAT_VERSION_ONE);
@@ -955,7 +955,7 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGB2D) {
     EXPECT_EQ(result, KTX_SUCCESS);
     ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                  << ktxErrorString(result);
-    for (int i = 0; i < createInfo.numLevels; i++) {
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelOffset;
         levelOffset = ktxTexture_calcLevelOffset(texture, i,
                                                  KTX_FORMAT_VERSION_ONE);

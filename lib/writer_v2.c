@@ -260,7 +260,6 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         }
     }
     
-cleanup:
     free(dfd);
     free(levelIndex);
     return result;
