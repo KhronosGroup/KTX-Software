@@ -21,7 +21,11 @@
 ** limitations under the License.
 */
 
+#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.
+typedef unsigned __int32 VkFlags;
+#else
 typedef uint32_t VkFlags;
+#endif
 
 typedef enum VkFormat {
     VK_FORMAT_UNDEFINED = 0,
