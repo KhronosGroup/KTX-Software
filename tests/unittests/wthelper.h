@@ -301,14 +301,11 @@ class WriterTestHelper {
             && header->pixelWidth == pixelWidth
             && header->pixelHeight == pixelHeight
             && header->pixelDepth == pixelDepth
-            && header->numberOfArrayElements == numberOfArrayElements
-            && header->numberOfFaces == numberOfFaces
-            && header->numberOfMipLevels == numberOfMipLevels
+            && header->arrayElementCount == numberOfArrayElements
+            && header->faceCount == numberOfFaces
+            && header->levelCount == numberOfMipLevels
             && header->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
-            && header->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE
-            /* XXX FIXME. Figure out how to test these.
-            && header->bytesOfImages == ?
-            && header->bytesOfUncompressedImages == ?*/)
+            && header->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
             return true;
         else
             return false;

@@ -102,16 +102,11 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     header.pixelWidth = This->baseWidth;
     header.pixelHeight = This->baseHeight;
     header.pixelDepth = This->baseDepth;
-    header.numberOfArrayElements = This->isArray ? This->numLayers : 0;
+    header.arrayElementCount = This->isArray ? This->numLayers : 0;
     assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
-    header.numberOfFaces = This->numFaces;
+    header.faceCount = This->numFaces;
     assert (This->generateMipmaps? This->numLevels == 1 : This->numLevels >= 1);
-    header.numberOfMipLevels = This->generateMipmaps ? 0 : This->numLevels;
-    header.bytesOfUncompressedImages = ktxTexture_calcDataSizeTexture(
-                                                        This,
-                                                        KTX_FORMAT_VERSION_TWO
-                                                    );
-    header.bytesOfImages = header.bytesOfUncompressedImages;
+    header.levelCount = This->generateMipmaps ? 0 : This->numLevels;
 
     levelIndexSize = sizeof(ktxLevelIndexEntry) * This->numLevels;
     levelIndex = (ktxLevelIndexEntry*) malloc(levelIndexSize);

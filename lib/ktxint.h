@@ -39,8 +39,8 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #endif
 
-#define KTX2_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x32, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
-#define KTX2_HEADER_SIZE     (96)
+#define KTX2_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x30, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
+#define KTX2_HEADER_SIZE     (80)
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,12 +117,10 @@ typedef struct KTX_header2 {
     ktx_uint32_t pixelWidth;
     ktx_uint32_t pixelHeight;
     ktx_uint32_t pixelDepth;
-    ktx_uint32_t numberOfArrayElements;
-    ktx_uint32_t numberOfFaces;
-    ktx_uint32_t numberOfMipLevels;
+    ktx_uint32_t arrayElementCount;
+    ktx_uint32_t faceCount;
+    ktx_uint32_t levelCount;
     ktx_uint32_t supercompressionScheme;
-    ktx_uint64_t bytesOfImages;
-    ktx_uint64_t bytesOfUncompressedImages;
     ktxIndexEntry32 dataFormatDescriptor;
     ktxIndexEntry32 keyValueData;
     ktxIndexEntry64 supercompressionGlobalData;
