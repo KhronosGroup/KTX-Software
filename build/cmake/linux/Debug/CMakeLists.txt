@@ -48,7 +48,8 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/swap.c"
   "../../../../lib/texture.c"
   "../../../../lib/writer.c"
-  "../../../../lib/writer_v1.c"
+  "../../../../lib/writer_apiv1.c"
+  "../../../../lib/writer_v2.c"
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")
 list(APPEND libktx_es3__cxx_srcs
@@ -128,7 +129,8 @@ list(APPEND libktx_es1__c_srcs
   "../../../../lib/swap.c"
   "../../../../lib/texture.c"
   "../../../../lib/writer.c"
-  "../../../../lib/writer_v1.c")
+  "../../../../lib/writer_apiv1.c"
+  "../../../../lib/writer_v2.c")
 list(APPEND libktx_es1__cxx_srcs
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
@@ -212,7 +214,8 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_v1.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_apiv1.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_v2.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
@@ -266,7 +269,8 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/swap.c"
   "../../../../lib/texture.c"
   "../../../../lib/writer.c"
-  "../../../../lib/writer_v1.c"
+  "../../../../lib/writer_apiv1.c"
+  "../../../../lib/writer_v2.c"
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")
 list(APPEND libktx_gl__cxx_srcs

@@ -62,7 +62,8 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/texture.o \
 	$(obj).target/$(TARGET)/lib/writer.o \
-	$(obj).target/$(TARGET)/lib/writer_v1.o \
+	$(obj).target/$(TARGET)/lib/writer_apiv1.o \
+	$(obj).target/$(TARGET)/lib/writer_v2.o \
 	$(obj).target/$(TARGET)/lib/vkloader.o \
 	$(obj).target/$(TARGET)/lib/vk_funcs.o
 
