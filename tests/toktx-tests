@@ -66,8 +66,10 @@ else
   exit 1
 fi
 
-echo "CWD is $(pwd)"
-echo "toktx is $(toktx)"
+pwd=$(pwd)
+echo "CWD is $pwd"
+ls $(dirname $pwd)
+echo "toktx is $toktx"
 
 numtests=$numtests+1
 if $toktx --help 2> /dev/null; then
