@@ -81,10 +81,10 @@ static inline GLenum glGetFormatFromInternalFormat( const GLenum internalFormat 
 static inline GLenum glGetTypeFromInternalFormat( const GLenum internalFormat );
 static inline void glGetFormatSize( const GLenum internalFormat, GlFormatSize * pFormatSize );
 static inline unsigned int glGetTypeSizeFromType( const GLenum type );
- 
+
 MODIFICATIONS for use in libktx
 ===============================
- 
+
 2018.3.23 Added glGetTypeSizeFromType. Mark Callow, Edgewise Consulting.
 2019.3.09 #if 0 around GL type declarations. Mark Callow,     〃
 
@@ -480,7 +480,7 @@ Internal format to glTexImage2D, glTexImage3D, glCompressedTexImage2D, glCompres
 #define GL_RG32I										0x823B
 #endif
 #if !defined( GL_RGB32I )
-#define GL_RGB32I										0x8D83	// same as GL_RGB32I_EXT 
+#define GL_RGB32I										0x8D83	// same as GL_RGB32I_EXT
 #endif
 #if !defined( GL_RGBA32I )
 #define GL_RGBA32I										0x8D82	// same as GL_RGBA32I_EXT
@@ -1598,7 +1598,7 @@ static inline unsigned int glGetTypeSizeFromType(GLenum type)
         case GL_UNSIGNED_BYTE_3_3_2:
         case GL_UNSIGNED_BYTE_2_3_3_REV:
             return 1;
-            
+
         case GL_SHORT:
         case GL_UNSIGNED_SHORT:
         case GL_UNSIGNED_SHORT_5_6_5:
@@ -1609,7 +1609,7 @@ static inline unsigned int glGetTypeSizeFromType(GLenum type)
         case GL_UNSIGNED_SHORT_1_5_5_5_REV:
         case GL_HALF_FLOAT:
             return 2;
-            
+
         case GL_INT:
         case GL_UNSIGNED_INT:
         case GL_UNSIGNED_INT_8_8_8_8:

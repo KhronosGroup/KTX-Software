@@ -50,7 +50,7 @@
 
 #if (IOS + MACOS + UNIX + WINDOWS) > 1
 #error "Multiple OS\'s defined"
-#endif 
+#endif
 
 #if WINDOWS
 #define WINDOWS_LEAN_AND_MEAN

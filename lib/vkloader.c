@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 /**
  * @internal
  * @file
@@ -95,7 +95,7 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  * @memberof ktxVulkanDeviceInfo
  * @~English
  * @brief Create a ktxVulkanDeviceInfo object.
- * 
+ *
  * Allocates CPU memory for a ktxVulkanDeviceInfo object then calls
  * ktxVulkanDeviceInfo_construct(). See it for documentation of the
  * parameters.
@@ -810,7 +810,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
              */
             numCopyRegions = This->isArray ? This->numLevels
                                   : This->numLevels * This->numFaces;
-            /* 
+            /*
              * Add extra space to allow for possible padding described
              * above. A bit ad-hoc but it's only a small amount of
              * memory.
@@ -1126,7 +1126,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
  * Calls ktxTexture_VkUploadEx() with the most commonly used options:
  * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
  * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- * 
+ *
  * @sa ktxTexture_VkUploadEx() for details and use that for complete
  *     control.
  */

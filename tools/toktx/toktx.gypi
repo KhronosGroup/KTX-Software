@@ -2,7 +2,7 @@
 # @internal
 # @copyright © 2015, Mark Callow. For license see LICENSE.md.
 #
-# @brief Generate project files for building KTX tools.
+# @brief Generate project files for building the toktx tool.
 #
 {
   'variables': { # level 1
@@ -92,49 +92,6 @@
             }, # toktx-tests action
           ], # actions
         }, # toktx-tests target
-        {
-          'target_name': 'toktx.doc',
-          'type': 'none',
-          'variables': { # level 1
-            'variables': { # level 2
-              'output_dir': '../../build/docs',
-            },
-            'output_dir': '<(output_dir)',
-            'doxyConfig': 'ktxtools.doxy',
-            'timestamp': '<(output_dir)/.toktxdoc_gentimestamp',
-          },
-          # It is not possible to chain commands in an action with
-          # && because the generators will quote such strings.
-          # Instead we use an external script.
-          # these actions
-          'actions': [
-            {
-              'action_name': 'buildToktxDoc',
-              'message': 'Generating toktx documentation with Doxygen',
-              'inputs': [
-                '../../<(doxyConfig)',
-                '../../runDoxygen',
-                'toktx.cpp',
-              ],
-              # See ../../lib/libktx.gypi for comment about why only
-              # timestamp is in this list.
-              'outputs': [ '<(timestamp)' ],
-              # doxygen must be run in the top-level project directory
-              # so that ancestors of that directory will be removed
-              # from paths displayed in the documentation. That is also
-              # the directory where the .doxy and .gyp files are stored.
-              #
-              # See ../../lib/libktx.gypi for further comments.
-              'msvs_cygwin_shell': 1,
-              'action': [
-                './runDoxygen',
-                '-t', '<(timestamp)',
-                '-o', '<(output_dir)/html',
-                '<(doxyConfig)',
-              ],
-            }, # buildToktxDoc action
-          ], # actions
-        }, # toktx.doc
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ] # conditions for conditional targets

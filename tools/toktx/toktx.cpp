@@ -122,10 +122,10 @@ static void dumpImage(_TCHAR* name, int width, int height, int components,
 
 Create a KTX file from netpbm format files.
  
-@section synopsis SYNOPSIS
+@section toktx_synopsis SYNOPSIS
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
 
-@section description DESCRIPTION
+@section toktx_description DESCRIPTION
     @b toktx creates Khronos format texture files (KTX) from a set of Netpbm
     format  (.pam, .pgm, .ppm) images. Currently it only supports creating KTX
     files holding 2D and cube map textures. It writes the destination ktx file
@@ -210,7 +210,7 @@ Create a KTX file from netpbm format files.
     You can, for example, set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change
     the default mapping of the logical image origin to match the GL convention.
 
-@section exitstatus EXIT STATUS
+@section toktx_exitstatus EXIT STATUS
     @b toktx exits 0 on success, 1 on command line errors and 2 on
     functional errors.
 
@@ -232,7 +232,7 @@ Fri Oct 13 18:15:05 2017 +0900
 Sun Dec 25 07:02:41 2016 -0200
  - Moved --alpha and --luminance to legacy.
 
-@section author AUTHOR
+@section toktx_author AUTHOR
     Mark Callow, Edgewise Consulting www.edgewise-consulting.com
 */
 

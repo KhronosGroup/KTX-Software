@@ -21,10 +21,10 @@ action_ktxdoc_gyp_ktxpkg_doc_target_buildPackageDoc_outputs := build/docs/.packa
 $(obj).target/ktxpkg.doc.stamp: | $(action_ktxdoc_gyp_ktxpkg_doc_target_buildPackageDoc_outputs)
 
 # Preserve order dependency of special output on deps.
-$(action_ktxdoc_gyp_ktxpkg_doc_target_buildPackageDoc_outputs): | $(obj).target/libktx.doc.stamp $(obj).target/toktx.doc.stamp
+$(action_ktxdoc_gyp_ktxpkg_doc_target_buildPackageDoc_outputs): | $(obj).target/libktx.doc.stamp $(obj).target/ktxtools.doc.stamp
 
 $(obj).target/ktxpkg.doc.stamp: TOOLSET := $(TOOLSET)
-$(obj).target/ktxpkg.doc.stamp: $(obj).target/libktx.doc.stamp $(obj).target/toktx.doc.stamp FORCE_DO_CMD
+$(obj).target/ktxpkg.doc.stamp: $(obj).target/libktx.doc.stamp $(obj).target/ktxtools.doc.stamp FORCE_DO_CMD
 	$(call do_cmd,touch)
 
 all_deps += $(obj).target/ktxpkg.doc.stamp

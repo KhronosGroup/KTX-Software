@@ -81,13 +81,13 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
     ktx_uint32_t faceLodPadding;
 #endif
-    
+
     if (!This || !src)
         return KTX_INVALID_VALUE;
-    
+
     if (!This->pData)
         return KTX_INVALID_OPERATION;
-    
+
     ktxTexture_GetImageOffset(This, level, layer, faceSlice, &imageOffset);
 
     if (This->isCompressed) {
@@ -107,17 +107,17 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
             packedBytes = unpackedBytes;
         }
     }
-    
+
     if (srcSize != packedBytes)
         return KTX_INVALID_OPERATION;
     // The above will catch a flagrantly invalid srcSize. This is an
     // additional check of the internal calculations.
     assert (imageOffset + srcSize <= This->dataSize);
-    
+
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
     faceLodPadding = _KTX_PAD4_LEN(faceLodSize);
 #endif
-    
+
     if (rowPadding == 0) {
         /* Can copy whole image at once */
         src->read(src, This->pData + imageOffset, srcSize);
@@ -181,7 +181,7 @@ ktxTexture_SetImageFromStdioStream(ktxTexture* This, ktx_uint32_t level,
 {
     ktxStream srcstr;
     KTX_error_code result;
-    
+
     result = ktxFileStream_construct(&srcstr, src, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
@@ -229,7 +229,7 @@ ktxTexture_SetImageFromMemory(ktxTexture* This, ktx_uint32_t level,
 {
     ktxStream srcstr;
     KTX_error_code result;
-    
+
     result = ktxMemStream_construct_ro(&srcstr, src, srcSize);
     if (result != KTX_SUCCESS)
         return result;
@@ -266,11 +266,11 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
     ktx_uint32_t level, levelOffset;
-    
+
     if (!dststr) {
         return KTX_INVALID_VALUE;
     }
-    
+
     if (This->pData == NULL)
         return KTX_INVALID_OPERATION;
 
@@ -289,7 +289,7 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     header.numberOfFaces = This->numFaces;
     assert (This->generateMipmaps ? This->numLevels == 1 : This->numLevels >= 1);
     header.numberOfMipLevels = This->generateMipmaps ? 0 : This->numLevels;
-    
+
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.bytesOfKeyValueData = kvdLen;
 
@@ -297,7 +297,7 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     result = dststr->write(dststr, &header, sizeof(KTX_header), 1);
     if (result != KTX_SUCCESS)
         return result;
-    
+
     //write keyValueData
     if (kvdLen != 0) {
         assert(pKvd != NULL);
@@ -307,13 +307,13 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
         if (result != KTX_SUCCESS)
             return result;
     }
-    
+
     /* Write the image data */
     for (level = 0, levelOffset=0; level < This->numLevels; ++level)
     {
         ktx_uint32_t faceLodSize, layer, levelDepth, numImages;
         ktx_size_t imageSize;
-        
+
         faceLodSize = (ktx_uint32_t)ktxTexture_calcFaceLodSize(This,
                                                     level,
                                                     KTX_FORMAT_VERSION_ONE);
@@ -323,14 +323,14 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
             numImages = This->numFaces;
         else
             numImages = This->isCubemap ? This->numFaces : levelDepth;
-        
+
         result = dststr->write(dststr, &faceLodSize, sizeof(faceLodSize), 1);
         if (result != KTX_SUCCESS)
             goto cleanup;
 
         for (layer = 0; layer < This->numLayers; layer++) {
             ktx_uint32_t faceSlice;
-            
+
             for (faceSlice = 0; faceSlice < numImages; faceSlice++) {
                 result = dststr->write(dststr, This->pData + levelOffset,
                                        imageSize, 1);
@@ -338,7 +338,7 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
             }
         }
     }
-    
+
 cleanup:
     return result;
 }
@@ -366,14 +366,14 @@ ktxTexture_WriteToStdioStream(ktxTexture* This, FILE* dstsstr)
 {
     ktxStream stream;
     KTX_error_code result = KTX_SUCCESS;
-    
+
     if (!This)
         return KTX_INVALID_VALUE;
-    
+
     result = ktxFileStream_construct(&stream, dstsstr, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
-    
+
     return ktxTexture_writeToStream(This, &stream);
 }
 
@@ -410,7 +410,7 @@ ktxTexture_WriteToNamedFile(ktxTexture* This, const char* const dstname)
         fclose(dst);
     } else
         result = KTX_FILE_OPEN_FAILED;
-    
+
     return result;
 }
 
@@ -451,18 +451,18 @@ ktxTexture_WriteToMemory(ktxTexture* This,
         return KTX_INVALID_VALUE;
 
     *ppDstBytes = NULL;
-    
+
     result = ktxMemStream_construct(&dststr, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
-    
+
     result = ktxTexture_writeToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
         ktxMemStream_destruct(&dststr);
         return result;
     }
-    
+
     ktxMemStream_getdata(&dststr, ppDstBytes);
     dststr.getsize(&dststr, &strSize);
     *pSize = (GLsizei)strSize;

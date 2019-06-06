@@ -15,7 +15,7 @@
 			);
 			dependencies = (
 				484350E9655F8AF9ED1A5F68 /* PBXTargetDependency */,
-				2F4F87582F2414CC5DF4A9AF /* PBXTargetDependency */,
+				4FFD51B7C725A6028E9ADA70 /* PBXTargetDependency */,
 			);
 			name = ktxpkg.doc;
 			productName = ktxpkg.doc;
@@ -44,6 +44,20 @@
 			remoteGlobalIDString = F552AA19D91ECB8C25731D64;
 			remoteInfo = libktx.gl;
 		};
+		4FAA6414D02D87C7174E0019 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E3BA32ED6EED37DFEB7D6065;
+			remoteInfo = ktxtools.doc;
+		};
+		550E006C1EEBA4B6B11C95B0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AD6D20B5B8EFE56354894AF5;
+			remoteInfo = ktx2ktx2;
+		};
 		6BB0B1F115D93A2B0C9F9512 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */;
@@ -57,13 +71,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1DECD74B6E574582E25FE647;
 			remoteInfo = libktx.doc;
-		};
-		8A35204DBE998CEFE75B6592 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 5BCE88AC04AA437E00153253;
-			remoteInfo = toktx.doc;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -137,20 +144,21 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6A894B830B84989E26D54430 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				6527CB59EC7BD66F84551A43 /* toktx */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		94460DA796B8ACC170ECC8D5 /* build/docs */ = {
 			isa = PBXGroup;
 			children = (
 				1B1F976EC113DB121F7457DF /* .package_gentimestamp */,
 			);
 			path = build/docs;
+			sourceTree = "<group>";
+		};
+		A5C8C970E2E1F3D19E828AEF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F9934D9176BC8628BB9DD710 /* ktx2ktx2 */,
+				6527CB59EC7BD66F84551A43 /* toktx */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		BF6BBCF6FD1598C3AA7A53FC /* pkgdoc */ = {
@@ -180,7 +188,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = 6A894B830B84989E26D54430 /* Products */;
+					ProductGroup = A5C8C970E2E1F3D19E828AEF /* Products */;
 					ProjectRef = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
 				},
 				{
@@ -224,6 +232,13 @@
 			remoteRef = 6BB0B1F115D93A2B0C9F9512 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		F9934D9176BC8628BB9DD710 /* ktx2ktx2 */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = ktx2ktx2;
+			remoteRef = 550E006C1EEBA4B6B11C95B0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -251,15 +266,15 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		2F4F87582F2414CC5DF4A9AF /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = toktx.doc;
-			targetProxy = 8A35204DBE998CEFE75B6592 /* PBXContainerItemProxy */;
-		};
 		484350E9655F8AF9ED1A5F68 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = libktx.doc;
 			targetProxy = 6E3ADCBD6903DB7AF83B8A3C /* PBXContainerItemProxy */;
+		};
+		4FFD51B7C725A6028E9ADA70 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ktxtools.doc;
+			targetProxy = 4FAA6414D02D87C7174E0019 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

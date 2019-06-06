@@ -30,6 +30,7 @@ BEGIN {
     format_hdr = output_dir "vkformat_enum.h"
     format_strings = output_dir "vkformat_str.c"
     format_prohibited = output_dir "vkformat_prohibited.c"
+    print "output_dir: " output_dir
     if (ENVIRON["VULKAN_SDK"]) {
         vulkan_include_root = ENVIRON["VULKAN_SDK"];
     } else {

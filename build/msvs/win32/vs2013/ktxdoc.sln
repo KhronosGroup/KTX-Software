@@ -3,12 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 13.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxpkg.doc", "ktxpkg.doc.vcxproj", "{F73B5108-8B5E-9CD9-3094-AE292F89BABB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436} = {E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}
-		{230BBD86-7C20-7C6C-6450-9355DE3CE08C} = {230BBD86-7C20-7C6C-6450-9355DE3CE08C}
+		{1A602353-6DE1-A893-008A-2EF150AAA4F8} = {1A602353-6DE1-A893-008A-2EF150AAA4F8}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{1A602353-6DE1-A893-008A-2EF150AAA4F8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx.doc", "toktx.doc.vcxproj", "{230BBD86-7C20-7C6C-6450-9355DE3CE08C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,10 +16,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{230BBD86-7C20-7C6C-6450-9355DE3CE08C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{230BBD86-7C20-7C6C-6450-9355DE3CE08C}.Debug|Win32.Build.0 = Debug|Win32
-		{230BBD86-7C20-7C6C-6450-9355DE3CE08C}.Release|Win32.ActiveCfg = Release|Win32
-		{230BBD86-7C20-7C6C-6450-9355DE3CE08C}.Release|Win32.Build.0 = Release|Win32
+		{1A602353-6DE1-A893-008A-2EF150AAA4F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1A602353-6DE1-A893-008A-2EF150AAA4F8}.Debug|Win32.Build.0 = Debug|Win32
+		{1A602353-6DE1-A893-008A-2EF150AAA4F8}.Release|Win32.ActiveCfg = Release|Win32
+		{1A602353-6DE1-A893-008A-2EF150AAA4F8}.Release|Win32.Build.0 = Release|Win32
 		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}.Debug|Win32.ActiveCfg = Debug|Win32
 		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}.Debug|Win32.Build.0 = Debug|Win32
 		{E49C38C6-322F-BEA0-B5D3-8FBD5CAFD436}.Release|Win32.ActiveCfg = Release|Win32

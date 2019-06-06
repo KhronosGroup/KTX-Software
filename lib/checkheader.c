@@ -51,7 +51,7 @@
  * @param pHeader   pointer to the KTX header to check
  * @param pSuppInfo pointer to a KTX_supplementary_info structure in which to
  *                  return information about the texture.
- * 
+ *
  * @author Georg Kolling, Imagination Technology
  * @author Mark Callow, HI Corporation
  */
@@ -60,7 +60,7 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
 {
     ktx_uint8_t identifier_reference[12] = KTX_IDENTIFIER_REF;
     ktx_uint32_t max_dim;
-    
+
     assert(pHeader != NULL && pSuppInfo != NULL);
 
     /* Compare identifier, is this a KTX file? */
@@ -98,7 +98,7 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
         }
         pSuppInfo->compressed = 1;
     }
-    
+
     if (pHeader->glFormat == pHeader->glInternalformat) {
         // glInternalFormat is either unsized (which is no longer and should
         // never have been supported by libktx) or glFormat is sized.
@@ -113,10 +113,10 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
     {
         /* texture must have width */
         /* texture must have height if it has depth */
-        return KTX_FILE_DATA_ERROR; 
+        return KTX_FILE_DATA_ERROR;
     }
 
-    
+
     if (pHeader->pixelDepth > 0)
     {
         if (pHeader->numberOfArrayElements > 0)
@@ -148,7 +148,7 @@ KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
         /* numberOfFaces must be either 1 or 6 */
         return KTX_FILE_DATA_ERROR;
     }
-    
+
     /* Check number of mipmap levels */
     if (pHeader->numberOfMipLevels == 0)
     {

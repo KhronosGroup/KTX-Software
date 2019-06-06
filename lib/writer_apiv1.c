@@ -161,7 +161,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
     {
         GlFormatSize formatInfo;
         GLenum expectedFormat, expectedType;
-        
+
         expectedFormat = getFormatFromInternalFormatLegacy(header.glInternalformat);
         if (expectedFormat == GL_INVALID_VALUE
             || expectedFormat != header.glFormat)
@@ -218,12 +218,12 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
         /* numberOfFaces must be either 1 or 6 */
         return KTX_INVALID_VALUE;
     }
- 
+
     if (header.numberOfArrayElements == 0)
         numArrayElements = 1;
     else
         numArrayElements = header.numberOfArrayElements;
-    
+
     if (header.numberOfFaces == 6)
         cubemap = 1;
 
@@ -314,7 +314,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
         faceLodPadding = _KTX_PAD4_LEN(faceLodSize);
 #endif
- 
+
         result = stream->write(stream, &faceLodSize, sizeof(faceLodSize), 1);
         if (result != KTX_SUCCESS)
             goto cleanup;
@@ -431,7 +431,7 @@ ktxWriteKTXF(FILE *file, const KTX_texture_info* textureInfo,
 {
     struct ktxStream stream;
     KTX_error_code result;
-    
+
     result = ktxFileStream_construct(&stream, file, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
@@ -608,11 +608,11 @@ getFormatFromInternalFormatLegacy(GLenum internalFormat)
       case GL_LUMINANCE8:
       case GL_LUMINANCE16:
         return GL_LUMINANCE;
-            
+
       case GL_ALPHA8:
       case GL_ALPHA16:
         return GL_ALPHA;
-            
+
       case GL_LUMINANCE8_ALPHA8:
       case GL_LUMINANCE16_ALPHA16:
         return GL_LUMINANCE_ALPHA;
@@ -642,20 +642,20 @@ getTypeFromInternalFormatLegacy(GLenum internalFormat)
       case GL_LUMINANCE8:
       case GL_ALPHA8:
         return GL_UNSIGNED_BYTE;
-            
+
       case GL_LUMINANCE16:
       case GL_ALPHA16:
       case GL_LUMINANCE8_ALPHA8:
         return GL_UNSIGNED_SHORT;
-            
+
       case GL_LUMINANCE16_ALPHA16:
         return GL_UNSIGNED_INT;
-            
+
       default:
         return glGetTypeFromInternalFormat(internalFormat);
     }
 }
-        
+
 /**
  * @internal
  * @~English

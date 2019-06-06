@@ -205,7 +205,7 @@ static GLboolean supportsCubeMapArrays = GL_FALSE;
  * @brief Check for existence of OpenGL extension
  */
 static GLboolean
-hasExtension(const char* extension) 
+hasExtension(const char* extension)
 {
     if (pfGlGetStringi == NULL) {
         if (strstr(glGetString(GL_EXTENSIONS), extension) != NULL)
@@ -454,12 +454,12 @@ texImage1DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    
+
     assert(pfGlTexImage1D != NULL);
     pfGlTexImage1D(cbData->glTarget + face, miplevel,
                    cbData->glInternalformat, width, 0,
                    cbData->glFormat, cbData->glType, pixels);
-    
+
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;
     } else {
@@ -475,12 +475,12 @@ compressedTexImage1DCallback(int miplevel, int face,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    
+
     assert(pfGlCompressedTexImage1D != NULL);
     pfGlCompressedTexImage1D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat, width, 0,
                              faceLodSize, pixels);
-    
+
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;
     } else {
@@ -496,7 +496,7 @@ texImage2DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
- 
+
     glTexImage2D(cbData->glTarget + face, miplevel,
                  cbData->glInternalformat, width,
                  cbData->numLayers == 0 ? height : cbData->numLayers, 0,
@@ -520,7 +520,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
     GLenum glerror;
     KTX_error_code result;
-    
+
     // It is simpler to just attempt to load the format, rather than divine
     // which formats are supported by the implementation. In the event of an
     // error, software unpacking can be attempted.
@@ -529,7 +529,7 @@ compressedTexImage2DCallback(int miplevel, int face,
                            cbData->numLayers == 0 ? height : cbData->numLayers,
                            0,
                            faceLodSize, pixels);
-    
+
     glerror = glGetError();
 #if SUPPORT_SOFTWARE_ETC_UNPACK
     // Renderion is returning INVALID_VALUE. Oops!!
@@ -541,7 +541,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     {
         GLubyte* unpacked;
         GLenum format, internalformat, type;
-        
+
         result = _ktxUnpackETC((GLubyte*)pixels, cbData->glInternalformat,
                                   width, height, &unpacked,
                                   &format, &internalformat,
@@ -559,12 +559,12 @@ compressedTexImage2DCallback(int miplevel, int face,
                      internalformat, width,
                      cbData->numLayers == 0 ? height : cbData->numLayers, 0,
                      format, type, unpacked);
-        
+
         free(unpacked);
         glerror = glGetError();
     }
 #endif
-    
+
     if ((cbData->glError = glerror) == GL_NO_ERROR) {
         return KTX_SUCCESS;
     } else {
@@ -580,7 +580,7 @@ texImage3DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    
+
     assert(pfGlTexImage3D != NULL);
     pfGlTexImage3D(cbData->glTarget + face, miplevel,
                    cbData->glInternalformat,
@@ -588,7 +588,7 @@ texImage3DCallback(int miplevel, int face,
                    cbData->numLayers == 0 ? depth : cbData->numLayers,
                    0,
                    cbData->glFormat, cbData->glType, pixels);
-    
+
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;
     } else {
@@ -604,7 +604,7 @@ compressedTexImage3DCallback(int miplevel, int face,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    
+
     assert(pfGlCompressedTexImage3D != NULL);
     pfGlCompressedTexImage3D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat,
@@ -612,7 +612,7 @@ compressedTexImage3DCallback(int miplevel, int face,
                              cbData->numLayers == 0 ? depth : cbData->numLayers,
                              0,
                              faceLodSize, pixels);
-    
+
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;
     } else {
@@ -743,14 +743,14 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
         }
         cbData.numLayers = 0;
     }
-    
+
     if (target == GL_TEXTURE_1D &&
         ((This->isCompressed && (pfGlCompressedTexImage1D == NULL)) ||
          (!This->isCompressed && (pfGlTexImage1D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
-    
+
     /* Reject 3D texture if unsupported. */
     if (target == GL_TEXTURE_3D &&
         ((This->isCompressed && (pfGlCompressedTexImage3D == NULL)) ||
@@ -758,14 +758,14 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
-    
+
     /* Reject cube map arrays if not supported. */
     if (target == GL_TEXTURE_CUBE_MAP_ARRAY && !supportsCubeMapArrays) {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
-    
+
     /* XXX Need to reject other array textures & cube maps if not supported. */
-    
+
     switch (dimensions) {
       case 1:
         iterCb = This->isCompressed
@@ -782,9 +782,9 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
       default:
             assert(KTX_TRUE);
     }
-   
+
     glBindTexture(target, texname);
-    
+
     // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
     if (This->generateMipmaps && (pfGlGenerateMipmap == NULL)) {
         glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
@@ -799,7 +799,7 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
     } else {
         cbData.glTarget = target;
     }
-    
+
     cbData.glInternalformat = This->glInternalformat;
     cbData.glFormat = This->glFormat;
     if (!This->isCompressed) {
@@ -931,7 +931,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 {
     ktxTexture* texture;
     KTX_error_code result = KTX_SUCCESS;
-    
+
     if (ppKvd != NULL && pKvdLen == NULL)
         return KTX_INVALID_VALUE;
 
@@ -942,7 +942,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
         return result;
 
     result = ktxTexture_GLUpload(texture, pTexture, pTarget, pGlerror);
-    
+
     if (result == KTX_SUCCESS) {
         if (ppKvd != NULL) {
             *ppKvd = texture->kvData;
@@ -1077,7 +1077,7 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
 
     if (ppKvd != NULL && pKvdLen == NULL)
         return KTX_INVALID_VALUE;
-    
+
     result = ktxTexture_CreateFromMemory(bytes, size,
                                          KTX_TEXTURE_CREATE_RAW_KVDATA_BIT,
                                          &texture);
@@ -1106,7 +1106,7 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture,
                 *pIsMipmapped = GL_FALSE;
         }
     }
-    
+
     ktxTexture_Destroy(texture);
 
     return result;

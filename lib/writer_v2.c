@@ -35,6 +35,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(__GNUC__)
+#include <strings.h>  // For strncasecmp on GNU/Linux
+#endif
 #include "ktx.h"
 #include "ktxint.h"
 #include "stream.h"
@@ -44,6 +47,10 @@
 #include "dfdutils/dfd.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
+
+#if defined(_MSC_VER)
+#define strncasecmp _strnicmp
+#endif
 
 /**
  * @defgroup writer Writer
@@ -65,6 +72,12 @@
  * @exception KTX_INVALID_VALUE @p This or @p dststr is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain KTXwriter
+ *                              metadata.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture contains unknownY KTX- or ktx-
+ *                              prefixed metadata keys.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -74,7 +87,7 @@ static KTX_error_code
 ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
 {
     KTX_header2 header = KTX2_IDENTIFIER_REF;
-    KTX_error_code result = KTX_SUCCESS;
+    KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
     ktx_uint32_t align8PadLen;
@@ -84,18 +97,19 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     ktxLevelIndexEntry* levelIndex;
     ktx_uint32_t levelIndexSize;
     ktx_uint32_t offset;
-    
+
     if (!dststr) {
         return KTX_INVALID_VALUE;
     }
-    
+
     if (This->pData == NULL)
         return KTX_INVALID_OPERATION;
 
     header.vkFormat
             = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
+    // The above function does not return any formats in the prohibited list.
     if (header.vkFormat == VK_FORMAT_UNDEFINED) {
-        // XXX FIXME. Need to handle ASTC HDR & 3D.
+        // XXX TODO. Handle ASTC HDR & 3D.
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
     header.typeSize = ktxTexture_glTypeSize(This);
@@ -113,8 +127,6 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
 
     offset = sizeof(header) + levelIndexSize;
 
-    //VkFormatSize formatInfo = &((ktxTextureInt*)This)->formatInfo;
-
     ktx_uint32_t* dfd = createDFD4VkFormat(header.vkFormat);
     if (!dfd)
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
@@ -123,7 +135,61 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     header.dataFormatDescriptor.bytesOf = *dfd;
     offset += header.dataFormatDescriptor.bytesOf;
 
-    // XXX FIXME Need to convert KTXorientation before serializing.
+    ktxHashListEntry* pEntry;
+    // Check for invalid metadata.
+    for (pEntry = This->kvDataHead; pEntry != NULL; pEntry = ktxHashList_Next(pEntry)) {
+        unsigned int keyLen;
+        char* key;
+
+        ktxHashListEntry_GetKey(pEntry, &keyLen, &key);
+        if (strncasecmp(key, "KTX", 3) == 0) {
+            if (strcmp(key, KTX_ORIENTATION_KEY) && strcmp(key, KTX_WRITER_KEY)) {
+                result = KTX_INVALID_OPERATION;
+                goto cleanup;
+            }
+        }
+    }
+
+    result = ktxHashList_FindEntry(&This->kvDataHead, KTX_ORIENTATION_KEY,
+                                   &pEntry);
+    // Rewrite the orientation value in the KTX2 form.
+    if (result == KTX_SUCCESS) {
+        unsigned int count;
+        char* orientation;
+        ktx_uint32_t orientationLen;
+        char newOrient[4] = {0, 0, 0, 0};
+
+        result = ktxHashListEntry_GetValue(pEntry,
+                                   &orientationLen, (void**)&orientation);
+        count = sscanf(orientation, "S=%c,T=%c,R=%c",
+                       &newOrient[0],
+                       &newOrient[1],
+                       &newOrient[2]);
+
+        if (count < This->numDimensions) {
+            // There needs to be an entry for each dimension of the texture.
+            result = KTX_FILE_DATA_ERROR;
+            goto cleanup;
+        } else if (count > This->numDimensions) {
+            // KTX 1 is less strict than KTX2 so there is a chance of having
+            // more dimensions than needed.
+            count = This->numDimensions;
+            newOrient[count] = '\0';
+        }
+
+        ktxHashList_DeleteEntry(&This->kvDataHead, pEntry);
+        ktxHashList_AddKVPair(&This->kvDataHead, KTX_ORIENTATION_KEY,
+                              count+1, newOrient);
+    }
+    result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
+                                   &pEntry);
+    if (result != KTX_SUCCESS) {
+        // KTXwriter is required in KTX2. Caller must set it.
+        result = KTX_INVALID_OPERATION;
+        goto cleanup;
+    }
+
+    ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.keyValueData.offset = kvdLen != 0 ? offset : 0;
     header.keyValueData.bytesOf = kvdLen;
@@ -191,7 +257,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         ktx_size_t imageSize;
 #define DUMP_IMAGE 0
 #if defined(DEBUG) || DUMP_IMAGE
-        ktx_size_t pos;
+        ktx_off_t pos;
 #endif
 
         --level; // Calc proper level number for below. Conveniently
@@ -199,8 +265,12 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         imageSize = ktxTexture_calcImageSize(This, level,
                                              KTX_FORMAT_VERSION_TWO);
 #if defined(DEBUG)
-        dststr->getsize(dststr, &pos);
-        assert(pos == levelIndex[level].offset);
+        result = dststr->getpos(dststr, &pos);
+        // Could fail if stdout is a pipe
+        if (result == KTX_SUCCESS)
+            assert(pos == levelIndex[level].offset);
+        else
+            assert(result == KTX_FILE_ISPIPE);
 #endif
 
         levelDepth = MAX(1, This->baseDepth >> level);
@@ -208,7 +278,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
             numImages = This->numFaces;
         else
             numImages = This->isCubemap ? This->numFaces : levelDepth;
-        
+
         ktx_uint32_t  numRows = 0, rowBytes = 0, rowPadding = 0;
         if (!This->isCompressed) {
             ktxTexture_rowInfo(This, level, &numRows, &rowBytes, &rowPadding);
@@ -218,7 +288,7 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         srcOffset = srcLevelOffset;
         for (layer = 0; layer < This->numLayers; layer++) {
             ktx_uint32_t faceSlice;
-            
+
             for (faceSlice = 0; faceSlice < numImages; faceSlice++) {
 #if DUMP_IMAGE
                 dststr->getsize(dststr, &pos);
@@ -259,7 +329,8 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
                                    _KTX_PAD8_LEN(srcOffset - srcLevelOffset));
         }
     }
-    
+
+cleanup:
     free(dfd);
     free(levelIndex);
     return result;
@@ -288,14 +359,14 @@ ktxTexture_WriteKTX2ToStdioStream(ktxTexture* This, FILE* dstsstr)
 {
     ktxStream stream;
     KTX_error_code result = KTX_SUCCESS;
-    
+
     if (!This)
         return KTX_INVALID_VALUE;
-    
+
     result = ktxFileStream_construct(&stream, dstsstr, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
-    
+
     return ktxTexture_writeKTX2ToStream(This, &stream);
 }
 
@@ -332,7 +403,7 @@ ktxTexture_WriteKTX2ToNamedFile(ktxTexture* This, const char* const dstname)
         fclose(dst);
     } else
         result = KTX_FILE_OPEN_FAILED;
-    
+
     return result;
 }
 
@@ -373,18 +444,18 @@ ktxTexture_WriteKTX2ToMemory(ktxTexture* This,
         return KTX_INVALID_VALUE;
 
     *ppDstBytes = NULL;
-    
+
     result = ktxMemStream_construct(&dststr, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
-    
+
     result = ktxTexture_writeKTX2ToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
         ktxMemStream_destruct(&dststr);
         return result;
     }
-    
+
     ktxMemStream_getdata(&dststr, ppDstBytes);
     dststr.getsize(&dststr, &strSize);
     *pSize = (GLsizei)strSize;

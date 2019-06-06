@@ -3,4 +3,4 @@
 export builddir_name ?= ./build/make/linux/out
 .PHONY: all
 all:
-	$(MAKE) toktx toktx-tests toktx.doc
+	$(MAKE) toktx toktx-tests ktx2ktx2 ktxtools.doc

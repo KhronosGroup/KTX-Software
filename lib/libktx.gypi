@@ -84,6 +84,27 @@
               'direct_dependent_settings': {
                 'target_conditions': [
                   ['_mac_bundle == 1', {
+#                    'actions': [{
+#                      # This could potentially break non-bundle apps built as
+#                      # part of the same project. At present those are in
+#                      # separate projects. However using @rpath as the install
+#                      # name of a dylib installed in /usr/local/lib does work
+#                      # - currently. The reason for doing this instead of
+#                      # always setting INSTALL_PATH for the library to @rpath
+#                      # is so library installation via xcodebuild install will
+#                      # put it in the right place.
+#                      'action_name': 'Change libktx.dylib "install name".',
+#                      'inputs': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+#                      # Input & output are the same file. If set "outputs", the
+#                      # build fails with "Invalid task with mutable output but
+#                      # no other virtual output node". So use just a space.
+#                      'outputs': [ ' ' ],
+#                      'action': [
+#                        'install_name_tool', '-change',
+#                        '/usr/local/lib', '@rpath',
+#                        '<@(_inputs)',
+#                      ],
+#                    }], # actions
                     'copies': [{
                       'xcode_code_sign': 1,
                       'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
@@ -91,7 +112,7 @@
                     }], # copies
                     'xcode_settings': {
                       # Tell DYLD where to search for this dylib.
-                      # "man dyld" for more information.
+                      # "man ld" for more information. Look for -rpath.
                       'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
                     },
                   }, {
@@ -107,10 +128,10 @@
                 'vk_funcs.h',
               ],
               'xcode_settings': {
-                # This is so dyld can find the dylib when it is installed by
-                # the copy command above.
+                # Set the "install name" so dyld will not refuse to load a
+                # bundle's dylib when it finds it along the path set above.
                 'INSTALL_PATH': '@rpath',
-              },
+              }
             }, 'OS == "linux"', {
               'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
               'dependencies!': [ 'libvulkan.lazy' ],
@@ -148,7 +169,7 @@
   ], # targets
   'conditions': [
     ['OS == "linux" or OS == "mac" or OS == "win"', {
-      # Can only build doc and onlny need to generate source files on desktops
+      # Can only build doc and only need to generate source files on desktops
       'targets': [
         {
           'target_name': 'libktx.doc',

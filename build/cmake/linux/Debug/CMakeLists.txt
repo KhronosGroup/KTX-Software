@@ -402,31 +402,71 @@ add_dependencies(toktx-tests
 unset(TOOLSET)
 unset(TARGET)
 
-#ktxtools.gyp:toktx.doc#target
-set(TARGET "toktx.doc")
+#ktxtools.gyp:ktx2ktx2#target
+set(TARGET "ktx2ktx2")
 set(TOOLSET "target")
-list(APPEND toktx_doc__buildToktxDoc__input
+list(APPEND ktx2ktx2__cxx_srcs
+  "../../../../utils/argparser.cpp"
+  "../../../../tools/ktx2ktx2/ktx2ktx2.cpp")
+list(APPEND ktx2ktx2__other_srcs
+  "../../../../utils/argparser.h"
+  "../../../../tools/ktx2ktx2/stdafx.h")
+add_executable(ktx2ktx2 ${ktx2ktx2__cxx_srcs} ${ktx2ktx2__other_srcs})
+set_target_properties(ktx2ktx2 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${ktx2ktx2__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(ktx2ktx2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(ktx2ktx2 PROPERTIES PREFIX "")
+set_target_properties(ktx2ktx2 PROPERTIES RUNTIME_OUTPUT_NAME "ktx2ktx2")
+set_target_properties(ktx2ktx2 PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/ktx2ktx2 PROPERTIES GENERATED "TRUE")
+list(APPEND ktx2ktx2__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET ktx2ktx2 APPEND PROPERTY INCLUDE_DIRECTORIES ${ktx2ktx2__include_dirs})
+set_target_properties(ktx2ktx2 PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
+set_target_properties(ktx2ktx2 PROPERTIES COMPILE_FLAGS "-pedantic -Og -g ")
+set_target_properties(ktx2ktx2 PROPERTIES LINK_FLAGS "-g ")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+target_link_libraries(ktx2ktx2
+  libktx_gl
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:ktxtools.doc#target
+set(TARGET "ktxtools.doc")
+set(TOOLSET "target")
+list(APPEND ktxtools_doc__buildKtxtoolsDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxtools.doxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp")
-set(toktx_doc__buildToktxDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.toktxdoc_gentimestamp")
-add_custom_command(OUTPUT ${toktx_doc__buildToktxDoc__output}
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2ktx2/ktx2ktx2.cpp")
+set(ktxtools_doc__buildKtxtoolsDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.ktxtoolsdoc_gentimestamp")
+add_custom_command(OUTPUT ${ktxtools_doc__buildKtxtoolsDoc__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
-  COMMAND ./runDoxygen -t build/docs/.toktxdoc_gentimestamp -o build/docs/html ktxtools.doxy
-  DEPENDS ${toktx_doc__buildToktxDoc__input}
+  COMMAND ./runDoxygen -t build/docs/.ktxtoolsdoc_gentimestamp -o build/docs/html ktxtools.doxy
+  DEPENDS ${ktxtools_doc__buildKtxtoolsDoc__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Generating toktx documentation with Doxygen
+  COMMENT Generating KTX Tools documentation with Doxygen
   VERBATIM
 )
-add_custom_target(toktx_doc__buildToktxDoc
-  DEPENDS ${toktx_doc__buildToktxDoc__output}
-  SOURCES ${toktx_doc__buildToktxDoc__input}
+add_custom_target(ktxtools_doc__buildKtxtoolsDoc
+  DEPENDS ${ktxtools_doc__buildKtxtoolsDoc__output}
+  SOURCES ${ktxtools_doc__buildKtxtoolsDoc__input}
 )
-add_custom_target(toktx_doc SOURCES)
-set_target_properties(toktx_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(toktx_doc__buildToktxDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-add_dependencies(toktx_doc
-  toktx_doc__buildToktxDoc
+add_custom_target(ktxtools_doc SOURCES)
+set_target_properties(ktxtools_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktxtools_doc__buildKtxtoolsDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(ktxtools_doc
+  ktxtools_doc__buildKtxtoolsDoc
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -458,11 +498,11 @@ set_target_properties(ktxpkg_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(ktxpkg_doc__buildPackageDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(ktxpkg_doc__buildPackageDoc
   libktx_doc
-  toktx_doc
+  ktxtools_doc
 )
 add_dependencies(ktxpkg_doc
   libktx_doc
-  toktx_doc
+  ktxtools_doc
   ktxpkg_doc__buildPackageDoc
 )
 unset(TOOLSET)

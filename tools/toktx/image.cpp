@@ -1,8 +1,6 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 expandtab:
 
-// $Id$
-
 //
 // ©2010 The Khronos Group, Inc.
 //
@@ -147,7 +145,7 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 //! P6 indicates binary, as opposed to P5, which is ASCII format. The header must
 //! look like this:
-//! 
+//!
 //! P6
 //! # Comments (not necessary)
 //! width height
@@ -189,7 +187,7 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
     int numvals;
 
     skipNonData(src);
-    
+
     numvals = fscanf(src, "%u %u", &width, &height);
     if (numvals != 2)
     {
@@ -227,7 +225,7 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
     char c = 0;
     while(c != '\n')
         numvals = fscanf(src, "%c", &c);
-    
+
     imageSize = width * height * components * componentSize;
     if (pixels)
         return readImage(src, imageSize, *pixels);
@@ -242,7 +240,7 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 //! @brief Read a PGM file with P5 header
 //!
 //! The header must look like this:
-//! 
+//!
 //! P5
 //! # Comments if you want to
 //! width height
@@ -332,7 +330,7 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 //! @brief Read a PAM file with P7 header
 //!
 //! The header must look like this:
-//! 
+//!
 //! P7
 //! # Comments if you want to
 //! WIDTH nnn
@@ -456,7 +454,7 @@ readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels)
     if (!pixels)
     {
         fprintf(stderr, "Error: could not allocate memory for the pixels of the texture.\n");
-        return OUT_OF_MEMORY;    
+        return OUT_OF_MEMORY;
     }
 
     if (fread(pixels, imageSize, 1, src) != 1)

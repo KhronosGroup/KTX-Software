@@ -99,12 +99,22 @@ extern "C" {
 #define KTX_ORIENTATION_KEY "KTXorientation"
 /**
  * @~English
- * @brief Standard format for 2D orientation value.
+ * @brief Key String for standard writer value.
+ */
+#define KTX_WRITER_KEY "KTXwriter"
+/**
+ * @~English
+ * @brief Standard KTX 1 format for 1D orientation value.
+ */
+#define KTX_ORIENTATION1_FMT "S=%c"
+/**
+ * @~English
+ * @brief Standard KTX 1 format for 2D orientation value.
  */
 #define KTX_ORIENTATION2_FMT "S=%c,T=%c"
 /**
  * @~English
- * @brief Standard format for 3D orientation value.
+ * @brief Standard KTX 1 format for 3D orientation value.
  */
 #define KTX_ORIENTATION3_FMT "S=%c,T=%c,R=%c"
 /**
@@ -123,6 +133,7 @@ extern "C" {
 typedef enum KTX_error_code_t {
     KTX_SUCCESS = 0,         /*!< Operation was successful. */
     KTX_FILE_DATA_ERROR,     /*!< The data in the file is inconsistent with the spec. */
+    KTX_FILE_ISPIPE,         /*!< The file is a pipe or named pipe. */
     KTX_FILE_OPEN_FAILED,    /*!< The target file could not be opened. */
     KTX_FILE_OVERFLOW,       /*!< The operation would exceed the max file size. */
     KTX_FILE_READ_ERROR,     /*!< An error occurred while reading from the file. */
@@ -155,6 +166,13 @@ typedef enum KTX_error_code_t {
  * @brief Opaque handle to a ktxHashList.
  */
 typedef struct ktxKVListEntry* ktxHashList;
+
+/**
+ * @class ktxHashListEntry
+ * @~English
+ * @brief Opaque handle to an entry in a @ref ktxHashList.
+ */
+typedef struct ktxKVListEntry ktxHashListEntry;
 
 /**
  * @class ktxTexture
@@ -503,6 +521,25 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key,
                       unsigned int valueLen, const void* value);
 
 /*
+ * Deletes a ktxHashListEntry from a ktxHashList.
+ */
+KTX_error_code
+ktxHashList_DeleteEntry(ktxHashList* pHead,  ktxHashListEntry* pEntry);
+
+/*
+ * Finds the entry for a key in a ktxHashList and deletes it.
+ */
+KTX_error_code
+ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key);
+
+/*
+ * Looks up a key and returns the ktxHashListEntry.
+ */
+KTX_error_code
+ktxHashList_FindEntry(ktxHashList* pHead, const char* key,
+                      ktxHashListEntry** ppEntry);
+
+/*
  * Looks up a key and returns the value.
  */
 KTX_error_code
@@ -510,13 +547,24 @@ ktxHashList_FindValue(ktxHashList* pHead, const char* key,
                       unsigned int* pValueLen, void** pValue);
 
 /*
- * Serializes the hash table to a block of memory suitable for
+ * Returns the next entry in a ktxHashList.
+ */
+ktxHashListEntry*
+ktxHashList_Next(ktxHashListEntry* entry);
+
+/*
+ * Sorts the hash list into order of the key codepoints.
+ */
+KTX_error_code
+ktxHashList_Sort(ktxHashList* pHead);
+
+/*
+ * Serializes the hash lsit to a block of memory suitable for
  * writing to a KTX file.
  */
 KTX_error_code
 ktxHashList_Serialize(ktxHashList* pHead,
                       unsigned int* kvdLen, unsigned char** kvd);
-
 
 /*
  * Creates a hash table from the serialized data read from a
@@ -525,12 +573,30 @@ ktxHashList_Serialize(ktxHashList* pHead,
 KTX_error_code
 ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 
+/*
+ * Get the key from a ktxHashListEntry
+ */
+KTX_error_code
+ktxHashListEntry_GetKey(ktxHashListEntry* This,
+                        unsigned int* pKeyLen, char** ppKey);
+
+/*
+ * Get the value from a ktxHashListEntry
+ */
+KTX_error_code
+ktxHashListEntry_GetValue(ktxHashListEntry* This,
+                          unsigned int* pValueLen, void** ppValue);
 
 /*===========================================================*
  * For KTX format version 2                                  *
  *===========================================================*/
 
- typedef enum {
+/**
+ * @~English
+ * @brief Enum identifying supercompression scheme.
+ */
+
+typedef enum {
     KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
     KTX_SUPERCOMPRESSION_CRNC = 1,  /*!< Crunch supercompression. */
     KTX_SUPERCOMPRESSION_ZLIB = 2,  /*!< Zlib supercompression. */
@@ -541,7 +607,7 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 
 
 /*===========================================================*
- * For library versions 1 and 2 compatibility                        *
+ * For library versions 1 and 2 compatibility                *
  *===========================================================*/
 
 /**
@@ -657,7 +723,7 @@ typedef struct KTX_texture_info
  * faces must be provided in the order: +X, -X, +Y, -Y, +Z, -Z.
  */
 /**
- * @var KTX_texture_info::numberOfMipmapLevels;
+ * @var KTX_texture_info::numberOfMipLevels;
  * @~English
  * @brief The number of mipmap levels.
  *
@@ -881,3 +947,4 @@ Initial release.
 */
 
 #endif /* KTX_H_A55A6F00956F42F3A137C11929827FE1 */
+

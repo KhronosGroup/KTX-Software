@@ -35,6 +35,7 @@ extern "C" {
   #include "ktxint.h"
 }
 
+
 /**
  * @internal @~English
  * @brief Template class for creating writer test helpers.
@@ -55,7 +56,9 @@ class WriterTestHelper {
     };
     typedef ktx_uint32_t createFlags;
 
-    WriterTestHelper() { }
+    WriterTestHelper() { 
+        memcpy(writer_ktx2, "WriteTestHelper 1.0", sizeof(writer_ktx2));
+    }
 
     void resize(createFlags flags,
                 ktx_uint32_t numLayers, ktx_uint32_t numFaces,
@@ -122,15 +125,49 @@ class WriterTestHelper {
             }
         }
 
-        assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
-        snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
-                 'r', 'd');
+        switch (numDimensions) {
+          case 1:
+            assert(strlen(KTX_ORIENTATION1_FMT) < sizeof(orientation));
+            snprintf(orientation, sizeof(orientation), KTX_ORIENTATION1_FMT,
+                     'r');
+            break;
+          case 2:
+            assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
+            snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
+                     'r', 'd');
+            break;
+          case 3:
+            assert(strlen(KTX_ORIENTATION3_FMT) < sizeof(orientation));
+            snprintf(orientation, sizeof(orientation), KTX_ORIENTATION3_FMT,
+                     'r', 'd', 'i');
+            break;
+        }
+        assert(4 <= sizeof(orientation_ktx2));
+        orientation_ktx2[0] = 'r';
+        orientation_ktx2[1] = 'd';
+        orientation_ktx2[2] = 'i';
+        orientation_ktx2[3] = 0;
+        orientation_ktx2[numDimensions] = 0; // Ensure terminating NULL.
+
         ktxHashList* hl;
         ktxHashList_Create(&hl);
         ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY,
                               (unsigned int)strlen(orientation) + 1,
                               orientation);
         ktxHashList_Serialize(hl, &kvDataLen, &kvData);
+        ktxHashList_Destruct(hl);
+
+        ktxHashList_Create(&hl);
+        ktxHashList_AddKVPair(hl, KTX_WRITER_KEY,
+                              sizeof(writer_ktx2),
+                              writer_ktx2);
+
+        ktxHashList_Serialize(hl, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
+        ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY,
+                              numDimensions + 1,
+                              orientation_ktx2);
+        ktxHashList_Sort(hl);
+        ktxHashList_Serialize(hl, &kvDataLenAll_ktx2, &kvDataAll_ktx2);
         ktxHashList_Destruct(hl);
     }
 
@@ -247,7 +284,14 @@ class WriterTestHelper {
 
     ktx_uint8_t* kvData;
     ktx_uint32_t kvDataLen;
-    char orientation[10];
+    char orientation[15];
+
+    ktx_uint8_t* kvDataWriter_ktx2;
+    ktx_uint32_t kvDataLenWriter_ktx2;
+    ktx_uint8_t* kvDataAll_ktx2;
+    ktx_uint32_t kvDataLenAll_ktx2;
+    char orientation_ktx2[4];
+    char writer_ktx2[20];
 
     ktx_size_t imageDataSize;
     std::vector< std::vector < std::vector < std::vector<component_type> > > > images;
