@@ -66,6 +66,9 @@ else
   exit 1
 fi
 
+echo "CWD is $(pwd)"
+echo "toktx is $(toktx)"
+
 numtests=$numtests+1
 if $toktx --help 2> /dev/null; then
   passed=$passed+1
