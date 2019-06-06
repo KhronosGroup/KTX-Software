@@ -43,6 +43,8 @@
 
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
+  #define fileno _fileno
+  #define isatty _isatty
 #endif
 
 #define VERSION "1.0.0"
@@ -246,7 +248,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
             if (!outf && errno == EEXIST) {
                 if (!options.force) {
-                    if (_isatty(_fileno(stdin))) {
+                    if (isatty(fileno(stdin))) {
                         char answer;
                         cout << "Output file " << outfile
                              << "exists. Overwrite? [Y or n] ";
