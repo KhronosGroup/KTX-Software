@@ -69,6 +69,7 @@ fi
 pwd=$(pwd)
 echo "CWD is $pwd"
 ls $(dirname $pwd)
+otool -L $(dirname $pwd)/libktx.gl.dylib
 echo "toktx is $toktx"
 
 numtests=$numtests+1
