@@ -127,11 +127,11 @@
                 'vk_funcs.c',
                 'vk_funcs.h',
               ],
-              #'xcode_settings': {
+              'xcode_settings': {
                 # Set the "install name" so dyld will not refuse to load a
                 # bundle's dylib when it finds it along the path set above.
                 'INSTALL_PATH': '@rpath',
-              #}
+              }
             }, 'OS == "linux"', {
               'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
               'dependencies!': [ 'libvulkan.lazy' ],
