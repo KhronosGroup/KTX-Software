@@ -84,27 +84,6 @@
               'direct_dependent_settings': {
                 'target_conditions': [
                   ['_type != "none" and _mac_bundle == 1', {
-#                    'actions': [{
-#                      # This could potentially break non-bundle apps built as
-#                      # part of the same project. At present those are in
-#                      # separate projects. However using @rpath as the install
-#                      # name of a dylib installed in /usr/local/lib does work
-#                      # - currently. The reason for doing this instead of
-#                      # always setting INSTALL_PATH for the library to @rpath
-#                      # is so library installation via xcodebuild install will
-#                      # put it in the right place.
-#                      'action_name': 'Change libktx.dylib "install name".',
-#                      'inputs': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-#                      # Input & output are the same file. If set "outputs", the
-#                      # build fails with "Invalid task with mutable output but
-#                      # no other virtual output node". So use just a space.
-#                      'outputs': [ ' ' ],
-#                      'action': [
-#                        'install_name_tool', '-change',
-#                        '/usr/local/lib', '@rpath',
-#                        '<@(_inputs)',
-#                      ],
-#                    }], # actions
                     'copies': [{
                       'xcode_code_sign': 1,
                       'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
@@ -128,8 +107,14 @@
                 'vk_funcs.h',
               ],
               'xcode_settings': {
-                # Set the "install name" so dyld will not refuse to load a
-                # bundle's dylib when it finds it along the path set above.
+                # Set the "install name" to instruct dyld to search a list of
+                # paths in order to locate the library. If left at the default
+                # of an absolute location (/usr/local/lib), that path will be
+                # built into any executables that link with it and dyld will
+                # search only that location. For bundles, the path we set above
+                # is built into the executable. For non bundle's nothing will be
+                # built into the executable and the standard dyld search path
+                # will be used.
                 'INSTALL_PATH': '@rpath',
               }
             }, 'OS == "linux"', {
