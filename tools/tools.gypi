@@ -128,21 +128,22 @@
           'target_name': 'package.tools',
           'type': 'none',
           'dependencies': [ 'install.tools' ],
-          'actions': [{
-            'action_name': 'buildToolsPackage',
-            'message': 'Assembling distribution package',
-            'inputs': [
-              'package/mac/ktxtools.pkgproj',
-            ],
-            'outputs': [ '../build/packages/mac/ktxtools.pkg' ],
-            'conditions': [
-              ['OS == "mac"', {
+          'conditions': [
+            # No packages for other systems yet.
+            ['OS == "mac"', {
+              'actions': [{
+                'action_name': 'buildToolsPackage',
+                'message': 'Assembling distribution package',
+                'inputs': [
+                  'package/mac/ktxtools.pkgproj',
+                ],
+                'outputs': [ '../build/packages/mac/ktxtools.pkg' ],
                 'action': [
                   'packagesbuild', '<@(_inputs)',
                 ],
-              }],
-            ], # conditions
-          }], # actions
+              }], # actions
+            }], # OS == mac
+          ], # conditions
         }, # package target
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
