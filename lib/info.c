@@ -216,13 +216,10 @@ printKTX2Header(KTX_header2* pHeader)
     fprintf(stdout, "pixelWidth: %d\n", pHeader->pixelWidth);
     fprintf(stdout, "pixelHeight: %d\n", pHeader->pixelHeight);
     fprintf(stdout, "pixelDepth: %d\n", pHeader->pixelDepth);
-    fprintf(stdout, "numberOfArrayElements: %d\n",
-            pHeader->numberOfArrayElements);
-    fprintf(stdout, "numberOfFaces: %d\n", pHeader->numberOfFaces);
-    fprintf(stdout, "numberOfMipLevels: %d\n", pHeader->numberOfMipLevels);
-    fprintf(stdout, "bytesOfImages: %" PRId64 "\n", pHeader->bytesOfImages);
-    fprintf(stdout, "bytesOfUncompressedImages: %" PRId64 "\n",
-            pHeader->bytesOfUncompressedImages);
+    fprintf(stdout, "arrayElementCount: %d\n",
+            pHeader->arrayElementCount);
+    fprintf(stdout, "faceCount: %d\n", pHeader->faceCount);
+    fprintf(stdout, "levelCount: %d\n", pHeader->levelCount);
     fprintf(stdout, "dataFormatDescriptor.offset: %#x\n",
             pHeader->dataFormatDescriptor.offset);
     fprintf(stdout, "dataFormatDescriptor.bytesOf: %d\n",
@@ -279,7 +276,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     printKTX2Header(pHeader);
 
     fprintf(stdout, "\nLevel Index\n\n");
-    numLevels = MAX(1, pHeader->numberOfMipLevels);
+    numLevels = MAX(1, pHeader->levelCount);
     levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
     levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
     stream->read(stream, levelIndex, levelIndexSize);

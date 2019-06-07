@@ -153,9 +153,6 @@ typedef enum KTX_error_code_t {
 #define KTX_ENDIAN_REF      (0x04030201)
 #define KTX_ENDIAN_REF_REV  (0x01020304)
 #define KTX_HEADER_SIZE     (64)
-#define KTX2_IDENTIFIER_REF { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x32, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
-#define KTX2_HEADER_SIZE    (96)
-
 
 /**
  * @~English
