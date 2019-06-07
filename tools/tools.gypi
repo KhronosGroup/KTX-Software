@@ -132,7 +132,7 @@
             'action_name': 'buildToolsPackage',
             'message': 'Assembling distribution package',
             'inputs': [
-              'ktxtools.pkgproj',
+              'package/mac/ktxtools.pkgproj',
             ],
             'outputs': [ '../build/packages/mac/ktxtools.pkg' ],
             'conditions': [
