@@ -57,4 +57,4 @@ tools/toktx/toktx.cpp filter=keyworder ident
 # Use LFS only on the actual shared object. *.so and
 # *.so.? are symbolic links to *.so.?.?.?.
 *.so.?.?.? filter=lfs -text
-SDL2 filter=lfs -text
+*.framework/versions/[AZ]/* filter=lfs -text
