@@ -313,8 +313,8 @@
                 'dstroot': '$(WRAPPER_NAME)/../../$(DSTROOT)',
                 'installpath': '$(INSTALL_PATH)',
               }, 'OS == "win"', {
-                'dstroot': 'somewhere',
-                'installpath': 'somesubdir',
+                'dstroot': '$(TMP)/libktx.dst',
+                'installpath': '/usr/local',
               }, {
                 # XXX Need to figure out how to set & propagate DSTROOT to the
                 # environment.
@@ -331,20 +331,23 @@
             'xcode_code_sign': 1,
             'destination': '<(dstroot)/<(installpath)/lib',
             'conditions': [
-              ['"<(library)" == "shared_library"', {
-                'files': [ '<(PRODUCT_DIR)/<(SHARED_LIB_PREFIX)ktx.gl<(SHARED_LIB_SUFFIX)' ],
+              ['GENERATOR == "msvs"', {
+                'files': [ '<(PRODUCT_DIR)/lib/libktx.gl<(STATIC_LIB_SUFFIX)' ],
               }, {
-                'files': [ '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)ktx.gl<(STATIC_LIB_SUFFIX)' ],
+                'files': [ '<(PRODUCT_DIR)/libktx.gl<(STATIC_LIB_SUFFIX)' ],
+              }],
+              ['"<(library)" == "shared_library"', {
+                'files': [ '<(PRODUCT_DIR)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
               }],
             ], # conditions
-          },
-          {
+          }, {
             'destination': '<(dstroot)/<(installpath)/include',
             'files': [ '../include/ktx.h', '../include/ktxvulkan.h' ],
-          },
-          {
+          }, {
+            # Windows, unlike macOS, does not do a recursive copy
+            # here. Darn! How to copy all these man pages.
             'destination': '<(dstroot)/<(installpath)/share/man',
-            'files': [ '../build/docs/man/man3' ],
+            'files': [ '../build/docs/man/man3/' ],
           }]
         } # install_lib target
       ], # targets

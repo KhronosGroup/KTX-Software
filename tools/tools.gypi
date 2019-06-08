@@ -83,10 +83,10 @@
                 'dstroot': '$(WRAPPER_NAME)/../../$(DSTROOT)',
                 'installpath': '$(INSTALL_PATH)',
               }, 'OS == "win"', {
-                'dstroot': 'somewhere',
-                'installpath': 'somesubdir',
+                'dstroot': '$(TMP)/ktxtools.dst',
+                'installpath': '/usr/local',
               }, {
-                # XXX Need to figure out how to set & propogate DSTROOT to the
+                # XXX Need to figure out how to set & propagate DSTROOT to the
                 # environment.
                 'dstroot': '$DSTROOT',
                 'installpath': '/usr/local',
@@ -103,25 +103,25 @@
             'INSTALL_PATH': '/usr/local',
           },
           'copies': [{
-            # Do our own copy of the library because libktx:install.lib will,
-            # at least on Xcode, install to a different DSTROOT.
+            # Do our own copy of the library because libktx:install.lib
+            # is building a developers distribution.
             'xcode_code_sign': 1,
             'destination': '<(dstroot)/<(installpath)/lib',
             'conditions': [
               ['"<(library)" == "shared_library"', {
-                'files': [ '<(PRODUCT_DIR)/<(SHARED_LIB_PREFIX)ktx.gl<(SHARED_LIB_SUFFIX)' ],
-              }, {
-                'files': [ '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)ktx.gl<(STATIC_LIB_SUFFIX)' ],
+                'files': [ '<(PRODUCT_DIR)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
               }],
             ], # conditions
-          },
-          {
+          }, {
             'xcode_code_sign': 1,
             'destination': '<(dstroot)/<(installpath)/bin',
-            'files': [ '<(PRODUCT_DIR)/toktx', '<(PRODUCT_DIR)/ktx2ktx2' ],
+            'files': [
+              '<(PRODUCT_DIR)/ktx2ktx2<(EXECUTABLE_SUFFIX)',
+              '<(PRODUCT_DIR)/toktx<(EXECUTABLE_SUFFIX)',
+            ],
           }, {
             'destination': '<(dstroot)/<(installpath)/share/man',
-            'files': [ '../build/docs/man/man1' ],
+            'files': [ '../build/docs/man/man1/' ],
           }]
         }, # install.tools target
         {

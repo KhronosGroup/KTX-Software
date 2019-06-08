@@ -1,5 +1,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2017
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "install.lib", "install.lib.vcxproj", "{DDFB8BD0-46F4-29AC-20FA-C3ECC942F886}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9B495EB7-26DB-6290-DD1F-0DBE12A1D99E} = {9B495EB7-26DB-6290-DD1F-0DBE12A1D99E}
+		{2C2DE4DE-4D99-0C64-626C-5A5761135091} = {2C2DE4DE-4D99-0C64-626C-5A5761135091}
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{83F3BFDD-6EB2-8328-D02E-9499E47D2D57}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{2C2DE4DE-4D99-0C64-626C-5A5761135091}"
@@ -63,6 +69,10 @@ Global
 		{BB20B02C-AA4B-55B4-C85A-11E301DCE024}.Debug|Win32.Build.0 = Debug|Win32
 		{BB20B02C-AA4B-55B4-C85A-11E301DCE024}.Release|Win32.ActiveCfg = Release|Win32
 		{BB20B02C-AA4B-55B4-C85A-11E301DCE024}.Release|Win32.Build.0 = Release|Win32
+		{DDFB8BD0-46F4-29AC-20FA-C3ECC942F886}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DDFB8BD0-46F4-29AC-20FA-C3ECC942F886}.Debug|Win32.Build.0 = Debug|Win32
+		{DDFB8BD0-46F4-29AC-20FA-C3ECC942F886}.Release|Win32.ActiveCfg = Release|Win32
+		{DDFB8BD0-46F4-29AC-20FA-C3ECC942F886}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
