@@ -8,6 +8,7 @@
 *.c++ text
 *.c text
 *.h text
+*.inl text
 *.json text
 
 # Declare files that will always have CRLF line endings on checkout.
