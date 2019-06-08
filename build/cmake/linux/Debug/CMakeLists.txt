@@ -38,15 +38,19 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/dfdutils/createdfd.c"
   "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
   "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
   "../../../../lib/hashtable.c"
+  "../../../../lib/info.c"
   "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
   "../../../../lib/texture.c"
+  "../../../../lib/vkformat_prohibited.c"
+  "../../../../lib/vkformat_str.c"
   "../../../../lib/writer.c"
   "../../../../lib/writer_apiv1.c"
   "../../../../lib/writer_v2.c"
@@ -119,15 +123,19 @@ list(APPEND libktx_es1__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/dfdutils/createdfd.c"
   "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
   "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
   "../../../../lib/hashtable.c"
+  "../../../../lib/info.c"
   "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
   "../../../../lib/texture.c"
+  "../../../../lib/vkformat_prohibited.c"
+  "../../../../lib/vkformat_str.c"
   "../../../../lib/writer.c"
   "../../../../lib/writer_apiv1.c"
   "../../../../lib/writer_v2.c")
@@ -189,6 +197,7 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd4vkformat.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/interpretdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/printdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/errstr.c"
@@ -204,6 +213,7 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashlist.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/info.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxgl.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.c"
@@ -213,6 +223,8 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_prohibited.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_str.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_apiv1.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_v2.c"
@@ -259,15 +271,19 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/dfdutils/createdfd.c"
   "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
   "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
   "../../../../lib/hashtable.c"
+  "../../../../lib/info.c"
   "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
   "../../../../lib/texture.c"
+  "../../../../lib/vkformat_prohibited.c"
+  "../../../../lib/vkformat_str.c"
   "../../../../lib/writer.c"
   "../../../../lib/writer_apiv1.c"
   "../../../../lib/writer_v2.c"
@@ -445,6 +461,45 @@ add_dependencies(toktx-tests
 unset(TOOLSET)
 unset(TARGET)
 
+#ktxtools.gyp:ktxinfo#target
+set(TARGET "ktxinfo")
+set(TOOLSET "target")
+list(APPEND ktxinfo__cxx_srcs
+  "../../../../utils/argparser.cpp"
+  "../../../../tools/ktxinfo/ktxinfo.cpp")
+list(APPEND ktxinfo__other_srcs
+  "../../../../utils/argparser.h"
+  "../../../../tools/ktxinfo/stdafx.h")
+add_executable(ktxinfo ${ktxinfo__cxx_srcs} ${ktxinfo__other_srcs})
+set_target_properties(ktxinfo PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${ktxinfo__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(ktxinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(ktxinfo PROPERTIES PREFIX "")
+set_target_properties(ktxinfo PROPERTIES RUNTIME_OUTPUT_NAME "ktxinfo")
+set_target_properties(ktxinfo PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/ktxinfo PROPERTIES GENERATED "TRUE")
+list(APPEND ktxinfo__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET ktxinfo APPEND PROPERTY INCLUDE_DIRECTORIES ${ktxinfo__include_dirs})
+set_target_properties(ktxinfo PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
+set_target_properties(ktxinfo PROPERTIES COMPILE_FLAGS "-pedantic -Og -g ")
+set_target_properties(ktxinfo PROPERTIES LINK_FLAGS "-g ")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+target_link_libraries(ktxinfo
+  libktx_gl
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtools.gyp:ktx2ktx2#target
 set(TARGET "ktx2ktx2")
 set(TOOLSET "target")
@@ -490,8 +545,9 @@ set(TOOLSET "target")
 list(APPEND ktxtools_doc__buildKtxtoolsDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../ktxtools.doxy"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2ktx2/ktx2ktx2.cpp")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2ktx2/ktx2ktx2.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxinfo/ktxinfo.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp")
 set(ktxtools_doc__buildKtxtoolsDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.ktxtoolsdoc_gentimestamp")
 add_custom_command(OUTPUT ${ktxtools_doc__buildKtxtoolsDoc__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
@@ -520,10 +576,12 @@ set(TOOLSET "target")
 list(APPEND install_tools__copies__input
   "${builddir}/lib.target/libktx.gl.so"
   "${builddir}/ktx2ktx2"
+  "${builddir}/ktxinfo"
   "${builddir}/toktx")
 list(APPEND install_tools__copies__output
   "/tmp/ktxtools.dst//usr/local/lib/libktx.gl.so"
   "/tmp/ktxtools.dst//usr/local/bin/ktx2ktx2"
+  "/tmp/ktxtools.dst//usr/local/bin/ktxinfo"
   "/tmp/ktxtools.dst//usr/local/bin/toktx")
 set(install_tools__copies__input_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/man1")
 set(install_tools__copies__output_dirs "/tmp/ktxtools.dst//usr/local/share/man/man1")
@@ -531,6 +589,7 @@ add_custom_command(
 OUTPUT ${install_tools__copies__output} ${install_tools__copies__output_dirs}
 COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/ktxtools.dst//usr/local/lib/libktx.gl.so
 COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktx2ktx2 /tmp/ktxtools.dst//usr/local/bin/ktx2ktx2
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktxinfo /tmp/ktxtools.dst//usr/local/bin/ktxinfo
 COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/toktx /tmp/ktxtools.dst//usr/local/bin/toktx
 COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man1/ /tmp/ktxtools.dst//usr/local/share/man/man1
 DEPENDS ${install_tools__copies__input} ${install_tools__copies__input_dirs}
@@ -548,11 +607,13 @@ set_target_properties(install_tools__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(install_tools__copies
   libktx_gl
   ktx2ktx2
+  ktxinfo
   ktxtools_doc
   toktx
 )
 add_dependencies(install_tools
   ktx2ktx2
+  ktxinfo
   ktxtools_doc
   toktx
   install_tools__copies

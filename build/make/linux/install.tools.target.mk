@@ -13,6 +13,11 @@ all_deps += /tmp/ktxtools.dst/usr/local/lib/libktx.gl.so
 	$(call do_cmd,copy)
 
 all_deps += /tmp/ktxtools.dst/usr/local/bin/ktx2ktx2
+/tmp/ktxtools.dst/usr/local/bin/ktxinfo: TOOLSET := $(TOOLSET)
+/tmp/ktxtools.dst/usr/local/bin/ktxinfo: $(builddir)/ktxinfo FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += /tmp/ktxtools.dst/usr/local/bin/ktxinfo
 /tmp/ktxtools.dst/usr/local/bin/toktx: TOOLSET := $(TOOLSET)
 /tmp/ktxtools.dst/usr/local/bin/toktx: $(builddir)/toktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -23,17 +28,17 @@ all_deps += /tmp/ktxtools.dst/usr/local/bin/toktx
 	$(call do_cmd,copy)
 
 all_deps += /tmp/ktxtools.dst/usr/local/share/man/man1
-ktxtools_gyp_install_tools_target_copies = /tmp/ktxtools.dst/usr/local/lib/libktx.gl.so /tmp/ktxtools.dst/usr/local/bin/ktx2ktx2 /tmp/ktxtools.dst/usr/local/bin/toktx /tmp/ktxtools.dst/usr/local/share/man/man1
+ktxtools_gyp_install_tools_target_copies = /tmp/ktxtools.dst/usr/local/lib/libktx.gl.so /tmp/ktxtools.dst/usr/local/bin/ktx2ktx2 /tmp/ktxtools.dst/usr/local/bin/ktxinfo /tmp/ktxtools.dst/usr/local/bin/toktx /tmp/ktxtools.dst/usr/local/share/man/man1
 
 ### Rules for final target.
 # Build our special outputs first.
 $(obj).target/install.tools.stamp: | $(ktxtools_gyp_install_tools_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktxtools_gyp_install_tools_target_copies): | $(builddir)/ktx2ktx2 $(obj).target/ktxtools.doc.stamp $(builddir)/lib.target/libktx.gl.so $(builddir)/toktx $(obj).target/libktx.gl.so
+$(ktxtools_gyp_install_tools_target_copies): | $(builddir)/ktx2ktx2 $(builddir)/ktxinfo $(obj).target/ktxtools.doc.stamp $(builddir)/lib.target/libktx.gl.so $(builddir)/toktx $(obj).target/libktx.gl.so
 
 $(obj).target/install.tools.stamp: TOOLSET := $(TOOLSET)
-$(obj).target/install.tools.stamp: $(builddir)/ktx2ktx2 $(obj).target/ktxtools.doc.stamp $(builddir)/lib.target/libktx.gl.so $(builddir)/toktx $(obj).target/libktx.gl.so FORCE_DO_CMD
+$(obj).target/install.tools.stamp: $(builddir)/ktx2ktx2 $(builddir)/ktxinfo $(obj).target/ktxtools.doc.stamp $(builddir)/lib.target/libktx.gl.so $(builddir)/toktx $(obj).target/libktx.gl.so FORCE_DO_CMD
 	$(call do_cmd,touch)
 
 all_deps += $(obj).target/install.tools.stamp
