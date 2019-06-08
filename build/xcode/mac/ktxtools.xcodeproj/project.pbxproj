@@ -220,8 +220,8 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin";
 			dstSubfolderSpec = 0;
 			files = (
-				A6D4D17D9C6EDB0252FD3C89 /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
 				735F623169AB39A9E0C8B5CD /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
+				A6D4D17D9C6EDB0252FD3C89 /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -275,7 +275,7 @@
 		B6C3F24523648045AB33FCA3 /* tools.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tools.gypi; path = tools/tools.gypi; sourceTree = "<group>"; };
 		BC70D852F49571AE410DF987 /* ktx2ktx2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ktx2ktx2.cpp; sourceTree = "<group>"; };
 		D03F8B42599E13BB361A336C /* image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = image.h; sourceTree = "<group>"; };
-		D089E409802E25C29E799696 /* man1 */ = {isa = PBXFileReference; lastKnownFileType = text; path = man1; sourceTree = "<group>"; };
+		D089E409802E25C29E799696 /* man1 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = man1; sourceTree = "<group>"; };
 		D2C3FD552A0E9500694FADD5 /* stdafx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
 		DA82593AE378BC3E1F06CD53 /* toktx.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = toktx.gypi; path = tools/toktx/toktx.gypi; sourceTree = "<group>"; };
 		E41E528C48467DFD6CD757F5 /* .ktxtoolsdoc_gentimestamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = .ktxtoolsdoc_gentimestamp; sourceTree = "<group>"; };

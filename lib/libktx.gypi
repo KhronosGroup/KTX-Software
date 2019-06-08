@@ -321,7 +321,12 @@
                 'dstroot': '$DSTROOT',
                 'installpath': '/usr/local',
               }],
-            ], # conditions
+              ['GENERATOR == "msvs"', {
+                'staticlib_dir': '<(PRODUCT_DIR)/lib',
+              }, {
+                'staticlib_dir': '<(PRODUCT_DIR)',
+              }],
+           ], # conditions
           }, # variables
           'dependencies': [ 'libktx.gl', 'libktx.doc' ],
           'xcode_settings': {
@@ -331,10 +336,8 @@
             'xcode_code_sign': 1,
             'destination': '<(dstroot)/<(installpath)/lib',
             'conditions': [
-              ['GENERATOR == "msvs"', {
-                'files': [ '<(PRODUCT_DIR)/lib/libktx.gl<(STATIC_LIB_SUFFIX)' ],
-              }, {
-                'files': [ '<(PRODUCT_DIR)/libktx.gl<(STATIC_LIB_SUFFIX)' ],
+              ['OS == "win" or "<(library)" != "shared_library"', {
+                'files': [ '<(staticlib_dir)/libktx.gl<(STATIC_LIB_SUFFIX)' ],
               }],
               ['"<(library)" == "shared_library"', {
                 'files': [ '<(PRODUCT_DIR)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
