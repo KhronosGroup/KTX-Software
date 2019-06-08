@@ -64,6 +64,18 @@
 			name = libvulkan.lazy;
 			productName = libvulkan.lazy;
 		};
+		6D6366BB32CAA6A60F5BEE29 /* mkvkformatfiles */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = C6E90966DD7948D9D3FE85CF /* Build configuration list for PBXAggregateTarget "mkvkformatfiles" */;
+			buildPhases = (
+				9BFD1F9F5513DE17D5535685 /* Action "run_mkvkformatfiles" */,
+				DF438FB5533A901550BE5BDA /* Action "run_makevkswitch" */,
+			);
+			dependencies = (
+			);
+			name = mkvkformatfiles;
+			productName = mkvkformatfiles;
+		};
 		A53C7E625BBCBD48220BD07A /* vulkan_headers */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 949B878693BD2FB78270EEDE /* Build configuration list for PBXAggregateTarget "vulkan_headers" */;
@@ -88,6 +100,7 @@
 				1EE2EA45214C6271E45D1A78 /* PBXTargetDependency */,
 				69B58AFC59608ED398A48CD8 /* PBXTargetDependency */,
 				051E57CD74C486776F90913F /* PBXTargetDependency */,
+				F17B536CED34277531019A4E /* PBXTargetDependency */,
 				6F67D3A21CA366A4902DA9EE /* PBXTargetDependency */,
 			);
 			name = All;
@@ -96,77 +109,77 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		018B604E5426EA4669670C80 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		04702836154A400E1D506373 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		09A55A5E396845A3CFBDEF85 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		0EB6F7405E1D2D23624534E6 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
-		13A61026C5D1DEEDB5AB2E72 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		13C5BD9DAE9D2482B32046DD /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		15C9270C9B9C35B314D4829E /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		17FF72927EF314137F6981A1 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
-		18667208B1181BBBEA0707B7 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		19A06EFE9ECF2156B59671F8 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		22DA5ED8B84649BA1FC4567A /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		23F29D74E01C2A0B6EAAE12E /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		25FF8549F44195A0C9DB8233 /* writer_apiv1.c in Sources */ = {isa = PBXBuildFile; fileRef = B14070397054B3FD2D455DFA /* writer_apiv1.c */; };
-		2B35EC38BD53B09839471457 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		2E17BB9F38A15A3E1EC1D6FD /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		2EB97217AC49D3E3B1625217 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
-		37E97D614B111D8572C04923 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		4573E5D8DE0ABF3D08B1E301 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		4944DCDB19C4A25FCD1251CA /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {isa = PBXBuildFile; fileRef = 6DA6A0F32FFCF9B185ACB939 /* man3 */; };
-		49DA01F08327C1FEC54E67B8 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		4B293A41F66285CC62B5BABC /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
-		503959D063E2BD7C221BD382 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
-		5395B929DFEFF7190400A2EA /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		55F5F04D992D7CEBD4E73AB5 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		57407FB7DD6775EFBF77EF38 /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */; };
-		5A7F64911B05655FA119DDAD /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {isa = PBXBuildFile; fileRef = E1564CD269FB33343DA6F442 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		5B0B8C6366777544EF9AC9A5 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		5D9891F14FFD76414E5B9A31 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		605B6EF0D9246FFD11FC2B0F /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
-		6A4CA3702ECA033AD5499775 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
-		6BFDD3D010743E0A6BE10213 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		6FBDB151AE806BD107DEB1A8 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		72767E48CF09C8E7A9B197B4 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		72A219A3BC634DF22392C532 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		82693C35E327CFEC4F6F0DCD /* writer_apiv1.c in Sources */ = {isa = PBXBuildFile; fileRef = B14070397054B3FD2D455DFA /* writer_apiv1.c */; };
-		82805986FF202FA2C56EA309 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		83370E1EDD593938E368483E /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		840BB01BFA6234666AE1B810 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		845838B31D505C435238DC95 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		8B7D8B0955AF15B4144E6AC3 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
-		907667748684A1DA8F3679EC /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
+		0B70209E5E4C6047EA3C8BB6 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		0D9EC74A016F34F027133EB5 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		188C539C4248CF313FFF20AE /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {isa = PBXBuildFile; fileRef = 6DA6A0F32FFCF9B185ACB939 /* man3 */; };
+		18F32161A2B6C9672A113755 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		1B8B380842FD6ACF447AE32C /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		203EC7D031B34D23F4AF313B /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		25D159EA4A2D4D4FD6613D1C /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		2675589A54F1B2BA5CA251D5 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
+		2D82F1CC7E42975A4D30F6C5 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
+		2F05E3D0B99FE81B46BBF071 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
+		2F721F2365BCFCCF4C8802EC /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		33AE152BD2DFDC6110BE598E /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		3678376D5EE759733DDAF49C /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		3759A1986B13899356566903 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		43C890F785CEBB731460C550 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
+		473E6448001FF1D472823B73 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		4A5D2CD71694038C7AE9C6DA /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		4B86D782EB52F9DB0AE6B69D /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		511210F41A78B10A7517D153 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		51A0D966EF7247D8529D8F43 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		5421180E3204DF7C8D068C41 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		5C9E09968844B15D7BB32A82 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		642FFEDF690D532256D1AAC1 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
+		6793E8CB0854EACB1BA0F28B /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		6B7A86A9E8E387EFFA570AB4 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		6E1BCA835D2B66EA9EA98167 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		7072C6CAFACD3F01AC12AC7F /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		71004268E7D774467049A579 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
+		72C83F49A3C447B70CA9A4AB /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		7B8D0E7BCA4A40B07353EC87 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		877E23AA421A83334F1AADD6 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		8B1B4538CE3F2DF24A9B44FD /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
+		8DC93E7F764AC25B67F3185E /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		911E60555C29459BC9C86D4C /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
 		92E48EBAE995313047B11375 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 952FB97003C3A1793841B79D /* OpenGL.framework */; };
-		9317D90347EC7A709CE7EA9D /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		9869059278A1C0EB29801422 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		99DA11BCF9764678156A1CFA /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		9A8C09BFB2DF830639B239A7 /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = C2E7B90F693D2ADDEB68C765 /* ktx.h */; };
-		9FBED8B17C52033B02759DF2 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		A4D97EF5F5068DF1A363286D /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
-		ABCCA921BDC8152EEAD78D3D /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		AD06BDA013FC28F5CC5825A0 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		B0473B62C748D3F2BE463958 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		B184008AAAE3CBC2E6BA8676 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		B8004935E92CAACC3E4B7219 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = 384624CA76049217B70E9012 /* hashtable.c */; };
-		B855B2711BB576AF3DE31662 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		BE550BA6F4522816AE838AC9 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		C520FA85E66B38A6ACFA2E30 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
-		C52AA3270E8EEA7837905F82 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
-		C59CC3C25CF6E425885E5456 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
-		CB33D0778EF201D1FDA2D254 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
-		CE820A02D35BAC97D969AD3B /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
-		D0E4A8668A4C7C0273551D28 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		D89FEF124A380E5B51474C3D /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
-		D8AB2E45E6259AA3F476F413 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
-		D8C9CC51B911D7E0DFFA3639 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		DCFDF450626CF536F25ED2BB /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		E3B566A51B1ACF40E72C5F98 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
-		E7A215D58CC72696BEE165B0 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		E94D73A7BA2021264ACAD005 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
-		EB3645C83D56B651B8D264E3 /* writer_apiv1.c in Sources */ = {isa = PBXBuildFile; fileRef = B14070397054B3FD2D455DFA /* writer_apiv1.c */; };
-		FAF2C8D3DF5A6AC922CE1581 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		FE566C27599C02889BE5B43E /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		93661A1E302E0B8D8C7977B0 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		937EA9EA940969A6CAC062A1 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
+		9715E16F4B9F662CEB7242F8 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
+		97E7BAEB013018E456A2F3E3 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		9A667933F444C92BA74C9E9D /* writer_apiv1.c in Sources */ = {isa = PBXBuildFile; fileRef = B14070397054B3FD2D455DFA /* writer_apiv1.c */; };
+		9CB7CC79BBBA64606DBC465B /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		9DC5186A2BC4B0490F9C058F /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
+		A43A87E81F89B54E90E54C9E /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
+		A64D54D92D0988848C84F068 /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {isa = PBXBuildFile; fileRef = E1564CD269FB33343DA6F442 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		AA9A0FBC8D457DF06EDBB1CA /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
+		B07AF7235F03B0D352D65109 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		B302E33D7B60978D95A0E540 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
+		B72F83B33621B5633B0191F8 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		B886FCF4A724A3BD86AB8B25 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		B9815DC75142E185F6069859 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
+		B9AE207D5334572EB2F2C79B /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		BC223C9449CAA4667981EADD /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
+		BEB975C67ACB7558AFEDF577 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		BF699E98AFC96DFA31E9EB6C /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = C2E7B90F693D2ADDEB68C765 /* ktx.h */; };
+		C0EEFCB43C83639F8DB7C4E3 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		C562A08189E6195D9057AA76 /* writer_apiv1.c in Sources */ = {isa = PBXBuildFile; fileRef = B14070397054B3FD2D455DFA /* writer_apiv1.c */; };
+		C683ECBB5D37297996B492CE /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
+		C7D958D8D1B02700641B2DD4 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
+		CB2F8632114DC4187A9C8216 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
+		CC7CB3C7DA142BA739437DD6 /* writer_apiv1.c in Sources */ = {isa = PBXBuildFile; fileRef = B14070397054B3FD2D455DFA /* writer_apiv1.c */; };
+		CFCFC54E6A1FBE4CC8A0D7E0 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		D561CF9776146ED196282C0C /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		D7221713EE67F1F7CD942592 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		DC7B646A035FB32DF4208123 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		E0EB1455510DC65242160912 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		E4D5BFEFD7D0DC7DC215A4D6 /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */; };
+		E7861D153623E39F6D6C1837 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
+		EEB5AE4CA5F2FC368036C394 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		F34BB3708FBF6B7E7949F9D6 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		F779819DB708E74CC699BB36 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		FB797F747E41D7840B788967 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -204,6 +217,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = A53C7E625BBCBD48220BD07A;
 			remoteInfo = vulkan_headers;
+		};
+		596D71CC962B8BB0030EE08D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6D6366BB32CAA6A60F5BEE29;
+			remoteInfo = mkvkformatfiles;
 		};
 		87D805A60DB1500759135757 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -291,8 +311,8 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include";
 			dstSubfolderSpec = 0;
 			files = (
-				9A8C09BFB2DF830639B239A7 /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
-				57407FB7DD6775EFBF77EF38 /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
+				BF699E98AFC96DFA31E9EB6C /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
+				E4D5BFEFD7D0DC7DC215A4D6 /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -303,7 +323,7 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man";
 			dstSubfolderSpec = 0;
 			files = (
-				4944DCDB19C4A25FCD1251CA /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */,
+				188C539C4248CF313FFF20AE /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -314,7 +334,7 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib";
 			dstSubfolderSpec = 0;
 			files = (
-				5A7F64911B05655FA119DDAD /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */,
+				A64D54D92D0988848C84F068 /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -342,6 +362,7 @@
 		53941C3F4EB820F20A47DA0E /* vkloader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkloader.c; sourceTree = "<group>"; };
 		56F65688C8403CD76F6AEB58 /* runDoxygen */ = {isa = PBXFileReference; lastKnownFileType = text; path = runDoxygen; sourceTree = "<group>"; };
 		575B7A621B55E274E543AE05 /* mainpage.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = mainpage.md; sourceTree = "<group>"; };
+		5A8583BC0446856614E918F4 /* vulkan_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkan_core.h; sourceTree = "<group>"; };
 		5C8BD124834875302BD54E96 /* vkformat_str.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_str.c; sourceTree = "<group>"; };
 		5F80151F983F77C60709E872 /* memstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = memstream.c; sourceTree = "<group>"; };
 		6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_prohibited.c; sourceTree = "<group>"; };
@@ -362,6 +383,7 @@
 		952FB97003C3A1793841B79D /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es3.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E18A3FB89097EF93836206A /* vk_funcs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vk_funcs.h; sourceTree = "<group>"; };
+		AC0CACCCF0FBD49B4554BB80 /* makevkswitch.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = makevkswitch.pl; sourceTree = "<group>"; };
 		B14070397054B3FD2D455DFA /* writer_apiv1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer_apiv1.c; sourceTree = "<group>"; };
 		B173E34FD52E42EBF0F24CF0 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
 		B3460286FF6F87E0123D2A29 /* vkformat_enum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vkformat_enum.h; sourceTree = "<group>"; };
@@ -380,6 +402,7 @@
 		E4C296305A71370E67B0FDD7 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles3_funcptrs.h; sourceTree = "<group>"; };
 		EC2F140ED1C840A390FE4436 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
+		ECD56E9BB7D9875D6B574A57 /* mkvkformatfiles */ = {isa = PBXFileReference; lastKnownFileType = text; path = mkvkformatfiles; sourceTree = "<group>"; };
 		F1855B606AA3818BD9BE7DC0 /* createdfd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = createdfd.c; sourceTree = "<group>"; };
 		F552AA19D91ECB8C25731D64 /* libktx.gl.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libktx.gl.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC5A736041E56A19740046E1 /* hashlist.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hashlist.c; sourceTree = "<group>"; };
@@ -443,28 +466,24 @@
 			path = man;
 			sourceTree = "<group>";
 		};
-		2ABF73720F261EC0DE5835C7 /* dfdutils */ = {
-			isa = PBXGroup;
-			children = (
-				F1855B606AA3818BD9BE7DC0 /* createdfd.c */,
-				BF55BDE7D19528ABC33846FE /* dfd.h */,
-				9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */,
-				3ABE606CF569F264728DBFDE /* interpretdfd.c */,
-				82527C2532AA96299FE18243 /* printdfd.c */,
-				2350DA83DD64046C22556426 /* vkdfdswitchbody.inl */,
-			);
-			path = dfdutils;
-			sourceTree = "<group>";
-		};
 		30DF960E27ABEF24363F38D0 = {
 			isa = PBXGroup;
 			children = (
-				A39AE1C1E4ABD6C5536CFF2F /* Source */,
+				6883E28A718BF4BE3B8D64F1 /* Source */,
 				F4FFA1782492E825706FCBFA /* Frameworks */,
 				081591EA16B4CF19E1457839 /* Products */,
 				115FD997276BE6B2F9D71D3B /* Build */,
 			);
 			sourceTree = "<group>";
+		};
+		369DE9B2E4B2BC3C5C2736BE /* VULKAN_SDK */ = {
+			isa = PBXGroup;
+			children = (
+				5A8583BC0446856614E918F4 /* vulkan_core.h */,
+			);
+			name = VULKAN_SDK;
+			path = include/vulkan;
+			sourceTree = VULKAN_SDK;
 		};
 		3DF1BAE80AFA114174E3E828 /* build/docs */ = {
 			isa = PBXGroup;
@@ -484,33 +503,10 @@
 			path = include;
 			sourceTree = "<group>";
 		};
-		5E3010785F14C800779DEEB1 /* BUILT_PRODUCTS_DIR */ = {
+		5856DF52CC11936F68E0124F /* lib */ = {
 			isa = PBXGroup;
 			children = (
-				E1564CD269FB33343DA6F442 /* libktx.gl.dylib */,
-			);
-			name = BUILT_PRODUCTS_DIR;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A39AE1C1E4ABD6C5536CFF2F /* Source */ = {
-			isa = PBXGroup;
-			children = (
-				5E3010785F14C800779DEEB1 /* BUILT_PRODUCTS_DIR */,
-				3DF1BAE80AFA114174E3E828 /* build/docs */,
-				57D232CAE30EDA78BEBF64CF /* include */,
-				C3FD640A8B656D4D91119BCA /* lib */,
-				1BD886EACF703C7F42DB60DF /* LICENSE.md */,
-				1B63960A3BEABDC8BEE4A12A /* TODO.md */,
-				813B3D494F0FD6BA2039BD20 /* libktx.doxy */,
-				56F65688C8403CD76F6AEB58 /* runDoxygen */,
-			);
-			name = Source;
-			sourceTree = "<group>";
-		};
-		C3FD640A8B656D4D91119BCA /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				2ABF73720F261EC0DE5835C7 /* dfdutils */,
+				CDC19DE4F7BD493662EE30B8 /* dfdutils */,
 				EC2F140ED1C840A390FE4436 /* checkheader.c */,
 				4E0FC251435360C63D168913 /* errstr.c */,
 				44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */,
@@ -531,6 +527,7 @@
 				575B7A621B55E274E543AE05 /* mainpage.md */,
 				5F80151F983F77C60709E872 /* memstream.c */,
 				04DBA4650A63E0877B604E27 /* memstream.h */,
+				ECD56E9BB7D9875D6B574A57 /* mkvkformatfiles */,
 				B3D3DABA276B3DA38DD7428E /* stream.h */,
 				B173E34FD52E42EBF0F24CF0 /* swap.c */,
 				92794EBE6DABF950FC03CFE8 /* texture.c */,
@@ -548,6 +545,44 @@
 				3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */,
 			);
 			path = lib;
+			sourceTree = "<group>";
+		};
+		5E3010785F14C800779DEEB1 /* BUILT_PRODUCTS_DIR */ = {
+			isa = PBXGroup;
+			children = (
+				E1564CD269FB33343DA6F442 /* libktx.gl.dylib */,
+			);
+			name = BUILT_PRODUCTS_DIR;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6883E28A718BF4BE3B8D64F1 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				5E3010785F14C800779DEEB1 /* BUILT_PRODUCTS_DIR */,
+				369DE9B2E4B2BC3C5C2736BE /* VULKAN_SDK */,
+				3DF1BAE80AFA114174E3E828 /* build/docs */,
+				57D232CAE30EDA78BEBF64CF /* include */,
+				5856DF52CC11936F68E0124F /* lib */,
+				1BD886EACF703C7F42DB60DF /* LICENSE.md */,
+				1B63960A3BEABDC8BEE4A12A /* TODO.md */,
+				813B3D494F0FD6BA2039BD20 /* libktx.doxy */,
+				56F65688C8403CD76F6AEB58 /* runDoxygen */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		CDC19DE4F7BD493662EE30B8 /* dfdutils */ = {
+			isa = PBXGroup;
+			children = (
+				F1855B606AA3818BD9BE7DC0 /* createdfd.c */,
+				BF55BDE7D19528ABC33846FE /* dfd.h */,
+				9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */,
+				3ABE606CF569F264728DBFDE /* interpretdfd.c */,
+				AC0CACCCF0FBD49B4554BB80 /* makevkswitch.pl */,
+				82527C2532AA96299FE18243 /* printdfd.c */,
+				2350DA83DD64046C22556426 /* vkdfdswitchbody.inl */,
+			);
+			path = dfdutils;
 			sourceTree = "<group>";
 		};
 		F4FFA1782492E825706FCBFA /* Frameworks */ = {
@@ -641,12 +676,51 @@
 				53E28E0399F04986CCFA2113 /* libvulkan */,
 				57E23513B7E3B1238C76EFD8 /* libvulkan.lazy */,
 				1DECD74B6E574582E25FE647 /* libktx.doc */,
+				6D6366BB32CAA6A60F5BEE29 /* mkvkformatfiles */,
 				367C61B4767369D229A346CD /* install.lib */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9BFD1F9F5513DE17D5535685 /* Action "run_mkvkformatfiles" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(VULKAN_SDK)/include/vulkan/vulkan_core.h",
+				lib/mkvkformatfiles,
+			);
+			name = "Action \"run_mkvkformatfiles\"";
+			outputPaths = (
+				lib/vkformat_enum.h,
+				lib/vkformat_prohibited.c,
+				lib/vkformat_str.c,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo note: \"Generating VkFormat-related source files\"\nexec lib/mkvkformatfiles lib\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
+		DF438FB5533A901550BE5BDA /* Action "run_makevkswitch" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				lib/vkformat_enum.h,
+				lib/dfdutils/makevkswitch.pl,
+			);
+			name = "Action \"run_makevkswitch\"";
+			outputPaths = (
+				lib/dfdutils/vkdfdswitchbody.inl,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo note: \"Generating VkFormat/DFD switch body\"\nexec lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vkdfdswitchbody.inl\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
 		F15D02DD548099D9CFB68DCE /* Action "buildLibktxDoc" */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -717,28 +791,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D8C9CC51B911D7E0DFFA3639 /* checkheader.c in Sources */,
-				4B293A41F66285CC62B5BABC /* createdfd.c in Sources */,
-				C59CC3C25CF6E425885E5456 /* dfd4vkformat.c in Sources */,
-				907667748684A1DA8F3679EC /* interpretdfd.c in Sources */,
-				C520FA85E66B38A6ACFA2E30 /* printdfd.c in Sources */,
-				ABCCA921BDC8152EEAD78D3D /* errstr.c in Sources */,
-				55F5F04D992D7CEBD4E73AB5 /* etcdec.cxx in Sources */,
-				82805986FF202FA2C56EA309 /* etcunpack.cxx in Sources */,
-				9869059278A1C0EB29801422 /* filestream.c in Sources */,
-				B855B2711BB576AF3DE31662 /* glloader.c in Sources */,
-				04702836154A400E1D506373 /* hashlist.c in Sources */,
-				B8004935E92CAACC3E4B7219 /* hashtable.c in Sources */,
-				FE566C27599C02889BE5B43E /* info.c in Sources */,
-				37E97D614B111D8572C04923 /* memstream.c in Sources */,
-				FAF2C8D3DF5A6AC922CE1581 /* swap.c in Sources */,
-				5395B929DFEFF7190400A2EA /* texture.c in Sources */,
-				CE820A02D35BAC97D969AD3B /* vkformat_prohibited.c in Sources */,
-				22DA5ED8B84649BA1FC4567A /* vkformat_str.c in Sources */,
-				AD06BDA013FC28F5CC5825A0 /* writer.c in Sources */,
-				EB3645C83D56B651B8D264E3 /* writer_apiv1.c in Sources */,
-				0EB6F7405E1D2D23624534E6 /* writer_v2.c in Sources */,
-				72767E48CF09C8E7A9B197B4 /* vkloader.c in Sources */,
+				6E1BCA835D2B66EA9EA98167 /* checkheader.c in Sources */,
+				0B70209E5E4C6047EA3C8BB6 /* createdfd.c in Sources */,
+				9715E16F4B9F662CEB7242F8 /* dfd4vkformat.c in Sources */,
+				BC223C9449CAA4667981EADD /* interpretdfd.c in Sources */,
+				2F721F2365BCFCCF4C8802EC /* printdfd.c in Sources */,
+				97E7BAEB013018E456A2F3E3 /* errstr.c in Sources */,
+				72C83F49A3C447B70CA9A4AB /* etcdec.cxx in Sources */,
+				BEB975C67ACB7558AFEDF577 /* etcunpack.cxx in Sources */,
+				E0EB1455510DC65242160912 /* filestream.c in Sources */,
+				D7221713EE67F1F7CD942592 /* glloader.c in Sources */,
+				911E60555C29459BC9C86D4C /* hashlist.c in Sources */,
+				5C9E09968844B15D7BB32A82 /* hashtable.c in Sources */,
+				93661A1E302E0B8D8C7977B0 /* info.c in Sources */,
+				33AE152BD2DFDC6110BE598E /* memstream.c in Sources */,
+				1B8B380842FD6ACF447AE32C /* swap.c in Sources */,
+				473E6448001FF1D472823B73 /* texture.c in Sources */,
+				E7861D153623E39F6D6C1837 /* vkformat_prohibited.c in Sources */,
+				43C890F785CEBB731460C550 /* vkformat_str.c in Sources */,
+				51A0D966EF7247D8529D8F43 /* writer.c in Sources */,
+				9A667933F444C92BA74C9E9D /* writer_apiv1.c in Sources */,
+				642FFEDF690D532256D1AAC1 /* writer_v2.c in Sources */,
+				937EA9EA940969A6CAC062A1 /* vkloader.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -746,27 +820,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2E17BB9F38A15A3E1EC1D6FD /* checkheader.c in Sources */,
-				605B6EF0D9246FFD11FC2B0F /* createdfd.c in Sources */,
-				D8AB2E45E6259AA3F476F413 /* dfd4vkformat.c in Sources */,
-				BE550BA6F4522816AE838AC9 /* interpretdfd.c in Sources */,
-				CB33D0778EF201D1FDA2D254 /* printdfd.c in Sources */,
-				13C5BD9DAE9D2482B32046DD /* errstr.c in Sources */,
-				49DA01F08327C1FEC54E67B8 /* etcdec.cxx in Sources */,
-				E7A215D58CC72696BEE165B0 /* etcunpack.cxx in Sources */,
-				19A06EFE9ECF2156B59671F8 /* filestream.c in Sources */,
-				72A219A3BC634DF22392C532 /* glloader.c in Sources */,
-				5B0B8C6366777544EF9AC9A5 /* hashlist.c in Sources */,
-				23F29D74E01C2A0B6EAAE12E /* hashtable.c in Sources */,
-				17FF72927EF314137F6981A1 /* info.c in Sources */,
-				DCFDF450626CF536F25ED2BB /* memstream.c in Sources */,
-				09A55A5E396845A3CFBDEF85 /* swap.c in Sources */,
-				2B35EC38BD53B09839471457 /* texture.c in Sources */,
-				E94D73A7BA2021264ACAD005 /* vkformat_prohibited.c in Sources */,
-				6FBDB151AE806BD107DEB1A8 /* vkformat_str.c in Sources */,
-				18667208B1181BBBEA0707B7 /* writer.c in Sources */,
-				25FF8549F44195A0C9DB8233 /* writer_apiv1.c in Sources */,
-				E3B566A51B1ACF40E72C5F98 /* writer_v2.c in Sources */,
+				B07AF7235F03B0D352D65109 /* checkheader.c in Sources */,
+				EEB5AE4CA5F2FC368036C394 /* createdfd.c in Sources */,
+				71004268E7D774467049A579 /* dfd4vkformat.c in Sources */,
+				2F05E3D0B99FE81B46BBF071 /* interpretdfd.c in Sources */,
+				F779819DB708E74CC699BB36 /* printdfd.c in Sources */,
+				B9AE207D5334572EB2F2C79B /* errstr.c in Sources */,
+				8DC93E7F764AC25B67F3185E /* etcdec.cxx in Sources */,
+				511210F41A78B10A7517D153 /* etcunpack.cxx in Sources */,
+				CFCFC54E6A1FBE4CC8A0D7E0 /* filestream.c in Sources */,
+				3678376D5EE759733DDAF49C /* glloader.c in Sources */,
+				25D159EA4A2D4D4FD6613D1C /* hashlist.c in Sources */,
+				0D9EC74A016F34F027133EB5 /* hashtable.c in Sources */,
+				D561CF9776146ED196282C0C /* info.c in Sources */,
+				7B8D0E7BCA4A40B07353EC87 /* memstream.c in Sources */,
+				DC7B646A035FB32DF4208123 /* swap.c in Sources */,
+				203EC7D031B34D23F4AF313B /* texture.c in Sources */,
+				B9815DC75142E185F6069859 /* vkformat_prohibited.c in Sources */,
+				CB2F8632114DC4187A9C8216 /* vkformat_str.c in Sources */,
+				5421180E3204DF7C8D068C41 /* writer.c in Sources */,
+				CC7CB3C7DA142BA739437DD6 /* writer_apiv1.c in Sources */,
+				B302E33D7B60978D95A0E540 /* writer_v2.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -774,29 +848,29 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4573E5D8DE0ABF3D08B1E301 /* checkheader.c in Sources */,
-				2EB97217AC49D3E3B1625217 /* createdfd.c in Sources */,
-				6A4CA3702ECA033AD5499775 /* dfd4vkformat.c in Sources */,
-				840BB01BFA6234666AE1B810 /* interpretdfd.c in Sources */,
-				C52AA3270E8EEA7837905F82 /* printdfd.c in Sources */,
-				9317D90347EC7A709CE7EA9D /* errstr.c in Sources */,
-				83370E1EDD593938E368483E /* etcdec.cxx in Sources */,
-				B0473B62C748D3F2BE463958 /* etcunpack.cxx in Sources */,
-				13A61026C5D1DEEDB5AB2E72 /* filestream.c in Sources */,
-				6BFDD3D010743E0A6BE10213 /* glloader.c in Sources */,
-				99DA11BCF9764678156A1CFA /* hashlist.c in Sources */,
-				5D9891F14FFD76414E5B9A31 /* hashtable.c in Sources */,
-				8B7D8B0955AF15B4144E6AC3 /* info.c in Sources */,
-				018B604E5426EA4669670C80 /* memstream.c in Sources */,
-				15C9270C9B9C35B314D4829E /* swap.c in Sources */,
-				845838B31D505C435238DC95 /* texture.c in Sources */,
-				503959D063E2BD7C221BD382 /* vkformat_prohibited.c in Sources */,
-				D0E4A8668A4C7C0273551D28 /* vkformat_str.c in Sources */,
-				B184008AAAE3CBC2E6BA8676 /* writer.c in Sources */,
-				82693C35E327CFEC4F6F0DCD /* writer_apiv1.c in Sources */,
-				A4D97EF5F5068DF1A363286D /* writer_v2.c in Sources */,
-				9FBED8B17C52033B02759DF2 /* vkloader.c in Sources */,
-				D89FEF124A380E5B51474C3D /* vk_funcs.c in Sources */,
+				C0EEFCB43C83639F8DB7C4E3 /* checkheader.c in Sources */,
+				18F32161A2B6C9672A113755 /* createdfd.c in Sources */,
+				A43A87E81F89B54E90E54C9E /* dfd4vkformat.c in Sources */,
+				FB797F747E41D7840B788967 /* interpretdfd.c in Sources */,
+				6793E8CB0854EACB1BA0F28B /* printdfd.c in Sources */,
+				6B7A86A9E8E387EFFA570AB4 /* errstr.c in Sources */,
+				877E23AA421A83334F1AADD6 /* etcdec.cxx in Sources */,
+				4B86D782EB52F9DB0AE6B69D /* etcunpack.cxx in Sources */,
+				F34BB3708FBF6B7E7949F9D6 /* filestream.c in Sources */,
+				4A5D2CD71694038C7AE9C6DA /* glloader.c in Sources */,
+				7072C6CAFACD3F01AC12AC7F /* hashlist.c in Sources */,
+				8B1B4538CE3F2DF24A9B44FD /* hashtable.c in Sources */,
+				9CB7CC79BBBA64606DBC465B /* info.c in Sources */,
+				B72F83B33621B5633B0191F8 /* memstream.c in Sources */,
+				3759A1986B13899356566903 /* swap.c in Sources */,
+				B886FCF4A724A3BD86AB8B25 /* texture.c in Sources */,
+				C683ECBB5D37297996B492CE /* vkformat_prohibited.c in Sources */,
+				2D82F1CC7E42975A4D30F6C5 /* vkformat_str.c in Sources */,
+				9DC5186A2BC4B0490F9C058F /* writer.c in Sources */,
+				C562A08189E6195D9057AA76 /* writer_apiv1.c in Sources */,
+				C7D958D8D1B02700641B2DD4 /* writer_v2.c in Sources */,
+				AA9A0FBC8D457DF06EDBB1CA /* vkloader.c in Sources */,
+				2675589A54F1B2BA5CA251D5 /* vk_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -872,6 +946,11 @@
 			isa = PBXTargetDependency;
 			target = 555F14739B20F130C104F38F /* libktx.es1 */;
 			targetProxy = F48EBDDD1C0B8609C5DE48DE /* PBXContainerItemProxy */;
+		};
+		F17B536CED34277531019A4E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6D6366BB32CAA6A60F5BEE29 /* mkvkformatfiles */;
+			targetProxy = 596D71CC962B8BB0030EE08D /* PBXContainerItemProxy */;
 		};
 		F4CA3457993442716C275F00 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1145,6 +1224,27 @@
 			};
 			name = Release;
 		};
+		84258583C5868F9A8F81ADCD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_NAME = mkvkformatfiles;
+			};
+			name = Debug;
+		};
 		89A3F5CE9D5661525E156A95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1277,6 +1377,24 @@
 				PRODUCT_NAME = ktx.gl;
 			};
 			name = Debug;
+		};
+		C35A742E5BB0912D18FC2172 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_NAME = mkvkformatfiles;
+			};
+			name = Release;
 		};
 		CABD1828BE24F7BDAA152A6C /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1495,6 +1613,15 @@
 			buildConfigurations = (
 				5696BB14384DAB6493E64177 /* Debug */,
 				B70774D9E354160C6725881A /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		C6E90966DD7948D9D3FE85CF /* Build configuration list for PBXAggregateTarget "mkvkformatfiles" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84258583C5868F9A8F81ADCD /* Debug */,
+				C35A742E5BB0912D18FC2172 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;
