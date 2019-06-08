@@ -107,6 +107,55 @@ add_dependencies(libktx_es3
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:mkvkformatfiles#target
+set(TARGET "mkvkformatfiles")
+set(TOOLSET "target")
+list(APPEND mkvkformatfiles__run_mkvkformatfiles__input
+  "/usr/include/vulkan/vulkan_core.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/mkvkformatfiles")
+list(APPEND mkvkformatfiles__run_mkvkformatfiles__output
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_prohibited.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_str.c")
+add_custom_command(OUTPUT ${mkvkformatfiles__run_mkvkformatfiles__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory lib
+  COMMAND lib/mkvkformatfiles lib
+  DEPENDS ${mkvkformatfiles__run_mkvkformatfiles__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating VkFormat-related source files
+  VERBATIM
+)
+add_custom_target(mkvkformatfiles__run_mkvkformatfiles
+  DEPENDS ${mkvkformatfiles__run_mkvkformatfiles__output}
+  SOURCES ${mkvkformatfiles__run_mkvkformatfiles__input}
+)
+list(APPEND mkvkformatfiles__run_makevkswitch__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/makevkswitch.pl")
+set(mkvkformatfiles__run_makevkswitch__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vkdfdswitchbody.inl")
+add_custom_command(OUTPUT ${mkvkformatfiles__run_makevkswitch__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+  COMMAND lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vkdfdswitchbody.inl
+  DEPENDS ${mkvkformatfiles__run_makevkswitch__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating VkFormat/DFD switch body
+  VERBATIM
+)
+add_custom_target(mkvkformatfiles__run_makevkswitch
+  DEPENDS ${mkvkformatfiles__run_makevkswitch__output}
+  SOURCES ${mkvkformatfiles__run_makevkswitch__input}
+)
+add_custom_target(mkvkformatfiles SOURCES)
+set_target_properties(mkvkformatfiles PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(mkvkformatfiles__run_mkvkformatfiles PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(mkvkformatfiles__run_makevkswitch PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(mkvkformatfiles
+  mkvkformatfiles__run_mkvkformatfiles
+  mkvkformatfiles__run_makevkswitch
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:libvulkan.lazy#target
 set(TARGET "libvulkan.lazy")
 set(TOOLSET "target")
