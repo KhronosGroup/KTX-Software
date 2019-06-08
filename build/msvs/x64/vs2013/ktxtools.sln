@@ -1,5 +1,13 @@
 Microsoft Visual Studio Solution File, Format Version 13.00
 # Visual Studio 2013
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "install.tools", "install.tools.vcxproj", "{4DB3C96B-6956-5FDB-D8CA-AD73ED1A4D00}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8120932E-A70A-B036-E797-19CD6A72B2C1} = {8120932E-A70A-B036-E797-19CD6A72B2C1}
+		{58872D14-EBEB-4C67-71C4-721188165521} = {58872D14-EBEB-4C67-71C4-721188165521}
+		{A6C91074-B3D2-2720-17DE-4A746D889D4B} = {A6C91074-B3D2-2720-17DE-4A746D889D4B}
+		{7CFF6530-70C7-58E6-4309-9BA3D31C2679} = {7CFF6530-70C7-58E6-4309-9BA3D31C2679}
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktx2ktx2", "ktx2ktx2.vcxproj", "{8120932E-A70A-B036-E797-19CD6A72B2C1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A6C91074-B3D2-2720-17DE-4A746D889D4B} = {A6C91074-B3D2-2720-17DE-4A746D889D4B}
@@ -11,6 +19,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{A6C91074-B3D2-2720-17DE-4A746D889D4B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{84853937-96E9-0F28-AC58-98BF144FF574} = {84853937-96E9-0F28-AC58-98BF144FF574}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "package.tools", "package.tools.vcxproj", "{2B834F1C-291D-17FF-0CE0-0B5B64255C0C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4DB3C96B-6956-5FDB-D8CA-AD73ED1A4D00} = {4DB3C96B-6956-5FDB-D8CA-AD73ED1A4D00}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx", "toktx.vcxproj", "{7CFF6530-70C7-58E6-4309-9BA3D31C2679}"
@@ -32,6 +45,14 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2B834F1C-291D-17FF-0CE0-0B5B64255C0C}.Debug|x64.ActiveCfg = Debug|x64
+		{2B834F1C-291D-17FF-0CE0-0B5B64255C0C}.Debug|x64.Build.0 = Debug|x64
+		{2B834F1C-291D-17FF-0CE0-0B5B64255C0C}.Release|x64.ActiveCfg = Release|x64
+		{2B834F1C-291D-17FF-0CE0-0B5B64255C0C}.Release|x64.Build.0 = Release|x64
+		{4DB3C96B-6956-5FDB-D8CA-AD73ED1A4D00}.Debug|x64.ActiveCfg = Debug|x64
+		{4DB3C96B-6956-5FDB-D8CA-AD73ED1A4D00}.Debug|x64.Build.0 = Debug|x64
+		{4DB3C96B-6956-5FDB-D8CA-AD73ED1A4D00}.Release|x64.ActiveCfg = Release|x64
+		{4DB3C96B-6956-5FDB-D8CA-AD73ED1A4D00}.Release|x64.Build.0 = Release|x64
 		{58872D14-EBEB-4C67-71C4-721188165521}.Debug|x64.ActiveCfg = Debug|x64
 		{58872D14-EBEB-4C67-71C4-721188165521}.Debug|x64.Build.0 = Debug|x64
 		{58872D14-EBEB-4C67-71C4-721188165521}.Release|x64.ActiveCfg = Release|x64

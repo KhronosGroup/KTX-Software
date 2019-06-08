@@ -83,28 +83,7 @@
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
                 'target_conditions': [
-                  ['_mac_bundle == 1', {
-#                    'actions': [{
-#                      # This could potentially break non-bundle apps built as
-#                      # part of the same project. At present those are in
-#                      # separate projects. However using @rpath as the install
-#                      # name of a dylib installed in /usr/local/lib does work
-#                      # - currently. The reason for doing this instead of
-#                      # always setting INSTALL_PATH for the library to @rpath
-#                      # is so library installation via xcodebuild install will
-#                      # put it in the right place.
-#                      'action_name': 'Change libktx.dylib "install name".',
-#                      'inputs': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-#                      # Input & output are the same file. If set "outputs", the
-#                      # build fails with "Invalid task with mutable output but
-#                      # no other virtual output node". So use just a space.
-#                      'outputs': [ ' ' ],
-#                      'action': [
-#                        'install_name_tool', '-change',
-#                        '/usr/local/lib', '@rpath',
-#                        '<@(_inputs)',
-#                      ],
-#                    }], # actions
+                  ['_type != "none" and _mac_bundle == 1', {
                     'copies': [{
                       'xcode_code_sign': 1,
                       'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
@@ -128,8 +107,14 @@
                 'vk_funcs.h',
               ],
               'xcode_settings': {
-                # Set the "install name" so dyld will not refuse to load a
-                # bundle's dylib when it finds it along the path set above.
+                # Set the "install name" to instruct dyld to search a list of
+                # paths in order to locate the library. If left at the default
+                # of an absolute location (/usr/local/lib), that path will be
+                # built into any executables that link with it and dyld will
+                # search only that location. For bundles, the path we set above
+                # is built into the executable. For non bundle's nothing will be
+                # built into the executable and the standard dyld search path
+                # will be used.
                 'INSTALL_PATH': '@rpath',
               }
             }, 'OS == "linux"', {
@@ -139,6 +124,15 @@
           ], # conditions
         }] # _type == "shared_library"
       ], # conditions
+      'xcode_settings': {
+          # These actually Xcode's defaults here for documentation.
+          #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
+          #'INSTALL_PATH': '/usr/local/lib',
+          # This is used by a Copy Headers phase which gyp only allows to be
+          # be created for a framework bundle. Remember in case we want to
+          # switch the lib to a framework.
+          #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
+      },
     }, # libktx.gl target
     {
       'target_name': 'libktx.es1',
@@ -304,6 +298,68 @@
 #            }, # run makevkswitch action
 #          ], # actions
 #        }, # mkvkformatfiles
+        {
+          'target_name': 'install.lib',
+          'type': 'none',
+          # These variables duplicate those in ktxtools.gyp:install_tools.
+          # See Othere for explanation.
+          'variables': {
+            'conditions': [
+              ['GENERATOR == "xcode"', {
+                # This weird path is because Xcode ignores its DSTROOT setting
+                # when the path is an absolute path. WRAPPER_NAME defaults to
+                # /Applications/$(PRODUCT_NAME).app. Use DSTROOT so that
+                # xcodebuild ... install will put the .dylib in the same place.
+                'dstroot': '$(WRAPPER_NAME)/../../$(DSTROOT)',
+                'installpath': '$(INSTALL_PATH)',
+              }, 'OS == "win"', {
+                'dstroot': '$(TMP)/libktx.dst',
+                'installpath': '/usr/local',
+              }, {
+                # XXX Need to figure out how to set & propagate DSTROOT to
+                # the environment. Also it looks like there will be a
+                # problem with cmake if $DSTROOT is the same here and in
+                # ktxtools, i.e "/" for a real installation. For now...
+                'dstroot': '/tmp/libktx.dst',
+                'installpath': '/usr/local',
+              }],
+              ['GENERATOR == "msvs"', {
+                'staticlib_dir': '<(PRODUCT_DIR)/lib',
+              }, {
+                'staticlib_dir': '<(PRODUCT_DIR)',
+              }],
+              ['GENERATOR == "cmake"', {
+                'libktx_dir': '<(PRODUCT_DIR)/lib.target',
+              }, {
+                'libktx_dir': '<(PRODUCT_DIR)',
+              }],
+            ], # conditions
+          }, # variables
+          'dependencies': [ 'libktx.gl', 'libktx.doc' ],
+          'xcode_settings': {
+            'INSTALL_PATH': '/usr/local',
+          },
+          'copies': [{
+            'xcode_code_sign': 1,
+            'destination': '<(dstroot)/<(installpath)/lib',
+            'conditions': [
+              ['OS == "win" or "<(library)" != "shared_library"', {
+                'files': [ '<(staticlib_dir)/libktx.gl<(STATIC_LIB_SUFFIX)' ],
+              }],
+              ['"<(library)" == "shared_library"', {
+                'files': [ '<(libktx_dir)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
+              }],
+            ], # conditions
+          }, {
+            'destination': '<(dstroot)/<(installpath)/include',
+            'files': [ '../include/ktx.h', '../include/ktxvulkan.h' ],
+          }, {
+            # Windows, unlike macOS, does not do a recursive copy
+            # here. Darn! How to copy all these man pages.
+            'destination': '<(dstroot)/<(installpath)/share/man',
+            'files': [ '../build/docs/man/man3/' ],
+          }]
+        } # install_lib target
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ], # conditions

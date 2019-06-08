@@ -21,14 +21,12 @@ install.lib:
 install.tools:
 	xcodebuild -project ktxtools.xcodeproj -configuration $(config) -target install.tools DEVELOPMENT_TEAM=$(devteam) VULKAN_SDK=$(vulkan_sdk) DSTROOT=$(dstroot)
 
-toktx-tests:
-	xcodebuild -project ktxtools.xcodeproj -configuration $(config) -target toktx-tests DEVELOPMENT_TEAM=$(devteam) VULKAN_SDK=$(vulkan_sdk) DSTROOT=$(dstroot)
-
 clean:
 	xcodebuild -project ktxtools.xcodeproj -configuration $(config) clean DEVELOPMENT_TEAM=$(devteam) VULKAN_SDK=$(vulkan_sdk) DSTROOT=$(dstroot)
 
-install.lib.debug install.tools.debug toktx-tests.debug clean.debug: config=Debug
+install.lib.debug install.tools.debug clean.debug: config=Debug
 install.lib.debug: install.lib
 install.tools.debug: install.tools
-toktx-tests.debug: toktx-tests
 clean.debug: clean
+
+install.tools.debug: install.tools

@@ -1,0 +1,6 @@
+#! /bin/sh
+
+cd /
+pkgutil --only-files --files org.khronos.pkg.ktxtools | xargs -n 1 rm # sudo rm -i
+
+pkgutil --forget org.khronos.pkg.ktxtools

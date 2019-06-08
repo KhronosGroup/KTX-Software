@@ -39,6 +39,16 @@
 /build/xcode/*/*.xcodeproj/xcuserdata
 /build/xcode/*/*.xcodeproj/xcshareddata
 
+# xcodebuild CL build related artifacts.
+build/Debug
+build/Release
+build/XCBuildData
+build/ktxtools.build
+build/libktx.build
+
+# built packages
+build/packages
+
 # /include/
 /include/imdebug.h
 
