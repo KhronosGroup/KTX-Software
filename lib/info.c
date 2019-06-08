@@ -37,7 +37,7 @@
 #include "stream.h"
 #include "filestream.h"
 #include "ktxint.h"
-#include "dfd.h"
+#include "dfdutils/dfd.h"
 
 /*===========================================================*
  * Common Utilities for version 1 and 2.                     *
