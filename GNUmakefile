@@ -143,8 +143,8 @@ make: $(make_targets)
 # {win+web,wingl}/vs<version> part of the target name. Uses the
 # msvs_version macro above to extract the version.
 $(msvs_all_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f msvs -DWIN_PLATFORM=$(win_platform) -G
-	msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. \
+	$(gyp) -f msvs -DWIN_PLATFORM=$(win_platform) -G \
+	    msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. \
 		libktx.gyp ktxtests.gyp ktxtools.gyp ktxdoc.gyp
 	@date -R > $@
 
