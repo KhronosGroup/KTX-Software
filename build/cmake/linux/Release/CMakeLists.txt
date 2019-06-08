@@ -76,7 +76,7 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/vk_funclist.inl"
   "../../../../lib/vk_funcs.h")
 add_library(libktx_es3 STATIC ${libktx_es3__c_srcs} ${libktx_es3__cxx_srcs} ${libktx_es3__other_srcs})
-set_target_properties(libktx_es3 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
+set_target_properties(libktx_es3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${libktx_es3__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(libktx_es3 PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
 set_target_properties(libktx_es3 PROPERTIES PREFIX "lib")
@@ -107,7 +107,7 @@ unset(TARGET)
 set(TARGET "libvulkan.lazy")
 set(TOOLSET "target")
 add_custom_target(libvulkan_lazy SOURCES)
-set_target_properties(libvulkan_lazy PROPERTIES EXCLUDE_FROM_ALL "TRUE")
+set_target_properties(libvulkan_lazy PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -150,7 +150,7 @@ list(APPEND libktx_es1__other_srcs
   "../../../../lib/uthash.h"
   "../../../../lib/vkformat_enum.h")
 add_library(libktx_es1 STATIC ${libktx_es1__c_srcs} ${libktx_es1__cxx_srcs} ${libktx_es1__other_srcs})
-set_target_properties(libktx_es1 PROPERTIES EXCLUDE_FROM_ALL "TRUE")
+set_target_properties(libktx_es1 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${libktx_es1__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(libktx_es1 PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
 set_target_properties(libktx_es1 PROPERTIES PREFIX "lib")
@@ -327,6 +327,49 @@ target_link_libraries(libktx_gl
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:install.lib#target
+set(TARGET "install.lib")
+set(TOOLSET "target")
+list(APPEND install_lib__copies__input
+  "${builddir}/lib.target/libktx.gl.so"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h")
+list(APPEND install_lib__copies__output
+  "/tmp/libktx.dst//usr/local/lib/libktx.gl.so"
+  "/tmp/libktx.dst//usr/local/include/ktx.h"
+  "/tmp/libktx.dst//usr/local/include/ktxvulkan.h")
+set(install_lib__copies__input_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/man3")
+set(install_lib__copies__output_dirs "/tmp/libktx.dst//usr/local/share/man/man3")
+add_custom_command(
+OUTPUT ${install_lib__copies__output} ${install_lib__copies__output_dirs}
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/libktx.dst//usr/local/lib/libktx.gl.so
+COMMAND ${CMAKE_COMMAND} -E copy include/ktx.h /tmp/libktx.dst//usr/local/include/ktx.h
+COMMAND ${CMAKE_COMMAND} -E copy include/ktxvulkan.h /tmp/libktx.dst//usr/local/include/ktxvulkan.h
+COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man3/ /tmp/libktx.dst//usr/local/share/man/man3
+DEPENDS ${install_lib__copies__input} ${install_lib__copies__input_dirs}
+WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+COMMENT Copying for install_lib
+VERBATIM
+)
+add_custom_target(install_lib__copies
+  DEPENDS ${install_lib__copies__output} ${install_lib__copies__output_dirs}
+  SOURCES ${install_lib__copies__input}
+)
+add_custom_target(install_lib SOURCES)
+set_target_properties(install_lib PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(install_lib__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(install_lib__copies
+  libktx_gl
+  libktx_doc
+)
+add_dependencies(install_lib
+  libktx_doc
+  install_lib__copies
+  libktx_gl
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtools.gyp:toktx#target
 set(TARGET "toktx")
 set(TOOLSET "target")
@@ -462,6 +505,64 @@ set_target_properties(ktxtools_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(ktxtools_doc__buildKtxtoolsDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(ktxtools_doc
   ktxtools_doc__buildKtxtoolsDoc
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:install.tools#target
+set(TARGET "install.tools")
+set(TOOLSET "target")
+list(APPEND install_tools__copies__input
+  "${builddir}/lib.target/libktx.gl.so"
+  "${builddir}/ktx2ktx2"
+  "${builddir}/toktx")
+list(APPEND install_tools__copies__output
+  "/tmp/ktxtools.dst//usr/local/lib/libktx.gl.so"
+  "/tmp/ktxtools.dst//usr/local/bin/ktx2ktx2"
+  "/tmp/ktxtools.dst//usr/local/bin/toktx")
+set(install_tools__copies__input_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/man1")
+set(install_tools__copies__output_dirs "/tmp/ktxtools.dst//usr/local/share/man/man1")
+add_custom_command(
+OUTPUT ${install_tools__copies__output} ${install_tools__copies__output_dirs}
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/ktxtools.dst//usr/local/lib/libktx.gl.so
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktx2ktx2 /tmp/ktxtools.dst//usr/local/bin/ktx2ktx2
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/toktx /tmp/ktxtools.dst//usr/local/bin/toktx
+COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man1/ /tmp/ktxtools.dst//usr/local/share/man/man1
+DEPENDS ${install_tools__copies__input} ${install_tools__copies__input_dirs}
+WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+COMMENT Copying for install_tools
+VERBATIM
+)
+add_custom_target(install_tools__copies
+  DEPENDS ${install_tools__copies__output} ${install_tools__copies__output_dirs}
+  SOURCES ${install_tools__copies__input}
+)
+add_custom_target(install_tools SOURCES)
+set_target_properties(install_tools PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(install_tools__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(install_tools__copies
+  libktx_gl
+  ktx2ktx2
+  ktxtools_doc
+  toktx
+)
+add_dependencies(install_tools
+  ktx2ktx2
+  ktxtools_doc
+  toktx
+  install_tools__copies
+  libktx_gl
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:package.tools#target
+set(TARGET "package.tools")
+set(TOOLSET "target")
+add_custom_target(package_tools SOURCES)
+set_target_properties(package_tools PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(package_tools
+  install_tools
 )
 unset(TOOLSET)
 unset(TARGET)

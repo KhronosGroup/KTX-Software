@@ -302,7 +302,7 @@
           'target_name': 'install.lib',
           'type': 'none',
           # These variables duplicate those in ktxtools.gyp:install_tools.
-          # See there for explanation.
+          # See Othere for explanation.
           'variables': {
             'conditions': [
               ['GENERATOR == "xcode"', {
@@ -316,9 +316,11 @@
                 'dstroot': '$(TMP)/libktx.dst',
                 'installpath': '/usr/local',
               }, {
-                # XXX Need to figure out how to set & propagate DSTROOT to the
-                # environment.
-                'dstroot': '$DSTROOT',
+                # XXX Need to figure out how to set & propagate DSTROOT to
+                # the environment. Also it looks like there will be a
+                # problem with cmake if $DSTROOT is the same here and in
+                # ktxtools, i.e "/" for a real installation. For now...
+                'dstroot': '/tmp/libktx.dst',
                 'installpath': '/usr/local',
               }],
               ['GENERATOR == "msvs"', {
@@ -326,7 +328,12 @@
               }, {
                 'staticlib_dir': '<(PRODUCT_DIR)',
               }],
-           ], # conditions
+              ['GENERATOR == "cmake"', {
+                'libktx_dir': '<(PRODUCT_DIR)/lib.target',
+              }, {
+                'libktx_dir': '<(PRODUCT_DIR)',
+              }],
+            ], # conditions
           }, # variables
           'dependencies': [ 'libktx.gl', 'libktx.doc' ],
           'xcode_settings': {
@@ -340,7 +347,7 @@
                 'files': [ '<(staticlib_dir)/libktx.gl<(STATIC_LIB_SUFFIX)' ],
               }],
               ['"<(library)" == "shared_library"', {
-                'files': [ '<(PRODUCT_DIR)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
+                'files': [ '<(libktx_dir)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
               }],
             ], # conditions
           }, {

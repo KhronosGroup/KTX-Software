@@ -87,9 +87,14 @@
                 'installpath': '/usr/local',
               }, {
                 # XXX Need to figure out how to set & propagate DSTROOT to the
-                # environment.
-                'dstroot': '$DSTROOT',
+                # environment. See comment in ../lib/libktx.gypi.
+                'dstroot': '/tmp/ktxtools.dst',
                 'installpath': '/usr/local',
+              }],
+              ['GENERATOR == "cmake"', {
+                'libktx_dir': '<(PRODUCT_DIR)/lib.target',
+              }, {
+                'libktx_dir': '<(PRODUCT_DIR)',
               }],
             ], # conditions
           }, # variables
@@ -109,7 +114,7 @@
             'destination': '<(dstroot)/<(installpath)/lib',
             'conditions': [
               ['"<(library)" == "shared_library"', {
-                'files': [ '<(PRODUCT_DIR)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
+                'files': [ '<(libktx_dir)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
               }],
             ], # conditions
           }, {

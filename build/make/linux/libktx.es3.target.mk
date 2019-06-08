@@ -121,3 +121,7 @@ all_deps += $(obj).target/libktx.es3.a
 .PHONY: libktx.es3
 libktx.es3: $(obj).target/libktx.es3.a
 
+# Add target alias to "all" target.
+.PHONY: all
+all: libktx.es3
+

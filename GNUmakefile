@@ -154,7 +154,7 @@ $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	@date -R > $@
 
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=.  --depth=.
+	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=. --depth=. \
 		libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
