@@ -40,6 +40,21 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
@@ -129,6 +144,9 @@
     <ClCompile Include="..\..\..\..\lib\dfdutils\dfd4vkformat.c">
       <Filter>lib\dfdutils</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\interpretdfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c">
       <Filter>lib\dfdutils</Filter>
     </ClCompile>
@@ -174,6 +192,9 @@
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\info.c">
+      <Filter>lib</Filter>
+    </ClCompile>
     <ClInclude Include="..\..\..\..\lib\ktxgl.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -201,6 +222,12 @@
     <ClInclude Include="..\..\..\..\lib\vkformat_enum.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\vkformat_prohibited.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\vkformat_str.c">
+      <Filter>lib</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\writer.c">
       <Filter>lib</Filter>
     </ClCompile>

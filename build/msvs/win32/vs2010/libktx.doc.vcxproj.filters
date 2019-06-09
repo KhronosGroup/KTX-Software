@@ -79,6 +79,33 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
@@ -295,6 +322,9 @@
     <ClCompile Include="..\..\..\..\lib\dfdutils\dfd4vkformat.c">
       <Filter>lib\dfdutils\_excluded_files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\interpretdfd.c">
+      <Filter>lib\dfdutils\_excluded_files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c">
       <Filter>lib\dfdutils\_excluded_files</Filter>
     </ClCompile>
@@ -340,6 +370,9 @@
     <ClCompile Include="..\..\..\..\lib\hashtable.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\info.c">
+      <Filter>lib\_excluded_files</Filter>
+    </ClCompile>
     <ClInclude Include="..\..\..\..\lib\ktxgl.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>
@@ -367,6 +400,12 @@
     <ClInclude Include="..\..\..\..\lib\vkformat_enum.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\vkformat_prohibited.c">
+      <Filter>lib\_excluded_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\vkformat_str.c">
+      <Filter>lib\_excluded_files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\writer.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>

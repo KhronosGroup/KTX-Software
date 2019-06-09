@@ -13,6 +13,7 @@
       'dfdutils/createdfd.c',
       'dfdutils/dfd.h',
       'dfdutils/dfd4vkformat.c',
+      'dfdutils/interpretdfd.c',
       'dfdutils/printdfd.c',
       'dfdutils/vkdfdswitchbody.inl',
       'errstr.c',
@@ -28,6 +29,7 @@
       'glloader.c',
       'hashlist.c',
       'hashtable.c',
+      'info.c',
       'ktxgl.h',
       'ktxint.h',
       'memstream.c',
@@ -37,6 +39,8 @@
       'texture.c',
       'uthash.h',
       'vkformat_enum.h',
+      'vkformat_prohibited.c',
+      'vkformat_str.c',
       'writer.c',
       'writer_apiv1.c',
       'writer_v2.c',
@@ -240,64 +244,61 @@
             }, # buildLibktxDoc action
           ], # actions
         }, # libktx.doc
-# Comment out temporarily because cmake clean and removes
-# vkformat_enum.h but doesn't build it, if the other 2 outputs
-# are not present. Reinstate when those files are in the tree.
-#        {
-#          'target_name': 'mkvkformatfiles',
-#          'type': 'none',
-#          'variables': {
-#            'vkformatfiles_dir': '.',
-#            'conditions': [ 
-#              ['GENERATOR == "cmake"', {
-#                # FIXME Need to find a way to use $VULKAN_SDK *if* set.
-#                'vkinclude_dir': '/usr/include',
-#              }, {
-#                'vkinclude_dir': '$(VULKAN_SDK)/include',
-#              }],
-#            ], # conditions
-#          },
-#          'actions': [
-#            {
-#              'action_name': 'run_mkvkformatfiles',
-#              'message': 'Generating VkFormat-related source files',
-#              'inputs': [
-#                '<(vkinclude_dir)/vulkan/vulkan_core.h',
-#                'mkvkformatfiles',
-#              ],
-#              'outputs': [
-#                'vkformat_enum.h',
-#                'vkformat_prohibited.c',
-#                'vkformat_str.c',
-#              ],
-#              # The current directory during project is that of
-#              # the .gyp file. See above. Hence the annoying "lib/"
-#              'msvs_cygwin_shell': 1,
-#              'action': [
-#                'lib/mkvkformatfiles', '<(vkformatfiles_dir)',
-#              ],
-#            }, # run mkvkformatfiles action
-#            {
-#              'action_name': 'run_makevkswitch',
-#              'message': 'Generating VkFormat/DFD switch body',
-#              'inputs': [
-#                'vkformat_enum.h',
-#                'dfdutils/makevkswitch.pl',
-#              ],
-#              'outputs': [
-#                'dfdutils/vkdfdswitchbody.inl',
-#              ],
-#              # The current directory during this action is that of
-#              # the .gyp file. See above. Hence the annoying "lib/"
-#              'msvs_cygwin_shell': 1,
-#              'action': [
-#                'lib/dfdutils/makevkswitch.pl',
-#                '<@(_inputs)',
-#                '<@(_outputs)',
-#              ],
-#            }, # run makevkswitch action
-#          ], # actions
-#        }, # mkvkformatfiles
+        {
+          'target_name': 'mkvkformatfiles',
+          'type': 'none',
+          'variables': {
+            'vkformatfiles_dir': '.',
+            'conditions': [ 
+              ['GENERATOR == "cmake"', {
+                # FIXME Need to find a way to use $VULKAN_SDK *if* set.
+                'vkinclude_dir': '/usr/include',
+              }, {
+                'vkinclude_dir': '$(VULKAN_SDK)/include',
+              }],
+            ], # conditions
+          },
+          'actions': [
+            {
+              'action_name': 'run_mkvkformatfiles',
+              'message': 'Generating VkFormat-related source files',
+              'inputs': [
+                '<(vkinclude_dir)/vulkan/vulkan_core.h',
+                'mkvkformatfiles',
+              ],
+              'outputs': [
+                'vkformat_enum.h',
+                'vkformat_prohibited.c',
+                'vkformat_str.c',
+              ],
+              # The current directory during project is that of
+              # the .gyp file. See above. Hence the annoying "lib/"
+              'msvs_cygwin_shell': 1,
+              'action': [
+                'lib/mkvkformatfiles', '<(vkformatfiles_dir)',
+              ],
+            }, # run mkvkformatfiles action
+            {
+              'action_name': 'run_makevkswitch',
+              'message': 'Generating VkFormat/DFD switch body',
+              'inputs': [
+                'vkformat_enum.h',
+                'dfdutils/makevkswitch.pl',
+              ],
+              'outputs': [
+                'dfdutils/vkdfdswitchbody.inl',
+              ],
+              # The current directory during this action is that of
+              # the .gyp file. See above. Hence the annoying "lib/"
+              'msvs_cygwin_shell': 1,
+              'action': [
+                'lib/dfdutils/makevkswitch.pl',
+                '<@(_inputs)',
+                '<@(_outputs)',
+              ],
+            }, # run makevkswitch action
+          ], # actions
+        }, # mkvkformatfiles
         {
           'target_name': 'install.lib',
           'type': 'none',

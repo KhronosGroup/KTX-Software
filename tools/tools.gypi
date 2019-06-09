@@ -13,6 +13,7 @@
   },
   'includes': [
     'ktx2ktx2/ktx2ktx2.gypi',
+    'ktxinfo/ktxinfo.gypi',
     'toktx/toktx.gypi',
   ],
   'conditions': [
@@ -43,8 +44,9 @@
               'inputs': [
                 '../<(doxyConfig)',
                 '../runDoxygen',
-                'toktx/toktx.cpp',
                 'ktx2ktx2/ktx2ktx2.cpp',
+                'ktxinfo/ktxinfo.cpp',
+                'toktx/toktx.cpp',
               ],
               # See ../lib/libktx.gypi for comment about why only
               # timestamp is in this list.
@@ -100,6 +102,7 @@
           }, # variables
           'dependencies': [
             'ktx2ktx2',
+            'ktxinfo',
             'ktxtools.doc',
             'libktx.gyp:libktx.gl',
             'toktx',
@@ -122,6 +125,7 @@
             'destination': '<(dstroot)/<(installpath)/bin',
             'files': [
               '<(PRODUCT_DIR)/ktx2ktx2<(EXECUTABLE_SUFFIX)',
+              '<(PRODUCT_DIR)/ktxinfo<(EXECUTABLE_SUFFIX)',
               '<(PRODUCT_DIR)/toktx<(EXECUTABLE_SUFFIX)',
             ],
           }, {

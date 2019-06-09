@@ -27,6 +27,8 @@
 #ifndef KTXINT_H
 #define KTXINT_H
 
+#include "stream.h"
+
 /* Define this to include the ETC unpack software in the library. */
 #ifndef SUPPORT_SOFTWARE_ETC_UNPACK
   /* Include for all GL versions because have seen OpenGL ES 3
@@ -276,6 +278,14 @@ ktx_size_t ktxTexture_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
 void ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
                         ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
                         ktx_uint32_t* rowPadding);
+
+/*
+ ======================================
+     Internal utility functions
+ ======================================
+*/
+
+void printKTX2Info2(ktxStream* src, KTX_header2* header);
 
 #ifdef __cplusplus
 }

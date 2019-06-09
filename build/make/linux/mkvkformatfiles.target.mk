@@ -49,3 +49,7 @@ all_deps += $(obj).target/mkvkformatfiles.stamp
 .PHONY: mkvkformatfiles
 mkvkformatfiles: $(obj).target/mkvkformatfiles.stamp
 
+# Add target alias to "all" target.
+.PHONY: all
+all: mkvkformatfiles
+

@@ -37,6 +37,13 @@
 			remoteGlobalIDString = 53718F849477FE4A99643D3C;
 			remoteInfo = toktx;
 		};
+		0C04748B020CF02F002D32A9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F81AD7E2418F05F7343B6FEB;
+			remoteInfo = ktxinfo;
+		};
 		3079ADF769C2044F2FC6729A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */;
@@ -134,6 +141,16 @@
 			name = Source;
 			sourceTree = "<group>";
 		};
+		51A44BDB2AC4B30968F35EC2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F9934D9176BC8628BB9DD710 /* ktx2ktx2 */,
+				DEF63C54EBAA2835FE433A21 /* ktxinfo */,
+				6527CB59EC7BD66F84551A43 /* toktx */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		5BACDF29B66A980CA2CC006C /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -150,15 +167,6 @@
 				1B1F976EC113DB121F7457DF /* .package_gentimestamp */,
 			);
 			path = build/docs;
-			sourceTree = "<group>";
-		};
-		A5C8C970E2E1F3D19E828AEF /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				F9934D9176BC8628BB9DD710 /* ktx2ktx2 */,
-				6527CB59EC7BD66F84551A43 /* toktx */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		BF6BBCF6FD1598C3AA7A53FC /* pkgdoc */ = {
@@ -188,7 +196,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = A5C8C970E2E1F3D19E828AEF /* Products */;
+					ProductGroup = 51A44BDB2AC4B30968F35EC2 /* Products */;
 					ProjectRef = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
 				},
 				{
@@ -223,6 +231,13 @@
 			fileType = "compiled.mach-o.dylib";
 			path = libktx.gl.dylib;
 			remoteRef = 3079ADF769C2044F2FC6729A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DEF63C54EBAA2835FE433A21 /* ktxinfo */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = ktxinfo;
+			remoteRef = 0C04748B020CF02F002D32A9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		F0C97E62E8465EA707DD5AC7 /* libktx.es3.a */ = {

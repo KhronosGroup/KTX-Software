@@ -118,10 +118,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
+    <ClCompile Include="..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp">
+    <ClCompile Include="..\..\..\..\tools\ktxinfo\ktxinfo.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
   </ItemGroup>
@@ -132,7 +135,7 @@
       <Message>Generating KTX Tools documentation with Doxygen</Message>
       <Outputs>..\..\..\..\build\docs\.ktxtoolsdoc_gentimestamp</Outputs>
       <LinkObjects>false</LinkObjects>
-      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\tools\toktx\toktx.cpp;..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp</AdditionalInputs>
+      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp;..\..\..\..\tools\ktxinfo\ktxinfo.cpp;..\..\..\..\tools\toktx\toktx.cpp</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
