@@ -25,11 +25,24 @@ View the @ref libktx_history
 KTX Tools
 =========
 
-Read the @ref toktx reference page.
+ktx2ktx2 version 1.0
+--------------------
 
-Current version is 1.3
+ - @ref ktx2ktx2 reference page.
+ - @ref ktx2ktx2_history.
 
-View the @ref toktx_history.
+ktxinfo version 1.0
+-------------------
+
+ - @ref ktxinfo reference page.
+ - @ref ktxinfo_history.
+
+
+toktx version 1.3
+-----------------
+
+ - @ref toktx reference page.
+ - @ref toktx_history.
 
 Authors
 =======
