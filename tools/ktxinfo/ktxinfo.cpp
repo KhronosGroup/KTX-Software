@@ -88,12 +88,15 @@ Print information about a KTX or KTX2 file.
     read from standard input.
 
 @section ktxinfo_exitstatus EXIT STATUS
-    @b toktx exits 0 on success, 1 on command line errors and 2 if one of
+    @b ktxinfo exits 0 on success, 1 on command line errors and 2 if one of
     the input files is not a KTX file.
 
 @section ktxinfo_history HISTORY
 
-@version 1.0:
+@version 1.0.alpha2:
+Mon, Jun 10 2019 08:49:22 +0900
+ - Support latest KTX2 draft and fix man page typos.
+@version 1.0.alpha1:
 Sat, 28 Apr 2018 14:41:22 +0900
  - Initial version
 

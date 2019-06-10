@@ -131,9 +131,12 @@ Create a KTX 2 file from a KTX file.
 
 @section ktx2ktx2_history HISTORY
 
-@version 1.0:
-Sat, 28 Apr 2018 14:41:22 +0900
- - Initial version
+@version 1.0.alpha2:
+Thu, 6 Jun 2019 08:05:00 +0900
+ - Update for latest KTX2 draft.
+@version 1.0.alpha1:
+Sat, 28 Apr 2019 14:41:22 +0900
+ - Initial version.
 
 @section ktx2ktx2_author AUTHOR
     Mark Callow, Edgewise Consulting www.edgewise-consulting.com
