@@ -1352,13 +1352,13 @@ class ktxTextureWriteKTX2TestBase
             // Check the metadata.
             filePtr = ktxMemFile + header->keyValueData.offset;
             if (writeOrientationMeta) {
-                EXPECT_EQ(header->keyValueData.bytesOf,
+                EXPECT_EQ(header->keyValueData.byteLength,
                           helper.kvDataLenAll_ktx2);
                 EXPECT_EQ(memcmp(filePtr, helper.kvDataAll_ktx2,
                                  helper.kvDataLenAll_ktx2), 0);
                 filePtr += helper.kvDataLenAll_ktx2;
             } else {
-                EXPECT_EQ(header->keyValueData.bytesOf,
+                EXPECT_EQ(header->keyValueData.byteLength,
                           helper.kvDataLenWriter_ktx2);
                 EXPECT_EQ(memcmp(filePtr, helper.kvDataWriter_ktx2,
                                  helper.kvDataLenWriter_ktx2), 0);
@@ -1456,7 +1456,7 @@ class ktxTextureWriteKTX2TestBase
 
             // Check the metadata.
             filePtr = ktxMemFile + header->keyValueData.offset;
-            EXPECT_EQ(header->keyValueData.bytesOf, kvDataLen);
+            EXPECT_EQ(header->keyValueData.byteLength, kvDataLen);
             EXPECT_EQ(memcmp(filePtr, kvData, kvDataLen), 0);
             filePtr += helper.kvDataLen;
 
