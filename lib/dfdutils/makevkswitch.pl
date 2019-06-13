@@ -204,7 +204,7 @@ while ($line = <>) {
                 $foundFormats{$format} = 1;
 
                 # All the other BC formats don't have a channel identifier in the name, so we regex match them
-            } elsif ($line =~ m/VK_FORMAT_(BC[2-7H])_([A-Z]+)_BLOCK/) {
+            } elsif ($line =~ m/VK_FORMAT_(BC[2-7]H?)_([A-Z]+)_BLOCK/) {
                 $scheme = $1;
                 $suffix = $2;
                 print "case $format: return createDFDCompressed(c_$scheme, 4, 4, s_$suffix);\n";
