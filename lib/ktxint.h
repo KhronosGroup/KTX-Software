@@ -93,7 +93,7 @@ typedef int KTX_header_SIZE_ASSERT [sizeof(KTX_header) == KTX_HEADER_SIZE];
  */
 typedef struct ktxIndexEntry32 {
     ktx_uint32_t offset;  /*!< Offset of item from start of file. */
-    ktx_uint32_t bytesOf; /*!< Number of bytes of data in the item. */
+    ktx_uint32_t byteLength; /*!< Number of bytes of data in the item. */
 } ktxIndexEntry32;
 /**
  * @internal
@@ -102,7 +102,7 @@ typedef struct ktxIndexEntry32 {
  */
 typedef struct ktxIndexEntry64 {
     ktx_uint64_t offset;  /*!< Offset of item from start of file. */
-    ktx_uint64_t bytesOf; /*!< Number of bytes of data in the item. */
+    ktx_uint64_t byteLength; /*!< Number of bytes of data in the item. */
 } ktxIndexEntry64;
 
 /**
@@ -138,9 +138,9 @@ typedef int KTX_header2_SIZE_ASSERT [sizeof(KTX_header2) == KTX2_HEADER_SIZE];
  */
 typedef struct ktxLevelIndexEntry {
     ktx_uint64_t offset; /*!< Offset of level from start of file. */
-    ktx_uint64_t bytesOfCompressedImages;
+    ktx_uint64_t byteLength;
                 /*!< Number of bytes of compressed image data in the level. */
-    ktx_uint64_t bytesOfUncompressedImages;
+    ktx_uint64_t uncompressedByteLength;
                 /*!< Number of bytes of uncompressed image data in the level. */
 } ktxLevelIndexEntry;
 

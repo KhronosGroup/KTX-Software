@@ -222,14 +222,14 @@ printKTX2Header(KTX_header2* pHeader)
     fprintf(stdout, "levelCount: %d\n", pHeader->levelCount);
     fprintf(stdout, "dataFormatDescriptor.offset: %#x\n",
             pHeader->dataFormatDescriptor.offset);
-    fprintf(stdout, "dataFormatDescriptor.bytesOf: %d\n",
-            pHeader->dataFormatDescriptor.bytesOf);
+    fprintf(stdout, "dataFormatDescriptor.byteLength: %d\n",
+            pHeader->dataFormatDescriptor.byteLength);
     fprintf(stdout, "keyValueData.offset: %#x\n", pHeader->keyValueData.offset);
-    fprintf(stdout, "keyValueData.bytesOf: %d\n", pHeader->keyValueData.bytesOf);
+    fprintf(stdout, "keyValueData.byteLength: %d\n", pHeader->keyValueData.byteLength);
     fprintf(stdout, "supercompressionGlobalData.offset: %#" PRIx64 "\n",
             pHeader->supercompressionGlobalData.offset);
-    fprintf(stdout, "supercompressionGlobalData.bytesOf: %" PRId64 "\n",
-            pHeader->supercompressionGlobalData.bytesOf);
+    fprintf(stdout, "supercompressionGlobalData.byteLength: %" PRId64 "\n",
+            pHeader->supercompressionGlobalData.byteLength);
 }
 
 /**
@@ -246,10 +246,10 @@ printLevelIndex(ktxLevelIndexEntry levelIndex[], ktx_uint32_t numLevels)
     for (ktx_uint32_t level = 0; level < numLevels; level++) {
     fprintf(stdout, "Level%d.offset: %#" PRIx64 "\n", level,
             levelIndex[level].offset);
-    fprintf(stdout, "Level%d.bytesOfCompressedImages: %" PRId64 "\n", level,
-            levelIndex[level].bytesOfCompressedImages);
-    fprintf(stdout, "Level%d.bytesOfUncompressedImages: %" PRId64 "\n", level,
-            levelIndex[level].bytesOfUncompressedImages);
+    fprintf(stdout, "Level%d.byteLength: %" PRId64 "\n", level,
+            levelIndex[level].byteLength);
+    fprintf(stdout, "Level%d.uncompressedByteLength: %" PRId64 "\n", level,
+            levelIndex[level].uncompressedByteLength);
     }
 }
 
@@ -284,15 +284,15 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     free(levelIndex);
 
     fprintf(stdout, "\nData Format Descriptor\n\n");
-    DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.bytesOf);
-    stream->read(stream, DFD, pHeader->dataFormatDescriptor.bytesOf);
+    DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
+    stream->read(stream, DFD, pHeader->dataFormatDescriptor.byteLength);
     printDFD(DFD);
     free(DFD);
 
     fprintf(stdout, "\nKeyValue Data\n\n");
-    metadata = malloc(pHeader->keyValueData.bytesOf);
-    stream->read(stream, metadata, pHeader->keyValueData.bytesOf);
-    printKVData(metadata, pHeader->keyValueData.bytesOf);
+    metadata = malloc(pHeader->keyValueData.byteLength);
+    stream->read(stream, metadata, pHeader->keyValueData.byteLength);
+    printKVData(metadata, pHeader->keyValueData.byteLength);
     free(metadata);
 }
 

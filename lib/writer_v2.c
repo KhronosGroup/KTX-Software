@@ -132,8 +132,8 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
 
     header.dataFormatDescriptor.offset = offset;
-    header.dataFormatDescriptor.bytesOf = *dfd;
-    offset += header.dataFormatDescriptor.bytesOf;
+    header.dataFormatDescriptor.byteLength = *dfd;
+    offset += header.dataFormatDescriptor.byteLength;
 
     ktxHashListEntry* pEntry;
     // Check for invalid metadata.
@@ -192,23 +192,23 @@ ktxTexture_writeKTX2ToStream(ktxTexture* This, ktxStream* dststr)
     ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.keyValueData.offset = kvdLen != 0 ? offset : 0;
-    header.keyValueData.bytesOf = kvdLen;
+    header.keyValueData.byteLength = kvdLen;
 
     align8PadLen = _KTX_PAD8_LEN(offset + kvdLen);
     offset += kvdLen + align8PadLen;
 
     sgdLen = 0;
     header.supercompressionGlobalData.offset = sgdLen != 0 ? offset : 0;
-    header.supercompressionGlobalData.bytesOf = sgdLen;
+    header.supercompressionGlobalData.byteLength = sgdLen;
 
     sgdPadLen = _KTX_PAD8_LEN(sgdLen);
     offset += sgdLen + sgdPadLen;
 
     for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
-        levelIndex[level].bytesOfUncompressedImages =
+        levelIndex[level].uncompressedByteLength =
             ktxTexture_calcLevelSize(This, level, KTX_FORMAT_VERSION_TWO);
-        levelIndex[level].bytesOfCompressedImages =
-            levelIndex[level].bytesOfUncompressedImages;
+        levelIndex[level].byteLength =
+            levelIndex[level].uncompressedByteLength;
         levelIndex[level].offset = offset +
             ktxTexture_calcLevelOffset(This, level, KTX_FORMAT_VERSION_TWO);
     }

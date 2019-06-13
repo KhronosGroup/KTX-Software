@@ -232,7 +232,7 @@ class WriterTestHelper {
     // for mip levels.
     bool compareRawImages(ktxLevelIndexEntry levelIndex[], ktx_uint8_t* baseAddr) {
         for (ktx_uint32_t level = 0; level < numLevels; level++) {
-            ktx_uint64_t levelSize = levelIndex[level].bytesOfUncompressedImages;
+            ktx_uint64_t levelSize = levelIndex[level].uncompressedByteLength;
             ktx_uint32_t levelDepth = MAX(1, depth >> level);
             ktx_uint32_t numImages;
             ktx_size_t imageBytes;
