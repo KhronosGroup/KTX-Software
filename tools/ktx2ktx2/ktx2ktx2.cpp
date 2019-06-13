@@ -28,6 +28,7 @@
 #include "stdafx.h"
 #include <cstdlib>
 #include <errno.h>
+#include <unistd.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -254,7 +255,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     if (isatty(fileno(stdin))) {
                         char answer;
                         cout << "Output file " << outfile
-                             << "exists. Overwrite? [Y or n] ";
+                             << " exists. Overwrite? [Y or n] ";
                         cin >> answer;
                         if (answer == 'Y') {
                             options.force = true;
@@ -330,6 +331,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     cerr << options.appName
                          << " failed to write KTX2 file; "
                          << ktxErrorString(result) << endl;
+                    (void)unlink(outfile);
                     exitCode = 2;
                     goto cleanup;
                 }
