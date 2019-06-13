@@ -219,6 +219,8 @@ case VK_FORMAT_BC4_UNORM_BLOCK: return createDFDCompressed(c_BC4, 4, 4, s_UNORM)
 case VK_FORMAT_BC4_SNORM_BLOCK: return createDFDCompressed(c_BC4, 4, 4, s_SNORM);
 case VK_FORMAT_BC5_UNORM_BLOCK: return createDFDCompressed(c_BC5, 4, 4, s_UNORM);
 case VK_FORMAT_BC5_SNORM_BLOCK: return createDFDCompressed(c_BC5, 4, 4, s_SNORM);
+case VK_FORMAT_BC6H_UFLOAT_BLOCK: return createDFDCompressed(c_BC6H, 4, 4, s_UFLOAT);
+case VK_FORMAT_BC6H_SFLOAT_BLOCK: return createDFDCompressed(c_BC6H, 4, 4, s_SFLOAT);
 case VK_FORMAT_BC7_UNORM_BLOCK: return createDFDCompressed(c_BC7, 4, 4, s_UNORM);
 case VK_FORMAT_BC7_SRGB_BLOCK: return createDFDCompressed(c_BC7, 4, 4, s_SRGB);
 case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK: return createDFDCompressed(c_ETC2_R8G8B8, 4, 4, s_UNORM);
