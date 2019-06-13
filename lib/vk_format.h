@@ -718,19 +718,19 @@ static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum interna
 		//
 		// PVRTC
 		//
-		case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC, 16x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC,  8x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC, 16x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x4 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  4x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:				return VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;	// 3-component PVRTC, 16x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:				return VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;	// 3-component PVRTC,  8x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:				return VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;	// 4-component PVRTC, 16x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:				return VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;	// 4-component PVRTC,  8x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG:				return VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG;	// 4-component PVRTC,  8x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG:				return VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;	// 4-component PVRTC,  4x4 blocks, unsigned normalized
 
-		case GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC, 16x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC,  8x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC, 16x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x4 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  4x4 blocks, sRGB
+		case GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT:				return VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;	// 3-component PVRTC, 16x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT:				return VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;	// 3-component PVRTC,  8x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT:			return VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC, 16x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT:			return VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC,  8x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG:			return VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC,  8x4 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG:			return VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC,  4x4 blocks, sRGB
 
 		//
 		// ASTC
