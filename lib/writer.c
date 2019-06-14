@@ -312,7 +312,7 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
         return result;
 
     //write keyValueData
-    if (kvdLen != 0) {
+    if (header.bytesOfKeyValueData != 0) {
         assert(pKvd != NULL);
 
         result = dststr->write(dststr, pKvd, 1, header.bytesOfKeyValueData);
