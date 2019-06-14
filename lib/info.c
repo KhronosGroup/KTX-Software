@@ -36,6 +36,7 @@
 #include <ktx.h>
 #include "stream.h"
 #include "filestream.h"
+#include "memstream.h"
 #include "ktxint.h"
 #include "dfdutils/dfd.h"
 
@@ -113,8 +114,7 @@ printKTXHeader(KTX_header* pHeader)
     fprintf(stdout, "glType: %#x\n", pHeader->glType);
     fprintf(stdout, "glTypeSize: %d\n", pHeader->glTypeSize);
     fprintf(stdout, "glFormat: %#x\n", pHeader->glFormat);
-    fprintf(stdout, "glFormat: %#x\n", pHeader->glFormat);
-    fprintf(stdout, "glInternalormat: %#x\n", pHeader->glInternalformat);
+    fprintf(stdout, "glInternalformat: %#x\n", pHeader->glInternalformat);
     fprintf(stdout, "glBaseInternalformat: %#x\n",
             pHeader->glBaseInternalformat);
     fprintf(stdout, "pixelWidth: %d\n", pHeader->pixelWidth);
@@ -419,5 +419,12 @@ ktxPrintInfoForNamedFile(const char* const filename)
 KTX_error_code
 ktxPrintInfoForMemory(const ktx_uint8_t* bytes, ktx_size_t size)
 {
+    KTX_error_code result;
+    ktxStream stream;
+
+    result = ktxMemStream_construct_ro(&stream, bytes, size);
+    if (result == KTX_SUCCESS)
+        result = ktxPrintInfoForStream(&stream);
+    return result;
     return KTX_SUCCESS;
 }
