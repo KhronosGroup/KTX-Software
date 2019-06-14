@@ -44,7 +44,6 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
-  "../../../../lib/hashtable.c"
   "../../../../lib/info.c"
   "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
@@ -52,7 +51,6 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/vkformat_prohibited.c"
   "../../../../lib/vkformat_str.c"
   "../../../../lib/writer.c"
-  "../../../../lib/writer_apiv1.c"
   "../../../../lib/writer_v2.c"
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")
@@ -178,7 +176,6 @@ list(APPEND libktx_es1__c_srcs
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
-  "../../../../lib/hashtable.c"
   "../../../../lib/info.c"
   "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
@@ -186,7 +183,6 @@ list(APPEND libktx_es1__c_srcs
   "../../../../lib/vkformat_prohibited.c"
   "../../../../lib/vkformat_str.c"
   "../../../../lib/writer.c"
-  "../../../../lib/writer_apiv1.c"
   "../../../../lib/writer_v2.c")
 list(APPEND libktx_es1__cxx_srcs
   "../../../../lib/etcdec.cxx"
@@ -261,7 +257,6 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashlist.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashtable.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/info.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxgl.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
@@ -275,7 +270,6 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_prohibited.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_str.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_apiv1.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer_v2.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
@@ -326,7 +320,6 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
-  "../../../../lib/hashtable.c"
   "../../../../lib/info.c"
   "../../../../lib/memstream.c"
   "../../../../lib/swap.c"
@@ -334,7 +327,6 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/vkformat_prohibited.c"
   "../../../../lib/vkformat_str.c"
   "../../../../lib/writer.c"
-  "../../../../lib/writer_apiv1.c"
   "../../../../lib/writer_v2.c"
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")

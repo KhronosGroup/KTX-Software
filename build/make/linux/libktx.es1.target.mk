@@ -56,7 +56,6 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/filestream.o \
 	$(obj).target/$(TARGET)/lib/glloader.o \
 	$(obj).target/$(TARGET)/lib/hashlist.o \
-	$(obj).target/$(TARGET)/lib/hashtable.o \
 	$(obj).target/$(TARGET)/lib/info.o \
 	$(obj).target/$(TARGET)/lib/memstream.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
@@ -64,7 +63,6 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/vkformat_prohibited.o \
 	$(obj).target/$(TARGET)/lib/vkformat_str.o \
 	$(obj).target/$(TARGET)/lib/writer.o \
-	$(obj).target/$(TARGET)/lib/writer_apiv1.o \
 	$(obj).target/$(TARGET)/lib/writer_v2.o
 
 # Add to the list of files we specially track dependencies for.
