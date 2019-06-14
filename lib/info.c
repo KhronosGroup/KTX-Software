@@ -168,11 +168,15 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     }
     printKTXHeader(pHeader);
 
-    fprintf(stdout, "\nKeyValue Data\n\n");
-    metadata = malloc(pHeader->bytesOfKeyValueData);
-    stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
-    printKVData(metadata, pHeader->bytesOfKeyValueData);
-    free(metadata);
+    if (pHeader->bytesOfKeyValueData) {
+        fprintf(stdout, "\nKey/Value Data\n\n");
+        metadata = malloc(pHeader->bytesOfKeyValueData);
+        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        printKVData(metadata, pHeader->bytesOfKeyValueData);
+        free(metadata);
+    } else {
+        fprintf(stdout, "\nNo Key/Value data.\n");
+    }
 }
 
 /**
