@@ -121,12 +121,6 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
@@ -189,9 +183,6 @@
     <ClCompile Include="..\..\..\..\lib\hashlist.c">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\hashtable.c">
-      <Filter>lib</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\info.c">
       <Filter>lib</Filter>
     </ClCompile>
@@ -229,9 +220,6 @@
       <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\writer.c">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\writer_apiv1.c">
       <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\writer_v2.c">

@@ -168,7 +168,6 @@
     <ClCompile Include="..\..\..\..\lib\filestream.c"/>
     <ClCompile Include="..\..\..\..\lib\glloader.c"/>
     <ClCompile Include="..\..\..\..\lib\hashlist.c"/>
-    <ClCompile Include="..\..\..\..\lib\hashtable.c"/>
     <ClCompile Include="..\..\..\..\lib\info.c"/>
     <ClCompile Include="..\..\..\..\lib\memstream.c"/>
     <ClCompile Include="..\..\..\..\lib\swap.c"/>
@@ -176,7 +175,6 @@
     <ClCompile Include="..\..\..\..\lib\vkformat_prohibited.c"/>
     <ClCompile Include="..\..\..\..\lib\vkformat_str.c"/>
     <ClCompile Include="..\..\..\..\lib\writer.c"/>
-    <ClCompile Include="..\..\..\..\lib\writer_apiv1.c"/>
     <ClCompile Include="..\..\..\..\lib\writer_v2.c"/>
     <ClCompile Include="..\..\..\..\lib\vkloader.c"/>
     <ClCompile Include="..\..\..\..\lib\vk_funcs.c"/>

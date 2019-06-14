@@ -35,6 +35,21 @@ extern "C" {
   #include "ktxint.h"
 }
 
+struct wthImageInfo {
+    GLsizei size;   // Size of the image data in bytes.
+    GLubyte* data;  // Pointer to the image data.
+};
+
+class wthTexInfo : public ktxTextureCreateInfo {
+      public:
+        ktx_uint32_t glTypeSize;
+        ktx_uint32_t glType;
+        ktx_uint32_t glFormat;
+        ktx_uint32_t glBaseInternalformat;
+        ktx_uint32_t headerPixelHeight;
+        ktx_uint32_t headerPixelDepth;
+        ktx_uint32_t headerNumLayers;
+};
 
 /**
  * @internal @~English
@@ -295,65 +310,70 @@ class WriterTestHelper {
 
     ktx_size_t imageDataSize;
     std::vector< std::vector < std::vector < std::vector<component_type> > > > images;
-    std::vector<KTX_image_info> imageList;
+    std::vector<wthImageInfo> imageList;
 
-    class texinfo : public KTX_texture_info {
+    class texinfo : public wthTexInfo {
       public:
         texinfo() {
             glType = glGetTypeFromInternalFormat(internalformat);
             glTypeSize = glGetTypeSizeFromType(glType);
             glFormat = glGetFormatFromInternalFormat(internalformat);
-            glInternalFormat = internalformat;
-            glBaseInternalFormat = glFormat;
+            glInternalformat = internalformat;
+            glBaseInternalformat = glFormat;
         }
 
         void resize(GLuint numLevels, GLuint numLayers, GLuint numFaces,
                     GLuint numDimensions, bool isArray,
                     GLsizei width, GLsizei height, GLsizei depth) {
-            numberOfArrayElements = isArray ? numLayers: 0;
-            numberOfFaces = numFaces;
-            numberOfMipLevels = numLevels;
-            pixelWidth = width;
-            pixelHeight = numDimensions >= 2 ? height : 0;
-            pixelDepth = numDimensions == 3 ? depth : 0;
-        }
+            this->numLayers = numLayers;
+            this->numFaces = numFaces;
+            this->numLevels = numLevels;
+            this->numDimensions = numDimensions;
+            this->generateMipmaps = false;
+            this->isArray = isArray;
+            baseWidth = width;
+            baseHeight = height;
+            baseDepth = depth;
+            headerNumLayers = isArray ? numLayers: 0;
+            headerPixelHeight = numDimensions >= 2 ? height : 0;
+            headerPixelDepth = numDimensions == 3 ? depth : 0;
+       }
 
         bool compare(KTX_header* header) {
             if (header->glType == glType
                 && header->glTypeSize == glTypeSize
                 && header->glFormat == glFormat
-                && header->glInternalformat == glInternalFormat
-                && header->glBaseInternalformat == glBaseInternalFormat
-                && header->pixelWidth == pixelWidth
-                && header->pixelHeight == pixelHeight
-                && header->pixelDepth == pixelDepth
-                && header->numberOfArrayElements == numberOfArrayElements
-                && header->numberOfFaces == numberOfFaces
-                && header->numberOfMipLevels == numberOfMipLevels)
+                && header->glInternalformat == glInternalformat
+                && header->glBaseInternalformat == glBaseInternalformat
+                && header->pixelWidth == baseWidth
+                && header->pixelHeight == headerPixelHeight
+                && header->pixelDepth == headerPixelDepth
+                && header->numberOfArrayElements == headerNumLayers
+                && header->numberOfFaces == numFaces
+                && header->numberOfMipLevels == numLevels)
                 return true;
             else
                 return false;
         }
 
         bool compare(KTX_header2* header) {
-        VkFormat format =
-          vkGetFormatFromOpenGLInternalFormat(glInternalFormat);
+            VkFormat format =
+            vkGetFormatFromOpenGLInternalFormat(glInternalformat);
 
-        // Should find better way to test this. Code we're testing uses the
-        // same switch to convert format.
-        if (header->vkFormat == format
-            && header->pixelWidth == pixelWidth
-            && header->pixelHeight == pixelHeight
-            && header->pixelDepth == pixelDepth
-            && header->arrayElementCount == numberOfArrayElements
-            && header->faceCount == numberOfFaces
-            && header->levelCount == numberOfMipLevels
-            && header->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
-            && header->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
-            return true;
-        else
-            return false;
-    }
-
+            // Should find better way to test this. Code we're testing uses the
+            // same switch to convert format.
+            if (header->vkFormat == format
+                && header->pixelWidth == baseWidth
+                && header->pixelHeight == headerPixelHeight
+                && header->pixelDepth == headerPixelDepth
+                && header->arrayElementCount == headerNumLayers
+                && header->faceCount == numFaces
+                && header->levelCount == numLevels
+                && header->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
+                && header->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
+                return true;
+            else
+                return false;
+        }
     } texinfo;
 };

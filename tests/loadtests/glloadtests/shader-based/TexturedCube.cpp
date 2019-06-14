@@ -63,18 +63,26 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     std::string filename;
     GLenum target;
     GLenum glerror;
-    GLboolean isMipmapped;
     GLuint gnDecalFs, gnVs;
     GLsizeiptr offset;
+    ktxTexture* kTexture;
     KTX_error_code ktxresult;
 
     bInitialized = GL_FALSE;
     gnTexture = 0;
 
     filename = getAssetPath() + szArgs;
-    ktxresult = ktxLoadTextureN(filename.c_str(), &gnTexture, &target,
-                               NULL, &isMipmapped, &glerror,
-                               0, NULL);
+    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
+                                               KTX_TEXTURE_CREATE_NO_FLAGS,
+                                               &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << filename
+                << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
         if (target != GL_TEXTURE_2D) {
@@ -87,7 +95,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
             throw std::runtime_error(message.str());
         }
 
-        if (isMipmapped)
+        if (kTexture->numLevels > 1)
             // Enable bilinear mipmapping.
             // TO DO: application can consider inserting a key,value pair in
             // the KTX file that indicates what type of filtering to use.
@@ -96,6 +104,8 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
         else
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        ktxTexture_Destroy(kTexture);
 
         assert(GL_NO_ERROR == glGetError());
     } else {
