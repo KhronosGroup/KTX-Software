@@ -266,7 +266,6 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
 {
     KTX_header header = KTX_IDENTIFIER_REF;
     KTX_error_code result = KTX_SUCCESS;
-    ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
     ktx_uint32_t level, levelOffset;
 
@@ -297,8 +296,8 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     header.numberOfMipLevels = This->generateMipmaps ? 0 : This->numLevels;
 
     if (This->kvDataHead != NULL) {
-        ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
-        header.bytesOfKeyValueData = kvdLen;
+        ktxHashList_Serialize(&This->kvDataHead,
+                              &header.bytesOfKeyValueData, &pKvd);
     } else if (This->kvData) {
         pKvd = This->kvData;
         header.bytesOfKeyValueData = This->kvDataLen;

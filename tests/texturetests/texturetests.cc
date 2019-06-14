@@ -412,7 +412,7 @@ TEST_F(ktxTexture_CreateTest, ConstructFromMemory) {
                                              0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result) << " &texture = " << &texture << ", ktxMemFile = " << ktxMemFile << ", ktxMemFileLen = " << ktxMemFileLen;
+                                     << ktxErrorString(result);
         EXPECT_EQ(compareTexture(texture), true);
         EXPECT_EQ(texture->isCompressed, KTX_FALSE);
         EXPECT_EQ(texture->generateMipmaps, KTX_FALSE);
