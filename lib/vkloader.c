@@ -498,6 +498,7 @@ linearTilingPadCallback(int miplevel, int face,
     else
         rowIterations = 1;
 
+    imageIterations = 1;
     // Arrays, including cube map arrays, or 3D textures
     // Note from the Vulkan spec:
     //  *  arrayPitch is undefined for images that were not
@@ -516,8 +517,7 @@ linearTilingPadCallback(int miplevel, int face,
                 imageIterations = depth;
         }
         assert(imageSize <= imagePitch);
-    } else
-        imageIterations = 1;
+    }
 
     if (rowIterations > 1) {
         // Copy the minimum of srcRowPitch, the GL_UNPACK_ALIGNMENT padded size,
