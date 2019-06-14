@@ -190,13 +190,42 @@ class ktxTextureTestBase : public ::testing::Test {
 
         // Create the in-memory KTX file
 
-        errorCode = ktxWriteKTXM(&ktxMemFile, &ktxMemFileLen,
-                                 &texInfo, kvDataLen, kvData,
-                                 mipLevels, &images.front());
-       if (KTX_SUCCESS != errorCode) {
-            ADD_FAILURE() << "ktxWriteKTXM failed: "
+        ktxTexture* texture;
+        errorCode = ktxTexture_Create(&texinfo,
+                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                     &texture);
+        if (KTX_SUCCESS != errorCode) {
+            ADD_FAILURE() << "ktxTexture_Create failed: "
                           << ktxErrorString(errorCode);
-       }
+            return;
+        }
+
+        // Don't use the above helper.copyImagesToTexture because that is used
+        // by various test cases which will compare their results against this.
+        // A different code path here provides a small extra correctness check.
+        std::vector<wthImageInfo>::const_iterator it = images.begin();
+        for (ktx_uint32_t level = 0; level < texinfo.numLevels; level++) {
+            ktx_uint32_t levelDepth = MAX(1, texinfo.baseDepth >> level);
+            for (ktx_uint32_t layer = 0; layer < texinfo.numLayers; layer++) {
+                ktx_uint32_t numImages = texinfo.numFaces == 6
+                                       ? texinfo.numFaces : levelDepth;
+                for (ktx_uint32_t faceSlice = 0; faceSlice < numImages; faceSlice++) {
+                    ktxTexture_SetImageFromMemory(texture,
+                                                  level, layer, faceSlice,
+                                                  it->data, it->size);
+                }
+            }
+            it++;
+        }
+
+        texture->kvData = kvData;
+        texture->kvDataLen = kvDataLen;
+        errorCode = ktxTexture_WriteToMemory(texture, &ktxMemFile,
+                                             &ktxMemFileLen);
+        if (KTX_SUCCESS != errorCode) {
+            ADD_FAILURE() << "ktxTexture_WriteToMemory failed: "
+                          << ktxErrorString(errorCode);
+        }
     }
 
     ~ktxTextureTestBase() {
@@ -221,31 +250,31 @@ class ktxTextureTestBase : public ::testing::Test {
     bool
     compareTexture(ktxTexture* texture)
     {
-        if (texture->glInternalformat != texInfo.glInternalFormat)
+        if (texture->glInternalformat != texinfo.glInternalformat)
             return false;
-        if (texture->glBaseInternalformat != texInfo.glBaseInternalFormat)
+        if (texture->glBaseInternalformat != texinfo.glBaseInternalformat)
             return false;
-        if (texture->glFormat != texInfo.glFormat)
+        if (texture->glFormat != texinfo.glFormat)
             return false;
-        if (texture->glType != texInfo.glType)
+        if (texture->glType != texinfo.glType)
             return false;
-        if (ktxTexture_glTypeSize(texture) != texInfo.glTypeSize)
+        if (ktxTexture_glTypeSize(texture) != texinfo.glTypeSize)
             return false;
-        if (texture->baseWidth != texInfo.pixelWidth)
+        if (texture->baseWidth != texinfo.baseWidth)
             return false;
-        if (texInfo.pixelHeight == 0) {
+        if (texinfo.baseHeight == 0) {
             if (texture->baseHeight != 1)
                 return false;
-        } else if (texture->baseHeight != texInfo.pixelHeight)
+        } else if (texture->baseHeight != texinfo.baseHeight)
             return false;
-        if (texInfo.pixelDepth == 0) {
+        if (texinfo.baseDepth == 0) {
             if (texture->baseDepth != 1)
                 return false;
-        } else if (texture->baseDepth != texInfo.pixelDepth)
+        } else if (texture->baseDepth != texinfo.baseDepth)
             return false;
-        if (texture->numFaces != texInfo.numberOfFaces)
+        if (texture->numFaces != texinfo.numFaces)
             return false;
-        if (texture->numLevels != texInfo.numberOfMipLevels)
+        if (texture->numLevels != texinfo.numLevels)
             return false;
         return true;
     }
@@ -263,20 +292,21 @@ class ktxTextureTestBase : public ::testing::Test {
     }
 
     TextureWriterTestHelper<GLubyte, 4, GL_RGBA8> helper;
-    KTX_texture_info& texInfo = helper.texinfo;
+    wthTexInfo& texinfo = helper.texinfo;
     ktxTextureCreateInfo& createInfo = helper.createInfo;
     unsigned char*& kvData = helper.kvData;
     unsigned int& kvDataLen = helper.kvDataLen;
 
-    unsigned char* ktxMemFile;
-    GLsizei ktxMemFileLen;
+    ktx_uint8_t* ktxMemFile;
+    ktx_size_t ktxMemFileLen;
     const int pixelSize;
     int mipLevels;
     unsigned int iterCbCalls;
 
     ktx_size_t& imageDataSize = helper.imageDataSize;
     std::vector< std::vector < std::vector < std::vector<GLubyte>  > > >& imageData = helper.images;
-    std::vector<KTX_image_info>& images = helper.imageList;
+
+    std::vector<wthImageInfo>& images = helper.imageList;
 };
 
 //----------------------------------------------------

@@ -551,9 +551,9 @@ int _tmain(int argc, _TCHAR* argv[])
         
         snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
                  'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
-        ktxHashTable_AddKVPair(ht, KTX_ORIENTATION_KEY,
-                               (unsigned int)strlen(orientation) + 1,
-                               orientation);
+        ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
+                              (unsigned int)strlen(orientation) + 1,
+                              orientation);
     }
 
     if (_tcscmp(options.outfile, "-") == 0) {

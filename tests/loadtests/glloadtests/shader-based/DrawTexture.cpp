@@ -66,45 +66,50 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     GLfloat* pfQuadTexCoords = quad_texture;
     GLfloat  fTmpTexCoords[sizeof(quad_texture)/sizeof(GLfloat)];
     GLenum target;
-    GLboolean isMipmapped;
     GLenum glerror;
-    GLubyte* pKvData;
-    GLuint  kvDataLen;
     GLint sign_s = 1, sign_t = 1;
     GLint i;
     GLuint gnColorFs, gnDecalFs, gnVs;
     GLsizeiptr offset;
-    KTX_dimensions dimensions;
+    ktxTexture* kTexture;
     KTX_error_code ktxresult;
-    KTX_hash_table kvtable;
 
     bInitialized = false;
     gnTexture = 0;
     
     filename = getAssetPath() + szArgs;    
-    ktxresult = ktxLoadTextureN(filename.c_str(), &gnTexture, &target,
-                               &dimensions, &isMipmapped, &glerror,
-                               &kvDataLen, &pKvData);
+    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
+                                               KTX_TEXTURE_CREATE_NO_FLAGS,
+                                               &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << filename
+                << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
+        GLchar* pValue;
+        GLuint valueLen;
 
-        ktxresult = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
+        if (target != GL_TEXTURE_2D) {
+            /* Can only draw 2D textures */
+            glDeleteTextures(1, &gnTexture);
+            return;
+        }
+
+        ktxresult = ktxHashList_FindValue(&kTexture->kvDataHead,
+                                          KTX_ORIENTATION_KEY,
+                                          &valueLen, (void**)&pValue);
         if (KTX_SUCCESS == ktxresult) {
-            GLchar* pValue;
-            GLuint valueLen;
+            char s, t;
 
-            if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
-                                                      &valueLen, (void**)&pValue))
-            {
-                char s, t;
-
-                if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-                    if (s == 'l') sign_s = -1;
-                    if (t == 'd') sign_t = -1;
-                }
+            if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
+                if (s == 'l') sign_s = -1;
+                if (t == 'd') sign_t = -1;
             }
-            ktxHashTable_Destroy(kvtable);
-            free(pKvData);
         }
 
         if (sign_s < 0 || sign_t < 0) {
@@ -126,10 +131,10 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
             pfQuadTexCoords = fTmpTexCoords;
         }
 
-        uTexWidth = dimensions.width;
-        uTexHeight = dimensions.height;
+        uTexWidth = kTexture->baseWidth;
+        uTexHeight = kTexture->baseHeight;
 
-        if (isMipmapped)
+        if (kTexture->numLevels > 1)
             // Enable bilinear mipmapping.
             // TO DO: application can consider inserting a key,value pair in
             // the KTX file that indicates what type of filtering to use.
@@ -140,6 +145,8 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         assert(GL_NO_ERROR == glGetError());
+
+        ktxTexture_Destroy(kTexture);
     } else {
         std::stringstream message;
 

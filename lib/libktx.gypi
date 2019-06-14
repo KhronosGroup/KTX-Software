@@ -28,7 +28,6 @@
       'gles3_funcptrs.h',
       'glloader.c',
       'hashlist.c',
-      'hashtable.c',
       'info.c',
       'ktxgl.h',
       'ktxint.h',
@@ -42,7 +41,6 @@
       'vkformat_prohibited.c',
       'vkformat_str.c',
       'writer.c',
-      'writer_apiv1.c',
       'writer_v2.c',
     ],
     # Use _files to get the names relativized

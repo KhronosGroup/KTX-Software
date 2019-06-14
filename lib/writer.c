@@ -253,6 +253,9 @@ ktxTexture_SetImageFromMemory(ktxTexture* This, ktx_uint32_t level,
  * @exception KTX_INVALID_VALUE @p This or @p dststr is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
+ * @exception KTX_INVALID_OPERATION
+ *                              Both kvDataHead and kvData are set in the
+ *                              ktxTexture
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -274,6 +277,9 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     if (This->pData == NULL)
         return KTX_INVALID_OPERATION;
 
+    if (This->kvDataHead && This->kvData)
+        return KTX_INVALID_OPERATION;
+
     //endianess int.. if this comes out reversed, all of the other ints will too.
     header.endianness = KTX_ENDIAN_REF;
     header.glInternalformat = This->glInternalformat;
@@ -290,8 +296,15 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     assert (This->generateMipmaps ? This->numLevels == 1 : This->numLevels >= 1);
     header.numberOfMipLevels = This->generateMipmaps ? 0 : This->numLevels;
 
-    ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
-    header.bytesOfKeyValueData = kvdLen;
+    if (This->kvDataHead != NULL) {
+        ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
+        header.bytesOfKeyValueData = kvdLen;
+    } else if (This->kvData) {
+        pKvd = This->kvData;
+        header.bytesOfKeyValueData = This->kvDataLen;
+    } else {
+        header.bytesOfKeyValueData = 0;
+    }
 
     //write header
     result = dststr->write(dststr, &header, sizeof(KTX_header), 1);
@@ -302,8 +315,9 @@ ktxTexture_writeToStream(ktxTexture* This, ktxStream* dststr)
     if (kvdLen != 0) {
         assert(pKvd != NULL);
 
-        result = dststr->write(dststr, pKvd, 1, kvdLen);
-        free(pKvd);
+        result = dststr->write(dststr, pKvd, 1, header.bytesOfKeyValueData);
+        if (This->kvDataHead != NULL)
+            free(pKvd);
         if (result != KTX_SUCCESS)
             return result;
     }
@@ -356,6 +370,9 @@ cleanup:
  * @exception KTX_INVALID_VALUE @p This or @p dstsstr is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
+ * @exception KTX_INVALID_OPERATION
+ *                              Both kvDataHead and kvData are set in the
+ *                              ktxTexture
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -390,6 +407,9 @@ ktxTexture_WriteToStdioStream(ktxTexture* This, FILE* dstsstr)
  * @exception KTX_INVALID_VALUE @p This or @p dstname is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
+ * @exception KTX_INVALID_OPERATION
+ *                              Both kvDataHead and kvData are set in the
+ *                              ktxTexture
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -434,6 +454,9 @@ ktxTexture_WriteToNamedFile(ktxTexture* This, const char* const dstname)
  * @exception KTX_INVALID_VALUE @p This, @p ppDstBytes or @p pSize is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
+ * @exception KTX_INVALID_OPERATION
+ *                              Both kvDataHead and kvData are set in the
+ *                              ktxTexture
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
