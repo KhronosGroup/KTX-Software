@@ -219,9 +219,6 @@
     <ClCompile Include="..\..\..\..\lib\hashlist.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\hashtable.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\info.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -243,9 +240,6 @@
     <ClCompile Include="..\..\..\..\lib\writer.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\writer_apiv1.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\writer_v2.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -263,7 +257,7 @@
       <Message>Generating libktx documentation with Doxygen</Message>
       <Outputs>..\..\..\..\build\docs\.libktx_gentimestamp</Outputs>
       <LinkObjects>false</LinkObjects>
-      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\lib\mainpage.md;..\..\..\..\LICENSE.md;..\..\..\..\TODO.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\dfdutils\createdfd.c;..\..\..\..\lib\dfdutils\dfd.h;..\..\..\..\lib\dfdutils\dfd4vkformat.c;..\..\..\..\lib\dfdutils\interpretdfd.c;..\..\..\..\lib\dfdutils\printdfd.c;..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\filestream.c;..\..\..\..\lib\filestream.h;..\..\..\..\lib\gl_format.h;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\glloader.c;..\..\..\..\lib\hashlist.c;..\..\..\..\lib\hashtable.c;..\..\..\..\lib\info.c;..\..\..\..\lib\ktxgl.h;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\memstream.c;..\..\..\..\lib\memstream.h;..\..\..\..\lib\stream.h;..\..\..\..\lib\swap.c;..\..\..\..\lib\texture.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\vkformat_enum.h;..\..\..\..\lib\vkformat_prohibited.c;..\..\..\..\lib\vkformat_str.c;..\..\..\..\lib\writer.c;..\..\..\..\lib\writer_apiv1.c;..\..\..\..\lib\writer_v2.c;..\..\..\..\include\ktxvulkan.h;..\..\..\..\lib\vk_format.h;..\..\..\..\lib\vkloader.c;..\..\..\..\lib\vk_funclist.inl;..\..\..\..\lib\vk_funcs.c;..\..\..\..\lib\vk_funcs.h</AdditionalInputs>
+      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\lib\mainpage.md;..\..\..\..\LICENSE.md;..\..\..\..\TODO.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\dfdutils\createdfd.c;..\..\..\..\lib\dfdutils\dfd.h;..\..\..\..\lib\dfdutils\dfd4vkformat.c;..\..\..\..\lib\dfdutils\interpretdfd.c;..\..\..\..\lib\dfdutils\printdfd.c;..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\filestream.c;..\..\..\..\lib\filestream.h;..\..\..\..\lib\gl_format.h;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\glloader.c;..\..\..\..\lib\hashlist.c;..\..\..\..\lib\info.c;..\..\..\..\lib\ktxgl.h;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\memstream.c;..\..\..\..\lib\memstream.h;..\..\..\..\lib\stream.h;..\..\..\..\lib\swap.c;..\..\..\..\lib\texture.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\vkformat_enum.h;..\..\..\..\lib\vkformat_prohibited.c;..\..\..\..\lib\vkformat_str.c;..\..\..\..\lib\writer.c;..\..\..\..\lib\writer_v2.c;..\..\..\..\include\ktxvulkan.h;..\..\..\..\lib\vk_format.h;..\..\..\..\lib\vkloader.c;..\..\..\..\lib\vk_funclist.inl;..\..\..\..\lib\vk_funcs.c;..\..\..\..\lib\vk_funcs.h</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
