@@ -1152,7 +1152,9 @@ ktxTexture_GetVkFormat(ktxTexture* This)
 {
     VkFormat vkFormat;
 
-    // FIXME. Probably should use a virtual function.
+    // FIXME. Probably should use a virtual function. If so, will need to
+    // change return type to ktx_uint32_t so vulkan.h is not needed along
+    // with ktx.h.
     switch (This->classId) {
       case ktxTexture1_c:
         {
