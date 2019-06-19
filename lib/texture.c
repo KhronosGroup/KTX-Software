@@ -31,15 +31,25 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "ktx.h"
 #include "ktxint.h"
+#include "formatsize.h"
 #include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
-#include "gl_format.h"
+#include "texture.h"
 #include "uthash.h"
+
+// FIXME. Decide whether to keep these.
+// These will cause compilation to fail if the struct size doesn't match the
+// size of the reserved space in a ktxTexture.
+//#define member_size(type, member) sizeof(((type *)0)->member)
+//typedef int FormatSize_SIZE_ASSERT [sizeof(ktxFormatSize) <= member_size(ktxTexture, _formatInfo)];
+//typedef int ktxStream_SIZE_ASSERT [sizeof(ktxStream) <= member_size(ktxTexture, _stream)];
+//#undef member_size
 
 /**
  * @internal
@@ -47,11 +57,11 @@
  * @brief Internal ktxTexture structure.
  *
  * This is kept hidden to avoid burdening applications with the definitions
- * of GlFormatSize and ktxStream.
+ * of ktxFormatSize and ktxStream.
  */
 typedef struct _ktxTextureInt {
     ktxTexture super;         /*!< Base ktxTexture class. */
-    GlFormatSize formatInfo;  /*!< Info about the image data format. */
+    ktxFormatSize formatInfo;  /*!< Info about the image data format. */
     // The following are needed because image data reading can be delayed.
     ktx_uint32_t glTypeSize;  /*!< Size of the image data type in bytes. */
     ktxStream stream;         /*!< Stream connected to KTX source. */
@@ -74,6 +84,8 @@ static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
  *                 initialize.
  * @param[in] createInfo pointer to a ktxTextureCreateInfo struct with
  *                       information describing the texture.
+ * @param[in] formatSize pointer to a ktxFormatSize giving size information
+ *                       about the texture's elements.
  * @param[in] storageAllocation
  *                       enum indicating whether or not to allocation storage
  *                       for the texture images.
@@ -104,49 +116,17 @@ static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
  *                              <tt>base{Width,Height,Depth}</tt>.
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images.
  */
+#if 0
 static KTX_error_code
 ktxTextureInt_construct(ktxTextureInt* This, ktxTextureCreateInfo* createInfo,
                         ktxTextureCreateStorageEnum storageAllocation)
 {
-    ktxTexture* super = (ktxTexture*)This;
-    GLuint typeSize;
-    GLenum glFormat;
-
+    ktxFormatSize _formatInfo = *(ktxFormatSize *)&This->_formatInfo;
     memset(This, 0, sizeof(*This));
 
-    super->glInternalformat = createInfo->glInternalformat;
-    glGetFormatSize(super->glInternalformat, &This->formatInfo);;
-    glFormat= glGetFormatFromInternalFormat(createInfo->glInternalformat);
-    if (glFormat == GL_INVALID_VALUE)
-        return KTX_INVALID_VALUE;
-    super->isCompressed
-                    = (This->formatInfo.flags & GL_FORMAT_SIZE_COMPRESSED_BIT);
-    if (super->isCompressed) {
-        super->glFormat = 0;
-        super->glBaseInternalformat = glFormat;
-        super->glType = 0;
-        This->glTypeSize = 0;
-    } else {
-        super->glBaseInternalformat = super->glFormat = glFormat;
-        super->glType
-                = glGetTypeFromInternalFormat(createInfo->glInternalformat);
-        if (super->glType == GL_INVALID_VALUE)
-            return KTX_INVALID_VALUE;
-        typeSize = glGetTypeSizeFromType(super->glType);
-        assert(typeSize != GL_INVALID_VALUE);
+    memcpy(formatSize, &This->_formatInfo, sizeof(This->_formatInfo));
 
-        /* Do some sanity checking */
-        if (typeSize != 1 &&
-            typeSize != 2 &&
-            typeSize != 4)
-        {
-            /* Only 8, 16, and 32-bit types are supported for byte-swapping.
-             * See UNPACK_SWAP_BYTES & table 8.4 in the OpenGL 4.4 spec.
-             */
-            return KTX_INVALID_VALUE;
-        }
-        This->glTypeSize = typeSize;
-    }
+    This->isCompressed = (_formatInfo.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
 
     /* Check texture dimensions. KTX files can store 8 types of textures:
      * 1D, 2D, 3D, cube, and array variants of these.
@@ -158,7 +138,7 @@ ktxTextureInt_construct(ktxTextureInt* This, ktxTextureCreateInfo* createInfo,
         || createInfo->baseDepth == 0)
         return KTX_INVALID_VALUE;
 
-    super->baseWidth = createInfo->baseWidth;
+    This->baseWidth = createInfo->baseWidth;
     switch (createInfo->numDimensions) {
       case 1:
         if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1)
@@ -168,7 +148,7 @@ ktxTextureInt_construct(ktxTextureInt* This, ktxTextureCreateInfo* createInfo,
       case 2:
         if (createInfo->baseDepth > 1)
             return KTX_INVALID_OPERATION;
-        super->baseHeight = createInfo->baseHeight;
+        This->baseHeight = createInfo->baseHeight;
         break;
 
       case 3:
@@ -178,18 +158,18 @@ ktxTextureInt_construct(ktxTextureInt* This, ktxTextureCreateInfo* createInfo,
         if (createInfo->isArray || createInfo->numFaces != 1
             || createInfo->numLayers != 1)
             return KTX_INVALID_OPERATION;
-        super->baseDepth = createInfo->baseDepth;
-        super->baseHeight = createInfo->baseHeight;
+        This->baseDepth = createInfo->baseDepth;
+        This->baseHeight = createInfo->baseHeight;
         break;
     }
-    super->numDimensions = createInfo->numDimensions;
+    This->numDimensions = createInfo->numDimensions;
 
     if (createInfo->numLayers == 0)
         return KTX_INVALID_VALUE;
-    super->numLayers = createInfo->numLayers;
+    This->numLayers = createInfo->numLayers;
 
     if (createInfo->numFaces == 6) {
-        if (super->numDimensions != 2) {
+        if (This->numDimensions != 2) {
             /* cube map needs 2D faces */
             return KTX_INVALID_OPERATION;
         }
@@ -197,336 +177,157 @@ ktxTextureInt_construct(ktxTextureInt* This, ktxTextureCreateInfo* createInfo,
             /* cube maps require square images */
             return KTX_INVALID_OPERATION;
         }
-        super->isCubemap = KTX_TRUE;
+        This->isCubemap = KTX_TRUE;
     } else if (createInfo->numFaces != 1) {
         /* numFaces must be either 1 or 6 */
         return KTX_INVALID_VALUE;
     }
-    super->numFaces = createInfo->numFaces;
-
+    This->numFaces = createInfo->numFaces;
 
     /* Check number of mipmap levels */
     if (createInfo->numLevels == 0)
         return KTX_INVALID_VALUE;
-    super->numLevels = createInfo->numLevels;
-    super->generateMipmaps = createInfo->generateMipmaps;
+    This->numLevels = createInfo->numLevels;
+    This->generateMipmaps = createInfo->generateMipmaps;
 
     if (createInfo->numLevels > 1) {
         GLuint max_dim = MAX(MAX(createInfo->baseWidth, createInfo->baseHeight),
                              createInfo->baseDepth);
-        if (max_dim < ((GLuint)1 << (super->numLevels - 1)))
+        if (max_dim < ((GLuint)1 << (This->numLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
             return KTX_INVALID_OPERATION;
         }
     }
 
-    super->numLayers = createInfo->numLayers;
-    super->isArray = createInfo->isArray;
+    This->numLayers = createInfo->numLayers;
+    This->isArray = createInfo->isArray;
 
-    ktxHashList_Construct(&super->kvDataHead);
+    ktxHashList_Construct(&This->kvDataHead);
+    return KTX_SUCCESS;
+}
+#else
+KTX_error_code
+ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
+                     ktxFormatSize* formatSize,
+                     ktxTextureCreateStorageEnum storageAllocation)
+{
+    DECLARE_PROTECTED(ktxTexture);
+    memset(This, 0, sizeof(*This));
+
+    memcpy(&prtctd->_formatSize, formatSize, sizeof(prtctd->_formatSize));
+
+    This->isCompressed = (formatSize->flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
+
+    /* Check texture dimensions. KTX files can store 8 types of textures:
+     * 1D, 2D, 3D, cube, and array variants of these.
+     */
+    if (createInfo->numDimensions < 1 || createInfo->numDimensions > 3)
+        return KTX_INVALID_VALUE;
+
+    if (createInfo->baseWidth == 0 || createInfo->baseHeight == 0
+        || createInfo->baseDepth == 0)
+        return KTX_INVALID_VALUE;
+
+    This->baseWidth = createInfo->baseWidth;
+    switch (createInfo->numDimensions) {
+      case 1:
+        if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1)
+            return KTX_INVALID_OPERATION;
+        break;
+
+      case 2:
+        if (createInfo->baseDepth > 1)
+            return KTX_INVALID_OPERATION;
+        This->baseHeight = createInfo->baseHeight;
+        break;
+
+      case 3:
+        /* 3D array textures and 3D cubemaps are not supported by either
+         * OpenGL or Vulkan.
+         */
+        if (createInfo->isArray || createInfo->numFaces != 1
+            || createInfo->numLayers != 1)
+            return KTX_INVALID_OPERATION;
+        This->baseDepth = createInfo->baseDepth;
+        This->baseHeight = createInfo->baseHeight;
+        break;
+    }
+    This->numDimensions = createInfo->numDimensions;
+
+    if (createInfo->numLayers == 0)
+        return KTX_INVALID_VALUE;
+    This->numLayers = createInfo->numLayers;
+
+    if (createInfo->numFaces == 6) {
+        if (This->numDimensions != 2) {
+            /* cube map needs 2D faces */
+            return KTX_INVALID_OPERATION;
+        }
+        if (createInfo->baseWidth != createInfo->baseHeight) {
+            /* cube maps require square images */
+            return KTX_INVALID_OPERATION;
+        }
+        This->isCubemap = KTX_TRUE;
+    } else if (createInfo->numFaces != 1) {
+        /* numFaces must be either 1 or 6 */
+        return KTX_INVALID_VALUE;
+    }
+    This->numFaces = createInfo->numFaces;
+
+    /* Check number of mipmap levels */
+    if (createInfo->numLevels == 0)
+        return KTX_INVALID_VALUE;
+    This->numLevels = createInfo->numLevels;
+    This->generateMipmaps = createInfo->generateMipmaps;
+
+    if (createInfo->numLevels > 1) {
+        GLuint max_dim = MAX(MAX(createInfo->baseWidth, createInfo->baseHeight),
+                             createInfo->baseDepth);
+        if (max_dim < ((GLuint)1 << (This->numLevels - 1)))
+        {
+            /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
+            return KTX_INVALID_OPERATION;
+        }
+    }
+
+    This->numLayers = createInfo->numLayers;
+    This->isArray = createInfo->isArray;
+
+    ktxHashList_Construct(&This->kvDataHead);
     if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
-        super->dataSize
-                    = ktxTexture_calcDataSizeTexture(super,
+// XXX FIXME Need a virtual function here
+        This->dataSize
+                    = ktxTexture_calcDataSizeTexture(This,
                                                      KTX_FORMAT_VERSION_ONE);
-        super->pData = malloc(super->dataSize);
-        if (super->pData == NULL)
+        This->pData = malloc(This->dataSize);
+        if (This->pData == NULL)
             return KTX_OUT_OF_MEMORY;
     }
     return KTX_SUCCESS;
 }
+#endif
 
-/**
- * @memberof ktxTexture @private
- * @brief Construct a ktxTexture from a ktxStream reading from a KTX source.
- *
- * The caller constructs the stream inside the ktxTextureInt before calling
- * this.
- *
- * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
- * if the ktxTexture is ultimately to be uploaded to OpenGL or Vulkan. This
- * will minimize memory usage by allowing, for example, loading the images
- * directly from the source into a Vulkan staging buffer.
- *
- * The create flag KTX_TEXTURE_CREATE_RAW_KVDATA_BIT should not be used. It is
- * provided solely to enable implementation of the @e libktx v1 API on top of
- * ktxTexture.
- *
- * @param[in] This pointer to a ktxTextureInt-sized block of memory to
- *                 initialize.
- * @param[in] createFlags bitmask requesting specific actions during creation.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_DATA_ERROR
- *                              Source data is inconsistent with the KTX
- *                              specification.
- * @exception KTX_FILE_READ_ERROR
- *                              An error occurred while reading the source.
- * @exception KTX_FILE_UNEXPECTED_EOF
- *                              Not enough data in the source.
- * @exception KTX_OUT_OF_MEMORY Not enough memory to load either the images or
- *                              the key-value data.
- * @exception KTX_UNKNOWN_FILE_FORMAT
- *                              The source is not in KTX format.
- * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
- *                              The source describes a texture type not
- *                              supported by OpenGL or Vulkan, e.g, a 3D array.
- */
-static KTX_error_code
-ktxTextureInt_constructFromStream(ktxTextureInt* This,
-                                  ktxTextureCreateFlags createFlags)
+KTX_error_code
+ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
+                               ktxTextureCreateFlags createFlags)
 {
-    ktxTexture* super = (ktxTexture*)This;
-    KTX_error_code result;
-    KTX_header header;
-    KTX_supplemental_info suppInfo;
     ktxStream* stream;
-    ktx_off_t pos;
-    ktx_size_t size;
 
     assert(This != NULL);
-    assert(This->stream.data.mem != NULL);
-    assert(This->stream.type == eStreamTypeFile
-           || This->stream.type == eStreamTypeMemory);
-    stream = &This->stream;
+    assert(pStream->data.mem != NULL);
+    assert(pStream->type == eStreamTypeFile
+           || pStream->type == eStreamTypeMemory);
 
-    // Read header.
-    result = stream->read(stream, &header, KTX_HEADER_SIZE);
-    if (result != KTX_SUCCESS)
-        return result;
+    This->_protected = (struct ktxTexture_protected *)
+                                malloc(sizeof(struct ktxTexture_protected));
+    stream = ktxTexture_getStream(This);
 
-    result = _ktxCheckHeader(&header, &suppInfo);
-    if (result != KTX_SUCCESS)
-        return result;
-
-    /*
-     * Initialize from header info.
-     */
-    super->glFormat = header.glFormat;
-    super->glInternalformat = header.glInternalformat;
-    super->glType = header.glType;
-    glGetFormatSize(super->glInternalformat, &This->formatInfo);
-    super->glBaseInternalformat = header.glBaseInternalformat;
-    super->numDimensions = suppInfo.textureDimension;
-    super->baseWidth = header.pixelWidth;
-    assert(suppInfo.textureDimension > 0 && suppInfo.textureDimension < 4);
-    switch (suppInfo.textureDimension) {
-      case 1:
-        super->baseHeight = super->baseDepth = 1;
-        break;
-      case 2:
-        super->baseHeight = header.pixelHeight;
-        super->baseDepth = 1;
-        break;
-      case 3:
-        super->baseHeight = header.pixelHeight;
-        super->baseDepth = header.pixelDepth;
-        break;
-    }
-    if (header.numberOfArrayElements > 0) {
-        super->numLayers = header.numberOfArrayElements;
-        super->isArray = KTX_TRUE;
-    } else {
-        super->numLayers = 1;
-        super->isArray = KTX_FALSE;
-    }
-    super->numFaces = header.numberOfFaces;
-    if (header.numberOfFaces == 6)
-        super->isCubemap = KTX_TRUE;
-    else
-        super->isCubemap = KTX_FALSE;
-    super->numLevels = header.numberOfMipLevels;
-    super->isCompressed = suppInfo.compressed;
-    super->generateMipmaps = suppInfo.generateMipmaps;
-    if (header.endianness == KTX_ENDIAN_REF_REV)
-        This->needSwap = KTX_TRUE;
-    This->glTypeSize = header.glTypeSize;
-
-    /*
-     * Make an empty hash list.
-     */
-    ktxHashList_Construct(&super->kvDataHead);
-    /*
-     * Load KVData.
-     */
-    if (header.bytesOfKeyValueData > 0) {
-        if (!(createFlags & KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT)) {
-            ktx_uint32_t kvdLen = header.bytesOfKeyValueData;
-            ktx_uint8_t* pKvd;
-
-            pKvd = malloc(kvdLen);
-            if (pKvd == NULL)
-                return KTX_OUT_OF_MEMORY;
-
-            result = stream->read(stream, pKvd, kvdLen);
-            if (result != KTX_SUCCESS)
-                return result;
-
-            if (This->needSwap) {
-                /* Swap the counts inside the key & value data. */
-                ktx_uint8_t* src = pKvd;
-                ktx_uint8_t* end = pKvd + kvdLen;
-                while (src < end) {
-                    ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t*)src);
-                    _ktxSwapEndian32(&keyAndValueByteSize, 1);
-                    src += _KTX_PAD4(keyAndValueByteSize);
-                }
-            }
-
-            if (!(createFlags & KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)) {
-                result = ktxHashList_Deserialize(&super->kvDataHead,
-                                                 kvdLen, pKvd);
-                if (result != KTX_SUCCESS) {
-                    free(pKvd);
-                    return result;
-                }
-            } else {
-                super->kvDataLen = kvdLen;
-                super->kvData = pKvd;
-            }
-        } else {
-            stream->skip(stream, header.bytesOfKeyValueData);
-        }
-    }
-
-    /*
-     * Get the size of the image data.
-     */
-    result = stream->getsize(stream, &size);
-    if (result == KTX_SUCCESS) {
-        result = stream->getpos(stream, &pos);
-        if (result == KTX_SUCCESS)
-            super->dataSize = size - pos
-                                 /* Remove space for faceLodSize fields */
-                                 - super->numLevels * sizeof(ktx_uint32_t);
-    }
-
-    /*
-     * Load the images, if requested.
-     */
-    if (result == KTX_SUCCESS
-        && (createFlags & KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT)) {
-        result = ktxTexture_LoadImageData((ktxTexture*)super, NULL, 0);
-    }
-    return result;
+    // Copy stream info into struct for later use.
+    *stream = *pStream;
+    return KTX_SUCCESS;
 }
 
-/**
- * @memberof ktxTexture @private
- * @brief Construct a ktxTexture from a stdio stream reading from a KTX source.
- *
- * See ktxTextureInt_constructFromStream for details.
- *
- * @note Do not close the stdio stream until you are finished with the texture
- *       object.
- *
- * @param[in] This pointer to a ktxTextureInt-sized block of memory to
- *                 initialize.
- * @param[in] stdioStream a stdio FILE pointer opened on the source.
- * @param[in] createFlags bitmask requesting specific actions during creation.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE Either @p stdiostream or @p This is null.
- *
- * For other exceptions, see ktxTexture_constructFromStream().
- */
-static KTX_error_code
-ktxTextureInt_constructFromStdioStream(ktxTextureInt* This, FILE* stdioStream,
-                                       ktxTextureCreateFlags createFlags)
-{
-    KTX_error_code result;
-
-    if (stdioStream == NULL || This == NULL)
-        return KTX_INVALID_VALUE;
-
-    memset(This, 0, sizeof(*This));
-
-    result = ktxFileStream_construct(&This->stream, stdioStream, KTX_FALSE);
-    if (result == KTX_SUCCESS)
-        result = ktxTextureInt_constructFromStream(This, createFlags);
-    return result;
-}
-
-/**
- * @memberof ktxTexture @private
- * @brief Construct a ktxTexture from a named KTX file.
- *
- * See ktxTextureInt_constructFromStream for details.
- *
- * @param[in] This pointer to a ktxTextureInt-sized block of memory to
- *                 initialize.
- * @param[in] filename    pointer to a char array containing the file name.
- * @param[in] createFlags bitmask requesting specific actions during creation.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_OPEN_FAILED The file could not be opened.
- * @exception KTX_INVALID_VALUE @p filename is @c NULL.
- *
- * For other exceptions, see ktxTexture_constructFromStream().
- */
-static KTX_error_code
-ktxTextureInt_constructFromNamedFile(ktxTextureInt* This,
-                                     const char* const filename,
-                                     ktxTextureCreateFlags createFlags)
-{
-    KTX_error_code result;
-    FILE* file;
-
-    if (This == NULL || filename == NULL)
-        return KTX_INVALID_VALUE;
-
-    memset(This, 0, sizeof(*This));
-
-    file = fopen(filename, "rb");
-    if (!file)
-       return KTX_FILE_OPEN_FAILED;
-
-    result = ktxFileStream_construct(&This->stream, file, KTX_TRUE);
-    if (result == KTX_SUCCESS)
-        result = ktxTextureInt_constructFromStream(This, createFlags);
-
-    return result;
-}
-
-/**
- * @memberof ktxTexture @private
- * @brief Construct a ktxTexture from KTX-formatted data in memory.
- *
- * See ktxTextureInt_constructFromStream for details.
- *
- * @param[in] This  pointer to a ktxTextureInt-sized block of memory to
- *                  initialize.
- * @param[in] bytes pointer to the memory containing the serialized KTX data.
- * @param[in] size  length of the KTX data in bytes.
- * @param[in] createFlags bitmask requesting specific actions during creation.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE Either @p bytes is NULL or @p size is 0.
- *
- * For other exceptions, see ktxTexture_constructFromStream().
- */
-static KTX_error_code
-ktxTextureInt_constructFromMemory(ktxTextureInt* This,
-                                  const ktx_uint8_t* bytes, ktx_size_t size,
-                                  ktxTextureCreateFlags createFlags)
-{
-    KTX_error_code result;
-
-    if (bytes == NULL || size == 0)
-        return KTX_INVALID_VALUE;
-
-    memset(This, 0, sizeof(*This));
-
-    result = ktxMemStream_construct_ro(&This->stream, bytes, size);
-    if (result == KTX_SUCCESS)
-        result = ktxTextureInt_constructFromStream(This, createFlags);
-
-    return result;
-}
 
 /**
  * @memberof ktxTexture @private
@@ -537,76 +338,109 @@ ktxTextureInt_constructFromMemory(ktxTextureInt* This,
  *                 to be freed.
  */
 void
-ktxTextureInt_destruct(ktxTextureInt* This)
+ktxTexture_destruct(ktxTexture* This)
 {
-    ktxTexture* super = (ktxTexture*)This;
-    if (This->stream.data.file != NULL)
-        This->stream.destruct(&This->stream);
-    if (super->kvDataHead != NULL)
-        ktxHashList_Destruct(&super->kvDataHead);
-    if (super->kvData != NULL)
-        free(super->kvData);
-    if (super->pData != NULL)
-        free(super->pData);
+    ktxStream stream = *(ktxTexture_getStream(This));
+
+    if (stream.data.file != NULL)
+        stream.destruct(&stream);
+    if (This->kvDataHead != NULL)
+        ktxHashList_Destruct(&This->kvDataHead);
+    if (This->kvData != NULL)
+        free(This->kvData);
+    if (This->pData != NULL)
+        free(This->pData);
+    free(This->_protected);
+}
+
+
+/**
+ * @defgroup reader Reader
+ * @brief Read KTX-formatted data.
+ * @{
+ */
+
+typedef enum { KTX1, KTX2 } ktxFileType_;
+typedef union {
+    KTX_header ktx;
+    KTX_header2 ktx2;
+} ktxHeaderUnion_;
+
+static KTX_error_code
+ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
+                      ktxHeaderUnion_* pHeader)
+{
+    ktx_uint8_t ktx_ident_ref[12] = KTX_IDENTIFIER_REF;
+    ktx_uint8_t ktx2_ident_ref[12] = KTX2_IDENTIFIER_REF;
+    KTX_error_code result;
+
+    assert(pStream != NULL && pFileType != NULL);
+    assert(pStream->data.mem != NULL);
+    assert(pStream->type == eStreamTypeFile
+           || pStream->type == eStreamTypeMemory);
+
+    result = pStream->read(pStream, pHeader, sizeof(ktx2_ident_ref));
+    if (result == KTX_SUCCESS) {
+        // Compare identifier, is this a KTX  or KTX2 file?
+        if (!memcmp(pHeader->ktx.identifier, ktx_ident_ref, 12)) {
+                *pFileType = KTX1;
+        } else if (!memcmp(pHeader->ktx2.identifier, ktx2_ident_ref, 12)) {
+                *pFileType = KTX2;
+        } else {
+                return KTX_UNKNOWN_FILE_FORMAT;
+        }
+        // Read rest of header.
+        if (*pFileType == KTX1) {
+            // Read rest of header.
+            result = pStream->read(pStream, &pHeader->ktx.endianness,
+                                  KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
+        } else {
+           result = pStream->read(pStream, &pHeader->ktx2.vkFormat,
+                                 KTX2_HEADER_SIZE - sizeof(ktx2_ident_ref));
+        }
+    }
+    return result;
 }
 
 /**
- * @memberof ktxTexture
- * @ingroup writer
- * @brief Create a new empty ktxTexture.
- *
- * The address of the newly created ktxTexture is written to the location
- * pointed at by @p newTex.
- *
- * @param[in] createInfo pointer to a ktxTextureCreateInfo struct with
- *                       information describing the texture.
- * @param[in] storageAllocation
- *                       enum indicating whether or not to allocate storage
- *                       for the texture images.
- * @param[in,out] newTex pointer to a location in which store the address of
- *                       the newly created texture.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE @c glInternalFormat in @p createInfo is not a
- *                              valid OpenGL internal format value.
- * @exception KTX_INVALID_VALUE @c numDimensions in @p createInfo is not 1, 2
- *                              or 3.
- * @exception KTX_INVALID_VALUE One of <tt>base{Width,Height,Depth}</tt> in
- *                              @p createInfo is 0.
- * @exception KTX_INVALID_VALUE @c numFaces in @p createInfo is not 1 or 6.
- * @exception KTX_INVALID_VALUE @c numLevels in @p createInfo is 0.
- * @exception KTX_INVALID_OPERATION
- *                              The <tt>base{Width,Height,Depth}</tt> specified
- *                              in @p createInfo are inconsistent with
- *                              @c numDimensions.
- * @exception KTX_INVALID_OPERATION
- *                              @p createInfo is requesting a 3D array or
- *                              3D cubemap texture.
- * @exception KTX_INVALID_OPERATION
- *                              @p createInfo is requesting a cubemap with
- *                              non-square or non-2D images.
- * @exception KTX_INVALID_OPERATION
- *                              @p createInfo is requesting more mip levels
- *                              than needed for the specified
- *                              <tt>base{Width,Height,Depth}</tt>.
- * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images.
+ * @memberof ktxTexture @private
+ * @brief Construct (initialize) a ktx1 or ktx2 texture according to the stream
+ *        data.
  */
 KTX_error_code
-ktxTexture_Create(ktxTextureCreateInfo* createInfo,
-                  ktxTextureCreateStorageEnum storageAllocation,
-                  ktxTexture** newTex)
+ktxTexture_createFromStream(ktxStream* pStream,
+                            ktxTextureCreateFlags createFlags,
+                            ktxTexture** newTex)
 {
+    ktxHeaderUnion_ header;
+    ktxFileType_ fileType;
     KTX_error_code result;
+    ktxTexture* tex;
 
-    if (newTex == NULL)
-        return KTX_INVALID_VALUE;
+    result = ktxDetermineFileType_(pStream, &fileType, &header);
+    if (result != KTX_SUCCESS)
+        return result;
 
-    ktxTextureInt* tex = (ktxTextureInt*)malloc(sizeof(ktxTextureInt));
-    if (tex == NULL)
-        return KTX_OUT_OF_MEMORY;
+    if (fileType == KTX1) {
+        ktxTexture1* tex1 = (ktxTexture1*)malloc(sizeof(ktxTexture1));
+        if (tex1 == NULL)
+            return KTX_OUT_OF_MEMORY;
+        memset(tex1, 0, sizeof(ktxTexture1));
+        result = ktxTexture1_constructFromStreamAndHeader(tex1, pStream,
+                                                          &header.ktx,
+                                                          createFlags);
+        tex = &tex1->super;
+    } else {
+        ktxTexture2* tex2 = (ktxTexture2*)malloc(sizeof(ktxTexture2));
+        if (tex2 == NULL)
+            return KTX_OUT_OF_MEMORY;
+        memset(tex2, 0, sizeof(ktxTexture2));
+        result = ktxTexture2_constructFromStreamAndHeader(tex2, pStream,
+                                                          &header.ktx2,
+                                                          createFlags);
+        tex = &tex2->super;
+    }
 
-    result = ktxTextureInt_construct(tex, createInfo, storageAllocation);
     if (result == KTX_SUCCESS)
         *newTex = (ktxTexture*)tex;
     else {
@@ -615,12 +449,6 @@ ktxTexture_Create(ktxTextureCreateInfo* createInfo,
     }
     return result;
 }
-
-/**
- * @defgroup reader Reader
- * @brief Read KTX-formatted data.
- * @{
- */
 
 /**
  * @memberof ktxTexture
@@ -667,21 +495,15 @@ ktxTexture_CreateFromStdioStream(FILE* stdioStream,
                                  ktxTextureCreateFlags createFlags,
                                  ktxTexture** newTex)
 {
+    ktxStream stream;
     KTX_error_code result;
-    if (newTex == NULL)
+
+    if (stdioStream == NULL || newTex == NULL)
         return KTX_INVALID_VALUE;
 
-    ktxTextureInt* tex = (ktxTextureInt*)malloc(sizeof(ktxTextureInt));
-    if (tex == NULL)
-        return KTX_OUT_OF_MEMORY;
-
-    result = ktxTextureInt_constructFromStdioStream(tex, stdioStream,
-                                                    createFlags);
-    if (result == KTX_SUCCESS)
-        *newTex = (ktxTexture*)tex;
-    else {
-        free(tex);
-        *newTex = NULL;
+    result = ktxFileStream_construct(&stream, stdioStream, KTX_FALSE);
+    if (result == KTX_SUCCESS) {
+        result = ktxTexture_createFromStream(&stream, createFlags, newTex);
     }
     return result;
 }
@@ -721,20 +543,19 @@ ktxTexture_CreateFromNamedFile(const char* const filename,
                                ktxTexture** newTex)
 {
     KTX_error_code result;
+    ktxStream stream;
+    FILE* file;
 
-    if (newTex == NULL)
+    if (filename == NULL || newTex == NULL)
         return KTX_INVALID_VALUE;
 
-    ktxTextureInt* tex = (ktxTextureInt*)malloc(sizeof(ktxTextureInt));
-    if (tex == NULL)
-        return KTX_OUT_OF_MEMORY;
+    file = fopen(filename, "rb");
+    if (!file)
+       return KTX_FILE_OPEN_FAILED;
 
-    result = ktxTextureInt_constructFromNamedFile(tex, filename, createFlags);
-    if (result == KTX_SUCCESS)
-        *newTex = (ktxTexture*)tex;
-    else {
-        free(tex);
-        *newTex = NULL;
+    result = ktxFileStream_construct(&stream, file, KTX_TRUE);
+    if (result == KTX_SUCCESS) {
+        result = ktxTexture_createFromStream(&stream, createFlags, newTex);
     }
     return result;
 }
@@ -774,41 +595,17 @@ ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTexture** newTex)
 {
     KTX_error_code result;
-    if (newTex == NULL)
+    ktxStream stream;
+
+    if (bytes == NULL || newTex == NULL || size == 0)
         return KTX_INVALID_VALUE;
 
-    ktxTextureInt* tex = (ktxTextureInt*)malloc(sizeof(ktxTextureInt));
-    if (tex == NULL)
-        return KTX_OUT_OF_MEMORY;
-
-    result = ktxTextureInt_constructFromMemory(tex, bytes, size,
-                                               createFlags);
-    if (result == KTX_SUCCESS)
-        *newTex = (ktxTexture*)tex;
-    else {
-        free(tex);
-        *newTex = NULL;
+    result = ktxMemStream_construct_ro(&stream, bytes, size);
+    if (result == KTX_SUCCESS) {
+        result = ktxTexture_createFromStream(&stream, createFlags, newTex);
     }
-    return result;
-}
+    return result;}
 
-/**
- * @memberof ktxTexture
- * @~English
- * @brief Destroy a ktxTexture object.
- *
- * This frees the memory associated with the texture contents and the memory
- * of the ktxTexture object. This does @e not delete any OpenGL or Vulkan
- * texture objects created by ktxTexture_GLUpload or ktxTexture_VkUpload.
- *
- * @param[in] This pointer to the ktxTexture object to destroy
- */
-void
-ktxTexture_Destroy(ktxTexture* This)
-{
-    ktxTextureInt_destruct((ktxTextureInt*)This);
-    free(This);
-}
 
 /**
  * @memberof ktxTexture
@@ -851,7 +648,7 @@ ktxTexture_GetSize(ktxTexture* This)
 ktx_uint32_t
 ktxTexture_GetElementSize(ktxTexture* This)
 {
-    GlFormatSize* formatInfo;
+    ktxFormatSize* formatInfo;
 
     assert (This != NULL);
 
@@ -879,7 +676,7 @@ ktx_size_t
 ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
                          ktxFormatVersionEnum fv)
 {
-    GlFormatSize* formatInfo;
+    ktxFormatSize* formatInfo;
     struct blockCount {
         ktx_uint32_t x, y, z;
     } blockCount;
@@ -893,7 +690,7 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
     blockCount.y = MAX(1, (This->baseHeight / formatInfo->blockHeight)  >> level);
     blockSizeInBytes = formatInfo->blockSizeInBits / 8;
 
-    if (formatInfo->flags & GL_FORMAT_SIZE_COMPRESSED_BIT) {
+    if (formatInfo->flags & KTX_FORMAT_SIZE_COMPRESSED_BIT) {
         assert(This->isCompressed);
         return blockCount.x * blockCount.y * blockSizeInBytes;
     } else {
@@ -1025,6 +822,7 @@ cleanup:
     return result;
 }
 
+#if 0
 /**
  * @memberof ktxTexture
  * @~English
@@ -1251,7 +1049,7 @@ cleanup:
 
     return result;
 }
-
+#endif
 /**
  * @memberof ktxTexture
  * @~English
@@ -1369,7 +1167,7 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
      * multiply is safe. 3D cubemaps, if they existed, would require
      * imageSize * (blockCount.z + This->numFaces);
      */
-    GlFormatSize* formatInfo;
+    ktxFormatSize* formatInfo;
     ktx_uint32_t blockCountZ;
     ktx_size_t imageSize, layerSize;
 
@@ -1535,22 +1333,6 @@ ktxTexture_calcDataSizeTexture(ktxTexture* This, ktxFormatVersionEnum fv)
 /**
  * @memberof ktxTexture @private
  * @~English
- * @brief Return the size of the primitive type of a single color component
- *
- * @param[in]     This       pointer to the ktxTexture object of interest.
- *
- * @return the type size in bytes.
- */
-ktx_uint32_t
-ktxTexture_glTypeSize(ktxTexture* This)
-{
-    assert(This != NULL);
-    return ((ktxTextureInt*)This)->glTypeSize;
-}
-
-/**
- * @memberof ktxTexture @private
- * @~English
  * @brief Get information about rows of an uncompresssed texture image at a
  *        specified level.
  *
@@ -1571,7 +1353,7 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
                    ktx_uint32_t* numRows, ktx_uint32_t* pRowLengthBytes,
                    ktx_uint32_t* pRowPadding)
 {
-    GlFormatSize* formatInfo;
+    ktxFormatSize* formatInfo;
     struct blockCount {
         ktx_uint32_t x;
     } blockCount;
@@ -1608,7 +1390,7 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
  ktx_uint32_t
  ktxTexture_GetRowPitch(ktxTexture* This, ktx_uint32_t level)
  {
-    GlFormatSize* formatInfo;
+     ktxFormatSize* formatInfo;
     struct blockCount {
         ktx_uint32_t x;
     } blockCount;
@@ -1638,7 +1420,8 @@ ktx_bool_t
 ktxTexture_isActiveStream(ktxTexture* This)
 {
     assert(This != NULL);
-    return ((ktxTextureInt*)This)->stream.data.file != NULL;
+    ktxStream* stream = ktxTexture_getStream(This);
+    return stream->data.file != NULL;
 }
 
 

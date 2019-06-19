@@ -56,9 +56,9 @@ namespace {
 // Fixture for CheckHeaderTest
 //--------------------------------------------
 
-class CheckHeaderTest : public ::testing::Test {
+class CheckHeader1Test : public ::testing::Test {
   protected:
-    CheckHeaderTest() {
+    CheckHeader1Test() {
         // Done this way rather than by using an initializer here
         // so it will compile on VS 2008.
         memcpy(testHeader.identifier, ktxId, sizeof(ktxId));
@@ -83,7 +83,7 @@ class CheckHeaderTest : public ::testing::Test {
     static ktx_uint8_t ktxId[12];
 };
 
-ktx_uint8_t CheckHeaderTest::ktxId[12] = {
+ktx_uint8_t CheckHeader1Test::ktxId[12] = {
     0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A
 };
 
@@ -130,8 +130,8 @@ class ktxWriteKTXTestBase : public ::testing::Test {
                               helper.imageList.data());
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxWriteKTXM failed: "
                                            << ktxErrorString(result);
-        EXPECT_EQ(memcmp(ktxMemFile, CheckHeaderTest::ktxId,
-                         sizeof(CheckHeaderTest::ktxId)),
+        EXPECT_EQ(memcmp(ktxMemFile, CheckHeader1Test::ktxId,
+                         sizeof(CheckHeader1Test::ktxId)),
                   0);
         EXPECT_EQ(helper.texinfo.compare((KTX_header*)ktxMemFile), true);
         filePtr = ktxMemFile + sizeof(KTX_header);
@@ -159,20 +159,20 @@ TEST_F(CheckHeaderTest, AssertsOnNullArguments) {
 }
 #endif
 
-TEST_F(CheckHeaderTest, ValidatesIdentifier) {
+TEST_F(CheckHeader1Test, ValidatesIdentifier) {
     KTX_supplemental_info suppInfo;
 
-    EXPECT_EQ(_ktxCheckHeader(&testHeader, &suppInfo), KTX_SUCCESS);
+    EXPECT_EQ(ktxCheckHeader1_(&testHeader, &suppInfo), KTX_SUCCESS);
 
     testHeader.identifier[9] = 0;
-    EXPECT_EQ(_ktxCheckHeader(&testHeader, &suppInfo), KTX_UNKNOWN_FILE_FORMAT);
+    EXPECT_EQ(ktxCheckHeader1_(&testHeader, &suppInfo), KTX_UNKNOWN_FILE_FORMAT);
 }
 
-TEST_F(CheckHeaderTest, DisallowsInvalidEndianness) {
+TEST_F(CheckHeader1Test, DisallowsInvalidEndianness) {
     KTX_supplemental_info suppInfo;
 
     testHeader.endianness = 0;
-    EXPECT_EQ(_ktxCheckHeader(&testHeader, &suppInfo), KTX_FILE_DATA_ERROR);
+    EXPECT_EQ(ktxCheckHeader1_(&testHeader, &suppInfo), KTX_FILE_DATA_ERROR);
 }
 
 //////////////////////////////

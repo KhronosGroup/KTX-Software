@@ -144,7 +144,7 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     KTX_supplemental_info suppInfo;
     KTX_error_code result;
 
-    result = _ktxCheckHeader(pHeader, &suppInfo);
+    result = ktxCheckHeader1_(pHeader, &suppInfo);
     if (result != KTX_SUCCESS) {
         fprintf(stdout, "The KTX 1 file pHeader is invalid:\n");
         switch (result) {

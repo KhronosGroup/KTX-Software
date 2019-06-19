@@ -79,6 +79,12 @@ static inline VkFormat vkGetFormatFromOpenGLType( const GLenum type, const GLuin
 static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum internalFormat );
 static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pFormatSize );
 
+MODIFICATIONS for use in libktx
+===============================
+
+2019.5.30 Use common ktxFormatSize to return results. Mark Callow, Edgewise Consulting.
+2019.6.12 Add mapping of PVRTC formats.                             "
+
 ================================================================================================
 */
 
@@ -828,31 +834,12 @@ static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum interna
 	}
 }
 
-typedef enum VkFormatSizeFlagBits {
-	VK_FORMAT_SIZE_PACKED_BIT				= 0x00000001,
-	VK_FORMAT_SIZE_COMPRESSED_BIT			= 0x00000002,
-	VK_FORMAT_SIZE_PALETTIZED_BIT			= 0x00000004,
-	VK_FORMAT_SIZE_DEPTH_BIT				= 0x00000008,
-	VK_FORMAT_SIZE_STENCIL_BIT				= 0x00000010,
-} VkFormatSizeFlagBits;
-
-typedef VkFlags VkFormatSizeFlags;
-
-typedef struct VkFormatSize {
-	VkFormatSizeFlags	flags;
-	unsigned int		paletteSizeInBits;
-	unsigned int		blockSizeInBits;
-	unsigned int		blockWidth;			// in texels
-	unsigned int		blockHeight;		// in texels
-	unsigned int		blockDepth;			// in texels
-} VkFormatSize;
-
-static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pFormatSize )
+static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pFormatSize )
 {
 	switch ( format )
 	{
 		case VK_FORMAT_R4G4_UNORM_PACK8:
-			pFormatSize->flags = VK_FORMAT_SIZE_PACKED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_PACKED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 1 * 8;
 			pFormatSize->blockWidth = 1;
@@ -866,7 +853,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
 		case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
 		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-			pFormatSize->flags = VK_FORMAT_SIZE_PACKED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_PACKED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 2 * 8;
 			pFormatSize->blockWidth = 1;
@@ -950,7 +937,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-			pFormatSize->flags = VK_FORMAT_SIZE_PACKED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_PACKED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 4 * 8;
 			pFormatSize->blockWidth = 1;
@@ -969,7 +956,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 		case VK_FORMAT_A2B10G10R10_SINT_PACK32:
-			pFormatSize->flags = VK_FORMAT_SIZE_PACKED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_PACKED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 4 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1114,7 +1101,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-			pFormatSize->flags = VK_FORMAT_SIZE_PACKED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_PACKED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 4 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1122,7 +1109,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_D16_UNORM:
-			pFormatSize->flags = VK_FORMAT_SIZE_DEPTH_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_DEPTH_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 2 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1130,7 +1117,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_X8_D24_UNORM_PACK32:
-			pFormatSize->flags = VK_FORMAT_SIZE_PACKED_BIT | VK_FORMAT_SIZE_DEPTH_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_PACKED_BIT | KTX_FORMAT_SIZE_DEPTH_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 4 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1138,7 +1125,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_D32_SFLOAT:
-			pFormatSize->flags = VK_FORMAT_SIZE_DEPTH_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_DEPTH_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 4 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1146,7 +1133,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_S8_UINT:
-			pFormatSize->flags = VK_FORMAT_SIZE_STENCIL_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_STENCIL_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 1 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1154,7 +1141,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_D16_UNORM_S8_UINT:
-			pFormatSize->flags = VK_FORMAT_SIZE_DEPTH_BIT | VK_FORMAT_SIZE_STENCIL_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_DEPTH_BIT | KTX_FORMAT_SIZE_STENCIL_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 3 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1162,7 +1149,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_D24_UNORM_S8_UINT:
-			pFormatSize->flags = VK_FORMAT_SIZE_DEPTH_BIT | VK_FORMAT_SIZE_STENCIL_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_DEPTH_BIT | KTX_FORMAT_SIZE_STENCIL_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 4 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1170,7 +1157,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-			pFormatSize->flags = VK_FORMAT_SIZE_DEPTH_BIT | VK_FORMAT_SIZE_STENCIL_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_DEPTH_BIT | KTX_FORMAT_SIZE_STENCIL_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
 			pFormatSize->blockWidth = 1;
@@ -1181,7 +1168,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
 		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
 		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
 			pFormatSize->blockWidth = 4;
@@ -1200,7 +1187,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_BC6H_SFLOAT_BLOCK:
 		case VK_FORMAT_BC7_UNORM_BLOCK:
 		case VK_FORMAT_BC7_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 4;
@@ -1211,7 +1198,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
 		case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
 		case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
 			pFormatSize->blockWidth = 4;
@@ -1224,7 +1211,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
 		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
 		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 4;
@@ -1233,7 +1220,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 4;
@@ -1242,7 +1229,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 5;
@@ -1251,7 +1238,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 5;
@@ -1260,7 +1247,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 6;
@@ -1269,7 +1256,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 6;
@@ -1278,7 +1265,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 8;
@@ -1287,7 +1274,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 8;
@@ -1296,7 +1283,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 8;
@@ -1305,7 +1292,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 10;
@@ -1314,7 +1301,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 10;
@@ -1323,7 +1310,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 10;
@@ -1332,7 +1319,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 10;
@@ -1341,7 +1328,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 12;
@@ -1350,7 +1337,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			break;
 		case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
 			pFormatSize->blockWidth = 12;

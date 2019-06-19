@@ -31,6 +31,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
@@ -41,6 +42,7 @@
 #endif
 #include "ktxvulkan.h"
 #include "ktxint.h"
+#include "texture.h"
 #include "vk_format.h"
 
 // Macro to check and display Vulkan return results.
@@ -673,9 +675,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         break;
     }
 
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
-    if (vkFormat == VK_FORMAT_UNDEFINED)
-        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
+    vkFormat = ktxTexture_GetVkFormat(This);
     if (vkFormat == VK_FORMAT_UNDEFINED) {
         return KTX_INVALID_OPERATION;
     }
@@ -1152,9 +1152,25 @@ ktxTexture_GetVkFormat(ktxTexture* This)
 {
     VkFormat vkFormat;
 
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
-    if (vkFormat == VK_FORMAT_UNDEFINED)
-        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
+    // FIXME. Probably should use a virtual function.
+    switch (This->classId) {
+      case ktxTexture1_c:
+        {
+            ktxTexture1* tex1 = (ktxTexture1*)This;
+            vkFormat = vkGetFormatFromOpenGLInternalFormat(tex1->glInternalformat);
+            if (vkFormat == VK_FORMAT_UNDEFINED) {
+                vkFormat = vkGetFormatFromOpenGLFormat(tex1->glFormat,
+                                                       tex1->glType);
+            }
+            break;
+        }
+      case ktxTexture2_c:
+        {
+            ktxTexture2* tex2 = (ktxTexture2*)This;
+            vkFormat = tex2->vkFormat;
+            break;
+        }
+    }
     return vkFormat;
 }
 

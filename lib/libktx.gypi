@@ -21,6 +21,7 @@
       'etcunpack.cxx',
       'filestream.c',
       'filestream.h',
+      'formatsize.h',
       'gl_format.h',
       'gl_funcptrs.h',
       'gles1_funcptrs.h',
@@ -36,6 +37,9 @@
       'stream.h',
       'swap.c',
       'texture.c',
+      'texture.h',
+      'texture1.c',
+      'texture2.c',
       'uthash.h',
       'vkformat_enum.h',
       'vkformat_prohibited.c',
@@ -127,7 +131,7 @@
         }] # _type == "shared_library"
       ], # conditions
       'xcode_settings': {
-          # These actually Xcode's defaults here for documentation.
+          # These are actually Xcode's defaults shown here for documentation.
           #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
           #'INSTALL_PATH': '/usr/local/lib',
           # This is used by a Copy Headers phase which gyp only allows to be

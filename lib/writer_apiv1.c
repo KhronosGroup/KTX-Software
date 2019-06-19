@@ -52,7 +52,7 @@
 static GLenum getFormatFromInternalFormatLegacy(GLenum internalFormat);
 static GLenum getTypeFromInternalFormatLegacy(GLenum internalFormat);
 static void getFormatSizeLegacy(GLenum internalFormat,
-                                GlFormatSize* formatSize);
+                                ktxFormatSize* formatSize);
 
 /**
  * @internal
@@ -159,7 +159,7 @@ ktxWriteKTXS(struct ktxStream *stream, const KTX_texture_info* textureInfo,
     }
     else
     {
-        GlFormatSize formatInfo;
+        ktxFormatSize formatInfo;
         GLenum expectedFormat, expectedType;
 
         expectedFormat = getFormatFromInternalFormatLegacy(header.glInternalformat);
@@ -669,7 +669,7 @@ getTypeFromInternalFormatLegacy(GLenum internalFormat)
  *                            information is returned.
  */
 void
-getFormatSizeLegacy(GLenum internalFormat, GlFormatSize* pFormatSize)
+getFormatSizeLegacy(GLenum internalFormat, ktxFormatSize* pFormatSize)
 {
     switch (internalFormat) {
       case GL_LUMINANCE8:
