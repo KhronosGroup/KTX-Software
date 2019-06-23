@@ -599,11 +599,11 @@ linearTilingPadCallback(int miplevel, int face,
  *                              on either the CPU or the Vulkan device.
  */
 KTX_error_code
-ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                      ktxVulkanTexture* vkTexture,
-                      VkImageTiling tiling,
-                      VkImageUsageFlags usageFlags,
-                      VkImageLayout finalLayout)
+ktxTexture_doVkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                        ktxVulkanTexture* vkTexture,
+                        VkImageTiling tiling,
+                        VkImageUsageFlags usageFlags,
+                        VkImageLayout finalLayout)
 {
     KTX_error_code           kResult;
     VkFilter                 blitFilter;
@@ -1121,27 +1121,6 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
 
 /** @memberof ktxTexture
  * @~English
- * @brief Create a Vulkan image object from a ktxTexture object.
- *
- * Calls ktxTexture_VkUploadEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
- * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- *
- * @sa ktxTexture_VkUploadEx() for details and use that for complete
- *     control.
- */
-KTX_error_code
-ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(texture, vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
-                                 VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-}
-
-/** @memberof ktxTexture
- * @~English
  * @brief Return the VkFormat enum of a ktxTexture object.
  *
  * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
@@ -1176,6 +1155,69 @@ ktxTexture_GetVkFormat(ktxTexture* This)
     return vkFormat;
 }
 
+KTX_error_code
+ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
+                                   usageFlags, finalLayout);
+}
+
+/** @memberof ktxTexture
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture1_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+                     ktxVulkanTexture *vkTexture)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(texture), vdi, vkTexture,
+                                   VK_IMAGE_TILING_OPTIMAL,
+                                   VK_IMAGE_USAGE_SAMPLED_BIT,
+                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+KTX_error_code
+ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
+                                   usageFlags, finalLayout);
+}
+
+/** @memberof ktxTexture
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+                     ktxVulkanTexture *vkTexture)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(texture), vdi, vkTexture,
+                                   VK_IMAGE_TILING_OPTIMAL,
+                                   VK_IMAGE_USAGE_SAMPLED_BIT,
+                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
 //======================================================================
 //  Utilities
 //======================================================================

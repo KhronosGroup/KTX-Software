@@ -84,9 +84,8 @@
 #include "ktx.h"
 #include "ktxint.h"
 #include "ktxgl.h"
-#include "gl_format.h"
 #include "texture.h"
-#include "vkformat_enum.h"
+#include "gl_format.h"      // Must come after texture.h.
 
 DECLARE_GL_FUNCPTRS
 

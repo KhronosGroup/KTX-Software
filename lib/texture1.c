@@ -29,7 +29,7 @@
 
 #include <stdlib.h>
 
-#include "dfdutils/dfd.h"
+#include "dfd.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "stream.h"
@@ -45,12 +45,16 @@ typedef struct ktxTexture1_private {
 } ktxTexture1_private;
 
 struct ktxTexture_vtbl ktxTexture1_vtbl;
+extern struct ktxTexture_vvtbl* pKtxTexture1_vvtbl;
 
 static KTX_error_code
 ktxTexture1_constructBase(ktxTexture1* This)
 {
     assert(This != NULL);
 
+    This->classId = ktxTexture1_c;
+    This->vtbl = &ktxTexture1_vtbl;
+    This->vvtbl = pKtxTexture1_vvtbl;
     This->_private = (ktxTexture1_private*)malloc(sizeof(ktxTexture1_private));
     if (This->_private == NULL) {
         return KTX_OUT_OF_MEMORY;
@@ -80,9 +84,11 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
     }
     result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize,
                                    storageAllocation);
-    This->vtbl = (struct ktxTexture_vtbl*)&ktxTexture1_vtbl;
-    This->classId = ktxTexture1_c;
-    ktxTexture1_constructBase(This);
+    if (result != KTX_SUCCESS)
+        return result;
+    result = ktxTexture1_constructBase(This);
+    if (result != KTX_SUCCESS)
+        return result;
     private = This->_private;
 
     This->isCompressed
@@ -190,10 +196,14 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
 
     assert(pHeader != NULL && pStream != NULL);
 
-    ktxTexture1_constructBase(This);
+    result = ktxTexture1_constructBase(This);
+    if (result != KTX_SUCCESS)
+        return result;
     ktxTexture_constructFromStream(ktxTexture(This), pStream, createFlags);
-    This->vtbl = (struct ktxTexture_vtbl*)&ktxTexture1_vtbl;
-    This->classId = ktxTexture1_c;
+    if (result != KTX_SUCCESS) {
+        ktxTexture1_destruct(This);
+        return result;
+    }
 
     private = This->_private;
     stream = ktxTexture1_getStream(This);
@@ -1207,3 +1217,4 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXWRITETONAMEDFILE)ktxTexture1_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture1_WriteToMemory,
 };
+

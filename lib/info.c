@@ -34,11 +34,12 @@
 #include <string.h>
 
 #include <ktx.h>
+
+#include "dfd.h"
 #include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
 #include "ktxint.h"
-#include "dfdutils/dfd.h"
 
 /*===========================================================*
  * Common Utilities for version 1 and 2.                     *

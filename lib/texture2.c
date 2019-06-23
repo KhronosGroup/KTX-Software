@@ -38,9 +38,21 @@
 #include "texture2.h"
 #include "uthash.h"
 #include "vk_format.h"
-#include "vkformat_enum.h"
 
 struct ktxTexture_vtbl ktxTexture2_vtbl;
+extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
+
+static KTX_error_code
+ktxTexture2_constructBase(ktxTexture2* This)
+{
+    assert(This != NULL);
+
+    This->classId = ktxTexture1_c;
+    This->vtbl = &ktxTexture2_vtbl;
+    This->vvtbl = pKtxTexture2_vvtbl;
+    return KTX_SUCCESS;
+}
+
 
 static KTX_error_code
 ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
@@ -61,6 +73,11 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
     }
     result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize,
                                    storageAllocation);
+    if (result != KTX_SUCCESS)
+        return result;
+    result = ktxTexture2_constructBase(This);
+    if (result != KTX_SUCCESS)
+        return result;
 
     if (result == KTX_SUCCESS) {
         This->vkFormat = createInfo->vkFormat;
@@ -138,7 +155,13 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
 
     assert(pHeader != NULL && pStream != NULL);
 
-    ktxTexture_constructFromStream(ktxTexture(This), pStream,createFlags);
+    result = ktxTexture_constructFromStream(ktxTexture(This), pStream,
+                                            createFlags);
+    if (result != KTX_SUCCESS)
+        return result;
+    result = ktxTexture2_constructBase(This);
+    if (result != KTX_SUCCESS)
+        return result;
     stream = ktxTexture2_getStream(This);
 
     result = ktxCheckHeader2_(pHeader, &suppInfo);
@@ -1017,4 +1040,3 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXWRITETONAMEDFILE)ktxTexture2_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture2_WriteToMemory,
 };
-

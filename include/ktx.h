@@ -196,6 +196,7 @@ typedef enum class_id {
 #define KTXTEXTURECLASSDEFN                   \
     class_id classId;                         \
     struct ktxTexture_vtbl* vtbl;             \
+    struct ktxTexture_vvtbl* vvtbl;           \
     struct ktxTexture_protected* _protected;  \
     ktx_bool_t   isArray;                     \
     ktx_bool_t   isCubemap;                   \
@@ -232,9 +233,24 @@ typedef struct ktxTexture {
     KTXTEXTURECLASSDEFN
 } ktxTexture;
 /**
+ * @typedef ktxTexture::classId
+ * @~English
+ * @brief Identify the class type.
+ *
+ * Since there are no public ktxTexture constructors, this can only have
+ * values of ktxTexture1_c or ktxTexture2_c.
+ */
+/**
  * @typedef ktxTexture::vtbl
  * @~English
  * @brief Pointer to the class's vtble.
+ */
+/**
+ * @typedef ktxTexture::vvtbl
+ * @~English
+ * @brief Pointer to the class's vtble for Vulkan functions.
+ *
+ * A separate vtble is used so this header does not need to include vulkan.h.
  */
 /**
  * @typedef ktxTexture::_protected
