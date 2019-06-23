@@ -2656,4 +2656,5 @@ static inline GLint glGetInternalFormatFromVkFormat( VkFormat vkFormat )
         default:                                       return GL_INVALID_VALUE;
     }
 }
+
 #endif // !GL_FORMAT_H

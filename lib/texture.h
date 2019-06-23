@@ -35,26 +35,31 @@
 #include "formatsize.h"
 #include "stream.h"
 
-#define DECLARE_SUPER(baseClass) baseClass* super = (baseClass *)This
 #define DECLARE_PRIVATE(class) struct class ## _private* private = This->_private
 #define DECLARE_PROTECTED(class) struct class ## _protected* prtctd = This->_protected;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef ktx_uint32_t (* PFNMIPPAD)(ktx_size_t);
+typedef ktx_uint32_t (* PFNPADROW)(ktx_uint32_t*);
+typedef struct ktxTextureVtblInt {
+    ktx_uint32_t (* mipPadding)(ktx_size_t);
+    ktx_uint32_t (* padRow)(ktx_uint32_t*);
+} ktxTextureVtblInt;
 
 /**
  * @memberof ktxTexture
  * @~English
  *
- * @brief private members of ktxTexture.
+ * @brief protected members of ktxTexture.
  */
 struct ktxTexture_protected {
+    ktxTextureVtblInt _vtbl;
     ktxFormatSize _formatSize;
     ktxStream _stream;
 };
-
-/*
- ======================================
-     Internal ktxTexture functions
- ======================================
-*/
 
 #define ktxTexture_getStream(t) ((ktxStream*)(&(t)->_protected->_stream))
 #define ktxTexture1_getStream(t1) ktxTexture_getStream((ktxTexture*)t1)
@@ -72,6 +77,8 @@ KTX_error_code
 ktxTexture_iterateSourceImages(ktxTexture* This, PFNKTXITERCB iterCb,
                                void* userdata);
 
+ktx_size_t ktxTexture_calcDataSizeLevels(ktxTexture* This, ktx_uint32_t levels,
+                                         ktxFormatVersionEnum fv);
 ktx_size_t ktxTexture_calcDataSizeTexture(ktxTexture* This,
                                           ktxFormatVersionEnum fv);
 ktx_size_t ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
@@ -83,6 +90,8 @@ ktx_size_t ktxTexture_calcLevelSize(ktxTexture* This, ktx_uint32_t level,
                                     ktxFormatVersionEnum fv);
 ktx_size_t ktxTexture_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
                                       ktxFormatVersionEnum fv);
+ktx_size_t ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
+                                ktxFormatVersionEnum fv);
 void ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
                         ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
                         ktx_uint32_t* rowPadding);
@@ -98,49 +107,8 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
 void
 ktxTexture_destruct(ktxTexture* This);
 
-/*
- ======================================
-     Virtual ktxTexture1 functions
- ======================================
-*/
-
-/* FIXME Should these be callable by applications? */
-
-void ktxTexture1_Destroy(ktxTexture1* This);
-KTX_error_code ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture,
-                                    GLenum* pTarget, GLenum* pGlerror);
-KTX_error_code ktxTexture1_IterateLevelFaces(ktxTexture1* This,
-                                             PFNKTXITERCB iterCb,
-                                             void* userdata);
-KTX_error_code ktxTexture1_IterateLoadLevelFaces(ktxTexture1* This,
-                                                 PFNKTXITERCB iterCb,
-                                                 void* userdata);
-
-
-/*
- ======================================
-     Internal ktxTexture1 functions
- ======================================
-*/
-
-KTX_error_code
-ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
-                                         KTX_header* pHeader,
-                                         ktxTextureCreateFlags createFlags);
-
-void ktxTexture1_destruct(ktxTexture1* This);
-
-ktx_uint32_t ktxTexture1_glTypeSize(ktxTexture1* This);
-
-/*
- ======================================
-     Internal ktxTexture2 functions
- ======================================
-*/
-
-KTX_error_code
-ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
-                                         KTX_header2* pHeader,
-                                         ktxTextureCreateFlags createFlags);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _TEXTURE_H_ */

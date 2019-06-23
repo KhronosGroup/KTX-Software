@@ -27,14 +27,8 @@
 #ifndef KTXGL_H
 #define KTXGL_H
 
-#ifndef SUPPORT_LEGACY_FORMAT_CONVERSION
-  #if KTX_OPENGL
-    #define SUPPORT_LEGACY_FORMAT_CONVERSION 1
-  #elif KTX_OPENGL_ES1
-    /* ES1, ES2 & ES3 support the legacy formats */
-    #define SUPPORT_LEGACY_FORMAT_CONVERSION 0
-  #endif
-#endif
+// Legacy format conversion no longer supported. Don't use deprecated formats.
+#define SUPPORT_LEGACY_FORMAT_CONVERSION 0
 
 #ifdef __cplusplus
 extern "C" {

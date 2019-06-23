@@ -40,10 +40,6 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
-      "testimages/luminance-reference-metadata.ktx",
-      "LUMINANCE8 NPOT + KTXOrientation down"
-    },
-    { DrawTexture::create,
       "testimages/orient-up.ktx",
       "RGB8 + KTXOrientation up"
     },

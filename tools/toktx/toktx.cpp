@@ -327,7 +327,7 @@ int _tmain(int argc, _TCHAR* argv[])
     FILE* f;
     KTX_error_code ret;
     ktxTextureCreateInfo createInfo;
-    ktxTexture* texture = 0;
+    ktxTexture1* texture = 0;
     struct commandOptions options;
     unsigned int imageSize;
     int exitCode = 0, face;
@@ -444,9 +444,9 @@ int _tmain(int argc, _TCHAR* argv[])
                         }
                         createInfo.numLevels = levels;
                     }
-                    ret = ktxTexture_Create(&createInfo,
-                                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                            &texture);
+                    ret = ktxTexture1_Create(&createInfo,
+                                             KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                             &texture);
                     if (KTX_SUCCESS != ret) {
                         fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
                                 options.appName, ktxErrorString(ret));
@@ -500,14 +500,14 @@ int _tmain(int argc, _TCHAR* argv[])
                         goto cleanup;
                 }
                 if (srcImg)
-                    ktxTexture_SetImageFromMemory(texture,
+                    ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                                   level,
                                                   0,
                                                   face,
                                                   srcImg,
                                                   imageSize);
                 else
-                    ktxTexture_SetImageFromStdioStream(texture,
+                    ktxTexture_SetImageFromStdioStream(ktxTexture(texture),
                                                        level,
                                                        0,
                                                        face,
@@ -565,7 +565,7 @@ int _tmain(int argc, _TCHAR* argv[])
     } else
         f = fopen(options.outfile,"wb");
     if (f) {
-        ret = ktxTexture_WriteToStdioStream(texture, f);
+        ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
         if (KTX_SUCCESS != ret) {
             fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
                     options.appName, options.outfile, ktxErrorString(ret));
@@ -581,7 +581,7 @@ int _tmain(int argc, _TCHAR* argv[])
     }
 
 cleanup:
-    if (texture) ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(ktxTexture(texture));
     if (f) (void)fclose(f);
     delete(options.outfile);
     return exitCode;

@@ -39,13 +39,16 @@
       'texture.c',
       'texture.h',
       'texture1.c',
+      'texture1.h',
       'texture2.c',
+      'texture2.h',
+      'texture_funcs.inl',
       'uthash.h',
       'vkformat_enum.h',
       'vkformat_prohibited.c',
       'vkformat_str.c',
-      'writer.c',
-      'writer_v2.c',
+      'writer1.c',
+      'writer2.c',
     ],
     # Use _files to get the names relativized
     'vksource_files': [

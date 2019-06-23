@@ -106,49 +106,6 @@ class WriterTestHelperRGBA8Test : public WriterTestHelperTestBase<GLubyte, 4, GL
 class WriterTestHelperRGB8Test : public WriterTestHelperTestBase<GLubyte, 3, GL_RGB8> { };
 typedef WriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits createFlagBits;
 
-//--------------------------------------------
-// Base fixture for ktxWriteKTX tests.
-//--------------------------------------------
-
-template<typename component_type, ktx_uint32_t numComponents,
-         GLenum internalformat>
-class ktxWriteKTXTestBase : public ::testing::Test {
-  public:
-    ktxWriteKTXTestBase() { }
-
-    void runTest(bool writeMetadata) {
-        unsigned char* ktxMemFile;
-        GLsizei ktxMemFileLen;
-        ktx_uint8_t* filePtr;
-        KTX_error_code result;
-
-        result = ktxWriteKTXM(&ktxMemFile, &ktxMemFileLen,
-                              &helper.texinfo,
-                              writeMetadata ? helper.kvDataLen : 0,
-                              writeMetadata ? helper.kvData : nullptr,
-                              (GLuint)helper.imageList.size(),
-                              helper.imageList.data());
-        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxWriteKTXM failed: "
-                                           << ktxErrorString(result);
-        EXPECT_EQ(memcmp(ktxMemFile, CheckHeader1Test::ktxId,
-                         sizeof(CheckHeader1Test::ktxId)),
-                  0);
-        EXPECT_EQ(helper.texinfo.compare((KTX_header*)ktxMemFile), true);
-        filePtr = ktxMemFile + sizeof(KTX_header);
-        if (writeMetadata) {
-            EXPECT_EQ(memcmp(filePtr, helper.kvData, helper.kvDataLen), 0);
-            filePtr += helper.kvDataLen;
-        }
-        EXPECT_EQ(helper.compareRawImages(ktxMemFile + sizeof(KTX_header)), true);
-        delete ktxMemFile;
-    }
-
-    WriterTestHelper<component_type, numComponents, internalformat> helper;
-};
-
-class ktxWriteKTXRGBA8Test : public ktxWriteKTXTestBase<GLubyte, 4, GL_RGBA8> { };
-class ktxWriteKTXRGB8Test : public ktxWriteKTXTestBase<GLubyte, 3, GL_RGB8> { };
-
 //////////////////////////////
 // CheckHeaderTest
 //////////////////////////////

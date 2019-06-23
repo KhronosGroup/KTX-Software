@@ -195,7 +195,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
     FILE *inf, *outf;
     KTX_error_code result;
-    ktxTexture* texture = 0;
+    ktxTexture1* texture = 0;
     struct commandOptions options;
     int exitCode = 0;
 
@@ -270,7 +270,7 @@ int _tmain(int argc, _TCHAR* argv[])
             if (outf) {
                 result = ktxTexture_CreateFromStdioStream(inf,
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                        &texture);
+                                        (ktxTexture**)&texture);
 
                 if (result != KTX_SUCCESS) {
                     cerr << options.appName
@@ -323,8 +323,8 @@ int _tmain(int argc, _TCHAR* argv[])
                                       (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
 
-                result = ktxTexture_WriteKTX2ToStdioStream(texture, outf);
-                ktxTexture_Destroy(texture);
+                result = ktxTexture1_WriteKTX2ToStdioStream(texture, outf);
+                ktxTexture_Destroy(ktxTexture(texture));
                 (void)fclose(inf);
                 (void)fclose(outf);
                 if (result != KTX_SUCCESS) {

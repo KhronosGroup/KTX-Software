@@ -683,7 +683,6 @@ KTX_error_code
 ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pTexture,
                       GLenum* pTarget, GLenum* pGlerror)
 {
-    DECLARE_SUPER(ktxTexture);
     GLuint                texname;
     GLenum                target = GL_TEXTURE_2D;
     int                   texnameUser;
@@ -711,29 +710,29 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
     cbData.glInternalformat = formatInfo->glInternalformat;
     cbData.glType = formatInfo->glType;
 
-    dimensions = super->numDimensions;
-    if (super->isArray) {
+    dimensions = This->numDimensions;
+    if (This->isArray) {
         dimensions += 1;
-        if (super->numFaces == 6) {
+        if (This->numFaces == 6) {
             /* ktxCheckHeader1_ should have caught this. */
-            assert(super->numDimensions == 2);
+            assert(This->numDimensions == 2);
             target = GL_TEXTURE_CUBE_MAP_ARRAY;
         } else {
-            switch (super->numDimensions) {
+            switch (This->numDimensions) {
               case 1: target = GL_TEXTURE_1D_ARRAY_EXT; break;
               case 2: target = GL_TEXTURE_2D_ARRAY_EXT; break;
               /* _ktxCheckHeader should have caught this. */
               default: assert(KTX_TRUE);
             }
         }
-        cbData.numLayers = super->numLayers;
+        cbData.numLayers = This->numLayers;
     } else {
-        if (super->numFaces == 6) {
+        if (This->numFaces == 6) {
             /* ktxCheckHeader1_ should have caught this. */
-            assert(super->numDimensions == 2);
+            assert(This->numDimensions == 2);
             target = GL_TEXTURE_CUBE_MAP;
         } else {
-            switch (super->numDimensions) {
+            switch (This->numDimensions) {
               case 1: target = GL_TEXTURE_1D; break;
               case 2: target = GL_TEXTURE_2D; break;
               case 3: target = GL_TEXTURE_3D; break;
@@ -745,16 +744,16 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
     }
 
     if (target == GL_TEXTURE_1D &&
-        ((super->isCompressed && (pfGlCompressedTexImage1D == NULL)) ||
-         (!super->isCompressed && (pfGlTexImage1D == NULL))))
+        ((This->isCompressed && (pfGlCompressedTexImage1D == NULL)) ||
+         (!This->isCompressed && (pfGlTexImage1D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
 
     /* Reject 3D texture if unsupported. */
     if (target == GL_TEXTURE_3D &&
-        ((super->isCompressed && (pfGlCompressedTexImage3D == NULL)) ||
-         (!super->isCompressed && (pfGlTexImage3D == NULL))))
+        ((This->isCompressed && (pfGlCompressedTexImage3D == NULL)) ||
+         (!This->isCompressed && (pfGlTexImage3D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
@@ -768,15 +767,15 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
 
     switch (dimensions) {
       case 1:
-        iterCb = super->isCompressed
+        iterCb = This->isCompressed
                   ? compressedTexImage1DCallback : texImage1DCallback;
         break;
       case 2:
-        iterCb = super->isCompressed
+        iterCb = This->isCompressed
                   ? compressedTexImage2DCallback : texImage2DCallback;
             break;
       case 3:
-        iterCb = super->isCompressed
+        iterCb = This->isCompressed
                   ? compressedTexImage3DCallback : texImage3DCallback;
         break;
       default:
@@ -786,12 +785,12 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
     glBindTexture(target, texname);
 
     // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-    if (super->generateMipmaps && (pfGlGenerateMipmap == NULL)) {
+    if (This->generateMipmaps && (pfGlGenerateMipmap == NULL)) {
         glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
     }
 #ifdef GL_TEXTURE_MAX_LEVEL
-    if (!super->generateMipmaps)
-        glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, super->numLevels - 1);
+    if (!This->generateMipmaps)
+        glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, This->numLevels - 1);
 #endif
 
     if (target == GL_TEXTURE_CUBE_MAP) {
@@ -800,7 +799,7 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
         cbData.glTarget = target;
     }
 
-    if (!super->isCompressed) {
+    if (!This->isCompressed) {
 #if SUPPORT_LEGACY_FORMAT_CONVERSION
         // If sized legacy formats are supported there is no need to convert.
         // If only unsized formats are supported, there is no point in
@@ -814,16 +813,16 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
         // supported, must change internal format.
         if (sizedFormats == _NO_SIZED_FORMATS
             || (!(sizedFormats & _LEGACY_FORMATS) &&
-                (This->glBaseInternalformat == GL_ALPHA
-                || This->glBaseInternalformat == GL_LUMINANCE
-                || This->glBaseInternalformat == GL_LUMINANCE_ALPHA
-                || This->glBaseInternalformat == GL_INTENSITY))) {
-            cbData.glInternalformat = This->glBaseInternalformat;
+                (formatInfo->glBaseInternalformat == GL_ALPHA
+                || formatInfo->glBaseInternalformat == GL_LUMINANCE
+                || formatInfo->glBaseInternalformat == GL_LUMINANCE_ALPHA
+                || formatInfo->glBaseInternalformat == GL_INTENSITY))) {
+            cbData.glInternalformat = formatInfo->glBaseInternalformat;
         }
 #endif
     }
 
-    if (ktxTexture_isActiveStream(super))
+    if (ktxTexture_isActiveStream(ktxTexture(This)))
         result = ktxTexture_IterateLoadLevelFaces(This, iterCb, &cbData);
     else
         result = ktxTexture_IterateLevelFaces(This, iterCb, &cbData);
@@ -837,7 +836,7 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
     if (result == KTX_SUCCESS)
     {
         // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-        if (super->generateMipmaps && pfGlGenerateMipmap) {
+        if (This->generateMipmaps && pfGlGenerateMipmap) {
             pfGlGenerateMipmap(target);
         }
         *pTarget = target;
@@ -900,7 +899,6 @@ KTX_error_code
 ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
                      GLenum* pGlerror)
 {
-    DECLARE_SUPER(ktxTexture);
     GLint                 previousUnpackAlignment;
     KTX_error_code        result = KTX_SUCCESS;
     ktx_glformatinfo      formatInfo;
@@ -925,7 +923,7 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
     formatInfo.glType = This->glType;
     formatInfo.glFormat = This->glFormat;
 
-    result = ktxTexture_doGLUpload(super, &formatInfo, pTexture, pTarget, pGlerror);
+    result = ktxTexture_doGLUpload(ktxTexture(This), &formatInfo, pTexture, pTarget, pGlerror);
 
     /* restore previous GL state */
     if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
@@ -986,7 +984,6 @@ KTX_error_code
 ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
                      GLenum* pGlerror)
 {
-    DECLARE_SUPER(ktxTexture);
     GLint                 previousUnpackAlignment;
     KTX_error_code        result = KTX_SUCCESS;
     ktx_glformatinfo      formatInfo;
@@ -1022,7 +1019,8 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
-    result = ktxTexture_doGLUpload(super, &formatInfo, pTexture, pTarget, pGlerror);
+    result = ktxTexture_doGLUpload(ktxTexture(This), &formatInfo,
+                                   pTexture, pTarget, pGlerror);
 
     /* restore previous GL state */
     if (previousUnpackAlignment != 1) {

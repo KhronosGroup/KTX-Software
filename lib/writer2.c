@@ -41,7 +41,7 @@
 #include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
-#include "texture.h"
+#include "texture2.h"
 
 /**
  * @defgroup writer Writer
@@ -72,9 +72,9 @@
  *                              created.
  */
 KTX_error_code
-ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
-                              ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                              ktxStream* src, ktx_size_t srcSize)
+ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
+                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                               ktxStream* src, ktx_size_t srcSize)
 {
     ktx_uint32_t packedRowBytes, rowBytes, rowPadding, numRows;
     ktx_size_t packedBytes, unpackedBytes;
@@ -89,16 +89,16 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
     if (!This->pData)
         return KTX_INVALID_OPERATION;
 
-    ktxTexture_GetImageOffset(This, level, layer, faceSlice, &imageOffset);
+    ktxTexture_GetImageOffset(ktxTexture(This), level, layer, faceSlice, &imageOffset);
 
     if (This->isCompressed) {
-        packedBytes = ktxTexture_GetImageSize(This, level);
+        packedBytes = ktxTexture_GetImageSize(ktxTexture(This), level);
         rowPadding = 0;
         // These 2 are not used when rowPadding == 0. Quiets compiler warning.
         packedRowBytes = 0;
         rowBytes = 0;
     } else {
-        ktxTexture_rowInfo(This, level, &numRows, &rowBytes, &rowPadding);
+        ktxTexture_rowInfo(ktxTexture(This), level, &numRows, &rowBytes, &rowPadding);
         unpackedBytes = rowBytes * numRows;
         if (rowPadding) {
             packedRowBytes = rowBytes - rowPadding;
@@ -176,9 +176,9 @@ ktxTexture_setImageFromStream(ktxTexture* This, ktx_uint32_t level,
  *                              created.
  */
 KTX_error_code
-ktxTexture_SetImageFromStdioStream(ktxTexture* This, ktx_uint32_t level,
-                                   ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                                   FILE* src, ktx_size_t srcSize)
+ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
+                                    ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                                    FILE* src, ktx_size_t srcSize)
 {
     ktxStream srcstr;
     KTX_error_code result;
@@ -186,8 +186,8 @@ ktxTexture_SetImageFromStdioStream(ktxTexture* This, ktx_uint32_t level,
     result = ktxFileStream_construct(&srcstr, src, KTX_FALSE);
     if (result != KTX_SUCCESS)
         return result;
-    result = ktxTexture_setImageFromStream(This, level, layer, faceSlice,
-                                           &srcstr, srcSize);
+    result = ktxTexture2_setImageFromStream(This, level, layer, faceSlice,
+                                            &srcstr, srcSize);
     ktxFileStream_destruct(&srcstr);
     return result;
 }
@@ -224,9 +224,9 @@ ktxTexture_SetImageFromStdioStream(ktxTexture* This, ktx_uint32_t level,
  *                              created.
  */
 KTX_error_code
-ktxTexture_SetImageFromMemory(ktxTexture* This, ktx_uint32_t level,
-                              ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                              const ktx_uint8_t* src, ktx_size_t srcSize)
+ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
+                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                               const ktx_uint8_t* src, ktx_size_t srcSize)
 {
     ktxStream srcstr;
     KTX_error_code result;
@@ -234,8 +234,8 @@ ktxTexture_SetImageFromMemory(ktxTexture* This, ktx_uint32_t level,
     result = ktxMemStream_construct_ro(&srcstr, src, srcSize);
     if (result != KTX_SUCCESS)
         return result;
-    result = ktxTexture_setImageFromStream(This, level, layer, faceSlice,
-                                           &srcstr, srcSize);
+    result = ktxTexture2_setImageFromStream(This, level, layer, faceSlice,
+                                            &srcstr, srcSize);
     ktxMemStream_destruct(&srcstr);
     return result;
 }
@@ -263,11 +263,11 @@ ktxTexture_SetImageFromMemory(ktxTexture* This, ktx_uint32_t level,
  *                              An error occurred while writing the file.
  */
 static KTX_error_code
-ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
+ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 {
-    DECLARE_SUPER(ktxTexture);
-    KTX_header header = KTX_IDENTIFIER_REF;
+    //KTX_header header = KTX_IDENTIFIER_REF;
     KTX_error_code result = KTX_SUCCESS;
+#if 0
     ktx_uint8_t* pKvd;
     ktx_uint32_t level, levelOffset;
 
@@ -275,34 +275,28 @@ ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
         return KTX_INVALID_VALUE;
     }
 
-    if (super->pData == NULL)
+    if (This->pData == NULL)
         return KTX_INVALID_OPERATION;
 
-    if (super->kvDataHead && super->kvData)
+    if (This->kvDataHead && This->kvData)
         return KTX_INVALID_OPERATION;
 
     //endianess int.. if this comes out reversed, all of the other ints will too.
-    header.endianness = KTX_ENDIAN_REF;
-    header.glInternalformat = This->glInternalformat;
-    header.glFormat = This->glFormat;
-    header.glBaseInternalformat = This->glBaseInternalformat;
-    header.glType = This->glType;
-    header.glTypeSize = ktxTexture1_glTypeSize(This);
-    header.pixelWidth = super->baseWidth;
-    header.pixelHeight = super->baseHeight;
-    header.pixelDepth = super->baseDepth;
-    header.numberOfArrayElements = super->isArray ? super->numLayers : 0;
-    assert (super->isCubemap ? super->numFaces == 6 : super->numFaces == 1);
-    header.numberOfFaces = super->numFaces;
-    assert (super->generateMipmaps ? super->numLevels == 1 : super->numLevels >= 1);
-    header.numberOfMipLevels = super->generateMipmaps ? 0 : super->numLevels;
+    header.pixelWidth = This->baseWidth;
+    header.pixelHeight = This->baseHeight;
+    header.pixelDepth = This->baseDepth;
+    header.numberOfArrayElements = This->isArray ? This->numLayers : 0;
+    assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
+    header.numberOfFaces = This->numFaces;
+    assert (This->generateMipmaps ? This->numLevels == 1 : This->numLevels >= 1);
+    header.numberOfMipLevels = This->generateMipmaps ? 0 : This->numLevels;
 
-    if (super->kvDataHead != NULL) {
-        ktxHashList_Serialize(&super->kvDataHead,
+    if (This->kvDataHead != NULL) {
+        ktxHashList_Serialize(&This->kvDataHead,
                               &header.bytesOfKeyValueData, &pKvd);
-    } else if (super->kvData) {
-        pKvd = super->kvData;
-        header.bytesOfKeyValueData = super->kvDataLen;
+    } else if (This->kvData) {
+        pKvd = This->kvData;
+        header.bytesOfKeyValueData = This->kvDataLen;
     } else {
         header.bytesOfKeyValueData = 0;
     }
@@ -317,37 +311,37 @@ ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
         assert(pKvd != NULL);
 
         result = dststr->write(dststr, pKvd, 1, header.bytesOfKeyValueData);
-        if (super->kvDataHead != NULL)
+        if (This->kvDataHead != NULL)
             free(pKvd);
         if (result != KTX_SUCCESS)
             return result;
     }
 
     /* Write the image data */
-    for (level = 0, levelOffset=0; level < super->numLevels; ++level)
+    for (level = 0, levelOffset=0; level < This->numLevels; ++level)
     {
         ktx_uint32_t faceLodSize, layer, levelDepth, numImages;
         ktx_size_t imageSize;
 
-        faceLodSize = (ktx_uint32_t)ktxTexture_calcFaceLodSize(super,
+        faceLodSize = (ktx_uint32_t)ktxTexture_calcFaceLodSize(ktxTexture(This),
                                                     level,
                                                     KTX_FORMAT_VERSION_ONE);
-        imageSize = ktxTexture_GetImageSize(super, level);
-        levelDepth = MAX(1, super->baseDepth >> level);
-        if (super->isCubemap && !super->isArray)
-            numImages = super->numFaces;
+        imageSize = ktxTexture_GetImageSize(ktxTexture(This), level);
+        levelDepth = MAX(1, This->baseDepth >> level);
+        if (This->isCubemap && !This->isArray)
+            numImages = This->numFaces;
         else
-            numImages = super->isCubemap ? super->numFaces : levelDepth;
+            numImages = This->isCubemap ? This->numFaces : levelDepth;
 
         result = dststr->write(dststr, &faceLodSize, sizeof(faceLodSize), 1);
         if (result != KTX_SUCCESS)
             goto cleanup;
 
-        for (layer = 0; layer < super->numLayers; layer++) {
+        for (layer = 0; layer < This->numLayers; layer++) {
             ktx_uint32_t faceSlice;
 
             for (faceSlice = 0; faceSlice < numImages; faceSlice++) {
-                result = dststr->write(dststr, super->pData + levelOffset,
+                result = dststr->write(dststr, This->pData + levelOffset,
                                        imageSize, 1);
                 levelOffset += (ktx_uint32_t)imageSize;
             }
@@ -355,6 +349,7 @@ ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
     }
 
 cleanup:
+#endif
     return result;
 }
 
@@ -380,7 +375,7 @@ cleanup:
  *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
+ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
 {
     ktxStream stream;
     KTX_error_code result = KTX_SUCCESS;
@@ -392,7 +387,7 @@ ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
     if (result != KTX_SUCCESS)
         return result;
 
-    return ktxTexture1_writeToStream(This, &stream);
+    return ktxTexture2_writeToStream(This, &stream);
 }
 
 /**
@@ -417,7 +412,7 @@ ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
  *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
+ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
 {
     KTX_error_code result;
     FILE* dst;
@@ -427,7 +422,7 @@ ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
 
     dst = fopen(dstname, "wb");
     if (dst) {
-        result = ktxTexture1_WriteToStdioStream(This, dst);
+        result = ktxTexture2_WriteToStdioStream(This, dst);
         fclose(dst);
     } else
         result = KTX_FILE_OPEN_FAILED;
@@ -464,8 +459,8 @@ ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
  *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxTexture1_WriteToMemory(ktxTexture1* This,
-                         ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
+ktxTexture2_WriteToMemory(ktxTexture2* This,
+                          ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
     struct ktxStream dststr;
     KTX_error_code result;
@@ -480,7 +475,7 @@ ktxTexture1_WriteToMemory(ktxTexture1* This,
     if (result != KTX_SUCCESS)
         return result;
 
-    result = ktxTexture1_writeToStream(This, &dststr);
+    result = ktxTexture2_writeToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
         ktxMemStream_destruct(&dststr);
