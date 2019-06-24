@@ -29,6 +29,9 @@
  * @author Mark Callow, www.edgewise-consulting.com
  */
 
+#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
+#include "vk_funcs.h"   // Must be included before ktxvulkan.h.
+#endif
 #include "ktxvulkan.h"
 #include "texture.h"
 

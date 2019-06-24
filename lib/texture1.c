@@ -27,9 +27,13 @@
  * @author Mark Callow, www.edgewise-consulting.com
  */
 
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdlib.h>
 
-#include "dfd.h"
+#include "dfdutils/dfd.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "stream.h"
@@ -54,7 +58,15 @@ ktxTexture1_constructBase(ktxTexture1* This)
 
     This->classId = ktxTexture1_c;
     This->vtbl = &ktxTexture1_vtbl;
+#if !KTX_OMIT_VULKAN
     This->vvtbl = pKtxTexture1_vvtbl;
+#else
+    // FIXME: Figure out how to add some warning functions instead
+    // of just crashing if called. Issue is how to cast such a
+    // function to the necessary PFN type without needing
+    // Vulkan types.
+    This->vvtbl = NULL;
+#endif
     This->_private = (ktxTexture1_private*)malloc(sizeof(ktxTexture1_private));
     if (This->_private == NULL) {
         return KTX_OUT_OF_MEMORY;

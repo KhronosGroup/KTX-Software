@@ -30,6 +30,8 @@
 #ifndef _FORMATSIZE_H_
 #define _FORMATSIZE_H_
 
+#include "ktx.h"
+
 typedef enum ktxFormatSizeFlagBits {
     KTX_FORMAT_SIZE_PACKED_BIT                = 0x00000001,
     KTX_FORMAT_SIZE_COMPRESSED_BIT            = 0x00000002,
@@ -38,7 +40,7 @@ typedef enum ktxFormatSizeFlagBits {
     KTX_FORMAT_SIZE_STENCIL_BIT               = 0x00000010,
 } ktxFormatSizeFlagBits;
 
-typedef uint32_t ktxFormatSizeFlags;
+typedef ktx_uint32_t ktxFormatSizeFlags;
 
 typedef struct ktxFormatSize {
     ktxFormatSizeFlags  flags;

@@ -27,9 +27,13 @@
  * @author Mark Callow, www.edgewise-consulting.com
  */
 
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdlib.h>
 
-#include "dfd.h"
+#include "dfdutils/dfd.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "stream.h"
@@ -49,7 +53,11 @@ ktxTexture2_constructBase(ktxTexture2* This)
 
     This->classId = ktxTexture1_c;
     This->vtbl = &ktxTexture2_vtbl;
+#if !KTX_OMIT_VULKAN
     This->vvtbl = pKtxTexture2_vvtbl;
+#else
+    This->vvtbl = NULL;
+#endif
     return KTX_SUCCESS;
 }
 

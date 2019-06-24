@@ -35,7 +35,7 @@
 
 #include <ktx.h>
 
-#include "dfd.h"
+#include "dfdutils/dfd.h"
 #include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
@@ -82,7 +82,7 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
                 if (value[valueLen-1] == '\0')
                     fprintf(stdout, "%s\n", value);
                 else {
-                    for (int i=0; i < valueLen; i++) {
+                    for (ktx_uint32_t i=0; i < valueLen; i++) {
                         fputc(value[i], stdout);
                     }
                     fputc('\n', stdout);

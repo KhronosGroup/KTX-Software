@@ -121,6 +121,27 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
@@ -160,6 +181,9 @@
       <Filter>lib</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\lib\filestream.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\formatsize.h">
       <Filter>lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\lib\gl_format.h">
@@ -207,6 +231,24 @@
     <ClCompile Include="..\..\..\..\lib\texture.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\texture.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\lib\texture_funcs.inl">
+      <Filter>lib</Filter>
+    </None>
+    <ClCompile Include="..\..\..\..\lib\texture1.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\texture1.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\texture2.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\texture2.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\uthash.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -219,10 +261,10 @@
     <ClCompile Include="..\..\..\..\lib\vkformat_str.c">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\writer.c">
+    <ClCompile Include="..\..\..\..\lib\writer1.c">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\writer_v2.c">
+    <ClCompile Include="..\..\..\..\lib\writer2.c">
       <Filter>lib</Filter>
     </ClCompile>
     <None Include="..\..\..\..\libktx.gyp"/>

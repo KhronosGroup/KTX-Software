@@ -128,6 +128,9 @@
     <None Include="..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
+    <None Include="..\..\..\..\lib\texture_funcs.inl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
     <None Include="..\..\..\..\lib\vk_funclist.inl">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
@@ -140,6 +143,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\..\..\lib\filestream.h">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\formatsize.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\..\..\lib\gl_format.h">
@@ -167,6 +173,15 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\..\..\lib\stream.h">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\texture.h">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\texture1.h">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\texture2.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\..\..\lib\uthash.h">
@@ -231,16 +246,28 @@
     <ClCompile Include="..\..\..\..\lib\texture.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\texture1.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\texture2.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\vkformat_prohibited.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\vkformat_str.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\writer.c">
+    <ClCompile Include="..\..\..\..\lib\writer1.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\writer_v2.c">
+    <ClCompile Include="..\..\..\..\lib\writer2.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\texture1_vvtbl.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\texture2_vvtbl.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\vkloader.c">
@@ -257,7 +284,7 @@
       <Message>Generating libktx documentation with Doxygen</Message>
       <Outputs>..\..\..\..\build\docs\.libktx_gentimestamp</Outputs>
       <LinkObjects>false</LinkObjects>
-      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\lib\mainpage.md;..\..\..\..\LICENSE.md;..\..\..\..\TODO.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\dfdutils\createdfd.c;..\..\..\..\lib\dfdutils\dfd.h;..\..\..\..\lib\dfdutils\dfd4vkformat.c;..\..\..\..\lib\dfdutils\interpretdfd.c;..\..\..\..\lib\dfdutils\printdfd.c;..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\filestream.c;..\..\..\..\lib\filestream.h;..\..\..\..\lib\gl_format.h;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\glloader.c;..\..\..\..\lib\hashlist.c;..\..\..\..\lib\info.c;..\..\..\..\lib\ktxgl.h;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\memstream.c;..\..\..\..\lib\memstream.h;..\..\..\..\lib\stream.h;..\..\..\..\lib\swap.c;..\..\..\..\lib\texture.c;..\..\..\..\lib\uthash.h;..\..\..\..\lib\vkformat_enum.h;..\..\..\..\lib\vkformat_prohibited.c;..\..\..\..\lib\vkformat_str.c;..\..\..\..\lib\writer.c;..\..\..\..\lib\writer_v2.c;..\..\..\..\include\ktxvulkan.h;..\..\..\..\lib\vk_format.h;..\..\..\..\lib\vkloader.c;..\..\..\..\lib\vk_funclist.inl;..\..\..\..\lib\vk_funcs.c;..\..\..\..\lib\vk_funcs.h</AdditionalInputs>
+      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\lib\mainpage.md;..\..\..\..\LICENSE.md;..\..\..\..\TODO.md;..\..\..\..\include\ktx.h;..\..\..\..\lib\checkheader.c;..\..\..\..\lib\dfdutils\createdfd.c;..\..\..\..\lib\dfdutils\dfd.h;..\..\..\..\lib\dfdutils\dfd4vkformat.c;..\..\..\..\lib\dfdutils\interpretdfd.c;..\..\..\..\lib\dfdutils\printdfd.c;..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl;..\..\..\..\lib\errstr.c;..\..\..\..\lib\etcdec.cxx;..\..\..\..\lib\etcunpack.cxx;..\..\..\..\lib\filestream.c;..\..\..\..\lib\filestream.h;..\..\..\..\lib\formatsize.h;..\..\..\..\lib\gl_format.h;..\..\..\..\lib\gl_funcptrs.h;..\..\..\..\lib\gles1_funcptrs.h;..\..\..\..\lib\gles2_funcptrs.h;..\..\..\..\lib\gles3_funcptrs.h;..\..\..\..\lib\glloader.c;..\..\..\..\lib\hashlist.c;..\..\..\..\lib\info.c;..\..\..\..\lib\ktxgl.h;..\..\..\..\lib\ktxint.h;..\..\..\..\lib\memstream.c;..\..\..\..\lib\memstream.h;..\..\..\..\lib\stream.h;..\..\..\..\lib\swap.c;..\..\..\..\lib\texture.c;..\..\..\..\lib\texture.h;..\..\..\..\lib\texture_funcs.inl;..\..\..\..\lib\texture1.c;..\..\..\..\lib\texture1.h;..\..\..\..\lib\texture2.c;..\..\..\..\lib\texture2.h;..\..\..\..\lib\uthash.h;..\..\..\..\lib\vkformat_enum.h;..\..\..\..\lib\vkformat_prohibited.c;..\..\..\..\lib\vkformat_str.c;..\..\..\..\lib\writer1.c;..\..\..\..\lib\writer2.c;..\..\..\..\include\ktxvulkan.h;..\..\..\..\lib\texture1_vvtbl.c;..\..\..\..\lib\texture2_vvtbl.c;..\..\..\..\lib\vk_format.h;..\..\..\..\lib\vkloader.c;..\..\..\..\lib\vk_funclist.inl;..\..\..\..\lib\vk_funcs.c;..\..\..\..\lib\vk_funcs.h</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

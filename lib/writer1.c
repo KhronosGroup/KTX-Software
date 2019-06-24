@@ -46,7 +46,7 @@
 #include "memstream.h"
 #include "texture1.h"
 
-#include "dfd.h"
+#include "dfdutils/dfd.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
 

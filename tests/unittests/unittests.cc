@@ -111,8 +111,8 @@ typedef WriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits createFlagBits;
 //////////////////////////////
 
 #if defined(DEBUG)
-TEST_F(CheckHeaderTest, AssertsOnNullArguments) {
-    ASSERT_DEATH_IF_SUPPORTED(_ktxCheckHeader(0, 0), "Assert*");
+TEST_F(CheckHeader1Test, AssertsOnNullArguments) {
+    ASSERT_DEATH_IF_SUPPORTED(ktxCheckHeader1_(0, 0), "Assert*");
 }
 #endif
 

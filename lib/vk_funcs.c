@@ -62,8 +62,9 @@
 #include "vk_funcs.h"
 
 #if WINDOWS
-HMODULE ktxVulkanLibary;
-#define LoadLibrary LoadLibrary
+HMODULE ktxVulkanLibrary;
+#undef LoadLibrary  // winbase.h has a definition, probably to LoadLibraryA.
+#define LoadLibrary(name, flag) LoadLibraryA(name)
 #define LoadProcAddr GetProcAddress
 #elif MACOS || UNIX
 #define LoadLibrary dlopen

@@ -27,8 +27,12 @@
  * @author Mark Callow, www.edgewise-consulting.com
  */
 
-#ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
+#if defined(_WIN32)
+  #define _CRT_SECURE_NO_WARNINGS
+  #ifndef __cplusplus
+    #undef inline
+    #define inline __inline
+  #endif // __cplusplus
 #endif
 
 #include <assert.h>
@@ -44,18 +48,9 @@
 #include "texture2.h"
 #include "uthash.h"
 
-// FIXME. Decide whether to keep these.
-// These will cause compilation to fail if the struct size doesn't match the
-// size of the reserved space in a ktxTexture.
-//#define member_size(type, member) sizeof(((type *)0)->member)
-//typedef int FormatSize_SIZE_ASSERT [sizeof(ktxFormatSize) <= member_size(ktxTexture, _formatInfo)];
-//typedef int ktxStream_SIZE_ASSERT [sizeof(ktxStream) <= member_size(ktxTexture, _stream)];
-//#undef member_size
-
 ktx_size_t ktxTexture_GetSize(ktxTexture* This);
 
 static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
-
 
 /**
  * @memberof ktxTexture @private

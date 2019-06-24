@@ -40,11 +40,9 @@
       'texture.h',
       'texture_funcs.inl',
       'texture1.c',
-      'texture1_vvtbl.c',
       'texture1.h',
       'texture2.c',
       'texture2.h',
-      'texture2_vvtbl.c',
       'uthash.h',
       'vkformat_enum.h',
       'vkformat_prohibited.c',
@@ -55,6 +53,8 @@
     # Use _files to get the names relativized
     'vksource_files': [
       '../include/ktxvulkan.h',
+      'texture1_vvtbl.c',
+      'texture2_vvtbl.c',
       'vk_format.h',
       'vkloader.c',
       'vk_funclist.inl',
@@ -76,7 +76,7 @@
       'target_name': 'libktx.gl',
       'type': '<(library)',
       'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL=1' ],
+      'defines': [ 'KTX_OPENGL=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -92,6 +92,7 @@
           'dependencies': [ 'libgl', 'libvulkan.lazy' ],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
+              'defines!': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
               'direct_dependent_settings': {
                 'target_conditions': [
                   ['_type != "none" and _mac_bundle == 1', {
@@ -129,7 +130,6 @@
                 'INSTALL_PATH': '@rpath',
               }
             }, 'OS == "linux"', {
-              'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
               'dependencies!': [ 'libvulkan.lazy' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
@@ -149,7 +149,7 @@
       'target_name': 'libktx.es1',
       'type': 'static_library',
       'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL_ES1=1' ],
+      'defines': [ 'KTX_OPENGL_ES1=1', 'KTX_OMIT_VULKAN=1' ],
       'direct_dependent_settings': {
         'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -160,7 +160,7 @@
       'target_name': 'libktx.es3',
       'type': 'static_library',
       'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL_ES3=1' ],
+      'defines': [ 'KTX_OPENGL_ES3=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
       'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],

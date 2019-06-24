@@ -52,7 +52,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -65,7 +65,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -74,7 +74,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -87,7 +87,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,7 +95,7 @@
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -107,7 +107,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -116,7 +116,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -128,11 +128,12 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl"/>
+    <None Include="..\..\..\..\lib\texture_funcs.inl"/>
     <None Include="..\..\..\..\lib\vk_funclist.inl"/>
     <None Include="..\..\..\..\libktx.gyp"/>
   </ItemGroup>
@@ -140,6 +141,7 @@
     <ClInclude Include="..\..\..\..\include\ktx.h"/>
     <ClInclude Include="..\..\..\..\lib\dfdutils\dfd.h"/>
     <ClInclude Include="..\..\..\..\lib\filestream.h"/>
+    <ClInclude Include="..\..\..\..\lib\formatsize.h"/>
     <ClInclude Include="..\..\..\..\lib\gl_format.h"/>
     <ClInclude Include="..\..\..\..\lib\gl_funcptrs.h"/>
     <ClInclude Include="..\..\..\..\lib\gles1_funcptrs.h"/>
@@ -149,6 +151,9 @@
     <ClInclude Include="..\..\..\..\lib\ktxint.h"/>
     <ClInclude Include="..\..\..\..\lib\memstream.h"/>
     <ClInclude Include="..\..\..\..\lib\stream.h"/>
+    <ClInclude Include="..\..\..\..\lib\texture.h"/>
+    <ClInclude Include="..\..\..\..\lib\texture1.h"/>
+    <ClInclude Include="..\..\..\..\lib\texture2.h"/>
     <ClInclude Include="..\..\..\..\lib\uthash.h"/>
     <ClInclude Include="..\..\..\..\lib\vkformat_enum.h"/>
     <ClInclude Include="..\..\..\..\include\ktxvulkan.h"/>
@@ -171,10 +176,14 @@
     <ClCompile Include="..\..\..\..\lib\memstream.c"/>
     <ClCompile Include="..\..\..\..\lib\swap.c"/>
     <ClCompile Include="..\..\..\..\lib\texture.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture1.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture2.c"/>
     <ClCompile Include="..\..\..\..\lib\vkformat_prohibited.c"/>
     <ClCompile Include="..\..\..\..\lib\vkformat_str.c"/>
-    <ClCompile Include="..\..\..\..\lib\writer.c"/>
-    <ClCompile Include="..\..\..\..\lib\writer_v2.c"/>
+    <ClCompile Include="..\..\..\..\lib\writer1.c"/>
+    <ClCompile Include="..\..\..\..\lib\writer2.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture1_vvtbl.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture2_vvtbl.c"/>
     <ClCompile Include="..\..\..\..\lib\vkloader.c"/>
     <ClCompile Include="..\..\..\..\lib\vk_funcs.c"/>
   </ItemGroup>
