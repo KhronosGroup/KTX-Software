@@ -71,6 +71,8 @@ ktxTexture1_constructBase(ktxTexture1* This)
     if (This->_private == NULL) {
         return KTX_OUT_OF_MEMORY;
     }
+	memset(This->_private, 0, sizeof(*This->_private));
+
     return KTX_SUCCESS;
 }
 
@@ -83,6 +85,8 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
     GLuint typeSize;
     GLenum glFormat;
     KTX_error_code result;
+
+	memset(This, 0, sizeof(*This));
 
     This->glInternalformat = createInfo->glInternalformat;
     glGetFormatSize(This->glInternalformat, &formatSize);
@@ -208,7 +212,8 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
 
     assert(pHeader != NULL && pStream != NULL);
 
-    result = ktxTexture1_constructBase(This);
+	memset(This, 0, sizeof(*This));
+	result = ktxTexture1_constructBase(This);
     if (result != KTX_SUCCESS)
         return result;
     ktxTexture_constructFromStream(ktxTexture(This), pStream, createFlags);
@@ -424,8 +429,6 @@ ktxTexture1_constructFromStdioStream(ktxTexture1* This, FILE* stdioStream,
     if (stdioStream == NULL || This == NULL)
         return KTX_INVALID_VALUE;
 
-    memset(This, 0, sizeof(*This));
-
     result = ktxFileStream_construct(&stream, stdioStream, KTX_FALSE);
     if (result == KTX_SUCCESS)
         result = ktxTexture1_constructFromStream(This, &stream, createFlags);
@@ -461,8 +464,6 @@ ktxTexture1_constructFromNamedFile(ktxTexture1* This,
 
     if (This == NULL || filename == NULL)
         return KTX_INVALID_VALUE;
-
-    memset(This, 0, sizeof(*This));
 
     file = fopen(filename, "rb");
     if (!file)
@@ -503,8 +504,6 @@ ktxTexture1_constructFromMemory(ktxTexture1* This,
 
     if (bytes == NULL || size == 0)
         return KTX_INVALID_VALUE;
-
-    memset(This, 0, sizeof(*This));
 
     result = ktxMemStream_construct_ro(&stream, bytes, size);
     if (result == KTX_SUCCESS)
