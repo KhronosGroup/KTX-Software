@@ -154,6 +154,7 @@
 		528A5A9F7E28E612D6BF2A21 /* TextureMipmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E347F73F0E8FD330C3720F1 /* TextureMipmap.cpp */; };
 		529A7290EE070178332DD9D1 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		54B5FF2571E812BC41F9A5A6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F235DB21E8B49B19DAB24ECF /* Cocoa.framework */; };
+		55407845D881B85AA63D0ECE /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7DAC0A8FCF8DCEA95FB887 /* OpenGL.framework */; };
 		55511194D4AA9A72EA9896B7 /* orient-up-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 0C0C552E9898B6893411C2DE /* orient-up-metadata.ktx */; };
 		5A736914A114775681CDAE5E /* ktx_app.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2994B2F753E58AC382B48819 /* ktx_app.icns */; };
 		5DD8762C5BF438F272028E39 /* etc1.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 82D6C8D1FD6FE42F934D49E0 /* etc1.ktx */; };
@@ -521,6 +522,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = 998EA7B9AC7E5B6EB606DF64;
 			remoteInfo = libktx.es3;
+		};
+		E3DDE244D794BB25EFF36A05 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 2C49C1BC3266E196E5B13666;
+			remoteInfo = libgl;
 		};
 		F5D482A4921D8AF45D931373 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -939,6 +947,7 @@
 				17172E7AFE777DC5C755ED5E /* libgtest.a in Frameworks */,
 				8236D426DC4CBE12DEB8A225 /* libgtest_main.a in Frameworks */,
 				C01B3DDABE68AEF746188536 /* libktx.gl.dylib in Frameworks */,
+				55407845D881B85AA63D0ECE /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1639,6 +1648,7 @@
 				2BFE974BEE6098E11FBCEB78 /* PBXTargetDependency */,
 				29AABFF5F65078B237177DE4 /* PBXTargetDependency */,
 				DB7E38DD98053201116A4C3D /* PBXTargetDependency */,
+				F85BE5EACF81F0F96E528005 /* PBXTargetDependency */,
 			);
 			name = texturetests;
 			productName = texturetests;
@@ -2110,6 +2120,11 @@
 			isa = PBXTargetDependency;
 			target = 09BA8FB5F992B0DCA38C21BE /* testimages */;
 			targetProxy = 40367276502FE623C439FE02 /* PBXContainerItemProxy */;
+		};
+		F85BE5EACF81F0F96E528005 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libgl;
+			targetProxy = E3DDE244D794BB25EFF36A05 /* PBXContainerItemProxy */;
 		};
 		FDD4B7ACC509FA25CBFDC384 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2624,10 +2639,12 @@
 					other_include,
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = texturetests;
 				STRIP_INSTALLED_PRODUCT = YES;
+				USE_HEADERMAP = NO;
 			};
 			name = Release;
 		};
@@ -2754,10 +2771,12 @@
 					other_include,
 				);
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = texturetests;
 				STRIP_INSTALLED_PRODUCT = NO;
+				USE_HEADERMAP = NO;
 			};
 			name = Debug;
 		};

@@ -143,7 +143,6 @@
 		6B8571C4BF0242C6694E611B /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
 		6DB978D36AD6104599CA5A42 /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
 		6E86D89ADF50B7E7F8E10232 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		732BD59F6E134281B03C5513 /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
 		7AF7220FB71479B23A4E2917 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
 		7E44CB1BF77A1F8FD33C8CBB /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
 		7EA2F9EA806DFB591CC33F52 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
@@ -179,7 +178,6 @@
 		E06F66343A419E7EBA90EFD2 /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
 		E3AAE3C63CF10F84FF18B7DA /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
 		E4D5BFEFD7D0DC7DC215A4D6 /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */; };
-		E6D98D7669248497D191F917 /* texture2_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */; };
 		E7BF8609C55B990A5142B769 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
 		EB7BF2E77E781FF421D6DB3D /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
 		FC3169BD2FE8CDC51F583BC7 /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
@@ -784,11 +782,9 @@
 				lib/texture.h,
 				lib/texture_funcs.inl,
 				lib/texture1.c,
-				lib/texture1_vvtbl.c,
 				lib/texture1.h,
 				lib/texture2.c,
 				lib/texture2.h,
-				lib/texture2_vvtbl.c,
 				lib/uthash.h,
 				lib/vkformat_enum.h,
 				lib/vkformat_prohibited.c,
@@ -796,6 +792,8 @@
 				lib/writer1.c,
 				lib/writer2.c,
 				include/ktxvulkan.h,
+				lib/texture1_vvtbl.c,
+				lib/texture2_vvtbl.c,
 				lib/vk_format.h,
 				lib/vkloader.c,
 				lib/vk_funclist.inl,
@@ -834,13 +832,13 @@
 				EB7BF2E77E781FF421D6DB3D /* swap.c in Sources */,
 				208D1C8DDC32E6B6826F018B /* texture.c in Sources */,
 				CD3496DCCBB5758495089B7D /* texture1.c in Sources */,
-				7E44CB1BF77A1F8FD33C8CBB /* texture1_vvtbl.c in Sources */,
 				84E694AC842E7EB42F231654 /* texture2.c in Sources */,
-				D7F60E27E35E3F142F6062AE /* texture2_vvtbl.c in Sources */,
 				7EA2F9EA806DFB591CC33F52 /* vkformat_prohibited.c in Sources */,
 				C608216BADD98AF8AB7CB5F7 /* vkformat_str.c in Sources */,
 				BC1FDCD64CA5C5CA17547F7E /* writer1.c in Sources */,
 				6DB978D36AD6104599CA5A42 /* writer2.c in Sources */,
+				7E44CB1BF77A1F8FD33C8CBB /* texture1_vvtbl.c in Sources */,
+				D7F60E27E35E3F142F6062AE /* texture2_vvtbl.c in Sources */,
 				9F372738AC29E68A14093390 /* vkloader.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -865,9 +863,7 @@
 				5542BABBEC58573E5D1D7689 /* swap.c in Sources */,
 				588012609616A323EAAB8DBF /* texture.c in Sources */,
 				C7EDB71A9594F6FBE21BED31 /* texture1.c in Sources */,
-				732BD59F6E134281B03C5513 /* texture1_vvtbl.c in Sources */,
 				CACFCC3156863B42AB842029 /* texture2.c in Sources */,
-				E6D98D7669248497D191F917 /* texture2_vvtbl.c in Sources */,
 				0F8092C909213418482112B9 /* vkformat_prohibited.c in Sources */,
 				3F4876A15A501426488FDDCA /* vkformat_str.c in Sources */,
 				B9B2E82148FE857D6E13CCE2 /* writer1.c in Sources */,
@@ -895,13 +891,13 @@
 				6E86D89ADF50B7E7F8E10232 /* swap.c in Sources */,
 				2938318302E76D38F8FBED00 /* texture.c in Sources */,
 				FF4402BF1E2A78D7E6D67F90 /* texture1.c in Sources */,
-				64A3E4661D48C0ED9152FDF2 /* texture1_vvtbl.c in Sources */,
 				FC3169BD2FE8CDC51F583BC7 /* texture2.c in Sources */,
-				61A6E23119901AFBB2108901 /* texture2_vvtbl.c in Sources */,
 				DB74B66C2E7393346380F6FA /* vkformat_prohibited.c in Sources */,
 				CB66054437B2763ACE48D7C9 /* vkformat_str.c in Sources */,
 				E06F66343A419E7EBA90EFD2 /* writer1.c in Sources */,
 				166B8A8860F2169152E55BAD /* writer2.c in Sources */,
+				64A3E4661D48C0ED9152FDF2 /* texture1_vvtbl.c in Sources */,
+				61A6E23119901AFBB2108901 /* texture2_vvtbl.c in Sources */,
 				94386C8412715578F5B5D1B5 /* vkloader.c in Sources */,
 				E7BF8609C55B990A5142B769 /* vk_funcs.c in Sources */,
 			);
@@ -1254,6 +1250,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES1=1",
+					"KTX_OMIT_VULKAN=1",
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -1337,6 +1334,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -1459,6 +1457,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					DEBUG,
 					_DEBUG,
 				);
@@ -1563,6 +1562,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES1=1",
+					"KTX_OMIT_VULKAN=1",
 					DEBUG,
 					_DEBUG,
 				);

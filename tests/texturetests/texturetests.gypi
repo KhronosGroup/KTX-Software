@@ -61,9 +61,12 @@
           'SubSystem': '1',
         },
       },
-#        'xcode_settings': {
-#          'INFOPLIST_FILE': '<(infoplist_file)',
-#        },
+      'xcode_settings': {
+        # Via the headermap Xcode is finding .../vkloadtests/Texture.h instead
+        # of the intended lib/texture.h.
+        'USE_HEADERMAP': 'NO',
+#       'INFOPLIST_FILE': '<(infoplist_file)',
+      },
       'conditions': [
         ['emit_emscripten_configs=="true"', {
           'configurations': {

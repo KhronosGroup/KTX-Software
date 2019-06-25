@@ -73,7 +73,6 @@
 		0F43C69D8672A43829035DEF /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
 		12703E4FF7523467F86C1150 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
 		1533D1C99D92779F38C26DF1 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		15A12E9C6ED48AC4A4198719 /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
 		161CB0E516290FE7CB6A31B7 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
 		170F62D62A7575BD7E6EB86C /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
 		18C92FE1A86D0C9A687390E6 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
@@ -98,7 +97,6 @@
 		688A4F2D588B077F7B5309E5 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
 		68CB27FB6891B1B558AC0354 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
 		68F2DA1430141AC495F49C6B /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		68F743ECE5326A9054BF690C /* texture2_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */; };
 		6D38EBAD3347BE8F6A245780 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
 		6F324940CCA003286AE3C1C5 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
 		6F3B5848B7988FF23F8B9FFD /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
@@ -521,13 +519,13 @@
 				E1A627F22907A318CD7C26FA /* swap.c in Sources */,
 				90672FBACCDDACCF026EEF10 /* texture.c in Sources */,
 				8B6A466D5ECC2372BD8EC45D /* texture1.c in Sources */,
-				170F62D62A7575BD7E6EB86C /* texture1_vvtbl.c in Sources */,
 				57C83A00D7057076CD676B80 /* texture2.c in Sources */,
-				56EF0E2A1EDC8C1207F7302C /* texture2_vvtbl.c in Sources */,
 				8A74A31D16E46D1547CD7520 /* vkformat_prohibited.c in Sources */,
 				552F9BA01DC58EDC10F6C376 /* vkformat_str.c in Sources */,
 				79F6EB0ACFEB4A96C906FAE0 /* writer1.c in Sources */,
 				1FC2D2A8363A57BACB5D99F1 /* writer2.c in Sources */,
+				170F62D62A7575BD7E6EB86C /* texture1_vvtbl.c in Sources */,
+				56EF0E2A1EDC8C1207F7302C /* texture2_vvtbl.c in Sources */,
 				28E3321C3A34C5FA727643BC /* vkloader.c in Sources */,
 				B2D0EFC504F43174B8EE4CA6 /* vk_funcs.c in Sources */,
 			);
@@ -553,9 +551,7 @@
 				C13E96EA1B49DA0D6342DBC1 /* swap.c in Sources */,
 				F7A672BFD06CC0BF200F770B /* texture.c in Sources */,
 				5CC322C18CFF5165A7115DE3 /* texture1.c in Sources */,
-				15A12E9C6ED48AC4A4198719 /* texture1_vvtbl.c in Sources */,
 				B03BB728D31423D0EDF73EE3 /* texture2.c in Sources */,
-				68F743ECE5326A9054BF690C /* texture2_vvtbl.c in Sources */,
 				161CB0E516290FE7CB6A31B7 /* vkformat_prohibited.c in Sources */,
 				FFB7FD55CAEC2E9939EEC78E /* vkformat_str.c in Sources */,
 				87C618A4CF0A4DFFCF2CDE34 /* writer1.c in Sources */,
@@ -583,13 +579,13 @@
 				AF166B010AED9F7C1F7FE889 /* swap.c in Sources */,
 				12703E4FF7523467F86C1150 /* texture.c in Sources */,
 				EC56948F02F852C3771E05B8 /* texture1.c in Sources */,
-				7BC035FE739DEB1440C7A310 /* texture1_vvtbl.c in Sources */,
 				E0D3447BFBFFD4DC85FE822C /* texture2.c in Sources */,
-				22326E22D7EE29BAAFE7781B /* texture2_vvtbl.c in Sources */,
 				E19B62EE2D8B1E754A702C7F /* vkformat_prohibited.c in Sources */,
 				A6FD3EB5A93CCE1142043454 /* vkformat_str.c in Sources */,
 				FC2D6DD43EA65A43A34A9C44 /* writer1.c in Sources */,
 				FE6FEF19E4379A560B4497FD /* writer2.c in Sources */,
+				7BC035FE739DEB1440C7A310 /* texture1_vvtbl.c in Sources */,
+				22326E22D7EE29BAAFE7781B /* texture2_vvtbl.c in Sources */,
 				CD15DF5EF72FAA189EE5662F /* vkloader.c in Sources */,
 				90670FD0C0BE88760A8A7066 /* vk_funcs.c in Sources */,
 			);
@@ -665,6 +661,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -881,6 +878,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES1=1",
+					"KTX_OMIT_VULKAN=1",
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -942,6 +940,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -1009,6 +1008,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					DEBUG,
 					_DEBUG,
 				);
@@ -1039,6 +1039,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					DEBUG,
 					_DEBUG,
 				);
@@ -1068,6 +1069,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES1=1",
+					"KTX_OMIT_VULKAN=1",
 					DEBUG,
 					_DEBUG,
 				);
