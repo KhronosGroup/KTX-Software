@@ -179,6 +179,7 @@
 		51D7C14B2F5E310BCA5E6600 /* pattern_02_bc2.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 719014864F2C657873113F4A /* pattern_02_bc2.ktx */; };
 		51F60E68BA5FCCF73155F71B /* Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6AC5108FEA713B666D53851E /* Texture.cpp */; };
 		53A4DCFBEF931525D5C8370E /* libappfwSDL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DAB15DEF2EA4220ECCF380 /* libappfwSDL.a */; };
+		56092628E82A2FC70499FD91 /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 664C2F7DD42E6F2E259A709F /* MoltenVK.framework */; };
 		56A8B0ABC8E33A0C623C82E5 /* metalplate-amg-rgba8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C707F95193941B98DDEC867A /* metalplate-amg-rgba8.ktx */; };
 		581292DE6DBC35D198C397B8 /* ES1LoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 302E1A2843C10512C03DF10A /* ES1LoadTests.cpp */; };
 		5979132B2DAB2ABD861A136B /* conftestimage_SIGNED_R11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = DEB82770AA1E2FDA526105A7 /* conftestimage_SIGNED_R11_EAC.ktx */; };
@@ -286,6 +287,7 @@
 		D111AFEB2426EDBC96BF4C3C /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D95A567BDD85A819DCEF3462 /* rgba-reference.ktx */; };
 		D135E82465B09A16C3C172F9 /* VulkanLoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FF2B887314CE42EA371646D /* VulkanLoadTestSample.cpp */; };
 		D2B948F247E80DDAA39DFECA /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D8E679046C6DF857DC47217 /* libSDL2.a */; };
+		D685DCD40DD7604BFEAB1E36 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C49A77B05E3CA35A468F87A /* IOSurface.framework */; };
 		D6AC2C4111A6C52B4CF0122B /* TextureMipmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E347F73F0E8FD330C3720F1 /* TextureMipmap.cpp */; };
 		D8011BD7471B7B5C0DDC6AB8 /* LaunchImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 680BCC58F701C28FF0DD5F9A /* LaunchImages.xcassets */; };
 		DB674C8A79954B23CC94A1C7 /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
@@ -595,6 +597,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
+		};
+		E9D9481173583424E64B1031 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 53E28E0399F04986CCFA2113;
+			remoteInfo = libvulkan;
 		};
 		F2BE1D6C7AFD62808E0061FC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1019,6 +1028,8 @@
 				2A9D1B4DB997DDC093D9E801 /* AVFoundation.framework in Frameworks */,
 				B8C25DE88F69D4D8FADD6D8E /* Foundation.framework in Frameworks */,
 				B9E1308C84BDE30A8EEBBA14 /* GameController.framework in Frameworks */,
+				56092628E82A2FC70499FD91 /* MoltenVK.framework in Frameworks */,
+				D685DCD40DD7604BFEAB1E36 /* IOSurface.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1600,6 +1611,7 @@
 				EA6C018960598A7D6AB3D93B /* PBXTargetDependency */,
 				5AAE8A542C9D53D2E9EA8DD5 /* PBXTargetDependency */,
 				144496CBF855608A009EAF12 /* PBXTargetDependency */,
+				8EC126299062053DFE6F5EE8 /* PBXTargetDependency */,
 			);
 			name = es3loadtests;
 			productName = es3loadtests;
@@ -1960,6 +1972,11 @@
 			isa = PBXTargetDependency;
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
 			targetProxy = 89CA4075A92763DFD33C5A25 /* PBXContainerItemProxy */;
+		};
+		8EC126299062053DFE6F5EE8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libvulkan;
+			targetProxy = E9D9481173583424E64B1031 /* PBXContainerItemProxy */;
 		};
 		8F787EB143B653A4F308CB5C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2372,6 +2389,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2399,6 +2417,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
@@ -2595,6 +2614,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2621,6 +2641,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";

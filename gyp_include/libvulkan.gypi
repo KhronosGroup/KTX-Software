@@ -120,7 +120,7 @@
                 'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
               },
               'target_conditions': [
-                ['_mac_bundle == 1', {
+                ['_type == "executable" and _mac_bundle == 1', {
                   # Can't use mac_bundle_resources because that puts the files
                   # into $(UNLOCALIZED_RESOURCES_FOLDER_PATH).
                   'copies': [{

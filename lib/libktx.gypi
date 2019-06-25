@@ -133,7 +133,7 @@
               'dependencies!': [ 'libvulkan.lazy' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
-        }] # _type == "shared_library"
+        }], # _type == "shared_library"
       ], # conditions
       'xcode_settings': {
           # These are actually Xcode's defaults shown here for documentation.
@@ -161,7 +161,7 @@
       'type': 'static_library',
       'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL_ES3=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
-      'dependencies': [ 'vulkan_headers' ],
+      'dependencies': [ 'libvulkan' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -170,6 +170,11 @@
         '<@(vksource_files)',
       ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'conditions': [
+        ['OS == "ios"', {
+          'defines!': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
+        }], # OS == ios
+      ],
     }, # libktx.es3
   ], # targets
   'conditions': [

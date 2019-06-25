@@ -142,6 +142,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2129EE71142E982E738C4142 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 53E28E0399F04986CCFA2113;
+			remoteInfo = libvulkan;
+		};
 		33EFABA996F6775B7C2EF5F0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
@@ -197,13 +204,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 555F14739B20F130C104F38F;
 			remoteInfo = libktx.es1;
-		};
-		F9053FB0263CA7C836BFC685 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A53C7E625BBCBD48220BD07A;
-			remoteInfo = vulkan_headers;
 		};
 		F9721A6D539BE3627B0F1954 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -460,7 +460,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				30F433442FB009C551FCDC3D /* PBXTargetDependency */,
+				D7870F5EC249C11244EDAA36 /* PBXTargetDependency */,
 			);
 			name = libktx.es3;
 			productName = ktx.es3;
@@ -609,11 +609,6 @@
 			target = CA0BF733B14DB39E93B75C67 /* libktx.es3 */;
 			targetProxy = B14217010049444BF75CEBCB /* PBXContainerItemProxy */;
 		};
-		30F433442FB009C551FCDC3D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A53C7E625BBCBD48220BD07A /* vulkan_headers */;
-			targetProxy = F9053FB0263CA7C836BFC685 /* PBXContainerItemProxy */;
-		};
 		69B58AFC59608ED398A48CD8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 57E23513B7E3B1238C76EFD8 /* libvulkan.lazy */;
@@ -633,6 +628,11 @@
 			isa = PBXTargetDependency;
 			target = 2C49C1BC3266E196E5B13666 /* libgl */;
 			targetProxy = F9721A6D539BE3627B0F1954 /* PBXContainerItemProxy */;
+		};
+		D7870F5EC249C11244EDAA36 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 53E28E0399F04986CCFA2113 /* libvulkan */;
+			targetProxy = 2129EE71142E982E738C4142 /* PBXContainerItemProxy */;
 		};
 		E7A54A8613D879AF51E4D8F0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -940,7 +940,6 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
-					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -1039,7 +1038,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
-					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					DEBUG,
 					_DEBUG,
 				);
