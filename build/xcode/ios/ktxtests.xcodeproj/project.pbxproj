@@ -2152,6 +2152,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libassimp;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -2175,6 +2176,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -2238,6 +2240,7 @@
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 				WRAPPER_PREFIX = "";
 			};
 			name = Debug;
@@ -2259,6 +2262,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libsdl;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2320,6 +2324,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = testimages;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -2366,6 +2371,7 @@
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 				WRAPPER_PREFIX = "";
 			};
 			name = Release;
@@ -2387,6 +2393,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libassimp;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2431,6 +2438,7 @@
 				PRODUCT_NAME = es3loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 				WRAPPER_PREFIX = "";
 			};
 			name = Debug;
@@ -2452,6 +2460,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = testimages;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2490,6 +2499,7 @@
 				PRODUCT_NAME = es1loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 				WRAPPER_PREFIX = "";
 			};
 			name = Release;
@@ -2511,6 +2521,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2534,6 +2545,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libgles1;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -2554,6 +2566,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libgles1;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2595,6 +2608,7 @@
 				PRODUCT_NAME = es1loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 				WRAPPER_PREFIX = "";
 			};
 			name = Debug;
@@ -2653,6 +2667,7 @@
 				PRODUCT_NAME = es3loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 				WRAPPER_PREFIX = "";
 			};
 			name = Release;
@@ -2690,6 +2705,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = appfwSDL;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2713,6 +2729,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libsdl;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -2745,6 +2762,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = appfwSDL;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};

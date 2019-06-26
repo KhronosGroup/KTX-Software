@@ -162,6 +162,7 @@
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
           'TARGETED_DEVICE_FAMILY': '1,2',
+          'VALID_ARCHS': 'arm64 arm64e',
         }, 'OS == "mac"', {
           # Need 10.9 for GL 4.1 or ARB_ES2_compatibility, 10.11 for Metal
           # compatibility.
