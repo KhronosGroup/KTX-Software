@@ -346,7 +346,7 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
     if (mem->robytes)
         return KTX_INVALID_OPERATION; /* read-only */
 
-    new_size = mem->pos + (ktx_off_t)(size*count);
+    new_size = (ktx_size_t)(mem->pos + (size*count));
     //if (new_size < mem->used_size)
     if (new_size < mem->pos)
         return KTX_FILE_OVERFLOW;
