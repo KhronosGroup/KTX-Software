@@ -179,12 +179,21 @@ typedef struct KTX_supplemental_info
 
 /*
  * @internal
- * CheckHeader
+ * CheckHeader1
  *
  * Reads the KTX file header and performs some sanity checking on the values
  */
-KTX_error_code _ktxCheckHeader(KTX_header* pHeader,
-                               KTX_supplemental_info* pSuppInfo);
+KTX_error_code ktxCheckHeader1_(KTX_header* pHeader,
+                                KTX_supplemental_info* pSuppInfo);
+
+/*
+ * @internal
+ * CheckHeader2
+ *
+ * Reads the KTX 2 file header and performs some sanity checking on the values
+ */
+KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
+                                KTX_supplemental_info* pSuppInfo);
 
 /*
  * SwapEndian16: Swaps endianness in an array of 16-bit values
@@ -244,40 +253,6 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
  */
 #define _KTX_PAD_UNPACK_ALIGN_LEN(nbytes)  \
         _KTX_PADN_LEN(KTX_GL_UNPACK_ALIGNMENT, nbytes)
-
-/*
- ======================================
-     Internal ktxTexture functions
- ======================================
-*/
-
-typedef enum {
-    KTX_FORMAT_VERSION_ONE = 1,
-    KTX_FORMAT_VERSION_TWO = 2
-} ktxFormatVersionEnum;
-
-KTX_error_code
-ktxTexture_iterateLoadedImages(ktxTexture* This, PFNKTXITERCB iterCb,
-                               void* userdata);
-KTX_error_code
-ktxTexture_iterateSourceImages(ktxTexture* This, PFNKTXITERCB iterCb,
-                               void* userdata);
-
-ktx_size_t ktxTexture_calcDataSizeTexture(ktxTexture* This,
-                                          ktxFormatVersionEnum fv);
-ktx_size_t ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
-                                    ktxFormatVersionEnum fv);
-ktx_uint32_t ktxTexture_glTypeSize(ktxTexture* This);
-ktx_bool_t ktxTexture_isActiveStream(ktxTexture* This);
-ktx_size_t ktxTexture_calcLevelOffset(ktxTexture* This, ktx_uint32_t level,
-                                  ktxFormatVersionEnum fv);
-ktx_size_t ktxTexture_calcLevelSize(ktxTexture* This, ktx_uint32_t level,
-                                    ktxFormatVersionEnum fv);
-ktx_size_t ktxTexture_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
-                                      ktxFormatVersionEnum fv);
-void ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
-                        ktx_uint32_t* numRows, ktx_uint32_t* rowBytes,
-                        ktx_uint32_t* rowPadding);
 
 /*
  ======================================

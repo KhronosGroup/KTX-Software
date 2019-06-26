@@ -31,7 +31,6 @@ BEGIN {
     format_hdr = output_dir "vkformat_enum.h"
     format_strings = output_dir "vkformat_str.c"
     format_prohibited = output_dir "vkformat_prohibited.c"
-    print "output_dir: " output_dir
     if (ENVIRON["VULKAN_SDK"]) {
         vulkan_include_root = ENVIRON["VULKAN_SDK"];
     } else {
@@ -79,13 +78,17 @@ BEGIN {
   }
 }
 
-function write_header_file(guard, body, filename) {
-    print "#ifndef "guard > filename
-    print "#define "guard > filename
+function write_header_file(guard1, guard2, body, filename) {
+    if (guard2) {
+        print "#if !defined("guard1") && !defined("guard2")" > filename
+    } else {
+        print "#ifndef "guard1 > filename
+    }
+    print "#define "guard1 > filename
     print banner > filename
     print copyright > filename
     print body > filename
-    print "#endif /* "guard" */" > filename
+    print "#endif /* "guard1" */" > filename
 }
 
 function write_source_file(body, filename) {
@@ -96,7 +99,7 @@ function write_source_file(body, filename) {
 
 END {
     # vkformat_enum.h
-    write_header_file("_VKFORMAT_ENUM_H_", format_decl "\n" end_range, format_hdr);
+    write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_H_", format_decl "\n" end_range, format_hdr);
 
     # vkformat_prohibited.c
     prohibited = prohibited "        return true;\n"

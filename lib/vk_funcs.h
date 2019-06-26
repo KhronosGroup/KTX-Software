@@ -41,7 +41,9 @@
 
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 
-#if defined(_WIN32)
+#if WINDOWS
+#define WINDOWS_LEAN_AND_MEAN
+#include <windows.h>
 extern HMODULE ktxVulkanLibary;
 #else
 extern void* ktxVulkanLibrary;

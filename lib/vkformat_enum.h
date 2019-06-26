@@ -1,4 +1,4 @@
-#ifndef _VKFORMAT_ENUM_H_
+#if !defined(_VKFORMAT_ENUM_H_) && !defined(VULKAN_H_)
 #define _VKFORMAT_ENUM_H_
 
 /***************************** Do not edit.  *****************************
@@ -24,6 +24,7 @@
 #if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.
 typedef unsigned __int32 VkFlags;
 #else
+#include <inttypes.h>
 typedef uint32_t VkFlags;
 #endif
 

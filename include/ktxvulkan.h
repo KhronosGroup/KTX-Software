@@ -148,20 +148,33 @@ ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
 void
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
 
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXVKUPLOAD)(ktxTexture* This,
+                                   ktxVulkanDeviceInfo* vdi,
+                                   ktxVulkanTexture* vkTexture);
 
-KTX_error_code
-ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXVKUPLOADEX)(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
                       VkImageTiling tiling,
                       VkImageUsageFlags usageFlags,
                       VkImageLayout layout);
 
-KTX_error_code
-ktxTexture_VkUpload(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *vkTexture);
+#define ktxTexture_VkUploadEx(This, vdi, vkTexture, tiling, usageFlags, \
+                              layout) \
+            This->vvtbl->VkUploadEx(This, vdi, vkTexture, tiling, \
+                                     usageFlags, layout)
+
+#define ktxTexture_VkUpload(This, vdi, vkTexture) \
+                    This->vvtbl->VkUpload(This, vdi, vkTexture)
 
 VkFormat
 ktxTexture_GetVkFormat(ktxTexture* This);
+
+struct ktxTexture_vvtbl {
+    PFNKTEXVKUPLOADEX VkUploadEx;
+    PFNKTEXVKUPLOAD VkUpload;
+};
 
 #ifdef __cplusplus
 }

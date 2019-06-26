@@ -167,6 +167,8 @@ typedef enum KTX_error_code_t {
  */
 typedef struct ktxKVListEntry* ktxHashList;
 
+#define KTXAPIENTRY
+#define KTXAPIENTRYP KTXAPIENTRY *
 /**
  * @class ktxHashListEntry
  * @~English
@@ -174,62 +176,439 @@ typedef struct ktxKVListEntry* ktxHashList;
  */
 typedef struct ktxKVListEntry ktxHashListEntry;
 
+typedef enum ktxOrientationX {
+    KTX_ORIENT_X_LEFT = 0, KTX_ORIENT_X_RIGHT = 1
+} ktxOrientationX;
+
+typedef enum ktxOrientationY {
+    KTX_ORIENT_Y_UP = 0, KTX_ORIENT_Y_DOWN = 1
+} ktxOrientationY;
+
+typedef enum ktxOrientationZ {
+    KTX_ORIENT_Z_IN = 1, KTX_ORIENT_Z_OUT = 2
+} ktxOrientationZ;
+
+typedef enum class_id {
+    ktxTexture1_c = 1,
+    ktxTexture2_c = 2
+} class_id;
+
+#define KTXTEXTURECLASSDEFN                   \
+    class_id classId;                         \
+    struct ktxTexture_vtbl* vtbl;             \
+    struct ktxTexture_vvtbl* vvtbl;           \
+    struct ktxTexture_protected* _protected;  \
+    ktx_bool_t   isArray;                     \
+    ktx_bool_t   isCubemap;                   \
+    ktx_bool_t   isCompressed;                \
+    ktx_bool_t   generateMipmaps;             \
+    ktx_uint32_t baseWidth;                   \
+    ktx_uint32_t baseHeight;                  \
+    ktx_uint32_t baseDepth;                   \
+    ktx_uint32_t numDimensions;               \
+    ktx_uint32_t numLevels;                   \
+    ktx_uint32_t numLayers;                   \
+    ktx_uint32_t numFaces;                    \
+    struct {                                  \
+        ktxOrientationX x;                    \
+        ktxOrientationY y;                    \
+        ktxOrientationZ z;                    \
+    } orientation;                            \
+    ktxHashList  kvDataHead;                  \
+    ktx_uint32_t kvDataLen;                   \
+    ktx_uint8_t* kvData;                      \
+    ktx_size_t dataSize;                      \
+    ktx_uint8_t* pData;
+
+
 /**
  * @class ktxTexture
  * @~English
- * @brief Class representing a texture.
+ * @brief Base class representing a texture.
  *
- * ktxTextures should be created only by one of the ktxTexture_Create*
+ * ktxTextures should be created only by one of the provided
  * functions and these fields should be considered read-only.
  */
-typedef struct {
-    ktx_uint32_t glFormat; /*!< Format of the texture data, e.g., GL_RGB. */
-    ktx_uint32_t glInternalformat; /*!< Internal format of the texture data,
-                                        e.g., GL_RGB8. */
-    ktx_uint32_t glBaseInternalformat; /*!< Base format of the texture data,
-                                            e.g., GL_RGB. */
-    ktx_uint32_t glType; /*!< Type of the texture data, e.g, GL_UNSIGNED_BYTE.*/
-      ktx_bool_t isArray; /*!< KTX_TRUE if the texture is an array texture, i.e,
-                               a GL_TEXTURE_*_ARRAY target is to be used. */
-      ktx_bool_t isCubemap; /*!< KTX_TRUE if the texture is a cubemap or
-                                 cubemap array. */
-      ktx_bool_t isCompressed; /*!< KTX_TRUE if @c glInternalFormat is that of
-                                    a compressed texture. */
-      ktx_bool_t generateMipmaps; /*!< KTX_TRUE if mipmaps should be generated
-                                       for the texture by ktxTexture_GLUpload()
-                                       or ktx_Texture_VkUpload(). */
-    ktx_uint32_t baseWidth;  /*!< Width of the base level of the texture. */
-    ktx_uint32_t baseHeight; /*!< Height of the base level of the texture. */
-    ktx_uint32_t baseDepth;  /*!< Depth of the base level of the texture. */
-    ktx_uint32_t numDimensions; /*!< Number of dimensions in the texture: 1, 2
-                                     or 3. */
-    ktx_uint32_t numLevels; /*!< Number of mip levels in the texture. Should be
-                                 1, if @c generateMipmaps is KTX_TRUE. Can be
-                                 less than a full pyramid but always starts at
-                                 the base level. */
-    ktx_uint32_t numLayers; /*!< Number of array layers in the texture. */
-    ktx_uint32_t numFaces; /*!< Number of faces, 6 for cube maps, 1 otherwise.*/
-    ktxHashList  kvDataHead; /*!< Head of the hash list of metadata. */
-    ktx_uint32_t kvDataLen; /*!< Length of the metadata, if it has been
-                                 extracted in its raw form, otherwise 0. */
-    ktx_uint8_t* kvData; /*!< Pointer to the metadata, if it has been extracted
-                              in its raw form, otherwise NULL. */
-      ktx_size_t dataSize; /*!< Length of the image data in bytes. */
-    ktx_uint8_t* pData; /*!< Pointer to the image data. */
+typedef struct ktxTexture {
+    KTXTEXTURECLASSDEFN
 } ktxTexture;
-
+/**
+ * @typedef ktxTexture::classId
+ * @~English
+ * @brief Identify the class type.
+ *
+ * Since there are no public ktxTexture constructors, this can only have
+ * values of ktxTexture1_c or ktxTexture2_c.
+ */
+/**
+ * @typedef ktxTexture::vtbl
+ * @~English
+ * @brief Pointer to the class's vtble.
+ */
+/**
+ * @typedef ktxTexture::vvtbl
+ * @~English
+ * @brief Pointer to the class's vtble for Vulkan functions.
+ *
+ * A separate vtble is used so this header does not need to include vulkan.h.
+ */
+/**
+ * @typedef ktxTexture::_protected
+ * @~English
+ * @brief Opaque pointer to the class's protected variables.
+ */
+/**
+ * @typedef ktxTexture::isArray
+ * @~English
+ *
+ * KTX_TRUE if the texture is an array texture, i.e,
+ * a GL_TEXTURE_*_ARRAY target is to be used.
+ */
+/**
+ * @typedef ktxTexture::isCubemap
+ * @~English
+ *
+ * KTX_TRUE if the texture is a cubemap or cubemap array.
+ */
+/**
+ * @typedef ktxTexture::isCubemap
+ * @~English
+ *
+ * KTX_TRUE if the texture's format is a block compressed format.
+ */
+/**
+ * @typedef ktxTexture::generateMipmaps
+ * @~English
+ *
+ * KTX_TRUE if mipmaps should be generated for the texture by
+ * ktxTexture_GLUpload() or ktxTexture_VkUpload().
+ */
+/**
+ * @typedef ktxTexture::baseWidth
+ * @~English
+ * @brief Width of the texture's base level.
+ */
+/**
+ * @typedef ktxTexture::baseHeight
+ * @~English
+ * @brief Height of the texture's base level.
+ */
+/**
+ * @typedef ktxTexture::baseDepth
+ * @~English
+ * @brief Depth of the texture's base level.
+ */
+/**
+ * @typedef ktxTexture::numDimensions
+ * @~English
+ * @brief Number of dimensions in the texture: 1, 2 or 3.
+ */
+/**
+ * @typedef ktxTexture::numLevels
+ * @~English
+ * @brief Number of mip levels in the texture.
+ *
+ * Must be 1, if @c generateMipmaps is KTX_TRUE. Can be less than a
+ * full pyramid but always starts at the base level.
+ */
+/**
+ * @typedef ktxTexture::numLevels
+ * @~English
+ * @brief Number of array layers in the texture.
+ */
+/**
+ * @typedef ktxTexture::numFaces
+ * @~English
+ * @brief Number of faces: 6 for cube maps, 1 otherwise.
+ */
+/**
+ * @typedef ktxTexture::orientation
+ * @~English
+ * @brief Describes the logical orientation of the images in each dimension.
+ *
+ * ktxOrientationX for X, ktxOrientationY for Y and ktxOrientationZ for Z.
+ */
+/**
+ * @typedef ktxTexture::kvDataHead
+ * @~English
+ * @brief Head of the hash list of metadata.
+ */
+/**
+ * @typedef ktxTexture::kvDataLen
+ * @~English
+ * @brief Length of the metadata, if it has been extracted in its raw form,
+ *       otherwise 0.
+ */
+/**
+ * @typedef ktxTexture::kvData
+ * @~English
+ * @brief Pointer to the metadata, if it has been extracted in its raw form,
+ *       otherwise NULL.
+ */
+/**
+ * @typedef ktxTexture::dataSize
+ * @~English
+ * @brief Byte length of the texture's uncompressed image data.
+ */
+/**
+ * @typedef ktxTexture::pData
+ * @~English
+ * @brief Pointer to the start of the image data.
+ */
 
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Structure for passing texture information to ktxTexture_Create().
+ * @brief Signature of function called by the <tt>ktxTexture_Iterate*</tt>
+ *        functions to receive image data.
+ *
+ * The function parameters are used to pass values which change for each image.
+ * Obtain values which are uniform across all images from the @c ktxTexture
+ * object.
+ *
+ * @param [in] miplevel        MIP level from 0 to the max level which is
+ *                             dependent on the texture size.
+ * @param [in] face            usually 0; for cube maps, one of the 6 cube
+ *                             faces in the order +X, -X, +Y, -Y, +Z, -Z,
+ *                             0 to 5.
+ * @param [in] width           width of the image.
+ * @param [in] height          height of the image or, for 1D textures
+ *                             textures, 1.
+ * @param [in] depth           depth of the image or, for 1D & 2D
+ *                             textures, 1.
+ * @param [in] faceLodSize     number of bytes of data pointed at by
+ *                             @p pixels.
+ * @param [in] pixels          pointer to the image data.
+ * @param [in,out] userdata    pointer for the application to pass data to and
+ *                             from the callback function.
+ */
+/* Don't use KTXAPIENTRYP to avoid a Doxygen bug. */
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTXITERCB)(int miplevel, int face,
+                                int width, int height, int depth,
+                                ktx_uint32_t faceLodSize,
+                                void* pixels, void* userdata);
+
+typedef void (KTXAPIENTRY* PFNKTEXDESTROY)(ktxTexture* This);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXGETIMAGEOFFSET)(ktxTexture* This, ktx_uint32_t level,
+                                         ktx_uint32_t layer,
+                                         ktx_uint32_t faceSlice,
+                                         ktx_size_t* pOffset);
+typedef ktx_size_t
+(KTXAPIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXGLUPLOAD)(ktxTexture* This,
+                                   GLuint* pTexture, GLenum* pTarget,
+                                   GLenum* pGlerror);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXITERATELEVELFACES)(ktxTexture* This,
+                                            PFNKTXITERCB iterCb,
+                                            void* userdata);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXITERATELOADLEVELFACES)(ktxTexture* This,
+                                                PFNKTXITERCB iterCb,
+                                                void* userdata);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXLOADIMAGEDATA)(ktxTexture* This,
+                                        ktx_uint8_t* pBuffer,
+                                        ktx_size_t bufSize);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXSETIMAGEFROMMEMORY)(ktxTexture* This,
+                                             ktx_uint32_t level,
+                                             ktx_uint32_t layer,
+                                             ktx_uint32_t faceSlice,
+                                             const ktx_uint8_t* src,
+                                             ktx_size_t srcSize);
+
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXSETIMAGEFROMSTDIOSTREAM)(ktxTexture* This,
+                                                  ktx_uint32_t level,
+                                                  ktx_uint32_t layer,
+                                                  ktx_uint32_t faceSlice,
+                                                  FILE* src, ktx_size_t srcSize);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXWRITETOSTDIOSTREAM)(ktxTexture* This, FILE* dstsstr);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXWRITETONAMEDFILE)(ktxTexture* This,
+                                           const char* const dstname);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXWRITETOMEMORY)(ktxTexture* This,
+                                        ktx_uint8_t** bytes, ktx_size_t* size);
+
+/**
+ * @class ktxTexture
+ * @~English
+ * @brief Table of virtual ktxTexture's functions.
+ */
+ struct ktxTexture_vtbl {
+    PFNKTEXDESTROY Destroy;
+    PFNKTEXGETIMAGEOFFSET GetImageOffset;
+    PFNKTEXGETIMAGESIZE GetImageSize;
+    PFNKTEXGLUPLOAD GLUpload;
+    PFNKTEXITERATELEVELFACES IterateLevelFaces;
+    PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
+    PFNKTEXLOADIMAGEDATA LoadImageData;
+    PFNKTEXSETIMAGEFROMMEMORY SetImageFromMemory;
+    PFNKTEXSETIMAGEFROMSTDIOSTREAM SetImageFromStdioStream;
+    PFNKTEXWRITETOSTDIOSTREAM WriteToStdioStream;
+    PFNKTEXWRITETONAMEDFILE WriteToNamedFile;
+    PFNKTEXWRITETOMEMORY WriteToMemory;
+};
+
+/****************************************************************
+ * Macros to give some backward compatibility to the previous API
+ ****************************************************************/
+
+#define ktxTexture_Destroy(obj) obj->vtbl->Destroy(obj)
+
+/*
+ * Returns the offset of the image for the specified mip level, array layer
+ * and face or depth slice within the image data of a ktxTexture object.
+ */
+#define ktxTexture_GetImageOffset(obj, a, b, c, d) \
+                            obj->vtbl->GetImageOffset(obj, a, b, c, d)
+
+#define ktxTexture_GetImageSize(obj, a) obj->vtbl->GetImageSize(obj, a)
+
+/*
+ * Uploads the image data from a ktxTexture object to an OpenGL {,ES} texture
+ * object.
+ */
+#define ktxTexture_GLUpload(obj, a, b, c) obj->vtbl->GLUpload(obj, a, b, c)
+
+/*
+ * Iterates over the already loaded level-faces in a ktxTexture object.
+ * iterCb is called for each level-face.
+ */
+ #define ktxTexture_IterateLevelFaces(obj, a, b) \
+                            obj->vtbl->IterateLevelFaces(obj, a, b)
+
+/*
+ * Iterates over the level-faces of a ktxTexture object, loading each from
+ * the KTX-formatted source then calling iterCb.
+ */
+ #define ktxTexture_IterateLoadLevelFaces(obj, a, b) \
+                    obj->vtbl->IterateLoadLevelFaces(obj, a, b)
+
+/*
+ * Loads the image data into a ktxTexture object from the KTX-formatted source.
+ * Used when the image data was not loaded during ktxTexture_CreateFrom*.
+ */
+#define ktxTexture_LoadImageData(This, pBuffer, bufSize) \
+                    This->vtbl->LoadImageData(This, pBuffer, bufSize)
+
+/*
+ * Sets the image for the specified level, layer & faceSlice within a
+ * ktxTexture object from packed image data in memory. The destination image
+ * data is padded to the KTX specified row alignment of 4, if necessary.
+ */
+#define ktxTexture_SetImageFromMemory(This, level, layer, faceSlice, \
+                                      src, srcSize)                  \
+    This->vtbl->SetImageFromMemory(This, level, layer, faceSlice, src, srcSize)
+
+/*
+ * Sets the image for the specified level, layer & faceSlice within a
+ * ktxTexture object from a stdio stream reading from a KTX source. The
+ * destination image data is padded to the KTX specified row alignment of 4,
+ * if necessary.
+ */
+#define ktxTexture_SetImageFromStdioStream(This, level, layer, faceSlice, \
+                                           src, srcSize)                  \
+    This->vtbl->SetImageFromStdioStream(This, level, layer, faceSlice,    \
+                                        src, srcSize)
+
+/*
+ * Write a ktxTexture object to a stdio stream in KTX format.
+ */
+#define ktxTexture_WriteToStdioStream(This, dstsstr) \
+                                This->vtbl->WriteToStdioStream(This, dstsstr)
+
+/*
+ * Write a ktxTexture object to a named file in KTX format.
+ */
+#define ktxTexture_WriteToNamedFile(This, dstname) \
+                                This->vtbl->WriteToNamedfile(This, dstname)
+
+/*
+ * Write a ktxTexture object to a block of memory in KTX format.
+ */
+#define ktxTexture_WriteToMemory(This, bytes, size) \
+                                This->vtbl->WritetoMemory(This, bytes, size)
+
+
+/*===========================================================*
+ * KTX format version 2                                      *
+ *===========================================================*/
+
+/**
+ * @class ktxTexture1
+ * @~English
+ * @brief Class representing a KTX version 1 format texture.
+ *
+ * ktxTextures should be created only by one of the ktxTexture_Create*
+ * functions and these fields should be considered read-only.
+ */
+typedef struct ktxTexture1 {
+    KTXTEXTURECLASSDEFN
+    ktx_uint32_t glFormat; /*!< Format of the texture data, e.g., GL_RGB. */
+    ktx_uint32_t glInternalformat; /*!< Internal format of the texture data,
+                                       e.g., GL_RGB8. */
+    ktx_uint32_t glBaseInternalformat; /*!< Base format of the texture data,
+                                           e.g., GL_RGB. */
+    ktx_uint32_t glType; /*!< Type of the texture data, e.g, GL_UNSIGNED_BYTE.*/
+    struct ktxTexture1_private* _private;
+} ktxTexture1;
+
+/**
+ * @~English
+ * @brief Enum identifying supercompression scheme.
+ */
+
+typedef enum ktxSupercmpScheme {
+    KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
+    KTX_SUPERCOMPRESSION_BASIS = 1,  /*!< Basis Universal supercompression. */
+    KTX_SUPERCOMPRESSION_LZMA = 2,  /*!< LZMA supercompression. */
+    KTX_SUPERCOMPRESSION_ZLIB = 2,  /*!< Zlib supercompression. */
+    KTX_SUPERCOMPRESSION_ZSTD = 3,  /*!< ZStd supercompression. */
+    KTX_SUPERCOMPRESSION_BEGIN_RANGE = KTX_SUPERCOMPRESSION_NONE,
+    KTX_SUPERCOMPRESSION_END_RANGE = KTX_SUPERCOMPRESSION_ZSTD
+} ktxSupercmpScheme;
+
+/**
+ * @class ktxTexture2
+ * @~English
+ * @brief Class representing a KTX version 2 format texture.
+ *
+ * ktxTextures should be created only by one of the ktxTexture_Create*
+ * functions and these fields should be considered read-only.
+ */
+typedef struct ktxTexture2 {
+    KTXTEXTURECLASSDEFN
+    ktx_uint32_t  vkFormat;
+    ktx_uint32_t* pDfd;
+    ktxSupercmpScheme supercompressionScheme;
+} ktxTexture2;
+
+#define ktxTexture(t) ((ktxTexture*)t)
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Structure for passing texture information to ktxTexture[12]_Create().
  *
  * @sa ktxTexture_Create()
  */
 typedef struct
 {
     ktx_uint32_t glInternalformat; /*!< Internal format for the texture, e.g.,
-                                        GL_RGB8. */
+                                        GL_RGB8. Ignored when creating a
+                                        ktxTexture2. */
+    ktx_uint32_t vkFormat;   /*!< VkFormat for texture. Ignored when creating a
+                                  ktxTexture1. */
+    ktx_uint32_t* pDfd;      /*!< Pointer to DFD. Used only when creating a
+                                  ktxTexture2 and only if vkFormat is
+                                  VK_FORMAT_UNDEFINED. */
     ktx_uint32_t baseWidth;  /*!< Width of the base level of the texture. */
     ktx_uint32_t baseHeight; /*!< Height of the base level of the texture. */
     ktx_uint32_t baseDepth;  /*!< Depth of the base level of the texture. */
@@ -244,7 +623,7 @@ typedef struct
                                 GL_TEXTURE_*_ARRAY target. */
     ktx_bool_t   generateMipmaps; /*!< Set to KTX_TRUE if mipmaps should be
                                        generated for the texture when loading
-                                       into OpenGL. */
+                                       into a 3D API. */
 } ktxTextureCreateInfo;
 
 /**
@@ -286,98 +665,35 @@ enum ktxTextureCreateFlagBits {
  */
 typedef ktx_uint32_t ktxTextureCreateFlags;
 
-#define KTXAPIENTRY
-#define KTXAPIENTRYP KTXAPIENTRY *
-/**
- * @memberof ktxTexture
- * @~English
- * @brief Signature of function called by the <tt>ktxTexture_Iterate*</tt>
- *        functions to receive image data.
- *
- * The function parameters are used to pass values which change for each image.
- * Obtain values which are uniform across all images from the @c ktxTexture
- * object.
- *
- * @param [in] miplevel        MIP level from 0 to the max level which is
- *                             dependent on the texture size.
- * @param [in] face            usually 0; for cube maps, one of the 6 cube
- *                             faces in the order +X, -X, +Y, -Y, +Z, -Z,
- *                             0 to 5.
- * @param [in] width           width of the image.
- * @param [in] height          height of the image or, for 1D textures
- *                             textures, 1.
- * @param [in] depth           depth of the image or, for 1D & 2D
- *                             textures, 1.
- * @param [in] faceLodSize     number of bytes of data pointed at by
- *                             @p pixels.
- * @param [in] pixels          pointer to the image data.
- * @param [in,out] userdata    pointer for the application to pass data to and
- *                             from the callback function.
- */
-/* Don't use KTXAPIENTRYP to avoid a Doxygen bug. */
-typedef KTX_error_code (KTXAPIENTRY* PFNKTXITERCB)(int miplevel, int face,
-                                               int width, int height, int depth,
-                                               ktx_uint32_t faceLodSize,
-                                               void* pixels,
-                                               void* userdata);
-
 /*
  * See the implementation files for the full documentation of the following
  * functions.
  */
 
 /*
- * Creates an empty ktxTexture object with the characteristics described
- * by createInfo.
- */
-KTX_error_code
-ktxTexture_Create(ktxTextureCreateInfo* createInfo,
-                  ktxTextureCreateStorageEnum storageAllocation,
-                  ktxTexture** newTex);
-
-/*
- * Creates a ktxTexture from a stdio stream reading from a KTX source.
+ * These three create a ktxTexture1 or ktxTexture2 according to the header in
+ * the data, and return a pointer to the base ktxTexture class.
  */
 KTX_error_code
 ktxTexture_CreateFromStdioStream(FILE* stdioStream,
                                  ktxTextureCreateFlags createFlags,
                                  ktxTexture** newTex);
 
-/*
- * Creates a ktxTexture from a named file containing KTX data.
- */
 KTX_error_code
 ktxTexture_CreateFromNamedFile(const char* const filename,
                                ktxTextureCreateFlags createFlags,
                                ktxTexture** newTex);
 
-/*
- * Creates a ktxTexture from a block of memory containing KTX-formatted data.
- */
 KTX_error_code
 ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture** newTex);
-/*
- * Destroys a ktxTexture object.
- */
-void
-ktxTexture_Destroy(ktxTexture* This);
 
 /*
  * Returns a pointer to the image data of a ktxTexture object.
  */
 ktx_uint8_t*
 ktxTexture_GetData(ktxTexture* This);
-
-/*
- * Returns the offset of the image for the specified mip level, array layer
- * and face or depth slice within the image data of a ktxTexture object.
- */
-KTX_error_code
-ktxTexture_GetImageOffset(ktxTexture* This, ktx_uint32_t level,
-                          ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                          ktx_size_t* pOffset);
 
 /*
  * Returns the pitch of a row of an image at the specified level.
@@ -399,44 +715,6 @@ ktx_size_t
 ktxTexture_GetSize(ktxTexture* This);
 
 /*
- * Returns the size of an image at the specified level.
- */
- ktx_size_t
- ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level);
-
-/*
- * Uploads the image data from a ktxTexture object to an OpenGL {,ES} texture
- * object.
- */
-KTX_error_code
-ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
-                    GLenum* pGlerror);
-
-/*
- * Loads the image data into a ktxTexture object from the KTX-formatted source.
- * Used when the image data was not loaded during ktxTexture_CreateFrom*.
- */
-KTX_error_code
-ktxTexture_LoadImageData(ktxTexture* This,
-                         ktx_uint8_t* pBuffer,
-                         ktx_size_t bufSize);
-
-/*
- * Iterates over the already loaded level-faces in a ktxTexture object.
- * iterCb is called for each level-face.
- */
-KTX_error_code
-ktxTexture_IterateLevelFaces(ktxTexture* super, PFNKTXITERCB iterCb,
-                             void* userdata);
-
-/*
- * Iterates over the level-faces of a ktxTexture object, loading each from
- * the KTX-formatted source then calling iterCb.
- */
-KTX_error_code
-ktxTexture_IterateLoadLevelFaces(ktxTexture* super, PFNKTXITERCB iterCb,
-                                 void* userdata);
-/*
  * Iterates over the already loaded levels in a ktxTexture object.
  * iterCb is called for each level. The data passed to iterCb
  * includes all faces for each level.
@@ -446,62 +724,78 @@ ktxTexture_IterateLevels(ktxTexture* This, PFNKTXITERCB iterCb,
                          void* userdata);
 
 /*
- * Sets the image for the specified level, layer & faceSlice within a
- * ktxTexture object from packed image data in memory. The destination image
- * data is padded to the KTX specified row alignment of 4, if necessary.
+ * Create a new ktxTexture1.
  */
 KTX_error_code
-ktxTexture_SetImageFromMemory(ktxTexture* This,ktx_uint32_t level,
-                              ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                              const ktx_uint8_t* src, ktx_size_t srcSize);
+ktxTexture1_Create(ktxTextureCreateInfo* createInfo,
+                   ktxTextureCreateStorageEnum storageAllocation,
+                   ktxTexture1** newTex);
 
 /*
- * Sets the image for the specified level, layer & faceSlice within a
- * ktxTexture object from a stdio stream reading from a KTX source. The
- * destination image data is padded to the KTX specified row alignment of 4,
- * if necessary.
+ * These three create a ktxTexture1 provided the data is in KTX format.
  */
 KTX_error_code
-ktxTexture_SetImageFromStdioStream(ktxTexture* This, ktx_uint32_t level,
-                                   ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                                   FILE* src, ktx_size_t srcSize);
+ktxTexture1_CreateFromStdioStream(FILE* stdioStream,
+                                 ktxTextureCreateFlags createFlags,
+                                 ktxTexture1** newTex);
+
+KTX_error_code
+ktxTexture1_CreateFromNamedFile(const char* const filename,
+                               ktxTextureCreateFlags createFlags,
+                               ktxTexture1** newTex);
+
+KTX_error_code
+ktxTexture1_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
+                            ktxTextureCreateFlags createFlags,
+                            ktxTexture1** newTex);
+
+void ktxTexture1_Destroy(ktxTexture1* This);
+
+/*
+ * Create a new ktxTexture2.
+ */
+KTX_error_code
+ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
+                   ktxTextureCreateStorageEnum storageAllocation,
+                   ktxTexture2** newTex);
+
+/*
+ * These three create a ktxTexture2 provided the data is in KTX2 format.
+ */
+KTX_error_code
+ktxTexture2_CreateFromStdioStream(FILE* stdioStream,
+                                 ktxTextureCreateFlags createFlags,
+                                 ktxTexture2** newTex);
+
+KTX_error_code
+ktxTexture2_CreateFromNamedFile(const char* const filename,
+                               ktxTextureCreateFlags createFlags,
+                               ktxTexture2** newTex);
+
+KTX_error_code
+ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
+                            ktxTextureCreateFlags createFlags,
+                            ktxTexture2** newTex);
+
+void ktxTexture2_Destroy(ktxTexture2* This);
 
 /*
  * Write a ktxTexture object to a stdio stream in KTX format.
  */
 KTX_error_code
-ktxTexture_WriteToStdioStream(ktxTexture* This, FILE* dstsstr);
+ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr);
 
 /*
  * Write a ktxTexture object to a named file in KTX format.
  */
 KTX_error_code
-ktxTexture_WriteToNamedFile(ktxTexture* This, const char* const dstname);
+ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname);
 
 /*
  * Write a ktxTexture object to a block of memory in KTX format.
  */
 KTX_error_code
-ktxTexture_WriteToMemory(ktxTexture* This,
-                         ktx_uint8_t** bytes, ktx_size_t* size);
-
-/*
- * Write a ktxTexture object to a stdio stream in KTX format.
- */
-KTX_error_code
-ktxTexture_WriteKTX2ToStdioStream(ktxTexture* This, FILE* dstsstr);
-
-/*
- * Write a ktxTexture object to a named file in KTX format.
- */
-KTX_error_code
-ktxTexture_WriteKTX2ToNamedFile(ktxTexture* This, const char* const dstname);
-
-/*
- * Write a ktxTexture object to a block of memory in KTX format.
- */
-KTX_error_code
-ktxTexture_WriteKTX2ToMemory(ktxTexture* This,
+ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
                              ktx_uint8_t** bytes, ktx_size_t* size);
 
 /*
@@ -593,24 +887,6 @@ ktxHashListEntry_GetKey(ktxHashListEntry* This,
 KTX_error_code
 ktxHashListEntry_GetValue(ktxHashListEntry* This,
                           unsigned int* pValueLen, void** ppValue);
-
-/*===========================================================*
- * For KTX format version 2                                  *
- *===========================================================*/
-
-/**
- * @~English
- * @brief Enum identifying supercompression scheme.
- */
-
-typedef enum {
-    KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
-    KTX_SUPERCOMPRESSION_CRNC = 1,  /*!< Crunch supercompression. */
-    KTX_SUPERCOMPRESSION_ZLIB = 2,  /*!< Zlib supercompression. */
-    KTX_SUPERCOMPRESSION_ZSTD = 3,  /*!< ZStd supercompression. */
-    KTX_SUPERCOMPRESSION_BEGIN_RANGE = KTX_SUPERCOMPRESSION_NONE,
-    KTX_SUPERCOMPRESSION_END_RANGE = KTX_SUPERCOMPRESSION_ZSTD
-} ktxSupercompressionSchemeEnum;
 
 /*===========================================================*
  * Utilities for printing ingo about a KTX file.             *

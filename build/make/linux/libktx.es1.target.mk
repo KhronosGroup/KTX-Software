@@ -4,6 +4,7 @@ TOOLSET := target
 TARGET := libktx.es1
 DEFS_Debug := \
 	'-DKTX_OPENGL_ES1=1' \
+	'-DKTX_OMIT_VULKAN=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -26,6 +27,7 @@ INCS_Debug := \
 
 DEFS_Release := \
 	'-DKTX_OPENGL_ES1=1' \
+	'-DKTX_OMIT_VULKAN=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
@@ -60,10 +62,12 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/memstream.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/texture.o \
+	$(obj).target/$(TARGET)/lib/texture1.o \
+	$(obj).target/$(TARGET)/lib/texture2.o \
 	$(obj).target/$(TARGET)/lib/vkformat_prohibited.o \
 	$(obj).target/$(TARGET)/lib/vkformat_str.o \
-	$(obj).target/$(TARGET)/lib/writer.o \
-	$(obj).target/$(TARGET)/lib/writer_v2.o
+	$(obj).target/$(TARGET)/lib/writer1.o \
+	$(obj).target/$(TARGET)/lib/writer2.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

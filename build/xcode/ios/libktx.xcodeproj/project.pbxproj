@@ -68,67 +68,77 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		034514E4D8386356BDF192EC /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		05792DD7847C928D7E6EED2B /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		08BA5707241668DFD07B167C /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		09D591555E1919431E6ED8F4 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		09F202B2C025828F5BFB1439 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		0F639C332B330C67EC7523A7 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		120E2C5B75D156FAA4D8B623 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		19B961474F4524A228CFEE56 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		24B3A9BB1BF77A2594AD091B /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
-		29F2978B8E5DDB2257ABA649 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		2B918D7A85D8CF8BA216BF38 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
-		2DD9A901D9F67957BCA200D1 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
-		380A6A59C3FF33AEAFB673E5 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		385719EA04791756E0A24661 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		3EBD981C8746E620F8E1BB72 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		3FA12E8F12A5039BF8C0AB39 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		45101943DEFA74361F730C7C /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		476DA0DEB54E2D327F1D6D79 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		5112AE131F564F011ABCDE98 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		514D15807E7ADAC4D9698625 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
-		517E47C6750D096295BA0DEC /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
-		5203E5093D11EAEBF5344E41 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
-		5216855D7DAA177192D296D7 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		5909A5FFB898E0E4B7EF4EB0 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		5CBAD739AA526216CA535769 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		600187DF69E9B6A30BBAFD9B /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
-		6154C17FEFCB667CC82FD31D /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		6C0507AF31B870B5C9A3F50E /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		6E69E7BDA5DBF7E4011AF8E6 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
-		722474305EE306E6F08765D8 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
-		7B1AD500D7A5255994707A6F /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
-		84480D7B8D64646477BD1F22 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
-		862474C19C7CDC34D4AA7E84 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		87B8F0E54FE62CCCE018270D /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
-		8C6336CCE9FF459F45FF20A0 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		8D65DFC7D63413A32861FFB7 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		8F5F4AA06D0EDFE834103647 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		91DA17416067B3983DB50FC2 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
-		9465B5D03F15C7FD4951F8B8 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
-		9F75A42D96AC627F662003C1 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		AD59533EE0F4C4BE80708228 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
-		B1B61BCC2CEA95EEFCD4FC8F /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		C4F9F8F96918F0FCA9221213 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
-		C7785FE3784C7CEA575084CB /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		CB8481CF3C18DD8B73B7C367 /* writer.c in Sources */ = {isa = PBXBuildFile; fileRef = B6AB21816B1A0B0575E4A525 /* writer.c */; };
-		D72BF1CFBD83FF77C6A02F99 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
-		D98A3BD94AB4236EDEC34E26 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
-		D9C8AB6CD4316D36EE1D18D7 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		DAD5208BA5FAB9868BF5AA7E /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		DE72A478958353638CE4207D /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		DFD7A67CFECC2E956AAA0224 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
-		E026955790BC21F3F81F1EA2 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		E5430B47C4F75295A48D3684 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		E55729E63FCBEAF4560F948E /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
-		EAC74D667E6A0DCCEE5BC3A3 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
-		EE9A767BC2C72703F49E28D5 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		F74B0D4D6F83A74BA82180FE /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		F81248DC950B1F320F441B3D /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		F828A1BF21368FB55D586264 /* writer_v2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */; };
-		FAB3A2AB18F6C75AFBD16997 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		FBD594E774EB9C2319CEBE7C /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		025C6C047DFD130AEA82FBB0 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		0D74EE13AF2DF203004E6ACF /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
+		0F43C69D8672A43829035DEF /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
+		12703E4FF7523467F86C1150 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		1533D1C99D92779F38C26DF1 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		161CB0E516290FE7CB6A31B7 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
+		170F62D62A7575BD7E6EB86C /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
+		18C92FE1A86D0C9A687390E6 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		1FC2D2A8363A57BACB5D99F1 /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
+		20553F887354001863A03393 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
+		22326E22D7EE29BAAFE7781B /* texture2_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */; };
+		235721615FED8575C0E84A9B /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		28E3321C3A34C5FA727643BC /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
+		28FECF58B4FA10186A3A65AE /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		2CC85CB23F40F73F1BCF6886 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		3C56A77EF3A550E1C027B3EE /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		3C961B69CE7E975D46D3EB2F /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		40E956722BD98B7FB2237C62 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		4CD4DDF9A80183DE0BAA267E /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		4DAC3CFD3C1873C502E64104 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		4FE559FDAB578369FA5AD6A3 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		552F9BA01DC58EDC10F6C376 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
+		56EF0E2A1EDC8C1207F7302C /* texture2_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */; };
+		57C83A00D7057076CD676B80 /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
+		5CC322C18CFF5165A7115DE3 /* texture1.c in Sources */ = {isa = PBXBuildFile; fileRef = 01854AF4C95CF0C47CCCAE9D /* texture1.c */; };
+		63AC75B0CDBE6E589CF9E0E1 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		688A4F2D588B077F7B5309E5 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
+		68CB27FB6891B1B558AC0354 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		68F2DA1430141AC495F49C6B /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		6D38EBAD3347BE8F6A245780 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		6F324940CCA003286AE3C1C5 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		6F3B5848B7988FF23F8B9FFD /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		734838B050E48AAEED9961E6 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		771EEEE4778E5E214465E395 /* errstr.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FC251435360C63D168913 /* errstr.c */; };
+		79F6EB0ACFEB4A96C906FAE0 /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
+		7A0ACBDD4845B46AE74A8D1A /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		7A1208F5B0DB6A312E8DE133 /* dfd4vkformat.c in Sources */ = {isa = PBXBuildFile; fileRef = 9475B2D9EC9B828A2C784E9F /* dfd4vkformat.c */; };
+		7BC035FE739DEB1440C7A310 /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
+		8707B40161032370C885ED87 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		87C618A4CF0A4DFFCF2CDE34 /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
+		8A5E032BC9E0AE71866803B6 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		8A74A31D16E46D1547CD7520 /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
+		8AC4F23AEBD313F9388B6D61 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
+		8B6A466D5ECC2372BD8EC45D /* texture1.c in Sources */ = {isa = PBXBuildFile; fileRef = 01854AF4C95CF0C47CCCAE9D /* texture1.c */; };
+		90670FD0C0BE88760A8A7066 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
+		90672FBACCDDACCF026EEF10 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		A23178A24E6A879E27D1D0B8 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
+		A3101E9B9AD7E7BF9E2FF3BB /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		A5EE9D845B0CC635761CEA26 /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
+		A6FD3EB5A93CCE1142043454 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
+		AA9966AE3290B2391C868135 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		AF166B010AED9F7C1F7FE889 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		B03BB728D31423D0EDF73EE3 /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
+		B2D0EFC504F43174B8EE4CA6 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
+		B3FEE461468CC318C0B3F343 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		C13E96EA1B49DA0D6342DBC1 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		C540EEC2C14ED514145C749F /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		CD15DF5EF72FAA189EE5662F /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
+		D5EE350F663FCCED63B25569 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		DD03400C332924B8B0CD6B44 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		E0D3447BFBFFD4DC85FE822C /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
+		E19B62EE2D8B1E754A702C7F /* vkformat_prohibited.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */; };
+		E1A627F22907A318CD7C26FA /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		E66B3BDD59B8514023D0DC21 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		EC56948F02F852C3771E05B8 /* texture1.c in Sources */ = {isa = PBXBuildFile; fileRef = 01854AF4C95CF0C47CCCAE9D /* texture1.c */; };
+		F205DFBDC44EC184962F6277 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		F7A672BFD06CC0BF200F770B /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		FC2D6DD43EA65A43A34A9C44 /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
+		FE6FEF19E4379A560B4497FD /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
+		FF755B2571020FE2E281955B /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		FFB7FD55CAEC2E9939EEC78E /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -205,15 +215,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		01854AF4C95CF0C47CCCAE9D /* texture1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture1.c; sourceTree = "<group>"; };
 		04DBA4650A63E0877B604E27 /* memstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = memstream.h; sourceTree = "<group>"; };
 		0CC8195A95CBBC8C1CB04BCA /* gles2_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles2_funcptrs.h; sourceTree = "<group>"; };
 		0DF732D4865EBE87E6C2B6E5 /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
 		0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vk_funcs.c; sourceTree = "<group>"; };
+		16B0C1878B8F564985B1BADE /* texture2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture2.h; sourceTree = "<group>"; };
 		1817BE4DA01615A916D90724 /* vk_format.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vk_format.h; sourceTree = "<group>"; };
 		2350DA83DD64046C22556426 /* vkdfdswitchbody.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = vkdfdswitchbody.inl; sourceTree = "<group>"; };
 		294D72CF2DE93CC967F22442 /* libktx.gl.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.gl.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C4E8C270B5BECA345ACBF85 /* ktxint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxint.h; sourceTree = "<group>"; };
-		3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer_v2.c; sourceTree = "<group>"; };
+		354CF91415443924B64F07B3 /* texture2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture2.c; sourceTree = "<group>"; };
 		3ABE606CF569F264728DBFDE /* interpretdfd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = interpretdfd.c; sourceTree = "<group>"; };
 		41AC4CE9B5DACEC15D433221 /* gl_format.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_format.h; sourceTree = "<group>"; };
 		44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcdec.cxx; sourceTree = "<group>"; };
@@ -223,10 +235,13 @@
 		5C8BD124834875302BD54E96 /* vkformat_str.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_str.c; sourceTree = "<group>"; };
 		5F80151F983F77C60709E872 /* memstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = memstream.c; sourceTree = "<group>"; };
 		6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_prohibited.c; sourceTree = "<group>"; };
+		70C1BA265C39C7FE7E5DE10B /* texture_funcs.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = texture_funcs.inl; sourceTree = "<group>"; };
 		78750DEB71973541DB221CBA /* libktx.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libktx.gyp; sourceTree = "<group>"; };
+		7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture2_vvtbl.c; sourceTree = "<group>"; };
 		7ABEC8601DA2251BB3038768 /* libktx.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libktx.gypi; path = lib/libktx.gypi; sourceTree = "<group>"; };
 		7DFB01C2A0C66136843F9C90 /* libktx.es1.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es1.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		82527C2532AA96299FE18243 /* printdfd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = printdfd.c; sourceTree = "<group>"; };
+		858B449CA44BF51A35DE8D6C /* formatsize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = formatsize.h; sourceTree = "<group>"; };
 		85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_funcptrs.h; sourceTree = "<group>"; };
 		8AB3EA425110875438DBA37A /* filestream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = filestream.c; sourceTree = "<group>"; };
 		8D421DB86018062B6870C747 /* glloader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = glloader.c; sourceTree = "<group>"; };
@@ -238,9 +253,9 @@
 		998EA7B9AC7E5B6EB606DF64 /* libktx.es3.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libktx.es3.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E18A3FB89097EF93836206A /* vk_funcs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vk_funcs.h; sourceTree = "<group>"; };
 		B173E34FD52E42EBF0F24CF0 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
+		B2BB7F984182A7A7045D8510 /* writer2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer2.c; sourceTree = "<group>"; };
 		B3460286FF6F87E0123D2A29 /* vkformat_enum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vkformat_enum.h; sourceTree = "<group>"; };
 		B3D3DABA276B3DA38DD7428E /* stream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stream.h; sourceTree = "<group>"; };
-		B6AB21816B1A0B0575E4A525 /* writer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer.c; sourceTree = "<group>"; };
 		B8FA9F98FB334CDFED643BD8 /* vk_funclist.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = vk_funclist.inl; sourceTree = "<group>"; };
 		BE607367214BBF5824644530 /* default.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = default.gypi; path = gyp_include/default.gypi; sourceTree = "<group>"; };
 		BF55BDE7D19528ABC33846FE /* dfd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dfd.h; sourceTree = "<group>"; };
@@ -248,12 +263,16 @@
 		D085D834087565F1CD69EFD7 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		D4E93BE5260F9F886F788BE7 /* filestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filestream.h; sourceTree = "<group>"; };
 		D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxvulkan.h; sourceTree = "<group>"; };
+		D74889DC3E74AA049E37215D /* texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
+		D8E7D1476AD33F35FE7FC88F /* writer1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer1.c; sourceTree = "<group>"; };
 		D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = etcunpack.cxx; sourceTree = "<group>"; };
 		E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles1_funcptrs.h; sourceTree = "<group>"; };
 		E4C296305A71370E67B0FDD7 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		EA56A229EAAD6E67632ECF67 /* gles3_funcptrs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gles3_funcptrs.h; sourceTree = "<group>"; };
 		EC2F140ED1C840A390FE4436 /* checkheader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = checkheader.c; sourceTree = "<group>"; };
+		EFC201FA27B93EF88E0AB152 /* texture1.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture1.h; sourceTree = "<group>"; };
 		F1855B606AA3818BD9BE7DC0 /* createdfd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = createdfd.c; sourceTree = "<group>"; };
+		F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture1_vvtbl.c; sourceTree = "<group>"; };
 		FC5A736041E56A19740046E1 /* hashlist.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hashlist.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -286,7 +305,7 @@
 			isa = PBXGroup;
 			children = (
 				57D232CAE30EDA78BEBF64CF /* include */,
-				DFCB63DB428A66D0A3636136 /* lib */,
+				C0AA0D50BB49070CAE2CD1AD /* lib */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -346,7 +365,7 @@
 			path = include;
 			sourceTree = "<group>";
 		};
-		DFCB63DB428A66D0A3636136 /* lib */ = {
+		C0AA0D50BB49070CAE2CD1AD /* lib */ = {
 			isa = PBXGroup;
 			children = (
 				2ABF73720F261EC0DE5835C7 /* dfdutils */,
@@ -356,6 +375,7 @@
 				D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */,
 				8AB3EA425110875438DBA37A /* filestream.c */,
 				D4E93BE5260F9F886F788BE7 /* filestream.h */,
+				858B449CA44BF51A35DE8D6C /* formatsize.h */,
 				41AC4CE9B5DACEC15D433221 /* gl_format.h */,
 				85DED3F3B8EA442E101BFD1B /* gl_funcptrs.h */,
 				E2C2DC970AB7466F57B2405E /* gles1_funcptrs.h */,
@@ -371,6 +391,14 @@
 				B3D3DABA276B3DA38DD7428E /* stream.h */,
 				B173E34FD52E42EBF0F24CF0 /* swap.c */,
 				92794EBE6DABF950FC03CFE8 /* texture.c */,
+				D74889DC3E74AA049E37215D /* texture.h */,
+				01854AF4C95CF0C47CCCAE9D /* texture1.c */,
+				EFC201FA27B93EF88E0AB152 /* texture1.h */,
+				F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */,
+				354CF91415443924B64F07B3 /* texture2.c */,
+				16B0C1878B8F564985B1BADE /* texture2.h */,
+				7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */,
+				70C1BA265C39C7FE7E5DE10B /* texture_funcs.inl */,
 				474075FAD32D60D3E886E1E4 /* uthash.h */,
 				1817BE4DA01615A916D90724 /* vk_format.h */,
 				B8FA9F98FB334CDFED643BD8 /* vk_funclist.inl */,
@@ -380,8 +408,8 @@
 				6BEAB75EEEB78EDE34F1C55B /* vkformat_prohibited.c */,
 				5C8BD124834875302BD54E96 /* vkformat_str.c */,
 				53941C3F4EB820F20A47DA0E /* vkloader.c */,
-				B6AB21816B1A0B0575E4A525 /* writer.c */,
-				3A3ACE29ED99B1D77ED72A94 /* writer_v2.c */,
+				D8E7D1476AD33F35FE7FC88F /* writer1.c */,
+				B2BB7F984182A7A7045D8510 /* writer2.c */,
 			);
 			path = lib;
 			sourceTree = "<group>";
@@ -475,27 +503,31 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				514D15807E7ADAC4D9698625 /* checkheader.c in Sources */,
-				D98A3BD94AB4236EDEC34E26 /* createdfd.c in Sources */,
-				9465B5D03F15C7FD4951F8B8 /* dfd4vkformat.c in Sources */,
-				8D65DFC7D63413A32861FFB7 /* interpretdfd.c in Sources */,
-				2DD9A901D9F67957BCA200D1 /* printdfd.c in Sources */,
-				B1B61BCC2CEA95EEFCD4FC8F /* errstr.c in Sources */,
-				8C6336CCE9FF459F45FF20A0 /* etcdec.cxx in Sources */,
-				FAB3A2AB18F6C75AFBD16997 /* etcunpack.cxx in Sources */,
-				6154C17FEFCB667CC82FD31D /* filestream.c in Sources */,
-				F74B0D4D6F83A74BA82180FE /* glloader.c in Sources */,
-				9F75A42D96AC627F662003C1 /* hashlist.c in Sources */,
-				84480D7B8D64646477BD1F22 /* info.c in Sources */,
-				09F202B2C025828F5BFB1439 /* memstream.c in Sources */,
-				0F639C332B330C67EC7523A7 /* swap.c in Sources */,
-				385719EA04791756E0A24661 /* texture.c in Sources */,
-				E55729E63FCBEAF4560F948E /* vkformat_prohibited.c in Sources */,
-				19B961474F4524A228CFEE56 /* vkformat_str.c in Sources */,
-				476DA0DEB54E2D327F1D6D79 /* writer.c in Sources */,
-				EAC74D667E6A0DCCEE5BC3A3 /* writer_v2.c in Sources */,
-				380A6A59C3FF33AEAFB673E5 /* vkloader.c in Sources */,
-				87B8F0E54FE62CCCE018270D /* vk_funcs.c in Sources */,
+				E66B3BDD59B8514023D0DC21 /* checkheader.c in Sources */,
+				8707B40161032370C885ED87 /* createdfd.c in Sources */,
+				20553F887354001863A03393 /* dfd4vkformat.c in Sources */,
+				0F43C69D8672A43829035DEF /* interpretdfd.c in Sources */,
+				7A0ACBDD4845B46AE74A8D1A /* printdfd.c in Sources */,
+				771EEEE4778E5E214465E395 /* errstr.c in Sources */,
+				AA9966AE3290B2391C868135 /* etcdec.cxx in Sources */,
+				FF755B2571020FE2E281955B /* etcunpack.cxx in Sources */,
+				A3101E9B9AD7E7BF9E2FF3BB /* filestream.c in Sources */,
+				734838B050E48AAEED9961E6 /* glloader.c in Sources */,
+				DD03400C332924B8B0CD6B44 /* hashlist.c in Sources */,
+				4DAC3CFD3C1873C502E64104 /* info.c in Sources */,
+				235721615FED8575C0E84A9B /* memstream.c in Sources */,
+				E1A627F22907A318CD7C26FA /* swap.c in Sources */,
+				90672FBACCDDACCF026EEF10 /* texture.c in Sources */,
+				8B6A466D5ECC2372BD8EC45D /* texture1.c in Sources */,
+				57C83A00D7057076CD676B80 /* texture2.c in Sources */,
+				8A74A31D16E46D1547CD7520 /* vkformat_prohibited.c in Sources */,
+				552F9BA01DC58EDC10F6C376 /* vkformat_str.c in Sources */,
+				79F6EB0ACFEB4A96C906FAE0 /* writer1.c in Sources */,
+				1FC2D2A8363A57BACB5D99F1 /* writer2.c in Sources */,
+				170F62D62A7575BD7E6EB86C /* texture1_vvtbl.c in Sources */,
+				56EF0E2A1EDC8C1207F7302C /* texture2_vvtbl.c in Sources */,
+				28E3321C3A34C5FA727643BC /* vkloader.c in Sources */,
+				B2D0EFC504F43174B8EE4CA6 /* vk_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -503,25 +535,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FBD594E774EB9C2319CEBE7C /* checkheader.c in Sources */,
-				6E69E7BDA5DBF7E4011AF8E6 /* createdfd.c in Sources */,
-				7B1AD500D7A5255994707A6F /* dfd4vkformat.c in Sources */,
-				5CBAD739AA526216CA535769 /* interpretdfd.c in Sources */,
-				722474305EE306E6F08765D8 /* printdfd.c in Sources */,
-				C4F9F8F96918F0FCA9221213 /* errstr.c in Sources */,
-				05792DD7847C928D7E6EED2B /* etcdec.cxx in Sources */,
-				EE9A767BC2C72703F49E28D5 /* etcunpack.cxx in Sources */,
-				862474C19C7CDC34D4AA7E84 /* filestream.c in Sources */,
-				29F2978B8E5DDB2257ABA649 /* glloader.c in Sources */,
-				DAD5208BA5FAB9868BF5AA7E /* hashlist.c in Sources */,
-				5203E5093D11EAEBF5344E41 /* info.c in Sources */,
-				09D591555E1919431E6ED8F4 /* memstream.c in Sources */,
-				5216855D7DAA177192D296D7 /* swap.c in Sources */,
-				E5430B47C4F75295A48D3684 /* texture.c in Sources */,
-				DFD7A67CFECC2E956AAA0224 /* vkformat_prohibited.c in Sources */,
-				DE72A478958353638CE4207D /* vkformat_str.c in Sources */,
-				5112AE131F564F011ABCDE98 /* writer.c in Sources */,
-				2B918D7A85D8CF8BA216BF38 /* writer_v2.c in Sources */,
+				6F3B5848B7988FF23F8B9FFD /* checkheader.c in Sources */,
+				6D38EBAD3347BE8F6A245780 /* createdfd.c in Sources */,
+				7A1208F5B0DB6A312E8DE133 /* dfd4vkformat.c in Sources */,
+				8AC4F23AEBD313F9388B6D61 /* interpretdfd.c in Sources */,
+				3C56A77EF3A550E1C027B3EE /* printdfd.c in Sources */,
+				1533D1C99D92779F38C26DF1 /* errstr.c in Sources */,
+				4CD4DDF9A80183DE0BAA267E /* etcdec.cxx in Sources */,
+				68F2DA1430141AC495F49C6B /* etcunpack.cxx in Sources */,
+				3C961B69CE7E975D46D3EB2F /* filestream.c in Sources */,
+				6F324940CCA003286AE3C1C5 /* glloader.c in Sources */,
+				18C92FE1A86D0C9A687390E6 /* hashlist.c in Sources */,
+				B3FEE461468CC318C0B3F343 /* info.c in Sources */,
+				D5EE350F663FCCED63B25569 /* memstream.c in Sources */,
+				C13E96EA1B49DA0D6342DBC1 /* swap.c in Sources */,
+				F7A672BFD06CC0BF200F770B /* texture.c in Sources */,
+				5CC322C18CFF5165A7115DE3 /* texture1.c in Sources */,
+				B03BB728D31423D0EDF73EE3 /* texture2.c in Sources */,
+				161CB0E516290FE7CB6A31B7 /* vkformat_prohibited.c in Sources */,
+				FFB7FD55CAEC2E9939EEC78E /* vkformat_str.c in Sources */,
+				87C618A4CF0A4DFFCF2CDE34 /* writer1.c in Sources */,
+				A5EE9D845B0CC635761CEA26 /* writer2.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,27 +563,31 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				034514E4D8386356BDF192EC /* checkheader.c in Sources */,
-				24B3A9BB1BF77A2594AD091B /* createdfd.c in Sources */,
-				D72BF1CFBD83FF77C6A02F99 /* dfd4vkformat.c in Sources */,
-				08BA5707241668DFD07B167C /* interpretdfd.c in Sources */,
-				91DA17416067B3983DB50FC2 /* printdfd.c in Sources */,
-				3FA12E8F12A5039BF8C0AB39 /* errstr.c in Sources */,
-				3EBD981C8746E620F8E1BB72 /* etcdec.cxx in Sources */,
-				6C0507AF31B870B5C9A3F50E /* etcunpack.cxx in Sources */,
-				D9C8AB6CD4316D36EE1D18D7 /* filestream.c in Sources */,
-				45101943DEFA74361F730C7C /* glloader.c in Sources */,
-				8F5F4AA06D0EDFE834103647 /* hashlist.c in Sources */,
-				517E47C6750D096295BA0DEC /* info.c in Sources */,
-				E026955790BC21F3F81F1EA2 /* memstream.c in Sources */,
-				F81248DC950B1F320F441B3D /* swap.c in Sources */,
-				C7785FE3784C7CEA575084CB /* texture.c in Sources */,
-				600187DF69E9B6A30BBAFD9B /* vkformat_prohibited.c in Sources */,
-				5909A5FFB898E0E4B7EF4EB0 /* vkformat_str.c in Sources */,
-				CB8481CF3C18DD8B73B7C367 /* writer.c in Sources */,
-				F828A1BF21368FB55D586264 /* writer_v2.c in Sources */,
-				120E2C5B75D156FAA4D8B623 /* vkloader.c in Sources */,
-				AD59533EE0F4C4BE80708228 /* vk_funcs.c in Sources */,
+				63AC75B0CDBE6E589CF9E0E1 /* checkheader.c in Sources */,
+				F205DFBDC44EC184962F6277 /* createdfd.c in Sources */,
+				0D74EE13AF2DF203004E6ACF /* dfd4vkformat.c in Sources */,
+				688A4F2D588B077F7B5309E5 /* interpretdfd.c in Sources */,
+				4FE559FDAB578369FA5AD6A3 /* printdfd.c in Sources */,
+				025C6C047DFD130AEA82FBB0 /* errstr.c in Sources */,
+				40E956722BD98B7FB2237C62 /* etcdec.cxx in Sources */,
+				2CC85CB23F40F73F1BCF6886 /* etcunpack.cxx in Sources */,
+				C540EEC2C14ED514145C749F /* filestream.c in Sources */,
+				A23178A24E6A879E27D1D0B8 /* glloader.c in Sources */,
+				8A5E032BC9E0AE71866803B6 /* hashlist.c in Sources */,
+				28FECF58B4FA10186A3A65AE /* info.c in Sources */,
+				68CB27FB6891B1B558AC0354 /* memstream.c in Sources */,
+				AF166B010AED9F7C1F7FE889 /* swap.c in Sources */,
+				12703E4FF7523467F86C1150 /* texture.c in Sources */,
+				EC56948F02F852C3771E05B8 /* texture1.c in Sources */,
+				E0D3447BFBFFD4DC85FE822C /* texture2.c in Sources */,
+				E19B62EE2D8B1E754A702C7F /* vkformat_prohibited.c in Sources */,
+				A6FD3EB5A93CCE1142043454 /* vkformat_str.c in Sources */,
+				FC2D6DD43EA65A43A34A9C44 /* writer1.c in Sources */,
+				FE6FEF19E4379A560B4497FD /* writer2.c in Sources */,
+				7BC035FE739DEB1440C7A310 /* texture1_vvtbl.c in Sources */,
+				22326E22D7EE29BAAFE7781B /* texture2_vvtbl.c in Sources */,
+				CD15DF5EF72FAA189EE5662F /* vkloader.c in Sources */,
+				90670FD0C0BE88760A8A7066 /* vk_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -623,9 +661,11 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -634,6 +674,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.gl;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -652,9 +693,11 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgl;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -673,9 +716,11 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libvulkan.lazy;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -691,9 +736,11 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libvulkan.lazy;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -712,9 +759,11 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = vulkan_headers;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -730,9 +779,11 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = vulkan_headers;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -791,10 +842,12 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libvulkan;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -811,10 +864,12 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libvulkan;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -831,9 +886,11 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES1=1",
+					"KTX_OMIT_VULKAN=1",
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -841,6 +898,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -863,9 +921,11 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = libgl;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -890,9 +950,11 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -901,6 +963,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -956,10 +1019,12 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					DEBUG,
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -968,6 +1033,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.gl;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -985,10 +1051,12 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES3=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					DEBUG,
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -997,6 +1065,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -1013,10 +1082,12 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL_ES1=1",
+					"KTX_OMIT_VULKAN=1",
 					DEBUG,
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -1024,6 +1095,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
 			};
 			name = Debug;
 		};

@@ -143,7 +143,10 @@
             '../../../icons/mac/ktx_app.icns',
           ],
         }, 'OS == "win"', {
-          'dependencies': [ 'libktx.gyp:libktx.gl' ],
+          'dependencies': [
+            'libktx.gyp:libktx.gl',
+            'libktx.gyp:libgl'
+          ],
           'sources!': [ '<(vkinfoplist_file)' ],
           'sources': [
              '../../../icons/win/ktx_app.ico',

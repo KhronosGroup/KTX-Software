@@ -21,6 +21,7 @@
       'etcunpack.cxx',
       'filestream.c',
       'filestream.h',
+      'formatsize.h',
       'gl_format.h',
       'gl_funcptrs.h',
       'gles1_funcptrs.h',
@@ -36,16 +37,24 @@
       'stream.h',
       'swap.c',
       'texture.c',
+      'texture.h',
+      'texture_funcs.inl',
+      'texture1.c',
+      'texture1.h',
+      'texture2.c',
+      'texture2.h',
       'uthash.h',
       'vkformat_enum.h',
       'vkformat_prohibited.c',
       'vkformat_str.c',
-      'writer.c',
-      'writer_v2.c',
+      'writer1.c',
+      'writer2.c',
     ],
     # Use _files to get the names relativized
     'vksource_files': [
       '../include/ktxvulkan.h',
+      'texture1_vvtbl.c',
+      'texture2_vvtbl.c',
       'vk_format.h',
       'vkloader.c',
       'vk_funclist.inl',
@@ -67,7 +76,7 @@
       'target_name': 'libktx.gl',
       'type': '<(library)',
       'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL=1' ],
+      'defines': [ 'KTX_OPENGL=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -103,11 +112,6 @@
                   }], # _mac_bundle == 1
                 ], # target_conditions
               }, # direct_dependent_settings
-              'sources!': [
-                'vk_funclist.inl',
-                'vk_funcs.c',
-                'vk_funcs.h',
-              ],
               'xcode_settings': {
                 # Set the "install name" to instruct dyld to search a list of
                 # paths in order to locate the library. If left at the default
@@ -120,14 +124,13 @@
                 'INSTALL_PATH': '@rpath',
               }
             }, 'OS == "linux"', {
-              'defines': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
               'dependencies!': [ 'libvulkan.lazy' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
-        }] # _type == "shared_library"
+        }], # _type == "shared_library"
       ], # conditions
       'xcode_settings': {
-          # These actually Xcode's defaults here for documentation.
+          # These are actually Xcode's defaults shown here for documentation.
           #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
           #'INSTALL_PATH': '/usr/local/lib',
           # This is used by a Copy Headers phase which gyp only allows to be
@@ -140,7 +143,7 @@
       'target_name': 'libktx.es1',
       'type': 'static_library',
       'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL_ES1=1' ],
+      'defines': [ 'KTX_OPENGL_ES1=1', 'KTX_OMIT_VULKAN=1' ],
       'direct_dependent_settings': {
         'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -151,7 +154,7 @@
       'target_name': 'libktx.es3',
       'type': 'static_library',
       'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL_ES3=1' ],
+      'defines': [ 'KTX_OPENGL_ES3=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
       'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],

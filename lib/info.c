@@ -34,11 +34,12 @@
 #include <string.h>
 
 #include <ktx.h>
+
+#include "dfdutils/dfd.h"
 #include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
 #include "ktxint.h"
-#include "dfdutils/dfd.h"
 
 /*===========================================================*
  * Common Utilities for version 1 and 2.                     *
@@ -81,7 +82,7 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
                 if (value[valueLen-1] == '\0')
                     fprintf(stdout, "%s\n", value);
                 else {
-                    for (int i=0; i < valueLen; i++) {
+                    for (ktx_uint32_t i=0; i < valueLen; i++) {
                         fputc(value[i], stdout);
                     }
                     fputc('\n', stdout);
@@ -144,7 +145,7 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     KTX_supplemental_info suppInfo;
     KTX_error_code result;
 
-    result = _ktxCheckHeader(pHeader, &suppInfo);
+    result = ktxCheckHeader1_(pHeader, &suppInfo);
     if (result != KTX_SUCCESS) {
         fprintf(stdout, "The KTX 1 file pHeader is invalid:\n");
         switch (result) {

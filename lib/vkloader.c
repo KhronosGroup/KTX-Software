@@ -31,6 +31,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
@@ -41,6 +42,7 @@
 #endif
 #include "ktxvulkan.h"
 #include "ktxint.h"
+#include "texture.h"
 #include "vk_format.h"
 
 // Macro to check and display Vulkan return results.
@@ -597,11 +599,11 @@ linearTilingPadCallback(int miplevel, int face,
  *                              on either the CPU or the Vulkan device.
  */
 KTX_error_code
-ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                      ktxVulkanTexture* vkTexture,
-                      VkImageTiling tiling,
-                      VkImageUsageFlags usageFlags,
-                      VkImageLayout finalLayout)
+ktxTexture_doVkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                        ktxVulkanTexture* vkTexture,
+                        VkImageTiling tiling,
+                        VkImageUsageFlags usageFlags,
+                        VkImageLayout finalLayout)
 {
     KTX_error_code           kResult;
     VkFilter                 blitFilter;
@@ -673,9 +675,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         break;
     }
 
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
-    if (vkFormat == VK_FORMAT_UNDEFINED)
-        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
+    vkFormat = ktxTexture_GetVkFormat(This);
     if (vkFormat == VK_FORMAT_UNDEFINED) {
         return KTX_INVALID_OPERATION;
     }
@@ -1121,27 +1121,6 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
 
 /** @memberof ktxTexture
  * @~English
- * @brief Create a Vulkan image object from a ktxTexture object.
- *
- * Calls ktxTexture_VkUploadEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
- * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- *
- * @sa ktxTexture_VkUploadEx() for details and use that for complete
- *     control.
- */
-KTX_error_code
-ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(texture, vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
-                                 VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-}
-
-/** @memberof ktxTexture
- * @~English
  * @brief Return the VkFormat enum of a ktxTexture object.
  *
  * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
@@ -1152,12 +1131,93 @@ ktxTexture_GetVkFormat(ktxTexture* This)
 {
     VkFormat vkFormat;
 
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
-    if (vkFormat == VK_FORMAT_UNDEFINED)
-        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
+    // FIXME. Probably should use a virtual function. If so, will need to
+    // change return type to ktx_uint32_t so vulkan.h is not needed along
+    // with ktx.h.
+    switch (This->classId) {
+      case ktxTexture1_c:
+        {
+            ktxTexture1* tex1 = (ktxTexture1*)This;
+            vkFormat = vkGetFormatFromOpenGLInternalFormat(tex1->glInternalformat);
+            if (vkFormat == VK_FORMAT_UNDEFINED) {
+                vkFormat = vkGetFormatFromOpenGLFormat(tex1->glFormat,
+                                                       tex1->glType);
+            }
+            break;
+        }
+      case ktxTexture2_c:
+        {
+            ktxTexture2* tex2 = (ktxTexture2*)This;
+            vkFormat = tex2->vkFormat;
+            break;
+        }
+    }
     return vkFormat;
 }
 
+KTX_error_code
+ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
+                                   usageFlags, finalLayout);
+}
+
+/** @memberof ktxTexture
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture1_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+                     ktxVulkanTexture *vkTexture)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(texture), vdi, vkTexture,
+                                   VK_IMAGE_TILING_OPTIMAL,
+                                   VK_IMAGE_USAGE_SAMPLED_BIT,
+                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+KTX_error_code
+ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
+                                   usageFlags, finalLayout);
+}
+
+/** @memberof ktxTexture
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+                     ktxVulkanTexture *vkTexture)
+{
+    return ktxTexture_doVkUploadEx(ktxTexture(texture), vdi, vkTexture,
+                                   VK_IMAGE_TILING_OPTIMAL,
+                                   VK_IMAGE_USAGE_SAMPLED_BIT,
+                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
 //======================================================================
 //  Utilities
 //======================================================================

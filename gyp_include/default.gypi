@@ -151,6 +151,8 @@
       'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
       # Use C99 for maximum portability. Sigh!
       'GCC_C_LANGUAGE_STANDARD': 'c99',
+      # Be extra pedantic.
+      'GCC_TREAT_WARNINGS_AS_ERRORS': 'YES',
       # Avoid Xcode 10 warning: "Traditional headermap style is no
       # longer supported".
       'ALWAYS_SEARCH_USER_PATHS': 'NO',
@@ -160,6 +162,7 @@
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
           'TARGETED_DEVICE_FAMILY': '1,2',
+          'VALID_ARCHS': 'arm64 arm64e',
         }, 'OS == "mac"', {
           # Need 10.9 for GL 4.1 or ARB_ES2_compatibility, 10.11 for Metal
           # compatibility.

@@ -62,7 +62,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
@@ -84,7 +84,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
@@ -105,7 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
@@ -126,7 +126,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;assimp.lib;vulkan-1.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
@@ -246,6 +246,10 @@
     </ProjectReference>
     <ProjectReference Include="libktx.gl.vcxproj">
       <Project>{620E7140-06AD-551D-2FA9-8C20620B9DF8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="libgl.vcxproj">
+      <Project>{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libsdl.vcxproj">
