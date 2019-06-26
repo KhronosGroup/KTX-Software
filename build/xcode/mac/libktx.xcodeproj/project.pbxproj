@@ -156,6 +156,7 @@
 		9F372738AC29E68A14093390 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
 		A64D54D92D0988848C84F068 /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {isa = PBXBuildFile; fileRef = E1564CD269FB33343DA6F442 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A8B6B4B423902C5ED74A61C2 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		A9B9F57CAB0F0FBFFA4CF0C9 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
 		AC87BB718AF51BD931DCCE30 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
 		ACFEAEEB173876F9B03E0C17 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
 		B189C97D9F0CF0252D552CCD /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
@@ -193,13 +194,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1DECD74B6E574582E25FE647;
 			remoteInfo = libktx.doc;
-		};
-		2129EE71142E982E738C4142 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 53E28E0399F04986CCFA2113;
-			remoteInfo = libvulkan;
 		};
 		33EFABA996F6775B7C2EF5F0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -298,6 +292,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 555F14739B20F130C104F38F;
 			remoteInfo = libktx.es1;
+		};
+		F9053FB0263CA7C836BFC685 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A53C7E625BBCBD48220BD07A;
+			remoteInfo = vulkan_headers;
 		};
 		F9721A6D539BE3627B0F1954 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -659,7 +660,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				D7870F5EC249C11244EDAA36 /* PBXTargetDependency */,
+				30F433442FB009C551FCDC3D /* PBXTargetDependency */,
 			);
 			name = libktx.es3;
 			productName = ktx.es3;
@@ -840,6 +841,7 @@
 				7E44CB1BF77A1F8FD33C8CBB /* texture1_vvtbl.c in Sources */,
 				D7F60E27E35E3F142F6062AE /* texture2_vvtbl.c in Sources */,
 				9F372738AC29E68A14093390 /* vkloader.c in Sources */,
+				A9B9F57CAB0F0FBFFA4CF0C9 /* vk_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -926,6 +928,11 @@
 			target = CA0BF733B14DB39E93B75C67 /* libktx.es3 */;
 			targetProxy = B14217010049444BF75CEBCB /* PBXContainerItemProxy */;
 		};
+		30F433442FB009C551FCDC3D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A53C7E625BBCBD48220BD07A /* vulkan_headers */;
+			targetProxy = F9053FB0263CA7C836BFC685 /* PBXContainerItemProxy */;
+		};
 		69B58AFC59608ED398A48CD8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 57E23513B7E3B1238C76EFD8 /* libvulkan.lazy */;
@@ -966,11 +973,6 @@
 			target = 362967529B3D7D3E12C3129D /* libktx.gl */;
 			targetProxy = 51D18C75D9A5B08407F50847 /* PBXContainerItemProxy */;
 		};
-		D7870F5EC249C11244EDAA36 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 53E28E0399F04986CCFA2113 /* libvulkan */;
-			targetProxy = 2129EE71142E982E738C4142 /* PBXContainerItemProxy */;
-		};
 		E7A54A8613D879AF51E4D8F0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 555F14739B20F130C104F38F /* libktx.es1 */;
@@ -1009,6 +1011,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -1344,7 +1347,6 @@
 					other_include,
 					"$(VULKAN_SDK)/include",
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx.es3;
 			};
@@ -1403,6 +1405,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"KTX_OPENGL=1",
+					KTX_USE_FUNCPTRS_FOR_VULKAN,
 					DEBUG,
 					_DEBUG,
 				);
@@ -1469,7 +1472,6 @@
 					other_include,
 					"$(VULKAN_SDK)/include",
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx.es3;
 			};

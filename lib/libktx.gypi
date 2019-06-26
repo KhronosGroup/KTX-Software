@@ -92,7 +92,6 @@
           'dependencies': [ 'libgl', 'libvulkan.lazy' ],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
-              'defines!': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
               'direct_dependent_settings': {
                 'target_conditions': [
                   ['_type != "none" and _mac_bundle == 1', {
@@ -113,11 +112,6 @@
                   }], # _mac_bundle == 1
                 ], # target_conditions
               }, # direct_dependent_settings
-              'sources!': [
-                'vk_funclist.inl',
-                'vk_funcs.c',
-                'vk_funcs.h',
-              ],
               'xcode_settings': {
                 # Set the "install name" to instruct dyld to search a list of
                 # paths in order to locate the library. If left at the default
@@ -161,7 +155,7 @@
       'type': 'static_library',
       'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL_ES3=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
-      'dependencies': [ 'libvulkan' ],
+      'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -170,11 +164,6 @@
         '<@(vksource_files)',
       ],
       'include_dirs': [ '<@(include_dirs)' ],
-      'conditions': [
-        ['OS == "ios"', {
-          'defines!': [ 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
-        }], # OS == ios
-      ],
     }, # libktx.es3
   ], # targets
   'conditions': [

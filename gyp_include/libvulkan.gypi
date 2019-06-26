@@ -35,8 +35,10 @@
     'conditions': [
       ['OS == "ios"', {
         'fwdir': '<(mvklib)',
+        'runpath': '@executable_path/Frameworks',
       }, 'OS == "mac"', {
         'fwdir': '<(vksdk)/Frameworks',
+        'runpath': '@executable_path/../Frameworks',
       }]
     ], # conditions
   }, # variables
@@ -82,7 +84,8 @@
             # or ^. Both '-framework foo' and '-lfoo' confuse Xcode. It seems
             # these values are being put into an Xcode list that expects only
             # framework names, full or relative path.
-            '<(fwdir)/MoltenVK.framework',
+            #'<(fwdir)/MoltenVK.framework',
+            '<(fwdir)/libMoltenVK.dylib',
             '<(fwdir)/vulkan.framework',
             '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
             '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
@@ -103,30 +106,31 @@
           #  'OTHER_LDFLAGS': '-lc++',
           #}
         }, # link_settings
-        'conditions': [
-          ['OS == "mac"', {
-            'link_settings': {
-              'libraries!': [
-                '<(fwdir)/MoltenVK.framework',
-                '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
-                '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
-                '$(SDKROOT)/System/Library/Frameworks/IOSurface.framework',
-                '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
-              ],
-            },
-            # dds is needed because each app target gets its own directory.
-            'direct_dependent_settings': {
-              'xcode_settings': {
-                'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
-              },
-              'target_conditions': [
-                ['_type == "executable" and _mac_bundle == 1', {
-                  # Can't use mac_bundle_resources because that puts the files
-                  # into $(UNLOCALIZED_RESOURCES_FOLDER_PATH).
+        # dds is needed because each app target gets its own directory.
+        'direct_dependent_settings': {
+          'xcode_settings': {
+            'LD_RUNPATH_SEARCH_PATHS': [ '<(runpath)' ],
+          },
+          'target_conditions': [
+            ['_type == "executable" and _mac_bundle == 1', {
+              # Can't use mac_bundle_resources because that puts the files
+              # into $(UNLOCALIZED_RESOURCES_FOLDER_PATH).
+              'conditions': [
+                ['OS == "ios"', {
                   'copies': [{
                     'xcode_code_sign': 1,
                     'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                     'files': [
+                      '<(mvklib)/libMoltenVK.dylib',
+                    ],
+                  }], # ios copies
+                }, 'OS == "mac"', {
+                  'copies': [{
+                    'xcode_code_sign': 1,
+                    'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+                    'files': [
+                      # 'files!': doesn't work so I have to repeat the entire
+                      # copy for bath mac & ios.
                       '<(fwdir)/vulkan.framework',
                       '<(mvklib)/libMoltenVK.dylib',
                     ],
@@ -135,10 +139,24 @@
                     'xcode_code_sign': 1,
                     'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/icd.d',
                     'files': [ '<(otherlibroot_dir)/resources/MoltenVK_icd.json' ],
-                  }], # copies
-                }], # mac_bundle
-              ], # target_conditions
-            }, # direct_dependent_settings
+                  }], # copies mac
+                }], # OS == "ios"
+              ], # conditions
+            }], # mac_bundle
+          ], # target_conditions
+        }, # direct_dependent_settings
+        'conditions': [
+          ['OS == "mac"', {
+            'link_settings': {
+              'libraries!': [
+                #'<(fwdir)/MoltenVK.framework',
+                '<(fwdir)/libMoltenVK.dylib',
+                '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+                '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+                '$(SDKROOT)/System/Library/Frameworks/IOSurface.framework',
+                '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+              ],
+            },
           }, 'OS == "ios"', {
             'link_settings': {
               'libraries!': [ '<(fwdir)/vulkan.framework' ],
