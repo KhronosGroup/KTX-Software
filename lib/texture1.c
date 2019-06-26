@@ -338,11 +338,8 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     if (result != KTX_SUCCESS)
         goto cleanup;
 
-
-    // The odd cast is to prevent an error compiling for armv7 build-only
-    // iOS device.
-    This->dataSize                   /* Remove space for faceLodSize fields */
-            = size - (ktx_size_t)pos - This->numLevels * sizeof(ktx_uint32_t);
+                                /* Remove space for faceLodSize fields */
+    This->dataSize = size - pos - This->numLevels * sizeof(ktx_uint32_t);
 
     /*
      * Load the images, if requested.
