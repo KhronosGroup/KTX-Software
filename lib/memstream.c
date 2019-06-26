@@ -346,8 +346,7 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
     if (mem->robytes)
         return KTX_INVALID_OPERATION; /* read-only */
 
-    //new_size = mem->used_size + size*count;
-    new_size = mem->pos + size*count;
+    new_size = mem->pos + (ktx_off_t)(size*count);
     //if (new_size < mem->used_size)
     if (new_size < mem->pos)
         return KTX_FILE_OVERFLOW;
@@ -361,7 +360,9 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
     memcpy(mem->bytes + mem->pos, src, size*count);
     mem->pos += size*count;
     if (mem->pos > mem->used_size)
-        mem->used_size = mem->pos;
+        // This cast is to avoid a warning when compiling for arm7 build-only
+        // iOS device.
+        mem->used_size = (ktx_size_t)mem->pos;
 
 
     return KTX_SUCCESS;
