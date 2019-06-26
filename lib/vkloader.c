@@ -525,7 +525,9 @@ linearTilingPadCallback(int miplevel, int face,
         // Copy the minimum of srcRowPitch, the GL_UNPACK_ALIGNMENT padded size,
         // and subResLayout.rowPitch.
         if (subResLayout.rowPitch < srcRowPitch)
-            copySize = subResLayout.rowPitch;
+            // Strange cast is for armv7 ios build-device compiles where size_t
+            // is 32-bit VkDeviceSize is 64-bit.
+            copySize = (ktx_size_t)subResLayout.rowPitch;
         else
             copySize = srcRowPitch;
     } else if (imageIterations > 1)
