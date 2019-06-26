@@ -567,7 +567,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
     header.pixelWidth = This->baseWidth;
     header.pixelHeight = This->baseHeight;
     header.pixelDepth = This->baseDepth;
-    header.arrayElementCount = This->isArray ? This->numLayers : 0;
+    header.layerCount = This->isArray ? This->numLayers : 0;
     assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
     header.faceCount = This->numFaces;
     assert (This->generateMipmaps? This->numLevels == 1 : This->numLevels >= 1);
@@ -582,7 +582,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
     if (!dfd)
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
 
-    header.dataFormatDescriptor.offset = offset;
+    header.dataFormatDescriptor.byteOffset = offset;
     header.dataFormatDescriptor.byteLength = *dfd;
     offset += header.dataFormatDescriptor.byteLength;
 
@@ -642,14 +642,14 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 
     ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
-    header.keyValueData.offset = kvdLen != 0 ? offset : 0;
+    header.keyValueData.byteOffset = kvdLen != 0 ? offset : 0;
     header.keyValueData.byteLength = kvdLen;
 
     align8PadLen = _KTX_PAD8_LEN(offset + kvdLen);
     offset += kvdLen + align8PadLen;
 
     sgdLen = 0;
-    header.supercompressionGlobalData.offset = sgdLen != 0 ? offset : 0;
+    header.supercompressionGlobalData.byteOffset = sgdLen != 0 ? offset : 0;
     header.supercompressionGlobalData.byteLength = sgdLen;
 
     sgdPadLen = _KTX_PAD8_LEN(sgdLen);
@@ -661,7 +661,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
                                      KTX_FORMAT_VERSION_TWO);
         levelIndex[level].byteLength =
             levelIndex[level].uncompressedByteLength;
-        levelIndex[level].offset = offset +
+        levelIndex[level].byteOffset = offset +
             ktxTexture_calcLevelOffset(ktxTexture(This), level,
                                        KTX_FORMAT_VERSION_TWO);
     }
@@ -721,7 +721,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         result = dststr->getpos(dststr, &pos);
         // Could fail if stdout is a pipe
         if (result == KTX_SUCCESS)
-            assert(pos == levelIndex[level].offset);
+            assert(pos == levelIndex[level].byteOffset);
         else
             assert(result == KTX_FILE_ISPIPE);
 #endif

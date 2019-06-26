@@ -1408,12 +1408,12 @@ class ktxTexture1WriteKTX2TestBase
             // ensures there is a DFD in the file.
             ktx_uint32_t* dfd = createDFD4VkFormat(
                                     static_cast<VkFormat>(header->vkFormat));
-            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.offset,
+            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
                              dfd,
                              *dfd), 0);
 
             // Check the metadata.
-            filePtr = ktxMemFile + header->keyValueData.offset;
+            filePtr = ktxMemFile + header->keyValueData.byteOffset;
             if (writeOrientationMeta) {
                 EXPECT_EQ(header->keyValueData.byteLength,
                           helper.kvDataLenAll_ktx2);
@@ -1434,7 +1434,7 @@ class ktxTexture1WriteKTX2TestBase
 
             ktx_uint64_t offset = UINT64_MAX;
             for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
-                ktx_uint64_t levelOffset = levelIndex[level].offset;
+                ktx_uint64_t levelOffset = levelIndex[level].byteOffset;
                 // Check offset is properly aligned.
                 EXPECT_EQ(levelOffset & 0x7, 0);
                 // Check mipmaps are in order of increasing size in the file
@@ -1513,12 +1513,12 @@ class ktxTexture1WriteKTX2TestBase
             // Check the format descriptor.
             ktx_uint32_t* dfd = createDFD4VkFormat(
                                     static_cast<VkFormat>(header->vkFormat));
-            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.offset,
+            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
                              dfd,
                              *dfd), 0);
 
             // Check the metadata.
-            filePtr = ktxMemFile + header->keyValueData.offset;
+            filePtr = ktxMemFile + header->keyValueData.byteOffset;
             EXPECT_EQ(header->keyValueData.byteLength, kvDataLen);
             EXPECT_EQ(memcmp(filePtr, kvData, kvDataLen), 0);
             filePtr += helper.kvDataLen;
@@ -1529,7 +1529,7 @@ class ktxTexture1WriteKTX2TestBase
 
             ktx_uint64_t offset = UINT64_MAX;
             for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
-                ktx_uint64_t levelOffset = levelIndex[level].offset;
+                ktx_uint64_t levelOffset = levelIndex[level].byteOffset;
                 // Check offset is properly aligned.
                 EXPECT_EQ(levelOffset & 0x7, 0);
                 // Check mipmaps are in order of increasing size in the file

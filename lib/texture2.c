@@ -69,6 +69,8 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
     ktxFormatSize formatSize;
     KTX_error_code result;
 
+    memset(This, 0, sizeof(*This));
+
     if (createInfo->vkFormat != VK_FORMAT_UNDEFINED) {
         vkGetFormatSize(createInfo->vkFormat, &formatSize);
         if (formatSize.blockSizeInBits == 0) {
@@ -156,13 +158,12 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     KTX_supplemental_info suppInfo;
     ktxStream* stream;
     ktxFormatSize formatSize;
-#if 0
-    ktx_off_t pos;
-    ktx_size_t size;
-#endif
+    // ktx_off_t pos;
+    //ktx_size_t levelIndexSize;
 
     assert(pHeader != NULL && pStream != NULL);
 
+    memset(This, 0, sizeof(*This));
     result = ktxTexture_constructFromStream(ktxTexture(This), pStream,
                                             createFlags);
     if (result != KTX_SUCCESS)
@@ -200,8 +201,8 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         This->baseDepth = pHeader->pixelDepth;
         break;
     }
-    if (pHeader->arrayElementCount > 0) {
-        This->numLayers = pHeader->arrayElementCount;
+    if (pHeader->layerCount > 0) {
+        This->numLayers = pHeader->layerCount;
         This->isArray = KTX_TRUE;
     } else {
         This->numLayers = 1;
@@ -217,6 +218,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     This->generateMipmaps = suppInfo.generateMipmaps;
 
 #if 0
+    // Read level index
+    levelIndexSize = sizeof(ktxLevelIndexEntry) * 
+    result = stream->read(stream, )
+
     /*
      * Make an empty hash list.
      */
@@ -360,8 +365,6 @@ ktxTexture2_constructFromStdioStream(ktxTexture2* This, FILE* stdioStream,
     if (stdioStream == NULL || This == NULL)
         return KTX_INVALID_VALUE;
 
-    memset(This, 0, sizeof(*This));
-
     result = ktxFileStream_construct(&stream, stdioStream, KTX_FALSE);
     if (result == KTX_SUCCESS)
         result = ktxTexture2_constructFromStream(This, &stream, createFlags);
@@ -397,8 +400,6 @@ ktxTexture2_constructFromNamedFile(ktxTexture2* This,
 
     if (This == NULL || filename == NULL)
         return KTX_INVALID_VALUE;
-
-    memset(This, 0, sizeof(*This));
 
     file = fopen(filename, "rb");
     if (!file)
@@ -439,8 +440,6 @@ ktxTexture2_constructFromMemory(ktxTexture2* This,
 
     if (bytes == NULL || size == 0)
         return KTX_INVALID_VALUE;
-
-    memset(This, 0, sizeof(*This));
 
     result = ktxMemStream_construct_ro(&stream, bytes, size);
     if (result == KTX_SUCCESS)

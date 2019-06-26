@@ -260,7 +260,7 @@ class WriterTestHelper {
             if (levelSize != expectedLevelSize)
                return false;
 
-            ktx_uint8_t* pData = baseAddr + levelIndex[level].offset;
+            ktx_uint8_t* pData = baseAddr + levelIndex[level].byteOffset;
             for (ktx_uint32_t layer = 0; layer < numLayers; layer++) {
                 for (ktx_uint32_t faceSlice = 0; faceSlice < numImages; faceSlice++) {
 #if 0 //DUMP_IMAGE
@@ -366,7 +366,7 @@ class WriterTestHelper {
                 && header->pixelWidth == baseWidth
                 && header->pixelHeight == headerPixelHeight
                 && header->pixelDepth == headerPixelDepth
-                && header->arrayElementCount == headerNumLayers
+                && header->layerCount == headerNumLayers
                 && header->faceCount == numFaces
                 && header->levelCount == numLevels
                 && header->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE

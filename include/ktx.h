@@ -586,6 +586,7 @@ typedef enum ktxSupercmpScheme {
 typedef struct ktxTexture2 {
     KTXTEXTURECLASSDEFN
     ktx_uint32_t  vkFormat;
+    void* levelIndex;
     ktx_uint32_t* pDfd;
     ktxSupercmpScheme supercompressionScheme;
 } ktxTexture2;
