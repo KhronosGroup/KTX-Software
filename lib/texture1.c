@@ -44,7 +44,6 @@
 #include "gl_format.h"
 
 typedef struct ktxTexture1_private {
-   ktx_uint32_t _glTypeSize;
    ktx_bool_t   _needSwap;
 } ktxTexture1_private;
 
@@ -81,6 +80,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
                       ktxTextureCreateStorageEnum storageAllocation)
 {
     ktxTexture1_private* private;
+    ktxTexture_protected* prtctd;
     ktxFormatSize formatSize;
     GLuint typeSize;
     GLenum glFormat;
@@ -105,6 +105,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
     result = ktxTexture1_constructBase(This);
     if (result != KTX_SUCCESS)
         return result;
+    prtctd = This->_protected;
     private = This->_private;
 
     This->isCompressed
@@ -113,7 +114,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
         This->glFormat = 0;
         This->glBaseInternalformat = glFormat;
         This->glType = 0;
-        private->_glTypeSize = 0;
+        prtctd->_typeSize = 0;
     } else {
         This->glBaseInternalformat = This->glFormat = glFormat;
         This->glType
@@ -136,7 +137,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
             result = KTX_INVALID_VALUE;
             goto cleanup;
         }
-        private->_glTypeSize = typeSize;
+        prtctd->_typeSize = typeSize;
     }
 
     if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
@@ -238,7 +239,8 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     glGetFormatSize(This->glInternalformat, &formatSize);
     if (formatSize.blockSizeInBits == 0) {
         // Most likely a deprecated legacy format.
-        return KTX_UNSUPPORTED_TEXTURE_TYPE;
+        result = KTX_UNSUPPORTED_TEXTURE_TYPE;
+        goto cleanup;
     }
     This->_protected->_formatSize = formatSize;
     This->glBaseInternalformat = pHeader->glBaseInternalformat;
@@ -276,7 +278,7 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     This->generateMipmaps = suppInfo.generateMipmaps;
     if (pHeader->endianness == KTX_ENDIAN_REF_REV)
         private->_needSwap = KTX_TRUE;
-    private->_glTypeSize = pHeader->glTypeSize;
+    This->_protected->_typeSize = pHeader->glTypeSize;
 
     /*
      * Make an empty hash list.
@@ -345,14 +347,13 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
      * Load the images, if requested.
      */
     if (createFlags & KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT) {
-        result = ktxTexture_LoadImageData(ktxTexture(This), NULL, 0);
+        result = ktxTexture1_LoadImageData(This, NULL, 0);
     }
     if (result == KTX_SUCCESS)
         return result;
 
 cleanup:
     ktxTexture1_destruct(This);
-    ktxTexture_destruct(ktxTexture(This));
     return result;
 }
 
@@ -515,7 +516,7 @@ ktxTexture1_constructFromMemory(ktxTexture1* This,
 void
 ktxTexture1_destruct(ktxTexture1* This)
 {
-    free(This->_private);
+    if (This->_private) free(This->_private);
     ktxTexture_destruct(ktxTexture(This));
 }
 
@@ -859,9 +860,9 @@ ktxTexture1_LoadImageData(ktxTexture1* This,
 
             /* Perform endianness conversion on texture data */
             if (private->_needSwap) {
-                if (private->_glTypeSize == 2)
+                if (prtctd->_typeSize == 2)
                     _ktxSwapEndian16((ktx_uint16_t*)pDest, faceLodSize / 2);
-                else if (private->_glTypeSize == 4)
+                else if (prtctd->_typeSize == 4)
                     _ktxSwapEndian32((ktx_uint32_t*)pDest, faceLodSize / 4);
             }
 
@@ -975,7 +976,7 @@ ktx_uint32_t
 ktxTexture1_glTypeSize(ktxTexture1* This)
 {
     assert(This != NULL);
-    return This->_private->_glTypeSize;
+    return This->_protected->_typeSize;
 }
 
 /**
@@ -1190,9 +1191,9 @@ ktxTexture1_IterateLoadLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
 
             /* Perform endianness conversion on texture data */
             if (private->_needSwap) {
-                if (private->_glTypeSize == 2)
+                if (prtctd->_typeSize == 2)
                     _ktxSwapEndian16((ktx_uint16_t*)data, faceLodSize / 2);
-                else if (private->_glTypeSize == 4)
+                else if (prtctd->_typeSize == 4)
                     _ktxSwapEndian32((ktx_uint32_t*)data, faceLodSize / 4);
             }
 

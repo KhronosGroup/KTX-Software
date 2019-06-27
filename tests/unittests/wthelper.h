@@ -33,6 +33,7 @@
 #include "ktx.h"
 extern "C" {
   #include "ktxint.h"
+  #include "texture2.h"
 }
 
 struct wthImageInfo {
@@ -371,6 +372,24 @@ class WriterTestHelper {
                 && header->levelCount == numLevels
                 && header->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
                 && header->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
+                return true;
+            else
+                return false;
+        }
+
+        bool compare(ktxTexture2* texture) {
+            VkFormat format =
+            vkGetFormatFromOpenGLInternalFormat(glInternalformat);
+
+            if (texture->vkFormat == format
+                && texture->baseWidth == baseWidth
+                && texture->baseHeight == baseHeight
+                && texture->baseDepth == baseDepth
+                && texture->numLayers == numLayers
+                && texture->numFaces == numFaces
+                && texture->numLevels == numLevels
+                && texture->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
+                && texture->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
                 return true;
             else
                 return false;

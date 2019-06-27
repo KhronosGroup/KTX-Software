@@ -35,8 +35,8 @@
 #include "formatsize.h"
 #include "stream.h"
 
-#define DECLARE_PRIVATE(class) struct class ## _private* private = This->_private
-#define DECLARE_PROTECTED(class) struct class ## _protected* prtctd = This->_protected;
+#define DECLARE_PRIVATE(class) class ## _private* private = This->_private
+#define DECLARE_PROTECTED(class) class ## _protected* prtctd = This->_protected;
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,11 +55,12 @@ typedef struct ktxTextureVtblInt {
  *
  * @brief protected members of ktxTexture.
  */
-struct ktxTexture_protected {
+typedef struct ktxTexture_protected {
     ktxTextureVtblInt _vtbl;
     ktxFormatSize _formatSize;
+    ktx_uint32_t _typeSize;
     ktxStream _stream;
-};
+} ktxTexture_protected;
 
 #define ktxTexture_getStream(t) ((ktxStream*)(&(t)->_protected->_stream))
 #define ktxTexture1_getStream(t1) ktxTexture_getStream((ktxTexture*)t1)

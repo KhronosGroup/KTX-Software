@@ -553,11 +553,11 @@ typedef struct ktxTexture1 {
     KTXTEXTURECLASSDEFN
     ktx_uint32_t glFormat; /*!< Format of the texture data, e.g., GL_RGB. */
     ktx_uint32_t glInternalformat; /*!< Internal format of the texture data,
-                                       e.g., GL_RGB8. */
+                                        e.g., GL_RGB8. */
     ktx_uint32_t glBaseInternalformat; /*!< Base format of the texture data,
-                                           e.g., GL_RGB. */
+                                            e.g., GL_RGB. */
     ktx_uint32_t glType; /*!< Type of the texture data, e.g, GL_UNSIGNED_BYTE.*/
-    struct ktxTexture1_private* _private;
+    struct ktxTexture1_private* _private; /*!< Private data. */
 } ktxTexture1;
 
 /**
@@ -586,9 +586,9 @@ typedef enum ktxSupercmpScheme {
 typedef struct ktxTexture2 {
     KTXTEXTURECLASSDEFN
     ktx_uint32_t  vkFormat;
-    void* levelIndex;
     ktx_uint32_t* pDfd;
     ktxSupercmpScheme supercompressionScheme;
+    struct ktxTexture2_private* _private;  /*!< Private data. */
 } ktxTexture2;
 
 #define ktxTexture(t) ((ktxTexture*)t)

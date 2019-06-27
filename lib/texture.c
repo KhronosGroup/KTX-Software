@@ -271,6 +271,9 @@ ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
 
     result = pStream->read(pStream, pHeader, sizeof(ktx2_ident_ref));
     if (result == KTX_SUCCESS) {
+#if BIG_ENDIAN
+        // byte swap the heaader fields
+#endif
         // Compare identifier, is this a KTX  or KTX2 file?
         if (!memcmp(pHeader->ktx.identifier, ktx_ident_ref, 12)) {
                 *pFileType = KTX1;

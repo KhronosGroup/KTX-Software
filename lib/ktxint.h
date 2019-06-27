@@ -198,12 +198,17 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
 /*
  * SwapEndian16: Swaps endianness in an array of 16-bit values
  */
-void _ktxSwapEndian16(ktx_uint16_t* pData16, int count);
+void _ktxSwapEndian16(ktx_uint16_t* pData16, ktx_size_t count);
 
 /*
  * SwapEndian32: Swaps endianness in an array of 32-bit values
  */
-void _ktxSwapEndian32(ktx_uint32_t* pData32, int count);
+void _ktxSwapEndian32(ktx_uint32_t* pData32, ktx_size_t count);
+
+/*
+ * SwapEndian32: Swaps endianness in an array of 64-bit values
+ */
+void _ktxSwapEndian64(ktx_uint64_t* pData64, ktx_size_t count);
 
 /*
  * UnpackETC: uncompresses an ETC compressed texture image
