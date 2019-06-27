@@ -248,6 +248,13 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (result != KTX_SUCCESS)
         goto cleanup;
 
+    // Make index offsets relative to pData not start of file.
+    ktx_size_t baseOffset = private->_levelIndex[This->numLevels-1].byteOffset;
+    for (ktx_uint32_t level = 0; level < This->numLevels; ++level)
+    {
+        private->_levelIndex[level].byteOffset -= baseOffset;
+    }
+
     // Read DFD
     This->pDfd =
             (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
@@ -807,8 +814,7 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
     }
 
     // Get the offset of the start of the level.
-    *pOffset = private->_levelIndex[level].byteOffset
-               - private->_levelIndex[This->numLevels-1].byteOffset;
+    *pOffset = private->_levelIndex[level].byteOffset;
 
     if (This->supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
         // All layers, faces & slices within a level are the same size.
@@ -1135,7 +1141,7 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
             ktx_size_t levelByteLength;
 
             levelByteLength = private->_levelIndex[level].byteLength;
-            ktxTexture2_GetImageOffset(This, level, 0, 0, &levelOffset);
+            levelOffset = private->_levelIndex[level].byteOffset;
             pDest = This->pData + levelOffset;
             switch (prtctd->_typeSize) {
               case 2:
