@@ -56,7 +56,7 @@ struct ktxTexture_vtbl ktxTexture2_vtbl;
 extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
 
 static KTX_error_code
-ktxTexture2_constructBase(ktxTexture2* This, ktx_uint32_t numLevels)
+ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
 {
     assert(This != NULL);
     ktx_size_t privateSize;
@@ -102,7 +102,7 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
                                    storageAllocation);
     if (result != KTX_SUCCESS)
         return result;
-    result = ktxTexture2_constructBase(This, createInfo->numLevels);
+    result = ktxTexture2_constructCommon(This, createInfo->numLevels);
     if (result != KTX_SUCCESS)
         goto cleanup;;
 
@@ -192,7 +192,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (result != KTX_SUCCESS)
         goto cleanup;
     // ktxCheckHeader2_ has done the max(1, levelCount) on pHeader->levelCount.
-    result = ktxTexture2_constructBase(This, pHeader->levelCount);
+    result = ktxTexture2_constructCommon(This, pHeader->levelCount);
     if (result != KTX_SUCCESS)
         goto cleanup;
     private = This->_private;

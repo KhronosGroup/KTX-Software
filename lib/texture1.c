@@ -51,7 +51,7 @@ struct ktxTexture_vtbl ktxTexture1_vtbl;
 extern struct ktxTexture_vvtbl* pKtxTexture1_vvtbl;
 
 static KTX_error_code
-ktxTexture1_constructBase(ktxTexture1* This)
+ktxTexture1_constructCommon(ktxTexture1* This)
 {
     assert(This != NULL);
 
@@ -102,7 +102,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
                                    storageAllocation);
     if (result != KTX_SUCCESS)
         return result;
-    result = ktxTexture1_constructBase(This);
+    result = ktxTexture1_constructCommon(This);
     if (result != KTX_SUCCESS)
         return result;
     prtctd = This->_protected;
@@ -214,7 +214,7 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     assert(pHeader != NULL && pStream != NULL);
 
 	memset(This, 0, sizeof(*This));
-	result = ktxTexture1_constructBase(This);
+	result = ktxTexture1_constructCommon(This);
     if (result != KTX_SUCCESS)
         return result;
     ktxTexture_constructFromStream(ktxTexture(This), pStream, createFlags);
