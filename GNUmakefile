@@ -37,7 +37,7 @@ msvs_win32_vernames := $(msvs_x64_vernames) vs2010e
 msvs_target_set = $(addprefix ${msvs_buildd}/${1}/,$(addsuffix /${stampfile},${2}))
 msvs_x64_targets = $(call msvs_target_set,x64,${msvs_x64_vernames})
 msvs_win32_targets = $(call msvs_target_set,win32,${msvs_win32_vernames})
-msvs_all_targets := $(msvs_x64_targets) $(msvs_win32_targets)
+msvs_all_targets := $(msvs_x64_targets)
 
 xcode_buildd := $(builddir)/xcode
 xcode_platforms := ios mac
@@ -119,7 +119,7 @@ gyp=$(gypdir)gyp# --debug=all
 .PHONY: msvs xcode default
 
 default:
-	@echo Pick one of "\"make {all,cmake,make,msvs,msvs64,msvs32,xcode}\""
+	@echo Pick one of "\"make {all,cmake,make,msvs,msvs64,xcode}\""
 
 all: $(formats)
 
@@ -129,7 +129,7 @@ msvs32: $(msvs_win32_targets)
 msvs64: win_platform := x64
 msvs64: $(msvs_x64_targets)
 
-msvs: msvs64 msvs32
+msvs: msvs64
 
 xcode: $(xcode_targets)
 

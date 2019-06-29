@@ -12,7 +12,7 @@ configuration:
 
 platform:
   - x64
-  - Win32
+#  - Win32
 
 environment:
   GIT_TRACE: 0
