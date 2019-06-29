@@ -177,15 +177,15 @@ typedef struct ktxKVListEntry* ktxHashList;
 typedef struct ktxKVListEntry ktxHashListEntry;
 
 typedef enum ktxOrientationX {
-    KTX_ORIENT_X_LEFT = 0, KTX_ORIENT_X_RIGHT = 1
+    KTX_ORIENT_X_LEFT = 'l', KTX_ORIENT_X_RIGHT = 'r'
 } ktxOrientationX;
 
 typedef enum ktxOrientationY {
-    KTX_ORIENT_Y_UP = 0, KTX_ORIENT_Y_DOWN = 1
+    KTX_ORIENT_Y_UP = 'u', KTX_ORIENT_Y_DOWN = 'd'
 } ktxOrientationY;
 
 typedef enum ktxOrientationZ {
-    KTX_ORIENT_Z_IN = 1, KTX_ORIENT_Z_OUT = 2
+    KTX_ORIENT_Z_IN = 'i', KTX_ORIENT_Z_OUT = 'o'
 } ktxOrientationZ;
 
 typedef enum class_id {
@@ -386,7 +386,7 @@ typedef struct ktxTexture {
 typedef KTX_error_code
     (KTXAPIENTRY* PFNKTXITERCB)(int miplevel, int face,
                                 int width, int height, int depth,
-                                ktx_uint32_t faceLodSize,
+                                ktx_uint64_t faceLodSize,
                                 void* pixels, void* userdata);
 
 typedef void (KTXAPIENTRY* PFNKTEXDESTROY)(ktxTexture* This);
@@ -401,6 +401,10 @@ typedef KTX_error_code
     (KTXAPIENTRY* PFNKTEXGLUPLOAD)(ktxTexture* This,
                                    GLuint* pTexture, GLenum* pTarget,
                                    GLenum* pGlerror);
+typedef KTX_error_code
+    (KTXAPIENTRY* PFNKTEXITERATELEVELS)(ktxTexture* This, PFNKTXITERCB iterCb,
+                                        void* userdata);
+
 typedef KTX_error_code
     (KTXAPIENTRY* PFNKTEXITERATELEVELFACES)(ktxTexture* This,
                                             PFNKTXITERCB iterCb,
@@ -446,6 +450,7 @@ typedef KTX_error_code
     PFNKTEXGETIMAGEOFFSET GetImageOffset;
     PFNKTEXGETIMAGESIZE GetImageSize;
     PFNKTEXGLUPLOAD GLUpload;
+    PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELEVELFACES IterateLevelFaces;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXLOADIMAGEDATA LoadImageData;
@@ -476,6 +481,12 @@ typedef KTX_error_code
  * object.
  */
 #define ktxTexture_GLUpload(obj, a, b, c) obj->vtbl->GLUpload(obj, a, b, c)
+
+/*
+ * Iterates over the levels of a ktxTexture object.
+ */
+#define ktxTexture_IterateLevels(This, iterCb, userdata) \
+                            This->vtbl->IterateLevels(This, iterCb, userdata)
 
 /*
  * Iterates over the already loaded level-faces in a ktxTexture object.
@@ -714,15 +725,6 @@ ktxTexture_GetData(ktxTexture* This);
  */
 ktx_size_t
 ktxTexture_GetSize(ktxTexture* This);
-
-/*
- * Iterates over the already loaded levels in a ktxTexture object.
- * iterCb is called for each level. The data passed to iterCb
- * includes all faces for each level.
- */
-KTX_error_code
-ktxTexture_IterateLevels(ktxTexture* This, PFNKTXITERCB iterCb,
-                         void* userdata);
 
 /*
  * Create a new ktxTexture1.

@@ -299,8 +299,8 @@ ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
     header.glType = This->glType;
     header.glTypeSize = ktxTexture1_glTypeSize(This);
     header.pixelWidth = This->baseWidth;
-    header.pixelHeight = This->baseHeight;
-    header.pixelDepth = This->baseDepth;
+    header.pixelHeight = This->numDimensions > 1 ? This->baseHeight : 0;
+    header.pixelDepth = This->numDimensions > 2 ? This->baseDepth : 0;
     header.numberOfArrayElements = This->isArray ? This->numLayers : 0;
     assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
     header.numberOfFaces = This->numFaces;
@@ -339,7 +339,7 @@ ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
         ktx_uint32_t faceLodSize, layer, levelDepth, numImages;
         ktx_size_t imageSize;
 
-        faceLodSize = (ktx_uint32_t)ktxTexture_calcFaceLodSize(ktxTexture(This),
+        faceLodSize = (ktx_uint32_t)ktxTexture_doCalcFaceLodSize(ktxTexture(This),
                                                     level,
                                                     KTX_FORMAT_VERSION_ONE);
         imageSize = ktxTexture_GetImageSize(ktxTexture(This), level);
@@ -565,8 +565,8 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
     }
     header.typeSize = ktxTexture1_glTypeSize(This);
     header.pixelWidth = This->baseWidth;
-    header.pixelHeight = This->baseHeight;
-    header.pixelDepth = This->baseDepth;
+    header.pixelHeight = This->numDimensions > 1 ? This->baseHeight : 0;
+    header.pixelDepth = This->numDimensions > 2 ? This->baseDepth : 0;
     header.layerCount = This->isArray ? This->numLayers : 0;
     assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
     header.faceCount = This->numFaces;
@@ -710,7 +710,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         ktx_size_t imageSize;
 #define DUMP_IMAGE 0
 #if defined(DEBUG) || DUMP_IMAGE
-        ktx_off_t pos;
+        ktx_size_t pos;
 #endif
 
         --level; // Calc proper level number for below. Conveniently
@@ -718,7 +718,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         imageSize = ktxTexture_calcImageSize(ktxTexture(This), level,
                                              KTX_FORMAT_VERSION_TWO);
 #if defined(DEBUG)
-        result = dststr->getpos(dststr, &pos);
+        result = dststr->getpos(dststr, (ktx_off_t*)&pos);
         // Could fail if stdout is a pipe
         if (result == KTX_SUCCESS)
             assert(pos == levelIndex[level].byteOffset);
@@ -753,8 +753,14 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 #endif
                 if (rowPadding == 0) {
 #if DUMP_IMAGE
-                    for (uint32_t i = 0; i < imageSize; i++)
-                        fprintf(stdout, "%#x, ", *(This->pData + srcOffset + i));
+                  if (!This->isCompressed)
+                    for (uint32_t y = 0; y < (This->baseHeight >> level); y++) {
+                        for (uint32_t x = 0; x < rowBytes; x++) {
+                            fprintf(stdout, "%#x, ",
+                                    *(This->pData + srcOffset + y * rowBytes + x));
+                        }
+                        fprintf(stdout, "\n");
+                    }
 #endif
                     // Write entire image.
                     result = dststr->write(dststr, This->pData + srcOffset,

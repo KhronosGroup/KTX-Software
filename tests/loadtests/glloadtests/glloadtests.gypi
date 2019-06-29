@@ -33,6 +33,8 @@
       }],
     ],
     'common_source_files': [
+      '../../../utils/argparser.h',
+      '../../../utils/argparser.cpp',
       '../common/LoadTestSample.cpp',
       '../common/LoadTestSample.h',
       '../common/SwipeDetector.cpp',

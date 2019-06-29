@@ -131,19 +131,10 @@ Texture::Texture(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
-    char* pValue;
-    uint32_t valueLen;
-    if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
-                                             KTX_ORIENTATION_KEY,
-                                             &valueLen, (void**)&pValue))
-    {
-        char s, t;
-        
-        if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-            if (s == 'l') sign_s = -1;
-            if (t == 'u') sign_t = -1;
-        }
-    }
+    if (kTexture->orientation.x == KTX_ORIENT_X_LEFT)
+        sign_s = -1;
+    if (kTexture->orientation.y == KTX_ORIENT_Y_UP)
+        sign_t = -1;
 
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&vdi);

@@ -47,6 +47,9 @@ KTX_error_code CLASS_FUNC(GetImageOffset)(CLASS* This, ktx_uint32_t level,
 ktx_size_t CLASS_FUNC(GetImageSize)(CLASS* This, ktx_uint32_t level);
 KTX_error_code CLASS_FUNC(GLUpload)(CLASS* This, GLuint* pTexture,
                                     GLenum* pTarget, GLenum* pGlerror);
+KTX_error_code CLASS_FUNC(IterateLevels)(CLASS* This,
+                                         PFNKTXITERCB iterCb,
+                                         void* userdata);
 KTX_error_code CLASS_FUNC(IterateLevelFaces)(CLASS* This,
                                              PFNKTXITERCB iterCb,
                                              void* userdata);

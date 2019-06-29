@@ -459,7 +459,7 @@ KTX_error_code KTXAPIENTRY
 texImage1DCallback(int miplevel, int face,
                    int width, int height,
                    int depth,
-                   ktx_uint32_t faceLodSize,
+                   ktx_uint64_t faceLodSize,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
@@ -480,15 +480,18 @@ KTX_error_code KTXAPIENTRY
 compressedTexImage1DCallback(int miplevel, int face,
                              int width, int height,
                              int depth,
-                             ktx_uint32_t faceLodSize,
+                             ktx_uint64_t faceLodSize,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
 
+    if (faceLodSize > UINT32_MAX)
+        return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
+
     assert(pfGlCompressedTexImage1D != NULL);
     pfGlCompressedTexImage1D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat, width, 0,
-                             faceLodSize, pixels);
+                             (ktx_uint32_t)faceLodSize, pixels);
 
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;
@@ -501,7 +504,7 @@ KTX_error_code KTXAPIENTRY
 texImage2DCallback(int miplevel, int face,
                    int width, int height,
                    int depth,
-                   ktx_uint32_t faceLodSize,
+                   ktx_uint64_t faceLodSize,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
@@ -523,12 +526,15 @@ KTX_error_code KTXAPIENTRY
 compressedTexImage2DCallback(int miplevel, int face,
                              int width, int height,
                              int depth,
-                             ktx_uint32_t faceLodSize,
+                             ktx_uint64_t faceLodSize,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
     GLenum glerror;
     KTX_error_code result;
+
+    if (faceLodSize > UINT32_MAX)
+        return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
 
     // It is simpler to just attempt to load the format, rather than divine
     // which formats are supported by the implementation. In the event of an
@@ -537,7 +543,7 @@ compressedTexImage2DCallback(int miplevel, int face,
                            cbData->glInternalformat, width,
                            cbData->numLayers == 0 ? height : cbData->numLayers,
                            0,
-                           faceLodSize, pixels);
+                           (ktx_uint32_t)faceLodSize, pixels);
 
     glerror = glGetError();
 #if SUPPORT_SOFTWARE_ETC_UNPACK
@@ -585,7 +591,7 @@ KTX_error_code KTXAPIENTRY
 texImage3DCallback(int miplevel, int face,
                    int width, int height,
                    int depth,
-                   ktx_uint32_t faceLodSize,
+                   ktx_uint64_t faceLodSize,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
@@ -609,10 +615,13 @@ KTX_error_code KTXAPIENTRY
 compressedTexImage3DCallback(int miplevel, int face,
                              int width, int height,
                              int depth,
-                             ktx_uint32_t faceLodSize,
+                             ktx_uint64_t faceLodSize,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+
+    if (faceLodSize > UINT32_MAX)
+        return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
 
     assert(pfGlCompressedTexImage3D != NULL);
     pfGlCompressedTexImage3D(cbData->glTarget + face, miplevel,
@@ -620,7 +629,7 @@ compressedTexImage3DCallback(int miplevel, int face,
                              width, height,
                              cbData->numLayers == 0 ? depth : cbData->numLayers,
                              0,
-                             faceLodSize, pixels);
+                             (ktx_uint32_t)faceLodSize, pixels);
 
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
         return KTX_SUCCESS;

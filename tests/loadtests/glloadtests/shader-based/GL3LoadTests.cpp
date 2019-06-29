@@ -36,11 +36,35 @@
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
+      "testimages/orient-down-metadata.ktx2",
+      "KTX2: RGB8 + KTXOrientation down"
+    },
+    { DrawTexture::create,
+      "--preload testimages/orient-down-metadata.ktx2",
+      "KTX2: RGB8 + KTXOrientation down with pre-loaded images"
+    },
+    { TextureArray::create,
+      "testimages/texturearray_bc3_unorm.ktx2",
+      "KTX2: BC3 (S3TC DXT5) Compressed Texture Array"
+    },
+    { TextureArray::create,
+      "testimages/texturearray_astc_8x8_unorm.ktx2",
+      "KTX2: ASTC 8x8 Compressed Texture Array"
+    },
+    { TextureArray::create,
+      "testimages/texturearray_etc2_unorm.ktx2",
+      "KTX2: ETC2 Compressed Texture Array"
+    },
+    { TexturedCube::create,
+      "testimages/rgb-mipmap-reference.ktx2",
+      "KTX2: RGB8 Color/level mipmap"
+    },
+    { DrawTexture::create,
       "testimages/hi_mark.ktx",
       "RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
-      "testimages/orient-up.ktx",
+      "testimages/orient-up-metadata.ktx",
       "RGB8 + KTXOrientation up"
     },
     { DrawTexture::create,

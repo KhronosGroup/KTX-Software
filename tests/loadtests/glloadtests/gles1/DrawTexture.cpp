@@ -160,17 +160,10 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
             return;
         }
 
-        ktxresult = ktxHashList_FindValue(&kTexture->kvDataHead,
-                                          KTX_ORIENTATION_KEY,
-                                          &valueLen, (void**)&pValue);
-        if (KTX_SUCCESS == ktxresult) {
-            char s, t;
-
-            if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-                if (s == 'l') sign_s = -1;
-                if (t == 'd') sign_t = -1;
-            }
-        }
+        if (kTexture->orientation.x == KTX_ORIENT_X_LEFT)
+            sign_s = -1;
+        if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN)
+            sign_t = -1;
 
         iCropRect[2] = uTexWidth = kTexture->baseWidth;
         iCropRect[3] = uTexHeight = kTexture->baseHeight;
