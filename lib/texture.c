@@ -128,10 +128,12 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
       case 1:
         if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1)
             return KTX_INVALID_OPERATION;
+        break;
 
       case 2:
         if (createInfo->baseDepth > 1)
             return KTX_INVALID_OPERATION;
+        break;
 
       case 3:
         /* 3D array textures and 3D cubemaps are not supported by either
@@ -140,6 +142,7 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
         if (createInfo->isArray || createInfo->numFaces != 1
             || createInfo->numLayers != 1)
             return KTX_INVALID_OPERATION;
+        break;
     }
     This->numDimensions = createInfo->numDimensions;
     This->baseWidth = createInfo->baseWidth;
