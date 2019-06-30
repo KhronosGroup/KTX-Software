@@ -674,8 +674,8 @@ ktxTexture_doIterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
 
             ktxTexture_GetImageOffset(This, miplevel, 0, face, &offset);
             result = iterCb(miplevel, face,
-                             width, height, depth,
-                             faceLodSize, This->pData + offset, userdata);
+                            width, height, depth,
+                            faceLodSize, This->pData + offset, userdata);
 
             if (result != KTX_SUCCESS)
                 break;

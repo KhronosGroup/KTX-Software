@@ -396,7 +396,7 @@ typedef KTX_error_code
                                          ktx_uint32_t faceSlice,
                                          ktx_size_t* pOffset);
 typedef ktx_size_t
-(KTXAPIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
+    (KTXAPIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
 typedef KTX_error_code
     (KTXAPIENTRY* PFNKTEXGLUPLOAD)(ktxTexture* This,
                                    GLuint* pTexture, GLenum* pTarget,
@@ -545,7 +545,7 @@ typedef KTX_error_code
  * Write a ktxTexture object to a block of memory in KTX format.
  */
 #define ktxTexture_WriteToMemory(This, bytes, size) \
-                                This->vtbl->WritetoMemory(This, bytes, size)
+                                This->vtbl->WriteToMemory(This, bytes, size)
 
 
 /*===========================================================*

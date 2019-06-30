@@ -47,15 +47,6 @@
 //#define IS_BIG_ENDIAN (1 == *(unsigned char *)&(const int){0x01000000ul})
 #define IS_BIG_ENDIAN 0
 
-typedef struct ktxTexture2_private {
-   ktx_uint8_t* supercompressionGlobalData;
-   // Note the offsets in this index are from the start of the KTX2 *stream*.
-   // Use of levelStreamOfffset() and levelDataOffset() is recommended for
-   // clarity. The former returns the offset as in this index, the latter
-   // returns the offset from This->pData.
-   ktxLevelIndexEntry _levelIndex[1]; // Must be last so it can grow.
-} ktxTexture2_private;
-
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
 extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
@@ -104,6 +95,9 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
     } else {
         // TODO Validate createInfo->pDfd and create formatSize from it.
     }
+    if (!This->pDfd)
+        return KTX_UNSUPPORTED_TEXTURE_TYPE;
+
     result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize,
                                    storageAllocation);
     if (result != KTX_SUCCESS)
@@ -113,26 +107,40 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
         goto cleanup;;
 
     This->vkFormat = createInfo->vkFormat;
+
+    if (This->isCompressed)
+        This->_protected->_typeSize = 1;
+    else if (formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
+        This->_protected->_typeSize = formatSize.blockSizeInBits / 8;
+    else if (formatSize.flags & (KTX_FORMAT_SIZE_DEPTH_BIT | KTX_FORMAT_SIZE_STENCIL_BIT)) {
+        if (createInfo->vkFormat == VK_FORMAT_D16_UNORM_S8_UINT)
+            This->_protected->_typeSize = 2;
+        else
+            This->_protected->_typeSize = 4;
+    } else {
+        // Unpacked and uncompressed
+        enum InterpretDFDResult dfdRes;
+        InterpretedDFDChannel r, g, b, a;
+        dfdRes = interpretDFD(This->pDfd, &r, &g, &b, &a,
+                              &This->_protected->_typeSize);
+    }
+
     This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
 
     // Create levelIndex. Offsets are from start of the KTX2 stream.
-    ktxLevelIndexEntry* levelIndex;
+    ktxLevelIndexEntry* levelIndex = This->_private->_levelIndex;
     ktx_uint32_t levelIndexSize;
-    ktx_uint32_t offset;
 
+    This->_private->_firstLevelFileOffset = 0;
     levelIndexSize = sizeof(ktxLevelIndexEntry) * This->numLevels;
-    levelIndex = (ktxLevelIndexEntry*) malloc(levelIndexSize);
-    if (!levelIndex)
-        goto cleanup;
 
-    offset = sizeof(KTX_header2) + levelIndexSize;
     for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
         levelIndex[level].uncompressedByteLength =
             ktxTexture_calcLevelSize(ktxTexture(This), level,
                                      KTX_FORMAT_VERSION_TWO);
         levelIndex[level].byteLength =
             levelIndex[level].uncompressedByteLength;
-        levelIndex[level].byteOffset = offset +
+        levelIndex[level].byteOffset =
             ktxTexture_calcLevelOffset(ktxTexture(This), level,
                                        KTX_FORMAT_VERSION_TWO);
     }
@@ -239,6 +247,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     This->supercompressionScheme = pHeader->supercompressionScheme;
     //This->pDfd =
     vkGetFormatSize(This->vkFormat, &This->_protected->_formatSize);
+    if (This->_protected->_formatSize.blockSizeInBits == 0) {
+        return KTX_INVALID_VALUE; // TODO Return a more reasonable error?
+    }
+
     This->_protected->_typeSize = pHeader->typeSize;
     // Can these be done by a ktxTexture_constructFromStream?
     This->numDimensions = suppInfo.textureDimension;
@@ -280,6 +292,13 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     result = stream->read(stream, &private->_levelIndex, levelIndexSize);
     if (result != KTX_SUCCESS)
         goto cleanup;
+    // Rebase index to start of data and save file offset.
+    private->_firstLevelFileOffset
+                    = private->_levelIndex[This->numLevels-1].byteOffset;
+    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+        private->_levelIndex[level].byteOffset
+                                        -= private->_firstLevelFileOffset;
+    }
 
     // Read DFD
     This->pDfd =
@@ -369,7 +388,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                              pHeader->supercompressionGlobalData.byteOffset);
 
         // Read supercompressionGlobalData
-        private->supercompressionGlobalData =
+        private->_supercompressionGlobalData =
           (ktx_uint8_t*)malloc(pHeader->supercompressionGlobalData.byteLength);
         result = stream->read(stream, This->pDfd,
                           pHeader->supercompressionGlobalData.byteLength);
@@ -377,23 +396,21 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             goto cleanup;
     }
 
-    // There could be more padding here so seek to start of images.
-    (void)stream->setpos(stream,
-                         private->_levelIndex[This->numLevels - 1].byteOffset);
-
     // Calculate size of the image data.
     This->dataSize = 0;
     for (ktx_uint32_t i = 0; i < This->numLevels; i++) {
-        This->dataSize += private->_levelIndex[i].byteLength;
+        This->dataSize += _KTX_PAD8(private->_levelIndex[i].byteLength);
     }
 
     /*
      * Load the images, if requested.
      */
-    if (result == KTX_SUCCESS
-        && (createFlags & KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT)) {
+    if (createFlags & KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT) {
         result = ktxTexture2_LoadImageData(This, NULL, 0);
     }
+    if (result != KTX_SUCCESS)
+        goto cleanup;
+
     return result;
 
 cleanup:
@@ -440,7 +457,7 @@ ktxTexture2_constructFromStream(ktxTexture2* This, ktxStream* pStream,
     if (result != KTX_SUCCESS)
         return result;
 
-#if BIG_ENDIAN
+#if IS_BIG_ENDIAN
     // byte swap the header
 #endif
     return ktxTexture2_constructFromStreamAndHeader(This, pStream,
@@ -565,7 +582,7 @@ ktxTexture2_destruct(ktxTexture2* This)
 {
     if (This->pDfd) free(This->pDfd);
     if (This->_private) {
-      ktx_uint8_t* sgd = This->_private->supercompressionGlobalData;
+      ktx_uint8_t* sgd = This->_private->_supercompressionGlobalData;
       if (sgd) free(sgd);
       free(This->_private);
     }
@@ -1082,7 +1099,8 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
         }
 
         // Use setpos so we skip any padding.
-        result = stream->setpos(stream, levelIndex[level].byteOffset);
+        result = stream->setpos(stream,
+                                ktxTexture2_levelFileOffset(This, level));
         if (result != KTX_SUCCESS)
             goto cleanup;
 
@@ -1122,6 +1140,7 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
 
     // No further need for this.
     stream->destruct(stream);
+    This->_private->_firstLevelFileOffset = 0;
 cleanup:
     free(data);
 
@@ -1176,10 +1195,20 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
         pDest = pBuffer;
     }
 
+    // Seek to data for first level as there may be padding between the
+    // metadata/sgd and the image data.
+
+    result = prtctd->_stream.setpos(&prtctd->_stream,
+                                    private->_firstLevelFileOffset);
+    if (result != KTX_SUCCESS)
+        return result;
+
     result = prtctd->_stream.read(&prtctd->_stream, pDest,
                                   This->dataSize);
+    if (result != KTX_SUCCESS)
+        return result;
 
-    if (BIG_ENDIAN) {
+    if (IS_BIG_ENDIAN) {
         // Perform endianness conversion on texture data.
         // To avoid mip padding, need to convert each level individually.
         for (ktx_uint32_t level = 0; level < This->numLevels; ++level)
@@ -1204,21 +1233,22 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
         }
     }
 
-cleanup:
-    // No further need for this.
+    // No further need for stream or file offset.
     prtctd->_stream.destruct(&prtctd->_stream);
+    private->_firstLevelFileOffset = 0;
     return result;
 }
 
 ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level)
 {
-    return This->_private->_levelIndex[level].byteOffset;
+    assert(This->_private->_firstLevelFileOffset != 0);
+    return This->_private->_levelIndex[level].byteOffset
+           + This->_private->_firstLevelFileOffset;
 }
 
 ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level)
 {
-    return This->_private->_levelIndex[level].byteOffset
-           - This->_private->_levelIndex[This->numLevels-1].byteOffset;
+    return This->_private->_levelIndex[level].byteOffset;
 }
 
 /*

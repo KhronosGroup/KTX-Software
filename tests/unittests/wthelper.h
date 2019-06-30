@@ -76,6 +76,11 @@ class WriterTestHelper {
         memcpy(writer_ktx2, "WriteTestHelper 1.0", sizeof(writer_ktx2));
     }
 
+    ~WriterTestHelper() {
+        ktxHashList_Destruct(&kvHash);
+        ktxHashList_Destruct(&kvHash_ktx2);
+    }
+
     void resize(createFlags flags,
                 ktx_uint32_t numLayers, ktx_uint32_t numFaces,
                 ktx_uint32_t numDimensions,
@@ -165,26 +170,24 @@ class WriterTestHelper {
         orientation_ktx2[3] = 0;
         orientation_ktx2[numDimensions] = 0; // Ensure terminating NULL.
 
-        ktxHashList* hl;
-        ktxHashList_Create(&hl);
-        ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY,
+        ktxHashList_Construct(&kvHash);
+        ktxHashList_AddKVPair(&kvHash, KTX_ORIENTATION_KEY,
                               (unsigned int)strlen(orientation) + 1,
                               orientation);
-        ktxHashList_Serialize(hl, &kvDataLen, &kvData);
-        ktxHashList_Destruct(hl);
+        ktxHashList_Serialize(&kvHash, &kvDataLen, &kvData);
 
-        ktxHashList_Create(&hl);
-        ktxHashList_AddKVPair(hl, KTX_WRITER_KEY,
+
+        ktxHashList_Construct(&kvHash_ktx2);
+        ktxHashList_AddKVPair(&kvHash_ktx2, KTX_WRITER_KEY,
                               sizeof(writer_ktx2),
                               writer_ktx2);
 
-        ktxHashList_Serialize(hl, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
-        ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY,
+        ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
+        ktxHashList_AddKVPair(&kvHash_ktx2, KTX_ORIENTATION_KEY,
                               numDimensions + 1,
                               orientation_ktx2);
-        ktxHashList_Sort(hl);
-        ktxHashList_Serialize(hl, &kvDataLenAll_ktx2, &kvDataAll_ktx2);
-        ktxHashList_Destruct(hl);
+        ktxHashList_Sort(&kvHash_ktx2);
+        ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenAll_ktx2, &kvDataAll_ktx2);
     }
 
     // Compare the raw images, which are tightly packed, with potentially
@@ -306,6 +309,8 @@ class WriterTestHelper {
     ktx_uint32_t kvDataLenWriter_ktx2;
     ktx_uint8_t* kvDataAll_ktx2;
     ktx_uint32_t kvDataLenAll_ktx2;
+    ktxHashList kvHash;
+    ktxHashList kvHash_ktx2;
     char orientation_ktx2[4];
     char writer_ktx2[20];
 

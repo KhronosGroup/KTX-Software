@@ -336,7 +336,7 @@ optimalTilingCallback(int miplevel, int face,
  * element size.
  *
  * This should be used with @c ktx_Texture_IterateFaceLevels or
- * @c ktx_Texture_IterateLoadFaceLevels. Face-level iteration has been
+ * @c ktx_Texture_IterateLoadLevelFaces. Face-level iteration has been
  * selected to minimize the buffering needed between reading the file and
  * copying the data into the staging buffer. Obviously when
  * @c ktx_Texture_IterateFaceLevels is being used, this is a moot point.
