@@ -32,6 +32,7 @@
 
 #include "GL/glcorearb.h"
 #include "ktx.h"
+#include "../../lib/vkformat_enum.h"
 #include "argparser.h"
 #include "image.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
@@ -41,7 +42,7 @@
 #  define IMAGE_DEBUG 0
 #endif
 
-#define ALLOW_LEGACY_FORMAT_CREATION 1
+#define ALLOW_LEGACY_FORMAT_CREATION 0
 
 #if ALLOW_LEGACY_FORMAT_CREATION
 #if !defined(GL_LUMINANCE)
@@ -93,6 +94,7 @@ struct commandOptions {
     int          alpha;
     int          automipmap;
     int          cubemap;
+    int          ktx2;
     int          luminance;
     int          metadata;
     int          mipmap;
@@ -182,6 +184,8 @@ Create a KTX file from netpbm format files.
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.</dd>
+    <dt>--t2</dt>
+    <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--help</dt>
     <dd>Print this usage message and exit.</dd>
     <dt>--version</dt>
@@ -302,6 +306,7 @@ usage(_TCHAR* appName)
         "               writes a KTXorientation value of S=r,T=u into the output file\n"
         "               to inform loaders of the logical orientation. If a Vulkan loader\n"
         "               ignores the orientation value, the image will appear upside down.\n"
+        "  --t2         OUtput in KTX2 format. Default is KTX.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
         "\n"
@@ -314,11 +319,19 @@ usage(_TCHAR* appName)
         appName);
 }
 
+#define STR(x) #x
+#define VERSION 1.4
+
+static void
+writeId(std::ostream& dst, _TCHAR* appName)
+{
+    dst << appName << " version " << VERSION;
+}
 
 static void
 version(_TCHAR* appName)
 {
-    fprintf(stderr, "%s version 1.3\n", appName);
+    fprintf(stderr, "%s version %s\n", appName, STR(VERSION));
 }
 
 
@@ -327,12 +340,13 @@ int _tmain(int argc, _TCHAR* argv[])
     FILE* f;
     KTX_error_code ret;
     ktxTextureCreateInfo createInfo;
-    ktxTexture1* texture = 0;
+    ktxTexture* texture = 0;
     struct commandOptions options;
     unsigned int imageSize;
     int exitCode = 0, face;
     unsigned int i, level, levelWidth, levelHeight;
     FileResult readResult;
+    std::stringstream writer;
 
     processCommandLine(argc, argv, options);
 
@@ -389,18 +403,22 @@ int _tmain(int argc, _TCHAR* argv[])
                     switch (components) {
                       case 1:
                         createInfo.glInternalformat = componentSize == 1 ? GL_R8 : GL_R16;
+                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8_UNORM : VK_FORMAT_R16_UNORM;
                         break;
 
                       case 2:
                         createInfo.glInternalformat = componentSize == 1 ? GL_RG8 : GL_RG16;
-                        break;
+                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8G8_UNORM : VK_FORMAT_R16G16_UNORM;
+                       break;
 
                       case 3:
                         createInfo.glInternalformat = componentSize == 1 ? GL_RGB8 : GL_RGB16;
+                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8G8B8_UNORM : VK_FORMAT_R16G16B16_UNORM;
                         break;
 
                       case 4:
                         createInfo.glInternalformat = componentSize == 1 ? GL_RGBA8 : GL_RGBA16;
+                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_R16G16B16A16_UNORM;
                         break;
 
                       default:
@@ -444,9 +462,15 @@ int _tmain(int argc, _TCHAR* argv[])
                         }
                         createInfo.numLevels = levels;
                     }
-                    ret = ktxTexture1_Create(&createInfo,
-                                             KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                             &texture);
+                    if (options.ktx2) {
+                        ret = ktxTexture2_Create(&createInfo,
+                                                 KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                                 (ktxTexture2**)&texture);
+                    } else {
+                        ret = ktxTexture1_Create(&createInfo,
+                                                 KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                                 (ktxTexture1**)&texture);
+                    }
                     if (KTX_SUCCESS != ret) {
                         fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
                                 options.appName, ktxErrorString(ret));
@@ -546,7 +570,7 @@ int _tmain(int argc, _TCHAR* argv[])
     if (options.metadata && createInfo.baseHeight > 1) {
         ktxHashList* ht = &texture->kvDataHead;
         char orientation[10];
-        
+
         assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
         
         snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
@@ -555,6 +579,11 @@ int _tmain(int argc, _TCHAR* argv[])
                               (unsigned int)strlen(orientation) + 1,
                               orientation);
     }
+    // Add required writer metadata.
+    writeId(writer, options.appName);
+    ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+                          (ktx_uint32_t)writer.str().length() + 1,
+                          writer.str().c_str());
 
     if (_tcscmp(options.outfile, "-") == 0) {
         f = stdout;
@@ -598,6 +627,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     options.alpha = 0;
     options.automipmap = 0;
     options.cubemap = 0;
+    options.ktx2 = 0;
     options.luminance = 0;
     options.metadata = 1;
     options.mipmap = 0;
@@ -673,7 +703,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     if (options.outfile) {
         _tcscpy(options.outfile, argv[i++]);
         if (addktx)
-            _tcscat(options.outfile, ".ktx");
+            _tcscat(options.outfile, options.ktx2 ? ".ktx2" : ".ktx");
     } else {
         fprintf(stderr, "%s: out of memory.\n", options.appName);
         exit(2);
@@ -727,6 +757,7 @@ processOptions(argparser& parser,
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
+        { "t2", argparser::option::no_argument, &options.ktx2, 1},
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It
