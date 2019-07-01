@@ -346,7 +346,6 @@ int _tmain(int argc, _TCHAR* argv[])
     int exitCode = 0, face;
     unsigned int i, level, levelWidth, levelHeight;
     FileResult readResult;
-    std::stringstream writer;
 
     processCommandLine(argc, argv, options);
 
@@ -579,11 +578,14 @@ int _tmain(int argc, _TCHAR* argv[])
                               (unsigned int)strlen(orientation) + 1,
                               orientation);
     }
-    // Add required writer metadata.
-    writeId(writer, options.appName);
-    ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                          (ktx_uint32_t)writer.str().length() + 1,
-                          writer.str().c_str());
+    if (options.ktx2) {
+        // Add required writer metadata.
+        std::stringstream writer;
+        writeId(writer, options.appName);
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+                              (ktx_uint32_t)writer.str().length() + 1,
+                              writer.str().c_str());
+    }
 
     if (_tcscmp(options.outfile, "-") == 0) {
         f = stdout;
