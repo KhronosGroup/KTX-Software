@@ -780,7 +780,17 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx2")
 list(APPEND testimages__copies__output
   "${builddir}/testimages/conftestimage_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
@@ -813,7 +823,17 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/rgba-reference.ktx"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
-  "${builddir}/testimages/texturearray_etc2_unorm.ktx")
+  "${builddir}/testimages/texturearray_etc2_unorm.ktx"
+  "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2"
+  "${builddir}/testimages/orient-down-metadata.ktx2"
+  "${builddir}/testimages/orient-up-metadata.ktx2"
+  "${builddir}/testimages/pattern_02_bc2.ktx2"
+  "${builddir}/testimages/rgb-mipmap-reference.ktx2"
+  "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2"
+  "${builddir}/testimages/texturearray_bc3_unorm.ktx2"
+  "${builddir}/testimages/texturearray_etc2_unorm.ktx2")
 add_custom_command(
 OUTPUT ${testimages__copies__output}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
@@ -848,6 +868,16 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx2 ${builddir}/testimages/orient-down-metadata.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx2 ${builddir}/testimages/orient-up-metadata.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx2 ${builddir}/testimages/rgb-mipmap-reference.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx2 ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx2 ${builddir}/testimages/texturearray_bc3_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx2 ${builddir}/testimages/texturearray_etc2_unorm.ktx2
 DEPENDS ${testimages__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for testimages
@@ -1017,6 +1047,7 @@ unset(TARGET)
 set(TARGET "gl3loadtests")
 set(TOOLSET "target")
 list(APPEND gl3loadtests__cxx_srcs
+  "../../../../utils/argparser.cpp"
   "../../../../tests/loadtests/common/LoadTestSample.cpp"
   "../../../../tests/loadtests/common/SwipeDetector.cpp"
   "../../../../tests/loadtests/glloadtests/GLLoadTests.cpp"
@@ -1027,6 +1058,7 @@ list(APPEND gl3loadtests__cxx_srcs
   "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.cpp"
   "../../../../tests/loadtests/glloadtests/shader-based/shaders.cpp")
 list(APPEND gl3loadtests__other_srcs
+  "../../../../utils/argparser.h"
   "../../../../tests/loadtests/common/LoadTestSample.h"
   "../../../../tests/loadtests/common/SwipeDetector.h"
   "../../../../tests/loadtests/geom/cube.h"
@@ -1052,6 +1084,7 @@ list(APPEND gl3loadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"

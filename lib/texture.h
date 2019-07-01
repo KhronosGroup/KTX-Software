@@ -35,19 +35,29 @@
 #include "formatsize.h"
 #include "stream.h"
 
-#define DECLARE_PRIVATE(class) struct class ## _private* private = This->_private
-#define DECLARE_PROTECTED(class) struct class ## _protected* prtctd = This->_protected;
+#define DECLARE_PRIVATE(class) class ## _private* private = This->_private
+#define DECLARE_PROTECTED(class) class ## _protected* prtctd = This->_protected;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+typedef enum {
+    KTX_FORMAT_VERSION_ONE = 1,
+    KTX_FORMAT_VERSION_TWO = 2
+} ktxFormatVersionEnum;
+
+typedef ktx_size_t (* PFNCALCFACELODSIZE)(ktxTexture* This, ktx_uint32_t level);
 typedef ktx_uint32_t (* PFNMIPPAD)(ktx_size_t);
 typedef ktx_uint32_t (* PFNPADROW)(ktx_uint32_t*);
-typedef struct ktxTextureVtblInt {
-    ktx_uint32_t (* mipPadding)(ktx_size_t);
-    ktx_uint32_t (* padRow)(ktx_uint32_t*);
-} ktxTextureVtblInt;
+typedef struct ktxTexture_vtblInt {
+    PFNCALCFACELODSIZE calcFaceLodSize;
+//    PFNMIPPAD mipPadding;
+//    PFNPADROW padRow;
+} ktxTexture_vtblInt;
+
+#define ktxTexture_calcFaceLodSize(This, level) \
+            This->_protected->_vtbl.calcFaceLodSize(This, level);
 
 /**
  * @memberof ktxTexture
@@ -55,21 +65,20 @@ typedef struct ktxTextureVtblInt {
  *
  * @brief protected members of ktxTexture.
  */
-struct ktxTexture_protected {
-    ktxTextureVtblInt _vtbl;
+typedef struct ktxTexture_protected {
+    ktxTexture_vtblInt _vtbl;
     ktxFormatSize _formatSize;
+    ktx_uint32_t _typeSize;
     ktxStream _stream;
-};
+} ktxTexture_protected;
 
 #define ktxTexture_getStream(t) ((ktxStream*)(&(t)->_protected->_stream))
 #define ktxTexture1_getStream(t1) ktxTexture_getStream((ktxTexture*)t1)
 #define ktxTexture2_getStream(t2) ktxTexture_getStream((ktxTexture*)t2)
 
-typedef enum {
-    KTX_FORMAT_VERSION_ONE = 1,
-    KTX_FORMAT_VERSION_TWO = 2
-} ktxFormatVersionEnum;
-
+KTX_error_code
+ktxTexture_doIterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
+                               void* userdata);
 KTX_error_code
 ktxTexture_iterateLoadedImages(ktxTexture* This, PFNKTXITERCB iterCb,
                                void* userdata);
@@ -88,8 +97,8 @@ ktx_size_t ktxTexture_calcLevelOffset(ktxTexture* This, ktx_uint32_t level,
                                   ktxFormatVersionEnum fv);
 ktx_size_t ktxTexture_calcLevelSize(ktxTexture* This, ktx_uint32_t level,
                                     ktxFormatVersionEnum fv);
-ktx_size_t ktxTexture_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
-                                      ktxFormatVersionEnum fv);
+ktx_size_t ktxTexture_doCalcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
+                                        ktxFormatVersionEnum fv);
 ktx_size_t ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
                                 ktxFormatVersionEnum fv);
 void ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,

@@ -139,6 +139,7 @@
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\utils\argparser.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\LoadTestSample.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\SwipeDetector.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\cube.h"/>
@@ -149,6 +150,7 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\resources\win\resource.h"/>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\utils\argparser.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\SwipeDetector.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.cpp"/>

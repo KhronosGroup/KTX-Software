@@ -221,18 +221,18 @@ printKTX2Header(KTX_header2* pHeader)
     fprintf(stdout, "pixelWidth: %d\n", pHeader->pixelWidth);
     fprintf(stdout, "pixelHeight: %d\n", pHeader->pixelHeight);
     fprintf(stdout, "pixelDepth: %d\n", pHeader->pixelDepth);
-    fprintf(stdout, "arrayElementCount: %d\n",
-            pHeader->arrayElementCount);
+    fprintf(stdout, "layerCount: %d\n",
+            pHeader->layerCount);
     fprintf(stdout, "faceCount: %d\n", pHeader->faceCount);
     fprintf(stdout, "levelCount: %d\n", pHeader->levelCount);
-    fprintf(stdout, "dataFormatDescriptor.offset: %#x\n",
-            pHeader->dataFormatDescriptor.offset);
+    fprintf(stdout, "dataFormatDescriptor.byteOffset: %#x\n",
+            pHeader->dataFormatDescriptor.byteOffset);
     fprintf(stdout, "dataFormatDescriptor.byteLength: %d\n",
             pHeader->dataFormatDescriptor.byteLength);
-    fprintf(stdout, "keyValueData.offset: %#x\n", pHeader->keyValueData.offset);
+    fprintf(stdout, "keyValueData.byteOffset: %#x\n", pHeader->keyValueData.byteOffset);
     fprintf(stdout, "keyValueData.byteLength: %d\n", pHeader->keyValueData.byteLength);
-    fprintf(stdout, "supercompressionGlobalData.offset: %#" PRIx64 "\n",
-            pHeader->supercompressionGlobalData.offset);
+    fprintf(stdout, "supercompressionGlobalData.byteOffset: %#" PRIx64 "\n",
+            pHeader->supercompressionGlobalData.byteOffset);
     fprintf(stdout, "supercompressionGlobalData.byteLength: %" PRId64 "\n",
             pHeader->supercompressionGlobalData.byteLength);
 }
@@ -249,8 +249,8 @@ void
 printLevelIndex(ktxLevelIndexEntry levelIndex[], ktx_uint32_t numLevels)
 {
     for (ktx_uint32_t level = 0; level < numLevels; level++) {
-    fprintf(stdout, "Level%d.offset: %#" PRIx64 "\n", level,
-            levelIndex[level].offset);
+    fprintf(stdout, "Level%d.byteOffset: %#" PRIx64 "\n", level,
+            levelIndex[level].byteOffset);
     fprintf(stdout, "Level%d.byteLength: %" PRId64 "\n", level,
             levelIndex[level].byteLength);
     fprintf(stdout, "Level%d.uncompressedByteLength: %" PRId64 "\n", level,

@@ -216,7 +216,7 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
 
     if (pHeader->pixelDepth > 0)
     {
-        if (pHeader->arrayElementCount > 0)
+        if (pHeader->layerCount > 0)
         {
             /* No 3D array textures yet. */
             return KTX_UNSUPPORTED_TEXTURE_TYPE;

@@ -46,6 +46,11 @@ class DrawTexture : public GL3LoadTestSample {
            const char* const szArgs, const std::string sBasePath);
 
   protected:
+    void processArgs(std::string sArgs);
+
+    std::string filename;
+    int preloadImages = 0;
+
     uint32_t uWidth;
     uint32_t uHeight;
 

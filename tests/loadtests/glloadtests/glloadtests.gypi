@@ -33,6 +33,8 @@
       }],
     ],
     'common_source_files': [
+      '../../../utils/argparser.h',
+      '../../../utils/argparser.cpp',
       '../common/LoadTestSample.cpp',
       '../common/LoadTestSample.h',
       '../common/SwipeDetector.cpp',
@@ -93,6 +95,7 @@
             '.',
             '../common',
             '../geom',
+            '../../../utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE',
@@ -181,6 +184,7 @@
             '.',
             '../common',
             '../geom',
+            '../../../utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',

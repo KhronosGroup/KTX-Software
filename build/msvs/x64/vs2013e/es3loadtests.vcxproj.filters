@@ -10,6 +10,12 @@
     <Filter Include="tests\loadtests\geom">
       <UniqueIdentifier>{A02DE8B8-A6FF-838C-A3B0-4DABDCFB372B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
@@ -264,6 +270,12 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\quad.h">
       <Filter>tests\loadtests\geom</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\utils\argparser.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\utils\argparser.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp">
       <Filter>tests\loadtests\common</Filter>
     </ClCompile>

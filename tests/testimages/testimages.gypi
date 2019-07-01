@@ -32,13 +32,19 @@
           'direct_dependent_settings': {
             'copies': [{
              'destination': '<(imagedest)',
-             'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
+             'files': [
+                '<!@(ls <(testimages_dir)/*.ktx)',
+                '<!@(ls <(testimages_dir)/*.ktx2)',
+              ],
             }], # copies
           }, # direct_dependent_settings
         }, {
           'copies': [{
            'destination': '<(imagedest)',
-           'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
+           'files': [
+                '<!@(ls <(testimages_dir)/*.ktx)',
+                '<!@(ls <(testimages_dir)/*.ktx2)',
+            ],
           }], # copies
         }],
       ],

@@ -25,6 +25,7 @@ INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/glloadtests \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
@@ -51,12 +52,14 @@ INCS_Release := \
 	-I$(srcdir)/tests/loadtests/glloadtests \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
 	-I$(srcdir)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
 	$(obj).target/$(TARGET)/tests/loadtests/common/SwipeDetector.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/GLLoadTests.o \

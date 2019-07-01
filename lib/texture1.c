@@ -44,20 +44,21 @@
 #include "gl_format.h"
 
 typedef struct ktxTexture1_private {
-   ktx_uint32_t _glTypeSize;
    ktx_bool_t   _needSwap;
 } ktxTexture1_private;
 
 struct ktxTexture_vtbl ktxTexture1_vtbl;
+struct ktxTexture_vtblInt ktxTexture1_vtblInt;
 extern struct ktxTexture_vvtbl* pKtxTexture1_vvtbl;
 
 static KTX_error_code
-ktxTexture1_constructBase(ktxTexture1* This)
+ktxTexture1_constructCommon(ktxTexture1* This)
 {
     assert(This != NULL);
 
     This->classId = ktxTexture1_c;
     This->vtbl = &ktxTexture1_vtbl;
+    This->_protected->_vtbl = ktxTexture1_vtblInt;
 #if !KTX_OMIT_VULKAN
     This->vvtbl = pKtxTexture1_vvtbl;
 #else
@@ -81,6 +82,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
                       ktxTextureCreateStorageEnum storageAllocation)
 {
     ktxTexture1_private* private;
+    ktxTexture_protected* prtctd;
     ktxFormatSize formatSize;
     GLuint typeSize;
     GLenum glFormat;
@@ -102,9 +104,10 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
                                    storageAllocation);
     if (result != KTX_SUCCESS)
         return result;
-    result = ktxTexture1_constructBase(This);
+    result = ktxTexture1_constructCommon(This);
     if (result != KTX_SUCCESS)
         return result;
+    prtctd = This->_protected;
     private = This->_private;
 
     This->isCompressed
@@ -113,7 +116,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
         This->glFormat = 0;
         This->glBaseInternalformat = glFormat;
         This->glType = 0;
-        private->_glTypeSize = 0;
+        prtctd->_typeSize = 0;
     } else {
         This->glBaseInternalformat = This->glFormat = glFormat;
         This->glType
@@ -136,7 +139,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
             result = KTX_INVALID_VALUE;
             goto cleanup;
         }
-        private->_glTypeSize = typeSize;
+        prtctd->_typeSize = typeSize;
     }
 
     if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
@@ -213,12 +216,12 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     assert(pHeader != NULL && pStream != NULL);
 
 	memset(This, 0, sizeof(*This));
-	result = ktxTexture1_constructBase(This);
+    result = ktxTexture_constructFromStream(ktxTexture(This), pStream, createFlags);
     if (result != KTX_SUCCESS)
         return result;
-    ktxTexture_constructFromStream(ktxTexture(This), pStream, createFlags);
+    result = ktxTexture1_constructCommon(This);
     if (result != KTX_SUCCESS) {
-        ktxTexture1_destruct(This);
+        ktxTexture_destruct(ktxTexture(This));
         return result;
     }
 
@@ -238,7 +241,8 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     glGetFormatSize(This->glInternalformat, &formatSize);
     if (formatSize.blockSizeInBits == 0) {
         // Most likely a deprecated legacy format.
-        return KTX_UNSUPPORTED_TEXTURE_TYPE;
+        result = KTX_UNSUPPORTED_TEXTURE_TYPE;
+        goto cleanup;
     }
     This->_protected->_formatSize = formatSize;
     This->glBaseInternalformat = pHeader->glBaseInternalformat;
@@ -276,7 +280,7 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     This->generateMipmaps = suppInfo.generateMipmaps;
     if (pHeader->endianness == KTX_ENDIAN_REF_REV)
         private->_needSwap = KTX_TRUE;
-    private->_glTypeSize = pHeader->glTypeSize;
+    This->_protected->_typeSize = pHeader->glTypeSize;
 
     /*
      * Make an empty hash list.
@@ -312,11 +316,43 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
             }
 
             if (!(createFlags & KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)) {
+                char* orientation;
+                ktx_uint32_t orientationLen;
+
                 result = ktxHashList_Deserialize(&This->kvDataHead,
                                                  kvdLen, pKvd);
                 if (result != KTX_SUCCESS) {
                     free(pKvd);
                     goto cleanup;
+                }
+
+                result = ktxHashList_FindValue(&This->kvDataHead,
+                                               KTX_ORIENTATION_KEY,
+                                               &orientationLen,
+                                               (void**)&orientation);
+                assert(result != KTX_INVALID_VALUE);
+                if (result == KTX_SUCCESS) {
+                    ktx_uint32_t count;
+                    char orient[4] = {0, 0, 0, 0};
+
+                    count = sscanf(orientation, KTX_ORIENTATION3_FMT,
+                                   &orient[0],
+                                   &orient[1],
+                                   &orient[2]);
+
+                    if (count > This->numDimensions) {
+                        // KTX 1 is less strict than KTX2 so there is a chance
+                        // of having more dimensions than needed.
+                        count = This->numDimensions;
+                    }
+                    switch (This->numDimensions) {
+                      case 3:
+                        This->orientation.z = orient[2];
+                      case 2:
+                        This->orientation.y = orient[1];
+                      case 1:
+                        This->orientation.x = orient[0];
+                    }
                 }
             } else {
                 This->kvDataLen = kvdLen;
@@ -345,14 +381,13 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
      * Load the images, if requested.
      */
     if (createFlags & KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT) {
-        result = ktxTexture_LoadImageData(ktxTexture(This), NULL, 0);
+        result = ktxTexture1_LoadImageData(This, NULL, 0);
     }
     if (result == KTX_SUCCESS)
         return result;
 
 cleanup:
     ktxTexture1_destruct(This);
-    ktxTexture_destruct(ktxTexture(This));
     return result;
 }
 
@@ -515,7 +550,7 @@ ktxTexture1_constructFromMemory(ktxTexture1* This,
 void
 ktxTexture1_destruct(ktxTexture1* This)
 {
-    free(This->_private);
+    if (This->_private) free(This->_private);
     ktxTexture_destruct(ktxTexture(This));
 }
 
@@ -775,104 +810,17 @@ ktxTexture1_Destroy(ktxTexture1* This)
 }
 
 /**
- * @memberof ktxTexture1
+ * @memberof ktxTexture1 @private
  * @~English
- * @brief Load all the image data from the ktxTexture's source.
  *
- * The data is loaded into the provided buffer or to an internally allocated
- * buffer, if @p pBuffer is @c NULL.
- *
- * @param[in] This pointer to the ktxTexture object of interest.
- * @param[in] pBuffer pointer to the buffer in which to load the image data.
- * @param[in] bufSize size of the buffer pointed at by @p pBuffer.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE @p This is NULL.
- * @exception KTX_INVALID_VALUE @p bufSize is less than the the image data size.
- * @exception KTX_INVALID_OPERATION
- *                              The data has already been loaded or the
- *                              ktxTexture was not created from a KTX source.
- * @exception KTX_OUT_OF_MEMORY Insufficient memory for the image data.
+ * @copybrief ktxTexture::ktxTexture_doCalcFaceLodSize
+ * @copydetails ktxTexture::ktxTexture_doCalcFaceLodSize
  */
-KTX_error_code
-ktxTexture1_LoadImageData(ktxTexture1* This,
-                          ktx_uint8_t* pBuffer, ktx_size_t bufSize)
+ktx_size_t
+ktxTexture1_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level)
 {
-    DECLARE_PROTECTED(ktxTexture);
-    DECLARE_PRIVATE(ktxTexture1);
-    ktx_uint32_t    miplevel;
-    ktx_uint8_t*    pDest;
-    KTX_error_code  result = KTX_SUCCESS;
-
-    if (This == NULL)
-        return KTX_INVALID_VALUE;
-
-    if (prtctd->_stream.data.file == NULL)
-        // This Texture not created from a stream or images already loaded;
-        return KTX_INVALID_OPERATION;
-
-    if (pBuffer == NULL) {
-        This->pData = malloc(This->dataSize);
-        if (This->pData == NULL)
-            return KTX_OUT_OF_MEMORY;
-        pDest = This->pData;
-    } else if (bufSize < This->dataSize) {
-        return KTX_INVALID_VALUE;
-    } else {
-        pDest = pBuffer;
-    }
-
-    // Need to loop through for correct byte swapping
-    for (miplevel = 0; miplevel < This->numLevels; ++miplevel)
-    {
-        ktx_uint32_t faceLodSize;
-        ktx_uint32_t faceLodSizePadded;
-        ktx_uint32_t face;
-        ktx_uint32_t innerIterations;
-
-        result = prtctd->_stream.read(&prtctd->_stream, &faceLodSize,
-                                      sizeof(ktx_uint32_t));
-        if (result != KTX_SUCCESS) {
-            goto cleanup;
-        }
-        if (private->_needSwap) {
-            _ktxSwapEndian32(&faceLodSize, 1);
-        }
-#if (KTX_GL_UNPACK_ALIGNMENT != 4)
-        faceLodSizePadded = _KTX_PAD4(faceLodSize);
-#else
-        faceLodSizePadded = faceLodSize;
-#endif
-
-        if (This->isCubemap && !This->isArray)
-            innerIterations = This->numFaces;
-        else
-            innerIterations = 1;
-        for (face = 0; face < innerIterations; ++face)
-        {
-            result = prtctd->_stream.read(&prtctd->_stream, pDest,
-                                          faceLodSizePadded);
-            if (result != KTX_SUCCESS) {
-                goto cleanup;
-            }
-
-            /* Perform endianness conversion on texture data */
-            if (private->_needSwap) {
-                if (private->_glTypeSize == 2)
-                    _ktxSwapEndian16((ktx_uint16_t*)pDest, faceLodSize / 2);
-                else if (private->_glTypeSize == 4)
-                    _ktxSwapEndian32((ktx_uint32_t*)pDest, faceLodSize / 4);
-            }
-
-            pDest += faceLodSizePadded;
-        }
-    }
-
-cleanup:
-    // No further need for This->
-    prtctd->_stream.destruct(&prtctd->_stream);
-    return result;
+    return ktxTexture_doCalcFaceLodSize(ktxTexture(This), level,
+                                        KTX_FORMAT_VERSION_ONE);
 }
 
 /**
@@ -975,30 +923,27 @@ ktx_uint32_t
 ktxTexture1_glTypeSize(ktxTexture1* This)
 {
     assert(This != NULL);
-    return This->_private->_glTypeSize;
+    return This->_protected->_typeSize;
 }
 
 /**
- * @memberof ktxTexture1
+ * @memberof ktxTexture
  * @~English
- * @brief Iterate over the images in a ktxTexture1 object.
+ * @brief Iterate over the mip levels in a ktxTexture object.
  *
- * Blocks of image data are passed to an application-supplied callback
- * function. This is not a strict per-image iteration. Rather it reflects how
- * OpenGL needs the images. For most textures the block of data includes all
- * images of a mip level which implies all layers of an array. However, for
- * non-array cube map textures the block is a single face of the mip level,
- * i.e the callback is called once for each face.
+ * This is almost identical to ktxTexture_IterateLevelFaces(). The difference is
+ * that the blocks of image data for non-array cube maps include all faces of
+ * a mip level.
  *
  * This function works even if @p This->pData == 0 so it can be used to
  * obtain offsets and sizes for each level by callers who have loaded the data
  * externally.
  *
- * @param[in]     This      pointer to the ktxTexture1 object of interest.
- * @param[in,out] iterCb    the address of a callback function which is called
- *                          with the data for each image block.
- * @param[in,out] userdata  the address of application-specific data which is
- *                          passed to the callback along with the image data.
+ * @param[in]     This     handle of the ktxTexture opened on the data.
+ * @param[in,out] iterCb   the address of a callback function which is called
+ *                         with the data for each image block.
+ * @param[in,out] userdata the address of application-specific data which is
+ *                         passed to the callback along with the image data.
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error. The
  *          following are returned directly by this function. @p iterCb may
@@ -1010,8 +955,7 @@ ktxTexture1_glTypeSize(ktxTexture1* This)
  *
  */
 KTX_error_code
-ktxTexture1_IterateLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
-                              void* userdata)
+ktxTexture1_IterateLevels(ktxTexture1* This, PFNKTXITERCB iterCb, void* userdata)
 {
     ktx_uint32_t    miplevel;
     KTX_error_code  result = KTX_SUCCESS;
@@ -1019,52 +963,33 @@ ktxTexture1_IterateLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
     if (This == NULL)
         return KTX_INVALID_VALUE;
 
-    if (This->classId != ktxTexture1_c)
-        return KTX_INVALID_OPERATION;
-
     if (iterCb == NULL)
         return KTX_INVALID_VALUE;
 
     for (miplevel = 0; miplevel < This->numLevels; ++miplevel)
     {
-        ktx_uint32_t faceLodSize;
-        ktx_uint32_t face;
-        ktx_uint32_t innerIterations;
-        GLsizei      width, height, depth;
+        GLsizei width, height, depth;
+        ktx_uint32_t levelSize;
+        ktx_size_t offset;
 
         /* Array textures have the same number of layers at each mip level. */
         width = MAX(1, This->baseWidth  >> miplevel);
         height = MAX(1, This->baseHeight >> miplevel);
         depth = MAX(1, This->baseDepth  >> miplevel);
 
-        faceLodSize = (ktx_uint32_t)ktxTexture_calcFaceLodSize(
-                                                    ktxTexture(This), miplevel,
-                                                    KTX_FORMAT_VERSION_ONE);
+        levelSize = (ktx_uint32_t)ktxTexture_calcLevelSize(ktxTexture(This),
+                                                       miplevel,
+                                                       KTX_FORMAT_VERSION_ONE);
 
         /* All array layers are passed in a group because that is how
          * GL & Vulkan need them. Hence no
          *    for (layer = 0; layer < This->numLayers)
          */
-        if (This->isCubemap && !This->isArray)
-            innerIterations = This->numFaces;
-        else
-            innerIterations = 1;
-        for (face = 0; face < innerIterations; ++face)
-        {
-            /* And all z_slices are also passed as a group hence no
-             *    for (slice = 0; slice < This->depth)
-             */
-            ktx_size_t offset;
-
-            ktxTexture_GetImageOffset(ktxTexture(This), miplevel, 0, face,
-                                      &offset);
-            result = iterCb(miplevel, face,
-                             width, height, depth,
-                             faceLodSize, This->pData + offset, userdata);
-
-            if (result != KTX_SUCCESS)
-                break;
-        }
+        ktxTexture_GetImageOffset(ktxTexture(This), miplevel, 0, 0, &offset);
+        result = iterCb(miplevel, 0, width, height, depth,
+                         levelSize, This->pData + offset, userdata);
+        if (result != KTX_SUCCESS)
+            break;
     }
 
     return result;
@@ -1190,9 +1115,9 @@ ktxTexture1_IterateLoadLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
 
             /* Perform endianness conversion on texture data */
             if (private->_needSwap) {
-                if (private->_glTypeSize == 2)
+                if (prtctd->_typeSize == 2)
                     _ktxSwapEndian16((ktx_uint16_t*)data, faceLodSize / 2);
-                else if (private->_glTypeSize == 4)
+                else if (prtctd->_typeSize == 4)
                     _ktxSwapEndian32((ktx_uint32_t*)data, faceLodSize / 4);
             }
 
@@ -1210,16 +1135,123 @@ cleanup:
     return result;
 }
 
+/**
+ * @memberof ktxTexture1
+ * @~English
+ * @brief Load all the image data from the ktxTexture's source.
+ *
+ * The data is loaded into the provided buffer or to an internally allocated
+ * buffer, if @p pBuffer is @c NULL.
+ *
+ * @param[in] This pointer to the ktxTexture object of interest.
+ * @param[in] pBuffer pointer to the buffer in which to load the image data.
+ * @param[in] bufSize size of the buffer pointed at by @p pBuffer.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This is NULL.
+ * @exception KTX_INVALID_VALUE @p bufSize is less than the the image data size.
+ * @exception KTX_INVALID_OPERATION
+ *                              The data has already been loaded or the
+ *                              ktxTexture was not created from a KTX source.
+ * @exception KTX_OUT_OF_MEMORY Insufficient memory for the image data.
+ */
+KTX_error_code
+ktxTexture1_LoadImageData(ktxTexture1* This,
+                          ktx_uint8_t* pBuffer, ktx_size_t bufSize)
+{
+    DECLARE_PROTECTED(ktxTexture);
+    DECLARE_PRIVATE(ktxTexture1);
+    ktx_uint32_t    miplevel;
+    ktx_uint8_t*    pDest;
+    KTX_error_code  result = KTX_SUCCESS;
+
+    if (This == NULL)
+        return KTX_INVALID_VALUE;
+
+    if (prtctd->_stream.data.file == NULL)
+        // This Texture not created from a stream or images already loaded;
+        return KTX_INVALID_OPERATION;
+
+    if (pBuffer == NULL) {
+        This->pData = malloc(This->dataSize);
+        if (This->pData == NULL)
+            return KTX_OUT_OF_MEMORY;
+        pDest = This->pData;
+    } else if (bufSize < This->dataSize) {
+        return KTX_INVALID_VALUE;
+    } else {
+        pDest = pBuffer;
+    }
+
+    // Need to loop through for correct byte swapping
+    for (miplevel = 0; miplevel < This->numLevels; ++miplevel)
+    {
+        ktx_uint32_t faceLodSize;
+        ktx_uint32_t faceLodSizePadded;
+        ktx_uint32_t face;
+        ktx_uint32_t innerIterations;
+
+        result = prtctd->_stream.read(&prtctd->_stream, &faceLodSize,
+                                      sizeof(ktx_uint32_t));
+        if (result != KTX_SUCCESS) {
+            goto cleanup;
+        }
+        if (private->_needSwap) {
+            _ktxSwapEndian32(&faceLodSize, 1);
+        }
+#if (KTX_GL_UNPACK_ALIGNMENT != 4)
+        faceLodSizePadded = _KTX_PAD4(faceLodSize);
+#else
+        faceLodSizePadded = faceLodSize;
+#endif
+
+        if (This->isCubemap && !This->isArray)
+            innerIterations = This->numFaces;
+        else
+            innerIterations = 1;
+        for (face = 0; face < innerIterations; ++face)
+        {
+            result = prtctd->_stream.read(&prtctd->_stream, pDest,
+                                          faceLodSizePadded);
+            if (result != KTX_SUCCESS) {
+                goto cleanup;
+            }
+
+            /* Perform endianness conversion on texture data */
+            if (private->_needSwap) {
+                if (prtctd->_typeSize == 2)
+                    _ktxSwapEndian16((ktx_uint16_t*)pDest, faceLodSize / 2);
+                else if (prtctd->_typeSize == 4)
+                    _ktxSwapEndian32((ktx_uint32_t*)pDest, faceLodSize / 4);
+            }
+
+            pDest += faceLodSizePadded;
+        }
+    }
+
+cleanup:
+    // No further need for This->
+    prtctd->_stream.destruct(&prtctd->_stream);
+    return result;
+}
+
 /*
  * Initialized here at the end to avoid the need for multiple declarations of
  * these functions.
  */
+
+struct ktxTexture_vtblInt ktxTexture1_vtblInt = {
+    (PFNCALCFACELODSIZE)ktxTexture1_calcFaceLodSize
+};
+
 struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXDESTROY)ktxTexture1_Destroy,
     (PFNKTEXGETIMAGEOFFSET)ktxTexture1_GetImageOffset,
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
     (PFNKTEXGLUPLOAD)ktxTexture1_GLUpload,
-    (PFNKTEXITERATELEVELFACES)ktxTexture1_IterateLevelFaces,
+    (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
+    (PFNKTEXITERATELEVELFACES)ktxTexture_doIterateLevelFaces,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
     (PFNKTEXLOADIMAGEDATA)ktxTexture1_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture1_SetImageFromMemory,

@@ -290,7 +290,7 @@ typedef struct user_cbdata_optimal {
 static KTX_error_code KTXAPIENTRY
 optimalTilingCallback(int miplevel, int face,
                       int width, int height, int depth,
-                      ktx_uint32_t faceLodSize,
+                      ktx_uint64_t faceLodSize,
                       void* pixels, void* userdata)
 {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
@@ -336,7 +336,7 @@ optimalTilingCallback(int miplevel, int face,
  * element size.
  *
  * This should be used with @c ktx_Texture_IterateFaceLevels or
- * @c ktx_Texture_IterateLoadFaceLevels. Face-level iteration has been
+ * @c ktx_Texture_IterateLoadLevelFaces. Face-level iteration has been
  * selected to minimize the buffering needed between reading the file and
  * copying the data into the staging buffer. Obviously when
  * @c ktx_Texture_IterateFaceLevels is being used, this is a moot point.
@@ -346,7 +346,7 @@ optimalTilingCallback(int miplevel, int face,
 KTX_error_code KTXAPIENTRY
 optimalTilingPadCallback(int miplevel, int face,
                          int width, int height, int depth,
-                         ktx_uint32_t faceLodSize,
+                         ktx_uint64_t faceLodSize,
                          void* pixels, void* userdata)
 {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
@@ -428,7 +428,7 @@ typedef struct user_cbdata_linear {
 KTX_error_code KTXAPIENTRY
 linearTilingCallback(int miplevel, int face,
                       int width, int height, int depth,
-                      ktx_uint32_t faceLodSize,
+                      ktx_uint64_t faceLodSize,
                       void* pixels, void* userdata)
 {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
@@ -468,7 +468,7 @@ linearTilingCallback(int miplevel, int face,
 KTX_error_code KTXAPIENTRY
 linearTilingPadCallback(int miplevel, int face,
                       int width, int height, int depth,
-                      ktx_uint32_t faceLodSize,
+                      ktx_uint64_t faceLodSize,
                       void* pixels, void* userdata)
 {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
@@ -729,7 +729,9 @@ ktxTexture_doVkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         numImageLevels = This->numLevels;
     }
 
-    {
+    if (This->classId == ktxTexture2_c) {
+        canUseFasterPath = KTX_TRUE;
+    } else {
         ktx_uint32_t actualRowPitch = ktxTexture_GetRowPitch(This, 0);
         ktx_uint32_t tightRowPitch = elementSize * This->baseWidth;
         // If the texture's images do not have any row padding, we can use a

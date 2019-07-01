@@ -40,6 +40,7 @@
 #include "DrawTexture.h"
 #include "frame.h"
 #include "quad.h"
+#include "argparser.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -62,7 +63,6 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
                          const std::string sBasePath)
         : GL3LoadTestSample(width, height, szArgs, sBasePath)
 {
-    std::string filename;
     GLfloat* pfQuadTexCoords = quad_texture;
     GLfloat  fTmpTexCoords[sizeof(quad_texture)/sizeof(GLfloat)];
     GLenum target;
@@ -76,10 +76,13 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
 
     bInitialized = false;
     gnTexture = 0;
-    
-    filename = getAssetPath() + szArgs;    
-    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
-                                               KTX_TEXTURE_CREATE_NO_FLAGS,
+
+    processArgs(szArgs);
+
+    ktxresult = ktxTexture_CreateFromNamedFile(
+                         (getAssetPath() + filename).c_str(),
+                         preloadImages ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT
+                                       : KTX_TEXTURE_CREATE_NO_FLAGS,
                                                &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
@@ -91,26 +94,16 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
-        GLchar* pValue;
-        GLuint valueLen;
-
         if (target != GL_TEXTURE_2D) {
             /* Can only draw 2D textures */
             glDeleteTextures(1, &gnTexture);
             return;
         }
 
-        ktxresult = ktxHashList_FindValue(&kTexture->kvDataHead,
-                                          KTX_ORIENTATION_KEY,
-                                          &valueLen, (void**)&pValue);
-        if (KTX_SUCCESS == ktxresult) {
-            char s, t;
-
-            if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-                if (s == 'l') sign_s = -1;
-                if (t == 'd') sign_t = -1;
-            }
-        }
+        if (kTexture->orientation.x == KTX_ORIENT_X_LEFT)
+            sign_s = -1;
+        if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN)
+            sign_t = -1;
 
         if (sign_s < 0 || sign_t < 0) {
             // Transform the texture coordinates to get correct image
@@ -260,6 +253,32 @@ DrawTexture::~DrawTexture()
         glDeleteVertexArrays(2, gnVaos);
     }
     assert(GL_NO_ERROR == glGetError());
+}
+
+/* ------------------------------------------------------------------------- */
+
+void
+DrawTexture::processArgs(std::string sArgs)
+{
+    // Options descriptor
+    struct argparser::option longopts[] = {
+        "preload", argparser::option::no_argument,  &preloadImages, 1,
+        NULL,      argparser::option::no_argument,  NULL,          0
+    };
+
+    argvector argv(sArgs);
+    argparser ap(argv);
+
+    int ch;
+    while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
+        switch (ch) {
+            case 0: break;
+            default: assert(false); // Error in args in sample table.
+        }
+    }
+    assert(ap.optind < argv.size());
+    filename = argv[ap.optind];
+
 }
 
 /* ------------------------------------------------------------------------- */
