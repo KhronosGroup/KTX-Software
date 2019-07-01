@@ -95,6 +95,7 @@
             '.',
             '../common',
             '../geom',
+            '../../../utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE',
@@ -183,6 +184,7 @@
             '.',
             '../common',
             '../geom',
+            '../../../utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
