@@ -34,6 +34,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #if KTX_OPENGL

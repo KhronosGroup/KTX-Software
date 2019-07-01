@@ -151,9 +151,6 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
-        GLchar* pValue;
-        GLuint valueLen;
-
         if (target != GL_TEXTURE_2D) {
             /* Can only draw 2D textures */
             glDeleteTextures(1, &gnTexture);
