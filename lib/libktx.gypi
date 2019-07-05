@@ -9,6 +9,35 @@
     'sources': [
       # .h files are included so they will appear in IDEs' file lists.
       '../include/ktx.h',
+      'basisu/basisu_backend.cpp',
+      'basisu/basisu_backend.h',
+      'basisu/basisu_basis_file.cpp',
+      'basisu/basisu_basis_file.h',
+      'basisu/basisu_comp.cpp',
+      'basisu/basisu_comp.h',
+      'basisu/basisu_enc.cpp',
+      'basisu/basisu_enc.h',
+      'basisu/basisu_etc.cpp',
+      'basisu/basisu_etc.h',
+      'basisu/basisu_frontend.cpp',
+      'basisu/basisu_frontend.h',
+      'basisu/basisu_global_selector_palette_helpers.cpp',
+      'basisu/basisu_global_selector_palette_helpers.h',
+      'basisu/basisu_gpu_texture.cpp',
+      'basisu/basisu_gpu_texture.h',
+      'basisu/basisu_pvrtc1_4.cpp',
+      'basisu/basisu_pvrtc1_4.h',
+      'basisu/basisu_resampler.cpp',
+      'basisu/basisu_resampler.h',
+      'basisu/basisu_resample_filters.cpp',
+      'basisu/basisu_resample_filters.h',
+      'basisu/lodepng.cpp',
+      'basisu/lodepng.h',
+      'basisu/transcoder/basisu_transcoder.cpp',
+      'basisu/transcoder/basisu_transcoder.h',
+      'basisu_sgd.c',
+      'basisu_sgd.h',
+      'basisu.cpp',
       'checkheader.c',
       'dfdutils/createdfd.c',
       'dfdutils/dfd.h',
@@ -75,7 +104,6 @@
     {
       'target_name': 'libktx.gl',
       'type': '<(library)',
-      'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
@@ -130,6 +158,8 @@
         }], # _type == "shared_library"
       ], # conditions
       'xcode_settings': {
+          # Turn off so as to compile Basis. Hopefully temporary.
+          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
           # These are actually Xcode's defaults shown here for documentation.
           #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
           #'INSTALL_PATH': '/usr/local/lib',
@@ -142,7 +172,6 @@
     {
       'target_name': 'libktx.es1',
       'type': 'static_library',
-      'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL_ES1=1', 'KTX_OMIT_VULKAN=1' ],
       'direct_dependent_settings': {
         'include_dirs': [ '<@(include_dirs)' ],
@@ -153,7 +182,6 @@
     {
       'target_name': 'libktx.es3',
       'type': 'static_library',
-      'cflags': [ '-std=c99' ],
       'defines': [ 'KTX_OPENGL_ES3=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
       'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {

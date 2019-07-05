@@ -124,7 +124,9 @@
         }],
       ],
     },
-    'cflags': [ '-pedantic' ],
+    'cflags': [ '-pedantic', '-std=c99' ],
+    # Use C++11 for Basis, vulkan.hpp in vkloadtests and gtest.
+    'cflags_cc': [ '-pedantic', '-std=c++11' ],
     'msvs_configuration_attributes': {
       # When generating multi-platform solutions & projects these
       # directories must be augmented with $(PlatformName).
@@ -143,6 +145,8 @@
       },
     },
     'xcode_settings': {
+      # Use C++11 for Basis, vulkan.hpp in vkloadtests and gtest.
+      'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
       'COPY_PHASE_STRIP': 'NO',
       # Avoid linker warnings about "Direct access in function'. These need
       # to be NO or YES everywhere. When not set here, for some reason, appfwSDL

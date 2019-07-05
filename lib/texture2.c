@@ -933,7 +933,7 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
  * @brief Calculate & return the size in bytes of an image at the specified
  *        mip level.
  *
- * For arrays, this is the size of layer, for cubemaps, the size of a face
+ * For arrays, this is the size of a layer, for cubemaps, the size of a face
  * and for 3D textures, the size of a depth slice.
  *
  * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.

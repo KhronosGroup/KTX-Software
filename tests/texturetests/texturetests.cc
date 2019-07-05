@@ -2049,4 +2049,34 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
     runTest();
 }
 
+class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase { };
+
+/////////////////////////////////////////
+// ktxTexture2_BasisCompress tests
+////////////////////////////////////////
+
+TEST_F(ktxTexture2_BasisCompressTest, Compress) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        dataSize = texture->dataSize;
+        ktxTexture2_CompressBasis(texture);
+        EXPECT_EQ(texture->supercompressionScheme, KTX_SUPERCOMPRESSION_BASIS);
+        EXPECT_TRUE(texture->_private->_supercompressionGlobalData > (ktx_uint8_t*)0);
+        EXPECT_EQ(texture->numLevels, helper.numLevels);
+        EXPECT_LT(texture->dataSize, dataSize);
+        // How else to test the result?
+    }
+}
+
 }  // namespace

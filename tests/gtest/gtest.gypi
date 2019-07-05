@@ -15,10 +15,6 @@
       ],
       'direct_dependent_settings': {
         'include_dirs': [ 'include' ],
-        'xcode_settings': {
-          # For variadic macros
-          'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-        },
       },
       'include_dirs': [
         'include',
@@ -53,9 +49,6 @@
       'type': 'static_library',
       'direct_dependent_settings': {
         'include_dirs': [ 'include' ],
-        'xcode_settings': {
-          'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-        },
       },
       'include_dirs': [
         'include',
@@ -69,9 +62,6 @@
           'WarningLevel': 4,
           'WarnAsError': 'true',
         },
-      },
-      'xcode_settings' : {
-        'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
       },
       'configurations': {
         'Debug': {

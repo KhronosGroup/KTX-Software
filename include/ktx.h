@@ -755,6 +755,25 @@ ktxTexture1_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 void ktxTexture1_Destroy(ktxTexture1* This);
 
 /*
+ * Write a ktxTexture object to a stdio stream in KTX format.
+ */
+KTX_error_code
+ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr);
+
+/*
+ * Write a ktxTexture object to a named file in KTX format.
+ */
+KTX_error_code
+ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname);
+
+/*
+ * Write a ktxTexture object to a block of memory in KTX format.
+ */
+KTX_error_code
+ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
+                             ktx_uint8_t** bytes, ktx_size_t* size);
+
+/*
  * Create a new ktxTexture2.
  */
 KTX_error_code
@@ -782,24 +801,8 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 
 void ktxTexture2_Destroy(ktxTexture2* This);
 
-/*
- * Write a ktxTexture object to a stdio stream in KTX format.
- */
 KTX_error_code
-ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr);
-
-/*
- * Write a ktxTexture object to a named file in KTX format.
- */
-KTX_error_code
-ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname);
-
-/*
- * Write a ktxTexture object to a block of memory in KTX format.
- */
-KTX_error_code
-ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
-                             ktx_uint8_t** bytes, ktx_size_t* size);
+ktxTexture2_CompressBasis(ktxTexture2* This);
 
 /*
  * Returns a string corresponding to a KTX error code.
