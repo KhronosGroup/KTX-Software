@@ -33,6 +33,7 @@
       'basisu/basisu_resample_filters.h',
       'basisu/lodepng.cpp',
       'basisu/lodepng.h',
+      'basisu/transcoder/basisu_file_headers.h',
       'basisu/transcoder/basisu_transcoder.cpp',
       'basisu/transcoder/basisu_transcoder.h',
       'basisu_sgd.c',
