@@ -962,7 +962,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
             return KTX_UNSUPPORTED_FEATURE;
 #endif
              // First decode the alpha data
-#if 0
+
             if (hasAlpha)
             {
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
@@ -981,7 +981,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
                             basist::cBC4, bytes_per_block, 0);
                 status = true;
             }
-#endif
+
             if (status)
             {
                 // Now decode the color data. Forbid 3 color blocks, which aren't allowed in BC3.
