@@ -30,11 +30,16 @@
  */
 
 #include "GLLoadTests.h"
+#include "BasisuTest.h"
 #include "DrawTexture.h"
 #include "TexturedCube.h"
 #include "TextureArray.h"
 
 const GLLoadTests::sampleInvocation siSamples[] = {
+    {BasisuTest::create,
+    "testimages/rgba-reference.ktx2",
+    "KTX2: Encode and transcode Basis with RGBA non mipmapped"
+    },
     { DrawTexture::create,
       "testimages/orient-down-metadata.ktx2",
       "KTX2: RGB8 + KTXOrientation down"

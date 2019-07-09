@@ -1463,7 +1463,7 @@
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -1550,7 +1550,7 @@
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -1678,7 +1678,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -1787,7 +1787,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,

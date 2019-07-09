@@ -16,7 +16,7 @@
 #pragma once
 
 // Set BASISU_DEVEL_MESSAGES to 1 to enable debug printf()'s whenever an error occurs, for easier debugging during development.
-//#define BASISU_DEVEL_MESSAGES 1
+#define BASISU_DEVEL_MESSAGES 1
 
 #include "basisu_transcoder_internal.h"
 #include "basisu_global_selector_palette.h"
@@ -90,7 +90,15 @@ namespace basist
 		bool decode_tables(const uint8_t *pTable_data, uint32_t table_data_size);
 
 		bool transcode_slice(void *pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t *pImage_data, uint32_t image_data_size, block_format fmt, 
-			uint32_t output_stride, bool wrap_addressing, bool bc1_allow_threecolor_blocks, const basis_file_header &header, const basis_slice_desc& slice_desc, uint32_t output_row_pitch_in_blocks = 0, basisu_transcoder_state *pState = nullptr);
+			uint32_t output_stride, bool wrap_addressing, bool bc1_allow_threecolor_blocks, const bool video_flag, const bool alpha_flag, const uint32_t level_index,
+            uint32_t output_row_pitch_in_blocks = 0, basisu_transcoder_state *pState = nullptr);
+
+        bool transcode_slice(void *pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t *pImage_data, uint32_t image_data_size, block_format fmt,
+            uint32_t output_stride, bool wrap_addressing, bool bc1_allow_threecolor_blocks, const basis_file_header &header, const basis_slice_desc& slice_desc, uint32_t output_row_pitch_in_blocks = 0, basisu_transcoder_state *pState = nullptr)
+        {
+            return transcode_slice(pDst_blocks, num_blocks_x, num_blocks_y, pImage_data, image_data_size, fmt, output_stride, wrap_addressing, bc1_allow_threecolor_blocks,
+                                   header.m_tex_type == cBASISTexTypeVideoFrames, (slice_desc.m_flags & cSliceDescFlagsIsAlphaData) != 0, slice_desc.m_level_index, output_row_pitch_in_blocks, pState);
+        }
 
 	private:
 		struct endpoint
@@ -298,6 +306,10 @@ namespace basist
 		bool transcode_slice(const void *pData, uint32_t data_size, uint32_t slice_index, 
 			void *pOutput_blocks, uint32_t output_blocks_buf_size_in_blocks, 
 			block_format fmt, uint32_t output_block_stride_in_bytes, uint32_t decode_flags = cDecodeFlagsPVRTCWrapAddressing, uint32_t output_row_pitch_in_blocks = 0, basisu_transcoder_state * pState = nullptr) const;
+
+       static void write_opaque_alpha_blocks(uint32_t num_blocks_x, uint32_t num_blocks_y,
+            void* pOutput_blocks, uint32_t output_blocks_buf_size_in_blocks, block_format fmt,
+            uint32_t block_stride_in_bytes, uint32_t output_row_pitch_in_blocks);
 
 	private:
 		mutable basisu_lowlevel_transcoder m_lowlevel_decoder;

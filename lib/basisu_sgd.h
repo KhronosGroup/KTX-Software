@@ -41,9 +41,14 @@ typedef struct ktxBasisGlobalHeader {
     uint32_t globalFlags;
     uint16_t endpointCount;
     uint16_t selectorCount;
+    uint32_t endpointsByteOffset;  // Offset from start of sgd
     uint32_t endpointsByteLength;
+    uint32_t selectorsByteOffset;  // Offset from start of sgd
     uint32_t selectorsByteLength;
+    uint32_t tablesByteOffset;     // Offset from start of sgd
     uint32_t tablesByteLength;
+    uint32_t extendedByteOffset;   // Offset from start of sgd
+    uint32_t extendedByteLength;
 } ktxBasisGlobalHeader;
 
 // 1, or 2, slices per layer, face & slice.
@@ -54,21 +59,25 @@ typedef struct ktxBasisGlobalHeader {
       uint32_t sliceByteOffset; \
       uint32_t sliceByteLength;
 
-typedef struct ktxBasisGlobalBaseSliceDesc {
+typedef struct ktxBasisBaseSliceDesc {
     SLICE_DESC_BASE_DEFN
-} ktxBasisGlobalBaseSliceDesc;
+} ktxBasisBaseSliceDesc;
 
 // This description is used when globalFlags & alpha != 0.
-typedef struct ktxBasisGlobalFullSliceDesc {
+typedef struct ktxBasisSliceDesc {
     SLICE_DESC_BASE_DEFN
     uint32_t alphaSliceByteOffset;
     uint32_t alphaSliceByteLength;
-} ktxBasisGlobalFullSliceDesc;
+} ktxBasisSliceDesc;
 
+#define BGD_SLICE_DESCS(sgd) \
+                    (ktxBasisSliceDesc*)(sgd + sizeof(ktxBasisGlobalHeader))
 
-//uint8_t[endpointsByteLength] endpointsData;
-//uint8_t[selectorsByteLength] selectorsData;
-//uint8_t[tablesByteLength] tablesData;
+// The header is followed in the global data by an array of slice descriptions,
+// then these.
+//    uint8_t[endpointsByteLength] endpointsData;
+//    uint8_t[selectorsByteLength] selectorsData;
+//    uint8_t[tablesByteLength] tablesData;
 
 #ifdef __cplusplus
 }

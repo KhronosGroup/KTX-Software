@@ -3725,12 +3725,11 @@ namespace basist
 	}
 
 	bool basisu_lowlevel_transcoder::transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
-		uint32_t output_block_stride_in_bytes, bool pvrtc_wrap_addressing, bool bc1_allow_threecolor_blocks, const basis_file_header& header, const basis_slice_desc& slice_desc, uint32_t output_row_pitch_in_blocks, basisu_transcoder_state* pState)
+		uint32_t output_block_stride_in_bytes, bool pvrtc_wrap_addressing, bool bc1_allow_threecolor_blocks, const bool is_video, const bool alpha_flag, const uint32_t level_index, uint32_t output_row_pitch_in_blocks, basisu_transcoder_state* pState)
 	{
 		if (!pState)
 			pState = &m_def_state;
 
-		const bool is_video = (header.m_tex_type == cBASISTexTypeVideoFrames);
 		const uint32_t total_blocks = num_blocks_x * num_blocks_y;
 
 		if (!output_row_pitch_in_blocks)
@@ -3740,9 +3739,6 @@ namespace basist
 		if (is_video)
 		{
 			// TODO: Add check to make sure the caller hasn't tried skipping past p-frames
-			const bool alpha_flag = (slice_desc.m_flags & cSliceDescFlagsIsAlphaData) != 0;
-			const uint32_t level_index = slice_desc.m_level_index;
-
 			if (level_index >= basisu_transcoder_state::cMaxPrevFrameLevels)
 			{
 				BASISU_DEVEL_ERROR("basisu_lowlevel_transcoder::transcode_slice: unsupported level_index\n");
@@ -4766,7 +4762,7 @@ namespace basist
 		return -1;
 	}
 
-	static void write_opaque_alpha_blocks(
+	void basisu_transcoder::write_opaque_alpha_blocks(
 		uint32_t num_blocks_x, uint32_t num_blocks_y,
 		void* pOutput_blocks, uint32_t output_blocks_buf_size_in_blocks, block_format fmt,
 		uint32_t block_stride_in_bytes, uint32_t output_row_pitch_in_blocks)

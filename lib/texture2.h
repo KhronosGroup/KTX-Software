@@ -56,6 +56,10 @@ typedef struct ktxTexture2_private {
 } ktxTexture2_private;
 
 KTX_error_code
+ktxTexture2_LoadImageData(ktxTexture2* This,
+                          ktx_uint8_t* pBuffer, ktx_size_t bufSize);
+
+KTX_error_code
 ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                                          KTX_header2* pHeader,
                                          ktxTextureCreateFlags createFlags);

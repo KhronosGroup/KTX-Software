@@ -147,6 +147,7 @@ typedef enum KTX_error_code_t {
     KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
     KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
     KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
+    KTX_UNSUPPORTED_FEATURE  /*!< Feature not included in in-use library or not yet implemented. */
 } KTX_error_code;
 
 #define KTX_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
@@ -578,7 +579,7 @@ typedef struct ktxTexture1 {
 
 typedef enum ktxSupercmpScheme {
     KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
-    KTX_SUPERCOMPRESSION_BASIS = 1,  /*!< Basis Universal supercompression. */
+    KTX_SUPERCOMPRESSION_BASIS = 1, /*!< Basis Universal supercompression. */
     KTX_SUPERCOMPRESSION_LZMA = 2,  /*!< LZMA supercompression. */
     KTX_SUPERCOMPRESSION_ZLIB = 2,  /*!< Zlib supercompression. */
     KTX_SUPERCOMPRESSION_ZSTD = 3,  /*!< ZStd supercompression. */
@@ -803,6 +804,43 @@ void ktxTexture2_Destroy(ktxTexture2* This);
 
 KTX_error_code
 ktxTexture2_CompressBasis(ktxTexture2* This);
+
+typedef enum ktx_texture_fmt_e {
+    KTX_TF_ETC1,   // Use to only get RGB, even when basis data has alpha.
+    KTX_TF_BC1,
+    KTX_TF_BC4,
+    KTX_TF_PVRTC1_4_OPAQUE_ONLY,
+    KTX_TF_BC7_M6_OPAQUE_ONLY,
+    KTX_TF_ETC2,              // ETC2_EAC_A8 block followed by a ETC1 block
+    KTX_TF_BC3,               // BC4 followed by a BC1 block
+    KTX_TF_BC5,               // two BC4 blocks
+} ktxTextureTranscodeFormatEnum;
+
+enum ktx_texture_decode_flags_e {
+    KTX_DF_PVRTC_WRAP_ADDRESSING = 1,
+        /*!< PVRTC1: texture will use wrap addressing vs. clamp (most PVRTC
+             viewer tools assume wrap addressing, so we default to wrap although
+             that can cause edge artifacts).
+        */
+    KTX_DF_PVRTC_DECODE_TO_NEXT_POW2 = 2,
+        /*!< PVRTC1: decode non-pow2 ETC1S texture level to the next larger
+             power of 2 (not implemented yet, but we're going to support it).
+             Ignored if the slice's dimensions are already a power of 2.
+         */
+    KTX_DF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS = 4,
+        /*!< When decoding to an opaque texture format, if the Basis data has
+             alpha, decode the alpha slice instead of the color slice to the
+             output texture format. Has no effect if there is no alpha data.
+         */
+    KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS = 8
+        /*!< Forbid usage of BC1 3 color blocks (we don't support BC1
+             punchthrough alpha yet).
+         */
+};
+
+KTX_error_code
+ktxTexture2_TranscodeBasis(ktxTexture2* This, ktxTextureTranscodeFormatEnum fmt,
+                           ktx_uint32_t decodeFlags);
 
 /*
  * Returns a string corresponding to a KTX error code.

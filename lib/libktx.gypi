@@ -179,6 +179,10 @@
       },
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'xcode_settings': {
+          # Turn off so as to compile Basis. Hopefully temporary.
+          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+      }
     }, # libktx.es1
     {
       'target_name': 'libktx.es3',
@@ -193,6 +197,10 @@
         '<@(vksource_files)',
       ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'xcode_settings': {
+          # Turn off so as to compile Basis. Hopefully temporary.
+          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+      }
     }, # libktx.es3
   ], # targets
   'conditions': [
