@@ -642,6 +642,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
 
     switch (outputFormat) {
       case KTX_TF_ETC1:
+        // ETC2 is compatible & there are no ETC1 formats in Vulkan.
         vkFormat = srgb ? VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK
                         : VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
         break;
@@ -650,6 +651,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
             vkFormat = srgb ? VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK
                             : VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
         } else {
+            // No point wasting a channel. Select ETC1.
+            outputFormat = KTX_TF_ETC1;
             vkFormat = srgb ? VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK
                             : VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
         }
