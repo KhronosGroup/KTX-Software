@@ -107,6 +107,7 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
         if (formats[i] == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
             bc3 = true;
     }
+    delete[] formats;
     if (etc2)
         tf = KTX_TF_ETC2;
     else if (etc1 || SDL_GL_ExtensionSupported("GL_OES_compressed_ETC1_RGB8_texture"))
@@ -120,7 +121,6 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
 
     }
-    delete[] formats;
 
     ktxresult = ktxTexture2_TranscodeBasis(kTexture, tf, 0);
     if (KTX_SUCCESS != ktxresult) {
