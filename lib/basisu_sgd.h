@@ -41,15 +41,19 @@ typedef struct ktxBasisGlobalHeader {
     uint32_t globalFlags;
     uint16_t endpointCount;
     uint16_t selectorCount;
-    uint32_t endpointsByteOffset;  // Offset from start of sgd
+    uint32_t imageCount;
     uint32_t endpointsByteLength;
-    uint32_t selectorsByteOffset;  // Offset from start of sgd
     uint32_t selectorsByteLength;
-    uint32_t tablesByteOffset;     // Offset from start of sgd
     uint32_t tablesByteLength;
-    uint32_t extendedByteOffset;   // Offset from start of sgd
     uint32_t extendedByteLength;
 } ktxBasisGlobalHeader;
+
+// The header is followed by an levelCount-sized array of firstImages
+
+// uint32_t firstImages[1];
+#define BGD_FIRST_IMAGES(bgd) reinterpret_cast<uint32_t*>(bgd + sizeof(ktxBasisGlobalHeader))
+
+// This is followed by imageCount "slice" descriptions.
 
 // 1, or 2, slices per layer, face & slice.
 // These offsets are relative to start of a mip level as given by the
@@ -70,14 +74,22 @@ typedef struct ktxBasisSliceDesc {
     uint32_t alphaSliceByteLength;
 } ktxBasisSliceDesc;
 
-#define BGD_SLICE_DESCS(sgd) \
-                    (ktxBasisSliceDesc*)(sgd + sizeof(ktxBasisGlobalHeader))
+#define BGD_SLICE_DESCS(bgd) \
+        reinterpret_cast<ktxBasisSliceDesc*>(bgd + sizeof(ktxBasisGlobalHeader) + sizeof(uint32_t) * This->numLevels)
 
-// The header is followed in the global data by an array of slice descriptions,
-// then these.
+// The are followed in the global data by these ...
 //    uint8_t[endpointsByteLength] endpointsData;
 //    uint8_t[selectorsByteLength] selectorsData;
 //    uint8_t[tablesByteLength] tablesData;
+
+#define BGD_ENDPOINTS_ADDR(bgd, bgdh) \
+    (bgd + sizeof(ktxBasisGlobalHeader) + sizeof(uint32_t) * This->numLevels + sizeof(ktxBasisSliceDesc) * bgdh.imageCount)
+
+#define BGD_SELECTORS_ADDR(bgd, bgdh) (BGD_ENDPOINTS_ADDR(bgd, bgdh) + bgdh.endpointsByteLength)
+
+#define BGD_TABLES_ADDR(bgd, bgdh) (BGD_SELECTORS_ADDR(bgd, bgdh) + bgdh.selectorsByteLength)
+
+#define BGD_EXTENDED_ADDR(bgd, bgdh) (BGD_TABLES_ADDR(bgd, bgdh) + bgdh.tablesByteLength)
 
 #ifdef __cplusplus
 }

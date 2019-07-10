@@ -31,6 +31,8 @@
 
 #include <inttypes.h>
 #include <KHR/khr_df.h>
+
+#include "dfdutils/dfd.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture2.h"
@@ -293,16 +295,20 @@ ktxTexture2_CompressBasis(ktxTexture2* This)
 
     bgd_size = sizeof(ktxBasisGlobalHeader)
              + slice_desc_size * bfh.m_total_slices
+             + sizeof(uint32_t) * This->numLevels
              + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
              + bfh.m_tables_file_size;
     bgd = new ktx_uint8_t[bgd_size];
     ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
     bgdh.globalFlags = bfh.m_flags;
+    bgdh.imageCount = num_images;
     bgdh.endpointCount = bfh.m_total_endpoints;
     bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
     bgdh.selectorCount = bfh.m_total_selectors;
     bgdh.selectorsByteLength = bfh.m_selector_cb_file_size;
     bgdh.tablesByteLength = bfh.m_tables_file_size;
+
+    uint32_t* firstImages = BGD_FIRST_IMAGES(bgd);
 
     //
     // Write the index of slice descriptions to the global data.
@@ -312,7 +318,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This)
     uint32_t base_offset = bfh.m_slice_desc_file_ofs;
     const basis_slice_desc* slice
                 = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
-    ktxBasisSliceDesc* kslice = BGD_SLICE_DESCS(bgd);
+    ktxBasisSliceDesc* kslices = BGD_SLICE_DESCS(bgd);
 
     // 3 things to remember about offsets:
     //    1. levelIndex offsets at this point are relative to This->pData;
@@ -328,34 +334,34 @@ ktxTexture2_CompressBasis(ktxTexture2* This)
     // generated mip levels so essentially useless. Alpha slices are always
     // the odd numbered slices.
     std::vector<uint32_t> level_file_offsets(This->numLevels);
-    uint32_t image_data_size = 0;
+    uint32_t image_data_size = 0, image = 0;
     for (uint32_t level = 0; level < This->numLevels; level++) {
         uint32_t depth = MAX(1, This->baseDepth >> level);
         uint64_t level_byte_length = 0;
 
         assert(!(slice->m_flags & cSliceDescFlagsIsAlphaData));
-
+        firstImages[level] = image;
         level_file_offsets[level] = slice->m_file_ofs;
         for (uint32_t layer = 0; layer < This->numLayers; layer++) {
             uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
             for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
                 level_byte_length += slice->m_file_size;
-                kslice->sliceByteOffset = slice->m_file_ofs
-                                        - level_file_offsets[level];
-                kslice->sliceByteLength = slice->m_file_size;
-                kslice->sliceFlags = slice->m_flags;
+                kslices[image].sliceByteOffset = slice->m_file_ofs
+                                               - level_file_offsets[level];
+                kslices[image].sliceByteLength = slice->m_file_size;
+                kslices[image].sliceFlags = slice->m_flags;
                 if (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) {
                     slice++;
                     level_byte_length += slice->m_file_size;
-                    kslice->alphaSliceByteOffset = slice->m_file_ofs
-                                                 - level_file_offsets[level];
-                    kslice->alphaSliceByteLength = slice->m_file_size;
+                    kslices[image].alphaSliceByteOffset = slice->m_file_ofs
+                                                  - level_file_offsets[level];
+                    kslices[image].alphaSliceByteLength = slice->m_file_size;
                 } else {
-                    kslice->alphaSliceByteOffset = 0;
-                    kslice->alphaSliceByteLength = 0;
+                    kslices[image].alphaSliceByteOffset = 0;
+                    kslices[image].alphaSliceByteLength = 0;
                 }
                 slice++;
-                kslice++;
+                image++;
             }
         }
         priv._levelIndex[level].byteLength = level_byte_length;
@@ -369,21 +375,18 @@ ktxTexture2_CompressBasis(ktxTexture2* This)
 
     // Slightly sleazy but since kslice is now pointing at the first byte after
     // the last entry in the slice description index ...
-    uint8_t* dstptr = reinterpret_cast<uint8_t*>(kslice);
+    uint8_t* dstptr = reinterpret_cast<uint8_t*>(&kslices[image]);
     // Copy the endpoints ...
-    bgdh.endpointsByteOffset = static_cast<uint32_t>(dstptr - bgd);
     memcpy(dstptr,
            &bf[bfh.m_endpoint_cb_file_ofs],
            bfh.m_endpoint_cb_file_size);
     dstptr += bgdh.endpointsByteLength;
     // selectors ...
-    bgdh.selectorsByteOffset = static_cast<uint32_t>(dstptr - bgd);
     memcpy(dstptr,
            &bf[bfh.m_selector_cb_file_ofs],
            bfh.m_selector_cb_file_size);
     dstptr += bgdh.selectorsByteLength;
     // and the huffman tables.
-    bgdh.tablesByteOffset = static_cast<uint32_t>(dstptr - bgd);
     memcpy(dstptr,
            &bf[bfh.m_tables_file_ofs],
            bfh.m_tables_file_size);
@@ -405,7 +408,15 @@ ktxTexture2_CompressBasis(ktxTexture2* This)
         return KTX_OUT_OF_MEMORY;
 
     This->vkFormat = VK_FORMAT_UNDEFINED;
-    // FIXME. Need to fix up _protected->_formatSize. How?
+    // Make formatSize invalid.
+    ktxFormatSize& formatSize = This->_protected->_formatSize;
+    formatSize.flags = 0;
+    formatSize.paletteSizeInBits = 0;
+    formatSize.blockSizeInBits = 0 * 8;
+    formatSize.blockWidth = 1;
+    formatSize.blockHeight = 1;
+    formatSize.blockDepth = 1;
+
     This->supercompressionScheme = KTX_SUPERCOMPRESSION_BASIS;
     priv._supercompressionGlobalData = bgd;
     delete(This->pData); // FIXME: Move this to right after the images have been
@@ -599,12 +610,12 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
                                                     g_global_selector_cb);
     basisu_lowlevel_transcoder llt(global_codebook);
 
-    llt.decode_palettes(bgdh.endpointCount, bgd + bgdh.endpointsByteOffset,
+    llt.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, bgdh),
                         bgdh.endpointsByteLength,
-                        bgdh.selectorCount, bgd + bgdh.selectorsByteOffset,
+                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh),
                         bgdh.selectorsByteLength);
 
-    llt.decode_tables(bgd + bgdh.tablesByteOffset, bgdh.tablesByteLength);
+    llt.decode_tables(BGD_TABLES_ADDR(bgd, bgdh), bgdh.tablesByteLength);
 
     // basisu::transcode_image_level -> basisu::transcode_slice -> lowlevel_transcoder::transcode_slice
     // transcode_image_level is called by TranscodeImage in basis_wrappers.cpp which is called
@@ -705,7 +716,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
 
     // Finally we're ready to transcode the slices.
 
-    uint32_t image = 0;
+    uint32_t* firstImages = BGD_FIRST_IMAGES(bgd);
     ktxLevelIndexEntry* levelIndex = This->_private->_levelIndex;
     uint64_t levelOffsetWrite = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
@@ -717,6 +728,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
         uint32_t depth = MAX(1, This->baseDepth >> level);
         uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
         uint32_t numImages = This->numLayers * faceSlices;
+        uint32_t image = firstImages[level];
         uint32_t endImage = image + numImages;
 
         if (sliceDescs[image].sliceFlags & cSliceDescFlagsIsAlphaData) {
@@ -1072,8 +1084,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
         levelOffsetWrite += levelSize;
         assert(levelOffsetWrite == writeOffset);
     } // level loop
-    // XXX Don't forget to change _private->_firstLevelFileOffset;
 
-    // FIXME fixup rest of ktxTexture including the DFD.
+    delete basisData;
+    delete This->pDfd;
+    This->pDfd = createDFD4VkFormat((enum VkFormat)This->vkFormat);
     return KTX_SUCCESS;
 }
