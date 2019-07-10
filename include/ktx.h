@@ -145,6 +145,7 @@ typedef enum KTX_error_code_t {
     KTX_INVALID_VALUE,       /*!< A parameter value was not valid */
     KTX_NOT_FOUND,           /*!< Requested key was not found */
     KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
+    KTX_TRANSCODE_FAILED,    /*!< Transcoding of block compressed texture failed. */
     KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
     KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
     KTX_UNSUPPORTED_FEATURE  /*!< Feature not included in in-use library or not yet implemented. */
