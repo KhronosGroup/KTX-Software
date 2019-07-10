@@ -390,8 +390,14 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         // Read supercompressionGlobalData
         private->_supercompressionGlobalData =
           (ktx_uint8_t*)malloc(pHeader->supercompressionGlobalData.byteLength);
-        result = stream->read(stream, This->pDfd,
-                          pHeader->supercompressionGlobalData.byteLength);
+        if (!private->_supercompressionGlobalData) {
+            result = KTX_OUT_OF_MEMORY;
+            goto cleanup;
+        }
+        private->_sgdByteLength
+                            = pHeader->supercompressionGlobalData.byteLength;
+        result = stream->read(stream, This->pDfd, private->_sgdByteLength);
+
         if (result != KTX_SUCCESS)
             goto cleanup;
     }

@@ -43,6 +43,7 @@ extern "C" {
 
 typedef struct ktxTexture2_private {
     ktx_uint8_t* _supercompressionGlobalData;
+    ktx_uint64_t _sgdByteLength;
     ktx_uint64_t _firstLevelFileOffset; /*!< Always 0, unless the texture was
                                          created from a stream and the image
                                          data is not yet loaded. */
