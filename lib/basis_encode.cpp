@@ -89,7 +89,7 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
 }
 
 extern "C" KTX_error_code
-ktxTexture2_CompressBasis(ktxTexture2* This)
+ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
 {
     KTX_error_code result;
 
@@ -185,7 +185,11 @@ ktxTexture2_CompressBasis(ktxTexture2* This)
 
     // There's not default for this. Either set this or the max number of
     // endpoint and selector clusters.
-    cparams.m_quality_level = 128;
+    if (quality == 0)
+        cparams.m_quality_level = 128;
+    else
+        cparams.m_quality_level = quality;
+
     // Why's there no default for this? I have no idea.
     basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size, basist::g_global_selector_cb);
     cparams.m_pSel_codebook = &sel_codebook;

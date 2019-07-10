@@ -804,7 +804,7 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 void ktxTexture2_Destroy(ktxTexture2* This);
 
 KTX_error_code
-ktxTexture2_CompressBasis(ktxTexture2* This);
+ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
 typedef enum ktx_texture_fmt_e {
     KTX_TF_ETC1,   // Use to only get RGB, even when basis data has alpha.
