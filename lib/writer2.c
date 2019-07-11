@@ -348,16 +348,18 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     }
 
     // write supercompressionGlobalData & sgdPadding
-    result = dststr->write(dststr, private->_supercompressionGlobalData,
-                           1, private->_sgdByteLength);
-    if (result != KTX_SUCCESS) {
-        return result;
-    }
-
-    if (sgdPadLen) {
-        result = dststr->write(dststr, padding, 1, sgdPadLen);
+    if (private->_sgdByteLength != 0) {
+        result = dststr->write(dststr, private->_supercompressionGlobalData,
+                               1, private->_sgdByteLength);
         if (result != KTX_SUCCESS) {
-             return result;
+            return result;
+        }
+
+        if (sgdPadLen) {
+            result = dststr->write(dststr, padding, 1, sgdPadLen);
+            if (result != KTX_SUCCESS) {
+                 return result;
+            }
         }
     }
 
