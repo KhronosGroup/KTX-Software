@@ -84,13 +84,16 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
     }
 
-    ktxresult = ktxTexture2_CompressBasis(kTexture);
-    if (KTX_SUCCESS != ktxresult) {
-        std::stringstream message;
+    if (kTexture->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS
+        && !kTexture->isCompressed) {
+        ktxresult = ktxTexture2_CompressBasis(kTexture, 0);
+        if (KTX_SUCCESS != ktxresult) {
+            std::stringstream message;
 
-        message << "Encoding of ktxTexture2 to Basis failed: "
-                << ktxErrorString(ktxresult);
-        throw std::runtime_error(message.str());
+            message << "Encoding of ktxTexture2 to Basis failed: "
+                    << ktxErrorString(ktxresult);
+            throw std::runtime_error(message.str());
+        }
     }
 
     ktx_int32_t numCompressedFormats;

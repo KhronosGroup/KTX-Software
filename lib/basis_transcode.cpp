@@ -103,6 +103,12 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
        }
     }
 
+    if (!This->pData) {
+        result = ktxTexture2_LoadImageData(This, NULL, 0);
+        if (result != KTX_SUCCESS)
+            return result;
+    }
+
     uint8_t* bgd = priv._supercompressionGlobalData;
     ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
     if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {

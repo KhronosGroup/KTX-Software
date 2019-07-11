@@ -236,7 +236,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
     ktx_uint32_t align8PadLen;
-    ktx_uint32_t sgdLen;
+    ktx_uint64_t sgdLen;
     ktx_uint32_t sgdPadLen;
     ktx_uint32_t levelIndexSize;
     ktx_uint32_t baseOffset;
@@ -258,6 +258,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     header.faceCount = This->numFaces;
     assert (This->generateMipmaps? This->numLevels == 1 : This->numLevels >= 1);
     header.levelCount = This->generateMipmaps ? 0 : This->numLevels;
+    header.supercompressionScheme = This->supercompressionScheme;
 
     levelIndexSize = sizeof(ktxLevelIndexEntry) * This->numLevels;
 
@@ -295,7 +296,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     align8PadLen = _KTX_PAD8_LEN(baseOffset + kvdLen);
     baseOffset += kvdLen + align8PadLen;
 
-    sgdLen = 0;
+    sgdLen = private->_sgdByteLength;
     header.supercompressionGlobalData.byteOffset = sgdLen != 0 ? baseOffset : 0;
     header.supercompressionGlobalData.byteLength = sgdLen;
 
@@ -347,8 +348,20 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     }
 
     // write supercompressionGlobalData & sgdPadding
+    result = dststr->write(dststr, private->_supercompressionGlobalData,
+                           1, private->_sgdByteLength);
+    if (result != KTX_SUCCESS) {
+        return result;
+    }
 
-    // Write the image data
+    if (sgdPadLen) {
+        result = dststr->write(dststr, padding, 1, sgdPadLen);
+        if (result != KTX_SUCCESS) {
+             return result;
+        }
+    }
+
+    // write the image data
     for (ktx_int32_t level = This->numLevels-1; level >= 0 && result == KTX_SUCCESS; --level)
     {
         ktx_uint64_t srcLevelOffset, levelSize;
