@@ -798,7 +798,7 @@ namespace basist
 	// encoding from LSB to MSB: low8, high8, error16, size is [32*8][NUM_ETC1_TO_BC7_M6_SELECTOR_RANGES][NUM_ETC1_TO_BC7_M6_SELECTOR_MAPPINGS]
 	extern const uint32_t* g_etc1_to_bc7_m6_table[];
 
-	const uint16_t s_bptc_table_aWeight4[16] = { 0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64 };
+	//const uint16_t s_bptc_table_aWeight4[16] = { 0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64 };
 
 #if BASISD_WRITE_NEW_BC7_TABLES
 	static void create_etc1_to_bc7_m6_conversion_table()
@@ -1164,6 +1164,7 @@ namespace basist
 		cEAC_A8_MAX_VALUE_SELECTOR = 7
 	};
 
+#if 0
 	static const int8_t g_eac_a8_modifier_table[16][8] =
 	{
 		{ -3, -6, -9, -15, 2, 5, 8, 14 },
@@ -1184,6 +1185,7 @@ namespace basist
 		{ -4, -6, -8, -9, 3, 5, 7, 8 },
 		{ -3, -5, -7, -9, 2, 4, 6, 8 }
 	};
+#endif
 
 	struct eac_a8_block
 	{
@@ -1938,11 +1940,6 @@ namespace basist
 
 			return;
 		}
-
-		const uint32_t sel_bits0 = pSrc_block->m_bytes[7];
-		const uint32_t sel_bits1 = pSrc_block->m_bytes[6];
-		const uint32_t sel_bits2 = pSrc_block->m_bytes[5];
-		const uint32_t sel_bits3 = pSrc_block->m_bytes[4];
 
 		// y coords
 		// 4 3210 3210 MSB
@@ -2814,6 +2811,7 @@ namespace basist
 		}
 	};
 
+#if 0
 	static const uint8_t g_pvrtc_bilinear_weights[16][4] =
 	{
 		{ 4, 4, 4, 4 }, { 2, 6, 2, 6 }, { 8, 0, 8, 0 }, { 6, 2, 6, 2 },
@@ -2821,6 +2819,7 @@ namespace basist
 		{ 8, 8, 0, 0 }, { 4, 12, 0, 0 }, { 16, 0, 0, 0 }, { 12, 4, 0, 0 },
 		{ 6, 6, 2, 2 }, { 3, 9, 1, 3 }, { 12, 0, 4, 0 }, { 9, 3, 3, 1 },
 	};
+#endif
 
 	struct pvrtc1_temp_block
 	{
@@ -2867,7 +2866,7 @@ namespace basist
 		const uint32_t x_bits = basisu::total_bits(x_mask);
 		const uint32_t y_bits = basisu::total_bits(y_mask);
 		const uint32_t min_bits = basisu::minimum(x_bits, y_bits);
-		const uint32_t max_bits = basisu::maximum(x_bits, y_bits);
+		//const uint32_t max_bits = basisu::maximum(x_bits, y_bits);
 		const uint32_t swizzle_mask = (1 << (min_bits * 2)) - 1;
 
 		uint32_t block_index = 0;
