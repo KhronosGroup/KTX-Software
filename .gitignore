@@ -53,6 +53,8 @@ build/packages
 /include/imdebug.h
 
 # /lib/
+/lib/basisu/bin_osx
+/lib/basisu/build
 /lib/src
 
 # /testimages/
