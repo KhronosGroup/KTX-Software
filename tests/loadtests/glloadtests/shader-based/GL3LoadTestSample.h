@@ -20,6 +20,7 @@
 #ifndef GL3_LOAD_TEST_SAMPLE_H
 #define GL3_LOAD_TEST_SAMPLE_H
 
+#include <ktx.h>
 #include "LoadTestSample.h"
 #include "mygl.h"
 
@@ -48,7 +49,8 @@ class GL3LoadTestSample : public LoadTestSample {
   protected:
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
-    
+
+    static ktx_texture_transcode_fmt_e determineTargetFormat();
     static void makeShader(GLenum type, const GLchar* const source,
                            GLuint* shader);
     static void makeProgram(GLuint vs, GLuint fs, GLuint* program);

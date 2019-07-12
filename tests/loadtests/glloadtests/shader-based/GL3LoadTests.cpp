@@ -35,21 +35,30 @@
 #include "TexturedCube.h"
 #include "TextureArray.h"
 
+#define TEST_BASIS_COMPRESSION 0
+
 const GLLoadTests::sampleInvocation siSamples[] = {
+    { DrawTexture::create,
+      "testimages/kodim17.ktx2",
+      "KTX2: Basis Transcode on RGB non mipmapped"
+    },
+
     { BasisuTest::create,
       "testimages/FlightHelmet_baseColor.ktx2",
       "KTX2: Transcode Basis with RGBA non mipmapped"
     },
+#if TEST_BASIS_COMPRESSION
     { BasisuTest::create,
-      "testimages/rgba-reference.ktx2",
+      "testimages/rgba-reference-u.ktx2",
       "KTX2: Encode and transcode Basis with RGBA non mipmapped"
     },
+#endif
     { DrawTexture::create,
-      "testimages/orient-down-metadata.ktx2",
+      "testimages/orient-down-metadata-u.ktx2",
       "KTX2: RGB8 + KTXOrientation down"
     },
     { DrawTexture::create,
-      "--preload testimages/orient-down-metadata.ktx2",
+      "--preload testimages/orient-down-metadata-u.ktx2",
       "KTX2: RGB8 + KTXOrientation down with pre-loaded images"
     },
     { TextureArray::create,
@@ -65,7 +74,7 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "KTX2: ETC2 Compressed Texture Array"
     },
     { TexturedCube::create,
-      "testimages/rgb-mipmap-reference.ktx2",
+      "testimages/rgb-mipmap-reference-u.ktx2",
       "KTX2: RGB8 Color/level mipmap"
     },
     { DrawTexture::create,

@@ -67,7 +67,7 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
     GLsizeiptr offset;
     ktxTexture2* kTexture;
     KTX_error_code ktxresult;
-    ktxTextureTranscodeFormatEnum tf;
+    ktx_texture_transcode_fmt_e tf;
 
     bInitialized = GL_FALSE;
     gnTexture = 0;
@@ -96,33 +96,12 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
         }
     }
 
-    ktx_int32_t numCompressedFormats;
-    bool etc2 = false, etc1 = false, bc3 = false;
-    glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &numCompressedFormats);
-    GLint* formats = new GLint[numCompressedFormats];
-    glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, formats);
-
-    for (ktx_uint32_t i = 0; i < numCompressedFormats; i++) {
-        if (formats[i] == GL_COMPRESSED_RGBA8_ETC2_EAC)
-            etc2 = true;
-        if (formats[i] == GL_ETC1_RGB8_OES)
-            etc1 = true;
-        if (formats[i] == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
-            bc3 = true;
-    }
-    delete[] formats;
-    if (etc2)
-        tf = KTX_TF_ETC2;
-    else if (etc1 || SDL_GL_ExtensionSupported("GL_OES_compressed_ETC1_RGB8_texture"))
-        tf = KTX_TF_ETC1;
-    else if (bc3 || SDL_GL_ExtensionSupported("GL_EXT_texture_compression_s3tc"))
-        tf = KTX_TF_BC3;
-    else {
+    tf = determineTargetFormat();
+    if (tf == KTX_TF_NONE_COMPATIBLE) {
         std::stringstream message;
 
         message << "OpenGL implementation does not support any available transcode target.";
         throw std::runtime_error(message.str());
-
     }
 
     ktxresult = ktxTexture2_TranscodeBasis(kTexture, tf, 0);

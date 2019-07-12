@@ -119,3 +119,35 @@ GL3LoadTestSample::makeProgram(GLuint vs, GLuint fs, GLuint* program)
         throw std::runtime_error(message.str());
     }
 }
+
+ktx_texture_transcode_fmt_e
+GL3LoadTestSample::determineTargetFormat()
+{
+    ktx_int32_t numCompressedFormats;
+    ktx_texture_transcode_fmt_e tf;
+    bool etc2 = false, etc1 = false, bc3 = false;
+
+    glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &numCompressedFormats);
+    GLint* formats = new GLint[numCompressedFormats];
+    glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, formats);
+
+    for (ktx_uint32_t i = 0; i < numCompressedFormats; i++) {
+        if (formats[i] == GL_COMPRESSED_RGBA8_ETC2_EAC)
+            etc2 = true;
+        if (formats[i] == GL_ETC1_RGB8_OES)
+            etc1 = true;
+        if (formats[i] == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
+            bc3 = true;
+    }
+    delete[] formats;
+    if (etc2)
+        tf = KTX_TF_ETC2;
+    else if (etc1 || SDL_GL_ExtensionSupported("GL_OES_compressed_ETC1_RGB8_texture"))
+        tf = KTX_TF_ETC1;
+    else if (bc3 || SDL_GL_ExtensionSupported("GL_EXT_texture_compression_s3tc"))
+        tf = KTX_TF_BC3;
+    else
+        tf = KTX_TF_NONE_COMPATIBLE;
+
+    return tf;
+}
