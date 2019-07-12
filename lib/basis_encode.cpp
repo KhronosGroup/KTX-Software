@@ -170,6 +170,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     }
 
     delete(This->pData); // No longer needed. Reduce memory footprint.
+    This->pData = NULL;
     This->dataSize = 0;
 
     //
@@ -202,10 +203,10 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     // ktxTexture is consistent.
 
     // Output debug information during compression
-    //cparams.m_debug = false;
+    //cparams.m_debug = true;
 
     // m_debug_images is pretty slow
-    //cparams.m_debug_images = false;
+    //cparams.m_debug_images = true;
 
     // Defaults to BASISU_DEFAULT_COMPRESSION_LEVEL
     //cparams.m_compression_level;
@@ -229,6 +230,12 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     // TODO When video support is added set m_tex_type to this if video.
     //cBASISTexTypeVideoFrames
     // and set cparams.m_us_per_frame;
+
+#define DUMP_BASIS_FILE 0
+#if DUMP_BASIS_FILE
+    cparams.m_out_filename = "ktxtest.basis";
+    cparams.m_write_output_basis_files = true;
+#endif
 
     basis_compressor c;
 
@@ -277,6 +284,10 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
         return KTX_WHAT_ERROR?;
 #endif
     }
+
+#if DUMP_BASIS_FILE
+    return KTX_UNSUPPORTED_FEATURE;
+#endif
 
     //
     // Compression successful. Now we have to unpick the basis output and

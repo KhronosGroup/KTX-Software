@@ -79,7 +79,7 @@ static inline uint32_t get_block_height(uint32_t h, uint32_t bh)
 }
 
 KTX_error_code
-ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
+ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e outputFormat,
                            ktx_uint32_t decodeFlags)
 {
     ktxTexture2_private& priv = *This->_private;
@@ -122,6 +122,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
     // FIXME: Do more validation.
 
     // Prepare low-level transcoder for transcoding slices.
+
+    basisu_transcoder_init();
 
     static basist::etc1_global_selector_codebook *global_codebook
         = new basist::etc1_global_selector_codebook(g_global_selector_cb_size,
@@ -477,6 +479,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_fmt_e outputFormat,
                 }
                 break;
             }
+            case KTX_TF_NONE_COMPATIBLE:
+                result = KTX_INVALID_VALUE;
+                goto cleanup;
         } // end outputFormat switch
 
         writeOffset += ktxTexture2_GetImageSize(This, level);

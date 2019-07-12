@@ -2070,7 +2070,7 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         dataSize = texture->dataSize;
-        ktxTexture2_CompressBasis(texture);
+        ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(texture->supercompressionScheme, KTX_SUPERCOMPRESSION_BASIS);
         EXPECT_TRUE(texture->_private->_supercompressionGlobalData > (ktx_uint8_t*)0);
         EXPECT_EQ(texture->numLevels, helper.numLevels);

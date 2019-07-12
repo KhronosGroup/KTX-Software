@@ -541,7 +541,7 @@ typedef KTX_error_code
  * Write a ktxTexture object to a named file in KTX format.
  */
 #define ktxTexture_WriteToNamedFile(This, dstname) \
-                                This->vtbl->WriteToNamedfile(This, dstname)
+                                This->vtbl->WriteToNamedFile(This, dstname)
 
 /*
  * Write a ktxTexture object to a block of memory in KTX format.
@@ -806,7 +806,10 @@ void ktxTexture2_Destroy(ktxTexture2* This);
 KTX_error_code
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
-typedef enum ktx_texture_fmt_e {
+typedef enum ktx_texture_transcode_fmt_e {
+    KTX_TF_NONE_COMPATIBLE,    // Apps can use this in utility funcs to signal
+                               // that the GPU doen's suupport any of the
+                               // transcode targets.
     KTX_TF_ETC1,   // Use to only get RGB, even when basis data has alpha.
     KTX_TF_BC1,
     KTX_TF_BC4,
@@ -815,7 +818,7 @@ typedef enum ktx_texture_fmt_e {
     KTX_TF_ETC2,              // ETC2_EAC_A8 block followed by a ETC1 block
     KTX_TF_BC3,               // BC4 followed by a BC1 block
     KTX_TF_BC5,               // two BC4 blocks
-} ktxTextureTranscodeFormatEnum;
+} ktx_texture_transcode_fmt_e;
 
 enum ktx_texture_decode_flags_e {
     KTX_DF_PVRTC_WRAP_ADDRESSING = 1,
@@ -840,7 +843,7 @@ enum ktx_texture_decode_flags_e {
 };
 
 KTX_error_code
-ktxTexture2_TranscodeBasis(ktxTexture2* This, ktxTextureTranscodeFormatEnum fmt,
+ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e fmt,
                            ktx_uint32_t decodeFlags);
 
 /*
