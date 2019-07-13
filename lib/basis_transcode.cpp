@@ -116,7 +116,27 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
             return KTX_FILE_DATA_ERROR;
     }
 
-    if (BGD_TABLES_ADDR(0, bgdh) + bgdh.tablesByteLength > priv._sgdByteLength) {
+    // Compute some helpful numbers.
+    //
+    // firstImages contains the indices of the first images for each level to
+    // ease finding the correct slice description when iterating from smallest
+    // level to largest or when randomly accessing them (t.b.c). The last array
+    // entry contains the total number of images, for calculating the offsets
+    // of the endpoints, etc.
+    uint32_t* firstImages = new uint32_t[This->numLevels+1];
+
+    // Temporary invariant value
+    uint32_t layersFaces = This->numLayers * This->numFaces;
+    firstImages[0] = 0;
+    for (int level = 1; level <= This->numLevels; level++) {
+        // NOTA BENE: numFaces * depth is only reasonable because they can't
+        // both be > 1. I.e there are no 3d cubemaps.
+        firstImages[level] = firstImages[level - 1]
+                           + layersFaces * MAX(This->baseDepth >> (level - 1), 1);
+    }
+    uint32_t& imageCount = firstImages[This->numLevels];
+
+    if (BGD_TABLES_ADDR(0, bgdh, imageCount) + bgdh.tablesByteLength > priv._sgdByteLength) {
         return KTX_FILE_DATA_ERROR;
     }
     // FIXME: Do more validation.
@@ -130,12 +150,12 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
                                                     g_global_selector_cb);
     basisu_lowlevel_transcoder llt(global_codebook);
 
-    llt.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, bgdh),
+    llt.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
                         bgdh.endpointsByteLength,
-                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh),
+                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
                         bgdh.selectorsByteLength);
 
-    llt.decode_tables(BGD_TABLES_ADDR(bgd, bgdh), bgdh.tablesByteLength);
+    llt.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount), bgdh.tablesByteLength);
 
     // Find matching VkFormat and calculate output sizes.
 
@@ -147,7 +167,6 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
     uint32_t* BDB = This->pDfd + 1;
     const bool srgb = (KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB);
 
-    // Set vkFormat so we can get the formatSize;
     VkFormat vkFormat;
 
     switch (outputFormat) {
@@ -224,7 +243,6 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
     // the app can query file_info and image_info from the transcoder which
     // returns a structure with lots of info about the image.
 
-    uint32_t* firstImages = BGD_FIRST_IMAGES(bgd);
     ktxLevelIndexEntry* levelIndex = priv._levelIndex;
     uint64_t levelOffsetWrite = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
@@ -234,7 +252,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
         uint32_t width = MAX(1, This->baseWidth >> level);
         uint32_t height = MAX(1, This->baseHeight >> level);
         uint32_t depth = MAX(1, This->baseDepth >> level);
-        uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
+        //uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
+        uint32_t faceSlices = This->numFaces * depth;
         uint32_t numImages = This->numLayers * faceSlices;
         uint32_t image = firstImages[level];
         uint32_t endImage = image + numImages;
@@ -496,14 +515,16 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
         assert(levelOffsetWrite == writeOffset);
     } // level loop
 
-    delete basisData;
     delete This->pDfd;
     //This->isCompressed = true;
     This->pDfd = createDFD4VkFormat((enum VkFormat)This->vkFormat);
+    delete basisData;
+    delete[] firstImages;
     return KTX_SUCCESS;
 
 cleanup: // FIXME when we stop modifying This until successful transcode.
     delete basisData;
+    delete[] firstImages;
     delete This->pData;
     return result;
 }

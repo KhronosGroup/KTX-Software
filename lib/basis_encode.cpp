@@ -123,18 +123,12 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     //
     // Calculate number of images
     //
-    uint32_t num_images;
-    if (This->numDimensions < 3) {
-        num_images = This->numLevels * This->numLayers * This->numFaces;
-    } else {
-        num_images = 0;
-        // How find to find out how many images total without these loops?
-        for (uint32_t level = 0; level < This->numLevels; level++) {
-            uint32_t depth = MAX(1, This->baseDepth >> level);
-            for (uint32_t layer = 0; layer < This->numLayers; layer++) {
-                num_images += depth;
-            }
-        }
+    uint32_t layersFaces = This->numLayers * This->numFaces;
+    uint32_t num_images = 0;
+    for (int level = 1; level <= This->numLevels; level++) {
+        // NOTA BENE: numFaces * depth is only reasoable because they can't
+        // both be > 1. I.e there are no 3d cubemaps.
+        num_images += layersFaces * MAX(This->baseDepth >> (level - 1), 1);
     }
 
     //
@@ -192,7 +186,8 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
         cparams.m_quality_level = quality;
 
     // Why's there no default for this? I have no idea.
-    basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size, basist::g_global_selector_cb);
+    basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
+                                                       basist::g_global_selector_cb);
     cparams.m_pSel_codebook = &sel_codebook;
     // Or for this;
     job_pool jpool(1);
@@ -211,11 +206,13 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     // Defaults to BASISU_DEFAULT_COMPRESSION_LEVEL
     //cparams.m_compression_level;
 
-    // Split the R channel to RGB and the G channel to alpha, then write a basis file with alpha channels
+    // Split the R channel to RGB and the G channel to alpha, then write a
+    // basis file with alpha channels
     //bool_param<false> m_seperate_rg_to_color_alpha;
 
-    // m_tex_type, m_userdata0, m_userdata1, m_framerate - These fields go directly into the Basis file header.
-    // FIXME: Not sure we need to set these for encoding.
+    // m_tex_type, m_userdata0, m_userdata1, m_framerate - These fields go
+    // directly into the Basis file header. FIXME: Don't think there is any
+    // need to set these for encoding. We don't use them in decoding.
     if (This->isCubemap)
         cparams.m_tex_type = cBASISTexTypeCubemapArray;
     else if (This->isArray && This->baseHeight > 1)
@@ -318,14 +315,11 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     bgd = new ktx_uint8_t[bgd_size];
     ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
     bgdh.globalFlags = bfh.m_flags;
-    bgdh.imageCount = num_images;
     bgdh.endpointCount = bfh.m_total_endpoints;
     bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
     bgdh.selectorCount = bfh.m_total_selectors;
     bgdh.selectorsByteLength = bfh.m_selector_cb_file_size;
     bgdh.tablesByteLength = bfh.m_tables_file_size;
-
-    uint32_t* firstImages = BGD_FIRST_IMAGES(bgd);
 
     //
     // Write the index of slice descriptions to the global data.
@@ -357,7 +351,6 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
         uint64_t level_byte_length = 0;
 
         assert(!(slice->m_flags & cSliceDescFlagsIsAlphaData));
-        firstImages[level] = image;
         level_file_offsets[level] = slice->m_file_ofs;
         for (uint32_t layer = 0; layer < This->numLayers; layer++) {
             uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
