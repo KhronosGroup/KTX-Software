@@ -124,9 +124,10 @@
         }],
       ],
     },
-    'cflags': [ '-pedantic', '-std=c99' ],
+    'cflags': [ '-pedantic' ],
+    'cflags_c': [ '-std=c99' ],
     # Use C++11 for Basis, vulkan.hpp in vkloadtests and gtest.
-    'cflags_cc': [ '-pedantic', '-std=c++11' ],
+    'cflags_cc': [ '-std=c++11' ],
     'msvs_configuration_attributes': {
       # When generating multi-platform solutions & projects these
       # directories must be augmented with $(PlatformName).
