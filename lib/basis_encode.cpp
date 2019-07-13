@@ -352,6 +352,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     bgdh.selectorCount = bfh.m_total_selectors;
     bgdh.selectorsByteLength = bfh.m_selector_cb_file_size;
     bgdh.tablesByteLength = bfh.m_tables_file_size;
+    bgdh.extendedByteLength = 0;
 
     //
     // Write the index of slice descriptions to the global data.
