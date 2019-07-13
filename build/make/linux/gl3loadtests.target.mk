@@ -16,10 +16,12 @@ CFLAGS_Debug := \
 	-g
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/glloadtests \
@@ -43,10 +45,12 @@ CFLAGS_Release := \
 	-O3
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/tests/loadtests/glloadtests \
@@ -63,6 +67,7 @@ OBJS := \
 	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
 	$(obj).target/$(TARGET)/tests/loadtests/common/SwipeDetector.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/GLLoadTests.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/BasisuTest.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/DrawTexture.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTests.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.o \
