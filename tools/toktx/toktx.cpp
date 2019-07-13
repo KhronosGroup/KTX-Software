@@ -195,10 +195,11 @@ Create a KTX file from netpbm format files.
         ignores the orientation value, the image will appear upside down.</dd>
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
-    <dt>--bcmp  <quality></dt>
-    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.
-        @e quality is an optional quality argument from 1 - 255. Default is
-        128. Lower=better compression/lower quality/faster. Higher=less
+    <dt>--bcmp</dt>
+    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.</dd>
+    <dt>--qual</dt>
+    <dd>Basis supercompression quality from 1 - 255. Default, if not specified,
+        is 128. Lower=better compression/lower quality/faster. Higher=less
         compression/higher quality/slower.</dd>
     <dt>--help</dt>
     <dd>Print this usage message and exit.</dd>
@@ -206,21 +207,6 @@ Create a KTX file from netpbm format files.
     <dd>Print the version number of this program and exit.</dd>
     </dl>
  
-    The following options are available if @b toktx was compiled with
-    @p ALLOW_LEGACY_FORMAT_CREATION:
-    <dl>
-    <dt>--alpha</dt>
-    <dd>Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam
-        infiles. The default is to create RED textures. This is ignored
-        for files with 2 or more channels. This option is mutually
-        exclusive with @b --luminance.</dd>
-    <dt>--luminance</dt>
-    <dd>Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and
-        1 or 2 channel GRAYSCALE .pam infiles. The default is to create
-        RED or RG textures. This option is mutually exclusive with
-        @b --alpha.</dd>
-    </dl>
-
     Options can also be set in the environment variable TOKTX_OPTIONS.
     TOKTX_OPTIONS is parsed first. If conflicting options appear in
     TOKTX_OPTIONS or the command line, the last one seen wins. However if both
@@ -321,9 +307,10 @@ usage(_TCHAR* appName)
         "               to inform loaders of the logical orientation. If a Vulkan loader\n"
         "               ignores the orientation value, the image will appear upside down.\n"
         "  --t2         OUtput in KTX2 format. Default is KTX.\n"
-        "  --bcmp  <quality>\n"
+        "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
-        "               quality is an optional quality argument from 1 - 255. Default is\n"
+        "  --qual\n"
+        "               Basis supercompression quality from 1 - 255. Default is\n"
         "               128. Lower=better compression/lower quality/faster. Higher=less\n"
         "               compression/higher quality/slower.\n"
         "  --help       Print this usage message and exit.\n"
