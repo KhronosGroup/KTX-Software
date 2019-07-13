@@ -78,6 +78,65 @@ static inline uint32_t get_block_height(uint32_t h, uint32_t bh)
     return (h + (bh - 1)) / bh;
 }
 
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Transcode a KTX2 texture with Basis supercompressed images.
+ *
+ * Inflates the images from Basis Universal supercompression back to ETC1S
+ * then transcodes them to the specified block-compressed format. The
+ * transcoded images replace the original images and the texture's fields
+ * including the DFD are modified to reflect the new format.
+ *
+ * Basis supercompressed textures must be transcoded to a desired target
+ * block-compressed format before they can be uploaded to a GPU via a graphics
+ * API.
+ *
+ * The following transcode targets are available : KTX_TF_ETC1, KTX_TF_BC1,
+ * KTX_TF_BC4, KTX_TF_PVRTC1_4_OPAQUE_ONLY, KTX_TF_BC7_M6_OPAQUE_ONLY,
+ * KTX_TF_ETC2, KTX_TF_BC3 and KTX_TF_BC5.
+ *
+ * Note that KTX_TF_ETC2 will always transcode to an RGBA texture. If there
+ * is no alpha channel in the suercompressed data, alpha will be set to 255
+ * (opaque). If you know there is no alpha data then choose KTX_TF_ETC1. The
+ * ETC2 texture will consist of an ETC2_EAC_A8 block followed by a ETC1 block.
+ *
+ * KTX_TF_BC3 has a BC4 alpha block follwed by a BC1 RGB block.
+ *
+ * KTX_TF_BC5 has two BC4 blocks, one  holding the R data, the other the G data.
+ *
+ * The following @p decodeFlags are available.
+ *
+ * @sa ktxtexture2_CompressBasis().
+ *
+ * @param[in]   This         pointer to the ktxTexture2 object of interest.
+ * @param[in]   outputFormat a value from the ktx_texture_transcode_fmt_e enum
+ *                           specifying the target format.
+ * @param[in]   decodeFlags  bitfield of flags modifying the transcode
+ *                           operation. @sa ktx_texture_decode_flags_e.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR
+ *                              Supercompression global data is corrupted.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture is not supercompressed.
+ * @exception KTX_INVALID_OPERATION
+ *                              Supercompression global data is missing, i.e.,
+ *                              the texture object is invalid.
+ * @exception KTX_INVALID_OPERATION
+ *                              @p outputFormat is PVRTC1 but the texture does
+ *                              does not have power-of-two dimensions.
+ * @exception KTX_INVALID_VALUE @p outputFormat is invalid.
+ * @exception KTX_TRANSCODE_FAILED
+ *                              Something went wrong during transcoding. The
+ *                              texture object will be corrupted.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              KTX_DF_PVRTC_DECODE_TO_NEXT_POW2 was requested
+ *                              or the specified transcode target has not been
+ *                              included in the library being used.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out transcoding.
+ */
 KTX_error_code
 ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e outputFormat,
                            ktx_uint32_t decodeFlags)
@@ -437,7 +496,6 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
                             (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
                             (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                             isVideo, hasAlpha, 0/* level_index*/);
-                    //status = transcode_slice(pData, data_size, slice_index + 1, pOutput_blocks, output_blocks_buf_size_in_blocks, cBC4, 16, decode_flags, output_row_pitch_in_blocks, pState);
                 } else {
                     basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x, num_blocks_y, writePtr,
                                 (uint32_t)((This->dataSize - writeOffset) / bytes_per_block),

@@ -88,6 +88,38 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
     return KTX_SUCCESS;
 }
 
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Supercompress a KTX2 texture with uncpompressed images.
+ *
+ * The images are encoded to ETC1S block-compressed format and supercompressed
+ * with Basis Universal. The encoded images replace the original images and the
+ * texture's fields including the DFD are modified to reflect the new state.
+ *
+ * Such textures must be transcoded to a desired target block compressed format
+ * before they can be uploaded to a GPU via a graphics API.
+ *
+ * @sa ktxTexture2_TranscodeBasis().
+ *
+ * @param[in]   This    pointer to the ktxTexture2 object of interest.
+ * @param[in]   quality compression quality, a value from 1 - 255. Default is
+ *                      128 which is selected if @p quality is 0. Lower=better
+ *                      compression/lower quality/faster. Higher=less
+ *                      compression/higher quality/slower.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture is already supercompressed.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's image are in a block compressed
+ *                              format.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's images are 1D. Only 2D images can
+ *                              be supercompressed.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
+ */
 extern "C" KTX_error_code
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
 {
@@ -239,7 +271,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     // init() only returns false if told to read source image files and the
     // list of files is empty.
     (void)c.init(cparams);
-    enable_debug_printf(true);
+    //enable_debug_printf(true);
     basis_compressor::error_code ec = c.process();
 
     if (ec != basis_compressor::cECSuccess) {
