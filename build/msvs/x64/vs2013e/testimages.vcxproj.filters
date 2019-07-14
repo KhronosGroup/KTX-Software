@@ -253,6 +253,24 @@
     <Filter Include="tests\testimages">
       <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\testimages">
+      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\testimages">
+      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\testimages">
+      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtests.gyp"/>
@@ -361,16 +379,25 @@
     <None Include="..\..\..\..\tests\testimages\cubemap_yokohama_etc2_unorm.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\orient-down-metadata.ktx2">
+    <None Include="..\..\..\..\tests\testimages\FlightHelmet_baseColor.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\orient-up-metadata.ktx2">
+    <None Include="..\..\..\..\tests\testimages\kodim17.ktx2">
+      <Filter>tests\testimages</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\testimages\orient-down-metadata-u.ktx2">
+      <Filter>tests\testimages</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\testimages\orient-up-metadata-u.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\pattern_02_bc2.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\rgb-mipmap-reference.ktx2">
+    <None Include="..\..\..\..\tests\testimages\rgba-reference-u.ktx2">
+      <Filter>tests\testimages</Filter>
+    </None>
+    <None Include="..\..\..\..\tests\testimages\rgb-mipmap-reference-u.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\texturearray_astc_8x8_unorm.ktx2">

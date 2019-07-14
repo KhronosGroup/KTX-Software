@@ -46,10 +46,12 @@ KTX_error_code ktxTexture2_VkUpload(ktxTexture1* This,
                                     ktxVulkanDeviceInfo* vdi,
                                     ktxVulkanTexture *vkTexture);
 
+VkFormat ktxTexture2_GetVkFormat(ktxTexture1* This);
 
 struct ktxTexture_vvtbl ktxTexture2_vvtbl = {
     (PFNKTEXVKUPLOADEX)ktxTexture2_VkUploadEx,
-    (PFNKTEXVKUPLOAD)ktxTexture2_VkUpload
+    (PFNKTEXVKUPLOAD)ktxTexture2_VkUpload,
+    (PFNKTEXGETVKFORMAT) ktxTexture2_GetVkFormat
 };
 
 struct ktxTexture_vvtbl* pKtxTexture2_vvtbl = &ktxTexture2_vvtbl;

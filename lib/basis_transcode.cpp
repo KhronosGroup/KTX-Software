@@ -187,7 +187,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
     // Temporary invariant value
     uint32_t layersFaces = This->numLayers * This->numFaces;
     firstImages[0] = 0;
-    for (int level = 1; level <= This->numLevels; level++) {
+    for (uint32_t level = 1; level <= This->numLevels; level++) {
         // NOTA BENE: numFaces * depth is only reasonable because they can't
         // both be > 1. I.e there are no 3d cubemaps.
         firstImages[level] = firstImages[level - 1]

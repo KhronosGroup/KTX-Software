@@ -37,6 +37,12 @@
     <Filter Include="tools\toktx">
       <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\toktx">
+      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp">
@@ -49,6 +55,9 @@
       <Filter>tools\toktx</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\tools\toktx\image.h">
+      <Filter>tools\toktx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\tools\toktx\stb_image.h">
       <Filter>tools\toktx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\tools\toktx\stdafx.h">

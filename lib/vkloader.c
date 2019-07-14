@@ -42,7 +42,8 @@
 #endif
 #include "ktxvulkan.h"
 #include "ktxint.h"
-#include "texture.h"
+#include "texture1.h"
+#include "texture2.h"
 #include "vk_format.h"
 
 // Macro to check and display Vulkan return results.
@@ -287,7 +288,7 @@ typedef struct user_cbdata_optimal {
  *
  * @copydetails PFNKTXITERCB
  */
-static KTX_error_code KTXAPIENTRY
+static KTX_error_code
 optimalTilingCallback(int miplevel, int face,
                       int width, int height, int depth,
                       ktx_uint64_t faceLodSize,
@@ -343,7 +344,7 @@ optimalTilingCallback(int miplevel, int face,
 *
  * @copydetails PFNKTXITERCB
  */
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 optimalTilingPadCallback(int miplevel, int face,
                          int width, int height, int depth,
                          ktx_uint64_t faceLodSize,
@@ -425,7 +426,7 @@ typedef struct user_cbdata_linear {
  *
  * Copy the image data into the mapped Vulkan image.
  */
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 linearTilingCallback(int miplevel, int face,
                       int width, int height, int depth,
                       ktx_uint64_t faceLodSize,
@@ -465,7 +466,7 @@ linearTilingCallback(int miplevel, int face,
  * real Vulkan implementation I have available (Mesa). The reported row & image
  * strides appears to be for an R8G8B8A8_UNORM of the same texel size.
  */
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 linearTilingPadCallback(int miplevel, int face,
                       int width, int height, int depth,
                       ktx_uint64_t faceLodSize,
@@ -1121,40 +1122,37 @@ ktxTexture_doVkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
     return KTX_SUCCESS;
 }
 
-/** @memberof ktxTexture
+/** @memberof ktxTexture1
  * @~English
- * @brief Return the VkFormat enum of a ktxTexture object.
+ * @brief Return the VkFormat enum of a ktxTexture1 object.
  *
- * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
+ * @return The VkFormat of the ktxTexture1. May return VK_FORMAT_UNDEFINED if
  *         there is no mapping from the GL internalformat and format.
  */
 VkFormat
-ktxTexture_GetVkFormat(ktxTexture* This)
+ktxTexture1_GetVkFormat(ktxTexture1* This)
 {
     VkFormat vkFormat;
 
-    // FIXME. Probably should use a virtual function. If so, will need to
-    // change return type to ktx_uint32_t so vulkan.h is not needed along
-    // with ktx.h.
-    switch (This->classId) {
-      case ktxTexture1_c:
-        {
-            ktxTexture1* tex1 = (ktxTexture1*)This;
-            vkFormat = vkGetFormatFromOpenGLInternalFormat(tex1->glInternalformat);
-            if (vkFormat == VK_FORMAT_UNDEFINED) {
-                vkFormat = vkGetFormatFromOpenGLFormat(tex1->glFormat,
-                                                       tex1->glType);
-            }
-            break;
-        }
-      case ktxTexture2_c:
-        {
-            ktxTexture2* tex2 = (ktxTexture2*)This;
-            vkFormat = tex2->vkFormat;
-            break;
-        }
+    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
+    if (vkFormat == VK_FORMAT_UNDEFINED) {
+        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat,
+            This->glType);
     }
     return vkFormat;
+}
+
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Return the VkFormat enum of a ktxTexture object.
+ *
+ * @return The VkFormat of the ktxTexture2. May return VK_FORMAT_UNDEFINED if
+ *         this is a supercompressed texture.
+ */
+VkFormat
+ktxTexture2_GetVkFormat(ktxTexture2* This)
+{
+    return This->vkFormat;
 }
 
 KTX_error_code

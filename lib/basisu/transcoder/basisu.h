@@ -21,7 +21,11 @@
 #pragma warning (disable : 4530) // C++ exception handler used, but unwind semantics are not enabled.
 //#define _HAS_ITERATOR_DEBUGGING 0
 #if defined(_DEBUG) || defined(DEBUG)
-#define _ITERATOR_DEBUG_LEVEL 1
+// VC++ default is 2 so a value of 1 causes havoc when linking to
+// a library containing this in debug configuration. Furthermore
+// https://docs.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=vs-2019
+// recommends using only _ITERATOR_DEBUG_LEVEL not _SECURE_SCL.
+#define _ITERATOR_DEBUG_LEVEL 2
 #define _SECURE_SCL 1
 #else
 #define _SECURE_SCL 0

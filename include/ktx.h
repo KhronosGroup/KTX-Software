@@ -42,6 +42,30 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+/*
+ * Don't use khrplatform.h in order not to break apps existing
+ * before this definitions were needed.
+ */
+#if defined(KHRONOS_STATIC)
+  #define KTX_APICALL
+#elif defined(_WIN32)
+  #if !defined(KTX_APICALL)
+    #define KTX_APICALL __declspec(dllimport)
+  #endif
+#elif defined(__ANDROID__)
+  #define KTX_APICALL __attribute__((visibility("default")))
+#else
+  #define KTX_APICALL
+#endif
+
+#if defined(_WIN32) && !defined(KHRONOS_STATIC)
+  #if !defined(KTX_APIENTRY)
+    #define KTX_APIENTRY __stdcall
+  #endif
+#else
+  #define KTX_APIENTRY
+#endif
+
 /* To avoid including <KHR/khrplatform.h> define our own types. */
 typedef unsigned char ktx_uint8_t;
 typedef bool ktx_bool_t;
@@ -169,8 +193,7 @@ typedef enum KTX_error_code_t {
  */
 typedef struct ktxKVListEntry* ktxHashList;
 
-#define KTXAPIENTRY
-#define KTXAPIENTRYP KTXAPIENTRY *
+#define KTX_APIENTRYP KTX_APIENTRY *
 /**
  * @class ktxHashListEntry
  * @~English
@@ -384,63 +407,64 @@ typedef struct ktxTexture {
  * @param [in,out] userdata    pointer for the application to pass data to and
  *                             from the callback function.
  */
-/* Don't use KTXAPIENTRYP to avoid a Doxygen bug. */
-typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTXITERCB)(int miplevel, int face,
-                                int width, int height, int depth,
-                                ktx_uint64_t faceLodSize,
-                                void* pixels, void* userdata);
 
-typedef void (KTXAPIENTRY* PFNKTEXDESTROY)(ktxTexture* This);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXGETIMAGEOFFSET)(ktxTexture* This, ktx_uint32_t level,
-                                         ktx_uint32_t layer,
-                                         ktx_uint32_t faceSlice,
-                                         ktx_size_t* pOffset);
+    (* PFNKTXITERCB)(int miplevel, int face,
+                     int width, int height, int depth,
+                     ktx_uint64_t faceLodSize,
+                     void* pixels, void* userdata);
+
+/* Don't use KTX_APIENTRYP to avoid a Doxygen bug. */
+typedef void (KTX_APIENTRY* PFNKTEXDESTROY)(ktxTexture* This);
+typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXGETIMAGEOFFSET)(ktxTexture* This, ktx_uint32_t level,
+                                          ktx_uint32_t layer,
+                                          ktx_uint32_t faceSlice,
+                                          ktx_size_t* pOffset);
 typedef ktx_size_t
-    (KTXAPIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
+    (KTX_APIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXGLUPLOAD)(ktxTexture* This,
-                                   GLuint* pTexture, GLenum* pTarget,
-                                   GLenum* pGlerror);
+    (KTX_APIENTRY* PFNKTEXGLUPLOAD)(ktxTexture* This,
+                                    GLuint* pTexture, GLenum* pTarget,
+                                    GLenum* pGlerror);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXITERATELEVELS)(ktxTexture* This, PFNKTXITERCB iterCb,
-                                        void* userdata);
+    (KTX_APIENTRY* PFNKTEXITERATELEVELS)(ktxTexture* This, PFNKTXITERCB iterCb,
+                                         void* userdata);
 
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXITERATELEVELFACES)(ktxTexture* This,
-                                            PFNKTXITERCB iterCb,
-                                            void* userdata);
+    (KTX_APIENTRY* PFNKTEXITERATELEVELFACES)(ktxTexture* This,
+                                             PFNKTXITERCB iterCb,
+                                             void* userdata);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXITERATELOADLEVELFACES)(ktxTexture* This,
-                                                PFNKTXITERCB iterCb,
-                                                void* userdata);
+    (KTX_APIENTRY* PFNKTEXITERATELOADLEVELFACES)(ktxTexture* This,
+                                                 PFNKTXITERCB iterCb,
+                                                 void* userdata);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXLOADIMAGEDATA)(ktxTexture* This,
-                                        ktx_uint8_t* pBuffer,
-                                        ktx_size_t bufSize);
+    (KTX_APIENTRY* PFNKTEXLOADIMAGEDATA)(ktxTexture* This,
+                                         ktx_uint8_t* pBuffer,
+                                         ktx_size_t bufSize);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXSETIMAGEFROMMEMORY)(ktxTexture* This,
-                                             ktx_uint32_t level,
-                                             ktx_uint32_t layer,
-                                             ktx_uint32_t faceSlice,
-                                             const ktx_uint8_t* src,
-                                             ktx_size_t srcSize);
+    (KTX_APIENTRY* PFNKTEXSETIMAGEFROMMEMORY)(ktxTexture* This,
+                                              ktx_uint32_t level,
+                                              ktx_uint32_t layer,
+                                              ktx_uint32_t faceSlice,
+                                              const ktx_uint8_t* src,
+                                              ktx_size_t srcSize);
 
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXSETIMAGEFROMSTDIOSTREAM)(ktxTexture* This,
-                                                  ktx_uint32_t level,
-                                                  ktx_uint32_t layer,
-                                                  ktx_uint32_t faceSlice,
-                                                  FILE* src, ktx_size_t srcSize);
+    (KTX_APIENTRY* PFNKTEXSETIMAGEFROMSTDIOSTREAM)(ktxTexture* This,
+                                                   ktx_uint32_t level,
+                                                   ktx_uint32_t layer,
+                                                   ktx_uint32_t faceSlice,
+                                                   FILE* src, ktx_size_t srcSize);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXWRITETOSTDIOSTREAM)(ktxTexture* This, FILE* dstsstr);
+    (KTX_APIENTRY* PFNKTEXWRITETOSTDIOSTREAM)(ktxTexture* This, FILE* dstsstr);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXWRITETONAMEDFILE)(ktxTexture* This,
-                                           const char* const dstname);
+    (KTX_APIENTRY* PFNKTEXWRITETONAMEDFILE)(ktxTexture* This,
+                                            const char* const dstname);
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXWRITETOMEMORY)(ktxTexture* This,
-                                        ktx_uint8_t** bytes, ktx_size_t* size);
+    (KTX_APIENTRY* PFNKTEXWRITETOMEMORY)(ktxTexture* This,
+                                         ktx_uint8_t** bytes, ktx_size_t* size);
 
 /**
  * @class ktxTexture
@@ -550,10 +574,6 @@ typedef KTX_error_code
                                 This->vtbl->WriteToMemory(This, bytes, size)
 
 
-/*===========================================================*
- * KTX format version 2                                      *
- *===========================================================*/
-
 /**
  * @class ktxTexture1
  * @~English
@@ -572,6 +592,10 @@ typedef struct ktxTexture1 {
     ktx_uint32_t glType; /*!< Type of the texture data, e.g, GL_UNSIGNED_BYTE.*/
     struct ktxTexture1_private* _private; /*!< Private data. */
 } ktxTexture1;
+
+/*===========================================================*
+* KTX format version 2                                      *
+*===========================================================*/
 
 /**
  * @~English
@@ -688,17 +712,17 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
  * These three create a ktxTexture1 or ktxTexture2 according to the header in
  * the data, and return a pointer to the base ktxTexture class.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture_CreateFromStdioStream(FILE* stdioStream,
                                  ktxTextureCreateFlags createFlags,
                                  ktxTexture** newTex);
 
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture_CreateFromNamedFile(const char* const filename,
                                ktxTextureCreateFlags createFlags,
                                ktxTexture** newTex);
 
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture** newTex);
@@ -706,32 +730,32 @@ ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 /*
  * Returns a pointer to the image data of a ktxTexture object.
  */
-ktx_uint8_t*
+KTX_APICALL ktx_uint8_t* KTX_APIENTRY
 ktxTexture_GetData(ktxTexture* This);
 
 /*
  * Returns the pitch of a row of an image at the specified level.
  * Similar to the rowPitch in a VkSubResourceLayout.
  */
- ktx_uint32_t
- ktxTexture_GetRowPitch(ktxTexture* This, ktx_uint32_t level);
+KTX_APICALL ktx_uint32_t KTX_APIENTRY
+ktxTexture_GetRowPitch(ktxTexture* This, ktx_uint32_t level);
 
  /*
   * Return the element size of the texture's images.
   */
- ktx_uint32_t
- ktxTexture_GetElementSize(ktxTexture* This);
+KTX_APICALL ktx_uint32_t KTX_APIENTRY
+ktxTexture_GetElementSize(ktxTexture* This);
 
 /*
  * Returns the size of all the image data of a ktxTexture object in bytes.
  */
-ktx_size_t
+KTX_APICALL ktx_size_t KTX_APIENTRY
 ktxTexture_GetSize(ktxTexture* This);
 
 /*
  * Create a new ktxTexture1.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture1_Create(ktxTextureCreateInfo* createInfo,
                    ktxTextureCreateStorageEnum storageAllocation,
                    ktxTexture1** newTex);
@@ -739,46 +763,44 @@ ktxTexture1_Create(ktxTextureCreateInfo* createInfo,
 /*
  * These three create a ktxTexture1 provided the data is in KTX format.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture1_CreateFromStdioStream(FILE* stdioStream,
                                  ktxTextureCreateFlags createFlags,
                                  ktxTexture1** newTex);
 
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture1_CreateFromNamedFile(const char* const filename,
                                ktxTextureCreateFlags createFlags,
                                ktxTexture1** newTex);
 
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture1_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture1** newTex);
 
-void ktxTexture1_Destroy(ktxTexture1* This);
-
 /*
  * Write a ktxTexture object to a stdio stream in KTX format.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr);
 
 /*
  * Write a ktxTexture object to a named file in KTX format.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname);
 
 /*
  * Write a ktxTexture object to a block of memory in KTX format.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
                              ktx_uint8_t** bytes, ktx_size_t* size);
 
 /*
  * Create a new ktxTexture2.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
                    ktxTextureCreateStorageEnum storageAllocation,
                    ktxTexture2** newTex);
@@ -786,24 +808,22 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
 /*
  * These three create a ktxTexture2 provided the data is in KTX2 format.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromStdioStream(FILE* stdioStream,
                                  ktxTextureCreateFlags createFlags,
                                  ktxTexture2** newTex);
 
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromNamedFile(const char* const filename,
                                ktxTextureCreateFlags createFlags,
                                ktxTexture2** newTex);
 
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture2** newTex);
 
-void ktxTexture2_Destroy(ktxTexture2* This);
-
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
 typedef enum ktx_texture_transcode_fmt_e {
@@ -842,69 +862,71 @@ enum ktx_texture_decode_flags_e {
          */
 };
 
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e fmt,
                            ktx_uint32_t decodeFlags);
 
 /*
  * Returns a string corresponding to a KTX error code.
  */
-const char* const ktxErrorString(KTX_error_code error);
+KTX_APICALL const char* const KTX_APIENTRY
+ktxErrorString(KTX_error_code error);
 
-KTX_error_code ktxHashList_Create(ktxHashList** ppHl);
-void ktxHashList_Construct(ktxHashList* pHl);
-void ktxHashList_Destroy(ktxHashList* head);
-void ktxHashList_Destruct(ktxHashList* head);
+KTX_APICALL KTX_error_code KTX_APIENTRY ktxHashList_Create(ktxHashList** ppHl);
+KTX_APICALL void KTX_APIENTRY ktxHashList_Construct(ktxHashList* pHl);
+KTX_APICALL void KTX_APIENTRY ktxHashList_Destroy(ktxHashList* head);
+KTX_APICALL void KTX_APIENTRY ktxHashList_Destruct(ktxHashList* head);
+
 /*
  * Adds a key-value pair to a hash list.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_AddKVPair(ktxHashList* pHead, const char* key,
                       unsigned int valueLen, const void* value);
 
 /*
  * Deletes a ktxHashListEntry from a ktxHashList.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_DeleteEntry(ktxHashList* pHead,  ktxHashListEntry* pEntry);
 
 /*
  * Finds the entry for a key in a ktxHashList and deletes it.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key);
 
 /*
  * Looks up a key and returns the ktxHashListEntry.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_FindEntry(ktxHashList* pHead, const char* key,
                       ktxHashListEntry** ppEntry);
 
 /*
  * Looks up a key and returns the value.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_FindValue(ktxHashList* pHead, const char* key,
                       unsigned int* pValueLen, void** pValue);
 
 /*
  * Return the next entry in a ktxHashList.
  */
-ktxHashListEntry*
+KTX_APICALL ktxHashListEntry* KTX_APIENTRY
 ktxHashList_Next(ktxHashListEntry* entry);
 
 /*
  * Sorts a ktxHashList into order of the key codepoints.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_Sort(ktxHashList* pHead);
 
 /*
  * Serializes a ktxHashList to a block of memory suitable for
  * writing to a KTX file.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_Serialize(ktxHashList* pHead,
                       unsigned int* kvdLen, unsigned char** kvd);
 
@@ -912,27 +934,27 @@ ktxHashList_Serialize(ktxHashList* pHead,
  * Creates a hash table from the serialized data read from a
  * a KTX file.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 
 /*
  * Get the key from a ktxHashListEntry
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashListEntry_GetKey(ktxHashListEntry* This,
                         unsigned int* pKeyLen, char** ppKey);
 
 /*
  * Get the value from a ktxHashListEntry
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashListEntry_GetKey(ktxHashListEntry* This,
                         unsigned int* pValueLen, char** ppValue);
 
 /*
  * Get the value from a ktxHashListEntry
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashListEntry_GetValue(ktxHashListEntry* This,
                           unsigned int* pValueLen, void** ppValue);
 
@@ -940,9 +962,9 @@ ktxHashListEntry_GetValue(ktxHashListEntry* This,
  * Utilities for printing ingo about a KTX file.             *
  *===========================================================*/
 
-KTX_error_code ktxPrintInfoForStdioStream(FILE* stdioStream);
-KTX_error_code ktxPrintInfoForNamedFile(const char* const filename);
-KTX_error_code ktxPrintInfoForMemory(const ktx_uint8_t* bytes, ktx_size_t size);
+KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForStdioStream(FILE* stdioStream);
+KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForNamedFile(const char* const filename);
+KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t* bytes, ktx_size_t size);
 
 #ifdef __cplusplus
 }

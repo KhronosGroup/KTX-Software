@@ -131,7 +131,7 @@ GL3LoadTestSample::determineTargetFormat()
     GLint* formats = new GLint[numCompressedFormats];
     glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, formats);
 
-    for (ktx_uint32_t i = 0; i < numCompressedFormats; i++) {
+    for (ktx_int32_t i = 0; i < numCompressedFormats; i++) {
         if (formats[i] == GL_COMPRESSED_RGBA8_ETC2_EAC)
             etc2 = true;
         if (formats[i] == GL_ETC1_RGB8_OES)

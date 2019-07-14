@@ -456,7 +456,7 @@ typedef struct ktx_cbdata {
 
 /* [imageCallbacks] */
 
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 texImage1DCallback(int miplevel, int face,
                    int width, int height,
                    int depth,
@@ -477,7 +477,7 @@ texImage1DCallback(int miplevel, int face,
     }
 }
 
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 compressedTexImage1DCallback(int miplevel, int face,
                              int width, int height,
                              int depth,
@@ -501,7 +501,7 @@ compressedTexImage1DCallback(int miplevel, int face,
     }
 }
 
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 texImage2DCallback(int miplevel, int face,
                    int width, int height,
                    int depth,
@@ -523,7 +523,7 @@ texImage2DCallback(int miplevel, int face,
 }
 
 
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 compressedTexImage2DCallback(int miplevel, int face,
                              int width, int height,
                              int depth,
@@ -588,7 +588,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     }
 }
 
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 texImage3DCallback(int miplevel, int face,
                    int width, int height,
                    int depth,
@@ -612,7 +612,7 @@ texImage3DCallback(int miplevel, int face,
     }
 }
 
-KTX_error_code KTXAPIENTRY
+KTX_error_code
 compressedTexImage3DCallback(int miplevel, int face,
                              int width, int height,
                              int depth,

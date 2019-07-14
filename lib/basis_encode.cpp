@@ -157,7 +157,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     //
     uint32_t layersFaces = This->numLayers * This->numFaces;
     uint32_t num_images = 0;
-    for (int level = 1; level <= This->numLevels; level++) {
+    for (uint32_t level = 1; level <= This->numLevels; level++) {
         // NOTA BENE: numFaces * depth is only reasoable because they can't
         // both be > 1. I.e there are no 3d cubemaps.
         num_images += layersFaces * MAX(This->baseDepth >> (level - 1), 1);
@@ -381,7 +381,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     uint32_t image_data_size = 0, image = 0;
     for (uint32_t level = 0; level < This->numLevels; level++) {
         uint32_t depth = MAX(1, This->baseDepth >> level);
-        uint64_t level_byte_length = 0;
+        uint32_t level_byte_length = 0;
 
         assert(!(slice->m_flags & cSliceDescFlagsIsAlphaData));
         level_file_offsets[level] = slice->m_file_ofs;
@@ -473,7 +473,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     // NOTA BENE: Mipmap levels are ordered from largest to smallest in .basis.
     // We have to reorder.
 
-    uint32_t level_offset = 0;
+    uint64_t level_offset = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         priv._levelIndex[level].byteOffset = level_offset;
         // byteLength was set in loop above

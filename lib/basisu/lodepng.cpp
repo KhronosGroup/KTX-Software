@@ -31,7 +31,11 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 #ifdef _MSC_VER
 #pragma warning (disable : 4201)
 #if defined(_DEBUG) || defined(DEBUG)
-#define _ITERATOR_DEBUG_LEVEL 1
+// VC++ default is 2 so a value of 1 causes havoc when linking to
+// a library containing this. Furthermore
+// https://docs.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=vs-2019
+// recommends using only _ITERATOR_DEBUG_LEVEL not _SECURE_SCL.
+#define _ITERATOR_DEBUG_LEVEL 2
 #define _SECURE_SCL 1
 #else
 #define _SECURE_SCL 0

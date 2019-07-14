@@ -475,7 +475,7 @@ ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
  */
 KTX_error_code
 ktxTexture1_WriteToMemory(ktxTexture1* This,
-                         ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
+                          ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
     struct ktxStream dststr;
     KTX_error_code result;

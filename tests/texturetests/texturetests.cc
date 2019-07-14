@@ -272,7 +272,7 @@ class ktxTextureTestBase : public ::testing::Test {
         if (ktxMemFile != NULL) delete ktxMemFile;
     }
 
-    KTX_error_code KTXAPIENTRY
+    KTX_error_code
     iterCallback(int miplevel, int face,
                  int width, int height, int depth,
                  ktx_uint64_t faceLodSize,

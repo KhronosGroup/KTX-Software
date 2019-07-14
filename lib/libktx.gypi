@@ -107,7 +107,11 @@
     {
       'target_name': 'libktx.gl',
       'type': '<(library)',
-      'defines': [ 'KTX_OPENGL=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
+      'defines': [
+        'KTX_OPENGL=1',
+        'KTX_USE_FUNCPTRS_FOR_VULKAN',
+        'KHRONOS_STATIC=1',
+      ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -121,6 +125,7 @@
       'conditions': [
         ['_type == "shared_library"', {
           'dependencies': [ 'libgl', 'libvulkan.lazy' ],
+          'defines!': ['KHRONOS_STATIC=1'],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
@@ -156,6 +161,12 @@
               }
             }, 'OS == "linux"', {
               'dependencies!': [ 'libvulkan.lazy' ],
+            }, 'OS == "win"', {
+              'dependencies!': [ 'libvulkan.lazy' ],
+              'defines': [ 'KTX_APICALL=__declspec(dllexport)' ],
+              # The msvs generator automatically sets the needed VCLinker
+              # option a .def file is seen in sources.
+              'sources': [ 'internalexport.def' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
         }], # _type == "shared_library"
@@ -175,9 +186,14 @@
     {
       'target_name': 'libktx.es1',
       'type': 'static_library',
-      'defines': [ 'KTX_OPENGL_ES1=1', 'KTX_OMIT_VULKAN=1' ],
+      'defines': [
+        'KTX_OPENGL_ES1=1',
+        'KTX_OMIT_VULKAN=1',
+        'KHRONOS_STATIC=1',
+      ],
       'direct_dependent_settings': {
         'include_dirs': [ '<@(include_dirs)' ],
+        'defines': [ 'KHRONOS_STATIC=1' ],
       },
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
@@ -189,10 +205,15 @@
     {
       'target_name': 'libktx.es3',
       'type': 'static_library',
-      'defines': [ 'KTX_OPENGL_ES3=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
+      'defines': [
+        'KTX_OPENGL_ES3=1',
+        'KTX_USE_FUNCPTRS_FOR_VULKAN',
+        'KHRONOS_STATIC=1',
+      ],
       'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {
-         'include_dirs': [ '<@(include_dirs)' ],
+        'include_dirs': [ '<@(include_dirs)' ],
+        'defines': [ 'KHRONOS_STATIC=1' ],
       },
       'sources': [
         '<@(sources)',

@@ -239,7 +239,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     ktx_uint64_t sgdLen;
     ktx_uint32_t sgdPadLen;
     ktx_uint32_t levelIndexSize;
-    ktx_uint32_t baseOffset;
+    ktx_uint64_t baseOffset;
 
     if (!dststr) {
         return KTX_INVALID_VALUE;
@@ -264,7 +264,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 
     baseOffset = sizeof(header) + levelIndexSize;
 
-    header.dataFormatDescriptor.byteOffset = baseOffset;
+    header.dataFormatDescriptor.byteOffset = (uint32_t)baseOffset;
     header.dataFormatDescriptor.byteLength = *This->pDfd;
     baseOffset += header.dataFormatDescriptor.byteLength;
 
@@ -290,7 +290,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 
     ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
-    header.keyValueData.byteOffset = kvdLen != 0 ? baseOffset : 0;
+    header.keyValueData.byteOffset = kvdLen != 0 ? (uint32_t)baseOffset : 0;
     header.keyValueData.byteLength = kvdLen;
 
     align8PadLen = _KTX_PAD8_LEN(baseOffset + kvdLen);

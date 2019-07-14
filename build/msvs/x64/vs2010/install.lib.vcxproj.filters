@@ -19,6 +19,9 @@
     <Filter Include="$(OutDir)\lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="$(OutDir)">
+      <UniqueIdentifier>{ECA95933-7FA6-5798-4EC4-C0CAC6DD34DE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
@@ -77,6 +80,9 @@
     </None>
     <None Include="$(OutDir)\lib\libktx.gl.lib">
       <Filter>$(OutDir)\lib</Filter>
+    </None>
+    <None Include="$(OutDir)\libktx.gl.dll">
+      <Filter>$(OutDir)</Filter>
     </None>
     <ClInclude Include="..\..\..\..\include\ktx.h">
       <Filter>..\..\..\..\include</Filter>

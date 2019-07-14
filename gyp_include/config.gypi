@@ -155,7 +155,7 @@
         # Location of SDL2.lib, SDL2main.lib and SDL2.dll
         'sdl2_lib_dir': '<(winolib_dir)',
         # libktx type. Must be static as exports currently not defined.
-        'library': 'static_library',
+        'library': 'shared_library',
       }], # OS == "win"
     ], # conditions
   }, # variables level 1
