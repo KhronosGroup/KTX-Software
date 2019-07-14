@@ -622,8 +622,6 @@ int _tmain(int argc, _TCHAR* argv[])
             orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
             orientation[2] = 0;
         } else {
-            char orientation[10];
-
             assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
 
             snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
