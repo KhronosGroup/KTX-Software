@@ -90,8 +90,10 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/basisu/basisu_resampler.h"
   "../../../../lib/basisu/basisu_resampler_filters.h"
   "../../../../lib/basisu/lodepng.h"
+  "../../../../lib/basisu/transcoder/basisu.h"
   "../../../../lib/basisu/transcoder/basisu_file_headers.h"
   "../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
   "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/vkdfdswitchbody.inl"
@@ -129,7 +131,7 @@ list(APPEND libktx_es3__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
-set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;")
+set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;NDEBUG;")
 set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c99 ")
 set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
@@ -259,8 +261,10 @@ list(APPEND libktx_es1__other_srcs
   "../../../../lib/basisu/basisu_resampler.h"
   "../../../../lib/basisu/basisu_resampler_filters.h"
   "../../../../lib/basisu/lodepng.h"
+  "../../../../lib/basisu/transcoder/basisu.h"
   "../../../../lib/basisu/transcoder/basisu_file_headers.h"
   "../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
   "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/vkdfdswitchbody.inl"
@@ -293,7 +297,7 @@ list(APPEND libktx_es1__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es1 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es1__include_dirs})
-set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;KTX_OMIT_VULKAN=1;NDEBUG;")
+set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;KTX_OMIT_VULKAN=1;KHRONOS_STATIC=1;NDEBUG;")
 set_source_files_properties(${libktx_es1__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c99 ")
 set_source_files_properties(${libktx_es1__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
@@ -342,9 +346,11 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler_filters.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_file_headers.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_sgd.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_encode.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcode.cpp"
@@ -485,8 +491,10 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/basisu/basisu_resampler.h"
   "../../../../lib/basisu/basisu_resampler_filters.h"
   "../../../../lib/basisu/lodepng.h"
+  "../../../../lib/basisu/transcoder/basisu.h"
   "../../../../lib/basisu/transcoder/basisu_file_headers.h"
   "../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
   "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/vkdfdswitchbody.inl"

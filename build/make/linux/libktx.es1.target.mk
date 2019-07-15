@@ -5,6 +5,7 @@ TARGET := libktx.es1
 DEFS_Debug := \
 	'-DKTX_OPENGL_ES1=1' \
 	'-DKTX_OMIT_VULKAN=1' \
+	'-DKHRONOS_STATIC=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -29,6 +30,7 @@ INCS_Debug := \
 DEFS_Release := \
 	'-DKTX_OPENGL_ES1=1' \
 	'-DKTX_OMIT_VULKAN=1' \
+	'-DKHRONOS_STATIC=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.

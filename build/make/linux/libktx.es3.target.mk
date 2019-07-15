@@ -5,6 +5,7 @@ TARGET := libktx.es3
 DEFS_Debug := \
 	'-DKTX_OPENGL_ES3=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
+	'-DKHRONOS_STATIC=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -30,6 +31,7 @@ INCS_Debug := \
 DEFS_Release := \
 	'-DKTX_OPENGL_ES3=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
+	'-DKHRONOS_STATIC=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
