@@ -13,11 +13,6 @@
         'include_dirs': [
           '../other_include',
         ],
-        'xcode_settings': {
-            # For variadic macros
-            'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
-            'GCC_C_LANGUAGE_STANDARD': 'c99',
-        },
       },
       # Neither 'copies' nor 'link_settings' can appear inside
       # configurations hence source folders for copies are

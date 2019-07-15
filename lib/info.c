@@ -40,6 +40,7 @@
 #include "filestream.h"
 #include "memstream.h"
 #include "ktxint.h"
+#include "basis_sgd.h"
 
 /*===========================================================*
  * Common Utilities for version 1 and 2.                     *
@@ -261,6 +262,38 @@ printLevelIndex(ktxLevelIndexEntry levelIndex[], ktx_uint32_t numLevels)
 /**
  * @internal
  * @~English
+ * @brief Print Basis supercompression global data.
+ *
+ * @param [in]  bgd          pointer to the Basis supercompression global data.
+ * @param [in]  byteLength   byte length of the data pointed to by @p bgd.
+ */
+void
+printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
+                ktx_uint32_t numImages)
+{
+    ktxBasisGlobalHeader* bgdh = (ktxBasisGlobalHeader*)(bgd);
+
+    fprintf(stdout, "Global flags: %#x\n", bgdh->globalFlags);
+    fprintf(stdout, "endpointCount: %d\n", bgdh->endpointCount);
+    fprintf(stdout, "selectorCount: %d\n", bgdh->selectorCount);
+    fprintf(stdout, "endpointsByteLength: %d\n", bgdh->endpointsByteLength);
+    fprintf(stdout, "selectorsByteLength: %d\n", bgdh->selectorsByteLength);
+    fprintf(stdout, "tablesByteLength: %d\n", bgdh->tablesByteLength);
+    fprintf(stdout, "extendedByteLength: %d\n", bgdh->extendedByteLength);
+
+    ktxBasisSliceDesc* slices = (ktxBasisSliceDesc*)(bgd + sizeof(ktxBasisGlobalHeader));
+    for (ktx_uint32_t i = 0; i < numImages; i++) {
+        fprintf(stdout, "\nsliceFlags: %#x\n", slices[i].sliceFlags);
+        fprintf(stdout, "sliceByteLength: %d\n", slices[i].sliceByteLength);
+        fprintf(stdout, "sliceByteOffset: %#x\n", slices[i].sliceByteOffset);
+        fprintf(stdout, "alphaSliceByteLength: %d\n", slices[i].alphaSliceByteLength);
+        fprintf(stdout, "alphaSliceByteOffset: %#x\n", slices[i].alphaSliceByteOffset);
+    }
+}
+
+/**
+ * @internal
+ * @~English
  * @brief Print information about a KTX 2 file.
  *
  * The stream's read pointer should be immediately following the header.
@@ -299,6 +332,29 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     stream->read(stream, metadata, pHeader->keyValueData.byteLength);
     printKVData(metadata, pHeader->keyValueData.byteLength);
     free(metadata);
+
+    if (pHeader->supercompressionGlobalData.byteOffset != 0
+        && pHeader->supercompressionGlobalData.byteLength != 0) {
+        if (pHeader->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+            ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
+            stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
+            stream->read(stream, sgd, pHeader->supercompressionGlobalData.byteLength);
+            //
+            // Calculate number of images
+            //
+            uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
+            uint32_t numImages = 0;
+            for (uint32_t level = 1; level <= MAX(pHeader->layerCount, 1); level++) {
+                // NOTA BENE: numFaces * depth is only reasoable because they can't
+                // both be > 1. I.e there are no 3d cubemaps.
+                numImages += layersFaces * MAX(MAX(pHeader->pixelDepth, 1) >> (level - 1), 1);
+            }
+            fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
+            printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
+        } else {
+            fprintf(stdout, "\nUnrecognized supercompressionScheme.");
+        }
+    }
 }
 
 /**

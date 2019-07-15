@@ -45,8 +45,10 @@ static const char* const errorStrings[] = {
     "Invalid parameter value.",                       /* KTX_INVALID_VALUE */
     "Key not found.",                                 /* KTX_NOT_FOUND */
     "Out of memory.",                                 /* KTX_OUT_OF_MEMORY */
+    "Transcoding of block compressed texture failed.",/* KTX_TRANSCODE_FAILED */
     "Not a KTX file.",                                /* KTX_UNKNOWN_FILE_FORMAT */
-    "Texture type not supported by GL context."       /* KTX_UNSUPPORTED_TEXTURE_TYPE */
+    "Texture type not supported by GL context.",      /* KTX_UNSUPPORTED_TEXTURE_TYPE */
+    "Feature not included in in-use library or not yet implemented." /* KTX_UNSUPPORTED_FEATURE */
 };
 static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
 

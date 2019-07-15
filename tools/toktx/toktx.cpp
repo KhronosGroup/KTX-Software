@@ -29,6 +29,14 @@
 #include <cstdlib>
 #include <sstream>
 #include <vector>
+#include <inttypes.h>
+
+#define STBI_ONLY_HDR
+#define STBI_ONLY_PNG
+#define STBI_ONLY_PNM
+#define STBI_WINDOWS_UTF8
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include "GL/glcorearb.h"
 #include "ktx.h"
@@ -95,6 +103,7 @@ struct commandOptions {
     int          automipmap;
     int          cubemap;
     int          ktx2;
+    int          bcmp;
     int          luminance;
     int          metadata;
     int          mipmap;
@@ -105,6 +114,7 @@ struct commandOptions {
     unsigned int levels;
     unsigned int numInputFiles;
     unsigned int firstInfileIndex;
+    unsigned int basis_quality;
 };
 
 static ktx_uint32_t log2(ktx_uint32_t v);
@@ -134,12 +144,11 @@ Create a KTX file from netpbm format files.
     to @e outfile, appending ".ktx" if necessary. If @e outfile is '-' the
     output will be written to stdout.
  
-    @b toktx reads each named @e infile which must be in .pam, .ppm or .pgm
-    format. Other formats can be readily converted to these formats using
-    tools such as ImageMagick and XnView. When no infile is specified, a single
-    image will be read from stdin. .ppm files yield RGB textures, .pgm files
-    RED textures and .pam files RED, RG, RGB or RGBA textures according to the
-    file's TUPLTYPE and DEPTH.
+    @b toktx reads each named @e infile which must be in .ppm, .pgm, .png or
+    .hdr format. Other formats can be readily converted to these formats using
+    tools such as ImageMagick and XnView. .ppm files yield RGB textures,
+    .pgm files RED textures and .png files RED, RG, RGB or RGBA textures
+    according to the files's @e color type.
  
     The following options are always available:
     <dl>
@@ -186,27 +195,18 @@ Create a KTX file from netpbm format files.
         ignores the orientation value, the image will appear upside down.</dd>
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
+    <dt>--bcmp</dt>
+    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.</dd>
+    <dt>--qual</dt>
+    <dd>Basis supercompression quality from 1 - 255. Default, if not specified,
+        is 128. Lower=better compression/lower quality/faster. Higher=less
+        compression/higher quality/slower.</dd>
     <dt>--help</dt>
     <dd>Print this usage message and exit.</dd>
     <dt>--version</dt>
     <dd>Print the version number of this program and exit.</dd>
     </dl>
  
-    The following options are available if @b toktx was compiled with
-    @p ALLOW_LEGACY_FORMAT_CREATION:
-    <dl>
-    <dt>--alpha</dt>
-    <dd>Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam
-        infiles. The default is to create RED textures. This is ignored
-        for files with 2 or more channels. This option is mutually
-        exclusive with @b --luminance.</dd>
-    <dt>--luminance</dt>
-    <dd>Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and
-        1 or 2 channel GRAYSCALE .pam infiles. The default is to create
-        RED or RG textures. This option is mutually exclusive with
-        @b --alpha.</dd>
-    </dl>
-
     Options can also be set in the environment variable TOKTX_OPTIONS.
     TOKTX_OPTIONS is parsed first. If conflicting options appear in
     TOKTX_OPTIONS or the command line, the last one seen wins. However if both
@@ -307,6 +307,12 @@ usage(_TCHAR* appName)
         "               to inform loaders of the logical orientation. If a Vulkan loader\n"
         "               ignores the orientation value, the image will appear upside down.\n"
         "  --t2         OUtput in KTX2 format. Default is KTX.\n"
+        "  --bcmp\n"
+        "               Supercompress the image data with Basis Universal. Implies --t2.\n"
+        "  --qual\n"
+        "               Basis supercompression quality from 1 - 255. Default is\n"
+        "               128. Lower=better compression/lower quality/faster. Higher=less\n"
+        "               compression/higher quality/slower.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
         "\n"
@@ -320,7 +326,7 @@ usage(_TCHAR* appName)
 }
 
 #define STR(x) #x
-#define VERSION 1.4
+#define VERSION 2.0
 
 static void
 writeId(std::ostream& dst, _TCHAR* appName)
@@ -345,7 +351,6 @@ int _tmain(int argc, _TCHAR* argv[])
     unsigned int imageSize;
     int exitCode = 0, face;
     unsigned int i, level, levelWidth, levelHeight;
-    FileResult readResult;
 
     processCommandLine(argc, argv, options);
 
@@ -377,17 +382,30 @@ int _tmain(int argc, _TCHAR* argv[])
 
         if (f) {
             unsigned int w, h, components, componentSize;
-            unsigned char* srcImg = 0;
+            uint8_t* srcImg = 0;
 
-            readResult = readNPBM(f, w, h, components, componentSize, imageSize,
-                                  0);
-            if (SUCCESS == readResult) {
+            //readResult = readNPBM(f, w, h, components, componentSize, imageSize,
+            //                      0)
+            if (stbi_is_hdr_from_file(f)) {
+                componentSize = 4;
+                srcImg = (uint8_t*)stbi_loadf_from_file(f, (int*)&w, (int*)&h, (int*)&components, 0);
+            } else if (stbi_is_16_bit_from_file(f)) {
+                componentSize = 2;
+                srcImg = (uint8_t*)stbi_load_from_file_16(f, (int*)&w, (int*)&h, (int*)&components, 0);
+            } else {
+                componentSize = 1;
+                srcImg = stbi_load_from_file(f, (int*)&w, (int*)&h, (int*)&components, 0);
+            }
+            imageSize = w * h * components * componentSize;
+
+            if (srcImg) {
 
                 /* Sanity check. */
                 assert(w * h * componentSize * components == imageSize);
 
 
                 if (h > 1 && options.lower_left_maps_to_s0t0) {
+#if 0
                     readResult = readImage(f, imageSize, srcImg);
                     if (SUCCESS != readResult) {
                         fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
@@ -395,33 +413,82 @@ int _tmain(int argc, _TCHAR* argv[])
                         exitCode = 1;
                         goto cleanup;
                     }
+#endif
                     yflip(srcImg, imageSize, w, h, components*componentSize);
                 }
 
                 if (i == 0) {
                     switch (components) {
                       case 1:
-                        createInfo.glInternalformat = componentSize == 1 ? GL_R8 : GL_R16;
-                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8_UNORM : VK_FORMAT_R16_UNORM;
+                        switch (componentSize) {
+                          case 1:
+                            createInfo.glInternalformat = GL_R8;
+                            createInfo.vkFormat = VK_FORMAT_R8_UNORM;
+                            break;
+                          case 2:
+                            createInfo.glInternalformat = GL_R16;
+                            createInfo.vkFormat = VK_FORMAT_R16_UNORM;
+                            break;
+                          case 4:
+                            createInfo.glInternalformat = GL_R32F;
+                            createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
+                            break;
+                        }
                         break;
 
                       case 2:
-                        createInfo.glInternalformat = componentSize == 1 ? GL_RG8 : GL_RG16;
-                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8G8_UNORM : VK_FORMAT_R16G16_UNORM;
-                       break;
+                         switch (componentSize) {
+                          case 1:
+                            createInfo.glInternalformat = GL_RG8;
+                            createInfo.vkFormat = VK_FORMAT_R8G8_UNORM;
+                            break;
+                          case 2:
+                            createInfo.glInternalformat = GL_RG16;
+                            createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
+                            break;
+                          case 4:
+                            createInfo.glInternalformat = GL_RG32F;
+                            createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
+                            break;
+                        }
+                        break;
 
                       case 3:
-                        createInfo.glInternalformat = componentSize == 1 ? GL_RGB8 : GL_RGB16;
-                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8G8B8_UNORM : VK_FORMAT_R16G16B16_UNORM;
+                         switch (componentSize) {
+                          case 1:
+                            createInfo.glInternalformat = GL_RGB8;
+                            createInfo.vkFormat = VK_FORMAT_R8G8B8_UNORM;
+                            break;
+                          case 2:
+                            createInfo.glInternalformat = GL_RGB16;
+                            createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
+                            break;
+                          case 4:
+                            createInfo.glInternalformat = GL_RGB32F;
+                            createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+                            break;
+                        }
                         break;
 
                       case 4:
-                        createInfo.glInternalformat = componentSize == 1 ? GL_RGBA8 : GL_RGBA16;
-                        createInfo.vkFormat = componentSize == 1 ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_R16G16B16A16_UNORM;
+                         switch (componentSize) {
+                          case 1:
+                            createInfo.glInternalformat = GL_RGBA8;
+                            createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+                            break;
+                          case 2:
+                            createInfo.glInternalformat = GL_RGBA16;
+                            createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
+                            break;
+                          case 4:
+                            createInfo.glInternalformat = GL_RGBA32F;
+                            createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+                            break;
+                        }
                         break;
 
                       default:
-                        /* If we get here there's a bug in readPAM */
+                        /* If we get here there's a bug. */
                         assert(0);
                     }
                     createInfo.baseWidth = levelWidth = w;
@@ -476,27 +543,6 @@ int _tmain(int argc, _TCHAR* argv[])
                         exitCode = 2;
                         goto cleanup;
                     }
-#if ALLOW_LEGACY_FORMAT_CREATION
-                    // Hack so can still create legacy textures for testing
-                    // legacy loader. ktxTexture_Create would reject these.
-                    switch (components) {
-                      case 1:
-                        if (options.luminance) {
-                            texture->glInternalformat = componentSize == 1 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-                            texture->glFormat = texture->glBaseInternalformat = GL_LUMINANCE;
-                        } else if (options.alpha) {
-                            texture->glInternalformat = componentSize == 1 ? GL_ALPHA8 : GL_ALPHA16;
-                            texture->glFormat = texture->glBaseInternalformat = GL_ALPHA;
-                       }
-                        break;
-                            
-                      case 2:
-                        if (options.luminance) {
-                            texture->glInternalformat = componentSize == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
-                            texture->glFormat = texture->glBaseInternalformat = GL_LUMINANCE_ALPHA;                        }
-                        break;
-                    }
-#endif
                 } else {
                     if (face == (options.cubemap ? 6 : 1)) {
                         level++;
@@ -529,12 +575,14 @@ int _tmain(int argc, _TCHAR* argv[])
                                                   face,
                                                   srcImg,
                                                   imageSize);
+#if 0
                 else
                     ktxTexture_SetImageFromStdioStream(ktxTexture(texture),
                                                        level,
                                                        0,
                                                        face,
                                                        f, imageSize);
+#endif
 #if IMAGE_DEBUG
                 {
                     ktx_size_t offset;
@@ -569,11 +617,16 @@ int _tmain(int argc, _TCHAR* argv[])
     if (options.metadata && createInfo.baseHeight > 1) {
         ktxHashList* ht = &texture->kvDataHead;
         char orientation[10];
+        if (options.ktx2) {
+            orientation[0] = 'r';
+            orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
+            orientation[2] = 0;
+        } else {
+            assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
 
-        assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
-        
-        snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
-                 'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
+            snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
+                     'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
+        }
         ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
                               (unsigned int)strlen(orientation) + 1,
                               orientation);
@@ -595,11 +648,25 @@ int _tmain(int argc, _TCHAR* argv[])
 #endif
     } else
         f = fopen(options.outfile,"wb");
+
     if (f) {
-        ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
-        if (KTX_SUCCESS != ret) {
-            fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
+        if (options.bcmp) {
+            ret = ktxTexture2_CompressBasis((ktxTexture2*)texture, options.basis_quality);
+            if (KTX_SUCCESS != ret) {
+                fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
+                        options.appName, options.outfile, ktxErrorString(ret));
+            }
+        } else {
+            ret = KTX_SUCCESS;
+        }
+        if (KTX_SUCCESS == ret) {
+            ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
+            if (KTX_SUCCESS != ret) {
+                fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
                     options.appName, options.outfile, ktxErrorString(ret));
+            }
+        }
+        if (KTX_SUCCESS != ret) {
             fclose(f);
             if (f != stdout)
                 _unlink(options.outfile);
@@ -638,6 +705,8 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     options.firstInfileIndex = 0;
     options.useStdin = false;
     options.levels = 1;
+    options.bcmp = 0;
+    options.basis_quality = 0;
     /* The OGLES WG recommended approach, even though it is opposite
      * to the OpenGL convention. Suki ja nai.
      */
@@ -687,12 +756,9 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         exit(1);
     }
     ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
-    if (argc - parser.optind < requiredInputFiles + 1) {
-        // stdin is permitted for a single input file.
-        if (requiredInputFiles != 1 || argc - parser.optind < 1) {
-            usage(options.appName);
-            exit(1);
-        }
+    if (requiredInputFiles != 1 || argc - parser.optind < 1) {
+        usage(options.appName);
+        exit(1);
     }
 
     i = parser.optind;
@@ -760,6 +826,8 @@ processOptions(argparser& parser,
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
+        { "bcmp", argparser::option::no_argument, NULL, 'b' },
+        { "qual", argparser::option::required_argument, NULL, 'q' },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It
@@ -770,7 +838,7 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    tstring shortopts("hvl:");
+    tstring shortopts("bhvl:q:");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
@@ -784,6 +852,13 @@ processOptions(argparser& parser,
           case 'v':
             version(options.appName);
             exit(0);
+          case 'b':
+            options.bcmp = 1;
+            options.ktx2 = 1;
+            break;
+          case 'q':
+            options.basis_quality = atoi(parser.optarg.c_str());
+            break;
           case 'i':
             break;
           case '?':

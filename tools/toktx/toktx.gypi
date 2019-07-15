@@ -35,6 +35,7 @@
             '../../utils/argparser.h',
             'image.cpp',
             'image.h',
+            'stb_image.h',
             'stdafx.h',
             'targetver.h',
             'toktx.cpp',

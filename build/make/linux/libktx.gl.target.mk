@@ -11,16 +11,17 @@ DEFS_Debug := \
 # Flags passed to all source files.
 CFLAGS_Debug := \
 	-pedantic \
-	-std=c99 \
 	-Og \
 	-g \
 	-fPIC
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/include \
@@ -35,15 +36,16 @@ DEFS_Release := \
 # Flags passed to all source files.
 CFLAGS_Release := \
 	-pedantic \
-	-std=c99 \
 	-O3 \
 	-fPIC
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/include \
@@ -51,6 +53,21 @@ INCS_Release := \
 	-I$(VULKAN_SDK)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_backend.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_basis_file.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_comp.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_enc.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_etc.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_frontend.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_global_selector_palette_helpers.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_gpu_texture.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_pvrtc1_4.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_resampler.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_resample_filters.o \
+	$(obj).target/$(TARGET)/lib/basisu/lodepng.o \
+	$(obj).target/$(TARGET)/lib/basisu/transcoder/basisu_transcoder.o \
+	$(obj).target/$(TARGET)/lib/basis_encode.o \
+	$(obj).target/$(TARGET)/lib/basis_transcode.o \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/createdfd.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/dfd4vkformat.o \
@@ -94,6 +111,9 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(B
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.c FORCE_DO_CMD
 	@$(call do_cmd,cc,1)
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cxx FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
@@ -102,11 +122,17 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cxx FORCE_DO_CMD
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.c FORCE_DO_CMD
 	@$(call do_cmd,cc,1)
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cxx FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.c FORCE_DO_CMD
 	@$(call do_cmd,cc,1)
+
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cxx FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)

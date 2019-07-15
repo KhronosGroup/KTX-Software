@@ -28,7 +28,6 @@
       'target_name': 'vkloadtests',
       'type': '<(executable)',
       'mac_bundle': 1,
-      'cflags': [ '-std=c++11' ],
       'defines': [ ],
       'dependencies': [
         'appfwSDL',
@@ -119,8 +118,6 @@
         },
       },
       'xcode_settings': {
-        # For C++11
-        'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
         'INFOPLIST_FILE': '<(vkinfoplist_file)',
       }, # xcode_settings
       'conditions': [

@@ -13,10 +13,12 @@ CFLAGS_Debug := \
 	-g
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/utils \
@@ -32,10 +34,12 @@ CFLAGS_Release := \
 	-O3
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/utils \

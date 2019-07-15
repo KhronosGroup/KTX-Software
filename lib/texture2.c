@@ -245,10 +245,11 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
      */
     This->vkFormat = pHeader->vkFormat;
     This->supercompressionScheme = pHeader->supercompressionScheme;
-    //This->pDfd =
-    vkGetFormatSize(This->vkFormat, &This->_protected->_formatSize);
-    if (This->_protected->_formatSize.blockSizeInBits == 0) {
-        return KTX_INVALID_VALUE; // TODO Return a more reasonable error?
+    if (This->vkFormat != VK_FORMAT_UNDEFINED) {
+        vkGetFormatSize(This->vkFormat, &This->_protected->_formatSize);
+        if (This->_protected->_formatSize.blockSizeInBits == 0) {
+            return KTX_INVALID_VALUE; // TODO Return a more reasonable error?
+        }
     }
 
     This->_protected->_typeSize = pHeader->typeSize;
@@ -338,7 +339,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             }
 
             if (!(createFlags & KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)) {
-                char* orientation;
+                char* orientationStr;
                 ktx_uint32_t orientationLen;
 
                 result = ktxHashList_Deserialize(&This->kvDataHead,
@@ -351,7 +352,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                 result = ktxHashList_FindValue(&This->kvDataHead,
                                                KTX_ORIENTATION_KEY,
                                                &orientationLen,
-                                               (void**)&orientation);
+                                               (void**)&orientationStr);
                 assert(result != KTX_INVALID_VALUE);
                 if (result == KTX_SUCCESS) {
                     // Length includes the terminating NUL.
@@ -363,11 +364,11 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                     } else {
                         switch (This->numDimensions) {
                           case 3:
-                            This->orientation.z = orientation[2];
+                            This->orientation.z = orientationStr[2];
                           case 2:
-                            This->orientation.y = orientation[1];
+                            This->orientation.y = orientationStr[1];
                           case 1:
-                            This->orientation.x = orientation[0];
+                            This->orientation.x = orientationStr[0];
                         }
                     }
                 } else {
@@ -390,8 +391,15 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         // Read supercompressionGlobalData
         private->_supercompressionGlobalData =
           (ktx_uint8_t*)malloc(pHeader->supercompressionGlobalData.byteLength);
-        result = stream->read(stream, This->pDfd,
-                          pHeader->supercompressionGlobalData.byteLength);
+        if (!private->_supercompressionGlobalData) {
+            result = KTX_OUT_OF_MEMORY;
+            goto cleanup;
+        }
+        private->_sgdByteLength
+                            = pHeader->supercompressionGlobalData.byteLength;
+        result = stream->read(stream, private->_supercompressionGlobalData,
+                              private->_sgdByteLength);
+
         if (result != KTX_SUCCESS)
             goto cleanup;
     }
@@ -933,7 +941,7 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
  * @brief Calculate & return the size in bytes of an image at the specified
  *        mip level.
  *
- * For arrays, this is the size of layer, for cubemaps, the size of a face
+ * For arrays, this is the size of a layer, for cubemaps, the size of a face
  * and for 3D textures, the size of a depth slice.
  *
  * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.

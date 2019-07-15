@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
     <ClInclude Include="..\..\..\..\tools\toktx\image.h"/>
+    <ClInclude Include="..\..\..\..\tools\toktx\stb_image.h"/>
     <ClInclude Include="..\..\..\..\tools\toktx\stdafx.h"/>
     <ClInclude Include="..\..\..\..\tools\toktx\targetver.h"/>
   </ItemGroup>
@@ -143,10 +144,6 @@
   <ItemGroup>
     <ProjectReference Include="libktx.gl.vcxproj">
       <Project>{D49E6985-C789-D610-ED5C-40353B857730}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="vulkan_headers.vcxproj">
-      <Project>{6D15B498-AEF6-82AA-BADE-63525C464069}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

@@ -2536,8 +2536,8 @@ static inline GLint glGetInternalFormatFromVkFormat( VkFormat vkFormat )
 
         case VK_FORMAT_BC1_RGB_UNORM_BLOCK:        return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;                  // line through 3D space, 4x4 blocks, unsigned normalized
         case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:       return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;                 // line through 3D space plus 1-bit alpha, 4x4 blocks, unsigned normalized
-        case VK_FORMAT_BC2_UNORM_BLOCK:            return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;                 // line through 3D space plus line through 1D space, 4x4 blocks, unsigned normalized
-        case VK_FORMAT_BC3_UNORM_BLOCK:            return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;                 // line through 3D space plus 4-bit alpha, 4x4 blocks, unsigned normalized
+        case VK_FORMAT_BC2_UNORM_BLOCK:            return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;                 // line through 3D space plus line through 1D space, 4x4 blocks, unsigned normalized
+        case VK_FORMAT_BC3_UNORM_BLOCK:            return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;                 // line through 3D space plus 4-bit alpha, 4x4 blocks, unsigned normalized
 
         case VK_FORMAT_BC1_RGB_SRGB_BLOCK:         return GL_COMPRESSED_SRGB_S3TC_DXT1_EXT;                 // line through 3D space, 4x4 blocks, sRGB
         case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:        return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;           // line through 3D space plus 1-bit alpha, 4x4 blocks, sRGB

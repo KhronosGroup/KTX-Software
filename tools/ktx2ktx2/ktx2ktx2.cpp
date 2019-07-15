@@ -28,7 +28,6 @@
 #include "stdafx.h"
 #include <cstdlib>
 #include <errno.h>
-#include <unistd.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -46,6 +45,7 @@
   #define strncasecmp _strnicmp
   #define fileno _fileno
   #define isatty _isatty
+  #define unlink _unlink
 #endif
 
 #define VERSION "1.0.0"

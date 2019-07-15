@@ -86,6 +86,17 @@
 
 #endif
 
+/* To help find supported transcode targets */
+#if !defined(GL_ETC1_RGB8_OES)
+  #define GL_ETC1_RGB8_OES                  0x8D64
+#endif
+#if !defined(GL_COMPRESSED_RGB8_ETC2)
+  #define GL_COMPRESSED_RGB8_ETC2           0x9274
+#endif
+#if !defined(GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
+  #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
+#endif
+
 /* undef to avoid needing ordering of mygl.h & SDL2/sdl.h inclusion. */
 #undef SDL_GL_CONTEXT_PROFILE_CORE
 #undef SDL_GL_CONTEXT_PROFILE_COMPATIBILITY

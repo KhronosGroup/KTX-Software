@@ -85,12 +85,12 @@
 		103F577AECC5397314C1B46E /* ktx2ktx2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC70D852F49571AE410DF987 /* ktx2ktx2.cpp */; };
 		28513B2A43632C96B4A96F7F /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 2E5F681D5C6F1BE626ECEB9D /* toktx */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		3ACAE6BF8D4628BCB9FFDF72 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
+		54B55F7A2FF502D6C8864A37 /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
 		7D568DD42C0E3532ADBC398A /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
-		7DEB9546650AA3CF663AA948 /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
 		93F897FD8FE45DEB5548745A /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		960CD2F0EAE019652D9AA7C7 /* ktxinfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6708BDBD0228EF4D2F3696B7 /* ktxinfo.cpp */; };
-		A0D9B727B77876E9063FD707 /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
 		ACBDFBA8278D8970F9CA42DC /* ktxinfo in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = F275A3E14410D5B59A00B213 /* ktxinfo */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B4782094C59E831AC36D6072 /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
 		BB36D1EADAE968C3EB10A188 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		C08DE8F6AD7C672731224622 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		C47537C0A346B97B2A1C5B53 /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 56C859EDDD90106359C989F0 /* ktx2ktx2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -294,6 +294,7 @@
 		6708BDBD0228EF4D2F3696B7 /* ktxinfo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ktxinfo.cpp; sourceTree = "<group>"; };
 		7E34B6FCD7D2C06100AC83B8 /* toktx-tests */ = {isa = PBXFileReference; lastKnownFileType = text; path = "toktx-tests"; sourceTree = "<group>"; };
 		86AEB87A4794F64BCABB0F56 /* argparser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = argparser.h; sourceTree = "<group>"; };
+		96BF2CEF71CD1B833F24A842 /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		9DED3B165AA3B618D5F5E1AD /* ktx2ktx2.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ktx2ktx2.gypi; path = tools/ktx2ktx2/ktx2ktx2.gypi; sourceTree = "<group>"; };
 		9FDEDCE310E000EE3C1F8868 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		A17ED16C420B2458BFAFE7CD /* ktxtools.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = ktxtools.gyp; sourceTree = "<group>"; };
@@ -364,7 +365,7 @@
 				839C5F6488FD9301FE45A9B5 /* ktx2ktx2 */,
 				698E3500D6AEAD14D63070F8 /* ktxinfo */,
 				D23C27D185500222DD81A9EA /* package/mac */,
-				B9DBBD2BDC0AB56FD77FF34F /* toktx */,
+				DF91976D492B3DAD72EE7C42 /* toktx */,
 			);
 			path = tools;
 			sourceTree = "<group>";
@@ -440,19 +441,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		B9DBBD2BDC0AB56FD77FF34F /* toktx */ = {
-			isa = PBXGroup;
-			children = (
-				1AEF7FE8F3CD0A01B52E80AC /* image.cpp */,
-				D03F8B42599E13BB361A336C /* image.h */,
-				D2C3FD552A0E9500694FADD5 /* stdafx.h */,
-				FAA647F3D2A4BF6CCB3866AE /* targetver.h */,
-				A70ADC63B30492A0A8FE4CEC /* testsrun */,
-				203503E5D73963F434684DDB /* toktx.cpp */,
-			);
-			path = toktx;
-			sourceTree = "<group>";
-		};
 		BB863DF0338409FEB2F1E639 /* man */ = {
 			isa = PBXGroup;
 			children = (
@@ -502,6 +490,20 @@
 				E41E528C48467DFD6CD757F5 /* .ktxtoolsdoc_gentimestamp */,
 			);
 			path = docs;
+			sourceTree = "<group>";
+		};
+		DF91976D492B3DAD72EE7C42 /* toktx */ = {
+			isa = PBXGroup;
+			children = (
+				1AEF7FE8F3CD0A01B52E80AC /* image.cpp */,
+				D03F8B42599E13BB361A336C /* image.h */,
+				96BF2CEF71CD1B833F24A842 /* stb_image.h */,
+				D2C3FD552A0E9500694FADD5 /* stdafx.h */,
+				FAA647F3D2A4BF6CCB3866AE /* targetver.h */,
+				A70ADC63B30492A0A8FE4CEC /* testsrun */,
+				203503E5D73963F434684DDB /* toktx.cpp */,
+			);
+			path = toktx;
 			sourceTree = "<group>";
 		};
 		E368DE5878720C42889C7AC5 /* tests */ = {
@@ -720,8 +722,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				93F897FD8FE45DEB5548745A /* argparser.cpp in Sources */,
-				A0D9B727B77876E9063FD707 /* image.cpp in Sources */,
-				7DEB9546650AA3CF663AA948 /* toktx.cpp in Sources */,
+				54B55F7A2FF502D6C8864A37 /* image.cpp in Sources */,
+				B4782094C59E831AC36D6072 /* toktx.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -820,6 +822,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -848,6 +851,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -878,6 +882,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -901,6 +906,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -938,6 +944,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -965,6 +972,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -990,6 +998,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1019,6 +1028,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1038,6 +1048,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1065,6 +1076,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1092,6 +1104,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1122,6 +1135,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1218,6 +1232,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1238,6 +1253,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;

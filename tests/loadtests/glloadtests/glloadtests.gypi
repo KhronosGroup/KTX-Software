@@ -47,6 +47,8 @@
     'gl3_source_files': [
        # .h files are included so they will appear in IDEs' file lists.
       '../common/ltexceptions.h',
+      'shader-based/BasisuTest.cpp',
+      'shader-based/BasisuTest.h',
       'shader-based/DrawTexture.cpp',
       'shader-based/DrawTexture.h',
       'shader-based/GL3LoadTests.cpp',

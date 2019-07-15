@@ -9,6 +9,38 @@
     'sources': [
       # .h files are included so they will appear in IDEs' file lists.
       '../include/ktx.h',
+      'basisu/basisu_backend.cpp',
+      'basisu/basisu_backend.h',
+      'basisu/basisu_basis_file.cpp',
+      'basisu/basisu_basis_file.h',
+      'basisu/basisu_comp.cpp',
+      'basisu/basisu_comp.h',
+      'basisu/basisu_enc.cpp',
+      'basisu/basisu_enc.h',
+      'basisu/basisu_etc.cpp',
+      'basisu/basisu_etc.h',
+      'basisu/basisu_frontend.cpp',
+      'basisu/basisu_frontend.h',
+      'basisu/basisu_global_selector_palette_helpers.cpp',
+      'basisu/basisu_global_selector_palette_helpers.h',
+      'basisu/basisu_gpu_texture.cpp',
+      'basisu/basisu_gpu_texture.h',
+      'basisu/basisu_pvrtc1_4.cpp',
+      'basisu/basisu_pvrtc1_4.h',
+      'basisu/basisu_resampler.cpp',
+      'basisu/basisu_resampler.h',
+      'basisu/basisu_resample_filters.cpp',
+      'basisu/basisu_resampler_filters.h',
+      'basisu/lodepng.cpp',
+      'basisu/lodepng.h',
+      'basisu/transcoder/basisu.h',
+      'basisu/transcoder/basisu_file_headers.h',
+      'basisu/transcoder/basisu_transcoder.cpp',
+      'basisu/transcoder/basisu_transcoder.h',
+      'basisu/transcoder/basisu_transcoder_internal.h',
+      'basis_sgd.h',
+      'basis_encode.cpp',
+      'basis_transcode.cpp',
       'checkheader.c',
       'dfdutils/createdfd.c',
       'dfdutils/dfd.h',
@@ -75,8 +107,11 @@
     {
       'target_name': 'libktx.gl',
       'type': '<(library)',
-      'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
+      'defines': [
+        'KTX_OPENGL=1',
+        'KTX_USE_FUNCPTRS_FOR_VULKAN',
+        'KHRONOS_STATIC=1',
+      ],
       'direct_dependent_settings': {
          'include_dirs': [ '<@(include_dirs)' ],
       },
@@ -90,6 +125,7 @@
       'conditions': [
         ['_type == "shared_library"', {
           'dependencies': [ 'libgl', 'libvulkan.lazy' ],
+          'defines!': ['KHRONOS_STATIC=1'],
           'conditions': [
             ['OS == "mac" or OS == "ios"', {
               'direct_dependent_settings': {
@@ -125,11 +161,19 @@
               }
             }, 'OS == "linux"', {
               'dependencies!': [ 'libvulkan.lazy' ],
+            }, 'OS == "win"', {
+              'dependencies!': [ 'libvulkan.lazy' ],
+              'defines': [ 'KTX_APICALL=__declspec(dllexport)' ],
+              # The msvs generator automatically sets the needed VCLinker
+              # option a .def file is seen in sources.
+              'sources': [ 'internalexport.def' ],
             }] # OS == "mac or OS == "ios"
           ], # conditions
         }], # _type == "shared_library"
       ], # conditions
       'xcode_settings': {
+          # Turn off so as to compile Basis. Hopefully temporary.
+          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
           # These are actually Xcode's defaults shown here for documentation.
           #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
           #'INSTALL_PATH': '/usr/local/lib',
@@ -142,28 +186,44 @@
     {
       'target_name': 'libktx.es1',
       'type': 'static_library',
-      'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL_ES1=1', 'KTX_OMIT_VULKAN=1' ],
+      'defines': [
+        'KTX_OPENGL_ES1=1',
+        'KTX_OMIT_VULKAN=1',
+        'KHRONOS_STATIC=1',
+      ],
       'direct_dependent_settings': {
         'include_dirs': [ '<@(include_dirs)' ],
+        'defines': [ 'KHRONOS_STATIC=1' ],
       },
       'sources': [ '<@(sources)' ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'xcode_settings': {
+          # Turn off so as to compile Basis. Hopefully temporary.
+          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+      }
     }, # libktx.es1
     {
       'target_name': 'libktx.es3',
       'type': 'static_library',
-      'cflags': [ '-std=c99' ],
-      'defines': [ 'KTX_OPENGL_ES3=1', 'KTX_USE_FUNCPTRS_FOR_VULKAN' ],
+      'defines': [
+        'KTX_OPENGL_ES3=1',
+        'KTX_USE_FUNCPTRS_FOR_VULKAN',
+        'KHRONOS_STATIC=1',
+      ],
       'dependencies': [ 'vulkan_headers' ],
       'direct_dependent_settings': {
-         'include_dirs': [ '<@(include_dirs)' ],
+        'include_dirs': [ '<@(include_dirs)' ],
+        'defines': [ 'KHRONOS_STATIC=1' ],
       },
       'sources': [
         '<@(sources)',
         '<@(vksource_files)',
       ],
       'include_dirs': [ '<@(include_dirs)' ],
+      'xcode_settings': {
+          # Turn off so as to compile Basis. Hopefully temporary.
+          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+      }
     }, # libktx.es3
   ], # targets
   'conditions': [

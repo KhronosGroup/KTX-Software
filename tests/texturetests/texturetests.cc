@@ -272,7 +272,7 @@ class ktxTextureTestBase : public ::testing::Test {
         if (ktxMemFile != NULL) delete ktxMemFile;
     }
 
-    KTX_error_code KTXAPIENTRY
+    KTX_error_code
     iterCallback(int miplevel, int face,
                  int width, int height, int depth,
                  ktx_uint64_t faceLodSize,
@@ -2047,6 +2047,38 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read2DMipmap) {
 TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
     resize(createFlagBits::eMipmapped, 1, 1, 3, 64, 64, 32);
     runTest();
+}
+
+class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase { };
+
+/////////////////////////////////////////
+// ktxTexture2_BasisCompress tests
+////////////////////////////////////////
+
+TEST_F(ktxTexture2_BasisCompressTest, Compress) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        dataSize = texture->dataSize;
+        ktxTexture2_CompressBasis(texture, 0);
+        EXPECT_EQ(texture->supercompressionScheme, KTX_SUPERCOMPRESSION_BASIS);
+        EXPECT_TRUE(texture->_private->_supercompressionGlobalData > (ktx_uint8_t*)0);
+        EXPECT_EQ(texture->numLevels, helper.numLevels);
+        EXPECT_LT(texture->dataSize, dataSize);
+        // How else to test the result?
+
+        result = ktxTexture2_TranscodeBasis(texture, KTX_TF_BC1, 0);
+    }
 }
 
 }  // namespace

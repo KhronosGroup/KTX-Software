@@ -59,10 +59,42 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")
 list(APPEND libktx_es3__cxx_srcs
+  "../../../../lib/basisu/basisu_backend.cpp"
+  "../../../../lib/basisu/basisu_basis_file.cpp"
+  "../../../../lib/basisu/basisu_comp.cpp"
+  "../../../../lib/basisu/basisu_enc.cpp"
+  "../../../../lib/basisu/basisu_etc.cpp"
+  "../../../../lib/basisu/basisu_frontend.cpp"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.cpp"
+  "../../../../lib/basisu/basisu_gpu_texture.cpp"
+  "../../../../lib/basisu/basisu_pvrtc1_4.cpp"
+  "../../../../lib/basisu/basisu_resampler.cpp"
+  "../../../../lib/basisu/basisu_resample_filters.cpp"
+  "../../../../lib/basisu/lodepng.cpp"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
+  "../../../../lib/basis_encode.cpp"
+  "../../../../lib/basis_transcode.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es3__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/basisu/basisu_backend.h"
+  "../../../../lib/basisu/basisu_basis_file.h"
+  "../../../../lib/basisu/basisu_comp.h"
+  "../../../../lib/basisu/basisu_enc.h"
+  "../../../../lib/basisu/basisu_etc.h"
+  "../../../../lib/basisu/basisu_frontend.h"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.h"
+  "../../../../lib/basisu/basisu_gpu_texture.h"
+  "../../../../lib/basisu/basisu_pvrtc1_4.h"
+  "../../../../lib/basisu/basisu_resampler.h"
+  "../../../../lib/basisu/basisu_resampler_filters.h"
+  "../../../../lib/basisu/lodepng.h"
+  "../../../../lib/basisu/transcoder/basisu.h"
+  "../../../../lib/basisu/transcoder/basisu_file_headers.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
+  "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "../../../../lib/filestream.h"
@@ -99,14 +131,16 @@ list(APPEND libktx_es3__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
-set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;")
-set_target_properties(libktx_es3 PROPERTIES COMPILE_FLAGS "-pedantic -std=c99 -O3 ")
+set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;NDEBUG;")
+set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c99 ")
+set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(libktx_es3
@@ -196,10 +230,42 @@ list(APPEND libktx_es1__c_srcs
   "../../../../lib/writer1.c"
   "../../../../lib/writer2.c")
 list(APPEND libktx_es1__cxx_srcs
+  "../../../../lib/basisu/basisu_backend.cpp"
+  "../../../../lib/basisu/basisu_basis_file.cpp"
+  "../../../../lib/basisu/basisu_comp.cpp"
+  "../../../../lib/basisu/basisu_enc.cpp"
+  "../../../../lib/basisu/basisu_etc.cpp"
+  "../../../../lib/basisu/basisu_frontend.cpp"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.cpp"
+  "../../../../lib/basisu/basisu_gpu_texture.cpp"
+  "../../../../lib/basisu/basisu_pvrtc1_4.cpp"
+  "../../../../lib/basisu/basisu_resampler.cpp"
+  "../../../../lib/basisu/basisu_resample_filters.cpp"
+  "../../../../lib/basisu/lodepng.cpp"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
+  "../../../../lib/basis_encode.cpp"
+  "../../../../lib/basis_transcode.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es1__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/basisu/basisu_backend.h"
+  "../../../../lib/basisu/basisu_basis_file.h"
+  "../../../../lib/basisu/basisu_comp.h"
+  "../../../../lib/basisu/basisu_enc.h"
+  "../../../../lib/basisu/basisu_etc.h"
+  "../../../../lib/basisu/basisu_frontend.h"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.h"
+  "../../../../lib/basisu/basisu_gpu_texture.h"
+  "../../../../lib/basisu/basisu_pvrtc1_4.h"
+  "../../../../lib/basisu/basisu_resampler.h"
+  "../../../../lib/basisu/basisu_resampler_filters.h"
+  "../../../../lib/basisu/lodepng.h"
+  "../../../../lib/basisu/transcoder/basisu.h"
+  "../../../../lib/basisu/transcoder/basisu_file_headers.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
+  "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "../../../../lib/filestream.h"
@@ -231,14 +297,16 @@ list(APPEND libktx_es1__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es1 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es1__include_dirs})
-set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;KTX_OMIT_VULKAN=1;NDEBUG;")
-set_target_properties(libktx_es1 PROPERTIES COMPILE_FLAGS "-pedantic -std=c99 -O3 ")
+set_target_properties(libktx_es1 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES1=1;KTX_OMIT_VULKAN=1;KHRONOS_STATIC=1;NDEBUG;")
+set_source_files_properties(${libktx_es1__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c99 ")
+set_source_files_properties(${libktx_es1__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(libktx_es1 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 unset(TOOLSET)
@@ -254,6 +322,38 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_backend.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_backend.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_basis_file.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_basis_file.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_comp.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_comp.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_enc.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_enc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_etc.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_etc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_frontend.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_frontend.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_global_selector_palette_helpers.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_global_selector_palette_helpers.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_gpu_texture.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_gpu_texture.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_pvrtc1_4.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_pvrtc1_4.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resample_filters.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler_filters.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_file_headers.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_sgd.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_encode.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcode.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
@@ -360,10 +460,42 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")
 list(APPEND libktx_gl__cxx_srcs
+  "../../../../lib/basisu/basisu_backend.cpp"
+  "../../../../lib/basisu/basisu_basis_file.cpp"
+  "../../../../lib/basisu/basisu_comp.cpp"
+  "../../../../lib/basisu/basisu_enc.cpp"
+  "../../../../lib/basisu/basisu_etc.cpp"
+  "../../../../lib/basisu/basisu_frontend.cpp"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.cpp"
+  "../../../../lib/basisu/basisu_gpu_texture.cpp"
+  "../../../../lib/basisu/basisu_pvrtc1_4.cpp"
+  "../../../../lib/basisu/basisu_resampler.cpp"
+  "../../../../lib/basisu/basisu_resample_filters.cpp"
+  "../../../../lib/basisu/lodepng.cpp"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
+  "../../../../lib/basis_encode.cpp"
+  "../../../../lib/basis_transcode.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_gl__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/basisu/basisu_backend.h"
+  "../../../../lib/basisu/basisu_basis_file.h"
+  "../../../../lib/basisu/basisu_comp.h"
+  "../../../../lib/basisu/basisu_enc.h"
+  "../../../../lib/basisu/basisu_etc.h"
+  "../../../../lib/basisu/basisu_frontend.h"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.h"
+  "../../../../lib/basisu/basisu_gpu_texture.h"
+  "../../../../lib/basisu/basisu_pvrtc1_4.h"
+  "../../../../lib/basisu/basisu_resampler.h"
+  "../../../../lib/basisu/basisu_resampler_filters.h"
+  "../../../../lib/basisu/lodepng.h"
+  "../../../../lib/basisu/transcoder/basisu.h"
+  "../../../../lib/basisu/transcoder/basisu_file_headers.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
+  "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/vkdfdswitchbody.inl"
   "../../../../lib/filestream.h"
@@ -402,13 +534,15 @@ list(APPEND libktx_gl__include_dirs
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
 set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;NDEBUG;")
-set_target_properties(libktx_gl PROPERTIES COMPILE_FLAGS "-pedantic -std=c99 -O3 -fPIC ")
+set_source_files_properties(${libktx_gl__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -fPIC -std=c99 ")
+set_source_files_properties(${libktx_gl__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -fPIC -std=c++11 ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(libktx_gl
@@ -474,6 +608,7 @@ list(APPEND toktx__cxx_srcs
 list(APPEND toktx__other_srcs
   "../../../../utils/argparser.h"
   "../../../../tools/toktx/image.h"
+  "../../../../tools/toktx/stb_image.h"
   "../../../../tools/toktx/stdafx.h"
   "../../../../tools/toktx/targetver.h")
 add_executable(toktx ${toktx__cxx_srcs} ${toktx__other_srcs})
@@ -490,11 +625,12 @@ list(APPEND toktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
 set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
@@ -559,11 +695,12 @@ list(APPEND ktxinfo__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktxinfo APPEND PROPERTY INCLUDE_DIRECTORIES ${ktxinfo__include_dirs})
 set_target_properties(ktxinfo PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(ktxinfo PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(ktxinfo PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
@@ -598,11 +735,12 @@ list(APPEND ktx2ktx2__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktx2ktx2 APPEND PROPERTY INCLUDE_DIRECTORIES ${ktx2ktx2__include_dirs})
 set_target_properties(ktx2ktx2 PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(ktx2ktx2 PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(ktx2ktx2 PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
@@ -781,13 +919,16 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx2")
@@ -824,13 +965,16 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
+  "${builddir}/testimages/FlightHelmet_baseColor.ktx2"
   "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
   "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2"
-  "${builddir}/testimages/orient-down-metadata.ktx2"
-  "${builddir}/testimages/orient-up-metadata.ktx2"
+  "${builddir}/testimages/kodim17.ktx2"
+  "${builddir}/testimages/orient-down-metadata-u.ktx2"
+  "${builddir}/testimages/orient-up-metadata-u.ktx2"
   "${builddir}/testimages/pattern_02_bc2.ktx2"
-  "${builddir}/testimages/rgb-mipmap-reference.ktx2"
+  "${builddir}/testimages/rgb-mipmap-reference-u.ktx2"
+  "${builddir}/testimages/rgba-reference-u.ktx2"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx2"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx2")
@@ -868,13 +1012,16 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor.ktx2 ${builddir}/testimages/FlightHelmet_baseColor.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx2 ${builddir}/testimages/orient-down-metadata.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx2 ${builddir}/testimages/orient-up-metadata.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17.ktx2 ${builddir}/testimages/kodim17.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx2 ${builddir}/testimages/rgb-mipmap-reference.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference-u.ktx2 ${builddir}/testimages/rgb-mipmap-reference-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference-u.ktx2 ${builddir}/testimages/rgba-reference-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx2 ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx2 ${builddir}/testimages/texturearray_bc3_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx2 ${builddir}/testimages/texturearray_etc2_unorm.ktx2
@@ -1015,7 +1162,7 @@ list(APPEND appfwSDL__include_dirs
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 -std=c++11 ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1051,6 +1198,7 @@ list(APPEND gl3loadtests__cxx_srcs
   "../../../../tests/loadtests/common/LoadTestSample.cpp"
   "../../../../tests/loadtests/common/SwipeDetector.cpp"
   "../../../../tests/loadtests/glloadtests/GLLoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.cpp"
   "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.cpp"
   "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTests.cpp"
   "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.cpp"
@@ -1065,6 +1213,7 @@ list(APPEND gl3loadtests__other_srcs
   "../../../../tests/loadtests/geom/frame.h"
   "../../../../tests/loadtests/glloadtests/GLLoadTests.h"
   "../../../../tests/loadtests/common/ltexceptions.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.h"
   "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.h"
   "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.h"
   "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.h"
@@ -1091,12 +1240,13 @@ list(APPEND gl3loadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
 set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;NDEBUG;")
-set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
@@ -1495,7 +1645,7 @@ list(APPEND vkloadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET vkloadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${vkloadtests__include_dirs})
 set_target_properties(vkloadtests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-pedantic -std=c++11 -O3 ")
+set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(vkloadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
@@ -1577,7 +1727,7 @@ list(APPEND gtest_main__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
 set_property(TARGET gtest_main APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest_main__include_dirs})
 set_target_properties(gtest_main PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1607,7 +1757,7 @@ list(APPEND gtest__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
 set_property(TARGET gtest APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest__include_dirs})
 set_target_properties(gtest PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;")
-set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1641,7 +1791,7 @@ list(APPEND unittests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET unittests APPEND PROPERTY INCLUDE_DIRECTORIES ${unittests__include_dirs})
 set_target_properties(unittests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(unittests PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(unittests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1685,7 +1835,7 @@ list(APPEND texturetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET texturetests APPEND PROPERTY INCLUDE_DIRECTORIES ${texturetests__include_dirs})
 set_target_properties(texturetests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(texturetests PROPERTIES COMPILE_FLAGS "-pedantic -O3 ")
+set_target_properties(texturetests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")

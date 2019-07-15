@@ -72,6 +72,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     GLuint gnColorFs, gnDecalFs, gnVs;
     GLsizeiptr offset;
     ktxTexture* kTexture;
+    ktx_texture_transcode_fmt_e tf;
     KTX_error_code ktxresult;
 
     bInitialized = false;
@@ -91,6 +92,28 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
                 << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
+
+    if (kTexture->classId == ktxTexture2_c
+        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+    {
+        tf = determineTargetFormat();
+        if (tf == KTX_TF_NONE_COMPATIBLE) {
+            std::stringstream message;
+
+            message << "OpenGL implementation does not support any available transcode target.";
+            throw std::runtime_error(message.str());
+        }
+
+        ktxresult = ktxTexture2_TranscodeBasis((ktxTexture2*)kTexture, tf, 0);
+        if (KTX_SUCCESS != ktxresult) {
+            std::stringstream message;
+
+            message << "Transcoding of ktxTexture2 to BC1 failed: "
+                    << ktxErrorString(ktxresult);
+            throw std::runtime_error(message.str());
+        }
+    }
+
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {

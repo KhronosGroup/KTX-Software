@@ -145,6 +145,7 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\geom\frame.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\common\ltexceptions.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\BasisuTest.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\DrawTexture.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\GL3LoadTestSample.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\TextureArray.h"/>
@@ -157,6 +158,7 @@
     <ClCompile Include="..\..\..\..\tests\loadtests\common\LoadTestSample.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\common\SwipeDetector.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\GLLoadTests.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\BasisuTest.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\DrawTexture.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\GL3LoadTests.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\glloadtests\shader-based\GL3LoadTestSample.cpp"/>
@@ -186,10 +188,6 @@
     </ProjectReference>
     <ProjectReference Include="libsdl.vcxproj">
       <Project>{4AACC0C7-A304-88A4-6BB2-AB62FA4D0F9D}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="vulkan_headers.vcxproj">
-      <Project>{8AED410F-B838-67C7-AF7A-DF412424674F}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

@@ -140,6 +140,13 @@
       <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\ktxinfo.exe</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="$(OutDir)\libktx.gl.dll">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(TMP)\ktxtools.dst\usr\local\lib&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;$(OutDir)libktx.gl.dll&quot; &quot;$(TMP)\ktxtools.dst\usr\local\lib\libktx.gl.dll&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying $(OutDir)/libktx.gl.dll to $(TMP)\ktxtools.dst\usr\local\lib</Message>
+      <Outputs>$(TMP)\ktxtools.dst\usr\local\lib\libktx.gl.dll</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\..\build\docs\man\man1">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(TMP)\ktxtools.dst\usr\local\share\man\man1\&quot; 2&gt;nul &amp; cd &quot;..\..\..\..\build\docs\man&quot; &amp;&amp; xcopy /e /f /y &quot;man1&quot; &quot;$(TMP)\ktxtools.dst\usr\local\share\man\man1\&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>

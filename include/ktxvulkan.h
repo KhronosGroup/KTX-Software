@@ -91,7 +91,7 @@ typedef struct ktxVulkanTexture
     uint32_t layerCount; /*!< The number of array layers in the image. */
 } ktxVulkanTexture;
 
-void
+KTX_APICALL void KTX_APIENTRY
 ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
                           const VkAllocationCallbacks* pAllocator);
 
@@ -134,31 +134,33 @@ typedef struct ktxVulkanDeviceInfo {
     VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 } ktxVulkanDeviceInfo;
 
-ktxVulkanDeviceInfo*
+KTX_APICALL ktxVulkanDeviceInfo* KTX_APIENTRY
 ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
                            const VkAllocationCallbacks* pAllocator);
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
                          VkPhysicalDevice physicalDevice, VkDevice device,
                          VkQueue queue, VkCommandPool cmdPool,
                          const VkAllocationCallbacks* pAllocator);
-void
+KTX_APICALL void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
-void
+KTX_APICALL void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
 
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXVKUPLOAD)(ktxTexture* This,
-                                   ktxVulkanDeviceInfo* vdi,
-                                   ktxVulkanTexture* vkTexture);
+    (KTX_APIENTRY* PFNKTEXVKUPLOAD)(ktxTexture* This,
+                                    ktxVulkanDeviceInfo* vdi,
+                                    ktxVulkanTexture* vkTexture);
 
 typedef KTX_error_code
-    (KTXAPIENTRY* PFNKTEXVKUPLOADEX)(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+    (KTX_APIENTRY* PFNKTEXVKUPLOADEX)(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
                       VkImageTiling tiling,
                       VkImageUsageFlags usageFlags,
                       VkImageLayout layout);
+
+typedef VkFormat (KTX_APIENTRY* PFNKTEXGETVKFORMAT)(ktxTexture* This);
 
 #define ktxTexture_VkUploadEx(This, vdi, vkTexture, tiling, usageFlags, \
                               layout) \
@@ -168,12 +170,12 @@ typedef KTX_error_code
 #define ktxTexture_VkUpload(This, vdi, vkTexture) \
                     This->vvtbl->VkUpload(This, vdi, vkTexture)
 
-VkFormat
-ktxTexture_GetVkFormat(ktxTexture* This);
+#define ktxTexture_GetVkFormat(This) This->vvtbl->GetVkFormat(This)
 
 struct ktxTexture_vvtbl {
     PFNKTEXVKUPLOADEX VkUploadEx;
     PFNKTEXVKUPLOAD VkUpload;
+    PFNKTEXGETVKFORMAT GetVkFormat;
 };
 
 #ifdef __cplusplus
