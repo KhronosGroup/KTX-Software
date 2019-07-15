@@ -203,7 +203,7 @@ namespace basist
 	{ \
 		{ N * -8,  N * -2,   N * 2,   N * 8 },{ N * -17,  N * -5,  N * 5,  N * 17 },{ N * -29,  N * -9,   N * 9,  N * 29 },{ N * -42, N * -13, N * 13,  N * 42 }, \
 		{ N * -60, N * -18, N * 18,  N * 60 },{ N * -80, N * -24, N * 24,  N * 80 },{ N * -106, N * -33, N * 33, N * 106 },{ N * -183, N * -47, N * 47, N * 183 } \
-	};
+	}
 
 	DECLARE_ETC1_INTEN_TABLE(g_etc1_inten_tables, 1);
 	DECLARE_ETC1_INTEN_TABLE(g_etc1_inten_tables48, 3 * 16);
