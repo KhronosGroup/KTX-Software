@@ -724,7 +724,7 @@ padRow(ktx_uint32_t* rowBytes)
  *
  * @return the layer size in bytes.
  */
-inline ktx_size_t
+ktx_size_t
 ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
                     ktxFormatVersionEnum fv)
 {
