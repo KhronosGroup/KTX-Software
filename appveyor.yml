@@ -20,6 +20,10 @@ environment:
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2017_R1
 
+branches:
+  except:
+    - /subrepo\/*/
+
 # Following is for GIT_TRACE: 1 above.
 #on_failure:
 #  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
