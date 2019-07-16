@@ -246,23 +246,23 @@ int _tmain(int argc, _TCHAR* argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else {
-                //outf = fopen(outfile,"wxb");
                 outf = fopen(outfile, "wxb");
             }
 
             if (!outf && errno == EEXIST) {
-                if (!options.force) {
+                bool force = options.force;
+                if (!force) {
                     if (isatty(fileno(stdin))) {
                         char answer;
                         cout << "Output file " << outfile
                              << " exists. Overwrite? [Y or n] ";
                         cin >> answer;
                         if (answer == 'Y') {
-                            options.force = true;
+                            force = true;
                         }
                     }
                 }
-                if (options.force) {
+                if (force) {
                     outf = fopen(outfile, "wb");
                 }
             }
@@ -468,7 +468,7 @@ processOptions(argparser& parser,
          case 'o':
             filename = parser.optarg.c_str();
             filenamelen = (unsigned int)_tcslen(filename) + 1;
-            if (_tcsrchr(options.outfile, '.') == NULL) {
+            if (_tcsrchr(filename, '.') == NULL) {
                 addktx2 = true;
                 filenamelen += 5;
             }

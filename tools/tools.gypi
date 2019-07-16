@@ -14,6 +14,7 @@
   'includes': [
     'ktx2ktx2/ktx2ktx2.gypi',
     'ktxinfo/ktxinfo.gypi',
+    'ktxsc/ktxsc.gypi',
     'toktx/toktx.gypi',
   ],
   'conditions': [
