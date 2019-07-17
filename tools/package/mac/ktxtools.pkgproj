@@ -2175,7 +2175,7 @@
 						<key>VALUE</key>
 						<dict>
 							<key>PATH</key>
-							<string>/Users/mark/Projects/github/KTX-Software/tools/package/mac/summary.rtfd</string>
+							<string>summary.rtfd</string>
 							<key>PATH_TYPE</key>
 							<integer>1</integer>
 						</dict>
