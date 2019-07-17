@@ -204,7 +204,7 @@ Create a KTX file from netpbm format files.
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.</dd>
-    <dt>--linear</dd>
+    <dt>--linear</dt>
     <dd>Force the created texture to have a linear transfer function. By
         default the transfer function is set based on information in the
         input .png file or, for npbm files, set to linear.</dd>

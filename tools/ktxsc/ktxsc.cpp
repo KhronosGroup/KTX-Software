@@ -82,16 +82,20 @@ Supercompress the images in a KTX2 file.
 
 @section ktxsc_description DESCRIPTION
     @b ktxsc supercompresses the images in Khronos texture format version 2
-    files (KTX2). @b ktxsc reads each named @e infile and compresses it in
-    place. When no file is specified, a single image will be read from stdin.
-    and the output written to standard out. When one or more files is specified
-    each will be comoressed in place.
+    files (KTX2) that have uncompressed images, i.e those whose vkFormat name
+    does not end in @c _BLOCK. It first compresses to ETC1S format then
+    supercompresses with Basis Universal.
+
+    @b ktxsc reads each named @e infile and compresses it in place. When @e
+    infile is not specified, a single file will be read from @e stdin. and the
+    output written to @e stdout. When one or more files is specified each will
+    be comoressed in place.
 
     The following options are available:
     <dl>
     <dt>-o outfile, --output=outfile</dt>
     <dd>Write the output to @e outfile. If @e outfile is 'stdout', output will
-        be written to stdout. If there is more than 1 input file the command
+        be written to stdout. If there is more than 1 @e infile the command
         prints its usage message and exits.</dd>
     <dt>-f, --force</dt>
     <dd>If the destination file cannot be opened, remove it and create a
@@ -120,17 +124,17 @@ usage(_TCHAR* appName)
         "Usage: %s [options] [<infile> ...]\n"
         "\n"
         "  infile       The ktx2 file(s) to supercompress. The output is written to a\n"
-        "               file of the same name.\n" /*If it is '-' or not specified input will\n"
-        "               be read from stdin and the compressed texture written to\n"
-        "               stdout.\n"*/
+        "               file of the same name. If infile not specified input will be read\n"
+        "               from stdin and the compressed texture written to stdout.\n"
         "\n"
         "  Options are:\n"
         "\n"
 
         "  -o outfile, --output=outfile\n"
         "               Writes the output to outfile. If there is more than 1 input\n"
-        "               file the ommand prints its usage message and exits.\n" /*If\n"
-        "               outfile is 'stdout', output will be written to stdout.\n"*/
+        "               file the ommand prints its usage message and exits. If outfile\n"
+        "               is 'stdout', output will be written to stdout. If there is more\n"
+        "               than 1 infile the command prints its usage message and exits.\n"
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
         "               its permissions.\n",
@@ -314,13 +318,6 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         options.useStdin = true;
         break;
 
-      case 1:
-        if (_tcscmp(argv[i], "-") == 0) {
-            options.numInputFiles = 1;
-            options.useStdin = true;
-        }
-        break;
-
       default:
         /* Check for attempt to use stdin as one of the
          * input files.
@@ -332,6 +329,9 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
             }
         }
     }
+
+    if (options.useStdin && !options.outfile)
+        options.useStdout = true;
 
     if (options.numInputFiles > 1 && options.outfile) {
         usage(options.appName);

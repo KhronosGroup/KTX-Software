@@ -131,6 +131,7 @@ struct ktxStream
         FILE* file;
         ktxMem* mem;
     } data;                /**< @internal pointer to the stream data. */
+    ktx_off_t readpos;     /**< @internal used by FileStream for stdin. */
     ktx_bool_t closeOnDestruct; /**< @internal Close FILE* or dispose of memory on destruct. */
 };
 
