@@ -129,18 +129,18 @@
       <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\toktx.exe</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="$(OutDir)\ktx2ktx2.exe">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(TMP)\ktxtools.dst\usr\local\bin&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;$(OutDir)ktx2ktx2.exe&quot; &quot;$(TMP)\ktxtools.dst\usr\local\bin\ktx2ktx2.exe&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying $(OutDir)/ktx2ktx2.exe to $(TMP)\ktxtools.dst\usr\local\bin</Message>
-      <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\ktx2ktx2.exe</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
     <CustomBuild Include="$(OutDir)\ktxinfo.exe">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(TMP)\ktxtools.dst\usr\local\bin&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;$(OutDir)ktxinfo.exe&quot; &quot;$(TMP)\ktxtools.dst\usr\local\bin\ktxinfo.exe&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying $(OutDir)/ktxinfo.exe to $(TMP)\ktxtools.dst\usr\local\bin</Message>
       <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\ktxinfo.exe</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="$(OutDir)\ktx2ktx2.exe">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(TMP)\ktxtools.dst\usr\local\bin&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;$(OutDir)ktx2ktx2.exe&quot; &quot;$(TMP)\ktxtools.dst\usr\local\bin\ktx2ktx2.exe&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying $(OutDir)/ktx2ktx2.exe to $(TMP)\ktxtools.dst\usr\local\bin</Message>
+      <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\ktx2ktx2.exe</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="$(OutDir)\libktx.gl.dll">
@@ -157,6 +157,13 @@
       <Outputs>..\..\..\..\dummy_copies;$(TMP)\ktxtools.dst\usr\local\share\man</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="$(OutDir)\ktxsc.exe">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(TMP)\ktxtools.dst\usr\local\bin&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;$(OutDir)ktxsc.exe&quot; &quot;$(TMP)\ktxtools.dst\usr\local\bin\ktxsc.exe&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying $(OutDir)/ktxsc.exe to $(TMP)\ktxtools.dst\usr\local\bin</Message>
+      <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\ktxsc.exe</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="ktx2ktx2.vcxproj">
@@ -165,6 +172,10 @@
     </ProjectReference>
     <ProjectReference Include="ktxinfo.vcxproj">
       <Project>{739F3905-4065-CF27-1194-C1BDB35CBD0B}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="ktxsc.vcxproj">
+      <Project>{04B2B53C-F4A1-A84A-B740-E1DCCEFB5479}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="ktxtools.doc.vcxproj">

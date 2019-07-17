@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DDDF329D-F41D-50FE-4216-2C6604373AB2}</ProjectGuid>
+    <ProjectGuid>{2FC7A047-8420-5256-4B44-F2780E59D510}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>toktx</RootNamespace>
+    <RootNamespace>ktxsc</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
@@ -131,16 +131,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\image.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\lodepng.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\stdafx.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\targetver.h"/>
+    <ClInclude Include="..\..\..\..\tools\ktxsc\stdafx.h"/>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp"/>
-    <ClCompile Include="..\..\..\..\tools\toktx\image.cpp"/>
-    <ClCompile Include="..\..\..\..\tools\toktx\lodepng.cpp"/>
-    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp"/>
+    <ClCompile Include="..\..\..\..\tools\ktxsc\ktxsc.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libktx.gl.vcxproj">

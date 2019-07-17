@@ -30,6 +30,7 @@
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
   #define fileno _fileno
+  #define mktemp _mktemp
   #define isatty _isatty
   #define unlink _unlink
 #endif
@@ -155,7 +156,6 @@ version(_TCHAR* appName)
 int _tmain(int argc, _TCHAR* argv[])
 {
     FILE *inf, *outf;
-    _TCHAR *outfile;
     _TCHAR* tmpfile;
     KTX_error_code result;
     ktxTexture2* texture = 0;
@@ -189,7 +189,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else if (options.outfile) {
-                outf = fopen(outfile, "wxb");
+                outf = fopen(options.outfile, "wxb");
             } else {
                 char nametmpl[] =  { "/tmp/temp.XXXXXX" };
                 tmpfile = mktemp(nametmpl);
@@ -201,7 +201,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 if (!force) {
                     if (isatty(fileno(stdin))) {
                         char answer;
-                        cout << "Output file " << outfile
+                        cout << "Output file " << options.outfile
                              << " exists. Overwrite? [Y or n] ";
                         cin >> answer;
                         if (answer == 'Y') {
@@ -210,7 +210,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = fopen(outfile, "wb");
+                    outf = fopen(options.outfile, "wb");
                 }
             }
 
@@ -269,7 +269,7 @@ int _tmain(int argc, _TCHAR* argv[])
             } else {
                 cerr << options.appName
                      << " could not open output file \""
-                     << (options.useStdout ? "stdout" : outfile) << "\". "
+                     << (options.useStdout ? "stdout" : options.outfile) << "\". "
                      << strerror(errno) << endl;
                 exitCode = 2;
                 goto cleanup;
@@ -287,7 +287,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 cleanup:
     if (tmpfile) (void)unlink(tmpfile);
-    if (options.outfile) (void)unlink(outfile);
+    if (options.outfile) (void)unlink(options.outfile);
     return exitCode;
 }
 

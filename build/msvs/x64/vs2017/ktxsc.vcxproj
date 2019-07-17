@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -19,15 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DDDF329D-F41D-50FE-4216-2C6604373AB2}</ProjectGuid>
+    <ProjectGuid>{94D4FB48-6230-9B6C-FC26-83F2EAADC33B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>toktx</RootNamespace>
+    <RootNamespace>ktxsc</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Locals">
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
@@ -131,20 +135,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\image.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\lodepng.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\stdafx.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\targetver.h"/>
+    <ClInclude Include="..\..\..\..\tools\ktxsc\stdafx.h"/>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp"/>
-    <ClCompile Include="..\..\..\..\tools\toktx\image.cpp"/>
-    <ClCompile Include="..\..\..\..\tools\toktx\lodepng.cpp"/>
-    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp"/>
+    <ClCompile Include="..\..\..\..\tools\ktxsc\ktxsc.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libktx.gl.vcxproj">
-      <Project>{D49E6985-C789-D610-ED5C-40353B857730}</Project>
+      <Project>{620E7140-06AD-551D-2FA9-8C20620B9DF8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
