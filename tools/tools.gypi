@@ -104,6 +104,7 @@
           'dependencies': [
             'ktx2ktx2',
             'ktxinfo',
+            'ktxsc',
             'ktxtools.doc',
             'libktx.gyp:libktx.gl',
             'toktx',
@@ -127,6 +128,7 @@
             'files': [
               '<(PRODUCT_DIR)/ktx2ktx2<(EXECUTABLE_SUFFIX)',
               '<(PRODUCT_DIR)/ktxinfo<(EXECUTABLE_SUFFIX)',
+              '<(PRODUCT_DIR)/ktxsc<(EXECUTABLE_SUFFIX)',
               '<(PRODUCT_DIR)/toktx<(EXECUTABLE_SUFFIX)',
             ],
           }, {

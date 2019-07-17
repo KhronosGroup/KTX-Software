@@ -150,9 +150,9 @@ usage(_TCHAR* appName)
         "Usage: %s [options] [<infile> ...]\n"
         "\n"
         "  infile       The source ktx file. The output is written to a file of the\n"
-        "               same name with the extension changed to '.ktx2'. If it is '-'\n"
+        "               same name with the extension changed to '.ktx2'.\n" /* If it is '-'\n"
         "               or not specified input will be read from stdin and the\n"
-        "               converted texture written to stdout.\n"
+        "               converted texture written to stdout.\n"*/
         "\n"
         "  Options are:\n"
         "\n"
@@ -167,8 +167,8 @@ usage(_TCHAR* appName)
         "  -d outdir, --output-dir=outdir\n"
         "               Writes the output files to the directory outdir. If both\n"
         "               --output and --output-dir are specified, outfile\n"
-        "               will be written in outdir. If infile is stdin, the\n"
-        "               command prints its usage message and exits.\n"
+        "               will be written in outdir.\n" /* If infile is stdin, the\n"
+        "               command prints its usage message and exits.\n"*/
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
         "               its permissions.\n",
