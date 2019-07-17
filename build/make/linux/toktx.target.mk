@@ -49,6 +49,7 @@ INCS_Release := \
 OBJS := \
 	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tools/toktx/image.o \
+	$(obj).target/$(TARGET)/tools/toktx/lodepng.o \
 	$(obj).target/$(TARGET)/tools/toktx/toktx.o
 
 # Add to the list of files we specially track dependencies for.
