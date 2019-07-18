@@ -25,6 +25,9 @@
     <Filter Include="$(OutDir)">
       <UniqueIdentifier>{ECA95933-7FA6-5798-4EC4-C0CAC6DD34DE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="$(OutDir)">
+      <UniqueIdentifier>{ECA95933-7FA6-5798-4EC4-C0CAC6DD34DE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
@@ -58,6 +61,9 @@
       <Filter>$(OutDir)</Filter>
     </None>
     <None Include="$(OutDir)\ktxinfo.exe">
+      <Filter>$(OutDir)</Filter>
+    </None>
+    <None Include="$(OutDir)\ktxsc.exe">
       <Filter>$(OutDir)</Filter>
     </None>
     <None Include="$(OutDir)\toktx.exe">

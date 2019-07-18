@@ -30,6 +30,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <string.h>
 /* I need these on Linux. Why? */
 #define __USE_LARGEFILE 1  // For declaration of ftello, etc.
@@ -95,6 +96,7 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
         } else
             return KTX_FILE_READ_ERROR;
     }
+    str->readpos += count;
 
     return KTX_SUCCESS;
 }
@@ -107,6 +109,9 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
  * @param [in] str           pointer to a ktxStream object.
  * @param [in] count         number of bytes to be skipped.
  *
+ * In order to support applications reading from stdin, read characters
+ * rather than using seek functions.
+ *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p str is @c NULL or @p count is less than zero.
@@ -118,24 +123,21 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
 static
 KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
 {
-    ktx_size_t fileSize;
-    ktx_off_t pos, newpos;
-
     if (!str)
         return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
 
-    str->getsize(str, &fileSize);
-    str->getpos(str, &pos);
-
-    newpos = pos + count;
-    /* First clause checks for overflow. */
-    if (newpos < pos || pos + count > fileSize)
-        return KTX_FILE_UNEXPECTED_EOF;
-
-    if (fseeko(str->data.file, count, SEEK_CUR) != 0)
-        return KTX_FILE_SEEK_ERROR;
+    for (ktx_uint32_t i = 0; i < count; i++) {
+        int ret = getc(str->data.file);
+        if (ret == EOF) {
+            if (feof(str->data.file))
+                return KTX_FILE_UNEXPECTED_EOF;
+            else
+                return KTX_FILE_READ_ERROR;
+        }
+    }
+   str->readpos += count;
 
     return KTX_SUCCESS;
 }
@@ -206,18 +208,22 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
 
     assert(str->type == eStreamTypeFile);
 
-    /* The cast quiets an Xcode warning when building for "Generic iOS Device".
-     * I'm not sure why.
-     */
-    ftellval = (ktx_off_t)ftello(str->data.file);
-    if (ftellval < 0) {
-        switch (errno) {
-          case ESPIPE: return KTX_FILE_ISPIPE;
-          case EOVERFLOW: return KTX_FILE_OVERFLOW;
+    if (str->data.file == stdin) {
+        *pos = str->readpos;
+    } else {
+        /* The cast quiets an Xcode warning when building for "Generic iOS Device".
+         * I'm not sure why.
+         */
+        ftellval = (ktx_off_t)ftello(str->data.file);
+        if (ftellval < 0) {
+            switch (errno) {
+              case ESPIPE: return KTX_FILE_ISPIPE;
+              case EOVERFLOW: return KTX_FILE_OVERFLOW;
+            }
         }
-    }
 
-    *pos = ftellval;
+        *pos = ftellval;
+    }
 
     return KTX_SUCCESS;
 }
@@ -254,6 +260,13 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
         return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
+
+    if (str->data.file == stdin) {
+        if (pos > str->readpos)
+            return str->skip(str, pos - str->readpos);
+        else
+            return KTX_FILE_ISPIPE;
+    }
 
     result = str->getsize(str, &fileSize);
 
@@ -347,6 +360,7 @@ KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file,
         return KTX_INVALID_VALUE;
 
     str->data.file = file;
+    str->readpos = 0;
     str->type = eStreamTypeFile;
     str->read = ktxFileStream_read;
     str->skip = ktxFileStream_skip;

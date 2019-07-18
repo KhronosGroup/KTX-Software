@@ -606,8 +606,8 @@ typedef enum ktxSupercmpScheme {
     KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
     KTX_SUPERCOMPRESSION_BASIS = 1, /*!< Basis Universal supercompression. */
     KTX_SUPERCOMPRESSION_LZMA = 2,  /*!< LZMA supercompression. */
-    KTX_SUPERCOMPRESSION_ZLIB = 2,  /*!< Zlib supercompression. */
-    KTX_SUPERCOMPRESSION_ZSTD = 3,  /*!< ZStd supercompression. */
+    KTX_SUPERCOMPRESSION_ZLIB = 3,  /*!< Zlib supercompression. */
+    KTX_SUPERCOMPRESSION_ZSTD = 4,  /*!< ZStd supercompression. */
     KTX_SUPERCOMPRESSION_BEGIN_RANGE = KTX_SUPERCOMPRESSION_NONE,
     KTX_SUPERCOMPRESSION_END_RANGE = KTX_SUPERCOMPRESSION_ZSTD
 } ktxSupercmpScheme;

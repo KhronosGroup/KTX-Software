@@ -20,8 +20,7 @@
     ],
   },
   'conditions': [
-    #  # No point in building this command line utility for Android
-    # or iOS.
+    # No point in building this command line utility for Android or iOS.
     ['OS == "linux" or OS == "mac" or OS == "win"', {
       'targets': [
         {

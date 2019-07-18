@@ -760,6 +760,7 @@ WARN_LOGFILE           =
 
 INPUT                  = tools/ktxinfo/ktxinfo.cpp \
                          tools/ktx2ktx2/ktx2ktx2.cpp \
+                         tools/ktxsc/ktxsc.cpp \
                          tools/toktx/toktx.cpp
  
 # This tag can be used to specify the character encoding of the source files

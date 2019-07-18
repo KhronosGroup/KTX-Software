@@ -607,11 +607,12 @@ set(TOOLSET "target")
 list(APPEND toktx__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/toktx/image.cpp"
+  "../../../../tools/toktx/lodepng.cpp"
   "../../../../tools/toktx/toktx.cpp")
 list(APPEND toktx__other_srcs
   "../../../../utils/argparser.h"
   "../../../../tools/toktx/image.h"
-  "../../../../tools/toktx/stb_image.h"
+  "../../../../tools/toktx/lodepng.h"
   "../../../../tools/toktx/stdafx.h"
   "../../../../tools/toktx/targetver.h")
 add_executable(toktx ${toktx__cxx_srcs} ${toktx__other_srcs})
@@ -672,6 +673,47 @@ add_dependencies(toktx-tests__toktx-tests
 add_dependencies(toktx-tests
   toktx
   toktx-tests__toktx-tests
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtools.gyp:ktxsc#target
+set(TARGET "ktxsc")
+set(TOOLSET "target")
+list(APPEND ktxsc__cxx_srcs
+  "../../../../utils/argparser.cpp"
+  "../../../../tools/ktxsc/ktxsc.cpp")
+list(APPEND ktxsc__other_srcs
+  "../../../../utils/argparser.h"
+  "../../../../tools/ktxsc/stdafx.h")
+add_executable(ktxsc ${ktxsc__cxx_srcs} ${ktxsc__other_srcs})
+set_target_properties(ktxsc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${ktxsc__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(ktxsc PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(ktxsc PROPERTIES PREFIX "")
+set_target_properties(ktxsc PROPERTIES RUNTIME_OUTPUT_NAME "ktxsc")
+set_target_properties(ktxsc PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/ktxsc PROPERTIES GENERATED "TRUE")
+list(APPEND ktxsc__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET ktxsc APPEND PROPERTY INCLUDE_DIRECTORIES ${ktxsc__include_dirs})
+set_target_properties(ktxsc PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
+set_target_properties(ktxsc PROPERTIES COMPILE_FLAGS "-pedantic -Og -g -std=c++11 ")
+set_target_properties(ktxsc PROPERTIES LINK_FLAGS "-g ")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+target_link_libraries(ktxsc
+  libktx_gl
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -796,11 +838,13 @@ list(APPEND install_tools__copies__input
   "${builddir}/lib.target/libktx.gl.so"
   "${builddir}/ktx2ktx2"
   "${builddir}/ktxinfo"
+  "${builddir}/ktxsc"
   "${builddir}/toktx")
 list(APPEND install_tools__copies__output
   "/tmp/ktxtools.dst//usr/local/lib/libktx.gl.so"
   "/tmp/ktxtools.dst//usr/local/bin/ktx2ktx2"
   "/tmp/ktxtools.dst//usr/local/bin/ktxinfo"
+  "/tmp/ktxtools.dst//usr/local/bin/ktxsc"
   "/tmp/ktxtools.dst//usr/local/bin/toktx")
 set(install_tools__copies__input_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/man1")
 set(install_tools__copies__output_dirs "/tmp/ktxtools.dst//usr/local/share/man/man1")
@@ -809,6 +853,7 @@ OUTPUT ${install_tools__copies__output} ${install_tools__copies__output_dirs}
 COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/ktxtools.dst//usr/local/lib/libktx.gl.so
 COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktx2ktx2 /tmp/ktxtools.dst//usr/local/bin/ktx2ktx2
 COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktxinfo /tmp/ktxtools.dst//usr/local/bin/ktxinfo
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktxsc /tmp/ktxtools.dst//usr/local/bin/ktxsc
 COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/toktx /tmp/ktxtools.dst//usr/local/bin/toktx
 COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man1/ /tmp/ktxtools.dst//usr/local/share/man/man1
 DEPENDS ${install_tools__copies__input} ${install_tools__copies__input_dirs}
@@ -827,12 +872,14 @@ add_dependencies(install_tools__copies
   libktx_gl
   ktx2ktx2
   ktxinfo
+  ktxsc
   ktxtools_doc
   toktx
 )
 add_dependencies(install_tools
   ktx2ktx2
   ktxinfo
+  ktxsc
   ktxtools_doc
   toktx
   install_tools__copies

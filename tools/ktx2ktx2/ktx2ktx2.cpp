@@ -55,6 +55,7 @@ struct commandOptions {
     _TCHAR*      outfile;
     _TCHAR*      outdir;
     bool         useStdin;
+    bool         useStdout;
     bool         force;
     bool         rewriteBadOrientation;
     unsigned int numInputFiles;
@@ -67,6 +68,7 @@ struct commandOptions {
         numInputFiles = 0;
         firstInfileIndex = 0;
         useStdin = false;
+        useStdout = false;
         force = false;
         rewriteBadOrientation = false;
     }
@@ -100,8 +102,8 @@ Create a KTX 2 file from a KTX file.
     @b ktx2ktx2 creates Khronos texture format version 2 files (KTX2) from
     Khronos texture format version 1 files. @b ktx2ktx2 reads each named
     @e infile. Output files have the same name as the input but with the
-    extension changed to @c .ktx2. When no infile is specified, a single
-    image will be read from stdin and the output written to standard out.
+    extension changed to @c .ktx2. When @b infile is not specified, a single
+    file will be read from stdin and the output written to standard out.
 
     If unrecognized metadata with keys beginning "KTX" or "ktx" is found in
     the input file, it is dropped and a warning is written to standard error.
@@ -114,13 +116,14 @@ Create a KTX 2 file from a KTX file.
         instead of KTXorientaion. This option will rewrite such
         bad metadata instead of dropping it.
     <dt>-o outfile, --output=outfile</dt>
-    <dd>Name the output file @e outfile. If there is more than 1 input
-        file, the command prints its usage message and exits.</dd>
+    <dd>Name the output file @e outfile. If @e outfile is 'stdout', output will
+        be written to stdout. If there is more than 1 input file, the command
+        prints its usage message and exits.</dd>
     <dt>-d outdir, --output-dir=outdir</dt>
     <dd>Writes the output files to the directory @e outdir. If both
         @b --output and @b --output-dir are specified, @e outfile will
-        be written in @e outdir. If @b infile is stdin, the command prints
-        its usage message and exits.</dd>
+        be written in @e outdir. If @b infile is @e stdin or @b outfile is
+        @e stdout, the command prints its usage message and exits.</dd>
     <dt>-f, --force</dt>
     <dd>If the destination file cannot be opened, remove it and create a
         new file, without prompting for confirmation regardless of its
@@ -150,9 +153,9 @@ usage(_TCHAR* appName)
         "Usage: %s [options] [<infile> ...]\n"
         "\n"
         "  infile       The source ktx file. The output is written to a file of the\n"
-        "               same name with the extension changed to '.ktx2'. If it is '-'\n"
-        "               or not specified input will be read from stdin and the\n"
-        "               converted texture written to stdout.\n"
+        "               same name with the extension changed to '.ktx2'. If it is not\n"
+        "               specified input will be read from stdin and the converted texture\n"
+        "               written to stdout.\n"
         "\n"
         "  Options are:\n"
         "\n"
@@ -162,13 +165,14 @@ usage(_TCHAR* appName)
         "               instead of \"KTXorientaion\". This option will rewrite such\n"
         "               bad metadata instead of dropping it.\n"
         "  -o outfile, --output=outfile\n"
-        "               Name the output file outfile. If there is more than 1 input\n"
-        "               file, the command prints its usage message and exits.\n"
+        "               Name the output file outfile. If @e outfile is 'stdout', output\n"
+        "               will be written to stdout. If there is more than 1 infile,\n"
+        "               the command prints its usage message and exits.\n"
         "  -d outdir, --output-dir=outdir\n"
         "               Writes the output files to the directory outdir. If both\n"
         "               --output and --output-dir are specified, outfile\n"
-        "               will be written in outdir. If infile is stdin, the\n"
-        "               command prints its usage message and exits.\n"
+        "               will be written in outdir. If infile is stdin or outfile is\n"
+        "               stdout, the command prints its usage message and exits.\n"
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
         "               its permissions.\n",
@@ -219,7 +223,7 @@ int _tmain(int argc, _TCHAR* argv[])
         if (inf) {
             size_t basenamelen;
             outfile = options.outfile;
-            if (!options.useStdin && !outfile) {
+            if (!options.useStdin && !options.useStdout && !outfile) {
                 size_t outfilelen = _tcslen(infile) + 1;
                 _TCHAR* extension = _tcsrchr(infile, '.');
                 if ( extension == NULL) {
@@ -239,30 +243,30 @@ int _tmain(int argc, _TCHAR* argv[])
                 }
             }
 
-            if (!outfile) {
+            if (options.useStdout) {
                 outf = stdout;
 #if defined(_WIN32)
                 /* Set "stdout" to have binary mode */
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
-            } else {
-                //outf = fopen(outfile,"wxb");
+            } else if (outfile) {
                 outf = fopen(outfile, "wxb");
             }
 
             if (!outf && errno == EEXIST) {
-                if (!options.force) {
+                bool force = options.force;
+                if (!force) {
                     if (isatty(fileno(stdin))) {
                         char answer;
                         cout << "Output file " << outfile
                              << " exists. Overwrite? [Y or n] ";
                         cin >> answer;
                         if (answer == 'Y') {
-                            options.force = true;
+                            force = true;
                         }
                     }
                 }
-                if (options.force) {
+                if (force) {
                     outf = fopen(outfile, "wb");
                 }
             }
@@ -399,6 +403,9 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         }
     }
 
+    if (options.useStdin && !options.outfile) {
+        options.useStdout = true;
+    }
     if (options.numInputFiles > 1 && options.outfile) {
         usage(options.appName);
         exit(1);
@@ -467,20 +474,24 @@ processOptions(argparser& parser,
             break;
          case 'o':
             filename = parser.optarg.c_str();
-            filenamelen = (unsigned int)_tcslen(filename) + 1;
-            if (_tcsrchr(options.outfile, '.') == NULL) {
-                addktx2 = true;
-                filenamelen += 5;
-            }
-            options.outfile = new _TCHAR[filenamelen];
-            if (options.outfile) {
-                _tcscpy(options.outfile, filename);
-                if (addktx2) {
-                    _tcscat(options.outfile, ".ktx2");
-                }
+            if (!_tcscmp(filename, "stdout")) {
+                options.useStdout = true;
             } else {
-                fprintf(stderr, "%s: out of memory.\n", options.appName);
-                exit(2);
+                filenamelen = (unsigned int)_tcslen(filename) + 1;
+                if (_tcsrchr(filename, '.') == NULL) {
+                    addktx2 = true;
+                    filenamelen += 5;
+                }
+                options.outfile = new _TCHAR[filenamelen];
+                if (options.outfile) {
+                    _tcscpy(options.outfile, filename);
+                    if (addktx2) {
+                        _tcscat(options.outfile, ".ktx2");
+                    }
+                } else {
+                    fprintf(stderr, "%s: out of memory.\n", options.appName);
+                    exit(2);
+                }
             }
             break;
           case 'h':

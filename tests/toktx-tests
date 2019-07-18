@@ -155,6 +155,7 @@ gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --nometad
 TOKTX_OPTIONS="--lower_left_maps_to_s0t0 --nometadata" gencmpktx orient-up.ktx up.ppm
 gencmpktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 up.ppm
 gencmpktx orient-down-metadata.ktx up.ppm
+gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgba.pam
 gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 
 numtests=$numtests+1

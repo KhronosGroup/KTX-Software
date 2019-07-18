@@ -27,22 +27,18 @@
 
 #include "stdafx.h"
 #include <cstdlib>
+#include <cstring>
+#include <iostream>
 #include <sstream>
 #include <vector>
 #include <inttypes.h>
-
-#define STBI_ONLY_HDR
-#define STBI_ONLY_PNG
-#define STBI_ONLY_PNM
-#define STBI_WINDOWS_UTF8
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 #include "GL/glcorearb.h"
 #include "ktx.h"
 #include "../../lib/vkformat_enum.h"
 #include "argparser.h"
 #include "image.h"
+#include "lodepng.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
@@ -96,6 +92,19 @@
 #define GL_RG16                         0x822C
 #endif
 
+#ifndef GL_SR8
+// From GL_EXT_texture_sRGB_R8
+#define GL_SR8                          0x8FBD // same as GL_SR8_EXT
+#endif
+
+#ifndef GL_SRG8
+// From GL_EXT_texture_sRGB_RG8
+#define GL_SRG8                         0x8FBE // same as GL_SRG8_EXT
+#endif
+
+#define XFER_LINEAR 0
+#define XFER_SRGB 1
+#define XFER_NOT_SET 2
 
 struct commandOptions {
     _TCHAR*      appName;
@@ -108,6 +117,7 @@ struct commandOptions {
     int          metadata;
     int          mipmap;
     int          two_d;
+    int          xferFunc;
     int          useStdin;
     int          lower_left_maps_to_s0t0;
     _TCHAR*      outfile;
@@ -121,7 +131,7 @@ static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
 static void processOptions(argparser& parser, struct commandOptions& options);
-static void yflip(unsigned char*& srcImage, unsigned int imageSize,
+static void yflip(unsigned char*& srcImage, size_t imageSize,
                   unsigned int w, unsigned int h, unsigned int pixelSize);
 #if IMAGE_DEBUG
 static void dumpImage(_TCHAR* name, int width, int height, int components,
@@ -144,11 +154,12 @@ Create a KTX file from netpbm format files.
     to @e outfile, appending ".ktx" if necessary. If @e outfile is '-' the
     output will be written to stdout.
  
-    @b toktx reads each named @e infile which must be in .ppm, .pgm, .png or
-    .hdr format. Other formats can be readily converted to these formats using
+    @b toktx reads each named @e infile which must be in .pam, .ppm, .pgm or
+    .png format. Other formats can be readily converted to these formats using
     tools such as ImageMagick and XnView. .ppm files yield RGB textures,
-    .pgm files RED textures and .png files RED, RG, RGB or RGBA textures
-    according to the files's @e color type.
+    .pgm files RED textures, .pam files RED, RG, RGB or RGBA textures according
+    to the file's TUPLTYPE and DEPTH and .png files RED, RG, RGB or RGBA
+    textures according to the files's @e color type.
  
     The following options are always available:
     <dl>
@@ -193,6 +204,12 @@ Create a KTX file from netpbm format files.
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.</dd>
+    <dt>--linear</dt>
+    <dd>Force the created texture to have a linear transfer function. By
+        default the transfer function is set based on information in the
+        input .png file or, for npbm files, set to linear.</dd>
+    <dt>--srgb</dt>
+    <dd>Force the created texture to have an srgb transfer function.</dd>
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
@@ -248,36 +265,25 @@ usage(_TCHAR* appName)
         "\n"
         "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
         "               If it is '-' the output will be written to stdout.\n"
-        "  <infile>     One or more image files in .pam, .ppm or .pgm format. Other\n"
+        "  <infile>     One or more image files in .pam, .ppm, .pgm or .png format. Other\n"
         "               formats can be readily converted to these formats using tools\n"
         "               such as ImageMagick and XnView. When no infile is specified,\n"
         "               stdin is used. .ppm files yield RGB textures, .pgm files RED\n"
-        "               textures and .pam files RED, RG, RGB or RGBA textures according\n"
-        "               to the file's TUPLTYPE and DEPTH.\n"
+        "               textures, .pam files RED, RG, RGB or RGBA textures according\n"
+        "               to the file's TUPLTYPE and DEPTH and .png files RED, RG, RGB\n"
+        "               or RGBA textures according to the files's @e color type\n"
         "\n"
         "  Options are:\n"
         "\n"
         "  --2d         If the image height is 1, by default a KTX file for a 1D\n"
         "               texture is created. With this option one for a 2D texture is\n"
         "               created instead.\n"
-#if ALLOW_LEGACY_FORMAT_CREATION
-        "  --alpha      Create ALPHA textures from .pgm or 1 channel GRAYSCALE .pam\n"
-        "               infiles. The default is to create RED textures. This is ignored\n"
-        "               for files with 2 or more channels. This option is mutually\n"
-        "               exclusive with --luminance.\n"
-#endif
         "  --automipmap A mipmap pyramid will be automatically generated when the KTX\n"
         "               file is loaded. This option is mutually exclusive with --levels\n"
         "               and --mipmap.\n"
         "  --cubemap    KTX file is for a cubemap. At least 6 <infile>s must be provided,\n"
         "               more if --mipmap is also specified. Provide the images in the\n"
         "               order: +X, -X, +Y, -Y, +Z, -Z.\n"
-#if ALLOW_LEGACY_FORMAT_CREATION
-        "  --luminance  Create LUMINANCE or LUMINANCE_ALPHA textures from .pgm and\n"
-        "               1 or 2 channel GRAYSCALE .pam infiles. The default is to create\n"
-        "               RED or RG textures. This option is mutually exclusive with\n"
-        "               --alpha.\n"
-#endif
         "  --levels levels\n"
         "               KTX file is for a mipmap pyramid with @e levels rather than a\n"
         "               full pyramid. @e levels must be <= the maximum number of levels\n"
@@ -306,7 +312,11 @@ usage(_TCHAR* appName)
         "               writes a KTXorientation value of S=r,T=u into the output file\n"
         "               to inform loaders of the logical orientation. If a Vulkan loader\n"
         "               ignores the orientation value, the image will appear upside down.\n"
-        "  --t2         OUtput in KTX2 format. Default is KTX.\n"
+        "  --linear     Force the created texture to have a linear transfer function.\n"
+        "               By default the transfer function is set based on information\n"
+        "               in the input .png file or, for npbm files, set to linear.\n"
+        "  --srgb       Force the created texture to have an srgb transfer function.\n"
+        "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
         "  --qual\n"
@@ -348,7 +358,7 @@ int _tmain(int argc, _TCHAR* argv[])
     ktxTextureCreateInfo createInfo;
     ktxTexture* texture = 0;
     struct commandOptions options;
-    unsigned int imageSize;
+    size_t imageSize;
     int exitCode = 0, face;
     unsigned int i, level, levelWidth, levelHeight;
 
@@ -383,47 +393,193 @@ int _tmain(int argc, _TCHAR* argv[])
         if (f) {
             unsigned int w, h, components, componentSize;
             uint8_t* srcImg = 0;
+            enum fileType_e { NPBM, PNG } fileType;
+            int xferFunc;
 
-            //readResult = readNPBM(f, w, h, components, componentSize, imageSize,
-            //                      0)
-            if (stbi_is_hdr_from_file(f)) {
-                componentSize = 4;
-                srcImg = (uint8_t*)stbi_loadf_from_file(f, (int*)&w, (int*)&h, (int*)&components, 0);
-            } else if (stbi_is_16_bit_from_file(f)) {
-                componentSize = 2;
-                srcImg = (uint8_t*)stbi_load_from_file_16(f, (int*)&w, (int*)&h, (int*)&components, 0);
+            FileResult npbmResult = readNPBM(f, w, h, components,
+                                             componentSize, imageSize, 0);
+            if (npbmResult == INVALID_FORMAT) {
+                // Try .png. Unfortunately LoadPNG doesn't believe in stdio plus
+                // the function we need only read from memory. To avoid
+                // a potentially unnecessary read of the whole file check the
+                // signature ourselves.
+                uint8_t pngsig[8] = {
+                    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+                };
+                uint8_t filesig[sizeof(pngsig)];
+                fseek(f, 0L, SEEK_SET);
+                fread(filesig, sizeof(pngsig), 1, f);
+                if (memcmp(filesig, pngsig, sizeof(pngsig))) {
+                    fprintf(stderr, "%s: \"%s\" is not a.pam, .pgm, .ppm or .png file\n",
+                            options.appName, infile);
+                    exitCode = 1;
+                    goto cleanup;
+                }
+                fileType = PNG;
+            } else if (npbmResult == SUCCESS) {
+                fileType = NPBM;
+                xferFunc = XFER_LINEAR;
+                imageSize = w * h * components * componentSize;
             } else {
-                componentSize = 1;
-                srcImg = stbi_load_from_file(f, (int*)&w, (int*)&h, (int*)&components, 0);
+                fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
+                        options.appName, infile);
+                exitCode = 1;
+                goto cleanup;
             }
-            imageSize = w * h * components * componentSize;
 
-            if (srcImg) {
+            if (fileType == PNG) {
+                size_t fsz;
+                fseek(f, 0L, SEEK_END);
+                fsz = ftell(f);
+                fseek(f, 0L, SEEK_SET);
+
+                std::vector<uint8_t> png;
+                png.resize(fsz);
+                if (fread(png.data(), 1L, png.size(), f) != png.size()) {
+                    if (feof(f)) {
+                        fprintf(stderr,
+                                "%s: Unexpected end of file reading \"%s\" \n",
+                                options.appName, infile);
+                    } else {
+                        fprintf(stderr, "%s: Error reading \"%s\": %s\n",
+                                options.appName, infile, strerror(ferror(f)));
+                    }
+                    exitCode = 1;
+                    goto cleanup;
+                }
+
+                lodepng::State state;
+                // Find out the color type so we can request that type when
+                // decoding and avoid conversions. Oh for an option to decode
+                // to file's colortype. What a palaver! Sigh!
+                lodepng_inspect(&w, &h, &state, &png[0], png.size());
+                switch (state.info_png.color.colortype) {
+                  case LCT_GREY:
+                    components = 1;
+                    break;
+                  case LCT_RGB:
+                    components = 3;
+                    break;
+                  case LCT_PALETTE:
+                    fprintf(stderr,
+                    "%s: \"%s\" is a paletted image which are not supported.\n",
+                    options.appName, infile);
+                    exitCode = 1;
+                    goto cleanup;
+                  case LCT_GREY_ALPHA:
+                    components = 2;
+                    break;
+                  case LCT_RGBA:
+                    components = 4;
+                    break;
+                }
+                componentSize = state.info_png.color.bitdepth / 8;
+
+                // Tell the decoder we want the same color type as the file
+#if 0
+                LodePNGColorMode& cm_png = state.info_png.color;
+                LodePNGColorMode& cm_raw = state.info_raw;
+                cm_raw.colortype = cm_png.colortype;
+                cm_raw.bitdepth = cm_png.bitdepth;
+                cm_raw.key_defined = cm_png.key_defined;
+                if (cm_png.key_defined) {
+                    cm_raw.key_r = cm_png.key_r;
+                    cm_raw.key_g = cm_png.key_g;
+                    cm_raw.key_b = cm_png.key_b;
+                }
+#else
+                state.info_raw = state.info_png.color;
+#endif
+                uint32_t error = lodepng_decode(&srcImg, &w, &h, &state,
+                                                png.data(), png.size());
+                if (srcImg && !error) {
+                    imageSize = lodepng_get_raw_size(w, h, &state.info_raw);
+                } else {
+                    delete srcImg;
+                    std::cerr << options.appName << ": " << "PNG decoder error:"
+                              << lodepng_error_text(error) << std::endl;
+                    exitCode = 1;
+                    goto cleanup;
+                }
+
+                // state will have been updated with the rest of the file info.
+
+                // Here is the priority of the color space info in PNG:
+                //
+                // 1. No color-info chunks: assume sRGB default or 2.2 gamma
+                //    (up to the implementation).
+                // 2. sRGB chunk: use sRGB intent specified in the chunk, ignore
+                //    all other color space information.
+                // 3. iCCP chunk: use the provided ICC profile, ignore gamma and
+                //    primaries.
+                // 4. gAMA and/or cHRM chunks: use provided gamma and primaries.
+                //
+                // A PNG image could signal linear transfer function with one
+                // of these two options:
+                //
+                // 1. Provide an ICC profile in iCCP chunk.
+                // 2. Use a gAMA chunk with a value that yields linear
+                //    function (100000).
+                //
+                // Using no. 1 above or setting transfer func & primaries from
+                // the ICC profile would require parsing the ICC payload.
+                //
+                // Using cHRM to get the primaries would require matching a set
+                // of primary values to a DFD primaries id.
+
+
+                if (state.info_png.srgb_defined) {
+                    xferFunc = XFER_SRGB;
+                } else {
+                    if (state.info_png.iccp_defined)
+                        ; // Panic
+                    else if (state.info_png.gama_defined) {
+                        if (state.info_png.gama_gamma == 100000)
+                            xferFunc = XFER_LINEAR;
+                        else if (state.info_png.gama_gamma == 45455)
+                            xferFunc = XFER_SRGB;
+                        else
+                            ; // Panic
+                    } else
+                        xferFunc = XFER_SRGB;
+                }
+            }
+
+            if (srcImg || npbmResult == SUCCESS) {
 
                 /* Sanity check. */
                 assert(w * h * componentSize * components == imageSize);
 
-
                 if (h > 1 && options.lower_left_maps_to_s0t0) {
-#if 0
-                    readResult = readImage(f, imageSize, srcImg);
-                    if (SUCCESS != readResult) {
-                        fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
-                                options.appName, infile ? infile : "data from stdin");
-                        exitCode = 1;
-                        goto cleanup;
+                    if (!srcImg) {
+                        FileResult readResult = readImage(f, imageSize, srcImg);
+                        if (SUCCESS != readResult) {
+                            fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
+                                    options.appName, infile);
+                            exitCode = 1;
+                            goto cleanup;
+                        }
                     }
-#endif
                     yflip(srcImg, imageSize, w, h, components*componentSize);
                 }
 
                 if (i == 0) {
+                    bool srgb;
+
+                    if (options.xferFunc != XFER_NOT_SET)
+                        xferFunc = options.xferFunc;
+
+                    srgb = (xferFunc == XFER_SRGB);
+
                     switch (components) {
                       case 1:
                         switch (componentSize) {
                           case 1:
-                            createInfo.glInternalformat = GL_R8;
-                            createInfo.vkFormat = VK_FORMAT_R8_UNORM;
+                            createInfo.glInternalformat
+                                            = srgb ? GL_SR8 : GL_R8;
+                            createInfo.vkFormat
+                                            = srgb ? VK_FORMAT_R8_SRGB
+                                                   : VK_FORMAT_R8_UNORM;
                             break;
                           case 2:
                             createInfo.glInternalformat = GL_R16;
@@ -439,8 +595,11 @@ int _tmain(int argc, _TCHAR* argv[])
                       case 2:
                          switch (componentSize) {
                           case 1:
-                            createInfo.glInternalformat = GL_RG8;
-                            createInfo.vkFormat = VK_FORMAT_R8G8_UNORM;
+                            createInfo.glInternalformat
+                                            = srgb ? GL_SRG8 : GL_RG8;
+                            createInfo.vkFormat
+                                            = srgb ? VK_FORMAT_R8G8_SRGB
+                                                   : VK_FORMAT_R8G8_UNORM;
                             break;
                           case 2:
                             createInfo.glInternalformat = GL_RG16;
@@ -456,8 +615,11 @@ int _tmain(int argc, _TCHAR* argv[])
                       case 3:
                          switch (componentSize) {
                           case 1:
-                            createInfo.glInternalformat = GL_RGB8;
-                            createInfo.vkFormat = VK_FORMAT_R8G8B8_UNORM;
+                            createInfo.glInternalformat
+                                            = srgb ? GL_SRGB8 : GL_RGB8;
+                            createInfo.vkFormat
+                                            = srgb ? VK_FORMAT_R8G8B8_SRGB
+                                                   : VK_FORMAT_R8G8B8_UNORM;
                             break;
                           case 2:
                             createInfo.glInternalformat = GL_RGB16;
@@ -473,8 +635,11 @@ int _tmain(int argc, _TCHAR* argv[])
                       case 4:
                          switch (componentSize) {
                           case 1:
-                            createInfo.glInternalformat = GL_RGBA8;
-                            createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+                            createInfo.glInternalformat
+                                            = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+                            createInfo.vkFormat
+                                            = srgb ? VK_FORMAT_R8G8B8A8_SRGB
+                                                   : VK_FORMAT_R8G8B8A8_UNORM;
                             break;
                           case 2:
                             createInfo.glInternalformat = GL_RGBA16;
@@ -575,14 +740,14 @@ int _tmain(int argc, _TCHAR* argv[])
                                                   face,
                                                   srcImg,
                                                   imageSize);
-#if 0
+
                 else
                     ktxTexture_SetImageFromStdioStream(ktxTexture(texture),
                                                        level,
                                                        0,
                                                        face,
                                                        f, imageSize);
-#endif
+
 #if IMAGE_DEBUG
                 {
                     ktx_size_t offset;
@@ -594,11 +759,6 @@ int _tmain(int argc, _TCHAR* argv[])
 #endif
 
                 face++;
-            } else {
-                fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
-                        options.appName, infile ? infile : "data from stdin");
-                exitCode = 1;
-                goto cleanup;
             }
             (void)fclose(f);
         } else {
@@ -707,6 +867,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     options.levels = 1;
     options.bcmp = 0;
     options.basis_quality = 0;
+    options.xferFunc = XFER_NOT_SET;
     /* The OGLES WG recommended approach, even though it is opposite
      * to the OpenGL convention. Suki ja nai.
      */
@@ -778,8 +939,8 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     }
     options.numInputFiles = argc - i;
     if (options.numInputFiles == 0) {
-        options.numInputFiles = 1;
-        options.useStdin = true;
+        usage(options.appName);
+        exit(1);
     } else {
         options.firstInfileIndex = i;
         /* Check for attempt to use stdin as one of the
@@ -825,6 +986,8 @@ processOptions(argparser& parser,
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
+        { "linear", argparser::option::no_argument, &options.xferFunc, XFER_LINEAR },
+        { "srgb", argparser::option::no_argument, &options.xferFunc, XFER_SRGB },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
         { "bcmp", argparser::option::no_argument, NULL, 'b' },
         { "qual", argparser::option::required_argument, NULL, 'q' },
@@ -894,7 +1057,7 @@ log2(ktx_uint32_t v)
 
 
 static void
-yflip(unsigned char*& srcImage, unsigned int imageSize,
+yflip(unsigned char*& srcImage, size_t imageSize,
       unsigned int w, unsigned int h, unsigned int pixelSize)
 {
     int rowSize = w * pixelSize;

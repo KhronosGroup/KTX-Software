@@ -113,7 +113,7 @@ void skipNonData(FILE *src)
 FileResult
 readNPBM(FILE* src, unsigned int& width, unsigned int& height,
          unsigned int& components, unsigned int& componentSize,
-         unsigned int &imageSize, unsigned char** pixels)
+         size_t& imageSize, unsigned char** pixels)
 {
     char line[255];
     int numvals;
@@ -181,7 +181,7 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 FileResult
 readPPM(FILE* src, unsigned int& width, unsigned int& height,
         unsigned int& components, unsigned int& componentSize,
-        unsigned int &imageSize, unsigned char** pixels)
+        size_t& imageSize, unsigned char** pixels)
 {
     int maxval;
     int numvals;
@@ -276,7 +276,7 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 FileResult
 readPGM(FILE* src, unsigned int& width, unsigned int& height,
         unsigned int& components, unsigned int& componentSize,
-        unsigned int &imageSize, unsigned char** pixels)
+        size_t& imageSize, unsigned char** pixels)
 {
     int maxval;
     int numvals;
@@ -369,7 +369,7 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 FileResult
 readPAM(FILE* src, unsigned int& width, unsigned int& height,
         unsigned int& components, unsigned int& componentSize,
-        unsigned int &imageSize, unsigned char** pixels)
+        size_t& imageSize, unsigned char** pixels)
 {
     char line[255];
 #define MAX_TUPLETYPE_SIZE 20
@@ -448,7 +448,7 @@ tupleSize(const char* tupleType)
 
 
 FileResult
-readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels)
+readImage(FILE* src, size_t imageSize, unsigned char*& pixels)
 {
     pixels = new unsigned char[imageSize];
     if (!pixels)
@@ -459,7 +459,8 @@ readImage(FILE* src, unsigned int imageSize, unsigned char*& pixels)
 
     if (fread(pixels, imageSize, 1, src) != 1)
     {
-        fprintf(stderr, "Error: could not read %d bytes of pixel data.\n",imageSize);
+        fprintf(stderr, "Error: could not read %lu bytes of pixel data.\n",
+                imageSize);
         free(pixels);
         pixels = 0;
         return UNEXPECTED_EOF;
