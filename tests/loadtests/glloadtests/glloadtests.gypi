@@ -161,13 +161,24 @@
         }, # gl3loadtests
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
-    ['OS == "ios" or OS == "win"', {
+    ['OS == "ios" or OS == "win" or OS == "web"', {
       'includes': [
         '../../../gyp_include/libgles3.gypi',
       ],
+      'variables': {
+        # Putting this condition within the target causes a GYP error.
+        # I've not been able to find a way to override EXECUTABLE_SUFFIX so...
+        'conditions': [
+          ['OS == "web"', {
+            'target_name': 'es3loadtests.html',
+          }, {
+            'target_name': 'es3loadtests',
+          }],
+        ],
+      },
       'targets': [
         {
-          'target_name': 'es3loadtests',
+          'target_name': '<(target_name)',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [
@@ -176,7 +187,6 @@
             'libgles3',
             'testimages',
           ],
-          #'toolsets': [target', 'emscripten'],
           'sources': [
             '../geom/quad.h',
             '<@(common_source_files)',

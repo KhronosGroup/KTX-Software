@@ -14,7 +14,7 @@
         'imagedest': '<(android_assets_dir)/<(datadir)',
       }, 'OS == "ios" or OS == "mac"', {
         'imagedest': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
-      }, 'OS == "linux" or OS == "win"', {
+      }, 'OS == "linux" or OS == "win" or OS == "web"', {
         'imagedest': '<(PRODUCT_DIR)/<(datadir)',
       }], # OS == "android" and else clauses
     ], # conditions

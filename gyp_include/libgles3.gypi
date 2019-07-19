@@ -52,6 +52,26 @@
           'libs': ['-lGLESv2', '-lEGL'],
         }
       }],
+      ['OS == "web"', {
+        'direct_dependent_settings': {
+          'cflags': [
+            '-s', 'USE_WEBGL2=1',
+            # For MapBufferRange/UnmapBuffer in TextureArray.cpp
+            '-s', 'FULL_ES3=1',
+          ],
+        },
+        'link_settings': {
+          'ldflags': [
+            '-s', 'USE_WEBGL2=1',
+            '-s', 'FULL_ES3=1',
+          ]
+        },
+        'variables': {
+          'lib_dirs': [ ],
+          #'libs': ['-lGLESv2', '-lEGL'],
+          'libs': [ ],
+        },
+      }],
     ], # conditions
     'link_settings': {
       'libraries': [ '<@(libs)' ],

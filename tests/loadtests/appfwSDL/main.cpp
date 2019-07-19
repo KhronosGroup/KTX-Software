@@ -50,7 +50,7 @@
   //void emscripten_set_main_loop_arg(em_arg_callback_func func, void *arg,
   //                                  int fps, int simulate_infinite_loop);
   #define setAnimationCallback(win, cb, userdata) \
-    emscripten_set_main_loop_arg(cb, userdata, 0, EM_FALSE)
+    emscripten_set_main_loop_arg(cb, userdata, 0, 0)
 #else
   #define NEED_MAIN_LOOP 1
   #define setAnimationCallback(win, cb, userdata)

@@ -186,68 +186,6 @@
               #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
           },
         }, # libktx.gl target
-      ], # mac, win or linux targets
-    }], # OS == "mac" or OS == "win" or OS == "linux"
-    ['OS == "ios" or (OS == "win" and es1support == "true")', {
-      'targets': [
-        {
-          'target_name': 'libktx.es1',
-          'type': 'static_library',
-          'defines': [
-            'KTX_OPENGL_ES1=1',
-            'KTX_OMIT_VULKAN=1',
-            'KHRONOS_STATIC=1',
-          ],
-          'direct_dependent_settings': {
-            'include_dirs': [ '<@(include_dirs)' ],
-            'defines': [ 'KHRONOS_STATIC=1' ],
-          },
-          'sources': [ '<@(sources)' ],
-          'include_dirs': [ '<@(include_dirs)' ],
-          'xcode_settings': {
-              # Turn off so as to compile Basis. Hopefully temporary.
-              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-          }
-        }, # libktx.es1
-      ], # ios or win targets
-    }], # OS == "ios" or (OS == "win" and es1support == "true")
-    ['OS == "ios" or OS == "win" or OS == "web"', {
-      'targets': [
-        {
-          'target_name': 'libktx.es3',
-          'type': 'static_library',
-          'defines': [
-            'KTX_OPENGL_ES3=1',
-            'KTX_USE_FUNCPTRS_FOR_VULKAN',
-            'KHRONOS_STATIC=1',
-          ],
-          'dependencies': [ 'vulkan_headers' ],
-          'direct_dependent_settings': {
-            'include_dirs': [ '<@(include_dirs)' ],
-            'defines': [ 'KHRONOS_STATIC=1' ],
-          },
-          'sources': [
-            '<@(sources)',
-            '<@(vksource_files)',
-          ],
-          'conditions': [
-          ['OS == "web"', {
-            'defines': [ 'KTX_OMIT_VULKAN=1' ],
-            'dependencies!': [ 'vulkan_headers' ],
-            'sources!:' [ '<@(vksource_files)' ],
-          }],
-         ],
-          'include_dirs': [ '<@(include_dirs)' ],
-          'xcode_settings': {
-              # Turn off so as to compile Basis. Hopefully temporary.
-              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-          }
-        }, # libktx.es3
-      ], # ios or win targets
-    }], # OS == "ios" or OS == "win" or OS == "web"
-    ['OS == "linux" or OS == "mac" or OS == "win"', {
-      # Can only build doc and only need to generate source files on desktops
-      'targets': [
         {
           'target_name': 'libktx.doc',
           'type': 'none',
@@ -328,7 +266,7 @@
           'type': 'none',
           'variables': {
             'vkformatfiles_dir': '.',
-            'conditions': [ 
+            'conditions': [
               ['GENERATOR == "cmake"', {
                 # FIXME Need to find a way to use $VULKAN_SDK *if* set.
                 'vkinclude_dir': '/usr/include',
@@ -440,8 +378,65 @@
             'files': [ '../build/docs/man/man3/' ],
           }]
         } # install_lib target
-      ], # targets
-    }], # 'OS == "linux" or OS == "mac" or OS == "win"'
+      ], # mac, win or linux targets
+    }], # OS == "mac" or OS == "win" or OS == "linux"
+    ['OS == "ios" or (OS == "win" and es1support == "true")', {
+      'targets': [
+        {
+          'target_name': 'libktx.es1',
+          'type': 'static_library',
+          'defines': [
+            'KTX_OPENGL_ES1=1',
+            'KTX_OMIT_VULKAN=1',
+            'KHRONOS_STATIC=1',
+          ],
+          'direct_dependent_settings': {
+            'include_dirs': [ '<@(include_dirs)' ],
+            'defines': [ 'KHRONOS_STATIC=1' ],
+          },
+          'sources': [ '<@(sources)' ],
+          'include_dirs': [ '<@(include_dirs)' ],
+          'xcode_settings': {
+              # Turn off so as to compile Basis. Hopefully temporary.
+              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+          }
+        }, # libktx.es1
+      ], # ios or win targets
+    }], # OS == "ios" or (OS == "win" and es1support == "true")
+    ['OS == "ios" or OS == "win" or OS == "web"', {
+      'targets': [
+        {
+          'target_name': 'libktx.es3',
+          'type': 'static_library',
+          'defines': [
+            'KTX_OPENGL_ES3=1',
+            'KTX_USE_FUNCPTRS_FOR_VULKAN',
+            'KHRONOS_STATIC=1',
+          ],
+          'dependencies': [ 'vulkan_headers' ],
+          'direct_dependent_settings': {
+            'include_dirs': [ '<@(include_dirs)' ],
+            'defines': [ 'KHRONOS_STATIC=1' ],
+          },
+          'sources': [
+            '<@(sources)',
+            '<@(vksource_files)',
+          ],
+          'conditions': [
+          ['OS == "web"', {
+            'defines': [ 'KTX_OMIT_VULKAN=1' ],
+            'dependencies!': [ 'vulkan_headers' ],
+            'sources!': [ '<@(vksource_files)' ],
+          }],
+         ],
+          'include_dirs': [ '<@(include_dirs)' ],
+          'xcode_settings': {
+              # Turn off so as to compile Basis. Hopefully temporary.
+              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+          }
+        }, # libktx.es3
+      ], # ios or win targets
+    }], # OS == "ios" or OS == "win" or OS == "web"
   ], # conditions
 }
 

@@ -44,8 +44,12 @@ xcode_platforms := ios mac
 xcode_targets = $(addsuffix /${stampfile},$(addprefix ${xcode_buildd}/,${xcode_platforms}))
 
 cmake_buildd := $(builddir)/cmake
-cmake_platforms := linux# mac
-cmake_targets = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,${cmake_platforms}))
+#cmake_platforms := linux# mac
+#cmake_targets = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,${cmake_platforms}))
+# Have to generate these platforms separately so provide macros for each.
+cmake_linux = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,linux))
+cmake_web = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,web))
+cmake_targets = $(cmake_linux) $(cmake_web)
 
 make_buildd := $(builddir)/make
 make_platforms := linux# mac
@@ -119,7 +123,7 @@ gyp=$(gypdir)gyp# --debug=all
 .PHONY: msvs xcode default
 
 default:
-	@echo Pick one of "\"make {all,cmake,make,msvs,msvs64,xcode}\""
+	@echo Pick one of "\"make {all,cmake_linux,cmake_web,make,msvs,msvs64,xcode}\""
 
 all: $(formats)
 
@@ -133,7 +137,8 @@ msvs: msvs64
 
 xcode: $(xcode_targets)
 
-cmake: $(cmake_targets)
+cmake cmake-linux: $(cmake_linux)
+cmake-web: $(cmake_web)
 
 make: $(make_targets)
 
@@ -153,9 +158,14 @@ $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 		libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
+$(cmake_linux): cmake_format := cmake
+$(cmake_web): cmake_format := cmake-web
+$(cmake_web): export AR := emar
+$(cmake_web): export CC := emcc
+$(cmake_web): export CXX := emcc
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=. --depth=. \
-		libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
+	$(gyp) -f $(cmake_format) -DOS=$* --generator-output=$(dir $@) -G output_dir=. \
+		--depth=. libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
 $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)

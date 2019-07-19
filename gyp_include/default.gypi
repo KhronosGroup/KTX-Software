@@ -21,8 +21,7 @@
 #      }],
       ['OS == "android"', {
         'executable': 'shared_library',
-      }],
-      ['OS == "win" and GENERATOR == "msvs"', {
+      }, 'OS == "win" and GENERATOR == "msvs"', {
         # For now, we'll retain the possiblity of generating multi-platform
         # solutions so just use WIN_PLATFORM to set the existing
         # variables.
@@ -35,18 +34,22 @@
             'emit_vs_x64_configs': 'true',
           }],
         ],
-      }], # OS == "win" and GENERATOR == "msvs"
+      }], # OS == "android" and elses.
     ], # conditions
   }, # variables
-  'make_global_settings': [
-    ['AR.emscripten', 'emar'],
-
-    ['CC.emscripten', 'emcc'],
-    ['CXX.emscripten', 'emcc'],
-
-    ['LD.emscripten', 'emcc'],
-    ['LINK.emscripten', 'emcc'],
-  ],
+#  'conditions': [
+#    ['OS == "web"', {
+#      # Used by make AND cmake. However the cmake generator puts CMAKE_C_FLAGS,
+#      # etc., in the wrong place in CMakeLists.txt so they are ignored.
+#      # Furthermore the generator relatives these as if the commands exist
+#      # inside the project.
+#      'make_global_settings': [
+#        ['AR', 'emar'],
+#        ['CC', 'emcc'],
+#        ['CXX', 'emcc'],
+#      ],
+#    }],
+#  ],
   'xcode_settings': {
     # Don't add anything new to this block unless you really need it!
     # This block adds *project-wide* configuration settings to each
@@ -204,9 +207,16 @@
           }], # OS == "linux" and library == "shared_library"
         ],
 
-        'cflags': [ '-Og', '-g' ],
+        'conditions': [
+          ['OS == "web"', {
+            'cflags': [ '-O0', '-g' ],
+            'ldflags': [ '-g4' ],
+          }, {
+            'cflags': [ '-Og', '-g' ],
+            'ldflags': [ '-g' ],
+          }],
+        ],
         'defines': [ 'DEBUG', '_DEBUG', ],
-        'ldflags': [ '-g' ],
         # If this isn't set, GYP defaults to Win32 so both platforms
         # get included when generating x64 configs.
         'msvs_configuration_platform': '<(WIN_PLATFORM)',
@@ -262,7 +272,14 @@
             'cflags': [ '-fPIC' ],
           }], # OS == "linux" and library == "shared_library"
         ],
-        'cflags': [ '-O3' ],
+        'conditions': [
+          ['OS == "web"', {
+            'cflags': [ '-O3' ],
+            'ldflags': [ '-g0' ],
+          }, {
+            'cflags': [ '-O3' ],
+          }],
+        ],
         'defines': [ 'NDEBUG' ],
         'msvs_configuration_platform': '<(WIN_PLATFORM)',
         'msvs_settings': {
@@ -345,7 +362,7 @@
             },
             # Not working. Investigate later.
             # Variables are not propagated from configurations?
-            'OS': 'html5',
+            'OS': 'web',
             'toolset': 'emscripten',
           }, # Debug_Emscripten
           'Release_Emscripten': {
@@ -361,7 +378,7 @@
               },
             },
             # ditto
-            'OS': 'html5',
+            'OS': 'web',
             'toolset': 'emscripten',
           }, # Release_Emscripten
         }],

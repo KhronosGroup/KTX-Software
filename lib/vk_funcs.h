@@ -32,6 +32,7 @@
 #ifndef _VK_FUNCS_H_
 #define _VK_FUNCS_H_
 
+#if !KTX_OMIT_VULKAN
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 #define VK_NO_PROTOTYPES
 #endif
@@ -94,6 +95,7 @@ extern ktx_bool_t ktxVulkanLoadLibrary(void);
 #undef VK_FUNCTION
 
 #endif /* KTX_USE_FUNCPTRS_FOR_VULKAN */
+#endif /* KTX_OMIT_VULKAN */
 
 #endif /* _VK_FUNCS_H_ */
 

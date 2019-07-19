@@ -15,6 +15,8 @@
           'datadest': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)',
         }, 'OS == "linux" or OS == "win"', {
           'datadest': '<(PRODUCT_DIR)',
+        }, 'OS == "web"', {
+          'datadest': '<(PRODUCT_DIR)',
         }], # OS == "android" and else clauses
       ], # conditions
     }, # variables level 2
@@ -43,7 +45,7 @@
   ],
   'conditions': [
     # Only these versions support C++11 which is needed by vkloadtests.
-    ['GENERATOR != "msvs" or MSVS_VERSION == "2015" or MSVS_VERSION == "2017"', {
+    ['OS != "web" and (GENERATOR != "msvs" or MSVS_VERSION == "2015" or MSVS_VERSION == "2017")', {
       'includes': [ 'vkloadtests/vkloadtests.gypi' ],
     }],
   ],

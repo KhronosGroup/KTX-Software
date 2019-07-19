@@ -93,9 +93,9 @@
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
       }, # xcode_settings
       'conditions': [
-        # Earlier MSVS Versions do not support C++11 so exclude
-        # VkAppSDL.
-        ['GENERATOR == "msvs" and MSVS_VERSION != "2015" and MSVS_VERSION != "2017"', {
+        # Web platform does not support Vulkan.
+        # Earlier MSVS Versions do not support C++11 so exclude VkAppSDL.
+        ['OS == "web" or (GENERATOR == "msvs" and MSVS_VERSION != "2015" and MSVS_VERSION != "2017")', {
           'cflags_cc!': [ '-std=c++11' ],
           'dependencies!': [ 'libktx.gyp:vulkan_headers' ],
           'direct_dependent_settings': {

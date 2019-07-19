@@ -35,6 +35,7 @@
 /* I need these on Linux. Why? */
 #define __USE_LARGEFILE 1  // For declaration of ftello, etc.
 #define __USE_POSIX 1      // For declaration of fileno.
+#define _POSIX_SOURCE 1    // For both the above in Emscripten.
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>     // For stat.h on Windows

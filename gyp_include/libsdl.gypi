@@ -191,6 +191,16 @@
             }],
           ], # conditions
         }], # OS == "win"
+        ['OS == "web"', {
+          'direct_dependent_settings': {
+            'cflags': [ '-s', 'USE_SDL=2' ],
+          },
+          'link_settings': {
+            'ldflags': [ '-s', 'USE_SDL=2' ],
+            #'libraries=': [ '-lSDL2', '-lSDL2main' ],
+            'library_dirs': [ ],
+          },
+        }],
       ], # conditions
     }, # libsdl
   ], # targets

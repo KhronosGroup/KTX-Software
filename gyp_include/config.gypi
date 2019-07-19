@@ -146,6 +146,10 @@
         # libktx type.
         'library': 'shared_library',
       }, # OS == "mac"
+      'OS == "web"', {
+        'library': 'static_library',
+        'sdl_to_use': 'installed_dylib',
+      }, # OS == "web"
       'OS == "win"', {
         # Location of glew32.lib.
         'glew_lib_dir': '<(winolibr_dir)',
