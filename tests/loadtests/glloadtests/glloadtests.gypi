@@ -224,6 +224,8 @@
               'mac_bundle_resources': [ '<@(ios_resource_files)' ],
             }, 'OS == "win"', {
               'sources': [ '<@(win_resource_files)' ],
+            }, 'OS == "web"', {
+              'ldflags': [ '--source-map-base', './' ],
             }], # OS == "ios" else OS = "win"
           ],
         }, # es3loadtests
