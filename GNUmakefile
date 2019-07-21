@@ -160,9 +160,6 @@ $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 
 $(cmake_linux): cmake_format := cmake
 $(cmake_web): cmake_format := cmake-web
-$(cmake_web): export AR := emar
-$(cmake_web): export CC := emcc
-$(cmake_web): export CXX := emcc
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
 	$(gyp) -f $(cmake_format) -DOS=$* --generator-output=$(dir $@) -G output_dir=. \
 		--depth=. libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)

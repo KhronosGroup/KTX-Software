@@ -12,7 +12,6 @@
     {
       'target_name': 'appfwSDL',
       'type': 'static_library',
-      #'toolsets': [target', 'emscripten'],
       'cflags_cc': [ '-std=c++11' ],
       'dependencies': [
         'libsdl',

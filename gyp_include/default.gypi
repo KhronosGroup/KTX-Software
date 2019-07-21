@@ -9,16 +9,7 @@
     'executable': 'executable',
     'emit_vs_x64_configs': 'false',
     'emit_vs_win32_configs': 'false',
-    'emit_emscripten_configs': 'false',
     'conditions': [
-      # TODO Emscripten support not yet correct or complete. DO NOT
-      # TRY TO USE.
-      # Emscripten "vs-tool" VS integration only supports MSVS 2010;
-#      ['GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010")', {
-#        'emit_emscripten_configs': 'true',
-#      }, {
-#        'emit_emscripten_configs': 'false',
-#      }],
       ['OS == "android"', {
         'executable': 'shared_library',
       }, 'OS == "win" and GENERATOR == "msvs"', {
@@ -37,19 +28,18 @@
       }], # OS == "android" and elses.
     ], # conditions
   }, # variables
-#  'conditions': [
-#    ['OS == "web"', {
-#      # Used by make AND cmake. However the cmake generator puts CMAKE_C_FLAGS,
-#      # etc., in the wrong place in CMakeLists.txt so they are ignored.
-#      # Furthermore the generator relatives these as if the commands exist
-#      # inside the project.
-#      'make_global_settings': [
-#        ['AR', 'emar'],
-#        ['CC', 'emcc'],
-#        ['CXX', 'emcc'],
-#      ],
-#    }],
-#  ],
+  'conditions': [
+    ['OS == "web" and GENERATOR != "cmake"', {
+      # Used by make AND cmake. However the cmake generator relativizes these
+      # as if the commands exist inside the project. Haven't yet tried
+      # the make generator.
+      'make_global_settings': [
+        ['AR.emscripten', 'emar'],
+        ['CC.emscripten', 'emcc'],
+        ['CXX.emscripten', 'emcc'],
+      ],
+    }],
+  ],
   'xcode_settings': {
     # Don't add anything new to this block unless you really need it!
     # This block adds *project-wide* configuration settings to each
@@ -206,7 +196,6 @@
             'cflags': [ '-fPIC' ],
           }], # OS == "linux" and library == "shared_library"
         ],
-
         'conditions': [
           ['OS == "web"', {
             'cflags': [ '-O0', '-g' ],
@@ -346,64 +335,8 @@
             },
           }, # Release_x64
         }], # emit_vs_x64_configs
-        ['emit_emscripten_configs=="true"', {
-          # The part after '_' must match the msvs_configuration_platform
-          'Debug_Emscripten': {
-            'inherit_from': ['Debug'],
-            'ldflags': '-O0',
-            'msvs_configuration_platform': 'Emscripten',
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'OptimizationLevel': 3, # -O0
-              },
-              'VCLinkerTool': {
-                'LinkerOptimizationLevel': 1, # -O0
-              },
-            },
-            # Not working. Investigate later.
-            # Variables are not propagated from configurations?
-            'OS': 'web',
-            'toolset': 'emscripten',
-          }, # Debug_Emscripten
-          'Release_Emscripten': {
-            'inherit_from': ['Release'],
-            'ldflags': '-O3',
-            'msvs_configuration_platform': 'Emscripten',
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'OptimizationLevel': 6, # -O3
-              },
-              'VCLinkerTool': {
-                'LinkerOptimizationLevel': 4, # -O3
-              },
-            },
-            # ditto
-            'OS': 'web',
-            'toolset': 'emscripten',
-          }, # Release_Emscripten
-        }],
       ], # conditional configurations
     }, # configurations
-    # Not having any effect. Fortunately vs-tool sets these so
-    # not needed unless want to change the default.
-#    'target_conditions': [
-#      ['_type=="executable" and emit_emscripten_configs=="true"', {
-#        'configurations': {
-#          'Debug_Emscripten': {
-#            'run_as': {
-#              'action': '<(emscripten_run_action)',
-#              'working_directory': '$(TargetDir)',
-#            },
-#          },
-#          'Release_Emscripten': {
-#            'run_as': {
-#              'action': '<(emscripten_run_action)',
-#              'working_directory': '$(TargetDir)',
-#            },
-#          },
-#        }
-#      }],
-#    ], # target_conditions
   }, # target_defaults
 }
 
