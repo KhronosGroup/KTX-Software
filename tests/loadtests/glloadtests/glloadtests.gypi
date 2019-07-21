@@ -225,7 +225,20 @@
             }, 'OS == "win"', {
               'sources': [ '<@(win_resource_files)' ],
             }, 'OS == "web"', {
-              'ldflags': [ '--source-map-base', './' ],
+              'cflags': [
+                '-s', 'DISABLE_EXCEPTION_CATCHING=0',
+              ],
+              'ldflags': [
+                '--source-map-base', './',
+                '--preload-file', 'testimages',
+                '--exclude-file', 'testimages/genref',
+                '--exclude-file', 'testimages/*.pgm',
+                '--exclude-file', 'testimages/*.ppm',
+                '--exclude-file', 'testimages/*.pam',
+                '--exclude-file', 'testimages/*.pspimage',
+                '-s', 'ALLOW_MEMORY_GROWTH=1',
+                '-s', 'DISABLE_EXCEPTION_CATCHING=0',
+              ],
             }], # OS == "ios" else OS = "win"
           ],
         }, # es3loadtests
