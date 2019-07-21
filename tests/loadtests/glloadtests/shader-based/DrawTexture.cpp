@@ -41,6 +41,7 @@
 #include "frame.h"
 #include "quad.h"
 #include "argparser.h"
+#include "ltexceptions.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -166,14 +167,20 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     } else {
         std::stringstream message;
 
-        message << "Load of texture from \"" << filename << "\" failed: ";
-        if (ktxresult == KTX_GL_ERROR) {
-            message << std::showbase << "GL error " << std::hex << glerror
-                    << " occurred.";
+        message << "ktxTexture_GLUpload failed: ";
+        if (ktxresult != KTX_GL_ERROR) {
+             message << ktxErrorString(ktxresult);
+             throw std::runtime_error(message.str());
+        } else if (kTexture->isCompressed
+                   // Emscripten/WebGL returns INVALID_VALUE for unsupported
+                   // ETC formats.
+                   && (glerror == GL_INVALID_ENUM || GL_INVALID_VALUE)) {
+             throw unsupported_ctype();
         } else {
-            message << ktxErrorString(ktxresult);
+             message << std::showbase << "GL error " << std::hex << glerror
+                    << " occurred.";
+             throw std::runtime_error(message.str());
         }
-        throw std::runtime_error(message.str());
     }
 
     glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
