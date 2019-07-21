@@ -25,7 +25,7 @@
  * @brief Retrieve Vulkan function pointers needed by libktx
  */
 
-#if !KTX_OMIT_VULKAN && defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
+#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 
 #define UNIX 0
 #define MACOS 0
