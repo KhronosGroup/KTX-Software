@@ -41,36 +41,6 @@
               'SubSystem': '1',
             },
           },
-          'conditions': [
-            ['emit_emscripten_configs=="true"', {
-              'configurations': {
-                'Debug_Emscripten': {
-                  'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [ '<(additional_emlink_options)' ],
-                  'msvs_settings': {
-                    'VCCLCompilerTool': {
-                      'AdditionalOptions': '<(additional_emcc_options)',
-                    },
-                    'VCLinkerTool': {
-                      'AdditionalOptions': '<(additional_emlink_options)',
-                    },
-                  },
-                },
-                'Release_Emscripten': {
-                  'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [ '<(additional_emlink_options)' ],
-                  'msvs_settings': {
-                    'VCCLCompilerTool': {
-                      'AdditionalOptions': '<(additional_emcc_options)',
-                    },
-                    'VCLinkerTool': {
-                      'AdditionalOptions': '<(additional_emlink_options)',
-                    },
-                  },
-                },
-              }, # configurations
-            }], # emit_emscripten_configs=="true"
-          ], # conditions
         }, # ktx2ktx2 target
 #        {
 #          'target_name': 'ktx2ktx2-tests',

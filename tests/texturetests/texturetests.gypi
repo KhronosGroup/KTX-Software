@@ -67,49 +67,13 @@
         'USE_HEADERMAP': 'NO',
 #       'INFOPLIST_FILE': '<(infoplist_file)',
       },
-      'conditions': [
-        ['emit_emscripten_configs=="true"', {
-          'configurations': {
-            'Debug_Emscripten': {
-              'cflags': [ '<(additional_emcc_options)' ],
-              'ldflags': [
-                '--preload-files <(PRODUCT_DIR)/(datadir)@/<(datadir)',
-                '<(additional_emlink_options)',
-              ],
-              'msvs_settings': {
-                'VCCLCompilerTool': {
-                  'AdditionalOptions': '<(additional_emcc_options)',
-                },
-                'VCLinkerTool': {
-                  'PreloadFile': '<(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                  'AdditionalOptions': '<(additional_emlink_options)',
-                },
-              },
-            },
-            'Release_Emscripten': {
-              'cflags': [ '<(additional_emcc_options)' ],
-              'ldflags': [
-                '--preload-files <(PRODUCT_DIR)/(datadir)@/<(datadir)',
-                '<(additional_emlink_options)',
-              ],
-              'msvs_settings': {
-                'VCCLCompilerTool': {
-                  'AdditionalOptions': '<(additional_emcc_options)',
-                },
-                'VCLinkerTool': {
-                  'PreloadFile': '<(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                  'AdditionalOptions': '<(additional_emlink_options)',
-                },
-              },
-            },
-          },
-        }], # emit_emscripten_configs=="true"
+#      'conditions': [
 #        ['OS == "mac"', {
 #            'sources': [
 #            'resources_mac/Info.plist',
 #          ],
 #        }], # OS == "mac"
-      ], # conditions
+#      ], # conditions
     }, # texturetests
   ] # targets
 }

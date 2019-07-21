@@ -152,6 +152,16 @@ Set this to `macOS` directory of `$(VULKAN_INSTALL_DIR)`.
 Set this to the directory where [`libassimp`](#libassimp) is installed. If
 you use the MacPorts version, this will be `/opt/local`.
 
+### Web/Emscripten
+
+```bash
+cd build/cmake/web/Debug # or .../Release
+emconfigure cmake .
+make
+```
+
+You will need an [Emscripten SDK](#emscripten-sdk) installed.
+
 ### Windows
 
 Use the solutions under one of
@@ -424,6 +434,10 @@ the documentation correctly. You can download binaries and
 also find instructions for building it from source at [Doxygen
 downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
 sure the directory containing the `doxygen` executable is in your `$PATH`.
+
+### Emscripten SDK
+
+Follow the Emscripten [download and install](https://emscripten.org/docs/getting_started/downloads.html) instructions.
 
 
 Generating Projects

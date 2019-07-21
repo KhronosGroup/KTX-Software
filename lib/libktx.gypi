@@ -100,136 +100,92 @@
   }, # variables
 
   'includes': [
-      '../gyp_include/libgl.gypi',
-      '../gyp_include/libvulkan.gypi',
+    '../gyp_include/libgl.gypi',
+    '../gyp_include/libvulkan.gypi',
   ],
-  'targets': [
-    {
-      'target_name': 'libktx.gl',
-      'type': '<(library)',
-      'defines': [
-        'KTX_OPENGL=1',
-        'KTX_USE_FUNCPTRS_FOR_VULKAN',
-        'KHRONOS_STATIC=1',
-      ],
-      'direct_dependent_settings': {
-         'include_dirs': [ '<@(include_dirs)' ],
-      },
-      'include_dirs': [ '<@(include_dirs)' ],
-      'mac_bundle': 0,
-      'dependencies': [ 'vulkan_headers' ],
-      'sources': [
-        '<@(sources)',
-        '<@(vksource_files)',
-      ],
-      'conditions': [
-        ['_type == "shared_library"', {
-          'dependencies': [ 'libgl', 'libvulkan.lazy' ],
-          'defines!': ['KHRONOS_STATIC=1'],
-          'conditions': [
-            ['OS == "mac" or OS == "ios"', {
-              'direct_dependent_settings': {
-                'target_conditions': [
-                  ['_type != "none" and _mac_bundle == 1', {
-                    'copies': [{
-                      'xcode_code_sign': 1,
-                      'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
-                      'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-                    }], # copies
-                    'xcode_settings': {
-                      # Tell DYLD where to search for this dylib.
-                      # "man ld" for more information. Look for -rpath.
-                      'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
-                    },
-                  }, {
-                    'xcode_settings': {
-                      'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
-                    },
-                  }], # _mac_bundle == 1
-                ], # target_conditions
-              }, # direct_dependent_settings
-              'xcode_settings': {
-                # Set the "install name" to instruct dyld to search a list of
-                # paths in order to locate the library. If left at the default
-                # of an absolute location (/usr/local/lib), that path will be
-                # built into any executables that link with it and dyld will
-                # search only that location. For bundles, the path we set above
-                # is built into the executable. For non bundle's nothing will be
-                # built into the executable and the standard dyld search path
-                # will be used.
-                'INSTALL_PATH': '@rpath',
-              }
-            }, 'OS == "linux"', {
-              'dependencies!': [ 'libvulkan.lazy' ],
-            }, 'OS == "win"', {
-              'dependencies!': [ 'libvulkan.lazy' ],
-              'defines': [ 'KTX_APICALL=__declspec(dllexport)' ],
-              # The msvs generator automatically sets the needed VCLinker
-              # option a .def file is seen in sources.
-              'sources': [ 'internalexport.def' ],
-            }] # OS == "mac or OS == "ios"
-          ], # conditions
-        }], # _type == "shared_library"
-      ], # conditions
-      'xcode_settings': {
-          # Turn off so as to compile Basis. Hopefully temporary.
-          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-          # These are actually Xcode's defaults shown here for documentation.
-          #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
-          #'INSTALL_PATH': '/usr/local/lib',
-          # This is used by a Copy Headers phase which gyp only allows to be
-          # be created for a framework bundle. Remember in case we want to
-          # switch the lib to a framework.
-          #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
-      },
-    }, # libktx.gl target
-    {
-      'target_name': 'libktx.es1',
-      'type': 'static_library',
-      'defines': [
-        'KTX_OPENGL_ES1=1',
-        'KTX_OMIT_VULKAN=1',
-        'KHRONOS_STATIC=1',
-      ],
-      'direct_dependent_settings': {
-        'include_dirs': [ '<@(include_dirs)' ],
-        'defines': [ 'KHRONOS_STATIC=1' ],
-      },
-      'sources': [ '<@(sources)' ],
-      'include_dirs': [ '<@(include_dirs)' ],
-      'xcode_settings': {
-          # Turn off so as to compile Basis. Hopefully temporary.
-          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-      }
-    }, # libktx.es1
-    {
-      'target_name': 'libktx.es3',
-      'type': 'static_library',
-      'defines': [
-        'KTX_OPENGL_ES3=1',
-        'KTX_USE_FUNCPTRS_FOR_VULKAN',
-        'KHRONOS_STATIC=1',
-      ],
-      'dependencies': [ 'vulkan_headers' ],
-      'direct_dependent_settings': {
-        'include_dirs': [ '<@(include_dirs)' ],
-        'defines': [ 'KHRONOS_STATIC=1' ],
-      },
-      'sources': [
-        '<@(sources)',
-        '<@(vksource_files)',
-      ],
-      'include_dirs': [ '<@(include_dirs)' ],
-      'xcode_settings': {
-          # Turn off so as to compile Basis. Hopefully temporary.
-          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-      }
-    }, # libktx.es3
-  ], # targets
+
   'conditions': [
-    ['OS == "linux" or OS == "mac" or OS == "win"', {
-      # Can only build doc and only need to generate source files on desktops
+    ['OS == "mac" or OS == "win" or OS == "linux"', {
       'targets': [
+        {
+          'target_name': 'libktx.gl',
+          'type': '<(library)',
+          'defines': [
+            'KTX_OPENGL=1',
+            'KTX_USE_FUNCPTRS_FOR_VULKAN',
+            'KHRONOS_STATIC=1',
+          ],
+          'direct_dependent_settings': {
+            'include_dirs': [ '<@(include_dirs)' ],
+          },
+          'include_dirs': [ '<@(include_dirs)' ],
+          'mac_bundle': 0,
+          'dependencies': [ 'vulkan_headers' ],
+          'sources': [
+            '<@(sources)',
+            '<@(vksource_files)',
+          ],
+          'conditions': [
+            ['_type == "shared_library"', {
+              'dependencies': [ 'libgl', 'libvulkan.lazy' ],
+              'defines!': ['KHRONOS_STATIC=1'],
+              'conditions': [
+                ['OS == "mac" or OS == "ios"', {
+                  'direct_dependent_settings': {
+                    'target_conditions': [
+                      ['_type != "none" and _mac_bundle == 1', {
+                        'copies': [{
+                          'xcode_code_sign': 1,
+                          'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+                          'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+                        }], # copies
+                        'xcode_settings': {
+                          # Tell DYLD where to search for this dylib.
+                          # "man ld" for more information. Look for -rpath.
+                          'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
+                        },
+                      }, {
+                        'xcode_settings': {
+                          'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
+                        },
+                      }], # _mac_bundle == 1
+                    ], # target_conditions
+                  }, # direct_dependent_settings
+                  'xcode_settings': {
+                    # Set the "install name" to instruct dyld to search a list of
+                    # paths in order to locate the library. If left at the default
+                    # of an absolute location (/usr/local/lib), that path will be
+                    # built into any executables that link with it and dyld will
+                    # search only that location. For bundles, the path we set above
+                    # is built into the executable. For non bundle's nothing will be
+                    # built into the executable and the standard dyld search path
+                    # will be used.
+                    'INSTALL_PATH': '@rpath',
+                  }
+                }, 'OS == "linux"', {
+                  'dependencies!': [ 'libvulkan.lazy' ],
+                }, 'OS == "win"', {
+                  'dependencies!': [ 'libvulkan.lazy' ],
+                  'defines': [ 'KTX_APICALL=__declspec(dllexport)' ],
+                  # The msvs generator automatically sets the needed VCLinker
+                  # option a .def file is seen in sources.
+                  'sources': [ 'internalexport.def' ],
+                }] # OS == "mac or OS == "ios"
+              ], # conditions
+            }], # _type == "shared_library"
+          ], # conditions
+          'xcode_settings': {
+              # Turn off so as to compile Basis. Hopefully temporary.
+              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+              # These are actually Xcode's defaults shown here for documentation.
+              #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
+              #'INSTALL_PATH': '/usr/local/lib',
+              # This is used by a Copy Headers phase which gyp only allows to be
+              # be created for a framework bundle. Remember in case we want to
+              # switch the lib to a framework.
+              #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
+          },
+        }, # libktx.gl target
         {
           'target_name': 'libktx.doc',
           'type': 'none',
@@ -310,7 +266,7 @@
           'type': 'none',
           'variables': {
             'vkformatfiles_dir': '.',
-            'conditions': [ 
+            'conditions': [
               ['GENERATOR == "cmake"', {
                 # FIXME Need to find a way to use $VULKAN_SDK *if* set.
                 'vkinclude_dir': '/usr/include',
@@ -422,8 +378,65 @@
             'files': [ '../build/docs/man/man3/' ],
           }]
         } # install_lib target
-      ], # targets
-    }], # 'OS == "linux" or OS == "mac" or OS == "win"'
+      ], # mac, win or linux targets
+    }], # OS == "mac" or OS == "win" or OS == "linux"
+    ['OS == "ios" or (OS == "win" and es1support == "true")', {
+      'targets': [
+        {
+          'target_name': 'libktx.es1',
+          'type': 'static_library',
+          'defines': [
+            'KTX_OPENGL_ES1=1',
+            'KTX_OMIT_VULKAN=1',
+            'KHRONOS_STATIC=1',
+          ],
+          'direct_dependent_settings': {
+            'include_dirs': [ '<@(include_dirs)' ],
+            'defines': [ 'KHRONOS_STATIC=1' ],
+          },
+          'sources': [ '<@(sources)' ],
+          'include_dirs': [ '<@(include_dirs)' ],
+          'xcode_settings': {
+              # Turn off so as to compile Basis. Hopefully temporary.
+              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+          }
+        }, # libktx.es1
+      ], # ios or win targets
+    }], # OS == "ios" or (OS == "win" and es1support == "true")
+    ['OS == "ios" or OS == "win" or OS == "web"', {
+      'targets': [
+        {
+          'target_name': 'libktx.es3',
+          'type': 'static_library',
+          'defines': [
+            'KTX_OPENGL_ES3=1',
+            'KTX_USE_FUNCPTRS_FOR_VULKAN',
+            'KHRONOS_STATIC=1',
+          ],
+          'dependencies': [ 'vulkan_headers' ],
+          'direct_dependent_settings': {
+            'include_dirs': [ '<@(include_dirs)' ],
+            'defines': [ 'KHRONOS_STATIC=1' ],
+          },
+          'sources': [
+            '<@(sources)',
+            '<@(vksource_files)',
+          ],
+          'conditions': [
+          ['OS == "web"', {
+            'defines': [ 'KTX_OMIT_VULKAN=1' ],
+            'dependencies!': [ 'vulkan_headers' ],
+            'sources!': [ '<@(vksource_files)' ],
+          }],
+         ],
+          'include_dirs': [ '<@(include_dirs)' ],
+          'xcode_settings': {
+              # Turn off so as to compile Basis. Hopefully temporary.
+              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+          }
+        }, # libktx.es3
+      ], # ios or win targets
+    }], # OS == "ios" or OS == "win" or OS == "web"
   ], # conditions
 }
 

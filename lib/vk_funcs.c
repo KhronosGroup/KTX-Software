@@ -170,4 +170,4 @@ __attribute__((unused))
 #endif
 int keepISOCompilersHappy;
 
-#endif /* KTX_USE_FUNCPTRS_FOR_VULKAN */
+#endif /* !KTX_OMIT_VULKAN && KTX_USE_FUNCPTRS_FOR_VULKAN */

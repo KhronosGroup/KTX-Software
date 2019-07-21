@@ -38,11 +38,6 @@ abs_obj := $(abspath $(obj))
 # generated dependency rule Makefiles in one pass.
 all_deps :=
 
-AR.emscripten ?= $(abspath emar)
-CC.emscripten ?= $(abspath emcc)
-CXX.emscripten ?= $(abspath emcc)
-LD.emscripten ?= $(abspath emcc)
-LINK.emscripten ?= $(abspath emcc)
 
 
 CC.target ?= $(CC)
@@ -375,16 +370,6 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,libktx.doc.target.mk)))),)
   include libktx.doc.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,libktx.es1.target.mk)))),)
-  include libktx.es1.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,libktx.es3.target.mk)))),)
-  include libktx.es3.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\

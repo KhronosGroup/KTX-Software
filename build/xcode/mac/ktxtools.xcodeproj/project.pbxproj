@@ -85,21 +85,21 @@
 		0263124CD0CD3039F632734F /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
 		04D6B2B8A91585B28C81EA04 /* man1 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {isa = PBXBuildFile; fileRef = D089E409802E25C29E799696 /* man1 */; };
 		0AB5D8A11DE1EB69633CAFD9 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
-		3ACAE6BF8D4628BCB9FFDF72 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		441A57BE9EA1465A7B999539 /* ktxinfo in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = F275A3E14410D5B59A00B213 /* ktxinfo */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		48706FEF77DF693B2759F800 /* ktxsc in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 921D8375F2EF20B5E97697D8 /* ktxsc */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		615E7F2196EF0DBD9CF39235 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		61B6293863117204B15A9625 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B7CD12D0E44B7F3AAC185BE /* lodepng.cpp */; };
 		667882FEC31B48BDE4F3627B /* ktxsc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD010438A3ED3EC86AE1110E /* ktxsc.cpp */; };
-		7D568DD42C0E3532ADBC398A /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
+		753617D521338E19F78CEE19 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		93F897FD8FE45DEB5548745A /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		B1368A506160D74B8189A3BF /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 56C859EDDD90106359C989F0 /* ktx2ktx2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B1E9EF8EC59A8DB281B2AB35 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		BB36D1EADAE968C3EB10A188 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		C08DE8F6AD7C672731224622 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		C256F48D3C115697D987BA87 /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {isa = PBXBuildFile; fileRef = 5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		C4C5B35701E55683B71C082D /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 2E5F681D5C6F1BE626ECEB9D /* toktx */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		CBE7C02D2F69FA8BB3240936 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
+		D03662987EB0DCA95E75EAC4 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		D213D840BEE0AB7029F134E3 /* ktx2ktx2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC70D852F49571AE410DF987 /* ktx2ktx2.cpp */; };
-		D499407BF7C07E44C16A2925 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		DB7535FC3AD24724D77B9351 /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
 		E3FB9CC912B04A3025D069C2 /* ktxinfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6708BDBD0228EF4D2F3696B7 /* ktxinfo.cpp */; };
 /* End PBXBuildFile section */
@@ -118,13 +118,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 8A702704BD1F12CA35A965C9;
 			remoteInfo = install.tools;
-		};
-		1BA2F2C017187192307D1F73 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 998EA7B9AC7E5B6EB606DF64;
-			remoteInfo = libktx.es3;
 		};
 		31E28EA70E599ED345BAD439 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -259,13 +252,6 @@
 			remoteGlobalIDString = E3BA32ED6EED37DFEB7D6065;
 			remoteInfo = ktxtools.doc;
 		};
-		F87327285998842E4B3C9BE8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 7DFB01C2A0C66136843F9C90;
-			remoteInfo = libktx.es1;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -357,7 +343,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7D568DD42C0E3532ADBC398A /* libktx.gl.dylib in Frameworks */,
+				753617D521338E19F78CEE19 /* libktx.gl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -365,7 +351,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D499407BF7C07E44C16A2925 /* libktx.gl.dylib in Frameworks */,
+				B1E9EF8EC59A8DB281B2AB35 /* libktx.gl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,7 +359,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CBE7C02D2F69FA8BB3240936 /* libktx.gl.dylib in Frameworks */,
+				D03662987EB0DCA95E75EAC4 /* libktx.gl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,7 +367,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3ACAE6BF8D4628BCB9FFDF72 /* libktx.gl.dylib in Frameworks */,
+				615E7F2196EF0DBD9CF39235 /* libktx.gl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,6 +386,14 @@
 				2201D1E541CC854E40264DE2 /* runDoxygen */,
 			);
 			name = Source;
+			sourceTree = "<group>";
+		};
+		444769B602F855A2D5D3F9F7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		4C30AD50E76ABE7F796AD689 /* toktx */ = {
@@ -486,16 +480,6 @@
 				0AEF50F1B637980A330FE517 /* libktx.xcodeproj */,
 			);
 			name = Projects;
-			sourceTree = "<group>";
-		};
-		AC3BEC6CB2F10CEADFB04473 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */,
-				4953E24547305137EE2E70E7 /* libktx.es1.a */,
-				A463980ED735E3E3971189B4 /* libktx.es3.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		B24ED49F4FCB301A8079A5E1 /* ktxsc */ = {
@@ -672,7 +656,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = AC3BEC6CB2F10CEADFB04473 /* Products */;
+					ProductGroup = 444769B602F855A2D5D3F9F7 /* Products */;
 					ProjectRef = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
 				},
 			);
@@ -692,25 +676,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		4953E24547305137EE2E70E7 /* libktx.es1.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libktx.es1.a;
-			remoteRef = F87327285998842E4B3C9BE8 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.dylib";
 			path = libktx.gl.dylib;
 			remoteRef = 797F29D7FBA240927A67213D /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A463980ED735E3E3971189B4 /* libktx.es3.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libktx.es3.a;
-			remoteRef = 1BA2F2C017187192307D1F73 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */

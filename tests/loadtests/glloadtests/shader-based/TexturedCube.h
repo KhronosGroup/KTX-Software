@@ -50,9 +50,7 @@ class TexturedCube : public GL3LoadTestSample {
     GLuint gnTexProg;
 
     GLuint gnVao;
-    GLuint gnVbo;
-
-    GLsizeiptr iIndicesOffset;
+    GLuint gnVbo[2];
 
     GLint gulMvMatrixLocTP;
     GLint gulPMatrixLocTP;

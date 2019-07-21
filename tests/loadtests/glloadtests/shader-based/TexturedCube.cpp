@@ -133,17 +133,16 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     glBindVertexArray(gnVao);
 
     // Must have vertex data in buffer objects to use VAO's on ES3/GL Core
-    glGenBuffers(1, &gnVbo);
-    glBindBuffer(GL_ARRAY_BUFFER, gnVbo);
+    glGenBuffers(2, gnVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, gnVbo[0]);
     // Must be done after the VAO is bound
-    // Use the same buffer for vertex attributes and element indices.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gnVbo);
+    // WebGL requires different buffers for data and indices.
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gnVbo[1]);
 
     // Create the buffer data store. 
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(cube_face) + sizeof(cube_color) + sizeof(cube_texture)
-                 + sizeof(cube_normal) + sizeof(cube_index_buffer),
-                 NULL, GL_STATIC_DRAW);
+                 + sizeof(cube_normal), NULL, GL_STATIC_DRAW);
 
     // Interleave data copying and attrib pointer setup so offset is only
     // computed once.
@@ -164,12 +163,9 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(cube_normal), cube_normal);
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
     offset += sizeof(cube_normal);
-    iIndicesOffset = offset;
-    // Either of the following can be used to buffer the data.
-    glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(cube_index_buffer),
-                    cube_index_buffer);
-    //glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset,
-    //                sizeof(cube_index_buffer), cube_index_buffer);
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_index_buffer),
+                 cube_index_buffer, GL_STATIC_DRAW);
 
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
@@ -200,7 +196,7 @@ TexturedCube::~TexturedCube()
         glUseProgram(0);
         glDeleteTextures(1, &gnTexture);
         glDeleteProgram(gnTexProg);
-        glDeleteBuffers(1, &gnVbo);
+        glDeleteBuffers(2, gnVbo);
         glDeleteVertexArrays(1, &gnVao);
     }
     assert(GL_NO_ERROR == glGetError());
@@ -235,8 +231,7 @@ TexturedCube::run(uint32_t msTicks)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUniformMatrix4fv(gulMvMatrixLocTP, 1, GL_FALSE, glm::value_ptr(matView));
 
-    glDrawElements(GL_TRIANGLES, CUBE_NUM_INDICES, GL_UNSIGNED_SHORT,
-                   (GLvoid*)(iIndicesOffset));
+    glDrawElements(GL_TRIANGLES, CUBE_NUM_INDICES, GL_UNSIGNED_SHORT, 0);
 
     assert(GL_NO_ERROR == glGetError());
 }
