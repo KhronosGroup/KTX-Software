@@ -30,7 +30,7 @@
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
   #define fileno _fileno
-  #define mktemp _mktemp
+  #define mktemp _mkstemp
   #define isatty _isatty
   #define unlink _unlink
 #endif
@@ -160,17 +160,19 @@ version(_TCHAR* appName)
 int _tmain(int argc, _TCHAR* argv[])
 {
     FILE *inf, *outf;
-    _TCHAR* tmpfile;
     KTX_error_code result;
     ktxTexture2* texture = 0;
     struct commandOptions options;
     int exitCode = 0;
+    _TCHAR* pTmpfile;
 
     processCommandLine(argc, argv, options);
 
     for (ktx_uint32_t i = 0; i < options.numInputFiles; i++) {
         _TCHAR *infile;
+        _TCHAR tmpfile[] = _T("/tmp/ktxsc.XXXXXX");
 
+        pTmpfile = NULL;
         if (options.useStdin) {
             infile = 0;
             inf = stdin;
@@ -184,8 +186,6 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 
         if (inf) {
-            tmpfile = NULL;
-
             if (options.useStdout) {
                 outf = stdout;
 #if defined(_WIN32)
@@ -195,9 +195,8 @@ int _tmain(int argc, _TCHAR* argv[])
             } else if (options.outfile) {
                 outf = fopen(options.outfile, "wxb");
             } else {
-                char nametmpl[] =  { "/tmp/temp.XXXXXX" };
-                tmpfile = mktemp(nametmpl);
-                outf = fopen(tmpfile, "wb");
+                outf = fdopen(mkstemp(tmpfile), "wb");
+                pTmpfile = tmpfile;
             }
 
             if (!outf && errno == EEXIST) {
@@ -260,7 +259,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 (void)fclose(outf);
                 if (!options.outfile && !options.useStdout) {
                     // Move the new file over the original.
-                    assert(tmpfile && infile);
+                    assert(pTmpfile && infile);
                     int err = rename(tmpfile, infile);
                     if (err) {
                         cerr << options.appName
@@ -290,7 +289,7 @@ int _tmain(int argc, _TCHAR* argv[])
     return 0;
 
 cleanup:
-    if (tmpfile) (void)unlink(tmpfile);
+    if (pTmpfile) (void)unlink(pTmpfile);
     if (options.outfile) (void)unlink(options.outfile);
     return exitCode;
 }
