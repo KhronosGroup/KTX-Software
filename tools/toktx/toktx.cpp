@@ -151,7 +151,7 @@ Create a KTX file from netpbm format files.
     @b toktx creates Khronos format texture files (KTX) from a set of Netpbm
     format  (.pam, .pgm, .ppm) images. Currently it only supports creating KTX
     files holding 2D and cube map textures. It writes the destination ktx file
-    to @e outfile, appending ".ktx" if necessary. If @e outfile is '-' the
+    to @e outfile, appending ".ktx{,2}" if necessary. If @e outfile is '-' the
     output will be written to stdout.
  
     @b toktx reads each named @e infile which must be in .pam, .ppm, .pgm or
@@ -160,6 +160,27 @@ Create a KTX file from netpbm format files.
     .pgm files RED textures, .pam files RED, RG, RGB or RGBA textures according
     to the file's TUPLTYPE and DEPTH and .png files RED, RG, RGB or RGBA
     textures according to the files's @e color type.
+
+    The primaries, transfer function (OETF) and the texture's sRGB-ness is set
+    based on the input file. Netpbm files always use BT.709/sRGB primaries and
+    the BT.709 OETF. Currently toktx sets the transfer function to sRGB and
+    creates sRGB textures for these inputs. A conversion should be added.
+
+    For .png files the OETF is set as follows:
+
+    No color-info chunks or sRGB chunk is present:
+        primaries are set to BT.709 and OETF to sRGB.
+    sRGB chunk is present:
+        primaries are set to BT.709 and OETF to sRGB. gAMA and cHRM chunks
+        are ignored.
+    iCCP chunk is present:
+        General ICC profiles are not supported by toktx or the KTX2 format.
+        sRGB chunk must not be present.
+    gAMA and/or cHRM chunks are present without sRGB or iCCP:
+        If gAMA is 45455 the transfer function is set to sRGB, if 100000 it is
+        set to linear. Other gAMA values are unsupported. cHRM is currently
+        unsupported. We should attempt to map the primary values to one of
+        the standard sets list in the Khronos Data Format specification.
  
     The following options are always available:
     <dl>
@@ -205,11 +226,12 @@ Create a KTX file from netpbm format files.
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.</dd>
     <dt>--linear</dt>
-    <dd>Force the created texture to have a linear transfer function. By
-        default the transfer function is set based on information in the
-        input .png file or, for npbm files, set to linear.</dd>
+    <dd>Force the created texture to have a linear transfer function. Use this
+        only when you know the file format information is wrong and the input
+        file uses a linear transfer function.</dd>
     <dt>--srgb</dt>
-    <dd>Force the created texture to have an srgb transfer function.</dd>
+    <dd>Force the created texture to have an srgb transfer function. As with
+        @b --linear, use with caution.</dd>
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
@@ -313,9 +335,10 @@ usage(_TCHAR* appName)
         "               to inform loaders of the logical orientation. If a Vulkan loader\n"
         "               ignores the orientation value, the image will appear upside down.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
-        "               By default the transfer function is set based on information\n"
-        "               in the input .png file or, for npbm files, set to linear.\n"
+        "               Use this only when you know the file format information is wrong\n"
+        "               and the input file uses a linear transfer function.\n"
         "  --srgb       Force the created texture to have an srgb transfer function.\n"
+        "               Ass with --linear, use with caution."
         "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
@@ -407,8 +430,18 @@ int _tmain(int argc, _TCHAR* argv[])
                     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
                 };
                 uint8_t filesig[sizeof(pngsig)];
-                fseek(f, 0L, SEEK_SET);
-                fread(filesig, sizeof(pngsig), 1, f);
+                if (fseek(f, 0L, SEEK_SET) < 0) {
+                    fprintf(stderr, "%s: Could not seek in \"%s\". %s\n",
+                            options.appName, infile, strerror(errno));
+                    exitCode = 1;
+                    goto cleanup;
+                }
+                if (fread(filesig, sizeof(pngsig), 1, f) != 1) {
+                    fprintf(stderr, "%s: Could not read \"%s\". %s\n",
+                            options.appName, infile, strerror(errno));
+                    exitCode = 1;
+                    goto cleanup;
+                }
                 if (memcmp(filesig, pngsig, sizeof(pngsig))) {
                     fprintf(stderr, "%s: \"%s\" is not a.pam, .pgm, .ppm or .png file\n",
                             options.appName, infile);
@@ -418,7 +451,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 fileType = PNG;
             } else if (npbmResult == SUCCESS) {
                 fileType = NPBM;
-                xferFunc = XFER_LINEAR;
+                xferFunc = XFER_SRGB;
                 imageSize = w * h * components * componentSize;
             } else {
                 fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
@@ -476,20 +509,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 componentSize = state.info_png.color.bitdepth / 8;
 
                 // Tell the decoder we want the same color type as the file
-#if 0
-                LodePNGColorMode& cm_png = state.info_png.color;
-                LodePNGColorMode& cm_raw = state.info_raw;
-                cm_raw.colortype = cm_png.colortype;
-                cm_raw.bitdepth = cm_png.bitdepth;
-                cm_raw.key_defined = cm_png.key_defined;
-                if (cm_png.key_defined) {
-                    cm_raw.key_r = cm_png.key_r;
-                    cm_raw.key_g = cm_png.key_g;
-                    cm_raw.key_b = cm_png.key_b;
-                }
-#else
                 state.info_raw = state.info_png.color;
-#endif
                 uint32_t error = lodepng_decode(&srcImg, &w, &h, &state,
                                                 png.data(), png.size());
                 if (srcImg && !error) {
