@@ -19,7 +19,11 @@
 /build/make/**/*.d
 
 # cmake generated files.
-/build/cmake
+# Must list the ignore this way. With "/build/cmake", as Git "doesn’t list
+# excluded directories for performance reason", the following negative patterns
+# files have no effect
+/build/cmake/**/Debug/*
+/build/cmake/**/Release/*
 !/build/cmake/**/.ktx-stamp
 !/build/cmake/**/Debug/CMakeLists.txt
 !/build/cmake/**/Release/CMakeLists.txt

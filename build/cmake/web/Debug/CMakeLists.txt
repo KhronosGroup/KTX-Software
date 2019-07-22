@@ -1,0 +1,470 @@
+cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
+cmake_policy(VERSION 2.8.8)
+project(es3loadtests.html)
+set(configuration "Debug")
+enable_language(ASM)
+set(builddir "${CMAKE_CURRENT_BINARY_DIR}")
+set(obj "${builddir}/obj")
+
+set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
+set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+
+set(CMAKE_NINJA_FORCE_RESPONSE_FILE 1)
+
+
+#libktx.gyp:vulkan_headers#target
+set(TARGET "vulkan_headers")
+set(TOOLSET "target")
+add_custom_target(vulkan_headers SOURCES)
+set_target_properties(vulkan_headers PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libvulkan#target
+set(TARGET "libvulkan")
+set(TOOLSET "target")
+add_custom_target(libvulkan SOURCES)
+set_target_properties(libvulkan PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(libvulkan
+  vulkan_headers
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libvulkan.lazy#target
+set(TARGET "libvulkan.lazy")
+set(TOOLSET "target")
+add_custom_target(libvulkan_lazy SOURCES)
+set_target_properties(libvulkan_lazy PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libktx.es3#target
+set(TARGET "libktx.es3")
+set(TOOLSET "target")
+list(APPEND libktx_es3__c_srcs
+  "../../../../lib/checkheader.c"
+  "../../../../lib/dfdutils/createdfd.c"
+  "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/interpretdfd.c"
+  "../../../../lib/dfdutils/printdfd.c"
+  "../../../../lib/errstr.c"
+  "../../../../lib/filestream.c"
+  "../../../../lib/glloader.c"
+  "../../../../lib/hashlist.c"
+  "../../../../lib/info.c"
+  "../../../../lib/memstream.c"
+  "../../../../lib/swap.c"
+  "../../../../lib/texture.c"
+  "../../../../lib/texture1.c"
+  "../../../../lib/texture2.c"
+  "../../../../lib/vkformat_prohibited.c"
+  "../../../../lib/vkformat_str.c"
+  "../../../../lib/writer1.c"
+  "../../../../lib/writer2.c")
+list(APPEND libktx_es3__cxx_srcs
+  "../../../../lib/basisu/basisu_backend.cpp"
+  "../../../../lib/basisu/basisu_basis_file.cpp"
+  "../../../../lib/basisu/basisu_comp.cpp"
+  "../../../../lib/basisu/basisu_enc.cpp"
+  "../../../../lib/basisu/basisu_etc.cpp"
+  "../../../../lib/basisu/basisu_frontend.cpp"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.cpp"
+  "../../../../lib/basisu/basisu_gpu_texture.cpp"
+  "../../../../lib/basisu/basisu_pvrtc1_4.cpp"
+  "../../../../lib/basisu/basisu_resampler.cpp"
+  "../../../../lib/basisu/basisu_resample_filters.cpp"
+  "../../../../lib/basisu/lodepng.cpp"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
+  "../../../../lib/basis_encode.cpp"
+  "../../../../lib/basis_transcode.cpp"
+  "../../../../lib/etcdec.cxx"
+  "../../../../lib/etcunpack.cxx")
+list(APPEND libktx_es3__other_srcs
+  "../../../../include/ktx.h"
+  "../../../../lib/basisu/basisu_backend.h"
+  "../../../../lib/basisu/basisu_basis_file.h"
+  "../../../../lib/basisu/basisu_comp.h"
+  "../../../../lib/basisu/basisu_enc.h"
+  "../../../../lib/basisu/basisu_etc.h"
+  "../../../../lib/basisu/basisu_frontend.h"
+  "../../../../lib/basisu/basisu_global_selector_palette_helpers.h"
+  "../../../../lib/basisu/basisu_gpu_texture.h"
+  "../../../../lib/basisu/basisu_pvrtc1_4.h"
+  "../../../../lib/basisu/basisu_resampler.h"
+  "../../../../lib/basisu/basisu_resampler_filters.h"
+  "../../../../lib/basisu/lodepng.h"
+  "../../../../lib/basisu/transcoder/basisu.h"
+  "../../../../lib/basisu/transcoder/basisu_file_headers.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
+  "../../../../lib/basis_sgd.h"
+  "../../../../lib/dfdutils/dfd.h"
+  "../../../../lib/dfdutils/vkdfdswitchbody.inl"
+  "../../../../lib/filestream.h"
+  "../../../../lib/formatsize.h"
+  "../../../../lib/gl_format.h"
+  "../../../../lib/gl_funcptrs.h"
+  "../../../../lib/gles1_funcptrs.h"
+  "../../../../lib/gles2_funcptrs.h"
+  "../../../../lib/gles3_funcptrs.h"
+  "../../../../lib/ktxgl.h"
+  "../../../../lib/ktxint.h"
+  "../../../../lib/memstream.h"
+  "../../../../lib/stream.h"
+  "../../../../lib/texture.h"
+  "../../../../lib/texture_funcs.inl"
+  "../../../../lib/texture1.h"
+  "../../../../lib/texture2.h"
+  "../../../../lib/uthash.h"
+  "../../../../lib/vkformat_enum.h")
+add_library(libktx_es3 STATIC ${libktx_es3__c_srcs} ${libktx_es3__cxx_srcs} ${libktx_es3__other_srcs})
+set_target_properties(libktx_es3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${libktx_es3__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(libktx_es3 PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
+set_target_properties(libktx_es3 PROPERTIES PREFIX "lib")
+set_target_properties(libktx_es3 PROPERTIES ARCHIVE_OUTPUT_NAME "ktx.es3")
+set_target_properties(libktx_es3 PROPERTIES SUFFIX ".a")
+set_source_files_properties(${obj}.${TOOLSET}/libktx.es3.a PROPERTIES GENERATED "TRUE")
+list(APPEND libktx_es3__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
+set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;KTX_OMIT_VULKAN=1;DEBUG;_DEBUG;")
+set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O0 -g -std=c99 ")
+set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O0 -g -std=c++11 ")
+set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g4 ")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libgl#target
+set(TARGET "libgl")
+set(TOOLSET "target")
+add_custom_target(libgl SOURCES)
+set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:testimages#target
+set(TARGET "testimages")
+set(TOOLSET "target")
+list(APPEND testimages__copies__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGB.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa1.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-sRGBa8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/hi_mark_sq.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/luminance-reference-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/metalplate-amg-rgba8.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/no-npot.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/not4_rgb888_srgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-amg-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference-metadata.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx2")
+list(APPEND testimages__copies__output
+  "${builddir}/testimages/conftestimage_R11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
+  "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
+  "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
+  "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx"
+  "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx"
+  "${builddir}/testimages/etc1.ktx"
+  "${builddir}/testimages/etc2-rgb.ktx"
+  "${builddir}/testimages/etc2-rgba1.ktx"
+  "${builddir}/testimages/etc2-rgba8.ktx"
+  "${builddir}/testimages/etc2-sRGB.ktx"
+  "${builddir}/testimages/etc2-sRGBa1.ktx"
+  "${builddir}/testimages/etc2-sRGBa8.ktx"
+  "${builddir}/testimages/hi_mark.ktx"
+  "${builddir}/testimages/hi_mark_sq.ktx"
+  "${builddir}/testimages/luminance-reference-metadata.ktx"
+  "${builddir}/testimages/metalplate-amg-rgba8.ktx"
+  "${builddir}/testimages/no-npot.ktx"
+  "${builddir}/testimages/not4_rgb888_srgb.ktx"
+  "${builddir}/testimages/orient-down-metadata.ktx"
+  "${builddir}/testimages/orient-up-metadata.ktx"
+  "${builddir}/testimages/orient-up.ktx"
+  "${builddir}/testimages/pattern_02_bc2.ktx"
+  "${builddir}/testimages/rgb-amg-reference.ktx"
+  "${builddir}/testimages/rgb-mipmap-reference.ktx"
+  "${builddir}/testimages/rgb-reference-metadata.ktx"
+  "${builddir}/testimages/rgb-reference.ktx"
+  "${builddir}/testimages/rgba-reference.ktx"
+  "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
+  "${builddir}/testimages/texturearray_bc3_unorm.ktx"
+  "${builddir}/testimages/texturearray_etc2_unorm.ktx"
+  "${builddir}/testimages/FlightHelmet_baseColor.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2"
+  "${builddir}/testimages/kodim17.ktx2"
+  "${builddir}/testimages/orient-down-metadata-u.ktx2"
+  "${builddir}/testimages/orient-up-metadata-u.ktx2"
+  "${builddir}/testimages/pattern_02_bc2.ktx2"
+  "${builddir}/testimages/rgb-mipmap-reference-u.ktx2"
+  "${builddir}/testimages/rgba-reference-u.ktx2"
+  "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2"
+  "${builddir}/testimages/texturearray_bc3_unorm.ktx2"
+  "${builddir}/testimages/texturearray_etc2_unorm.ktx2")
+add_custom_command(
+OUTPUT ${testimages__copies__output}
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${builddir}/testimages/conftestimage_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgb.ktx ${builddir}/testimages/etc2-rgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGB.ktx ${builddir}/testimages/etc2-sRGB.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa1.ktx ${builddir}/testimages/etc2-sRGBa1.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-sRGBa8.ktx ${builddir}/testimages/etc2-sRGBa8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark.ktx ${builddir}/testimages/hi_mark.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/hi_mark_sq.ktx ${builddir}/testimages/hi_mark_sq.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/luminance-reference-metadata.ktx ${builddir}/testimages/luminance-reference-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/metalplate-amg-rgba8.ktx ${builddir}/testimages/metalplate-amg-rgba8.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/no-npot.ktx ${builddir}/testimages/no-npot.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/not4_rgb888_srgb.ktx ${builddir}/testimages/not4_rgb888_srgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata.ktx ${builddir}/testimages/orient-down-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx ${builddir}/testimages/orient-up-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up.ktx ${builddir}/testimages/orient-up.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx ${builddir}/testimages/pattern_02_bc2.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-amg-reference.ktx ${builddir}/testimages/rgb-amg-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference.ktx ${builddir}/testimages/rgb-mipmap-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference-metadata.ktx ${builddir}/testimages/rgb-reference-metadata.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-reference.ktx ${builddir}/testimages/rgb-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}/testimages/rgba-reference.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor.ktx2 ${builddir}/testimages/FlightHelmet_baseColor.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17.ktx2 ${builddir}/testimages/kodim17.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference-u.ktx2 ${builddir}/testimages/rgb-mipmap-reference-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference-u.ktx2 ${builddir}/testimages/rgba-reference-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx2 ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx2 ${builddir}/testimages/texturearray_bc3_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx2 ${builddir}/testimages/texturearray_etc2_unorm.ktx2
+DEPENDS ${testimages__copies__input}
+WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+COMMENT Copying for testimages
+VERBATIM
+)
+add_custom_target(testimages__copies
+  DEPENDS ${testimages__copies__output}
+  SOURCES ${testimages__copies__input}
+)
+add_custom_target(testimages SOURCES)
+set_target_properties(testimages PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(testimages__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(testimages
+  testimages__copies
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:libsdl#target
+set(TARGET "libsdl")
+set(TOOLSET "target")
+add_custom_target(libsdl SOURCES)
+set_target_properties(libsdl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:appfwSDL#target
+set(TARGET "appfwSDL")
+set(TOOLSET "target")
+set(appfwSDL__frag2spirv__input "")
+add_custom_target(appfwSDL__frag2spirv DEPENDS
+SOURCES ${appfwSDL__frag2spirv__input}
+)
+set(appfwSDL__vert2spirv__input "")
+add_custom_target(appfwSDL__vert2spirv DEPENDS
+SOURCES ${appfwSDL__vert2spirv__input}
+)
+list(APPEND appfwSDL__cxx_srcs
+  "../../../../tests/loadtests/appfwSDL/main.cpp"
+  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.cpp"
+  "../../../../tests/loadtests/appfwSDL/GLAppSDL.cpp")
+list(APPEND appfwSDL__other_srcs
+  "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
+  "../../../../tests/loadtests/appfwSDL/GLAppSDL.h")
+add_library(appfwSDL STATIC ${appfwSDL__cxx_srcs} ${appfwSDL__other_srcs})
+set_target_properties(appfwSDL PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(appfwSDL__frag2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(appfwSDL__vert2spirv PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${appfwSDL__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
+set_target_properties(appfwSDL PROPERTIES PREFIX "lib")
+set_target_properties(appfwSDL PROPERTIES ARCHIVE_OUTPUT_NAME "appfwSDL")
+set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
+set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
+list(APPEND appfwSDL__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
+set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-pedantic -s USE_SDL=2 -O0 -g ")
+set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-g4 ")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(appfwSDL__frag2spirv
+  libsdl
+)
+add_dependencies(appfwSDL__vert2spirv
+  libsdl
+)
+add_dependencies(appfwSDL
+  libsdl
+  appfwSDL__frag2spirv
+  appfwSDL__vert2spirv
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:libgles3#target
+set(TARGET "libgles3")
+set(TOOLSET "target")
+add_custom_target(libgles3 SOURCES)
+set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:es3loadtests.html#target
+set(TARGET "es3loadtests.html")
+set(TOOLSET "target")
+list(APPEND es3loadtests_html__cxx_srcs
+  "../../../../utils/argparser.cpp"
+  "../../../../tests/loadtests/common/LoadTestSample.cpp"
+  "../../../../tests/loadtests/common/SwipeDetector.cpp"
+  "../../../../tests/loadtests/glloadtests/GLLoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/shaders.cpp")
+list(APPEND es3loadtests_html__other_srcs
+  "../../../../tests/loadtests/geom/quad.h"
+  "../../../../utils/argparser.h"
+  "../../../../tests/loadtests/common/LoadTestSample.h"
+  "../../../../tests/loadtests/common/SwipeDetector.h"
+  "../../../../tests/loadtests/geom/cube.h"
+  "../../../../tests/loadtests/geom/frame.h"
+  "../../../../tests/loadtests/glloadtests/GLLoadTests.h"
+  "../../../../tests/loadtests/common/ltexceptions.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/mygl.h")
+link_directories()
+add_executable(es3loadtests_html ${es3loadtests_html__cxx_srcs} ${es3loadtests_html__other_srcs})
+set_target_properties(es3loadtests_html PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${es3loadtests_html__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(es3loadtests_html PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(es3loadtests_html PROPERTIES PREFIX "")
+set_target_properties(es3loadtests_html PROPERTIES RUNTIME_OUTPUT_NAME "es3loadtests.html")
+set_target_properties(es3loadtests_html PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/es3loadtests.html PROPERTIES GENERATED "TRUE")
+list(APPEND es3loadtests_html__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
+set_property(TARGET es3loadtests_html APPEND PROPERTY INCLUDE_DIRECTORIES ${es3loadtests_html__include_dirs})
+set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
+set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-pedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -O0 -g -std=c++11 ")
+set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g4 ")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME "LaunchImage")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(es3loadtests_html
+  libgles3
+  testimages
+  libsdl
+)
+target_link_libraries(es3loadtests_html
+-Wl,--start-group
+  appfwSDL
+  libktx_es3
+-Wl,--end-group
+)
+unset(TOOLSET)
+unset(TARGET)
