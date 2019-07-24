@@ -46,8 +46,8 @@
 /* ------------------------------------------------------------------------- */
 
 extern const GLchar* pszVs;
-extern const GLchar* pszDecalFs;
-extern const GLchar* pszColorFs;
+extern const GLchar *pszDecalFs, *pszDecalSrgbEncodeFs;
+extern const GLchar *pszColorFs, *pszColorSrgbEncodeFs;
 
 /* ------------------------------------------------------------------------- */
 
@@ -231,13 +231,22 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
 
     glBindVertexArray(0);
+
+    const GLchar *actualColorFs, *actualDecalFs;
+    if (framebufferColorEncoding() == GL_LINEAR) {
+        actualColorFs = pszColorSrgbEncodeFs;
+        actualDecalFs = pszDecalSrgbEncodeFs;
+    } else {
+        actualColorFs = pszColorFs;
+        actualDecalFs = pszDecalFs;
+    }
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
-        makeShader(GL_FRAGMENT_SHADER, pszColorFs, &gnColorFs);
+        makeShader(GL_FRAGMENT_SHADER, actualColorFs, &gnColorFs);
         makeProgram(gnVs, gnColorFs, &gnColProg);
         gulMvMatrixLocCP = glGetUniformLocation(gnColProg, "mvmatrix");
         gulPMatrixLocCP = glGetUniformLocation(gnColProg, "pmatrix");
-        makeShader(GL_FRAGMENT_SHADER, pszDecalFs, &gnDecalFs);
+        makeShader(GL_FRAGMENT_SHADER, actualDecalFs, &gnDecalFs);
         makeProgram(gnVs, gnDecalFs, &gnTexProg);
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.

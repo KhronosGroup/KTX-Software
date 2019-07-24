@@ -56,6 +56,29 @@ const GLchar* pszInstancingFs =
     "    outFragColor = texture(uArraySampler, UV);\n"
     "}";
 
+const GLchar* pszInstancingSrgbEncodeFs =
+    "precision mediump float;\n"
+
+    "uniform mediump sampler2DArray uArraySampler;\n\n"
+
+    "in vec3 UV;\n\n"
+
+    "layout (location = 0) out vec4 outFragColor;\n\n"
+
+    "vec3 srgb_encode(vec3 color) {\n"
+    "   float r = color.r < 0.0031308 ? 12.92 * color.r : 1.055 * pow(color.r, 1.0/2.4) - 0.055;\n"
+    "   float g = color.g < 0.0031308 ? 12.92 * color.g : 1.055 * pow(color.g, 1.0/2.4) - 0.055;\n"
+    "   float b = color.b < 0.0031308 ? 12.92 * color.b : 1.055 * pow(color.b, 1.0/2.4) - 0.055;\n"
+    "   return vec3(r, g, b);\n"
+    "}\n\n"
+
+    "void main()\n"
+    "{\n"
+    "    vec4 t_color = texture(uArraySampler, UV);\n"
+    "    outFragColor.rgb = srgb_encode(t_color.rgb);\n"
+    "    outFragColor.a = t_color.a;\n"
+    "}";
+
 const GLchar* pszInstancingVs =
     "layout (location = 0) in vec4 inPos;\n"
     "layout (location = 1) in vec2 inUV;\n\n"
@@ -398,9 +421,16 @@ void
 TextureArray::prepareProgram()
 {
     GLuint gnInstancingFs, gnInstancingVs;
+    const GLchar* actualFs;
+
+    if (framebufferColorEncoding() == GL_LINEAR) {
+        actualFs = pszInstancingSrgbEncodeFs;
+    } else {
+        actualFs = pszInstancingFs;
+    }
     try {
         makeShader(GL_VERTEX_SHADER, pszInstancingVs, &gnInstancingVs);
-        makeShader(GL_FRAGMENT_SHADER, pszInstancingFs, &gnInstancingFs);
+        makeShader(GL_FRAGMENT_SHADER, actualFs, &gnInstancingFs);
         makeProgram(gnInstancingVs, gnInstancingFs, &gnInstancingProg);
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.
