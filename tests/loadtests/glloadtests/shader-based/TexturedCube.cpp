@@ -43,7 +43,7 @@
 /* ------------------------------------------------------------------------- */
 
 extern const GLchar* pszVs;
-extern const GLchar* pszDecalFs;
+extern const GLchar *pszDecalFs, *pszDecalSrgbEncodeFs;
 
 /* ------------------------------------------------------------------------- */
 
@@ -167,6 +167,20 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_index_buffer),
                  cube_index_buffer, GL_STATIC_DRAW);
 
+    const GLchar* actualDecalFs;
+    if (framebufferColorEncoding() == GL_LINEAR) {
+        actualDecalFs = pszDecalSrgbEncodeFs;
+    } else {
+        actualDecalFs = pszDecalFs;
+    }
+    try {
+        makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
+        makeShader(GL_FRAGMENT_SHADER, actualDecalFs, &gnDecalFs);
+        makeProgram(gnVs, gnDecalFs, &gnTexProg);
+        } catch (std::exception& e) {
+        (void)e; // To quiet unused variable warnings from some compilers.
+        throw;
+    }
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
         makeShader(GL_FRAGMENT_SHADER, pszDecalFs, &gnDecalFs);

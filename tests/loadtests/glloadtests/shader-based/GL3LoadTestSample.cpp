@@ -151,3 +151,22 @@ GL3LoadTestSample::determineTargetFormat()
 
     return tf;
 }
+
+GLint
+GL3LoadTestSample::framebufferColorEncoding()
+{
+    GLint encoding = GL_SRGB;
+#if !defined(GL_BACK_LEFT)
+#define GL_BACK_LEFT 0x0402
+#endif
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_BACK,
+                                      GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING,
+                                      &encoding);
+    if (GL_INVALID_VALUE == glGetError()) {
+        // Work around OpenGL bug? Mac bug? The above fails on macOS.
+        glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_BACK_LEFT,
+                                      GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING,
+                                      &encoding);
+    }
+    return encoding;
+}

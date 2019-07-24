@@ -51,6 +51,7 @@ class GL3LoadTestSample : public LoadTestSample {
     virtual void viewChanged() { }
 
     static ktx_texture_transcode_fmt_e determineTargetFormat();
+    static GLint framebufferColorEncoding();
     static void makeShader(GLenum type, const GLchar* const source,
                            GLuint* shader);
     static void makeProgram(GLuint vs, GLuint fs, GLuint* program);
