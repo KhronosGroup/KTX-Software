@@ -151,7 +151,7 @@ else
 fi
 
 gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgb.ppm 
-gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --nometadata rgb.ppm
+gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --linear --nometadata rgb.ppm
 TOKTX_OPTIONS="--lower_left_maps_to_s0t0 --nometadata" gencmpktx orient-up.ktx up.ppm
 gencmpktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 up.ppm
 gencmpktx orient-down-metadata.ktx up.ppm
