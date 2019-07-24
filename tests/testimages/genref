@@ -73,7 +73,9 @@ fi
 # Generate reference files for toktx-tests ...
 
 $toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx rgb.ppm
-$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata rgb-amg-reference.ktx rgb.ppm
+# The purpose of this is testing automatic mipmap generation. Since SRGB is
+# not color renderable on ES3 or WebGL, therefore AMG won't work, use linear.
+$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata --linear rgb-amg-reference.ktx rgb.ppm
 $toktx --lower_left_maps_to_s0t0 --nometadata orient-up.ktx up.ppm
 $toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx up.ppm
 $toktx orient-down-metadata.ktx up.ppm
