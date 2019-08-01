@@ -103,10 +103,7 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
  * @sa ktxTexture2_TranscodeBasis().
  *
  * @param[in]   This    pointer to the ktxTexture2 object of interest.
- * @param[in]   quality compression quality, a value from 1 - 255. Default is
- *                      128 which is selected if @p quality is 0. Lower=better
- *                      compression/lower quality/faster. Higher=less
- *                      compression/higher quality/slower.
+ * @param[in]   quality pointer to Basis settings object.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -121,9 +118,11 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code
-ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
+ktxTexture2_CompressBasisAdvanced(ktxTexture2* This, ktxBasisSetup* setup)
 {
     KTX_error_code result;
+
+    assert(setup != NULL);
 
     if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
@@ -212,17 +211,21 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
 
     // There's not default for this. Either set this or the max number of
     // endpoint and selector clusters.
-    if (quality == 0)
+    if (setup->quality == 0)
         cparams.m_quality_level = 128;
     else
-        cparams.m_quality_level = quality;
+        cparams.m_quality_level = setup->quality;
 
     // Why's there no default for this? I have no idea.
     basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
                                                        basist::g_global_selector_cb);
     cparams.m_pSel_codebook = &sel_codebook;
     // Or for this;
-    job_pool jpool(1);
+    ktx_uint32_t countThreads = setup->countThreads;
+    if (countThreads < 1)
+        countThreads = 1;
+
+    job_pool jpool(countThreads);
     cparams.m_pJob_pool = &jpool;
 
     // Flip images across Y axis
@@ -484,4 +487,14 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     }
 
     return KTX_SUCCESS;
+}
+
+extern "C" KTX_error_code
+ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
+{
+    ktxBasisSetup setup;
+    setup.countThreads = 1;
+    setup.quality = quality;
+
+    return ktxTexture2_CompressBasisAdvanced(This, &setup);
 }
