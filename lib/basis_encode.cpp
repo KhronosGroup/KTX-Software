@@ -102,8 +102,8 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
  *
  * @sa ktxTexture2_TranscodeBasis().
  *
- * @param[in]   This    pointer to the ktxTexture2 object of interest.
- * @param[in]   quality pointer to Basis settings object.
+ * @param[in]   This   pointer to the ktxTexture2 object of interest.
+ * @param[in]   params pointer to Basis params object.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -118,11 +118,11 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code
-ktxTexture2_CompressBasisAdvanced(ktxTexture2* This, ktxBasisSetup* setup)
+ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 {
     KTX_error_code result;
 
-    assert(setup != NULL);
+    assert(params != NULL);
 
     if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
@@ -211,17 +211,17 @@ ktxTexture2_CompressBasisAdvanced(ktxTexture2* This, ktxBasisSetup* setup)
 
     // There's not default for this. Either set this or the max number of
     // endpoint and selector clusters.
-    if (setup->quality == 0)
+    if (params->quality == 0)
         cparams.m_quality_level = 128;
     else
-        cparams.m_quality_level = setup->quality;
+        cparams.m_quality_level = params->quality;
 
     // Why's there no default for this? I have no idea.
     basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
                                                        basist::g_global_selector_cb);
     cparams.m_pSel_codebook = &sel_codebook;
     // Or for this;
-    ktx_uint32_t countThreads = setup->countThreads;
+    ktx_uint32_t countThreads = params->countThreads;
     if (countThreads < 1)
         countThreads = 1;
 
@@ -489,12 +489,44 @@ ktxTexture2_CompressBasisAdvanced(ktxTexture2* This, ktxBasisSetup* setup)
     return KTX_SUCCESS;
 }
 
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Supercompress a KTX2 texture with uncpompressed images.
+ *
+ * The images are encoded to ETC1S block-compressed format and supercompressed
+ * with Basis Universal. The encoded images replace the original images and the
+ * texture's fields including the DFD are modified to reflect the new state.
+ *
+ * Such textures must be transcoded to a desired target block compressed format
+ * before they can be uploaded to a GPU via a graphics API.
+ *
+ * @sa ktxTexture2_CompressBasisEx().
+ *
+ * @param[in]   This    pointer to the ktxTexture2 object of interest.
+ * @param[in]   quality Compression quality, a value from 1 - 255. Default is
+                        128 which is selected if @p quality is 0. Lower=better
+                        compression/lower quality/faster. Higher=less
+                        compression/higher quality/slower.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture is already supercompressed.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's image are in a block compressed
+ *                              format.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's images are 1D. Only 2D images can
+ *                              be supercompressed.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
+ */
 extern "C" KTX_error_code
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
 {
-    ktxBasisSetup setup;
+    ktxBasisParams setup;
     setup.countThreads = 1;
     setup.quality = quality;
 
-    return ktxTexture2_CompressBasisAdvanced(This, &setup);
+    return ktxTexture2_CompressBasisEx(This, &setup);
 }

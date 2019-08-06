@@ -826,7 +826,7 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
-typedef struct ktxBasisSetup {
+typedef struct ktxBasisParams {
     ktx_uint32_t quality;      /*!< Compression quality, a value from 1 - 255. Default is
                                     128 which is selected if @p quality is 0. Lower=better
                                     compression/lower quality/faster. Higher=less
@@ -835,7 +835,7 @@ typedef struct ktxBasisSetup {
 } ktxBasisSetup;
 
 KTX_APICALL KTX_error_code KTX_APIENTRY
-ktxTexture2_CompressBasisAdvanced(ktxTexture2* This, ktxBasisSetup* setup);
+ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
 
 typedef enum ktx_texture_transcode_fmt_e {
     KTX_TF_NONE_COMPATIBLE,    // Apps can use this in utility funcs to signal
