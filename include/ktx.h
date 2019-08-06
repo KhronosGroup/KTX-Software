@@ -832,7 +832,7 @@ typedef struct ktxBasisParams {
                                     compression/lower quality/faster. Higher=less
                                     compression/higher quality/slower. */
     ktx_uint32_t countThreads; /*!< Number of threads used for compression, e.g, 1.*/
-} ktxBasisSetup;
+} ktxBasisParams;
 
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
