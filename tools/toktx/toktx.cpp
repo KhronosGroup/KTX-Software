@@ -423,7 +423,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                              componentSize, imageSize, 0);
             if (npbmResult == INVALID_FORMAT) {
                 // Try .png. Unfortunately LoadPNG doesn't believe in stdio plus
-                // the function we need only read from memory. To avoid
+                // the function we need only reads from memory. To avoid
                 // a potentially unnecessary read of the whole file check the
                 // signature ourselves.
                 uint8_t pngsig[8] = {
