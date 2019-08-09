@@ -178,7 +178,7 @@
               # Don't add a default value because this variable gets exported
               # as is to CMake and ${PRODUCT_NAME:-identifier} is invalid
               # syntax.
-              'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.${PRODUCT_NAME}',
+              'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.ktx.${PRODUCT_NAME}',
             }],
           ], # target_conditions, _mac_bundle
           # Starting with Xcode 8, DEVELOPMENT_TEAM must be specified
