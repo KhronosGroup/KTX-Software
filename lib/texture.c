@@ -110,7 +110,7 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
 
     This->isCompressed = (formatSize->flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
 
-    This->orientation.x = KTX_ORIENT_X_LEFT;
+    This->orientation.x = KTX_ORIENT_X_RIGHT;
     This->orientation.y = KTX_ORIENT_Y_DOWN;
     This->orientation.z = KTX_ORIENT_Z_OUT;
 
@@ -218,7 +218,7 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
     // Copy stream info into struct for later use.
     *stream = *pStream;
 
-    This->orientation.x = KTX_ORIENT_X_LEFT;
+    This->orientation.x = KTX_ORIENT_X_RIGHT;
     This->orientation.y = KTX_ORIENT_Y_DOWN;
     This->orientation.z = KTX_ORIENT_Z_OUT;
 
