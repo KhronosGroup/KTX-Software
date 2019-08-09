@@ -94,14 +94,14 @@ You must create the following Custom Path preferences in Xcode:
 and [`MOLTENVK`](#moltenvk). If building for macOS you must also set
 [`ASSIMP_HOME`](#assimp_home).
 
-##### DEVELOPMENT_TEAM 
+##### DEVELOPMENT_TEAM
 As of Xcode 8.0, Apple, in its wisdom, decided to require selection of a
 Development Team for signing. If you set the Development Team via the
 Xcode GUI, Xcode will store that selection in the `project.pbxproj` file.
 Thereafter `git status` will show the project file as `modified`.
 Instead abuse Xcode's _Custom Paths_ preference to store your
 development team identifier outside the `project.pbxproj` file by
-setting a DEVELOPMENT_TEAM custom path (replace ABCDEFGHIJ with your
+setting a `DEVELOPMENT_TEAM` custom path (replace ABCDEFGHIJ with your
 team identifier):
 
 ![Image of Xcode Preferences open at the `Locations` tab with
@@ -137,6 +137,17 @@ the following in the KTX project root:
 git diff | grep DEVELOPMENT_TEAM
 git checkout build/xcode
 ```
+
+##### PROVISIONING\_PROFILE_SPECIFIER
+If you are a registered Apple developer you will need to specify the
+provisioning profile you wish to use. In order to keep the `project.pbxproj`
+file clean you should abuse Xcode's _Custom Paths_ for this as well. Set a `PROVISIONING_PROFILE_SPECIFIER` custom path with the value
+
+```
+<Your Profile Name> $(PLATFORM_NAME)
+```
+
+`$(PLATFORM_NAME)` is necessary because Apple will not let you have profiles for macOS and iOS with the same name. You should create your profiles with the names `<Your Profile Name> macosx` and `<Your Profile Name> iphoneos` using whatever you like for `<Your Profile Name>`.
 
 ##### VULKAN\_INSTALL\_DIR
 
