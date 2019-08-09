@@ -179,6 +179,17 @@
               # as is to CMake and ${PRODUCT_NAME:-identifier} is invalid
               # syntax.
               'PRODUCT_BUNDLE_IDENTIFIER': 'org.khronos.ktx.${PRODUCT_NAME}',
+            }, {
+              # Needed to override a PROVISIONING_PROFILE_SPECIFIER that may
+              # be set in Xcode preferences (Locations / Custom Paths) by
+              # those with provisioning profiles. Such profiles can't be set
+              # here as they are unique to each user or organization. Lacking
+              # these, macOS builds will insist on BUNDLE_IDENTIFIERs for libs
+              # and tools but, as they aren't bundles, it isn't possible to set
+              # them. iOS builds don't have this problem probably because there
+              # are no tools and libktx is put into the app bundles.
+              'CODE_SIGN_STYLE': 'Automatic',
+              'PROVISIONING_PROFILE_SPECIFIER': '',
             }],
           ], # target_conditions, _mac_bundle
           # Starting with Xcode 8, DEVELOPMENT_TEAM must be specified
