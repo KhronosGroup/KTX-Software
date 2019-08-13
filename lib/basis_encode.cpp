@@ -344,7 +344,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     bgd_size = sizeof(ktxBasisGlobalHeader)
              + slice_desc_size * bfh.m_total_slices
-             + sizeof(uint32_t) * This->numLevels
              + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
              + bfh.m_tables_file_size;
     bgd = new ktx_uint8_t[bgd_size];
