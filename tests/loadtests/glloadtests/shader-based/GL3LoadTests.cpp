@@ -39,13 +39,16 @@
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
+      "testimages/color_grid_basis.ktx2",
+      "KTX2: Basis Transcode on RGB non mipmapped"
+    },
+    { DrawTexture::create,
       "testimages/kodim17.ktx2",
       "KTX2: Basis Transcode on RGB non mipmapped"
     },
-
     { BasisuTest::create,
       "testimages/FlightHelmet_baseColor.ktx2",
-      "KTX2: Transcode Basis with RGBA non mipmapped"
+      "KTX2: Basis Transcode on RGBA non mipmapped"
     },
 #if TEST_BASIS_COMPRESSION
     { BasisuTest::create,
