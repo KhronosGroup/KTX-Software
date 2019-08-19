@@ -45,15 +45,140 @@
 using namespace basisu;
 using namespace basist;
 
-// Copy rgb to rgba. Source images are expected to have no row padding.
+typedef void
+(* PFNBUCOPYCB)(uint8_t* rgbadst, uint8_t* rgbasrc, ktx_size_t image_size,
+                uint8_t swizzle[4]);
+
+// All callbacks expect source images to have no row padding and expect
+// component size to be 8 bits.
+
 static void
-copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t w, uint32_t h)
+copy_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, ktx_size_t image_size,
+                 uint8_t swizzle[4])
 {
-    for (uint32_t row = 0; row < h; row++) {
-        for (uint32_t pixel = 0; pixel < w; pixel++) {
-            memcpy(rgbadst, rgbsrc, 3);
-            rgbadst[3] = 255; // Convince Basis there is no alpha.
-            rgbadst += 4; rgbsrc += 3;
+    memcpy(rgbadst, rgbasrc, image_size);
+}
+
+// Copy rgb to rgba. No swizzle.
+static void
+copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, ktx_size_t image_size,
+                 uint8_t swizzle[4])
+{
+    for (ktx_size_t i = 0; i < image_size; i += 3) {
+        memcpy(rgbadst, rgbsrc, 3);
+        rgbadst[3] = 0xff; // Convince Basis there is no alpha.
+        rgbadst += 4; rgbsrc += 3;
+    }
+}
+
+// Separate rg to rrr in rgb and g in a. Source images are expected to be 2
+// components. No swizzle. XXX Need spec to say swizzle not valid for 2
+// component?
+static void
+separate_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
+                     uint8_t swizzle[4])
+{
+    for (ktx_size_t i = 0; i < image_size; i += 2) {
+        rgbadst[0] = rgbadst[1] = rgbadst[2] = rgsrc[0];
+        rgbadst[3] = rgsrc[1];
+        rgbadst += 4; rgsrc += 2;
+    }
+}
+
+static void
+swizzle_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, ktx_size_t image_size,
+                     uint8_t swizzle[4])
+{
+    for (ktx_size_t i = 0; i < image_size; i += 4) {
+        for (uint32_t c = 0; c < 4; c++) {
+            switch (swizzle[c]) {
+              case 0:
+                rgbadst[c] = rgbasrc[0];
+                break;
+              case 1:
+                rgbadst[c] = rgbasrc[1];
+                break;
+              case 2:
+                rgbadst[c] = rgbasrc[2];
+                break;
+              case 3:
+                rgbadst[c] = rgbasrc[3];
+                break;
+              case 4:
+                rgbadst[c] = 0x00;
+                break;
+              case 5:
+                rgbadst[i+c] = 0xff;
+                break;
+              default:
+                assert(false);
+            }
+        }
+        rgbadst +=4; rgbasrc += 4;
+    }
+}
+
+static void
+swizzle_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, ktx_size_t image_size,
+                     uint8_t swizzle[4])
+{
+    for (ktx_size_t i = 0; i < image_size; i += 3) {
+        for (uint32_t c = 0; c < 3; c++) {
+          switch (swizzle[c]) {
+              case 0:
+                rgbadst[i+c] = rgbsrc[0];
+                break;
+              case 1:
+                rgbadst[i+c] = rgbsrc[i];
+                break;
+              case 2:
+                rgbadst[i+c] = rgbsrc[2];
+                break;
+              case 3:
+                assert(false); // Shouldn't happen for an RGB texture.
+                break;
+              case 4:
+                rgbadst[c] = 0x00;
+                break;
+              case 5:
+                rgbadst[c] = 0xff;
+                break;
+              default:
+                assert(false);
+            }
+        }
+        rgbadst +=4; rgbsrc += 3;
+    }
+}
+
+static void
+swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
+                    uint8_t swizzle[4])
+{
+    for (ktx_size_t i = 0; i < image_size; i += 2) {
+        for (uint32_t c = 0; c < 2; c++) {
+          switch (swizzle[c]) {
+              case 0:
+                rgbadst[c] = rgsrc[0];
+                break;
+              case 1:
+                rgbadst[c] = rgsrc[1];
+                break;
+              case 2:
+                 assert(false); // Shouldn't happen for an RG texture.
+                 break;
+              case 3:
+                assert(false); // Shouldn't happen for an RG texture.
+                break;
+              case 4:
+                rgbadst[c] = 0x00;
+                break;
+              case 5:
+                rgbadst[c] = 0xff;
+                break;
+              default:
+                assert(false);
+            }
         }
     }
 }
@@ -122,7 +247,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 {
     KTX_error_code result;
 
-    assert(params != NULL);
+    if (!params)
+        return KTX_INVALID_VALUE;
+
+    if (params->structSize != sizeof(struct ktxBasisParams))
+        return KTX_INVALID_VALUE;
 
     if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
@@ -145,11 +274,19 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     // Basic descriptor block begins after the total size field.
     const uint32_t* BDB = This->pDfd+1;
+#if IS_BIG_ENDIAN
+#error Big endian needs implementation.
+#else
     const uint32_t num_components = KHR_DFDSAMPLECOUNT(BDB);
+#endif
 
-    assert(num_components == 3 || num_components == 4);
-    assert(This->_protected->_formatSize.blockSizeInBits == 3 * 8
-           || This->_protected->_formatSize.blockSizeInBits == 4 * 8);
+    if (num_components == 2 && !params->separateRGToRGB_A)
+        // Don't know appropriate setting for 3rd component so can't support.
+        return KTX_INVALID_OPERATION;
+
+    // Check for 8-bit components.
+    assert(!(This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
+           && This->_protected->_formatSize.blockSizeInBits % 8 == 0);
 
     //
     // Calculate number of images
@@ -171,6 +308,65 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     cparams.m_source_images.resize(num_images);
     std::vector<image>::iterator iit = cparams.m_source_images.begin();
 
+    bool non_identity_swizzle = false;
+    uint8_t comp_mapping[4] = {};
+    if (params->preSwizzle) {
+        ktx_uint32_t swizzleLen;
+        char* swizzleStr;
+
+        result = ktxHashList_FindValue(&This->kvDataHead, KTX_SWIZZLE_KEY,
+                                       &swizzleLen, (void**)&swizzleStr);
+        if (result == KTX_SUCCESS) {
+            // swizzleLen should be 5. 4 plus terminating NUL.
+            // When move this to constructor add a check.
+            // Also need to check that swizzle is 0 for missing color
+            // components and 1 for missing alpha components.
+            if ((num_components == 2 && strncmp(swizzleStr, "rg01", 4U))
+                || (num_components == 3 && strncmp(swizzleStr, "rgb1", 4U))
+                || (num_components == 4 && strncmp(swizzleStr, "rgba", 4U))) {
+                non_identity_swizzle = true;
+                for (int i = 0; i < 4; i++) {
+                    switch (swizzleStr[i]) {
+                      case 'r': comp_mapping[i] = 0; break;
+                      case 'g': comp_mapping[i] = 1; break;
+                      case 'b': comp_mapping[i] = 2; break;
+                      case 'a': comp_mapping[i] = 3; break;
+                      case '0': comp_mapping[i] = 4; break;
+                      case '1': comp_mapping[i] = 5; break;
+                    }
+                }
+            }
+        }
+    }
+
+    PFNBUCOPYCB copycb;
+    if (non_identity_swizzle) {
+        switch (num_components) {
+          case 4: copycb = swizzle_rgba_to_rgba; break;
+          case 3: copycb = swizzle_rgb_to_rgba; break;
+          case 2:
+            assert(params->separateRGToRGB_A);
+            // Since we have to copy the data into the vector image anyway
+            // do the separation here to avoid another loop over the
+            // image.
+            copycb = swizzle_rg_to_rgb_a;
+            break;
+          case 1: // Need to swizzle R to G & B.
+            break;
+        }
+    } else {
+        switch (num_components) {
+          case 4: copycb = copy_rgba_to_rgba; break;
+          case 3: copycb = copy_rgb_to_rgba; break;
+          case 2:
+            assert(params->separateRGToRGB_A);
+            copycb = separate_rg_to_rgb_a;
+            break;
+          case 1: // Need to swizzle R to G & B.
+            break;
+        }
+    }
+
     // NOTA BENE: Mipmap levels are ordered from largest to smallest in .basis.
     for (uint32_t level = 0; level < This->numLevels; level++) {
         uint32_t width = MAX(1, This->baseWidth >> level);
@@ -183,12 +379,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                 ktx_size_t offset;
                 ktxTexture2_GetImageOffset(This, level, layer, slice, &offset);
                 iit->resize(width, height);
-                if (num_components == 4) {
-                    memcpy(iit->get_ptr(), This->pData + offset, image_size);
-                } else {
-                    copy_rgb_to_rgba((uint8_t*)iit->get_ptr(),
-                                     This->pData + offset, width, height);
-                }
+                copycb((uint8_t*)iit->get_ptr(), This->pData + offset, image_size, comp_mapping);
                 ++iit;
             }
         }
@@ -209,24 +400,49 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     cparams.m_mip_gen = false; // We provide the mip levels.
 
-    // There's not default for this. Either set this or the max number of
-    // endpoint and selector clusters.
-    if (params->quality == 0)
-        cparams.m_quality_level = 128;
-    else
-        cparams.m_quality_level = params->quality;
-
-    // Why's there no default for this? I have no idea.
-    basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
-                                                       basist::g_global_selector_cb);
-    cparams.m_pSel_codebook = &sel_codebook;
-    // Or for this;
-    ktx_uint32_t countThreads = params->countThreads;
+    ktx_uint32_t countThreads = params->threadCount;
     if (countThreads < 1)
         countThreads = 1;
 
     job_pool jpool(countThreads);
     cparams.m_pJob_pool = &jpool;
+
+    // Defaults to BASISU_DEFAULT_COMPRESSION_LEVEL
+    if (params->compressionLevel)
+        cparams.m_compression_level = params->compressionLevel;
+
+    // There's no default for m_quality_level. Mimic basisu_tool.
+    if (params->qualityLevel != 0) {
+        cparams.m_max_endpoint_clusters = 0;
+        cparams.m_max_selector_clusters = 0;
+        cparams.m_quality_level = params->qualityLevel;
+    } else if (!params->maxEndpoints || !params->maxSelectors) {
+        cparams.m_max_endpoint_clusters = 0;
+        cparams.m_max_selector_clusters = 0;
+        cparams.m_quality_level = 128;
+    } else {
+        cparams.m_max_endpoint_clusters = params->maxEndpoints;
+        cparams.m_max_selector_clusters = params->maxSelectors;
+        // cparams.m_quality_level = -1; // Default setting.
+    }
+
+    if (params->endpointRDOThreshold > 0)
+        cparams.m_endpoint_rdo_thresh = params->endpointRDOThreshold;
+    if (params->selectorRDOThreshold > 0)
+        cparams.m_selector_rdo_thresh = params->selectorRDOThreshold;
+
+    if (params->normalMap) {
+        cparams.m_no_endpoint_rdo = true;
+        cparams.m_no_selector_rdo = true;
+    } else {
+        cparams.m_no_endpoint_rdo = params->noEndpointRDO;
+        cparams.m_no_selector_rdo = params->noSelectorRDO;
+    }
+
+    // Why's there no default for this? I have no idea.
+    basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
+                                                       basist::g_global_selector_cb);
+    cparams.m_pSel_codebook = &sel_codebook;
 
     // Flip images across Y axis
     // cparams.m_y_flip = false; // Let tool, e.g. toktx do its own yflip so
@@ -238,11 +454,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // m_debug_images is pretty slow
     //cparams.m_debug_images = true;
 
-    // Defaults to BASISU_DEFAULT_COMPRESSION_LEVEL
-    //cparams.m_compression_level;
-
-    // Split the R channel to RGB and the G channel to alpha, then write a
-    // basis file with alpha channels
+    // Split the R channel to RGB and the G channel to alpha. We do the
+    // seperation in this func (see above) so leave this at its default, false.
     //bool_param<false> m_seperate_rg_to_color_alpha;
 
     // m_tex_type, m_userdata0, m_userdata1, m_framerate - These fields go
@@ -523,9 +736,10 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 extern "C" KTX_error_code
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
 {
-    ktxBasisParams setup;
-    setup.countThreads = 1;
-    setup.quality = quality;
+    ktxBasisParams params = {};
+    params.structSize = sizeof(params);
+    params.threadCount = 1;
+    params.qualityLevel = quality;
 
-    return ktxTexture2_CompressBasisEx(This, &setup);
+    return ktxTexture2_CompressBasisEx(This, &params);
 }

@@ -30,6 +30,7 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include <thread>
 #include <vector>
 #include <inttypes.h>
 
@@ -102,29 +103,122 @@
 #define GL_SRG8                         0x8FBE // same as GL_SRG8_EXT
 #endif
 
-#define XFER_LINEAR 0
-#define XFER_SRGB 1
-#define XFER_NOT_SET 2
+enum oetf_e {
+    OETF_LINEAR = 0,
+    OETF_SRGB = 1,
+    OETF_UNSET = 2
+};
+
+static void usage(const _TCHAR* appName);
+
+template <typename T> inline T clamp(T value, T low, T high) {
+    return (value < low) ? low : ((value > high) ? high : value);
+}
+
+template<typename T>
+struct clampedOption
+{
+  clampedOption(T& val, T min_v, T max_v) :
+    value(val),
+    min(min_v),
+    max(max_v)
+  {
+  }
+
+  void clear()
+  {
+    value = 0;
+  }
+
+  operator T() const
+  {
+    return value;
+  }
+
+  T operator= (T v)
+  {
+    value = clamp<T>(v, min, max);
+    return value;
+  }
+
+  T& value;
+  T min;
+  T max;
+};
 
 struct commandOptions {
+    struct basisOptions : public ktxBasisParams {
+        // The remaining numeric fields are clamped within the Basis library.
+        clampedOption<ktx_uint32_t> threadCount;
+        clampedOption<ktx_uint32_t> qualityLevel;
+        clampedOption<ktx_uint32_t> maxEndpoints;
+        clampedOption<ktx_uint32_t> maxSelectors;
+        int noMultithreading;
+
+        basisOptions() :
+            threadCount(ktxBasisParams::threadCount, 1, 10000),
+            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
+            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
+            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
+            noMultithreading(0)
+        {
+            uint32_t tc = std::thread::hardware_concurrency();
+            if (tc == 0) tc = 1;
+            threadCount.max = tc;
+            threadCount = tc;
+
+            structSize = sizeof(ktxBasisParams);
+            compressionLevel = 0;
+            maxEndpoints.clear();
+            endpointRDOThreshold = 0.0f;
+            maxSelectors.clear();
+            selectorRDOThreshold = 0.0f;
+            normalMap = false;
+            separateRGToRGB_A = false;
+            preSwizzle = false;
+            noEndpointRDO = false;
+            noSelectorRDO = false;
+        }
+    };
+
     _TCHAR*      appName;
     int          alpha;
     int          automipmap;
     int          cubemap;
     int          ktx2;
-    int          bcmp;
     int          luminance;
     int          metadata;
     int          mipmap;
     int          two_d;
-    int          xferFunc;
+    oetf_e       oetf;
     int          useStdin;
     int          lower_left_maps_to_s0t0;
+    int          bcmp;
+    struct basisOptions bopts;
     _TCHAR*      outfile;
     unsigned int levels;
     unsigned int numInputFiles;
     unsigned int firstInfileIndex;
-    unsigned int basis_quality;
+
+    commandOptions() {
+      alpha = 0;
+      automipmap = 0;
+      cubemap = 0;
+      ktx2 = 0;
+      luminance = 0;
+      metadata = 1;
+      mipmap = 0;
+      outfile = 0;
+      numInputFiles = 0;
+      firstInfileIndex = 0;
+      useStdin = false;
+      levels = 1;
+      oetf = OETF_UNSET;
+      /* The OGLES WG recommended approach, even though it is opposite
+       * to the OpenGL convention. Suki ja nai.
+       */
+      lower_left_maps_to_s0t0 = 0;
+    }
 };
 
 static ktx_uint32_t log2(ktx_uint32_t v);
@@ -148,11 +242,11 @@ Create a KTX file from netpbm format files.
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
 
 @section toktx_description DESCRIPTION
-    @b toktx creates Khronos format texture files (KTX) from a set of Netpbm
-    format  (.pam, .pgm, .ppm) images. Currently it only supports creating KTX
-    files holding 2D and cube map textures. It writes the destination ktx file
-    to @e outfile, appending ".ktx{,2}" if necessary. If @e outfile is '-' the
-    output will be written to stdout.
+    Create a Khronos format texture file (KTX) from a set of Netpbm
+    format (.pam, .pgm, .ppm) or PNG (.png) images. Currently @b toktx only
+    supports creating a KTX file holding a 2D or cube map texture. It writes
+    the destination ktx file to @e outfile, appending ".ktx{,2}" if necessary.
+    If @e outfile is '-' the output will be written to stdout.
  
     @b toktx reads each named @e infile which must be in .pam, .ppm, .pgm or
     .png format. Other formats can be readily converted to these formats using
@@ -235,11 +329,58 @@ Create a KTX file from netpbm format files.
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
-    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.</dd>
-    <dt>--qual</dt>
-    <dd>Basis supercompression quality from 1 - 255. Default, if not specified,
-        is 128. Lower=better compression/lower quality/faster. Higher=less
-        compression/higher quality/slower.</dd>
+    <dd>Supercompress the image data with Basis Universal. Implies @b --t2. When
+        set, the following Basis-related options become valid otherwise they are
+        ignored.
+      <dl>
+      <dt>--no_multithreading</dt>
+      <dd>Disable multithreading. By default Basis compression will use the
+          numnber of threads reported by @c std::thread::hardware_concurrency or
+          1 if value returned is 0.<dd>
+      <dt>--threads &lt;count&gt;</dt>
+      <dd>Explicitly set the number of threads to use during compression.
+          @b --no_multithreading must not be set.</dd>
+      <dt>--clevel &lt;level&gt;</dt>
+      <dd>Basis compression level, an encoding speed vs. quality tradeoff. Range
+          is 0 - 5, default is 1. Higher values are slower, but give higher
+          quality.</dd>
+      <dt>--qlevel &lt;level&gt;</dt>
+      <dd>Basis quality level. Range is 1 - 255.  Lower gives better
+          compression/lower quality/faster. Higher gives less compression
+          /higher quality/slower. Values of @b --max_endpoints and
+          @b --max-selectors computed from this override any explicitly set
+          values. Default is 128, if either of @b --max_endpoints or
+          @b --max_selectors is unset, otherwise those settings rule.</dd>
+      <dt>--max_endpoints &lt;arg&gt;</dt>
+      <dd>Manually set the maximum number of color endpoint clusters
+          from 1-16128. Default is 0, unset.</dd>
+      <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
+      <dd>Set endpoint RDO quality threshold. The default is 1.25. Lower is
+          higher quality but less quality per output bit (try 1.0-3.0).
+          This will override the value chosen by @c --qual.</dd>
+      <dt>--max_selectors &lt;arg&gt;</dt>
+      <dd>Manually set the maximum number of color selector clusters
+          from 1-16128. Default is 0, unset.</dd>
+      <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
+      <dd>Set selector RDO quality threshold. The default is 1.5. Lower is
+          higher quality but less quality per output bit (try 1.0-3.0).
+          This will override the value chosen by @c --qual.</dd>
+      <dt>--normal_map</dt>
+      <dd>Tunes codec parameters for better quality on normal maps (no
+          selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
+      <dt>--separate_rg_to_color_alpha</dt>
+      <dd>Separates the input R and G channels to RGB and A (for tangent
+          space XY normal maps). Only valid for 2-component input files.</dd>
+      <dt>--no_endpoint_rdo</dt>
+      <dd>Disable endpoint rate distortion optimizations. Slightly faster,
+          less noisy output, but lower quality per output bit. Default is
+          to do endpoint RDO.</dd>
+      <dt>--no_selector_rdo</dt>
+      <dd>Disable selector rate distortion optimizations. Slightly faster,
+          less noisy output, but lower quality per output bit. Default is
+          to do selector RDO.</dd>
+      </dl>
+    </dd>
     <dt>--help</dt>
     <dd>Print this usage message and exit.</dd>
     <dt>--version</dt>
@@ -279,8 +420,11 @@ Sun Dec 25 07:02:41 2016 -0200
     Mark Callow, Edgewise Consulting www.edgewise-consulting.com
 */
 
+// I really HATE this duplication of text but I cannot find a simple way to
+// it that works on all platforms (e.g running man toktx) even if I was
+// willing to tolerate markup commands in the usage output.
 static void
-usage(_TCHAR* appName)
+usage(const _TCHAR* appName)
 {
     fprintf(stderr, 
         "Usage: %s [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
@@ -342,10 +486,54 @@ usage(_TCHAR* appName)
         "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
-        "  --qual\n"
-        "               Basis supercompression quality from 1 - 255. Default is\n"
-        "               128. Lower=better compression/lower quality/faster. Higher=less\n"
-        "               compression/higher quality/slower.\n"
+        "               When set, the following Basis-related options become valid,\n"
+        "               otherwise they are ignored.\n"
+        "       --no_multithreading\n"
+        "               Disable multithreading. By default Basis compression will use\n"
+        "               the numnber of threads reported by\n"
+        "               @c std::thread::hardware_concurrency or 1 if value returned is 0.\n"
+        "      --threads <count>\n"
+        "               Explicitly set the number of threads to use during compression.\n"
+        "               --no_multithreading must not be set.\n"
+        "      --clevel <level>\n"
+        "               Basis compression level, an encoding speed vs. quality tradeoff.\n"
+        "               Range is 0 - 5, default is 1. Higher values are slower, but give\n"
+        "               higher quality.\n"
+        "      --qlevel <level>\n"
+        "               Basis quality level. Range is 1 - 255.  Lower gives better\n"
+        "               compression/lower quality/faster. Higher gives less compression\n"
+        "               /higher quality/slower. Values of --max_endpoints and\n"
+        "               --max-selectors computed from this override any explicitly set\n"
+        "               values. Default is 128, if either of --max_endpoints or\n"
+        "               --max_selectors is unset, otherwise those settings rule.\n"
+        "      --max_endpoints <arg>\n"
+        "               Manually set the maximum number of color endpoint clusters from\n"
+        "               1-16128. Default is 0, unset.\n"
+        "      --endpoint_rdo_threshold <arg>\n"
+        "               Set endpoint RDO quality threshold. The default is 1.25. Lower\n"
+        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
+        "               This will override the value chosen by --qual.\n"
+        "      --max_selectors <arg>\n"
+        "               Manually set the maximum number of color selector clusters from\n"
+        "               1-16128. Default is 0, unset.\n"
+        "      --selector_rdo_threshold <arg>\n"
+        "               Set selector RDO quality threshold. The default is 1.25. Lower\n"
+        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
+        "               This will override the value chosen by --qual.\n"
+        "      --normal_map\n"
+        "               Tunes codec parameters for better quality on normal maps (no\n"
+        "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
+        "      --separate_rg_to_color_alpha\n"
+        "               Separates the input R and G channels to RGB and A (for tangent\n"
+        "               space XY normal maps). Only valid for 2-component input files.\n"
+        "      --no_endpoint_rdo\n"
+        "               Disable endpoint rate distortion optimizations. Slightly faster,\n"
+        "               less noisy output, but lower quality per output bit. Default is\n"
+        "               to do endpoint RDO.\n"
+        "      --no_selector_rdo\n"
+        "               Disable selector rate distortion optimizations. Slightly faster,\n"
+        "               less noisy output, but lower quality per output bit. Default is\n"
+        "               to do selector RDO.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
         "\n"
@@ -368,7 +556,7 @@ writeId(std::ostream& dst, _TCHAR* appName)
 }
 
 static void
-version(_TCHAR* appName)
+version(const _TCHAR* appName)
 {
     fprintf(stderr, "%s version %s\n", appName, STR(VERSION));
 }
@@ -384,6 +572,7 @@ int _tmain(int argc, _TCHAR* argv[])
     size_t imageSize;
     int exitCode = 0, face;
     unsigned int i, level, levelWidth, levelHeight;
+    oetf_e chosenOETF, fileOETF;
 
     processCommandLine(argc, argv, options);
 
@@ -417,7 +606,7 @@ int _tmain(int argc, _TCHAR* argv[])
             unsigned int w, h, components, componentSize;
             uint8_t* srcImg = 0;
             enum fileType_e { NPBM, PNG } fileType;
-            int xferFunc;
+            oetf_e curfileOETF;
 
             FileResult npbmResult = readNPBM(f, w, h, components,
                                              componentSize, imageSize, 0);
@@ -443,7 +632,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     goto cleanup;
                 }
                 if (memcmp(filesig, pngsig, sizeof(pngsig))) {
-                    fprintf(stderr, "%s: \"%s\" is not a.pam, .pgm, .ppm or .png file\n",
+                    fprintf(stderr, "%s: \"%s\" is not a .pam, .pgm, .ppm or .png file\n",
                             options.appName, infile);
                     exitCode = 1;
                     goto cleanup;
@@ -451,7 +640,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 fileType = PNG;
             } else if (npbmResult == SUCCESS) {
                 fileType = NPBM;
-                xferFunc = XFER_SRGB;
+                curfileOETF = OETF_SRGB;
                 imageSize = w * h * components * componentSize;
             } else {
                 fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
@@ -547,21 +736,24 @@ int _tmain(int argc, _TCHAR* argv[])
                 // Using cHRM to get the primaries would require matching a set
                 // of primary values to a DFD primaries id.
 
-
                 if (state.info_png.srgb_defined) {
-                    xferFunc = XFER_SRGB;
+                    // intent is a matter for the user when a color transform
+                    // is needed during rendering, especially when gamut
+                    // mapping. It does not affect the meaning or value of the
+                    // image pixels so there is nothing to do here.
+                    curfileOETF = OETF_SRGB;
                 } else {
                     if (state.info_png.iccp_defined)
                         ; // Panic
                     else if (state.info_png.gama_defined) {
                         if (state.info_png.gama_gamma == 100000)
-                            xferFunc = XFER_LINEAR;
+                            curfileOETF = OETF_LINEAR;
                         else if (state.info_png.gama_gamma == 45455)
-                            xferFunc = XFER_SRGB;
+                            curfileOETF = OETF_SRGB;
                         else
                             ; // Panic
                     } else
-                        xferFunc = XFER_SRGB;
+                        curfileOETF = OETF_SRGB;
                 }
             }
 
@@ -586,11 +778,14 @@ int _tmain(int argc, _TCHAR* argv[])
                 if (i == 0) {
                     bool srgb;
 
-                    if (options.xferFunc != XFER_NOT_SET)
-                        xferFunc = options.xferFunc;
+                    fileOETF = curfileOETF;
+                    if (options.oetf == OETF_UNSET) {
+                        chosenOETF = fileOETF;
+                    } else {
+                        chosenOETF = options.oetf;
+                    }
 
-                    srgb = (xferFunc == XFER_SRGB);
-
+                    srgb = (chosenOETF == OETF_SRGB);
                     switch (components) {
                       case 1:
                         switch (componentSize) {
@@ -729,6 +924,15 @@ int _tmain(int argc, _TCHAR* argv[])
                         goto cleanup;
                     }
                 } else {
+                    if (options.oetf == OETF_UNSET) {
+                        if (curfileOETF != fileOETF) {
+                            fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
+                                            "(OETF) than preceding files.\n",
+                                            options.appName, infile);
+                            exitCode = 1;
+                            goto cleanup;
+                        }
+                    }
                     if (face == (options.cubemap ? 6 : 1)) {
                         level++;
                         if (level < createInfo.numLevels) {
@@ -831,7 +1035,17 @@ int _tmain(int argc, _TCHAR* argv[])
 
     if (f) {
         if (options.bcmp) {
-            ret = ktxTexture2_CompressBasis((ktxTexture2*)texture, options.basis_quality);
+            commandOptions::basisOptions& bopts = options.bopts;
+            if (bopts.normalMap && chosenOETF != OETF_LINEAR) {
+                fprintf(stderr, "%s: --normal_map specified but input file(s) are"
+                        " not linear.", options.appName);
+                exitCode = 1;
+                goto cleanup;
+            }
+            if (bopts.noMultithreading)
+                bopts.threadCount = 1;
+
+            ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
                         options.appName, options.outfile, ktxErrorString(ret));
@@ -872,26 +1086,6 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     unsigned int outfilenamelen;
     const _TCHAR* toktx_options;
     _TCHAR* slash;
-
-    options.alpha = 0;
-    options.automipmap = 0;
-    options.cubemap = 0;
-    options.ktx2 = 0;
-    options.luminance = 0;
-    options.metadata = 1;
-    options.mipmap = 0;
-    options.outfile = 0;
-    options.numInputFiles = 0;
-    options.firstInfileIndex = 0;
-    options.useStdin = false;
-    options.levels = 1;
-    options.bcmp = 0;
-    options.basis_quality = 0;
-    options.xferFunc = XFER_NOT_SET;
-    /* The OGLES WG recommended approach, even though it is opposite
-     * to the OpenGL convention. Suki ja nai.
-     */
-    options.lower_left_maps_to_s0t0 = 0;
 
     slash = _tcsrchr(argv[0], '\\');
     if (slash == NULL)
@@ -1006,11 +1200,22 @@ processOptions(argparser& parser,
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
-        { "linear", argparser::option::no_argument, &options.xferFunc, XFER_LINEAR },
-        { "srgb", argparser::option::no_argument, &options.xferFunc, XFER_SRGB },
+        { "linear", argparser::option::no_argument, (int*)&options.oetf, OETF_LINEAR },
+        { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
         { "bcmp", argparser::option::no_argument, NULL, 'b' },
-        { "qual", argparser::option::required_argument, NULL, 'q' },
+        { "mo_multithreading", argparser::option::no_argument, NULL, 'm' },
+        { "threads", argparser::option::required_argument, NULL, 't' },
+        { "clevel", argparser::option::required_argument, NULL, 'c' },
+        { "qlevel", argparser::option::required_argument, NULL, 'q' },
+        { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
+        { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'f' },
+        { "max_selectors", argparser::option::required_argument, NULL, 's' },
+        { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'u' },
+        { "normal_map", argparser::option::no_argument, NULL, 'n' },
+        { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 'r' },
+        { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
+        { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It
@@ -1021,7 +1226,12 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    tstring shortopts("bhvl:q:");
+#define setBasisOpt(opt, val) \
+    options.bopts.opt.set(val, options.bcmp,                       \
+                          parser.argv[parser.optind-1].c_str(),    \
+                          options.appName);                        \
+
+    tstring shortopts("bc:e:f:hmnrops:t:u:vl:q:");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
@@ -1039,8 +1249,38 @@ processOptions(argparser& parser,
             options.bcmp = 1;
             options.ktx2 = 1;
             break;
+          case 'c':
+            options.bopts.compressionLevel = atoi(parser.optarg.c_str());
+            break;
+          case 'e':
+            options.bopts.maxEndpoints = atoi(parser.optarg.c_str());
+            break;
+          case 'f':
+            options.bopts.endpointRDOThreshold = atof(parser.optarg.c_str());
+            break;
+          case 'm':
+            options.bopts.noMultithreading = 1;
+            break;
+          case 'n':
+            options.bopts.normalMap = 1;
+            break;
+          case 'o':
+            options.bopts.noEndpointRDO = 1;
+            break;
+          case 'p':
+            options.bopts.noSelectorRDO = 1;
+            break;
           case 'q':
-            options.basis_quality = atoi(parser.optarg.c_str());
+            options.bopts.qualityLevel = atoi(parser.optarg.c_str());
+            break;
+          case 'r':
+            options.bopts.separateRGToRGB_A = 1;
+            break;
+          case 't':
+            options.bopts.threadCount = atoi(parser.optarg.c_str());
+            break;
+          case 'u':
+            options.bopts.selectorRDOThreshold = atof(parser.optarg.c_str());
             break;
           case 'i':
             break;
