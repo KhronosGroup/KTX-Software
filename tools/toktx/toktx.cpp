@@ -329,9 +329,11 @@ Create a KTX file from netpbm format files.
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
-    <dd>Supercompress the image data with Basis Universal. Implies @b --t2. When
-        set, the following Basis-related options become valid otherwise they are
-        ignored.
+    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.
+        RED images will become RGB with RED in each component. RG images will
+        have R in the RGB part and G in the alpha part of the compressed
+        texture. When set, the following Basis-related options become valid
+        otherwise they are ignored.
       <dl>
       <dt>--no_multithreading</dt>
       <dd>Disable multithreading. By default Basis compression will use the
@@ -370,7 +372,8 @@ Create a KTX file from netpbm format files.
           selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
       <dt>--separate_rg_to_color_alpha</dt>
       <dd>Separates the input R and G channels to RGB and A (for tangent
-          space XY normal maps). Only valid for 2-component input files.</dd>
+          space XY normal maps). Automatically selected if the input images
+          are 2-component.</dd>
       <dt>--no_endpoint_rdo</dt>
       <dd>Disable endpoint rate distortion optimizations. Slightly faster,
           less noisy output, but lower quality per output bit. Default is
@@ -486,8 +489,10 @@ usage(const _TCHAR* appName)
         "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
-        "               When set, the following Basis-related options become valid,\n"
-        "               otherwise they are ignored.\n"
+        "               RED images will become RGB with RED in each component. RG images\n"
+        "               will have R in the RGB part and G in the alpha part of the\n"
+        "               compressed texture. When set, the following Basis-related\n"
+        "               options become valid, otherwise they are ignored.\n"
         "       --no_multithreading\n"
         "               Disable multithreading. By default Basis compression will use\n"
         "               the numnber of threads reported by\n"
@@ -525,7 +530,8 @@ usage(const _TCHAR* appName)
         "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
         "      --separate_rg_to_color_alpha\n"
         "               Separates the input R and G channels to RGB and A (for tangent\n"
-        "               space XY normal maps). Only valid for 2-component input files.\n"
+        "               space XY normal maps). Automatically selected if the input\n"
+        "               image(s) are 2-component."
         "      --no_endpoint_rdo\n"
         "               Disable endpoint rate distortion optimizations. Slightly faster,\n"
         "               less noisy output, but lower quality per output bit. Default is\n"
@@ -571,7 +577,7 @@ int _tmain(int argc, _TCHAR* argv[])
     struct commandOptions options;
     size_t imageSize;
     int exitCode = 0, face;
-    unsigned int i, level, levelWidth, levelHeight;
+    unsigned int components, i, level, levelWidth, levelHeight;
     oetf_e chosenOETF, fileOETF;
 
     processCommandLine(argc, argv, options);
@@ -603,7 +609,7 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 
         if (f) {
-            unsigned int w, h, components, componentSize;
+            unsigned int w, h, componentSize;
             uint8_t* srcImg = 0;
             enum fileType_e { NPBM, PNG } fileType;
             oetf_e curfileOETF;
@@ -1044,6 +1050,9 @@ int _tmain(int argc, _TCHAR* argv[])
             }
             if (bopts.noMultithreading)
                 bopts.threadCount = 1;
+            if (components == 2) {
+                bopts.separateRGToRGB_A = true;
+            }
 
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {

@@ -37,6 +37,7 @@
 #include "texture2.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
+#include "dfd.h"
 #include "basis_sgd.h"
 #include "basisu/basisu_comp.h"
 #include "basisu/transcoder/basisu_file_headers.h"
@@ -45,24 +46,33 @@
 using namespace basisu;
 using namespace basist;
 
+enum swizzle_e {
+    R = 0,
+    G = 1,
+    B = 2,
+    A = 3,
+    ZERO = 4,
+    ONE = 5,
+};
+
 typedef void
-(* PFNBUCOPYCB)(uint8_t* rgbadst, uint8_t* rgbasrc, ktx_size_t image_size,
-                uint8_t swizzle[4]);
+(* PFNBUCOPYCB)(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
+                ktx_size_t image_size, swizzle_e swizzle[4]);
 
 // All callbacks expect source images to have no row padding and expect
 // component size to be 8 bits.
 
 static void
-copy_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, ktx_size_t image_size,
-                 uint8_t swizzle[4])
+copy_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
+                  ktx_size_t image_size, swizzle_e swizzle[4])
 {
     memcpy(rgbadst, rgbasrc, image_size);
 }
 
 // Copy rgb to rgba. No swizzle.
 static void
-copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, ktx_size_t image_size,
-                 uint8_t swizzle[4])
+copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t src_len,
+                 ktx_size_t image_size, swizzle_e swizzle[4])
 {
     for (ktx_size_t i = 0; i < image_size; i += 3) {
         memcpy(rgbadst, rgbsrc, 3);
@@ -71,23 +81,43 @@ copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, ktx_size_t image_size,
     }
 }
 
-// Separate rg to rrr in rgb and g in a. Source images are expected to be 2
-// components. No swizzle. XXX Need spec to say swizzle not valid for 2
-// component?
 static void
-separate_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
-                     uint8_t swizzle[4])
+swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
+                ktx_size_t image_size, swizzle_e swizzle[4])
 {
-    for (ktx_size_t i = 0; i < image_size; i += 2) {
-        rgbadst[0] = rgbadst[1] = rgbadst[2] = rgsrc[0];
-        rgbadst[3] = rgsrc[1];
-        rgbadst += 4; rgsrc += 2;
+    for (ktx_size_t i = 0; i < image_size; i += src_len) {
+        for (uint32_t c = 0; c < src_len; c++) {
+            switch (swizzle[c]) {
+              case R:
+                rgbadst[c] = rgbasrc[0];
+                break;
+              case G:
+                rgbadst[c] = rgbasrc[1];
+                break;
+              case B:
+                rgbadst[c] = rgbasrc[2];
+                break;
+              case A:
+                rgbadst[c] = rgbasrc[3];
+                break;
+              case ZERO:
+                rgbadst[c] = 0x00;
+                break;
+              case ONE:
+                rgbadst[i+c] = 0xff;
+                break;
+              default:
+                assert(false);
+            }
+        }
+        rgbadst +=4; rgbasrc += src_len;
     }
 }
 
+#if 0
 static void
 swizzle_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, ktx_size_t image_size,
-                     uint8_t swizzle[4])
+                     swizzle_e swizzle[4])
 {
     for (ktx_size_t i = 0; i < image_size; i += 4) {
         for (uint32_t c = 0; c < 4; c++) {
@@ -120,19 +150,19 @@ swizzle_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, ktx_size_t image_size,
 
 static void
 swizzle_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, ktx_size_t image_size,
-                     uint8_t swizzle[4])
+                     swizzle_e swizzle[4])
 {
     for (ktx_size_t i = 0; i < image_size; i += 3) {
         for (uint32_t c = 0; c < 3; c++) {
-          switch (swizzle[c]) {
+            switch (swizzle[c]) {
               case 0:
-                rgbadst[i+c] = rgbsrc[0];
+                rgbadst[c] = rgbsrc[0];
                 break;
               case 1:
-                rgbadst[i+c] = rgbsrc[i];
+                rgbadst[c] = rgbsrc[i];
                 break;
               case 2:
-                rgbadst[i+c] = rgbsrc[2];
+                rgbadst[c] = rgbsrc[2];
                 break;
               case 3:
                 assert(false); // Shouldn't happen for an RGB texture.
@@ -153,7 +183,7 @@ swizzle_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, ktx_size_t image_size,
 
 static void
 swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
-                    uint8_t swizzle[4])
+                    swizzle_e swizzle[4])
 {
     for (ktx_size_t i = 0; i < image_size; i += 2) {
         for (uint32_t c = 0; c < 2; c++) {
@@ -182,6 +212,7 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
         }
     }
 }
+#endif
 
 // Rewrite DFD without sample information and with unspecified color model.
 static KTX_error_code
@@ -262,6 +293,21 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                                        // Basis software does ETC1S encoding &
                                        // Basis supercompression together.
 
+    if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
+        return KTX_INVALID_OPERATION;
+
+    // Basic descriptor block begins after the total size field.
+    const uint32_t* BDB = This->pDfd+1;
+
+    uint32_t num_components, component_size;
+    getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
+
+    if (component_size != 1)
+        return KTX_INVALID_OPERATION; // ETC/Basis must have 8-bit components.
+
+    if (params->separateRGToRGB_A && num_components == 1)
+        return KTX_INVALID_OPERATION;
+
     if (This->pData == NULL) {
         result = ktxTexture2_LoadImageData(This, NULL, 0);
         if (result != KTX_SUCCESS)
@@ -271,22 +317,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     basis_compressor_params cparams;
     cparams.m_read_source_images = false; // Don't read from source files.
     cparams.m_write_output_basis_files = false; // Don't write output files.
-
-    // Basic descriptor block begins after the total size field.
-    const uint32_t* BDB = This->pDfd+1;
-#if IS_BIG_ENDIAN
-#error Big endian needs implementation.
-#else
-    const uint32_t num_components = KHR_DFDSAMPLECOUNT(BDB);
-#endif
-
-    if (num_components == 2 && !params->separateRGToRGB_A)
-        // Don't know appropriate setting for 3rd component so can't support.
-        return KTX_INVALID_OPERATION;
-
-    // Check for 8-bit components.
-    assert(!(This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
-           && This->_protected->_formatSize.blockSizeInBits % 8 == 0);
 
     //
     // Calculate number of images
@@ -308,8 +338,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     cparams.m_source_images.resize(num_images);
     std::vector<image>::iterator iit = cparams.m_source_images.begin();
 
-    bool non_identity_swizzle = false;
-    uint8_t comp_mapping[4] = {};
+    swizzle_e meta_mapping[4] = {};
+    // Since we have to copy the data into the vector image anyway do the
+    // separation here to avoid another loop over the image inside
+    // basis_compressor.
+    swizzle_e rg_to_rgba_mapping[4] = { R, R, R, G };
+    swizzle_e r_to_rgba_mapping[4] = { R, R, R, ONE };
+    swizzle_e* comp_mapping = 0;
     if (params->preSwizzle) {
         ktx_uint32_t swizzleLen;
         char* swizzleStr;
@@ -324,46 +359,36 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             if ((num_components == 2 && strncmp(swizzleStr, "rg01", 4U))
                 || (num_components == 3 && strncmp(swizzleStr, "rgb1", 4U))
                 || (num_components == 4 && strncmp(swizzleStr, "rgba", 4U))) {
-                non_identity_swizzle = true;
                 for (int i = 0; i < 4; i++) {
                     switch (swizzleStr[i]) {
-                      case 'r': comp_mapping[i] = 0; break;
-                      case 'g': comp_mapping[i] = 1; break;
-                      case 'b': comp_mapping[i] = 2; break;
-                      case 'a': comp_mapping[i] = 3; break;
-                      case '0': comp_mapping[i] = 4; break;
-                      case '1': comp_mapping[i] = 5; break;
+                      case 'r': meta_mapping[i] = R; break;
+                      case 'g': meta_mapping[i] = G; break;
+                      case 'b': meta_mapping[i] = B; break;
+                      case 'a': meta_mapping[i] = A; break;
+                      case '0': meta_mapping[i] = ZERO; break;
+                      case '1': meta_mapping[i] = ONE; break;
                     }
                 }
+                comp_mapping = meta_mapping;
             }
         }
     }
 
+    // There's no other way so sensibly handle 2-component textures.
+    if (num_components == 2 || params->separateRGToRGB_A)
+        comp_mapping = rg_to_rgba_mapping;
+
+    if (num_components == 1)
+        comp_mapping = r_to_rgba_mapping;
+
     PFNBUCOPYCB copycb;
-    if (non_identity_swizzle) {
-        switch (num_components) {
-          case 4: copycb = swizzle_rgba_to_rgba; break;
-          case 3: copycb = swizzle_rgb_to_rgba; break;
-          case 2:
-            assert(params->separateRGToRGB_A);
-            // Since we have to copy the data into the vector image anyway
-            // do the separation here to avoid another loop over the
-            // image.
-            copycb = swizzle_rg_to_rgb_a;
-            break;
-          case 1: // Need to swizzle R to G & B.
-            break;
-        }
+    if (comp_mapping) {
+        copycb = swizzle_to_rgba;
     } else {
         switch (num_components) {
           case 4: copycb = copy_rgba_to_rgba; break;
           case 3: copycb = copy_rgb_to_rgba; break;
-          case 2:
-            assert(params->separateRGToRGB_A);
-            copycb = separate_rg_to_rgb_a;
-            break;
-          case 1: // Need to swizzle R to G & B.
-            break;
+          default: assert(false);
         }
     }
 
@@ -379,7 +404,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                 ktx_size_t offset;
                 ktxTexture2_GetImageOffset(This, level, layer, slice, &offset);
                 iit->resize(width, height);
-                copycb((uint8_t*)iit->get_ptr(), This->pData + offset, image_size, comp_mapping);
+                copycb((uint8_t*)iit->get_ptr(), This->pData + offset,
+                        component_size * num_components, image_size,
+                        comp_mapping);
                 ++iit;
             }
         }
