@@ -704,6 +704,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     formatSize.blockHeight = 1;
     formatSize.blockDepth = 1;
 
+    // Since we only allow 8-bit components to be compressed ...
+    assert(This->_protected->_typeSize == 1);
+
     This->supercompressionScheme = KTX_SUPERCOMPRESSION_BASIS;
     priv._supercompressionGlobalData = bgd;
     priv._sgdByteLength = bgd_size;
