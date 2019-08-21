@@ -119,10 +119,9 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
             This->_protected->_typeSize = 4;
     } else {
         // Unpacked and uncompressed
-        enum InterpretDFDResult dfdRes;
-        InterpretedDFDChannel r, g, b, a;
-        dfdRes = interpretDFD(This->pDfd, &r, &g, &b, &a,
-                              &This->_protected->_typeSize);
+        uint32_t numComponents;
+        getDFDComponentInfoUnpacked(This->pDfd, &numComponents,
+                                    &This->_protected->_typeSize);
     }
 
     This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
