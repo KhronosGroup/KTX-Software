@@ -31,13 +31,13 @@
 #if !defined(_T)
   #define _T
 #endif
-typedef std::basic_string<_TCHAR> tstring;
+typedef std::basic_string<_TCHAR> _tstring;
 
 
-class argvector : public std::vector<tstring> {
+class argvector : public std::vector<_tstring> {
   public:
     argvector() { };
-    argvector(const tstring& argstring);
+    argvector(const _tstring& argstring);
     argvector(int argc, const _TCHAR* const* argv);
 };
 
@@ -50,7 +50,7 @@ class argparser {
         int val;
     };
 
-    tstring optarg;
+    _tstring optarg;
     unsigned int optind;
     argvector argv;
 
@@ -60,7 +60,7 @@ class argparser {
     argparser(int argc, const _TCHAR* const* argv1)
        : argv(argc, argv1), optind(1) { }
 
-    int getopt(tstring* shortopts, const struct option* longopts,
+    int getopt(_tstring* shortopts, const struct option* longopts,
                int* longindex = nullptr);
 };
 

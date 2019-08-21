@@ -7,12 +7,15 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <assert.h>
 #include <stdio.h>
+#include <string>
 #ifdef _WIN32
 #include <io.h>
 #include <tchar.h>
 #if _MSC_VER < 1900
 #define snprintf _snprintf
 #endif
+// Windows uses UTF-16 filenames.
+typedef std::wstring _tstring;
 #else
 #include <unistd.h>
 
@@ -31,6 +34,8 @@
 #define _unlink unlink
 #define _T
 
+// Others use UTF-8.
+typedef std::string _tstring;
 #endif
 #include <fcntl.h>
 #include <errno.h>

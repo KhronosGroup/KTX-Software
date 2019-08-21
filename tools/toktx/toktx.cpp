@@ -162,10 +162,9 @@ struct commandOptions {
     int          lower_left_maps_to_s0t0;
     int          bcmp;
     struct basisOptions bopts;
-    _TCHAR*      outfile;
+    _tstring     outfile;
     unsigned int levels;
-    unsigned int numInputFiles;
-    unsigned int firstInfileIndex;
+    std::vector<_tstring> infilenames;
 
     commandOptions() {
       automipmap = 0;
@@ -173,9 +172,6 @@ struct commandOptions {
       ktx2 = 0;
       metadata = 1;
       mipmap = 0;
-      outfile = 0;
-      numInputFiles = 0;
-      firstInfileIndex = 0;
       useStdin = false;
       levels = 1;
       oetf = OETF_UNSET;
@@ -557,20 +553,10 @@ int _tmain(int argc, _TCHAR* argv[])
 
     // TO DO: handle 3D textures.
 
-    for (i = 0, face = 0, level = 0; i < options.numInputFiles; i++) {
-        _TCHAR* infile;
+    for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
+        _tstring& infile = options.infilenames[i];
 
-        if (options.useStdin) {
-            infile = 0;
-            f = stdin;
-#if defined(_WIN32)
-            /* Set "stdin" to have binary mode */
-            (void)_setmode( _fileno( stdin ), _O_BINARY );
-#endif
-        } else {
-            infile = argv[options.firstInfileIndex + i];
-            f = fopen(infile,"rb");
-        }
+        f = fopen(infile.c_str(),"rb");
 
         if (f) {
             unsigned int w, h, componentSize;
@@ -591,19 +577,19 @@ int _tmain(int argc, _TCHAR* argv[])
                 uint8_t filesig[sizeof(pngsig)];
                 if (fseek(f, 0L, SEEK_SET) < 0) {
                     fprintf(stderr, "%s: Could not seek in \"%s\". %s\n",
-                            options.appName, infile, strerror(errno));
+                            options.appName, infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (fread(filesig, sizeof(pngsig), 1, f) != 1) {
                     fprintf(stderr, "%s: Could not read \"%s\". %s\n",
-                            options.appName, infile, strerror(errno));
+                            options.appName, infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (memcmp(filesig, pngsig, sizeof(pngsig))) {
                     fprintf(stderr, "%s: \"%s\" is not a .pam, .pgm, .ppm or .png file\n",
-                            options.appName, infile);
+                            options.appName, infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -614,7 +600,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 imageSize = w * h * components * componentSize;
             } else {
                 fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
-                        options.appName, infile);
+                        options.appName, infile.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
@@ -631,10 +617,11 @@ int _tmain(int argc, _TCHAR* argv[])
                     if (feof(f)) {
                         fprintf(stderr,
                                 "%s: Unexpected end of file reading \"%s\" \n",
-                                options.appName, infile);
+                                options.appName, infile.c_str());
                     } else {
                         fprintf(stderr, "%s: Error reading \"%s\": %s\n",
-                                options.appName, infile, strerror(ferror(f)));
+                                options.appName, infile.c_str(),
+                                strerror(ferror(f)));
                     }
                     exitCode = 1;
                     goto cleanup;
@@ -655,7 +642,7 @@ int _tmain(int argc, _TCHAR* argv[])
                   case LCT_PALETTE:
                     fprintf(stderr,
                     "%s: \"%s\" is a paletted image which are not supported.\n",
-                    options.appName, infile);
+                    options.appName, infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                   case LCT_GREY_ALPHA:
@@ -737,7 +724,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         FileResult readResult = readImage(f, imageSize, srcImg);
                         if (SUCCESS != readResult) {
                             fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
-                                    options.appName, infile);
+                                    options.appName, infile.c_str());
                             exitCode = 1;
                             goto cleanup;
                         }
@@ -862,14 +849,14 @@ int _tmain(int argc, _TCHAR* argv[])
                             levels = options.levels;
                         }
                         // Check we have enough.
-                        if (levels * createInfo.numFaces > options.numInputFiles) {
+                        if (levels * createInfo.numFaces > options.infilenames.size()) {
                             fprintf(stderr,
                                     "%s: too few files for %d mipmap levels and %d faces.\n",
                                     options.appName, levels,
                                     createInfo.numFaces);
                             exitCode = 1;
                             goto cleanup;
-                        } else if (levels * createInfo.numFaces < options.numInputFiles) {
+                        } else if (levels * createInfo.numFaces < options.infilenames.size()) {
                             fprintf(stderr,
                                     "%s: too many files for %d mipmap levels and %d faces."
                                     " Extras will be ignored.\n",
@@ -898,7 +885,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         if (curfileOETF != fileOETF) {
                             fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
                                             "(OETF) than preceding files.\n",
-                                            options.appName, infile);
+                                            options.appName, infile.c_str());
                             exitCode = 1;
                             goto cleanup;
                         }
@@ -910,7 +897,7 @@ int _tmain(int argc, _TCHAR* argv[])
                             levelHeight >>= 1;
                             if (w != levelWidth || h != levelHeight) {
                                 fprintf(stderr, "%s: \"%s\" has incorrect width or height for current mipmap level\n",
-                                        options.appName, infile);
+                                        options.appName, infile.c_str());
                                 exitCode = 1;
                                 goto cleanup;
                             }
@@ -923,7 +910,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 if (options.cubemap && w != h && w != levelWidth) {
                     fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
                                     "size for current mipmap level\n",
-                            options.appName, infile);
+                            options.appName, infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -956,7 +943,7 @@ int _tmain(int argc, _TCHAR* argv[])
             (void)fclose(f);
         } else {
             fprintf(stderr, "%s could not open input file \"%s\". %s\n",
-                    options.appName, infile ? infile : "stdin", strerror(errno));
+                    options.appName, infile.c_str(), strerror(errno));
             exitCode = 2;
             goto cleanup;
         }
@@ -993,14 +980,14 @@ int _tmain(int argc, _TCHAR* argv[])
                               writer.str().c_str());
     }
 
-    if (_tcscmp(options.outfile, "-") == 0) {
+    if (options.outfile.compare("-") == 0) {
         f = stdout;
 #if defined(_WIN32)
         /* Set "stdout" to have binary mode */
         (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
     } else
-        f = fopen(options.outfile,"wb");
+        f = fopen(options.outfile.c_str(), "wb");
 
     if (f) {
         if (options.bcmp) {
@@ -1020,7 +1007,8 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        options.appName, options.outfile, ktxErrorString(ret));
+                        options.appName, options.outfile.c_str(),
+                        ktxErrorString(ret));
             }
         } else {
             ret = KTX_SUCCESS;
@@ -1029,33 +1017,32 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                    options.appName, options.outfile, ktxErrorString(ret));
+                    options.appName, options.outfile.c_str(),
+                    ktxErrorString(ret));
             }
         }
         if (KTX_SUCCESS != ret) {
             fclose(f);
             if (f != stdout)
-                _unlink(options.outfile);
+                _unlink(options.outfile.c_str());
             exitCode = 2;
         }  
     } else {
         fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                options.appName, options.outfile, strerror(errno));
+                options.appName, options.outfile.c_str(), strerror(errno));
         exitCode = 2;
     }
 
 cleanup:
     if (texture) ktxTexture_Destroy(ktxTexture(texture));
     if (f) (void)fclose(f);
-    delete(options.outfile);
     return exitCode;
 }
 
 
 static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& options)
 {
-    int i, addktx = 0;
-    unsigned int outfilenamelen;
+    int i;
     const _TCHAR* toktx_options;
     _TCHAR* slash;
 
@@ -1101,33 +1088,28 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     }
 
     i = parser.optind;
-    outfilenamelen = (unsigned int)_tcslen(argv[i]) + 1;
-    if (_tcscmp(argv[i], "-") != 0 && _tcsrchr(argv[i], '.') == NULL) {
-        addktx = 1;
-        outfilenamelen += 4;
+
+    options.outfile = parser.argv[i++];
+
+    if (options.outfile.compare("-") != 0
+        && options.outfile.find_last_of('.') == _tstring::npos)
+    {
+        options.outfile.append(options.ktx2 ? ".ktx2" : ".ktx");
     }
-    options.outfile = new _TCHAR[outfilenamelen];
-    if (options.outfile) {
-        _tcscpy(options.outfile, argv[i++]);
-        if (addktx)
-            _tcscat(options.outfile, options.ktx2 ? ".ktx2" : ".ktx");
-    } else {
-        fprintf(stderr, "%s: out of memory.\n", options.appName);
-        exit(2);
-    }
-    options.numInputFiles = argc - i;
-    if (options.numInputFiles == 0) {
+
+    if (argc - i == 0) {
         usage(options.appName);
         exit(1);
     } else {
-        options.firstInfileIndex = i;
         /* Check for attempt to use stdin as one of the
          * input files.
          */
-        for (i = options.firstInfileIndex; i < argc; i++) {
-            if (_tcscmp(argv[i], "-") == 0) {
+        for (; i < argc; i++) {
+            if (parser.argv[i].compare("-") == 0) {
                 usage(options.appName);
                 exit(1);
+            } else {
+                options.infilenames.push_back(parser.argv[i]);
             }
         }
     }
@@ -1193,7 +1175,7 @@ processOptions(argparser& parser,
                           parser.argv[parser.optind-1].c_str(),    \
                           options.appName);                        \
 
-    tstring shortopts("bc:e:f:hmnrops:t:u:vl:q:");
+    _tstring shortopts("bc:e:f:hmnrops:t:u:vl:q:");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
