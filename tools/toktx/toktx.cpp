@@ -47,37 +47,6 @@
 #  define IMAGE_DEBUG 0
 #endif
 
-#define ALLOW_LEGACY_FORMAT_CREATION 0
-
-#if ALLOW_LEGACY_FORMAT_CREATION
-#if !defined(GL_LUMINANCE)
-#define GL_LUMINANCE                    0x1909
-#define GL_LUMINANCE_ALPHA              0x190A
-#endif
-#if !defined(GL_LUMINANCE4)
-#define GL_ALPHA4                       0x803B
-#define GL_ALPHA8                       0x803C
-#define GL_ALPHA12                      0x803D
-#define GL_ALPHA16                      0x803E
-#define GL_LUMINANCE4                   0x803F
-#define GL_LUMINANCE8                   0x8040
-#define GL_LUMINANCE12                  0x8041
-#define GL_LUMINANCE16                  0x8042
-#define GL_LUMINANCE4_ALPHA4            0x8043
-#define GL_LUMINANCE6_ALPHA2            0x8044
-#define GL_LUMINANCE8_ALPHA8            0x8045
-#define GL_LUMINANCE12_ALPHA4           0x8046
-#define GL_LUMINANCE12_ALPHA12          0x8047
-#define GL_LUMINANCE16_ALPHA16          0x8048
-#endif
-#if !defined(GL_SLUMINANCE)
-#define GL_SLUMINANCE_ALPHA             0x8C44
-#define GL_SLUMINANCE8_ALPHA8           0x8C45
-#define GL_SLUMINANCE                   0x8C46
-#define GL_SLUMINANCE8                  0x8C47
-#endif
-#endif /* ALLOW_LEGACY_FORMAT_CREATION */
-
 #if !defined(GL_RED)
 #define GL_RED                          0x1903
 #define GL_RGB8                         0x8051
@@ -182,11 +151,9 @@ struct commandOptions {
     };
 
     _TCHAR*      appName;
-    int          alpha;
     int          automipmap;
     int          cubemap;
     int          ktx2;
-    int          luminance;
     int          metadata;
     int          mipmap;
     int          two_d;
@@ -201,11 +168,9 @@ struct commandOptions {
     unsigned int firstInfileIndex;
 
     commandOptions() {
-      alpha = 0;
       automipmap = 0;
       cubemap = 0;
       ktx2 = 0;
-      luminance = 0;
       metadata = 1;
       mipmap = 0;
       outfile = 0;
@@ -229,8 +194,7 @@ static void yflip(unsigned char*& srcImage, size_t imageSize,
                   unsigned int w, unsigned int h, unsigned int pixelSize);
 #if IMAGE_DEBUG
 static void dumpImage(_TCHAR* name, int width, int height, int components,
-                      int componentSize, bool isLuminance,
-                      unsigned char* srcImage);
+                      int componentSize, unsigned char* srcImage);
 #endif
 
 /** @page toktx toktx
@@ -591,7 +555,7 @@ int _tmain(int argc, _TCHAR* argv[])
     createInfo.numLayers = 1;
     createInfo.isArray = KTX_FALSE;
 
-    // TO DO: handle 3D textures. Concatenate the files here or in WriteKTXF?
+    // TO DO: handle 3D textures.
 
     for (i = 0, face = 0, level = 0; i < options.numInputFiles; i++) {
         _TCHAR* infile;
@@ -957,11 +921,11 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                 }
                 if (options.cubemap && w != h && w != levelWidth) {
-                        fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
-                                        "size for current mipmap level\n",
-                                options.appName, infile);
-                        exitCode = 1;
-                        goto cleanup;
+                    fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
+                                    "size for current mipmap level\n",
+                            options.appName, infile);
+                    exitCode = 1;
+                    goto cleanup;
                 }
                 if (srcImg)
                     ktxTexture_SetImageFromMemory(ktxTexture(texture),
@@ -983,7 +947,6 @@ int _tmain(int argc, _TCHAR* argv[])
                     ktx_size_t offset;
                     ktxTexture_GetImageOffset(texture, level, 0, face, &offset);
                     dumpImage(infile, w, h, components, componentSize,
-                              options.luminance,
                               texture.pData + offset);
                 }
 #endif
@@ -1123,14 +1086,6 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     argparser parser(argc, argv);
     processOptions(parser, options);
 
-    if (options.alpha && (!ALLOW_LEGACY_FORMAT_CREATION || options.luminance)) {
-        usage(options.appName);
-        exit(1);
-    }
-    if (options.luminance && !ALLOW_LEGACY_FORMAT_CREATION) {
-        usage(options.appName);
-        exit(1);
-    }
     if (options.mipmap && options.levels > 1) {
         usage(options.appName);
         exit(1);
@@ -1200,11 +1155,9 @@ processOptions(argparser& parser,
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "version", argparser::option::no_argument, NULL, 'v' },
         { "2d", argparser::option::no_argument, &options.two_d, 1 },
-        { "alpha", argparser::option::no_argument, &options.alpha, 1 },
         { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
         { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
         { "levels", argparser::option::required_argument, NULL, 'l' },
-        { "luminance", argparser::option::no_argument, &options.luminance, 1 },
         { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
@@ -1353,7 +1306,7 @@ yflip(unsigned char*& srcImage, size_t imageSize,
 #if IMAGE_DEBUG
 static void
 dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
-          bool isLuminance, unsigned char* srcImage)
+          unsigned char* srcImage)
 {
     char formatstr[2048];
     char *imagefmt;
@@ -1362,17 +1315,12 @@ dumpImage(_TCHAR* name, int width, int height, int components, int componentSize
 
     switch (components) {
       case 1:
-        if (isLuminance) {
-            imagefmt = "lum b=";
-            fmtname = "LUMINANCE";
-        } else {
-            imagefmt = "a b=";
-            fmtname = "ALPHA";
-        }
+        imagefmt = "r b=";
+        fmtname = "R";
         break;
       case 2:
-        imagefmt = "luma b=";
-        fmtname = "LUMINANCE_ALPHA";
+        imagefmt = "rg b=";
+        fmtname = "RG";
         break;
       case 3:
         imagefmt = "rgb b=";
