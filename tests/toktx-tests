@@ -121,7 +121,7 @@ function cmpktx () {
     return 0
   else
 	failed=$failed+1
-    echo "Created ktx file differs from target $2. Bad file saved in $(pwd)/$1"
+    echo "Created ktx file differs from target $2. Bad file saved in $1"
     return 1
   fi
 }
@@ -165,6 +165,11 @@ gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgba.pam
 gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 gencmpktx kodim17_basis.ktx2 --bcmp kodim17.png
 gencmpktx color_grid_basis.ktx2 --bcmp color_grid.png
+
+filelist=$(mktemp)
+printf "level0.ppm\nlevel1.ppm\nlevel2.ppm\nlevel3.ppm\nlevel4.ppm\nlevel5.ppm\nlevel6.ppm" > $filelist
+gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata @$filelist
+rm $filelist
 
 numtests=$numtests+1
 tempfile=$(mktmp)

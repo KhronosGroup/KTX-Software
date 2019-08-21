@@ -32,6 +32,7 @@
 #include <sstream>
 #include <thread>
 #include <vector>
+#include <limits.h>
 #include <inttypes.h>
 
 #include "GL/glcorearb.h"
@@ -77,8 +78,6 @@ enum oetf_e {
     OETF_SRGB = 1,
     OETF_UNSET = 2
 };
-
-static void usage(const _TCHAR* appName);
 
 template <typename T> inline T clamp(T value, T low, T high) {
     return (value < low) ? low : ((value > high) ? high : value);
@@ -150,7 +149,6 @@ struct commandOptions {
         }
     };
 
-    _TCHAR*      appName;
     int          automipmap;
     int          cubemap;
     int          ktx2;
@@ -182,6 +180,10 @@ struct commandOptions {
     }
 };
 
+_TCHAR*      appName;
+
+static bool loadFileList(const std::string &f,
+                         std::vector<std::string>& filenames);
 static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
@@ -208,12 +210,15 @@ Create a KTX file from netpbm format files.
     the destination ktx file to @e outfile, appending ".ktx{,2}" if necessary.
     If @e outfile is '-' the output will be written to stdout.
  
-    @b toktx reads each named @e infile which must be in .pam, .ppm, .pgm or
-    .png format. Other formats can be readily converted to these formats using
-    tools such as ImageMagick and XnView. .ppm files yield RGB textures,
-    .pgm files RED textures, .pam files RED, RG, RGB or RGBA textures according
-    to the file's TUPLTYPE and DEPTH and .png files RED, RG, RGB or RGBA
-    textures according to the files's @e color type.
+    @b toktx reads each named @e infile. which must be in .pam, .ppm, .pgm or
+    .png format. @e infiles prefixed with '@' are read as text files listing
+    actual file names to process with one name per line.
+
+    .ppm files yield RGB textures, .pgm files RED textures, .pam files RED, RG,
+    RGB or RGBA textures according to the file's TUPLTYPE and DEPTH and .png
+    files RED, RG, RGB or RGBA textures according to the files's @e color type.
+    Other formats can be readily converted to the supported formats using tools
+    such as ImageMagick and XnView.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
     based on the input file. Netpbm files always use BT.709/sRGB primaries and
@@ -222,19 +227,21 @@ Create a KTX file from netpbm format files.
 
     For .png files the OETF is set as follows:
 
-    No color-info chunks or sRGB chunk is present:
-        primaries are set to BT.709 and OETF to sRGB.
-    sRGB chunk is present:
-        primaries are set to BT.709 and OETF to sRGB. gAMA and cHRM chunks
-        are ignored.
-    iCCP chunk is present:
-        General ICC profiles are not supported by toktx or the KTX2 format.
-        sRGB chunk must not be present.
-    gAMA and/or cHRM chunks are present without sRGB or iCCP:
-        If gAMA is 45455 the transfer function is set to sRGB, if 100000 it is
-        set to linear. Other gAMA values are unsupported. cHRM is currently
+    <dl>
+    <dt>No color-info chunks or sRGB chunk present:</dt>
+        <dd>primaries are set to BT.709 and OETF to sRGB.</dd>
+    <dt>sRGB chunk present:</dt>
+        <dd>primaries are set to BT.709 and OETF to sRGB. gAMA and cHRM chunks
+        are ignored.</dd>
+    <dt>iCCP chunk present:</dt>
+        <dd>General ICC profiles are not supported by toktx or the KTX2 format.
+        sRGB chunk must not be present.</dd>
+    <dt>gAMA and/or cHRM chunks present without sRGB or iCCP:</dt>
+        <dd>If gAMA is 45455 the OETF is set to sRGB, if 100000 it
+        is set to linear. Other gAMA values are unsupported. cHRM is currently
         unsupported. We should attempt to map the primary values to one of
-        the standard sets list in the Khronos Data Format specification.
+        the standard sets listed in the Khronos Data Format specification.</dd>
+    </dl>
  
     The following options are always available:
     <dl>
@@ -298,7 +305,7 @@ Create a KTX file from netpbm format files.
       <dt>--no_multithreading</dt>
       <dd>Disable multithreading. By default Basis compression will use the
           numnber of threads reported by @c std::thread::hardware_concurrency or
-          1 if value returned is 0.<dd>
+          1 if value returned is 0.</dd>
       <dt>--threads &lt;count&gt;</dt>
       <dd>Explicitly set the number of threads to use during compression.
           @b --no_multithreading must not be set.</dd>
@@ -577,19 +584,19 @@ int _tmain(int argc, _TCHAR* argv[])
                 uint8_t filesig[sizeof(pngsig)];
                 if (fseek(f, 0L, SEEK_SET) < 0) {
                     fprintf(stderr, "%s: Could not seek in \"%s\". %s\n",
-                            options.appName, infile.c_str(), strerror(errno));
+                            appName, infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (fread(filesig, sizeof(pngsig), 1, f) != 1) {
                     fprintf(stderr, "%s: Could not read \"%s\". %s\n",
-                            options.appName, infile.c_str(), strerror(errno));
+                            appName, infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (memcmp(filesig, pngsig, sizeof(pngsig))) {
                     fprintf(stderr, "%s: \"%s\" is not a .pam, .pgm, .ppm or .png file\n",
-                            options.appName, infile.c_str());
+                            appName, infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -600,7 +607,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 imageSize = w * h * components * componentSize;
             } else {
                 fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
-                        options.appName, infile.c_str());
+                        appName, infile.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
@@ -617,10 +624,10 @@ int _tmain(int argc, _TCHAR* argv[])
                     if (feof(f)) {
                         fprintf(stderr,
                                 "%s: Unexpected end of file reading \"%s\" \n",
-                                options.appName, infile.c_str());
+                                appName, infile.c_str());
                     } else {
                         fprintf(stderr, "%s: Error reading \"%s\": %s\n",
-                                options.appName, infile.c_str(),
+                                appName, infile.c_str(),
                                 strerror(ferror(f)));
                     }
                     exitCode = 1;
@@ -642,7 +649,7 @@ int _tmain(int argc, _TCHAR* argv[])
                   case LCT_PALETTE:
                     fprintf(stderr,
                     "%s: \"%s\" is a paletted image which are not supported.\n",
-                    options.appName, infile.c_str());
+                    appName, infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                   case LCT_GREY_ALPHA:
@@ -662,7 +669,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     imageSize = lodepng_get_raw_size(w, h, &state.info_raw);
                 } else {
                     delete srcImg;
-                    std::cerr << options.appName << ": " << "PNG decoder error:"
+                    std::cerr << appName << ": " << "PNG decoder error:"
                               << lodepng_error_text(error) << std::endl;
                     exitCode = 1;
                     goto cleanup;
@@ -724,7 +731,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         FileResult readResult = readImage(f, imageSize, srcImg);
                         if (SUCCESS != readResult) {
                             fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
-                                    options.appName, infile.c_str());
+                                    appName, infile.c_str());
                             exitCode = 1;
                             goto cleanup;
                         }
@@ -852,7 +859,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         if (levels * createInfo.numFaces > options.infilenames.size()) {
                             fprintf(stderr,
                                     "%s: too few files for %d mipmap levels and %d faces.\n",
-                                    options.appName, levels,
+                                    appName, levels,
                                     createInfo.numFaces);
                             exitCode = 1;
                             goto cleanup;
@@ -860,7 +867,7 @@ int _tmain(int argc, _TCHAR* argv[])
                             fprintf(stderr,
                                     "%s: too many files for %d mipmap levels and %d faces."
                                     " Extras will be ignored.\n",
-                                    options.appName, levels,
+                                    appName, levels,
                                     createInfo.numFaces);
                         }
                         createInfo.numLevels = levels;
@@ -876,7 +883,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                     if (KTX_SUCCESS != ret) {
                         fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
-                                options.appName, ktxErrorString(ret));
+                                appName, ktxErrorString(ret));
                         exitCode = 2;
                         goto cleanup;
                     }
@@ -885,7 +892,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         if (curfileOETF != fileOETF) {
                             fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
                                             "(OETF) than preceding files.\n",
-                                            options.appName, infile.c_str());
+                                            appName, infile.c_str());
                             exitCode = 1;
                             goto cleanup;
                         }
@@ -897,7 +904,7 @@ int _tmain(int argc, _TCHAR* argv[])
                             levelHeight >>= 1;
                             if (w != levelWidth || h != levelHeight) {
                                 fprintf(stderr, "%s: \"%s\" has incorrect width or height for current mipmap level\n",
-                                        options.appName, infile.c_str());
+                                        appName, infile.c_str());
                                 exitCode = 1;
                                 goto cleanup;
                             }
@@ -910,7 +917,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 if (options.cubemap && w != h && w != levelWidth) {
                     fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
                                     "size for current mipmap level\n",
-                            options.appName, infile.c_str());
+                            appName, infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -943,7 +950,7 @@ int _tmain(int argc, _TCHAR* argv[])
             (void)fclose(f);
         } else {
             fprintf(stderr, "%s could not open input file \"%s\". %s\n",
-                    options.appName, infile.c_str(), strerror(errno));
+                    appName, infile.c_str(), strerror(errno));
             exitCode = 2;
             goto cleanup;
         }
@@ -974,7 +981,7 @@ int _tmain(int argc, _TCHAR* argv[])
     if (options.ktx2) {
         // Add required writer metadata.
         std::stringstream writer;
-        writeId(writer, options.appName);
+        writeId(writer, appName);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                               (ktx_uint32_t)writer.str().length() + 1,
                               writer.str().c_str());
@@ -994,7 +1001,7 @@ int _tmain(int argc, _TCHAR* argv[])
             commandOptions::basisOptions& bopts = options.bopts;
             if (bopts.normalMap && chosenOETF != OETF_LINEAR) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
-                        " not linear.", options.appName);
+                        " not linear.", appName);
                 exitCode = 1;
                 goto cleanup;
             }
@@ -1007,7 +1014,7 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        options.appName, options.outfile.c_str(),
+                        appName, options.outfile.c_str(),
                         ktxErrorString(ret));
             }
         } else {
@@ -1017,7 +1024,7 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                    options.appName, options.outfile.c_str(),
+                    appName, options.outfile.c_str(),
                     ktxErrorString(ret));
             }
         }
@@ -1029,7 +1036,7 @@ int _tmain(int argc, _TCHAR* argv[])
         }  
     } else {
         fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                options.appName, options.outfile.c_str(), strerror(errno));
+                appName, options.outfile.c_str(), strerror(errno));
         exitCode = 2;
     }
 
@@ -1049,7 +1056,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     slash = _tcsrchr(argv[0], '\\');
     if (slash == NULL)
         slash = _tcsrchr(argv[0], '/');
-    options.appName = slash != NULL ? slash + 1 : argv[0];
+    appName = slash != NULL ? slash + 1 : argv[0];
 
     // NOTE: If options with arguments are ever added, this option handling
     // code will need revamping.
@@ -1065,7 +1072,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         processOptions(optparser, options);
         if (optparser.optind != (int)arglist.size()) {
             fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable.\n");
-            usage(options.appName);
+            usage(appName);
             exit(1);
         }
     }
@@ -1074,16 +1081,11 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     processOptions(parser, options);
 
     if (options.mipmap && options.levels > 1) {
-        usage(options.appName);
+        usage(appName);
         exit(1);
     }
     if (options.automipmap && (options.mipmap || options.levels > 1)) {
-        usage(options.appName);
-        exit(1);
-    }
-    ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
-    if (requiredInputFiles != 1 || argc - parser.optind < 1) {
-        usage(options.appName);
+        usage(appName);
         exit(1);
     }
 
@@ -1094,29 +1096,44 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     if (options.outfile.compare("-") != 0
         && options.outfile.find_last_of('.') == _tstring::npos)
     {
-        options.outfile.append(options.ktx2 ? ".ktx2" : ".ktx");
+        options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
     }
 
-    if (argc - i == 0) {
-        usage(options.appName);
-        exit(1);
-    } else {
+    if (argc - i > 0) {
         /* Check for attempt to use stdin as one of the
          * input files.
          */
         for (; i < argc; i++) {
-            if (parser.argv[i].compare("-") == 0) {
-                usage(options.appName);
-                exit(1);
+            if (parser.argv[i].front() == _T('@')) {
+                if (!loadFileList(parser.argv[i], options.infilenames)) {
+                    exit(1);
+                }
             } else {
                 options.infilenames.push_back(parser.argv[i]);
             }
         }
+        std::vector<_tstring>::const_iterator it;
+        for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
+            if (it->compare("-") == 0) {
+                fprintf(stderr, "%s: cannot read input from stdin.\n", appName);
+                usage(appName);
+                exit(1);
+            }
+        }
+        ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
+        if (requiredInputFiles > options.infilenames.size()) {
+            fprintf(stderr, "%s: too few input files.\n", appName);
+            exit(1);
+        }
+        /* Whether there are enough input files for all the mipmap levels in
+         * a full pyramid can only be checked when the first file has been
+         * read and the size determined.
+         */
+    } else {
+        // Need some input files.
+        usage(appName);
+        exit(1);
     }
-    /* Whether there are enough input files for all the mipmap levels can
-     * only be checked when the first file has been read and the
-     * size determined.
-     */
 }
 
 /*
@@ -1173,7 +1190,7 @@ processOptions(argparser& parser,
 #define setBasisOpt(opt, val) \
     options.bopts.opt.set(val, options.bcmp,                       \
                           parser.argv[parser.optind-1].c_str(),    \
-                          options.appName);                        \
+                          appName);                        \
 
     _tstring shortopts("bc:e:f:hmnrops:t:u:vl:q:");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
@@ -1184,10 +1201,10 @@ processOptions(argparser& parser,
             options.levels = atoi(parser.optarg.c_str());
             break;
           case 'h':
-            usage(options.appName);
+            usage(appName);
             exit(0);
           case 'v':
-            version(options.appName);
+            version(appName);
             exit(0);
           case 'b':
             options.bcmp = 1;
@@ -1231,10 +1248,73 @@ processOptions(argparser& parser,
           case '?':
           case ':':
           default:
-            usage(options.appName);
+            usage(appName);
             exit(1);
         }
     }
+}
+
+static bool
+loadFileList(const std::string &f, std::vector<std::string>& filenames)
+{
+    std::string listName(f);
+    listName.erase(0, 1);
+
+    FILE *lf = nullptr;
+#ifdef _WIN32
+    fopen_s(&lf, listName.c_str(), "r");
+#else
+    lf = fopen(listName.c_str(), "r");
+#endif
+
+    if (!lf) {
+        fprintf(stderr, "%s: Failed opening filename list: \"%s\": %s\n",
+                appName, listName.c_str(), strerror(errno));
+        return false;
+    }
+
+    uint32_t totalFilenames = 0;
+
+    for (;;) {
+        char buf[PATH_MAX];
+        buf[0] = '\0';
+
+        char *p = fgets(buf, sizeof(buf), lf);
+        if (!p) {
+          if (ferror(lf)) {
+            fprintf(stderr, "%s: Failed reading filename list: \"%s\": %s\n",
+                    appName, listName.c_str(), strerror(errno));
+            fclose(lf);
+            return false;
+          } else
+            break;
+        }
+
+        std::string readFilename(p);
+        while (readFilename.size()) {
+            if (readFilename[0] == _T(' '))
+              readFilename.erase(0, 1);
+            else
+              break;
+        }
+
+        while (readFilename.size()) {
+            const char c = readFilename.back();
+            if ((c == _T(' ')) || (c == _T('\n')) || (c == _T('\r')))
+              readFilename.erase(readFilename.size() - 1, 1);
+            else
+              break;
+        }
+
+        if (readFilename.size()) {
+            filenames.push_back(readFilename);
+            totalFilenames++;
+        }
+    }
+
+    fclose(lf);
+
+    return true;
 }
 
 static ktx_uint32_t
