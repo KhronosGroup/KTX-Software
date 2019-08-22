@@ -146,6 +146,19 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     KTX_supplemental_info suppInfo;
     KTX_error_code result;
 
+    // Print first as ktxCheckHeader1_ modifies the header.
+    printKTXHeader(pHeader);
+
+    if (pHeader->bytesOfKeyValueData) {
+        fprintf(stdout, "\nKey/Value Data\n\n");
+        metadata = malloc(pHeader->bytesOfKeyValueData);
+        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        printKVData(metadata, pHeader->bytesOfKeyValueData);
+        free(metadata);
+    } else {
+        fprintf(stdout, "\nNo Key/Value data.\n");
+    }
+
     result = ktxCheckHeader1_(pHeader, &suppInfo);
     if (result != KTX_SUCCESS) {
         fprintf(stdout, "The KTX 1 file pHeader is invalid:\n");
@@ -167,17 +180,6 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
                         "are the converted pHeader values\n\n");
     } else {
         fprintf(stdout, "Header\n\n");
-    }
-    printKTXHeader(pHeader);
-
-    if (pHeader->bytesOfKeyValueData) {
-        fprintf(stdout, "\nKey/Value Data\n\n");
-        metadata = malloc(pHeader->bytesOfKeyValueData);
-        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
-        printKVData(metadata, pHeader->bytesOfKeyValueData);
-        free(metadata);
-    } else {
-        fprintf(stdout, "\nNo Key/Value data.\n");
     }
 }
 
