@@ -190,11 +190,12 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
@@ -236,11 +237,12 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
-  "${builddir}/testimages/FlightHelmet_baseColor.ktx2"
+  "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
+  "${builddir}/testimages/color_grid_basis.ktx2"
   "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
   "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2"
-  "${builddir}/testimages/kodim17.ktx2"
+  "${builddir}/testimages/kodim17_basis.ktx2"
   "${builddir}/testimages/orient-down-metadata-u.ktx2"
   "${builddir}/testimages/orient-up-metadata-u.ktx2"
   "${builddir}/testimages/pattern_02_bc2.ktx2"
@@ -283,11 +285,12 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor.ktx2 ${builddir}/testimages/FlightHelmet_baseColor.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17.ktx2 ${builddir}/testimages/kodim17.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
@@ -449,7 +452,7 @@ set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LAN
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME "LaunchImage")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
