@@ -79,10 +79,6 @@ enum oetf_e {
     OETF_UNSET = 2
 };
 
-template <typename T> inline T clamp(T value, T low, T high) {
-    return (value < low) ? low : ((value > high) ? high : value);
-}
-
 template<typename T>
 struct clampedOption
 {
@@ -222,8 +218,8 @@ Create a KTX file from netpbm format files.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
     based on the input file. Netpbm files always use BT.709/sRGB primaries and
-    the BT.709 OETF. Currently toktx sets the transfer function to sRGB and
-    creates sRGB textures for these inputs. A conversion should be added.
+    the BT.709 OETF. @b toktx tranforms the image to sRGB, sets the transfer
+    function to sRGB and creates sRGB textures for these inputs.
 
     For .png files the OETF is set as follows:
 
@@ -289,10 +285,13 @@ Create a KTX file from netpbm format files.
     <dt>--linear</dt>
     <dd>Force the created texture to have a linear transfer function. Use this
         only when you know the file format information is wrong and the input
-        file uses a linear transfer function.</dd>
+        file uses a linear transfer function. If this is specified, the default
+        transform of Netpbm images to sRGB color space will not be performed.
+    </dd>
     <dt>--srgb</dt>
     <dd>Force the created texture to have an srgb transfer function. As with
-        @b --linear, use with caution.</dd>
+        @b --linear, use with caution. Like @b --linear, the default color
+        transform of Netpbm images will not be performed./dd>
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
@@ -450,9 +449,12 @@ usage(const _TCHAR* appName)
         "               ignores the orientation value, the image will appear upside down.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
         "               Use this only when you know the file format information is wrong\n"
-        "               and the input file uses a linear transfer function.\n"
+        "               and the input file uses a linear transfer function. If this is\n"
+        "               specified, the default transform of Netpbm images to sRGB color\n"
+        "               space will not be performed.\n"
         "  --srgb       Force the created texture to have an srgb transfer function.\n"
-        "               Ass with --linear, use with caution."
+        "               Ass with --linear, use with caution.  Like @b --linear, the\n"
+        "               default color transform of Netpbm images will not be performed."
         "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
@@ -572,7 +574,7 @@ int _tmain(int argc, _TCHAR* argv[])
             oetf_e curfileOETF;
 
             FileResult npbmResult = readNPBM(f, w, h, components,
-                                             componentSize, imageSize, 0);
+                                             componentSize, imageSize, &srcImg);
             if (npbmResult == INVALID_FORMAT) {
                 // Try .png. Unfortunately LoadPNG doesn't believe in stdio plus
                 // the function we need only reads from memory. To avoid
@@ -603,8 +605,17 @@ int _tmain(int argc, _TCHAR* argv[])
                 fileType = PNG;
             } else if (npbmResult == SUCCESS) {
                 fileType = NPBM;
-                curfileOETF = OETF_SRGB;
-                imageSize = w * h * components * componentSize;
+                if (options.oetf == OETF_UNSET) {
+                    // Convert to sRGB
+                    if (componentSize == 1) {
+                        OETFtransform(imageSize, srcImg, components,
+                                      decode709, encode_sRGB);
+                    } else {
+                        OETFtransform(imageSize, (uint16_t*)srcImg, components,
+                                      decode709, encode_sRGB);
+                    }
+                    curfileOETF = OETF_SRGB;
+                }
             } else {
                 fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
                         appName, infile.c_str());

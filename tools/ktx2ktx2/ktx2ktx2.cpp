@@ -450,7 +450,7 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    tstring shortopts("bfd:ho:v");
+    _tstring shortopts("bfd:ho:v");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:

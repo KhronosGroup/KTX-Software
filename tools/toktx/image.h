@@ -28,6 +28,8 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+#include <math.h>
+
 enum FileResult { SUCCESS, INVALID_FORMAT, INVALID_VALUE, INVALID_PAM_HEADER,
                   INVALID_TUPLETYPE, UNEXPECTED_EOF, IO_ERROR, OUT_OF_MEMORY };
 
@@ -48,6 +50,87 @@ FileResult readPGM(FILE* src, unsigned int& width, unsigned int& height,
                     size_t& imageSize, unsigned char** pixels);
 
 FileResult readImage(FILE* src, size_t imageSize, unsigned char*& pixels);
+
+template <typename T> inline T clamp(T value, T low, T high) {
+    return (value < low) ? low : ((value > high) ? high : value);
+}
+
+typedef float (*OETFFunc)(float const);
+
+static __inline__ float
+encode709(float const intensity) {
+    /* We're following what Netpbm does. This is their comment and code. */
+
+    /* Here are parameters of the gamma transfer function for the Netpbm
+       formats.  This is ITU-R Recommendation BT.709, FKA CIE Rec 709.  It is
+       also ITU-R Recommendation BT.601, FKA CCIR 601.
+
+       This transfer function is linear for sample values 0 .. .018
+       and an exponential for larger sample values.
+       The exponential is slightly stretched and translated, though,
+       unlike the popular pure exponential gamma transfer function.
+
+       The standard actually defines the linear expansion as 4.500, which
+       means there is a discontinuity at linear intensity .018.  We instead
+       use ~4.514 to make a continuous function.  This may have been simply
+       a mistake when this code was written or based on an actual benefit
+       to having a continuous function -- The history is not clear.
+
+       Note that the discrepancy is below the precision of a maxval 255
+       image.
+    */
+    float const gamma = 2.2;
+    float const oneOverGamma = 1.0 / gamma;
+    float const linearCutoff = 0.018;
+    float const linearExpansion =
+        (1.099 * pow(linearCutoff, oneOverGamma) - 0.099) / linearCutoff;
+
+    float brightness;
+
+    if (intensity < linearCutoff)
+        brightness = intensity * linearExpansion;
+    else
+        brightness = 1.099 * pow(intensity, oneOverGamma) - 0.099;
+
+    return brightness;
+}
+
+static __inline__ float
+decode709(float const brightness)
+{
+    float const gamma = 2.2;
+    float const oneOverGamma = 1.0 / gamma;
+    float const linearCutoff = 0.018;
+    float const linearExpansion =
+        (1.099 * pow(linearCutoff, oneOverGamma) - 0.099) / linearCutoff;
+
+    float intensity;
+
+    if (brightness < linearCutoff * linearExpansion)
+        intensity = brightness / linearExpansion;
+    else
+        intensity = pow((brightness + 0.099) / 1.099, gamma);
+
+    return intensity;
+}
+
+static __inline__ float
+encode_sRGB(float const intensity)
+{
+    float brightness;
+    if (intensity < 0.0031308)
+        brightness = 12.92 * intensity;
+    else
+        brightness = 1.055 * pow(intensity, 1.0/2.4) - 0.055;
+
+    return brightness;
+}
+
+void OETFtransform(size_t imageBytes, uint8_t* pixels,
+                   uint32_t components, OETFFunc decode, OETFFunc encode);
+
+void OETFtransform(size_t imageBytes, uint16_t* pixels,
+                   uint32_t components, OETFFunc decode, OETFFunc encode);
 
 #endif
 

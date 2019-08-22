@@ -29,6 +29,7 @@
 //!
 
 #include "stdafx.h"
+#include <inttypes.h>
 #include <stdlib.h>
 #include "image.h"
 
@@ -467,3 +468,37 @@ readImage(FILE* src, size_t imageSize, unsigned char*& pixels)
     }
     return SUCCESS;
 }
+
+void
+OETFtransform(size_t imageBytes, uint8_t* pixels,
+              uint32_t components, OETFFunc decode, OETFFunc encode)
+{
+    uint32_t pixelBytes = components * sizeof(*pixels);
+    for (size_t i = 0; i < imageBytes; i += pixelBytes) {
+        // Don't transform the alpha component. --------  ⌄
+        for (uint32_t comp = 0; comp < components && comp < 3; comp++) {
+            float brightness = (float)(*pixels) / 255;
+            float intensity = decode(brightness);
+            brightness = clamp(encode(intensity), 0.0f, 1.0f);
+            *pixels++ = roundf(brightness * 255);
+        }
+    }
+}
+
+void
+OETFtransform(size_t imageBytes, uint16_t* pixels,
+              uint32_t components, OETFFunc decode, OETFFunc encode)
+{
+    uint32_t pixelBytes = components * sizeof(*pixels);
+    for (size_t i = 0; i < imageBytes; i += pixelBytes) {
+        // Don't transform the alpha component. --------  ⌄
+        for (uint32_t comp = 0; comp < components && comp < 3; comp++) {
+            float brightness = (float)(*pixels) / 255;
+            float intensity = decode(brightness);
+            brightness = clamp(encode(intensity), 0.0f, 1.0f);
+            *pixels++ = roundf(brightness * 255);
+        }
+    }
+}
+
+
