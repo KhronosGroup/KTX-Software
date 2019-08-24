@@ -446,19 +446,20 @@ usage(const _tstring appName)
         "  --upper_left_maps_to_s0t0\n"
         "               Map the logical upper left corner of the image to s0,t0.\n"
         "               Although opposite to the OpenGL convention, this is the DEFAULT\n"
-        "               BEHAVIOUR. netpbm files have an upper left origin so this option\n"
-        "               does not flip the input files. When this option is in effect,\n"
-        "               toktx writes a KTXorientation value of S=r,T=d into the output file\n"
-        "               to inform loaders of the logical orientation. If an OpenGL {,ES}\n"
-        "               loader ignores the orientation value, the image will appear upside\n"
-        "               down.\n"
+        "               BEHAVIOUR. netpbm and PNG files have an upper left origin so\n"
+        "               this option does not flip the input images. When this option is\n"
+        "               in effect, toktx writes a KTXorientation value of S=r,T=d into\n"
+        "               the output file to inform loaders of the logical orientation. If\n"
+        "               an OpenGL {,ES} loader ignores the orientation value, the image\n"
+        "               will appear upside down.\n"
         "  --lower_left_maps_to_s0t0\n"
         "               Map the logical lower left corner of the image to s0,t0.\n"
-        "               This causes the input netpbm images to be flipped vertically to a\n"
-        "               lower-left origin. When this option is in effect, toktx\n"
-        "               writes a KTXorientation value of S=r,T=u into the output file\n"
-        "               to inform loaders of the logical orientation. If a Vulkan loader\n"
-        "               ignores the orientation value, the image will appear upside down.\n"
+        "               This causes the input netpbm and PNG images to be flipped|n"
+        "               vertically to a ower-left origin. When this option is in effect,\n"
+        "               toktx writes a KTXorientation value of S=r,T=u into the output\n"
+        "               file to inform loaders of the logical orientation. If a Vulkan\n"
+        "               loader ignores the orientation value, the image will appear\n"
+        "               upside down.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
         "               Use this only when you know the file format information is wrong\n"
         "               and the input file uses a linear transfer function. If this is\n"
@@ -539,9 +540,7 @@ usage(const _tstring appName)
 static void
 writeId(std::ostream& dst, _tstring appName)
 {
-    size_t dot = appName.find_last_of(_T('.'));
-    // For consistent Id, only use the stem appName;
-    dst << appName.substr(0, dot) << " version " << VERSION;
+    dst << appName << " version " << VERSION;
 }
 
 static void
@@ -1078,22 +1077,16 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     const _TCHAR* toktx_options;
     size_t slash, dot;
 
-#if 0
-    slash = _tcsrchr(argv[0], '\\');
-    if (slash == NULL)
-        slash = _tcsrchr(argv[0], '/');
-    appName = slash != NULL ? slash + 1 : argv[0];
-#else
 	appName = argv[0];
+    // For consistent Id, only use the stem of appName;
 	slash = appName.find_last_of(_T('\\'));
 	if (slash == _tstring::npos)
 		slash = appName.find_last_of(_T('/'));
 	if (slash != _tstring::npos)
-		appName.erase(0, slash+1);
+		appName.erase(0, slash+1);  // Remove directory name.
 	dot = appName.find_last_of(_T('.'));
-	// For consistent Id, only use the stem appName;
-	appName.erase(dot, _tstring::npos);
-#endif
+    if (dot != _tstring::npos)
+	  appName.erase(dot, _tstring::npos); // Remove extension.
 
     toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
     if (toktx_options) {
