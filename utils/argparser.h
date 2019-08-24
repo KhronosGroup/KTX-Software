@@ -24,14 +24,17 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#if !defined(_TCHAR)
+#if defined(_WIN32)
+  #include <tchar.h>
+#else
   #define _TCHAR char
-#endif
-#if !defined(_T)
   #define _T
 #endif
-typedef std::basic_string<_TCHAR> _tstring;
+#if defined(_UNICODE)
+  #define _tstring std::wstring
+#else
+  #define _tstring std::string
+#endif
 
 
 class argvector : public std::vector<_tstring> {

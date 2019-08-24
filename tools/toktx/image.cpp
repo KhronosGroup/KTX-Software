@@ -1,4 +1,4 @@
-// -*- tab-width: 4; -*-
+﻿// -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 expandtab:
 
 //
@@ -460,7 +460,7 @@ readImage(FILE* src, size_t imageSize, unsigned char*& pixels)
 
     if (fread(pixels, imageSize, 1, src) != 1)
     {
-        fprintf(stderr, "Error: could not read %lu bytes of pixel data.\n",
+        fprintf(stderr, "Error: could not read %zu bytes of pixel data.\n",
                 imageSize);
         free(pixels);
         pixels = 0;
@@ -475,12 +475,12 @@ OETFtransform(size_t imageBytes, uint8_t* pixels,
 {
     uint32_t pixelBytes = components * sizeof(*pixels);
     for (size_t i = 0; i < imageBytes; i += pixelBytes) {
-        // Don't transform the alpha component. --------  ⌄
+        // Don't transform the alpha component. --------  v
         for (uint32_t comp = 0; comp < components && comp < 3; comp++) {
             float brightness = (float)(*pixels) / 255;
             float intensity = decode(brightness);
             brightness = clamp(encode(intensity), 0.0f, 1.0f);
-            *pixels++ = roundf(brightness * 255);
+            *pixels++ = (uint8_t)roundf(brightness * 255);
         }
     }
 }
@@ -491,12 +491,12 @@ OETFtransform(size_t imageBytes, uint16_t* pixels,
 {
     uint32_t pixelBytes = components * sizeof(*pixels);
     for (size_t i = 0; i < imageBytes; i += pixelBytes) {
-        // Don't transform the alpha component. --------  ⌄
+        // Don't transform the alpha component. --------  v
         for (uint32_t comp = 0; comp < components && comp < 3; comp++) {
             float brightness = (float)(*pixels) / 255;
             float intensity = decode(brightness);
             brightness = clamp(encode(intensity), 0.0f, 1.0f);
-            *pixels++ = roundf(brightness * 255);
+            *pixels++ = (uint16_t)roundf(brightness * 255);
         }
     }
 }

@@ -48,6 +48,10 @@
 #  define IMAGE_DEBUG 0
 #endif
 
+#if defined(_WIN32)
+  #define PATH_MAX MAX_PATH
+#endif
+
 #if !defined(GL_RED)
 #define GL_RED                          0x1903
 #define GL_RGB8                         0x8051
@@ -78,6 +82,11 @@ enum oetf_e {
     OETF_SRGB = 1,
     OETF_UNSET = 2
 };
+
+#if defined(_MSC_VER)
+  #undef min
+  #undef max
+#endif
 
 template<typename T>
 struct clampedOption
@@ -166,7 +175,9 @@ struct commandOptions {
       ktx2 = 0;
       metadata = 1;
       mipmap = 0;
+      two_d = false;
       useStdin = false;
+      bcmp = false;
       levels = 1;
       oetf = OETF_UNSET;
       /* The OGLES WG recommended approach, even though it is opposite
@@ -176,10 +187,10 @@ struct commandOptions {
     }
 };
 
-_TCHAR*      appName;
+_tstring      appName;
 
-static bool loadFileList(const std::string &f,
-                         std::vector<std::string>& filenames);
+static bool loadFileList(const _tstring &f,
+                         std::vector<_tstring>& filenames);
 static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
@@ -269,16 +280,16 @@ Create a KTX file from netpbm format files.
     <dt>--upper_left_maps_to_s0t0</dt>
     <dd>Map the logical upper left corner of the image to s0,t0.
         Although opposite to the OpenGL convention, this is the DEFAULT
-        BEHAVIOUR. netpbm files have an upper left origin so this option
-        does not flip the input files. When this option is in effect,
+        BEHAVIOUR. netpbm and PNG files have an upper left origin so this
+		option does not flip the input images. When this option is in effect,
         toktx writes a KTXorientation value of S=r,T=d into the output file
         to inform loaders of the logical orientation. If an OpenGL {,ES}
         loader ignores the orientation value, the image will appear upside
         down.</dd>
     <dt>--lower_left_maps_to_s0t0</dt>
     <dd>Map the logical lower left corner of the image to s0,t0.
-        This causes the input netpbm images to be flipped vertically to a
-        lower-left origin. When this option is in effect, toktx
+        This causes the input netpbm and PNG images to be flipped vertically
+		to a lower-left origin. When this option is in effect, toktx
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.</dd>
@@ -286,7 +297,8 @@ Create a KTX file from netpbm format files.
     <dd>Force the created texture to have a linear transfer function. Use this
         only when you know the file format information is wrong and the input
         file uses a linear transfer function. If this is specified, the default
-        transform of Netpbm images to sRGB color space will not be performed.
+        color transform of Netpbm images to sRGB color space will not be
+		performed.
     </dd>
     <dt>--srgb</dt>
     <dd>Force the created texture to have an srgb transfer function. As with
@@ -393,7 +405,7 @@ Sun Dec 25 07:02:41 2016 -0200
 // it that works on all platforms (e.g running man toktx) even if I was
 // willing to tolerate markup commands in the usage output.
 static void
-usage(const _TCHAR* appName)
+usage(const _tstring appName)
 {
     fprintf(stderr, 
         "Usage: %s [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
@@ -518,22 +530,24 @@ usage(const _TCHAR* appName)
         "--mipmap are seen, it is always flagged as an error. You can, for example,\n"
         "set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change the default mapping of\n"
         "the logical image origin to match the GL convention.\n",
-        appName);
+        appName.c_str());
 }
 
 #define STR(x) #x
 #define VERSION 2.0
 
 static void
-writeId(std::ostream& dst, _TCHAR* appName)
+writeId(std::ostream& dst, _tstring appName)
 {
-    dst << appName << " version " << VERSION;
+    size_t dot = appName.find_last_of(_T('.'));
+    // For consistent Id, only use the stem appName;
+    dst << appName.substr(0, dot) << " version " << VERSION;
 }
 
 static void
-version(const _TCHAR* appName)
+version(const _tstring appName)
 {
-    fprintf(stderr, "%s version %s\n", appName, STR(VERSION));
+    fprintf(stderr, "%s version %s\n", appName.c_str(), STR(VERSION));
 }
 
 
@@ -565,7 +579,7 @@ int _tmain(int argc, _TCHAR* argv[])
     for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
         _tstring& infile = options.infilenames[i];
 
-        f = fopen(infile.c_str(),"rb");
+        f = _tfopen(infile.c_str(),"rb");
 
         if (f) {
             unsigned int w, h, componentSize;
@@ -586,19 +600,19 @@ int _tmain(int argc, _TCHAR* argv[])
                 uint8_t filesig[sizeof(pngsig)];
                 if (fseek(f, 0L, SEEK_SET) < 0) {
                     fprintf(stderr, "%s: Could not seek in \"%s\". %s\n",
-                            appName, infile.c_str(), strerror(errno));
+                            appName.c_str(), infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (fread(filesig, sizeof(pngsig), 1, f) != 1) {
                     fprintf(stderr, "%s: Could not read \"%s\". %s\n",
-                            appName, infile.c_str(), strerror(errno));
+                            appName.c_str(), infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (memcmp(filesig, pngsig, sizeof(pngsig))) {
                     fprintf(stderr, "%s: \"%s\" is not a .pam, .pgm, .ppm or .png file\n",
-                            appName, infile.c_str());
+                            appName.c_str(), infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -618,7 +632,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 }
             } else {
                 fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
-                        appName, infile.c_str());
+                        appName.c_str(), infile.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
@@ -635,10 +649,10 @@ int _tmain(int argc, _TCHAR* argv[])
                     if (feof(f)) {
                         fprintf(stderr,
                                 "%s: Unexpected end of file reading \"%s\" \n",
-                                appName, infile.c_str());
+                                appName.c_str(), infile.c_str());
                     } else {
                         fprintf(stderr, "%s: Error reading \"%s\": %s\n",
-                                appName, infile.c_str(),
+                                appName.c_str(), infile.c_str(),
                                 strerror(ferror(f)));
                     }
                     exitCode = 1;
@@ -660,7 +674,7 @@ int _tmain(int argc, _TCHAR* argv[])
                   case LCT_PALETTE:
                     fprintf(stderr,
                     "%s: \"%s\" is a paletted image which are not supported.\n",
-                    appName, infile.c_str());
+                    appName.c_str(), infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                   case LCT_GREY_ALPHA:
@@ -742,7 +756,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         FileResult readResult = readImage(f, imageSize, srcImg);
                         if (SUCCESS != readResult) {
                             fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
-                                    appName, infile.c_str());
+                                    appName.c_str(), infile.c_str());
                             exitCode = 1;
                             goto cleanup;
                         }
@@ -870,7 +884,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         if (levels * createInfo.numFaces > options.infilenames.size()) {
                             fprintf(stderr,
                                     "%s: too few files for %d mipmap levels and %d faces.\n",
-                                    appName, levels,
+                                    appName.c_str(), levels,
                                     createInfo.numFaces);
                             exitCode = 1;
                             goto cleanup;
@@ -878,7 +892,7 @@ int _tmain(int argc, _TCHAR* argv[])
                             fprintf(stderr,
                                     "%s: too many files for %d mipmap levels and %d faces."
                                     " Extras will be ignored.\n",
-                                    appName, levels,
+                                    appName.c_str(), levels,
                                     createInfo.numFaces);
                         }
                         createInfo.numLevels = levels;
@@ -894,7 +908,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                     if (KTX_SUCCESS != ret) {
                         fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
-                                appName, ktxErrorString(ret));
+                                appName.c_str(), ktxErrorString(ret));
                         exitCode = 2;
                         goto cleanup;
                     }
@@ -903,7 +917,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         if (curfileOETF != fileOETF) {
                             fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
                                             "(OETF) than preceding files.\n",
-                                            appName, infile.c_str());
+                                            appName.c_str(), infile.c_str());
                             exitCode = 1;
                             goto cleanup;
                         }
@@ -915,7 +929,7 @@ int _tmain(int argc, _TCHAR* argv[])
                             levelHeight >>= 1;
                             if (w != levelWidth || h != levelHeight) {
                                 fprintf(stderr, "%s: \"%s\" has incorrect width or height for current mipmap level\n",
-                                        appName, infile.c_str());
+                                        appName.c_str(), infile.c_str());
                                 exitCode = 1;
                                 goto cleanup;
                             }
@@ -928,7 +942,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 if (options.cubemap && w != h && w != levelWidth) {
                     fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
                                     "size for current mipmap level\n",
-                            appName, infile.c_str());
+                            appName.c_str(), infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -961,7 +975,7 @@ int _tmain(int argc, _TCHAR* argv[])
             (void)fclose(f);
         } else {
             fprintf(stderr, "%s could not open input file \"%s\". %s\n",
-                    appName, infile.c_str(), strerror(errno));
+                    appName.c_str(), infile.c_str(), strerror(errno));
             exitCode = 2;
             goto cleanup;
         }
@@ -1005,14 +1019,14 @@ int _tmain(int argc, _TCHAR* argv[])
         (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
     } else
-        f = fopen(options.outfile.c_str(), "wb");
+        f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
         if (options.bcmp) {
             commandOptions::basisOptions& bopts = options.bopts;
             if (bopts.normalMap && chosenOETF != OETF_LINEAR) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
-                        " not linear.", appName);
+                        " not linear.", appName.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
@@ -1025,7 +1039,7 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        appName, options.outfile.c_str(),
+                        appName.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
             }
         } else {
@@ -1035,19 +1049,19 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                    appName, options.outfile.c_str(),
+                    appName.c_str(), options.outfile.c_str(),
                     ktxErrorString(ret));
             }
         }
         if (KTX_SUCCESS != ret) {
             fclose(f);
             if (f != stdout)
-                _unlink(options.outfile.c_str());
+                _tunlink(options.outfile.c_str());
             exitCode = 2;
         }  
     } else {
         fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                appName, options.outfile.c_str(), strerror(errno));
+                appName.c_str(), options.outfile.c_str(), strerror(errno));
         exitCode = 2;
     }
 
@@ -1062,21 +1076,30 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 {
     int i;
     const _TCHAR* toktx_options;
-    _TCHAR* slash;
+    size_t slash, dot;
 
+#if 0
     slash = _tcsrchr(argv[0], '\\');
     if (slash == NULL)
         slash = _tcsrchr(argv[0], '/');
     appName = slash != NULL ? slash + 1 : argv[0];
-
-    // NOTE: If options with arguments are ever added, this option handling
-    // code will need revamping.
+#else
+	appName = argv[0];
+	slash = appName.find_last_of(_T('\\'));
+	if (slash == _tstring::npos)
+		slash = appName.find_last_of(_T('/'));
+	if (slash != _tstring::npos)
+		appName.erase(0, slash+1);
+	dot = appName.find_last_of(_T('.'));
+	// For consistent Id, only use the stem appName;
+	appName.erase(dot, _tstring::npos);
+#endif
 
     toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
     if (toktx_options) {
         std::istringstream iss(toktx_options);
         argvector arglist;
-        for (std::string w; iss >> w; )
+        for (_tstring w; iss >> w; )
             arglist.push_back(w);
 
         argparser optparser(arglist, 0);
@@ -1126,14 +1149,14 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         std::vector<_tstring>::const_iterator it;
         for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
             if (it->compare("-") == 0) {
-                fprintf(stderr, "%s: cannot read input from stdin.\n", appName);
+                fprintf(stderr, "%s: cannot read input from stdin.\n", appName.c_str());
                 usage(appName);
                 exit(1);
             }
         }
         ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
         if (requiredInputFiles > options.infilenames.size()) {
-            fprintf(stderr, "%s: too few input files.\n", appName);
+            fprintf(stderr, "%s: too few input files.\n", appName.c_str());
             exit(1);
         }
         /* Whether there are enough input files for all the mipmap levels in
@@ -1198,11 +1221,6 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-#define setBasisOpt(opt, val) \
-    options.bopts.opt.set(val, options.bcmp,                       \
-                          parser.argv[parser.optind-1].c_str(),    \
-                          appName);                        \
-
     _tstring shortopts("bc:e:f:hmnrops:t:u:vl:q:");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
@@ -1228,7 +1246,7 @@ processOptions(argparser& parser,
             options.bopts.maxEndpoints = atoi(parser.optarg.c_str());
             break;
           case 'f':
-            options.bopts.endpointRDOThreshold = atof(parser.optarg.c_str());
+            options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
             break;
           case 'm':
             options.bopts.noMultithreading = 1;
@@ -1252,7 +1270,7 @@ processOptions(argparser& parser,
             options.bopts.threadCount = atoi(parser.optarg.c_str());
             break;
           case 'u':
-            options.bopts.selectorRDOThreshold = atof(parser.optarg.c_str());
+            options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
             break;
           case 'i':
             break;
@@ -1266,21 +1284,21 @@ processOptions(argparser& parser,
 }
 
 static bool
-loadFileList(const std::string &f, std::vector<std::string>& filenames)
+loadFileList(const _tstring &f, std::vector<_tstring>& filenames)
 {
-    std::string listName(f);
+    _tstring listName(f);
     listName.erase(0, 1);
 
     FILE *lf = nullptr;
 #ifdef _WIN32
-    fopen_s(&lf, listName.c_str(), "r");
+    _tfopen_s(&lf, listName.c_str(), "r");
 #else
-    lf = fopen(listName.c_str(), "r");
+    lf = _tfopen(listName.c_str(), "r");
 #endif
 
     if (!lf) {
         fprintf(stderr, "%s: Failed opening filename list: \"%s\": %s\n",
-                appName, listName.c_str(), strerror(errno));
+                appName.c_str(), listName.c_str(), strerror(errno));
         return false;
     }
 
@@ -1294,7 +1312,7 @@ loadFileList(const std::string &f, std::vector<std::string>& filenames)
         if (!p) {
           if (ferror(lf)) {
             fprintf(stderr, "%s: Failed reading filename list: \"%s\": %s\n",
-                    appName, listName.c_str(), strerror(errno));
+                    appName.c_str(), listName.c_str(), strerror(errno));
             fclose(lf);
             return false;
           } else

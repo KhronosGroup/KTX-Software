@@ -121,7 +121,7 @@ function cmpktx () {
     return 0
   else
 	failed=$failed+1
-    echo "Created ktx file differs from target $2. Bad file saved in $1"
+    echo "Created ktx file differs from target $2. Bad file saved in $PWD/$1"
     return 1
   fi
 }
@@ -149,8 +149,9 @@ function gencmpktx() {
 	fi
   done
   #echo $toktx $args $tempfile $*
-  $toktx $args $tempfile $*
-  cmpktx $tempfile $reference
+  if $toktx $args $tempfile $*; then
+    cmpktx $tempfile $reference
+  fi
 }
 
 #---------------- Tests start here -----------------------

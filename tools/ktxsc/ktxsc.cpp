@@ -195,8 +195,13 @@ int _tmain(int argc, _TCHAR* argv[])
             } else if (options.outfile) {
                 outf = fopen(options.outfile, "wxb");
             } else {
+#if defined(_WIN32)
+                pTmpfile = _mktemp(tmpfile);
+                outf = fopen(pTmpfile, "wb");
+#else
                 outf = fdopen(mkstemp(tmpfile), "wb");
                 pTmpfile = tmpfile;
+#endif
             }
 
             if (!outf && errno == EEXIST) {

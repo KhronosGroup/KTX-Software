@@ -39,7 +39,7 @@
  */
 argvector::argvector(const _tstring& sArgs)
 {
-    const char *sep = " \t\n\r\v\f";
+    const _tstring sep(_T(" \t\n\r\v\f"));
     size_t pos;
 
     pos = sArgs.find_first_not_of(sep);

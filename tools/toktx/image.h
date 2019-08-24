@@ -57,7 +57,13 @@ template <typename T> inline T clamp(T value, T low, T high) {
 
 typedef float (*OETFFunc)(float const);
 
-static __inline__ float
+#if defined(_MSC_VER)
+#define INLINE __inline
+#else
+#define INLINE __inline__
+#endif
+
+static INLINE float
 encode709(float const intensity) {
     /* We're following what Netpbm does. This is their comment and code. */
 
@@ -79,49 +85,49 @@ encode709(float const intensity) {
        Note that the discrepancy is below the precision of a maxval 255
        image.
     */
-    float const gamma = 2.2;
-    float const oneOverGamma = 1.0 / gamma;
-    float const linearCutoff = 0.018;
+    float const gamma = 2.2f;
+    float const oneOverGamma = 1.0f / gamma;
+    float const linearCutoff = 0.018f;
     float const linearExpansion =
-        (1.099 * pow(linearCutoff, oneOverGamma) - 0.099) / linearCutoff;
+        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
 
     float brightness;
 
     if (intensity < linearCutoff)
         brightness = intensity * linearExpansion;
     else
-        brightness = 1.099 * pow(intensity, oneOverGamma) - 0.099;
+        brightness = 1.099f * pow(intensity, oneOverGamma) - 0.099f;
 
     return brightness;
 }
 
-static __inline__ float
+static INLINE float
 decode709(float const brightness)
 {
-    float const gamma = 2.2;
-    float const oneOverGamma = 1.0 / gamma;
-    float const linearCutoff = 0.018;
+    float const gamma = 2.2f;
+    float const oneOverGamma = 1.0f / gamma;
+    float const linearCutoff = 0.018f;
     float const linearExpansion =
-        (1.099 * pow(linearCutoff, oneOverGamma) - 0.099) / linearCutoff;
+        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
 
     float intensity;
 
     if (brightness < linearCutoff * linearExpansion)
         intensity = brightness / linearExpansion;
     else
-        intensity = pow((brightness + 0.099) / 1.099, gamma);
+        intensity = pow((brightness + 0.099f) / 1.099f, gamma);
 
     return intensity;
 }
 
-static __inline__ float
+static INLINE float
 encode_sRGB(float const intensity)
 {
     float brightness;
-    if (intensity < 0.0031308)
-        brightness = 12.92 * intensity;
+    if (intensity < 0.0031308f)
+        brightness = 12.92f * intensity;
     else
-        brightness = 1.055 * pow(intensity, 1.0/2.4) - 0.055;
+        brightness = 1.055f * pow(intensity, 1.0f/2.4f) - 0.055f;
 
     return brightness;
 }

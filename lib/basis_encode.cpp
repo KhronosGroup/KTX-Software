@@ -37,11 +37,11 @@
 #include "texture2.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
-#include "dfd.h"
 #include "basis_sgd.h"
 #include "basisu/basisu_comp.h"
 #include "basisu/transcoder/basisu_file_headers.h"
 #include "basisu/transcoder/basisu_transcoder.h"
+#include "dfdutils/dfd.h"
 
 using namespace basisu;
 using namespace basist;

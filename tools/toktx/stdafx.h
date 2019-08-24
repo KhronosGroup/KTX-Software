@@ -14,11 +14,10 @@
 #if _MSC_VER < 1900
 #define snprintf _snprintf
 #endif
-// Windows uses UTF-16 filenames.
-typedef std::wstring _tstring;
 #else
 #include <unistd.h>
 
+#define _setmode(x, y) 0
 #define _tmain main
 #define _TCHAR char
 #define _tcsncmp strncmp
@@ -30,8 +29,8 @@ typedef std::wstring _tstring;
 #define _tcscat strcat
 #define _tcsrchr strrchr
 #define _tcschr strchr
-#define _setmode(x, y) 0
-#define _unlink unlink
+#define _tfopen fopen
+#define _tunlink unlink
 #define _T
 
 // Others use UTF-8.
