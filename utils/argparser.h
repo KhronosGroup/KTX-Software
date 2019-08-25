@@ -28,7 +28,7 @@
   #include <tchar.h>
 #else
   #define _TCHAR char
-  #define _T
+  #define _T(x) x
 #endif
 #if defined(_UNICODE)
   #define _tstring std::wstring

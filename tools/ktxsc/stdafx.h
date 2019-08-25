@@ -28,8 +28,9 @@
 #define _tcsrchr strrchr
 #define _tcschr strchr
 #define _setmode(x, y) 0
-#define _unlink unlink
-#define _T
+#define _tfopen fopen
+#define _tunlink unlink
+#define _T(x) x
 
 #endif
 #include <fcntl.h>

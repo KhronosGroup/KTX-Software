@@ -31,10 +31,8 @@
 #define _tcschr strchr
 #define _tfopen fopen
 #define _tunlink unlink
-#define _T
+#define _T(x) x
 
-// Others use UTF-8.
-typedef std::string _tstring;
 #endif
 #include <fcntl.h>
 #include <errno.h>
