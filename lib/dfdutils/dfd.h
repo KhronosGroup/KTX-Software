@@ -130,6 +130,13 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
 /* Print a human-readable interpretation of a data format descriptor. */
 void printDFD(uint32_t *DFD);
 
+/* Get the number of components & component size from the DFD for an
+ * unpacked format.
+ */
+void
+getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
+                            uint32_t* componentByteLength);
+
 #ifdef __cplusplus
 }
 #endif

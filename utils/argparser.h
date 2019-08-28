@@ -24,20 +24,23 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#if !defined(_TCHAR)
+#if defined(_WIN32)
+  #include <tchar.h>
+#else
   #define _TCHAR char
+  #define _T(x) x
 #endif
-#if !defined(_T)
-  #define _T
+#if defined(_UNICODE)
+  #define _tstring std::wstring
+#else
+  #define _tstring std::string
 #endif
-typedef std::basic_string<_TCHAR> tstring;
 
 
-class argvector : public std::vector<tstring> {
+class argvector : public std::vector<_tstring> {
   public:
     argvector() { };
-    argvector(const tstring& argstring);
+    argvector(const _tstring& argstring);
     argvector(int argc, const _TCHAR* const* argv);
 };
 
@@ -50,8 +53,9 @@ class argparser {
         int val;
     };
 
-    tstring optarg;
+    _tstring optarg;
     unsigned int optind;
+    argvector argv;
 
     argparser(argvector& argv, unsigned int startindex = 0)
         : argv(argv), optind(startindex) { }
@@ -59,11 +63,8 @@ class argparser {
     argparser(int argc, const _TCHAR* const* argv1)
        : argv(argc, argv1), optind(1) { }
 
-    int getopt(tstring* shortopts, const struct option* longopts,
+    int getopt(_tstring* shortopts, const struct option* longopts,
                int* longindex = nullptr);
-
-  protected:
-    argvector argv;
 };
 
 //================== Helper for apps' processArgs ========================

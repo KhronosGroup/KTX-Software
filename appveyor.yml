@@ -81,14 +81,13 @@ build_script:
 - ps: |-
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
     refreshenv
+    $ErrorActionPreference = 'Stop'
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2013”) {$env:KTX_VSVER = “vs2013"}
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2015”) {$env:KTX_VSVER = “vs2015"}
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2017”) {$env:KTX_VSVER = “vs2017"}
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxdoc.sln
-- cmd: |-
-    .\setup_env.bat && bash -c "./runDoxygen ktxpkg.doxy"
 
 test_script:
 - ps: |-

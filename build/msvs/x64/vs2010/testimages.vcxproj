@@ -181,13 +181,6 @@
       <Outputs>$(OutDir)\testimages\texturearray_etc2_unorm.ktx2</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\kodim17.ktx2">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\kodim17.ktx2&quot; &quot;$(OutDir)testimages\kodim17.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/kodim17.ktx2 to $(OutDir)\testimages</Message>
-      <Outputs>$(OutDir)\testimages\kodim17.ktx2</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\orient-up.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\orient-up.ktx&quot; &quot;$(OutDir)testimages\orient-up.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
@@ -221,6 +214,13 @@
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\not4_rgb888_srgb.ktx&quot; &quot;$(OutDir)testimages\not4_rgb888_srgb.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/testimages/not4_rgb888_srgb.ktx to $(OutDir)\testimages</Message>
       <Outputs>$(OutDir)\testimages\not4_rgb888_srgb.ktx</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\color_grid_basis.ktx2">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\color_grid_basis.ktx2&quot; &quot;$(OutDir)testimages\color_grid_basis.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/color_grid_basis.ktx2 to $(OutDir)\testimages</Message>
+      <Outputs>$(OutDir)\testimages\color_grid_basis.ktx2</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\rgba-reference-u.ktx2">
@@ -384,6 +384,13 @@
       <Outputs>$(OutDir)\testimages\hi_mark_sq.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\kodim17_basis.ktx2">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\kodim17_basis.ktx2&quot; &quot;$(OutDir)testimages\kodim17_basis.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/kodim17_basis.ktx2 to $(OutDir)\testimages</Message>
+      <Outputs>$(OutDir)\testimages\kodim17_basis.ktx2</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\rgb-mipmap-reference.ktx">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\rgb-mipmap-reference.ktx&quot; &quot;$(OutDir)testimages\rgb-mipmap-reference.ktx&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
@@ -405,18 +412,18 @@
       <Outputs>$(OutDir)\testimages\etc2-rgba8.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="..\..\..\..\tests\testimages\FlightHelmet_baseColor.ktx2">
-      <FileType>Document</FileType>
-      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\FlightHelmet_baseColor.ktx2&quot; &quot;$(OutDir)testimages\FlightHelmet_baseColor.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Copying tests/testimages/FlightHelmet_baseColor.ktx2 to $(OutDir)\testimages</Message>
-      <Outputs>$(OutDir)\testimages\FlightHelmet_baseColor.ktx2</Outputs>
-      <LinkObjects>false</LinkObjects>
-    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\texturearray_bc3_unorm.ktx2">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\texturearray_bc3_unorm.ktx2&quot; &quot;$(OutDir)testimages\texturearray_bc3_unorm.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Message>Copying tests/testimages/texturearray_bc3_unorm.ktx2 to $(OutDir)\testimages</Message>
       <Outputs>$(OutDir)\testimages\texturearray_bc3_unorm.ktx2</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\FlightHelmet_baseColor_basis.ktx2">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\FlightHelmet_baseColor_basis.ktx2&quot; &quot;$(OutDir)testimages\FlightHelmet_baseColor_basis.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/FlightHelmet_baseColor_basis.ktx2 to $(OutDir)\testimages</Message>
+      <Outputs>$(OutDir)\testimages\FlightHelmet_baseColor_basis.ktx2</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\conftestimage_SIGNED_RG11_EAC.ktx">

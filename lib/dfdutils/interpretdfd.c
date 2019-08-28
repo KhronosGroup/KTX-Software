@@ -52,6 +52,12 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
     int determinedFloatness = 0;
     enum InterpretDFDResult result = 0; /* Build this up incrementally. */
 
+    /* Clear these so following code doesn't get confused. */
+    R->offset = R->size = 0;
+    G->offset = G->size = 0;
+    B->offset = B->size = 0;
+    A->offset = A->size = 0;
+
     /* First rule out the multiple planes case (trivially) */
     /* - that is, we check that only bytesPlane0 is non-zero. */
     /* This means we don't handle YUV even if the API could. */
@@ -326,4 +332,59 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
         }
     }
     return result;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Get the number and size of the image components from a DFD.
+ *
+ * This simplified function is for use only with the DFDs for unpacked
+ * formats which means all components have the same size.
+ *
+ * @param DFD Pointer to a Data Format Descriptor to interpret,
+              described as 32-bit words in native endianness.
+              Note that this is the whole descriptor, not just
+              the basic descriptor block.
+ * @param numComponents pointer to a 32-bit word in which the number of
+                        components will be written.
+ * @param componentSizeInBytes pointer to a 32-bit word in which the size of
+                               a component in bytes will be written.
+ */
+void
+getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
+                            uint32_t* componentByteLength)
+{
+    const uint32_t *BDFDB = DFD+1;
+    uint32_t numSamples = (KHR_DFDVAL(BDFDB, DESCRIPTORBLOCKSIZE) - 24U)
+                          / (4 * KHR_DF_WORD_SAMPLEWORDS);
+    uint32_t sampleCounter;
+    uint32_t currentChannel = ~0U; /* Don't start matched. */
+    uint32_t currentByteOffset = 0;
+    uint32_t currentByteLength = 0;
+
+    /* This is specifically for unpacked formats which means the size of */
+    /* each component is the same. */
+    *numComponents = 0;
+    for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
+        uint32_t sampleByteOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET) >> 3U;
+        uint32_t sampleByteLength = (KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) + 1) >> 3U;
+        uint32_t sampleChannel = KHR_DFDSVAL(BDFDB, sampleCounter, CHANNELID);
+
+        if (sampleChannel == currentChannel) {
+            /* Continuation of the same channel. */
+            /* Remember where we are. */
+            currentByteOffset = sampleByteOffset;
+            currentByteLength = sampleByteLength;
+            /* Accumulate the byte length. */
+            *componentByteLength += sampleByteLength;
+        } else {
+            /* Everything is new. Hopefully. */
+            currentChannel = sampleChannel;
+            currentByteOffset = sampleByteOffset;
+            currentByteLength = sampleByteLength;
+            (*numComponents)++;
+            *componentByteLength = sampleByteLength;
+        }
+    }
 }

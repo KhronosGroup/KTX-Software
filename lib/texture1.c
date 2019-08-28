@@ -116,7 +116,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
         This->glFormat = 0;
         This->glBaseInternalformat = glFormat;
         This->glType = 0;
-        prtctd->_typeSize = 0;
+        prtctd->_typeSize = 1;
     } else {
         This->glBaseInternalformat = This->glFormat = glFormat;
         This->glType

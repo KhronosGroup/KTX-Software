@@ -32,6 +32,7 @@
 #endif
 
 #include <stdlib.h>
+#include <KHR/khr_df.h>
 
 #include "dfdutils/dfd.h"
 #include "ktx.h"
@@ -119,10 +120,9 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
             This->_protected->_typeSize = 4;
     } else {
         // Unpacked and uncompressed
-        enum InterpretDFDResult dfdRes;
-        InterpretedDFDChannel r, g, b, a;
-        dfdRes = interpretDFD(This->pDfd, &r, &g, &b, &a,
-                              &This->_protected->_typeSize);
+        uint32_t numComponents;
+        getDFDComponentInfoUnpacked(This->pDfd, &numComponents,
+                                    &This->_protected->_typeSize);
     }
 
     This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
@@ -872,6 +872,25 @@ ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
 }
 
 /**
+ * @brief Return information about the components of an image format.
+ *
+ * @param[in]     This           pointer to the ktxTexture object of interest.
+ * @param[in,out] pNumComponents pointer to location in which to write the
+ *                               number of ocmponents in the textures images.
+ * @param[in,out] pComponentByteLength
+ *                               pointer to the location in which to write
+ *                               byte length of a component.
+ */
+ void
+ ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
+                              uint32_t* pComponentByteLength)
+{
+    // FIXME Need to handle packed case.
+    getDFDComponentInfoUnpacked(This->pDfd, pNumComponents,
+                                pComponentByteLength);
+}
+
+/**
  * @memberof ktxTexture2
  * @~English
  * @brief Find the offset of an image within a ktxTexture's image data.
@@ -934,6 +953,11 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
     return KTX_SUCCESS;
 }
 
+ktx_uint32_t
+ktxTexture2_GetOETF(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, TRANSFER);
+}
 
 /**
  * @memberof ktxTexture2

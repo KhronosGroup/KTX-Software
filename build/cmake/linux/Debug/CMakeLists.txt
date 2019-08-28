@@ -316,9 +316,11 @@ set_target_properties(libktx_gl PROPERTIES LINK_FLAGS "-g ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
@@ -409,9 +411,11 @@ set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
@@ -480,9 +484,11 @@ set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
@@ -521,9 +527,11 @@ set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
@@ -562,9 +570,11 @@ set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
@@ -746,11 +756,12 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
@@ -792,11 +803,12 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
-  "${builddir}/testimages/FlightHelmet_baseColor.ktx2"
+  "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
+  "${builddir}/testimages/color_grid_basis.ktx2"
   "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
   "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2"
-  "${builddir}/testimages/kodim17.ktx2"
+  "${builddir}/testimages/kodim17_basis.ktx2"
   "${builddir}/testimages/orient-down-metadata-u.ktx2"
   "${builddir}/testimages/orient-up-metadata-u.ktx2"
   "${builddir}/testimages/pattern_02_bc2.ktx2"
@@ -839,11 +851,12 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx ${builddir}
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor.ktx2 ${builddir}/testimages/FlightHelmet_baseColor.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17.ktx2 ${builddir}/testimages/kodim17.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
@@ -1077,7 +1090,7 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PR
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
@@ -1483,7 +1496,7 @@ set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_OTHER_LDFLAGS "-lassimp -lz")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.${PRODUCT_NAME}")
+set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/vkloadtests/resources/mac/Info.plist")
@@ -1627,9 +1640,11 @@ set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO"
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
@@ -1672,10 +1687,12 @@ set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_USE_HEADERMAP "NO")
+set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")

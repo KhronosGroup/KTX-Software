@@ -51,31 +51,18 @@
 #define VERSION "1.0.0"
 
 struct commandOptions {
-    _TCHAR*      appName;
-    _TCHAR*      outfile;
-    _TCHAR*      outdir;
-    bool         useStdin;
+    _tstring     appName;
+    _tstring     outfile;
+    _tstring     outdir;
     bool         useStdout;
     bool         force;
     bool         rewriteBadOrientation;
-    unsigned int numInputFiles;
-    unsigned int firstInfileIndex;
+    std::vector<_tstring> infiles;
 
     commandOptions() {
-        appName = 0;
-        outdir = 0;
-        outfile = 0;
-        numInputFiles = 0;
-        firstInfileIndex = 0;
-        useStdin = false;
         useStdout = false;
         force = false;
         rewriteBadOrientation = false;
-    }
-
-    ~commandOptions() {
-        if (outdir) delete outdir;
-        if (outfile) delete outfile;
     }
 };
 
@@ -147,7 +134,7 @@ Sat, 28 Apr 2019 14:41:22 +0900
 */
 
 static void
-usage(_TCHAR* appName)
+usage(_tstring& appName)
 {
     fprintf(stderr,
         "Usage: %s [options] [<infile> ...]\n"
@@ -176,19 +163,19 @@ usage(_TCHAR* appName)
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
         "               its permissions.\n",
-        appName);
+        appName.c_str());
 }
 
 
 static void
-writeId(std::ostream& dst, _TCHAR* appName)
+writeId(std::ostream& dst, _tstring& appName)
 {
     dst << appName << " version " << VERSION;
 }
 
 
 static void
-version(_TCHAR* appName)
+version(_tstring& appName)
 {
     writeId(cerr, appName);
     cerr << std::endl;
@@ -205,42 +192,32 @@ int _tmain(int argc, _TCHAR* argv[])
 
     processCommandLine(argc, argv, options);
 
-    for (ktx_uint32_t i = 0; i < options.numInputFiles; i++) {
-        _TCHAR *infile, *outfile;
+    std::vector<_tstring>::const_iterator it;
+    for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
+        _tstring infile = *it;
 
-        if (options.useStdin) {
-            infile = 0;
+        if (!infile.compare(_T("-"))) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            infile = argv[options.firstInfileIndex + i];
-            inf = fopen(infile, "rb");
+            inf = _tfopen(infile.c_str(), "rb");
         }
 
         if (inf) {
-            size_t basenamelen;
-            outfile = options.outfile;
-            if (!options.useStdin && !options.useStdout && !outfile) {
-                size_t outfilelen = _tcslen(infile) + 1;
-                _TCHAR* extension = _tcsrchr(infile, '.');
-                if ( extension == NULL) {
-                    basenamelen = outfilelen;
-                    outfilelen += 5;
-                } else {
-                    size_t extlen = _tcslen(extension);
-                    basenamelen = extension - infile;
-                    if (extlen < 5) {
-                        outfilelen += 5 - extlen;
-                    }
+            if (infile.compare(_T("-"))
+                && !options.useStdout && !options.outfile.length())
+            {
+                size_t dot;
+
+                options.outfile = infile;
+                dot = options.outfile.find_last_of(_T('.'));
+                if (dot != _tstring::npos) {
+                    options.outfile.erase(dot, _tstring::npos);
                 }
-                outfile = new _TCHAR[outfilelen];
-                if (outfile) {
-                    _tcsncpy(outfile, infile, basenamelen);
-                    _tcscpy(&outfile[basenamelen], ".ktx2");
-                }
+                options.outfile += _T(".ktx2");
             }
 
             if (options.useStdout) {
@@ -249,8 +226,8 @@ int _tmain(int argc, _TCHAR* argv[])
                 /* Set "stdout" to have binary mode */
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
-            } else if (outfile) {
-                outf = fopen(outfile, "wxb");
+            } else if (options.outfile.length()) {
+                outf = _tfopen(options.outfile.c_str(), "wxb");
             }
 
             if (!outf && errno == EEXIST) {
@@ -258,7 +235,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 if (!force) {
                     if (isatty(fileno(stdin))) {
                         char answer;
-                        cout << "Output file " << outfile
+                        cout << "Output file " << options.outfile.c_str()
                              << " exists. Overwrite? [Y or n] ";
                         cin >> answer;
                         if (answer == 'Y') {
@@ -267,7 +244,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = fopen(outfile, "wb");
+                    outf = _tfopen(options.outfile.c_str(), "wb");
                 }
             }
 
@@ -335,22 +312,23 @@ int _tmain(int argc, _TCHAR* argv[])
                     cerr << options.appName
                          << " failed to write KTX2 file; "
                          << ktxErrorString(result) << endl;
-                    (void)unlink(outfile);
+                    (void)_tunlink(options.outfile.c_str());
                     exitCode = 2;
                     goto cleanup;
                 }
             } else {
                 cerr << options.appName
                      << " could not open output file \""
-                     << (outfile ? outfile : "stdout") << "\". "
-                     << strerror(errno) << endl;
+                     << (options.outfile.length() ? options.outfile.c_str()
+                                                  : "stdout")
+                     << "\". " << strerror(errno) << endl;
                 exitCode = 2;
                 goto cleanup;
             }
         } else {
             cerr << options.appName
                  << " could not open input file \""
-                 << (infile ? infile : "stdin") << "\". "
+                 << (infile.compare(_T("-")) ? infile : "stdin") << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -365,56 +343,64 @@ cleanup:
 static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& options)
 {
     int i;
-    _TCHAR* slash;
+    size_t slash, dot;
 
-    slash = _tcsrchr(argv[0], '\\');
-    if (slash == NULL)
-        slash = _tcsrchr(argv[0], '/');
-    options.appName = slash != NULL ? slash + 1 : argv[0];
+    options.appName = argv[0];
+      // For consistent Id, only use the stem of appName;
+    slash = options.appName.find_last_of(_T('\\'));
+    if (slash == _tstring::npos)
+      slash = options.appName.find_last_of(_T('/'));
+    if (slash != _tstring::npos)
+      options.appName.erase(0, slash+1);  // Remove directory name.
+    dot = options.appName.find_last_of(_T('.'));
+      if (dot != _tstring::npos)
+      options.appName.erase(dot, _tstring::npos); // Remove extension.
 
     argparser parser(argc, argv);
     processOptions(parser, options);
 
     i = parser.optind;
-    options.numInputFiles = argc - i;
-    options.firstInfileIndex = i;
-    switch (options.numInputFiles) {
-      case 0:
-        options.numInputFiles = 1;
-        options.useStdin = true;
-        break;
-
-      case 1:
-        if (_tcscmp(argv[i], "-") == 0) {
-            options.numInputFiles = 1;
-            options.useStdin = true;
+    if (argc - i > 0) {
+        for (; i < argc; i++) {
+            options.infiles.push_back(parser.argv[i]);
         }
-        break;
+    }
 
-      default:
+    switch (options.infiles.size()) {
+      case 0:
+        options.infiles.push_back(_T("-")); // Use stdin
+        break;
+      case 1:
+        break;
+      default: {
         /* Check for attempt to use stdin as one of the
          * input files.
          */
-        for (++i; i < argc; i++) {
-            if (_tcscmp(argv[i], "-") == 0) {
+        std::vector<_tstring>::const_iterator it;
+        for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
+            if (it->compare(_T("-")) == 0) {
+                fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n",
+                        options.appName.c_str());
                 usage(options.appName);
                 exit(1);
             }
         }
+      }
+      break;
     }
 
-    if (options.useStdin && !options.outfile) {
+    if (!options.infiles[0].compare(_T("-")) && !options.outfile.length())
         options.useStdout = true;
-    }
-    if (options.numInputFiles > 1 && options.outfile) {
+    if (options.infiles.size() > 1 && options.outfile.length()) {
         usage(options.appName);
         exit(1);
     }
-    if (options.useStdin && options.outdir) {
+    if (!options.infiles[0].compare(_T("-")) && options.outdir.length()) {
         usage(options.appName);
         exit(1);
     }
 }
+
 
 /*
  * @brief process potential command line options
@@ -429,10 +415,7 @@ static void
 processOptions(argparser& parser,
                struct commandOptions& options)
 {
-    bool addktx2 = false;
     _TCHAR ch;
-    const _TCHAR* filename;
-    unsigned int filenamelen;
     static struct argparser::option option_list[] = {
         { "force", argparser::option::no_argument, NULL, 'f' },
         { "help", argparser::option::no_argument, NULL, 'h' },
@@ -450,7 +433,7 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    tstring shortopts("bfd:ho:v");
+    _tstring shortopts("bfd:ho:v");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
@@ -459,38 +442,20 @@ processOptions(argparser& parser,
             options.rewriteBadOrientation = true;
             break;
           case 'd':
-            filename = parser.optarg.c_str();
-            filenamelen = (unsigned int)_tcslen(filename) + 1;
-            options.outdir = new _TCHAR[filenamelen];
-            if (options.outdir) {
-                _tcscpy(options.outdir, filename);
-            } else {
-                fprintf(stderr, "%s: out of memory.\n", options.appName);
-                exit(2);
-            }
+            options.outdir = parser.optarg.c_str();
             break;
          case 'f':
             options.force = true;
             break;
          case 'o':
-            filename = parser.optarg.c_str();
-            if (!_tcscmp(filename, "stdout")) {
+            options.outfile = parser.optarg;
+            if (!options.outfile.compare(_T("stdout"))) {
                 options.useStdout = true;
             } else {
-                filenamelen = (unsigned int)_tcslen(filename) + 1;
-                if (_tcsrchr(filename, '.') == NULL) {
-                    addktx2 = true;
-                    filenamelen += 5;
-                }
-                options.outfile = new _TCHAR[filenamelen];
-                if (options.outfile) {
-                    _tcscpy(options.outfile, filename);
-                    if (addktx2) {
-                        _tcscat(options.outfile, ".ktx2");
-                    }
-                } else {
-                    fprintf(stderr, "%s: out of memory.\n", options.appName);
-                    exit(2);
+                size_t dot;
+                dot = options.outfile.find_last_of('.');
+                if (dot == _tstring::npos) {
+                    options.outfile += _T(".ktx2");
                 }
             }
             break;

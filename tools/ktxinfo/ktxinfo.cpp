@@ -43,25 +43,17 @@
 #define VERSION "1.0.0"
 
 struct commandOptions {
-    _TCHAR*      appName;
-    _TCHAR*      outfile;
-    _TCHAR*      outdir;
-    bool         useStdin;
+    _tstring      outfile;
+    _tstring      outdir;
     bool         force;
-    unsigned int numInputFiles;
-    unsigned int firstInfileIndex;
+    std::vector<_tstring> infiles;
 
     commandOptions() {
-        appName = 0;
-        numInputFiles = 0;
-        firstInfileIndex = 0;
-        useStdin = false;
         force = false;
     }
-
-    ~commandOptions() {
-    }
 };
+
+static _tstring appName;
 
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
@@ -105,7 +97,7 @@ Sat, 28 Apr 2018 14:41:22 +0900
 */
 
 static void
-usage(_TCHAR* appName)
+usage(_tstring& appName)
 {
     fprintf(stderr,
         "Usage: %s [options] [<infile> ...]\n"
@@ -116,14 +108,15 @@ usage(_TCHAR* appName)
 //        "  Options are:\n"
 //       "\n"
         ,
-        appName);
+        appName.c_str());
 }
 
 
 static void
-version(_TCHAR* appName)
+version(_tstring& appName)
 {
-    fprintf(stderr, "%s version %s. Commit %s\n", appName, VERSION, COMMIT);
+    fprintf(stderr, "%s version %s. Commit %s\n", appName.c_str(),
+            VERSION, COMMIT);
 }
 
 
@@ -135,19 +128,18 @@ int _tmain(int argc, _TCHAR* argv[])
 
     processCommandLine(argc, argv, options);
 
-    for (ktx_uint32_t i = 0; i < options.numInputFiles; i++) {
-        _TCHAR *infile;
+    std::vector<_tstring>::const_iterator it;
+    for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
+        _tstring infile = *it;
 
-        if (options.useStdin) {
-            infile = 0;
+        if (!infile.compare(_T("-"))) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            infile = argv[options.firstInfileIndex + i];
-            inf = fopen(infile, "rb");
+            inf = _tfopen(infile.c_str(), "rb");
         }
 
         if (inf) {
@@ -155,24 +147,24 @@ int _tmain(int argc, _TCHAR* argv[])
 
             result = ktxPrintInfoForStdioStream(inf);
             if (result ==  KTX_FILE_UNEXPECTED_EOF) {
-                cerr << options.appName
+                cerr << appName
                      << ": Unexpected end of file reading \""
-                     << (infile ? infile : "stdin") << "\"."
+                     << (infile.compare(_T("-")) ? "stdin" : infile) << "\"."
                      << endl;
                      exit(2);
             }
             if (result == KTX_UNKNOWN_FILE_FORMAT) {
-                cerr << options.appName
-                     << ": " << (infile ? infile : "stdin")
+                cerr << appName
+                     << ": " << (infile.compare(_T("-")) ? "stdin" : infile)
                      << " is not a KTX or KTX2 file."
                      << endl;
                      exitCode = 2;
                      goto cleanup;
             }
         } else {
-            cerr << options.appName
+            cerr << appName
                  << " could not open input file \""
-                 << (infile ? infile : "stdin") << "\". "
+                 << (infile.compare(_T("-")) ? "stdin" : infile) << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -187,31 +179,50 @@ cleanup:
 static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& options)
 {
     int i;
-    _TCHAR* slash;
+    size_t slash, dot;
 
-    slash = _tcsrchr(argv[0], '\\');
-    if (slash == NULL)
-        slash = _tcsrchr(argv[0], '/');
-    options.appName = slash != NULL ? slash + 1 : argv[0];
+    appName = argv[0];
+      // For consistent Id, only use the stem of appName;
+    slash = appName.find_last_of(_T('\\'));
+    if (slash == _tstring::npos)
+      slash = appName.find_last_of(_T('/'));
+    if (slash != _tstring::npos)
+      appName.erase(0, slash+1);  // Remove directory name.
+    dot = appName.find_last_of(_T('.'));
+      if (dot != _tstring::npos)
+      appName.erase(dot, _tstring::npos); // Remove extension.
 
     argparser parser(argc, argv);
     processOptions(parser, options);
 
     i = parser.optind;
-    options.numInputFiles = argc - i;
-    options.firstInfileIndex = i;
-    switch (options.numInputFiles) {
-      case 0:
-        options.numInputFiles = 1;
-        options.useStdin = true;
-        break;
-
-      case 1:
-        if (_tcscmp(argv[i], "-") == 0) {
-            options.numInputFiles = 1;
-            options.useStdin = true;
+    if (argc - i > 0) {
+        for (; i < argc; i++) {
+            options.infiles.push_back(parser.argv[i]);
         }
+    }
+
+    switch (options.infiles.size()) {
+      case 0:
+        options.infiles.push_back(_T("-")); // Use stdin
         break;
+      case 1:
+        break;
+      default: {
+        /* Check for attempt to use stdin as one of the
+         * input files.
+         */
+        std::vector<_tstring>::const_iterator it;
+        for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
+            if (it->compare(_T("-")) == 0) {
+                fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n",
+                        appName.c_str());
+                usage(appName);
+                exit(1);
+            }
+        }
+      }
+      break;
     }
 }
 
@@ -243,21 +254,21 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    tstring shortopts("fd:ho:v");
+    _tstring shortopts("fd:ho:v");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
             break;
           case 'h':
-            usage(options.appName);
+            usage(appName);
             exit(0);
           case 'v':
-            version(options.appName);
+            version(appName);
             exit(0);
           case '?':
           case ':':
           default:
-            usage(options.appName);
+            usage(appName);
             exit(1);
         }
     }

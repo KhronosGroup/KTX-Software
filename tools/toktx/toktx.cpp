@@ -30,7 +30,9 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include <thread>
 #include <vector>
+#include <limits.h>
 #include <inttypes.h>
 
 #include "GL/glcorearb.h"
@@ -46,36 +48,9 @@
 #  define IMAGE_DEBUG 0
 #endif
 
-#define ALLOW_LEGACY_FORMAT_CREATION 0
-
-#if ALLOW_LEGACY_FORMAT_CREATION
-#if !defined(GL_LUMINANCE)
-#define GL_LUMINANCE                    0x1909
-#define GL_LUMINANCE_ALPHA              0x190A
+#if defined(_WIN32)
+  #define PATH_MAX MAX_PATH
 #endif
-#if !defined(GL_LUMINANCE4)
-#define GL_ALPHA4                       0x803B
-#define GL_ALPHA8                       0x803C
-#define GL_ALPHA12                      0x803D
-#define GL_ALPHA16                      0x803E
-#define GL_LUMINANCE4                   0x803F
-#define GL_LUMINANCE8                   0x8040
-#define GL_LUMINANCE12                  0x8041
-#define GL_LUMINANCE16                  0x8042
-#define GL_LUMINANCE4_ALPHA4            0x8043
-#define GL_LUMINANCE6_ALPHA2            0x8044
-#define GL_LUMINANCE8_ALPHA8            0x8045
-#define GL_LUMINANCE12_ALPHA4           0x8046
-#define GL_LUMINANCE12_ALPHA12          0x8047
-#define GL_LUMINANCE16_ALPHA16          0x8048
-#endif
-#if !defined(GL_SLUMINANCE)
-#define GL_SLUMINANCE_ALPHA             0x8C44
-#define GL_SLUMINANCE8_ALPHA8           0x8C45
-#define GL_SLUMINANCE                   0x8C46
-#define GL_SLUMINANCE8                  0x8C47
-#endif
-#endif /* ALLOW_LEGACY_FORMAT_CREATION */
 
 #if !defined(GL_RED)
 #define GL_RED                          0x1903
@@ -102,31 +77,120 @@
 #define GL_SRG8                         0x8FBE // same as GL_SRG8_EXT
 #endif
 
-#define XFER_LINEAR 0
-#define XFER_SRGB 1
-#define XFER_NOT_SET 2
+enum oetf_e {
+    OETF_LINEAR = 0,
+    OETF_SRGB = 1,
+    OETF_UNSET = 2
+};
+
+#if defined(_MSC_VER)
+  #undef min
+  #undef max
+#endif
+
+template<typename T>
+struct clampedOption
+{
+  clampedOption(T& val, T min_v, T max_v) :
+    value(val),
+    min(min_v),
+    max(max_v)
+  {
+  }
+
+  void clear()
+  {
+    value = 0;
+  }
+
+  operator T() const
+  {
+    return value;
+  }
+
+  T operator= (T v)
+  {
+    value = clamp<T>(v, min, max);
+    return value;
+  }
+
+  T& value;
+  T min;
+  T max;
+};
 
 struct commandOptions {
-    _TCHAR*      appName;
-    int          alpha;
+    struct basisOptions : public ktxBasisParams {
+        // The remaining numeric fields are clamped within the Basis library.
+        clampedOption<ktx_uint32_t> threadCount;
+        clampedOption<ktx_uint32_t> qualityLevel;
+        clampedOption<ktx_uint32_t> maxEndpoints;
+        clampedOption<ktx_uint32_t> maxSelectors;
+        int noMultithreading;
+
+        basisOptions() :
+            threadCount(ktxBasisParams::threadCount, 1, 10000),
+            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
+            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
+            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
+            noMultithreading(0)
+        {
+            uint32_t tc = std::thread::hardware_concurrency();
+            if (tc == 0) tc = 1;
+            threadCount.max = tc;
+            threadCount = tc;
+
+            structSize = sizeof(ktxBasisParams);
+            compressionLevel = 0;
+            maxEndpoints.clear();
+            endpointRDOThreshold = 0.0f;
+            maxSelectors.clear();
+            selectorRDOThreshold = 0.0f;
+            normalMap = false;
+            separateRGToRGB_A = false;
+            preSwizzle = false;
+            noEndpointRDO = false;
+            noSelectorRDO = false;
+        }
+    };
+
     int          automipmap;
     int          cubemap;
     int          ktx2;
-    int          bcmp;
-    int          luminance;
     int          metadata;
     int          mipmap;
     int          two_d;
-    int          xferFunc;
+    oetf_e       oetf;
     int          useStdin;
     int          lower_left_maps_to_s0t0;
-    _TCHAR*      outfile;
+    int          bcmp;
+    struct basisOptions bopts;
+    _tstring     outfile;
     unsigned int levels;
-    unsigned int numInputFiles;
-    unsigned int firstInfileIndex;
-    unsigned int basis_quality;
+    std::vector<_tstring> infilenames;
+
+    commandOptions() {
+      automipmap = 0;
+      cubemap = 0;
+      ktx2 = 0;
+      metadata = 1;
+      mipmap = 0;
+      two_d = false;
+      useStdin = false;
+      bcmp = false;
+      levels = 1;
+      oetf = OETF_UNSET;
+      /* The OGLES WG recommended approach, even though it is opposite
+       * to the OpenGL convention. Suki ja nai.
+       */
+      lower_left_maps_to_s0t0 = 0;
+    }
 };
 
+static _tstring      appName;
+
+static bool loadFileList(const _tstring &f,
+                         std::vector<_tstring>& filenames);
 static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
@@ -135,8 +199,7 @@ static void yflip(unsigned char*& srcImage, size_t imageSize,
                   unsigned int w, unsigned int h, unsigned int pixelSize);
 #if IMAGE_DEBUG
 static void dumpImage(_TCHAR* name, int width, int height, int components,
-                      int componentSize, bool isLuminance,
-                      unsigned char* srcImage);
+                      int componentSize, unsigned char* srcImage);
 #endif
 
 /** @page toktx toktx
@@ -148,39 +211,44 @@ Create a KTX file from netpbm format files.
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
 
 @section toktx_description DESCRIPTION
-    @b toktx creates Khronos format texture files (KTX) from a set of Netpbm
-    format  (.pam, .pgm, .ppm) images. Currently it only supports creating KTX
-    files holding 2D and cube map textures. It writes the destination ktx file
-    to @e outfile, appending ".ktx{,2}" if necessary. If @e outfile is '-' the
-    output will be written to stdout.
+    Create a Khronos format texture file (KTX) from a set of Netpbm
+    format (.pam, .pgm, .ppm) or PNG (.png) images. Currently @b toktx only
+    supports creating a KTX file holding a 2D or cube map texture. It writes
+    the destination ktx file to @e outfile, appending ".ktx{,2}" if necessary.
+    If @e outfile is '-' the output will be written to stdout.
  
-    @b toktx reads each named @e infile which must be in .pam, .ppm, .pgm or
-    .png format. Other formats can be readily converted to these formats using
-    tools such as ImageMagick and XnView. .ppm files yield RGB textures,
-    .pgm files RED textures, .pam files RED, RG, RGB or RGBA textures according
-    to the file's TUPLTYPE and DEPTH and .png files RED, RG, RGB or RGBA
-    textures according to the files's @e color type.
+    @b toktx reads each named @e infile. which must be in .pam, .ppm, .pgm or
+    .png format. @e infiles prefixed with '@' are read as text files listing
+    actual file names to process with one name per line.
+
+    .ppm files yield RGB textures, .pgm files RED textures, .pam files RED, RG,
+    RGB or RGBA textures according to the file's TUPLTYPE and DEPTH and .png
+    files RED, RG, RGB or RGBA textures according to the files's @e color type.
+    Other formats can be readily converted to the supported formats using tools
+    such as ImageMagick and XnView.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
     based on the input file. Netpbm files always use BT.709/sRGB primaries and
-    the BT.709 OETF. Currently toktx sets the transfer function to sRGB and
-    creates sRGB textures for these inputs. A conversion should be added.
+    the BT.709 OETF. @b toktx tranforms the image to sRGB, sets the transfer
+    function to sRGB and creates sRGB textures for these inputs.
 
     For .png files the OETF is set as follows:
 
-    No color-info chunks or sRGB chunk is present:
-        primaries are set to BT.709 and OETF to sRGB.
-    sRGB chunk is present:
-        primaries are set to BT.709 and OETF to sRGB. gAMA and cHRM chunks
-        are ignored.
-    iCCP chunk is present:
-        General ICC profiles are not supported by toktx or the KTX2 format.
-        sRGB chunk must not be present.
-    gAMA and/or cHRM chunks are present without sRGB or iCCP:
-        If gAMA is 45455 the transfer function is set to sRGB, if 100000 it is
-        set to linear. Other gAMA values are unsupported. cHRM is currently
+    <dl>
+    <dt>No color-info chunks or sRGB chunk present:</dt>
+        <dd>primaries are set to BT.709 and OETF to sRGB.</dd>
+    <dt>sRGB chunk present:</dt>
+        <dd>primaries are set to BT.709 and OETF to sRGB. gAMA and cHRM chunks
+        are ignored.</dd>
+    <dt>iCCP chunk present:</dt>
+        <dd>General ICC profiles are not supported by toktx or the KTX2 format.
+        sRGB chunk must not be present.</dd>
+    <dt>gAMA and/or cHRM chunks present without sRGB or iCCP:</dt>
+        <dd>If gAMA is 45455 the OETF is set to sRGB, if 100000 it
+        is set to linear. Other gAMA values are unsupported. cHRM is currently
         unsupported. We should attempt to map the primary values to one of
-        the standard sets list in the Khronos Data Format specification.
+        the standard sets listed in the Khronos Data Format specification.</dd>
+    </dl>
  
     The following options are always available:
     <dl>
@@ -212,34 +280,88 @@ Create a KTX file from netpbm format files.
     <dt>--upper_left_maps_to_s0t0</dt>
     <dd>Map the logical upper left corner of the image to s0,t0.
         Although opposite to the OpenGL convention, this is the DEFAULT
-        BEHAVIOUR. netpbm files have an upper left origin so this option
-        does not flip the input files. When this option is in effect,
+        BEHAVIOUR. netpbm and PNG files have an upper left origin so this
+		option does not flip the input images. When this option is in effect,
         toktx writes a KTXorientation value of S=r,T=d into the output file
         to inform loaders of the logical orientation. If an OpenGL {,ES}
         loader ignores the orientation value, the image will appear upside
         down.</dd>
     <dt>--lower_left_maps_to_s0t0</dt>
     <dd>Map the logical lower left corner of the image to s0,t0.
-        This causes the input netpbm images to be flipped vertically to a
-        lower-left origin. When this option is in effect, toktx
+        This causes the input netpbm and PNG images to be flipped vertically
+		to a lower-left origin. When this option is in effect, toktx
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.</dd>
     <dt>--linear</dt>
     <dd>Force the created texture to have a linear transfer function. Use this
         only when you know the file format information is wrong and the input
-        file uses a linear transfer function.</dd>
+        file uses a linear transfer function. If this is specified, the default
+        color transform of Netpbm images to sRGB color space will not be
+		performed.
+    </dd>
     <dt>--srgb</dt>
     <dd>Force the created texture to have an srgb transfer function. As with
-        @b --linear, use with caution.</dd>
+        @b --linear, use with caution. Like @b --linear, the default color
+        transform of Netpbm images will not be performed./dd>
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
-    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.</dd>
-    <dt>--qual</dt>
-    <dd>Basis supercompression quality from 1 - 255. Default, if not specified,
-        is 128. Lower=better compression/lower quality/faster. Higher=less
-        compression/higher quality/slower.</dd>
+    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.
+        RED images will become RGB with RED in each component. RG images will
+        have R in the RGB part and G in the alpha part of the compressed
+        texture. When set, the following Basis-related options become valid
+        otherwise they are ignored.
+      <dl>
+      <dt>--no_multithreading</dt>
+      <dd>Disable multithreading. By default Basis compression will use the
+          numnber of threads reported by @c std::thread::hardware_concurrency or
+          1 if value returned is 0.</dd>
+      <dt>--threads &lt;count&gt;</dt>
+      <dd>Explicitly set the number of threads to use during compression.
+          @b --no_multithreading must not be set.</dd>
+      <dt>--clevel &lt;level&gt;</dt>
+      <dd>Basis compression level, an encoding speed vs. quality tradeoff. Range
+          is 0 - 5, default is 1. Higher values are slower, but give higher
+          quality.</dd>
+      <dt>--qlevel &lt;level&gt;</dt>
+      <dd>Basis quality level. Range is 1 - 255.  Lower gives better
+          compression/lower quality/faster. Higher gives less compression
+          /higher quality/slower. Values of @b --max_endpoints and
+          @b --max-selectors computed from this override any explicitly set
+          values. Default is 128, if either of @b --max_endpoints or
+          @b --max_selectors is unset, otherwise those settings rule.</dd>
+      <dt>--max_endpoints &lt;arg&gt;</dt>
+      <dd>Manually set the maximum number of color endpoint clusters
+          from 1-16128. Default is 0, unset.</dd>
+      <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
+      <dd>Set endpoint RDO quality threshold. The default is 1.25. Lower is
+          higher quality but less quality per output bit (try 1.0-3.0).
+          This will override the value chosen by @c --qual.</dd>
+      <dt>--max_selectors &lt;arg&gt;</dt>
+      <dd>Manually set the maximum number of color selector clusters
+          from 1-16128. Default is 0, unset.</dd>
+      <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
+      <dd>Set selector RDO quality threshold. The default is 1.5. Lower is
+          higher quality but less quality per output bit (try 1.0-3.0).
+          This will override the value chosen by @c --qual.</dd>
+      <dt>--normal_map</dt>
+      <dd>Tunes codec parameters for better quality on normal maps (no
+          selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
+      <dt>--separate_rg_to_color_alpha</dt>
+      <dd>Separates the input R and G channels to RGB and A (for tangent
+          space XY normal maps). Automatically selected if the input images
+          are 2-component.</dd>
+      <dt>--no_endpoint_rdo</dt>
+      <dd>Disable endpoint rate distortion optimizations. Slightly faster,
+          less noisy output, but lower quality per output bit. Default is
+          to do endpoint RDO.</dd>
+      <dt>--no_selector_rdo</dt>
+      <dd>Disable selector rate distortion optimizations. Slightly faster,
+          less noisy output, but lower quality per output bit. Default is
+          to do selector RDO.</dd>
+      </dl>
+    </dd>
     <dt>--help</dt>
     <dd>Print this usage message and exit.</dd>
     <dt>--version</dt>
@@ -279,8 +401,11 @@ Sun Dec 25 07:02:41 2016 -0200
     Mark Callow, Edgewise Consulting www.edgewise-consulting.com
 */
 
+// I really HATE this duplication of text but I cannot find a simple way to
+// it that works on all platforms (e.g running man toktx) even if I was
+// willing to tolerate markup commands in the usage output.
 static void
-usage(_TCHAR* appName)
+usage(const _tstring appName)
 {
     fprintf(stderr, 
         "Usage: %s [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
@@ -321,31 +446,82 @@ usage(_TCHAR* appName)
         "  --upper_left_maps_to_s0t0\n"
         "               Map the logical upper left corner of the image to s0,t0.\n"
         "               Although opposite to the OpenGL convention, this is the DEFAULT\n"
-        "               BEHAVIOUR. netpbm files have an upper left origin so this option\n"
-        "               does not flip the input files. When this option is in effect,\n"
-        "               toktx writes a KTXorientation value of S=r,T=d into the output file\n"
-        "               to inform loaders of the logical orientation. If an OpenGL {,ES}\n"
-        "               loader ignores the orientation value, the image will appear upside\n"
-        "               down.\n"
+        "               BEHAVIOUR. netpbm and PNG files have an upper left origin so\n"
+        "               this option does not flip the input images. When this option is\n"
+        "               in effect, toktx writes a KTXorientation value of S=r,T=d into\n"
+        "               the output file to inform loaders of the logical orientation. If\n"
+        "               an OpenGL {,ES} loader ignores the orientation value, the image\n"
+        "               will appear upside down.\n"
         "  --lower_left_maps_to_s0t0\n"
         "               Map the logical lower left corner of the image to s0,t0.\n"
-        "               This causes the input netpbm images to be flipped vertically to a\n"
-        "               lower-left origin. When this option is in effect, toktx\n"
-        "               writes a KTXorientation value of S=r,T=u into the output file\n"
-        "               to inform loaders of the logical orientation. If a Vulkan loader\n"
-        "               ignores the orientation value, the image will appear upside down.\n"
+        "               This causes the input netpbm and PNG images to be flipped|n"
+        "               vertically to a ower-left origin. When this option is in effect,\n"
+        "               toktx writes a KTXorientation value of S=r,T=u into the output\n"
+        "               file to inform loaders of the logical orientation. If a Vulkan\n"
+        "               loader ignores the orientation value, the image will appear\n"
+        "               upside down.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
         "               Use this only when you know the file format information is wrong\n"
-        "               and the input file uses a linear transfer function.\n"
+        "               and the input file uses a linear transfer function. If this is\n"
+        "               specified, the default transform of Netpbm images to sRGB color\n"
+        "               space will not be performed.\n"
         "  --srgb       Force the created texture to have an srgb transfer function.\n"
-        "               Ass with --linear, use with caution."
+        "               Ass with --linear, use with caution.  Like @b --linear, the\n"
+        "               default color transform of Netpbm images will not be performed."
         "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
-        "  --qual\n"
-        "               Basis supercompression quality from 1 - 255. Default is\n"
-        "               128. Lower=better compression/lower quality/faster. Higher=less\n"
-        "               compression/higher quality/slower.\n"
+        "               RED images will become RGB with RED in each component. RG images\n"
+        "               will have R in the RGB part and G in the alpha part of the\n"
+        "               compressed texture. When set, the following Basis-related\n"
+        "               options become valid, otherwise they are ignored.\n"
+        "       --no_multithreading\n"
+        "               Disable multithreading. By default Basis compression will use\n"
+        "               the numnber of threads reported by\n"
+        "               @c std::thread::hardware_concurrency or 1 if value returned is 0.\n"
+        "      --threads <count>\n"
+        "               Explicitly set the number of threads to use during compression.\n"
+        "               --no_multithreading must not be set.\n"
+        "      --clevel <level>\n"
+        "               Basis compression level, an encoding speed vs. quality tradeoff.\n"
+        "               Range is 0 - 5, default is 1. Higher values are slower, but give\n"
+        "               higher quality.\n"
+        "      --qlevel <level>\n"
+        "               Basis quality level. Range is 1 - 255.  Lower gives better\n"
+        "               compression/lower quality/faster. Higher gives less compression\n"
+        "               /higher quality/slower. Values of --max_endpoints and\n"
+        "               --max-selectors computed from this override any explicitly set\n"
+        "               values. Default is 128, if either of --max_endpoints or\n"
+        "               --max_selectors is unset, otherwise those settings rule.\n"
+        "      --max_endpoints <arg>\n"
+        "               Manually set the maximum number of color endpoint clusters from\n"
+        "               1-16128. Default is 0, unset.\n"
+        "      --endpoint_rdo_threshold <arg>\n"
+        "               Set endpoint RDO quality threshold. The default is 1.25. Lower\n"
+        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
+        "               This will override the value chosen by --qual.\n"
+        "      --max_selectors <arg>\n"
+        "               Manually set the maximum number of color selector clusters from\n"
+        "               1-16128. Default is 0, unset.\n"
+        "      --selector_rdo_threshold <arg>\n"
+        "               Set selector RDO quality threshold. The default is 1.25. Lower\n"
+        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
+        "               This will override the value chosen by --qual.\n"
+        "      --normal_map\n"
+        "               Tunes codec parameters for better quality on normal maps (no\n"
+        "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
+        "      --separate_rg_to_color_alpha\n"
+        "               Separates the input R and G channels to RGB and A (for tangent\n"
+        "               space XY normal maps). Automatically selected if the input\n"
+        "               image(s) are 2-component."
+        "      --no_endpoint_rdo\n"
+        "               Disable endpoint rate distortion optimizations. Slightly faster,\n"
+        "               less noisy output, but lower quality per output bit. Default is\n"
+        "               to do endpoint RDO.\n"
+        "      --no_selector_rdo\n"
+        "               Disable selector rate distortion optimizations. Slightly faster,\n"
+        "               less noisy output, but lower quality per output bit. Default is\n"
+        "               to do selector RDO.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
         "\n"
@@ -355,22 +531,22 @@ usage(_TCHAR* appName)
         "--mipmap are seen, it is always flagged as an error. You can, for example,\n"
         "set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change the default mapping of\n"
         "the logical image origin to match the GL convention.\n",
-        appName);
+        appName.c_str());
 }
 
 #define STR(x) #x
 #define VERSION 2.0
 
 static void
-writeId(std::ostream& dst, _TCHAR* appName)
+writeId(std::ostream& dst, _tstring& appName)
 {
     dst << appName << " version " << VERSION;
 }
 
 static void
-version(_TCHAR* appName)
+version(const _tstring& appName)
 {
-    fprintf(stderr, "%s version %s\n", appName, STR(VERSION));
+    fprintf(stderr, "%s version %s\n", appName.c_str(), STR(VERSION));
 }
 
 
@@ -383,7 +559,8 @@ int _tmain(int argc, _TCHAR* argv[])
     struct commandOptions options;
     size_t imageSize;
     int exitCode = 0, face;
-    unsigned int i, level, levelWidth, levelHeight;
+    unsigned int components, i, level, levelWidth, levelHeight;
+    oetf_e chosenOETF, fileOETF;
 
     processCommandLine(argc, argv, options);
 
@@ -396,31 +573,21 @@ int _tmain(int argc, _TCHAR* argv[])
     createInfo.numLayers = 1;
     createInfo.isArray = KTX_FALSE;
 
-    // TO DO: handle 3D textures. Concatenate the files here or in WriteKTXF?
+    // TO DO: handle 3D textures.
 
-    for (i = 0, face = 0, level = 0; i < options.numInputFiles; i++) {
-        _TCHAR* infile;
+    for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
+        _tstring& infile = options.infilenames[i];
 
-        if (options.useStdin) {
-            infile = 0;
-            f = stdin;
-#if defined(_WIN32)
-            /* Set "stdin" to have binary mode */
-            (void)_setmode( _fileno( stdin ), _O_BINARY );
-#endif
-        } else {
-            infile = argv[options.firstInfileIndex + i];
-            f = fopen(infile,"rb");
-        }
+        f = _tfopen(infile.c_str(),"rb");
 
         if (f) {
-            unsigned int w, h, components, componentSize;
+            unsigned int w, h, componentSize;
             uint8_t* srcImg = 0;
             enum fileType_e { NPBM, PNG } fileType;
-            int xferFunc;
+            oetf_e curfileOETF;
 
             FileResult npbmResult = readNPBM(f, w, h, components,
-                                             componentSize, imageSize, 0);
+                                             componentSize, imageSize, &srcImg);
             if (npbmResult == INVALID_FORMAT) {
                 // Try .png. Unfortunately LoadPNG doesn't believe in stdio plus
                 // the function we need only reads from memory. To avoid
@@ -432,30 +599,39 @@ int _tmain(int argc, _TCHAR* argv[])
                 uint8_t filesig[sizeof(pngsig)];
                 if (fseek(f, 0L, SEEK_SET) < 0) {
                     fprintf(stderr, "%s: Could not seek in \"%s\". %s\n",
-                            options.appName, infile, strerror(errno));
+                            appName.c_str(), infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (fread(filesig, sizeof(pngsig), 1, f) != 1) {
                     fprintf(stderr, "%s: Could not read \"%s\". %s\n",
-                            options.appName, infile, strerror(errno));
+                            appName.c_str(), infile.c_str(), strerror(errno));
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (memcmp(filesig, pngsig, sizeof(pngsig))) {
-                    fprintf(stderr, "%s: \"%s\" is not a.pam, .pgm, .ppm or .png file\n",
-                            options.appName, infile);
+                    fprintf(stderr, "%s: \"%s\" is not a .pam, .pgm, .ppm or .png file\n",
+                            appName.c_str(), infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                 }
                 fileType = PNG;
             } else if (npbmResult == SUCCESS) {
                 fileType = NPBM;
-                xferFunc = XFER_SRGB;
-                imageSize = w * h * components * componentSize;
+                if (options.oetf == OETF_UNSET) {
+                    // Convert to sRGB
+                    if (componentSize == 1) {
+                        OETFtransform(imageSize, srcImg, components,
+                                      decode709, encode_sRGB);
+                    } else {
+                        OETFtransform(imageSize, (uint16_t*)srcImg, components,
+                                      decode709, encode_sRGB);
+                    }
+                    curfileOETF = OETF_SRGB;
+                }
             } else {
                 fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
-                        options.appName, infile);
+                        appName.c_str(), infile.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
@@ -472,10 +648,11 @@ int _tmain(int argc, _TCHAR* argv[])
                     if (feof(f)) {
                         fprintf(stderr,
                                 "%s: Unexpected end of file reading \"%s\" \n",
-                                options.appName, infile);
+                                appName.c_str(), infile.c_str());
                     } else {
                         fprintf(stderr, "%s: Error reading \"%s\": %s\n",
-                                options.appName, infile, strerror(ferror(f)));
+                                appName.c_str(), infile.c_str(),
+                                strerror(ferror(f)));
                     }
                     exitCode = 1;
                     goto cleanup;
@@ -496,7 +673,7 @@ int _tmain(int argc, _TCHAR* argv[])
                   case LCT_PALETTE:
                     fprintf(stderr,
                     "%s: \"%s\" is a paletted image which are not supported.\n",
-                    options.appName, infile);
+                    appName.c_str(), infile.c_str());
                     exitCode = 1;
                     goto cleanup;
                   case LCT_GREY_ALPHA:
@@ -516,7 +693,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     imageSize = lodepng_get_raw_size(w, h, &state.info_raw);
                 } else {
                     delete srcImg;
-                    std::cerr << options.appName << ": " << "PNG decoder error:"
+                    std::cerr << appName << ": " << "PNG decoder error:"
                               << lodepng_error_text(error) << std::endl;
                     exitCode = 1;
                     goto cleanup;
@@ -547,21 +724,24 @@ int _tmain(int argc, _TCHAR* argv[])
                 // Using cHRM to get the primaries would require matching a set
                 // of primary values to a DFD primaries id.
 
-
                 if (state.info_png.srgb_defined) {
-                    xferFunc = XFER_SRGB;
+                    // intent is a matter for the user when a color transform
+                    // is needed during rendering, especially when gamut
+                    // mapping. It does not affect the meaning or value of the
+                    // image pixels so there is nothing to do here.
+                    curfileOETF = OETF_SRGB;
                 } else {
                     if (state.info_png.iccp_defined)
                         ; // Panic
                     else if (state.info_png.gama_defined) {
                         if (state.info_png.gama_gamma == 100000)
-                            xferFunc = XFER_LINEAR;
+                            curfileOETF = OETF_LINEAR;
                         else if (state.info_png.gama_gamma == 45455)
-                            xferFunc = XFER_SRGB;
+                            curfileOETF = OETF_SRGB;
                         else
                             ; // Panic
                     } else
-                        xferFunc = XFER_SRGB;
+                        curfileOETF = OETF_SRGB;
                 }
             }
 
@@ -575,7 +755,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         FileResult readResult = readImage(f, imageSize, srcImg);
                         if (SUCCESS != readResult) {
                             fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
-                                    options.appName, infile);
+                                    appName.c_str(), infile.c_str());
                             exitCode = 1;
                             goto cleanup;
                         }
@@ -586,11 +766,14 @@ int _tmain(int argc, _TCHAR* argv[])
                 if (i == 0) {
                     bool srgb;
 
-                    if (options.xferFunc != XFER_NOT_SET)
-                        xferFunc = options.xferFunc;
+                    fileOETF = curfileOETF;
+                    if (options.oetf == OETF_UNSET) {
+                        chosenOETF = fileOETF;
+                    } else {
+                        chosenOETF = options.oetf;
+                    }
 
-                    srgb = (xferFunc == XFER_SRGB);
-
+                    srgb = (chosenOETF == OETF_SRGB);
                     switch (components) {
                       case 1:
                         switch (componentSize) {
@@ -697,18 +880,18 @@ int _tmain(int argc, _TCHAR* argv[])
                             levels = options.levels;
                         }
                         // Check we have enough.
-                        if (levels * createInfo.numFaces > options.numInputFiles) {
+                        if (levels * createInfo.numFaces > options.infilenames.size()) {
                             fprintf(stderr,
                                     "%s: too few files for %d mipmap levels and %d faces.\n",
-                                    options.appName, levels,
+                                    appName.c_str(), levels,
                                     createInfo.numFaces);
                             exitCode = 1;
                             goto cleanup;
-                        } else if (levels * createInfo.numFaces < options.numInputFiles) {
+                        } else if (levels * createInfo.numFaces < options.infilenames.size()) {
                             fprintf(stderr,
                                     "%s: too many files for %d mipmap levels and %d faces."
                                     " Extras will be ignored.\n",
-                                    options.appName, levels,
+                                    appName.c_str(), levels,
                                     createInfo.numFaces);
                         }
                         createInfo.numLevels = levels;
@@ -724,11 +907,20 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                     if (KTX_SUCCESS != ret) {
                         fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
-                                options.appName, ktxErrorString(ret));
+                                appName.c_str(), ktxErrorString(ret));
                         exitCode = 2;
                         goto cleanup;
                     }
                 } else {
+                    if (options.oetf == OETF_UNSET) {
+                        if (curfileOETF != fileOETF) {
+                            fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
+                                            "(OETF) than preceding files.\n",
+                                            appName.c_str(), infile.c_str());
+                            exitCode = 1;
+                            goto cleanup;
+                        }
+                    }
                     if (face == (options.cubemap ? 6 : 1)) {
                         level++;
                         if (level < createInfo.numLevels) {
@@ -736,7 +928,7 @@ int _tmain(int argc, _TCHAR* argv[])
                             levelHeight >>= 1;
                             if (w != levelWidth || h != levelHeight) {
                                 fprintf(stderr, "%s: \"%s\" has incorrect width or height for current mipmap level\n",
-                                        options.appName, infile);
+                                        appName.c_str(), infile.c_str());
                                 exitCode = 1;
                                 goto cleanup;
                             }
@@ -747,11 +939,11 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                 }
                 if (options.cubemap && w != h && w != levelWidth) {
-                        fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
-                                        "size for current mipmap level\n",
-                                options.appName, infile);
-                        exitCode = 1;
-                        goto cleanup;
+                    fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
+                                    "size for current mipmap level\n",
+                            appName.c_str(), infile.c_str());
+                    exitCode = 1;
+                    goto cleanup;
                 }
                 if (srcImg)
                     ktxTexture_SetImageFromMemory(ktxTexture(texture),
@@ -773,7 +965,6 @@ int _tmain(int argc, _TCHAR* argv[])
                     ktx_size_t offset;
                     ktxTexture_GetImageOffset(texture, level, 0, face, &offset);
                     dumpImage(infile, w, h, components, componentSize,
-                              options.luminance,
                               texture.pData + offset);
                 }
 #endif
@@ -783,7 +974,7 @@ int _tmain(int argc, _TCHAR* argv[])
             (void)fclose(f);
         } else {
             fprintf(stderr, "%s could not open input file \"%s\". %s\n",
-                    options.appName, infile ? infile : "stdin", strerror(errno));
+                    appName.c_str(), infile.c_str(), strerror(errno));
             exitCode = 2;
             goto cleanup;
         }
@@ -814,27 +1005,41 @@ int _tmain(int argc, _TCHAR* argv[])
     if (options.ktx2) {
         // Add required writer metadata.
         std::stringstream writer;
-        writeId(writer, options.appName);
+        writeId(writer, appName);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                               (ktx_uint32_t)writer.str().length() + 1,
                               writer.str().c_str());
     }
 
-    if (_tcscmp(options.outfile, "-") == 0) {
+    if (options.outfile.compare("-") == 0) {
         f = stdout;
 #if defined(_WIN32)
         /* Set "stdout" to have binary mode */
         (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
     } else
-        f = fopen(options.outfile,"wb");
+        f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
         if (options.bcmp) {
-            ret = ktxTexture2_CompressBasis((ktxTexture2*)texture, options.basis_quality);
+            commandOptions::basisOptions& bopts = options.bopts;
+            if (bopts.normalMap && chosenOETF != OETF_LINEAR) {
+                fprintf(stderr, "%s: --normal_map specified but input file(s) are"
+                        " not linear.", appName.c_str());
+                exitCode = 1;
+                goto cleanup;
+            }
+            if (bopts.noMultithreading)
+                bopts.threadCount = 1;
+            if (components == 2) {
+                bopts.separateRGToRGB_A = true;
+            }
+
+            ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        options.appName, options.outfile, ktxErrorString(ret));
+                        appName.c_str(), options.outfile.c_str(),
+                        ktxErrorString(ret));
             }
         } else {
             ret = KTX_SUCCESS;
@@ -843,76 +1048,58 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                    options.appName, options.outfile, ktxErrorString(ret));
+                    appName.c_str(), options.outfile.c_str(),
+                    ktxErrorString(ret));
             }
         }
         if (KTX_SUCCESS != ret) {
             fclose(f);
             if (f != stdout)
-                _unlink(options.outfile);
+                _tunlink(options.outfile.c_str());
             exitCode = 2;
         }  
     } else {
         fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                options.appName, options.outfile, strerror(errno));
+                appName.c_str(), options.outfile.c_str(), strerror(errno));
         exitCode = 2;
     }
 
 cleanup:
     if (texture) ktxTexture_Destroy(ktxTexture(texture));
     if (f) (void)fclose(f);
-    delete(options.outfile);
     return exitCode;
 }
 
 
 static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& options)
 {
-    int i, addktx = 0;
-    unsigned int outfilenamelen;
+    int i;
     const _TCHAR* toktx_options;
-    _TCHAR* slash;
+    size_t slash, dot;
 
-    options.alpha = 0;
-    options.automipmap = 0;
-    options.cubemap = 0;
-    options.ktx2 = 0;
-    options.luminance = 0;
-    options.metadata = 1;
-    options.mipmap = 0;
-    options.outfile = 0;
-    options.numInputFiles = 0;
-    options.firstInfileIndex = 0;
-    options.useStdin = false;
-    options.levels = 1;
-    options.bcmp = 0;
-    options.basis_quality = 0;
-    options.xferFunc = XFER_NOT_SET;
-    /* The OGLES WG recommended approach, even though it is opposite
-     * to the OpenGL convention. Suki ja nai.
-     */
-    options.lower_left_maps_to_s0t0 = 0;
-
-    slash = _tcsrchr(argv[0], '\\');
-    if (slash == NULL)
-        slash = _tcsrchr(argv[0], '/');
-    options.appName = slash != NULL ? slash + 1 : argv[0];
-
-    // NOTE: If options with arguments are ever added, this option handling
-    // code will need revamping.
+	appName = argv[0];
+    // For consistent Id, only use the stem of appName;
+	slash = appName.find_last_of(_T('\\'));
+	if (slash == _tstring::npos)
+		slash = appName.find_last_of(_T('/'));
+	if (slash != _tstring::npos)
+		appName.erase(0, slash+1);  // Remove directory name.
+	dot = appName.find_last_of(_T('.'));
+    if (dot != _tstring::npos)
+	  appName.erase(dot, _tstring::npos); // Remove extension.
 
     toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
     if (toktx_options) {
         std::istringstream iss(toktx_options);
         argvector arglist;
-        for (std::string w; iss >> w; )
+        for (_tstring w; iss >> w; )
             arglist.push_back(w);
 
         argparser optparser(arglist, 0);
         processOptions(optparser, options);
         if (optparser.optind != (int)arglist.size()) {
             fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable.\n");
-            usage(options.appName);
+            usage(appName);
             exit(1);
         }
     }
@@ -920,63 +1107,60 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     argparser parser(argc, argv);
     processOptions(parser, options);
 
-    if (options.alpha && (!ALLOW_LEGACY_FORMAT_CREATION || options.luminance)) {
-        usage(options.appName);
-        exit(1);
-    }
-    if (options.luminance && !ALLOW_LEGACY_FORMAT_CREATION) {
-        usage(options.appName);
-        exit(1);
-    }
     if (options.mipmap && options.levels > 1) {
-        usage(options.appName);
+        usage(appName);
         exit(1);
     }
     if (options.automipmap && (options.mipmap || options.levels > 1)) {
-        usage(options.appName);
-        exit(1);
-    }
-    ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
-    if (requiredInputFiles != 1 || argc - parser.optind < 1) {
-        usage(options.appName);
+        usage(appName);
         exit(1);
     }
 
     i = parser.optind;
-    outfilenamelen = (unsigned int)_tcslen(argv[i]) + 1;
-    if (_tcscmp(argv[i], "-") != 0 && _tcsrchr(argv[i], '.') == NULL) {
-        addktx = 1;
-        outfilenamelen += 4;
+
+    options.outfile = parser.argv[i++];
+
+    if (options.outfile.compare(_T("-")) != 0
+        && options.outfile.find_last_of('.') == _tstring::npos)
+    {
+        options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
     }
-    options.outfile = new _TCHAR[outfilenamelen];
-    if (options.outfile) {
-        _tcscpy(options.outfile, argv[i++]);
-        if (addktx)
-            _tcscat(options.outfile, options.ktx2 ? ".ktx2" : ".ktx");
-    } else {
-        fprintf(stderr, "%s: out of memory.\n", options.appName);
-        exit(2);
-    }
-    options.numInputFiles = argc - i;
-    if (options.numInputFiles == 0) {
-        usage(options.appName);
-        exit(1);
-    } else {
-        options.firstInfileIndex = i;
+
+    if (argc - i > 0) {
+        for (; i < argc; i++) {
+            if (parser.argv[i].front() == _T('@')) {
+                if (!loadFileList(parser.argv[i], options.infilenames)) {
+                    exit(1);
+                }
+            } else {
+                options.infilenames.push_back(parser.argv[i]);
+            }
+        }
         /* Check for attempt to use stdin as one of the
          * input files.
          */
-        for (i = options.firstInfileIndex; i < argc; i++) {
-            if (_tcscmp(argv[i], "-") == 0) {
-                usage(options.appName);
+        std::vector<_tstring>::const_iterator it;
+        for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
+            if (it->compare(_T("-")) == 0) {
+                fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n", appName.c_str());
+                usage(appName);
                 exit(1);
             }
         }
+        ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
+        if (requiredInputFiles > options.infilenames.size()) {
+            fprintf(stderr, "%s: too few input files.\n", appName.c_str());
+            exit(1);
+        }
+        /* Whether there are enough input files for all the mipmap levels in
+         * a full pyramid can only be checked when the first file has been
+         * read and the size determined.
+         */
+    } else {
+        // Need some input files.
+        usage(appName);
+        exit(1);
     }
-    /* Whether there are enough input files for all the mipmap levels can
-     * only be checked when the first file has been read and the
-     * size determined.
-     */
 }
 
 /*
@@ -997,20 +1181,29 @@ processOptions(argparser& parser,
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "version", argparser::option::no_argument, NULL, 'v' },
         { "2d", argparser::option::no_argument, &options.two_d, 1 },
-        { "alpha", argparser::option::no_argument, &options.alpha, 1 },
         { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
         { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
         { "levels", argparser::option::required_argument, NULL, 'l' },
-        { "luminance", argparser::option::no_argument, &options.luminance, 1 },
         { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
-        { "linear", argparser::option::no_argument, &options.xferFunc, XFER_LINEAR },
-        { "srgb", argparser::option::no_argument, &options.xferFunc, XFER_SRGB },
+        { "linear", argparser::option::no_argument, (int*)&options.oetf, OETF_LINEAR },
+        { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
         { "bcmp", argparser::option::no_argument, NULL, 'b' },
-        { "qual", argparser::option::required_argument, NULL, 'q' },
+        { "mo_multithreading", argparser::option::no_argument, NULL, 'm' },
+        { "threads", argparser::option::required_argument, NULL, 't' },
+        { "clevel", argparser::option::required_argument, NULL, 'c' },
+        { "qlevel", argparser::option::required_argument, NULL, 'q' },
+        { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
+        { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'f' },
+        { "max_selectors", argparser::option::required_argument, NULL, 's' },
+        { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'u' },
+        { "normal_map", argparser::option::no_argument, NULL, 'n' },
+        { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 'r' },
+        { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
+        { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It
@@ -1021,7 +1214,7 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    tstring shortopts("bhvl:q:");
+    _tstring shortopts("bc:e:f:hmnrops:t:u:vl:q:");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
@@ -1030,27 +1223,123 @@ processOptions(argparser& parser,
             options.levels = atoi(parser.optarg.c_str());
             break;
           case 'h':
-            usage(options.appName);
+            usage(appName);
             exit(0);
           case 'v':
-            version(options.appName);
+            version(appName);
             exit(0);
           case 'b':
             options.bcmp = 1;
             options.ktx2 = 1;
             break;
+          case 'c':
+            options.bopts.compressionLevel = atoi(parser.optarg.c_str());
+            break;
+          case 'e':
+            options.bopts.maxEndpoints = atoi(parser.optarg.c_str());
+            break;
+          case 'f':
+            options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+            break;
+          case 'm':
+            options.bopts.noMultithreading = 1;
+            break;
+          case 'n':
+            options.bopts.normalMap = 1;
+            break;
+          case 'o':
+            options.bopts.noEndpointRDO = 1;
+            break;
+          case 'p':
+            options.bopts.noSelectorRDO = 1;
+            break;
           case 'q':
-            options.basis_quality = atoi(parser.optarg.c_str());
+            options.bopts.qualityLevel = atoi(parser.optarg.c_str());
+            break;
+          case 'r':
+            options.bopts.separateRGToRGB_A = 1;
+            break;
+          case 's':
+            options.bopts.maxSelectors = atoi(parser.optarg.c_str());
+            break;
+          case 't':
+            options.bopts.threadCount = atoi(parser.optarg.c_str());
+            break;
+          case 'u':
+            options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
             break;
           case 'i':
             break;
           case '?':
           case ':':
           default:
-            usage(options.appName);
+            usage(appName);
             exit(1);
         }
     }
+}
+
+static bool
+loadFileList(const _tstring &f, std::vector<_tstring>& filenames)
+{
+    _tstring listName(f);
+    listName.erase(0, 1);
+
+    FILE *lf = nullptr;
+#ifdef _WIN32
+    _tfopen_s(&lf, listName.c_str(), "r");
+#else
+    lf = _tfopen(listName.c_str(), "r");
+#endif
+
+    if (!lf) {
+        fprintf(stderr, "%s: Failed opening filename list: \"%s\": %s\n",
+                appName.c_str(), listName.c_str(), strerror(errno));
+        return false;
+    }
+
+    uint32_t totalFilenames = 0;
+
+    for (;;) {
+        char buf[PATH_MAX];
+        buf[0] = '\0';
+
+        char *p = fgets(buf, sizeof(buf), lf);
+        if (!p) {
+          if (ferror(lf)) {
+            fprintf(stderr, "%s: Failed reading filename list: \"%s\": %s\n",
+                    appName.c_str(), listName.c_str(), strerror(errno));
+            fclose(lf);
+            return false;
+          } else
+            break;
+        }
+
+        std::string readFilename(p);
+        while (readFilename.size()) {
+            if (readFilename[0] == _T(' '))
+              readFilename.erase(0, 1);
+            else
+              break;
+        }
+
+        while (readFilename.size()) {
+            const char c = readFilename.back();
+            if ((c == _T(' ')) || (c == _T('\n')) || (c == _T('\r')))
+              readFilename.erase(readFilename.size() - 1, 1);
+            else
+              break;
+        }
+
+        if (readFilename.size()) {
+            filenames.push_back(readFilename);
+            totalFilenames++;
+        }
+    }
+
+    fclose(lf);
+
+    return true;
 }
 
 static ktx_uint32_t
@@ -1104,7 +1393,7 @@ yflip(unsigned char*& srcImage, size_t imageSize,
 #if IMAGE_DEBUG
 static void
 dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
-          bool isLuminance, unsigned char* srcImage)
+          unsigned char* srcImage)
 {
     char formatstr[2048];
     char *imagefmt;
@@ -1113,17 +1402,12 @@ dumpImage(_TCHAR* name, int width, int height, int components, int componentSize
 
     switch (components) {
       case 1:
-        if (isLuminance) {
-            imagefmt = "lum b=";
-            fmtname = "LUMINANCE";
-        } else {
-            imagefmt = "a b=";
-            fmtname = "ALPHA";
-        }
+        imagefmt = "r b=";
+        fmtname = "R";
         break;
       case 2:
-        imagefmt = "luma b=";
-        fmtname = "LUMINANCE_ALPHA";
+        imagefmt = "rg b=";
+        fmtname = "RG";
         break;
       case 3:
         imagefmt = "rgb b=";

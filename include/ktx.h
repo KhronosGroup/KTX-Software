@@ -118,12 +118,17 @@ extern "C" {
 
 /**
  * @~English
- * @brief Key String for standard orientation value.
+ * @brief Key String for standard orientation metadata.
  */
 #define KTX_ORIENTATION_KEY "KTXorientation"
 /**
  * @~English
- * @brief Key String for standard writer value.
+ * @brief Key String for standard swizzle metadata.
+ */
+#define KTX_SWIZZLE_KEY "KTXswizzle"
+/**
+ * @~English
+ * @brief Key String for standard writer metadata.
  */
 #define KTX_WRITER_KEY "KTXwriter"
 /**
@@ -826,12 +831,82 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
+KTX_APICALL ktx_uint32_t KTX_APIENTRY
+ktxTexture2_GetOETF(ktxTexture2* This);
+
+KTX_APICALL void KTX_APIENTRY
+ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
+                             ktx_uint32_t* componentByteLength);
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Structure for passing extended parameters to
+ *        ktxTexture2_CompressBasisEx.
+ *
+ * Passing a struct initialized to 0 (e.g. " = {};") will use the default
+ * values. Only those settings to be modified need be non-zero.
+ */
 typedef struct ktxBasisParams {
-    ktx_uint32_t quality;      /*!< Compression quality, a value from 1 - 255. Default is
-                                    128 which is selected if @p quality is 0. Lower=better
-                                    compression/lower quality/faster. Higher=less
-                                    compression/higher quality/slower. */
-    ktx_uint32_t countThreads; /*!< Number of threads used for compression, e.g, 1.*/
+    ktx_uint32_t structSize;
+        /*!< Size of this struct. Used so library can tell which version
+             of struct is being passed.
+         */
+    ktx_uint32_t threadCount;
+        /*!< Number of threads used for compression. Default is 1. */
+    ktx_uint32_t compressionLevel;
+        /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5, default is
+             1. Higher values are slower, but give higher quality.
+        */
+    ktx_uint32_t qualityLevel;
+        /*!< Compression quality. Range is 1 - 255.  Lower gives better
+             compression/lower quality/faster. Higher gives less compression
+             /higher quality/slower. Values of @c maxEndpoints and
+             @c maxSelectors computed from this override any explicitly set
+             values. Default is 128, if either of @c maxEndpoints or
+             @c maxSelectors is unset, otherwise those settings rule.
+        */
+    ktx_uint32_t maxEndpoints;
+        /*!< Manually set the max number of color endpoint clusters
+             from 1-16128. Default is 0, unset.
+         */
+    float endpointRDOThreshold;
+        /*!< Set endpoint RDO quality threshold. The default is 1.25. Lower is
+             higher quality but less quality per output bit (try 1.0-3.0).
+             This will override the value chosen by @c qualityLevel.
+         */
+    ktx_uint32_t maxSelectors;
+        /*!< Manually set the max number of color selector clusters
+             from 1-16128. Default is 0, unset.
+         */
+    float selectorRDOThreshold;
+        /*!< Set selector RDO quality threshold. The default is 1.5. Lower is
+             higher quality but less quality per output bit (try 1.0-3.0).
+             This will override the value chosen by @c qualityLevel.
+         */
+    ktx_bool_t normalMap;
+        /*!< Tunes codec parameters for better quality on normal maps (no
+             selector RDO, no endpoint RDO). Only valid for linear textures.
+         */
+    ktx_bool_t separateRGToRGB_A;
+        /*!< Separates the input R and G channels to RGB and A (for tangent
+             space XY normal maps). Only valid for 2-component textures.
+         */
+    ktx_bool_t preSwizzle;
+        /*!< If the texture has @c KTXswizzle metadata, apply it before
+             compressing. Swizzling, like @c rabb may yield drastically
+             different error metrics if done after supercompression.
+         */
+    ktx_bool_t noEndpointRDO;
+        /*!< Disable endpoint rate distortion optimizations. Slightly faster,
+             less noisy output, but lower quality per output bit. Default is
+             KTX_FALSE.
+         */
+    ktx_bool_t noSelectorRDO;
+        /*!< Disable selector rate distortion optimizations. Slightly faster,
+             less noisy output, but lower quality per output bit. Default is
+             KTX_FALSE.
+         */
 } ktxBasisParams;
 
 KTX_APICALL KTX_error_code KTX_APIENTRY
