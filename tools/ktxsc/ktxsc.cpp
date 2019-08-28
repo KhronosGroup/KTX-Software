@@ -22,7 +22,10 @@
 #include <errno.h>
 #include <iostream>
 #include <sstream>
+#include <thread>
 #include <vector>
+
+#include <KHR/khr_df.h>
 
 #include "ktx.h"
 #include "argparser.h"
@@ -37,29 +40,95 @@
 
 #define VERSION "1.0.0"
 
+#if defined(_MSC_VER)
+  #undef min
+  #undef max
+#endif
+
+template <typename T> inline T clamp(T value, T low, T high) {
+    return (value < low) ? low : ((value > high) ? high : value);
+}
+
+template<typename T>
+struct clampedOption
+{
+  clampedOption(T& val, T min_v, T max_v) :
+    value(val),
+    min(min_v),
+    max(max_v)
+  {
+  }
+
+  void clear()
+  {
+    value = 0;
+  }
+
+  operator T() const
+  {
+    return value;
+  }
+
+  T operator= (T v)
+  {
+    value = clamp<T>(v, min, max);
+    return value;
+  }
+
+  T& value;
+  T min;
+  T max;
+};
+
 struct commandOptions {
-    _TCHAR*      appName;
-    _TCHAR*      outfile;
-    bool         useStdin;
-    bool         useStdout;
-    bool         force;
-    unsigned int numInputFiles;
-    unsigned int firstInfileIndex;
+    struct basisOptions : public ktxBasisParams {
+        // The remaining numeric fields are clamped within the Basis library.
+        clampedOption<ktx_uint32_t> threadCount;
+        clampedOption<ktx_uint32_t> qualityLevel;
+        clampedOption<ktx_uint32_t> maxEndpoints;
+        clampedOption<ktx_uint32_t> maxSelectors;
+        int noMultithreading;
+
+        basisOptions() :
+            threadCount(ktxBasisParams::threadCount, 1, 10000),
+            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
+            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
+            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
+            noMultithreading(0)
+        {
+            uint32_t tc = std::thread::hardware_concurrency();
+            if (tc == 0) tc = 1;
+            threadCount.max = tc;
+            threadCount = tc;
+
+            structSize = sizeof(ktxBasisParams);
+            compressionLevel = 0;
+            maxEndpoints.clear();
+            endpointRDOThreshold = 0.0f;
+            maxSelectors.clear();
+            selectorRDOThreshold = 0.0f;
+            normalMap = false;
+            separateRGToRGB_A = false;
+            preSwizzle = false;
+            noEndpointRDO = false;
+            noSelectorRDO = false;
+        }
+    };
+    
+    _tstring            appName;
+    _tstring            outfile;
+    bool                useStdout;
+    bool                force;
+    struct basisOptions bopts;
+    std::vector<_tstring> infilenames;
 
     commandOptions() {
-        appName = 0;
-        outfile = 0;
-        numInputFiles = 0;
-        firstInfileIndex = 0;
         force = false;
-        useStdin = false;
         useStdout = false;
     }
-
-    ~commandOptions() {
-        if (outfile) delete outfile;
-    }
 };
+
+static _tstring appName;
 
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
@@ -86,6 +155,10 @@ Supercompress the images in a KTX2 file.
     does not end in @c _BLOCK. It first compresses to ETC1S format then
     supercompresses with Basis Universal.
 
+    RED images will become RGB with RED in each component. RG images will
+    have R in each component of the RGB part and G in the alpha part of the
+    compressed texture.
+
     @b ktxsc reads each named @e infile and compresses it in place. When @e
     infile is not specified, a single file will be read from @e stdin. and the
     output written to @e stdout. When one or more files is specified each will
@@ -101,6 +174,60 @@ Supercompress the images in a KTX2 file.
     <dd>If the destination file cannot be opened, remove it and create a
         new file, without prompting for confirmation regardless of its
         permissions.</dd>
+    <dt>--bcmp</dt>
+    <dt>--no_multithreading</dt>
+    <dd>Disable multithreading. By default Basis compression will use the
+        numnber of threads reported by @c std::thread::hardware_concurrency or
+        1 if value returned is 0.</dd>
+    <dt>--threads &lt;count&gt;</dt>
+    <dd>Explicitly set the number of threads to use during compression.
+        @b --no_multithreading must not be set.</dd>
+    <dt>--clevel &lt;level&gt;</dt>
+    <dd>Basis compression level, an encoding speed vs. quality tradeoff. Range
+        is 0 - 5, default is 1. Higher values are slower, but give higher
+        quality.</dd>
+    <dt>--qlevel &lt;level&gt;</dt>
+    <dd>Basis quality level. Range is 1 - 255.  Lower gives better
+        compression/lower quality/faster. Higher gives less compression
+        /higher quality/slower. Values of @b --max_endpoints and
+        @b --max-selectors computed from this override any explicitly set
+        values. Default is 128, if either of @b --max_endpoints or
+        @b --max_selectors is unset, otherwise those settings rule.</dd>
+    <dt>--max_endpoints &lt;arg&gt;</dt>
+    <dd>Manually set the maximum number of color endpoint clusters
+        from 1-16128. Default is 0, unset.</dd>
+    <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
+    <dd>Set endpoint RDO quality threshold. The default is 1.25. Lower is
+        higher quality but less quality per output bit (try 1.0-3.0).
+        This will override the value chosen by @c --qual.</dd>
+    <dt>--max_selectors &lt;arg&gt;</dt>
+    <dd>Manually set the maximum number of color selector clusters
+        from 1-16128. Default is 0, unset.</dd>
+    <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
+    <dd>Set selector RDO quality threshold. The default is 1.5. Lower is
+        higher quality but less quality per output bit (try 1.0-3.0).
+        This will override the value chosen by @c --qual.</dd>
+    <dt>--normal_map</dt>
+    <dd>Tunes codec parameters for better quality on normal maps (no
+        selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
+    <dt>--separate_rg_to_color_alpha</dt>
+    <dd>Separates the input R and G channels to RGB and A (for tangent
+        space XY normal maps). Automatically selected if the input images
+        are 2-component.</dd>
+    <dt>--no_endpoint_rdo</dt>
+    <dd>Disable endpoint rate distortion optimizations. Slightly faster,
+        less noisy output, but lower quality per output bit. Default is
+        to do endpoint RDO.</dd>
+    <dt>--no_selector_rdo</dt>
+    <dd>Disable selector rate distortion optimizations. Slightly faster,
+        less noisy output, but lower quality per output bit. Default is
+        to do selector RDO.</dd>
+    </dd>
+    <dt>--help</dt>
+    <dd>Print this usage message and exit.</dd>
+    <dt>--version</dt>
+    <dd>Print the version number of this program and exit.</dd>
+    </dl>
 
 @section ktxsc_exitstatus EXIT STATUS
     @b toktx exits 0 on success, 1 on command line errors and 2 on
@@ -118,7 +245,7 @@ Mon, 15 Jul 2019 19:25:43 -0700
 */
 
 static void
-usage(_TCHAR* appName)
+usage(_tstring& appName)
 {
     fprintf(stderr,
         "Usage: %s [options] [<infile> ...]\n"
@@ -129,7 +256,6 @@ usage(_TCHAR* appName)
         "\n"
         "  Options are:\n"
         "\n"
-
         "  -o outfile, --output=outfile\n"
         "               Writes the output to outfile. If there is more than 1 input\n"
         "               file the ommand prints its usage message and exits. If outfile\n"
@@ -137,20 +263,69 @@ usage(_TCHAR* appName)
         "               than 1 infile the command prints its usage message and exits.\n"
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
-        "               its permissions.\n",
-        appName);
+        "               its permissions.\n"
+        " --no_multithreading\n"
+        "               Disable multithreading. By default Basis compression will use\n"
+        "               the numnber of threads reported by\n"
+        "               @c std::thread::hardware_concurrency or 1 if value returned is 0.\n"
+        " --threads <count>\n"
+        "               Explicitly set the number of threads to use during compression.\n"
+        "               --no_multithreading must not be set.\n"
+        " --clevel <level>\n"
+        "               Basis compression level, an encoding speed vs. quality tradeoff.\n"
+        "               Range is 0 - 5, default is 1. Higher values are slower, but give\n"
+        "               higher quality.\n"
+        " --qlevel <level>\n"
+        "               Basis quality level. Range is 1 - 255.  Lower gives better\n"
+        "               compression/lower quality/faster. Higher gives less compression\n"
+        "               /higher quality/slower. Values of --max_endpoints and\n"
+        "               --max-selectors computed from this override any explicitly set\n"
+        "               values. Default is 128, if either of --max_endpoints or\n"
+        "               --max_selectors is unset, otherwise those settings rule.\n"
+        " --max_endpoints <arg>\n"
+        "               Manually set the maximum number of color endpoint clusters from\n"
+        "               1-16128. Default is 0, unset.\n"
+        " --endpoint_rdo_threshold <arg>\n"
+        "               Set endpoint RDO quality threshold. The default is 1.25. Lower\n"
+        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
+        "               This will override the value chosen by --qual.\n"
+        " --max_selectors <arg>\n"
+        "               Manually set the maximum number of color selector clusters from\n"
+        "               1-16128. Default is 0, unset.\n"
+        " --selector_rdo_threshold <arg>\n"
+        "               Set selector RDO quality threshold. The default is 1.25. Lower\n"
+        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
+        "               This will override the value chosen by --qual.\n"
+        " --normal_map\n"
+        "               Tunes codec parameters for better quality on normal maps (no\n"
+        "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
+        " --separate_rg_to_color_alpha\n"
+        "               Separates the input R and G channels to RGB and A (for tangent\n"
+        "               space XY normal maps). Automatically selected if the input\n"
+        "               image(s) are 2-component."
+        " --no_endpoint_rdo\n"
+        "               Disable endpoint rate distortion optimizations. Slightly faster,\n"
+        "               less noisy output, but lower quality per output bit. Default is\n"
+        "               to do endpoint RDO.\n"
+        " --no_selector_rdo\n"
+        "               Disable selector rate distortion optimizations. Slightly faster,\n"
+        "               less noisy output, but lower quality per output bit. Default is\n"
+        "               to do selector RDO.\n"
+        "  --help       Print this usage message and exit.\n"
+        "  --version    Print the version number of this program and exit.\n",
+        appName.c_str());
 }
 
 
 static void
-writeId(std::ostream& dst, _TCHAR* appName)
+writeId(std::ostream& dst, _tstring& appName)
 {
     dst << appName << " version " << VERSION;
 }
 
 
 static void
-version(_TCHAR* appName)
+version(_tstring& appName)
 {
     writeId(cerr, appName);
     cerr << std::endl;
@@ -164,25 +339,24 @@ int _tmain(int argc, _TCHAR* argv[])
     ktxTexture2* texture = 0;
     struct commandOptions options;
     int exitCode = 0;
-    _TCHAR* pTmpfile;
+    const _TCHAR* pTmpFile;
 
     processCommandLine(argc, argv, options);
 
-    for (ktx_uint32_t i = 0; i < options.numInputFiles; i++) {
-        _TCHAR *infile;
-        _TCHAR tmpfile[] = _T("/tmp/ktxsc.XXXXXX");
+    std::vector<_tstring>::const_iterator it;
+    for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
+        _tstring infile = *it;
+        _tstring tmpfile = _T("/tmp/ktxsc.XXXXXX");
 
-        pTmpfile = NULL;
-        if (options.useStdin) {
-            infile = 0;
+        if (infile.compare(_T("-")) == 0) {
+            //infile = 0;
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            infile = argv[options.firstInfileIndex + i];
-            inf = fopen(infile, "rb");
+            inf = _tfopen(infile.c_str(), "rb");
         }
 
         if (inf) {
@@ -192,15 +366,18 @@ int _tmain(int argc, _TCHAR* argv[])
                 /* Set "stdout" to have binary mode */
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
-            } else if (options.outfile) {
-                outf = fopen(options.outfile, "wxb");
+            } else if (options.outfile.length()) {
+                outf = _tfopen(options.outfile.c_str(), "wxb");
             } else {
 #if defined(_WIN32)
-                pTmpfile = _mktemp(tmpfile);
-                outf = fopen(pTmpfile, "wb");
+                pTmpFile = _mktemp(&tmpfile[0]);
+                if (pTmpFile != nullptr)
+                    outf = _tfopen(tmpfile.c_str(), "wb");
+                else
+                    outf = nullptr;
 #else
-                outf = fdopen(mkstemp(tmpfile), "wb");
-                pTmpfile = tmpfile;
+                outf = fdopen(mkstemp(&tmpfile[0]), "wb");
+                pTmpFile = tmpfile.c_str();
 #endif
             }
 
@@ -218,7 +395,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = fopen(options.outfile, "wb");
+                    outf = _tfopen(options.outfile.c_str(), "wb");
                 }
             }
 
@@ -228,7 +405,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                         (ktxTexture**)&texture);
 
                 if (result != KTX_SUCCESS) {
-                    cerr << options.appName
+                    cerr << appName
                          << " failed to create ktxTexture; "
                          << ktxErrorString(result) << endl;
                     exitCode = 2;
@@ -238,15 +415,33 @@ int _tmain(int argc, _TCHAR* argv[])
 
                 // Modify the required writer metadata.
                 std::stringstream writer;
-                writeId(writer, options.appName);
+                writeId(writer, appName);
                 ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_KEY);
                 ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                                       (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
 
-                result = ktxTexture2_CompressBasis(texture, 0);
+                commandOptions::basisOptions& bopts = options.bopts;
+                ktx_uint32_t transfer = ktxTexture2_GetOETF(texture);
+                if (bopts.normalMap && transfer != KHR_DF_TRANSFER_LINEAR) {
+                    fprintf(stderr, "%s: --normal_map specified but input file(s) are"
+                            " not linear.", appName.c_str());
+                    exitCode = 1;
+                    goto cleanup;
+                }
+                if (bopts.noMultithreading)
+                    bopts.threadCount = 1;
+                uint32_t components, componentByteLength;
+                ktxTexture2_GetComponentInfo(texture,
+                                             &components,
+                                             &componentByteLength);
+                if (components == 2) {
+                    bopts.separateRGToRGB_A = true;
+                }
+
+                result = ktxTexture2_CompressBasisEx(texture, &bopts);
                 if (result != KTX_SUCCESS) {
-                    cerr << options.appName
+                    cerr << appName
                          << " failed to compress KTX2 file; "
                          << ktxErrorString(result) << endl;
                     exitCode = 2;
@@ -255,19 +450,19 @@ int _tmain(int argc, _TCHAR* argv[])
 
                 result = ktxTexture_WriteToStdioStream(ktxTexture(texture), outf);
                 if (result != KTX_SUCCESS) {
-                    cerr << options.appName
+                    cerr << appName
                          << " failed to write KTX2 file; "
                          << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
                 }
                 (void)fclose(outf);
-                if (!options.outfile && !options.useStdout) {
+                if (!options.outfile.length() && !options.useStdout) {
                     // Move the new file over the original.
-                    assert(pTmpfile && infile);
-                    int err = rename(tmpfile, infile);
+                    assert(pTmpFile && infile.length());
+                    int err = _trename(tmpfile.c_str(), infile.c_str());
                     if (err) {
-                        cerr << options.appName
+                        cerr << appName
                              << ": rename of \"%s\" to \"%s\" failed: "
                              << strerror(errno) << endl;
                         exitCode = 2;
@@ -275,7 +470,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                 }
             } else {
-                cerr << options.appName
+                cerr << appName
                      << " could not open output file \""
                      << (options.useStdout ? "stdout" : options.outfile) << "\". "
                      << strerror(errno) << endl;
@@ -283,9 +478,9 @@ int _tmain(int argc, _TCHAR* argv[])
                 goto cleanup;
             }
         } else {
-            cerr << options.appName
+            cerr << appName
                  << " could not open input file \""
-                 << (infile ? infile : "stdin") << "\". "
+                 << (infile.compare(_T("-")) == 0 ? "stdin" : infile) << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -294,8 +489,8 @@ int _tmain(int argc, _TCHAR* argv[])
     return 0;
 
 cleanup:
-    if (pTmpfile) (void)unlink(pTmpfile);
-    if (options.outfile) (void)unlink(options.outfile);
+  if (pTmpFile) (void)_tunlink(pTmpFile);
+    if (options.outfile.length()) (void)_tunlink(options.outfile.c_str());
     return exitCode;
 }
 
@@ -303,42 +498,57 @@ cleanup:
 static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& options)
 {
     int i;
-    _TCHAR* slash;
+    size_t slash, dot;
 
-    slash = _tcsrchr(argv[0], '\\');
-    if (slash == NULL)
-        slash = _tcsrchr(argv[0], '/');
-    options.appName = slash != NULL ? slash + 1 : argv[0];
+    appName = argv[0];
+      // For consistent Id, only use the stem of appName;
+    slash = appName.find_last_of(_T('\\'));
+    if (slash == _tstring::npos)
+      slash = appName.find_last_of(_T('/'));
+    if (slash != _tstring::npos)
+      appName.erase(0, slash+1);  // Remove directory name.
+    dot = appName.find_last_of(_T('.'));
+      if (dot != _tstring::npos)
+      appName.erase(dot, _tstring::npos); // Remove extension.
 
     argparser parser(argc, argv);
     processOptions(parser, options);
 
     i = parser.optind;
-    options.numInputFiles = argc - i;
-    options.firstInfileIndex = i;
-    switch (options.numInputFiles) {
-      case 0:
-        options.numInputFiles = 1;
-        options.useStdin = true;
-        break;
-
-      default:
-        /* Check for attempt to use stdin as one of the
-         * input files.
-         */
-        for (++i; i < argc; i++) {
-            if (_tcscmp(argv[i], "-") == 0) {
-                usage(options.appName);
-                exit(1);
-            }
+    if (argc - i > 0) {
+        for (; i < argc; i++) {
+            options.infilenames.push_back(parser.argv[i]);
         }
     }
 
-    if (options.useStdin && !options.outfile)
+    switch (options.infilenames.size()) {
+      case 0:
+        options.infilenames.push_back(_T("-")); // Use stdin
+        break;
+      case 1:
+        break;
+      default: {
+        /* Check for attempt to use stdin as one of the
+         * input files.
+         */
+        std::vector<_tstring>::const_iterator it;
+        for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
+            if (it->compare(_T("-")) == 0) {
+                fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n",
+                        appName.c_str());
+                usage(appName);
+                exit(1);
+            }
+        }
+      }
+      break;
+    }
+
+    if (!options.outfile.compare(_T("stdout")))
         options.useStdout = true;
 
-    if (options.numInputFiles > 1 && options.outfile) {
-        usage(options.appName);
+    if (options.infilenames.size() > 1 && options.outfile.length()) {
+        usage(appName);
         exit(1);
     }
 }
@@ -356,15 +566,24 @@ static void
 processOptions(argparser& parser,
                struct commandOptions& options)
 {
-    bool addktx2 = false;
     _TCHAR ch;
-    const _TCHAR* filename;
-    unsigned int filenamelen;
     static struct argparser::option option_list[] = {
         { "force", argparser::option::no_argument, NULL, 'f' },
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "outfile", argparser::option::required_argument, NULL, 'o' },
         { "version", argparser::option::no_argument, NULL, 'v' },
+        { "mo_multithreading", argparser::option::no_argument, NULL, 'm' },
+        { "threads", argparser::option::required_argument, NULL, 't' },
+        { "clevel", argparser::option::required_argument, NULL, 'c' },
+        { "qlevel", argparser::option::required_argument, NULL, 'q' },
+        { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
+        { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'g' },
+        { "max_selectors", argparser::option::required_argument, NULL, 's' },
+        { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'u' },
+        { "normal_map", argparser::option::no_argument, NULL, 'n' },
+        { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 'r' },
+        { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'b' },
+        { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It
@@ -375,7 +594,7 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    _tstring shortopts("fho:v");
+    _tstring shortopts("bc:e:fg:hmno:pq:rs:t:u:o:v");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
@@ -384,37 +603,63 @@ processOptions(argparser& parser,
             options.force = true;
             break;
           case 'o':
-            filename = parser.optarg.c_str();
-            if (!_tcscmp(filename, "stdout")) {
+            options.outfile = parser.optarg;
+            if (!options.outfile.compare(_T("stdout"))) {
                 options.useStdout = true;
             } else {
-                filenamelen = (unsigned int)_tcslen(filename) + 1;
-                if (_tcsrchr(filename, '.') == NULL) {
-                    addktx2 = true;
-                    filenamelen += 5;
-                }
-                options.outfile = new _TCHAR[filenamelen];
-                if (options.outfile) {
-                    _tcscpy(options.outfile, filename);
-                    if (addktx2) {
-                        _tcscat(options.outfile, ".ktx2");
-                    }
-                } else {
-                    fprintf(stderr, "%s: out of memory.\n", options.appName);
-                    exit(2);
+                size_t dot;
+                dot = options.outfile.find_last_of('.');
+                if (dot == _tstring::npos) {
+                    options.outfile += _T(".ktx2");
                 }
             }
             break;
+          case 'c':
+            options.bopts.compressionLevel = atoi(parser.optarg.c_str());
+            break;
+          case 'e':
+            options.bopts.maxEndpoints = atoi(parser.optarg.c_str());
+            break;
+          case 'g':
+            options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+            break;
+          case 'm':
+            options.bopts.noMultithreading = 1;
+            break;
+          case 'n':
+            options.bopts.normalMap = 1;
+            break;
+          case 'b':
+            options.bopts.noEndpointRDO = 1;
+            break;
+          case 'p':
+            options.bopts.noSelectorRDO = 1;
+            break;
+          case 'q':
+            options.bopts.qualityLevel = atoi(parser.optarg.c_str());
+            break;
+          case 'r':
+            options.bopts.separateRGToRGB_A = 1;
+            break;
+          case 's':
+            options.bopts.maxSelectors = atoi(parser.optarg.c_str());
+            break;
+          case 't':
+            options.bopts.threadCount = atoi(parser.optarg.c_str());
+            break;
+          case 'u':
+            options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+            break;
           case 'h':
-            usage(options.appName);
+            usage(appName);
             exit(0);
           case 'v':
-            version(options.appName);
+            version(appName);
             exit(0);
           case '?':
           case ':':
           default:
-            usage(options.appName);
+            usage(appName);
             exit(1);
         }
     }

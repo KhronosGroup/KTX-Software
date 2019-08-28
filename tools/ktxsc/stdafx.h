@@ -29,6 +29,7 @@
 #define _tcschr strchr
 #define _setmode(x, y) 0
 #define _tfopen fopen
+#define _trename rename
 #define _tunlink unlink
 #define _T(x) x
 

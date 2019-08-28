@@ -187,7 +187,7 @@ struct commandOptions {
     }
 };
 
-_tstring      appName;
+static _tstring      appName;
 
 static bool loadFileList(const _tstring &f,
                          std::vector<_tstring>& filenames);
@@ -538,13 +538,13 @@ usage(const _tstring appName)
 #define VERSION 2.0
 
 static void
-writeId(std::ostream& dst, _tstring appName)
+writeId(std::ostream& dst, _tstring& appName)
 {
     dst << appName << " version " << VERSION;
 }
 
 static void
-version(const _tstring appName)
+version(const _tstring& appName)
 {
     fprintf(stderr, "%s version %s\n", appName.c_str(), STR(VERSION));
 }
@@ -1120,16 +1120,13 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 
     options.outfile = parser.argv[i++];
 
-    if (options.outfile.compare("-") != 0
+    if (options.outfile.compare(_T("-")) != 0
         && options.outfile.find_last_of('.') == _tstring::npos)
     {
         options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
     }
 
     if (argc - i > 0) {
-        /* Check for attempt to use stdin as one of the
-         * input files.
-         */
         for (; i < argc; i++) {
             if (parser.argv[i].front() == _T('@')) {
                 if (!loadFileList(parser.argv[i], options.infilenames)) {
@@ -1139,10 +1136,13 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
                 options.infilenames.push_back(parser.argv[i]);
             }
         }
+        /* Check for attempt to use stdin as one of the
+         * input files.
+         */
         std::vector<_tstring>::const_iterator it;
         for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
-            if (it->compare("-") == 0) {
-                fprintf(stderr, "%s: cannot read input from stdin.\n", appName.c_str());
+            if (it->compare(_T("-")) == 0) {
+                fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n", appName.c_str());
                 usage(appName);
                 exit(1);
             }
@@ -1258,6 +1258,9 @@ processOptions(argparser& parser,
             break;
           case 'r':
             options.bopts.separateRGToRGB_A = 1;
+            break;
+          case 's':
+            options.bopts.maxSelectors = atoi(parser.optarg.c_str());
             break;
           case 't':
             options.bopts.threadCount = atoi(parser.optarg.c_str());

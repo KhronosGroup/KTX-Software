@@ -353,7 +353,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
  */
 void
 getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
-                            uint32_t* componentSizeBytes)
+                            uint32_t* componentByteLength)
 {
     const uint32_t *BDFDB = DFD+1;
     uint32_t numSamples = (KHR_DFDVAL(BDFDB, DESCRIPTORBLOCKSIZE) - 24U)
@@ -377,14 +377,14 @@ getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
             currentByteOffset = sampleByteOffset;
             currentByteLength = sampleByteLength;
             /* Accumulate the byte length. */
-            *componentSizeBytes += sampleByteLength;
+            *componentByteLength += sampleByteLength;
         } else {
             /* Everything is new. Hopefully. */
             currentChannel = sampleChannel;
             currentByteOffset = sampleByteOffset;
             currentByteLength = sampleByteLength;
             (*numComponents)++;
-            *componentSizeBytes = sampleByteLength;
+            *componentByteLength = sampleByteLength;
         }
     }
 }

@@ -135,7 +135,7 @@ void printDFD(uint32_t *DFD);
  */
 void
 getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
-                            uint32_t* componentSizeBytes);
+                            uint32_t* componentByteLength);
 
 #ifdef __cplusplus
 }

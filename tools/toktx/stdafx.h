@@ -30,6 +30,7 @@
 #define _tcsrchr strrchr
 #define _tcschr strchr
 #define _tfopen fopen
+#define _trename rename
 #define _tunlink unlink
 #define _T(x) x
 

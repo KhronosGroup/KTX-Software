@@ -164,8 +164,11 @@ gencmpktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 up.ppm
 gencmpktx orient-down-metadata.ktx up.ppm
 gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgba.pam
 gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
-gencmpktx kodim17_basis.ktx2 --bcmp kodim17.png
-gencmpktx color_grid_basis.ktx2 --bcmp color_grid.png
+if [ $(uname) == "Darwin" ]; then
+  # Run only on macOS until we figure out the Basis compressor non-determinancy.
+  gencmpktx kodim17_basis.ktx2 --bcmp kodim17.png
+  gencmpktx color_grid_basis.ktx2 --bcmp color_grid.png
+fi
 
 filelist=$(mktemp)
 printf "level0.ppm\nlevel1.ppm\nlevel2.ppm\nlevel3.ppm\nlevel4.ppm\nlevel5.ppm\nlevel6.ppm" > $filelist
