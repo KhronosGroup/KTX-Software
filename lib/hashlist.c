@@ -78,6 +78,26 @@ ktxHashList_Construct(ktxHashList* pHead)
 /**
  * @memberof ktxHashList @public
  * @~English
+ * @brief Construct a hash list by copying another.
+ *
+ * @param [in] pHead pointer to head of the list.
+ * @param [in] head of the original hash list.
+ */
+void
+ktxHashList_ConstructCopy(ktxHashList* pHead, ktxHashList orig)
+{
+    ktxHashListEntry* entry = orig;
+    *pHead = NULL;
+    for (; entry != NULL; entry = ktxHashList_Next(entry)) {
+        (void)ktxHashList_AddKVPair(pHead,
+                                    entry->key, entry->valueLen, entry->value);
+    }
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
  * @brief Destruct a hash list.
  *
  * All memory associated with the hash list's keys and values
@@ -98,6 +118,8 @@ ktxHashList_Destruct(ktxHashList* pHead)
         kv = tmp;
     }
 }
+
+
 /**
  * @memberof ktxHashList @public
  * @~English
@@ -117,6 +139,31 @@ ktxHashList_Create(ktxHashList** ppHl)
         return KTX_OUT_OF_MEMORY;
 
     ktxHashList_Construct(hl);
+    *ppHl = hl;
+    return KTX_SUCCESS;
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Create a copy of a hash list.
+ *
+ * @param [in,out] ppHl address of a variable in which to set a pointer to
+ *                      the newly created hash list.
+ * @param [in]     orig head of the ktxHashList to copy.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ * @exception KTX_OUT_OF_MEMORY if not enough memory.
+ */
+KTX_error_code
+ktxHashList_CreateCopy(ktxHashList** ppHl, ktxHashList orig)
+{
+    ktxHashList* hl = (ktxHashList*)malloc(sizeof (ktxKVListEntry*));
+    if (hl == NULL)
+        return KTX_OUT_OF_MEMORY;
+
+    ktxHashList_ConstructCopy(hl, orig);
     *ppHl = hl;
     return KTX_SUCCESS;
 }

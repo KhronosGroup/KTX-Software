@@ -461,6 +461,7 @@ class ktxTexture2_IterateLoadLevelFacesTest : public ktxTexture2TestBase { };
 class ktxTexture2_IterateLevelFacesTest : public ktxTexture2TestBase { };
 class ktxTexture2_IterateLevelsTest : public ktxTexture2TestBase { };
 class ktxTexture2_LoadImageDataTest : public ktxTexture2TestBase { };
+class ktxTexture2_CreateCopyTest: public ktxTexture2TestBase { };
 
 /////////////////////////////////////////
 // ktxTexture_Create tests
@@ -1072,6 +1073,45 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataExternal) {
 }
 
 /////////////////////////////////////////////
+// ktxTexture2_CreateCopyTest
+////////////////////////////////////////////
+
+TEST_F(ktxTexture2_CreateCopyTest, CreateCopy) {
+    ktxTexture2* texture = 0;
+    ktxTexture2* copyTexture = 0;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                             0,
+                                             (ktxTexture**)&texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        result = ktxTexture2_CreateCopy(texture, &copyTexture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(copyTexture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+
+        EXPECT_EQ(compareTexture(copyTexture), true);
+        EXPECT_EQ(memcmp(texture->pData, copyTexture->pData, texture->dataSize),
+                  0);
+        EXPECT_EQ(memcmp(texture->_protected, copyTexture->_protected,
+                         sizeof(ktxTexture_protected)), 0);
+        ktx_size_t privateSize = sizeof(ktxTexture2_private)
+                               + sizeof(ktxLevelIndexEntry)
+                               * (texture->numLevels - 1);
+        EXPECT_EQ(memcmp(texture->_private, copyTexture->_private,
+                         privateSize), 0);
+
+        if (texture)
+            ktxTexture_Destroy((ktxTexture*)texture);
+        if (copyTexture)
+            ktxTexture_Destroy((ktxTexture*)copyTexture);
+    }
+}
+
+/////////////////////////////////////////////
 // TestCreateInfo for size and offset tests.
 ////////////////////////////////////////////
 
@@ -1169,7 +1209,7 @@ TEST(ktxTexture_calcImageSize, ImageSizeAtEachLevelRGB2D) {
 }
 
 /////////////////////////////////////////
-// ktxTexture_calcLEvelSize tests
+// ktxTexture_calcLevelSize tests
 ////////////////////////////////////////
 
 TEST(ktxTexture_calcLevelSize, SizeOfEachLevelRGBA2D) {

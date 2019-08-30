@@ -125,6 +125,9 @@ static inline uint32_t get_block_height(uint32_t h, uint32_t bh)
  *                              Supercompression global data is missing, i.e.,
  *                              the texture object is invalid.
  * @exception KTX_INVALID_OPERATION
+ *                              Image data is missing, i.e., the texture object
+ *                              is invalid.
+ * @exception KTX_INVALID_OPERATION
  *                              @p outputFormat is PVRTC1 but the texture does
  *                              does not have power-of-two dimensions.
  * @exception KTX_INVALID_VALUE @p outputFormat is invalid.
@@ -163,9 +166,15 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
     }
 
     if (!This->pData) {
-        result = ktxTexture2_LoadImageData(This, NULL, 0);
-        if (result != KTX_SUCCESS)
-            return result;
+        if (ktxTexture_isActiveStream((ktxTexture*)This)) {
+             // Load pending. Complete it.
+            result = ktxTexture2_LoadImageData(This, NULL, 0);
+            if (result != KTX_SUCCESS)
+                return result;
+        } else {
+            // No data to transcode.
+            return KTX_INVALID_OPERATION;
+        }
     }
 
     uint8_t* bgd = priv._supercompressionGlobalData;
