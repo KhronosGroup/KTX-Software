@@ -496,49 +496,49 @@ typedef KTX_error_code
  * Macros to give some backward compatibility to the previous API
  ****************************************************************/
 
-#define ktxTexture_Destroy(obj) obj->vtbl->Destroy(obj)
+#define ktxTexture_Destroy(This) (This)->vtbl->Destroy(This)
 
 /*
  * Returns the offset of the image for the specified mip level, array layer
- * and face or depth slice within the image data of a ktxTexture object.
+ * and face or depth slice within the image data of a ktxTexture Thisect.
  */
-#define ktxTexture_GetImageOffset(obj, a, b, c, d) \
-                            obj->vtbl->GetImageOffset(obj, a, b, c, d)
+#define ktxTexture_GetImageOffset(This, a, b, c, d) \
+                            (This)->vtbl->GetImageOffset(This, a, b, c, d)
 
-#define ktxTexture_GetImageSize(obj, a) obj->vtbl->GetImageSize(obj, a)
+#define ktxTexture_GetImageSize(This, a) (This)->vtbl->GetImageSize(This, a)
 
 /*
- * Uploads the image data from a ktxTexture object to an OpenGL {,ES} texture
- * object.
+ * Uploads the image data from a ktxTexture Thisect to an OpenGL {,ES} texture
+ * Thisect.
  */
-#define ktxTexture_GLUpload(obj, a, b, c) obj->vtbl->GLUpload(obj, a, b, c)
+#define ktxTexture_GLUpload(This, a, b, c) (This)->vtbl->GLUpload(This, a, b, c)
 
 /*
- * Iterates over the levels of a ktxTexture object.
+ * Iterates over the levels of a ktxTexture Thisect.
  */
 #define ktxTexture_IterateLevels(This, iterCb, userdata) \
-                            This->vtbl->IterateLevels(This, iterCb, userdata)
+                            (This)->vtbl->IterateLevels(This, iterCb, userdata)
 
 /*
- * Iterates over the already loaded level-faces in a ktxTexture object.
+ * Iterates over the already loaded level-faces in a ktxTexture Thisect.
  * iterCb is called for each level-face.
  */
- #define ktxTexture_IterateLevelFaces(obj, a, b) \
-                            obj->vtbl->IterateLevelFaces(obj, a, b)
+ #define ktxTexture_IterateLevelFaces(This, a, b) \
+                            (This)->vtbl->IterateLevelFaces(This, a, b)
 
 /*
- * Iterates over the level-faces of a ktxTexture object, loading each from
+ * Iterates over the level-faces of a ktxTexture Thisect, loading each from
  * the KTX-formatted source then calling iterCb.
  */
- #define ktxTexture_IterateLoadLevelFaces(obj, a, b) \
-                    obj->vtbl->IterateLoadLevelFaces(obj, a, b)
+ #define ktxTexture_IterateLoadLevelFaces(This, a, b) \
+                    (This)->vtbl->IterateLoadLevelFaces(This, a, b)
 
 /*
  * Loads the image data into a ktxTexture object from the KTX-formatted source.
  * Used when the image data was not loaded during ktxTexture_CreateFrom*.
  */
 #define ktxTexture_LoadImageData(This, pBuffer, bufSize) \
-                    This->vtbl->LoadImageData(This, pBuffer, bufSize)
+                    (This)->vtbl->LoadImageData(This, pBuffer, bufSize)
 
 /*
  * Sets the image for the specified level, layer & faceSlice within a
@@ -547,7 +547,7 @@ typedef KTX_error_code
  */
 #define ktxTexture_SetImageFromMemory(This, level, layer, faceSlice, \
                                       src, srcSize)                  \
-    This->vtbl->SetImageFromMemory(This, level, layer, faceSlice, src, srcSize)
+    (This)->vtbl->SetImageFromMemory(This, level, layer, faceSlice, src, srcSize)
 
 /*
  * Sets the image for the specified level, layer & faceSlice within a
@@ -557,26 +557,26 @@ typedef KTX_error_code
  */
 #define ktxTexture_SetImageFromStdioStream(This, level, layer, faceSlice, \
                                            src, srcSize)                  \
-    This->vtbl->SetImageFromStdioStream(This, level, layer, faceSlice,    \
+    (This)->vtbl->SetImageFromStdioStream(This, level, layer, faceSlice,    \
                                         src, srcSize)
 
 /*
  * Write a ktxTexture object to a stdio stream in KTX format.
  */
 #define ktxTexture_WriteToStdioStream(This, dstsstr) \
-                                This->vtbl->WriteToStdioStream(This, dstsstr)
+                                (This)->vtbl->WriteToStdioStream(This, dstsstr)
 
 /*
  * Write a ktxTexture object to a named file in KTX format.
  */
 #define ktxTexture_WriteToNamedFile(This, dstname) \
-                                This->vtbl->WriteToNamedFile(This, dstname)
+                                (This)->vtbl->WriteToNamedFile(This, dstname)
 
 /*
  * Write a ktxTexture object to a block of memory in KTX format.
  */
 #define ktxTexture_WriteToMemory(This, bytes, size) \
-                                This->vtbl->WriteToMemory(This, bytes, size)
+                                (This)->vtbl->WriteToMemory(This, bytes, size)
 
 
 /**
@@ -811,8 +811,14 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
                    ktxTexture2** newTex);
 
 /*
- * These three create a ktxTexture2 provided the data is in KTX2 format.
+ * Create a new ktxTexture2 as a copy of an existing texture.
  */
+ KTX_APICALL KTX_error_code KTX_APIENTRY
+ ktxTexture2_CreateCopy(ktxTexture2* orig, ktxTexture2** newTex);
+
+ /*
+  * These three create a ktxTexture2 provided the data is in KTX2 format.
+  */
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromStdioStream(FILE* stdioStream,
                                  ktxTextureCreateFlags createFlags,
@@ -959,7 +965,11 @@ KTX_APICALL const char* const KTX_APIENTRY
 ktxErrorString(KTX_error_code error);
 
 KTX_APICALL KTX_error_code KTX_APIENTRY ktxHashList_Create(ktxHashList** ppHl);
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxHashList_CreateCopy(ktxHashList** ppHl, ktxHashList orig);
 KTX_APICALL void KTX_APIENTRY ktxHashList_Construct(ktxHashList* pHl);
+KTX_APICALL void KTX_APIENTRY
+ktxHashList_ConstructCopy(ktxHashList* pHl, ktxHashList orig);
 KTX_APICALL void KTX_APIENTRY ktxHashList_Destroy(ktxHashList* head);
 KTX_APICALL void KTX_APIENTRY ktxHashList_Destruct(ktxHashList* head);
 

@@ -646,4 +646,97 @@ TEST_F(createDFDCompressedTest1, FormatBC1) {
     free(dfd);
 }
 
+
+
+
+//////////////////////////////
+// HashListTest Fixture
+//////////////////////////////
+
+class HashListTest : public ::testing::Test {
+  protected:
+    HashListTest() : writerVal("HashListTest"), orientationVal("ruo") { }
+
+    void constructList(bool sort) {
+        KTX_error_code result;
+
+        ktxHashList_Construct(&head);
+        result = ktxHashList_AddKVPair(&head, KTX_WRITER_KEY,
+                                       (ktx_uint32_t)writerVal.length() + 1,
+                                       writerVal.c_str());
+        EXPECT_EQ(result, KTX_SUCCESS);
+        result = ktxHashList_AddKVPair(&head, KTX_ORIENTATION_KEY,
+                                       (ktx_uint32_t)orientationVal.length() + 1,
+                                       orientationVal.c_str());
+        EXPECT_EQ(result, KTX_SUCCESS);
+        if (sort) {
+            ktxHashList_Sort(&head);
+            sorted = true;
+        }
+    }
+
+    void checkList() {
+        compareList(head, sorted);
+    }
+
+    void compareList(ktxHashList list, bool sorted) {
+        ktxHashListEntry* entry = list;
+        ktx_uint32_t entryCount = 0;
+
+        for (; entry != NULL; entry = ktxHashList_Next(entry)) {
+            char* key;
+            ktx_uint8_t* value;
+            ktx_uint32_t keyLen, valueLen;
+
+            entryCount++;
+            ktxHashListEntry_GetKey(entry, &keyLen, &key);
+            ktxHashListEntry_GetValue(entry, &valueLen, (void**)&value);
+            if (sorted) {
+                switch (entryCount) {
+                  case 1:
+                    EXPECT_STREQ(key, KTX_ORIENTATION_KEY);
+                    break;
+                  case 2:
+                    EXPECT_STREQ(key, KTX_WRITER_KEY);
+                    break;
+                  default:
+                    break;
+                }
+            }
+            if (strcmp(key, KTX_ORIENTATION_KEY) == 0)
+                EXPECT_EQ(orientationVal.compare((char*)value), 0);
+            else if (strcmp(key, KTX_WRITER_KEY) == 0)
+                EXPECT_EQ(writerVal.compare((char*)value), 0);
+            else
+                EXPECT_TRUE(false);
+        }
+        EXPECT_EQ(entryCount, 2);
+    }
+
+    ktxHashList head;
+    std::string writerVal;
+    std::string orientationVal;
+    bool sorted;
+};
+
+
+//////////////////////////////
+// HashListTests
+//////////////////////////////
+
+
+TEST_F(HashListTest, ConstructSorted) {
+    constructList(true);
+    checkList();
+}
+
+TEST_F(HashListTest, ConstructCopy) {
+    ktxHashList copyHead;
+
+    constructList(true);
+    ktxHashList_ConstructCopy(&copyHead, head);
+    compareList(copyHead, true);
+}
+
+
 }  // namespace

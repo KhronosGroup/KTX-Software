@@ -165,6 +165,105 @@ cleanup:
 
 /**
  * @memberof ktxTexture2 @private
+ * @brief Construct a ktxTexture by copying a source ktxTexture.
+ *
+ * @param[in] This pointer where the texture is to be constructed.
+ * @param[in] orig pointer to the source texture to copy.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ */
+static KTX_error_code
+ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
+{
+    KTX_error_code result;
+
+    memcpy(This, orig, sizeof(ktxTexture2));
+    // Zero all the pointers to make error handling easier
+    This->_protected = NULL;
+    This->_private = NULL;
+    This->pDfd = NULL;
+    This->kvData = NULL;
+    This->kvDataHead = NULL;
+    This->pData = NULL;
+
+    This->_protected =
+                    (ktxTexture_protected*)malloc(sizeof(ktxTexture_protected));
+    if (!This->_protected)
+        return KTX_OUT_OF_MEMORY;
+    // Must come before memcpy of _protected so as to close an active stream.
+    if (!orig->pData && ktxTexture_isActiveStream((ktxTexture*)orig))
+        ktxTexture2_LoadImageData(orig, NULL, 0);
+    memcpy(This->_protected, orig->_protected, sizeof(ktxTexture_protected));
+
+    ktx_size_t privateSize = sizeof(ktxTexture2_private)
+                           + sizeof(ktxLevelIndexEntry) * (orig->numLevels - 1);
+    This->_private = (ktxTexture2_private*)malloc(privateSize);
+    if (This->_private == NULL) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
+    memcpy(This->_private, orig->_private, privateSize);
+    if (orig->_private->_sgdByteLength > 0) {
+        This->_private->_supercompressionGlobalData
+                        = (ktx_uint8_t*)malloc(orig->_private->_sgdByteLength);
+        if (!This->_private->_supercompressionGlobalData) {
+            result = KTX_OUT_OF_MEMORY;
+            goto cleanup;
+        }
+        memcpy(This->_private->_supercompressionGlobalData,
+               orig->_private->_supercompressionGlobalData,
+               orig->_private->_sgdByteLength);
+    }
+
+    This->pDfd = (ktx_uint32_t*)malloc(*orig->pDfd);
+    if (!This->pDfd) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
+    memcpy(This->pDfd, orig->pDfd, *orig->pDfd);
+
+    if (orig->kvDataHead) {
+        ktxHashList_ConstructCopy(&This->kvDataHead, orig->kvDataHead);
+    } else if (orig->kvData) {
+        This->kvData = (ktx_uint8_t*)malloc(orig->kvDataLen);
+        if (!This->kvData) {
+            result = KTX_OUT_OF_MEMORY;
+            goto cleanup;
+        }
+        memcpy(This->kvData, orig->kvData, orig->kvDataLen);
+    }
+
+    // Can't share the image data as the data pointer is exposed in the
+    // ktxTexture2 structure. Changing it to a ref-counted pointer would
+    // break code. Maybe that's okay as we're still pre-release. But,
+    // since this constructor will be mostly be used when transcoding
+    // supercompressed images, it is probably not too big a deal to make
+    // a copy of the data.
+    This->pData = (ktx_uint8_t*)malloc(This->dataSize);
+    if (This->pData == NULL) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
+    memcpy(This->pData, orig->pData, orig->dataSize);
+    return KTX_SUCCESS;
+
+cleanup:
+    if (This->_protected) free(This->_protected);
+    if (This->_private) {
+        if (This->_private->_supercompressionGlobalData)
+            free(This->_private->_supercompressionGlobalData);
+        free(This->_private);
+    }
+    if (This->pDfd) free (This->pDfd);
+    if (This->kvDataHead) ktxHashList_Destruct(&This->kvDataHead);
+
+    return result;
+}
+
+/**
+ * @memberof ktxTexture2 @private
  * @brief Construct a ktxTexture from a ktxStream reading from a KTX source.
  *
  * The KTX header, that must have been read prior to calling this, is passed
@@ -661,6 +760,44 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
     }
     return result;
 }
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Create a ktxTexture2 by making a copy of a ktxTexture2.
+ *
+ * The address of the newly created ktxTexture2 is written to the location
+ * pointed at by @p newTex.
+ *
+ * @param[in] orig       pointer to the texture to copy.
+ * @param[in,out] newTex pointer to a location in which store the address of
+ *                       the newly created texture.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ */
+ KTX_error_code
+ ktxTexture2_CreateCopy(ktxTexture2* orig, ktxTexture2** newTex)
+ {
+    KTX_error_code result;
+
+    if (newTex == NULL)
+        return KTX_INVALID_VALUE;
+
+    ktxTexture2* tex = (ktxTexture2*)malloc(sizeof(ktxTexture2));
+    if (tex == NULL)
+        return KTX_OUT_OF_MEMORY;
+
+    result = ktxTexture2_constructCopy(tex, orig);
+    if (result != KTX_SUCCESS) {
+        free(tex);
+    } else {
+        *newTex = tex;
+    }
+    return result;
+
+ }
 
 /**
  * @memberof ktxTexture2
