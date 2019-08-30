@@ -163,6 +163,17 @@ cleanup:
     return result;
 }
 
+/**
+ * @memberof ktxTexture2 @private
+ * @brief Construct a ktxTexture by copying a source ktxTexture.
+ *
+ * @param[in] This pointer where the texture is to be constructed.
+ * @param[in] orig pointer to the source texture to copy.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ */
 static KTX_error_code
 ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
 {
@@ -754,6 +765,17 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
  * @memberof ktxTexture2
  * @~English
  * @brief Create a ktxTexture2 by making a copy of a ktxTexture2.
+ *
+ * The address of the newly created ktxTexture2 is written to the location
+ * pointed at by @p newTex.
+ *
+ * @param[in] orig       pointer to the texture to copy.
+ * @param[in,out] newTex pointer to a location in which store the address of
+ *                       the newly created texture.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
  */
  KTX_error_code
  ktxTexture2_CreateCopy(ktxTexture2* orig, ktxTexture2** newTex)
