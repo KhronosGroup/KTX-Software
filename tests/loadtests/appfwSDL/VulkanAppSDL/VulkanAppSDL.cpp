@@ -681,10 +681,10 @@ VulkanAppSDL::createSurface()
 bool
 VulkanAppSDL::createDevice()
 {
-    typedef enum { optional, required } need;
+    typedef enum { optional, required } ext_need;
     struct extension {
         std::string name;
-        need need;
+        ext_need need;
     };
     std::vector<extension> wantedExtensions;
     std::vector<const char*> extensionsToEnable;
@@ -703,7 +703,11 @@ VulkanAppSDL::createDevice()
     vk::Result err;
 
     // Figure out if we have the required extensions and remove missing
-    // optional extensions from the list.
+    // optional extensions from the list. If anyone wonders why we don't
+    // just request enablement and ignore the eErrorExtensionNotPresent
+    // for optional extensions, 2 answers: the debug layer and (some?) Vulkan
+    // implementations crash when you create a command buffer on the affected
+    // device.
     uint32_t deviceExtensionCount = 0;
 
     err = vkctx.gpu.enumerateDeviceExtensionProperties(
@@ -746,7 +750,7 @@ VulkanAppSDL::createDevice()
         std::vector<std::string>::const_iterator it;
 
         title = szName;
-        title += ": Extensions not Found";
+        title += ": Vulkan Extensions not Found";
         msg << "The following required device extensions were not found:\n";
         for (it = missingExtensions.begin(); it < missingExtensions.end(); it++)
             msg << "    " << *it << "\n";
