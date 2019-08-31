@@ -120,9 +120,14 @@ GL3LoadTestSample::makeProgram(GLuint vs, GLuint fs, GLuint* program)
     }
 }
 
+#if !defined(GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT)
 #define GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT 0x8A54
 #define GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG 0x8C01
 #define GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG 0x9137
+#endif
+#if !defined(GL_COMPRESSED_SIGNED_RG_RGTC2)
+#define GL_COMPRESSED_SIGNED_RG_RGTC2     0x8DBE
+#endif
 
 void
 GL3LoadTestSample::determineCompressedTexFeatures(compressedTexFeatures& features)
