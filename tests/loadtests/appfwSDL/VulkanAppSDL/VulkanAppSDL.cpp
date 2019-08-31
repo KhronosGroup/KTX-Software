@@ -681,20 +681,23 @@ VulkanAppSDL::createSurface()
 bool
 VulkanAppSDL::createDevice()
 {
-    std::vector<std::string> deviceExtensionNames;
-    std::vector<const char*> extensionsToEnable;
     typedef enum { optional, required } need;
-    std::vector<need> deviceExtensionNeed;
+    struct extension {
+        std::string name;
+        need need;
+    };
+    std::vector<extension> wantedExtensions;
+    std::vector<const char*> extensionsToEnable;
 
-    deviceExtensionNames.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-    deviceExtensionNeed.push_back(required);
-    deviceExtensionNames.push_back(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME);
-    deviceExtensionNeed.push_back(optional);
+    wantedExtensions.push_back({VK_KHR_SWAPCHAIN_EXTENSION_NAME, required});
+    wantedExtensions.push_back({VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, optional});
 #if 0
-    deviceExtensionNames.push_back(TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME);
-    deviceExtensionNeed.push_back(optional);
-    deviceExtensionNames.push_back(TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME);
-    deviceExtensionNeed.push_back(optional);
+    wantedExtensions.push_back(
+        {TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME, optional}
+    );
+    wantedExtensions.push_back(
+        {TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME, optional}
+    );
 #endif
 
     vk::Result err;
@@ -721,18 +724,18 @@ VulkanAppSDL::createDevice()
     }
 
     std::vector<std::string> missingExtensions;
-    for (uint32_t i = 0; i < deviceExtensionNames.size(); i++) {
+    for (uint32_t i = 0; i < wantedExtensions.size(); i++) {
         uint32_t j;
         for (j = 0; j < deviceExtensions.size(); j++) {
-            if (!deviceExtensionNames[i].compare(deviceExtensions[j].extensionName)) {
-                extensionsToEnable.push_back(deviceExtensionNames[i].c_str());
+            if (!wantedExtensions[i].name.compare(deviceExtensions[j].extensionName)) {
+                extensionsToEnable.push_back(wantedExtensions[i].name.c_str());
                 break;
             }
         }
         if (j == deviceExtensionCount) {
             // Not found
-            if (deviceExtensionNeed[i] == required) {
-                missingExtensions.push_back(deviceExtensionNames[i]);
+            if (wantedExtensions[i].need == required) {
+                missingExtensions.push_back(wantedExtensions[i].name);
             }
         }
     }
