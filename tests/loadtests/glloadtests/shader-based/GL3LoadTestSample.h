@@ -50,7 +50,17 @@ class GL3LoadTestSample : public LoadTestSample {
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
 
-    static ktx_texture_transcode_fmt_e determineTargetFormat();
+    struct compressedTexFeatures {
+        bool etc1;
+        bool etc2;
+        bool bc3;
+        bool pvrtc1;
+        bool pvrtc_srgb;
+        bool pvrtc2;
+        bool rgtc;
+    };
+
+    static void determineCompressedTexFeatures(compressedTexFeatures& features);
     static GLint framebufferColorEncoding();
     static void makeShader(GLenum type, const GLchar* const source,
                            GLuint* shader);

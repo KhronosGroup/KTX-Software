@@ -565,9 +565,6 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
                 }
                 break;
             }
-            case KTX_TF_NONE_COMPATIBLE:
-                result = KTX_INVALID_VALUE;
-                goto cleanup;
         } // end outputFormat switch
 
         writeOffset += ktxTexture2_GetImageSize(This, level);

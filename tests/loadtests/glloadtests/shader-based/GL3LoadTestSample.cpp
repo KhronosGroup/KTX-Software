@@ -120,12 +120,17 @@ GL3LoadTestSample::makeProgram(GLuint vs, GLuint fs, GLuint* program)
     }
 }
 
-ktx_texture_transcode_fmt_e
-GL3LoadTestSample::determineTargetFormat()
+#define GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT 0x8A54
+#define GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG 0x8C01
+#define GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG 0x9137
+
+void
+GL3LoadTestSample::determineCompressedTexFeatures(compressedTexFeatures& features)
 {
     ktx_int32_t numCompressedFormats;
-    ktx_texture_transcode_fmt_e tf;
-    bool etc2 = false, etc1 = false, bc3 = false;
+
+    features.etc1 = features.etc2 = features.bc3 = features.rgtc = false;
+    features.pvrtc1 = features.pvrtc2 = features.pvrtc_srgb = false;
 
     glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &numCompressedFormats);
     GLint* formats = new GLint[numCompressedFormats];
@@ -133,23 +138,38 @@ GL3LoadTestSample::determineTargetFormat()
 
     for (ktx_int32_t i = 0; i < numCompressedFormats; i++) {
         if (formats[i] == GL_COMPRESSED_RGBA8_ETC2_EAC)
-            etc2 = true;
+            features.etc2 = true;
         if (formats[i] == GL_ETC1_RGB8_OES)
-            etc1 = true;
+            features.etc1 = true;
         if (formats[i] == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
-            bc3 = true;
+            features.bc3 = true;
+        if (formats[i] == GL_COMPRESSED_RG_RGTC2)
+            features.rgtc = true;
+        if (formats[i] == GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT)
+            features.pvrtc_srgb = true;
+        if (formats[i] == GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG)
+            features.pvrtc1 = true;
+        if (formats[i] == GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG)
+            features.pvrtc2 = true;
     }
     delete[] formats;
-    if (etc2)
-        tf = KTX_TF_ETC2;
-    else if (etc1 || SDL_GL_ExtensionSupported("GL_OES_compressed_ETC1_RGB8_texture"))
-        tf = KTX_TF_ETC1;
-    else if (bc3 || SDL_GL_ExtensionSupported("GL_EXT_texture_compression_s3tc"))
-        tf = KTX_TF_BC3;
-    else
-        tf = KTX_TF_NONE_COMPATIBLE;
 
-    return tf;
+    // Just in case COMPRESSED_TEXTURE_FORMATS didn't return anything.
+    // There is no ETC2 extension. It went into core in OpenGL ES 2.0.
+    // ARB_es_compatibility is not a good indicator. ETC2 could be supported
+    // by software decompression. Better to report unsupported.
+    if (!features.etc1 && SDL_GL_ExtensionSupported("GL_OES_compressed_ETC1_RGB8_texture"))
+        features.etc1 = true;;
+    if (!features.bc3 && SDL_GL_ExtensionSupported("GL_EXT_texture_compression_s3tc"))
+        features.bc3 = true;
+    if (!features.rgtc && SDL_GL_ExtensionSupported("GL_ARB_texture_compression_rgtc"))
+        features.rgtc = true;
+    if (!features.pvrtc1 && SDL_GL_ExtensionSupported("GL_IMG_texture_compression_pvrtc"))
+        features.pvrtc1 = true;
+    if (!features.pvrtc2 && SDL_GL_ExtensionSupported("GL_IMG_texture_compression_pvrtc2"))
+        features.pvrtc2 = true;
+    if (!features.pvrtc_srgb && SDL_GL_ExtensionSupported("GL_EXT_pvrtc_sRGB"))
+        features.pvrtc_srgb = true;
 }
 
 GLint

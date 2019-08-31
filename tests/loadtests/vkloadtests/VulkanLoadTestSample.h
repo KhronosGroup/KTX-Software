@@ -49,7 +49,10 @@ class VulkanLoadTestSample : public LoadTestSample {
     virtual void run(uint32_t msTicks) = 0;
 
     virtual void getOverlayText(VulkanTextOverlay *textOverlay,
-                                float yoffset) { };
+                                float yoffset) { }
+    virtual const char* const customizeTitle(const char* const title) {
+        return title;
+    }
 
     typedef VulkanLoadTestSample* (*PFN_create)(VulkanContext&,
                                     uint32_t width, uint32_t height,
