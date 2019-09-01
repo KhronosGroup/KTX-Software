@@ -919,10 +919,7 @@ KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
 
 typedef enum ktx_texture_transcode_fmt_e {
-    KTX_TF_NONE_COMPATIBLE,    // Apps can use this in utility funcs to signal
-                               // that the GPU doen's suupport any of the
-                               // transcode targets.
-    KTX_TF_ETC1,   // Use to only get RGB, even when basis data has alpha.
+    KTX_TF_ETC1,  // Use to only get RGB, even when basis data has alpha.
     KTX_TF_BC1,
     KTX_TF_BC4,
     KTX_TF_PVRTC1_4_OPAQUE_ONLY,

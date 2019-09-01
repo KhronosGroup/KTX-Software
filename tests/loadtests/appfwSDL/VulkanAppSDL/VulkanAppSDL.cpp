@@ -610,7 +610,13 @@ VulkanAppSDL::findGpu()
         vkctx.gpu = gpus[0];
         // Store properties and features so apps can query them.
         vkctx.gpu.getProperties(&vkctx.gpuProperties);
+#if 0
+        vk::PhysicalDeviceFeatures2 gpuFeatures2;
+        vkctx.gpu.getFeatures2(&gpuFeatures2);
+        vkctx.gpuFeatures = gpuFeatures2.features;
+#else
         vkctx.gpu.getFeatures(&vkctx.gpuFeatures);
+#endif
         // Get Memory information and properties
         vkctx.gpu.getMemoryProperties(&vkctx.memoryProperties);
         
@@ -675,11 +681,86 @@ VulkanAppSDL::createSurface()
 bool
 VulkanAppSDL::createDevice()
 {
-    const char *deviceExtensionNames[] = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    typedef enum { optional, required } ext_need;
+    struct extension {
+        std::string name;
+        ext_need need;
     };
-    uint32_t enabledDeviceExtensionCount = ARRAY_LEN(deviceExtensionNames);
+    std::vector<extension> wantedExtensions;
+    std::vector<const char*> extensionsToEnable;
+
+    wantedExtensions.push_back({VK_KHR_SWAPCHAIN_EXTENSION_NAME, required});
+    wantedExtensions.push_back({VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, optional});
+#if 0
+    wantedExtensions.push_back(
+        {TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME, optional}
+    );
+    wantedExtensions.push_back(
+        {TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME, optional}
+    );
+#endif
+
     vk::Result err;
+
+    // Figure out if we have the required extensions and remove missing
+    // optional extensions from the list. If anyone wonders why we don't
+    // just request enablement and ignore the eErrorExtensionNotPresent
+    // for optional extensions, 2 answers: the debug layer and (some?) Vulkan
+    // implementations crash when you create a command buffer on the affected
+    // device.
+    uint32_t deviceExtensionCount = 0;
+
+    err = vkctx.gpu.enumerateDeviceExtensionProperties(
+                                               NULL,
+                                               &deviceExtensionCount,
+                                               NULL);
+    assert(err == vk::Result::eSuccess);
+
+    std::vector<vk::ExtensionProperties> deviceExtensions;
+    deviceExtensions.resize(deviceExtensionCount);
+
+    if (deviceExtensionCount > 0) {
+        err = vkctx.gpu.enumerateDeviceExtensionProperties(
+                                                NULL,
+                                                &deviceExtensionCount,
+                                                deviceExtensions.data());
+        assert(err == vk::Result::eSuccess);
+    }
+
+    std::vector<std::string> missingExtensions;
+    for (uint32_t i = 0; i < wantedExtensions.size(); i++) {
+        uint32_t j;
+        for (j = 0; j < deviceExtensions.size(); j++) {
+            if (!wantedExtensions[i].name.compare(deviceExtensions[j].extensionName)) {
+                extensionsToEnable.push_back(wantedExtensions[i].name.c_str());
+                break;
+            }
+        }
+        if (j == deviceExtensionCount) {
+            // Not found
+            if (wantedExtensions[i].need == required) {
+                missingExtensions.push_back(wantedExtensions[i].name);
+            }
+        }
+    }
+
+    if (missingExtensions.size() > 0) {
+        std::string title;
+        std::stringstream msg;
+        std::vector<std::string>::const_iterator it;
+
+        title = szName;
+        title += ": Vulkan Extensions not Found";
+        msg << "The following required device extensions were not found:\n";
+        for (it = missingExtensions.begin(); it < missingExtensions.end(); it++)
+            msg << "    " << *it << "\n";
+
+        msg << "\n\nDo you have a compatible Vulkan "
+               "installable client driver (ICD) installed?";
+       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
+                                      msg.str().c_str(), NULL);
+       return false;
+    }
 
     float queue_priorities[1] = {0.0};
     const vk::DeviceQueueCreateInfo queueInfo(
@@ -699,6 +780,28 @@ VulkanAppSDL::createDevice()
         deviceFeatures.textureCompressionBC = true;
     if (vkctx.gpuFeatures.textureCompressionETC2)
         deviceFeatures.textureCompressionETC2 = true;
+#if 0
+    // This needs PhysicalDeviceFeatures2 and proper understanding of how to
+    // navigate a structure chain. Maybe something also was necessary when the
+    // gpuFeatures were queried.
+    vk::BaseOutStructure* dfs = reinterpret_cast<vk::BaseOutStructure*>(&vkctx.gpuFeatures);
+    while (dfs->pNext != NULL) {
+        if (dfs->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT) {
+            vk::PhysicalDeviceTextureCompressionASTCHDRFeaturesEXT* ahf = dfs;
+            if (afs->textureCompressionASTC_HDR) {
+                // Add one of these structs to the requested deviceFeatures we
+                // are passing in and enable this feature.
+            }
+        }
+        if (dfs->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_3D_FEATURES_EXT) {
+            vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT* ahf = dfs;
+            if (afs->textureCompressionASTC_HDR) {
+                // Add one of these structs to the requested deviceFeatures we
+                // are passing in and enable this feature.
+            }
+        }
+#endif
+     
     vk::DeviceCreateInfo deviceInfo(
             {},
             1,
@@ -707,55 +810,20 @@ VulkanAppSDL::createDevice()
             (const char *const *)((validate)
                                   ? deviceValidationLayers.data()
                                   : NULL),
-            enabledDeviceExtensionCount,
-            (const char *const *)deviceExtensionNames,
+            (uint32_t)extensionsToEnable.size(),
+            (const char *const *)extensionsToEnable.data(),
             &deviceFeatures);
 
     err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
     if (err != vk::Result::eSuccess) {
+        assert(err != vk::Result::eErrorExtensionNotPresent);
+
         std::string title;
         std::stringstream msg;
         title = szName;
         title += ": vkCreateDevice Failure";
-        if (err == vk::Result::eErrorExtensionNotPresent) {
-            // Figure out which extension(s) are missing.
-            uint32_t deviceExtensionCount = 0;
-
-            err = vkctx.gpu.enumerateDeviceExtensionProperties(
-                                                       NULL,
-                                                       &deviceExtensionCount,
-                                                       NULL);
-            assert(err == vk::Result::eSuccess);
-
-            std::vector<vk::ExtensionProperties> deviceExtensions;
-            deviceExtensions.resize(deviceExtensionCount);
-
-            if (deviceExtensionCount > 0) {
-                err = vkctx.gpu.enumerateDeviceExtensionProperties(
-                                                        NULL,
-                                                        &deviceExtensionCount,
-                                                        deviceExtensions.data());
-                assert(err == vk::Result::eSuccess);
-            }
-            msg << "Cannot find the following device extensions:\n";
-            for (uint32_t i = 0; i < enabledDeviceExtensionCount; i++) {
-                uint32_t j;
-                for (j = 0; j < deviceExtensionCount; j++) {
-                    if (!strcmp(extensionNames[i],
-                                deviceExtensions[j].extensionName))
-                        break;
-                }
-                if (j == deviceExtensionCount) {
-                    // Not found
-                    msg << "    " << extensionNames[i] << "\n";
-                }
-            }
-            msg << "\n\nDo you have a compatible Vulkan "
-                   "installable client driver (ICD) installed?";
-       } else {
-            msg << "vkCreateDevice: unexpected failure, result code = ";
-            msg << err << ".";
-       }
+            msg << "vkCreateDevice: unexpected failure: ";
+            msg << to_string(err) << ".";
        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
                                       msg.str().c_str(), NULL);
        return false;

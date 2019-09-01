@@ -81,6 +81,8 @@ Texture::Texture(VulkanContext& vkctx,
     rgbcolor upperRightColor{ 0.4f, 1.0f, 0.5f };
     rgbcolor lowerRightColor{ 0.0f, 0.6f, 0.1f };
 
+    transcoded = false;
+
     quadColor = { upperLeftColor, lowerLeftColor,
                   upperRightColor, lowerRightColor };
 
@@ -104,6 +106,36 @@ Texture::Texture(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
+    if (kTexture->classId == ktxTexture2_c
+        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+    {
+        ktx_texture_transcode_fmt_e tf;
+        vk::PhysicalDeviceFeatures deviceFeatures;
+        vkctx.gpu.getFeatures(&deviceFeatures);
+        if (deviceFeatures.textureCompressionETC2)
+            tf = KTX_TF_ETC2;
+        else if (deviceFeatures.textureCompressionBC)
+            tf = KTX_TF_BC3;
+        else {
+            std::stringstream message;
+
+            message << "Vulkan implementation does not support any available transcode target.";
+            throw std::runtime_error(message.str());
+        }
+
+        ktxresult = ktxTexture2_TranscodeBasis((ktxTexture2*)kTexture, tf, 0);
+        if (KTX_SUCCESS != ktxresult) {
+            std::stringstream message;
+
+            message << "Transcoding of ktxTexture2 to "
+                    << (tf == KTX_TF_ETC2 ? "ETC2" : "BC3")
+                    << " failed: "
+                    << ktxErrorString(ktxresult);
+            throw std::runtime_error(message.str());
+        }
+        transcoded = true;
+        transcodedFormat = tf;
+    }
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
     vk::FormatProperties properties;
@@ -708,4 +740,15 @@ Texture::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
                          5.0f, yOffset, VulkanTextOverlay::alignLeft);
 }
 
+const char* const
+Texture::customizeTitle(const char* const title)
+{
+    if (transcoded) {
+        this->title = title;
+        this->title += " to ";
+        this->title += transcodedFormat == KTX_TF_ETC2 ? "ETC2" : "BC3";
+        return this->title.c_str();
+    }
+    return title;
+}
 

@@ -37,6 +37,7 @@ class Texture : public VulkanLoadTestSample
     virtual void run(uint32_t msTicks);
 
     virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
+    virtual const char* const customizeTitle(const char* const title);
 
     static VulkanLoadTestSample*
     create(VulkanContext& vkctx,
@@ -81,6 +82,10 @@ class Texture : public VulkanLoadTestSample
 
     int sign_s = 1;
     int sign_t = 1;
+
+    bool transcoded;
+    ktx_texture_transcode_fmt_e transcodedFormat;
+    std::string title;
 
     void cleanup();
     void buildCommandBuffers();

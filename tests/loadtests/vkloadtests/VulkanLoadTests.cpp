@@ -210,7 +210,7 @@ VulkanLoadTests::invokeSample(Direction dir)
         }
     }
     prepared = true;
-    setAppTitle(sampleInv->title);
+    setAppTitle(pCurSample->customizeTitle(sampleInv->title));
 }
 
 
@@ -223,6 +223,14 @@ VulkanLoadTests::onFPSUpdate()
 /* ------------------------------------------------------------------------ */
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
+    { Texture::create,
+      "testimages/color_grid_basis.ktx2",
+      "KTX2 RGB non-mipmapped: Basis Transcoded"
+    },
+    { Texture::create,
+      "testimages/kodim17_basis.ktx2",
+      "KTX2 RGB non-mipmapped: Basis Transcoded"
+    },
     { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx2",
         "KTX2: BC2 (S3TC DXT3) Compressed 2D"

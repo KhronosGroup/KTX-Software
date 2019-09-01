@@ -73,7 +73,6 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     GLuint gnColorFs, gnDecalFs, gnVs;
     GLsizeiptr offset;
     ktxTexture* kTexture;
-    ktx_texture_transcode_fmt_e tf;
     KTX_error_code ktxresult;
 
     bInitialized = false;
@@ -97,8 +96,23 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     if (kTexture->classId == ktxTexture2_c
         && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
     {
-        tf = determineTargetFormat();
-        if (tf == KTX_TF_NONE_COMPATIBLE) {
+        compressedTexFeatures features;
+        ktx_texture_transcode_fmt_e tf;
+
+        determineCompressedTexFeatures(features);
+
+        // We know this app is only being used for 3 or 4 component 2D textures
+        // so we can cheat a bit. No need to look at RGTC for 2-components,
+        // for example.
+        if (features.etc2)
+            tf = KTX_TF_ETC2;
+        else if (features.bc3)
+            tf = KTX_TF_BC3;
+        else if (features.etc1)
+            tf = KTX_TF_ETC1;
+        else if (features.pvrtc1)
+            tf = KTX_TF_PVRTC1_4_OPAQUE_ONLY;
+        else {
             std::stringstream message;
 
             message << "OpenGL implementation does not support any available transcode target.";
