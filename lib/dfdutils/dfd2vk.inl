@@ -283,7 +283,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
     }
   case KHR_DF_MODEL_ASTC:
     if (!(KHR_DFDSVAL(bdb, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT)) {
-      if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 1) {
+      if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 1) {
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
@@ -386,90 +386,89 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
       } else {
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 2) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2) &&
-            (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2) {
+            (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT;
           }
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT;
           }
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT;
           }
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT;
           }
         }
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3) &&
-            (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3) {
+            (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT;
           }
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT;
           }
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT;
           }
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK;
-          }
-        }
-        if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
-            (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5) &&
-            (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4) {
-          if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK;
-          } else {
-            return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
           }
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 5) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
-            return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK;
+            return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
           } else {
-            return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK;
+            return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
+          }
+        } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5) &&
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 5)) {
+          if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
+            return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
+          } else {
+            return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
           }
         }
       }
     } else {
-      if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 1) {
+      if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 1) {
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
           return VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT;

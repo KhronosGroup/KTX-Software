@@ -304,8 +304,8 @@
               'action_name': 'run_makevkswitch',
               'message': 'Generating VkFormat/DFD switch body',
               'inputs': [
-                #'vkformat_enum.h',
-                '<(vkinclude_dir)/vulkan/vulkan_core.h',
+                'vkformat_enum.h',
+                #'<(vkinclude_dir)/vulkan/vulkan_core.h',
                 'dfdutils/makevkswitch.pl',
               ],
               'outputs': [
@@ -324,8 +324,8 @@
             'action_name': 'run_makedfdtovk',
             'message': 'Generating DFD/VkFormat switch body',
             'inputs': [
-                #'vkformat_enum.h',
-                '<(vkinclude_dir)/vulkan/vulkan_core.h',
+                'vkformat_enum.h',
+                #'<(vkinclude_dir)/vulkan/vulkan_core.h',
               'dfdutils/makedfd2vk.pl',
             ],
             'outputs': [

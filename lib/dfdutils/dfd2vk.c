@@ -1,16 +1,6 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
-/**
- * @internal
- * @file dfd4vkformat.c
- * @~English
- *
- * @brief Create data format descriptor corresponding to a VkFormat.
- *
- * @author Mark Callow, Edgewise Consulting.
- */
-
 /*
  * ©2019 Mark Callow.
  *
@@ -27,27 +17,28 @@
  * limitations under the License.
  */
 
- #include "dfd.h"
- #include "../vkformat_enum.h"
+/**
+ * @internal
+ * @file dfd2vk.c
+ *
+ * @author Mark Callow, Edgewise Consulting.
+ */
+
+#include <KHR/khr_df.h>
+#include "dfd.h"
 
 /**
  * @internal
  * @~English
- * @brief Create a DFD matching a VkFormat.
+ * @brief Return a VkFormat matching a DFD.
  *
- * @param[in] format    VkFormat for which to create a DFD.
+ * @param[in] dfd    Pointer to the DFD.
  *
- * @return      pointer to the created DFD or 0 if format not supported or
- *              unrecognized. Caller is responsible for freeing the created
- *              DFD.
+ * @return      The matching VkFormat enum or VK_FORMAT_UNDEFINED if not
+ *              matched.
  */
-#if 0
-uint32_t*
-createDFD4VkFormat(enum VkFormat format)
- {
-     switch (format) {
-#include "vkdfdswitchbody.inl"
-         default: return 0;
-     }
- }
-#endif
+enum VkFormat dfd2vk(uint32_t *dfd)
+{
+#include "dfd2vk.inl"
+}
+

@@ -78,7 +78,7 @@ typedef unsigned int uint32_t;
 #include "../vkformat_enum.h"
 #endif
 
-uint32_t* createDFD4VkFormat(enum VkFormat format);
+uint32_t* vk2dfd(enum VkFormat format);
 
 /* Create a Data Format Descriptor for an unpacked format. */
 uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,

@@ -91,7 +91,7 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
         if (formatSize.blockSizeInBits == 0) {
             return KTX_INVALID_VALUE; // TODO Return a more reasonable error?
         } else {
-            This->pDfd = createDFD4VkFormat(createInfo->vkFormat);
+            This->pDfd = vk2dfd(createInfo->vkFormat);
         }
     } else {
         // TODO Validate createInfo->pDfd and create formatSize from it.
