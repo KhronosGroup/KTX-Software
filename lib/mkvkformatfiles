@@ -6,7 +6,8 @@
 #   want to include vulkan_core.h.
 # - vkformat_str.c, a switch statement for converting VkFormat enums to
 #   to strings corresponding to the format names.
-# - vkformat_prohibited.h, an array listing the formats not allowed in
+# - vkformat_check.c, 2 functions: 1 to checking if a format is prohibited in
+#   KTX2 and the other to see if a format is valid.
 #   KTX2.
 
 BEGIN {
@@ -74,9 +75,16 @@ BEGIN {
 
 /.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
 #/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
+# Multiplane formats.
+/VK_FORMAT_[^F]/ && (/PLANE/ || /422/ || /420/) {
+  # Avoid values defined as existing values and avoid the MAX_ENUM value.
+  if ($3 !~ /VK_FORMAT_.*/ && $1 !~ /.*MAX_ENUM/) {
+    prohibited = prohibited "      case " $1 ":\n";
+  }
+}
 
 # Extract valid formats with values > VK_FORMAT_END_RANGE.
-/VK_FORMAT.* = 1000/ && ! /FEATURE/ && ! /PLANE/ && ! /422/ && !/420/ {
+/VK_FORMAT_[^F].* = 1000/ && ! /PLANE/ && ! /422/ && !/420/ {
   valid = valid "        case " $1 ":\n";
 }
 

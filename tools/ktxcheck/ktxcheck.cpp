@@ -63,52 +63,55 @@ struct issue {
 #define ERROR 0x00100000
 #define FATAL 0x01000000
 
-namespace IOError {
+struct {
     issue FileOpen { FATAL | 0x0001, "File open failed: %s." };
     issue FileRead { FATAL | 0x0002, "File read failed: %s." };
     issue UnexpectedEOF { FATAL | 0x0003, "Unexpected end of file." };
-};
+} IOError;
 
-namespace FileError {
+struct {
     issue NotKTX2{ FATAL | 0x0010, "Not a KTX2 file." };
-}
+} FileError;
 
-namespace HeaderData {
+struct {
     issue ProhibitedFormat {
         ERROR | 0x0020, "vkFormat is one of the prohibited formats."
     };
     issue InvalidFormat {
         ERROR | 0x0021, "vkFormat, %#x, is not a valid VkFormat value."
     };
+    issue UnknownFormat {
+        WARNING | 0x0022, "vkFormat, %#x is unknown, possibly an extension format."
+    };
     issue WidthZero {
-        ERROR | 0x0022,
+        ERROR | 0x0023,
        "pixelWidth is 0. Textures must have width."
     };
     issue DepthNoHeight {
-        ERROR | 0x0023,
+        ERROR | 0x0024,
         "pixelDepth != 0 but pixelHeight == 0. Depth textures must have height."
     };
     issue ThreeDArray {
-        WARNING | 0x0024,
+        WARNING | 0x0025,
         "File contains a 3D array texture. No APIs support these."
     };
-    issue CubeFaceNot2d { ERROR | 0x0025, "Cube map faces must be 2d." };
+    issue CubeFaceNot2d { ERROR | 0x0026, "Cube map faces must be 2d." };
     issue InvalidFaceCount {
-        ERROR | 0x0026, "faceCount is %d. It must be 1 or 6."
+        ERROR | 0x0027, "faceCount is %d. It must be 1 or 6."
     };
     issue TooManyMipLevels {
-        ERROR | 0x0027, "%d is too many levels for the largest image dimension %d."
+        ERROR | 0x0028, "%d is too many levels for the largest image dimension %d."
     };
     issue UnknownSupercompression {
-        WARNING | 0x0028, "Unknown vendor supercompressionScheme."
+        WARNING | 0x0029, "Unknown vendor supercompressionScheme."
     };
     issue InvalidSupercompression {
-        ERROR | 0x0029, "Invalid supercompressionScheme: %#x"
+        ERROR | 0x002a, "Invalid supercompressionScheme: %#x"
     };
     issue InvalidIndexEntry {
-        ERROR | 0x002a, "Invalid %s index entry. Only 1 of offset & length != 0."
+        ERROR | 0x002b, "Invalid %s index entry. Only 1 of offset & length != 0."
     };
-}
+} HeaderData;
 
 
 /////////////////////////////////////////////////////////////////////
@@ -116,7 +119,10 @@ namespace HeaderData {
 //     These are in libktx but not part of its public API.         //
 /////////////////////////////////////////////////////////////////////
 
-extern "C" bool isProhibitedFormat(VkFormat format);
+extern "C" {
+    bool isProhibitedFormat(VkFormat format);
+    bool isValidFormat(VkFormat format);
+}
 
 /////////////////////////////////////////////////////////////////////
 //                    Validator Class Definition                   //
@@ -146,7 +152,7 @@ class ktxValidator : public ktxApp {
             headerWritten = false;
         }
         enum severity { eWarning, eError, eFatal };
-        void addIssue(severity severity, issue issue, ...);
+        void addIssue(severity severity, issue issue, va_list args);
         void startFile(const std::string& filename) {
             nameOfFileBeingValidated = filename;
             errorCount = 0;
@@ -165,8 +171,10 @@ class ktxValidator : public ktxApp {
         va_start(args, issue);
 
         logger.addIssue(severity, issue, args);
+        va_end(args);
     }
     virtual void processOption(argparser& parser, _TCHAR opt);
+    void validate();
     void validateHeader(FILE* f);
 
     struct commandOptions : public ktxApp::commandOptions {
@@ -195,29 +203,25 @@ ktxValidator::ktxValidator() : ktxApp(myversion, options)
 // -  Because it is convenient when browsing the code to see the severity
 //    at the place an issue is raised.
 void
-ktxValidator::logger::addIssue(severity severity, issue issue, ...) {
+ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
     if (!headerWritten) {
         cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
         headerWritten = true;
     }
     if (errorCount < maxIssues) {
-        va_list args;
-        va_start(args, issue);
-
         cout << "    ";
         switch (severity) {
           case eError:
-            cerr << "ERROR: ";
+            cout << "ERROR: ";
             break;
           case eFatal:
-            cerr << "FATAL: ";
+            cout << "FATAL: ";
             break;
           case eWarning:
-            cerr << "WARNING: ";
+            cout << "WARNING: ";
             break;
         }
         vfprintf(stdout, issue.message.c_str(), args);
-        va_end(args);
         cout << std::endl;
         errorCount++;
         if (severity == eFatal)
@@ -255,12 +259,22 @@ int
 ktxValidator::main(int argc, _TCHAR *argv[])
 {
     processCommandLine(argc, argv, allow_stdin);
+    try {
+        validate();
+    } catch (exception& e) {
+        // TODO Add exception that says validation failed.
+        return 1;
+    }
+    return 0;
+}
 
+void
+ktxValidator::validate()
+{
     vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         FILE* inf;
 
-        logger.startFile(*it);
         if (it->compare(_T("-")) == 0) {
             inf = stdin;
 #if defined(_WIN32)
@@ -277,14 +291,13 @@ ktxValidator::main(int argc, _TCHAR *argv[])
                 validateHeader(inf);
             } catch (fatal& e) {
                 cout << e.what() << endl;
+                throw;
             }
             fclose(inf);
         } else {
-            addIssue(logger::eFatal, IOError::FileOpen, strerror(errno));
+            addIssue(logger::eFatal, IOError.FileOpen, strerror(errno));
         }
     }
-
-    return 0;
 }
 
 void
@@ -312,32 +325,39 @@ ktxValidator::validateHeader(FILE* f)
 
     if (fread(&header2, sizeof(KTX_header2), 1, f) != 1) {
         if (ferror(f))
-            addIssue(logger::eFatal, IOError::FileRead, strerror(errno));
+            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
         else
-            addIssue(logger::eFatal, IOError::UnexpectedEOF);
+            addIssue(logger::eFatal, IOError.UnexpectedEOF);
     }
     // Is this a KTX2 file?
     if (memcmp(&header2.identifier, identifier_reference, 12) != 0) {
-        addIssue(logger::eFatal, FileError::NotKTX2);
+        addIssue(logger::eFatal, FileError.NotKTX2);
     }
 
     if (isProhibitedFormat((VkFormat)header2.vkFormat))
-        addIssue(logger::eError, HeaderData::ProhibitedFormat);
+        addIssue(logger::eError, HeaderData.ProhibitedFormat);
+
+    if (!isValidFormat((VkFormat)header2.vkFormat)) {
+        if (header2.vkFormat < VK_FORMAT_END_RANGE || header2.vkFormat > 0x10010000)
+            addIssue(logger::eError, HeaderData.InvalidFormat, header2.vkFormat);
+        else
+            addIssue(logger::eError, HeaderData.UnknownFormat, header2.vkFormat);
+    }
 
     /* Check texture dimensions. KTX files can store 8 types of textures:
        1D, 2D, 3D, cube, and array variants of these. There is currently
        no extension for 3D array textures in any 3D API. */
     if (header2.pixelWidth == 0)
-        addIssue(logger::eError, HeaderData::WidthZero);
+        addIssue(logger::eError, HeaderData.WidthZero);
 
     if (header2.pixelDepth > 0 && header2.pixelHeight == 0)
-        addIssue(logger::eError, HeaderData::DepthNoHeight);
+        addIssue(logger::eError, HeaderData.DepthNoHeight);
 
     if (header2.pixelDepth > 0)
     {
         if (header2.layerCount > 0) {
             /* No 3D array textures yet. */
-            addIssue(logger::eWarning, HeaderData::ThreeDArray);
+            addIssue(logger::eWarning, HeaderData.ThreeDArray);
         } else
             dimensionCount = 3;
     }
@@ -355,13 +375,13 @@ ktxValidator::validateHeader(FILE* f)
         if (dimensionCount != 2)
         {
             /* cube map needs 2D faces */
-            addIssue(logger::eError, HeaderData::CubeFaceNot2d);
+            addIssue(logger::eError, HeaderData.CubeFaceNot2d);
         }
     }
     else if (header2.faceCount != 1)
     {
         /* numberOfFaces must be either 1 or 6 */
-        addIssue(logger::eError, HeaderData::InvalidFaceCount,
+        addIssue(logger::eError, HeaderData.InvalidFaceCount,
                  header2.faceCount);
     }
 
@@ -373,33 +393,33 @@ ktxValidator::validateHeader(FILE* f)
     if (max_dim < ((ktx_uint32_t)1 << (header2.levelCount - 1)))
     {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
-        addIssue(logger::eError, HeaderData::TooManyMipLevels,
+        addIssue(logger::eError, HeaderData.TooManyMipLevels,
                  levelCount, max_dim);
     }
 
     if (header2.supercompressionScheme > KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE
         && header2.supercompressionScheme < KTX_SUPERCOMPRESSION_END_VENDOR_RANGE)
     {
-        addIssue(logger::eWarning, HeaderData::UnknownSupercompression);
+        addIssue(logger::eWarning, HeaderData.UnknownSupercompression);
     } else if (header2.supercompressionScheme < KTX_SUPERCOMPRESSION_BEGIN_RANGE
         || header2.supercompressionScheme > KTX_SUPERCOMPRESSION_END_RANGE)
     {
-        addIssue(logger::eError, HeaderData::InvalidSupercompression,
+        addIssue(logger::eError, HeaderData.InvalidSupercompression,
                  header2.supercompressionScheme);
     }
 
 #define checkIndexEntry(index, issue, name)     \
-    if (!index.byteOffset == !index.byteLength) \
+    if (!index.byteOffset != !index.byteLength) \
         addIssue(logger::eError, issue, name)
 
     checkIndexEntry(header2.dataFormatDescriptor,
-                    HeaderData::InvalidIndexEntry, "dfd");
+                    HeaderData.InvalidIndexEntry, "dfd");
 
     checkIndexEntry(header2.keyValueData,
-                    HeaderData::InvalidIndexEntry, "kvd");
+                    HeaderData.InvalidIndexEntry, "kvd");
 
     checkIndexEntry(header2.supercompressionGlobalData,
-                    HeaderData::InvalidIndexEntry, "sgd");
+                    HeaderData.InvalidIndexEntry, "sgd");
 }
 
 
