@@ -215,6 +215,7 @@ TEST_F(WriterTestHelperRGB8Test, Construct3D) {
 /////////////////////////////////////
 
 #include <KHR/khr_df.h>
+#define LIBKTX // To make dfd.h not include vulkan/vulkan_core.h.
 #include "dfdutils/dfd.h"
 
 // Template for single plane formats.
@@ -314,13 +315,13 @@ class createDFDTestBaseComp : public createDFDTestBase<numComponents, bytesPlane
   using typename createDFDTestBase<numComponents, bytesPlane>::sampleType;
   public:
     createDFDTestBaseComp() : createDFDTestBase<numComponents, bytesPlane>() {
-       expected.texelBlockDimension2 = 0;
        expected.texelBlockDimension3 = 0;
     }
 
     void customize(ktx_uint8_t model,
                    ktx_uint8_t primaries, ktx_uint8_t transfer,
-                   ktx_uint8_t flags, ktx_uint32_t dim0, ktx_uint32_t dim1,
+                   ktx_uint8_t flags,
+                   ktx_uint32_t dim0, ktx_uint32_t dim1, ktx_uint32_t dim2,
                    std::initializer_list<sampleType> samples) {
         expected.model = model;
         expected.primaries = primaries;
@@ -328,7 +329,7 @@ class createDFDTestBaseComp : public createDFDTestBase<numComponents, bytesPlane
         expected.flags = flags;
         expected.texelBlockDimension0 = dim0;
         expected.texelBlockDimension1 = dim1;
-
+        expected.texelBlockDimension2 = dim2;
 
         uint32_t i = 0; // There's got to be some syntax for declaring this in the for
         for (auto sample : samples ) {
@@ -336,6 +337,13 @@ class createDFDTestBaseComp : public createDFDTestBase<numComponents, bytesPlane
             if (++i == numComponents)
                 break;
         }
+    }
+
+    void customize(ktx_uint8_t model,
+               ktx_uint8_t primaries, ktx_uint8_t transfer,
+               ktx_uint8_t flags, ktx_uint32_t dim0, ktx_uint32_t dim1,
+               std::initializer_list<sampleType> samples) {
+        customize(model, primaries, transfer, flags, dim0, dim1, 0, samples);
     }
 
   protected:
@@ -465,7 +473,7 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_R8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, s_UNORM);
+    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, 1, s_UNORM);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -482,7 +490,7 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_SR8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, s_SRGB);
+    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, 1, s_SRGB);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -499,7 +507,7 @@ TEST_F(createDFDCompressedTest1, FormatETC2_R8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, s_UNORM);
+    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_UNORM);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -517,7 +525,7 @@ TEST_F(createDFDCompressedTest2, FormatETC2_R8G8B8A8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, s_UNORM);
+    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_UNORM);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -534,7 +542,7 @@ TEST_F(createDFDCompressedTest1, FormatETC2_SR8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, s_SRGB);
+    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_SRGB);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -553,7 +561,7 @@ TEST_F(createDFDCompressedTest2, FormatETC2_SR8G8B8A8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, s_SRGB);
+    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_SRGB);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -570,7 +578,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_12x12_SRGB) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 12, 12, s_SRGB);
+    uint32_t* dfd = createDFDCompressed(c_ASTC, 12, 12, 1, s_SRGB);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -587,7 +595,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x5_SRGB) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 5, s_SRGB);
+    uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 5, 1, s_SRGB);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -604,7 +612,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_5x4) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 5, 4, s_UNORM);
+    uint32_t* dfd = createDFDCompressed(c_ASTC, 5, 4, 1, s_UNORM);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -621,7 +629,24 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 8, s_UNORM);
+    uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 8, 1, s_UNORM);
+
+    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
+
+    free(dfd);
+}
+
+TEST_F(createDFDCompressedTest1x16, FormatASTC_3x3x3) {
+    customize(KHR_DF_MODEL_ASTC, KHR_DF_PRIMARIES_BT709,
+              KHR_DF_TRANSFER_LINEAR, KHR_DF_FLAG_ALPHA_STRAIGHT,
+              2, 2, 2,
+              {
+                {0, 127, KHR_DF_CHANNEL_ASTC_DATA, 0, 0, 0, 0, 0, 0xFFFFFFFF},
+              }
+             );
+
+    uint32_t* dfd = createDFDCompressed(c_ASTC, 3, 3, 3, s_UNORM);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
@@ -638,7 +663,7 @@ TEST_F(createDFDCompressedTest1, FormatBC1) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_BC1_RGB, 4, 4, s_UNORM);
+    uint32_t* dfd = createDFDCompressed(c_BC1_RGB, 4, 4, 1, s_UNORM);
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);

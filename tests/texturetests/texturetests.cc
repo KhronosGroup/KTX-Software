@@ -1639,6 +1639,7 @@ TEST_F(ktxTexture1WriteTestRG16, Write2DMipmap) {
 //----------------------------------------------------------
 
 #include "vkformat_enum.h"
+#define LIBKTX // To make dfd.h not include vulkan/vulkan_core.h.
 #include "dfdutils/dfd.h"
 
 template<typename component_type, ktx_uint32_t numComponents,
@@ -1699,8 +1700,7 @@ class ktxTexture1WriteKTX2TestBase
             // code under test. However we have separate tests for the
             // generator, so can be reasonably confident in it. This test
             // ensures there is a DFD in the file.
-            ktx_uint32_t* dfd = createDFD4VkFormat(
-                                    static_cast<VkFormat>(header->vkFormat));
+            ktx_uint32_t* dfd = vk2dfd(static_cast<VkFormat>(header->vkFormat));
             EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
                              dfd,
                              *dfd), 0);
@@ -1804,8 +1804,7 @@ class ktxTexture1WriteKTX2TestBase
             EXPECT_EQ(helper.texinfo.compare(header), true);
 
             // Check the format descriptor.
-            ktx_uint32_t* dfd = createDFD4VkFormat(
-                                    static_cast<VkFormat>(header->vkFormat));
+            ktx_uint32_t* dfd = vk2dfd(static_cast<VkFormat>(header->vkFormat));
             EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
                              dfd,
                              *dfd), 0);
