@@ -2,7 +2,7 @@
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
- * Copyright (c) 2010-2018 The Khronos Group Inc.
+ * Copyright (c) 2019 The Khronos Group Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,12 +65,14 @@ enum VkCompScheme {
     c_EAC_R11,       /*!< R11 ETC2 single-channel. */
     c_EAC_R11G11,    /*!< R11G11 ETC2 dual-channel. */
     c_ASTC,          /*!< ASTC. */
-    c_ETC1S          /*!< ETC1S. */
+    c_ETC1S,         /*!< ETC1S. */
+    c_PVRTC,         /*!< PVRTC(1). */
+    c_PVRTC2         /*!< PVRTC2. */
 };
 
 typedef unsigned int uint32_t;
 
-#include "../vkformat_enum.h"
+#include <vulkan/vulkan_core.h>
 
 uint32_t* createDFD4VkFormat(enum VkFormat format);
 
@@ -85,8 +87,13 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
 
 /* Create a Data Format Descriptor for a compressed format. */
 uint32_t *createDFDCompressed(enum VkCompScheme compScheme,
-                              int bwidth, int bheight,
+                              int bwidth, int bheight, int bdepth,
                               enum VkSuffix suffix);
+
+/* Create a Data Format Descriptor for a depth/stencil format. */
+uint32_t *createDFDDepthStencil(int depthBits,
+                                int stencilBits,
+                                int sizeBytes);
 
 /*! Result of interpreting the data format descriptor. */
 enum InterpretDFDResult {
