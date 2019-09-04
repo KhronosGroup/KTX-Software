@@ -72,7 +72,11 @@ enum VkCompScheme {
 
 typedef unsigned int uint32_t;
 
+#if !defined(LIBKTX)
 #include <vulkan/vulkan_core.h>
+#else
+#include "../vkformat_enum.h"
+#endif
 
 uint32_t* createDFD4VkFormat(enum VkFormat format);
 

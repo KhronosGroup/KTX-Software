@@ -97,6 +97,10 @@ gypfiles=ktxtests.gyp \
 		 tests/testimages/testimages.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
+		 tools/ktx2ktx2/ktx2ktx2.gypi \
+		 tools/ktxcheck/ktxcheck.gypi \
+		 tools/ktxinfo/ktxinfo.gypi \
+		 tools/ktxsc/ktxsc.gypi \
 		 tools/toktx/toktx.gypi
 
 # Uncomment these 2 lines if you do not want to install our modified

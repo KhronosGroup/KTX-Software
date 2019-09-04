@@ -72,6 +72,13 @@
 			remoteGlobalIDString = 087BDCC3FBB247940A2DAC27;
 			remoteInfo = ktxsc;
 		};
+		F65B56D0D7A7031EDA05F3A5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E8A1CFD454898119CEB246E4;
+			remoteInfo = ktxcheck;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -150,10 +157,11 @@
 			path = build/docs;
 			sourceTree = "<group>";
 		};
-		BF0612F185919085D1B7AB5B /* Products */ = {
+		AEEC122FEBD8F9C8A463587F /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				F9934D9176BC8628BB9DD710 /* ktx2ktx2 */,
+				61E8B5B813AB3268C4218F4E /* ktxcheck */,
 				DEF63C54EBAA2835FE433A21 /* ktxinfo */,
 				9CE257F3F43B1654A81728B4 /* ktxsc */,
 				6527CB59EC7BD66F84551A43 /* toktx */,
@@ -188,7 +196,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = BF0612F185919085D1B7AB5B /* Products */;
+					ProductGroup = AEEC122FEBD8F9C8A463587F /* Products */;
 					ProjectRef = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
 				},
 				{
@@ -204,6 +212,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		61E8B5B813AB3268C4218F4E /* ktxcheck */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = ktxcheck;
+			remoteRef = F65B56D0D7A7031EDA05F3A5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		6527CB59EC7BD66F84551A43 /* toktx */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.executable";

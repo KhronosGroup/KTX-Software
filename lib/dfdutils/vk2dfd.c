@@ -45,7 +45,7 @@ uint32_t*
 createDFD4VkFormat(enum VkFormat format)
  {
      switch (format) {
-#include "vkdfdswitchbody.inl"
+#include "vk2dfd.inl"
          default: return 0;
      }
  }

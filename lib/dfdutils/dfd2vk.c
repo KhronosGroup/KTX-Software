@@ -41,6 +41,7 @@
  *              unrecognized. Caller is responsible for freeing the created
  *              DFD.
  */
+#if 0
 uint32_t*
 createDFD4VkFormat(enum VkFormat format)
  {
@@ -49,4 +50,4 @@ createDFD4VkFormat(enum VkFormat format)
          default: return 0;
      }
  }
-
+#endif

@@ -25,18 +25,23 @@ BEGIN {
     prohibited = prohibited "#include \"vkformat_enum.h\"\n\n"
     prohibited = prohibited "bool\nisProhibitedFormat(VkFormat format)\n{\n"
     prohibited = prohibited "    switch (format) {\n";
+    valid = "bool\nisValidFormat(VkFormat format)\n{\n"
+    valid = valid "    if (format < VK_FORMAT_END_RANGE)\n"
+    valid = valid "        return true;\n    else switch(format) {\n"
     if (ARGC == 2) {
         output_dir = ARGV[1] "/";
     }
     format_hdr = output_dir "vkformat_enum.h"
     format_strings = output_dir "vkformat_str.c"
-    format_prohibited = output_dir "vkformat_prohibited.c"
-    if (ENVIRON["VULKAN_SDK"]) {
-        vulkan_include_root = ENVIRON["VULKAN_SDK"];
-    } else {
-        vulkan_include_root = "/usr";
-    }
-    ARGV[1] = vulkan_include_root"/include/vulkan/"vulkan_core; ARGC = 2
+    format_check = output_dir "vkformat_check.c"
+# Use local vulkan_core.h until ASTC 3D texture extension is released.
+#    if (ENVIRON["VULKAN_SDK"]) {
+#        vulkan_include_root = ENVIRON["VULKAN_SDK"];
+#    } else {
+#        vulkan_include_root = "/usr";
+#    }
+#    ARGV[1] = vulkan_include_root"/include/vulkan/"vulkan_core; ARGC = 2
+     ARGV[1] = "lib/dfdutils/vulkan/"vulkan_core; ARGC = 2
 }
 
 # A range pattern to extract the copyright message.
@@ -69,6 +74,11 @@ BEGIN {
 
 /.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
 #/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
+
+# Extract valid formats with values > VK_FORMAT_END_RANGE.
+/VK_FORMAT.* = 1000/ && ! /FEATURE/ && ! /PLANE/ && ! /422/ && !/420/ {
+  valid = valid "        case " $1 ":\n";
+}
 
 # Extract VK_FORMAT token names. [^F] avoids the VK_FORMAT_FEATURE* tokens.
 /    VK_FORMAT_[^F].*/ {
@@ -104,7 +114,9 @@ END {
     # vkformat_prohibited.c
     prohibited = prohibited "        return true;\n"
     prohibited = prohibited "      default:\n        return false;\n    }\n}\n";
-    write_source_file(prohibited, format_prohibited)
+    valid = valid "        return true;\n"
+    valid = valid "      default:\n        return false;\n    }\n}\n";
+    write_source_file(prohibited "\n" valid, format_check)
 
     # vkformat_str.c
     prelude = "\n";
