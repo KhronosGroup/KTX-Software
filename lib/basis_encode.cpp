@@ -233,9 +233,9 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
         (KHR_DF_VERSIONNUMBER_LATEST << KHR_DF_SHIFT_VERSIONNUMBER) |
         (((uint32_t)sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART)
           << KHR_DF_SHIFT_DESCRIPTORBLOCKSIZE);
+    // WORD_TRANSFER is in the same word so this copies the xfer function too.
     nbdfd[KHR_DF_WORD_MODEL] = cbdfd[KHR_DF_WORD_MODEL] & ~KHR_DF_MASK_MODEL;
     nbdfd[KHR_DF_WORD_MODEL] |= KHR_DF_MODEL_UNSPECIFIED << KHR_DF_SHIFT_MODEL;
-    nbdfd[KHR_DF_WORD_TRANSFER] = cbdfd[KHR_DF_WORD_TRANSFER];
     nbdfd[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 0;
     nbdfd[KHR_DF_WORD_BYTESPLANE0] = 0;
     nbdfd[KHR_DF_WORD_BYTESPLANE4] = 0;
