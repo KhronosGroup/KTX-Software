@@ -427,26 +427,19 @@ class ktxValidator : public ktxApp {
             fi.blockDimension.x = KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) + 1;
             fi.blockDimension.y = KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) + 1;
             fi.blockDimension.z = KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) + 1;
+            fi.blockByteLength = KHR_DFDVAL(bdb, BYTESPLANE0);
             if (KHR_DFDVAL(bdb, MODEL) >= KHR_DF_MODEL_DXT1A) {
                 // A block compressed format. Entire block is a single sample.
-                fi.blockByteLength = (KHR_DFDSVAL(bdb, 0, BITLENGTH) + 1) / 8;
                 fi.isBlockCompressed = true;
             } else {
                 // An uncompressed format.
                 InterpretedDFDChannel r, g, b, a;
                 InterpretDFDResult result;
 
+                fi.isBlockCompressed = false;
                 result = interpretDFD(pDfd4Format, &r, &g, &b, &a, &fi.wordSize);
                 if (result > i_UNSUPPORTED_ERROR_BIT)
                     return false;
-                fi.isBlockCompressed = false;
-                if (result & i_PACKED_FORMAT_BIT) {
-                   fi.blockByteLength = fi.wordSize;
-                } else {
-                   // TODO Consider making interpretDFD return the number of
-                   // samples.
-                   fi.blockByteLength = (r.size + g.size + b.size + a.size);
-                }
             }
             return true;
         }
@@ -679,6 +672,7 @@ ktxValidator::processOption(argparser& parser, _TCHAR opt)
         break;
       default:
         usage();
+        exit(1);
     }
 }
 
