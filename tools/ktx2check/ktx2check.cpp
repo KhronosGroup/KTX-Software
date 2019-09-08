@@ -309,6 +309,7 @@ class ktxValidator : public ktxApp {
             maxIssues = -1U;
             issueCount = 0;
             headerWritten = false;
+            quiet = false;
         }
         enum severity { eWarning, eError, eFatal };
         void addIssue(severity severity, issue issue, va_list args);
@@ -319,6 +320,7 @@ class ktxValidator : public ktxApp {
         }
         uint32_t getIssueCount() { return this->issueCount; }
         uint32_t maxIssues;
+        bool quiet;
 
       protected:
         uint32_t issueCount;
@@ -534,31 +536,33 @@ ktxValidator::ktxValidator() : ktxApp(myversion, options)
 //    at the place an issue is raised.
 void
 ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
-    if (!headerWritten) {
-        cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
-        headerWritten = true;
-    }
-    if (issueCount < maxIssues) {
-        cout << "    ";
-        switch (severity) {
-          case eError:
-            cout << "ERROR: ";
-            break;
-          case eFatal:
-            cout << "FATAL: ";
-            break;
-          case eWarning:
-            cout << "WARNING: ";
-            break;
+    if (!quiet) {
+        if (!headerWritten) {
+            cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
+            headerWritten = true;
         }
-        vfprintf(stdout, issue.message.c_str(), args);
-        cout << std::endl;
-        issueCount++;
-        if (severity == eFatal)
-            throw fatal();
-    } else {
-        throw max_issues_exceeded();
+        if (issueCount < maxIssues) {
+            cout << "    ";
+            switch (severity) {
+              case eError:
+                cout << "ERROR: ";
+                break;
+              case eFatal:
+                cout << "FATAL: ";
+                break;
+              case eWarning:
+                cout << "WARNING: ";
+                break;
+            }
+            vfprintf(stdout, issue.message.c_str(), args);
+            cout << std::endl;
+        } else {
+            throw max_issues_exceeded();
+        }
     }
+    issueCount++;
+    if (severity == eFatal)
+        throw fatal();
 }
 
 
@@ -591,6 +595,10 @@ ktxValidator::main(int argc, _TCHAR *argv[])
     processCommandLine(argc, argv, eDisallowStdin);
 
     uint32_t totalIssues = 0;
+
+    logger.quiet = options.quiet;
+    logger.maxIssues = options.maxIssues;
+
     vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         try {
@@ -632,7 +640,9 @@ ktxValidator::validateFile(const string& filename)
             validateDfd(context);
             validateKvd(context);
         } catch (fatal& e) {
-            cout << e.what() << endl;
+            if (!options.quiet)
+                cout << "    " << e.what() << endl;
+            throw;
         } catch (max_issues_exceeded& e) {
             cout << e.what() << endl;
         }
