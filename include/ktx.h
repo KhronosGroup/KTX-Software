@@ -717,8 +717,8 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
  */
 
 /*
- * These three create a ktxTexture1 or ktxTexture2 according to the header in
- * the data, and return a pointer to the base ktxTexture class.
+ * These three create a ktxTexture1 or ktxTexture2 according to the data
+ * header, and return a pointer to the base ktxTexture class.
  */
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture_CreateFromStdioStream(FILE* stdioStream,
@@ -1039,13 +1039,6 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* kvd);
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxHashListEntry_GetKey(ktxHashListEntry* This,
                         unsigned int* pKeyLen, char** ppKey);
-
-/*
- * Get the value from a ktxHashListEntry
- */
-KTX_APICALL KTX_error_code KTX_APIENTRY
-ktxHashListEntry_GetKey(ktxHashListEntry* This,
-                        unsigned int* pValueLen, char** ppValue);
 
 /*
  * Get the value from a ktxHashListEntry

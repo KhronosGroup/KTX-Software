@@ -65,6 +65,7 @@ class ktxApp {
         cerr <<
           "  --help       Print this usage message and exit.\n"
           "  --version    Print the version number of this program and exit.\n";
+        exit(1);
     };
 
   protected:
@@ -85,8 +86,8 @@ class ktxApp {
         cerr << "\n";
     }
 
-    enum eStdin { disallow_stdin, allow_stdin };
-    void processCommandLine(int argc, _TCHAR* argv[], eStdin stdinStat) {
+    enum StdinUse { eDisallowStdin, eAllowStdin };
+    void processCommandLine(int argc, _TCHAR* argv[], StdinUse stdinStat) {
         int i;
         size_t slash, dot;
 
@@ -119,8 +120,12 @@ class ktxApp {
                     }
                 }
             }
-        } else if (stdinStat == allow_stdin) {
+        } else if (stdinStat == eAllowStdin) {
             options.infiles.push_back(_T("-")); // Use stdin as 0 files.
+        } else {
+            error("no input files.");
+            usage();
+            exit(1);
         }
     }
 

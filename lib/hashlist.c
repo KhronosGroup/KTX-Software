@@ -192,6 +192,8 @@ ktxHashList_Destroy(ktxHashList* pHead)
  * @~English
  * @brief Add a key value pair to a hash list.
  *
+ * The value can be empty, i.e, its length can be 0.
+ *
  * @param [in] pHead    pointer to the head of the target hash list.
  * @param [in] key      pointer to the UTF8 NUL-terminated string to be used as the key.
  * @param [in] valueLen the number of bytes of data in @p value.
@@ -216,11 +218,15 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen
         /* Put key first */
         kv->key = (char *)kv + sizeof(ktxKVListEntry);
         kv->keyLen = keyLen;
-        /* then value */
-        kv->value = kv->key + keyLen;
-        kv->valueLen = valueLen;
         memcpy(kv->key, key, keyLen);
-        memcpy(kv->value, value, valueLen);
+        /* then value */
+        kv->valueLen = valueLen;
+        if (valueLen > 0) {
+            kv->value = kv->key + keyLen;
+            memcpy(kv->value, value, valueLen);
+        } else {
+            kv->value = 0;
+        }
 
         HASH_ADD_KEYPTR( hh, *pHead, kv->key, kv->keyLen-1, kv);
         return KTX_SUCCESS;
@@ -436,7 +442,8 @@ ktxHashList_Serialize(ktxHashList* pHead,
             sd += sizeof(ktx_uint32_t);
             memcpy(sd, kv->key, kv->keyLen);
             sd += kv->keyLen;
-            memcpy(sd, kv->value, kv->valueLen);
+            if (kv->valueLen > 0)
+                memcpy(sd, kv->value, kv->valueLen);
             sd += kv->valueLen;
             padLen = _KTX_PAD4_LEN(keyValueLen);
             memcpy(sd, padding, padLen);
@@ -449,7 +456,7 @@ ktxHashList_Serialize(ktxHashList* pHead,
 
 
 int sort_by_key_codepoint(ktxKVListEntry* a, ktxKVListEntry* b) {
-  return strcmp(a->key,b->key);
+  return strcmp(a->key, b->key);
 }
 
 /**
@@ -512,7 +519,7 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
     result = KTX_SUCCESS;
     while (result == KTX_SUCCESS && src < (char *)pKvd + kvdLen) {
         char* key;
-        unsigned int keyLen;
+        unsigned int keyLen, valueLen;
         void* value;
         ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t*)src);
 
@@ -521,8 +528,9 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
         keyLen = (unsigned int)strlen(key) + 1;
         value = key + keyLen;
 
-        result = ktxHashList_AddKVPair(pHead, key, keyAndValueByteSize - keyLen,
-                                       value);
+        valueLen = keyAndValueByteSize - keyLen;
+        result = ktxHashList_AddKVPair(pHead, key, valueLen,
+                                       valueLen > 0 ? value : NULL);
         if (result == KTX_SUCCESS) {
             src += _KTX_PAD4(keyAndValueByteSize);
         }
@@ -582,7 +590,7 @@ ktxHashListEntry_GetValue(ktxHashListEntry* This,
     if (pValueLen && ppValue) {
         ktxKVListEntry* kv = (ktxKVListEntry*)This;
         *pValueLen = kv->valueLen;
-        *ppValue = kv->value;
+        *ppValue = kv->valueLen > 0 ? kv->value : NULL;
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;

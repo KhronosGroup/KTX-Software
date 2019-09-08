@@ -415,6 +415,7 @@
             'KTX_OPENGL_ES1=1',
             'KTX_OMIT_VULKAN=1',
             'KHRONOS_STATIC=1',
+            'LIBKTX=1',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -438,6 +439,7 @@
             'KTX_OPENGL_ES3=1',
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
             'KHRONOS_STATIC=1',
+            'LIBKTX=1',
           ],
           'dependencies': [ 'vulkan_headers' ],
           'direct_dependent_settings': {
