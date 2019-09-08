@@ -98,7 +98,7 @@ gypfiles=ktxtests.gyp \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
 		 tools/ktx2ktx2/ktx2ktx2.gypi \
-		 tools/ktxcheck/ktxcheck.gypi \
+		 tools/ktx2check/ktx2check.gypi \
 		 tools/ktxinfo/ktxinfo.gypi \
 		 tools/ktxsc/ktxsc.gypi \
 		 tools/toktx/toktx.gypi

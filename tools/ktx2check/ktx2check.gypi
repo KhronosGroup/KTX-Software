@@ -2,7 +2,7 @@
 # @internal
 # @copyright © 2019, Mark Callow. For license see LICENSE.md.
 #
-# @brief Generate project files for building ktxcheck.
+# @brief Generate project files for building ktx2check.
 #
 {
   'variables': { # level 1
@@ -25,7 +25,7 @@
     ['OS == "linux" or OS == "mac" or OS == "win"', {
       'targets': [
         {
-          'target_name': 'ktxcheck',
+          'target_name': 'ktx2check',
           'type': '<(executable)',
           'include_dirs' : [ '../../utils' ],
           'mac_bundle': 0,
@@ -34,9 +34,8 @@
           'sources': [
             '../../utils/argparser.cpp',
             '../../utils/argparser.h',
-            #'../../utils/ktxapp.cpp',
-            '../../utils/ktxapp.h',
-            'ktxcheck.cpp',
+           '../../utils/ktxapp.h',
+            'ktx2check.cpp',
             'stdafx.h',
           ],
           'msvs_settings': {
@@ -45,21 +44,21 @@
               'SubSystem': '1',
             },
           },
-        }, # ktxcheck target
+        }, # ktx2check target
 #        {
-#          'target_name': 'ktxcheck-tests',
+#          'target_name': 'ktx2check-tests',
 #          'type': 'none',
-#          'dependencies': [ 'ktxcheck' ],
+#          'dependencies': [ 'ktx2check' ],
 #          'actions': [
 #            {
-#              'action_name': 'ktxcheck-tests',
-#              'message': 'Running ktxcheck tests',
-#              'inputs': [ '../../tests/ktxcheck-tests' ],
+#              'action_name': 'ktx2check-tests',
+#              'message': 'Running ktx2check tests',
+#              'inputs': [ '../../tests/ktx2check-tests' ],
 #              'outputs': [ 'testsrun' ],
 #              'action': [
-#                '<(_inputs)', '<(PRODUCT_DIR)/ktxcheck',
+#                '<(_inputs)', '<(PRODUCT_DIR)/ktx2check',
 #              ],
-#            }, # ktxcheck-tests action
+#            }, # ktx2check-tests action
 #          ], # actions
 #        }, # toktx-tests target
       ], # targets

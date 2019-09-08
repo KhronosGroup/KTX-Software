@@ -13,7 +13,7 @@
   },
   'includes': [
     'ktx2ktx2/ktx2ktx2.gypi',
-    'ktxcheck/ktxcheck.gypi',
+    'ktx2check/ktx2check.gypi',
     'ktxinfo/ktxinfo.gypi',
     'ktxsc/ktxsc.gypi',
     'toktx/toktx.gypi',
@@ -46,7 +46,7 @@
               'inputs': [
                 '../<(doxyConfig)',
                 '../runDoxygen',
-                'ktxcheck/ktxcheck.cpp',
+                'ktx2check/ktx2check.cpp',
                 'ktx2ktx2/ktx2ktx2.cpp',
                 'ktxinfo/ktxinfo.cpp',
                 'ktxsc.cpp',
@@ -106,7 +106,7 @@
           }, # variables
           'dependencies': [
             'ktx2ktx2',
-            'ktxcheck',
+            'ktx2check',
             'ktxinfo',
             'ktxsc',
             'ktxtools.doc',
@@ -131,7 +131,7 @@
             'destination': '<(dstroot)/<(installpath)/bin',
             'files': [
               '<(PRODUCT_DIR)/ktx2ktx2<(EXECUTABLE_SUFFIX)',
-              '<(PRODUCT_DIR)/ktxcheck<(EXECUTABLE_SUFFIX)',
+              '<(PRODUCT_DIR)/ktx2check<(EXECUTABLE_SUFFIX)',
               '<(PRODUCT_DIR)/ktxinfo<(EXECUTABLE_SUFFIX)',
               '<(PRODUCT_DIR)/ktxsc<(EXECUTABLE_SUFFIX)',
               '<(PRODUCT_DIR)/toktx<(EXECUTABLE_SUFFIX)',
