@@ -38,53 +38,47 @@
 #define LIBKTX // To stop dfdutils including vulkan_core.h.
 #include "dfdutils/dfd.h"
 #include "texture.h"
+#include "basis_sgd.h"
 
-#define VERSION "1.0.0"
+#define VERSION "1.0.0 alpha"
 std::string myversion(VERSION);
 
-/////////////////////////////////////////////////////////////////////
-//                      Data Format Descriptor                     //
-/////////////////////////////////////////////////////////////////////
+/** @page ktx2check ktx2check
+@~English
 
-// These are here for the SOLE purpose of easing debugging. They are sadly not
-// fully portable but work on enough machines to make them usable as a cast
-// targets during debugging.
+Check the validity of a KTX 2 file.
 
-struct sampleType {
-    uint32_t bitOffset: 16;
-    uint32_t bitLength: 8;
-    uint32_t channelType: 8; // Includes qualifiers
-    uint32_t samplePosition0: 8;
-    uint32_t samplePosition1: 8;
-    uint32_t samplePosition2: 8;
-    uint32_t samplePosition3: 8;
-    uint32_t lower;
-    uint32_t upper;
-};
+@section ktx2check_synopsis SYNOPSIS
+    ktx2check [options] [@e infile ...]
 
-struct BDFD {
-    uint32_t vendorId: 17;
-    uint32_t descriptorType: 15;
-    uint32_t versionNumber: 16;
-    uint32_t descriptorBlockSize: 16;
-    uint32_t model: 8;
-    uint32_t primaries: 8;
-    uint32_t transfer: 8;
-    uint32_t flags: 8;
-    uint32_t texelBlockDimension0: 8;
-    uint32_t texelBlockDimension1: 8;
-    uint32_t texelBlockDimension2: 8;
-    uint32_t texelBlockDimension3: 8;
-    uint32_t bytesPlane0: 8;
-    uint32_t bytesPlane1: 8;
-    uint32_t bytesPlane2: 8;
-    uint32_t bytesPlane3: 8;
-    uint32_t bytesPlane4: 8;
-    uint32_t bytesPlane5: 8;
-    uint32_t bytesPlane6: 8;
-    uint32_t bytesPlane7: 8;
-    sampleType samples[1];
-};
+@section ktx2check_description DESCRIPTION
+    @b ktx2check validates Khronos texture format version 2 files (KTX2).
+    It reads each named @e infile and validates it writing to stdout messages
+    about any issues found. When @b infile is not specified, it validates a
+    single file from stdin.
+
+    The following options are available:
+    <dl>
+    <dt>-q, --quiet</dt>
+    <dd>Validate silently. Indicate valid or invalid via exit code.</dd>
+    <dt>-m &lt;num%gt;, --max-issues &lt;num&gt;</dt>
+    <dd>Set the maximum number of issues to be reported per file"
+        provided -q is not set.</dd>
+
+@section ktx2check_exitstatus EXIT STATUS
+    @b toktx exits 0 on success, 1 on command line errors and 2 on
+    validation errors.
+
+@section ktx2check_history HISTORY
+
+@version 1.0.alpha:
+Sun, 08 Sep 2019 13:14:28 -0700
+ - Initial version.
+
+@section ktx2check_author AUTHOR
+    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+*/
+
 
 /////////////////////////////////////////////////////////////////////
 //                       Message Definitions                       //
@@ -249,6 +243,21 @@ struct {
         ERROR | 0x0075, "Required KTXwriter key is missing."
     };
 } Metadata;
+
+struct {
+    issue UnexpectedSupercompressionGlobalData {
+        ERROR | 0x0080, "Supercompression global data found scheme that is not Basis."
+    };
+    issue MissingSupercompressionGlobalData {
+        ERROR | 0x0081, "Basis supercompression global data missing."
+    };
+    issue IncorrectGlobalDataSize {
+        ERROR | 0x0082, "Basis supercompression global data has incorrect size."
+    };
+    issue ExtendedByteLengthNotZero {
+        ERROR | 0x0083, "extendedByteLength != 0 in Basis supercompression global data."
+    };
+} SGD;
 
 struct {
     issue OutOfMemory {
@@ -461,6 +470,7 @@ class ktxValidator : public ktxApp {
     void validateLevelIndex(validationContext& ctx);
     void validateDfd(validationContext& ctx);
     void validateKvd(validationContext& ctx);
+    void validateSgd(validationContext& ctx);
     bool validateMetadata(validationContext& ctx, char* key, uint8_t* value,
                           uint32_t valueLen);
 
@@ -572,11 +582,15 @@ ktxValidator::usage()
     cerr <<
         "Usage: " << name << " [options] [<infile> ...]\n"
         "\n"
-        "  infile       The ktx2 file(s) to validate. If infile not specified input\n"
+        "  infile       The ktx2 file(s) to validate. If infile is not specified, input\n"
         "               will be read from stdin.\n"
         "\n"
         "  Options are:\n"
-        "\n";
+        "\n"
+        "  -q, --quiet  Validate silently. Indicate valid or invalid via exit code.\n"
+        "  -m <num>, --max-issues <num>\n"
+        "               Set the maximum number of issues to be reported per file\n"
+        "               provided -q is not set.\n";
     ktxApp::usage();
 }
 
@@ -592,7 +606,7 @@ int _tmain(int argc, _TCHAR* argv[])
 int
 ktxValidator::main(int argc, _TCHAR *argv[])
 {
-    processCommandLine(argc, argv, eDisallowStdin);
+    processCommandLine(argc, argv, eAllowStdin);
 
     uint32_t totalIssues = 0;
 
@@ -620,16 +634,15 @@ ktxValidator::validateFile(const string& filename)
     FILE* inf;
     validationContext context;
 
-#if 0
     if (filename.compare(_T("-")) == 0) {
         inf = stdin;
 #if defined(_WIN32)
         /* Set "stdin" to have binary mode */
         (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
-    } else
-#endif
-    inf = _tfopen(filename.c_str(), "rb");
+    } else {
+        inf = _tfopen(filename.c_str(), "rb");
+    }
 
     logger.startFile(inf == stdin ? "stdin" : filename);
     if (inf) {
@@ -639,6 +652,7 @@ ktxValidator::validateFile(const string& filename)
             validateLevelIndex(context);
             validateDfd(context);
             validateKvd(context);
+            validateSgd(context);
         } catch (fatal& e) {
             if (!options.quiet)
                 cout << "    " << e.what() << endl;
@@ -1029,6 +1043,7 @@ ktxValidator::validateKvd(validationContext& ctx)
         addIssue(logger::eError, Metadata.NoKTXwriter);
 
     // Advance the read past any padding.
+    // Use read not skip so stdin can be used.
     uint32_t pLen = _KTX_PAD8_LEN(ctx.header.keyValueData.byteOffset + kvdLen);
     uint8_t padBuf[8];
     if (fread(padBuf, pLen, 1, ctx.inf) != 1) {
@@ -1142,3 +1157,57 @@ ktxValidator::validateAstcDecodeRGB9E5(validationContext& ctx, char* key,
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
+void
+ktxValidator::validateSgd(validationContext& ctx)
+{
+    uint64_t sgdByteLength = ctx.header.supercompressionGlobalData.byteLength;
+    if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+        if (sgdByteLength == 0) {
+            addIssue(logger::eError, SGD.MissingSupercompressionGlobalData);
+            return;
+        }
+    } else {
+        if (sgdByteLength > 0)
+            addIssue(logger::eError, SGD.UnexpectedSupercompressionGlobalData);
+        return;
+    }
+
+    uint8_t* sgd = new uint8_t[sgdByteLength];
+    if (fread(sgd, sgdByteLength, 1, ctx.inf) != 1) {
+        if (ferror(ctx.inf))
+            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+        else
+            addIssue(logger::eFatal, IOError.UnexpectedEOF);
+    }
+
+    // firstImages contains the indices of the first images for each level.
+    // The last array entry contains the total number of images which is what
+    // we need here.
+    uint32_t* firstImages = new uint32_t[ctx.levelCount+1];
+    // Temporary invariant value
+    uint32_t layersFaces = ctx.layerCount * ctx.header.faceCount;
+    firstImages[0] = 0;
+    for (uint32_t level = 1; level <= ctx.levelCount; level++) {
+        // NOTA BENE: numFaces * depth is only reasonable because they can't
+        // both be > 1. I.e there are no 3d cubemaps.
+        firstImages[level] = firstImages[level - 1]
+                           + layersFaces * MAX(ctx.header.pixelDepth >> (level - 1), 1);
+    }
+    uint32_t& imageCount = firstImages[ctx.levelCount];
+
+    ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(sgd);
+    uint64_t expectedBgdByteLength = sizeof(ktxBasisGlobalHeader)
+                                   + sizeof(ktxBasisSliceDesc) * imageCount
+                                   + bgdh.endpointsByteLength
+                                   + bgdh.selectorsByteLength
+                                   + bgdh.tablesByteLength;
+
+    if (sgdByteLength != expectedBgdByteLength)
+        addIssue(logger::eError, SGD.IncorrectGlobalDataSize);
+
+    if (bgdh.extendedByteLength != 0)
+        addIssue(logger::eError, SGD.ExtendedByteLengthNotZero);
+
+    // Can't do anymore as we have no idea how many endpoints, etc there
+    // should be.
+}
