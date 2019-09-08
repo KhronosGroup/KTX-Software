@@ -156,6 +156,15 @@ else
     failed=$failed+1
 fi
 
+numtests=$numtests+1
+cd ../badimages
+if $ktx2check invalid_face_count.ktx2; then
+    echo "Invalid face count not spotted."
+    failed=$failed+1
+else
+    passed=$passed+1
+fi
+
 echo "Tests run: $numtests; passed: $passed; failed: $failed"
 if [ $failed -gt 0 ]; then
   exit 1;
