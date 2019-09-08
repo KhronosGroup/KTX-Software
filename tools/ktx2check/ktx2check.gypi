@@ -45,22 +45,22 @@
             },
           },
         }, # ktx2check target
-#        {
-#          'target_name': 'ktx2check-tests',
-#          'type': 'none',
-#          'dependencies': [ 'ktx2check' ],
-#          'actions': [
-#            {
-#              'action_name': 'ktx2check-tests',
-#              'message': 'Running ktx2check tests',
-#              'inputs': [ '../../tests/ktx2check-tests' ],
-#              'outputs': [ 'testsrun' ],
-#              'action': [
-#                '<(_inputs)', '<(PRODUCT_DIR)/ktx2check',
-#              ],
-#            }, # ktx2check-tests action
-#          ], # actions
-#        }, # toktx-tests target
+        {
+          'target_name': 'ktx2check-tests',
+          'type': 'none',
+          'dependencies': [ 'ktx2check' ],
+          'actions': [
+            {
+              'action_name': 'ktx2check-tests',
+              'message': 'Running ktx2check tests',
+              'inputs': [ '../../tests/ktx2check-tests' ],
+              'outputs': [ 'testsrun' ],
+              'action': [
+                '<(_inputs)', '<(PRODUCT_DIR)/ktx2check',
+              ],
+            }, # ktx2check-tests action
+          ], # actions
+        }, # ktx2check-tests target
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ] # conditions for conditional targets
