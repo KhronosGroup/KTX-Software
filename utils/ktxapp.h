@@ -65,7 +65,6 @@ class ktxApp {
         cerr <<
           "  --help       Print this usage message and exit.\n"
           "  --version    Print the version number of this program and exit.\n";
-        exit(1);
     };
 
   protected:
