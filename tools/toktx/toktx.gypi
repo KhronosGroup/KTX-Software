@@ -26,7 +26,7 @@
         {
           'target_name': 'toktx',
           'type': '<(executable)',
-          'include_dirs' : [ '../../utils' ],
+          'include_dirs': [ '../../utils' ],
           'mac_bundle': 0,
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'sources': [

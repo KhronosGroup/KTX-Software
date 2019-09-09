@@ -39,6 +39,9 @@
 #include "dfdutils/dfd.h"
 #include "texture.h"
 #include "basis_sgd.h"
+#if defined(_MSC_VER)
+  #define strncasecmp _strnicmp
+#endif
 
 #define VERSION "1.0.0 alpha"
 std::string myversion(VERSION);
@@ -315,7 +318,7 @@ class ktxValidator : public ktxApp {
     class logger {
       public:
         logger() {
-            maxIssues = -1U;
+            maxIssues = 0xffffffffU;
             issueCount = 0;
             headerWritten = false;
             quiet = false;
@@ -370,13 +373,15 @@ class ktxValidator : public ktxApp {
                 uint32_t x, y;
             } blockCount;
 
-            float levelWidth  = header.pixelWidth >> level;
-            float levelHeight = header.pixelHeight >> level;
+            float levelWidth  = (float)(header.pixelWidth >> level);
+            float levelHeight = (float)(header.pixelHeight >> level);
             // Round up to next whole block.
-            uint32_t x = ceilf(levelWidth / formatInfo.blockDimension.x);
-            uint32_t y = ceilf(levelHeight / formatInfo.blockDimension.y);
-            blockCount.x = MAX(1, x);
-            blockCount.y = MAX(1, y);
+            blockCount.x
+				= (uint32_t)ceilf(levelWidth / formatInfo.blockDimension.x);
+            blockCount.y
+				= (uint32_t)ceilf(levelHeight / formatInfo.blockDimension.y);
+            blockCount.x = MAX(1, blockCount.x);
+            blockCount.y = MAX(1, blockCount.y);
 
             return blockCount.x * blockCount.y * formatInfo.blockByteLength;
         }
@@ -391,9 +396,10 @@ class ktxValidator : public ktxApp {
             uint32_t blockCountZ;
             size_t imageSize, layerSize;
 
-            float levelDepth = header.pixelDepth >> level;
-            uint32_t z = ceilf(levelDepth / formatInfo.blockDimension.z);
-            blockCountZ = MAX(1, z);
+            float levelDepth = (float)(header.pixelDepth >> level);
+            blockCountZ
+				= (uint32_t)ceilf(levelDepth / formatInfo.blockDimension.z);
+            blockCountZ = MAX(1, blockCountZ);
             imageSize = calcImageSize(level);
             layerSize = imageSize * blockCountZ;
             return layerSize * header.faceCount;
@@ -499,7 +505,7 @@ class ktxValidator : public ktxApp {
         bool quiet;
 
         commandOptions() {
-            maxIssues = -1U;
+            maxIssues = 0xffffffffU;
             quiet = false;
         }
     } options;
@@ -610,7 +616,7 @@ ktxValidator::main(int argc, _TCHAR *argv[])
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         try {
             totalIssues += validateFile(*it);
-        } catch (fatal& e) {
+        } catch (fatal&) {
             // File could not be opened.
             totalIssues++;
         }

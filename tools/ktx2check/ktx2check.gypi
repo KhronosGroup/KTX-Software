@@ -27,14 +27,16 @@
         {
           'target_name': 'ktx2check',
           'type': '<(executable)',
-          'include_dirs' : [ '../../utils' ],
+          'include_dirs': [
+            '../../lib',
+            '../../utils',
+          ],
           'mac_bundle': 0,
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
-          'include_dirs': [ '../../lib' ],
           'sources': [
             '../../utils/argparser.cpp',
             '../../utils/argparser.h',
-           '../../utils/ktxapp.h',
+            '../../utils/ktxapp.h',
             'ktx2check.cpp',
             'stdafx.h',
           ],

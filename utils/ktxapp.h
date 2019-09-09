@@ -18,6 +18,7 @@
 //
 
 #include <vector>
+#include <stdarg.h>
 
 #include "argparser.h"
 
