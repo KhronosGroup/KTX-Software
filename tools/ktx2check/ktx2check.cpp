@@ -134,8 +134,8 @@ struct {
     issue TooManyMipLevels {
         ERROR | 0x0028, "%d is too many levels for the largest image dimension %d."
     };
-    issue UnknownSupercompression {
-        WARNING | 0x0029, "Unknown vendor supercompressionScheme."
+    issue VendorSupercompression {
+        WARNING | 0x0029, "Using vendor supercompressionScheme. Can't validate."
     };
     issue InvalidSupercompression {
         ERROR | 0x002a, "Invalid supercompressionScheme: %#x"
@@ -784,7 +784,7 @@ ktxValidator::validateHeader(validationContext& ctx)
     if (ctx.header.supercompressionScheme > KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE
         && ctx.header.supercompressionScheme < KTX_SUPERCOMPRESSION_END_VENDOR_RANGE)
     {
-        addIssue(logger::eWarning, HeaderData.UnknownSupercompression);
+        addIssue(logger::eWarning, HeaderData.VendorSupercompression);
     } else if (ctx.header.supercompressionScheme < KTX_SUPERCOMPRESSION_BEGIN_RANGE
         || ctx.header.supercompressionScheme > KTX_SUPERCOMPRESSION_END_RANGE)
     {
