@@ -49,7 +49,7 @@
                 'ktx2check/ktx2check.cpp',
                 'ktx2ktx2/ktx2ktx2.cpp',
                 'ktxinfo/ktxinfo.cpp',
-                'ktxsc.cpp/ktxsc.cpp',
+                'ktxsc/ktxsc.cpp',
                 'toktx/toktx.cpp',
               ],
               # See ../lib/libktx.gypi for comment about why only
