@@ -89,7 +89,7 @@ Sun, 08 Sep 2019 13:14:28 -0700
 
 struct issue {
     uint32_t code;
-    const std::string message;
+    const string message;
 };
 
 #define WARNING 0x00010000
@@ -519,6 +519,7 @@ vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators;
 
 ktxValidator::ktxValidator() : ktxApp(myversion, options)
 {
+    // Don't use in-class initializers so we can build on VS2013. Sigh!
     metadataValidator initValidators[] = {
         { "KTXcubemapIncomplete", &ktxValidator::validateCubemapIncomplete },
         { "KTXorientation", &ktxValidator::validateOrientation },
@@ -529,14 +530,19 @@ ktxValidator::ktxValidator() : ktxApp(myversion, options)
         { "KTXwriter", &ktxValidator::validateWriter },
         { "KTXastcDecodeRGB9E5", &ktxValidator::validateAstcDecodeRGB9E5 }
     };
+    const int lastValidatorIndex = sizeof(initValidators)
+                              / sizeof(metadataValidator) - 1;
     metadataValidators.insert(metadataValidators.begin(), initValidators,
-                              initValidators+7);
+                              initValidators + lastValidatorIndex);
 
     argparser::option my_option_list[] = {
         { "quiet", argparser::option::no_argument, NULL, 'q' },
         { "max-issues", argparser::option::required_argument, NULL, 'm' }
     };
-    option_list.insert(option_list.begin(), my_option_list, my_option_list+1);
+    const int lastOptionIndex = sizeof(my_option_list)
+                                / sizeof(argparser::option) - 1;
+    option_list.insert(option_list.begin(), my_option_list,
+                       my_option_list + lastOptionIndex);
     short_opts += "qm:";
 }
 

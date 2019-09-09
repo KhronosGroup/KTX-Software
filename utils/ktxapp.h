@@ -74,7 +74,27 @@ class ktxApp {
     };
 
     ktxApp(std::string& version, commandOptions& options)
-              : version(version), options(options) { }
+              : version(version), options(options) {
+        // Don't use in-class initializers so we can build on VS2013. Sigh!
+        argparser::option init_option_list[] = {
+            { "help", argparser::option::no_argument, NULL, 'h' },
+            { "version", argparser::option::no_argument, NULL, 'v' },
+            // -NSDocumentRevisionsDebugMode YES is appended to the end
+            // of the command by Xcode when debugging and "Allow debugging when
+            // using document Versions Browser" is checked in the scheme. It
+            // defaults to checked and is saved in a user-specific file not the
+            // pbxproj file so it can't be disabled in a generated project.
+            // Remove these from the arguments under consideration.
+            { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 'i' },
+            { nullptr, argparser::option::no_argument, nullptr, 0 }
+        };
+        const int lastOptionIndex = sizeof(init_option_list)
+                                    / sizeof(argparser::option) - 1;
+        option_list.insert(option_list.begin(), init_option_list,
+                           init_option_list + lastOptionIndex);
+
+        short_opts = _T("hv");
+    }
 
     void error(const char *pFmt, ...) {
         va_list args;
@@ -163,20 +183,9 @@ class ktxApp {
 
     commandOptions& options;
 
-    std::vector<argparser::option> option_list {
-        { "help", argparser::option::no_argument, NULL, 'h' },
-        { "version", argparser::option::no_argument, NULL, 'v' },
-        // -NSDocumentRevisionsDebugMode YES is appended to the end
-        // of the command by Xcode when debugging and "Allow debugging when
-        // using document Versions Browser" is checked in the scheme. It
-        // defaults to checked and is saved in a user-specific file not the
-        // pbxproj file so it can't be disabled in a generated project.
-        // Remove these from the arguments under consideration.
-        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 'i' },
-        { nullptr, argparser::option::no_argument, nullptr, 0 }
-    };
+    std::vector<argparser::option> option_list;
 
-    _tstring short_opts{"hv"};
+    _tstring short_opts;
 };
 
 #if 0
