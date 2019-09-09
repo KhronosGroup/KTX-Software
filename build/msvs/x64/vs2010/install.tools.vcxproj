@@ -161,10 +161,21 @@
       <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\ktxsc.exe</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="$(OutDir)\ktx2check.exe">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(TMP)\ktxtools.dst\usr\local\bin&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;$(OutDir)ktx2check.exe&quot; &quot;$(TMP)\ktxtools.dst\usr\local\bin\ktx2check.exe&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying $(OutDir)/ktx2check.exe to $(TMP)\ktxtools.dst\usr\local\bin</Message>
+      <Outputs>$(TMP)\ktxtools.dst\usr\local\bin\ktx2check.exe</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="ktx2ktx2.vcxproj">
       <Project>{E18D66F6-D184-159A-8039-5359BE147115}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="ktx2check.vcxproj">
+      <Project>{202B5651-72EE-F359-2B89-147999C3CD1E}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="ktxinfo.vcxproj">

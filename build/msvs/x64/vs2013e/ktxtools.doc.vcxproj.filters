@@ -10,6 +10,15 @@
     <Filter Include="tools">
       <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tools\ktx2check">
+      <UniqueIdentifier>{9FB938A7-5B57-33F8-B8D8-BEEE3339C0C8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\ktx2check\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tools\ktx2ktx2">
       <UniqueIdentifier>{F903D08D-6D9F-A1B5-CB58-35DA8B95E3CD}</UniqueIdentifier>
     </Filter>
@@ -23,6 +32,15 @@
       <UniqueIdentifier>{66B9A9F1-E2D5-28B8-1273-EB1796EB3FDE}</UniqueIdentifier>
     </Filter>
     <Filter Include="tools\ktxinfo\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\ktxsc">
+      <UniqueIdentifier>{BF0E0B03-54A7-15D8-B7DF-F460671433BF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\ktxsc\_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
     <Filter Include="tools">
@@ -43,11 +61,17 @@
     <None Include="..\..\..\..\runDoxygen">
       <Filter>_excluded_files</Filter>
     </None>
+    <ClCompile Include="..\..\..\..\tools\ktx2check\ktx2check.cpp">
+      <Filter>tools\ktx2check\_excluded_files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp">
       <Filter>tools\ktx2ktx2\_excluded_files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\tools\ktxinfo\ktxinfo.cpp">
       <Filter>tools\ktxinfo\_excluded_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tools\ktxsc\ktxsc.cpp">
+      <Filter>tools\ktxsc\_excluded_files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
       <Filter>tools\toktx\_excluded_files</Filter>

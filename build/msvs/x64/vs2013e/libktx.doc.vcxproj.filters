@@ -382,6 +382,24 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
@@ -751,16 +769,22 @@
     <ClInclude Include="..\..\..\..\lib\dfdutils\dfd.h">
       <Filter>lib\dfdutils\_excluded_files</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\lib\dfdutils\dfd4vkformat.c">
+    <ClCompile Include="..\..\..\..\lib\dfdutils\dfd2vk.c">
       <Filter>lib\dfdutils\_excluded_files</Filter>
     </ClCompile>
+    <None Include="..\..\..\..\lib\dfdutils\dfd2vk.inl">
+      <Filter>lib\dfdutils\_excluded_files</Filter>
+    </None>
     <ClCompile Include="..\..\..\..\lib\dfdutils\interpretdfd.c">
       <Filter>lib\dfdutils\_excluded_files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c">
       <Filter>lib\dfdutils\_excluded_files</Filter>
     </ClCompile>
-    <None Include="..\..\..\..\lib\dfdutils\vkdfdswitchbody.inl">
+    <ClCompile Include="..\..\..\..\lib\dfdutils\vk2dfd.c">
+      <Filter>lib\dfdutils\_excluded_files</Filter>
+    </ClCompile>
+    <None Include="..\..\..\..\lib\dfdutils\vk2dfd.inl">
       <Filter>lib\dfdutils\_excluded_files</Filter>
     </None>
     <ClCompile Include="..\..\..\..\lib\errstr.c">
@@ -850,7 +874,7 @@
     <ClInclude Include="..\..\..\..\lib\vkformat_enum.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\lib\vkformat_prohibited.c">
+    <ClCompile Include="..\..\..\..\lib\vkformat_check.c">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\vkformat_str.c">
