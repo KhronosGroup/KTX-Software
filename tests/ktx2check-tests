@@ -73,7 +73,7 @@ else
 fi
 
 numtests=$numtests+1
-if ktx2check --version 2> /dev/null; then
+if $ktx2check --version 2> /dev/null; then
   passed=$passed+1
 else
   echo "--version not recognized"
@@ -147,7 +147,12 @@ numtests=$numtests+1
 $ktx2check --quiet *.ktx2
 status=$?
 if [ $status -eq 0 ]; then
-    passed=$passed+1
+    if [ -z $output ]; then
+        passed=$passed+1
+    else
+        echo "Output written with --quiet."
+        failed=$failed+1
+    fi
 elif [ $status -eq 1 ]; then
     echo "--quiet not recognized."
     failed=$failed+1
@@ -157,12 +162,26 @@ else
 fi
 
 numtests=$numtests+1
-cd ../badimages
-if $ktx2check invalid_face_count.ktx2; then
+cd ../badktx2
+if $ktx2check invalid_face_count.ktx2 > /dev/null; then
     echo "Invalid face count not spotted."
     failed=$failed+1
 else
     passed=$passed+1
+fi
+
+numtests=$numtests+1
+output=$($ktx2check --quiet *.ktx2)
+if [ $? -eq 0 ]; then
+    echo "Invalid face count not spotted."
+    failed=$failed+1
+else
+    if [ -z $output ]; then
+        passed=$passed+1
+    else
+        echo "Output written with --quiet."
+        failed=$failed+1
+    fi
 fi
 
 echo "Tests run: $numtests; passed: $passed; failed: $failed"
