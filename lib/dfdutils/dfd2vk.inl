@@ -519,43 +519,43 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
           return VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
           return VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
           return VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
           return VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3)) {
           return VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3)) {
           return VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 3)) {
           return VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 4) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4)) {
           return VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4)) {
           return VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 4)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 4)) {
           return VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT;
         } else if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 5) &&
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5) &&
-                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 5)) {
+                   (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 5)) {
           return VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT;
         }
       }

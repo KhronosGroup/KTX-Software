@@ -9,7 +9,7 @@ cmd_ktxtools_gyp_ktxtools_doc_target_buildKtxtoolsDoc = LD_LIBRARY_PATH=$(buildd
 build/docs/.ktxtoolsdoc_gentimestamp: obj := $(abs_obj)
 build/docs/.ktxtoolsdoc_gentimestamp: builddir := $(abs_builddir)
 build/docs/.ktxtoolsdoc_gentimestamp: TOOLSET := $(TOOLSET)
-build/docs/.ktxtoolsdoc_gentimestamp: $(srcdir)/ktxtools.doxy $(srcdir)/runDoxygen $(srcdir)/tools/ktx2ktx2/ktx2ktx2.cpp $(srcdir)/tools/ktxinfo/ktxinfo.cpp $(srcdir)/tools/toktx/toktx.cpp FORCE_DO_CMD
+build/docs/.ktxtoolsdoc_gentimestamp: $(srcdir)/ktxtools.doxy $(srcdir)/runDoxygen $(srcdir)/tools/ktx2check/ktx2check.cpp $(srcdir)/tools/ktx2ktx2/ktx2ktx2.cpp $(srcdir)/tools/ktxinfo/ktxinfo.cpp $(srcdir)/tools/ktxsc/ktxsc.cpp $(srcdir)/tools/toktx/toktx.cpp FORCE_DO_CMD
 	$(call do_cmd,ktxtools_gyp_ktxtools_doc_target_buildKtxtoolsDoc)
 
 all_deps += build/docs/.ktxtoolsdoc_gentimestamp

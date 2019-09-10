@@ -324,8 +324,8 @@
             'action_name': 'run_makedfdtovk',
             'message': 'Generating DFD/VkFormat switch body',
             'inputs': [
-                'vkformat_enum.h',
-                #'<(vkinclude_dir)/vulkan/vulkan_core.h',
+              'vkformat_enum.h',
+              #'<(vkinclude_dir)/vulkan/vulkan_core.h',
               'dfdutils/makedfd2vk.pl',
             ],
             'outputs': [
@@ -335,7 +335,7 @@
             # the .gyp file. See above. Hence the annoying "lib/"
             'msvs_cygwin_shell': 1,
             'action': [
-              'lib/dfdutils/makedfdtovk.pl',
+              'lib/dfdutils/makedfd2vk.pl',
               '<@(_inputs)',
               '<@(_outputs)',
             ],

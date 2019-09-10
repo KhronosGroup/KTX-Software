@@ -58,6 +58,7 @@ build/packages
 
 # /lib/
 /lib/basisu/bin_osx
+/lib/basisu/bin
 /lib/basisu/build
 /lib/src
 
