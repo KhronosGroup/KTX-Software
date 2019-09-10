@@ -89,7 +89,7 @@ class ktxApp {
             { nullptr, argparser::option::no_argument, nullptr, 0 }
         };
         const int lastOptionIndex = sizeof(init_option_list)
-                                    / sizeof(argparser::option) - 1;
+                                    / sizeof(argparser::option);
         option_list.insert(option_list.begin(), init_option_list,
                            init_option_list + lastOptionIndex);
 
