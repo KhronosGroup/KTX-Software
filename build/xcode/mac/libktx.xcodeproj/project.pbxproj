@@ -697,7 +697,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating DFD/VkFormat switch body\"\nexec lib/dfdutils/makedfdtovk.pl lib/vkformat_enum.h lib/dfdutils/makedfd2vk.pl lib/dfdutils/dfd2vk.inl\nexit 1\n";
+			shellScript = "echo note: \"Generating DFD/VkFormat switch body\"\nexec lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		9BFD1F9F5513DE17D5535685 /* Action "run_mkvkformatfiles" */ = {

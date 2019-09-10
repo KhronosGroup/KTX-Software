@@ -1178,6 +1178,7 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					lib,
+					utils,
 					include,
 					other_include,
 				);
@@ -1618,6 +1619,7 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					lib,
+					utils,
 					include,
 					other_include,
 				);
