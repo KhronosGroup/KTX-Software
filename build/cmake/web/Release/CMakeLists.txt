@@ -45,9 +45,10 @@ set(TOOLSET "target")
 list(APPEND libktx_es3__c_srcs
   "../../../../lib/checkheader.c"
   "../../../../lib/dfdutils/createdfd.c"
-  "../../../../lib/dfdutils/dfd4vkformat.c"
+  "../../../../lib/dfdutils/dfd2vk.c"
   "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
+  "../../../../lib/dfdutils/vk2dfd.c"
   "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
@@ -58,7 +59,7 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/texture.c"
   "../../../../lib/texture1.c"
   "../../../../lib/texture2.c"
-  "../../../../lib/vkformat_prohibited.c"
+  "../../../../lib/vkformat_check.c"
   "../../../../lib/vkformat_str.c"
   "../../../../lib/writer1.c"
   "../../../../lib/writer2.c")
@@ -100,7 +101,8 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
   "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
-  "../../../../lib/dfdutils/vkdfdswitchbody.inl"
+  "../../../../lib/dfdutils/dfd2vk.inl"
+  "../../../../lib/dfdutils/vk2dfd.inl"
   "../../../../lib/filestream.h"
   "../../../../lib/formatsize.h"
   "../../../../lib/gl_format.h"
@@ -130,7 +132,7 @@ list(APPEND libktx_es3__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
-set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;KTX_OMIT_VULKAN=1;NDEBUG;")
+set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;KTX_OMIT_VULKAN=1;NDEBUG;")
 set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c99 ")
 set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g0 ")
@@ -201,6 +203,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx2")
@@ -248,6 +251,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/pattern_02_bc2.ktx2"
   "${builddir}/testimages/rgb-mipmap-reference-u.ktx2"
   "${builddir}/testimages/rgba-reference-u.ktx2"
+  "${builddir}/testimages/rgba-reference.ktx2"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx2"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx2")
@@ -296,6 +300,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${bu
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference-u.ktx2 ${builddir}/testimages/rgb-mipmap-reference-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference-u.ktx2 ${builddir}/testimages/rgba-reference-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx2 ${builddir}/testimages/rgba-reference.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx2 ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx2 ${builddir}/testimages/texturearray_bc3_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx2 ${builddir}/testimages/texturearray_etc2_unorm.ktx2
