@@ -1,14 +1,16 @@
-; Export internal functions used by internal test programs. Using this
-; file avoids having to decorate those internal functions or updating
-; such decorations as the tests evolve. Updating this feels less
-; obnoxious.
+; Export internal functions used by internal test programs and the
+; validator. Using this file avoids having to decorate those internal
+; functions or updating such decorations as the tests evolve. Updating
+; this feels less obnoxious.
 
 LIBRARY
 EXPORTS
     createDFDUnpacked
     createDFDPacked
     createDFDCompressed
-    createDFD4VkFormat
+    interpretDFD
+    isProhibitedFormat
+    isValidFormat
     ktxCheckHeader1_
     ktxMemStream_construct
     ktxMemStream_construct_ro
@@ -24,3 +26,5 @@ EXPORTS
     ktxTexture1_glTypeSize
     ktxTexture2_GetImageOffset
     ktxTexture2_destruct
+    vk2dfd
+    vkFormatString

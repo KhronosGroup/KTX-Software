@@ -45,7 +45,7 @@ void printDFD(uint32_t *DFD)
            KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE),
            samples,
            KHR_DFDVAL(BDB, VERSIONNUMBER));
-    printf("Flags 0x%02x Xfer 0x%02x Primaries 0x%02x Model 0x%02x\n",
+    printf("Flags 0x%02x Xfer %02d Primaries %02d Model %03d\n",
            KHR_DFDVAL(BDB, FLAGS),
            KHR_DFDVAL(BDB, TRANSFER),
            KHR_DFDVAL(BDB, PRIMARIES),

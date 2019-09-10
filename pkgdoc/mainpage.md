@@ -25,6 +25,12 @@ View the @ref libktx_history
 KTX Tools
 =========
 
+ktx2check
+---------
+
+- @ref ktx2check reference page.
+- @ref ktx2check_history.
+
 ktx2ktx2 version 1.0
 --------------------
 
@@ -37,8 +43,12 @@ ktxinfo version 1.0
  - @ref ktxinfo reference page.
  - @ref ktxinfo_history.
 
+ktxsc
+-----
 
-toktx version 1.3
+ - @ref ktxsc reference page.
+ - @ref ktxsc_history.
+                                                                                                                                                                                          toktx version 1.3
 -----------------
 
  - @ref toktx reference page.
@@ -48,7 +58,8 @@ Authors
 =======
 
 libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
-Ström with contributions borrowed from Troy Hanson and Johannes van Waveren.
+Ström with contributions borrowed from Troy Hanson, Johannes van Waveren
+and Rich Geldreich.
 
 The libKTX tests are also the work of Mark Callow with some contributions
 borrowed from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL

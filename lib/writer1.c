@@ -578,7 +578,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 
     offset = sizeof(header) + levelIndexSize;
 
-    ktx_uint32_t* dfd = createDFD4VkFormat(header.vkFormat);
+    ktx_uint32_t* dfd = vk2dfd(header.vkFormat);
     if (!dfd)
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
 

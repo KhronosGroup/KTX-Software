@@ -37,6 +37,13 @@
 			remoteGlobalIDString = F81AD7E2418F05F7343B6FEB;
 			remoteInfo = ktxinfo;
 		};
+		0DE6EE4AF711EDB531AE2F02 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D565D6063B17DDC8F9AF4D91;
+			remoteInfo = ktx2check;
+		};
 		3079ADF769C2044F2FC6729A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */;
@@ -142,23 +149,24 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		7813C5E89F64A8A897F0F5F7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F9934D9176BC8628BB9DD710 /* ktx2ktx2 */,
+				E7B8BFF47856C6826F19CA1D /* ktx2check */,
+				DEF63C54EBAA2835FE433A21 /* ktxinfo */,
+				9CE257F3F43B1654A81728B4 /* ktxsc */,
+				6527CB59EC7BD66F84551A43 /* toktx */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		94460DA796B8ACC170ECC8D5 /* build/docs */ = {
 			isa = PBXGroup;
 			children = (
 				1B1F976EC113DB121F7457DF /* .package_gentimestamp */,
 			);
 			path = build/docs;
-			sourceTree = "<group>";
-		};
-		BF0612F185919085D1B7AB5B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				F9934D9176BC8628BB9DD710 /* ktx2ktx2 */,
-				DEF63C54EBAA2835FE433A21 /* ktxinfo */,
-				9CE257F3F43B1654A81728B4 /* ktxsc */,
-				6527CB59EC7BD66F84551A43 /* toktx */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		BF6BBCF6FD1598C3AA7A53FC /* pkgdoc */ = {
@@ -188,7 +196,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = BF0612F185919085D1B7AB5B /* Products */;
+					ProductGroup = 7813C5E89F64A8A897F0F5F7 /* Products */;
 					ProjectRef = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
 				},
 				{
@@ -230,6 +238,13 @@
 			fileType = "compiled.mach-o.executable";
 			path = ktxinfo;
 			remoteRef = 0C04748B020CF02F002D32A9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		E7B8BFF47856C6826F19CA1D /* ktx2check */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = ktx2check;
+			remoteRef = 0DE6EE4AF711EDB531AE2F02 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		F9934D9176BC8628BB9DD710 /* ktx2ktx2 */ = {

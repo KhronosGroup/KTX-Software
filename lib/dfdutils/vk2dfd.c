@@ -1,16 +1,6 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
-/**
- * @internal
- * @file dfd4vkformat.c
- * @~English
- *
- * @brief Create data format descriptor corresponding to a VkFormat.
- *
- * @author Mark Callow, Edgewise Consulting.
- */
-
 /*
  * ©2019 Mark Callow.
  *
@@ -27,8 +17,14 @@
  * limitations under the License.
  */
 
- #include "dfd.h"
- #include "../vkformat_enum.h"
+/**
+ * @internal
+ * @file vk2dfd.c
+ *
+ * @author Mark Callow, Edgewise Consulting.
+ */
+
+#include "dfd.h"
 
 /**
  * @internal
@@ -42,10 +38,10 @@
  *              DFD.
  */
 uint32_t*
-createDFD4VkFormat(enum VkFormat format)
+vk2dfd(enum VkFormat format)
  {
      switch (format) {
-#include "vkdfdswitchbody.inl"
+#include "vk2dfd.inl"
          default: return 0;
      }
  }

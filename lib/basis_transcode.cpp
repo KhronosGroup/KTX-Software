@@ -581,7 +581,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e output
 
     delete This->pDfd;
     //This->isCompressed = true;
-    This->pDfd = createDFD4VkFormat((enum VkFormat)This->vkFormat);
+    This->pDfd = vk2dfd((enum VkFormat)This->vkFormat);
     delete basisData;
     delete[] firstImages;
     return KTX_SUCCESS;

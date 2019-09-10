@@ -44,10 +44,12 @@
       'checkheader.c',
       'dfdutils/createdfd.c',
       'dfdutils/dfd.h',
-      'dfdutils/dfd4vkformat.c',
+      'dfdutils/dfd2vk.c',
+      'dfdutils/dfd2vk.inl',
       'dfdutils/interpretdfd.c',
       'dfdutils/printdfd.c',
-      'dfdutils/vkdfdswitchbody.inl',
+      'dfdutils/vk2dfd.c',
+      'dfdutils/vk2dfd.inl',
       'errstr.c',
       'etcdec.cxx',
       'etcunpack.cxx',
@@ -77,7 +79,7 @@
       'texture2.h',
       'uthash.h',
       'vkformat_enum.h',
-      'vkformat_prohibited.c',
+      'vkformat_check.c',
       'vkformat_str.c',
       'writer1.c',
       'writer2.c',
@@ -114,6 +116,7 @@
             'KTX_OPENGL=1',
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
             'KHRONOS_STATIC=1',
+            'LIBKTX=1',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -266,14 +269,16 @@
           'type': 'none',
           'variables': {
             'vkformatfiles_dir': '.',
-            'conditions': [
-              ['GENERATOR == "cmake"', {
-                # FIXME Need to find a way to use $VULKAN_SDK *if* set.
-                'vkinclude_dir': '/usr/include',
-              }, {
-                'vkinclude_dir': '$(VULKAN_SDK)/include',
-              }],
-            ], # conditions
+#  Use local vulkan_core.h until ASTC 3D extension is released.
+#            'conditions': [
+#              ['GENERATOR == "cmake"', {
+#                # FIXME Need to find a way to use $VULKAN_SDK *if* set.
+#                'vkinclude_dir': '/usr/include',
+#              }, {
+#                'vkinclude_dir': '$(VULKAN_SDK)/include',
+#              }],
+#            ], # conditions
+            'vkinclude_dir': 'dfdutils'
           },
           'actions': [
             {
@@ -285,7 +290,7 @@
               ],
               'outputs': [
                 'vkformat_enum.h',
-                'vkformat_prohibited.c',
+                'vkformat_check.c',
                 'vkformat_str.c',
               ],
               # The current directory during project is that of
@@ -300,10 +305,11 @@
               'message': 'Generating VkFormat/DFD switch body',
               'inputs': [
                 'vkformat_enum.h',
+                #'<(vkinclude_dir)/vulkan/vulkan_core.h',
                 'dfdutils/makevkswitch.pl',
               ],
               'outputs': [
-                'dfdutils/vkdfdswitchbody.inl',
+                'dfdutils/vk2dfd.inl',
               ],
               # The current directory during this action is that of
               # the .gyp file. See above. Hence the annoying "lib/"
@@ -314,7 +320,27 @@
                 '<@(_outputs)',
               ],
             }, # run makevkswitch action
-          ], # actions
+           {
+            'action_name': 'run_makedfdtovk',
+            'message': 'Generating DFD/VkFormat switch body',
+            'inputs': [
+              'vkformat_enum.h',
+              #'<(vkinclude_dir)/vulkan/vulkan_core.h',
+              'dfdutils/makedfd2vk.pl',
+            ],
+            'outputs': [
+              'dfdutils/dfd2vk.inl',
+            ],
+            # The current directory during this action is that of
+            # the .gyp file. See above. Hence the annoying "lib/"
+            'msvs_cygwin_shell': 1,
+            'action': [
+              'lib/dfdutils/makedfd2vk.pl',
+              '<@(_inputs)',
+              '<@(_outputs)',
+            ],
+          }, # run makevkswitch action
+         ], # actions
         }, # mkvkformatfiles
         {
           'target_name': 'install.lib',
@@ -389,6 +415,7 @@
             'KTX_OPENGL_ES1=1',
             'KTX_OMIT_VULKAN=1',
             'KHRONOS_STATIC=1',
+            'LIBKTX=1',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -412,6 +439,7 @@
             'KTX_OPENGL_ES3=1',
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
             'KHRONOS_STATIC=1',
+            'LIBKTX=1',
           ],
           'dependencies': [ 'vulkan_headers' ],
           'direct_dependent_settings': {

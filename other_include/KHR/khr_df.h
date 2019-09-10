@@ -113,6 +113,14 @@ typedef enum _khr_df_mask_e {
     (((BDB)[KHR_DF_WORD_ ## X] >> (KHR_DF_SHIFT_ ## X)) \
      & (KHR_DF_MASK_ ## X))
 
+/* Helper macro:
+   Set field X of basic descriptor block BDB */
+#define KHR_DFDSETVAL(BDB, X, val) \
+    ((BDB)[KHR_DF_WORD_ ## X] = \
+     ((BDB)[KHR_DF_WORD_ ## X] & \
+      ~((KHR_DF_MASK_ ## X) << (KHR_DF_SHIFT_ ## X))) | \
+     (((val) & (KHR_DF_MASK_ ## X)) << (KHR_DF_SHIFT_ ## X)))
+
 /* Offsets relative to the start of a sample */
 typedef enum _khr_df_sampleword_e {
     KHR_DF_SAMPLEWORD_BITOFFSET = 0U,
@@ -153,6 +161,9 @@ typedef enum _khr_df_samplemask_e {
     KHR_DF_SAMPLEMASK_SAMPLEPOSITION1 = 0xFF,
     KHR_DF_SAMPLEMASK_SAMPLEPOSITION2 = 0xFF,
     KHR_DF_SAMPLEMASK_SAMPLEPOSITION3 = 0xFF,
+    /* ISO C restricts enum values to range of int hence the
+       cast. We do it verbosely instead of using -1 to ensure
+       it is a 32-bit value even if int is 64 bits. */
     KHR_DF_SAMPLEMASK_SAMPLEPOSITION_ALL = (int) 0xFFFFFFFFU,
     KHR_DF_SAMPLEMASK_SAMPLELOWER = (int) 0xFFFFFFFFU,
     KHR_DF_SAMPLEMASK_SAMPLEUPPER = (int) 0xFFFFFFFFU
@@ -161,16 +172,35 @@ typedef enum _khr_df_samplemask_e {
 /* Helper macro:
    Extract field X of sample S from basic descriptor block BDB */
 #define KHR_DFDSVAL(BDB, S, X) \
-    (((BDB)[KHR_DF_WORD_SAMPLESTART +       \
-          ((S) * KHR_DF_WORD_SAMPLEWORDS) + \
-          KHR_DF_SAMPLEWORD_ ## X] >> (KHR_DF_SAMPLESHIFT_ ## X)) \
+    (((BDB)[KHR_DF_WORD_SAMPLESTART + \
+            ((S) * KHR_DF_WORD_SAMPLEWORDS) + \
+            KHR_DF_SAMPLEWORD_ ## X] >> (KHR_DF_SAMPLESHIFT_ ## X)) \
      & (KHR_DF_SAMPLEMASK_ ## X))
+
+/* Helper macro:
+   Set field X of sample S of basic descriptor block BDB */
+#define KHR_DFDSETSVAL(BDB, S, X, val) \
+    ((BDB)[KHR_DF_WORD_SAMPLESTART + \
+           ((S) * KHR_DF_WORD_SAMPLEWORDS) + \
+           KHR_DF_SAMPLEWORD_ ## X] = \
+     ((BDB)[KHR_DF_WORD_SAMPLESTART + \
+            ((S) * KHR_DF_WORD_SAMPLEWORDS) + \
+            KHR_DF_SAMPLEWORD_ ## X] & \
+      ~((uint32_t)(KHR_DF_SAMPLEMASK_ ## X) << (KHR_DF_SAMPLESHIFT_ ## X))) | \
+     (((val) & (uint32_t)(KHR_DF_SAMPLEMASK_ ## X)) << (KHR_DF_SAMPLESHIFT_ ## X)))
 
 /* Helper macro:
    Number of samples in basic descriptor block BDB */
 #define KHR_DFDSAMPLECOUNT(BDB) \
-    (((KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE) >> 2) - KHR_DF_WORD_SAMPLESTART) \
+    (((KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE) >> 2) - \
+      KHR_DF_WORD_SAMPLESTART) \
      / KHR_DF_WORD_SAMPLEWORDS)
+
+/* Helper macro:
+   Size in words of basic descriptor block for S samples */
+#define KHR_DFDSIZEWORDS(S) \
+    (KHR_DF_WORD_SAMPLESTART + \
+     (S) * KHR_DF_WORD_SAMPLEWORDS)
 
 /* Vendor ids */
 typedef enum _khr_df_vendorid_e {
@@ -286,11 +316,14 @@ typedef enum _khr_df_model_e {
     KHR_DF_MODEL_ETC2          = 161U,
     /* Adaptive Scalable Texture Compression */
     /* ASTC HDR vs LDR is determined by the float flag in the channel */
-    /* ASTC block size can be distinguished by texel block size */
+    /* ASTC block size can be distinguished by texel block size */ 
     KHR_DF_MODEL_ASTC          = 162U,
     /* ETC1S is a simplified subset of ETC1 */
     KHR_DF_MODEL_ETC1S         = 163U,
-    /* Proprietary formats (PVRTC, ATITC, etc.) should follow */
+    /* PowerVR Texture Compression */
+    KHR_DF_MODEL_PVRTC         = 164U,
+    KHR_DF_MODEL_PVRTC2        = 165U,
+    /* Proprietary formats (ATITC, etc.) should follow */
     KHR_DF_MODEL_MAX = 0xFFU
 } khr_df_model_e;
 
@@ -477,6 +510,12 @@ typedef enum _khr_df_model_channels_e {
     /* MODEL_ETC1S */
     KHR_DF_CHANNEL_ETC1S_DATA  = 0U,
     KHR_DF_CHANNEL_ETC1S_COLOR = 0U,
+    /* MODEL_PVRTC */
+    KHR_DF_CHANNEL_PVRTC_DATA  = 0U,
+    KHR_DF_CHANNEL_PVRTC_COLOR = 0U,
+    /* MODEL_PVRTC2 */
+    KHR_DF_CHANNEL_PVRTC2_DATA  = 0U,
+    KHR_DF_CHANNEL_PVRTC2_COLOR = 0U,
 
     /* Common channel names shared by multiple formats */
     KHR_DF_CHANNEL_COMMON_LUMA    =  0U,

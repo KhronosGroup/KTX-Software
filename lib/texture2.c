@@ -91,7 +91,7 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
         if (formatSize.blockSizeInBits == 0) {
             return KTX_INVALID_VALUE; // TODO Return a more reasonable error?
         } else {
-            This->pDfd = createDFD4VkFormat(createInfo->vkFormat);
+            This->pDfd = vk2dfd(createInfo->vkFormat);
         }
     } else {
         // TODO Validate createInfo->pDfd and create formatSize from it.
@@ -266,7 +266,7 @@ cleanup:
  * @memberof ktxTexture2 @private
  * @brief Construct a ktxTexture from a ktxStream reading from a KTX source.
  *
- * The KTX header, that must have been read prior to calling this, is passed
+ * The KTX header, which must have been read prior to calling this, is passed
  * to the function.
  *
  * The stream object is copied into the constructed ktxTexture2.
@@ -311,8 +311,8 @@ cleanup:
  */
 KTX_error_code
 ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
-                                          KTX_header2* pHeader,
-                                          ktxTextureCreateFlags createFlags)
+                                        KTX_header2* pHeader,
+                                        ktxTextureCreateFlags createFlags)
 {
     ktxTexture2_private* private;
     KTX_error_code result;

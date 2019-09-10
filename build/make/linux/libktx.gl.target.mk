@@ -5,6 +5,7 @@ TARGET := libktx.gl
 DEFS_Debug := \
 	'-DKTX_OPENGL=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
+	'-DLIBKTX=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -31,6 +32,7 @@ INCS_Debug := \
 DEFS_Release := \
 	'-DKTX_OPENGL=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
+	'-DLIBKTX=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
@@ -70,9 +72,10 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/basis_transcode.o \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/createdfd.o \
-	$(obj).target/$(TARGET)/lib/dfdutils/dfd4vkformat.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/dfd2vk.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/interpretdfd.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/printdfd.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/vk2dfd.o \
 	$(obj).target/$(TARGET)/lib/errstr.o \
 	$(obj).target/$(TARGET)/lib/etcdec.o \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \
@@ -85,7 +88,7 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/texture.o \
 	$(obj).target/$(TARGET)/lib/texture1.o \
 	$(obj).target/$(TARGET)/lib/texture2.o \
-	$(obj).target/$(TARGET)/lib/vkformat_prohibited.o \
+	$(obj).target/$(TARGET)/lib/vkformat_check.o \
 	$(obj).target/$(TARGET)/lib/vkformat_str.o \
 	$(obj).target/$(TARGET)/lib/writer1.o \
 	$(obj).target/$(TARGET)/lib/writer2.o \

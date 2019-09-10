@@ -2,7 +2,7 @@
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
- * Copyright (c) 2010-2018 The Khronos Group Inc.
+ * Copyright (c) 2019 The Khronos Group Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,7 +219,6 @@ uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,
     return DFD;
 }
 
-
 /**
  * @internal
  * @~English
@@ -247,7 +246,34 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
                           enum VkSuffix suffix)
 {
     uint32_t *DFD = 0;
-    if (bigEndian) {
+    if (numChannels == 6) {
+        /* Special case E5B9G9R9 */
+        DFD = writeHeader(numChannels, 4, s_UFLOAT);
+        writeSample(DFD, 0, 0,
+                    9, 0,
+                    1, 1, s_UNORM);
+        KHR_DFDSETSVAL((DFD+1), 0, SAMPLEUPPER, 256);
+        writeSample(DFD, 1, 0 | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+                    5, 27,
+                    1, 1, s_UNORM);
+        KHR_DFDSETSVAL((DFD+1), 1, SAMPLEUPPER, 15);
+        writeSample(DFD, 2, 1,
+                    9, 9,
+                    1, 1, s_UNORM);
+        KHR_DFDSETSVAL((DFD+1), 2, SAMPLEUPPER, 256);
+        writeSample(DFD, 3, 1 | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+                    5, 27,
+                    1, 1, s_UNORM);
+        KHR_DFDSETSVAL((DFD+1), 3, SAMPLEUPPER, 15);
+        writeSample(DFD, 4, 3,
+                    9, 18,
+                    1, 1, s_UNORM);
+        KHR_DFDSETSVAL((DFD+1), 4, SAMPLEUPPER, 256);
+        writeSample(DFD, 5, 3 | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+                    5, 27,
+                    1, 1, s_UNORM);
+        KHR_DFDSETSVAL((DFD+1), 5, SAMPLEUPPER, 15);
+    } else if (bigEndian) {
         /* No packed format is larger than 32 bits. */
         /* No packed channel crosses more than two bytes. */
         int totalBits = 0;
@@ -328,23 +354,24 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
 }
 
 static khr_df_model_e compModelMapping[] = {
-    KHR_DF_MODEL_BC1A, /*!< BC1, aka DXT1, no alpha. */
-    KHR_DF_MODEL_BC1A, /*!< BC1, aka DXT1, punch-through alpha. */
-    KHR_DF_MODEL_BC2,  /*!< BC2, aka DXT2 and DXT3. */
-    KHR_DF_MODEL_BC3,  /*!< BC3, aka DXT4 and DXT5. */
-    KHR_DF_MODEL_BC4,  /*!< BC4. */
-    KHR_DF_MODEL_BC5,  /*!< BC5. */
-    KHR_DF_MODEL_BC6H, /*!< BC6h HDR format. */
-    KHR_DF_MODEL_BC7,  /*!< BC7. */
-    KHR_DF_MODEL_ETC2, /*!< ETC2 no alpha. */
-    KHR_DF_MODEL_ETC2, /*!< ETC2 punch-through alpha. */
-    KHR_DF_MODEL_ETC2, /*!< ETC2 independent alpha. */
-    KHR_DF_MODEL_ETC2, /*!< R11 ETC2 single-channel. */
-    KHR_DF_MODEL_ETC2, /*!< R11G11 ETC2 dual-channel. */
-    KHR_DF_MODEL_ASTC, /*!< ASTC. */
-    KHR_DF_MODEL_ETC1S /*!< ETC1S. */
+    KHR_DF_MODEL_BC1A,   /*!< BC1, aka DXT1, no alpha. */
+    KHR_DF_MODEL_BC1A,   /*!< BC1, aka DXT1, punch-through alpha. */
+    KHR_DF_MODEL_BC2,    /*!< BC2, aka DXT2 and DXT3. */
+    KHR_DF_MODEL_BC3,    /*!< BC3, aka DXT4 and DXT5. */
+    KHR_DF_MODEL_BC4,    /*!< BC4. */
+    KHR_DF_MODEL_BC5,    /*!< BC5. */
+    KHR_DF_MODEL_BC6H,   /*!< BC6h HDR format. */
+    KHR_DF_MODEL_BC7,    /*!< BC7. */
+    KHR_DF_MODEL_ETC2,   /*!< ETC2 no alpha. */
+    KHR_DF_MODEL_ETC2,   /*!< ETC2 punch-through alpha. */
+    KHR_DF_MODEL_ETC2,   /*!< ETC2 independent alpha. */
+    KHR_DF_MODEL_ETC2,   /*!< R11 ETC2 single-channel. */
+    KHR_DF_MODEL_ETC2,   /*!< R11G11 ETC2 dual-channel. */
+    KHR_DF_MODEL_ASTC,   /*!< ASTC. */
+    KHR_DF_MODEL_ETC1S,  /*!< ETC1S. */
+    KHR_DF_MODEL_PVRTC,  /*!< PVRTC(1). */
+    KHR_DF_MODEL_PVRTC2  /*!< PVRTC2. */
 };
-
 
 static uint32_t compSampleCount[] = {
     1U, /*!< BC1, aka DXT1, no alpha. */
@@ -361,7 +388,9 @@ static uint32_t compSampleCount[] = {
     1U, /*!< R11 ETC2 single-channel. */
     2U, /*!< R11G11 ETC2 dual-channel. */
     1U, /*!< ASTC. */
-    1U  /*!< ETC1S. */
+    1U, /*!< ETC1S. */
+    1U, /*!< PVRTC. */
+    1U  /*!< PVRTC2. */
 };
 
 static khr_df_model_channels_e compFirstChannel[] = {
@@ -379,7 +408,9 @@ static khr_df_model_channels_e compFirstChannel[] = {
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11 ETC2 single-channel. */
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11G11 ETC2 dual-channel. */
     KHR_DF_CHANNEL_ASTC_DATA,         /*!< ASTC. */
-    KHR_DF_CHANNEL_ETC1S_COLOR        /*!< ETC1S. */
+    KHR_DF_CHANNEL_ETC1S_COLOR,       /*!< ETC1S. */
+    KHR_DF_CHANNEL_PVRTC_COLOR,       /*!< PVRTC. */
+    KHR_DF_CHANNEL_PVRTC2_COLOR       /*!< PVRTC2. */
 };
 
 static khr_df_model_channels_e compSecondChannel[] = {
@@ -397,7 +428,9 @@ static khr_df_model_channels_e compSecondChannel[] = {
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11 ETC2 single-channel. */
     KHR_DF_CHANNEL_ETC2_GREEN,        /*!< R11G11 ETC2 dual-channel. */
     KHR_DF_CHANNEL_ASTC_DATA,         /*!< ASTC. */
-    KHR_DF_CHANNEL_ETC1S_COLOR        /*!< ETC1S. */
+    KHR_DF_CHANNEL_ETC1S_COLOR,       /*!< ETC1S. */
+    KHR_DF_CHANNEL_PVRTC_COLOR,       /*!< PVRTC. */
+    KHR_DF_CHANNEL_PVRTC2_COLOR       /*!< PVRTC2. */
 };
 
 static uint32_t compSecondChannelOffset[] = {
@@ -415,7 +448,9 @@ static uint32_t compSecondChannelOffset[] = {
     0U,  /*!< R11 ETC2 single-channel. */
     64U, /*!< R11G11 ETC2 dual-channel. */
     0U,  /*!< ASTC. */
-    0U   /*!< ETC1S. */
+    0U,  /*!< ETC1S. */
+    0U,  /*!< PVRTC. */
+    0U   /*!< PVRTC2. */
 };
 
 static uint32_t compChannelBits[] = {
@@ -433,7 +468,9 @@ static uint32_t compChannelBits[] = {
     64U,  /*!< R11 ETC2 single-channel. */
     64U,  /*!< R11G11 ETC2 dual-channel. */
     128U, /*!< ASTC. */
-    64U   /*!< ETC1S. */
+    64U,  /*!< ETC1S. */
+    64U,  /*!< PVRTC. */
+    64U   /*!< PVRTC2. */
 };
 
 static uint32_t compBytes[] = {
@@ -451,7 +488,9 @@ static uint32_t compBytes[] = {
     8U,  /*!< R11 ETC2 single-channel. */
     16U, /*!< R11G11 ETC2 dual-channel. */
     16U, /*!< ASTC. */
-    8U   /*!< ETC1S. */
+    8U,  /*!< ETC1S. */
+    8U,  /*!< PVRTC. */
+    8U   /*!< PVRTC2. */
 };
 
 /**
@@ -467,7 +506,8 @@ static uint32_t compBytes[] = {
  * @return A data format descriptor in malloc'd data. The caller is responsible
  *         for freeing the descriptor.
  **/
-uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bheight, enum VkSuffix suffix)
+uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bheight, int bdepth,
+                              enum VkSuffix suffix)
 {
     uint32_t *DFD = 0;
     uint32_t numSamples = compSampleCount[compScheme];
@@ -504,7 +544,7 @@ uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bhei
         BDFD[KHR_DF_WORD_TRANSFER] |= KHR_DF_TRANSFER_LINEAR << KHR_DF_SHIFT_TRANSFER;
     }
     BDFD[KHR_DF_WORD_TEXELBLOCKDIMENSION0] =
-        (bwidth - 1) | ((bheight - 1) << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+        (bwidth - 1) | ((bheight - 1) << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1) | ((bdepth - 1) << KHR_DF_SHIFT_TEXELBLOCKDIMENSION2);
     /* bytesPlane0 = bytes, bytesPlane3..1 = 0 */
     BDFD[KHR_DF_WORD_BYTESPLANE0] = compBytes[compScheme];
     BDFD[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
@@ -566,6 +606,49 @@ uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bhei
 
         sample[KHR_DF_SAMPLEWORD_SAMPLELOWER] = lower;
         sample[KHR_DF_SAMPLEWORD_SAMPLEUPPER] = upper;
+    }
+    return DFD;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Create a Data Format Descriptor for a depth-stencil format.
+ *
+ * @param depthBits   The numeber of bits in the depth channel.
+ * @param stencilBits The numeber of bits in the stencil channel.
+ * @param sizeBytes   The total byte size of the texel.
+ *
+ * @return A data format descriptor in malloc'd data. The caller is responsible
+ *         for freeing the descriptor.
+ **/
+uint32_t *createDFDDepthStencil(int depthBits,
+                                int stencilBits,
+                                int sizeBytes)
+{
+    /* N.B. Little-endian is assumed. */
+    uint32_t *DFD = 0;
+    DFD = writeHeader((depthBits > 0) + (stencilBits > 0),
+                      sizeBytes, s_UNORM);
+    if (depthBits == 32) {
+        writeSample(DFD, 0, KHR_DF_CHANNEL_RGBSDA_DEPTH,
+                    32, 0,
+                    1, 1, s_SFLOAT);
+    } else if (depthBits > 0) {
+        writeSample(DFD, 0, KHR_DF_CHANNEL_RGBSDA_DEPTH,
+                    depthBits, 0,
+                    1, 1, s_UNORM);
+    }
+    if (stencilBits > 0) {
+        if (depthBits > 0) {
+            writeSample(DFD, 1, KHR_DF_CHANNEL_RGBSDA_STENCIL,
+                        stencilBits, depthBits,
+                        1, 1, s_UINT);
+        } else {
+            writeSample(DFD, 0, KHR_DF_CHANNEL_RGBSDA_STENCIL,
+                        stencilBits, 0,
+                        1, 1, s_UINT);
+        }
     }
     return DFD;
 }

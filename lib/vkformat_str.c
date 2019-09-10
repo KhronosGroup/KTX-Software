@@ -1,10 +1,10 @@
 
 /***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 85 by mkvkformatfiles.
+ Automatically generated from vulkan_core.h version 119 by mkvkformatfiles.
  *************************************************************************/
 
 /*
-** Copyright (c) 2015-2018 The Khronos Group Inc.
+** Copyright (c) 2015-2019 The Khronos Group Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -482,6 +482,94 @@ vkFormatString(VkFormat format)
         return "VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG";
       case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
         return "VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG";
+      case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT";
+      case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
+        return "VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT";
       default:
         return "VK_UNKNOWN_FORMAT";
     }
