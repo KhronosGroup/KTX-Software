@@ -59,6 +59,7 @@ BEGIN {
 /typedef .* VkFlags/ {
   format_decl = format_decl "#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.\n"
   format_decl = format_decl "typedef unsigned __int32 VkFlags;\n#else\n"
+  format_decl = format_decl "#include <stdint.h>\n"
   format_decl = format_decl $0 "\n#endif\n\n"
 }
 

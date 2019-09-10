@@ -24,6 +24,7 @@
 #if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.
 typedef unsigned __int32 VkFlags;
 #else
+#include <stdint.h>
 typedef uint32_t VkFlags;
 #endif
 
