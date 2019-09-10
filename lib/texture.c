@@ -886,13 +886,13 @@ ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level)
 
     formatInfo = &((ktxTextureInt*)This)->formatInfo;
 
-    float levelWidth  = This->baseWidth >> level;
-    float levelHeight = This->baseHeight >> level;
-    int x = ceilf(levelWidth / formatInfo->blockWidth);
-    int y = ceilf(levelHeight / formatInfo->blockHeight);
-    blockCount.x = MAX(1, x);
-    blockCount.y = MAX(1, y);
-    blockSizeInBytes = formatInfo->blockSizeInBits / 8;
+    float levelWidth  = (float) (This->baseWidth >> level);
+    float levelHeight = (float) (This->baseHeight >> level);
+    blockCount.x      = (ktx_uint32_t) ceilf(levelWidth / formatInfo->blockWidth);
+    blockCount.y      = (ktx_uint32_t) ceilf(levelHeight / formatInfo->blockHeight);
+    blockCount.x      = MAX(1, blockCount.x);
+    blockCount.y      = MAX(1, blockCount.y);
+    blockSizeInBytes  = formatInfo->blockSizeInBits / 8;
 
     if (formatInfo->flags & GL_FORMAT_SIZE_COMPRESSED_BIT) {
         assert(This->isCompressed);
