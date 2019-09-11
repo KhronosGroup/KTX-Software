@@ -77,9 +77,6 @@ typedef struct ktxTexture_protected {
 #define ktxTexture2_getStream(t2) ktxTexture_getStream((ktxTexture*)t2)
 
 KTX_error_code
-ktxTexture_doIterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
-                               void* userdata);
-KTX_error_code
 ktxTexture_iterateLoadedImages(ktxTexture* This, PFNKTXITERCB iterCb,
                                void* userdata);
 KTX_error_code

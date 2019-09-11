@@ -52,6 +52,20 @@ struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
 extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
 
+/**
+ * @internal
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Do the part of ktxTexture2 construction that is common to
+ *        new textures and those constructed from a stream.
+ *
+ * @param[in] This      pointer to a ktxTexture2-sized block of memory to
+ *                      initialize.
+ * @param[in] numLevels the number of levels the texture must have.
+ *
+ * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ */
 static KTX_error_code
 ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
 {
@@ -77,6 +91,25 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
 }
 
 
+/**
+ * @internal
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Construct a new, empty, ktxTexture2.
+ *
+ * @param[in] This       pointer to a ktxTexture2-sized block of memory to
+ *                       initialize.
+ * @param[in] createInfo pointer to a ktxTextureCreateInfo struct with
+ *                       information describing the texture.
+ * @param[in] storageAllocation
+ *                       enum indicating whether or not to allocate storage
+ *                       for the texture images.
+ * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
+ *                              The request VkFormat is one of the
+ *                              prohibited formats.
+ */
 static KTX_error_code
 ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
                         ktxTextureCreateStorageEnum storageAllocation)
@@ -164,10 +197,13 @@ cleanup:
 }
 
 /**
+ * @internal
  * @memberof ktxTexture2 @private
+ * @~English
  * @brief Construct a ktxTexture by copying a source ktxTexture.
  *
- * @param[in] This pointer where the texture is to be constructed.
+ * @param[in] This pointer to a ktxTexture2-sized block of memory to
+ *                 initialize.
  * @param[in] orig pointer to the source texture to copy.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -263,7 +299,9 @@ cleanup:
 }
 
 /**
+ * @internal
  * @memberof ktxTexture2 @private
+ * @~English
  * @brief Construct a ktxTexture from a ktxStream reading from a KTX source.
  *
  * The KTX header, which must have been read prior to calling this, is passed
@@ -526,7 +564,9 @@ cleanup:
 }
 
 /**
+ * @internal
  * @memberof ktxTexture2 @private
+ * @~English
  * @brief Construct a ktxTexture from a ktxStream reading from a KTX source.
  *
  * The stream object is copied into the constructed ktxTexture2.
@@ -572,7 +612,9 @@ ktxTexture2_constructFromStream(ktxTexture2* This, ktxStream* pStream,
 }
 
 /**
+ * @internal
  * @memberof ktxTexture2 @private
+ * @~English
  * @brief Construct a ktxTexture from a stdio stream reading from a KTX source.
  *
  * See ktxTextureInt_constructFromStream for details.
@@ -608,7 +650,9 @@ ktxTexture2_constructFromStdioStream(ktxTexture2* This, FILE* stdioStream,
 }
 
 /**
+ * @internal
  * @memberof ktxTexture2 @private
+ * @~English
  * @brief Construct a ktxTexture from a named KTX file.
  *
  * See ktxTextureInt_constructFromStream for details.
@@ -649,7 +693,9 @@ ktxTexture2_constructFromNamedFile(ktxTexture2* This,
 }
 
 /**
+ * @internal
  * @memberof ktxTexture2 @private
+ * @~English
  * @brief Construct a ktxTexture from KTX-formatted data in memory.
  *
  * See ktxTextureInt_constructFromStream for details.
@@ -684,6 +730,15 @@ ktxTexture2_constructFromMemory(ktxTexture2* This,
     return result;
 }
 
+/**
+ * @internal
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Destruct a ktxTexture2, freeing and internal memory.
+ *
+ * @param[in] This pointer to a ktxTexture2-sized block of memory to
+ *                 initialize.
+ */
 void
 ktxTexture2_destruct(ktxTexture2* This)
 {
@@ -699,6 +754,7 @@ ktxTexture2_destruct(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @ingroup writer
+ * @~English
  * @brief Create a new empty ktxTexture2.
  *
  * The address of the newly created ktxTexture2 is written to the location
@@ -769,7 +825,7 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
  * The address of the newly created ktxTexture2 is written to the location
  * pointed at by @p newTex.
  *
- * @param[in] orig       pointer to the texture to copy.
+ * @param[in]     orig   pointer to the texture to copy.
  * @param[in,out] newTex pointer to a location in which store the address of
  *                       the newly created texture.
  *
@@ -802,9 +858,9 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Create a ktxTexture from a stdio stream reading from a KTX source.
+ * @brief Create a ktxTexture2 from a stdio stream reading from a KTX source.
  *
- * The address of a newly created ktxTexture reflecting the contents of the
+ * The address of a newly created ktxTexture2 reflecting the contents of the
  * stdio stream is written to the location pointed at by @p newTex.
  *
  * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
@@ -866,9 +922,9 @@ ktxTexture2_CreateFromStdioStream(FILE* stdioStream,
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Create a ktxTexture from a named KTX file.
+ * @brief Create a ktxTexture2 from a named KTX file.
  *
- * The address of a newly created ktxTexture reflecting the contents of the
+ * The address of a newly created ktxTexture2 reflecting the contents of the
  * file is written to the location pointed at by @p newTex.
  *
  * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
@@ -919,9 +975,9 @@ ktxTexture2_CreateFromNamedFile(const char* const filename,
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Create a ktxTexture from KTX-formatted data in memory.
+ * @brief Create a ktxTexture2 from KTX-formatted data in memory.
  *
- * The address of a newly created ktxTexture reflecting the contents of the
+ * The address of a newly created ktxTexture2 reflecting the contents of the
  * serialized KTX data is written to the location pointed at by @p newTex.
  *
  * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
@@ -988,7 +1044,8 @@ ktxTexture2_Destroy(ktxTexture2* This)
 }
 
 /**
- * @memberof ktxTexture1 @private
+ * @internal
+ * @memberof ktxTexture2 @private
  * @~English
  *
  * @copybrief ktxTexture::ktxTexture_doCalcFaceLodSize
@@ -1009,6 +1066,8 @@ ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
 }
 
 /**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Return information about the components of an image format.
  *
  * @param[in]     This           pointer to the ktxTexture object of interest.
@@ -1090,6 +1149,15 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
     return KTX_SUCCESS;
 }
 
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Retrieve the opto-electrical transfer function of the images.
+ *
+ * @param[in]     This      pointer to the ktxTexture object of interest.
+ *
+ * @return A KHR_DF enum value specifying the OETF.
+ */
 ktx_uint32_t
 ktxTexture2_GetOETF(ktxTexture2* This)
 {
@@ -1120,7 +1188,7 @@ ktxTexture2_GetImageSize(ktxTexture2* This, ktx_uint32_t level)
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Iterate over the mip levels in a ktxTexture object.
+ * @brief Iterate over the mip levels in a ktxTexture2 object.
  *
  * This is almost identical to ktxTexture_IterateLevelFaces(). The difference is
  * that the blocks of image data for non-array cube maps include all faces of
@@ -1317,9 +1385,9 @@ cleanup:
 }
 
 /**
- * @memberof ktxTexture1
+ * @memberof ktxTexture2
  * @~English
- * @brief Load all the image data from the ktxTexture's source.
+ * @brief Load all the image data from the ktxTexture2's source.
  *
  * The data is loaded into the provided buffer or to an internally allocated
  * buffer, if @p pBuffer is @c NULL.
@@ -1408,6 +1476,14 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
     return result;
 }
 
+/**
+ * @internal
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Retrieve the offset of a level's first image within the KTX2 file.
+ *
+ * @param[in] This pointer to the ktxTexture object of interest.
+ */
 ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level)
 {
     assert(This->_private->_firstLevelFileOffset != 0);
@@ -1415,6 +1491,15 @@ ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level)
            + This->_private->_firstLevelFileOffset;
 }
 
+/**
+ * @internal
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Retrieve the offset of a level's first image within the ktxTexture2's
+ *        image data.
+ *
+ * @param[in] This pointer to the ktxTexture object of interest.
+ */
 ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level)
 {
     return This->_private->_levelIndex[level].byteOffset;
@@ -1422,7 +1507,7 @@ ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level)
 
 /*
  * Initialized here at the end to avoid the need for multiple declarations of
- * these functions.
+ * the virtual functions.
  */
 
 struct ktxTexture_vtblInt ktxTexture2_vtblInt = {
@@ -1435,7 +1520,6 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXGETIMAGESIZE)ktxTexture2_GetImageSize,
     (PFNKTEXGLUPLOAD)ktxTexture2_GLUpload,
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
-    (PFNKTEXITERATELEVELFACES)ktxTexture_doIterateLevelFaces,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXLOADIMAGEDATA)ktxTexture2_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture2_SetImageFromMemory,

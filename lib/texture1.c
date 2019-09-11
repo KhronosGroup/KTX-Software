@@ -1251,7 +1251,6 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
     (PFNKTEXGLUPLOAD)ktxTexture1_GLUpload,
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
-    (PFNKTEXITERATELEVELFACES)ktxTexture_doIterateLevelFaces,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
     (PFNKTEXLOADIMAGEDATA)ktxTexture1_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture1_SetImageFromMemory,

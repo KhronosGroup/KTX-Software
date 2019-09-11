@@ -437,10 +437,6 @@ typedef KTX_error_code
                                          void* userdata);
 
 typedef KTX_error_code
-    (KTX_APIENTRY* PFNKTEXITERATELEVELFACES)(ktxTexture* This,
-                                             PFNKTXITERCB iterCb,
-                                             void* userdata);
-typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXITERATELOADLEVELFACES)(ktxTexture* This,
                                                  PFNKTXITERCB iterCb,
                                                  void* userdata);
@@ -472,9 +468,9 @@ typedef KTX_error_code
                                          ktx_uint8_t** bytes, ktx_size_t* size);
 
 /**
- * @class ktxTexture
+ * @memberof ktxTexture
  * @~English
- * @brief Table of virtual ktxTexture's functions.
+ * @brief Table of virtual ktxTexture methods.
  */
  struct ktxTexture_vtbl {
     PFNKTEXDESTROY Destroy;
@@ -482,7 +478,6 @@ typedef KTX_error_code
     PFNKTEXGETIMAGESIZE GetImageSize;
     PFNKTEXGLUPLOAD GLUpload;
     PFNKTEXITERATELEVELS IterateLevels;
-    PFNKTEXITERATELEVELFACES IterateLevelFaces;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXLOADIMAGEDATA LoadImageData;
     PFNKTEXSETIMAGEFROMMEMORY SetImageFromMemory;
@@ -498,12 +493,15 @@ typedef KTX_error_code
 
 #define ktxTexture_Destroy(This) (This)->vtbl->Destroy(This)
 
-/*
- * Returns the offset of the image for the specified mip level, array layer
- * and face or depth slice within the image data of a ktxTexture Thisect.
+/**
+ * @~English
+ * @brief Helper for calling the GetImageOffset virtual function of a
+ *        ktxTexture.
+ *
+ * @copydoc ktxTexture2_GetImageOffset
  */
-#define ktxTexture_GetImageOffset(This, a, b, c, d) \
-                            (This)->vtbl->GetImageOffset(This, a, b, c, d)
+#define ktxTexture_GetImageOffset(This, faceSlice, layer, level, pOffset) \
+            (This)->vtbl->GetImageOffset(This, faceSlice, layer, level, pOffset)
 
 #define ktxTexture_GetImageSize(This, a) (This)->vtbl->GetImageSize(This, a)
 
@@ -518,13 +516,6 @@ typedef KTX_error_code
  */
 #define ktxTexture_IterateLevels(This, iterCb, userdata) \
                             (This)->vtbl->IterateLevels(This, iterCb, userdata)
-
-/*
- * Iterates over the already loaded level-faces in a ktxTexture Thisect.
- * iterCb is called for each level-face.
- */
- #define ktxTexture_IterateLevelFaces(This, a, b) \
-                            (This)->vtbl->IterateLevelFaces(This, a, b)
 
 /*
  * Iterates over the level-faces of a ktxTexture Thisect, loading each from
@@ -761,6 +752,12 @@ KTX_APICALL ktx_size_t KTX_APIENTRY
 ktxTexture_GetSize(ktxTexture* This);
 
 /*
+ * Iterate over the levels or faces in a ktxTexture object.
+ */
+KTX_error_code
+ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
+                             void* userdata);
+/*
  * Create a new ktxTexture1.
  */
 KTX_APICALL KTX_error_code KTX_APIENTRY
@@ -932,6 +929,12 @@ typedef enum ktx_texture_transcode_fmt_e {
     KTX_TF_BC5,               // two BC4 blocks
 } ktx_texture_transcode_fmt_e;
 
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Enum values for guiding transcoding of Basis Universal compressed
+ * textures.
+ */
 enum ktx_texture_decode_flags_e {
     KTX_DF_PVRTC_WRAP_ADDRESSING = 1,
         /*!< PVRTC1: texture will use wrap addressing vs. clamp (most PVRTC

@@ -81,7 +81,7 @@ ktxHashList_Construct(ktxHashList* pHead)
  * @brief Construct a hash list by copying another.
  *
  * @param [in] pHead pointer to head of the list.
- * @param [in] head of the original hash list.
+ * @param [in] orig  head of the original hash list.
  */
 void
 ktxHashList_ConstructCopy(ktxHashList* pHead, ktxHashList orig)
