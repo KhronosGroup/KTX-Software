@@ -1086,7 +1086,7 @@ ktxHashListEntry_GetValue(ktxHashListEntry* This,
                           unsigned int* pValueLen, void** ppValue);
 
 /*===========================================================*
- * Utilities for printing ingo about a KTX file.             *
+ * Utilities for printing info about a KTX file.             *
  *===========================================================*/
 
 KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForStdioStream(FILE* stdioStream);
@@ -1096,6 +1096,20 @@ KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t*
 #ifdef __cplusplus
 }
 #endif
+
+/*========================================================================*
+ * For backward compatibilty with the V3 & early versions of the V4 APIs. *
+ *========================================================================*/
+
+/**
+ * @deprecated Will be dropped before V4 release.
+ */
+#define ktx_texture_transcode_fmt_e ktx_transcode_fmt_e
+
+/**
+ * @deprecated Will be dropped before V4 release.
+ */
+#define ktx_texture_decode_flags ktx_transcode_flag_bits
 
 /**
 @~English
