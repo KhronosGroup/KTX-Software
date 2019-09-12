@@ -53,7 +53,6 @@ struct ktxTexture_vtblInt ktxTexture2_vtblInt;
 extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Do the part of ktxTexture2 construction that is common to
@@ -92,7 +91,6 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
 
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Construct a new, empty, ktxTexture2.
@@ -197,7 +195,6 @@ cleanup:
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Construct a ktxTexture by copying a source ktxTexture.
@@ -299,7 +296,6 @@ cleanup:
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Construct a ktxTexture from a ktxStream reading from a KTX source.
@@ -564,7 +560,6 @@ cleanup:
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Construct a ktxTexture from a ktxStream reading from a KTX source.
@@ -612,7 +607,6 @@ ktxTexture2_constructFromStream(ktxTexture2* This, ktxStream* pStream,
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Construct a ktxTexture from a stdio stream reading from a KTX source.
@@ -650,7 +644,6 @@ ktxTexture2_constructFromStdioStream(ktxTexture2* This, FILE* stdioStream,
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Construct a ktxTexture from a named KTX file.
@@ -693,7 +686,6 @@ ktxTexture2_constructFromNamedFile(ktxTexture2* This,
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Construct a ktxTexture from KTX-formatted data in memory.
@@ -731,7 +723,6 @@ ktxTexture2_constructFromMemory(ktxTexture2* This,
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Destruct a ktxTexture2, freeing and internal memory.
@@ -819,6 +810,7 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
 
 /**
  * @memberof ktxTexture2
+ * @ingroup writer
  * @~English
  * @brief Create a ktxTexture2 by making a copy of a ktxTexture2.
  *
@@ -854,6 +846,12 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
     return result;
 
  }
+
+/**
+ * @defgroup reader Reader
+ * @brief Read KTX-formatted data.
+ * @{
+ */
 
 /**
  * @memberof ktxTexture2
@@ -1044,12 +1042,10 @@ ktxTexture2_Destroy(ktxTexture2* This)
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  *
- * @copybrief ktxTexture::ktxTexture_doCalcFaceLodSize
- * @copydetails ktxTexture::ktxTexture_doCalcFaceLodSize
+ * @copydoc ktxTexture::ktxTexture_doCalcFaceLodSize
  */
 ktx_size_t
 ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
@@ -1477,7 +1473,6 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Retrieve the offset of a level's first image within the KTX2 file.
@@ -1492,7 +1487,6 @@ ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level)
 }
 
 /**
- * @internal
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Retrieve the offset of a level's first image within the ktxTexture2's
@@ -1528,3 +1522,6 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXWRITETONAMEDFILE)ktxTexture2_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture2_WriteToMemory,
 };
+
+/** @} */
+

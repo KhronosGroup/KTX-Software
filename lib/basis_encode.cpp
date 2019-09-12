@@ -246,6 +246,7 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
 
 /**
  * @memberof ktxTexture2
+ * @ingroup writer
  * @~English
  * @brief Supercompress a KTX2 texture with uncpompressed images.
  *
@@ -730,6 +731,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
 /**
  * @memberof ktxTexture2
+ * @ingroup writer
  * @~English
  * @brief Supercompress a KTX2 texture with uncpompressed images.
  *

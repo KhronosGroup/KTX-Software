@@ -32,6 +32,9 @@ $Date$
 
 # Usage Overview                              {#overview}
 
+The following `ktxTexture` examples work for both KTX and KTX2 textures. The
+texture type is determined from the file contents.
+
 ## Reading a KTX file for non-GL and non-Vulkan Use  {#readktx}
 
 ~~~~~~~~~~~~~~~~{.c}
@@ -81,7 +84,7 @@ result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
                                         KTX_TEXTURE_CREATE_NO_FLAGS,
                                         &kTexture);
 glGenTextures(1, &texture); // Optional. GLUpload can generate a texture.
-result = ktxtexture_GLUpload(kTexture, &texture, &target, &glerror);
+result = ktxTexture_GLUpload(kTexture, &texture, &target, &glerror);
 ktxTexture_Destroy(texture);
 // ...
 // GL rendering using the texture
@@ -146,19 +149,21 @@ if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
  }
 ~~~~~~~~~~~~~~~~
 
-## Writing a KTX file         {#writektx}
+## Writing a KTX or KTX2 file         {#writektx}
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
 
-ktxTexture* texture;
+ktxTexture2* texture;                   // For KTX2
+//ktxTexture1* texture;                 // For KTX
 ktxTextureCreateInfo createInfo;
 KTX_error_code result;
 ktx_uint32_t level, layer, faceSlice;
 FILE* src;
 ktx_size_t srcSize;
 
-createInfo.glInternalformat = GL_RGB8;
+createInfo.glInternalformat = GL_RGB8;   // Ignored if creating a ktxTexture2.
+createInfo.vkFormat = VK_R8G8B8_UNORM;   // Ignored if creating a ktxTexture1.
 createInfo.baseWidth = 2048;
 createInfo.baseHeight = 1024;
 createInfo.baseDepth = 16;
@@ -170,22 +175,23 @@ createInfo.numFaces = 1;
 createInfo.isArray = KTX_FALSE;
 createInfo.generateMipmaps = KTX_FALSE;
 
-result = ktxTexture_Create(createInfo,
-                           KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                           &texture);
+// Call ktxTexture1_Create to create a KTX texture.
+result = ktxTexture2_Create(createInfo,
+                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                            &texture);
 
 src = // Open a stdio FILE* on the baseLevel image, slice 0.
 srcSize = // Query size of the file.
 level = 0;
 layer = 0;
 faceSlice = 0;                           
-result = ktxTexture_SetImageFromMemory(texture, level, layer, faceSlice,
+result = ktxTexture_SetImageFromMemory(ktxTexture(texture), level, layer, faceSlice,
                                        src, srcSize);
 // Repeat for the other 15 slices of the base level and all other levels
 // up to createInfo.numLevels.
 
-ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
-ktxTexture_Destroy(texture);
+ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx");
+ktxTexture_Destroy(ktxTexture(texture));
 ~~~~~~~~~~~~~~~~
 
 ## Modifying a KTX file         {#modifyktx}
@@ -210,5 +216,92 @@ texture->generateMipmaps = KTX_TRUE;
 
 ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
 ktxTexture_Destroy(texture);
+~~~~~~~~~~~~~~~~
+
+## Writing a Basis Universal-compressed Texture
+
+~~~~~~~~~~~~~~~~{.c}
+#include <ktx.h>
+
+ktxTexture2* texture;
+ktxTextureCreateInfo createInfo;
+KTX_error_code result;
+ktx_uint32_t level, layer, faceSlice;
+FILE* src;
+ktx_size_t srcSize;
+
+createInfo.glInternalformat = 0;  //Ignored as we'll create a KTX2 texture.
+createInfo.vkFormat = VK_R8G8B8A8_UNORM;
+createInfo.baseWidth = 2048;
+createInfo.baseHeight = 1024;
+createInfo.baseDepth = 16;
+createInfo.numDimensions = 3.
+// Note: it is not necessary to provide a full mipmap pyramid.
+createInfo.numLevels = log2(createInfo.baseWidth) + 1
+createInfo.numLayers = 1;
+createInfo.numFaces = 1;
+createInfo.isArray = KTX_FALSE;
+createInfo.generateMipmaps = KTX_FALSE;
+
+result = ktxTexture2_Create(createInfo,
+                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                            &texture);
+
+src = // Open a stdio FILE* on the baseLevel image, slice 0.
+srcSize = // Query size of the file.
+level = 0;
+layer = 0;
+faceSlice = 0;                           
+result = ktxTexture2_SetImageFromMemory(texture, level, layer, faceSlice,
+                                       src, srcSize);
+// Repeat for the other 15 slices of the base level and all other levels
+// up to createInfo.numLevels.
+
+result = ktxTexture2_CompressBasis(texture);
+
+ktxTexture2_WriteToNamedFile(texture, "mytex3d.ktx2");
+ktxTexture2_Destroy(texture);
+~~~~~~~~~~~~~~~~
+
+
+## Transcoding a Basis Universal-compressed Texture
+
+~~~~~~~~~~~~~~~~{.c}
+#include <ktx.h>
+
+ktxTexture2* texture;
+KTX_error_code result;
+
+result = ktxTexture_CreateFromNamedFile("mytex3d_basis.ktx2",
+                                        KTX_TEXTURE_CREATE_NO_FLAGS,
+                                        (ktxTexture**)&kTexture);
+// or
+//result = ktxTexture2_CreateFromNamedFile("mytex3d_basis.ktx2",
+//                                         KTX_TEXTURE_CREATE_NO_FLAGS,
+//                                         &kTexture);
+
+if (texture->classId == ktxTexture2_c
+        && texture->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+{
+    ktx_texture_transcode_fmt_e tf;
+
+    // Using VkGetPhysicalDeviceFeatures or GL_COMPRESSED_TEXTURE_FORMATS or
+    // extension queries, determine what compressed texture formats are
+    // supported and pick a format. For example
+    vk::PhysicalDeviceFeatures deviceFeatures;
+    vkctx.gpu.getFeatures(&deviceFeatures);
+    if (deviceFeatures.textureCompressionETC2)
+        tf = KTX_TF_ETC2;
+    else if (deviceFeatures.textureCompressionBC)
+        tf = KTX_TF_BC3;
+    else {
+        message << "Vulkan implementation does not support any available transcode target.";
+        throw std::runtime_error(message.str());
+    }
+
+    result = ktxTexture2_TranscodeBasis(texture, tf, 0);
+
+    // Then use VkUpload or GLUpload to create a texture object on the GPU.
+}
 ~~~~~~~~~~~~~~~~
 

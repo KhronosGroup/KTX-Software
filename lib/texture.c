@@ -53,7 +53,6 @@ ktx_size_t ktxTexture_GetSize(ktxTexture* This);
 static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
 
 /**
- * @internal
  * @memberof ktxTexture @private
  * @~English
  * @brief Construct (initialize) a ktxTexture base class instance.
@@ -203,8 +202,7 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
 }
 
 /**
- * @internal
- * @memberof ktxtexture @private
+ * @memberof ktxTexture @private
  * @~English
  * @brief Construct (initialize) the part of a ktxTexture base class that is
  *        not related to the stream contents.
@@ -240,7 +238,6 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
 
 
 /**
- * @internal
  * @memberof ktxTexture @private
  * @~English
  * @brief Free the memory associated with the texture contents
@@ -278,7 +275,6 @@ typedef union {
 } ktxHeaderUnion_;
 
 /**
- * @internal
  * @memberof ktxTexture @private
  * @~English
  * @brief Determine if stream data is KTX1 or KTX2.
@@ -329,7 +325,6 @@ ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
 }
 
 /**
- * @internal
  * @memberof ktxTexture @private
  * @~English
  * @brief Construct (initialize) a ktx1 or ktx2 texture according to the stream
@@ -554,7 +549,6 @@ ktxTexture_GetElementSize(ktxTexture* This)
 }
 
 /**
- * @internal
  * @memberof ktxTexture @private
  * @~English
  * @brief Calculate & return the size in bytes of an image at the specified

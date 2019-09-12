@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-/**
+/*
  * @internal
  * @file
  * @~English
@@ -692,8 +692,8 @@ compressedTexImage3DCallback(int miplevel, int face,
  */
 /* [loadGLTexture] */
 KTX_error_code
-ktxTexture_GLUploadInternal(ktxTexture* This, ktx_glformatinfo* formatInfo,
-                            GLuint* pTexture, GLenum* pTarget, GLenum* pGlerror)
+ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
+                           GLuint* pTexture, GLenum* pTarget, GLenum* pGlerror)
 {
     GLuint                texname;
     GLenum                target = GL_TEXTURE_2D;
@@ -935,8 +935,8 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
     formatInfo.glType = This->glType;
     formatInfo.glFormat = This->glFormat;
 
-    result = ktxTexture_GLUploadInternal(ktxTexture(This), &formatInfo,
-                                         pTexture, pTarget, pGlerror);
+    result = ktxTexture_GLUploadPrivate(ktxTexture(This), &formatInfo,
+                                        pTexture, pTarget, pGlerror);
 
     /* restore previous GL state */
     if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
@@ -1026,8 +1026,8 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
-    result = ktxTexture_GLUploadInternal(ktxTexture(This), &formatInfo,
-                                         pTexture, pTarget, pGlerror);
+    result = ktxTexture_GLUploadPrivate(ktxTexture(This), &formatInfo,
+                                        pTexture, pTarget, pGlerror);
 
     /* restore previous GL state */
     if (previousUnpackAlignment != 1) {
