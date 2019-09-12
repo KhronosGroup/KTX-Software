@@ -61,7 +61,6 @@
  */
 
 /**
- * @internal
  * @memberof ktxTexture @private
  * @~English
  * @brief Set image for level, layer, faceSlice from a ktxStream source.
@@ -170,8 +169,6 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
  * Level, layer, faceSlice rather than offset are specified to enable some
  * validation.
  *
- * @warning Do not use @c memcpy for this as it will not pad when necessary.
- *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
@@ -206,7 +203,6 @@ ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
 }
 
 /**
- * @internal
  * @memberof ktxTexture @private
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX format.
@@ -222,6 +218,9 @@ ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain KTXwriter
+ *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -422,6 +421,18 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
  * @~English
  * @brief Write a ktxTexture object to a stdio stream in KTX format.
  *
+ * If there is no KTXwriter item in the texture's metadata, the function
+ * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * It can be added by code, similar to the following, prior to calling this
+ * function.
+ * @code
+ *     char writer[100];
+ *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
+ *     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+ *                           (ktx_uint32_t)strlen(writer) + 1,
+ *                           writer);
+ * @endcode
+ *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] dstsstr   destination stdio stream.
  *
@@ -433,6 +444,9 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain KTXwriter
+ *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -459,6 +473,18 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
  * @~English
  * @brief Write a ktxTexture object to a named file in KTX format.
  *
+ * If there is no KTXwriter item in the texture's metadata, the function
+ * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * It can be added by code, similar to the following, prior to calling this
+ * function.
+ * @code
+ *     char writer[100];
+ *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
+ *     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+ *                           (ktx_uint32_t)strlen(writer) + 1,
+ *                           writer);
+ * @endcode
+ *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] dstname   destination file name.
  *
@@ -470,6 +496,9 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain KTXwriter
+ *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -502,6 +531,18 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
  * Memory is allocated by the function and the caller is responsible for
  * freeing it.
  *
+ * If there is no KTXwriter item in the texture's metadata, the function
+ * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * It can be added by code, similar to the following, prior to calling this
+ * function.
+ * @code
+ *     char writer[100];
+ *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
+ *     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+ *                           (ktx_uint32_t)strlen(writer) + 1,
+ *                           writer);
+ * @endcode
+ *
  * @param[in]     This       pointer to the target ktxTexture object.
  * @param[in,out] ppDstBytes pointer to location to write the address of
  *                           the destination memory. The Application is
@@ -517,6 +558,9 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain KTXwriter
+ *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
