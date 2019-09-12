@@ -783,7 +783,7 @@ ktxTexture_GetSize(ktxTexture* This);
 /*
  * Iterate over the levels or faces in a ktxTexture object.
  */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
                              void* userdata);
 /*
