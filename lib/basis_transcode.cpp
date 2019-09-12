@@ -106,14 +106,14 @@ static inline uint32_t get_block_height(uint32_t h, uint32_t bh)
  *
  * KTX_TF_BC5 has two BC4 blocks, one  holding the R data, the other the G data.
  *
- * The following @p decodeFlags are available.
+ * The following @p transcodeFlags are available.
  *
  * @sa ktxtexture2_CompressBasis().
  *
  * @param[in]   This         pointer to the ktxTexture2 object of interest.
  * @param[in]   outputFormat a value from the ktx_texture_transcode_fmt_e enum
  *                           specifying the target format.
- * @param[in]   decodeFlags  bitfield of flags modifying the transcode
+ * @param[in]   transcodeFlags  bitfield of flags modifying the transcode
  *                           operation. @sa ktx_texture_decode_flags_e.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -143,8 +143,8 @@ static inline uint32_t get_block_height(uint32_t h, uint32_t bh)
  */
 KTX_error_code
 ktxTexture2_TranscodeBasis(ktxTexture2* This,
-                           ktx_texture_transcode_fmt_e outputFormat,
-                           ktx_texture_decode_flags_e decodeFlags)
+                           ktx_transcode_fmt_e outputFormat,
+                           ktx_transcode_flags transcodeFlags)
 {
     ktxTexture2_private& priv = *This->_private;
     KTX_error_code result = KTX_SUCCESS;
@@ -155,7 +155,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     if (!priv._supercompressionGlobalData || priv._sgdByteLength == 0)
         return KTX_INVALID_OPERATION;
 
-    if (decodeFlags & KTX_DF_PVRTC_DECODE_TO_NEXT_POW2) {
+    if (transcodeFlags & KTX_DF_PVRTC_DECODE_TO_NEXT_POW2) {
         debug_printf("ktxTexture_TranscodeBasis: KTX_DF_PVRTC_DECODE_TO_NEXT_POW2 currently unsupported\n");
         return KTX_UNSUPPORTED_FEATURE;
     }
@@ -231,7 +231,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 
     const bool hasAlpha = (bgdh.globalFlags & cBASISHeaderFlagHasAlphaSlices) != 0;
     const bool transcodeAlphaToOpaqueFormats
-     = (hasAlpha && (decodeFlags & KTX_DF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS));
+     = (hasAlpha && (transcodeFlags & KTX_DF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS));
     const bool isVideo = false; // FIXME when video is supported.
 
     uint32_t* BDB = This->pDfd + 1;
@@ -369,8 +369,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
                         basist::cETC1, bytes_per_block,
-                        (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                        (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                        (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                        (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                         isVideo, hasAlpha, 0/* level_index*/);
                 if (!status) {
                      result = KTX_TRANSCODE_FAILED;
@@ -386,8 +386,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
                         basist::cBC1, bytes_per_block,
-                        (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                        (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                        (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                        (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                         isVideo, hasAlpha, 0/* level_index*/);
 
                 if (!status) {
@@ -404,8 +404,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
                         basist::cBC4, bytes_per_block,
-                        (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                        (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                        (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                        (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                         isVideo, hasAlpha, 0/* level_index*/);
 
                 if (!status) {
@@ -424,8 +424,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
                         basist::cPVRTC1_4_OPAQUE_ONLY, bytes_per_block,
-                        (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                        (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                        (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                        (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                         isVideo, hasAlpha, 0/* level_index*/);
 
                 if (!status) {
@@ -443,8 +443,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
                         basist::cBC7_M6_OPAQUE_ONLY, bytes_per_block,
-                        (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                        (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                        (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                        (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                         isVideo, hasAlpha, 0/* level_index*/);
                 if (!status) {
                      result = KTX_TRANSCODE_FAILED;
@@ -463,8 +463,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                             basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
                             sliceDescs[image].alphaSliceByteLength,
                             basist::cETC2_EAC_A8, bytes_per_block,
-                            (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                            (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                            (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                            (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                             isVideo, hasAlpha, 0/* level_index*/);
                 } else {
                     basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x, num_blocks_y, writePtr,
@@ -479,8 +479,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                             basisData + levelOffset + sliceDescs[image].sliceByteOffset,
                             sliceDescs[image].sliceByteLength,
                             basist::cETC1, bytes_per_block,
-                            (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                            (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                            (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                            (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                             isVideo, hasAlpha, 0/* level_index*/);
                 }
                 if (!status) {
@@ -504,8 +504,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                             basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
                             sliceDescs[image].alphaSliceByteLength,
                             basist::cBC4, bytes_per_block,
-                            (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                            (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                            (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                            (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                             isVideo, hasAlpha, 0/* level_index*/);
                 } else {
                     basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x, num_blocks_y, writePtr,
@@ -520,7 +520,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                             basisData + levelOffset + sliceDescs[image].sliceByteOffset,
                             sliceDescs[image].sliceByteLength,
                             basist::cBC1, bytes_per_block,
-                            (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                            (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
                             0, // Forbid 3 color blocks
                             isVideo, hasAlpha, 0/* level_index*/);
                 }
@@ -540,7 +540,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                     basisData + levelOffset + sliceDescs[image].sliceByteOffset,
                     sliceDescs[image].sliceByteLength,
                     basist::cBC4, bytes_per_block,
-                    (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                    (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
                     0, // Forbid 3 color blocks
                     isVideo, hasAlpha, 0/* level_index*/);
 
@@ -551,8 +551,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                                 basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
                                 sliceDescs[image].alphaSliceByteLength,
                                 basist::cBC4, bytes_per_block,
-                                (decodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
-                                (decodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                                (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                                (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                                 isVideo, hasAlpha, 0/* level_index*/);
                     } else {
                         basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x, num_blocks_y, writePtr + 8,

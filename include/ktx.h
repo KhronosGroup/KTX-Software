@@ -951,7 +951,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
  * @~English
  * @brief Enumerators for specifying the transcode format.
  */
-typedef enum ktx_texture_transcode_fmt_e {
+typedef enum ktx_transcode_fmt_e {
     KTX_TF_ETC1,  /*!< ETC1 RGB-only, even when the texture has alpha. */
     KTX_TF_BC1,   /*!< DXT1 RGB only, even when the texture has alpha. */
     KTX_TF_BC4,   /*!< DXT5A (alpha block only). */
@@ -962,14 +962,14 @@ typedef enum ktx_texture_transcode_fmt_e {
     KTX_TF_ETC2,  /*!< ETC2_EAC_A8 block followed by an ETC1 block. */
     KTX_TF_BC3,   /*!< BC4 alpha block followed by a BC1 RGB block. */
     KTX_TF_BC5,   /*!< Two BC4 blocks. */
-} ktx_texture_transcode_fmt_e;
+} ktx_transcode_fmt_e;
 
 /**
  * @~English
  * @brief Enumerators for guiding transcoding of Basis Universal compressed
  * textures.
  */
-typedef enum ktx_texture_decode_flags_e {
+typedef enum ktx_transcode_flag_bits_e {
     KTX_DF_PVRTC_WRAP_ADDRESSING = 1,
         /*!< PVRTC1: texture will use wrap addressing vs. clamp (most PVRTC
              viewer tools assume wrap addressing, so we default to wrap although
@@ -989,11 +989,12 @@ typedef enum ktx_texture_decode_flags_e {
         /*!< Forbid usage of BC1 3 color blocks (we don't support BC1
              punchthrough alpha yet).
          */
-} ktx_texture_decode_flags_e;
+} ktx_transcode_flag_bits_e;
+typedef ktx_uint32_t ktx_transcode_flags;
 
 KTX_APICALL KTX_error_code KTX_APIENTRY
-ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e fmt,
-                           ktx_texture_decode_flags_e decodeFlags);
+ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_transcode_fmt_e fmt,
+                           ktx_transcode_flags transcodeFlags);
 
 /*
  * Returns a string corresponding to a KTX error code.

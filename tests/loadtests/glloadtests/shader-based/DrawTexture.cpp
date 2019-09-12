@@ -97,7 +97,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
     {
         compressedTexFeatures features;
-        ktx_texture_transcode_fmt_e tf;
+        ktx_transcode_fmt_e tf;
 
         determineCompressedTexFeatures(features);
 
