@@ -172,6 +172,11 @@ typedef VkFormat (KTX_APIENTRY* PFNKTEXGETVKFORMAT)(ktxTexture* This);
 
 #define ktxTexture_GetVkFormat(This) This->vvtbl->GetVkFormat(This)
 
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Table of ktxTexture's virtual functions for Vulkan uploads.
+ */
 struct ktxTexture_vvtbl {
     PFNKTEXVKUPLOADEX VkUploadEx;
     PFNKTEXVKUPLOAD VkUpload;

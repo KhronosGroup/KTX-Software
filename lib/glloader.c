@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-/**
+/*
  * @internal
  * @file
  * @~English
@@ -100,7 +100,7 @@ DECLARE_GL_FUNCPTRS
  * @example glloader.c
  * This is an example of using the low-level ktxTexture API to create and load
  * an OpenGL texture. It is a fragment of the code used by
- * @ref ktxTexture_GLUpload which underpins the @c ktxLoadTexture* functions.
+ * @ref ktxTexture1_GLUpload and @ref ktxTexture2_GLUpload functions.
  *
  * @code
  * #include <ktx.h>
@@ -110,9 +110,10 @@ DECLARE_GL_FUNCPTRS
  * across all images.
  * @snippet this cbdata
  *
- * One of these callbacks, selected by @ref ktxTexture_GLUpload based on the
- * dimensionality and arrayness of the texture, is called from
- * @ref ktxTexture_IterateLevelFaces to upload the texture data to OpenGL.
+ * One of these callbacks, selected by @ref ktxTexture1_GLUpload or
+ * @ref ktxTexture2_GLUpload based on the dimensionality and arrayness of the
+ * texture, is called from @ref ktxTexture_IterateLevelFaces to upload the
+ * texture data to OpenGL.
  * @snippet this imageCallbacks
  *
  * This function creates the GL texture object and sets up the callbacks to
@@ -640,8 +641,9 @@ compressedTexImage3DCallback(int miplevel, int face,
 }
 /* [imageCallbacks] */
 
+#undef ktxTexture_GLUpload
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture @private
  * @~English
  * @brief Do the common work of creating a GL texture object from a
  *        ktxTexture object.
@@ -660,7 +662,8 @@ compressedTexImage3DCallback(int miplevel, int face,
  * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param[in] This          handle of the ktxTexture to upload.
- * @param[in]
+ * @param[in] formatInfo    pointer to a ktx_glformatinfo structure providing
+ *                          information about the texture format.
  * @param[in,out] pTexture  name of the GL texture object to load. If NULL or if
  *                          <tt>*pTexture == 0</tt> the function will generate
  *                          a texture name. The function binds either the
@@ -689,8 +692,8 @@ compressedTexImage3DCallback(int miplevel, int face,
  */
 /* [loadGLTexture] */
 KTX_error_code
-ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pTexture,
-                      GLenum* pTarget, GLenum* pGlerror)
+ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
+                           GLuint* pTexture, GLenum* pTarget, GLenum* pGlerror)
 {
     GLuint                texname;
     GLenum                target = GL_TEXTURE_2D;
@@ -857,6 +860,7 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
     }
     return result;
 }
+/* [loadGLTexture] */
 
 /**
  * @memberof ktxTexture1
@@ -903,7 +907,6 @@ ktxTexture_doGLUpload(ktxTexture* This, ktx_glformatinfo* formatInfo, GLuint* pT
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
  *                                         by the current OpenGL context.
  */
-/* [loadGLTexture] */
 KTX_error_code
 ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
                      GLenum* pGlerror)
@@ -932,7 +935,8 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
     formatInfo.glType = This->glType;
     formatInfo.glFormat = This->glFormat;
 
-    result = ktxTexture_doGLUpload(ktxTexture(This), &formatInfo, pTexture, pTarget, pGlerror);
+    result = ktxTexture_GLUploadPrivate(ktxTexture(This), &formatInfo,
+                                        pTexture, pTarget, pGlerror);
 
     /* restore previous GL state */
     if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
@@ -941,12 +945,11 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
 
     return result;
 }
-/* [loadGLTexture] */
 
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Create a GL texture object from a ktxTexture1 object.
+ * @brief Create a GL texture object from a ktxTexture2 object.
  *
  * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
  * number of levels in the KTX data, provided the library has been compiled
@@ -956,10 +959,6 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
  * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
- *
- * It will also convert textures with legacy formats to their modern equivalents
- * when the format is not supported by the GL context, provided the library
- * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param[in] This          handle of the ktxTexture to upload.
  * @param[in,out] pTexture  name of the GL texture object to load. If NULL or if
@@ -988,7 +987,6 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
  *                                         by the current OpenGL context.
  */
-/* [loadGLTexture] */
 KTX_error_code
 ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
                      GLenum* pGlerror)
@@ -1028,8 +1026,8 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
-    result = ktxTexture_doGLUpload(ktxTexture(This), &formatInfo,
-                                   pTexture, pTarget, pGlerror);
+    result = ktxTexture_GLUploadPrivate(ktxTexture(This), &formatInfo,
+                                        pTexture, pTarget, pGlerror);
 
     /* restore previous GL state */
     if (previousUnpackAlignment != 1) {

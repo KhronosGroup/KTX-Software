@@ -159,7 +159,7 @@ extern "C" {
  * @~English
  * @brief Error codes returned by library functions.
  */
-typedef enum KTX_error_code_t {
+typedef enum ktx_error_code_e {
     KTX_SUCCESS = 0,         /*!< Operation was successful. */
     KTX_FILE_DATA_ERROR,     /*!< The data in the file is inconsistent with the spec. */
     KTX_FILE_ISPIPE,         /*!< The file is a pipe or named pipe. */
@@ -178,7 +178,13 @@ typedef enum KTX_error_code_t {
     KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
     KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
     KTX_UNSUPPORTED_FEATURE  /*!< Feature not included in in-use library or not yet implemented. */
-} KTX_error_code;
+} ktx_error_code_e;
+/**
+ * @deprecated
+ * @~English
+ * @brief For backward compatibility
+ */
+#define KTX_error_code ktx_error_code_e
 
 #define KTX_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
 #define KTX_ENDIAN_REF      (0x04030201)
@@ -189,7 +195,7 @@ typedef enum KTX_error_code_t {
  * @~English
  * @brief Result codes returned by library functions.
  */
- typedef enum KTX_error_code_t ktxResult;
+ typedef enum ktx_error_code_e ktxResult;
 
 /**
  * @class ktxHashList
@@ -437,10 +443,6 @@ typedef KTX_error_code
                                          void* userdata);
 
 typedef KTX_error_code
-    (KTX_APIENTRY* PFNKTEXITERATELEVELFACES)(ktxTexture* This,
-                                             PFNKTXITERCB iterCb,
-                                             void* userdata);
-typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXITERATELOADLEVELFACES)(ktxTexture* This,
                                                  PFNKTXITERCB iterCb,
                                                  void* userdata);
@@ -472,9 +474,9 @@ typedef KTX_error_code
                                          ktx_uint8_t** bytes, ktx_size_t* size);
 
 /**
- * @class ktxTexture
+ * @memberof ktxTexture
  * @~English
- * @brief Table of virtual ktxTexture's functions.
+ * @brief Table of virtual ktxTexture methods.
  */
  struct ktxTexture_vtbl {
     PFNKTEXDESTROY Destroy;
@@ -482,7 +484,6 @@ typedef KTX_error_code
     PFNKTEXGETIMAGESIZE GetImageSize;
     PFNKTEXGLUPLOAD GLUpload;
     PFNKTEXITERATELEVELS IterateLevels;
-    PFNKTEXITERATELEVELFACES IterateLevelFaces;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXLOADIMAGEDATA LoadImageData;
     PFNKTEXSETIMAGEFROMMEMORY SetImageFromMemory;
@@ -496,16 +497,29 @@ typedef KTX_error_code
  * Macros to give some backward compatibility to the previous API
  ****************************************************************/
 
+/**
+ * @~English
+ * @brief Helper for calling the Destroy virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_Destroy
+ */
 #define ktxTexture_Destroy(This) (This)->vtbl->Destroy(This)
 
-/*
- * Returns the offset of the image for the specified mip level, array layer
- * and face or depth slice within the image data of a ktxTexture Thisect.
+/**
+ * @~English
+ * @brief Helper for calling the GetImageOffset virtual method of a
+ *        ktxTexture.
+ * @copydoc ktxTexture2_GetImageOffset
  */
-#define ktxTexture_GetImageOffset(This, a, b, c, d) \
-                            (This)->vtbl->GetImageOffset(This, a, b, c, d)
+#define ktxTexture_GetImageOffset(This, faceSlice, layer, level, pOffset) \
+            (This)->vtbl->GetImageOffset(This, faceSlice, layer, level, pOffset)
 
-#define ktxTexture_GetImageSize(This, a) (This)->vtbl->GetImageSize(This, a)
+/**
+ * @~English
+ * @brief Helper for calling the GetImageSize virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_GetImageSize
+ */
+#define ktxTexture_GetImageSize(This, level) \
+            (This)->vtbl->GetImageSize(This, level)
 
 /*
  * Uploads the image data from a ktxTexture Thisect to an OpenGL {,ES} texture
@@ -513,70 +527,77 @@ typedef KTX_error_code
  */
 #define ktxTexture_GLUpload(This, a, b, c) (This)->vtbl->GLUpload(This, a, b, c)
 
-/*
- * Iterates over the levels of a ktxTexture Thisect.
+/**
+ * @~English
+ * @brief Helper for calling the IterateLevels virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_IterateLevels
  */
 #define ktxTexture_IterateLevels(This, iterCb, userdata) \
                             (This)->vtbl->IterateLevels(This, iterCb, userdata)
 
-/*
- * Iterates over the already loaded level-faces in a ktxTexture Thisect.
- * iterCb is called for each level-face.
+/**
+ * @~English
+ * @brief Helper for calling the IterateLoadLevelFaces virtual method of a
+ * ktxTexture.
+ * @copydoc ktxTexture2_IterateLoadLevelFaces
  */
- #define ktxTexture_IterateLevelFaces(This, a, b) \
-                            (This)->vtbl->IterateLevelFaces(This, a, b)
+ #define ktxTexture_IterateLoadLevelFaces(This, iterCb, userdata) \
+                    (This)->vtbl->IterateLoadLevelFaces(This, iterCb, userdata)
 
-/*
- * Iterates over the level-faces of a ktxTexture Thisect, loading each from
- * the KTX-formatted source then calling iterCb.
- */
- #define ktxTexture_IterateLoadLevelFaces(This, a, b) \
-                    (This)->vtbl->IterateLoadLevelFaces(This, a, b)
-
-/*
- * Loads the image data into a ktxTexture object from the KTX-formatted source.
- * Used when the image data was not loaded during ktxTexture_CreateFrom*.
+/**
+ * @~English
+ * @brief Helper for calling the LoadImageData virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_LoadImageData
  */
 #define ktxTexture_LoadImageData(This, pBuffer, bufSize) \
                     (This)->vtbl->LoadImageData(This, pBuffer, bufSize)
 
-/*
- * Sets the image for the specified level, layer & faceSlice within a
- * ktxTexture object from packed image data in memory. The destination image
- * data is padded to the KTX specified row alignment of 4, if necessary.
+/**
+ * @~English
+ * @brief Helper for calling the SetImageFromMemory virtual method of a
+ * ktxTexture.
+ * @copydoc ktxTexture2_SetImageFromMemory
  */
 #define ktxTexture_SetImageFromMemory(This, level, layer, faceSlice, \
                                       src, srcSize)                  \
     (This)->vtbl->SetImageFromMemory(This, level, layer, faceSlice, src, srcSize)
 
-/*
- * Sets the image for the specified level, layer & faceSlice within a
- * ktxTexture object from a stdio stream reading from a KTX source. The
- * destination image data is padded to the KTX specified row alignment of 4,
- * if necessary.
+/**
+ * @~English
+ * @brief Helper for calling the SetImageFromStdioStream virtual method of a
+ * ktxTexture.
+ * @copydoc ktxTexture2_SetImageFromStdioStream
  */
 #define ktxTexture_SetImageFromStdioStream(This, level, layer, faceSlice, \
                                            src, srcSize)                  \
-    (This)->vtbl->SetImageFromStdioStream(This, level, layer, faceSlice,    \
+    (This)->vtbl->SetImageFromStdioStream(This, level, layer, faceSlice,  \
                                         src, srcSize)
 
-/*
- * Write a ktxTexture object to a stdio stream in KTX format.
+/**
+ * @~English
+ * @brief Helper for calling the WriteToStdioStream virtual method of a
+ * ktxTexture.
+ * @copydoc ktxTexture2_WriteToStdioStream
  */
 #define ktxTexture_WriteToStdioStream(This, dstsstr) \
                                 (This)->vtbl->WriteToStdioStream(This, dstsstr)
 
-/*
- * Write a ktxTexture object to a named file in KTX format.
+/**
+ * @~English
+ * @brief Helper for calling the WriteToNamedfile virtual method of a
+ * ktxTexture.
+ * @copydoc ktxTexture2_WriteToNamedFile
  */
 #define ktxTexture_WriteToNamedFile(This, dstname) \
                                 (This)->vtbl->WriteToNamedFile(This, dstname)
 
-/*
- * Write a ktxTexture object to a block of memory in KTX format.
+/**
+ * @~English
+ * @brief Helper for calling the WriteToMemory virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_WriteToMemory
  */
-#define ktxTexture_WriteToMemory(This, bytes, size) \
-                                (This)->vtbl->WriteToMemory(This, bytes, size)
+#define ktxTexture_WriteToMemory(This, ppDstBytes, pSize) \
+                  (This)->vtbl->WriteToMemory(This, ppDstBytes, pSize)
 
 
 /**
@@ -604,9 +625,8 @@ typedef struct ktxTexture1 {
 
 /**
  * @~English
- * @brief Enum identifying supercompression scheme.
+ * @brief Enumerators identifying the supercompression scheme.
  */
-
 typedef enum ktxSupercmpScheme {
     KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
     KTX_SUPERCOMPRESSION_BASIS = 1, /*!< Basis Universal supercompression. */
@@ -761,6 +781,12 @@ KTX_APICALL ktx_size_t KTX_APIENTRY
 ktxTexture_GetSize(ktxTexture* This);
 
 /*
+ * Iterate over the levels or faces in a ktxTexture object.
+ */
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
+                             void* userdata);
+/*
  * Create a new ktxTexture1.
  */
 KTX_APICALL KTX_error_code KTX_APIENTRY
@@ -848,7 +874,7 @@ ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
                              ktx_uint32_t* componentByteLength);
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @~English
  * @brief Structure for passing extended parameters to
  *        ktxTexture2_CompressBasisEx.
@@ -864,8 +890,8 @@ typedef struct ktxBasisParams {
     ktx_uint32_t threadCount;
         /*!< Number of threads used for compression. Default is 1. */
     ktx_uint32_t compressionLevel;
-        /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5, default is
-             1. Higher values are slower, but give higher quality.
+        /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5, default
+             is 1. Higher values are slower, but give higher quality.
         */
     ktx_uint32_t qualityLevel;
         /*!< Compression quality. Range is 1 - 255.  Lower gives better
@@ -921,18 +947,29 @@ typedef struct ktxBasisParams {
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
 
-typedef enum ktx_texture_transcode_fmt_e {
-    KTX_TF_ETC1,  // Use to only get RGB, even when basis data has alpha.
-    KTX_TF_BC1,
-    KTX_TF_BC4,
+/**
+ * @~English
+ * @brief Enumerators for specifying the transcode format.
+ */
+typedef enum ktx_transcode_fmt_e {
+    KTX_TF_ETC1,  /*!< ETC1 RGB-only, even when the texture has alpha. */
+    KTX_TF_BC1,   /*!< DXT1 RGB only, even when the texture has alpha. */
+    KTX_TF_BC4,   /*!< DXT5A (alpha block only). */
     KTX_TF_PVRTC1_4_OPAQUE_ONLY,
+                  /*!< Opaque only PVRTC1 4bpp. */
     KTX_TF_BC7_M6_OPAQUE_ONLY,
-    KTX_TF_ETC2,              // ETC2_EAC_A8 block followed by a ETC1 block
-    KTX_TF_BC3,               // BC4 followed by a BC1 block
-    KTX_TF_BC5,               // two BC4 blocks
-} ktx_texture_transcode_fmt_e;
+                  /*!< BC7 mode 6 RGB only. */
+    KTX_TF_ETC2,  /*!< ETC2_EAC_A8 block followed by an ETC1 block. */
+    KTX_TF_BC3,   /*!< BC4 alpha block followed by a BC1 RGB block. */
+    KTX_TF_BC5,   /*!< Two BC4 blocks. */
+} ktx_transcode_fmt_e;
 
-enum ktx_texture_decode_flags_e {
+/**
+ * @~English
+ * @brief Enumerators for guiding transcoding of Basis Universal compressed
+ * textures.
+ */
+typedef enum ktx_transcode_flag_bits_e {
     KTX_DF_PVRTC_WRAP_ADDRESSING = 1,
         /*!< PVRTC1: texture will use wrap addressing vs. clamp (most PVRTC
              viewer tools assume wrap addressing, so we default to wrap although
@@ -952,11 +989,12 @@ enum ktx_texture_decode_flags_e {
         /*!< Forbid usage of BC1 3 color blocks (we don't support BC1
              punchthrough alpha yet).
          */
-};
+} ktx_transcode_flag_bits_e;
+typedef ktx_uint32_t ktx_transcode_flags;
 
 KTX_APICALL KTX_error_code KTX_APIENTRY
-ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_texture_transcode_fmt_e fmt,
-                           ktx_uint32_t decodeFlags);
+ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_transcode_fmt_e fmt,
+                           ktx_transcode_flags transcodeFlags);
 
 /*
  * Returns a string corresponding to a KTX error code.
@@ -1048,7 +1086,7 @@ ktxHashListEntry_GetValue(ktxHashListEntry* This,
                           unsigned int* pValueLen, void** ppValue);
 
 /*===========================================================*
- * Utilities for printing ingo about a KTX file.             *
+ * Utilities for printing info about a KTX file.             *
  *===========================================================*/
 
 KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForStdioStream(FILE* stdioStream);
@@ -1058,6 +1096,20 @@ KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t*
 #ifdef __cplusplus
 }
 #endif
+
+/*========================================================================*
+ * For backward compatibilty with the V3 & early versions of the V4 APIs. *
+ *========================================================================*/
+
+/**
+ * @deprecated Will be dropped before V4 release.
+ */
+#define ktx_texture_transcode_fmt_e ktx_transcode_fmt_e
+
+/**
+ * @deprecated Will be dropped before V4 release.
+ */
+#define ktx_texture_decode_flags ktx_transcode_flag_bits
 
 /**
 @~English

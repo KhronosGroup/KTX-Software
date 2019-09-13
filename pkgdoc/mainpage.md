@@ -31,14 +31,14 @@ ktx2check
 - @ref ktx2check reference page.
 - @ref ktx2check_history.
 
-ktx2ktx2 version 1.0
---------------------
+ktx2ktx2
+--------
 
  - @ref ktx2ktx2 reference page.
  - @ref ktx2ktx2_history.
 
-ktxinfo version 1.0
--------------------
+ktxinfo
+-------
 
  - @ref ktxinfo reference page.
  - @ref ktxinfo_history.
@@ -48,8 +48,9 @@ ktxsc
 
  - @ref ktxsc reference page.
  - @ref ktxsc_history.
-                                                                                                                                                                                          toktx version 1.3
------------------
+
+toktx
+-----
 
  - @ref toktx reference page.
  - @ref toktx_history.
@@ -65,7 +66,7 @@ The libKTX tests are also the work of Mark Callow with some contributions
 borrowed from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL
 for portability.
 
-`toktx` is the work of Mark Callow.
+`ktx2check`, `ktx2ktx2`, `ktxinfo`, `ktxsc` and `toktx` are the work of Mark Callow.
 
 The KTX application and file icons were designed by Manmohan Bishnoi.
 

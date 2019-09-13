@@ -68,7 +68,7 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
     ktxTexture2* kTexture;
     KTX_error_code ktxresult;
     compressedTexFeatures features;
-    ktx_texture_transcode_fmt_e tf;
+    ktx_transcode_fmt_e tf;
 
     bInitialized = GL_FALSE;
     gnTexture = 0;

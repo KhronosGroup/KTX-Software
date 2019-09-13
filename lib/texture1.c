@@ -555,6 +555,12 @@ ktxTexture1_destruct(ktxTexture1* This)
 }
 
 /**
+ * @defgroup reader Reader
+ * @brief Read KTX-formatted data.
+ * @{
+ */
+
+/**
  * @memberof ktxTexture1
  * @ingroup writer
  * @brief Create a new empty ktxTexture1.
@@ -683,9 +689,7 @@ ktxTexture1_CreateFromStdioStream(FILE* stdioStream,
     return result;
 }
 
-/* FIXME: try @copydoc and @copydetails for these functions. Does it copy
-   the args or just the text? */
-/**
+/*
  * @memberof ktxTexture1
  * @~English
  * @brief Create a ktxTexture1 from a named KTX file.
@@ -708,7 +712,7 @@ ktxTexture1_CreateFromStdioStream(FILE* stdioStream,
  *                        the newly created texture.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
-
+ *
  * @exception KTX_FILE_OPEN_FAILED The file could not be opened.
  * @exception KTX_INVALID_VALUE @p filename is @c NULL.
  *
@@ -813,8 +817,7 @@ ktxTexture1_Destroy(ktxTexture1* This)
  * @memberof ktxTexture1 @private
  * @~English
  *
- * @copybrief ktxTexture::ktxTexture_doCalcFaceLodSize
- * @copydetails ktxTexture::ktxTexture_doCalcFaceLodSize
+ * @copydoc ktxTexture::ktxTexture_doCalcFaceLodSize
  */
 ktx_size_t
 ktxTexture1_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level)
@@ -890,7 +893,7 @@ ktxTexture1_GetImageOffset(ktxTexture1* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Calculate & return the size in bytes of an image at the specified
  *        mip level.
@@ -900,7 +903,7 @@ ktxTexture1_GetImageOffset(ktxTexture1* This, ktx_uint32_t level,
  *
  * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.
  *
- * @param[in]     This     pointer to the ktxTexture object of interest.
+ * @param[in]     This     pointer to the ktxTexture1 object of interest.
  * @param[in]     level    level of interest. *
  */
 ktx_size_t
@@ -927,9 +930,9 @@ ktxTexture1_glTypeSize(ktxTexture1* This)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
- * @brief Iterate over the mip levels in a ktxTexture object.
+ * @brief Iterate over the mip levels in a ktxTexture1 object.
  *
  * This is almost identical to ktxTexture_IterateLevelFaces(). The difference is
  * that the blocks of image data for non-array cube maps include all faces of
@@ -939,7 +942,7 @@ ktxTexture1_glTypeSize(ktxTexture1* This)
  * obtain offsets and sizes for each level by callers who have loaded the data
  * externally.
  *
- * @param[in]     This     handle of the ktxTexture opened on the data.
+ * @param[in]     This     handle of the 1 opened on the data.
  * @param[in,out] iterCb   the address of a callback function which is called
  *                         with the data for each image block.
  * @param[in,out] userdata the address of application-specific data which is
@@ -1138,7 +1141,7 @@ cleanup:
 /**
  * @memberof ktxTexture1
  * @~English
- * @brief Load all the image data from the ktxTexture's source.
+ * @brief Load all the image data from the ktxTexture1's source.
  *
  * The data is loaded into the provided buffer or to an internally allocated
  * buffer, if @p pBuffer is @c NULL.
@@ -1251,7 +1254,6 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
     (PFNKTEXGLUPLOAD)ktxTexture1_GLUpload,
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
-    (PFNKTEXITERATELEVELFACES)ktxTexture_doIterateLevelFaces,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
     (PFNKTEXLOADIMAGEDATA)ktxTexture1_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture1_SetImageFromMemory,
@@ -1260,4 +1262,6 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXWRITETONAMEDFILE)ktxTexture1_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture1_WriteToMemory,
 };
+
+/** @} */
 

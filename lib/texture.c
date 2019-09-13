@@ -54,16 +54,17 @@ static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
 
 /**
  * @memberof ktxTexture @private
- * @brief Construct (initialize) a ktxTexture.
+ * @~English
+ * @brief Construct (initialize) a ktxTexture base class instance.
  *
- * @param[in] This pointer to a ktxTextureInt-sized block of memory to
+ * @param[in] This pointer to a ktxTexture-sized block of memory to
  *                 initialize.
  * @param[in] createInfo pointer to a ktxTextureCreateInfo struct with
  *                       information describing the texture.
  * @param[in] formatSize pointer to a ktxFormatSize giving size information
  *                       about the texture's elements.
  * @param[in] storageAllocation
- *                       enum indicating whether or not to allocation storage
+ *                       enum indicating whether or not to allocate storage
  *                       for the texture images.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -92,7 +93,6 @@ static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
  *                              <tt>base{Width,Height,Depth}</tt>.
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images.
  */
-
 KTX_error_code
 ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
                      ktxFormatSize* formatSize,
@@ -201,6 +201,17 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
     return KTX_SUCCESS;
 }
 
+/**
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Construct (initialize) the part of a ktxTexture base class that is
+ *        not related to the stream contents.
+ *
+ * @param[in] This pointer to a ktxTexture-sized block of memory to
+ *                 initialize.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ */
 KTX_error_code
 ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
                                ktxTextureCreateFlags createFlags)
@@ -263,6 +274,17 @@ typedef union {
     KTX_header2 ktx2;
 } ktxHeaderUnion_;
 
+/**
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Determine if stream data is KTX1 or KTX2.
+ *
+ * @param pStream   pointer to the ktxStream to examine.
+ * @param pFileType pointer to a ktxFileType enum where the type of the data
+ *                  will be written.
+ * @param pHeader   pointer to a ktxHeaderUnion where the header info. will be
+ *                  written.
+ */
 static KTX_error_code
 ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
                       ktxHeaderUnion_* pHeader)
@@ -304,8 +326,11 @@ ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
 
 /**
  * @memberof ktxTexture @private
+ * @~English
  * @brief Construct (initialize) a ktx1 or ktx2 texture according to the stream
  *        data.
+ *
+ * @copydetails ktxTexture_CreateFromStdioStream
  */
 KTX_error_code
 ktxTexture_createFromStream(ktxStream* pStream,
@@ -353,42 +378,10 @@ ktxTexture_createFromStream(ktxStream* pStream,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Create a ktxTexture from a stdio stream reading from a KTX source.
+ * @brief Create a ktxTexture1 or ktxTexture2 from a stdio stream according
+ *        to the stream data.
  *
- * The address of a newly created ktxTexture reflecting the contents of the
- * stdio stream is written to the location pointed at by @p newTex.
- *
- * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
- * if the ktxTexture is ultimately to be uploaded to OpenGL or Vulkan. This
- * will minimize memory usage by allowing, for example, loading the images
- * directly from the source into a Vulkan staging buffer.
- *
- * The create flag KTX_TEXTURE_CREATE_RAW_KVDATA_BIT should not be used. It is
- * provided solely to enable implementation of the @e libktx v1 API on top of
- * ktxTexture.
- *
- * @param[in] stdioStream stdio FILE pointer created from the desired file.
- * @param[in] createFlags bitmask requesting specific actions during creation.
- * @param[in,out] newTex  pointer to a location in which store the address of
- *                        the newly created texture.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE @p newTex is @c NULL.
- * @exception KTX_FILE_DATA_ERROR
- *                              Source data is inconsistent with the KTX
- *                              specification.
- * @exception KTX_FILE_READ_ERROR
- *                              An error occurred while reading the source.
- * @exception KTX_FILE_UNEXPECTED_EOF
- *                              Not enough data in the source.
- * @exception KTX_OUT_OF_MEMORY Not enough memory to create the texture object,
- *                              load the images or load the key-value data.
- * @exception KTX_UNKNOWN_FILE_FORMAT
- *                              The source is not in KTX format.
- * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
- *                              The source describes a texture type not
- *                              supported by OpenGL or Vulkan, e.g, a 3D array.
+ * @copydetails ktxTexture1_CreateFromStdioStream()
  */
 KTX_error_code
 ktxTexture_CreateFromStdioStream(FILE* stdioStream,
@@ -411,7 +404,8 @@ ktxTexture_CreateFromStdioStream(FILE* stdioStream,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Create a ktxTexture from a named KTX file.
+ * @brief Create a ktxTexture1 or ktxTexture2 from a named KTX file according
+ *        to the file contents.
  *
  * The address of a newly created ktxTexture reflecting the contents of the
  * file is written to the location pointed at by @p newTex.
@@ -463,7 +457,8 @@ ktxTexture_CreateFromNamedFile(const char* const filename,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Create a ktxTexture from KTX-formatted data in memory.
+ * @brief Create a ktxTexture1 or ktxTexture2 from KTX-formatted data in memory
+ *        according to the data contents.
  *
  * The address of a newly created ktxTexture reflecting the contents of the
  * serialized KTX data is written to the location pointed at by @p newTex.
@@ -601,7 +596,7 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Iterate over the images in a ktxTexture object.
+ * @brief Iterate over the levels or faces in a ktxTexture object.
  *
  * Blocks of image data are passed to an application-supplied callback
  * function. This is not a strict per-image iteration. Rather it reflects how
@@ -630,8 +625,8 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
  *
  */
 KTX_error_code
-ktxTexture_doIterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
-                               void* userdata)
+ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
+                             void* userdata)
 {
     ktx_uint32_t    miplevel;
     KTX_error_code  result = KTX_SUCCESS;

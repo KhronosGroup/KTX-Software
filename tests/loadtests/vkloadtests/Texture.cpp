@@ -109,7 +109,7 @@ Texture::Texture(VulkanContext& vkctx,
     if (kTexture->classId == ktxTexture2_c
         && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
     {
-        ktx_texture_transcode_fmt_e tf;
+        ktx_transcode_fmt_e tf;
         vk::PhysicalDeviceFeatures deviceFeatures;
         vkctx.gpu.getFeatures(&deviceFeatures);
         if (deviceFeatures.textureCompressionETC2)
