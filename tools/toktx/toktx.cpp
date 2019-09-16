@@ -731,15 +731,29 @@ int _tmain(int argc, _TCHAR* argv[])
                     // image pixels so there is nothing to do here.
                     curfileOETF = OETF_SRGB;
                 } else {
-                    if (state.info_png.iccp_defined)
-                        ; // Panic
-                    else if (state.info_png.gama_defined) {
+                    if (state.info_png.iccp_defined) {
+                            delete srcImg;
+                            std::cerr << appName
+                                      << ": PNG file has ICC profile chunk. "
+                                      << "These are not supported."
+                                      << std::endl;
+                            exitCode = 1;
+                            goto cleanup;
+                    } else if (state.info_png.gama_defined) {
                         if (state.info_png.gama_gamma == 100000)
                             curfileOETF = OETF_LINEAR;
                         else if (state.info_png.gama_gamma == 45455)
                             curfileOETF = OETF_SRGB;
-                        else
-                            ; // Panic
+                        else {
+                            delete srcImg;
+                            std::cerr << appName
+                                      << ": PNG image has gamma of "
+                                      << (float)100000 / state.info_png.gama_gamma
+                                      << ". This is currently unsupported."
+                                      << std::endl;
+                            exitCode = 1;
+                            goto cleanup;
+                        }
                     } else
                         curfileOETF = OETF_SRGB;
                 }
