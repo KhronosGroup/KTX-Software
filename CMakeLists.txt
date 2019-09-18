@@ -9,6 +9,8 @@ option( KTX_FEATURE_KTX2 "KTX version 2" ON )
 
 # option( KTX_FEATURE_WRITE "Create KTX files" OFF )
 
+option( KTX_UNITY_LIB "Build a library for use in Unity 3D" OFF )
+
 set( VULKAN_SDK "" CACHE PATH "Path to Vulkan SDK")
 
 set(KTX_LIB_SRC
@@ -77,22 +79,35 @@ if(VULKAN_SDK)
     )
 endif()
 
-add_library(ktx SHARED ${KTX_LIB_SRC} ${BASISU_SRC})
+add_library( basisu OBJECT ${BASISU_SRC} )
+add_library( objKtx OBJECT ${KTX_LIB_SRC} )
+add_library( ktx SHARED $<TARGET_OBJECTS:objKtx> $<TARGET_OBJECTS:basisu> )
 
 target_include_directories(
-    ktx
+    basisu
+    PUBLIC
+    lib/basisu/transcoder
+)
+
+target_include_directories(
+    objKtx
     PUBLIC
     include
     PRIVATE
     other_include
     "${VULKAN_SDK}/include"
 )
+
 set(CMAKE_CXX_FLAGS -std=c++11)
 set(CMAKE_CXX_STANDARD 11)
 
 target_compile_definitions(
-    ktx
+    objKtx
     PRIVATE
     KTX_OMIT_VULKAN
     ${KTX_DEFS}
 )
+
+if(KTX_UNITY_LIB)
+    add_subdirectory(interface/unity)
+endif()
