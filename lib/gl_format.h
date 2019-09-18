@@ -100,7 +100,9 @@ MODIFICATIONS for use in libktx
 
 #include <assert.h>
 #include "formatsize.h"
+#ifndef USE_VULKAN_SDK
 #include "vkformat_enum.h"
+#endif
 
 #if defined(_WIN32)
 #define NOMINMAX

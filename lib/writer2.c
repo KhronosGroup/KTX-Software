@@ -47,7 +47,9 @@
 #include "texture2.h"
 
 #include "dfdutils/dfd.h"
+#ifndef USE_VULKAN_SDK
 #include "vkformat_enum.h"
+#endif
 #include "vk_format.h"
 
 #if defined(_MSC_VER)

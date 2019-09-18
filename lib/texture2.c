@@ -1508,6 +1508,8 @@ struct ktxTexture_vtblInt ktxTexture2_vtblInt = {
     (PFNCALCFACELODSIZE)ktxTexture2_calcFaceLodSize
 };
 
+#ifdef KTX_FEATURE_UPLOAD
+
 struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXDESTROY)ktxTexture2_Destroy,
     (PFNKTEXGETIMAGEOFFSET)ktxTexture2_GetImageOffset,
@@ -1522,6 +1524,8 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXWRITETONAMEDFILE)ktxTexture2_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture2_WriteToMemory,
 };
+
+#endif
 
 /** @} */
 

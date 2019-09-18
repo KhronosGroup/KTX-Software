@@ -348,6 +348,7 @@ ktxTexture_createFromStream(ktxStream* pStream,
         return result;
 
     if (fileType == KTX1) {
+#ifdef KTX_FEATURE_KTX1
         ktxTexture1* tex1 = (ktxTexture1*)malloc(sizeof(ktxTexture1));
         if (tex1 == NULL)
             return KTX_OUT_OF_MEMORY;
@@ -356,7 +357,11 @@ ktxTexture_createFromStream(ktxStream* pStream,
                                                           &header.ktx,
                                                           createFlags);
         tex = ktxTexture(tex1);
+#else
+        return KTX_UNSUPPORTED_FEATURE;
+#endif
     } else {
+#ifdef KTX_FEATURE_KTX2
         ktxTexture2* tex2 = (ktxTexture2*)malloc(sizeof(ktxTexture2));
         if (tex2 == NULL)
             return KTX_OUT_OF_MEMORY;
@@ -365,6 +370,9 @@ ktxTexture_createFromStream(ktxStream* pStream,
                                                           &header.ktx2,
                                                           createFlags);
         tex = ktxTexture(tex2);
+#else
+        return KTX_UNSUPPORTED_FEATURE;
+#endif
     }
 
     if (result == KTX_SUCCESS)

@@ -36,7 +36,9 @@
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture2.h"
+#ifndef USE_VULKAN_SDK
 #include "vkformat_enum.h"
+#endif
 #include "vk_format.h"
 #include "basis_sgd.h"
 #include "basisu/basisu_comp.h"
