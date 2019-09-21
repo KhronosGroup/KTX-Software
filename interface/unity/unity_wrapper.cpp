@@ -228,4 +228,97 @@ DLL_EXPORT bool aa_startTranscoding( basis_file* basis ) {
 DLL_EXPORT bool aa_transcodeImage( basis_file* basis, void* dst, size_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
     return basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
 }
+
+DLL_EXPORT ktxTexture2* aa_load_ktx( const uint8_t * data, size_t length, KTX_error_code* out_status ) {
+    
+    KTX_error_code result;
+    
+    ktxTexture2* newTex = 0;
+    
+    result = ktxTexture2_CreateFromMemory(
+        (const ktx_uint8_t*) data,
+        (ktx_size_t) length,
+        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        (ktxTexture2**)&newTex
+        );
+
+    *out_status = result;
+    return newTex;
+}
+
+DLL_EXPORT class_id aa_ktx_get_classId ( ktxTexture2* ktx ) {
+    return ktx->classId;
+}
+DLL_EXPORT ktx_bool_t aa_ktx_get_isArray ( ktxTexture2* ktx ) {
+    return ktx->isArray;
+}
+DLL_EXPORT ktx_bool_t aa_ktx_get_isCubemap ( ktxTexture2* ktx ) {
+    return ktx->isCubemap;
+}
+DLL_EXPORT ktx_bool_t aa_ktx_get_isCompressed ( ktxTexture2* ktx ) {
+    return ktx->isCompressed;
+}
+DLL_EXPORT ktx_uint32_t aa_ktx_get_baseWidth ( ktxTexture2* ktx ) {
+    return ktx->baseWidth;
+}
+DLL_EXPORT ktx_uint32_t aa_ktx_get_baseHeight ( ktxTexture2* ktx ) {
+    return ktx->baseHeight;
+}
+DLL_EXPORT ktx_uint32_t aa_ktx_get_numDimensions ( ktxTexture2* ktx ) {
+    return ktx->numDimensions;
+}
+DLL_EXPORT ktx_uint32_t aa_ktx_get_numLevels ( ktxTexture2* ktx ) {
+    return ktx->numLevels;
+}
+DLL_EXPORT ktx_uint32_t aa_ktx_get_numLayers ( ktxTexture2* ktx ) {
+    return ktx->numLayers;
+}
+DLL_EXPORT ktx_uint32_t aa_ktx_get_numFaces ( ktxTexture2* ktx ) {
+    return ktx->numFaces;
+}
+DLL_EXPORT ktx_uint32_t aa_ktx_get_vkFormat ( ktxTexture2* ktx ) {
+    return ktx->vkFormat;
+}
+DLL_EXPORT ktxSupercmpScheme aa_ktx_get_supercompressionScheme ( ktxTexture2* ktx ) {
+    return ktx->supercompressionScheme;
+}
+DLL_EXPORT void aa_ktx_get_orientation (
+    ktxTexture2* ktx,
+    ktxOrientationX* x,
+    ktxOrientationY* y,
+    ktxOrientationZ* z
+    )
+{
+    *x = ktx->orientation.x;
+    *y = ktx->orientation.y;
+    *z = ktx->orientation.z;
+}
+
+DLL_EXPORT KTX_error_code aa_transcode_ktx(
+    ktxTexture2* ktx,
+    ktx_transcode_fmt_e outputFormat,
+    ktx_transcode_flags transcodeFlags
+    )
+{
+    KTX_error_code result = ktxTexture2_TranscodeBasis(
+       ktx,
+       outputFormat,
+       transcodeFlags
+       );
+    return result;
+}
+
+DLL_EXPORT void aa_ktx_get_data(
+    ktxTexture2* ktx,
+    const uint8_t ** data,
+    size_t* length
+    )
+{
+    *data = ktx->pData;
+    *length = ktx->dataSize;
+}
+
+DLL_EXPORT void aa_unload_ktx( ktxTexture2* ktx ) {
+    ktxTexture_Destroy((ktxTexture*)ktx);
+}
 }
