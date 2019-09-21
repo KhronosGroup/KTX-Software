@@ -13,6 +13,8 @@ option( KTX_UNITY_LIB "Build a library for use in Unity 3D" OFF )
 
 set( VULKAN_SDK "" CACHE PATH "Path to Vulkan SDK")
 
+set( UNITY_PACKAGE_PATH "" CACHE PATH "Path locating the Unity package source. When installing, native libraries will get injected there" )
+
 set(KTX_LIB_SRC
     lib/basis_transcode.cpp
     lib/checkheader.c
