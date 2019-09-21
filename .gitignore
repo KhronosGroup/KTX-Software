@@ -8,6 +8,9 @@
 /build/*.zip
 /build/docs
 
+/build*
+/bin_osx
+
 # /build/GNUmake/lib/
 /build/GNUmake/lib/*.d
 /build/GNUmake/lib/es1
