@@ -21,6 +21,7 @@
 
 #include <ktx.h>
 #include <basisu_transcoder.h>
+#include <ktx_sgd_helper.h>
 
 using namespace basist;
 
@@ -292,6 +293,10 @@ DLL_EXPORT void aa_ktx_get_orientation (
     *x = ktx->orientation.x;
     *y = ktx->orientation.y;
     *z = ktx->orientation.z;
+}
+
+DLL_EXPORT bool aa_ktx_get_has_alpha( ktxTexture2* ktx ) {
+    return ktxTexture2_getHasAlpha(ktx);
 }
 
 DLL_EXPORT KTX_error_code aa_transcode_ktx(

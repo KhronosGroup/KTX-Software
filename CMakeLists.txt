@@ -34,6 +34,8 @@ set(KTX_LIB_SRC
     lib/dfdutils/interpretdfd.c
     lib/dfdutils/printdfd.c
     lib/dfdutils/vk2dfd.c
+
+    lib/sgd_helper.cpp
     )
 
 set(BASISU_SRC
