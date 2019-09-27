@@ -83,12 +83,12 @@ if(VULKAN_SDK)
     )
 endif()
 
-add_library( basisu OBJECT ${BASISU_SRC} )
+add_library( objBasisu OBJECT ${BASISU_SRC} )
 add_library( objKtx OBJECT ${KTX_LIB_SRC} )
-add_library( ktx SHARED $<TARGET_OBJECTS:objKtx> $<TARGET_OBJECTS:basisu> )
+add_library( ktx SHARED $<TARGET_OBJECTS:objKtx> $<TARGET_OBJECTS:objBasisu> )
 
 target_include_directories(
-    basisu
+    objBasisu
     PUBLIC
     lib/basisu/transcoder
 )
