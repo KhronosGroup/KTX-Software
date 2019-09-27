@@ -75,7 +75,7 @@ install:
     git lfs version &&
     brew install doxygen &&
     brew install assimp &&
-    brew install libzip &&
+    brew install zlib &&
     brew install minizip &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
