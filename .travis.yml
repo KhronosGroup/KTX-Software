@@ -76,7 +76,7 @@ install:
     brew install doxygen &&
     brew install assimp &&
     brew install libzip &&
-    brew install libminizip &&
+    brew install minizip &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
     wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
