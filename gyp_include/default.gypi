@@ -139,9 +139,14 @@
       },
     },
     'xcode_settings': {
+      # Avoid Xcode 10 warning: "Traditional headermap style is no
+      # longer supported".
+      'ALWAYS_SEARCH_USER_PATHS': 'NO',
       # Use C++11 for Basis, vulkan.hpp in vkloadtests and gtest.
       'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
       'COPY_PHASE_STRIP': 'NO',
+      # Avoid Xcode 11 warning. Needed for app notarization anyway.
+      'ENABLE_HARDENED_RUNTIME': 'YES',
       # Avoid linker warnings about "Direct access in function'. These need
       # to be NO or YES everywhere. When not set here, for some reason, appfwSDL
       # had them set to NO while vkloadtests had them set to YES.
@@ -151,9 +156,6 @@
       'GCC_C_LANGUAGE_STANDARD': 'c99',
       # Be extra pedantic.
       'GCC_TREAT_WARNINGS_AS_ERRORS': 'YES',
-      # Avoid Xcode 10 warning: "Traditional headermap style is no
-      # longer supported".
-      'ALWAYS_SEARCH_USER_PATHS': 'NO',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad

@@ -54,16 +54,6 @@
 			name = libvulkan;
 			productName = libvulkan;
 		};
-		57E23513B7E3B1238C76EFD8 /* libvulkan.lazy */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 49E64FDFE06025D89B3E131A /* Build configuration list for PBXAggregateTarget "libvulkan.lazy" */;
-			buildPhases = (
-			);
-			dependencies = (
-			);
-			name = libvulkan.lazy;
-			productName = libvulkan.lazy;
-		};
 		6D6366BB32CAA6A60F5BEE29 /* mkvkformatfiles */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = C6E90966DD7948D9D3FE85CF /* Build configuration list for PBXAggregateTarget "mkvkformatfiles" */;
@@ -96,7 +86,6 @@
 				D28D2B72096C5EF1492EFF16 /* PBXTargetDependency */,
 				F930E9E76DB549243B3CD8F1 /* PBXTargetDependency */,
 				1EE2EA45214C6271E45D1A78 /* PBXTargetDependency */,
-				69B58AFC59608ED398A48CD8 /* PBXTargetDependency */,
 				C9FE67D8786E27F5C8B57E0C /* PBXTargetDependency */,
 				051E57CD74C486776F90913F /* PBXTargetDependency */,
 				F17B536CED34277531019A4E /* PBXTargetDependency */,
@@ -164,13 +153,6 @@
 			remoteGlobalIDString = 1DECD74B6E574582E25FE647;
 			remoteInfo = libktx.doc;
 		};
-		33EFABA996F6775B7C2EF5F0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 57E23513B7E3B1238C76EFD8;
-			remoteInfo = libvulkan.lazy;
-		};
 		4B728F15AA6196C777B01117 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
@@ -233,13 +215,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 53E28E0399F04986CCFA2113;
 			remoteInfo = libvulkan;
-		};
-		C03FBE28E95D4E0A2AC9A33A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 57E23513B7E3B1238C76EFD8;
-			remoteInfo = libvulkan.lazy;
 		};
 		D84789EEB286E42F111FFE4C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -642,7 +617,6 @@
 			dependencies = (
 				7AD4BE5684D9B4A6DAD890F1 /* PBXTargetDependency */,
 				CDE7A83DEE4CFCCD0EA50898 /* PBXTargetDependency */,
-				A981E4C6CDAC60BD2BC022FA /* PBXTargetDependency */,
 			);
 			name = libktx.gl;
 			productName = ktx.gl;
@@ -672,7 +646,6 @@
 				2C49C1BC3266E196E5B13666 /* libgl */,
 				A53C7E625BBCBD48220BD07A /* vulkan_headers */,
 				53E28E0399F04986CCFA2113 /* libvulkan */,
-				57E23513B7E3B1238C76EFD8 /* libvulkan.lazy */,
 				362967529B3D7D3E12C3129D /* libktx.gl */,
 				1DECD74B6E574582E25FE647 /* libktx.doc */,
 				6D6366BB32CAA6A60F5BEE29 /* mkvkformatfiles */,
@@ -911,11 +884,6 @@
 			target = 53E28E0399F04986CCFA2113 /* libvulkan */;
 			targetProxy = BF288612EE5539FB7FB31343 /* PBXContainerItemProxy */;
 		};
-		69B58AFC59608ED398A48CD8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 57E23513B7E3B1238C76EFD8 /* libvulkan.lazy */;
-			targetProxy = 33EFABA996F6775B7C2EF5F0 /* PBXContainerItemProxy */;
-		};
 		6F67D3A21CA366A4902DA9EE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 367C61B4767369D229A346CD /* install.lib */;
@@ -925,11 +893,6 @@
 			isa = PBXTargetDependency;
 			target = A53C7E625BBCBD48220BD07A /* vulkan_headers */;
 			targetProxy = D84789EEB286E42F111FFE4C /* PBXContainerItemProxy */;
-		};
-		A981E4C6CDAC60BD2BC022FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 57E23513B7E3B1238C76EFD8 /* libvulkan.lazy */;
-			targetProxy = C03FBE28E95D4E0A2AC9A33A /* PBXContainerItemProxy */;
 		};
 		C9FE67D8786E27F5C8B57E0C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -978,6 +941,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -1000,10 +964,6 @@
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				OTHER_LDFLAGS = (
-					"-lazy_library",
-					"$(VULKAN_SDK)/Frameworks/vulkan.framework/vulkan",
-				);
 				PRODUCT_NAME = ktx.gl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
@@ -1017,6 +977,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1032,29 +993,6 @@
 			};
 			name = Debug;
 		};
-		2AC26BB8D460E5AC996CBEEF /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				PRODUCT_NAME = libvulkan.lazy;
-			};
-			name = Debug;
-		};
 		2E4F7F5FB18A0F5BC966A04D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1063,6 +1001,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1075,26 +1014,6 @@
 			};
 			name = Release;
 		};
-		361F66E713B1DB3BF233F62C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				PRODUCT_NAME = libvulkan.lazy;
-			};
-			name = Release;
-		};
 		392195AD4AF0AF2E1B937EAC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1103,6 +1022,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1126,6 +1046,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1185,6 +1106,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -1210,6 +1132,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -1232,6 +1155,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1262,6 +1186,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1328,6 +1253,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				EXECUTABLE_PREFIX = lib;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -1351,10 +1277,6 @@
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				OTHER_LDFLAGS = (
-					"-lazy_library",
-					"$(VULKAN_SDK)/Frameworks/vulkan.framework/vulkan",
-				);
 				PRODUCT_NAME = ktx.gl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
@@ -1368,6 +1290,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1388,6 +1311,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1417,6 +1341,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1440,6 +1365,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1475,15 +1401,6 @@
 			buildConfigurations = (
 				CC9F707BE8D60FBF141C12C5 /* Debug */,
 				EEACEC78130209FB1BE94480 /* Release */,
-			);
-			defaultConfigurationIsVisible = 1;
-			defaultConfigurationName = Debug;
-		};
-		49E64FDFE06025D89B3E131A /* Build configuration list for PBXAggregateTarget "libvulkan.lazy" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2AC26BB8D460E5AC996CBEEF /* Debug */,
-				361F66E713B1DB3BF233F62C /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;

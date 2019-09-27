@@ -346,7 +346,7 @@ for both iOS and macOS.
 
 ### libassimp
 
-Binaries for iOS and Windows are provided in the KTX Git repo.
+Binaries for iOS, macOS and Windows are provided in the KTX Git repo.
 
 #### GNU/Linux
 
@@ -358,16 +358,17 @@ sudo apt-get install libassimp3v5
 
 macOS
 
-Install via [MacPorts](https://www.macports.org/) or
+The included libassimp binary for macOS has dependencies on `minizip` and `zlib`. Install these via [MacPorts](https://www.macports.org/) or
 [Homebrew](https://brew.sh/). For example
 
 ```bash
-sudo port install assimp
+sudo port install minizip
 ```
 
 Set an `ASSIMP_HOME` Custom Path in the Xcode preferences to the
-parent of the `include` and `lib` folders where `libassimp` is
-installed. For MacPorts this is `/opt/local`.
+parent of the `include` and `lib` folders where these are
+installed. For MacPorts this is `/opt/local`. (The Custom Path name
+dates from when the MacPorts or Brew libassimp was used.)
 
 ### GYP
 

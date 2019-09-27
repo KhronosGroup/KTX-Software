@@ -33,7 +33,28 @@
             '<(assimp_include)',
           ]
         }],
-        ['OS == "win"', {
+        ['OS == "mac"', {
+#          'copies': [{
+#           'xcode_code_sign': 1,
+#            'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+#            'files': [
+#              '<(macolibr_dir)/libassimp.5.dylib',
+#              '<(macolibr_dir)/libassimp.dylib',
+#              '<(macolibr_dir)/libIrrXML.dylib',
+#            ],
+#          }, {
+#            'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+#            'files': [
+#              '<(macolibr_dir)/libassimp.dylib',
+#              '<(macolibr_dir)/libassimp.5.dylib',
+#            ],
+#          }], # copies
+          'xcode_settings': {
+            # Tell DYLD where to search for this dylib.
+            # "man ld" for more information. Look for -rpath.
+            'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
+          },
+        }, 'OS == "win"', {
           'copies': [{
             'destination': '<(PRODUCT_DIR)',
             # This results in
@@ -51,8 +72,20 @@
       'conditions': [
         ['OS == "ios"', {
           'library_dirs': [ '<(iosolibr_dir)' ],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': '-lassimp -lz',
+          },
         }, 'OS == "mac"', {
-          'library_dirs': [ '<(assimp_lib)' ],
+          'library_dirs': [ '<(macolibr_dir)' ],
+          'xcode_settings': {
+            # Use static libs to avoid having to build our own minizip & libz.
+            # When I tried to get assimp's CMake to build zlib it reported
+            # that the install name wasn't being set with @rpath wasn't which
+            # means it wouldn't work even if we copied it into the app bundle.
+            # Plus it continued to build a dynamic zlib even when
+            # BUILD_SHARED_LIBS was unchecked.
+            'OTHER_LDFLAGS': '-lassimp -lIrrXML <(assimp_lib)/libminizip.a <(assimp_lib)/libz.a',
+          },
         }, 'OS == "win"', {
           # winolibr because repo has only a release version.
           'library_dirs': [ '<(winolibr_dir)' ],
@@ -61,13 +94,10 @@
           # '-lfoo' here confuses Xcode. It seems these values are
           # being put into an Xcode list that expects only framework
           # names, full or relative paths. The workaround is to use
-          # OTHER_LDFLAGS as below.
+          # OTHER_LDFLAGS as above.
           'libraries': [ '-lassimp' ],
         }],
       ], # conditions
-      'xcode_settings': {
-        'OTHER_LDFLAGS': '-lassimp -lz',
-      },
     }, # link_settings
   }], # targets
 }
