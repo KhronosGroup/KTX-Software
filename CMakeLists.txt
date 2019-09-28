@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(KTX-Software)
 
-# option( KTX_FEATURE_KTX1 "KTX version 1" OFF )
+option( KTX_FEATURE_KTX1 "KTX version 1" OFF )
 option( KTX_FEATURE_KTX2 "KTX version 2" ON )
 
 # option( KTX_FEATURE_UPLOAD "Directly upload and create textures" OFF )
@@ -15,7 +15,7 @@ set( VULKAN_SDK "" CACHE PATH "Path to Vulkan SDK")
 
 set( UNITY_PACKAGE_PATH "" CACHE PATH "Path locating the Unity package source. When installing, native libraries will get injected there" )
 
-set(KTX_LIB_SRC
+set(KTX_LIB_READ_SRC
     lib/basis_transcode.cpp
     lib/checkheader.c
     lib/errstr.c
@@ -44,14 +44,14 @@ set(BASISU_SRC
 
 set(KTX_DEFS "")
 
-# if(KTX_FEATURE_KTX1)
-#     list( APPEND KTX_DEFS
-#         KTX_FEATURE_KTX1
-#     )
-#     list(APPEND KTX_LIB_SRC
-#         lib/texture1.c
-#     )
-# endif()
+if(KTX_FEATURE_KTX1)
+    list( APPEND KTX_DEFS
+        KTX_FEATURE_KTX1
+    )
+    list(APPEND KTX_LIB_READ_SRC
+        lib/texture1.c
+    )
+endif()
 
 if(KTX_FEATURE_KTX2)
     list( APPEND KTX_DEFS
@@ -59,23 +59,30 @@ if(KTX_FEATURE_KTX2)
     )
 endif()
 
-# if(KTX_FEATURE_WRITE)
-#     list(APPEND KTX_LIB_SRC
-#         lib/basis_encode.cpp
-#         lib/vkloader.c
-#         lib/writer1.c
-#         lib/writer2.c
-#         lib/dfdutils/dfd2vk.c
-#     )
-# endif()
+set(KTX_LIB_SRC)
+set(KTX_LIB_WRITE_SRC "")
 
-# if(KTX_FEATURE_UPLOAD)
-#     list(APPEND KTX_LIB_SRC
-#         lib/glloader.c
-#         lib/texture1_vvtbl.c
-#         lib/texture2_vvtbl.c
-#     )
-# endif()
+if(KTX_FEATURE_WRITE)
+    list(APPEND KTX_LIB_WRITE_SRC
+        lib/basis_encode.cpp
+        lib/vkloader.c
+        lib/writer1.c
+        lib/writer2.c
+        lib/dfdutils/dfd2vk.c
+    )
+    add_library( objKtxWrite OBJECT ${KTX_LIB_WRITE_SRC} )
+    list(append KTX_LIB_SRC
+        $<TARGET_OBJECTS:objKtxWrite>
+    )
+endif()
+
+if(KTX_FEATURE_UPLOAD)
+    list(APPEND KTX_LIB_READ_SRC
+        lib/glloader.c
+        lib/texture1_vvtbl.c
+        lib/texture2_vvtbl.c
+    )
+endif()
 
 if(VULKAN_SDK)
     list(APPEND KTX_DEFS
@@ -84,8 +91,14 @@ if(VULKAN_SDK)
 endif()
 
 add_library( objBasisu OBJECT ${BASISU_SRC} )
-add_library( objKtx OBJECT ${KTX_LIB_SRC} )
-add_library( ktx SHARED $<TARGET_OBJECTS:objKtx> $<TARGET_OBJECTS:objBasisu> )
+add_library( objKtxRead OBJECT ${KTX_LIB_READ_SRC} )
+
+
+add_library( ktx SHARED
+    $<TARGET_OBJECTS:objKtxRead>
+    $<TARGET_OBJECTS:objBasisu>
+    ${KTX_LIB_SRC}
+    )
 
 target_include_directories(
     objBasisu
@@ -94,7 +107,7 @@ target_include_directories(
 )
 
 target_include_directories(
-    objKtx
+    objKtxRead
     PUBLIC
     include
     PRIVATE
@@ -106,7 +119,7 @@ set(CMAKE_CXX_FLAGS -std=c++11)
 set(CMAKE_CXX_STANDARD 11)
 
 target_compile_definitions(
-    objKtx
+    objKtxRead
     PRIVATE
     KTX_OMIT_VULKAN
     ${KTX_DEFS}
