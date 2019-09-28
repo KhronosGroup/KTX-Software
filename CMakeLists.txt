@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 project(KTX-Software)
 
+include(CTest)
+
 option( KTX_FEATURE_KTX1 "KTX version 1" OFF )
 option( KTX_FEATURE_KTX2 "KTX version 2" ON )
 
@@ -128,3 +130,5 @@ target_compile_definitions(
 if(KTX_UNITY_LIB)
     add_subdirectory(interface/unity)
 endif()
+
+add_subdirectory(tests)

@@ -35,7 +35,6 @@
 #endif
 
 #include <string.h>
-#include "GL/glcorearb.h"
 #include "gl_format.h"
 #include "ktx.h"
 extern "C" {
