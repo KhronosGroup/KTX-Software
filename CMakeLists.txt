@@ -203,6 +203,15 @@ target_compile_definitions(
     ${KTX_DEFS}
 )
 
+add_library( objUtil OBJECT utils/argparser.cpp )
+target_include_directories(
+    objUtil
+    PUBLIC
+    utils
+    )
+
+add_subdirectory(tools)
+
 if(KTX_UNITY_LIB)
     add_subdirectory(interface/unity)
 endif()

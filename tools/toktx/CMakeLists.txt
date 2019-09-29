@@ -1,0 +1,27 @@
+add_executable( toktx
+    image.cpp
+    lodepng.cpp
+    toktx.cpp
+    $<TARGET_OBJECTS:objUtil>
+    )
+
+get_property(objKtxRead_include_dirs TARGET objKtxRead PROPERTY INCLUDE_DIRECTORIES)
+get_property(objUtil_include_dirs TARGET objUtil PROPERTY INCLUDE_DIRECTORIES)
+
+
+message("inc ${objKtxRead_include_dirs}")
+
+target_include_directories(
+    toktx
+    # PUBLIC
+    PRIVATE
+    # ${OPENGL_INCLUDE_DIR}
+    ${objKtxRead_include_dirs}
+    ${objUtil_include_dirs}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
+    )
+
+target_link_libraries(
+    toktx
+    ktx
+    )
