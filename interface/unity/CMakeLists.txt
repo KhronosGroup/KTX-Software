@@ -37,6 +37,8 @@ get_property(basisu_include_dirs TARGET objBasisu PROPERTY INCLUDE_DIRECTORIES)
 
 target_include_directories(ktx_unity PUBLIC ${objKtxRead_include_dirs} ${basisu_include_dirs})
 
+target_link_libraries( ktx_unity ${KTX_LIB_READ_LIBS} )
+
 if(APPLE)
     set_target_properties(ktx_unity PROPERTIES BUNDLE true)
 endif()

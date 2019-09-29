@@ -1,6 +1,6 @@
 
 /***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 119 by mkvkformatfiles.
+ Automatically generated from vulkan_core.h version 121 by mkvkformatfiles.
  *************************************************************************/
 
 /*
@@ -127,36 +127,6 @@ isValidFormat(VkFormat format)
         case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT:
         case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT:
         case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
         return true;
       default:
         return false;

@@ -50,7 +50,10 @@
 
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
+
+#if !KTX_OMIT_VULKAN
 extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
+#endif
 
 /**
  * @memberof ktxTexture2 @private

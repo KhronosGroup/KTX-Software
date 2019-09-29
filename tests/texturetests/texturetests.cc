@@ -37,7 +37,13 @@
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
+
+#ifdef __APPLE__
+#include <OpenGL/gltypes.h>
+#else
 #include "GL/glcorearb.h"
+#endif
+
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture.h"

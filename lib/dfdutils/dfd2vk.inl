@@ -384,6 +384,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
           }
         }
       } else {
+        /*
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 2) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
@@ -466,6 +467,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
             return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
           }
         }
+        //*/
       }
     } else {
       if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 1) {
@@ -513,6 +515,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
           return VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT;
         }
       } else {
+        /*
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 2) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 2) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 2)) {
@@ -558,6 +561,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
                    (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 5)) {
           return VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT;
         }
+        //*/
       }
     }
   case KHR_DF_MODEL_PVRTC:

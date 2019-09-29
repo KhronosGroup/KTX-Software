@@ -100,7 +100,9 @@ MODIFICATIONS for use in libktx
 
 #include <assert.h>
 #include "formatsize.h"
-#ifndef USE_VULKAN_SDK
+#ifdef USE_VULKAN_SDK
+#include <vulkan/vulkan.h>
+#else
 #include "vkformat_enum.h"
 #endif
 
