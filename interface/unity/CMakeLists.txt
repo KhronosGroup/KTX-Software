@@ -1,3 +1,15 @@
+if(KTX_FEATURE_KTX1)
+    message(SEND_ERROR "KTX_UNITY_LIB does not support KTX_FEATURE_KTX1")
+endif()
+
+if(KTX_FEATURE_UPLOAD)
+    message(SEND_ERROR "KTX_UNITY_LIB does not support KTX_FEATURE_UPLOAD")
+endif()
+
+if(KTX_FEATURE_WRITE)
+    message(SEND_ERROR "KTX_UNITY_LIB does not support KTX_FEATURE_WRITE")
+endif()
+
 if(UNITY_PACKAGE_PATH)
     set( DEST_PLUGIN_PATH "${UNITY_PACKAGE_PATH}/Runtime/Plugins")
 
