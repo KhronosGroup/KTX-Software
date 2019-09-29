@@ -3,6 +3,28 @@ enable_testing()
 
 get_property(objKtxRead_include_dirs TARGET objKtxRead PROPERTY INCLUDE_DIRECTORIES)
 
+if(NOT KTX_FEATURE_KTX1)
+    message(WARNING "KTX_FEATURE_KTX1 is not set -> disabling tests")
+    return()
+endif()
+
+if(NOT KTX_FEATURE_KTX2)
+    message(WARNING "KTX_FEATURE_KTX2 is not set -> disabling tests")
+    return()
+endif()
+
+if(KTX_FEATURE_UPLOAD)
+    message(WARNING "KTX_FEATURE_UPLOAD is not set -> disabling tests")
+    return()
+endif()
+
+if(KTX_FEATURE_WRITE)
+    message(WARNING "KTX_FEATURE_WRITE is not set -> disabling tests")
+    return()
+endif()
+
+# Adding Tests
+
 add_executable( unittests
     unittests/unittests.cc
 )
