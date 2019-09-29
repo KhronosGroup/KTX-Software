@@ -65,6 +65,8 @@ target_link_libraries(
     ktx
     )
 
+# broken atm
+# add_subdirectory(loadtests)
 
 add_test( NAME unittests COMMAND unittests )
 add_test( NAME texturetests COMMAND texturetests )
