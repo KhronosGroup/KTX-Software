@@ -194,6 +194,7 @@ INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(ASSIMP_HOME)/include \
 	-I$(VULKAN_SDK)/include \
 	-I$(srcdir)/include
 
@@ -220,6 +221,7 @@ INCS_Release := \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(ASSIMP_HOME)/include \
 	-I$(VULKAN_SDK)/include \
 	-I$(srcdir)/include
 
@@ -277,13 +279,15 @@ LDFLAGS_Debug := \
 	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/ \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64 \
+	-L$(ASSIMP_HOME)/lib
 
 LDFLAGS_Release := \
 	-Wl,-rpath,. \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/ \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64 \
+	-L$(ASSIMP_HOME)/lib
 
 LIBS := \
 	-lpthread \
