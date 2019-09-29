@@ -13,12 +13,12 @@ if(NOT KTX_FEATURE_KTX2)
     return()
 endif()
 
-if(KTX_FEATURE_UPLOAD)
+if(NOT KTX_FEATURE_UPLOAD)
     message(WARNING "KTX_FEATURE_UPLOAD is not set -> disabling tests")
     return()
 endif()
 
-if(KTX_FEATURE_WRITE)
+if(NOT KTX_FEATURE_WRITE)
     message(WARNING "KTX_FEATURE_WRITE is not set -> disabling tests")
     return()
 endif()
@@ -65,7 +65,6 @@ target_link_libraries(
     ktx
     )
 
-get_property(texturetests_includes TARGET texturetests PROPERTY INCLUDE_DIRECTORIES)
 
 add_test( NAME unittests COMMAND unittests )
 add_test( NAME texturetests COMMAND texturetests )
