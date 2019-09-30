@@ -7,13 +7,13 @@ include(CTest)
 find_package(OpenGL)
 find_package(Vulkan)
 
-option( KTX_FEATURE_KTX1 "KTX version 1" OFF )
+option( KTX_FEATURE_KTX1 "KTX version 1" ON )
 option( KTX_FEATURE_KTX2 "KTX version 2" ON )
 
-option( KTX_FEATURE_UPLOAD_OPENGL "Directly upload and create textures for OpenGL" OFF )
-option( KTX_FEATURE_UPLOAD_VULKAN "Directly upload and create textures for Vulkan" OFF )
+option( KTX_FEATURE_UPLOAD_OPENGL "Directly upload and create textures for OpenGL" ON )
+option( KTX_FEATURE_UPLOAD_VULKAN "Directly upload and create textures for Vulkan" ON )
 
-option( KTX_FEATURE_WRITE "Create KTX files" OFF )
+option( KTX_FEATURE_WRITE "Create KTX files" ON )
 
 option( KTX_UNITY_LIB "Build a library for use in Unity 3D" OFF )
 
