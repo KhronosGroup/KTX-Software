@@ -665,7 +665,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 
             case KTX_TTF_ETC2_RGBA:
             {
-#if !BASISD_SUPPORT_ETC2_EAC_A8
+#if !BASISD_SUPPORT_BC7
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
                 if (hasAlpha) {
@@ -690,6 +690,21 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                           true,
                           isVideo, hasAlpha, 0/* level_index*/, width, height );
                 }
+                break;
+            }
+
+            case KTX_TF_ETC2_RGBA:
+            {
+#if !BASISD_SUPPORT_ETC2_EAC_A8
+                return KTX_UNSUPPORTED_FEATURE;
+#endif
+                status = llt.transcode_slice(writePtr + 8, num_blocks_x, num_blocks_y,
+                        basisData + levelOffset + sliceDescs[image].sliceByteOffset,
+                        sliceDescs[image].sliceByteLength,
+                        basist::block_format::cETC2_EAC_A8, bytes_per_block,
+                        (transcodeFlags & KTX_DF_PVRTC_WRAP_ADDRESSING) != 0,
+                        (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                        isVideo, hasAlpha, 0/* level_index*/, width, height );
                 if (!status) {
                      result = KTX_TRANSCODE_FAILED;
                      goto cleanup;

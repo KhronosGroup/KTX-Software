@@ -988,7 +988,7 @@ typedef enum ktx_transcode_fmt_e {
 
         KTX_TTF_ETC2_EAC_R11 = 20,					// R only (ETC2 EAC R11 unsigned)
         KTX_TTF_ETC2_EAC_RG11 = 21,					// RG only (ETC2 EAC RG11 unsigned), R=opaque.r, G=alpha - for tangent space normal maps
-        
+
         // Uncompressed (raw pixel) formats
         KTX_TTF_RGBA32 = 13,							// 32bpp RGBA image stored in raster (not block) order in memory, R is first byte, A is last byte.
         KTX_TTF_RGB565 = 14,							// 166pp RGB image stored in raster (not block) order in memory, R at bit position 11
