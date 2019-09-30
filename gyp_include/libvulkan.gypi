@@ -25,12 +25,14 @@
           'vksdk': '$(VULKAN_SDK)',  # Until there is an official iOS SDK.
           'mvklib': '$(VULKAN_INSTALL_DIR)/MoltenVK/iOS',
         }, 'OS == "mac"', {
-          'vksdk': '$(VULKAN_SDK)',  # Until there is an official iOS SDK.
+          'vksdk': '$(VULKAN_SDK)',
+          'vklib': '$(VULKAN_SDK)/lib',
           'mvklib': '$(VULKAN_INSTALL_DIR)/MoltenVK/macOS',
         }]
       ], # conditions
     }, # end level 2
     'mvklib': '<(mvklib)',
+    'vklib': '<(vklib)',
     'vksdk': '<(vksdk)',
     'conditions': [
       ['OS == "ios"', {
@@ -129,16 +131,42 @@
                     'xcode_code_sign': 1,
                     'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                     'files': [
-                      # 'files!': doesn't work so I have to repeat the entire
-                      # copy for bath mac & ios.
                       '<(fwdir)/vulkan.framework',
-                      '<(mvklib)/libMoltenVK.dylib',
+                      '<(vklib)/libMoltenVK.dylib',
+                      # Copy the layer dylibs so they can be signed, meeting
+                      # requirements for hardened runtime and notarization.
+                      # If we try to use layers from the Vulkan SDK via an
+                      # environment variable, the layers won't be loaded.
+                      # Layers are only needed for debug config but I don't
+                      # think there is any way to do a copy only for certain
+                      # configs.
+                      '<(vklib)/libVkLayer_core_validation.dylib',
+                      '<(vklib)/libVkLayer_object_tracker.dylib',
+                      '<(vklib)/libVkLayer_parameter_validation.dylib',
+                      '<(vklib)/libVkLayer_threading.dylib',
+                      '<(vklib)/libVkLayer_unique_objects.dylib',
+                      '<(vklib)/libvulkan.1.dylib',
+                      '<(vklib)/libvulkan.1.dylib',
+                      '<(vklib)/libvulkan.1.dylib',
                     ],
                   },
                   {
                     'xcode_code_sign': 1,
                     'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/icd.d',
                     'files': [ '<(otherlibroot_dir)/resources/MoltenVK_icd.json' ],
+                  },
+                  {
+                    'xcode_code_sign': 1,
+                    'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/explicit_layer.d',
+                    'files': [
+                      # Need these to tell Vulkan loader where the layers are.
+                      '<(otherlibroot_dir)/resources/VkLayer_core_validation.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_object_tracker.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_parameter_validation.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_standard_validation.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_threading.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_unique_objects.json',
+                    ],
                   }], # copies mac
                 }], # OS == "ios"
               ], # conditions
@@ -180,34 +208,7 @@
         },
       }] # OS == 'ios' or OS == "mac", etc
     ], # conditions
-  }, # libvulkan target
-  {
-    'target_name': 'libvulkan.lazy',
-    'type': 'none',
-    'conditions': [
-      ['OS == "ios"', {
-        # Shared library, & therefore this target, not used on iOS.
-      }, 'OS == "mac"', {
-        'direct_dependent_settings': {
-          'xcode_settings': {
-            'OTHER_LDFLAGS': [
-              '-lazy_library',
-              '<(fwdir)/vulkan.framework/vulkan',
-            ],
-          },
-        },
-      }, 'OS == "win"', {
-        'msvs_settings': {
-          'VCLinkerTool': {
-            'DelayLoadDLLs': 'vulkan-1',
-          }
-        }
-      }, {
-        # Boo! Hiss! GCC & therefore linux does not support delay
-        # loading. Have to use dlopen/dlsym.
-     }], # OS == "ios", etc.
-    ],
-  }], # vulkan.framework target & targets
+  }], # libvulkan target & targets 
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

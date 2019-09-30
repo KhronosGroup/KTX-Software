@@ -66,6 +66,7 @@
       'iosolibr_dir': '<(otherlibroot_dir)/Release-<(gen_platform_var)',
       'linuxolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'macolib_dir': '<(otherlibroot_dir)/<(gen_config_var)',
+      'macolibr_dir': '<(otherlibroot_dir)/Release',
       'winolib_dir': '<(otherlibroot_dir)/<(gen_config_var)-<(gen_platform_var)',
       'winolibr_dir': '<(otherlibroot_dir)/Release-$(PlatformName)',
     }, # variables level 2
@@ -76,6 +77,7 @@
     'iosolibr_dir%': '<(iosolibr_dir)',
     'linuxolib_dir%': '<(linuxolib_dir)',
     'macolib_dir%': '<(macolib_dir)',
+    'macolibr_dir%': '<(macolibr_dir)',
     'winolib_dir%': '<(winolib_dir)',
     'winolibr_dir%': '<(winolibr_dir)',
 

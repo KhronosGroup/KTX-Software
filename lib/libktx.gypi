@@ -130,7 +130,7 @@
           ],
           'conditions': [
             ['_type == "shared_library"', {
-              'dependencies': [ 'libgl', 'libvulkan.lazy' ],
+              'dependencies': [ 'libgl' ],
               'defines!': ['KHRONOS_STATIC=1'],
               'conditions': [
                 ['OS == "mac" or OS == "ios"', {
@@ -165,13 +165,10 @@
                     # will be used.
                     'INSTALL_PATH': '@rpath',
                   }
-                }, 'OS == "linux"', {
-                  'dependencies!': [ 'libvulkan.lazy' ],
                 }, 'OS == "win"', {
-                  'dependencies!': [ 'libvulkan.lazy' ],
                   'defines': [ 'KTX_APICALL=__declspec(dllexport)' ],
                   # The msvs generator automatically sets the needed VCLinker
-                  # option a .def file is seen in sources.
+                  # option when a .def file is seen in sources.
                   'sources': [ 'internalexport.def' ],
                 }] # OS == "mac or OS == "ios"
               ], # conditions

@@ -51,7 +51,7 @@ VkFormat ktxTexture1_GetVkFormat(ktxTexture1* This);
 struct ktxTexture_vvtbl ktxTexture1_vvtbl = {
     (PFNKTEXVKUPLOADEX)ktxTexture1_VkUploadEx,
     (PFNKTEXVKUPLOAD)ktxTexture1_VkUpload,
-    (PFNKTEXGETVKFORMAT) ktxTexture1_GetVkFormat
+    (PFNKTEXGETVKFORMAT)ktxTexture1_GetVkFormat
 };
 
 struct ktxTexture_vvtbl* pKtxTexture1_vvtbl = &ktxTexture1_vvtbl;
