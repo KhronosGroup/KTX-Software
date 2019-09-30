@@ -1,1 +1,2 @@
+add_subdirectory(ktxinfo)
 add_subdirectory(toktx)

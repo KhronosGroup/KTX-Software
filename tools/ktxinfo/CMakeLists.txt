@@ -1,7 +1,5 @@
-add_executable( toktx
-    image.cpp
-    lodepng.cpp
-    toktx.cpp
+add_executable( ktxinfo
+    ktxinfo.cpp
     $<TARGET_OBJECTS:objUtil>
     )
 
@@ -10,14 +8,13 @@ get_property(objUtil_include_dirs TARGET objUtil PROPERTY INCLUDE_DIRECTORIES)
 
 
 target_include_directories(
-    toktx
+    ktxinfo
     PRIVATE
     ${objKtxRead_include_dirs}
     ${objUtil_include_dirs}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
     )
 
 target_link_libraries(
-    toktx
+    ktxinfo
     ktx
     )
