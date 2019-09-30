@@ -9,8 +9,6 @@ get_property(objKtxRead_include_dirs TARGET objKtxRead PROPERTY INCLUDE_DIRECTOR
 get_property(objUtil_include_dirs TARGET objUtil PROPERTY INCLUDE_DIRECTORIES)
 
 
-message("inc ${objKtxRead_include_dirs}")
-
 target_include_directories(
     toktx
     # PUBLIC
