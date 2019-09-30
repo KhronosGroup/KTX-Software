@@ -14,7 +14,6 @@
 // limitations under the License.
 #pragma once
 #include "transcoder/basisu.h"
-#include "basisu_enc.h"
 #include "transcoder/basisu_transcoder_internal.h"
 
 #include <mutex>
@@ -1074,7 +1073,7 @@ namespace basisu
 				assert(node.is_leaf());
 
 				var_heap.delete_top();
-
+								
 				if (node.m_training_vecs.size() > 1)
 				{
 					if (split_node(node_index, var_heap, l_children, r_children))
@@ -1201,11 +1200,11 @@ namespace basisu
 			}
 
 			if ((l_child.m_var > 0.0f) && (l_child.m_training_vecs.size() > 1))
-				var_heap.add_heap(l_child_index, l_var);
-
+				var_heap.add_heap(l_child_index, l_child.m_var);
+						
 			if ((r_child.m_var > 0.0f) && (r_child.m_training_vecs.size() > 1))
-				var_heap.add_heap(r_child_index, r_var);
-
+				var_heap.add_heap(r_child_index, r_child.m_var);
+						
 			return true;
 		}
 
