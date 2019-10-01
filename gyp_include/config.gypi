@@ -120,11 +120,13 @@
         'sdl_to_use': 'built_dylib', # No other choice
         'sdl2_lib_dir': '<(droidolib_dir)',
         'library': 'static_library',
+        # No need for dstroot or installpath as no tools or dev package.
       }, # OS == "android"
       'OS == "ios"', {
         'sdl_to_use': 'static_lib', # No other choice
         'sdl2_lib_dir': '<(iosolib_dir)',
         'library': 'static_library',
+        # No need for dstroot or installpath as no tools or dev package.
       }, # OS == "ios"
       'OS == "linux"', {
         'sdl_to_use%': 'built_dylib',
@@ -136,6 +138,10 @@
         'glew_lib_dir': '<(linuxolib_dir)',
         # Location of glew32.dll.
         'glew_dll_dir': '<(linuxolib_dir)',
+        # Location to place built files ready for packaging.
+        'dstroot': '/tmp/ktx.dst',
+        # Location relative to dstroot where to install files.
+        'installpath': '/usr/local',
       }, # OS == "linux"
       'OS == "mac"', {
         'sdl_to_use%': 'built_dylib',
@@ -147,10 +153,25 @@
         'sdl2_lib_dir': '<(macolib_dir)',
         # libktx type.
         'library': 'shared_library',
+        'conditions': [
+          ['GENERATOR == "xcode"', {
+            # Location relative to dstroot where to install files.
+            # This weird path is because Xcode ignores its DSTROOT setting
+            # when the path is an absolute path. WRAPPER_NAME defaults to
+            # /Applications/$(PRODUCT_NAME).app. Need to use DSTROOT so that
+            # xcodebuild ... install will put the built products in dstroot.
+            'dstroot': '$(WRAPPER_NAME)/../../$(DSTROOT)',
+            'installpath': '$(INSTALL_PATH)',
+          }, {
+            'dstroot': '/tmp/ktx.dst',
+            'installpath': '/usr/local',
+          }],
+        ],
       }, # OS == "mac"
       'OS == "web"', {
         'library': 'static_library',
         'sdl_to_use': 'installed_dylib',
+        # No need for dstroot or installpath as no tools or dev package.
       }, # OS == "web"
       'OS == "win"', {
         # Location of glew32.lib.
@@ -162,6 +183,10 @@
         'sdl2_lib_dir': '<(winolib_dir)',
         # libktx type. Must be static as exports currently not defined.
         'library': 'shared_library',
+        # Location to place built files ready for packaging.
+        'dstroot': '$(TMP)/ktx.dst',
+        # Location relative to dstroot where to install files.
+        'installpath': '/usr/local',
       }], # OS == "win"
     ], # conditions
   }, # variables level 1
