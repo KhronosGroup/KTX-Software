@@ -357,17 +357,17 @@ list(APPEND install_lib__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h")
 list(APPEND install_lib__copies__output
-  "/tmp/libktx.dst//usr/local/lib/libktx.gl.so"
-  "/tmp/libktx.dst//usr/local/include/ktx.h"
-  "/tmp/libktx.dst//usr/local/include/ktxvulkan.h")
+  "/tmp/ktx.dst//usr/local/lib/libktx.gl.so"
+  "/tmp/ktx.dst//usr/local/include/ktx.h"
+  "/tmp/ktx.dst//usr/local/include/ktxvulkan.h")
 set(install_lib__copies__input_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/man3")
-set(install_lib__copies__output_dirs "/tmp/libktx.dst//usr/local/share/man/man3")
+set(install_lib__copies__output_dirs "/tmp/ktx.dst//usr/local/share/man/man3")
 add_custom_command(
 OUTPUT ${install_lib__copies__output} ${install_lib__copies__output_dirs}
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/libktx.dst//usr/local/lib/libktx.gl.so
-COMMAND ${CMAKE_COMMAND} -E copy include/ktx.h /tmp/libktx.dst//usr/local/include/ktx.h
-COMMAND ${CMAKE_COMMAND} -E copy include/ktxvulkan.h /tmp/libktx.dst//usr/local/include/ktxvulkan.h
-COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man3/ /tmp/libktx.dst//usr/local/share/man/man3
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/ktx.dst//usr/local/lib/libktx.gl.so
+COMMAND ${CMAKE_COMMAND} -E copy include/ktx.h /tmp/ktx.dst//usr/local/include/ktx.h
+COMMAND ${CMAKE_COMMAND} -E copy include/ktxvulkan.h /tmp/ktx.dst//usr/local/include/ktxvulkan.h
+COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man3/ /tmp/ktx.dst//usr/local/share/man/man3
 DEPENDS ${install_lib__copies__input} ${install_lib__copies__input_dirs}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for install_lib
@@ -716,30 +716,27 @@ unset(TARGET)
 set(TARGET "install.tools")
 set(TOOLSET "target")
 list(APPEND install_tools__copies__input
-  "${builddir}/lib.target/libktx.gl.so"
   "${builddir}/ktx2ktx2"
   "${builddir}/ktx2check"
   "${builddir}/ktxinfo"
   "${builddir}/ktxsc"
   "${builddir}/toktx")
 list(APPEND install_tools__copies__output
-  "/tmp/ktxtools.dst//usr/local/lib/libktx.gl.so"
-  "/tmp/ktxtools.dst//usr/local/bin/ktx2ktx2"
-  "/tmp/ktxtools.dst//usr/local/bin/ktx2check"
-  "/tmp/ktxtools.dst//usr/local/bin/ktxinfo"
-  "/tmp/ktxtools.dst//usr/local/bin/ktxsc"
-  "/tmp/ktxtools.dst//usr/local/bin/toktx")
+  "/tmp/ktx.dst//usr/local/bin/ktx2ktx2"
+  "/tmp/ktx.dst//usr/local/bin/ktx2check"
+  "/tmp/ktx.dst//usr/local/bin/ktxinfo"
+  "/tmp/ktx.dst//usr/local/bin/ktxsc"
+  "/tmp/ktx.dst//usr/local/bin/toktx")
 set(install_tools__copies__input_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/man1")
-set(install_tools__copies__output_dirs "/tmp/ktxtools.dst//usr/local/share/man/man1")
+set(install_tools__copies__output_dirs "/tmp/ktx.dst//usr/local/share/man/man1")
 add_custom_command(
 OUTPUT ${install_tools__copies__output} ${install_tools__copies__output_dirs}
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/ktxtools.dst//usr/local/lib/libktx.gl.so
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktx2ktx2 /tmp/ktxtools.dst//usr/local/bin/ktx2ktx2
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktx2check /tmp/ktxtools.dst//usr/local/bin/ktx2check
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktxinfo /tmp/ktxtools.dst//usr/local/bin/ktxinfo
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktxsc /tmp/ktxtools.dst//usr/local/bin/ktxsc
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/toktx /tmp/ktxtools.dst//usr/local/bin/toktx
-COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man1/ /tmp/ktxtools.dst//usr/local/share/man/man1
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktx2ktx2 /tmp/ktx.dst//usr/local/bin/ktx2ktx2
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktx2check /tmp/ktx.dst//usr/local/bin/ktx2check
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktxinfo /tmp/ktx.dst//usr/local/bin/ktxinfo
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/ktxsc /tmp/ktx.dst//usr/local/bin/ktxsc
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/toktx /tmp/ktx.dst//usr/local/bin/toktx
+COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man1/ /tmp/ktx.dst//usr/local/share/man/man1
 DEPENDS ${install_tools__copies__input} ${install_tools__copies__input_dirs}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for install_tools
@@ -753,12 +750,12 @@ add_custom_target(install_tools SOURCES)
 set_target_properties(install_tools PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(install_tools__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(install_tools__copies
-  libktx_gl
   ktx2ktx2
   ktx2check
   ktxinfo
   ktxsc
   ktxtools_doc
+  install_lib
   toktx
 )
 add_dependencies(install_tools
@@ -767,9 +764,9 @@ add_dependencies(install_tools
   ktxinfo
   ktxsc
   ktxtools_doc
+  install_lib
   toktx
   install_tools__copies
-  libktx_gl
 )
 unset(TOOLSET)
 unset(TARGET)

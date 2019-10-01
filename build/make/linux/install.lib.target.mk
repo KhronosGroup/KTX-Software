@@ -3,27 +3,27 @@
 TOOLSET := target
 TARGET := install.lib
 ### Generated for copy rule.
-/tmp/libktx.dst/usr/local/lib/libktx.gl.so: TOOLSET := $(TOOLSET)
-/tmp/libktx.dst/usr/local/lib/libktx.gl.so: $(builddir)/libktx.gl.so FORCE_DO_CMD
+/tmp/ktx.dst/usr/local/lib/libktx.gl.so: TOOLSET := $(TOOLSET)
+/tmp/ktx.dst/usr/local/lib/libktx.gl.so: $(builddir)/libktx.gl.so FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += /tmp/libktx.dst/usr/local/lib/libktx.gl.so
-/tmp/libktx.dst/usr/local/include/ktx.h: TOOLSET := $(TOOLSET)
-/tmp/libktx.dst/usr/local/include/ktx.h: $(srcdir)/include/ktx.h FORCE_DO_CMD
+all_deps += /tmp/ktx.dst/usr/local/lib/libktx.gl.so
+/tmp/ktx.dst/usr/local/include/ktx.h: TOOLSET := $(TOOLSET)
+/tmp/ktx.dst/usr/local/include/ktx.h: $(srcdir)/include/ktx.h FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += /tmp/libktx.dst/usr/local/include/ktx.h
-/tmp/libktx.dst/usr/local/include/ktxvulkan.h: TOOLSET := $(TOOLSET)
-/tmp/libktx.dst/usr/local/include/ktxvulkan.h: $(srcdir)/include/ktxvulkan.h FORCE_DO_CMD
+all_deps += /tmp/ktx.dst/usr/local/include/ktx.h
+/tmp/ktx.dst/usr/local/include/ktxvulkan.h: TOOLSET := $(TOOLSET)
+/tmp/ktx.dst/usr/local/include/ktxvulkan.h: $(srcdir)/include/ktxvulkan.h FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += /tmp/libktx.dst/usr/local/include/ktxvulkan.h
-/tmp/libktx.dst/usr/local/share/man/man3: TOOLSET := $(TOOLSET)
-/tmp/libktx.dst/usr/local/share/man/man3: $(srcdir)/build/docs/man/man3 FORCE_DO_CMD
+all_deps += /tmp/ktx.dst/usr/local/include/ktxvulkan.h
+/tmp/ktx.dst/usr/local/share/man/man3: TOOLSET := $(TOOLSET)
+/tmp/ktx.dst/usr/local/share/man/man3: $(srcdir)/build/docs/man/man3 FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += /tmp/libktx.dst/usr/local/share/man/man3
-libktx_gyp_install_lib_target_copies = /tmp/libktx.dst/usr/local/lib/libktx.gl.so /tmp/libktx.dst/usr/local/include/ktx.h /tmp/libktx.dst/usr/local/include/ktxvulkan.h /tmp/libktx.dst/usr/local/share/man/man3
+all_deps += /tmp/ktx.dst/usr/local/share/man/man3
+libktx_gyp_install_lib_target_copies = /tmp/ktx.dst/usr/local/lib/libktx.gl.so /tmp/ktx.dst/usr/local/include/ktx.h /tmp/ktx.dst/usr/local/include/ktxvulkan.h /tmp/ktx.dst/usr/local/share/man/man3
 
 ### Rules for final target.
 # Build our special outputs first.
