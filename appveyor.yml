@@ -1,10 +1,10 @@
 version: 3.0.{build}
 
-#os: Visual Studio 2017
+#os: Visual Studio 2019
 image:
-  - Visual Studio 2013
   - Visual Studio 2015
   - Visual Studio 2017
+  - Visual Studio 2019
 
 configuration:
   - Debug
@@ -82,9 +82,9 @@ build_script:
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
     refreshenv
     $ErrorActionPreference = 'Stop'
-    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2013”) {$env:KTX_VSVER = “vs2013"}
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2015”) {$env:KTX_VSVER = “vs2015"}
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2017”) {$env:KTX_VSVER = “vs2017"}
+    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2019”) {$env:KTX_VSVER = “vs2019"}
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxdoc.sln
