@@ -418,7 +418,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktxtools.dst/usr/local/bin/ktx2check</string>
+													<string>/private/tmp/ktx.dst/usr/local/bin/ktx2check</string>
 													<key>PATH_TYPE</key>
 													<integer>0</integer>
 													<key>PERMISSIONS</key>
@@ -434,7 +434,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktxtools.dst/usr/local/bin/ktx2ktx2</string>
+													<string>/private/tmp/ktx.dst/usr/local/bin/ktx2ktx2</string>
 													<key>PATH_TYPE</key>
 													<integer>0</integer>
 													<key>PERMISSIONS</key>
@@ -450,7 +450,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktxtools.dst/usr/local/bin/ktxinfo</string>
+													<string>/private/tmp/ktx.dst/usr/local/bin/ktxinfo</string>
 													<key>PATH_TYPE</key>
 													<integer>0</integer>
 													<key>PERMISSIONS</key>
@@ -466,7 +466,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktxtools.dst/usr/local/bin/ktxsc</string>
+													<string>/private/tmp/ktx.dst/usr/local/bin/ktxsc</string>
 													<key>PATH_TYPE</key>
 													<integer>0</integer>
 													<key>PERMISSIONS</key>
@@ -482,7 +482,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktxtools.dst/usr/local/bin/toktx</string>
+													<string>/private/tmp/ktx.dst/usr/local/bin/toktx</string>
 													<key>PATH_TYPE</key>
 													<integer>0</integer>
 													<key>PERMISSIONS</key>
@@ -498,7 +498,7 @@
 											<key>GID</key>
 											<integer>0</integer>
 											<key>PATH</key>
-											<string>/private/tmp/ktxtools.dst/usr/local/bin</string>
+											<string>/private/tmp/ktx.dst/usr/local/bin</string>
 											<key>PATH_TYPE</key>
 											<integer>0</integer>
 											<key>PERMISSIONS</key>
@@ -523,7 +523,7 @@
 																	<key>GID</key>
 																	<integer>0</integer>
 																	<key>PATH</key>
-																	<string>/private/tmp/ktxtools.dst/usr/local/share/man/man1/ktx2ktx2.1</string>
+																	<string>/private/tmp/ktx.dst/usr/local/share/man/man1/ktx2check.1</string>
 																	<key>PATH_TYPE</key>
 																	<integer>0</integer>
 																	<key>PERMISSIONS</key>
@@ -539,7 +539,55 @@
 																	<key>GID</key>
 																	<integer>0</integer>
 																	<key>PATH</key>
-																	<string>/private/tmp/ktxtools.dst/usr/local/share/man/man1/toktx.1</string>
+																	<string>/private/tmp/ktx.dst/usr/local/share/man/man1/ktx2ktx2.1</string>
+																	<key>PATH_TYPE</key>
+																	<integer>0</integer>
+																	<key>PERMISSIONS</key>
+																	<integer>420</integer>
+																	<key>TYPE</key>
+																	<integer>3</integer>
+																	<key>UID</key>
+																	<integer>0</integer>
+																</dict>
+																<dict>
+																	<key>CHILDREN</key>
+																	<array/>
+																	<key>GID</key>
+																	<integer>0</integer>
+																	<key>PATH</key>
+																	<string>/private/tmp/ktx.dst/usr/local/share/man/man1/ktxinfo.1</string>
+																	<key>PATH_TYPE</key>
+																	<integer>0</integer>
+																	<key>PERMISSIONS</key>
+																	<integer>420</integer>
+																	<key>TYPE</key>
+																	<integer>3</integer>
+																	<key>UID</key>
+																	<integer>0</integer>
+																</dict>
+																<dict>
+																	<key>CHILDREN</key>
+																	<array/>
+																	<key>GID</key>
+																	<integer>0</integer>
+																	<key>PATH</key>
+																	<string>/private/tmp/ktx.dst/usr/local/share/man/man1/ktxsc.1</string>
+																	<key>PATH_TYPE</key>
+																	<integer>0</integer>
+																	<key>PERMISSIONS</key>
+																	<integer>420</integer>
+																	<key>TYPE</key>
+																	<integer>3</integer>
+																	<key>UID</key>
+																	<integer>0</integer>
+																</dict>
+																<dict>
+																	<key>CHILDREN</key>
+																	<array/>
+																	<key>GID</key>
+																	<integer>0</integer>
+																	<key>PATH</key>
+																	<string>/private/tmp/ktx.dst/usr/local/share/man/man1/toktx.1</string>
 																	<key>PATH_TYPE</key>
 																	<integer>0</integer>
 																	<key>PERMISSIONS</key>
@@ -555,7 +603,7 @@
 															<key>GID</key>
 															<integer>0</integer>
 															<key>PATH</key>
-															<string>/private/tmp/ktxtools.dst/usr/local/share/man/man1</string>
+															<string>/private/tmp/ktx.dst/usr/local/share/man/man1</string>
 															<key>PATH_TYPE</key>
 															<integer>0</integer>
 															<key>PERMISSIONS</key>
@@ -566,66 +614,58 @@
 															<integer>0</integer>
 														</dict>
 													</array>
-													<key>EXPANDED</key>
-													<true/>
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktxtools.dst/usr/local/share/man</string>
+													<string>man</string>
 													<key>PATH_TYPE</key>
-													<integer>0</integer>
+													<integer>2</integer>
 													<key>PERMISSIONS</key>
-													<integer>493</integer>
+													<integer>509</integer>
 													<key>TYPE</key>
-													<integer>3</integer>
+													<integer>2</integer>
 													<key>UID</key>
 													<integer>0</integer>
 												</dict>
 											</array>
-											<key>EXPANDED</key>
-											<true/>
 											<key>GID</key>
 											<integer>0</integer>
 											<key>PATH</key>
-											<string>/private/tmp/ktxtools.dst/usr/local/share</string>
+											<string>share</string>
 											<key>PATH_TYPE</key>
-											<integer>0</integer>
+											<integer>2</integer>
 											<key>PERMISSIONS</key>
-											<integer>493</integer>
+											<integer>509</integer>
 											<key>TYPE</key>
-											<integer>3</integer>
+											<integer>2</integer>
 											<key>UID</key>
 											<integer>0</integer>
 										</dict>
 									</array>
-									<key>EXPANDED</key>
-									<true/>
 									<key>GID</key>
 									<integer>0</integer>
 									<key>PATH</key>
-									<string>/private/tmp/ktxtools.dst/usr/local</string>
+									<string>local</string>
 									<key>PATH_TYPE</key>
-									<integer>0</integer>
+									<integer>2</integer>
 									<key>PERMISSIONS</key>
-									<integer>493</integer>
+									<integer>509</integer>
 									<key>TYPE</key>
-									<integer>3</integer>
+									<integer>2</integer>
 									<key>UID</key>
 									<integer>0</integer>
 								</dict>
 							</array>
-							<key>EXPANDED</key>
-							<true/>
 							<key>GID</key>
 							<integer>0</integer>
 							<key>PATH</key>
-							<string>/private/tmp/ktxtools.dst/usr</string>
+							<string>usr</string>
 							<key>PATH_TYPE</key>
-							<integer>0</integer>
+							<integer>2</integer>
 							<key>PERMISSIONS</key>
-							<integer>493</integer>
+							<integer>509</integer>
 							<key>TYPE</key>
-							<integer>3</integer>
+							<integer>2</integer>
 							<key>UID</key>
 							<integer>0</integer>
 						</dict>
@@ -1110,7 +1150,40 @@
 									<array>
 										<dict>
 											<key>CHILDREN</key>
-											<array/>
+											<array>
+												<dict>
+													<key>CHILDREN</key>
+													<array/>
+													<key>GID</key>
+													<integer>0</integer>
+													<key>PATH</key>
+													<string>../../../include/ktx.h</string>
+													<key>PATH_TYPE</key>
+													<integer>1</integer>
+													<key>PERMISSIONS</key>
+													<integer>420</integer>
+													<key>TYPE</key>
+													<integer>3</integer>
+													<key>UID</key>
+													<integer>0</integer>
+												</dict>
+												<dict>
+													<key>CHILDREN</key>
+													<array/>
+													<key>GID</key>
+													<integer>0</integer>
+													<key>PATH</key>
+													<string>../../../include/ktxvulkan.h</string>
+													<key>PATH_TYPE</key>
+													<integer>1</integer>
+													<key>PERMISSIONS</key>
+													<integer>420</integer>
+													<key>TYPE</key>
+													<integer>3</integer>
+													<key>UID</key>
+													<integer>0</integer>
+												</dict>
+											</array>
 											<key>GID</key>
 											<integer>0</integer>
 											<key>PATH</key>
@@ -1121,38 +1194,6 @@
 											<integer>509</integer>
 											<key>TYPE</key>
 											<integer>2</integer>
-											<key>UID</key>
-											<integer>0</integer>
-										</dict>
-										<dict>
-											<key>CHILDREN</key>
-											<array/>
-											<key>GID</key>
-											<integer>0</integer>
-											<key>PATH</key>
-											<string>../../../include/ktx.h</string>
-											<key>PATH_TYPE</key>
-											<integer>1</integer>
-											<key>PERMISSIONS</key>
-											<integer>420</integer>
-											<key>TYPE</key>
-											<integer>3</integer>
-											<key>UID</key>
-											<integer>0</integer>
-										</dict>
-										<dict>
-											<key>CHILDREN</key>
-											<array/>
-											<key>GID</key>
-											<integer>0</integer>
-											<key>PATH</key>
-											<string>../../../include/ktxvulkan.h</string>
-											<key>PATH_TYPE</key>
-											<integer>1</integer>
-											<key>PERMISSIONS</key>
-											<integer>420</integer>
-											<key>TYPE</key>
-											<integer>3</integer>
 											<key>UID</key>
 											<integer>0</integer>
 										</dict>
@@ -1755,7 +1796,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktxtools.dst/usr/local/lib/libktx.gl.dylib</string>
+													<string>/private/tmp/ktx.dst/usr/local/lib/libktx.gl.dylib</string>
 													<key>PATH_TYPE</key>
 													<integer>0</integer>
 													<key>PERMISSIONS</key>
@@ -1896,17 +1937,29 @@
 			ZW50LVN0eWxlLVR5cGUiIGNvbnRlbnQ9InRleHQvY3NzIj4KPHRp
 			dGxlPjwvdGl0bGU+CjxtZXRhIG5hbWU9IkdlbmVyYXRvciIgY29u
 			dGVudD0iQ29jb2EgSFRNTCBXcml0ZXIiPgo8bWV0YSBuYW1lPSJD
-			b2NvYVZlcnNpb24iIGNvbnRlbnQ9IjE2NzEuNSI+CjxzdHlsZSB0
+			b2NvYVZlcnNpb24iIGNvbnRlbnQ9IjE2NzEuNiI+CjxzdHlsZSB0
 			eXBlPSJ0ZXh0L2NzcyI+CnAucDEge21hcmdpbjogMC4wcHggMC4w
-			cHggMC4wcHggMC4wcHg7IGZvbnQ6IDEyLjBweCBIZWx2ZXRpY2E7
-			IGNvbG9yOiAjMDAwMDAwfQo8L3N0eWxlPgo8L2hlYWQ+Cjxib2R5
-			Pgo8cCBjbGFzcz0icDEiPkFsdGhvdWdoIGl0IGlzIG5vdCBlYXN5
-			IHRvIHNlZSwgbGlia3R4LmdsLmR5bGliIGFuZCB0aGUgbGliIG1h
-			biBwYWdlcyBhcmUgcHVsbGVkIGZyb20gYSBkaWZmZXJlbnQgZHN0
-			ZGlyIHRoYW4gdGhlIHRvb2xzLiBUaGlzIGlzIGJlY2F1c2UgaWYg
-			dGhleSBhcmUgdGhlIHNhbWUsIGNtYWtlIHdpbGwgY29tcGxhaW4g
-			dGhhdCAyIHRhcmdldHMgYXJlIHRyeWluZyB0byB1cGRhdGUgdGhl
-			IHNhbWUgb3V0cHV0LjwvcD4KPC9ib2R5Pgo8L2h0bWw+Cg==
+			cHggMC4wcHggMC4wcHg7IGxpbmUtaGVpZ2h0OiAxNC4wcHg7IGZv
+			bnQ6IDEyLjBweCBIZWx2ZXRpY2E7IGNvbG9yOiAjMDAwMDAwOyAt
+			d2Via2l0LXRleHQtc3Ryb2tlOiAjMDAwMDAwfQpzcGFuLnMxIHtm
+			b250LWtlcm5pbmc6IG5vbmV9Cjwvc3R5bGU+CjwvaGVhZD4KPGJv
+			ZHk+CjxwIGNsYXNzPSJwMSI+PHNwYW4gY2xhc3M9InMxIj5QYXkg
+			YXR0ZW50aW9uIGluIHRoZSBwYXlsb2FkLiBLVFggVG9vbHMgcHVs
+			bHMgaW4gdGhlIHdob2xlIGJpbiBhbmQgbWFuMSBkaXJlY3Rvcmll
+			cyBzbyBpdCBhdXRvbWF0aWNhbGx5IHB1bGxzIGluIGFsbCB0aGUg
+			ZmlsZXMgdGhlcmUuPC9zcGFuPjwvcD4KPHAgY2xhc3M9InAxIj48
+			c3BhbiBjbGFzcz0iczEiPkhvd2V2ZXIgdGhleSBhcmUgZXhwYW5k
+			ZWQgaW4gdGhpcyBwcm9qZWN04oCZcyBVSSBzbyB3aGF0IGlzIGlu
+			Y2x1ZGVkIGNhbiBlYXNpbHkgYmUgc2Vlbi4gSeKAmW0gbm90IHN1
+			cmUgd2hhdCB3aWxsIGhhcHBlbiB3aGVuPC9zcGFuPjwvcD4KPHAg
+			Y2xhc3M9InAxIj48c3BhbiBjbGFzcz0iczEiPmFkZGluZyBvciBk
+			ZWxldGluZyB0b29scy4gV2lsbCB0aGUgY2hhbmdlIGJlIGF1dG9t
+			YXRpY2FsbHkgcmVmbGVjdGVkPzwvc3Bhbj48L3A+CjxwIGNsYXNz
+			PSJwMSI+PHNwYW4gY2xhc3M9InMxIj48YnI+Cjwvc3Bhbj48L3A+
+			CjxwIGNsYXNzPSJwMSI+PHNwYW4gY2xhc3M9InMxIj5LVFggQmFz
+			ZSBwdWxscyBpbiBpbmRpdmlkdWFsIGZpbGVzIGFzIGRvZXMgS1RY
+			IERldmVsb3BtZW50Ljwvc3Bhbj48L3A+CjwvYm9keT4KPC9odG1s
+			Pgo=
 			</data>
 		</dict>
 		<key>PROJECT_PRESENTATION</key>

@@ -6,10 +6,11 @@
 #
 {
   'xcode_settings': {
-    # These actually Xcode's defaults here for documentation.
+    # These are Xcode's defaults here for documentation.
     #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
     #'INSTALL_PATH': '/usr/local/bin',
-    #'DSTROOT': '<(dstroot)',
+    # Override DSTROOT to use same place for lib & tools.
+    'DSTROOT': '/tmp/ktx.dst',
   },
   'includes': [
     'ktx2ktx2/ktx2ktx2.gypi',
@@ -89,12 +90,12 @@
                 'dstroot': '$(WRAPPER_NAME)/../../$(DSTROOT)',
                 'installpath': '$(INSTALL_PATH)',
               }, 'OS == "win"', {
-                'dstroot': '$(TMP)/ktxtools.dst',
+                'dstroot': '$(TMP)/ktx.dst',
                 'installpath': '/usr/local',
               }, {
                 # XXX Need to figure out how to set & propagate DSTROOT to the
                 # environment. See comment in ../lib/libktx.gypi.
-                'dstroot': '/tmp/ktxtools.dst',
+                'dstroot': '/tmp/ktx.dst',
                 'installpath': '/usr/local',
               }],
               ['GENERATOR == "cmake"', {
@@ -110,7 +111,7 @@
             'ktxinfo',
             'ktxsc',
             'ktxtools.doc',
-            'libktx.gyp:libktx.gl',
+            'libktx.gyp:install.lib',
             'toktx',
           ],
           'xcode_settings': {
@@ -119,14 +120,14 @@
           'copies': [{
             # Do our own copy of the library because libktx:install.lib
             # is building a developers distribution.
-            'xcode_code_sign': 1,
-            'destination': '<(dstroot)/<(installpath)/lib',
-            'conditions': [
-              ['"<(library)" == "shared_library"', {
-                'files': [ '<(libktx_dir)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
-              }],
-            ], # conditions
-          }, {
+#            'xcode_code_sign': 1,
+#            'destination': '<(dstroot)/<(installpath)/lib',
+#            'conditions': [
+#              ['"<(library)" == "shared_library"', {
+#                'files': [ '<(libktx_dir)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
+#              }],
+#            ], # conditions
+#          }, {
             'xcode_code_sign': 1,
             'destination': '<(dstroot)/<(installpath)/bin',
             'files': [
