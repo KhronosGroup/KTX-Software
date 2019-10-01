@@ -106,6 +106,14 @@
     '../gyp_include/libvulkan.gypi',
   ],
 
+  'xcode_settings': {
+      # These are actually Xcode's defaults shown here for documentation.
+      #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
+      #'INSTALL_PATH': '/usr/local/lib',
+      # Override DSTROOT to use same place for lib & tools.
+      'DSTROOT': '/tmp/ktx.dst',
+  },
+
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
       'targets': [
@@ -177,9 +185,6 @@
           'xcode_settings': {
               # Turn off so as to compile Basis. Hopefully temporary.
               'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-              # These are actually Xcode's defaults shown here for documentation.
-              #'DSTROOT': '/tmp/$(PROJECT_NAME).dst',
-              #'INSTALL_PATH': '/usr/local/lib',
               # This is used by a Copy Headers phase which gyp only allows to be
               # be created for a framework bundle. Remember in case we want to
               # switch the lib to a framework.
@@ -343,27 +348,9 @@
           'target_name': 'install.lib',
           'type': 'none',
           # These variables duplicate those in ktxtools.gyp:install_tools.
-          # See Othere for explanation.
+          # See there for explanation.
           'variables': {
             'conditions': [
-              ['GENERATOR == "xcode"', {
-                # This weird path is because Xcode ignores its DSTROOT setting
-                # when the path is an absolute path. WRAPPER_NAME defaults to
-                # /Applications/$(PRODUCT_NAME).app. Use DSTROOT so that
-                # xcodebuild ... install will put the .dylib in the same place.
-                'dstroot': '$(WRAPPER_NAME)/../../$(DSTROOT)',
-                'installpath': '$(INSTALL_PATH)',
-              }, 'OS == "win"', {
-                'dstroot': '$(TMP)/libktx.dst',
-                'installpath': '/usr/local',
-              }, {
-                # XXX Need to figure out how to set & propagate DSTROOT to
-                # the environment. Also it looks like there will be a
-                # problem with cmake if $DSTROOT is the same here and in
-                # ktxtools, i.e "/" for a real installation. For now...
-                'dstroot': '/tmp/libktx.dst',
-                'installpath': '/usr/local',
-              }],
               ['GENERATOR == "msvs"', {
                 'staticlib_dir': '<(PRODUCT_DIR)/lib',
               }, {

@@ -69,7 +69,6 @@
 			buildPhases = (
 				D04D524733603F9E74BA46AC /* Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */,
 				6DD9C0264DA5512EA22763F2 /* Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
-				B0EF173BAC287CBA6702DCFE /* Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */,
 			);
 			dependencies = (
 				0C223FE5A19F5F20EB71370A /* PBXTargetDependency */,
@@ -77,7 +76,7 @@
 				5AE261CBEA2BDD545DB45FED /* PBXTargetDependency */,
 				7751BC518481BFE2FE2E69EF /* PBXTargetDependency */,
 				0CD6404E0D43260E94E042B8 /* PBXTargetDependency */,
-				2745430D22C77977775BD635 /* PBXTargetDependency */,
+				78362C4AC347354C48D7FD09 /* PBXTargetDependency */,
 				CFE997B2DEC827D87A12AE94 /* PBXTargetDependency */,
 			);
 			name = install.tools;
@@ -98,29 +97,28 @@
 
 /* Begin PBXBuildFile section */
 		04D6B2B8A91585B28C81EA04 /* man1 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {isa = PBXBuildFile; fileRef = D089E409802E25C29E799696 /* man1 */; };
-		1A1F94FADD81BDB1D78CDD04 /* ktxsc in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 921D8375F2EF20B5E97697D8 /* ktxsc */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0C2D01C2689F8DB25511499E /* ktxsc in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 921D8375F2EF20B5E97697D8 /* ktxsc */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1C8A058DBBF318C7F2CFA3CD /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
-		49F09C3FC3592607BBA37EDE /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 56C859EDDD90106359C989F0 /* ktx2ktx2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4F951840F7323A6365287EEF /* ktx2check in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 80F829362717628DB2E45619 /* ktx2check */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5F7F5E1D38B10651625B742D /* ktxinfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6708BDBD0228EF4D2F3696B7 /* ktxinfo.cpp */; };
 		6140A9122360F5B4E8B916EB /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		615E7F2196EF0DBD9CF39235 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
-		65066E995470ADE2B2E17CC6 /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 2E5F681D5C6F1BE626ECEB9D /* toktx */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6864C009C1C9387F0BFE6562 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		74164ADA3E26D69AC5CA52EE /* ktx2check.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B8345FDEE4E4EC28FECC6F4 /* ktx2check.cpp */; };
 		753617D521338E19F78CEE19 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		75F0FA3BE6BBD4A9A31CC6F8 /* ktxsc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD010438A3ED3EC86AE1110E /* ktxsc.cpp */; };
-		8B972D4991E72140C824614E /* ktxinfo in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = F275A3E14410D5B59A00B213 /* ktxinfo */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		90BF6A2E189BCAE666E8DE60 /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 56C859EDDD90106359C989F0 /* ktx2ktx2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9118CE582DA01BCD1A524EEB /* toktx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 203503E5D73963F434684DDB /* toktx.cpp */; };
-		99CBE7C878A1A7BE3A8F24CC /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {isa = PBXBuildFile; fileRef = 5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9D6FA2563C30EFD7C385ED9E /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B7CD12D0E44B7F3AAC185BE /* lodepng.cpp */; };
 		A86C830E7A7146F288BAF2C3 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		B1E9EF8EC59A8DB281B2AB35 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
+		B7208FD24581273778C67C31 /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 2E5F681D5C6F1BE626ECEB9D /* toktx */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		BBB090C25E0255D1D3F30FCC /* ktxinfo in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = F275A3E14410D5B59A00B213 /* ktxinfo */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		C1DA21D8C6455F1491B37ABB /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		CBAAB2C4F3950CFCFDD36385 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		D03662987EB0DCA95E75EAC4 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		E116F5C302E18A9D86B57C10 /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEF7FE8F3CD0A01B52E80AC /* image.cpp */; };
 		E18A5CF88D34E4D5BB2B4E76 /* ktx2ktx2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC70D852F49571AE410DF987 /* ktx2ktx2.cpp */; };
-		F5A00BDC5835A2E064AC9960 /* ktx2check in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 80F829362717628DB2E45619 /* ktx2check */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -215,6 +213,13 @@
 			remoteGlobalIDString = B740653171DE6451E8539442;
 			remoteInfo = toktx;
 		};
+		918765F963EB140C25734546 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 367C61B4767369D229A346CD;
+			remoteInfo = install.lib;
+		};
 		9AA6135B798BBC006252ED8A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 51BF8411F013EBD9810951E7 /* Project object */;
@@ -235,13 +240,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = B740653171DE6451E8539442;
 			remoteInfo = toktx;
-		};
-		A68AA425F4268280507A34C8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0AEF50F1B637980A330FE517 /* libktx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 362967529B3D7D3E12C3129D;
-			remoteInfo = libktx.gl;
 		};
 		BD8E9AE360EA2B221DB5E6EA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -315,24 +313,13 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin";
 			dstSubfolderSpec = 0;
 			files = (
-				49F09C3FC3592607BBA37EDE /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
-				F5A00BDC5835A2E064AC9960 /* ktx2check in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
-				8B972D4991E72140C824614E /* ktxinfo in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
-				1A1F94FADD81BDB1D78CDD04 /* ktxsc in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
-				65066E995470ADE2B2E17CC6 /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
+				90BF6A2E189BCAE666E8DE60 /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
+				4F951840F7323A6365287EEF /* ktx2check in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
+				BBB090C25E0255D1D3F30FCC /* ktxinfo in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
+				0C2D01C2689F8DB25511499E /* ktxsc in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
+				B7208FD24581273778C67C31 /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B0EF173BAC287CBA6702DCFE /* Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib";
-			dstSubfolderSpec = 0;
-			files = (
-				99CBE7C878A1A7BE3A8F24CC /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */,
-			);
-			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D04D524733603F9E74BA46AC /* Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {
@@ -365,7 +352,6 @@
 		4DA4A2A6CA1A662033A8D5B4 /* ktxsc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ktxsc.gypi; path = tools/ktxsc/ktxsc.gypi; sourceTree = "<group>"; };
 		53718F849477FE4A99643D3C /* toktx */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = toktx; sourceTree = BUILT_PRODUCTS_DIR; };
 		56C859EDDD90106359C989F0 /* ktx2ktx2 */ = {isa = PBXFileReference; lastKnownFileType = text; path = ktx2ktx2; sourceTree = "<group>"; };
-		5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libktx.gl.dylib; sourceTree = "<group>"; };
 		60CB42EA6BD3CA61486652F2 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		6708BDBD0228EF4D2F3696B7 /* ktxinfo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ktxinfo.cpp; sourceTree = "<group>"; };
 		7E34B6FCD7D2C06100AC83B8 /* toktx-tests */ = {isa = PBXFileReference; lastKnownFileType = text; path = "toktx-tests"; sourceTree = "<group>"; };
@@ -448,7 +434,7 @@
 		080F587576134A3DA7CE6E6D /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				8BB6AC87252FBDD8520ACC1B /* BUILT_PRODUCTS_DIR */,
+				22415C065BE821CC5EEA0E9A /* BUILT_PRODUCTS_DIR */,
 				BC2C3426AAD2BB6CDF5B83EE /* build */,
 				471786550D142DA5F525BF1E /* tests */,
 				2A3E6C43CB13603933FB6257 /* tools */,
@@ -458,6 +444,18 @@
 			);
 			name = Source;
 			sourceTree = "<group>";
+		};
+		22415C065BE821CC5EEA0E9A /* BUILT_PRODUCTS_DIR */ = {
+			isa = PBXGroup;
+			children = (
+				80F829362717628DB2E45619 /* ktx2check */,
+				56C859EDDD90106359C989F0 /* ktx2ktx2 */,
+				F275A3E14410D5B59A00B213 /* ktxinfo */,
+				921D8375F2EF20B5E97697D8 /* ktxsc */,
+				2E5F681D5C6F1BE626ECEB9D /* toktx */,
+			);
+			name = BUILT_PRODUCTS_DIR;
+			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		2A3E6C43CB13603933FB6257 /* tools */ = {
 			isa = PBXGroup;
@@ -570,19 +568,6 @@
 			);
 			name = Products;
 			sourceTree = "<group>";
-		};
-		8BB6AC87252FBDD8520ACC1B /* BUILT_PRODUCTS_DIR */ = {
-			isa = PBXGroup;
-			children = (
-				80F829362717628DB2E45619 /* ktx2check */,
-				56C859EDDD90106359C989F0 /* ktx2ktx2 */,
-				F275A3E14410D5B59A00B213 /* ktxinfo */,
-				921D8375F2EF20B5E97697D8 /* ktxsc */,
-				5AAF49DCF4995539E7A67191 /* libktx.gl.dylib */,
-				2E5F681D5C6F1BE626ECEB9D /* toktx */,
-			);
-			name = BUILT_PRODUCTS_DIR;
-			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		9850505FE554B41FD05426EE /* utils */ = {
 			isa = PBXGroup;
@@ -939,11 +924,6 @@
 			target = 7DF622AD3CD67C7F6D5BEFCB /* package.tools */;
 			targetProxy = 09D1B7A212CE4CEF2144BACD /* PBXContainerItemProxy */;
 		};
-		2745430D22C77977775BD635 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libktx.gl;
-			targetProxy = A68AA425F4268280507A34C8 /* PBXContainerItemProxy */;
-		};
 		302F18FDD851A21CFEF7A04B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 500907B1A3C29D6CD8069269 /* ktx2check */;
@@ -973,6 +953,11 @@
 			isa = PBXTargetDependency;
 			target = 34C18641C9038998A3FF04F3 /* ktxsc */;
 			targetProxy = 4D86358D484353BFA1F9EE0F /* PBXContainerItemProxy */;
+		};
+		78362C4AC347354C48D7FD09 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = install.lib;
+			targetProxy = 918765F963EB140C25734546 /* PBXContainerItemProxy */;
 		};
 		92A7EE94DB018D3640E3BDCD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1066,12 +1051,7 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = (
-					include,
-					other_include,
-				);
 				INSTALL_PATH = /usr/local;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = install.tools;
 			};
@@ -1283,12 +1263,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = (
-					include,
-					other_include,
-				);
 				INSTALL_PATH = /usr/local;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = install.tools;
 			};
@@ -1484,6 +1459,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DSTROOT = /tmp/ktx.dst;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1522,6 +1498,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DSTROOT = /tmp/ktx.dst;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;

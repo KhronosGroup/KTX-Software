@@ -1807,53 +1807,9 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				TargetAttributes = {
-					09BA8FB5F992B0DCA38C21BE = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					0B2F68F79FDD3BDDF975D5F6 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					1548AEB99CD1C5C270961D30 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					1BE6899F85464D2301297B34 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5C02A4F65B8C516F2E3508EB = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5D14C76351FD143925D22373 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					5E0373E3E25257167764A6D6 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					6CCD749A06B533143615AAEE = {
-						DevelopmentTeam = UZ5V327NE3;
-						ProvisioningStyle = Automatic;
-					};
-					9C3634CD4D99CF2D2EBFC2E4 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					C9FA79AED7857DAE20C5CEC8 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					DAA715274807967C046D9300 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					E28123D177A5F5B4703C8895 = {
-						DevelopmentTeam = UZ5V327NE3;
-					};
-					FAEB3BB157F191BE9FBE9B91 = {
-						DevelopmentTeam = UZ5V327NE3;
-						ProvisioningStyle = Automatic;
-					};
-				};
 			};
 			buildConfigurationList = 55F377B00A09F4075C61D1D2 /* Build configuration list for PBXProject "ktxtests" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = en;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				en,
@@ -2524,7 +2480,6 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = UZ5V327NE3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -2558,15 +2513,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-lassimp",
-					"-lIrrXML",
-					"-lminizip",
-					"-lz",
-				);
+				OTHER_LDFLAGS = "-lassimp -lIrrXML -lminizip -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
-				PROVISIONING_PROFILE_SPECIFIER = "KTX Software macosx";
 				STRIP_INSTALLED_PRODUCT = NO;
 				WRAPPER_PREFIX = "";
 			};
@@ -2665,7 +2614,6 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = UZ5V327NE3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -2696,15 +2644,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-lassimp",
-					"-lIrrXML",
-					"-lminizip",
-					"-lz",
-				);
+				OTHER_LDFLAGS = "-lassimp -lIrrXML -lminizip -lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
-				PROVISIONING_PROFILE_SPECIFIER = "KTX Software macosx";
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_PREFIX = "";
 			};
