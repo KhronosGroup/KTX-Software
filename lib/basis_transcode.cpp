@@ -506,12 +506,30 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 #if !BASISD_SUPPORT_BC7
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
-
+                // Decode the color data
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
-                        basisData + levelOffset + sliceDescs[image].sliceByteOffset, sliceDescs[image].sliceByteLength,
-                        basist::block_format::cBC7_M5_ALPHA, bytes_per_block,
-                        (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
-                        isVideo, hasAlpha, 0/* level_index*/, width, height );
+                basisData + levelOffset + sliceDescs[image].sliceByteOffset,
+                sliceDescs[image].sliceByteLength,
+                basist::block_format::cBC7_M5_COLOR, bytes_per_block,
+                (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                isVideo, false /*alpha*/, 0/* level_index*/, width, height );
+
+                if (status) {
+                    if (hasAlpha) {
+                        status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                                basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
+                                sliceDescs[image].alphaSliceByteLength,
+                                basist::block_format::cBC7_M5_ALPHA, bytes_per_block,
+                                (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                                isVideo, hasAlpha, 0/* level_index*/, width, height );
+                    } else {
+                        basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x, num_blocks_y, writePtr,
+                                    (uint32_t)((This->dataSize - writeOffset) / bytes_per_block),
+                                    basist::block_format::cBC7_M5_ALPHA, bytes_per_block, 0);
+                        status = true;
+                    }
+                }
+
                 if (!status) {
                      result = KTX_TRANSCODE_FAILED;
                      goto cleanup;
