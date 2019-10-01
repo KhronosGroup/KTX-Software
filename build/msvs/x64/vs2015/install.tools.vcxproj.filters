@@ -28,9 +28,6 @@
     <Filter Include="$(OutDir)">
       <UniqueIdentifier>{ECA95933-7FA6-5798-4EC4-C0CAC6DD34DE}</UniqueIdentifier>
     </Filter>
-    <Filter Include="$(OutDir)">
-      <UniqueIdentifier>{ECA95933-7FA6-5798-4EC4-C0CAC6DD34DE}</UniqueIdentifier>
-    </Filter>
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
@@ -56,9 +53,6 @@
   <ItemGroup>
     <None Include="..\..\..\..\ktxtools.gyp">
       <Filter>..\..\..\..</Filter>
-    </None>
-    <None Include="$(OutDir)\libktx.gl.dll">
-      <Filter>$(OutDir)</Filter>
     </None>
     <None Include="$(OutDir)\ktx2ktx2.exe">
       <Filter>$(OutDir)</Filter>
