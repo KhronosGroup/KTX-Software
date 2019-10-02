@@ -96,147 +96,188 @@ struct issue {
 #define ERROR 0x00100000
 #define FATAL 0x01000000
 
-// Aaargh! I want to drop support for VS2013 so I can use in-class
-// initializers.
 struct {
-    issue FileOpen;
-    issue FileRead;
-    issue UnexpectedEOF;
-    issue RewindFailure;
-} IOError = {
-    { FATAL | 0x0001, "File open failed: %s." },
-    { FATAL | 0x0002, "File read failed: %s." },
-    { FATAL | 0x0003, "Unexpected end of file." },
-    { FATAL | 0x0004, "Seek to start of file failed: %s." }
-};
+    issue FileOpen {
+        FATAL | 0x0001, "File open failed: %s."
+    };
+    issue FileRead {
+        FATAL | 0x0002, "File read failed: %s."
+    };
+    issue UnexpectedEOF {
+        FATAL | 0x0003, "Unexpected end of file."
+    };
+    issue RewindFailure {
+        FATAL | 0x0004, "Seek to start of file failed: %s."
+    };
+} IOError;
 
 struct {
-    issue NotKTX2;
-    issue CreateFailure;
-} FileError = {
-    { FATAL | 0x0010, "Not a KTX2 file." },
-    { FATAL | 0x0011, "ktxTexture2 creation failed: %s." }
-};
+    issue NotKTX2 {
+        FATAL | 0x0010, "Not a KTX2 file."
+    };
+    issue CreateFailure {
+        FATAL | 0x0011, "ktxTexture2 creation failed: %s."
+    };
+} FileError;
 
 struct {
-    issue ProhibitedFormat;
-    issue InvalidFormat;
-    issue UnknownFormat;
-    issue WidthZero;
-    issue DepthNoHeight;
-    issue ThreeDArray;
-    issue CubeFaceNot2d;
-    issue InvalidFaceCount;
-    issue TooManyMipLevels;
-    issue VendorSupercompression;
-    issue InvalidSupercompression;
-    issue InvalidOptionalIndexEntry;
-    issue InvalidRequiredIndexEntry;
-    issue InvalidDFDOffset;
-    issue InvalidKVDOffset;
-    issue InvalidSGDOffset;
-    issue TypeSizeMismatch;
-    issue TypeSizeNotOne;
-} HeaderData = {
-    { ERROR | 0x0020, "vkFormat is one of the prohibited formats." },
-    { ERROR | 0x0021, "vkFormat, %#x, is not a valid VkFormat value." },
-    { WARNING | 0x0022, "vkFormat, %#x is unknown, possibly an extension format." },
-    { ERROR | 0x0023, "pixelWidth is 0. Textures must have width." },
-    { ERROR | 0x0024, "pixelDepth != 0 but pixelHeight == 0. Depth textures must have height." },
-    { WARNING| 0x0025, "File contains a 3D array texture. No APIs support these." },
-    { ERROR | 0x0026, "Cube map faces must be 2d." },
-    { ERROR | 0x0027, "faceCount is %d. It must be 1 or 6." },
-    { ERROR | 0x0028, "%d is too many levels for the largest image dimension %d." },
-    { WARNING | 0x0029, "Using vendor supercompressionScheme. Can't validate." },
-    { ERROR | 0x002a, "Invalid supercompressionScheme: %#x" },
-    { ERROR | 0x002b, "Invalid %s index entry. Only 1 of offset & length != 0." },
-    { ERROR | 0x002c, "Index for required entry has offset or length == 0." },
-    { ERROR | 0x002d, "Invalid dfdByteOffset. DFD must immediately follow level index." },
-    { ERROR | 0x002e, "Invalid kvdByteOffset. KVD must immediately follow DFD." },
-    { ERROR | 0x002f, "Invalid sgdByteOffset. SGD must follow KVD." },
-    { ERROR | 0x0030, "typeSize, %d, does not match data described by the DFD." },
-    { ERROR | 0x0031, "typeSize for a block compressed or supercompressed format must be 1." },
-};
+    issue ProhibitedFormat {
+        ERROR | 0x0020, "vkFormat is one of the prohibited formats."
+    };
+    issue InvalidFormat {
+        ERROR | 0x0021, "vkFormat, %#x, is not a valid VkFormat value."
+    };
+    issue UnknownFormat {
+        WARNING | 0x0022, "vkFormat, %#x is unknown, possibly an extension format."
+    };
+    issue WidthZero {
+        ERROR | 0x0023, "pixelWidth is 0. Textures must have width."
+    };
+    issue DepthNoHeight {
+        ERROR | 0x0024, "pixelDepth != 0 but pixelHeight == 0. Depth textures must have height."
+    };
+    issue ThreeDArray {
+        WARNING| 0x0025, "File contains a 3D array texture. No APIs support these."
+    };
+    issue CubeFaceNot2d {
+        ERROR | 0x0026, "Cube map faces must be 2d."
+    };
+    issue InvalidFaceCount {
+        ERROR | 0x0027, "faceCount is %d. It must be 1 or 6."
+    };
+    issue TooManyMipLevels {
+        ERROR | 0x0028, "%d is too many levels for the largest image dimension %d."
+    };
+    issue VendorSupercompression {
+        WARNING | 0x0029, "Using vendor supercompressionScheme. Can't validate."
+    };
+    issue InvalidSupercompression {
+        ERROR | 0x002a, "Invalid supercompressionScheme: %#x"
+    };
+    issue InvalidOptionalIndexEntry {
+        ERROR | 0x002b, "Invalid %s index entry. Only 1 of offset & length != 0."
+    };
+    issue InvalidRequiredIndexEntry {
+        ERROR | 0x002c, "Index for required entry has offset or length == 0."
+    };
+    issue InvalidDFDOffset {
+        ERROR | 0x002d, "Invalid dfdByteOffset. DFD must immediately follow level index."
+    };
+    issue InvalidKVDOffset {
+        ERROR | 0x002e, "Invalid kvdByteOffset. KVD must immediately follow DFD."
+    };
+    issue InvalidSGDOffset {
+        ERROR | 0x002f, "Invalid sgdByteOffset. SGD must follow KVD."
+    };
+    issue TypeSizeMismatch {
+        ERROR | 0x0030, "typeSize, %d, does not match data described by the DFD."
+    };
+    issue TypeSizeNotOne {
+        ERROR | 0x0031, "typeSize for a block compressed or supercompressed format must be 1."
+  };
+} HeaderData;
 
 struct {
-    issue CreateDfdFailure;
-    issue IncorrectDfd;
-    issue OnlyBasisSupported;
-} ValidatorError = {
-    { FATAL | 0x0040, "Creation of DFD matching %s failed." },
-    { FATAL | 0x0041, "DFD created for %s confused interpretDFD()." },
-    { FATAL | 0x0042, "Validator can only currently validate Basis supercompression." }
-};
+    issue CreateDfdFailure {
+        FATAL | 0x0040, "Creation of DFD matching %s failed."
+    };
+    issue IncorrectDfd {
+        FATAL | 0x0041, "DFD created for %s confused interpretDFD()."
+    };
+    issue OnlyBasisSupported {
+        FATAL | 0x0042, "Validator can only currently validate Basis supercompression."
+    };
+} ValidatorError;
 
 struct {
-    issue InvalidTransferFunction;
-    issue IncorrectBasics;
-    issue IncorrectModelForBlock;
-    issue TooComplex;
-    issue sRGBMismatch;
-    issue UnsignedFloat;
-    issue FormatMismatch;
-    issue NonZeroSamplesForBasis;
-    issue IncorrectModelForBasis;
-    issue IncorrectSizesForBasis;
-} DFD = {
-    { ERROR | 0x0050, "Transfer function is not KHR_DF_TRANSFER_LINEAR or KHR_DF_TRANSFER_SRGB" },
-    { ERROR | 0x0051, "DFD format is not the correct type or version." },
-    { ERROR | 0x0052, "DFD color model is not that of a block-compressed texture." },
-    { ERROR | 0x0053, "DFD is too complex for analysis. Does not describe a VkFormat or is wrong endianness." },
-    { ERROR | 0x0054, "DFD says sRGB but vkFormat is not an sRGB format." },
-    { ERROR | 0x0055, "DFD says data is unsigned float but there are no such texture formats." },
-    { ERROR | 0x0056, "DFD does not match VK_FORMAT w.r.t. sign, float or normalization." },
-    { ERROR | 0x0057, "DFD for a Basis Compressed texture must have 0 samples." },
-    { ERROR | 0x0058, "DFD color model for a Basis Compressed texture must be KHR_DF_MODEL_UNSPECIFIED." },
-    { ERROR | 0x0059, "DFD texel block dimensions and bytes/plane for Basis must be 0." }
-};
+    issue InvalidTransferFunction {
+        ERROR | 0x0050, "Transfer function is not KHR_DF_TRANSFER_LINEAR or KHR_DF_TRANSFER_SRGB"
+    };
+    issue IncorrectBasics {
+        ERROR | 0x0051, "DFD format is not the correct type or version."
+    };
+    issue IncorrectModelForBlock {
+        ERROR | 0x0052, "DFD color model is not that of a block-compressed texture."
+    };
+    issue TooComplex {
+        ERROR | 0x0053, "DFD is too complex for analysis. Does not describe a VkFormat or is wrong endianness."
+    };
+    issue sRGBMismatch {
+        ERROR | 0x0054, "DFD says sRGB but vkFormat is not an sRGB format."
+    };
+    issue UnsignedFloat {
+        ERROR | 0x0055, "DFD says data is unsigned float but there are no such texture formats."
+    };
+    issue FormatMismatch {
+        ERROR | 0x0056, "DFD does not match VK_FORMAT w.r.t. sign, float or normalization."
+    };
+    issue NonZeroSamplesForBasis {
+        ERROR | 0x0057, "DFD for a Basis Compressed texture must have 0 samples."
+    };
+    issue IncorrectModelForBasis {
+        ERROR | 0x0058, "DFD color model for a Basis Compressed texture must be KHR_DF_MODEL_UNSPECIFIED."
+    };
+    issue IncorrectSizesForBasis {
+        ERROR | 0x0059, "DFD texel block dimensions and bytes/plane for Basis must be 0."
+    };
+} DFD;
 
 struct {
-    issue IncorrectByteLength;
-    issue IncorrectByteOffset;
-    issue ZeroOffsetOrLength;
-    issue ZeroUncompressedLength;
-} LevelIndex = {
-    { ERROR | 0x0060, "Level %d byteLength or uncompressedByteLength does not match expected value." },
-    { ERROR | 0x0061, "Level %d byteOffset does not match expected value." },
-    { ERROR | 0x0062, "Level %d's byteOffset or byteLength is 0." },
-    { ERROR | 0x0063, "Level %d's uncompressedByteLength is 0." }
-};
+    issue IncorrectByteLength {
+        ERROR | 0x0060, "Level %d byteLength or uncompressedByteLength does not match expected value."
+    };
+    issue IncorrectByteOffset {
+        ERROR | 0x0061, "Level %d byteOffset does not match expected value."
+    };
+    issue ZeroOffsetOrLength {
+        ERROR | 0x0062, "Level %d's byteOffset or byteLength is 0."
+    };
+    issue ZeroUncompressedLength {
+        ERROR | 0x0063, "Level %d's uncompressedByteLength is 0."
+    };
+} LevelIndex;
 
 struct {
-    issue OutOfOrder;
-    issue CustomMetadata;
-    issue IllegalMetadata;
-    issue ValueNotNulTerminated;
-    issue InvalidValue;
-    issue NoKTXwriter;
-} Metadata = {
-    { WARNING | 0x0070, "Metadata keys are not sorted in codepoint order." },
-    { WARNING | 0x0071, "Custom metadata \"%s\" found." },
-    { ERROR | 0x0072, "Unrecognized metadata \"%s\" found with KTX or ktx prefix found." },
-    { ERROR | 0x0073, "%s value missing required NUL termination." },
-    { ERROR | 0x0074, "%s has invalid value." },
-    { ERROR | 0x0075, "Required KTXwriter key is missing." }
-};
+    issue OutOfOrder {
+        ERROR | 0x0070, "Metadata keys are not sorted in codepoint order."
+    };
+    issue CustomMetadata {
+        WARNING | 0x0071, "Custom metadata \"%s\" found."
+    };
+    issue IllegalMetadata {
+        ERROR | 0x0072, "Unrecognized metadata \"%s\" found with KTX or ktx prefix found."
+    };
+    issue ValueNotNulTerminated {
+        ERROR | 0x0073, "%s value missing required NUL termination."
+    };
+    issue InvalidValue {
+        ERROR | 0x0074, "%s has invalid value."
+    };
+    issue NoKTXwriter {
+        ERROR | 0x0075, "Required KTXwriter key is missing."
+    };
+} Metadata;
 
 struct {
-    issue UnexpectedSupercompressionGlobalData;
-    issue MissingSupercompressionGlobalData;
-    issue IncorrectGlobalDataSize;
-    issue ExtendedByteLengthNotZero;
-} SGD = {
-    { ERROR | 0x0080, "Supercompression global data found scheme that is not Basis." },
-    { ERROR | 0x0081, "Basis supercompression global data missing." },
-    { ERROR | 0x0082, "Basis supercompression global data has incorrect size." },
-    { ERROR | 0x0083, "extendedByteLength != 0 in Basis supercompression global data." },
-};
+    issue UnexpectedSupercompressionGlobalData {
+        ERROR | 0x0080, "Supercompression global data found scheme that is not Basis."
+    };
+    issue MissingSupercompressionGlobalData {
+        ERROR | 0x0081, "Basis supercompression global data missing."
+    };
+    issue IncorrectGlobalDataSize {
+        ERROR | 0x0082, "Basis supercompression global data has incorrect size."
+    };
+    issue ExtendedByteLengthNotZero {
+        ERROR | 0x0083, "extendedByteLength != 0 in Basis supercompression global data."
+    };
+} SGD;
 
 struct {
-    issue OutOfMemory;
-} System = {
-    { ERROR | 0x0080, "System out of memory." }
-};
+    issue OutOfMemory {
+        ERROR | 0x0080, "System out of memory."
+    };
+} System;
 
 /////////////////////////////////////////////////////////////////////
 //                       External Functions                        //
@@ -481,7 +522,16 @@ class ktxValidator : public ktxApp {
     } options;
 };
 
-vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators;
+vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
+    { "KTXcubemapIncomplete", &ktxValidator::validateCubemapIncomplete },
+    { "KTXorientation", &ktxValidator::validateOrientation },
+    { "KTXglFormat", &ktxValidator::validateGlFormat },
+    { "KTXdxgiFormat__", &ktxValidator::validateDxgiFormat },
+    { "KTXMetalPixelFormat", &ktxValidator::validateMetalPixelFormat },
+    { "KTXswizzle", &ktxValidator::validateSwizzle },
+    { "KTXwriter", &ktxValidator::validateWriter },
+    { "KTXastcDecodeRGB9E5", &ktxValidator::validateAstcDecodeRGB9E5 }
+};
 
 /////////////////////////////////////////////////////////////////////
 //                     Validator Implementation                    //
@@ -489,22 +539,6 @@ vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators;
 
 ktxValidator::ktxValidator() : ktxApp(myversion, options)
 {
-    // Don't use in-class initializers so we can build on VS2013. Sigh!
-    metadataValidator initValidators[] = {
-        { "KTXcubemapIncomplete", &ktxValidator::validateCubemapIncomplete },
-        { "KTXorientation", &ktxValidator::validateOrientation },
-        { "KTXglFormat", &ktxValidator::validateGlFormat },
-        { "KTXdxgiFormat__", &ktxValidator::validateDxgiFormat },
-        { "KTXMetalPixelFormat", &ktxValidator::validateMetalPixelFormat },
-        { "KTXswizzle", &ktxValidator::validateSwizzle },
-        { "KTXwriter", &ktxValidator::validateWriter },
-        { "KTXastcDecodeRGB9E5", &ktxValidator::validateAstcDecodeRGB9E5 }
-    };
-    const int lastValidatorIndex = sizeof(initValidators)
-                              / sizeof(metadataValidator) - 1;
-    metadataValidators.insert(metadataValidators.begin(), initValidators,
-                              initValidators + lastValidatorIndex);
-
     argparser::option my_option_list[] = {
         { "quiet", argparser::option::no_argument, NULL, 'q' },
         { "max-issues", argparser::option::required_argument, NULL, 'm' }

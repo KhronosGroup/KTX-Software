@@ -27,16 +27,15 @@ builddir := build
 stampfile := .${pname}-stamp
 
 msvs_buildd := $(builddir)/msvs
-msvs_platforms := x64 win32
-# vs2010e does not support 64-bit builds.
-msvs_x64_vernames := vs2010 vs2013 vs2013e vs2015 vs2017
-msvs_win32_vernames := $(msvs_x64_vernames) vs2010e
-# Build a set of targets by in form
-# "$(msvs_buildd)/{x64,win32}/vs{2010,2010e,2008}/.ktx-stamp"
+msvs_platforms := x64
+msvs_x64_vernames := vs2015 vs2017 vs2019
+#msvs_win32_vernames := $(msvs_x64_vernames)
+# Build a set of targets off the form
+# "$(msvs_buildd)/{x64,win32}/vs{2015,2017,2019}/.ktx-stamp"
 # by prefixing the list of msvs versions (${2}) with the platform (${1}).
 msvs_target_set = $(addprefix ${msvs_buildd}/${1}/,$(addsuffix /${stampfile},${2}))
 msvs_x64_targets = $(call msvs_target_set,x64,${msvs_x64_vernames})
-msvs_win32_targets = $(call msvs_target_set,win32,${msvs_win32_vernames})
+#msvs_win32_targets = $(call msvs_target_set,win32,${msvs_win32_vernames})
 msvs_all_targets := $(msvs_x64_targets)
 
 xcode_buildd := $(builddir)/xcode
