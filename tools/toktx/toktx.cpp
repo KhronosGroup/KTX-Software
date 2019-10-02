@@ -731,6 +731,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     // image pixels so there is nothing to do here.
                     curfileOETF = OETF_SRGB;
                 } else {
+#if 0
                     if (state.info_png.iccp_defined) {
                             delete srcImg;
                             std::cerr << appName
@@ -756,6 +757,21 @@ int _tmain(int argc, _TCHAR* argv[])
                         }
                     } else
                         curfileOETF = OETF_SRGB;
+#else
+                    if (state.info_png.iccp_defined) {
+                          ; // Panic
+                    } else if (state.info_png.gama_defined) {
+                        if (state.info_png.gama_gamma == 100000)
+                            curfileOETF = OETF_LINEAR;
+                        else if (state.info_png.gama_gamma == 45455)
+                            curfileOETF = OETF_SRGB;
+                        else {
+                            ; // Panic
+                        }
+                    } else {
+                        curfileOETF = OETF_SRGB;
+                    }
+#endif
                 }
             }
 
