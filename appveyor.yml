@@ -71,11 +71,12 @@ install:
 #  - other_lib
 
 before_build:
-# Expand date keywords.
+# Expand date keywords. -q is because recent PS versions treat
+# writes to StdErr as an exception, causing VS2019 build to fail.
 - ps: |-
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/mainpage.md
-    git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md
+    git checkout -q TODO.md lib/mainpage.md pkgdoc/mainpage.md
 
 build_script:
 - ps: |-
