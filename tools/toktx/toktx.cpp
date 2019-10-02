@@ -764,7 +764,7 @@ int _tmain(int argc, _TCHAR* argv[])
                         //          << ": PNG file has ICC profile chunk. "
                         //          << "These are not supported."
                         //          << std::endl;
-                        //exitCode = 1;
+                        exitCode = 1;
                         goto cleanup;
                     } else if (state.info_png.gama_defined) {
                         if (state.info_png.gama_gamma == 100000)
