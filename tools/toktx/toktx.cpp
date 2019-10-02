@@ -762,7 +762,8 @@ int _tmain(int argc, _TCHAR* argv[])
                         delete srcImg;
                         std::cerr << appName
                                   << ": PNG file has ICC profile chunk. "
-                                  << "These are not supported." << std::endl;
+                                  << "These are not supported.";
+                        std::cerr << std::endl;
                         exitCode = 1;
                         goto cleanup;
                     } else if (state.info_png.gama_defined) {
