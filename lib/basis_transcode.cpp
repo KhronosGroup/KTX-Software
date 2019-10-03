@@ -717,9 +717,20 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 #endif
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
-                        basist::block_format::cRGBA32, bytes_per_block,
+                        basist::block_format::cRGB32, bytes_per_block,
                         (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                         isVideo, hasAlpha, 0/* level_index*/, width, height );
+
+                if (status) {
+                    if(hasAlpha) {
+                        status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                            basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
+                            sliceDescs[image].alphaSliceByteLength,
+                            basist::block_format::cA32, bytes_per_block,
+                            (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
+                            isVideo, hasAlpha, 0/* level_index*/, width, height );
+                    }
+                }
                 if (!status) {
                      result = KTX_TRANSCODE_FAILED;
                      goto cleanup;
