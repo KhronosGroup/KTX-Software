@@ -155,7 +155,7 @@ int _tmain(int argc, _TCHAR* argv[])
             }
             if (result == KTX_UNKNOWN_FILE_FORMAT) {
                 cerr << appName
-                     << ": " << (infile.compare(_T("-")) ? "stdin" : infile)
+                     << ": " << (infile.compare(_T("-")) ? infile : "stdin")
                      << " is not a KTX or KTX2 file."
                      << endl;
                      exitCode = 2;
@@ -164,7 +164,7 @@ int _tmain(int argc, _TCHAR* argv[])
         } else {
             cerr << appName
                  << " could not open input file \""
-                 << (infile.compare(_T("-")) ? "stdin" : infile) << "\". "
+                 << (infile.compare(_T("-")) ? infile : "stdin") << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;

@@ -153,6 +153,7 @@ struct commandOptions {
             noSelectorRDO = false;
         }
 
+#if 0
         void print() {
             std::cout << "threadCount = " << threadCount.value << std::endl;
             std::cout << "qualityLevel = " << qualityLevel.value << std::endl;
@@ -173,6 +174,7 @@ struct commandOptions {
             std::cout << "noEndpointRDO = " << noEndpointRDO << std::endl;
             std::cout << "noSelectorRDO = " << noSelectorRDO << std::endl;
         }
+#endif
     };
 
     int          automipmap;
@@ -1010,9 +1012,13 @@ int _tmain(int argc, _TCHAR* argv[])
                     goto cleanup;
                 }
                 if (srcImg) {
-                    std::cout << "level = " << level << ", face = " << face;
-                    std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
-                    std::cout << ", imageSize = " << imageSize << std::endl;
+#if 0
+                    if (options.bcmp) {
+                        std::cout << "level = " << level << ", face = " << face;
+                        std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
+                        std::cout << ", imageSize = " << imageSize << std::endl;
+                    }
+#endif
                     ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                                   level,
                                                   0,
@@ -1101,7 +1107,9 @@ int _tmain(int argc, _TCHAR* argv[])
             if (components == 2) {
                 bopts.separateRGToRGB_A = true;
             }
+#if 0
             bopts.print();
+#endif
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
