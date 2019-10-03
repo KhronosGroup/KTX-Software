@@ -101,18 +101,18 @@ static inline uint32_t get_block_height(uint32_t h, uint32_t bh)
  * block-compressed format before they can be uploaded to a GPU via a graphics
  * API.
  *
- * The following transcode targets are available: KTX_TF_ETC1, KTX_TF_BC1,
- * KTX_TF_BC4, KTX_TF_PVRTC1_4_OPAQUE_ONLY, KTX_TF_BC7_M6_OPAQUE_ONLY,
- * KTX_TF_ETC2, KTX_TF_BC3 and KTX_TF_BC5.
+ * The following transcode targets are available: KTX_TF_ETC1_RGB, KTX_TF_BC1_RGB,
+ * KTX_TF_BC4_R, KTX_TF_PVRTC1_4_OPAQUE_ONLY, KTX_TF_BC7_M6_RGB,
+ * KTX_TF_ETC2_RGBA, KTX_TF_BC3_RGBA and KTX_TF_BC5_RG.
  *
- * Note that KTX_TF_ETC2 will always transcode to an RGBA texture. If there
+ * Note that KTX_TF_ETC2_RGBA will always transcode to an RGBA texture. If there
  * is no alpha channel in the supercompressed data, alpha will be set to 255
  * (opaque). If you know there is no alpha data then choose KTX_TF_ETC1. The
  * ETC2 texture will consist of an ETC2_EAC_A8 block followed by an ETC1 block.
  *
- * KTX_TF_BC3 has a BC4 alpha block followed by a BC1 RGB block.
+ * KTX_TF_BC3_RGBA has a BC4 alpha block followed by a BC1 RGB block.
  *
- * KTX_TF_BC5 has two BC4 blocks, one  holding the R data, the other the G data.
+ * KTX_TF_BC5_RG has two BC4 blocks, one  holding the R data, the other the G data.
  *
  * The following @p transcodeFlags are available.
  *
@@ -255,26 +255,26 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         vkFormat = srgb ? VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK
                         : VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
         break;
-      case KTX_TF_BC1:
+      case KTX_TF_BC1_RGB:
         // Transcoding doesn't support BC1 alpha.
         vkFormat = srgb ? VK_FORMAT_BC1_RGB_SRGB_BLOCK
                         : VK_FORMAT_BC1_RGB_UNORM_BLOCK;
         break;
-      case KTX_TF_BC3:
+      case KTX_TF_BC3_RGBA:
         if (hasAlpha) {
             vkFormat = srgb ? VK_FORMAT_BC3_SRGB_BLOCK
                             : VK_FORMAT_BC3_UNORM_BLOCK;
         } else {
             // No point wasting a channel. Select ETC1.
-            outputFormat = KTX_TF_BC1;
+            outputFormat = KTX_TF_BC1_RGB;
             vkFormat = srgb ? VK_FORMAT_BC1_RGB_SRGB_BLOCK
                             : VK_FORMAT_BC1_RGB_UNORM_BLOCK;
         }
         break;
-      case KTX_TF_BC4:
+      case KTX_TF_BC4_R:
         vkFormat = VK_FORMAT_BC4_UNORM_BLOCK;
         break;
-      case KTX_TF_BC5:
+      case KTX_TF_BC5_RG:
         vkFormat = VK_FORMAT_BC5_UNORM_BLOCK;
         break;
       case KTX_TF_PVRTC1_4_RGB:
@@ -411,7 +411,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 }
                 break;
             }
-            case KTX_TF_BC1:
+            case KTX_TF_BC1_RGB:
             {
 #if !BASISD_SUPPORT_DXT1
                 return KTX_UNSUPPORTED_FEATURE;
@@ -428,7 +428,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 }
                 break;
             }
-            case KTX_TF_BC4:
+            case KTX_TF_BC4_R:
             {
 #if !BASISD_SUPPORT_DXT5A
                 return KTX_UNSUPPORTED_FEATURE;
@@ -554,7 +554,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 }
                 break;
             }
-            case KTX_TF_BC3:
+            case KTX_TF_BC3_RGBA:
             {
 #if !BASISD_SUPPORT_DXT1
                 return KTX_UNSUPPORTED_FEATURE;
@@ -593,7 +593,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 }
                 break;
             }
-            case KTX_TF_BC5:
+            case KTX_TF_BC5_RG:
             {
 #if !BASISD_SUPPORT_DXT5A
                 return KTX_UNSUPPORTED_FEATURE;
