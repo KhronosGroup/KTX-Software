@@ -32,7 +32,7 @@ matrix:
         - VULKAN_INSTALL_DIR="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
-      osx_image: xcode10.3
+      osx_image: xcode9.3
 
 #env:
   #global:
@@ -138,7 +138,7 @@ script:
     # destination args can be expanded to a single word.
     OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
     IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
-    XCODE_CODESIGN_ENV='CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY='
+    XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO'
     # The following and more is needed if you want to actually sign the code.
     # See http://stackoverflow.com/questions/27671854/travis-ci-fails-to-build-with-a-code-signing-error.
     #KEY_CHAIN=xcode-build.keychain
