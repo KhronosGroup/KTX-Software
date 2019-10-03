@@ -336,6 +336,12 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     if(bytes_per_block<=0) {
         return KTX_INVALID_VALUE;
     }
+
+    if( outputFormat == KTX_TF_BC4_R ) {
+        // TODO: reomve this HACK. bytes_per_block is 16 here, should be 8.
+        bytes_per_block = basis_get_bytes_per_block(basist::transcoder_texture_format::cTFBC4_R);
+        transcodedDataSize = transcodedDataSize/2;
+    }
     
     ktx_uint8_t* basisData = This->pData;
     This->pData = new uint8_t[transcodedDataSize];
