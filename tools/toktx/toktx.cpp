@@ -152,6 +152,27 @@ struct commandOptions {
             noEndpointRDO = false;
             noSelectorRDO = false;
         }
+
+        void print() {
+            std::cout << "threadCount = " << threadCount.value << std::endl;
+            std::cout << "qualityLevel = " << qualityLevel.value << std::endl;
+            std::cout << "maxEndpoints = " << maxEndpoints.value << std::endl;
+            std::cout << "maxSelectors = " << maxSelectors.value << std::endl;
+            std::cout << "structSize = " << structSize << std::endl;
+            std::cout << "threadCount = " << ktxBasisParams::threadCount << std::endl;
+            std::cout << "compressionLevel = " << compressionLevel << std::endl;
+            std::cout << "qualityLevel = " << ktxBasisParams::qualityLevel << std::endl;
+            std::cout << "compressionLevel = " << compressionLevel << std::endl;
+            std::cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << std::endl;
+            std::cout << "endpointRDOThreshold = " << endpointRDOThreshold << std::endl;
+            std::cout << "maxSelectors = " << ktxBasisParams::maxSelectors << std::endl;
+            std::cout << "selectorRDOThreshold = " << selectorRDOThreshold << std::endl;
+            std::cout << "normalMap = " << normalMap << std::endl;
+            std::cout << "separateRGToRGB_A = " << separateRGToRGB_A << std::endl;
+            std::cout << "preSwizzle = " << preSwizzle << std::endl;
+            std::cout << "noEndpointRDO = " << noEndpointRDO << std::endl;
+            std::cout << "noSelectorRDO = " << noSelectorRDO << std::endl;
+        }
     };
 
     int          automipmap;
@@ -988,7 +1009,10 @@ int _tmain(int argc, _TCHAR* argv[])
                     exitCode = 1;
                     goto cleanup;
                 }
-                if (srcImg)
+                if (srcImg) {
+                    std::cout << "level = " << level << ", face = " << face;
+                    std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
+                    std::cout << ", imageSize = " << imageSize << std::endl;
                     ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                                   level,
                                                   0,
@@ -996,7 +1020,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                                   srcImg,
                                                   imageSize);
 
-                else
+                } else
                     ktxTexture_SetImageFromStdioStream(ktxTexture(texture),
                                                        level,
                                                        0,
@@ -1077,7 +1101,7 @@ int _tmain(int argc, _TCHAR* argv[])
             if (components == 2) {
                 bopts.separateRGToRGB_A = true;
             }
-
+            bopts.print();
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
