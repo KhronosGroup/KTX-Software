@@ -142,6 +142,7 @@ struct commandOptions {
 
             structSize = sizeof(ktxBasisParams);
             compressionLevel = 0;
+            qualityLevel.clear();
             maxEndpoints.clear();
             endpointRDOThreshold = 0.0f;
             maxSelectors.clear();
@@ -152,6 +153,30 @@ struct commandOptions {
             noEndpointRDO = false;
             noSelectorRDO = false;
         }
+
+#define TRAVIS_DEBUG 0
+#if TRAVIS_DEBUG
+        void print() {
+            std::cout << "threadCount = " << threadCount.value << std::endl;
+            std::cout << "qualityLevel = " << qualityLevel.value << std::endl;
+            std::cout << "maxEndpoints = " << maxEndpoints.value << std::endl;
+            std::cout << "maxSelectors = " << maxSelectors.value << std::endl;
+            std::cout << "structSize = " << structSize << std::endl;
+            std::cout << "threadCount = " << ktxBasisParams::threadCount << std::endl;
+            std::cout << "compressionLevel = " << compressionLevel << std::endl;
+            std::cout << "qualityLevel = " << ktxBasisParams::qualityLevel << std::endl;
+            std::cout << "compressionLevel = " << compressionLevel << std::endl;
+            std::cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << std::endl;
+            std::cout << "endpointRDOThreshold = " << endpointRDOThreshold << std::endl;
+            std::cout << "maxSelectors = " << ktxBasisParams::maxSelectors << std::endl;
+            std::cout << "selectorRDOThreshold = " << selectorRDOThreshold << std::endl;
+            std::cout << "normalMap = " << normalMap << std::endl;
+            std::cout << "separateRGToRGB_A = " << separateRGToRGB_A << std::endl;
+            std::cout << "preSwizzle = " << preSwizzle << std::endl;
+            std::cout << "noEndpointRDO = " << noEndpointRDO << std::endl;
+            std::cout << "noSelectorRDO = " << noSelectorRDO << std::endl;
+        }
+#endif
     };
 
     int          automipmap;
@@ -731,17 +756,31 @@ int _tmain(int argc, _TCHAR* argv[])
                     // image pixels so there is nothing to do here.
                     curfileOETF = OETF_SRGB;
                 } else {
-                    if (state.info_png.iccp_defined)
-                        ; // Panic
-                    else if (state.info_png.gama_defined) {
+                    if (state.info_png.iccp_defined) {
+                        delete srcImg;
+                        std::cerr << appName
+                                  << ": PNG file has ICC profile chunk. "
+                                  << "These are not supported." << std::endl;
+                        exitCode = 1;
+                        goto cleanup;
+                    } else if (state.info_png.gama_defined) {
                         if (state.info_png.gama_gamma == 100000)
                             curfileOETF = OETF_LINEAR;
                         else if (state.info_png.gama_gamma == 45455)
                             curfileOETF = OETF_SRGB;
-                        else
-                            ; // Panic
-                    } else
+                        else {
+                            delete srcImg;
+                            std::cerr << appName
+                                      << ": PNG image has gamma of "
+                                      << (float)100000 / state.info_png.gama_gamma
+                                      << ". This is currently unsupported."
+                                      << std::endl;
+                            exitCode = 1;
+                            goto cleanup;
+                        }
+                    } else {
                         curfileOETF = OETF_SRGB;
+                    }
                 }
             }
 
@@ -945,7 +984,14 @@ int _tmain(int argc, _TCHAR* argv[])
                     exitCode = 1;
                     goto cleanup;
                 }
-                if (srcImg)
+                if (srcImg) {
+#if TRAVIS_DEBUG
+                    if (options.bcmp) {
+                        std::cout << "level = " << level << ", face = " << face;
+                        std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
+                        std::cout << ", imageSize = " << imageSize << std::endl;
+                    }
+#endif
                     ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                                   level,
                                                   0,
@@ -953,7 +999,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                                   srcImg,
                                                   imageSize);
 
-                else
+                } else
                     ktxTexture_SetImageFromStdioStream(ktxTexture(texture),
                                                        level,
                                                        0,
@@ -1034,7 +1080,9 @@ int _tmain(int argc, _TCHAR* argv[])
             if (components == 2) {
                 bopts.separateRGToRGB_A = true;
             }
-
+#if TRAVIS_DEBUG
+            bopts.print();
+#endif
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
