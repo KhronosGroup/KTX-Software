@@ -153,7 +153,8 @@ struct commandOptions {
             noSelectorRDO = false;
         }
 
-#if 0
+#define TRAVIS_DEBUG 1
+#if TRAVIS_DEBUG
         void print() {
             std::cout << "threadCount = " << threadCount.value << std::endl;
             std::cout << "qualityLevel = " << qualityLevel.value << std::endl;
@@ -1012,7 +1013,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     goto cleanup;
                 }
                 if (srcImg) {
-#if 0
+#if TRAVIS_DEBUG
                     if (options.bcmp) {
                         std::cout << "level = " << level << ", face = " << face;
                         std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
@@ -1107,7 +1108,7 @@ int _tmain(int argc, _TCHAR* argv[])
             if (components == 2) {
                 bopts.separateRGToRGB_A = true;
             }
-#if 0
+#if TRAVIS_DEBUG
             bopts.print();
 #endif
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
