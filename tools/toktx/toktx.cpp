@@ -142,6 +142,7 @@ struct commandOptions {
 
             structSize = sizeof(ktxBasisParams);
             compressionLevel = 0;
+            qualityLevel.clear();
             maxEndpoints.clear();
             endpointRDOThreshold = 0.0f;
             maxSelectors.clear();
