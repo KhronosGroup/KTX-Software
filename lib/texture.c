@@ -40,6 +40,7 @@
 #include "memstream.h"
 #include "gl_format.h"
 #include "uthash.h"
+#include <math.h>
 
 /**
  * @internal
@@ -884,9 +885,14 @@ ktxTexture_GetImageSize(ktxTexture* This, ktx_uint32_t level)
     assert (This != NULL);
 
     formatInfo = &((ktxTextureInt*)This)->formatInfo;
-    blockCount.x = MAX(1, (This->baseWidth / formatInfo->blockWidth)  >> level);
-    blockCount.y = MAX(1, (This->baseHeight / formatInfo->blockHeight)  >> level);
-    blockSizeInBytes = formatInfo->blockSizeInBits / 8;
+
+    float levelWidth  = (float) (This->baseWidth >> level);
+    float levelHeight = (float) (This->baseHeight >> level);
+    blockCount.x      = (ktx_uint32_t) ceilf(levelWidth / formatInfo->blockWidth);
+    blockCount.y      = (ktx_uint32_t) ceilf(levelHeight / formatInfo->blockHeight);
+    blockCount.x      = MAX(1, blockCount.x);
+    blockCount.y      = MAX(1, blockCount.y);
+    blockSizeInBytes  = formatInfo->blockSizeInBits / 8;
 
     if (formatInfo->flags & GL_FORMAT_SIZE_COMPRESSED_BIT) {
         assert(This->isCompressed);
