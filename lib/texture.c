@@ -36,6 +36,7 @@
 #endif
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 
 #include "ktx.h"
@@ -570,15 +571,24 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
 {
     DECLARE_PROTECTED(ktxTexture);
     struct blockCount {
-        ktx_uint32_t x, y, z;
+        ktx_uint32_t x, y;
     } blockCount;
     ktx_uint32_t blockSizeInBytes;
     ktx_uint32_t rowBytes;
 
     assert (This != NULL);
 
-    blockCount.x = MAX(1, (This->baseWidth / prtctd->_formatSize.blockWidth)  >> level);
-    blockCount.y = MAX(1, (This->baseHeight / prtctd->_formatSize.blockHeight)  >> level);
+    float levelWidth  = (float)(This->baseWidth >> level);
+    float levelHeight = (float)(This->baseHeight >> level);
+    // Round up to next whole block. We can't use KTX_PADN because some of
+    // the block sizes are not powers of 2.
+    blockCount.x
+        = (uint32_t)ceilf(levelWidth / prtctd->_formatSize.blockWidth);
+    blockCount.y
+        = (uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
+    blockCount.x = MAX(1, blockCount.x);
+    blockCount.y = MAX(1, blockCount.y);
+
     blockSizeInBytes = prtctd->_formatSize.blockSizeInBits / 8;
 
     if (prtctd->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT) {
