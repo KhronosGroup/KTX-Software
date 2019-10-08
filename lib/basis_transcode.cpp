@@ -694,6 +694,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                         basist::block_format::cRGBA4444_ALPHA, bytes_per_block,
                         (transcodeFlags & KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS) == 0,
                         isVideo, hasAlpha, 0/* level_index*/, width, height );
+                } else {
+                    status = true;
                 }
 
                 if (status) {
