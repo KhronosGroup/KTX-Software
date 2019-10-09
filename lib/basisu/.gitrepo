@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/BinomialLLC/basis_universal.git
 	branch = master
-	commit = 087198fe26f6862dcf05c9e9639ea007beff945e
+	commit = 1cae1d57266e2c95bc011b0bf1ccb9940988c184
 	parent = 147941598f3edf31cf44e48f9252e0a2d1d26a48
 	method = merge
 	cmdver = 0.4.0
