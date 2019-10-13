@@ -8,6 +8,7 @@ set( SDL_SRC
 )
 
 add_executable( glloadtest
+    $<TARGET_OBJECTS:objUtil>
     glloadtests/GLLoadTests.cpp
     common/LoadTestSample.cpp
     common/SwipeDetector.cpp
@@ -29,7 +30,9 @@ target_include_directories(
     ${objKtxRead_include_dirs}
     ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../lib
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../utils
     common
+    geom
     appfwSDL
     glloadtests
     )
@@ -42,4 +45,8 @@ target_link_libraries(
     ktx
     )
 
-add_test( NAME glloadtest COMMAND glloadtest )
+target_compile_definitions(
+    glloadtest
+    PRIVATE
+    ${KTX_DEFS}
+)

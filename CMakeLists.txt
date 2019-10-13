@@ -11,6 +11,17 @@ option( KTX_FEATURE_KTX1 "KTX version 1" ON )
 option( KTX_FEATURE_KTX2 "KTX version 2" ON )
 
 option( KTX_FEATURE_UPLOAD_OPENGL "Directly upload and create textures for OpenGL" ON )
+
+set( KTX_GL_CONTEXT_PROFILE "CORE" CACHE STRING "Open GL context profile" )
+set_property(CACHE KTX_GL_CONTEXT_PROFILE PROPERTY STRINGS
+    CORE
+    COMPATIBILITY
+    ES
+)
+
+set( KTX_GL_CONTEXT_MAJOR_VERSION 3 CACHE STRING "OpenGL major version" )
+set( KTX_GL_CONTEXT_MINOR_VERSION 3 CACHE STRING "OpenGL minor version" )
+
 option( KTX_FEATURE_UPLOAD_VULKAN "Directly upload and create textures for Vulkan" ON )
 
 option( KTX_FEATURE_WRITE "Create KTX files" ON )
@@ -129,6 +140,11 @@ if(KTX_FEATURE_UPLOAD OR KTX_FEATURE_WRITE)
         )
         list(APPEND KTX_LIB_READ_LIBS
             ${OPENGL_LIBRARIES}
+        )
+        list(APPEND KTX_DEFS
+            GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_${KTX_GL_CONTEXT_PROFILE}
+            GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
+            GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
         )
     endif()
     
