@@ -3,7 +3,6 @@ find_package(SDL2)
 
 set( SDL_SRC
     appfwSDL/AppBaseSDL.cpp
-    appfwSDL/GLAppSDL.cpp
     appfwSDL/main.cpp
 )
 
@@ -20,6 +19,7 @@ add_executable( glloadtest
     glloadtests/shader-based/TexturedCube.cpp
     glloadtests/shader-based/shaders.cpp
     ${SDL_SRC}
+    appfwSDL/GLAppSDL.cpp
     )
 
 target_include_directories(
