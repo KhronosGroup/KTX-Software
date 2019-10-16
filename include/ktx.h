@@ -949,90 +949,87 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
 
 /**
  * @~English
- * @brief Enumerators for specifying the transcode format.
+ * @brief Enumerators for specifying the transcode target format.
  */
 typedef enum ktx_transcode_fmt_e {
         // Compressed formats
 
         // ETC1-2
-        KTX_TF_ETC1_RGB = 0,							// Opaque only, returns RGB or alpha data if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
-        KTX_TF_ETC2_RGBA = 1,							// Opaque+alpha, ETC2_EAC_A8 block followed by a ETC1 block, alpha channel will be opaque for opaque .basis files
+        KTX_TTF_ETC1_RGB = 0, /*!< Opaque only. Returns RGB or alpha data if
+                             cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified */
+        KTX_TTF_ETC2_RGBA = 1,							// Opaque+alpha, ETC2_EAC_A8 block followed by a ETC1 block, alpha channel will be opaque for opaque .basis files
 
         // BC1-5, BC7 (desktop, some mobile devices)
-        KTX_TF_BC1_RGB = 2,							// Opaque only, no punchthrough alpha support yet, transcodes alpha slice if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
-        KTX_TF_BC3_RGBA = 3, 							// Opaque+alpha, BC4 followed by a BC1 block, alpha channel will be opaque for opaque .basis files
-        KTX_TF_BC4_R = 4,								// Red only, alpha slice is transcoded to output if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
-        KTX_TF_BC5_RG = 5,								// XY: Two BC4 blocks, X=R and Y=Alpha, .basis file should have alpha data (if not Y will be all 255's)
-        KTX_TF_BC7_M6_RGB = 6,						// Opaque only, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified. Highest quality of all the non-ETC1 formats.
-        KTX_TF_BC7_M5_RGBA = 7,						// Opaque+alpha, alpha channel will be opaque for opaque .basis files
+        KTX_TTF_BC1_RGB = 2,							// Opaque only, no punchthrough alpha support yet, transcodes alpha slice if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
+        KTX_TTF_BC3_RGBA = 3, 							// Opaque+alpha, BC4 followed by a BC1 block, alpha channel will be opaque for opaque .basis files
+        KTX_TTF_BC4_R = 4,								// Red only, alpha slice is transcoded to output if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
+        KTX_TTF_BC5_RG = 5,								// XY: Two BC4 blocks, X=R and Y=Alpha, .basis file should have alpha data (if not Y will be all 255's)
+        KTX_TTF_BC7_M6_RGB = 6,						// Opaque only, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified. Highest quality of all the non-ETC1 formats.
+        KTX_TTF_BC7_M5_RGBA = 7,						// Opaque+alpha, alpha channel will be opaque for opaque .basis files
 
         // PVRTC1 4bpp (mobile, PowerVR devices)
-        KTX_TF_PVRTC1_4_RGB = 8,						// Opaque only, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified, nearly lowest quality of any texture format.
-        KTX_TF_PVRTC1_4_RGBA = 9,					// Opaque+alpha, most useful for simple opacity maps. If .basis file doens't have alpha cTFPVRTC1_4_RGB will be used instead. Lowest quality of any supported texture format.
+        KTX_TTF_PVRTC1_4_RGB = 8,						// Opaque only, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified, nearly lowest quality of any texture format.
+        KTX_TTF_PVRTC1_4_RGBA = 9,					// Opaque+alpha, most useful for simple opacity maps. If .basis file doens't have alpha cTFPVRTC1_4_RGB will be used instead. Lowest quality of any supported texture format.
 
         // ASTC (mobile, Intel devices, hopefully all desktop GPU's one day)
-        KTX_TF_ASTC_4x4_RGBA = 10,					// Opaque+alpha, ASTC 4x4, alpha channel will be opaque for opaque .basis files. Transcoder uses RGB/RGBA/L/LA modes, void extent, and up to two ([0,47] and [0,255]) endpoint precisions.
+        KTX_TTF_ASTC_4x4_RGBA = 10,					// Opaque+alpha, ASTC 4x4, alpha channel will be opaque for opaque .basis files. Transcoder uses RGB/RGBA/L/LA modes, void extent, and up to two ([0,47] and [0,255]) endpoint precisions.
 
         // ATC (mobile, Adreno devices, this is a niche format)
-        KTX_TF_ATC_RGB = 11,							// Opaque, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified. ATI ATC (GL_ATC_RGB_AMD)
-        KTX_TF_ATC_RGBA = 12,							// Opaque+alpha, alpha channel will be opaque for opaque .basis files. ATI ATC (GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD) 
+        KTX_TTF_ATC_RGB = 11,							// Opaque, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified. ATI ATC (GL_ATC_RGB_AMD)
+        KTX_TTF_ATC_RGBA = 12,							// Opaque+alpha, alpha channel will be opaque for opaque .basis files. ATI ATC (GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD)
 
         // FXT1 (desktop, Intel devices, this is a super obscure format)
-        KTX_TF_FXT1_RGB = 17,							// Opaque only, uses exclusively CC_MIXED blocks. Notable for having a 8x4 block size. GL_3DFX_texture_compression_FXT1 is supported on Intel integrated GPU's (such as HD 630).
+        KTX_TTF_FXT1_RGB = 17,							// Opaque only, uses exclusively CC_MIXED blocks. Notable for having a 8x4 block size. GL_3DFX_texture_compression_FXT1 is supported on Intel integrated GPU's (such as HD 630).
                                                         // Punch-through alpha is relatively easy to support, but full alpha is harder. This format is only here for completeness so opaque-only is fine for now.
                                                         // See the BASISU_USE_ORIGINAL_3DFX_FXT1_ENCODING macro in basisu_transcoder_internal.h.
 
-        KTX_TF_PVRTC2_4_RGB = 18,					// Opaque-only, almost BC1 quality, much faster to transcode and supports arbitrary texture dimensions (unlike PVRTC1 RGB).
-        KTX_TF_PVRTC2_4_RGBA = 19,					// Opaque+alpha, slower to encode than cTFPVRTC2_4_RGB. Premultiplied alpha is highly recommended, otherwise the color channel can leak into the alpha channel on transparent blocks.
+        KTX_TTF_PVRTC2_4_RGB = 18,					// Opaque-only, almost BC1 quality, much faster to transcode and supports arbitrary texture dimensions (unlike PVRTC1 RGB).
+        KTX_TTF_PVRTC2_4_RGBA = 19,					// Opaque+alpha, slower to encode than cTFPVRTC2_4_RGB. Premultiplied alpha is highly recommended, otherwise the color channel can leak into the alpha channel on transparent blocks.
 
-        KTX_TF_ETC2_EAC_R11 = 20,					// R only (ETC2 EAC R11 unsigned)
-        KTX_TF_ETC2_EAC_RG11 = 21,					// RG only (ETC2 EAC RG11 unsigned), R=opaque.r, G=alpha - for tangent space normal maps
+        KTX_TTF_ETC2_EAC_R11 = 20,					// R only (ETC2 EAC R11 unsigned)
+        KTX_TTF_ETC2_EAC_RG11 = 21,					// RG only (ETC2 EAC RG11 unsigned), R=opaque.r, G=alpha - for tangent space normal maps
         
         // Uncompressed (raw pixel) formats
-        KTX_TF_RGBA32 = 13,							// 32bpp RGBA image stored in raster (not block) order in memory, R is first byte, A is last byte.
-        KTX_TF_RGB565 = 14,							// 166pp RGB image stored in raster (not block) order in memory, R at bit position 11
-        KTX_TF_BGR565 = 15,							// 16bpp RGB image stored in raster (not block) order in memory, R at bit position 0
-        KTX_TF_RGBA4444 = 16,							// 16bpp RGBA image stored in raster (not block) order in memory, R at bit position 12, A at bit position 0
+        KTX_TTF_RGBA32 = 13,							// 32bpp RGBA image stored in raster (not block) order in memory, R is first byte, A is last byte.
+        KTX_TTF_RGB565 = 14,							// 166pp RGB image stored in raster (not block) order in memory, R at bit position 11
+        KTX_TTF_BGR565 = 15,							// 16bpp RGB image stored in raster (not block) order in memory, R at bit position 0
+        KTX_TTF_RGBA4444 = 16,							// 16bpp RGBA image stored in raster (not block) order in memory, R at bit position 12, A at bit position 0
 
-        KTX_TF_TotalTextureFormats = 22,
+        // Values for automatic selection of RGB or RGBA depending if alpha
+        KTX_TTF_ETC2 = 22,
+
+        KTX_TTF_TotalTextureFormats = 23,
 
         // Old enums for compatibility with code compiled against previous versions
-        KTX_TF_ETC1 = KTX_TF_ETC1_RGB,
-        KTX_TF_ETC2 = KTX_TF_ETC2_RGBA,
-        KTX_TF_BC1 = KTX_TF_BC1_RGB,
-        KTX_TF_BC3 = KTX_TF_BC3_RGBA,
-        KTX_TF_BC4 = KTX_TF_BC4_R,
-        KTX_TF_BC5 = KTX_TF_BC5_RG,
-        KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TF_BC7_M6_RGB,
-        KTX_TF_BC7_M5 = KTX_TF_BC7_M5_RGBA,
-        KTX_TF_ASTC_4x4 = KTX_TF_ASTC_4x4_RGBA,
-        KTX_TF_ATC_RGBA_INTERPOLATED_ALPHA = KTX_TF_ATC_RGBA,
+        KTX_TF_ETC1 = KTX_TTF_ETC1_RGB,
+        KTX_TF_ETC2 = KTX_TTF_ETC2_RGBA,
+        KTX_TF_BC1 = KTX_TTF_BC1_RGB,
+        KTX_TF_BC3 = KTX_TTF_BC3_RGBA,
+        KTX_TF_BC4 = KTX_TTF_BC4_R,
+        KTX_TF_BC5 = KTX_TTF_BC5_RG,
+        KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TTF_BC7_M6_RGB,
+        KTX_TF_PVRTC1_4_OPAQUE_ONLY = KTX_TTF_PVRTC1_4_RGB
 } ktx_transcode_fmt_e;
 
 /**
  * @~English
- * @brief Enumerators for guiding transcoding of Basis Universal compressed
- * textures.
+ * @brief Flags guiding transcoding of Basis Universal compressed textures.
  */
 typedef enum ktx_transcode_flag_bits_e {
-    KTX_DF_PVRTC_WRAP_ADDRESSING = 1,
+    KTX_TF_PVRTC_WRAP_ADDRESSING = 1,
         /*!< PVRTC1: texture will use wrap addressing vs. clamp (most PVRTC
              viewer tools assume wrap addressing, so we default to wrap although
              that can cause edge artifacts).
         */
-    KTX_DF_PVRTC_DECODE_TO_NEXT_POW2 = 2,
+    KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 = 2,
         /*!< PVRTC1: decode non-pow2 ETC1S texture level to the next larger
              power of 2 (not implemented yet, but we're going to support it).
              Ignored if the slice's dimensions are already a power of 2.
          */
-    KTX_DF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS = 4,
+    KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS = 4,
         /*!< When decoding to an opaque texture format, if the Basis data has
              alpha, decode the alpha slice instead of the color slice to the
              output texture format. Has no effect if there is no alpha data.
-         */
-    KTX_DF_BC1_FORBID_THREE_COLOR_BLOCKS = 8
-        /*!< Forbid usage of BC1 3 color blocks (we don't support BC1
-             punchthrough alpha yet).
          */
 } ktx_transcode_flag_bits_e;
 typedef ktx_uint32_t ktx_transcode_flags;
@@ -1046,6 +1043,12 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_transcode_fmt_e fmt,
  */
 KTX_APICALL const char* const KTX_APIENTRY
 ktxErrorString(KTX_error_code error);
+
+/*
+ * Returns a string corresponding to a transcode target format.
+ */
+KTX_APICALL const char* const KTX_APIENTRY
+ktxTranscodeFormatString(ktx_transcode_fmt_e format);
 
 KTX_APICALL KTX_error_code KTX_APIENTRY ktxHashList_Create(ktxHashList** ppHl);
 KTX_APICALL KTX_error_code KTX_APIENTRY

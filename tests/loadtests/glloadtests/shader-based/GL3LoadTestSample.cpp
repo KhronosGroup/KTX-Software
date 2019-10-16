@@ -128,14 +128,19 @@ GL3LoadTestSample::makeProgram(GLuint vs, GLuint fs, GLuint* program)
 #if !defined(GL_COMPRESSED_RG_RGTC2)
 #define GL_COMPRESSED_RG_RGTC2              0x8DBD
 #endif
+#if !defined(GL_COMPRESSED_RGBA_BPTC_UNORM)
+#define GL_COMPRESSED_RGBA_BPTC_UNORM       0x8E8C
+#endif
+#if !defined(GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT)
+#define GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT 0x8E8E
+#endif
 
 void
 GL3LoadTestSample::determineCompressedTexFeatures(compressedTexFeatures& features)
 {
     ktx_int32_t numCompressedFormats;
 
-    features.etc1 = features.etc2 = features.bc3 = features.rgtc = false;
-    features.pvrtc1 = features.pvrtc2 = features.pvrtc_srgb = false;
+    memset(&features, false, sizeof(features));
 
     glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &numCompressedFormats);
     GLint* formats = new GLint[numCompressedFormats];
@@ -156,6 +161,12 @@ GL3LoadTestSample::determineCompressedTexFeatures(compressedTexFeatures& feature
             features.pvrtc1 = true;
         if (formats[i] == GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG)
             features.pvrtc2 = true;
+        if (formats[i] == GL_COMPRESSED_RGBA_ASTC_4x4_KHR)
+            features.astc_ldr = true;
+        if (formats[i] == GL_COMPRESSED_RGBA_BPTC_UNORM)
+            features.bc7 = true;
+        if (formats[i] == GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT)
+            features.bc6h = true;
     }
     delete[] formats;
 
@@ -175,6 +186,14 @@ GL3LoadTestSample::determineCompressedTexFeatures(compressedTexFeatures& feature
         features.pvrtc2 = true;
     if (!features.pvrtc_srgb && SDL_GL_ExtensionSupported("GL_EXT_pvrtc_sRGB"))
         features.pvrtc_srgb = true;
+    if (!(features.bc7 && features.bc6h) && SDL_GL_ExtensionSupported("GL_ARB_texture_compression_bptc"))
+        features.bc6h = features.bc7 = true;
+    if (!features.astc_ldr && SDL_GL_ExtensionSupported("GL_KHR_texture_compression_astc_ldr"))
+        features.astc_ldr = true;
+    // The only way to identify this support is the extension string.
+    // The format name is the same.
+    if (SDL_GL_ExtensionSupported("GL_KHR_texture_compression_astc_hdr"))
+        features.astc_hdr = true;
 }
 
 GLint

@@ -102,13 +102,13 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
     // so we can cheat a bit. No need to look at RGTC for 2-components,
     // for example.
     if (features.etc2)
-        tf = KTX_TF_ETC2;
+        tf = KTX_TTF_ETC2_RGBA;
     else if (features.bc3)
-        tf = KTX_TF_BC3;
+        tf = KTX_TTF_BC3_RGBA;
     else if (features.etc1)
-        tf = KTX_TF_ETC1;
+        tf = KTX_TTF_ETC1_RGB;
     else if (features.pvrtc1)
-        tf = KTX_TF_PVRTC1_4_OPAQUE_ONLY;
+        tf = KTX_TTF_PVRTC1_4_RGBA;
     else {
         std::stringstream message;
 
