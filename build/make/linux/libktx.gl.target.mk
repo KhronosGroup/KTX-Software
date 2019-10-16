@@ -55,6 +55,7 @@ INCS_Release := \
 	-I$(VULKAN_SDK)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_astc_decomp.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_backend.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_basis_file.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_comp.o \
@@ -76,7 +77,6 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/dfdutils/interpretdfd.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/printdfd.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/vk2dfd.o \
-	$(obj).target/$(TARGET)/lib/errstr.o \
 	$(obj).target/$(TARGET)/lib/etcdec.o \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \
 	$(obj).target/$(TARGET)/lib/filestream.o \
@@ -84,6 +84,7 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/hashlist.o \
 	$(obj).target/$(TARGET)/lib/info.o \
 	$(obj).target/$(TARGET)/lib/memstream.o \
+	$(obj).target/$(TARGET)/lib/strings.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/texture.o \
 	$(obj).target/$(TARGET)/lib/texture1.o \
