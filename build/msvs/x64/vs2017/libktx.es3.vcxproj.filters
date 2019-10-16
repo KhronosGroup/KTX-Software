@@ -154,6 +154,117 @@
     <Filter Include="lib\basisu">
       <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\basisu\transcoder">
       <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
     </Filter>
@@ -381,6 +492,12 @@
     <ClInclude Include="..\..\..\..\include\ktx.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_astc_decomp.cpp">
+      <Filter>lib\basisu</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_astc_decomp.h">
+      <Filter>lib\basisu</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_backend.cpp">
       <Filter>lib\basisu</Filter>
     </ClCompile>
@@ -468,6 +585,39 @@
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_internal.h">
       <Filter>lib\basisu\transcoder</Filter>
     </ClInclude>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_astc.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_astc_0_255.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_atc_55.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_atc_56.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_alpha.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_color.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m6.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_5.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_6.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_pvrtc2_45.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_pvrtc2_alpha_33.inc">
+      <Filter>lib\basisu\transcoder</Filter>
+    </None>
     <ClInclude Include="..\..\..\..\lib\basis_sgd.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -504,9 +654,6 @@
     <None Include="..\..\..\..\lib\dfdutils\vk2dfd.inl">
       <Filter>lib\dfdutils</Filter>
     </None>
-    <ClCompile Include="..\..\..\..\lib\errstr.c">
-      <Filter>lib</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\etcdec.cxx">
       <Filter>lib</Filter>
     </ClCompile>
@@ -561,6 +708,9 @@
     <ClInclude Include="..\..\..\..\lib\stream.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\strings.c">
+      <Filter>lib</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\swap.c">
       <Filter>lib</Filter>
     </ClCompile>

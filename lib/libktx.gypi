@@ -187,7 +187,10 @@
                     'INSTALL_PATH': '@rpath',
                   }
                 }, 'OS == "win"', {
-                  'defines': [ 'KTX_APICALL=__declspec(dllexport)' ],
+                  'defines': [
+                     'KTX_APICALL=__declspec(dllexport)',
+                     'BASISU_NO_ITERATOR_DEBUG_LEVEL',
+                   ],
                   # The msvs generator automatically sets the needed VCLinker
                   # option when a .def file is seen in sources.
                   'sources': [ 'internalexport.def' ],
@@ -413,6 +416,7 @@
             'KTX_OMIT_VULKAN=1',
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
+            'BASISU_NO_ITERATOR_DEBUG_LEVEL',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -437,6 +441,7 @@
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
+            'BASISU_NO_ITERATOR_DEBUG_LEVEL',
           ],
           'dependencies': [ 'vulkan_headers' ],
           'direct_dependent_settings': {

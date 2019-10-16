@@ -101,17 +101,17 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
     // We know this app is only being used for 3 or 4 component 2D textures
     // so we can cheat a bit. No need to look at RGTC for 2-components,
     // for example.
-    if (features.astc_ldr)
-        tf = KTX_TTF_ASTC_4x4_RGBA;
-    else if (features.etc2)
-        tf = KTX_TTF_ETC2; // Let transcoder decide between RGB or RGBA
-    else if (features.pvrtc1)
-        tf = KTX_TTF_PVRTC1_4_RGBA;
-    else if (features.bc3)
-        tf = KTX_TTF_BC3_RGBA;
-    else if (features.etc1)
-        tf = KTX_TTF_ETC1_RGB;
-    else {
+	if (features.astc_ldr)
+		tf = KTX_TTF_ASTC_4x4_RGBA;
+	else if (features.bc3)
+		tf = KTX_TTF_BC3_RGBA;
+	else if (features.etc2)
+		tf = KTX_TTF_ETC2; // Let transcoder decide between RGB or RGBA
+	else if (features.pvrtc1)
+		tf = KTX_TTF_PVRTC1_4_RGBA;
+	else if (features.etc1)
+		tf = KTX_TTF_ETC1_RGB;
+	else {
         std::stringstream message;
 
         message << "OpenGL implementation does not support any available transcode target.";

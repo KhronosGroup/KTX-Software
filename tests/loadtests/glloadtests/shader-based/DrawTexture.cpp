@@ -106,12 +106,12 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         // for example.
         if (features.astc_ldr)
             tf = KTX_TTF_ASTC_4x4_RGBA;
+        else if (features.bc3)
+            tf = KTX_TTF_BC3_RGBA;
         else if (features.etc2)
             tf = KTX_TTF_ETC2; // Let transcoder decide between RGB or RGBA
         else if (features.pvrtc1)
             tf = KTX_TTF_PVRTC1_4_RGBA;
-        else if (features.bc3)
-            tf = KTX_TTF_BC3_RGBA;
         else if (features.etc1)
             tf = KTX_TTF_ETC1_RGB;
         else {
@@ -191,7 +191,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         } else if (kTexture->isCompressed
                    // Emscripten/WebGL returns INVALID_VALUE for unsupported
                    // ETC formats.
-                   && (glerror == GL_INVALID_ENUM || GL_INVALID_VALUE)) {
+                   && (glerror == GL_INVALID_ENUM || glerror == GL_INVALID_VALUE)) {
              throw unsupported_ctype();
         } else {
              message << std::showbase << "GL error " << std::hex << glerror

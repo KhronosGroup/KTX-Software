@@ -52,7 +52,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -65,7 +65,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -74,7 +74,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -87,7 +87,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,7 +95,7 @@
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -107,7 +107,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -116,7 +116,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -128,10 +128,21 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_astc.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_astc_0_255.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_atc_55.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_atc_56.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_alpha.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_color.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m6.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_5.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_6.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_pvrtc2_45.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_pvrtc2_alpha_33.inc"/>
     <None Include="..\..\..\..\lib\dfdutils\dfd2vk.inl"/>
     <None Include="..\..\..\..\lib\dfdutils\vk2dfd.inl"/>
     <None Include="..\..\..\..\lib\texture_funcs.inl"/>
@@ -141,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_astc_decomp.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_backend.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_basis_file.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_comp.h"/>
@@ -180,6 +192,7 @@
     <ClInclude Include="..\..\..\..\lib\vk_funcs.h"/>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_astc_decomp.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_backend.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_basis_file.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_comp.cpp"/>
@@ -201,7 +214,6 @@
     <ClCompile Include="..\..\..\..\lib\dfdutils\interpretdfd.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\vk2dfd.c"/>
-    <ClCompile Include="..\..\..\..\lib\errstr.c"/>
     <ClCompile Include="..\..\..\..\lib\etcdec.cxx"/>
     <ClCompile Include="..\..\..\..\lib\etcunpack.cxx"/>
     <ClCompile Include="..\..\..\..\lib\filestream.c"/>
@@ -209,6 +221,7 @@
     <ClCompile Include="..\..\..\..\lib\hashlist.c"/>
     <ClCompile Include="..\..\..\..\lib\info.c"/>
     <ClCompile Include="..\..\..\..\lib\memstream.c"/>
+    <ClCompile Include="..\..\..\..\lib\strings.c"/>
     <ClCompile Include="..\..\..\..\lib\swap.c"/>
     <ClCompile Include="..\..\..\..\lib\texture.c"/>
     <ClCompile Include="..\..\..\..\lib\texture1.c"/>
