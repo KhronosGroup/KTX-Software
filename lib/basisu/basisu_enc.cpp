@@ -25,6 +25,14 @@
 #include <windows.h>
 #endif
 
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
 namespace basisu
 {
 	uint64_t interval_timer::g_init_ticks, interval_timer::g_freq;
