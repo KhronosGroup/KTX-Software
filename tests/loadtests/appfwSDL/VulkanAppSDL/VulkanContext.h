@@ -41,6 +41,12 @@ struct VulkanContext {
     vk::Device device;
     vk::CommandPool commandPool;
     vk::Queue queue;
+
+    struct {
+       bool pvrtc = false;
+       bool astc_hdr = false;
+       bool astc_3d = false;
+    } enabledDeviceExtensions;
     std::vector<VkCommandBuffer> drawCmdBuffers;
     std::vector<VkCommandBuffer> postPresentCmdBuffers;
     std::vector<VkCommandBuffer> prePresentCmdBuffers;

@@ -112,11 +112,16 @@ Texture::Texture(VulkanContext& vkctx,
         ktx_transcode_fmt_e tf;
         vk::PhysicalDeviceFeatures deviceFeatures;
         vkctx.gpu.getFeatures(&deviceFeatures);
-        if (deviceFeatures.textureCompressionETC2)
-            tf = KTX_TF_ETC2;
+
+        if (deviceFeatures.textureCompressionASTC_LDR)
+            tf = KTX_TTF_ASTC_4x4_RGBA;
+        else if (deviceFeatures.textureCompressionETC2)
+            tf = KTX_TTF_ETC2;
         else if (deviceFeatures.textureCompressionBC)
-            tf = KTX_TF_BC3;
-        else {
+            tf = KTX_TTF_BC3_RGBA;
+        else if (vkctx.enabledDeviceExtensions.pvrtc) {
+            tf = KTX_TTF_PVRTC2_4_RGBA;
+        } else {
             std::stringstream message;
 
             message << "Vulkan implementation does not support any available transcode target.";
@@ -128,8 +133,7 @@ Texture::Texture(VulkanContext& vkctx,
             std::stringstream message;
 
             message << "Transcoding of ktxTexture2 to "
-                    << (tf == KTX_TF_ETC2 ? "ETC2" : "BC3")
-                    << " failed: "
+                    << ktxTranscodeFormatString(tf) << " failed: "
                     << ktxErrorString(ktxresult);
             throw std::runtime_error(message.str());
         }
@@ -746,7 +750,7 @@ Texture::customizeTitle(const char* const title)
     if (transcoded) {
         this->title = title;
         this->title += " to ";
-        this->title += transcodedFormat == KTX_TF_ETC2 ? "ETC2" : "BC3";
+        this->title += ktxTranscodeFormatString(transcodedFormat);
         return this->title.c_str();
     }
     return title;

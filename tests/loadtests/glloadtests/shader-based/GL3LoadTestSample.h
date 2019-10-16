@@ -51,6 +51,10 @@ class GL3LoadTestSample : public LoadTestSample {
     virtual void viewChanged() { }
 
     struct compressedTexFeatures {
+        bool astc_ldr;
+        bool astc_hdr;
+        bool bc6h;
+        bool bc7;
         bool etc1;
         bool etc2;
         bool bc3;

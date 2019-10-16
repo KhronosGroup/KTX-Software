@@ -733,6 +733,9 @@ VulkanAppSDL::createDevice()
         for (j = 0; j < deviceExtensions.size(); j++) {
             if (!wantedExtensions[i].name.compare(deviceExtensions[j].extensionName)) {
                 extensionsToEnable.push_back(wantedExtensions[i].name.c_str());
+                if (!wantedExtensions[i].name.compare(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME)) {
+                    vkctx.enabledDeviceExtensions.pvrtc = true;
+                }
                 break;
             }
         }
