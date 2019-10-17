@@ -582,10 +582,11 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 std::vector<uint32_t> temp_block_indices(total_slice_blocks);
 
                 // First decode alpha to temp buffer
-                status = llt.transcode_slice(&temp_block_indices, num_blocks_x, num_blocks_y,
+                status = llt.transcode_slice(temp_block_indices.data(),
+                        num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
                         sliceDescs[image].alphaSliceByteLength,
-                        basist::block_format::cIndices, bytes_per_block,
+                        basist::block_format::cIndices, sizeof(uint32_t),
                         true,
                         isVideo, hasAlpha, 0/* level_index*/, width, height );
 
@@ -595,12 +596,13 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                     // we're transcoding to PVRTC1. Since we're using the default, 0,
                     // this is not an issue at present.
                     status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
-                            basisData + levelOffset + sliceByteOffset, sliceByteLength,
+                            basisData + levelOffset + sliceDescs[image].sliceByteOffset,
+                            sliceDescs[image].sliceByteLength,
                             basist::block_format::cPVRTC1_4_RGBA, bytes_per_block,
                             true,
                             isVideo, hasAlpha, 0/* level_index*/, width, height,
                             0 /* row_pitch */, nullptr,
-                            hasAlpha, &temp_block_indices );
+                            hasAlpha, temp_block_indices.data() );
                 }
                 if (!status) {
                      result = KTX_TRANSCODE_FAILED;
@@ -774,11 +776,33 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 #if !BASISD_SUPPORT_ASTC
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
-                status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
-                        basisData + levelOffset + sliceByteOffset, sliceByteLength,
-                        basist::block_format::cASTC_4x4, bytes_per_block,
-                        true,
-                        isVideo, hasAlpha, 0/* level_index*/, width, height );
+                if (hasAlpha) {
+                    // First decode alpha to the output using the output texture
+                    // as a temporary buffer.
+                    status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                            basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
+                            sliceDescs[image].alphaSliceByteLength,
+                            basist::block_format::cIndices, 16,
+                            true,
+                            isVideo, hasAlpha, 0/* level_index*/, width, height );
+                } else {
+                    status = true;
+                }
+                if (status) {
+                    // Now decode the color data and transcode to ASTC. The
+                    // transcoder function will read the alpha selector data
+                    // from the output texture as it converts and transcode
+                    // both the alpha and color data at the same time to
+                    // ASTC. The 2nd hasAlpha tells the transcoder alpha is
+                    // present.
+                    status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                            basisData + levelOffset + sliceDescs[image].sliceByteOffset,
+                            sliceDescs[image].sliceByteLength,
+                            basist::block_format::cASTC_4x4, bytes_per_block,
+                            true,
+                            isVideo, hasAlpha, 0/* level_index*/, width, height,
+                            0 /* row_pitch */, nullptr, hasAlpha);
+                }
                 if (!status) {
                      result = KTX_TRANSCODE_FAILED;
                      goto cleanup;
