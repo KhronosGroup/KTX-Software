@@ -111,7 +111,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         else if (features.etc1)
             tf = KTX_TF_ETC1;
         else if (features.pvrtc1)
-            tf = KTX_TF_PVRTC1_4_OPAQUE_ONLY;
+            tf = KTX_TF_BC7_M6_RGB;
         else {
             std::stringstream message;
 
