@@ -2235,6 +2235,10 @@ namespace basist
 			return;
 		}
 
+		pDst_block->m_selectors[0] = pSelectors_xlat_256[pSelector->m_selectors[0]];
+		pDst_block->m_selectors[1] = pSelectors_xlat_256[pSelector->m_selectors[1]];
+		pDst_block->m_selectors[2] = pSelectors_xlat_256[pSelector->m_selectors[2]];
+		pDst_block->m_selectors[3] = pSelectors_xlat_256[pSelector->m_selectors[3]];
 #endif
 	}
 
