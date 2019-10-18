@@ -96,13 +96,10 @@ const char* const ktxTranscodeFormatString(ktx_transcode_fmt_e format)
         case KTX_TTF_PVRTC1_4_RGB: return "PVRTC1_4_RGB";
         case KTX_TTF_PVRTC1_4_RGBA: return "PVRTC1_4_RGBA";
         case KTX_TTF_ASTC_4x4_RGBA: return "ASTC_4x4_RGBA";
-        case KTX_TTF_ATC_RGB: return "ATC_RGB";
-        case KTX_TTF_ATC_RGBA: return "ATC_RGBA";
         case KTX_TTF_RGBA32: return "RGBA32";
         case KTX_TTF_RGB565: return "RGB565";
         case KTX_TTF_BGR565: return "BGR565";
         case KTX_TTF_RGBA4444: return "RGBA4444";
-        case KTX_TTF_FXT1_RGB: return "FXT1_RGB";
         case KTX_TTF_PVRTC2_4_RGB: return "PVRTC2_4_RGB";
         case KTX_TTF_PVRTC2_4_RGBA: return "PVRTC2_4_RGBA";
         case KTX_TTF_ETC2_EAC_R11: return "ETC2_EAC_R11";

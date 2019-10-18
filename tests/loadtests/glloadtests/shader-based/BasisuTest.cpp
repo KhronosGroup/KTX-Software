@@ -104,7 +104,7 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
 	if (features.astc_ldr)
 		tf = KTX_TTF_ASTC_4x4_RGBA;
 	else if (features.bc3)
-		tf = KTX_TTF_BC3_RGBA;
+		tf = KTX_TTF_BC1_OR_3;
 	else if (features.etc2)
 		tf = KTX_TTF_ETC2; // Let transcoder decide between RGB or RGBA
 	else if (features.pvrtc1)
