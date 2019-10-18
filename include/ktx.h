@@ -974,14 +974,8 @@ typedef enum ktx_transcode_fmt_e {
         // ASTC (mobile, Intel devices, hopefully all desktop GPU's one day)
         KTX_TTF_ASTC_4x4_RGBA = 10,					// Opaque+alpha, ASTC 4x4, alpha channel will be opaque for opaque .basis files. Transcoder uses RGB/RGBA/L/LA modes, void extent, and up to two ([0,47] and [0,255]) endpoint precisions.
 
-        // ATC (mobile, Adreno devices, this is a niche format)
-        KTX_TTF_ATC_RGB = 11,							// Opaque, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified. ATI ATC (GL_ATC_RGB_AMD)
-        KTX_TTF_ATC_RGBA = 12,							// Opaque+alpha, alpha channel will be opaque for opaque .basis files. ATI ATC (GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD)
-
-        // FXT1 (desktop, Intel devices, this is a super obscure format)
-        KTX_TTF_FXT1_RGB = 17,							// Opaque only, uses exclusively CC_MIXED blocks. Notable for having a 8x4 block size. GL_3DFX_texture_compression_FXT1 is supported on Intel integrated GPU's (such as HD 630).
-                                                        // Punch-through alpha is relatively easy to support, but full alpha is harder. This format is only here for completeness so opaque-only is fine for now.
-                                                        // See the BASISU_USE_ORIGINAL_3DFX_FXT1_ENCODING macro in basisu_transcoder_internal.h.
+        // ATC and FXT1 formats are not supported by KTX2 as there
+        // are no equivalent VkFormats.
 
         KTX_TTF_PVRTC2_4_RGB = 18,					// Opaque-only, almost BC1 quality, much faster to transcode and supports arbitrary texture dimensions (unlike PVRTC1 RGB).
         KTX_TTF_PVRTC2_4_RGBA = 19,					// Opaque+alpha, slower to encode than cTFPVRTC2_4_RGB. Premultiplied alpha is highly recommended, otherwise the color channel can leak into the alpha channel on transparent blocks.
@@ -997,6 +991,7 @@ typedef enum ktx_transcode_fmt_e {
 
         // Values for automatic selection of RGB or RGBA depending if alpha
         KTX_TTF_ETC2 = 22,
+        KTX_TTF_BC1_OR_3 = 23,
 
         KTX_TTF_TotalTextureFormats = 23,
 

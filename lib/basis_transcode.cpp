@@ -201,6 +201,8 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
  *
  * KTX_TTF_BC5_RG has two BC4 blocks, one  holding the R data, the other the G data.
  *
+ * ATC & FXT1 formats are not supported by KTX2 as there are no equivalent Vulkan formats.
+ *
  * The following @p transcodeFlags are available.
  *
  * @sa ktxtexture2_CompressBasis().
@@ -337,12 +339,19 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 
     // Do some format mapping.
     switch (outputFormat) {
+      case KTX_TTF_BC1_OR_3:
+        outputFormat = hasAlpha ? KTX_TTF_BC3_RGBA : KTX_TTF_BC1_RGB;
+        break;
       case KTX_TTF_ETC2:
         outputFormat = hasAlpha ? KTX_TTF_ETC2_RGBA : KTX_TTF_ETC1_RGB;
         break;
       case KTX_TTF_PVRTC1_4_RGBA:
         // This transcoder does not write opaque alpha blocks.
         outputFormat = hasAlpha ? KTX_TTF_PVRTC1_4_RGBA : KTX_TTF_PVRTC1_4_RGB;
+        break;
+      case KTX_TTF_PVRTC2_4_RGBA:
+        // This transcoder does not write opaque alpha blocks.
+        outputFormat = hasAlpha ? KTX_TTF_PVRTC2_4_RGBA : KTX_TTF_PVRTC2_4_RGB;
         break;
       default:
         /*NOP*/;
@@ -389,8 +398,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         break;
       case KTX_TTF_PVRTC2_4_RGB:
       case KTX_TTF_PVRTC2_4_RGBA:
-        vkFormat = srgb ? VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG
-                        : VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;
+        vkFormat = srgb ? VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG
+                        : VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;
         break;
       case KTX_TTF_BC7_M6_RGB:
         vkFormat = srgb ? VK_FORMAT_BC7_SRGB_BLOCK
@@ -417,10 +426,6 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         vkFormat = srgb ? VK_FORMAT_R8G8B8A8_SRGB
                         : VK_FORMAT_R8G8B8A8_UNORM;
         break;
-      case KTX_TTF_ATC_RGB:
-      case KTX_TTF_ATC_RGBA:
-      case KTX_TTF_FXT1_RGB:
-        return KTX_UNSUPPORTED_FEATURE;
       default:
         return KTX_INVALID_VALUE;
     }
@@ -563,6 +568,23 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
                         basist::block_format::cPVRTC1_4_RGB, bytes_per_block,
+                        true,
+                        isVideo, hasAlpha, 0/* level_index*/, width, height );
+
+                if (!status) {
+                     result = KTX_TRANSCODE_FAILED;
+                     goto cleanup;
+                }
+                break;
+            }
+            case KTX_TTF_PVRTC2_4_RGB:
+            {
+#if !BASISD_SUPPORT_PVRTC2
+                return KTX_UNSUPPORTED_FEATURE;
+#endif
+                status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                        basisData + levelOffset + sliceByteOffset, sliceByteLength,
+                        basist::block_format::cPVRTC2_4_RGB, bytes_per_block,
                         true,
                         isVideo, hasAlpha, 0/* level_index*/, width, height );
 
@@ -797,7 +819,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                     status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                             basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
                             sliceDescs[image].alphaSliceByteLength,
-                            basist::block_format::cIndices, 16,
+                            basist::block_format::cIndices, bytes_per_block,
                             true,
                             isVideo, hasAlpha, 0/* level_index*/, width, height );
                 } else {
@@ -814,6 +836,39 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                             basisData + levelOffset + sliceDescs[image].sliceByteOffset,
                             sliceDescs[image].sliceByteLength,
                             basist::block_format::cASTC_4x4, bytes_per_block,
+                            true,
+                            isVideo, hasAlpha, 0/* level_index*/, width, height,
+                            0 /* row_pitch */, nullptr, hasAlpha);
+                }
+                if (!status) {
+                     result = KTX_TRANSCODE_FAILED;
+                     goto cleanup;
+                }
+                break;
+            }
+            case KTX_TTF_PVRTC2_4_RGBA:
+            {
+#if !BASISD_SUPPORT_PVRTC2
+                return KTX_UNSUPPORTED_FEATURE;
+#endif
+                if (hasAlpha) {
+                    // As with ASTC, use the output texture as a temporary
+                    // buffer for alpha.
+                    status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                            basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
+                            sliceDescs[image].alphaSliceByteLength,
+                            basist::block_format::cIndices, bytes_per_block,
+                            true,
+                            isVideo, hasAlpha, 0/* level_index*/, width, height );
+                } else {
+                    status = true;
+                }
+                if (status) {
+                    // Now decode the color data and transcode to PVRTC.
+                    status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                            basisData + levelOffset + sliceDescs[image].sliceByteOffset,
+                            sliceDescs[image].sliceByteLength,
+                            basist::block_format::cPVRTC2_4_RGBA, bytes_per_block,
                             true,
                             isVideo, hasAlpha, 0/* level_index*/, width, height,
                             0 /* row_pitch */, nullptr, hasAlpha);
@@ -916,17 +971,10 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 }
                 break;
             }
-            case KTX_TTF_ATC_RGB:
-            case KTX_TTF_ATC_RGBA:
-            case KTX_TTF_FXT1_RGB:
-            case KTX_TTF_PVRTC2_4_RGB:
-            case KTX_TTF_PVRTC2_4_RGBA:
             case KTX_TTF_ETC2_EAC_R11:
             case KTX_TTF_ETC2_EAC_RG11:
-            {
               // TODO: implement
               return KTX_UNSUPPORTED_FEATURE;
-            }
             default:
               return KTX_INVALID_VALUE;
         } // end outputFormat switch

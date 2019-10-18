@@ -118,7 +118,7 @@ Texture::Texture(VulkanContext& vkctx,
         else if (deviceFeatures.textureCompressionETC2)
             tf = KTX_TTF_ETC2;
         else if (deviceFeatures.textureCompressionBC)
-            tf = KTX_TTF_BC3_RGBA;
+            tf = KTX_TTF_BC1_OR_3;
         else if (vkctx.enabledDeviceExtensions.pvrtc) {
             tf = KTX_TTF_PVRTC2_4_RGBA;
         } else {
