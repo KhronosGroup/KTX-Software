@@ -1,13 +1,16 @@
 if(KTX_FEATURE_KTX1)
-    message(SEND_ERROR "KTX_UNITY_LIB does not support KTX_FEATURE_KTX1")
+    message(WARNING "KTX_UNITY_LIB does not support KTX_FEATURE_KTX1")
+    return()
 endif()
 
 if(KTX_FEATURE_UPLOAD)
-    message(SEND_ERROR "KTX_UNITY_LIB does not support KTX_FEATURE_UPLOAD")
+    message(WARNING "KTX_UNITY_LIB does not support KTX_FEATURE_UPLOAD")
+    return()
 endif()
 
 if(KTX_FEATURE_WRITE)
-    message(SEND_ERROR "KTX_UNITY_LIB does not support KTX_FEATURE_WRITE")
+    message(WARNING "KTX_UNITY_LIB does not support KTX_FEATURE_WRITE")
+    return()
 endif()
 
 if(UNITY_PACKAGE_PATH)
@@ -34,18 +37,16 @@ if(UNITY_PACKAGE_PATH)
     endif()
 endif()
 
-set(KTX_UNITY_LIB_SRC
-    unity_wrapper.cpp
-    )
 set(UNITY_TYPE MODULE)
 if(IOS)
     set(UNITY_TYPE STATIC)
 endif()
 
-add_library(ktx_unity ${UNITY_TYPE} ${KTX_UNITY_LIB_SRC} $<TARGET_OBJECTS:objKtxRead> $<TARGET_OBJECTS:objBasisu>)
-
-get_property(objKtxRead_include_dirs TARGET objKtxRead PROPERTY INCLUDE_DIRECTORIES)
-get_property(basisu_include_dirs TARGET objBasisu PROPERTY INCLUDE_DIRECTORIES)
+add_library(ktx_unity ${UNITY_TYPE}
+    $<TARGET_OBJECTS:obj_ktx_cbind>
+    $<TARGET_OBJECTS:objKtxRead>
+    $<TARGET_OBJECTS:objBasisu>
+)
 
 target_include_directories(ktx_unity PUBLIC ${objKtxRead_include_dirs} ${basisu_include_dirs})
 

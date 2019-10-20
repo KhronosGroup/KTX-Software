@@ -228,6 +228,8 @@ target_include_directories(
 
 add_subdirectory(tools)
 
+add_subdirectory(interface/c_binding)
+
 if(KTX_UNITY_LIB)
     add_subdirectory(interface/unity)
 endif()
