@@ -43,6 +43,7 @@ if(IOS)
 endif()
 
 add_library(ktx_unity ${UNITY_TYPE}
+    dummy.c
     $<TARGET_OBJECTS:obj_ktx_cbind>
     $<TARGET_OBJECTS:objKtxRead>
     $<TARGET_OBJECTS:objBasisu>

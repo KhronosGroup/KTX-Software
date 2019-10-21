@@ -1,0 +1,1 @@
+// Xcode does not create binary if there's no direct source file.
