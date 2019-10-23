@@ -507,7 +507,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 
             switch (outputFormat) {
               case KTX_TTF_ETC1_RGB:
-            {
+              {
                 // No need to pass output_row_pitch_in_blocks. It defaults to
                 // num_blocks_x.
                 // No need to pass transcoder state. It will use default state.
@@ -526,9 +526,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_BC1_RGB:
-            {
+              }
+              case KTX_TTF_BC1_RGB:
+              {
 #if !BASISD_SUPPORT_DXT1
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -543,9 +543,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_BC4_R:
-            {
+              }
+              case KTX_TTF_BC4_R:
+              {
 #if !BASISD_SUPPORT_DXT5A
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -559,9 +559,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      return KTX_TRANSCODE_FAILED;
                 }
                 break;
-            }
-            case KTX_TTF_PVRTC1_4_RGB:
-            {
+              }
+              case KTX_TTF_PVRTC1_4_RGB:
+              {
 #if !BASISD_SUPPORT_PVRTC1
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -576,9 +576,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_PVRTC2_4_RGB:
-            {
+              }
+              case KTX_TTF_PVRTC2_4_RGB:
+              {
 #if !BASISD_SUPPORT_PVRTC2
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -593,9 +593,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_PVRTC1_4_RGBA:
-            {
+              }
+              case KTX_TTF_PVRTC1_4_RGBA:
+              {
 #if !BASISD_SUPPORT_PVRTC1
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -631,9 +631,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_BC7_M6_RGB:
-            {
+              }
+              case KTX_TTF_BC7_M6_RGB:
+              {
 #if !BASISD_SUPPORT_BC7
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -648,9 +648,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_BC7_M5_RGBA:
-            {
+              }
+              case KTX_TTF_BC7_M5_RGBA:
+              {
 #if !BASISD_SUPPORT_BC7
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -683,11 +683,10 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-
-            case KTX_TTF_ETC2_RGBA:
-            {
-#if !BASISD_SUPPORT_BC7
+              }
+              case KTX_TTF_ETC2_RGBA:
+              {
+#if !BASISD_SUPPORT_ETC2_EAC_A8
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
                 if (hasAlpha) {
@@ -732,13 +731,10 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_BC3_RGBA:
-            {
-#if !BASISD_SUPPORT_DXT1
-                return KTX_UNSUPPORTED_FEATURE;
-#endif
-#if !BASISD_SUPPORT_DXT5A
+              }
+              case KTX_TTF_BC3_RGBA:
+              {
+#if !BASISD_SUPPORT_DXT1 && !BASISD_SUPPORT_DXT5A
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
                  // First decode the alpha data
@@ -772,9 +768,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_BC5_RG:
-            {
+              }
+              case KTX_TTF_BC5_RG:
+              {
 #if !BASISD_SUPPORT_DXT5A
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -807,9 +803,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_ASTC_4x4_RGBA:
-            {
+              }
+              case KTX_TTF_ASTC_4x4_RGBA:
+              {
 #if !BASISD_SUPPORT_ASTC
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -845,9 +841,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_PVRTC2_4_RGBA:
-            {
+              }
+              case KTX_TTF_PVRTC2_4_RGBA:
+              {
 #if !BASISD_SUPPORT_PVRTC2
                 return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -878,11 +874,11 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_RGB565:
-            {
+              }
+              case KTX_TTF_RGB565:
+              {
 #if !BASISD_SUPPORT_UNCOMPRESSED
-              return KTX_UNSUPPORTED_FEATURE;
+                return KTX_UNSUPPORTED_FEATURE;
 #endif
                 status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
                         basisData + levelOffset + sliceByteOffset, sliceByteLength,
@@ -894,9 +890,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_BGR565:
-            {
+              }
+              case KTX_TTF_BGR565:
+              {
 #if !BASISD_SUPPORT_UNCOMPRESSED
               return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -910,11 +906,11 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_RGBA4444:
-            {
+              }
+              case KTX_TTF_RGBA4444:
+              {
 #if !BASISD_SUPPORT_UNCOMPRESSED
-              return KTX_UNSUPPORTED_FEATURE;
+                return KTX_UNSUPPORTED_FEATURE;
 #endif
                 if(hasAlpha) {
                     status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
@@ -940,9 +936,9 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                      goto cleanup;
                 }
                 break;
-            }
-            case KTX_TTF_RGBA32:
-            {
+              }
+              case KTX_TTF_RGBA32:
+              {
 #if !BASISD_SUPPORT_UNCOMPRESSED
               return KTX_UNSUPPORTED_FEATURE;
 #endif
@@ -972,9 +968,58 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                 break;
             }
             case KTX_TTF_ETC2_EAC_R11:
-            case KTX_TTF_ETC2_EAC_RG11:
-              // TODO: implement
+            {
+#if !BASISD_SUPPORT_ETC2_EAC_RG11
               return KTX_UNSUPPORTED_FEATURE;
+#endif
+              status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                      basisData + levelOffset + sliceByteOffset, sliceByteLength,
+                      basist::block_format::cETC2_EAC_R11, bytes_per_block,
+                      true,
+                      isVideo, hasAlpha, 0/* level_index*/, width, height );
+
+              if (!status) {
+                   result = KTX_TRANSCODE_FAILED;
+                   goto cleanup;
+              }
+              break;
+            }
+            case KTX_TTF_ETC2_EAC_RG11:
+            {
+#if !BASISD_SUPPORT_ETC2_EAC_RG11
+              return KTX_UNSUPPORTED_FEATURE;
+#endif
+              if (hasAlpha) {
+                  // Decode the alpha data to G.
+                  status = llt.transcode_slice(writePtr + 8,
+                          num_blocks_x, num_blocks_y,
+                          basisData + levelOffset + sliceDescs[image].alphaSliceByteOffset,
+                          sliceDescs[image].alphaSliceByteLength,
+                          basist::block_format::cETC2_EAC_R11, bytes_per_block,
+                          true,
+                          isVideo, hasAlpha, 0/* level_index*/, width, height );
+              } else {
+                  basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x,
+                          num_blocks_y, writePtr + 8,
+                          (uint32_t)((This->dataSize - writeOffset) / bytes_per_block),
+                          basist::block_format::cETC2_EAC_R11, bytes_per_block, 0);
+                  status = true;
+              }
+              if (status) {
+                  // Now decode the color data to R.
+                status = llt.transcode_slice(writePtr, num_blocks_x, num_blocks_y,
+                        basisData + levelOffset + sliceDescs[image].sliceByteOffset,
+                        sliceDescs[image].sliceByteLength,
+                        basist::block_format::cETC2_EAC_R11, bytes_per_block,
+                        true,
+                        isVideo, hasAlpha, 0/* level_index*/, width, height );
+              }
+              if (!status) {
+                   result = KTX_TRANSCODE_FAILED;
+                   goto cleanup;
+              }
+              break;
+            }
             default:
               return KTX_INVALID_VALUE;
         } // end outputFormat switch
