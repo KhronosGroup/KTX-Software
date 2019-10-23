@@ -448,7 +448,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
 
     if( outputFormat == KTX_TTF_BC4_R ) {
         // TODO: reomve this HACK. bytes_per_block is 16 here, should be 8.
-        bytes_per_block = basis_get_bytes_per_block(basist::transcoder_texture_format::cTFBC4_R);
+        bytes_per_block = bytes_per_block/2;
         transcodedDataSize = transcodedDataSize/2;
     }
 
