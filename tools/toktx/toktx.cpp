@@ -290,7 +290,7 @@ Create a KTX file from netpbm format files.
         order: +X, -X, +Y, -Y, +Z, -Z.</dd>
     <dt>--levels levels</dt>
     <dd>KTX file is for a mipmap pyramid with @e levels rather than a
-        full pyramid. @e levels must be <= the maximum number of levels
+        full pyramid. @e levels must be &lt;= the maximum number of levels
         determined from the size of the base image. Provide the base level
         image first. This option is mutually exclusive with @b --automipmap
         and @b --mipmap.
@@ -328,7 +328,7 @@ Create a KTX file from netpbm format files.
     <dt>--srgb</dt>
     <dd>Force the created texture to have an srgb transfer function. As with
         @b --linear, use with caution. Like @b --linear, the default color
-        transform of Netpbm images will not be performed./dd>
+        transform of Netpbm images will not be performed.</dd>
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
@@ -491,8 +491,8 @@ usage(const _tstring appName)
         "               specified, the default transform of Netpbm images to sRGB color\n"
         "               space will not be performed.\n"
         "  --srgb       Force the created texture to have an srgb transfer function.\n"
-        "               Ass with --linear, use with caution.  Like @b --linear, the\n"
-        "               default color transform of Netpbm images will not be performed."
+        "               As with --linear, use with caution.  Like @b --linear, the\n"
+        "               default color transform of Netpbm images will not be performed.\n"
         "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp\n"
         "               Supercompress the image data with Basis Universal. Implies --t2.\n"
