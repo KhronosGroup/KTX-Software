@@ -188,20 +188,24 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
  * block-compressed format before they can be uploaded to a GPU via a graphics
  * API.
  *
- * The following transcode targets are available: KTX_TTF_ETC1_RGB, KTX_TTF_BC1_RGB,
- * KTX_TTF_BC4_R, KTX_TTF_PVRTC1_4_OPAQUE_ONLY, KTX_TTF_BC7_M6_RGB,
- * KTX_TTF_ETC2_RGBA, KTX_TTF_BC3_RGBA and KTX_TTF_BC5_RG.
+ * The following block compressed transcode targets are available: @c KTX_TTF_ETC1_RGB,
+ * @c KTX_TTF_ETC2_RGBA, @c KTX_TTF_BC1_RGB, @c KTX_TTF_BC3_RGBA,
+ * @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG, @c KTX_TTF_BC7_M6_RGB,
+ * @c KTX_TTF_BC7_M5_RGBA, @c KTX_TTF_PVRTC1_4_RGB, @c KTX_TTF_PVRTC1_4_RGBA,
+ * @c KTX_TTF_PVRTC2_4_RGB, @c KTX_TTF_PVRTC2_4_RGBA, @c KTX_TTF_ASTC_4x4_RGBA,
+ * @c KTX_TTF_ETC2_EAC_R11, @c KTX_TTF_ETC2_EAC_RG11, KTX_TTF_ETC and
+ * @c KTX_TTF_BC1_OR_3.
  *
- * Note that KTX_TTF_ETC2_RGBA will always transcode to an RGBA texture. If there
- * is no alpha channel in the supercompressed data, alpha will be set to 255
- * (opaque). If you know there is no alpha data then choose KTX_TTF_ETC1. The
- * ETC2 texture will consist of an ETC2_EAC_A8 block followed by an ETC1 block.
- *
- * KTX_TTF_BC3_RGBA has a BC4 alpha block followed by a BC1 RGB block.
- *
- * KTX_TTF_BC5_RG has two BC4 blocks, one  holding the R data, the other the G data.
+ * @c KTX_TTF_ETC automatically selects between @c KTX_TTF_ETC1_RGB and
+ * @c KTX_TTF_ETC2_RGBA according to whether an alpha channel is available. @c KTX_TTF_BC1_OR_3
+ * does likewise between @c KTX_TTF_BC1_RGB and @c KTX_TTF_BC3_RGBA. Note that if
+ * @c KTX_TTF_PVRTC1_4_RGBA or @c KTX_TTF_PVRTC2_4_RGBA is specified and there is no alpha
+ * channel @c KTX_TTF_PVRTC1_4_RGB or @c KTX_TTF_PVRTC2_4_RGB respectively will be selected.
  *
  * ATC & FXT1 formats are not supported by KTX2 as there are no equivalent Vulkan formats.
+ *
+ * The following uncompressed transcode targets are also available: @c KTX_TTF_RGBA32,
+ * @c KTX_TTF_RGB565, KTX_TTF_BGR565 and KTX_TTF_RGBA4444.
  *
  * The following @p transcodeFlags are available.
  *
@@ -367,14 +371,10 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
                         : VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;
         break;
       case KTX_TTF_ETC2_EAC_R11:
-        // TODO: Which is basis doing? Can it do either?
         vkFormat = VK_FORMAT_EAC_R11_UNORM_BLOCK;
-        //vkFormat = VK_FORMAT_EAC_R11_SNORM_BLOCK;
         break;
       case KTX_TTF_ETC2_EAC_RG11:
-        // TODO: Which is basis doing? Can it do either?
         vkFormat = VK_FORMAT_EAC_R11G11_UNORM_BLOCK;
-        //vkFormat = VK_FORMAT_EAC_R11G11_SNORM_BLOCK;
         break;
       case KTX_TTF_BC1_RGB:
         // Transcoding doesn't support BC1 alpha.
