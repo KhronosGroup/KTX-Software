@@ -1038,7 +1038,7 @@ typedef enum ktx_transcode_fmt_e {
               A at bit position 0. */
 
         // Values for automatic selection of RGB or RGBA depending if alpha
-        KTX_TTF_ETC2 = 22,
+        KTX_TTF_ETC = 22,
             /*!< Automatically selects @c KTX_TTF_ETC1_RGB or @c KTX_TTF_ETC2_RGBA
               according to presence of alpha. */
         KTX_TTF_BC1_OR_3 = 23,
@@ -1048,13 +1048,21 @@ typedef enum ktx_transcode_fmt_e {
         // Old enums for compatibility with code compiled against previous
         // versions of libktx.
         KTX_TF_ETC1 = KTX_TTF_ETC1_RGB,
-        KTX_TF_ETC2 = KTX_TTF_ETC2_RGBA,
+            //!< @deprecated. Use #KTX_TTF_ETC1_RGB.
+        KTX_TF_ETC2 = KTX_TTF_ETC,
+            //!< @deprecated. Use #KTX_TTF_ETC.
         KTX_TF_BC1 = KTX_TTF_BC1_RGB,
+            //!< @deprecated. Use #KTX_TTF_BC1_RGB.
         KTX_TF_BC3 = KTX_TTF_BC3_RGBA,
+            //!< @deprecated. Use #KTX_TTF_BC3_RGBA.
         KTX_TF_BC4 = KTX_TTF_BC4_R,
+            //!< @deprecated. Use #KTX_TTF_BC4_R.
         KTX_TF_BC5 = KTX_TTF_BC5_RG,
+            //!< @deprecated. Use #KTX_TTF_BC5_RG.
         KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TTF_BC7_M6_RGB,
+            //!< @deprecated. Use #KTX_TTF_BC7_M6_RGB.
         KTX_TF_PVRTC1_4_OPAQUE_ONLY = KTX_TTF_PVRTC1_4_RGB
+            //!< @deprecated. Use #KTX_TTF_PVRTC1_4_RGB.
 } ktx_transcode_fmt_e;
 
 /**

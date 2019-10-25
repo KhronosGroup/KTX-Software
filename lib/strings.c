@@ -104,7 +104,7 @@ const char* const ktxTranscodeFormatString(ktx_transcode_fmt_e format)
         case KTX_TTF_PVRTC2_4_RGBA: return "PVRTC2_4_RGBA";
         case KTX_TTF_ETC2_EAC_R11: return "ETC2_EAC_R11";
         case KTX_TTF_ETC2_EAC_RG11: return "ETC2_EAC_RG11";
-        case KTX_TTF_ETC2: return "ETC2";
+        case KTX_TTF_ETC: return "ETC";
         case KTX_TTF_BC1_OR_3: return "BC1 or BC3";
         default: return "Unrecognized format";
     }
