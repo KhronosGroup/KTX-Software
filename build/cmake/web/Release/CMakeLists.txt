@@ -41,12 +41,12 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
   "../../../../lib/dfdutils/vk2dfd.c"
-  "../../../../lib/errstr.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
   "../../../../lib/info.c"
   "../../../../lib/memstream.c"
+  "../../../../lib/strings.c"
   "../../../../lib/swap.c"
   "../../../../lib/texture.c"
   "../../../../lib/texture1.c"
@@ -56,6 +56,7 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/writer1.c"
   "../../../../lib/writer2.c")
 list(APPEND libktx_es3__cxx_srcs
+  "../../../../lib/basisu/basisu_astc_decomp.cpp"
   "../../../../lib/basisu/basisu_backend.cpp"
   "../../../../lib/basisu/basisu_basis_file.cpp"
   "../../../../lib/basisu/basisu_comp.cpp"
@@ -75,6 +76,7 @@ list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es3__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/basisu/basisu_astc_decomp.h"
   "../../../../lib/basisu/basisu_backend.h"
   "../../../../lib/basisu/basisu_basis_file.h"
   "../../../../lib/basisu/basisu_comp.h"
@@ -91,6 +93,17 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/basisu/transcoder/basisu_file_headers.h"
   "../../../../lib/basisu/transcoder/basisu_transcoder.h"
   "../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_astc.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_astc_0_255.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_atc_55.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_atc_56.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_alpha.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_color.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m6.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_5.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_6.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc"
+  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "../../../../lib/basis_sgd.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/dfd2vk.inl"
@@ -124,7 +137,7 @@ list(APPEND libktx_es3__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
-set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;KTX_OMIT_VULKAN=1;NDEBUG;")
+set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;KTX_OMIT_VULKAN=1;NDEBUG;")
 set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c99 ")
 set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
 set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g0 ")

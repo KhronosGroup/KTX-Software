@@ -25,6 +25,14 @@
 #include <windows.h>
 #endif
 
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
 namespace basisu
 {
 	uint64_t interval_timer::g_init_ticks, interval_timer::g_freq;
@@ -53,7 +61,6 @@ namespace basisu
 	// Encoder library initialization (just call once at startup)
 	void basisu_encoder_init()
 	{
-		pack_etc1_block_init();
 		basist::basisu_transcoder_init();
 	}
 

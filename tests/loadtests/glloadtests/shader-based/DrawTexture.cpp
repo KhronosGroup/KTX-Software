@@ -104,14 +104,16 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         // We know this app is only being used for 3 or 4 component 2D textures
         // so we can cheat a bit. No need to look at RGTC for 2-components,
         // for example.
-        if (features.etc2)
-            tf = KTX_TF_ETC2;
+        if (features.astc_ldr)
+            tf = KTX_TTF_ASTC_4x4_RGBA;
         else if (features.bc3)
-            tf = KTX_TF_BC3;
-        else if (features.etc1)
-            tf = KTX_TF_ETC1;
+            tf = KTX_TTF_BC1_OR_3;
+        else if (features.etc2)
+            tf = KTX_TTF_ETC; // Let transcoder decide between RGB or RGBA
         else if (features.pvrtc1)
-            tf = KTX_TF_PVRTC1_4_OPAQUE_ONLY;
+            tf = KTX_TTF_PVRTC1_4_RGBA;
+        else if (features.etc1)
+            tf = KTX_TTF_ETC1_RGB;
         else {
             std::stringstream message;
 
@@ -123,7 +125,8 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         if (KTX_SUCCESS != ktxresult) {
             std::stringstream message;
 
-            message << "Transcoding of ktxTexture2 to BC1 failed: "
+            message << "Transcoding of ktxTexture2 to "
+                    << ktxTranscodeFormatString(tf) << " failed: "
                     << ktxErrorString(ktxresult);
             throw std::runtime_error(message.str());
         }
@@ -188,7 +191,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         } else if (kTexture->isCompressed
                    // Emscripten/WebGL returns INVALID_VALUE for unsupported
                    // ETC formats.
-                   && (glerror == GL_INVALID_ENUM || GL_INVALID_VALUE)) {
+                   && (glerror == GL_INVALID_ENUM || glerror == GL_INVALID_VALUE)) {
              throw unsupported_ctype();
         } else {
              message << std::showbase << "GL error " << std::hex << glerror

@@ -9,6 +9,8 @@
     'sources': [
       # .h files are included so they will appear in IDEs' file lists.
       '../include/ktx.h',
+      'basisu/basisu_astc_decomp.cpp',
+      'basisu/basisu_astc_decomp.h',
       'basisu/basisu_backend.cpp',
       'basisu/basisu_backend.h',
       'basisu/basisu_basis_file.cpp',
@@ -38,6 +40,17 @@
       'basisu/transcoder/basisu_transcoder.cpp',
       'basisu/transcoder/basisu_transcoder.h',
       'basisu/transcoder/basisu_transcoder_internal.h',
+      'basisu/transcoder/basisu_transcoder_tables_astc.inc',
+      'basisu/transcoder/basisu_transcoder_tables_astc_0_255.inc',
+      'basisu/transcoder/basisu_transcoder_tables_atc_55.inc',
+      'basisu/transcoder/basisu_transcoder_tables_atc_56.inc',
+      'basisu/transcoder/basisu_transcoder_tables_bc7_m5_alpha.inc',
+      'basisu/transcoder/basisu_transcoder_tables_bc7_m5_color.inc',
+      'basisu/transcoder/basisu_transcoder_tables_bc7_m6.inc',
+      'basisu/transcoder/basisu_transcoder_tables_dxt1_5.inc',
+      'basisu/transcoder/basisu_transcoder_tables_dxt1_6.inc',
+      'basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc',
+      'basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc',
       'basis_sgd.h',
       'basis_encode.cpp',
       'basis_transcode.cpp',
@@ -50,7 +63,6 @@
       'dfdutils/printdfd.c',
       'dfdutils/vk2dfd.c',
       'dfdutils/vk2dfd.inl',
-      'errstr.c',
       'etcdec.cxx',
       'etcunpack.cxx',
       'filestream.c',
@@ -69,6 +81,7 @@
       'memstream.c',
       'memstream.h',
       'stream.h',
+      'strings.c',
       'swap.c',
       'texture.c',
       'texture.h',
@@ -174,7 +187,10 @@
                     'INSTALL_PATH': '@rpath',
                   }
                 }, 'OS == "win"', {
-                  'defines': [ 'KTX_APICALL=__declspec(dllexport)' ],
+                  'defines': [
+                     'KTX_APICALL=__declspec(dllexport)',
+                     'BASISU_NO_ITERATOR_DEBUG_LEVEL',
+                   ],
                   # The msvs generator automatically sets the needed VCLinker
                   # option when a .def file is seen in sources.
                   'sources': [ 'internalexport.def' ],
@@ -400,6 +416,7 @@
             'KTX_OMIT_VULKAN=1',
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
+            'BASISU_NO_ITERATOR_DEBUG_LEVEL',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -424,6 +441,7 @@
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
+            'BASISU_NO_ITERATOR_DEBUG_LEVEL',
           ],
           'dependencies': [ 'vulkan_headers' ],
           'direct_dependent_settings': {

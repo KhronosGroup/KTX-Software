@@ -2116,7 +2116,7 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
         EXPECT_LT(texture->dataSize, dataSize);
         // How else to test the result?
 
-        result = ktxTexture2_TranscodeBasis(texture, KTX_TF_BC1, 0);
+        result = ktxTexture2_TranscodeBasis(texture, KTX_TTF_BC1_RGB, 0);
     }
 }
 

@@ -1,8 +1,6 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
-/* $Id$ */
-
 /*
  * ©2010-2018 The khronos Group, Inc.
  *
@@ -20,10 +18,10 @@
  */
 
 /**
- * @file errstr.c
+ * @file strings.c
  * @~English
  *
- * @brief Function to return a string corresponding to a KTX error code.
+ * @brief Functions to return a string corresponding to various enumerations.
  *
  * @author Mark Callow, HI Corporation
  */
@@ -62,8 +60,8 @@ static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
  * @return pointer to the message string.
  *
  * @internal Use UTF-8 for translated message strings.
- * 
- * @author Mark Callow, HI Corporation
+ *
+ * @author Mark Callow
  */
 const char* const ktxErrorString(KTX_error_code error)
 {
@@ -71,3 +69,44 @@ const char* const ktxErrorString(KTX_error_code error)
         return "Unrecognized error code";
     return errorStrings[error];
 }
+
+/**
+* @~English
+* @brief Return a string corresponding to a transcode format enumeration..
+*
+* @param format    the transcode format for which to return a string
+*
+* @return pointer to the message string.
+*
+* @internal Use UTF-8 for translated message strings.
+*
+* @author Mark Callow
+*/
+const char* const ktxTranscodeFormatString(ktx_transcode_fmt_e format)
+{
+    switch (format) {
+        case KTX_TTF_ETC1_RGB: return "ETC1_RGB";
+        case KTX_TTF_ETC2_RGBA: return "ETC2_RGBA";
+        case KTX_TTF_BC1_RGB: return "BC1_RGB";
+        case KTX_TTF_BC3_RGBA: return "BC3_RGBA";
+        case KTX_TTF_BC4_R: return "BC4_R";
+        case KTX_TTF_BC5_RG: return "BC5_RG";
+        case KTX_TTF_BC7_M6_RGB: return "BC7_M6_RGB";
+        case KTX_TTF_BC7_M5_RGBA: return "BC7_M5_RGBA";
+        case KTX_TTF_PVRTC1_4_RGB: return "PVRTC1_4_RGB";
+        case KTX_TTF_PVRTC1_4_RGBA: return "PVRTC1_4_RGBA";
+        case KTX_TTF_ASTC_4x4_RGBA: return "ASTC_4x4_RGBA";
+        case KTX_TTF_RGBA32: return "RGBA32";
+        case KTX_TTF_RGB565: return "RGB565";
+        case KTX_TTF_BGR565: return "BGR565";
+        case KTX_TTF_RGBA4444: return "RGBA4444";
+        case KTX_TTF_PVRTC2_4_RGB: return "PVRTC2_4_RGB";
+        case KTX_TTF_PVRTC2_4_RGBA: return "PVRTC2_4_RGBA";
+        case KTX_TTF_ETC2_EAC_R11: return "ETC2_EAC_R11";
+        case KTX_TTF_ETC2_EAC_RG11: return "ETC2_EAC_RG11";
+        case KTX_TTF_ETC: return "ETC";
+        case KTX_TTF_BC1_OR_3: return "BC1 or BC3";
+        default: return "Unrecognized format";
+    }
+}
+

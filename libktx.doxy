@@ -766,7 +766,7 @@ INPUT                  = LICENSE.md \
                          include \
                          lib/basis_encode.cpp \
                          lib/basis_transcode.cpp \
-                         lib/errstr.c \
+                         lib/strings.c \
                          lib/mainpage.md \
                          lib/glloader.c \
                          lib/hashlist.c \

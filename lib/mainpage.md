@@ -291,9 +291,9 @@ if (texture->classId == ktxTexture2_c
     vk::PhysicalDeviceFeatures deviceFeatures;
     vkctx.gpu.getFeatures(&deviceFeatures);
     if (deviceFeatures.textureCompressionETC2)
-        tf = KTX_TF_ETC2;
+        tf = KTX_TTF_ETC2_RGBA;
     else if (deviceFeatures.textureCompressionBC)
-        tf = KTX_TF_BC3;
+        tf = KTX_TTF_BC3_RGBA;
     else {
         message << "Vulkan implementation does not support any available transcode target.";
         throw std::runtime_error(message.str());
