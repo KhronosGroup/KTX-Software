@@ -255,10 +255,10 @@ if(NOT IOS AND NOT ANDROID)
 endif()
 
 list(APPEND mkvkformatfiles_input
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/vulkan/vulkan_core.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/mkvkformatfiles")
+    "lib/dfdutils/vulkan/vulkan_core.h"
+    "lib/mkvkformatfiles")
 list(APPEND mkvkformatfiles_output
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_enum.h"
+    "lib/vkformat_enum.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_check.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_str.c")
 
@@ -278,10 +278,10 @@ add_custom_target(mkvkformatfiles
 
 
 list(APPEND makevkswitch_input
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_enum.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/makevkswitch.pl")
+    "lib/vkformat_enum.h"
+    "lib/dfdutils/makevkswitch.pl")
 set(makevkswitch_output
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
+    "lib/dfdutils/vk2dfd.inl")
 add_custom_command(
     OUTPUT ${makevkswitch_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
@@ -298,10 +298,10 @@ add_custom_target(makevkswitch
 
 
 list(APPEND makedfd2vk_input
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_enum.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/makedfd2vk.pl")
+    "lib/vkformat_enum.h"
+    "lib/dfdutils/makedfd2vk.pl")
 list(APPEND makedfd2vk_output
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
+    "lib/dfdutils/dfd2vk.inl")
 
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
@@ -331,5 +331,5 @@ add_dependencies(mkvk
     makedfd2vk
 )
 
-add_dependencies(ktx mkvk)
+add_dependencies(objKtxWrite mkvk)
 
