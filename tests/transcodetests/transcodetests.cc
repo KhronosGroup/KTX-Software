@@ -35,79 +35,52 @@ namespace {
 typedef struct {
     string ktxPath;
     string basisuPath;
+    bool isPo2;
+    bool hasAlpha;
 } TextureSet;
 
+typedef struct {
+    ktx_transcode_fmt_e format;
+    bool supportsNonPo2;
+    bool supportsNonAlpha;
+} FormatFeature;
+
 vector<TextureSet> allTextureSets = {
-    {"color_grid_basis.ktx2","color_grid.basis"}
+    {"color_grid_basis.ktx2","color_grid.basis",true,false},
+    {"kodim17_basis.ktx2","kodim17.basis",false,false}
 };
 
-vector<TextureSet> nonPo2TextureSets = {
-    {"kodim17_basis.ktx2","kodim17.basis"}
-};
-
-vector<ktx_transcode_fmt_e> allFormats = {
-    KTX_TTF_ETC1_RGB,
-    KTX_TTF_ETC2_RGBA,
-    KTX_TTF_BC1_RGB,
-    KTX_TTF_BC3_RGBA,
-    KTX_TTF_BC4_R,
-    KTX_TTF_BC5_RG,
-    KTX_TTF_BC7_M6_RGB,
-    KTX_TTF_BC7_M5_RGBA,
-    KTX_TTF_PVRTC1_4_RGB,
-    KTX_TTF_PVRTC1_4_RGBA,
-    KTX_TTF_ASTC_4x4_RGBA,
-    KTX_TTF_PVRTC2_4_RGB,
-    KTX_TTF_PVRTC2_4_RGBA,
-    KTX_TTF_ETC2_EAC_R11,
-    KTX_TTF_ETC2_EAC_RG11,
-    KTX_TTF_RGBA32,
-    KTX_TTF_RGB565,
-    KTX_TTF_BGR565,
-    KTX_TTF_RGBA4444
-    // ATC and FXT1 formats are not supported by KTX2 as there
-    // are no equivalent VkFormats.
-};
-
-vector<ktx_transcode_fmt_e> nonPo2Formats = {
-    KTX_TTF_ETC1_RGB,
-    KTX_TTF_ETC2_RGBA,
-    KTX_TTF_BC1_RGB,
-    KTX_TTF_BC3_RGBA,
-    KTX_TTF_BC4_R,
-    KTX_TTF_BC5_RG,
-    KTX_TTF_BC7_M6_RGB,
-    KTX_TTF_BC7_M5_RGBA,
-    KTX_TTF_ASTC_4x4_RGBA,
-    KTX_TTF_PVRTC2_4_RGB,
-    KTX_TTF_PVRTC2_4_RGBA,
-    KTX_TTF_ETC2_EAC_R11,
-    KTX_TTF_ETC2_EAC_RG11,
-    KTX_TTF_RGBA32,
-    KTX_TTF_RGB565,
-    KTX_TTF_BGR565,
-    KTX_TTF_RGBA4444,
-
-    // Don't support non power of two sizes (yet).
-    KTX_TTF_PVRTC1_4_RGB,
-    KTX_TTF_PVRTC1_4_RGBA
-
+vector<FormatFeature> allFormats = {
+    {KTX_TTF_ETC1_RGB,true,true},
+    {KTX_TTF_ETC2_RGBA,true,true},
+    {KTX_TTF_BC1_RGB,true,true},
+    {KTX_TTF_BC3_RGBA,true,true},
+    {KTX_TTF_BC4_R,true,true},
+    {KTX_TTF_BC5_RG,true,true},
+    {KTX_TTF_BC7_M6_RGB,true,true},
+    {KTX_TTF_BC7_M5_RGBA,true,true},
+    {KTX_TTF_PVRTC1_4_RGB,false,true},
+    {KTX_TTF_PVRTC1_4_RGBA,false,false},
+    {KTX_TTF_ASTC_4x4_RGBA,true,true},
+    {KTX_TTF_PVRTC2_4_RGB,true,true},
+    {KTX_TTF_PVRTC2_4_RGBA,true,true},
+    // {KTX_TTF_ETC2_EAC_R11,true,true},
+    {KTX_TTF_ETC2_EAC_RG11,true,true},
+    {KTX_TTF_RGBA32,true,true},
+    {KTX_TTF_RGB565,true,true},
+    {KTX_TTF_BGR565,true,true},
+    {KTX_TTF_RGBA4444,true,true}
     // ATC and FXT1 formats are not supported by KTX2 as there
     // are no equivalent VkFormats.
 };
 
 class TextureCombinationsTest :
-    public ::testing::TestWithParam<tuple<TextureSet,ktx_transcode_fmt_e>> {};
+    public ::testing::TestWithParam<tuple<TextureSet,FormatFeature>> {};
 
 INSTANTIATE_TEST_CASE_P(AllCombinations,
                         TextureCombinationsTest,
                         ::testing::Combine(::testing::ValuesIn(allTextureSets),
                                            ::testing::ValuesIn(allFormats)));
-
-INSTANTIATE_TEST_CASE_P(Po2Componations,
-                        TextureCombinationsTest,
-                        ::testing::Combine(::testing::ValuesIn(nonPo2TextureSets),
-                                           ::testing::ValuesIn(nonPo2Formats)));
 
 bool read_file( string path, void** data, long *fsize ) {
     FILE *f = fopen(path.data(),"rb");
@@ -121,7 +94,11 @@ bool read_file( string path, void** data, long *fsize ) {
     return true;
 }
 
-void test_texture_set( TextureSet & textureSet, ktx_transcode_fmt_e format ) {
+bool isPo2(uint32_t i) {
+    return (i&(i-1))==0;
+}
+
+void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     void * basisData;
     long basisSize;
@@ -137,10 +114,23 @@ void test_texture_set( TextureSet & textureSet, ktx_transcode_fmt_e format ) {
     uint32_t bWidth = basisu.getImageWidth(0,0);
     uint32_t bHeight = basisu.getImageHeight(0,0);
 
-    uint32_t finalSize = basisu.getImageTranscodedSizeInBytes(0,0,format);
+    bool hasAlpha = basisu.getHasAlpha();
+
+    ASSERT_EQ(hasAlpha,textureSet.hasAlpha);
+
+    if( !hasAlpha && !format.supportsNonAlpha ) {
+        return;
+    }
+
+    if(!(isPo2(bWidth) && isPo2(bHeight))
+        && !format.supportsNonPo2 ) {
+        return;
+    }
+
+    uint32_t finalSize = basisu.getImageTranscodedSizeInBytes(0,0,format.format);
     ktx_uint8_t* basisTranscodedData = (ktx_uint8_t*) malloc(finalSize);
     basisu.startTranscoding();
-    uint32_t bRes = basisu.transcodeImage((void*)basisTranscodedData,finalSize,0,0,format,0,0);
+    uint32_t bRes = basisu.transcodeImage((void*)basisTranscodedData,finalSize,0,0,format.format,0,0);
 
     ASSERT_TRUE(bRes);
 
@@ -169,10 +159,10 @@ void test_texture_set( TextureSet & textureSet, ktx_transcode_fmt_e format ) {
 
     result = ktxTexture2_TranscodeBasis(
                                         newTex,
-                                        format,
+                                        format.format,
                                         0
                                         );
-    ASSERT_EQ(result,KTX_SUCCESS) << "Format " << format;
+    ASSERT_EQ(result,KTX_SUCCESS) << "Format " << format.format;
 
     EXPECT_EQ(bWidth,newTex->baseWidth);
     EXPECT_EQ(bHeight,newTex->baseHeight);
@@ -190,9 +180,9 @@ void test_texture_set( TextureSet & textureSet, ktx_transcode_fmt_e format ) {
 
 TEST_P(TextureCombinationsTest, Basic) {
     TextureSet ts = get<0>(GetParam());
-    ktx_transcode_fmt_e format = get<1>(GetParam());
+    FormatFeature format = get<1>(GetParam());
     cout << "txt: " << ts.ktxPath
-            << " format: " << format << "\n";
+            << " format: " << format.format << "\n";
     test_texture_set(ts,format);
 }
 }  // namespace
