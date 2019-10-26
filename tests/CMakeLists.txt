@@ -10,6 +10,8 @@ enable_testing()
 
 get_property(objKtxRead_include_dirs TARGET objKtxRead PROPERTY INCLUDE_DIRECTORIES)
 
+add_subdirectory(transcodetests)
+
 if(NOT KTX_FEATURE_KTX1)
     message(WARNING "KTX_FEATURE_KTX1 is not set -> disabling tests")
     return()

@@ -359,6 +359,8 @@ target_include_directories(
     utils
     )
 
+add_subdirectory(interface/c_binding)
+
 if(NOT IOS AND NOT ANDROID)
     add_subdirectory(tools)
     add_subdirectory(tests)
