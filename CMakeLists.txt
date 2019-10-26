@@ -316,6 +316,7 @@ target_include_directories(
 )
 
 set(CMAKE_CXX_FLAGS -std=c++11)
+set(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 -O2 -flto")
 set(CMAKE_CXX_STANDARD 11)
 
 target_compile_definitions(
