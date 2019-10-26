@@ -1,0 +1,32 @@
+name: build_and_test
+
+on:
+  push:
+    branches:
+      - cmake
+
+jobs:
+  mac:
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        lfs: true
+    - name: install_dependencies
+      run: |
+        brew install SDL2
+        wget -q https://sdk.lunarg.com/sdk/download/1.1.121.1/mac/vulkan-sdk.tar.gz
+        tar -xzf vulkan-sdk.tar.gz
+        cd vulkansdk-macos-1.1.121.1
+        ./install_vulkan.py
+    - name: configure_mac
+      run: cmake . -Bbuild_mac -DCMAKE_BUILD_TYPE=Release  -DVULKAN_SDK="vulkansdk-macos-1.1.121.1/macOS"
+    - name: build_mac
+      run: cmake --build build_mac
+    - name: test_mac
+      run: cmake --build build_mac --target test
+    # - uses: actions/upload-artifact@master
+    #   with:
+    #     name: ktx_mac
+    #     path: build_mac/libktx.dylib
