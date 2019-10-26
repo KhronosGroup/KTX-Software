@@ -143,8 +143,6 @@ set(KTX_LIB_READ_SRC
     lib/dfdutils/vk2dfd.c
 
     lib/dfdutils/dfd2vk.inl
-
-    #lib/sgd_helper.cpp
     )
 
 set(BASISU_SRC
