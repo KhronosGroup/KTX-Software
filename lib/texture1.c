@@ -1302,6 +1302,8 @@ struct ktxTexture_vtblInt ktxTexture1_vtblInt = {
     (PFNCALCLEVELOFFSET)ktxTexture1_calcLevelOffset
 };
 
+#ifdef KTX_FEATURE_UPLOAD
+
 struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXDESTROY)ktxTexture1_Destroy,
     (PFNKTEXGETIMAGEOFFSET)ktxTexture1_GetImageOffset,
@@ -1315,6 +1317,8 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXWRITETONAMEDFILE)ktxTexture1_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture1_WriteToMemory,
 };
+
+#endif
 
 /** @} */
 
