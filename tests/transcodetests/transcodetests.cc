@@ -47,7 +47,8 @@ typedef struct {
 
 vector<TextureSet> allTextureSets = {
     {"color_grid_basis.ktx2","color_grid.basis",true,false},
-    {"kodim17_basis.ktx2","kodim17.basis",false,false}
+    {"kodim17_basis.ktx2","kodim17.basis",false,false},
+    {"alpha_simple_basis.ktx2","alpha_simple.basis",true,true}
 };
 
 vector<FormatFeature> allFormats = {
