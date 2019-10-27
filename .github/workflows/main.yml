@@ -13,15 +13,18 @@ jobs:
     - uses: actions/checkout@v1
       with:
         lfs: true
-    - name: install_dependencies
+    - name: install_sdl2
       run: |
-        brew install SDL2
-        wget -q https://sdk.lunarg.com/sdk/download/1.1.121.1/mac/vulkan-sdk.tar.gz
-        tar -xzf vulkan-sdk.tar.gz
-        cd vulkansdk-macos-1.1.121.1
-        ./install_vulkan.py
+        if [ ! -f /usr/local/lib/cmake/SDL2/sdl2-config.cmake ]; then echo "Installing SDL2"; brew install SDL2; echo "Installed SDL2"; else echo "SDL2 already installed"; fi
+    - name: install_vulkan_sdk
+      env:
+        VULKAN_VERSION: "1.1.121.1"
+      run: |
+        if [ ! -f /usr/local/lib/libvulkan.dylib ]; then echo "Installing Vulkan SDK"; rm -f "vulkan-sdk-${VULKAN_VERSION}.tar.gz" ; wget -q -O "vulkan-sdk-${VULKAN_VERSION}.tar.gz" "https://sdk.lunarg.com/sdk/download/${VULKAN_VERSION}/mac/vulkan-sdk.tar.gz"; tar -xzf "vulkan-sdk-${VULKAN_VERSION}.tar.gz"; cd "vulkansdk-macos-${VULKAN_VERSION}"; ./install_vulkan.py; else echo "Vulkan SDK already installed"; fi
     - name: configure_mac
-      run: cmake . -Bbuild_mac -DCMAKE_BUILD_TYPE=Release  -DVULKAN_SDK="vulkansdk-macos-1.1.121.1/macOS"
+      env:
+        VULKAN_VERSION: "1.1.121.1"
+      run: cmake . -Bbuild_mac -DCMAKE_BUILD_TYPE=Release  -DVULKAN_SDK="vulkansdk-macos-${VULKAN_VERSION}/macOS"
     - name: build_mac
       run: cmake --build build_mac
     - name: test_mac
