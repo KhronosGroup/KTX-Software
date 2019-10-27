@@ -1,3 +1,8 @@
+if(EMSCRIPTEN)
+    message(STATUS "Tests don't work with emscripten -> skipping tests")
+    return()
+endif()
+
 add_subdirectory(gtest)
 enable_testing()
 
