@@ -315,8 +315,10 @@ target_include_directories(
     other_include
 )
 
-set(CMAKE_CXX_FLAGS -std=c++11)
-set(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 -O2 -flto")
+set(CMAKE_C_FLAGS "-fPIC")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O2 -flto")
+set(CMAKE_CXX_FLAGS "-std=c++11 -fPIC")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O2 -flto")
 set(CMAKE_CXX_STANDARD 11)
 
 target_compile_definitions(
