@@ -1302,10 +1302,10 @@ struct ktxTexture_vtblInt ktxTexture1_vtblInt = {
     (PFNCALCLEVELOFFSET)ktxTexture1_calcLevelOffset
 };
 
-#ifdef KTX_FEATURE_UPLOAD
 
 struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXDESTROY)ktxTexture1_Destroy,
+#ifdef KTX_FEATURE_UPLOAD
     (PFNKTEXGETIMAGEOFFSET)ktxTexture1_GetImageOffset,
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
@@ -1316,9 +1316,21 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXWRITETOSTDIOSTREAM)ktxTexture1_WriteToStdioStream,
     (PFNKTEXWRITETONAMEDFILE)ktxTexture1_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture1_WriteToMemory,
+#else
+    (PFNKTEXGETIMAGEOFFSET)NULL,
+    (PFNKTEXGETIMAGESIZE)NULL,
+    (PFNKTEXGLUPLOAD)NULL,
+    (PFNKTEXITERATELEVELS)NULL,
+    (PFNKTEXITERATELOADLEVELFACES)NULL,
+    (PFNKTEXLOADIMAGEDATA)NULL,
+    (PFNKTEXSETIMAGEFROMMEMORY)NULL,
+    (PFNKTEXSETIMAGEFROMSTDIOSTREAM)NULL,
+    (PFNKTEXWRITETOSTDIOSTREAM)NULL,
+    (PFNKTEXWRITETONAMEDFILE)NULL,
+    (PFNKTEXWRITETOMEMORY)NULL,
+#endif
 };
 
-#endif
 
 /** @} */
 
