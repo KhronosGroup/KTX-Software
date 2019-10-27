@@ -51,14 +51,25 @@ list(APPEND mkvkformatfiles_output
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_check.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_str.c")
 
-add_custom_command(OUTPUT ${mkvkformatfiles_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib
-    COMMAND VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib
-    DEPENDS ${mkvkformatfiles_input}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT Generating VkFormat-related source files
-    VERBATIM
-)
+if(WIN32)
+    add_custom_command(OUTPUT ${mkvkformatfiles_output}
+        COMMAND ${CMAKE_COMMAND} -E make_directory lib
+        COMMAND set VULKAN_SDK=${VULKAN_SDK} & lib/mkvkformatfiles lib
+        DEPENDS ${mkvkformatfiles_input}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT Generating VkFormat-related source files
+        VERBATIM
+    )
+else()
+    add_custom_command(OUTPUT ${mkvkformatfiles_output}
+        COMMAND ${CMAKE_COMMAND} -E make_directory lib
+        COMMAND VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib
+        DEPENDS ${mkvkformatfiles_input}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT Generating VkFormat-related source files
+        VERBATIM
+    )
+endif()
 
 add_custom_target(mkvkformatfiles
     DEPENDS ${mkvkformatfiles_output}
@@ -74,7 +85,7 @@ set(makevkswitch_output
 add_custom_command(
     OUTPUT ${makevkswitch_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+    COMMAND perl lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
     DEPENDS ${makevkswitch_input}
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     COMMENT Generating VkFormat/DFD switch body
