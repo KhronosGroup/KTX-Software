@@ -170,7 +170,10 @@
                         },
                       }, {
                         'xcode_settings': {
-                          'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path' ],
+                          'LD_RUNPATH_SEARCH_PATHS': [
+                            '@executable_path',
+                            '/usr/local/lib',
+                          ],
                         },
                       }], # _mac_bundle == 1
                     ], # target_conditions
