@@ -326,11 +326,21 @@ target_include_directories(
     other_include
 )
 
-set(CMAKE_C_FLAGS "-fPIC")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O2 -flto")
-set(CMAKE_CXX_FLAGS "-std=c++11 -fPIC")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O2 -flto")
+set(CMAKE_C_FLAGS "")
+set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_STANDARD 11)
+
+if(MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Gz")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gz")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /O2")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /O2")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O2 -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O2 -flto")
+endif()
 
 target_compile_definitions(
     objKtxRead
