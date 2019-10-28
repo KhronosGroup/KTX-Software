@@ -22,6 +22,7 @@ target_link_libraries(
     transcodetests
     gtest
     ktx
+    ${CMAKE_THREAD_LIBS_INIT}
     )
 
 add_test( NAME transcodetests COMMAND transcodetests "${PROJECT_SOURCE_DIR}/tests/testimages/" )
