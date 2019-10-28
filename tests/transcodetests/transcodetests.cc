@@ -23,6 +23,7 @@ extern "C" {
 }
 #include "gtest/gtest.h"
 #include <vector>
+#include <cstring>
 
 #include "basisu_c_binding.h"
 
