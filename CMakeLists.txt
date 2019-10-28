@@ -41,6 +41,11 @@ endif()
 
 set( VULKAN_SDK "" CACHE PATH "Path to Vulkan SDK")
 
+set(bitness 64)
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
+	set(bitness 32)
+endif()
+
 # Begin auto-generated code
 
 list(APPEND mkvkformatfiles_input
@@ -326,8 +331,7 @@ target_include_directories(
     other_include
 )
 
-set(CMAKE_C_FLAGS "")
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_STANDARD 11)
 
 if(MSVC)

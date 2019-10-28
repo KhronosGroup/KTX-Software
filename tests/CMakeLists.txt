@@ -3,6 +3,8 @@ if(EMSCRIPTEN)
     return()
 endif()
 
+find_package (Threads)
+
 add_subdirectory(gtest)
 enable_testing()
 
@@ -45,6 +47,7 @@ target_link_libraries(
     unittests
     gtest
     ktx
+    ${CMAKE_THREAD_LIBS_INIT}
     )
 
 
@@ -68,6 +71,7 @@ target_link_libraries(
     ${OPENGL_LIBRARIES}
     gtest
     ktx
+    ${CMAKE_THREAD_LIBS_INIT}
     )
 
 add_subdirectory(loadtests)
