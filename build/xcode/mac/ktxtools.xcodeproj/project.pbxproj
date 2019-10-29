@@ -1083,7 +1083,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx2ktx2;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1167,7 +1170,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx2check;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1201,7 +1207,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktxinfo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1239,7 +1248,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx2ktx2;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1344,7 +1356,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktxinfo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1375,7 +1390,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = toktx;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1409,7 +1427,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = toktx;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1564,7 +1585,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktxsc;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1618,7 +1642,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx2check;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1673,7 +1700,10 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path",
+					/usr/local/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktxsc;
 				PROVISIONING_PROFILE_SPECIFIER = "";
