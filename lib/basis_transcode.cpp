@@ -453,7 +453,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     }
 
     ktx_uint8_t* basisData = This->pData;
-    This->pData = new uint8_t[transcodedDataSize];
+    This->pData = (uint8_t*) malloc(transcodedDataSize);
     This->dataSize = transcodedDataSize;
 
     // Finally we're ready to transcode the slices.
