@@ -413,7 +413,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
     }
 
-    delete(This->pData); // No longer needed. Reduce memory footprint.
+    free(This->pData); // No longer needed. Reduce memory footprint.
     This->pData = NULL;
     This->dataSize = 0;
 
@@ -688,7 +688,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         return result;
     }
 
-    uint8_t* new_data = new uint8_t[image_data_size];
+    uint8_t* new_data = (uint8_t*) malloc(image_data_size);
     if (!new_data)
         return KTX_OUT_OF_MEMORY;
 
