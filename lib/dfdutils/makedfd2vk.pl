@@ -421,7 +421,7 @@ $compressedDecode = << 'END_COMPRESSED';
     }
   case KHR_DF_MODEL_ASTC:
     if (!(KHR_DFDSVAL(bdb, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT)) {
-      if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 1) {
+      if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 0) {
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
           if (KHR_DFDVAL(bdb, TRANSFER) != KHR_DF_TRANSFER_SRGB) {
@@ -606,7 +606,7 @@ $compressedDecode = << 'END_COMPRESSED';
         }
       }
     } else {
-      if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 1) {
+      if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION2) == 0) {
         if ((KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) &&
             (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) == 3)) {
           return VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT;
