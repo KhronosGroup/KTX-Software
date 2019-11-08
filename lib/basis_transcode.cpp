@@ -351,7 +351,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         break;
       case KTX_TTF_PVRTC1_4_RGBA:
         // This transcoder does not write opaque alpha blocks.
-        outputFormat = !hasAlpha ? KTX_TTF_PVRTC1_4_RGBA : KTX_TTF_PVRTC1_4_RGB;
+        outputFormat = hasAlpha ? KTX_TTF_PVRTC1_4_RGBA : KTX_TTF_PVRTC1_4_RGB;
         break;
       case KTX_TTF_PVRTC2_4_RGBA:
         // This transcoder does not write opaque alpha blocks.
@@ -453,7 +453,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     }
 
     ktx_uint8_t* basisData = This->pData;
-    This->pData = new uint8_t[transcodedDataSize];
+    This->pData = (uint8_t*) malloc(transcodedDataSize);
     This->dataSize = transcodedDataSize;
 
     // Finally we're ready to transcode the slices.
