@@ -174,7 +174,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     ASSERT_EQ(cmp,0);
 
-    ktxTexture_Destroy((ktxTexture*)newTex);
+    ktxTexture_Destroy(ktxTexture(newTex));
 
     free(data);
     free(basisTranscodedData);
