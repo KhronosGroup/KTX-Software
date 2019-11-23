@@ -25,7 +25,7 @@ class basis_file
     int m_magic = 0;
     basisu_transcoder m_transcoder;
     const uint8_t *m_file;
-    size_t byteLength;
+    uint32_t byteLength;
     
 public:
     basis_file()
@@ -33,7 +33,7 @@ public:
     m_transcoder(g_pGlobal_codebook)
     {}
     
-    bool open(const uint8_t *buffer, size_t newByteLength);
+    bool open(const uint8_t *buffer, uint32_t newByteLength);
     void close();
     uint32_t getHasAlpha();
     uint32_t getNumImages();
@@ -42,5 +42,5 @@ public:
     uint32_t getImageHeight(uint32_t image_index, uint32_t level_index);
     uint32_t getImageTranscodedSizeInBytes(uint32_t image_index, uint32_t level_index, uint32_t format);
     uint32_t startTranscoding();
-    uint32_t transcodeImage(void* dst, size_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);
+    uint32_t transcodeImage(void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);
 };
