@@ -29,7 +29,7 @@ basist::etc1_global_selector_codebook *g_pGlobal_codebook;
 
 #define MAGIC 0xDEADBEE1
 
-bool basis_file::open(const uint8_t *buffer, size_t newByteLength) {
+bool basis_file::open(const uint8_t *buffer, uint32_t newByteLength) {
     m_file = buffer;
     byteLength = newByteLength;
 
@@ -88,7 +88,10 @@ uint32_t basis_file::getImageWidth(uint32_t image_index, uint32_t level_index) {
         return 0;
     
     uint32_t orig_width, orig_height, total_blocks;
-    if (!m_transcoder.get_image_level_desc(m_file, byteLength, image_index, level_index, orig_width, orig_height, total_blocks))
+    if (!m_transcoder.get_image_level_desc(m_file, byteLength,
+                                           image_index, level_index,
+                                           orig_width, orig_height,
+                                           total_blocks))
         return 0;
     
     return orig_width;
@@ -100,7 +103,10 @@ uint32_t basis_file::getImageHeight(uint32_t image_index, uint32_t level_index) 
         return 0;
     
     uint32_t orig_width, orig_height, total_blocks;
-    if (!m_transcoder.get_image_level_desc(m_file, byteLength, image_index, level_index, orig_width, orig_height, total_blocks))
+    if (!m_transcoder.get_image_level_desc(m_file, byteLength,
+                                           image_index, level_index,
+                                           orig_width, orig_height,
+                                           total_blocks))
         return 0;
     
     return orig_height;
@@ -115,7 +121,9 @@ uint32_t basis_file::getImageTranscodedSizeInBytes(uint32_t image_index, uint32_
         return 0;
     
     uint32_t orig_width, orig_height, total_blocks;
-    if (!m_transcoder.get_image_level_desc(m_file, byteLength, image_index, level_index, orig_width, orig_height, total_blocks))
+    if (!m_transcoder.get_image_level_desc(m_file, (uint32_t)byteLength,
+                                           image_index, level_index, orig_width,
+                                           orig_height, total_blocks))
         return 0;
 
     const transcoder_texture_format transcoder_format = static_cast<transcoder_texture_format>(format);
@@ -155,7 +163,7 @@ uint32_t basis_file::startTranscoding() {
     return m_transcoder.start_transcoding(m_file, byteLength);
 }
 
-uint32_t basis_file::transcodeImage(void* dst, size_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
+uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
     assert(m_magic == MAGIC);
     if (m_magic != MAGIC)
         return 0;

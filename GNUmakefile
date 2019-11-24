@@ -94,6 +94,7 @@ gypfiles=ktxtests.gyp \
 		 tests/loadtests/vkloadtests/vkloadtests.gypi \
 		 tests/texturetests/texturetests.gypi \
 		 tests/testimages/testimages.gypi \
+		 tests/transcodetests/transcodetests.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
 		 tools/ktx2ktx2/ktx2ktx2.gypi \
