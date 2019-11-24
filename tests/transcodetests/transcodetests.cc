@@ -160,10 +160,10 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     void * data;
     long fsize;
 
-    path = image_path+textureSet.ktxPath;
+    path = combine_paths(image_path,textureSet.ktxPath);
     read_success = read_file(path, &data, &fsize);
 
-    ASSERT_TRUE(read_success);
+    ASSERT_TRUE(read_success) << "Could not open texture file " << path;
 
     KTX_error_code result;
     
