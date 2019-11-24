@@ -15,6 +15,7 @@
 #if defined(_WIN32)
 #define _CRT_SECURE_NO_WARNINGS
 #define OS_SEP '\\'
+#define UNIX_SEP '/'
 #else
 #define OS_SEP '/'
 #endif
@@ -112,9 +113,13 @@ bool isPo2(uint32_t i) {
 }
 
 string combine_paths(string const a, string const b) {
-    if(a.back()==OS_SEP) {
-        return a+b;
-    } else {
+	if (a.back() == OS_SEP) {
+		return a + b;
+#if defined(_WIN32)
+	} else if (a.back() == UNIX_SEP) {
+		return a + b;
+#endif
+	} else {
         return a+OS_SEP+b;
     }
 }
