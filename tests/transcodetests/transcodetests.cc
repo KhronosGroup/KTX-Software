@@ -82,7 +82,7 @@ class TextureCombinationsTest :
 INSTANTIATE_TEST_CASE_P(AllCombinations,
                         TextureCombinationsTest,
                         ::testing::Combine(::testing::ValuesIn(allTextureSets),
-                                           ::testing::ValuesIn(allFormats)));
+                                           ::testing::ValuesIn(allFormats)),);
 
 bool read_file( string path, void** data, long *fsize ) {
     FILE *f = fopen(path.data(),"rb");
@@ -112,7 +112,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     basis_file basisu;
 
-    basisu.open((uint8_t*)basisData,basisSize);
+    basisu.open((uint8_t*)basisData, (uint32_t)basisSize);
     uint32_t bWidth = basisu.getImageWidth(0,0);
     uint32_t bHeight = basisu.getImageHeight(0,0);
 

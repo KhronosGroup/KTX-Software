@@ -14,6 +14,7 @@
       'includes': [
         'gtest/gtest.gypi',
         'texturetests/texturetests.gypi',
+        'transcodetests/transcodetests.gypi',
         'unittests/unittests.gypi',
       ]
     }]
