@@ -103,7 +103,7 @@ bool read_file( string path, void** data, long *fsize ) {
     fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
 
     *data = malloc(*fsize);
-    fread(*data, 1, *fsize, f);
+    (void)fread(*data, 1, *fsize, f);
     fclose(f);
     return true;
 }
