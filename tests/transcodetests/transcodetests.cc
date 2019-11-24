@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include <string.h>
 #include "gl_format.h"

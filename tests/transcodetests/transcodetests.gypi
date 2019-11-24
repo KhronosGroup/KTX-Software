@@ -40,8 +40,7 @@
         '../gtest/include',
         '../unittests',
       ],
-      'defines': [
-      ],
+      'defines': [ ],
       'sources': [
         '../../interface/c_binding/inc/basisu_c_binding.h',
         '../../interface/c_binding/src/basisu_c_binding.cpp',
@@ -53,6 +52,11 @@
           'SubSystem': '1',
         },
       },
+      'conditions': [
+        ['OS == "win"', {
+          'defines': [ 'BASISU_NO_ITERATOR_DEBUG_LEVEL', ],
+        }],
+      ],
       'xcode_settings': {
         # Turn off so as to compile Basis. Hopefully temporary.
         'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',

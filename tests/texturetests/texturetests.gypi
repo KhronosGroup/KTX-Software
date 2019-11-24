@@ -49,8 +49,7 @@
         '../gtest/include',
         '../unittests',
       ],
-      'defines': [
-      ],
+      'defines': [ ],
       'sources': [
         '../unittests/wthelper.h',
         'texturetests.cc',
