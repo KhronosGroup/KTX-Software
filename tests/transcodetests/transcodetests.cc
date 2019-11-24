@@ -12,8 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifdef WIN32
+#define OS_SEP '\\'
+#else
+#define OS_SEP '/'
+#endif
 
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "gl_format.h"
 #include "ktx.h"
 extern "C" {
@@ -86,6 +93,9 @@ INSTANTIATE_TEST_CASE_P(AllCombinations,
 
 bool read_file( string path, void** data, long *fsize ) {
     FILE *f = fopen(path.data(),"rb");
+    if(f==NULL) {
+        return false;
+    }
     fseek(f, 0, SEEK_END);
     *fsize = ftell(f);
     fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
@@ -100,15 +110,23 @@ bool isPo2(uint32_t i) {
     return (i&(i-1))==0;
 }
 
+string combine_paths(string const a, string const b) {
+    if(a.back()==OS_SEP) {
+        return a+b;
+    } else {
+        return a+OS_SEP+b;
+    }
+}
+
 void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     void * basisData;
     long basisSize;
     
-    string path = image_path+textureSet.basisuPath;
+    string path = combine_paths(image_path,textureSet.basisuPath);
     bool read_success = read_file(path, &basisData, &basisSize);
 
-    ASSERT_TRUE(read_success);
+    ASSERT_TRUE(read_success) << "Could not open texture file " << path;
 
     basis_file basisu;
 
@@ -192,7 +210,23 @@ TEST_P(TextureCombinationsTest, Basic) {
 }  // namespace
 
 int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  image_path = string(argv[1]);
-  return RUN_ALL_TESTS();
+    ::testing::InitGoogleTest(&argc, argv);
+    if(argc!=2) {
+        cerr << "Usage: " << argv[0] << " <test images path>\n";
+        return -1;
+    }
+
+    image_path = string(argv[1]);
+
+    struct stat info;
+
+    if( stat( image_path.data(), &info ) != 0 ) {
+        cerr << "Cannot access " << image_path << '\n';
+        return -2;
+    } else if( ! (info.st_mode & S_IFDIR) ) {
+        cerr << image_path << "is not a valid directory\n";
+        return -3;
+    }
+
+    return RUN_ALL_TESTS();
 }
