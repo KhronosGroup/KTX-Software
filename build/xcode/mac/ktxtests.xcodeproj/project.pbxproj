@@ -2846,7 +2846,7 @@
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					interface/c_binding/inc,
 					lib,
@@ -2867,6 +2867,10 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = YES;
 				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wno-nested-anon-types",
+					"-Wno-gnu-anonymous-struct",
+				);
 			};
 			name = Release;
 		};
@@ -3101,7 +3105,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					interface/c_binding/inc,
 					lib,
@@ -3122,6 +3126,10 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = (
+					"-Wno-nested-anon-types",
+					"-Wno-gnu-anonymous-struct",
+				);
 			};
 			name = Debug;
 		};

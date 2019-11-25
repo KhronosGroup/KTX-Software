@@ -52,16 +52,20 @@
           'SubSystem': '1',
         },
       },
+      'xcode_settings': {
+        'USE_HEADERMAP': 'NO',
+        # The BasisU transcoder uses anon typs and structs. They compile ok in
+        # Visual Studio (2015+) and on Linux so quiet the clang warnings.
+        'WARNING_CFLAGS': [
+          '-Wno-nested-anon-types',
+          '-Wno-gnu-anonymous-struct',
+        ],
+      },
       'conditions': [
         ['OS == "win"', {
           'defines': [ 'BASISU_NO_ITERATOR_DEBUG_LEVEL', ],
         }],
       ],
-      'xcode_settings': {
-        # Turn off so as to compile Basis. Hopefully temporary.
-        'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-        'USE_HEADERMAP': 'NO',
-      },
     }, # transcodetests
   ] # targets
 }
