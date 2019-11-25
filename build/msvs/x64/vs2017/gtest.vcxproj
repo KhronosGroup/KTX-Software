@@ -142,6 +142,29 @@
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest_pred_impl.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest_prod.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest-death-test.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest-message.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest-param-test.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest-printers.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest-spi.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest-test-part.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\gtest-typed-test.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-death-test-internal.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-filepath.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-internal.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-linked_ptr.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-param-util.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-param-util-generated.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-port.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-port-arch.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-string.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-tuple.h"/>
+    <ClInclude Include="..\..\..\..\tests\gtest\include\gtest\internal\gtest-type-util.h"/>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\gtest\src\gtest-all.cc"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

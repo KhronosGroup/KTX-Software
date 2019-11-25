@@ -126,9 +126,11 @@ script:
     pushd build/cmake/linux/Debug &&
     ./unittests &&
     ./texturetests &&
+    ./transcodetests ../../../../tests/testimages/ &&
     cd ../Release &&
     ./unittests &&
     ./texturetests &&
+    ./transcodetests ../../../../tests/testimages/ &&
     popd &&
     docker exec -it emscripten sh -c "cd build/cmake/web/Debug && emconfigure cmake . && make" &&
     docker exec -it emscripten sh -c "cd build/cmake/web/Release && emconfigure cmake . && make"
@@ -162,9 +164,11 @@ script:
     pushd build/Debug &&
     ./unittests &&
     ./texturetests &&
-    cd ../Release &&
+    ./transcodetests ../../tests/testimages/ &&
+     cd ../Release &&
     ./unittests &&
     ./texturetests &&
+    ./transcodetests ../../tests/testimages/ &&
     popd
     ;;
     esac

@@ -5,22 +5,35 @@
 # @brief Target for adding dependency on gtest libraries.
 #
 {
+  'variables': {
+    # Hack to get the directory relativized
+    'include_dir': 'include',
+    'common_defines': [
+      'GTEST_HAS_PTHREAD=0',
+      '_HAS_EXCEPTIONS=1',
+    ],
+    'common_include_dirs': [ 'include' ],
+  },
   'targets': [
     {
       'target_name': 'gtest',
       'type': 'static_library',
-      'defines': [
-        'GTEST_HAS_PTHREAD=0',
-        '_HAS_EXCEPTIONS=1',
-      ],
+      'defines': [ '<@(common_defines)' ],
       'direct_dependent_settings': {
-        'include_dirs': [ 'include' ],
+        'defines': [ '<@(common_defines)' ],
+        'include_dirs': [ '<@(common_include_dirs)' ],
+        'xcode_settings': {
+          # For variadic macros
+          'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
+        },
       },
       'include_dirs': [
-        'include',
+        '<@(common_include_dirs)',
         '.',
       ],
       'sources': [
+        '<!@(ls <(include_dir)/gtest/*.h)',
+        '<!@(ls <(include_dir)/gtest/internal/*.h)',
         'src/gtest-all.cc'
       ],
       'msvs_settings': {

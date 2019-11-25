@@ -97,3 +97,5 @@ test_script:
     cd build\msvs\$env:PLATFORM\$env:KTX_VSVER\$env:CONFIGURATION
     .\texturetests.exe
     .\unittests.exe
+    .\transcodetests ..\..\..\..\..\tests\testimages\
+ 

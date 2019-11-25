@@ -428,6 +428,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,transcodetests.target.mk)))),)
+  include transcodetests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,unittests.target.mk)))),)
   include unittests.target.mk
 endif
@@ -444,7 +449,7 @@ endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
 cmd_regen_makefile = cd $(srcdir); /usr/local/bin/gyp -fmake --ignore-environment "--toplevel-dir=." "--depth=." "--generator-output=build/make/linux" "-DOS=linux" libktx.gyp ktxtests.gyp ktxtools.gyp ktxdoc.gyp
-Makefile: $(srcdir)/ktxtools.gyp $(srcdir)/gyp_include/libassimp.gypi $(srcdir)/tests/tests.gypi $(srcdir)/gyp_include/config.gypi $(srcdir)/ktxtests.gyp $(srcdir)/tools/ktx2check/ktx2check.gypi $(srcdir)/libktx.gyp $(srcdir)/tests/unittests/unittests.gypi $(srcdir)/tests/loadtests/loadtests.gypi $(srcdir)/tests/loadtests/appfwSDL/appfwSDL.gypi $(srcdir)/gyp_include/libgles1.gypi $(srcdir)/lib/libktx.gypi $(srcdir)/gyp_include/default.gypi $(srcdir)/tests/testimages/testimages.gypi $(srcdir)/tests/loadtests/vkloadtests/vkloadtests.gypi $(srcdir)/ktxdoc.gyp $(srcdir)/tests/gtest/gtest.gypi $(srcdir)/tools/toktx/toktx.gypi $(srcdir)/tools/tools.gypi $(srcdir)/gyp_include/libgl.gypi $(srcdir)/tests/texturetests/texturetests.gypi $(srcdir)/tools/ktxinfo/ktxinfo.gypi $(srcdir)/gyp_include/pvremu.gypi $(srcdir)/tools/ktxsc/ktxsc.gypi $(srcdir)/gyp_include/glsl2spirv.gypi $(srcdir)/tools/ktx2ktx2/ktx2ktx2.gypi $(srcdir)/gyp_include/libgles3.gypi $(srcdir)/gyp_include/libsdl.gypi $(srcdir)/tests/loadtests/glloadtests/glloadtests.gypi $(srcdir)/pkgdoc/pkgdoc.gypi $(srcdir)/gyp_include/libvulkan.gypi
+Makefile: $(srcdir)/ktxtools.gyp $(srcdir)/gyp_include/libassimp.gypi $(srcdir)/tests/tests.gypi $(srcdir)/gyp_include/config.gypi $(srcdir)/ktxtests.gyp $(srcdir)/tools/ktx2check/ktx2check.gypi $(srcdir)/libktx.gyp $(srcdir)/tests/unittests/unittests.gypi $(srcdir)/tests/loadtests/loadtests.gypi $(srcdir)/tests/loadtests/appfwSDL/appfwSDL.gypi $(srcdir)/gyp_include/libgles1.gypi $(srcdir)/lib/libktx.gypi $(srcdir)/gyp_include/default.gypi $(srcdir)/tests/testimages/testimages.gypi $(srcdir)/tests/loadtests/vkloadtests/vkloadtests.gypi $(srcdir)/ktxdoc.gyp $(srcdir)/tests/gtest/gtest.gypi $(srcdir)/tools/toktx/toktx.gypi $(srcdir)/tests/transcodetests/transcodetests.gypi $(srcdir)/tools/tools.gypi $(srcdir)/gyp_include/libgl.gypi $(srcdir)/tests/texturetests/texturetests.gypi $(srcdir)/tools/ktxinfo/ktxinfo.gypi $(srcdir)/gyp_include/pvremu.gypi $(srcdir)/tools/ktxsc/ktxsc.gypi $(srcdir)/gyp_include/glsl2spirv.gypi $(srcdir)/tools/ktx2ktx2/ktx2ktx2.gypi $(srcdir)/gyp_include/libgles3.gypi $(srcdir)/gyp_include/libsdl.gypi $(srcdir)/tests/loadtests/glloadtests/glloadtests.gypi $(srcdir)/pkgdoc/pkgdoc.gypi $(srcdir)/gyp_include/libvulkan.gypi
 	$(call do_cmd,regen_makefile)
 
 # "all" is a concatenation of the "all" targets from all the included

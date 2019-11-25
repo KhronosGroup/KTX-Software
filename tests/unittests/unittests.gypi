@@ -51,8 +51,7 @@
         '../gtest/include',
         '../../lib',
       ],
-      'defines': [
-      ],
+      'defines': [ ],
       'msvs_settings': {
         'VCLinkerTool': {
           # /SUBSYSTEM:CONSOLE

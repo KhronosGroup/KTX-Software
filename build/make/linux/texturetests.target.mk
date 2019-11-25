@@ -3,6 +3,8 @@
 TOOLSET := target
 TARGET := texturetests
 DEFS_Debug := \
+	'-DGTEST_HAS_PTHREAD=0' \
+	'-D_HAS_EXCEPTIONS=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -28,6 +30,8 @@ INCS_Debug := \
 	-I$(srcdir)/other_include
 
 DEFS_Release := \
+	'-DGTEST_HAS_PTHREAD=0' \
+	'-D_HAS_EXCEPTIONS=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.

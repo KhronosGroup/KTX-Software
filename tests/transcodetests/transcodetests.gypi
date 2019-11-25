@@ -21,38 +21,30 @@
       '<@(additional_emcc_options)',
       '-s', 'USE_SDL=2',
     ],
-    # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
-    # Keys ending in _file & _dir assumed to be paths and are made relative
-    # to the main .gyp file.
-#    'conditions': [
-#      ['OS == "ios"', {
-#        'infoplist_file': 'resources_ios/Info.plist',
-#      }, {
-#        'infoplist_file': 'resources_mac/Info.plist',
-#      }],
-#    ],
   }, # variables, level 1
   'targets': [
     {
-      'target_name': 'texturetests',
+      'target_name': 'transcodetests',
       'type': '<(executable)',
       'mac_bundle': 0,
       'dependencies': [
         #'appfwSDL',
         'gtest',
-        'gtest_main',
         'libktx.gyp:libktx.gl',
         'libktx.gyp:libgl',
       ],
       'include_dirs': [
+        '../../interface/c_binding/inc',
         '../../lib',
+        '../../lib/basisu/transcoder',
         '../gtest/include',
         '../unittests',
       ],
       'defines': [ ],
       'sources': [
-        '../unittests/wthelper.h',
-        'texturetests.cc',
+        '../../interface/c_binding/inc/basisu_c_binding.h',
+        '../../interface/c_binding/src/basisu_c_binding.cpp',
+        'transcodetests.cc',
       ],
       'msvs_settings': {
         'VCLinkerTool': {
@@ -60,20 +52,17 @@
           'SubSystem': '1',
         },
       },
+      'conditions': [
+        ['OS == "win"', {
+          'defines': [ 'BASISU_NO_ITERATOR_DEBUG_LEVEL', ],
+        }],
+      ],
       'xcode_settings': {
-        # Via the headermap Xcode is finding .../vkloadtests/Texture.h instead
-        # of the intended lib/texture.h.
+        # Turn off so as to compile Basis. Hopefully temporary.
+        'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
         'USE_HEADERMAP': 'NO',
-#       'INFOPLIST_FILE': '<(infoplist_file)',
       },
-#      'conditions': [
-#        ['OS == "mac"', {
-#            'sources': [
-#            'resources_mac/Info.plist',
-#          ],
-#        }], # OS == "mac"
-#      ], # conditions
-    }, # texturetests
+    }, # transcodetests
   ] # targets
 }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -19,18 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{3B33DA85-651E-CF56-6187-1D6B9A0A0D51}</ProjectGuid>
+    <ProjectGuid>{A4108F9B-C84F-21B2-3796-2884D0148B5A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>texturetests</RootNamespace>
+    <RootNamespace>transcodetests</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Label="Locals">
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
@@ -50,11 +51,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -66,17 +67,17 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -88,16 +89,16 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -108,17 +109,17 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
@@ -129,34 +130,31 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\lib;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\interface\c_binding\inc;..\..\..\..\lib;..\..\..\..\lib\basisu\transcoder;..\..\..\..\tests\gtest\include;..\..\..\..\tests\unittests;..\..\..\..\include;..\..\..\..\other_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BASISU_NO_ITERATOR_DEBUG_LEVEL;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtests.gyp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\tests\unittests\wthelper.h"/>
+    <ClInclude Include="..\..\..\..\interface\c_binding\inc\basisu_c_binding.h"/>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\tests\texturetests\texturetests.cc"/>
+    <ClCompile Include="..\..\..\..\interface\c_binding\src\basisu_c_binding.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\transcodetests\transcodetests.cc"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="gtest.vcxproj">
-      <Project>{D80B8880-8D51-0D42-35CD-AD1CEC23DEAC}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="gtest_main.vcxproj">
-      <Project>{3D2796E7-B8E7-6E49-32E0-51A717F9EFDD}</Project>
+      <Project>{0461DFA5-294B-B56A-ADC8-19DAA627107E}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libktx.gl.vcxproj">
-      <Project>{41CEBDB2-D52F-C759-BE77-94847732446D}</Project>
+      <Project>{2660AE66-2984-EF7D-7AF2-6AF530F36C1C}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libgl.vcxproj">
-      <Project>{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}</Project>
+      <Project>{203A1C77-D790-2C33-8498-F3ADF9C31210}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
