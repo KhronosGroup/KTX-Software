@@ -37,6 +37,7 @@
         '../../interface/c_binding/inc',
         '../../lib',
         '../../lib/basisu/transcoder',
+        '../../utils',
         '../gtest/include',
         '../unittests',
       ],

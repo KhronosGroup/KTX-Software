@@ -46,9 +46,11 @@
         '.',
         'VulkanAppSDL',
         '../../../other_include',
+        '../../../utils',
       ],
       'variables': {
         'vulkan_files': [
+          '../../../utils/unused.h',
           'VulkanAppSDL/VulkanAppSDL.cpp',
           'VulkanAppSDL/VulkanAppSDL.h',
           'VulkanAppSDL/vulkancheckres.h',

@@ -22,6 +22,7 @@
 #include <basisu_transcoder.h>
 
 #include "basisu_c_binding.h"
+#include "unused.h"
 
 using namespace basist;
 
@@ -183,9 +184,9 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
 
     if (basis_transcoder_format_is_uncompressed(transcoder_format))
     {
-        const uint32_t bytes_per_pixel = basis_get_uncompressed_bytes_per_pixel(transcoder_format);
-        const uint32_t bytes_per_line = orig_width * bytes_per_pixel;
-        const uint32_t bytes_per_slice = bytes_per_line * orig_height;
+        const uint32_t MAYBE_UNUSED bytes_per_pixel = basis_get_uncompressed_bytes_per_pixel(transcoder_format);
+        const uint32_t MAYBE_UNUSED bytes_per_line = orig_width * bytes_per_pixel;
+        const uint32_t MAYBE_UNUSED bytes_per_slice = bytes_per_line * orig_height;
 
         assert(bytes_per_slice <= dst_size);
 
