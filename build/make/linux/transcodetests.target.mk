@@ -26,6 +26,7 @@ INCS_Debug := \
 	-I$(srcdir)/interface/c_binding/inc \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/lib/basisu/transcoder \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/tests/unittests \
 	-I$(srcdir)/include \
@@ -53,6 +54,7 @@ INCS_Release := \
 	-I$(srcdir)/interface/c_binding/inc \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/lib/basisu/transcoder \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/tests/unittests \
 	-I$(srcdir)/include \

@@ -361,9 +361,10 @@ set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVE
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(libktx_gl
   vulkan_headers
   libgl
@@ -1101,6 +1102,7 @@ list(APPEND appfwSDL__cxx_srcs
 list(APPEND appfwSDL__other_srcs
   "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
   "../../../../tests/loadtests/appfwSDL/GLAppSDL.h"
+  "../../../../utils/unused.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanAppSDL.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkancheckres.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanContext.h"
@@ -1124,6 +1126,7 @@ list(APPEND appfwSDL__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
@@ -1830,6 +1833,7 @@ list(APPEND transcodetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../interface/c_binding/inc"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/unittests"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
@@ -1849,9 +1853,10 @@ set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_USE_HEADERMAP "NO")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
-set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
-set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(transcodetests
   libgl
 )
