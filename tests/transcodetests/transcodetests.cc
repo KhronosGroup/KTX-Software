@@ -103,9 +103,9 @@ bool read_file( string path, void** data, long *fsize ) {
     fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
 
     *data = malloc(*fsize);
-    (void)fread(*data, 1, *fsize, f);
+    long numRead = fread(*data, 1, *fsize, f);
     fclose(f);
-    return true;
+    return numRead == 1;
 }
 
 bool isPo2(uint32_t i) {
@@ -132,7 +132,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     string path = combine_paths(image_path,textureSet.basisuPath);
     bool read_success = read_file(path, &basisData, &basisSize);
 
-    ASSERT_TRUE(read_success) << "Could not open texture file " << path;
+    ASSERT_TRUE(read_success) << "Could not open or read texture file " << path;
 
     basis_file basisu;
 

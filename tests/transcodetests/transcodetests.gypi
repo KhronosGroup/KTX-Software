@@ -27,6 +27,8 @@
       'target_name': 'transcodetests',
       'type': '<(executable)',
       'mac_bundle': 0,
+      # To quiet warnings about the anon structs and unions in Basisu.
+      'cflags': [ '-Wno-pedantic' ],
       'dependencies': [
         #'appfwSDL',
         'gtest',
