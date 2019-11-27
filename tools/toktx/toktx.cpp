@@ -306,7 +306,7 @@ Create a KTX file from netpbm format files.
     <dd>Map the logical upper left corner of the image to s0,t0.
         Although opposite to the OpenGL convention, this is the DEFAULT
         BEHAVIOUR. netpbm and PNG files have an upper left origin so this
-		option does not flip the input images. When this option is in effect,
+        option does not flip the input images. When this option is in effect,
         toktx writes a KTXorientation value of S=r,T=d into the output file
         to inform loaders of the logical orientation. If an OpenGL {,ES}
         loader ignores the orientation value, the image will appear upside
@@ -314,7 +314,7 @@ Create a KTX file from netpbm format files.
     <dt>--lower_left_maps_to_s0t0</dt>
     <dd>Map the logical lower left corner of the image to s0,t0.
         This causes the input netpbm and PNG images to be flipped vertically
-		to a lower-left origin. When this option is in effect, toktx
+        to a lower-left origin. When this option is in effect, toktx
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.</dd>
@@ -323,7 +323,7 @@ Create a KTX file from netpbm format files.
         only when you know the file format information is wrong and the input
         file uses a linear transfer function. If this is specified, the default
         color transform of Netpbm images to sRGB color space will not be
-		performed.
+        performed.
     </dd>
     <dt>--srgb</dt>
     <dd>Force the created texture to have an srgb transfer function. As with
@@ -1125,16 +1125,16 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     const _TCHAR* toktx_options;
     size_t slash, dot;
 
-	appName = argv[0];
+    appName = argv[0];
     // For consistent Id, only use the stem of appName;
-	slash = appName.find_last_of(_T('\\'));
-	if (slash == _tstring::npos)
-		slash = appName.find_last_of(_T('/'));
-	if (slash != _tstring::npos)
-		appName.erase(0, slash+1);  // Remove directory name.
-	dot = appName.find_last_of(_T('.'));
+    slash = appName.find_last_of(_T('\\'));
+    if (slash == _tstring::npos)
+        slash = appName.find_last_of(_T('/'));
+    if (slash != _tstring::npos)
+        appName.erase(0, slash+1);  // Remove directory name.
+    dot = appName.find_last_of(_T('.'));
     if (dot != _tstring::npos)
-	  appName.erase(dot, _tstring::npos); // Remove extension.
+      appName.erase(dot, _tstring::npos); // Remove extension.
 
     toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
     if (toktx_options) {
