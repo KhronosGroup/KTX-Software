@@ -48,8 +48,8 @@ static const char* const errorStrings[] = {
     "Texture type not supported by GL context.",      /* KTX_UNSUPPORTED_TEXTURE_TYPE */
     "Feature not included in in-use library or not yet implemented." /* KTX_UNSUPPORTED_FEATURE */
 };
-static const uint32_t lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
-
+/* This will cause compilation to fail if number of messages and codes doesn't match */
+typedef int errorStrings_SIZE_ASSERT[sizeof(errorStrings) / sizeof(char*) - 1 == KTX_ERROR_MAX_ENUM];
 
 /**
  * @~English
@@ -65,7 +65,7 @@ static const uint32_t lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1
  */
 const char* ktxErrorString(KTX_error_code error)
 {
-    if (error > lastErrorCode)
+    if (error > KTX_ERROR_MAX_ENUM)
         return "Unrecognized error code";
     return errorStrings[error];
 }

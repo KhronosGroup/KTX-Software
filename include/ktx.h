@@ -177,7 +177,8 @@ typedef enum ktx_error_code_e {
     KTX_TRANSCODE_FAILED,    /*!< Transcoding of block compressed texture failed. */
     KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
     KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
-    KTX_UNSUPPORTED_FEATURE  /*!< Feature not included in in-use library or not yet implemented. */
+    KTX_UNSUPPORTED_FEATURE,  /*!< Feature not included in in-use library or not yet implemented. */
+	KTX_ERROR_MAX_ENUM = KTX_UNSUPPORTED_FEATURE /*!< For safety checks. */
 } ktx_error_code_e;
 /**
  * @deprecated
