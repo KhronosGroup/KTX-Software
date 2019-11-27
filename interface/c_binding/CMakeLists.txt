@@ -12,4 +12,5 @@ target_include_directories(
     PRIVATE
     ${objKtxRead_include_dirs}
     ${basisu_include_dirs}
+    ${PROJECT_SOURCE_DIR}/utils
     )
