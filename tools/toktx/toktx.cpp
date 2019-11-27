@@ -1166,15 +1166,15 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 
     i = parser.optind;
 
-    options.outfile = parser.argv[i++];
-
-    if (options.outfile.compare(_T("-")) != 0
-        && options.outfile.find_last_of('.') == _tstring::npos)
-    {
-        options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
-    }
-
     if (argc - i > 0) {
+        options.outfile = parser.argv[i++];
+
+        if (options.outfile.compare(_T("-")) != 0
+            && options.outfile.find_last_of('.') == _tstring::npos)
+        {
+            options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
+        }
+
         for (; i < argc; i++) {
             if (parser.argv[i].front() == _T('@')) {
                 if (!loadFileList(parser.argv[i], options.infilenames)) {
@@ -1184,28 +1184,34 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
                 options.infilenames.push_back(parser.argv[i]);
             }
         }
-        /* Check for attempt to use stdin as one of the
-         * input files.
-         */
-        std::vector<_tstring>::const_iterator it;
-        for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
-            if (it->compare(_T("-")) == 0) {
-                fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n", appName.c_str());
-                usage(appName);
+        if (options.infilenames.size() > 0) {
+            /* Check for attempt to use stdin as one of the
+             * input files.
+             */
+            std::vector<_tstring>::const_iterator it;
+            for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
+                if (it->compare(_T("-")) == 0) {
+                    fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n", appName.c_str());
+                    usage(appName);
+                    exit(1);
+                }
+            }
+            ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
+            if (requiredInputFiles > options.infilenames.size()) {
+                fprintf(stderr, "%s: too few input files.\n", appName.c_str());
                 exit(1);
             }
-        }
-        ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
-        if (requiredInputFiles > options.infilenames.size()) {
-            fprintf(stderr, "%s: too few input files.\n", appName.c_str());
+            /* Whether there are enough input files for all the mipmap levels in
+             * a full pyramid can only be checked when the first file has been
+             * read and the size determined.
+             */
+        } else {
+            // Need some input files.
+            usage(appName);
             exit(1);
         }
-        /* Whether there are enough input files for all the mipmap levels in
-         * a full pyramid can only be checked when the first file has been
-         * read and the size determined.
-         */
     } else {
-        // Need some input files.
+        // Need an output file and some input files.
         usage(appName);
         exit(1);
     }
