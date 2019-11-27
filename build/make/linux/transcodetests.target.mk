@@ -11,7 +11,6 @@ DEFS_Debug := \
 # Flags passed to all source files.
 CFLAGS_Debug := \
 	-Wpedantic \
-	-Wno-pedantic \
 	-Og \
 	-g
 
@@ -21,7 +20,8 @@ CFLAGS_C_Debug := \
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Debug := \
-	-std=c++11
+	-std=c++11 \
+	-Wno-pedantic
 
 INCS_Debug := \
 	-I$(srcdir)/interface/c_binding/inc \
@@ -41,7 +41,6 @@ DEFS_Release := \
 # Flags passed to all source files.
 CFLAGS_Release := \
 	-Wpedantic \
-	-Wno-pedantic \
 	-O3
 
 # Flags passed to only C files.
@@ -50,7 +49,8 @@ CFLAGS_C_Release := \
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Release := \
-	-std=c++11
+	-std=c++11 \
+	-Wno-pedantic
 
 INCS_Release := \
 	-I$(srcdir)/interface/c_binding/inc \
