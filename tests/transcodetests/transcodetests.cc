@@ -105,7 +105,7 @@ bool read_file( string path, void** data, long *fsize ) {
     *data = malloc(*fsize);
     long numRead = fread(*data, 1, *fsize, f);
     fclose(f);
-    return numRead == 1;
+    return numRead == *fsize;
 }
 
 bool isPo2(uint32_t i) {
