@@ -1065,7 +1065,7 @@ namespace basisu
 		uint32_t max_count = 0, max_index = 0;
 		for (uint32_t i = 0; i < num_syms * num_syms; i++)
 			if (m_hist[i] > max_count)
-				max_count = m_hist[i], max_index = i;
+              static_cast<void>(max_count = m_hist[i]), max_index = i;
 
 		uint32_t a = max_index / num_syms, b = max_index % num_syms;
 

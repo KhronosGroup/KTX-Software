@@ -126,7 +126,6 @@
 		091EA503324B98872FFEF6F3 /* sphere.obj in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/models */ = {isa = PBXBuildFile; fileRef = EAC0B3510FB08E840E0B8F79 /* sphere.obj */; };
 		09822C55B76BAFC6A1D92D0B /* orient-down-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D581FEEAC989F4C91D34F6FB /* orient-down-metadata.ktx */; };
 		0AD23212DBB142BE262E27DA /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4064762A5A368ADCC9CC334F /* OpenGLES.framework */; };
-		0B68D24EC579F9A9968A93FD /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		0BECC61817E3E30F18934664 /* LaunchImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64A2A6791C604987F5E7EFD3 /* LaunchImages.xcassets */; };
 		0BECF7E816E43C31123AFCF1 /* rgb-mipmap-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F88C1A31D6E7CA23FC0F3F12 /* rgb-mipmap-reference.ktx */; };
 		0C95A84085C42F3D2249BFE2 /* etc2-sRGBa1.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 9750A85567094C55E715E899 /* etc2-sRGBa1.ktx */; };
@@ -205,7 +204,6 @@
 		4B947F84B07E42784FCE633B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */; };
 		4BBDCAAB717E53C0C0B682C8 /* rgb-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 43DA556B988369A49E1AD800 /* rgb-reference-metadata.ktx */; };
 		4BC3E9469D04BA5A6C35D0A0 /* rgb-mipmap-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F88C1A31D6E7CA23FC0F3F12 /* rgb-mipmap-reference.ktx */; };
-		4C586627F680E7ABE4FBD9F0 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		4C8C811C7E3A0DEAA3AEE577 /* orient-down-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D581FEEAC989F4C91D34F6FB /* orient-down-metadata.ktx */; };
 		4E4734993AFC0A00DC35FA9B /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E80E8673310854B62B36A692 /* libMoltenVK.dylib */; };
 		4E8E9E7ADBA9970598DCBB56 /* etc2-sRGBa8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 4D53BD2F51C127B942371603 /* etc2-sRGBa8.ktx */; };
@@ -270,6 +268,7 @@
 		92B1C938B9C75044A89A3D0B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3B80B8D833B43C34EA4AD8B /* CoreGraphics.framework */; };
 		92CBC9BFEE948D49E89FE128 /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
 		92E55C2E4FD8502110F3E37E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBEB39731669F1BFB32B9CF4 /* QuartzCore.framework */; };
+		9514D2CCE3D6183C548A4B53 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		9633ACE2326C632343D742FA /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6328927DB4CEC2FA75D584FE /* CoreBluetooth.framework */; };
 		992BD25E93CB0D3E00051415 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D8E679046C6DF857DC47217 /* libSDL2.a */; };
 		9D4487A84C01FD82A11F560B /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
@@ -350,6 +349,7 @@
 		E5E4CAFDAA9BC62AFFD244D1 /* InstancedSampleBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCFDD6C21F47661002F1A26B /* InstancedSampleBase.cpp */; };
 		E7187B6767CB05EDA5242E8E /* conftestimage_RG11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F86AECEE217AC2AFBBB2A8DA /* conftestimage_RG11_EAC.ktx */; };
 		E71A1480CC1B654E0A1389D1 /* cubemap_yokohama_bc3_unorm.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 99BC0A6A9CEA593CA36E461D /* cubemap_yokohama_bc3_unorm.ktx2 */; };
+		E7227E5440D55D4C1E0CE476 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		EA1A45AE5CD16D081BF00ACE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAABAD93EC42FF0666FD02E /* Foundation.framework */; };
 		EB129150E9883876A1473F59 /* libktx.es3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F936FB865FD39A798F331D2A /* libktx.es3.a */; };
 		EB6B95B6DF7441D5AF5C95AA /* pattern_02_bc2.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = CD14CB16912C702CCD250216 /* pattern_02_bc2.ktx2 */; };
@@ -363,10 +363,10 @@
 		EF95284F206BB73AC35ABFE8 /* no-npot.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 00FCCEC4D4635AAE13ED2689 /* no-npot.ktx */; };
 		F105573DD8185493982318CE /* hi_mark.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 94DD1C49F443105D08BF84A6 /* hi_mark.ktx */; };
 		F25427475CD2483F58D70F87 /* conftestimage_SIGNED_R11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = DEB82770AA1E2FDA526105A7 /* conftestimage_SIGNED_R11_EAC.ktx */; };
+		F309068C05CD4AB5EAE0BDB0 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		F43E91D9340BA8711D5A9ECE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAABAD93EC42FF0666FD02E /* Foundation.framework */; };
 		F4AF424DF22441CFF33C0E11 /* texturearray_bc3_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 25DC2620595696491FA6454B /* texturearray_bc3_unorm.ktx */; };
 		F83D42234EE08BEC71A25EC0 /* FlightHelmet_baseColor_basis.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D56F48F77B90802C048C5652 /* FlightHelmet_baseColor_basis.ktx2 */; };
-		F86ECF321372AF9C1561873A /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		F8C27FE716B330D183972BD9 /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
 		F9FD0E3E0C178E9D661D576D /* teapot.dae in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/models */ = {isa = PBXBuildFile; fileRef = 7F98C7C57F1D34E9849C6773 /* teapot.dae */; };
 		FDE716FF883A5F51EBDCC9FC /* conftestimage_SIGNED_RG11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 61F0537A8FDB659A23E3F0BE /* conftestimage_SIGNED_RG11_EAC.ktx */; };
@@ -979,6 +979,7 @@
 		4A5339F9AA357DA06AC88019 /* instancing.frag */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancing.frag; sourceTree = "<group>"; };
 		4B1751F92D65644448BB3E64 /* SwipeDetector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwipeDetector.h; sourceTree = "<group>"; };
 		4D53BD2F51C127B942371603 /* etc2-sRGBa8.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa8.ktx"; sourceTree = "<group>"; };
+		4E74AA811696D4AC4C481FBB /* unused.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = unused.h; sourceTree = "<group>"; };
 		51369BEC39EAE34575CECDDC /* rgb-amg-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-amg-reference.ktx"; sourceTree = "<group>"; };
 		54DD4918BAC962C9A285FAE5 /* DrawTexture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DrawTexture.h; sourceTree = "<group>"; };
 		55094AE30A4060D7DAF62B7C /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
@@ -1224,15 +1225,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		0833941C8397C004B06408E5 /* utils */ = {
-			isa = PBXGroup;
-			children = (
-				3F58E73089BA4A3B169DB2C4 /* argparser.cpp */,
-				E4FD930E3E3BCCA8B11C722B /* argparser.h */,
-			);
-			path = utils;
-			sourceTree = "<group>";
-		};
 		09894A23707A15936483F72A /* common */ = {
 			isa = PBXGroup;
 			children = (
@@ -1400,7 +1392,7 @@
 				AC792524CC865ABA2A920B0F /* VULKAN_INSTALL_DIR */,
 				58AB15233968493163DBEC17 /* icons/ios */,
 				FD646A369F1C7FD92E180321 /* tests */,
-				0833941C8397C004B06408E5 /* utils */,
+				F6EBAB1258861E2A059BF92C /* utils */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -1645,6 +1637,16 @@
 			isa = PBXGroup;
 			children = (
 				1F51B25E34905028C04760C1 /* VulkanMeshLoader.hpp */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		F6EBAB1258861E2A059BF92C /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				3F58E73089BA4A3B169DB2C4 /* argparser.cpp */,
+				E4FD930E3E3BCCA8B11C722B /* argparser.h */,
+				4E74AA811696D4AC4C481FBB /* unused.h */,
 			);
 			path = utils;
 			sourceTree = "<group>";
@@ -1946,7 +1948,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C586627F680E7ABE4FBD9F0 /* argparser.cpp in Sources */,
+				F309068C05CD4AB5EAE0BDB0 /* argparser.cpp in Sources */,
 				E4E55E7B2A3FD0248739A100 /* LoadTestSample.cpp in Sources */,
 				22AED0DCA3FE7A4FF369CD2A /* SwipeDetector.cpp in Sources */,
 				386BD6D593393009558DAB9B /* GLLoadTests.cpp in Sources */,
@@ -1964,7 +1966,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0B68D24EC579F9A9968A93FD /* argparser.cpp in Sources */,
+				9514D2CCE3D6183C548A4B53 /* argparser.cpp in Sources */,
 				F8C27FE716B330D183972BD9 /* LoadTestSample.cpp in Sources */,
 				CA4BFE5CF9403B6359488AA6 /* SwipeDetector.cpp in Sources */,
 				E5E4CAFDAA9BC62AFFD244D1 /* InstancedSampleBase.cpp in Sources */,
@@ -1982,7 +1984,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F86ECF321372AF9C1561873A /* argparser.cpp in Sources */,
+				E7227E5440D55D4C1E0CE476 /* argparser.cpp in Sources */,
 				A1D9920A638AF5CB3D338F36 /* LoadTestSample.cpp in Sources */,
 				BF4BEE09468640E7ACC84394 /* SwipeDetector.cpp in Sources */,
 				84A0F89CBB095D82C054A02C /* GLLoadTests.cpp in Sources */,
@@ -2865,6 +2867,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
+					utils,
 					"$(VULKAN_SDK)/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -2925,6 +2928,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
+					utils,
 					"$(VULKAN_SDK)/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;

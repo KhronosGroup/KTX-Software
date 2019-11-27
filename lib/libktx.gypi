@@ -133,6 +133,8 @@
         {
           'target_name': 'libktx.gl',
           'type': '<(library)',
+          # To quiet warnings about the anon structs and unions in Basisu.
+           'cflags': [ '-Wno-pedantic' ],
           'defines': [
             'KTX_OPENGL=1',
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
@@ -202,12 +204,16 @@
             }], # _type == "shared_library"
           ], # conditions
           'xcode_settings': {
-              # Turn off so as to compile Basis. Hopefully temporary.
-              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-              # This is used by a Copy Headers phase which gyp only allows to be
-              # be created for a framework bundle. Remember in case we want to
-              # switch the lib to a framework.
-              #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
+            # The BasisU transcoder uses anon typs and structs. They compile ok in
+            # Visual Studio (2015+) and on Linux so quiet the clang warnings.
+            'WARNING_CFLAGS': [
+              '-Wno-nested-anon-types',
+              '-Wno-gnu-anonymous-struct',
+            ],
+            # This is used by a Copy Headers phase which gyp only allows to be
+            # be created for a framework bundle. Remember in case we want to
+            # switch the lib to a framework.
+            #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
           },
         }, # libktx.gl target
         {
@@ -428,8 +434,12 @@
           'sources': [ '<@(sources)' ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
-              # Turn off so as to compile Basis. Hopefully temporary.
-              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+            # The BasisU transcoder uses anon typs and structs. They compile ok in
+            # Visual Studio (2015+) and on Linux so quite the clang warnings.
+            'WARNING_CFLAGS': [
+              '-Wno-nested-anon-types',
+              '-Wno-gnu-anonymous-struct',
+            ],
           }
         }, # libktx.es1
       ], # ios or win targets
@@ -464,8 +474,12 @@
          ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
-              # Turn off so as to compile Basis. Hopefully temporary.
-              'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+            # The BasisU transcoder uses anon typs and structs. They compile ok in
+            # Visual Studio (2015+) and on Linux so quite the clang warnings.
+            'WARNING_CFLAGS': [
+              '-Wno-nested-anon-types',
+              '-Wno-gnu-anonymous-struct',
+            ],
           }
         }, # libktx.es3
       ], # ios or win targets

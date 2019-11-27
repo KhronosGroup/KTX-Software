@@ -350,8 +350,8 @@ list(APPEND libktx_gl__include_dirs
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
 set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;NDEBUG;")
-set_source_files_properties(${libktx_gl__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -fPIC -std=c99 ")
-set_source_files_properties(${libktx_gl__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O3 -fPIC -std=c++11 ")
+set_source_files_properties(${libktx_gl__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -Wno-pedantic -O3 -fPIC -std=c99 ")
+set_source_files_properties(${libktx_gl__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -Wno-pedantic -O3 -fPIC -std=c++11 ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -361,9 +361,10 @@ set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVE
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(libktx_gl
   vulkan_headers
   libgl
@@ -445,7 +446,7 @@ list(APPEND toktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
 set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -518,7 +519,7 @@ list(APPEND ktxsc__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktxsc APPEND PROPERTY INCLUDE_DIRECTORIES ${ktxsc__include_dirs})
 set_target_properties(ktxsc PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(ktxsc PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(ktxsc PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -561,7 +562,7 @@ list(APPEND ktxinfo__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktxinfo APPEND PROPERTY INCLUDE_DIRECTORIES ${ktxinfo__include_dirs})
 set_target_properties(ktxinfo PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(ktxinfo PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(ktxinfo PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -604,7 +605,7 @@ list(APPEND ktx2ktx2__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktx2ktx2 APPEND PROPERTY INCLUDE_DIRECTORIES ${ktx2ktx2__include_dirs})
 set_target_properties(ktx2ktx2 PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(ktx2ktx2 PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(ktx2ktx2 PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -649,7 +650,7 @@ list(APPEND ktx2check__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktx2check APPEND PROPERTY INCLUDE_DIRECTORIES ${ktx2check__include_dirs})
 set_target_properties(ktx2check PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(ktx2check PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(ktx2check PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1101,6 +1102,7 @@ list(APPEND appfwSDL__cxx_srcs
 list(APPEND appfwSDL__other_srcs
   "../../../../tests/loadtests/appfwSDL/AppBaseSDL.h"
   "../../../../tests/loadtests/appfwSDL/GLAppSDL.h"
+  "../../../../utils/unused.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanAppSDL.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/vulkancheckres.h"
   "../../../../tests/loadtests/appfwSDL/VulkanAppSDL/VulkanContext.h"
@@ -1124,10 +1126,11 @@ list(APPEND appfwSDL__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 -std=c++11 ")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 -std=c++11 ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1206,7 +1209,7 @@ list(APPEND gl3loadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
 set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;NDEBUG;")
-set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
@@ -1614,7 +1617,7 @@ list(APPEND vkloadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET vkloadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${vkloadtests__include_dirs})
 set_target_properties(vkloadtests PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(vkloadtests PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(vkloadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
@@ -1696,7 +1699,7 @@ list(APPEND gtest_main__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
 set_property(TARGET gtest_main APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest_main__include_dirs})
 set_target_properties(gtest_main PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gtest_main PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1750,7 +1753,7 @@ list(APPEND gtest__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest")
 set_property(TARGET gtest APPEND PROPERTY INCLUDE_DIRECTORIES ${gtest__include_dirs})
 set_target_properties(gtest PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;")
-set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(gtest PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1785,7 +1788,7 @@ list(APPEND unittests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET unittests APPEND PROPERTY INCLUDE_DIRECTORIES ${unittests__include_dirs})
 set_target_properties(unittests PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;")
-set_target_properties(unittests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(unittests PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(unittests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1830,13 +1833,14 @@ list(APPEND transcodetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../interface/c_binding/inc"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/unittests"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET transcodetests APPEND PROPERTY INCLUDE_DIRECTORIES ${transcodetests__include_dirs})
 set_target_properties(transcodetests PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;")
-set_target_properties(transcodetests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(transcodetests PROPERTIES COMPILE_FLAGS "-Wpedantic -Wno-pedantic -O3 -std=c++11 ")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -1849,9 +1853,10 @@ set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_USE_HEADERMAP "NO")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
-set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
-set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(transcodetests
   libgl
 )
@@ -1885,7 +1890,7 @@ list(APPEND texturetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET texturetests APPEND PROPERTY INCLUDE_DIRECTORIES ${texturetests__include_dirs})
 set_target_properties(texturetests PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NDEBUG;")
-set_target_properties(texturetests PROPERTIES COMPILE_FLAGS "-pedantic -O3 -std=c++11 ")
+set_target_properties(texturetests PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")

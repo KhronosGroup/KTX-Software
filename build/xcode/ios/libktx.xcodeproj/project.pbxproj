@@ -877,7 +877,7 @@
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -886,6 +886,10 @@
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
+				WARNING_CFLAGS = (
+					"-Wno-nested-anon-types",
+					"-Wno-gnu-anonymous-struct",
+				);
 			};
 			name = Release;
 		};
@@ -948,7 +952,7 @@
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -958,6 +962,10 @@
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
+				WARNING_CFLAGS = (
+					"-Wno-nested-anon-types",
+					"-Wno-gnu-anonymous-struct",
+				);
 			};
 			name = Release;
 		};
@@ -1024,7 +1032,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -1034,6 +1042,10 @@
 				PRODUCT_NAME = ktx.es3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
+				WARNING_CFLAGS = (
+					"-Wno-nested-anon-types",
+					"-Wno-gnu-anonymous-struct",
+				);
 			};
 			name = Debug;
 		};
@@ -1060,7 +1072,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
@@ -1069,6 +1081,10 @@
 				PRODUCT_NAME = ktx.es1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
+				WARNING_CFLAGS = (
+					"-Wno-nested-anon-types",
+					"-Wno-gnu-anonymous-struct",
+				);
 			};
 			name = Debug;
 		};

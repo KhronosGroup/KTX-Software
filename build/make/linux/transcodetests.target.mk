@@ -10,7 +10,8 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
+	-Wpedantic \
+	-Wno-pedantic \
 	-Og \
 	-g
 
@@ -26,6 +27,7 @@ INCS_Debug := \
 	-I$(srcdir)/interface/c_binding/inc \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/lib/basisu/transcoder \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/tests/unittests \
 	-I$(srcdir)/include \
@@ -38,7 +40,8 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
+	-Wpedantic \
+	-Wno-pedantic \
 	-O3
 
 # Flags passed to only C files.
@@ -53,6 +56,7 @@ INCS_Release := \
 	-I$(srcdir)/interface/c_binding/inc \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/lib/basisu/transcoder \
+	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/tests/unittests \
 	-I$(srcdir)/include \

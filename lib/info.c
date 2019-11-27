@@ -166,6 +166,7 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
           case KTX_FILE_DATA_ERROR:
             fprintf(stdout, "  it has invalid data such as bad glTypSize, improper dimensions,\n"
                             "improper number of faces or too many levels.\n");
+            break;
           case KTX_UNSUPPORTED_TEXTURE_TYPE:
             fprintf(stdout, "  it describes a 3D array that is unsupported\n");
             break;
