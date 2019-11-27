@@ -1095,13 +1095,13 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_transcode_fmt_e fmt,
 /*
  * Returns a string corresponding to a KTX error code.
  */
-KTX_APICALL const char* const KTX_APIENTRY
+KTX_APICALL const char* KTX_APIENTRY
 ktxErrorString(KTX_error_code error);
 
 /*
  * Returns a string corresponding to a transcode target format.
  */
-KTX_APICALL const char* const KTX_APIENTRY
+KTX_APICALL const char* KTX_APIENTRY
 ktxTranscodeFormatString(ktx_transcode_fmt_e format);
 
 KTX_APICALL KTX_error_code KTX_APIENTRY ktxHashList_Create(ktxHashList** ppHl);

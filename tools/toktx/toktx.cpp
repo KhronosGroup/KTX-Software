@@ -1145,7 +1145,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 
         argparser optparser(arglist, 0);
         processOptions(optparser, options);
-        if (optparser.optind != (int)arglist.size()) {
+        if (optparser.optind != arglist.size()) {
             fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable.\n");
             usage(appName);
             exit(1);

@@ -117,7 +117,7 @@
         }],
       ],
     },
-    'cflags': [ '-pedantic' ],
+    'cflags': [ '-Wpedantic' ],
     'cflags_c': [ '-std=c99' ],
     # Use C++11 for Basis, vulkan.hpp in vkloadtests and gtest.
     'cflags_cc': [ '-std=c++11' ],

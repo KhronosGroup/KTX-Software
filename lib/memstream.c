@@ -269,7 +269,7 @@ KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const ktx_size_t cou
 
     newpos = mem->pos + count;
     /* The first clause checks for overflow. */
-    if (newpos < mem->pos || newpos > mem->used_size)
+    if (newpos < mem->pos || (uint32_t)newpos > mem->used_size)
         return KTX_FILE_UNEXPECTED_EOF;
 
     bytes = mem->robytes ? mem->robytes : mem->bytes;

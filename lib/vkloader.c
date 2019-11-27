@@ -607,7 +607,7 @@ ktxTexture_VkUploadExPrivate(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                              VkImageLayout finalLayout)
 {
     KTX_error_code           kResult;
-    VkFilter                 blitFilter;
+    VkFilter                 blitFilter = VK_FILTER_LINEAR;
     VkFormat                 vkFormat;
     VkImageType              imageType;
     VkImageViewType          viewType;
@@ -651,6 +651,7 @@ ktxTexture_VkUploadExPrivate(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         createFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
 
+    assert(This->numDimensions >= 1 && This->numDimensions <= 3);
     switch (This->numDimensions) {
       case 1:
         imageType = VK_IMAGE_TYPE_1D;
@@ -658,6 +659,7 @@ ktxTexture_VkUploadExPrivate(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                         VK_IMAGE_VIEW_TYPE_1D_ARRAY : VK_IMAGE_VIEW_TYPE_1D;
         break;
       case 2:
+      default: // To keep compilers happy.
         imageType = VK_IMAGE_TYPE_2D;
         if (This->isCubemap)
             viewType = This->isArray ?

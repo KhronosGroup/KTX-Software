@@ -133,6 +133,8 @@
         {
           'target_name': 'libktx.gl',
           'type': '<(library)',
+          # To quiet warnings about the anon structs and unions in Basisu.
+           'cflags': [ '-Wno-pedantic' ],
           'defines': [
             'KTX_OPENGL=1',
             'KTX_USE_FUNCPTRS_FOR_VULKAN',

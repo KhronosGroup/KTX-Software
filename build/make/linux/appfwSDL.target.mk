@@ -42,7 +42,7 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
+	-Wpedantic \
 	-Og \
 	-g
 
@@ -67,7 +67,7 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
+	-Wpedantic \
 	-O3
 
 # Flags passed to only C files.

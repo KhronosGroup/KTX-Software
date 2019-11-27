@@ -48,7 +48,7 @@ static const char* const errorStrings[] = {
     "Texture type not supported by GL context.",      /* KTX_UNSUPPORTED_TEXTURE_TYPE */
     "Feature not included in in-use library or not yet implemented." /* KTX_UNSUPPORTED_FEATURE */
 };
-static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
+static const uint32_t lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
 
 
 /**
@@ -63,7 +63,7 @@ static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
  *
  * @author Mark Callow
  */
-const char* const ktxErrorString(KTX_error_code error)
+const char* ktxErrorString(KTX_error_code error)
 {
     if (error > lastErrorCode)
         return "Unrecognized error code";
@@ -82,7 +82,7 @@ const char* const ktxErrorString(KTX_error_code error)
 *
 * @author Mark Callow
 */
-const char* const ktxTranscodeFormatString(ktx_transcode_fmt_e format)
+const char* ktxTranscodeFormatString(ktx_transcode_fmt_e format)
 {
     switch (format) {
         case KTX_TTF_ETC1_RGB: return "ETC1_RGB";
