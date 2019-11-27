@@ -7652,7 +7652,7 @@ namespace basist
 
 					uint32_t m = (le * 5 + he * 3) / 8;
 
-					int err = abs((int)(v - m));
+					int err = (int)labs((int)v - (int)m);
 					if (err < lowest_err)
 					{
 						lowest_err = err;
@@ -7675,7 +7675,7 @@ namespace basist
 				uint32_t le = (l << 1);
 				le = (le << 4) | le;
 
-				int err = abs((int)(v - le));
+				int err = (int)labs((int)v - (int)le);
 				if (err < lowest_err)
 				{
 					lowest_err = err;
@@ -7697,7 +7697,7 @@ namespace basist
 				uint32_t he = (h << 1) | 1;
 				he = (he << 4) | he;
 
-				int err = abs((int)v - (int)he);
+				int err = (int)labs((int)v - (int)he);
 				if (err < lowest_err)
 				{
 					lowest_err = err;
@@ -7726,7 +7726,7 @@ namespace basist
 
 					uint32_t m = (le * 5 + he * 3) / 8;
 
-					int err = abs((int)(v - m));
+					int err = (int)labs((int)v - (int)m);
 					if (err < lowest_err)
 					{
 						lowest_err = err;
@@ -7756,7 +7756,7 @@ namespace basist
 
 					uint32_t m = (le * 5 + he * 3) / 8;
 
-					int err = abs((int)(v - m));
+					int err = (int)labs((int)v - (int)m);
 					if (err < lowest_err)
 					{
 						lowest_err = err;
