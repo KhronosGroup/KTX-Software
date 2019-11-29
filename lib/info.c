@@ -367,7 +367,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
             //
             uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
             uint32_t numImages = 0;
-            for (uint32_t level = 1; level <= MAX(pHeader->layerCount, 1); level++) {
+            for (uint32_t level = 1; level <= MAX(pHeader->levelCount, 1); level++) {
                 // NOTA BENE: numFaces * depth is only reasoable because they can't
                 // both be > 1. I.e there are no 3d cubemaps.
                 numImages += layersFaces * MAX(MAX(pHeader->pixelDepth, 1) >> (level - 1), 1);
