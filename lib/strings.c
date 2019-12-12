@@ -72,9 +72,9 @@ const char* ktxErrorString(KTX_error_code error)
 
 /**
 * @~English
-* @brief Return a string corresponding to a transcode format enumeration..
+* @brief Return a string corresponding to a transcode format enumeration.
 *
-* @param format    the transcode format for which to return a string
+* @param format    the transcode format for which to return a string.
 *
 * @return pointer to the message string.
 *
@@ -110,3 +110,27 @@ const char* ktxTranscodeFormatString(ktx_transcode_fmt_e format)
     }
 }
 
+/**
+* @~English
+* @brief Return a string corresponding to a supercompressionScheme enumeration.
+*
+* @param scheme    the supercompression scheme for which to return a string.
+*
+* @return pointer to the message string.
+*
+* @internal Use UTF-8 for translated message strings.
+*
+* @author Mark Callow
+*/
+const char *
+ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
+{
+    switch (scheme) {
+      case KTX_SUPERCOMPRESSION_NONE: return "KTX_SUPERCOMPRESSION_NONE";
+      case KTX_SUPERCOMPRESSION_BASIS: return "KTX_SUPERCOMPRESSION_BASIS";
+      case KTX_SUPERCOMPRESSION_LZMA: return "KTX_SUPERCOMPRESSION_LZMA";
+      case KTX_SUPERCOMPRESSION_ZLIB: return "KTX_SUPERCOMPRESSION_ZLIB";
+      case KTX_SUPERCOMPRESSION_ZSTD: return "KTX_SUPERCOMPRESSION_ZSTD";
+      default: return "Invalid scheme value";
+    }
+}
