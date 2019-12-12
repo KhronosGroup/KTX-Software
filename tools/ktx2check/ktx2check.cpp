@@ -172,9 +172,15 @@ struct {
     issue TypeSizeMismatch {
         ERROR | 0x0030, "typeSize, %d, does not match data described by the DFD."
     };
+    issue VkFormatAndBasisU {
+        ERROR | 0x0031, "VkFormat must be VK_FORMAT_UNDEFINED for supercompressionScheme BASIS."
+    };
     issue TypeSizeNotOne {
-        ERROR | 0x0031, "typeSize for a block compressed or supercompressed format must be 1."
-  };
+        ERROR | 0x0032, "typeSize for a block compressed or supercompressed format must be 1."
+    };
+    issue ScSchemeVkFormatMismatch {
+        ERROR | 0x0033, "VK_FORMAT_UNDEFINED is valid only with supercompressionSchemes NONE and BASIS."
+    };
 } HeaderData;
 
 struct {
@@ -211,14 +217,27 @@ struct {
     issue FormatMismatch {
         ERROR | 0x0056, "DFD does not match VK_FORMAT w.r.t. sign, float or normalization."
     };
-    issue NonZeroSamplesForBasis {
-        ERROR | 0x0057, "DFD for a Basis Compressed texture must have 0 samples."
+    issue ZeroSamples {
+        ERROR | 0x0057, "DFD for a %s texture must have sample information."
+    };
+    issue UnsizedForUndefined {
+        ERROR | 0x0058, "DFD texel block dimensions and bytes/plane must be non-zero for\n"
+                        "non-supercompressed texture with VK_FORMAT_UNDEFINED"
+    };
+    issue InvalidSampleCountForBasis {
+        ERROR | 0x0059, "DFD for a Basis compressed texture must have 1 to 4 samples."
     };
     issue IncorrectModelForBasis {
-        ERROR | 0x0058, "DFD color model for a Basis Compressed texture must be KHR_DF_MODEL_UNSPECIFIED."
+        ERROR | 0x005a, "DFD color model for a Basis compressed texture must be KHR_DF_MODEL_UNSPECIFIED."
     };
-    issue IncorrectSizesForBasis {
-        ERROR | 0x0059, "DFD texel block dimensions and bytes/plane for Basis must be 0."
+    issue NotUnsized {
+        ERROR | 0x005b, "DFD texel block dimensions and bytes/plane must be 0 for a supercompressed texture."
+    };
+    issue InvalidChannelForBasis {
+        ERROR | 0x005c, "Only RED, GREEN, BLUE or ALPHA channels allowed for Basis compressed textures."
+    };
+    issue NonZeroUpperOrLower {
+        ERROR | 0x005d, "All DFD samples' sampleLower and sampleUpper must be 0 for Basis."
     };
 } DFD;
 
@@ -775,28 +794,6 @@ ktxValidator::validateHeader(validationContext& ctx)
     // Set layerCount to actual number of layers.
     ctx.layerCount = MAX(ctx.header.layerCount, 1);
 
-    if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
-        uint32_t* pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
-        if (pDfd == nullptr)
-            addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
-                     vkFormatString((VkFormat)ctx.header.vkFormat));
-
-        if (!ctx.extractFormatInfo(pDfd))
-            addIssue(logger::eError, ValidatorError.IncorrectDfd,
-                     vkFormatString((VkFormat)ctx.header.vkFormat));
-
-        if (ctx.formatInfo.isBlockCompressed) {
-            if (ctx.header.typeSize != 1)
-                addIssue(logger::eError, HeaderData.TypeSizeNotOne);
-        } else {
-            if (ctx.header.typeSize != ctx.formatInfo.wordSize)
-                 addIssue(logger::eError, HeaderData.TypeSizeMismatch);
-        }
-    } else if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_NONE) {
-        if (ctx.header.typeSize != 1)
-            addIssue(logger::eError, HeaderData.TypeSizeNotOne);
-    }
-
     if (ctx.header.supercompressionScheme > KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE
         && ctx.header.supercompressionScheme < KTX_SUPERCOMPRESSION_END_VENDOR_RANGE)
     {
@@ -806,6 +803,35 @@ ktxValidator::validateHeader(validationContext& ctx)
     {
         addIssue(logger::eError, HeaderData.InvalidSupercompression,
                  ctx.header.supercompressionScheme);
+    }
+
+    if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
+        if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS) {
+            uint32_t* pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
+            if (pDfd == nullptr)
+                addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
+                         vkFormatString((VkFormat)ctx.header.vkFormat));
+
+            if (!ctx.extractFormatInfo(pDfd))
+                addIssue(logger::eError, ValidatorError.IncorrectDfd,
+                         vkFormatString((VkFormat)ctx.header.vkFormat));
+
+            if (ctx.formatInfo.isBlockCompressed) {
+                if (ctx.header.typeSize != 1)
+                    addIssue(logger::eError, HeaderData.TypeSizeNotOne);
+            } else {
+                if (ctx.header.typeSize != ctx.formatInfo.wordSize)
+                     addIssue(logger::eError, HeaderData.TypeSizeMismatch);
+            }
+        } else {
+            addIssue(logger::eError, HeaderData.VkFormatAndBasisU);
+        }
+    } else {
+        if (ctx.header.typeSize != 1)
+            addIssue(logger::eError, HeaderData.TypeSizeNotOne);
+        if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS
+            && ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+            addIssue(logger::eError, HeaderData.ScSchemeVkFormatMismatch);
     }
 
 #define checkRequiredIndexEntry(index, issue, name)     \
@@ -916,75 +942,143 @@ ktxValidator::validateDfd(validationContext& ctx)
         && xferFunc != KHR_DF_TRANSFER_LINEAR)
         addIssue(logger::eError, DFD.InvalidTransferFunction);
 
-    if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED
-        && ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
-        // Do a simple comparison.
-        if (memcmp(pDfd, ctx.pDfd4Format, *ctx.pDfd4Format)) {
-            // pDfd differs from what is expected. To help developers, do a
-            // more in depth analysis.
+    bool analyze = false;
+    uint32_t numSamples = KHR_DFDSAMPLECOUNT(bdb);
+    switch (ctx.header.supercompressionScheme) {
+      case KTX_SUPERCOMPRESSION_NONE:
+        if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
+            // Do a simple comparison.
+            analyze = !memcmp(pDfd, ctx.pDfd4Format, *ctx.pDfd4Format);
+        } else {
+            // Checking the basics
             if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
                 || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
                 || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
                 addIssue(logger::eError, DFD.IncorrectBasics);
 
-            if (ctx.formatInfo.isBlockCompressed) {
-                // _BLOCK formats.
-                if (KHR_DFDVAL(bdb, MODEL) < KHR_DF_MODEL_DXT1A)
-                  addIssue(logger::eError, DFD.IncorrectModelForBlock);
+            // Ensure there are at least some samples
+            if (KHR_DFDSAMPLECOUNT(bdb) == 0)
+                addIssue(logger::eError, DFD.ZeroSamples,
+                         "non-supercompressed texture with VK_FORMAT_UNDEFINED");
+            // Check for a sized format
+            // This checks texelBlockDimension[0-3] and bytesPlane[0-7]
+            // as each is a byte and bdb is unit32_t*.
+            if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] == 0
+                && bdb[KHR_DF_WORD_BYTESPLANE0]  == 0
+                && bdb[KHR_DF_WORD_BYTESPLANE4]  == 0)
+                addIssue(logger::eError, DFD.UnsizedForUndefined);
+        }
+        break;
+
+      case KTX_SUPERCOMPRESSION_BASIS:
+          // validateHeader has already checked if vkFormat is the required
+          // VK_FORMAT_UNDEFINED so no check here.
+
+          // This descriptor should have [1-4] samples with sample size and
+          // offset 0, all bytesPlane 0 and sampleUpper & sampleLower 0.
+          if (numSamples == 0)
+              addIssue(logger::eError, DFD.ZeroSamples, "BasisU compressed");
+          if (numSamples > 4)
+              addIssue(logger::eError, DFD.InvalidSampleCountForBasis);
+
+          if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_UNSPECIFIED)
+              addIssue(logger::eError, DFD.IncorrectModelForBasis);
+
+          // Check for unsized.
+          if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] != 0
+             || bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
+             || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
+             addIssue(logger::eError, DFD.NotUnsized);
+
+          for (uint32_t sample = 0; sample < numSamples; sample++) {
+              uint8_t channelID = KHR_DFDSVAL(bdb, sample, CHANNELID);
+              if (channelID != KHR_DF_CHANNEL_RGBSDA_R
+                  && channelID != KHR_DF_CHANNEL_RGBSDA_G
+                  && channelID != KHR_DF_CHANNEL_RGBSDA_B
+                  && channelID != KHR_DF_CHANNEL_RGBSDA_A)
+                  addIssue(logger::eError, DFD.InvalidChannelForBasis);
+              if (KHR_DFDSVAL(bdb, sample, SAMPLELOWER != 0)
+                  && KHR_DFDSVAL(bdb, sample, SAMPLEUPPER != 0))
+                  addIssue(logger::eError, DFD.NonZeroUpperOrLower);
+          }
+          break;
+
+        case KTX_SUPERCOMPRESSION_LZMA:
+        case KTX_SUPERCOMPRESSION_ZLIB:
+        case KTX_SUPERCOMPRESSION_ZSTD:
+          // Check for unsized.
+          if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] != 0
+             || bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
+             || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
+             addIssue(logger::eError, DFD.NotUnsized);
+
+          // In the event that vkFormat is not set, there is no more that can
+          // be usefully done. Although validateHeader has checked that this
+          // and flagged an error validation keeps running so we need to check
+          // here too.
+          if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
+              // compare up to TEXELBLOCKDIMENSION.
+              analyze = !memcmp(pDfd, ctx.pDfd4Format,
+                                KHR_DF_WORD_TEXELBLOCKDIMENSION0 * 4);
+              // Compare the sample information.
+              if (!analyze) {
+                  analyze = !memcmp(&pDfd[KHR_DF_WORD_SAMPLESTART+1],
+                                    &ctx.pDfd4Format[KHR_DF_WORD_SAMPLESTART+1],
+                                    numSamples * KHR_DF_WORD_SAMPLEWORDS);
+              }
+          }
+          break;
+
+      default:
+        break;
+    }
+
+    if (analyze) {
+        // pDfd differs from what is expected. To help developers, do a
+        // more in depth analysis.
+        if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
+            || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
+            || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
+            addIssue(logger::eError, DFD.IncorrectBasics);
+
+        if (ctx.formatInfo.isBlockCompressed) {
+            // _BLOCK formats.
+            if (KHR_DFDVAL(bdb, MODEL) < KHR_DF_MODEL_DXT1A)
+              addIssue(logger::eError, DFD.IncorrectModelForBlock);
+        } else {
+            InterpretedDFDChannel r, g, b, a;
+            uint32_t componentByteLength;
+            InterpretDFDResult result;
+            string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
+
+            result = interpretDFD(pDfd, &r, &g, &b, &a, &componentByteLength);
+            if (result > i_UNSUPPORTED_ERROR_BIT)
+                addIssue(logger::eError, DFD.TooComplex);
+
+            if ((result & i_FLOAT_FORMAT_BIT) && !(result & i_SIGNED_FORMAT_BIT))
+                addIssue(logger::eWarning, DFD.UnsignedFloat);
+
+            if (result & i_SRGB_FORMAT_BIT) {
+                if (vkFormatStr.find("SRGB") == string::npos)
+                    addIssue(logger::eError, DFD.sRGBMismatch);
             } else {
-                InterpretedDFDChannel r, g, b, a;
-                uint32_t componentByteLength;
-                InterpretDFDResult result;
-                string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
+                string findStr;
+                if (result & i_SIGNED_FORMAT_BIT)
+                    findStr += 'S';
+                else
+                    findStr += 'U';
 
-                result = interpretDFD(pDfd, &r, &g, &b, &a, &componentByteLength);
-                if (result > i_UNSUPPORTED_ERROR_BIT)
-                    addIssue(logger::eError, DFD.TooComplex);
+                if (result & i_FLOAT_FORMAT_BIT)
+                    findStr += "FLOAT";
+                if (result & i_NORMALIZED_FORMAT_BIT)
+                    findStr += "NORM";
+                else
+                    findStr += "INT";
 
-                if ((result & i_FLOAT_FORMAT_BIT) && !(result & i_SIGNED_FORMAT_BIT))
-                    addIssue(logger::eWarning, DFD.UnsignedFloat);
-
-                if (result & i_SRGB_FORMAT_BIT) {
-                    if (vkFormatStr.find("SRGB") == string::npos)
-                        addIssue(logger::eError, DFD.sRGBMismatch);
-                } else {
-                    string findStr;
-                    if (result & i_SIGNED_FORMAT_BIT)
-                        findStr += 'S';
-                    else
-                        findStr += 'U';
-
-                    if (result & i_FLOAT_FORMAT_BIT)
-                        findStr += "FLOAT";
-                    if (result & i_NORMALIZED_FORMAT_BIT)
-                        findStr += "NORM";
-                    else
-                        findStr += "INT";
-
-                    if (vkFormatStr.find(findStr) == string::npos)
-                        addIssue(logger::eError, DFD.FormatMismatch);
-                }
+                if (vkFormatStr.find(findStr) == string::npos)
+                    addIssue(logger::eError, DFD.FormatMismatch);
             }
         }
-    } else {
-        switch (ctx.header.supercompressionScheme) {
-          case KTX_SUPERCOMPRESSION_BASIS:
-            // This descriptor should have 0 samples.
-            if (*pDfd != sizeof(uint32_t) * (1 + KHR_DF_WORD_SAMPLESTART))
-                addIssue(logger::eError, DFD.NonZeroSamplesForBasis);
-
-            if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_UNSPECIFIED)
-                addIssue(logger::eError, DFD.IncorrectModelForBasis);
-
-            if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] != 0
-               || bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
-               || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
-               addIssue(logger::eError, DFD.IncorrectSizesForBasis);
-            break;
-          default:
-            addIssue(logger::eError, ValidatorError.OnlyBasisSupported);
-        }
-        return;
     }
 }
 
