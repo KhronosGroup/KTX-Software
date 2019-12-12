@@ -131,7 +131,7 @@ END {
     prelude = "\n";
     prelude = prelude "#include <stdint.h>\n\n";
     prelude = prelude "#include \"vkformat_enum.h\"\n\n";
-    prelude = prelude "char*\nvkFormatString(VkFormat format)\n{\n";
+    prelude = prelude "const char*\nvkFormatString(VkFormat format)\n{\n";
     prelude = prelude "    switch (format) {\n";
     postscript = "      default:\n        return \"VK_UNKNOWN_FORMAT\";\n";
     postscript = postscript "    }\n";
