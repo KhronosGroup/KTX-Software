@@ -24,7 +24,7 @@
 
 #include "vkformat_enum.h"
 
-char*
+const char*
 vkFormatString(VkFormat format)
 {
     switch (format) {

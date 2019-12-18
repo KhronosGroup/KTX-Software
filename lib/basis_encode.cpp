@@ -214,31 +214,35 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
 }
 #endif
 
-// Rewrite DFD without sample information and with unspecified color model.
+// Rewrite DFD changing it to unsized
 static KTX_error_code
 ktxTexture2_rewriteDfd(ktxTexture2* This)
 {
     uint32_t* cdfd = This->pDfd;
-    uint32_t* ndfd = (uint32_t *)malloc(sizeof(uint32_t) *
-                                        (1 + KHR_DF_WORD_SAMPLESTART));
+    uint32_t* ndfd = (uint32_t *)malloc(*cdfd);
+
     if (!ndfd)
         return KTX_OUT_OF_MEMORY;
-    uint32_t* cbdfd = cdfd + 1; // Point to basic format descriptor.
-    uint32_t* nbdfd = ndfd + 1;
-    ndfd[0] = sizeof(uint32_t) * (1 + KHR_DF_WORD_SAMPLESTART);
-    nbdfd[KHR_DF_WORD_VENDORID] =
-        (KHR_DF_VENDORID_KHRONOS << KHR_DF_SHIFT_VENDORID) |
-        (KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT << KHR_DF_SHIFT_DESCRIPTORTYPE);
-    nbdfd[KHR_DF_WORD_VERSIONNUMBER] =
-        (KHR_DF_VERSIONNUMBER_LATEST << KHR_DF_SHIFT_VERSIONNUMBER) |
-        (((uint32_t)sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART)
-          << KHR_DF_SHIFT_DESCRIPTORBLOCKSIZE);
-    // WORD_TRANSFER is in the same word so this copies the xfer function too.
-    nbdfd[KHR_DF_WORD_MODEL] = cbdfd[KHR_DF_WORD_MODEL] & ~KHR_DF_MASK_MODEL;
-    nbdfd[KHR_DF_WORD_MODEL] |= KHR_DF_MODEL_UNSPECIFIED << KHR_DF_SHIFT_MODEL;
-    nbdfd[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 0;
-    nbdfd[KHR_DF_WORD_BYTESPLANE0] = 0;
-    nbdfd[KHR_DF_WORD_BYTESPLANE4] = 0;
+    uint32_t* nbdb = ndfd + 1;
+
+    memcpy(ndfd, cdfd, *cdfd);
+
+    // Show it describes an unsized format.
+    nbdb[KHR_DF_WORD_BYTESPLANE0] = 0;
+    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;
+
+    // Set the following to 0 as they have no meaning within the BasisU
+    // encoded data and what they will be after inflation depends on the
+    // transcode target.
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 0;
+    uint32_t numSamples = KHR_DFDSAMPLECOUNT(nbdb);
+    for (uint32_t sample = 0; sample < numSamples; sample++) {
+        KHR_DFDSETSVAL(nbdb, sample, BITOFFSET, 0);
+        KHR_DFDSETSVAL(nbdb, sample, BITLENGTH, 0);
+        KHR_DFDSETSVAL(nbdb, sample, SAMPLELOWER, 0);
+        KHR_DFDSETSVAL(nbdb, sample, SAMPLEUPPER, 0);
+    }
+
     This->pDfd = ndfd;
     free(cdfd);
     return KTX_SUCCESS;

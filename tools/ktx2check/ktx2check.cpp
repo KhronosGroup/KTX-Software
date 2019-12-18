@@ -39,8 +39,16 @@
 #include "dfdutils/dfd.h"
 #include "texture.h"
 #include "basis_sgd.h"
+// Gotta love Windows :-(
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
+  #if defined(_WIN64)
+    #define ftello _ftelli64
+    #define fseeko _fseeki64
+  #else
+    #define ftello ftell
+    #define fseeko fseek
+  #endif
 #endif
 
 #define VERSION "1.0.0 alpha"
@@ -109,6 +117,12 @@ struct {
     issue RewindFailure {
         FATAL | 0x0004, "Seek to start of file failed: %s."
     };
+    issue FileSeekEndFailure {
+        FATAL | 0x0005, "Seek to end of file failed: %s."
+    };
+    issue FileTellFailure {
+        FATAL | 0x0004, "Seek to start of file failed: %s."
+    };
 } IOError;
 
 struct {
@@ -117,6 +131,9 @@ struct {
     };
     issue CreateFailure {
         FATAL | 0x0011, "ktxTexture2 creation failed: %s."
+    };
+    issue IncorrectDataSize {
+        FATAL | 0x0012, "Size of image data in file does not match size calculated from levelIndex."
     };
 } FileError;
 
@@ -172,9 +189,15 @@ struct {
     issue TypeSizeMismatch {
         ERROR | 0x0030, "typeSize, %d, does not match data described by the DFD."
     };
+    issue VkFormatAndBasis {
+        ERROR | 0x0031, "VkFormat must be VK_FORMAT_UNDEFINED for supercompressionScheme BASIS."
+    };
     issue TypeSizeNotOne {
-        ERROR | 0x0031, "typeSize for a block compressed or supercompressed format must be 1."
-  };
+        ERROR | 0x0032, "typeSize for a block compressed or supercompressed format must be 1."
+    };
+    issue ScSchemeVkFormatMismatch {
+        ERROR | 0x0033, "VK_FORMAT_UNDEFINED is valid only with supercompressionSchemes NONE and BASIS."
+    };
 } HeaderData;
 
 struct {
@@ -200,7 +223,7 @@ struct {
         ERROR | 0x0052, "DFD color model is not that of a block-compressed texture."
     };
     issue TooComplex {
-        ERROR | 0x0053, "DFD is too complex for analysis. Does not describe a VkFormat or is wrong endianness."
+        ERROR | 0x0053, "DFD is too complex for analysis. Does not describe a VkFormat or has wrong endianness."
     };
     issue sRGBMismatch {
         ERROR | 0x0054, "DFD says sRGB but vkFormat is not an sRGB format."
@@ -211,14 +234,33 @@ struct {
     issue FormatMismatch {
         ERROR | 0x0056, "DFD does not match VK_FORMAT w.r.t. sign, float or normalization."
     };
-    issue NonZeroSamplesForBasis {
-        ERROR | 0x0057, "DFD for a Basis Compressed texture must have 0 samples."
+    issue ZeroSamples {
+        ERROR | 0x0057, "DFD for a %s texture must have sample information."
+    };
+    issue UnsizedForUndefined {
+        ERROR | 0x0058, "DFD texel block dimensions and bytes/plane must be non-zero for\n"
+                        "non-supercompressed texture with VK_FORMAT_UNDEFINED"
+    };
+    issue InvalidSampleCountForBasis {
+        ERROR | 0x0059, "DFD for a Basis compressed texture must have 1 to 4 samples."
     };
     issue IncorrectModelForBasis {
-        ERROR | 0x0058, "DFD color model for a Basis Compressed texture must be KHR_DF_MODEL_UNSPECIFIED."
+        ERROR | 0x005a, "DFD color model for a Basis compressed texture must be KHR_DF_MODEL_RGBSDA."
     };
-    issue IncorrectSizesForBasis {
-        ERROR | 0x0059, "DFD texel block dimensions and bytes/plane for Basis must be 0."
+    issue TexelBlockDimensionNotZero {
+        ERROR | 0x005b, "DFD texel block dimensions must be 0 for Basis compressed textures."
+    };
+    issue NotUnsized {
+        ERROR | 0x005c, "DFD bytes/plane must be 0 for a supercompressed texture."
+    };
+    issue InvalidChannelForBasis {
+        ERROR | 0x005d, "Only RED, GREEN, BLUE or ALPHA channels allowed for Basis compressed textures."
+    };
+    issue NonZeroLengthOrOffset {
+        ERROR | 0x005e, "All DFD samples' bitOffset and bitLength must be 0 for Basis compressed textures."
+    };
+    issue NonZeroUpperOrLower {
+        ERROR | 0x005f, "All DFD samples' sampleLower and sampleUpper must be 0 for Basis compressed textures."
     };
 } DFD;
 
@@ -238,23 +280,40 @@ struct {
 } LevelIndex;
 
 struct {
+    issue MissingNulTerminator {
+        ERROR | 0x0070, "Required NUL terminator missing from metadata key beginning \"%5s\".\n"
+                        "Abandoning validation of individual metadata entries."
+    };
+    issue ForbiddenBOM1 {
+        ERROR | 0x0071, "Metadata key beginning \"%5s\" has forbidden BOM."
+    };
+    issue ForbiddenBOM2 {
+        ERROR | 0x0072, "Metadata key beginning \"%s\" has forbidden BOM."
+    };
+    issue InvalidStructure {
+        ERROR | 0x0073, "Invalid metadata structure? keyAndValueByteLengths failed to total kvdByteLength\n"
+                        "after %d KV pairs."
+    };
+    issue MissingFinalPadding {
+        ERROR | 0x0074, "Required valuePadding after last metadata value missing."
+    };
     issue OutOfOrder {
-        ERROR | 0x0070, "Metadata keys are not sorted in codepoint order."
+        ERROR | 0x0075, "Metadata keys are not sorted in codepoint order."
     };
     issue CustomMetadata {
-        WARNING | 0x0071, "Custom metadata \"%s\" found."
+        WARNING | 0x0076, "Custom metadata \"%s\" found."
     };
     issue IllegalMetadata {
-        ERROR | 0x0072, "Unrecognized metadata \"%s\" found with KTX or ktx prefix found."
+        ERROR | 0x0077, "Unrecognized metadata \"%s\" found with KTX or ktx prefix found."
     };
     issue ValueNotNulTerminated {
-        ERROR | 0x0073, "%s value missing required NUL termination."
+        ERROR | 0x0078, "%s value missing required NUL termination."
     };
     issue InvalidValue {
-        ERROR | 0x0074, "%s has invalid value."
+        ERROR | 0x0079, "%s has invalid value."
     };
     issue NoKTXwriter {
-        ERROR | 0x0075, "Required KTXwriter key is missing."
+        ERROR | 0x007a, "Required KTXwriter key is missing."
     };
 } Metadata;
 
@@ -275,7 +334,7 @@ struct {
 
 struct {
     issue OutOfMemory {
-        ERROR | 0x0080, "System out of memory."
+        ERROR | 0x0090, "System out of memory."
     };
 } System;
 
@@ -359,6 +418,8 @@ class ktxValidator : public ktxApp {
         uint32_t levelCount;
         uint32_t dimensionCount;
         uint32_t* pDfd4Format;
+        uint64_t dataSizeFromLevelIndex;
+
         struct formatInfo {
             struct {
                 uint32_t x;
@@ -464,6 +525,7 @@ class ktxValidator : public ktxApp {
         void init (FILE* f) {
             if (pDfd4Format != nullptr) delete pDfd4Format;
             inf = f;
+            dataSizeFromLevelIndex = 0;
         }
     };
 
@@ -481,6 +543,7 @@ class ktxValidator : public ktxApp {
     void validateDfd(validationContext& ctx);
     void validateKvd(validationContext& ctx);
     void validateSgd(validationContext& ctx);
+    void validateDataSize(validationContext& ctx);
     bool validateMetadata(validationContext& ctx, char* key, uint8_t* value,
                           uint32_t valueLen);
 
@@ -504,6 +567,21 @@ class ktxValidator : public ktxApp {
                         uint8_t* value, uint32_t valueLen);
     void validateAstcDecodeRGB9E5(validationContext& ctx, char* key,
                                   uint8_t* value, uint32_t valueLen);
+
+    // Move read point from curOffset to next multiple of alignment bytes.
+    // Use read not fseeko/setpos so stdin can be used.
+    void align(uint64_t curOffset, uint64_t alignment, FILE* f) {
+        uint32_t pLen = (uint32_t)_KTX_PADN_LEN(alignment, curOffset);
+        uint8_t padBuf[8];
+        if (pLen) {
+            if (fread(padBuf, pLen, 1, f) != 1) {
+                if (ferror(f))
+                    addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+                else
+                    addIssue(logger::eFatal, IOError.UnexpectedEOF);
+            }
+        }
+    }
 
     typedef struct {
         string name;
@@ -662,6 +740,7 @@ ktxValidator::validateFile(const string& filename)
             validateDfd(context);
             validateKvd(context);
             validateSgd(context);
+            validateDataSize(context);
         } catch (fatal& e) {
             if (!options.quiet)
                 cout << "    " << e.what() << endl;
@@ -775,28 +854,6 @@ ktxValidator::validateHeader(validationContext& ctx)
     // Set layerCount to actual number of layers.
     ctx.layerCount = MAX(ctx.header.layerCount, 1);
 
-    if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
-        uint32_t* pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
-        if (pDfd == nullptr)
-            addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
-                     vkFormatString((VkFormat)ctx.header.vkFormat));
-
-        if (!ctx.extractFormatInfo(pDfd))
-            addIssue(logger::eError, ValidatorError.IncorrectDfd,
-                     vkFormatString((VkFormat)ctx.header.vkFormat));
-
-        if (ctx.formatInfo.isBlockCompressed) {
-            if (ctx.header.typeSize != 1)
-                addIssue(logger::eError, HeaderData.TypeSizeNotOne);
-        } else {
-            if (ctx.header.typeSize != ctx.formatInfo.wordSize)
-                 addIssue(logger::eError, HeaderData.TypeSizeMismatch);
-        }
-    } else if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_NONE) {
-        if (ctx.header.typeSize != 1)
-            addIssue(logger::eError, HeaderData.TypeSizeNotOne);
-    }
-
     if (ctx.header.supercompressionScheme > KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE
         && ctx.header.supercompressionScheme < KTX_SUPERCOMPRESSION_END_VENDOR_RANGE)
     {
@@ -806,6 +863,35 @@ ktxValidator::validateHeader(validationContext& ctx)
     {
         addIssue(logger::eError, HeaderData.InvalidSupercompression,
                  ctx.header.supercompressionScheme);
+    }
+
+    if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
+        if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS) {
+            uint32_t* pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
+            if (pDfd == nullptr)
+                addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
+                         vkFormatString((VkFormat)ctx.header.vkFormat));
+
+            if (!ctx.extractFormatInfo(pDfd))
+                addIssue(logger::eError, ValidatorError.IncorrectDfd,
+                         vkFormatString((VkFormat)ctx.header.vkFormat));
+
+            if (ctx.formatInfo.isBlockCompressed) {
+                if (ctx.header.typeSize != 1)
+                    addIssue(logger::eError, HeaderData.TypeSizeNotOne);
+            } else {
+                if (ctx.header.typeSize != ctx.formatInfo.wordSize)
+                     addIssue(logger::eError, HeaderData.TypeSizeMismatch);
+            }
+        } else {
+            addIssue(logger::eError, HeaderData.VkFormatAndBasis);
+        }
+    } else {
+        if (ctx.header.typeSize != 1)
+            addIssue(logger::eError, HeaderData.TypeSizeNotOne);
+        if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS
+            && ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+            addIssue(logger::eError, HeaderData.ScSchemeVkFormatMismatch);
     }
 
 #define checkRequiredIndexEntry(index, issue, name)     \
@@ -861,9 +947,9 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
     }
 
-    if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED
-        && ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
-        for (uint32_t level = 0; level < ctx.levelCount; level++) {
+    for (uint32_t level = 0; level < ctx.levelCount; level++) {
+        if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED
+            && ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
             if (levelIndex[level].uncompressedByteLength !=
                 ctx.calcLevelSize(level))
                 addIssue(logger::eError, LevelIndex.IncorrectByteLength, level);
@@ -875,11 +961,9 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
             if (levelIndex[level].byteOffset != ctx.calcLevelOffset(level))
                 addIssue(logger::eError, LevelIndex.IncorrectByteOffset, level);
 
-        }
-    } else {
-        // Can only do minimal validation as we have no idea what the
-        // level sizes are.
-        for (uint32_t level = 0; level < ctx.levelCount; level++) {
+        } else {
+            // Can only do minimal validation as we have no idea what the
+            // level sizes are.
             if (levelIndex[level].byteLength == 0 || levelIndex[level].byteOffset == 0)
                addIssue(logger::eError, LevelIndex.ZeroOffsetOrLength, level);
             if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS) {
@@ -888,7 +972,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
                         level);
             }
         }
-
+        ctx.dataSizeFromLevelIndex += _KTX_PAD8(levelIndex[level].byteLength);
     }
     delete[] levelIndex;
 }
@@ -916,75 +1000,146 @@ ktxValidator::validateDfd(validationContext& ctx)
         && xferFunc != KHR_DF_TRANSFER_LINEAR)
         addIssue(logger::eError, DFD.InvalidTransferFunction);
 
-    if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED
-        && ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
-        // Do a simple comparison.
-        if (memcmp(pDfd, ctx.pDfd4Format, *ctx.pDfd4Format)) {
-            // pDfd differs from what is expected. To help developers, do a
-            // more in depth analysis.
+    bool analyze = false;
+    uint32_t numSamples = KHR_DFDSAMPLECOUNT(bdb);
+    switch (ctx.header.supercompressionScheme) {
+      case KTX_SUPERCOMPRESSION_NONE:
+        if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
+            // Do a simple comparison.
+            analyze = !memcmp(pDfd, ctx.pDfd4Format, *ctx.pDfd4Format);
+        } else {
+            // Checking the basics
             if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
                 || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
                 || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
                 addIssue(logger::eError, DFD.IncorrectBasics);
 
-            if (ctx.formatInfo.isBlockCompressed) {
-                // _BLOCK formats.
-                if (KHR_DFDVAL(bdb, MODEL) < KHR_DF_MODEL_DXT1A)
-                  addIssue(logger::eError, DFD.IncorrectModelForBlock);
+            // Ensure there are at least some samples
+            if (KHR_DFDSAMPLECOUNT(bdb) == 0)
+                addIssue(logger::eError, DFD.ZeroSamples,
+                         "non-supercompressed texture with VK_FORMAT_UNDEFINED");
+            // Check for a sized format
+            // This checks texelBlockDimension[0-3] and bytesPlane[0-7]
+            // as each is a byte and bdb is unit32_t*.
+            if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] == 0
+                && bdb[KHR_DF_WORD_BYTESPLANE0]  == 0
+                && bdb[KHR_DF_WORD_BYTESPLANE4]  == 0)
+                addIssue(logger::eError, DFD.UnsizedForUndefined);
+        }
+        break;
+
+      case KTX_SUPERCOMPRESSION_BASIS:
+          // validateHeader has already checked if vkFormat is the required
+          // VK_FORMAT_UNDEFINED so no check here.
+
+          // This descriptor should have [1-4] samples with sample size and
+          // offset 0, all bytesPlane 0 and sampleUpper & sampleLower 0.
+          if (numSamples == 0)
+              addIssue(logger::eError, DFD.ZeroSamples, "Basis compressed");
+          if (numSamples > 4)
+              addIssue(logger::eError, DFD.InvalidSampleCountForBasis);
+
+          if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_RGBSDA)
+              addIssue(logger::eError, DFD.IncorrectModelForBasis);
+
+          // Check for unsized.
+          if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] != 0)
+              addIssue(logger::eError, DFD.TexelBlockDimensionNotZero);
+          if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
+              || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
+              addIssue(logger::eError, DFD.NotUnsized);
+
+          for (uint32_t sample = 0; sample < numSamples; sample++) {
+              uint8_t channelID = KHR_DFDSVAL(bdb, sample, CHANNELID);
+              if (channelID != KHR_DF_CHANNEL_RGBSDA_R
+                  && channelID != KHR_DF_CHANNEL_RGBSDA_G
+                  && channelID != KHR_DF_CHANNEL_RGBSDA_B
+                  && channelID != KHR_DF_CHANNEL_RGBSDA_A)
+                  addIssue(logger::eError, DFD.InvalidChannelForBasis);
+              if (KHR_DFDSVAL(bdb, sample, BITOFFSET != 0)
+                  && KHR_DFDSVAL(bdb, sample, BITLENGTH != 0))
+                  addIssue(logger::eError, DFD.NonZeroLengthOrOffset);
+              if (KHR_DFDSVAL(bdb, sample, SAMPLELOWER != 0)
+                  && KHR_DFDSVAL(bdb, sample, SAMPLEUPPER != 0))
+                  addIssue(logger::eError, DFD.NonZeroUpperOrLower);
+          }
+          break;
+
+        case KTX_SUPERCOMPRESSION_LZMA:
+        case KTX_SUPERCOMPRESSION_ZLIB:
+        case KTX_SUPERCOMPRESSION_ZSTD:
+          // Check for unsized.
+          if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
+              || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
+              addIssue(logger::eError, DFD.NotUnsized);
+
+          // In the event that vkFormat is not set, there is no more that can
+          // be usefully done. Although validateHeader has checked this and
+          // flagged an error validation keeps running so we need to check
+          // here too.
+          if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
+              // compare up to BYTESPLANE.
+              analyze = !memcmp(pDfd, ctx.pDfd4Format,
+                                KHR_DF_WORD_BYTESPLANE0 * 4);
+              // Compare the sample information.
+              if (!analyze) {
+                  analyze = !memcmp(&pDfd[KHR_DF_WORD_SAMPLESTART+1],
+                                    &ctx.pDfd4Format[KHR_DF_WORD_SAMPLESTART+1],
+                                    numSamples * KHR_DF_WORD_SAMPLEWORDS);
+              }
+          }
+          break;
+
+      default:
+        break;
+    }
+
+    if (analyze) {
+        // pDfd differs from what is expected. To help developers, do a
+        // more in depth analysis.
+        if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
+            || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
+            || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
+            addIssue(logger::eError, DFD.IncorrectBasics);
+
+        if (ctx.formatInfo.isBlockCompressed) {
+            // _BLOCK formats.
+            if (KHR_DFDVAL(bdb, MODEL) < KHR_DF_MODEL_DXT1A)
+              addIssue(logger::eError, DFD.IncorrectModelForBlock);
+        } else {
+            InterpretedDFDChannel r, g, b, a;
+            uint32_t componentByteLength;
+            InterpretDFDResult result;
+            string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
+
+            result = interpretDFD(pDfd, &r, &g, &b, &a, &componentByteLength);
+            if (result > i_UNSUPPORTED_ERROR_BIT)
+                addIssue(logger::eError, DFD.TooComplex);
+
+            if ((result & i_FLOAT_FORMAT_BIT) && !(result & i_SIGNED_FORMAT_BIT))
+                addIssue(logger::eWarning, DFD.UnsignedFloat);
+
+            if (result & i_SRGB_FORMAT_BIT) {
+                if (vkFormatStr.find("SRGB") == string::npos)
+                    addIssue(logger::eError, DFD.sRGBMismatch);
             } else {
-                InterpretedDFDChannel r, g, b, a;
-                uint32_t componentByteLength;
-                InterpretDFDResult result;
-                string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
+                string findStr;
+                if (result & i_SIGNED_FORMAT_BIT)
+                    findStr += 'S';
+                else
+                    findStr += 'U';
 
-                result = interpretDFD(pDfd, &r, &g, &b, &a, &componentByteLength);
-                if (result > i_UNSUPPORTED_ERROR_BIT)
-                    addIssue(logger::eError, DFD.TooComplex);
+                if (result & i_FLOAT_FORMAT_BIT)
+                    findStr += "FLOAT";
+                if (result & i_NORMALIZED_FORMAT_BIT)
+                    findStr += "NORM";
+                else
+                    findStr += "INT";
 
-                if ((result & i_FLOAT_FORMAT_BIT) && !(result & i_SIGNED_FORMAT_BIT))
-                    addIssue(logger::eWarning, DFD.UnsignedFloat);
-
-                if (result & i_SRGB_FORMAT_BIT) {
-                    if (vkFormatStr.find("SRGB") == string::npos)
-                        addIssue(logger::eError, DFD.sRGBMismatch);
-                } else {
-                    string findStr;
-                    if (result & i_SIGNED_FORMAT_BIT)
-                        findStr += 'S';
-                    else
-                        findStr += 'U';
-
-                    if (result & i_FLOAT_FORMAT_BIT)
-                        findStr += "FLOAT";
-                    if (result & i_NORMALIZED_FORMAT_BIT)
-                        findStr += "NORM";
-                    else
-                        findStr += "INT";
-
-                    if (vkFormatStr.find(findStr) == string::npos)
-                        addIssue(logger::eError, DFD.FormatMismatch);
-                }
+                if (vkFormatStr.find(findStr) == string::npos)
+                    addIssue(logger::eError, DFD.FormatMismatch);
             }
         }
-    } else {
-        switch (ctx.header.supercompressionScheme) {
-          case KTX_SUPERCOMPRESSION_BASIS:
-            // This descriptor should have 0 samples.
-            if (*pDfd != sizeof(uint32_t) * (1 + KHR_DF_WORD_SAMPLESTART))
-                addIssue(logger::eError, DFD.NonZeroSamplesForBasis);
-
-            if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_UNSPECIFIED)
-                addIssue(logger::eError, DFD.IncorrectModelForBasis);
-
-            if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] != 0
-               || bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
-               || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
-               addIssue(logger::eError, DFD.IncorrectSizesForBasis);
-            break;
-          default:
-            addIssue(logger::eError, ValidatorError.OnlyBasisSupported);
-        }
-        return;
     }
 }
 
@@ -992,6 +1147,9 @@ void
 ktxValidator::validateKvd(validationContext& ctx)
 {
     uint32_t kvdLen = ctx.header.keyValueData.byteLength;
+    uint32_t lengthCheck = 0;
+    bool allKeysNulTerminated = true;
+
     if (kvdLen == 0)
         return;
 
@@ -1003,6 +1161,49 @@ ktxValidator::validateKvd(validationContext& ctx)
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
     }
 
+    // Check all kv pairs have valuePadding and it's included in kvdLen;
+    uint8_t* pCurKv = kvd;
+    uint32_t safetyCount;
+    // safetyCount ensures we don't get stuck in an infinite loop in the event
+    // the kv data is completely bogus and the "lengths" never add up to kvdLen.
+#define MAX_KVPAIRS 75
+    for (safetyCount = 0; lengthCheck < kvdLen && safetyCount < MAX_KVPAIRS; safetyCount++) {
+        uint32_t curKvLen = *(uint32_t *)pCurKv;
+        lengthCheck += sizeof(uint32_t); // Add keyAndValueByteLength to total.
+        pCurKv += sizeof(uint32_t); // Move pointer past keyAndValueByteLength.
+        uint8_t* p = pCurKv;
+        uint8_t* pCurKvEnd = pCurKv + curKvLen;
+
+        // Check for BOM.
+        bool bom = false;
+        if (*p == 0xEF && *(p+1) == 0xBB && *(p+2) == 0xBF) {
+            bom = true;
+            p += 3;
+        }
+        for (; p < pCurKvEnd; p++) {
+            if (*p == '\0')
+              break;
+        }
+        bool noNul = (p == pCurKvEnd);
+        if (noNul) {
+            addIssue(logger::eError, Metadata.MissingNulTerminator, pCurKv);
+            allKeysNulTerminated = false;
+        }
+        if (bom) {
+            if (noNul)
+                addIssue(logger::eError, Metadata.ForbiddenBOM1, pCurKv);
+            else
+                addIssue(logger::eError, Metadata.ForbiddenBOM2, pCurKv);
+        }
+        curKvLen = _KTX_PAD4(curKvLen);
+        lengthCheck += curKvLen;
+        pCurKv += curKvLen;
+    }
+    if (safetyCount == 75)
+        addIssue(logger::eError, Metadata.InvalidStructure, MAX_KVPAIRS);
+    else if (lengthCheck != kvdLen)
+        addIssue(logger::eError, Metadata.MissingFinalPadding);
+
     ktxHashList kvDataHead = 0;
     ktxHashListEntry* entry;
     char* prevKey;
@@ -1010,58 +1211,50 @@ ktxValidator::validateKvd(validationContext& ctx)
     KTX_error_code result;
     bool writerFound = false;
 
-    // TODO Deserialize will likely fail badly if keys are not NUL terminated.
-    //      Therefore we should check before calling this.
-    result = ktxHashList_Deserialize(&kvDataHead, kvdLen, kvd);
-    if (result != KTX_SUCCESS) {
-        addIssue(logger::eError, System.OutOfMemory);
-        return;
-    }
-
-    // Check the entries are sorted
-    ktxHashListEntry_GetKey(kvDataHead, &prevKeyLen, &prevKey);
-    entry = ktxHashList_Next(kvDataHead);
-    for (; entry != NULL; entry = ktxHashList_Next(entry)) {
-        uint32_t keyLen;
-        char* key;
-
-        ktxHashListEntry_GetKey(entry, &keyLen, &key);
-        if (strcmp(prevKey, key) > 0) {
-            addIssue(logger::eError, Metadata.OutOfOrder);
-            break;
+    if (allKeysNulTerminated) {
+        result = ktxHashList_Deserialize(&kvDataHead, kvdLen, kvd);
+        if (result != KTX_SUCCESS) {
+            addIssue(logger::eError, System.OutOfMemory);
+            return;
         }
-    }
 
-    for (entry = kvDataHead; entry != NULL; entry = ktxHashList_Next(entry)) {
-        uint32_t keyLen, valueLen;
-        char* key;
-        uint8_t* value;
+        // Check the entries are sorted
+        ktxHashListEntry_GetKey(kvDataHead, &prevKeyLen, &prevKey);
+        entry = ktxHashList_Next(kvDataHead);
+        for (; entry != NULL; entry = ktxHashList_Next(entry)) {
+            uint32_t keyLen;
+            char* key;
 
-        ktxHashListEntry_GetKey(entry, &keyLen, &key);
-        ktxHashListEntry_GetValue(entry, &valueLen, (void**)&value);
-        if (strncasecmp(key, "KTX", 3) == 0) {
-            if (!validateMetadata(ctx, key, value, valueLen)) {
-                addIssue(logger::eError, Metadata.IllegalMetadata, key);
+            ktxHashListEntry_GetKey(entry, &keyLen, &key);
+            if (strcmp(prevKey, key) > 0) {
+                addIssue(logger::eError, Metadata.OutOfOrder);
+                break;
             }
-            if (strncmp(key, "KTXwriter", 9) == 0)
-                writerFound = true;
-        } else {
-            addIssue(logger::eWarning, Metadata.CustomMetadata, key);
         }
-    }
-    if (!writerFound)
-        addIssue(logger::eError, Metadata.NoKTXwriter);
 
-    // Advance the read past any padding.
-    // Use read not skip so stdin can be used.
-    uint32_t pLen = _KTX_PAD8_LEN(ctx.header.keyValueData.byteOffset + kvdLen);
-    uint8_t padBuf[8];
-    if (fread(padBuf, pLen, 1, ctx.inf) != 1) {
-        if (ferror(ctx.inf))
-            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-        else
-            addIssue(logger::eFatal, IOError.UnexpectedEOF);
+        for (entry = kvDataHead; entry != NULL; entry = ktxHashList_Next(entry)) {
+            uint32_t keyLen, valueLen;
+            char* key;
+            uint8_t* value;
+
+            ktxHashListEntry_GetKey(entry, &keyLen, &key);
+            ktxHashListEntry_GetValue(entry, &valueLen, (void**)&value);
+            if (strncasecmp(key, "KTX", 3) == 0) {
+                if (!validateMetadata(ctx, key, value, valueLen)) {
+                    addIssue(logger::eError, Metadata.IllegalMetadata, key);
+                }
+                if (strncmp(key, "KTXwriter", 9) == 0)
+                    writerFound = true;
+            } else {
+                addIssue(logger::eWarning, Metadata.CustomMetadata, key);
+            }
+        }
+        if (!writerFound)
+            addIssue(logger::eError, Metadata.NoKTXwriter);
     }
+
+    // Need byteOffset because keyValue data starts on 4 byte alignment.
+    align(ctx.header.keyValueData.byteOffset + kvdLen, 8, ctx.inf);
 }
 
 bool
@@ -1220,4 +1413,36 @@ ktxValidator::validateSgd(validationContext& ctx)
 
     // Can't do anymore as we have no idea how many endpoints, etc there
     // should be.
+
+    // Advance read pos to beginning of image data. Since sgdByteOffset is
+    // 8-byte aligned can use just sgdByteLength as "curOffset" argument.
+    // Correct padding length will be calculated.
+    align(sgdByteLength, 8, ctx.inf);
+}
+
+void
+ktxValidator::validateDataSize(validationContext& ctx)
+{
+    // Expects to be called after validateSgd so current file offset is at
+    // the start of the data.
+    off_t dataSizeInFile;
+    if (ctx.inf != stdin) {
+        off_t dataStart = ftello(ctx.inf);
+        if (fseeko(ctx.inf, 0, SEEK_END) < 0)
+            addIssue(logger::eFatal, IOError.FileSeekEndFailure,
+                     strerror(errno));
+        off_t dataEnd = ftello(ctx.inf);
+        if (dataEnd < 0)
+            addIssue(logger::eFatal, IOError.FileTellFailure, strerror(errno));
+        dataSizeInFile = dataEnd - dataStart;
+    } else {
+        // Is this going to be really slow?
+        dataSizeInFile = 0;
+        while (getc(ctx.inf) != EOF)
+            dataSizeInFile++;
+        if (ferror(ctx.inf))
+            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+    }
+    if (dataSizeInFile != ctx.dataSizeFromLevelIndex)
+        addIssue(logger::eError, FileError.IncorrectDataSize);
 }

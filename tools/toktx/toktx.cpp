@@ -375,8 +375,7 @@ Create a KTX file from netpbm format files.
           selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
       <dt>--separate_rg_to_color_alpha</dt>
       <dd>Separates the input R and G channels to RGB and A (for tangent
-          space XY normal maps). Automatically selected if the input images
-          are 2-component.</dd>
+          space XY normal maps). Only needed with 3 or 4 component input images.</dd>
       <dt>--no_endpoint_rdo</dt>
       <dd>Disable endpoint rate distortion optimizations. Slightly faster,
           less noisy output, but lower quality per output bit. Default is
@@ -537,8 +536,7 @@ usage(const _tstring appName)
         "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
         "      --separate_rg_to_color_alpha\n"
         "               Separates the input R and G channels to RGB and A (for tangent\n"
-        "               space XY normal maps). Automatically selected if the input\n"
-        "               image(s) are 2-component."
+        "               space XY normal maps). Only needed with 3 or 4 component input images.\n"
         "      --no_endpoint_rdo\n"
         "               Disable endpoint rate distortion optimizations. Slightly faster,\n"
         "               less noisy output, but lower quality per output bit. Default is\n"
@@ -1077,8 +1075,17 @@ int _tmain(int argc, _TCHAR* argv[])
             }
             if (bopts.noMultithreading)
                 bopts.threadCount = 1;
-            if (components == 2) {
-                bopts.separateRGToRGB_A = true;
+            if (components == 1 || components == 2) {
+                // Ensure this is not set as it would result in R in both
+                // RGB and A. This is because we have to pass RGBA to the BasisU
+                // encoder and, since a 2-channel file is considered
+                // grayscale-alpha, the "grayscale" component is swizzled to
+                // RGB and the alpha component is swizzled to A. (The same thing
+                // happens in `basisu` and the BasisU library because lodepng,
+                // which it uses, does the same swizzling.) If this flag is
+                // set the BasisU encoder will then copy "G" which is actually
+                // "R" into A.
+                bopts.separateRGToRGB_A = false;
             }
 #if TRAVIS_DEBUG
             bopts.print();

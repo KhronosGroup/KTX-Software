@@ -1100,6 +1100,12 @@ KTX_APICALL const char* KTX_APIENTRY
 ktxErrorString(KTX_error_code error);
 
 /*
+ * Returns a string corresponding to a supercompression scheme.
+ */
+KTX_APICALL const char* KTX_APIENTRY
+ktxSupercompressionSchemeString(ktxSupercmpScheme scheme);
+
+/*
  * Returns a string corresponding to a transcode target format.
  */
 KTX_APICALL const char* KTX_APIENTRY

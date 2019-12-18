@@ -207,25 +207,9 @@ printKTXInfo(ktxStream* stream)
  * For KTX format version 2                                  *
  *===========================================================*/
 
-extern char* vkFormatString(VkFormat format);
+extern const char* vkFormatString(VkFormat format);
 
-char *
-supercompressionSchemeString(ktx_uint32_t scheme)
-{
-    switch (scheme) {
-      case KTX_SUPERCOMPRESSION_NONE:
-        return "KTX_SUPERCOMPRESSION_NONE";
-      case KTX_SUPERCOMPRESSION_BASIS:
-       return "KTX_SUPERCOMPRESSION_BASIS";
-      case KTX_SUPERCOMPRESSION_LZMA:
-        return "KTX_SUPERCOMPRESSION_LZMA";
-      case KTX_SUPERCOMPRESSION_ZLIB:
-        return "KTX_SUPERCOMPRESSION_ZLIB";
-      case KTX_SUPERCOMPRESSION_ZSTD:
-        return "KTX_SUPERCOMPRESSION_ZSTD";
-    }
-    return "Invalid scheme value";
-}
+extern const char * ktxSupercompressionSchemeString(ktxSupercmpScheme scheme);
 
 /**
  * @internal
@@ -248,7 +232,7 @@ printKTX2Header(KTX_header2* pHeader)
     fprintf(stdout, "faceCount: %d\n", pHeader->faceCount);
     fprintf(stdout, "levelCount: %d\n", pHeader->levelCount);
     fprintf(stdout, "supercompressionScheme: %s\n",
-            supercompressionSchemeString(pHeader->supercompressionScheme));
+            ktxSupercompressionSchemeString(pHeader->supercompressionScheme));
     fprintf(stdout, "dataFormatDescriptor.byteOffset: %#x\n",
             pHeader->dataFormatDescriptor.byteOffset);
     fprintf(stdout, "dataFormatDescriptor.byteLength: %d\n",
