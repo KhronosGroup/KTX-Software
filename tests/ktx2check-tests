@@ -93,26 +93,26 @@ else
   failed=$failed+1
 fi
 
-function cmpktx () {
-  if diff $1 $2; then
-    passed=$passed+1
-    rm $1
-    return 0
-  else
-	failed=$failed+1
-    echo "Created ktx file differs from target $2. Bad file saved in $PWD/$1"
-    return 1
-  fi
-}
+#function cmpktx () {
+#  if diff $1 $2; then
+#    passed=$passed+1
+#    rm $1
+#    return 0
+#  else
+#	failed=$failed+1
+#    echo "Created ktx file differs from target $2. Bad file saved in $PWD/$1"
+#    return 1
+#  fi
+#}
 
-function mktmp() {
-  # Git Bash does not include mktemp.
-  if which mktemp > /dev/null; then
-    mktemp toktx.XXXX
-  else
-    toktx.$numtests
-  fi
-}
+#function mktmp() {
+#  # Git Bash does not include mktemp.
+#  if which mktemp > /dev/null; then
+#    mktemp toktx.XXXX
+#  else
+#    toktx.$numtests
+#  fi
+#}
 
 # Generate ktx file and compare with reference
 # gencmpktx <reference> <toktx args> <toktx infile> ...
@@ -139,7 +139,7 @@ numtests=$numtests+1
 if $ktx2check *.ktx2; then
     passed=$passed+1
 else
-    echo "Valid files failed validation."
+    echo "Valid file(s) failed validation."
     failed=$failed+1
 fi
 
@@ -157,7 +157,7 @@ elif [ $status -eq 1 ]; then
     echo "--quiet not recognized."
     failed=$failed+1
 else
-    echo "Valid files failed validation."
+    echo "Valid file(s) failed validation."
     failed=$failed+1
 fi
 
