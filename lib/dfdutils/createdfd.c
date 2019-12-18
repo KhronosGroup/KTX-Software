@@ -18,10 +18,8 @@
  */
 
 /**
- * @internal
- * @file createdfd.c
+ * @file
  * @~English
- *
  * @brief Utilities for creating data format descriptors.
  */
 
@@ -163,7 +161,6 @@ static void writeSample(uint32_t *DFD, int sampleNo, int channel,
 }
 
 /**
- * @internal
  * @~English
  * @brief Create a Data Format Descriptor for an unpacked format.
  *
@@ -220,7 +217,6 @@ uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,
 }
 
 /**
- * @internal
  * @~English
  * @brief Create a Data Format Descriptor for a packed format.
  *
@@ -494,13 +490,14 @@ static uint32_t compBytes[] = {
 };
 
 /**
- * @internal
  * @~English
  * @brief Create a Data Format Descriptor for a compressed format.
  *
  * @param compScheme Vulkan-style compression scheme enumeration.
  * @param bwidth Block width in texel coordinates.
  * @param bheight Block height in texel coordinates.
+ * @param bdepth Block depth in texel coordinates.
+ * @author Mark Callow, Edgewise Consulting.
  * @param suffix Indicates the format suffix for the type.
  *
  * @return A data format descriptor in malloc'd data. The caller is responsible
@@ -611,7 +608,6 @@ uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bhei
 }
 
 /**
- * @internal
  * @~English
  * @brief Create a Data Format Descriptor for a depth-stencil format.
  *

@@ -698,6 +698,7 @@ $compressedDecode = << 'END_COMPRESSED';
         }
       }
     }
+    break;
   case KHR_DF_MODEL_PVRTC:
     if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) == 3) {
       if (KHR_DFDVAL(bdb, TRANSFER) == KHR_DF_TRANSFER_SRGB) {

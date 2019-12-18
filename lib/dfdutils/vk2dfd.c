@@ -18,16 +18,14 @@
  */
 
 /**
- * @internal
- * @file vk2dfd.c
- *
- * @author Mark Callow, Edgewise Consulting.
+ * @file
+ * @~English
+ * @brief Create a DFD for a VkFormat.
  */
 
 #include "dfd.h"
 
 /**
- * @internal
  * @~English
  * @brief Create a DFD matching a VkFormat.
  *

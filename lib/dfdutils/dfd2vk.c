@@ -18,17 +18,15 @@
  */
 
 /**
- * @internal
- * @file dfd2vk.c
- *
- * @author Mark Callow, Edgewise Consulting.
+ * @file
+ * @~English
+ * @brief Find the VkFormat matching a DFD.
  */
 
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
 /**
- * @internal
  * @~English
  * @brief Return a VkFormat matching a DFD.
  *

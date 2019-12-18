@@ -18,11 +18,9 @@
  */
 
 /**
- * @internal
- * @file dfd.h
+ * @file
  * @~English
- *
- * @brief Header file for the data format descriptor Utilities.
+ * @brief Header file defining the data format descriptor utilities API.
  */
 
 /*
@@ -36,7 +34,7 @@
 extern "C" {
 #endif
 
-/*! Qualifier suffix to the format, in Vulkan terms. */
+/** Qualifier suffix to the format, in Vulkan terms. */
 enum VkSuffix {
     s_UNORM,   /*!< Unsigned normalized format. */
     s_SNORM,   /*!< Signed normalized format. */
@@ -49,7 +47,7 @@ enum VkSuffix {
     s_SRGB     /*!< sRGB normalized format. */
 };
 
-/*! Compression scheme, in Vulkan terms. */
+/** Compression scheme, in Vulkan terms. */
 enum VkCompScheme {
     c_BC1_RGB,       /*!< BC1, aka DXT1, no alpha. */
     c_BC1_RGBA,      /*!< BC1, aka DXT1, punch-through alpha. */
@@ -99,7 +97,7 @@ uint32_t *createDFDDepthStencil(int depthBits,
                                 int stencilBits,
                                 int sizeBytes);
 
-/*! Result of interpreting the data format descriptor. */
+/** Result of interpreting the data format descriptor. */
 enum InterpretDFDResult {
     i_LITTLE_ENDIAN_FORMAT_BIT = 0, /*!< Confirmed little-endian (default for 8bpc). */
     i_BIG_ENDIAN_FORMAT_BIT = 1,    /*!< Confirmed big-endian. */
@@ -124,7 +122,7 @@ enum InterpretDFDResult {
     i_UNSUPPORTED_MIXED_CHANNELS            = i_UNSUPPORTED_ERROR_BIT + 4
 };
 
-/*! Interpretation of a channel from the data format descriptor. */
+/** Interpretation of a channel from the data format descriptor. */
 typedef struct _InterpretedDFDChannel {
     uint32_t offset; /*!< Offset in bits for packed, bytes for unpacked. */
     uint32_t size;   /*!< Size in bits for packed, bytes for unpacked. */

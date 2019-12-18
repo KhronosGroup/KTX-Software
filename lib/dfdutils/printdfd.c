@@ -17,6 +17,12 @@
  * limitations under the License.
  */
 
+/**
+ * @file
+ * @~English
+ * @brief Utilities for printing data format descriptors.
+ */
+
 /*
  * Author: Andrew Garrard
  */
@@ -26,7 +32,6 @@
 #include "dfd.h"
 
 /**
- * @internal
  * @~English
  * @brief Print a human-readable interpretation of a data format descriptor.
  *

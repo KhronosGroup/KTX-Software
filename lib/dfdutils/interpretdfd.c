@@ -17,13 +17,22 @@
  * limitations under the License.
  */
 
+/**
+ * @file
+ * @~English
+ * @brief Utilities for getting info from a data format descriptor.
+ */
+
+/*
+ * author: Andrew Garrard
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
 /**
- * @internal
  * @~English
  * @brief Interpret a Data Format Descriptor for a simple format.
  *
@@ -354,7 +363,6 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
 }
 
 /**
- * @internal
  * @~English
  * @brief Get the number and size of the image components from a DFD.
  *
@@ -367,8 +375,8 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
               the basic descriptor block.
  * @param numComponents pointer to a 32-bit word in which the number of
                         components will be written.
- * @param componentSizeInBytes pointer to a 32-bit word in which the size of
-                               a component in bytes will be written.
+ * @param componentByteLength pointer to a 32-bit word in which the size of
+                              a component in bytes will be written.
  */
 void
 getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
@@ -379,29 +387,21 @@ getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
                           / (4 * KHR_DF_WORD_SAMPLEWORDS);
     uint32_t sampleCounter;
     uint32_t currentChannel = ~0U; /* Don't start matched. */
-    uint32_t currentByteOffset = 0;
-    uint32_t currentByteLength = 0;
 
     /* This is specifically for unpacked formats which means the size of */
     /* each component is the same. */
     *numComponents = 0;
     for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
-        uint32_t sampleByteOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET) >> 3U;
         uint32_t sampleByteLength = (KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) + 1) >> 3U;
         uint32_t sampleChannel = KHR_DFDSVAL(BDFDB, sampleCounter, CHANNELID);
 
         if (sampleChannel == currentChannel) {
             /* Continuation of the same channel. */
-            /* Remember where we are. */
-            currentByteOffset = sampleByteOffset;
-            currentByteLength = sampleByteLength;
             /* Accumulate the byte length. */
             *componentByteLength += sampleByteLength;
         } else {
             /* Everything is new. Hopefully. */
             currentChannel = sampleChannel;
-            currentByteOffset = sampleByteOffset;
-            currentByteLength = sampleByteLength;
             (*numComponents)++;
             *componentByteLength = sampleByteLength;
         }
