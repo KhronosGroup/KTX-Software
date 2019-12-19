@@ -2,7 +2,7 @@
 # -*- tab-width: 4; -*-
 # vi: set sw=2 ts=4:
 
-# Regenerate the reference files for toktx-tests.
+# Regenerate the reference ktx2 files for load tests, etc.
 
 # ---------------------------------------------------------------
 #
@@ -44,6 +44,13 @@ toktx_cmake_d=$ktx_root/build/cmake/linux/Debug/toktx
 toktx_make=$ktx_root/build/make/linux/out/Release/toktx
 toktx_make_d=$ktx_root/build/make/linux/out/Debug/toktx
 
+ktx2ktx2_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/ktx2ktx2.exe
+ktx2ktx2_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/ktx2ktx2.exe
+ktx2ktx2_cmake=$ktx_root/build/cmake/linux/Release/ktx2ktx2
+ktx2ktx2_cmake_d=$ktx_root/build/cmake/linux/Debug/ktx2ktx2
+ktx2ktx2_make=$ktx_root/build/make/linux/out/Release/ktx2ktx2
+ktx2ktx2_make_d=$ktx_root/build/make/linux/out/Debug/ktx2ktx2
+
 # Ensure generation is not polluted by user environment
 unset TOKTX_OPTIONS
 
@@ -70,17 +77,43 @@ else
   exit 1
 fi
 
-# Generate the files ...
+if [ -n "$2" -a -x "$2" ]; then
+  ktx2ktx2="$1"
+elif [ -x "$ktx2ktx2_vs2013" ]; then
+  ktx2ktx2=$ktx2ktx2_vs2013
+elif [ -x "$ktx2ktx2_vs2015" ]; then
+  ktx2ktx2=$ktx2ktx2_vs2015
+elif [ -x "$ktx2ktx2_cmake" ]; then
+  ktx2ktx2=$ktx2ktx2_cmake
+elif [ -x "$ktx2ktx2_cmake_d" ]; then
+  ktx2ktx2=$ktx2ktx2_cmake_d
+elif [ -x "$ktx2ktx2_make" ]; then
+  ktx2ktx2=$ktx2ktx2_gmake
+elif [ -x "$ktx2ktx2_make_d" ]; then
+  ktx2ktx2=$ktx2ktx2_gmake
+elif which ktx2ktx2 >/dev/null; then
+  ktx2ktx2=ktx2ktx2
+else
+  echo $0: None of $ktx2ktx2_vs2013, $ktx2ktx2_vs2015, $ktx2ktx2_gmake or $ktx2ktx2_cmake found.
+  echo $0: Nor was ktx2ktx2 found in along PATH.
+  echo $0: Aborting generation
+  exit 1
+fi
 
-$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx rgb.ppm
-# The purpose of this is testing automatic mipmap generation. Since SRGB is
-# not color renderable on ES3 or WebGL, therefore AMG won't work, use linear.
-$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata --linear rgb-amg-reference.ktx rgb.ppm
-$toktx --lower_left_maps_to_s0t0 --nometadata orient-up.ktx up.ppm
-$toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx up.ppm
-$toktx orient-down-metadata.ktx up.ppm
-$toktx --lower_left_maps_to_s0t0 --mipmap --nometadata rgb-mipmap-reference.ktx level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
-$toktx --lower_left_maps_to_s0t0 --nometadata rgba-reference.ktx rgba.pam
+# Generate reference files for toktx-tests ...
+
+$ktx2ktx2 cubemap_yokohama_astc_8x8_unorm.ktx
+$ktx2ktx2 cubemap_yokohama_bc3_unorm.ktx
+$ktx2ktx2 cubemap_yokohama_etc2_unorm.ktx
+$ktx2ktx2 -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
+$ktx2ktx2 -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
+$ktx2ktx2 pattern_02_bc2.ktx
+$ktx2ktx2 -o rgb-mipmap-reference-u.ktx2 rgb-mipmap-reference.ktx
+$ktx2ktx2 -o rgba-reference-u.ktx2 rgba-reference.ktx
+$ktx2ktx2 texturearray_astc_8x8_unorm.ktx
+$ktx2ktx2 texturearray_bc3_unorm.ktx
+$ktx2ktx2 texturearray_etc2_unorm.ktx
+$toktx --bcmp FlightHelmet_baseColor_basis.ktx2  FlightHelmet_baseColor.png
 $toktx --bcmp alpha_simple_basis.ktx2 alpha_simple.png
 $toktx --bcmp kodim17_basis.ktx2 kodim17.png
 $toktx --bcmp color_grid_basis.ktx2 color_grid.png
