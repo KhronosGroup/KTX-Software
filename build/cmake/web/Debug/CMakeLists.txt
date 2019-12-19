@@ -138,8 +138,8 @@ list(APPEND libktx_es3__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
 set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;KTX_OMIT_VULKAN=1;DEBUG;_DEBUG;")
-set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O0 -g -std=c99 ")
-set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-pedantic -O0 -g -std=c++11 ")
+set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c99 ")
+set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c++11 ")
 set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g4 ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
@@ -148,9 +148,10 @@ set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_S
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "NO")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -210,7 +211,6 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference-u.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx2")
@@ -259,7 +259,6 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/pattern_02_bc2.ktx2"
   "${builddir}/testimages/rgb-mipmap-reference-u.ktx2"
   "${builddir}/testimages/rgba-reference-u.ktx2"
-  "${builddir}/testimages/rgba-reference.ktx2"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx2"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx2")
@@ -309,7 +308,6 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${bu
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference-u.ktx2 ${builddir}/testimages/rgb-mipmap-reference-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference-u.ktx2 ${builddir}/testimages/rgba-reference-u.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference.ktx2 ${builddir}/testimages/rgba-reference.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx2 ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx2 ${builddir}/testimages/texturearray_bc3_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx2 ${builddir}/testimages/texturearray_etc2_unorm.ktx2
@@ -369,10 +367,11 @@ set_target_properties(appfwSDL PROPERTIES SUFFIX ".a")
 set_source_files_properties(${obj}.${TOOLSET}/libappfwSDL.a PROPERTIES GENERATED "TRUE")
 list(APPEND appfwSDL__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-pedantic -s USE_SDL=2 -O0 -g ")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_SDL=2 -O0 -g ")
 set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-g4 ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
@@ -456,7 +455,7 @@ list(APPEND es3loadtests_html__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET es3loadtests_html APPEND PROPERTY INCLUDE_DIRECTORIES ${es3loadtests_html__include_dirs})
 set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
-set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-pedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -O0 -g -std=c++11 ")
+set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-Wpedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -O0 -g -std=c++11 ")
 set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g4 ")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")

@@ -324,11 +324,17 @@ struct {
     issue MissingSupercompressionGlobalData {
         ERROR | 0x0081, "Basis supercompression global data missing."
     };
+    issue InvalidGlobalFlagBit {
+        ERROR | 0x0082, "Basis supercompression global data globalFlags has an invalid bit set."
+    };
+    issue InvalidImageFlagBit {
+        ERROR | 0x0083, "Basis supercompression global data imageDesc.imageFlags has an invalid bit set."
+    };
     issue IncorrectGlobalDataSize {
-        ERROR | 0x0082, "Basis supercompression global data has incorrect size."
+        ERROR | 0x0084, "Basis supercompression global data has incorrect size."
     };
     issue ExtendedByteLengthNotZero {
-        ERROR | 0x0083, "extendedByteLength != 0 in Basis supercompression global data."
+        ERROR | 0x0085, "extendedByteLength != 0 in Basis supercompression global data."
     };
 } SGD;
 
@@ -1399,11 +1405,20 @@ ktxValidator::validateSgd(validationContext& ctx)
     uint32_t& imageCount = firstImages[ctx.levelCount];
 
     ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(sgd);
+    if (bgdh.globalFlags & ~(eBuIsETC1S | eBUHasAlphaSlices))
+        addIssue(logger::eError, SGD.InvalidGlobalFlagBit);
     uint64_t expectedBgdByteLength = sizeof(ktxBasisGlobalHeader)
-                                   + sizeof(ktxBasisSliceDesc) * imageCount
+                                   + sizeof(ktxBasisImageDesc) * imageCount
                                    + bgdh.endpointsByteLength
                                    + bgdh.selectorsByteLength
                                    + bgdh.tablesByteLength;
+
+    ktxBasisImageDesc* imageDescs = BGD_IMAGE_DESCS(sgd);
+    ktxBasisImageDesc* image = imageDescs;
+    for (; image < imageDescs + imageCount; image++) {
+        if (image->imageFlags & ~eBUImageIsIframe)
+            addIssue(logger::eError, SGD.InvalidImageFlagBit);
+    }
 
     if (sgdByteLength != expectedBgdByteLength)
         addIssue(logger::eError, SGD.IncorrectGlobalDataSize);

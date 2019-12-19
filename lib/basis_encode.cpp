@@ -575,22 +575,24 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     const basis_file_header& bfh = *reinterpret_cast<const basis_file_header*>(bf.data());
     uint8_t* bgd;
     uint32_t bgd_size;
-    uint32_t slice_desc_size;
+    uint32_t image_desc_size;
 
     assert(bfh.m_total_images == num_images);
 
     //
     // Allocate supercompression global data and write its header.
     //
-    slice_desc_size = sizeof(ktxBasisSliceDesc);
+    image_desc_size = sizeof(ktxBasisImageDesc);
 
     bgd_size = sizeof(ktxBasisGlobalHeader)
-             + slice_desc_size * num_images
+             + image_desc_size * num_images
              + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
              + bfh.m_tables_file_size;
     bgd = new ktx_uint8_t[bgd_size];
     ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
-    bgdh.globalFlags = bfh.m_flags;
+    // Get the flags that are set while ensuring we don't get
+    // cBASISHeaderFlagYFlipped
+    bgdh.globalFlags = bfh.m_flags & ~cBASISHeaderFlagYFlipped;
     bgdh.endpointCount = bfh.m_total_endpoints;
     bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
     bgdh.selectorCount = bfh.m_total_selectors;
@@ -606,20 +608,20 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint32_t base_offset = bfh.m_slice_desc_file_ofs;
     const basis_slice_desc* slice
                 = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
-    ktxBasisSliceDesc* kslices = BGD_SLICE_DESCS(bgd);
+    ktxBasisImageDesc* kimages = BGD_IMAGE_DESCS(bgd);
 
     // 3 things to remember about offsets:
     //    1. levelIndex offsets at this point are relative to This->pData;
-    //    2. In the ktx slice descriptors, offsets are relative to the start
-    //       of the mip level;
+    //    2. In the ktx image descriptors, slice offsets are relative to the
+    //       start of the mip level;
     //    3. basis_slice_desc offsets are relative to the end of the basis
     //       header. Hence base_offset set above is used to rebase offsets
     //       relative to the start of the slice data.
 
     // Assumption here is that slices produced by the compressor are in the
     // same order as we passed them in above, i.e. ordered by mip level.
-    // Note also that slice->m_level_index is always 0 unless the compressor
-    // generated mip levels so essentially useless. Alpha slices are always
+    // Note also that slice->m_level_index is always 0, unless the compressor
+    // generated mip levels, so essentially useless. Alpha slices are always
     // the odd numbered slices.
     std::vector<uint32_t> level_file_offsets(This->numLevels);
     uint32_t image_data_size = 0, image = 0;
@@ -633,22 +635,21 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
             for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
                 level_byte_length += slice->m_file_size;
-                kslices[image].sliceByteOffset = slice->m_file_ofs
+                kimages[image].rgbSliceByteOffset = slice->m_file_ofs
                                                - level_file_offsets[level];
-                kslices[image].sliceByteLength = slice->m_file_size;
-                kslices[image].sliceFlags = slice->m_flags;
+                kimages[image].rgbSliceByteLength = slice->m_file_size;
                 if (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) {
                     slice++;
                     level_byte_length += slice->m_file_size;
-                    kslices[image].alphaSliceByteOffset = slice->m_file_ofs
+                    kimages[image].alphaSliceByteOffset = slice->m_file_ofs
                                                   - level_file_offsets[level];
-                    kslices[image].alphaSliceByteLength = slice->m_file_size;
+                    kimages[image].alphaSliceByteLength = slice->m_file_size;
                 } else {
-                    kslices[image].alphaSliceByteOffset = 0;
-                    kslices[image].alphaSliceByteLength = 0;
+                    kimages[image].alphaSliceByteOffset = 0;
+                    kimages[image].alphaSliceByteLength = 0;
                 }
                 // Get the IFrame flag, if it's set.
-                kslices[image].sliceFlags = slice->m_flags & ~cSliceDescFlagsIsAlphaData;
+                kimages[image].imageFlags = slice->m_flags & ~cSliceDescFlagsIsAlphaData;
                 slice++;
                 image++;
             }
@@ -662,9 +663,10 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Copy the global code books & huffman tables to global data.
     //
 
-    // Slightly sleazy but since kslice is now pointing at the first byte after
-    // the last entry in the slice description index ...
-    uint8_t* dstptr = reinterpret_cast<uint8_t*>(&kslices[image]);
+    // Slightly sleazy but as image is now the last valid index in the
+    // slice description array plus 1, so &kimages[image] points at the first
+    // byte after where the endpoints, etc. must be written.
+    uint8_t* dstptr = reinterpret_cast<uint8_t*>(&kimages[image]);
     // Copy the endpoints ...
     memcpy(dstptr,
            &bf[bfh.m_endpoint_cb_file_ofs],
