@@ -36,9 +36,17 @@
 extern "C" {
 #endif
 
-enum sliceflags { KTX_BU_SLICE_HAS_ALPHA, KTX_BU_SLICE_ETC1S };
+// These must be the same values as cBASISHeaderFlagETC1S and
+// cBASISHeaderFlagHasAlphaSlices respectively. As they are within a C
+// namespace they can't easily be accessed from a c header.
+enum bu_global_flag_bits_e { eBuIsETC1S = 0x01, eBUHasAlphaSlices = 0x04 };
+// And this must be the same value as cSliceDescFlagsFrameIsIFrame.
+enum bu_image_flags__bits_e { eBUImageIsIframe = 0x02 };
+
+typedef uint32_t buFlags;
+
 typedef struct ktxBasisGlobalHeader {
-    uint32_t globalFlags;
+    buFlags globalFlags;
     uint16_t endpointCount;
     uint16_t selectorCount;
     uint32_t endpointsByteLength;
@@ -52,16 +60,16 @@ typedef struct ktxBasisGlobalHeader {
 // 1, or 2 slices per image (i.e. layer, face & slice).
 // These offsets are relative to start of a mip level as given by the
 // main levelIndex.
-typedef struct ktxBasisSliceDesc {
-    uint32_t sliceFlags;
-    uint32_t sliceByteOffset;
-    uint32_t sliceByteLength;
+typedef struct ktxBasisImageDesc {
+    buFlags imageFlags;
+    uint32_t rgbSliceByteOffset;
+    uint32_t rgbSliceByteLength;
     uint32_t alphaSliceByteOffset;
     uint32_t alphaSliceByteLength;
-} ktxBasisSliceDesc;
+} ktxBasisImageDesc;
 
-#define BGD_SLICE_DESCS(bgd) \
-        reinterpret_cast<ktxBasisSliceDesc*>(bgd + sizeof(ktxBasisGlobalHeader))
+#define BGD_IMAGE_DESCS(bgd) \
+        reinterpret_cast<ktxBasisImageDesc*>(bgd + sizeof(ktxBasisGlobalHeader))
 
 // The are followed in the global data by these ...
 //    uint8_t[endpointsByteLength] endpointsData;
@@ -69,7 +77,7 @@ typedef struct ktxBasisSliceDesc {
 //    uint8_t[tablesByteLength] tablesData;
 
 #define BGD_ENDPOINTS_ADDR(bgd, imageCount) \
-    (bgd + sizeof(ktxBasisGlobalHeader) + sizeof(ktxBasisSliceDesc) * imageCount)
+    (bgd + sizeof(ktxBasisGlobalHeader) + sizeof(ktxBasisImageDesc) * imageCount)
 
 #define BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) (BGD_ENDPOINTS_ADDR(bgd, imageCount) + bgdh.endpointsByteLength)
 

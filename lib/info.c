@@ -288,11 +288,11 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
     fprintf(stdout, "tablesByteLength: %d\n", bgdh->tablesByteLength);
     fprintf(stdout, "extendedByteLength: %d\n", bgdh->extendedByteLength);
 
-    ktxBasisSliceDesc* slices = (ktxBasisSliceDesc*)(bgd + sizeof(ktxBasisGlobalHeader));
+    ktxBasisImageDesc* slices = (ktxBasisImageDesc*)(bgd + sizeof(ktxBasisGlobalHeader));
     for (ktx_uint32_t i = 0; i < numImages; i++) {
-        fprintf(stdout, "\nsliceFlags: %#x\n", slices[i].sliceFlags);
-        fprintf(stdout, "sliceByteLength: %d\n", slices[i].sliceByteLength);
-        fprintf(stdout, "sliceByteOffset: %#x\n", slices[i].sliceByteOffset);
+        fprintf(stdout, "\nimageFlags: %#x\n", slices[i].imageFlags);
+        fprintf(stdout, "rgbSliceByteLength: %d\n", slices[i].rgbSliceByteLength);
+        fprintf(stdout, "rgbSliceByteOffset: %#x\n", slices[i].rgbSliceByteOffset);
         fprintf(stdout, "alphaSliceByteLength: %d\n", slices[i].alphaSliceByteLength);
         fprintf(stdout, "alphaSliceByteOffset: %#x\n", slices[i].alphaSliceByteOffset);
     }
