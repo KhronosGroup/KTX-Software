@@ -33,3 +33,43 @@ jobs:
     #   with:
     #     name: ktx_mac
     #     path: build_mac/libktx.dylib
+    - uses: actions/upload-artifact@master
+      with:
+        name: KTX-Software_tools_macOS
+        path: |
+          build_mac/tools/toktx/toktx
+          build_mac/tools/ktx2check/ktx2check
+          build_mac/tools/ktxinfo/ktxinfo
+          build_mac/tools/ktx2ktx2/ktx2ktx2
+          build_mac/tools/ktxsc/ktxsc
+
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        lfs: true
+    - name: install_deps
+      run: |
+        sudo apt-get update
+        sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
+        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+        sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+        wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-bionic.list http://packages.lunarg.com/vulkan/lunarg-vulkan-bionic.list
+        sudo apt-get update
+        sudo apt-get install cmake vulkan-sdk libsdl2-dev
+    - name: configure_linux_64
+      run: /usr/bin/cmake . -Bbuild_linux_64 -DCMAKE_BUILD_TYPE=Release
+    - name: build_linux_64
+      run: /usr/bin/cmake --build build_linux_64
+    - uses: actions/upload-artifact@master
+      with:
+        name: KTX-Software_tools_linux_64
+        path: |
+          build_linux_64/tools/toktx/toktx
+          build_linux_64/tools/ktx2check/ktx2check
+          build_linux_64/tools/ktxinfo/ktxinfo
+          build_linux_64/tools/ktx2ktx2/ktx2ktx2
+          build_linux_64/tools/ktxsc/ktxsc
