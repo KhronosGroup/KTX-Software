@@ -1066,10 +1066,7 @@ namespace basisu
 				const uint32_t node_index = var_heap.get_top_index();
 				const tsvq_node &node = m_nodes[node_index];
 
-                // This assert is firing on the FlightHelmet texture. Rich is
-                // investigating. Removing this assert we still get a reasonable
-                // output file so temporarily remove.
-				//assert(node.m_var == var_heap.get_top_priority());
+				assert(node.m_var == var_heap.get_top_priority());
 				assert(node.is_leaf());
 
 				var_heap.delete_top();
