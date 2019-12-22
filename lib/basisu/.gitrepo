@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/BinomialLLC/basis_universal.git
-	branch = master
-	commit = 2f43afcc97d0a5dafdb73b4e24e123cf9687a418
-	parent = 147941598f3edf31cf44e48f9252e0a2d1d26a48
+	remote = basis
+	branch = ktxfixes
+	commit = 469abc43d2777b5430c18b13bcb5e3cafaba55b6
+	parent = 53adbcb9f041cef79a2019f66b0daf06a5ddb269
 	method = merge
 	cmdver = 0.4.0
