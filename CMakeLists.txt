@@ -16,6 +16,10 @@ if(IOS)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.0" CACHE STRING "Minimum iOS deployment version")
 endif()
 
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
 option( KTX_FEATURE_KTX1 "KTX version 1" ON )
 option( KTX_FEATURE_KTX2 "KTX version 2" ON )
 

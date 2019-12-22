@@ -101,6 +101,12 @@ target_link_libraries(
     ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
     z
     )
+elseif(LINUX)
+target_link_libraries(
+    vkloadtest
+    assimp
+    z
+    )
 endif()
 
 target_compile_definitions(
