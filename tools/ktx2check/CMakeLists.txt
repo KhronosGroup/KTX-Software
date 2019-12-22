@@ -20,3 +20,5 @@ target_link_libraries(
     ktx2check
     ktx
     )
+
+install(TARGETS ktx2check)

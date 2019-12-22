@@ -19,3 +19,5 @@ target_link_libraries(
     ktxsc
     ktx
     )
+
+install(TARGETS ktxsc)

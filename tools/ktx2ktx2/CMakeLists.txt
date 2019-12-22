@@ -19,3 +19,5 @@ target_link_libraries(
     ktx2ktx2
     ktx
     )
+
+install(TARGETS ktx2ktx2)

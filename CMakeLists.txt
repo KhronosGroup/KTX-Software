@@ -366,3 +366,4 @@ if(NOT IOS AND NOT ANDROID)
     add_subdirectory(tests)
 endif()
 
+install(TARGETS ktx)

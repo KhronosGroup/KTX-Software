@@ -18,3 +18,5 @@ target_link_libraries(
     ktxinfo
     ktx
     )
+
+install(TARGETS ktxinfo)

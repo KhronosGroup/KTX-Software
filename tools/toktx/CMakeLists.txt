@@ -21,3 +21,5 @@ target_link_libraries(
     toktx
     ktx
     )
+
+install(TARGETS toktx)
