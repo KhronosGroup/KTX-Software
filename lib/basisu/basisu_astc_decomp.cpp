@@ -38,12 +38,12 @@
 
 #define DE_LENGTH_OF_ARRAY(x) (sizeof(x)/sizeof(x[0]))
 #define DE_UNREF(x) (void)x
+
 #if __GNUC__ || __clang__
   #define DE_MAYBE_UNUSED __attribute__((unused))
 #else
   #define DE_MAYBE_UNUSED
 #endif
-
 
 typedef uint8_t deUint8;
 typedef int8_t deInt8;

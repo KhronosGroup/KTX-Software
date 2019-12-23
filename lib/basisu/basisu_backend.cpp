@@ -201,6 +201,7 @@ namespace basisu
 
 			for (uint32_t slice_index = 0; slice_index < m_slices.size(); slice_index++)
 			{
+				//const uint32_t first_block_index = m_slices[slice_index].m_first_block_index;
 				const uint32_t num_blocks_x = m_slices[slice_index].m_num_blocks_x;
 				const uint32_t num_blocks_y = m_slices[slice_index].m_num_blocks_y;
 

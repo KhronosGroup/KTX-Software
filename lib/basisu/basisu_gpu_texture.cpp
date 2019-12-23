@@ -1420,6 +1420,7 @@ namespace basisu
 	// low order byte, etc.
 	const uint32_t OUT_FILE_MAGIC =
 	        'T' | ('E' << 8) | ('X' << 16) | ('C' << 24);
+
 	struct out_file_header 
 	{
 		packed_uint<4> m_magic;
