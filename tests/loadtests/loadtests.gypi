@@ -45,7 +45,7 @@
   ],
   'conditions': [
     # Only these versions support C++11 which is needed by vkloadtests.
-    ['OS != "web" and (GENERATOR != "msvs" or MSVS_VERSION == "2015" or MSVS_VERSION == "2017")', {
+    ['OS != "web" and (GENERATOR != "msvs" or MSVS_VERSION == "2015" or MSVS_VERSION == "2017" or MSVS_VERSION == "2019")', {
       'includes': [ 'vkloadtests/vkloadtests.gypi' ],
     }],
   ],
