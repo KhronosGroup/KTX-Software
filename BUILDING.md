@@ -165,13 +165,19 @@ you use the MacPorts version, this will be `/opt/local`.
 
 ### Web/Emscripten
 
+Use the CMake files under `build/cmake/web` to build a library, load tests and JavaScript wrappers for libktx and the Basis Universal transcoder. The steps are
+
 ```bash
 cd build/cmake/web/Debug # or .../Release
 emconfigure cmake .
-make
+make                      # to build everything.
+make libktx_js            # to build just the libktx.
+make basisu_transcoder_js # to build the transcoder wrapper.
 ```
 
 You will need an [Emscripten SDK](#emscripten-sdk) installed.
+
+**Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
 
 ### Windows
 
