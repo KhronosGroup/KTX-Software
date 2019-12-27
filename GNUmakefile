@@ -84,6 +84,7 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/libvulkan.gypi \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
+		 interface/js_binding/js_binding.gypi \
 		 lib/libktx.gypi \
 		 pkgdoc/pkgdoc.gypi \
 		 tests/tests.gypi \

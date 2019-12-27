@@ -36,7 +36,7 @@
         'libktx.gyp:libgl',
       ],
       'include_dirs': [
-        '../../interface/c_binding/inc',
+        '../../interface/basisu_c_binding/inc',
         '../../lib',
         '../../lib/basisu/transcoder',
         '../../utils',
@@ -45,8 +45,8 @@
       ],
       'defines': [ ],
       'sources': [
-        '../../interface/c_binding/inc/basisu_c_binding.h',
-        '../../interface/c_binding/src/basisu_c_binding.cpp',
+        '../../interface/basisu_c_binding/inc/basisu_c_binding.h',
+        '../../interface/basisu_c_binding/src/basisu_c_binding.cpp',
         'transcodetests.cc',
       ],
       'msvs_settings': {

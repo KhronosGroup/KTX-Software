@@ -116,6 +116,7 @@
 
   'includes': [
     '../gyp_include/libgl.gypi',
+    '../gyp_include/libgles3.gypi',
     '../gyp_include/libvulkan.gypi',
   ],
 
@@ -434,8 +435,8 @@
           'sources': [ '<@(sources)' ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
-            # The BasisU transcoder uses anon typs and structs. They compile ok in
-            # Visual Studio (2015+) and on Linux so quite the clang warnings.
+            # The BasisU transcoder uses anon typs and structs. They compile ok
+            # in Xcode Linux so quiet the clang warnings.
             'WARNING_CFLAGS': [
               '-Wno-nested-anon-types',
               '-Wno-gnu-anonymous-struct',
@@ -467,6 +468,12 @@
           ],
           'conditions': [
           ['OS == "web"', {
+            # The BasisU transcoder uses anon typs and structs. They compile ok
+            # in Emscripten so quiet the clang warnings.
+            'cflags_cc': [
+              '-Wno-nested-anon-types',
+              '-Wno-gnu-anonymous-struct',
+            ],
             'defines': [ 'KTX_OMIT_VULKAN=1' ],
             'dependencies!': [ 'vulkan_headers' ],
             'sources!': [ '<@(vksource_files)' ],
@@ -474,15 +481,15 @@
          ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
-            # The BasisU transcoder uses anon typs and structs. They compile ok in
-            # Visual Studio (2015+) and on Linux so quite the clang warnings.
+            # The BasisU transcoder uses anon typs and structs. They compile ok
+            # in Xcode so quiet the clang warnings.
             'WARNING_CFLAGS': [
               '-Wno-nested-anon-types',
               '-Wno-gnu-anonymous-struct',
             ],
           }
         }, # libktx.es3
-      ], # ios or win targets
+      ], # ios or win or web targets
     }], # OS == "ios" or OS == "win" or OS == "web"
   ], # conditions
 }

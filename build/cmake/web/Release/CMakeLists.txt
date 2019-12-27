@@ -139,7 +139,7 @@ list(APPEND libktx_es3__include_dirs
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
 set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;KTX_OMIT_VULKAN=1;NDEBUG;")
 set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c99 ")
-set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
+set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g0 ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
@@ -152,6 +152,55 @@ set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_A
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libgles3#target
+set(TARGET "libgles3")
+set(TOOLSET "target")
+add_custom_target(libgles3 SOURCES)
+set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libktx.js#target
+set(TARGET "libktx.js")
+set(TOOLSET "target")
+set(libktx_js__cxx_srcs "../../../../interface/js_binding/ktx_wrappers.cpp")
+link_directories()
+add_executable(libktx_js ${libktx_js__cxx_srcs})
+set_target_properties(libktx_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(libktx_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(libktx_js PROPERTIES PREFIX "")
+set_target_properties(libktx_js PROPERTIES RUNTIME_OUTPUT_NAME "libktx.js")
+set_target_properties(libktx_js PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/libktx.js PROPERTIES GENERATED "TRUE")
+list(APPEND libktx_js__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET libktx_js APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_js__include_dirs})
+set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "KHRONOS_STATIC=1;NDEBUG;")
+set_target_properties(libktx_js PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_WEBGL2=1 -O3 -std=c++11 --bind ")
+set_target_properties(libktx_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=libktx -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s FULL_ES3=1 -s USE_WEBGL2=1 -g0 ")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(libktx_js
+  libgles3
+)
+target_link_libraries(libktx_js
+  libktx_es3
+)
 unset(TOOLSET)
 unset(TARGET)
 
@@ -395,14 +444,6 @@ add_dependencies(appfwSDL
   appfwSDL__frag2spirv
   appfwSDL__vert2spirv
 )
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtests.gyp:libgles3#target
-set(TARGET "libgles3")
-set(TOOLSET "target")
-add_custom_target(libgles3 SOURCES)
-set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 

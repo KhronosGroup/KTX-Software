@@ -39,20 +39,17 @@
             '<@(gles3_dlls)',
           ],
         }],
-      }], # OS == "win"
-      ['OS == "ios"', {
+      }, 'OS == "ios"', {
         'variables': {
           'lib_dirs': [ ],
           'libs': ['$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework'],
         },
-      }],
-      ['OS == "android"', {
+      }, 'OS == "android"', {
         'variables': {
           'lib_dirs': [ ],
           'libs': ['-lGLESv2', '-lEGL'],
         }
-      }],
-      ['OS == "web"', {
+      }, 'OS == "web"', {
         'direct_dependent_settings': {
           'cflags': [
             '-s', 'USE_WEBGL2=1',
@@ -66,6 +63,12 @@
         'variables': {
           'lib_dirs': [ ],
           #'libs': ['-lGLESv2', '-lEGL'],
+          'libs': [ ],
+        },
+      }, {
+        # To faciliate this file being included unconditionally.
+        'variables': {
+          'lib_dirs': [ ],
           'libs': [ ],
         },
       }],

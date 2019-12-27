@@ -39,7 +39,6 @@
 				3E6FBFA567680CF6B3F164B5 /* PBXTargetDependency */,
 				2A8E019C4FB6D8C9F024A55E /* PBXTargetDependency */,
 				84FE45E18EA2F550427AAD79 /* PBXTargetDependency */,
-				B0B21B4957ACEF4E809ACCD4 /* PBXTargetDependency */,
 				0B4A0F5EA77FB20A30C1358E /* PBXTargetDependency */,
 				18C8492570A8D5A1FBC58EF6 /* PBXTargetDependency */,
 			);
@@ -98,16 +97,6 @@
 			);
 			name = "appfwSDL Support";
 			productName = "appfwSDL Support";
-		};
-		F7B5E4323F9CF21041EC9677 /* libgles3 */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 2590866F1FE11BBDC678D479 /* Build configuration list for PBXAggregateTarget "libgles3" */;
-			buildPhases = (
-			);
-			dependencies = (
-			);
-			name = libgles3;
-			productName = libgles3;
 		};
 /* End PBXAggregateTarget section */
 
@@ -477,11 +466,11 @@
 			remoteGlobalIDString = 09BA8FB5F992B0DCA38C21BE;
 			remoteInfo = testimages;
 		};
-		6BA360F08F8E12AED3D60EA0 /* PBXContainerItemProxy */ = {
+		6DFD6B9EFE44CF202F025C27 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = F7B5E4323F9CF21041EC9677;
+			remoteGlobalIDString = D0E66A423BEABCB0842D89A2;
 			remoteInfo = libgles3;
 		};
 		7AED6BEEEACB7CE0062A20C1 /* PBXContainerItemProxy */ = {
@@ -623,13 +612,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
-		};
-		E14E308578A6C1B02DFADDAC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F7B5E4323F9CF21041EC9677;
-			remoteInfo = libgles3;
 		};
 		E26D0B1CABE4E7B309504209 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1047,7 +1029,6 @@
 		A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = appfwSDL.gypi; path = tests/loadtests/appfwSDL/appfwSDL.gypi; sourceTree = "<group>"; };
 		AAD1426AAE3F0AC66ABCD994 /* vulkantools.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vulkantools.cpp; sourceTree = "<group>"; };
 		AC8DF30DD2BDAAB5832F302D /* instancing.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancing.vert; sourceTree = "<group>"; };
-		ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgles3.gypi; path = gyp_include/libgles3.gypi; sourceTree = "<group>"; };
 		B2969CAD7B2C60C84F699D74 /* GLAppSDL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GLAppSDL.cpp; sourceTree = "<group>"; };
 		B2F96B6D85B4F16FF30FE218 /* testimages.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = testimages.gypi; path = tests/testimages/testimages.gypi; sourceTree = "<group>"; };
 		B61ED0DFD6FAAF7FCCD38867 /* instancing.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancing.frag.spv; sourceTree = "<group>"; };
@@ -1274,32 +1255,6 @@
 			path = cubemap;
 			sourceTree = "<group>";
 		};
-		39E7545C276D662F5892A2CD /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
-				62C8ED7D4BE000BE8F05196F /* config.gypi */,
-				2A10C481083B8ADF83741784 /* default.gypi */,
-				2B15D5D51FED2F56FB42C26A /* glloadtests.gypi */,
-				097F83286050358E20912929 /* glsl2spirv.gypi */,
-				83C1B5B5C7591FC49A217ED7 /* gtest.gypi */,
-				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
-				BFE4EA6B67AE6EAFADB5840E /* libassimp.gypi */,
-				DCA2A2C870993F0227174041 /* libgles1.gypi */,
-				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
-				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
-				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
-				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
-				B2F96B6D85B4F16FF30FE218 /* testimages.gypi */,
-				443BA60BE91B83D924E4DD4E /* tests.gypi */,
-				92F7CBC841260CD2B88F9326 /* texturetests.gypi */,
-				E8F2CA4D47010B8A16AF2043 /* transcodetests.gypi */,
-				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
-				7D7EB44CBBC6ED2A89825D2F /* vkloadtests.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		423DAD745B12C7194D2F3C86 /* shader-based */ = {
 			isa = PBXGroup;
 			children = (
@@ -1452,7 +1407,7 @@
 				BE87322074888456974DB31C /* Projects */,
 				049A0622B822DD35A9F6CB25 /* Frameworks */,
 				7942D0C510ADBFDB50D290B9 /* Products */,
-				39E7545C276D662F5892A2CD /* Build */,
+				C2FBA04F8B8BCE1736365E1F /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1505,6 +1460,31 @@
 				318C079F5709CE3BE6391E24 /* libktx.xcodeproj */,
 			);
 			name = Projects;
+			sourceTree = "<group>";
+		};
+		C2FBA04F8B8BCE1736365E1F /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
+				62C8ED7D4BE000BE8F05196F /* config.gypi */,
+				2A10C481083B8ADF83741784 /* default.gypi */,
+				2B15D5D51FED2F56FB42C26A /* glloadtests.gypi */,
+				097F83286050358E20912929 /* glsl2spirv.gypi */,
+				83C1B5B5C7591FC49A217ED7 /* gtest.gypi */,
+				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
+				BFE4EA6B67AE6EAFADB5840E /* libassimp.gypi */,
+				DCA2A2C870993F0227174041 /* libgles1.gypi */,
+				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
+				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
+				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
+				B2F96B6D85B4F16FF30FE218 /* testimages.gypi */,
+				443BA60BE91B83D924E4DD4E /* tests.gypi */,
+				92F7CBC841260CD2B88F9326 /* texturetests.gypi */,
+				E8F2CA4D47010B8A16AF2043 /* transcodetests.gypi */,
+				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
+				7D7EB44CBBC6ED2A89825D2F /* vkloadtests.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		C7066B4504C4E3790C77ABD8 /* resources/ios */ = {
@@ -1743,7 +1723,7 @@
 			dependencies = (
 				A04AF921FD6BF87D56D805A3 /* PBXTargetDependency */,
 				045F5A237B8B9E8043BD0A26 /* PBXTargetDependency */,
-				E9BD2109E650C5E0DF76ECA0 /* PBXTargetDependency */,
+				55E1972FC9421466A9A93301 /* PBXTargetDependency */,
 				EA6C018960598A7D6AB3D93B /* PBXTargetDependency */,
 				5AAE8A542C9D53D2E9EA8DD5 /* PBXTargetDependency */,
 				144496CBF855608A009EAF12 /* PBXTargetDependency */,
@@ -1787,7 +1767,6 @@
 				DAA715274807967C046D9300 /* vkloadtests Support */,
 				1548AEB99CD1C5C270961D30 /* libassimp */,
 				E63EF3CB8887944110516954 /* es3loadtests */,
-				F7B5E4323F9CF21041EC9677 /* libgles3 */,
 				B90F68E062B75853DE301BEB /* es1loadtests */,
 				65B9FC0E5B92783625634829 /* libgles1 */,
 			);
@@ -2074,6 +2053,11 @@
 			target = 5D14C76351FD143925D22373 /* appfwSDL */;
 			targetProxy = 9BC5EAA55131D948634EE421 /* PBXContainerItemProxy */;
 		};
+		55E1972FC9421466A9A93301 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libgles3;
+			targetProxy = 6DFD6B9EFE44CF202F025C27 /* PBXContainerItemProxy */;
+		};
 		5AAE8A542C9D53D2E9EA8DD5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
@@ -2134,11 +2118,6 @@
 			target = 5D14C76351FD143925D22373 /* appfwSDL */;
 			targetProxy = CAB57943812A48939F9327AD /* PBXContainerItemProxy */;
 		};
-		B0B21B4957ACEF4E809ACCD4 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F7B5E4323F9CF21041EC9677 /* libgles3 */;
-			targetProxy = E14E308578A6C1B02DFADDAC /* PBXContainerItemProxy */;
-		};
 		B3110DFB524C1E039EA47B23 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
@@ -2173,11 +2152,6 @@
 			isa = PBXTargetDependency;
 			target = 09BA8FB5F992B0DCA38C21BE /* testimages */;
 			targetProxy = 7AED6BEEEACB7CE0062A20C1 /* PBXContainerItemProxy */;
-		};
-		E9BD2109E650C5E0DF76ECA0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F7B5E4323F9CF21041EC9677 /* libgles3 */;
-			targetProxy = 6BA360F08F8E12AED3D60EA0 /* PBXContainerItemProxy */;
 		};
 		EA6C018960598A7D6AB3D93B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2272,32 +2246,6 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libassimp;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = "arm64 arm64e";
-			};
-			name = Debug;
-		};
-		27B03995FD8475F2D5FE8037 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				COPY_PHASE_STRIP = NO;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					DEBUG,
-					_DEBUG,
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
 			};
@@ -2650,29 +2598,6 @@
 			};
 			name = Release;
 		};
-		B688AF1A71810BE0AB2F86DC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				COPY_PHASE_STRIP = NO;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_NAME = libgles3;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = "arm64 arm64e";
-			};
-			name = Release;
-		};
 		B6E90208BD315A0A66385B0C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2955,15 +2880,6 @@
 			buildConfigurations = (
 				F5125667E248F18591A9DA2D /* Debug */,
 				E8F2039F5C1B6E7D75A73A1B /* Release */,
-			);
-			defaultConfigurationIsVisible = 1;
-			defaultConfigurationName = Debug;
-		};
-		2590866F1FE11BBDC678D479 /* Build configuration list for PBXAggregateTarget "libgles3" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				27B03995FD8475F2D5FE8037 /* Debug */,
-				B688AF1A71810BE0AB2F86DC /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;
