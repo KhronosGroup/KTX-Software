@@ -151,8 +151,8 @@ namespace ktx_basisu_wrapper {
                              const val& imagedata, uint32_t imagedata_size,
                              uint32_t target_fmt, uint32_t output_block_or_pixel_stride_in_bytes,
                              bool bc1_allow_threecolor_blocks,
-                             const bool video_flag, const bool alpha_flag,
-                             const uint32_t level_index,
+                             const bool isVideo, const bool isAlphaSlice,
+                             const uint32_t miplevel,
                              const uint32_t orig_width, const uint32_t orig_height,
                              const bool transcode_alpha = false)
         {
@@ -178,8 +178,8 @@ namespace ktx_basisu_wrapper {
                                                  target_format,
                                                  output_block_or_pixel_stride_in_bytes,
                                                  bc1_allow_threecolor_blocks,
-                                                 video_flag, alpha_flag,
-                                                 level_index,
+                                                 isVideo, isAlphaSlice,
+                                                 miplevel,
                                                  orig_width, orig_height,
                                                  0, /* output_row_pitch_in_blocks_or_pixels */
                                                  nullptr, transcode_alpha);
@@ -205,8 +205,8 @@ namespace ktx_basisu_wrapper {
                              const val& imagedata, uint32_t imagedata_size,
                              const uint32_t target_fmt, uint32_t output_block_or_pixel_stride_in_bytes,
                              bool bc1_allow_threecolor_blocks,
-                             const bool video_flag, const bool alpha_flag,
-                             const uint32_t level_index,
+                             const bool isVideo, const bool isAlphaSlice,
+                             const uint32_t miplevel,
                              const uint32_t orig_width, const uint32_t orig_height,
                              uint32_t output_row_pitch_in_blocks_or_pixels,
                              const val& xcoder_state,
@@ -245,8 +245,8 @@ namespace ktx_basisu_wrapper {
                                                  target_format,
                                                  output_block_or_pixel_stride_in_bytes,
                                                  bc1_allow_threecolor_blocks,
-                                                 video_flag, alpha_flag,
-                                                 level_index,
+                                                 isVideo, isAlphaSlice,
+                                                 miplevel,
                                                  orig_width, orig_height,
                                                  0, /* output_row_pitch_in_blocks_or_pixels */
                                                  nullptr, /* pState */
