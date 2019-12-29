@@ -141,6 +141,9 @@
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
+            # To reduce size, don't support transcoding to ancient formats.
+            #'BASISD_SUPPORT_ATC=0',
+            #'BASISD_SUPPORT_FXT1=0',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -427,6 +430,9 @@
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
             'BASISU_NO_ITERATOR_DEBUG_LEVEL',
+            # To reduce size, don't support transcoding to ancient formats.
+            #'BASISD_SUPPORT_ATC=0',
+            #'BASISD_SUPPORT_FXT1=0',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -456,6 +462,9 @@
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
             'BASISU_NO_ITERATOR_DEBUG_LEVEL',
+            # To reduce size, don't support transcoding to ancient formats.
+            #'BASISD_SUPPORT_ATC=0',
+            #'BASISD_SUPPORT_FXT1=0',
           ],
           'dependencies': [ 'vulkan_headers' ],
           'direct_dependent_settings': {
@@ -474,7 +483,17 @@
               '-Wno-nested-anon-types',
               '-Wno-gnu-anonymous-struct',
             ],
-            'defines': [ 'KTX_OMIT_VULKAN=1' ],
+            'defines': [
+              'KTX_OMIT_VULKAN=1',
+              # To reduce size, don't support transcoding formats not supported
+              # by WebGL.
+              'BASISD_SUPPORT_BC7=0',
+              'BASISD_SUPPORT_ATC=0',
+              'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
+              'BASISD_SUPPORT_PVRTC2=0',
+              'BASISD_SUPPORT_FXT1=0',
+              'BASISD_SUPPORT_ETC2_EAC_RG11=0',
+            ],
             'dependencies!': [ 'vulkan_headers' ],
             'sources!': [ '<@(vksource_files)' ],
           }],

@@ -24,7 +24,7 @@
 
 using namespace emscripten;
 
-namespace ktx_wrappers
+namespace ktx_wrapper
 {
     class texture
     {
@@ -70,6 +70,7 @@ namespace ktx_wrappers
                 return texture(nullptr, {});
             }
 
+            // TODO: Is this move copying all the data? If so can we avoid it?
             return texture(ptr, std::move(bytes));
         }
 
@@ -143,37 +144,38 @@ namespace ktx_wrappers
     };
 }
 
-EMSCRIPTEN_BINDINGS(ktx_wrappers)
+EMSCRIPTEN_BINDINGS(ktx_wrapper)
 {
-    class_<ktx_wrappers::texture>("ktxTexture")
-#if 1
-        .class_property("KTX_TTF_ETC1_RGB", &ktx_wrappers::texture::KTX_TTF_ETC1_RGB)
-        .class_property("KTX_TTF_ETC2_RGBA", &ktx_wrappers::texture::KTX_TTF_ETC2_RGBA)
-        .class_property("KTX_TTF_BC1_RGB", &ktx_wrappers::texture::KTX_TTF_BC1_RGB)
-        .class_property("KTX_TTF_BC3_RGBA", &ktx_wrappers::texture::KTX_TTF_BC3_RGBA)
-        .class_property("KTX_TTF_BC4_R", &ktx_wrappers::texture::KTX_TTF_BC4_R)
-        .class_property("KTX_TTF_BC5_RG", &ktx_wrappers::texture::KTX_TTF_BC5_RG)
-        .class_property("KTX_TTF_BC7_M6_RGB", &ktx_wrappers::texture::KTX_TTF_BC7_M6_RGB)
-        .class_property("KTX_TTF_BC7_M5_RGBA", &ktx_wrappers::texture::KTX_TTF_BC7_M5_RGBA)
-        .class_property("KTX_TTF_PVRTC1_4_RGB", &ktx_wrappers::texture::KTX_TTF_PVRTC1_4_RGB)
-        .class_property("KTX_TTF_PVRTC1_4_RGBA", &ktx_wrappers::texture::KTX_TTF_PVRTC1_4_RGBA)
-        .class_property("KTX_TTF_ASTC_4x4_RGBA", &ktx_wrappers::texture::KTX_TTF_ASTC_4x4_RGBA)
-        .class_property("KTX_TTF_PVRTC2_4_RGB", &ktx_wrappers::texture::KTX_TTF_PVRTC2_4_RGB)
-        .class_property("KTX_TTF_PVRTC2_4_RGBA", &ktx_wrappers::texture::KTX_TTF_PVRTC2_4_RGBA)
-        .class_property("KTX_TTF_ETC2_EAC_R11", &ktx_wrappers::texture::KTX_TTF_ETC2_EAC_R11)
-        .class_property("KTX_TTF_ETC2_EAC_RG11", &ktx_wrappers::texture::KTX_TTF_ETC2_EAC_RG11)
-        .class_property("KTX_TTF_RGBA32", &ktx_wrappers::texture::KTX_TTF_RGBA32)
-        .class_property("KTX_TTF_RGB565", &ktx_wrappers::texture::KTX_TTF_RGB565)
-        .class_property("KTX_TTF_BGR565", &ktx_wrappers::texture::KTX_TTF_BGR565)
-        .class_property("KTX_TTF_RGBA4444", &ktx_wrappers::texture::KTX_TTF_RGBA4444)
-        .class_property("KTX_TTF_ETC", &ktx_wrappers::texture::KTX_TTF_ETC)
-        .class_property("KTX_TTF_BC1_OR_3", &ktx_wrappers::texture::KTX_TTF_BC1_OR_3)
+    class_<ktx_wrapper::texture>("ktxTexture")
+#if 0
+        .class_property("KTX_TTF_ETC1_RGB", &ktx_wrapper::texture::KTX_TTF_ETC1_RGB)
+        .class_property("KTX_TTF_ETC2_RGBA", &ktx_wrapper::texture::KTX_TTF_ETC2_RGBA)
+        .class_property("KTX_TTF_BC1_RGB", &ktx_wrapper::texture::KTX_TTF_BC1_RGB)
+        .class_property("KTX_TTF_BC3_RGBA", &ktx_wrapper::texture::KTX_TTF_BC3_RGBA)
+        .class_property("KTX_TTF_BC4_R", &ktx_wrapper::texture::KTX_TTF_BC4_R)
+        .class_property("KTX_TTF_BC5_RG", &ktx_wrapper::texture::KTX_TTF_BC5_RG)
+        .class_property("KTX_TTF_BC7_M6_RGB", &ktx_wrapper::texture::KTX_TTF_BC7_M6_RGB)
+        .class_property("KTX_TTF_BC7_M5_RGBA", &ktx_wrapper::texture::KTX_TTF_BC7_M5_RGBA)
+        .class_property("KTX_TTF_PVRTC1_4_RGB", &ktx_wrapper::texture::KTX_TTF_PVRTC1_4_RGB)
+        .class_property("KTX_TTF_PVRTC1_4_RGBA", &ktx_wrapper::texture::KTX_TTF_PVRTC1_4_RGBA)
+        .class_property("KTX_TTF_ASTC_4x4_RGBA", &ktx_wrapper::texture::KTX_TTF_ASTC_4x4_RGBA)
+        .class_property("KTX_TTF_PVRTC2_4_RGB", &ktx_wrapper::texture::KTX_TTF_PVRTC2_4_RGB)
+        .class_property("KTX_TTF_PVRTC2_4_RGBA", &ktx_wrapper::texture::KTX_TTF_PVRTC2_4_RGBA)
+        .class_property("KTX_TTF_ETC2_EAC_R11", &ktx_wrapper::texture::KTX_TTF_ETC2_EAC_R11)
+        .class_property("KTX_TTF_ETC2_EAC_RG11", &ktx_wrapper::texture::KTX_TTF_ETC2_EAC_RG11)
+        .class_property("KTX_TTF_RGBA32", &ktx_wrapper::texture::KTX_TTF_RGBA32)
+        .class_property("KTX_TTF_RGB565", &ktx_wrapper::texture::KTX_TTF_RGB565)
+        .class_property("KTX_TTF_BGR565", &ktx_wrapper::texture::KTX_TTF_BGR565)
+        .class_property("KTX_TTF_RGBA4444", &ktx_wrapper::texture::KTX_TTF_RGBA4444)
+        .class_property("KTX_TTF_ETC", &ktx_wrapper::texture::KTX_TTF_ETC)
+        .class_property("KTX_TTF_BC1_OR_3", &ktx_wrapper::texture::KTX_TTF_BC1_OR_3)
 #endif
-        .class_function("createFromMemory", &ktx_wrappers::texture::createFromMemory)
-        // .property("data", &ktx_wrappers::texture::getData)
-        .property("baseWidth", &ktx_wrappers::texture::baseWidth)
-        .property("baseHeight", &ktx_wrappers::texture::baseHeight)
-        .function("transcodeBasis", &ktx_wrappers::texture::transcodeBasis)
-        .function("glUpload", &ktx_wrappers::texture::glUpload)
+        .constructor(&ktx_wrapper::texture::createFromMemory)
+        //.class_function("createFromMemory", &ktx_wrapper::texture::createFromMemory)
+        // .property("data", &ktx_wrapper::texture::getData)
+        .property("baseWidth", &ktx_wrapper::texture::baseWidth)
+        .property("baseHeight", &ktx_wrapper::texture::baseHeight)
+        .function("transcodeBasis", &ktx_wrapper::texture::transcodeBasis)
+        .function("glUpload", &ktx_wrapper::texture::glUpload)
     ;
 }
