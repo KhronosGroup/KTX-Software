@@ -474,6 +474,8 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             if (!(createFlags & KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)) {
                 char* orientationStr;
                 ktx_uint32_t orientationLen;
+                ktx_uint32_t animData[3];
+                ktx_uint32_t animDataLen;
 
                 result = ktxHashList_Deserialize(&This->kvDataHead,
                                                  kvdLen, pKvd);
@@ -506,6 +508,27 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                     }
                 } else {
                     result = KTX_SUCCESS; // Not finding orientation is okay.
+                }
+                result = ktxHashList_FindValue(&This->kvDataHead,
+                                               KTX_ANIMDATA_KEY,
+                                               &animDataLen,
+                                               (void**)animData);
+                assert(result != KTX_INVALID_VALUE);
+                if (result == KTX_SUCCESS) {
+                    if (animDataLen != sizeof(animData)) {
+                        result = KTX_FILE_DATA_ERROR;
+                        goto cleanup;
+                    }
+                    if (This->isArray && This->numDimensions == 2
+                        && !This->isCubemap)
+                    {
+                        This->isVideo = KTX_TRUE;
+                        This->duration = animData[0];
+                        This->timescale = animData[1];
+                        This->loopcount = animData[2];
+                    }
+                } else {
+                    result = KTX_SUCCESS; // Not finding video is okay.
                 }
             } else {
                 This->kvDataLen = kvdLen;
