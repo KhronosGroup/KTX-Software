@@ -105,6 +105,7 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "../../../../lib/basis_sgd.h"
+  "../../../../lib/basis_image_transcoder.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/dfd2vk.inl"
   "../../../../lib/dfdutils/vk2dfd.inl"
@@ -155,39 +156,39 @@ set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_P
 unset(TOOLSET)
 unset(TARGET)
 
-#libktx.gyp:basisu_transcoder.js#target
-set(TARGET "basisu_transcoder.js")
+#libktx.gyp:ktx_basis_transcoder.js#target
+set(TARGET "ktx_basis_transcoder.js")
 set(TOOLSET "target")
-set(basisu_transcoder_js__cxx_srcs "../../../../interface/js_binding/ktx_basisu_wrapper.cpp")
-add_executable(basisu_transcoder_js ${basisu_transcoder_js__cxx_srcs})
-set_target_properties(basisu_transcoder_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(basisu_transcoder_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
-set_target_properties(basisu_transcoder_js PROPERTIES PREFIX "")
-set_target_properties(basisu_transcoder_js PROPERTIES RUNTIME_OUTPUT_NAME "basisu_transcoder.js")
-set_target_properties(basisu_transcoder_js PROPERTIES SUFFIX "")
-set_source_files_properties(${builddir}/basisu_transcoder.js PROPERTIES GENERATED "TRUE")
-list(APPEND basisu_transcoder_js__include_dirs
+set(ktx_basis_transcoder_js__cxx_srcs "../../../../interface/js_binding/ktx_basis_transcoder_wrapper.cpp")
+add_executable(ktx_basis_transcoder_js ${ktx_basis_transcoder_js__cxx_srcs})
+set_target_properties(ktx_basis_transcoder_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES PREFIX "")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES RUNTIME_OUTPUT_NAME "ktx_basis_transcoder.js")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/ktx_basis_transcoder.js PROPERTIES GENERATED "TRUE")
+list(APPEND ktx_basis_transcoder_js__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
-set_property(TARGET basisu_transcoder_js APPEND PROPERTY INCLUDE_DIRECTORIES ${basisu_transcoder_js__include_dirs})
-set_target_properties(basisu_transcoder_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
-set_target_properties(basisu_transcoder_js PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c++11 --bind -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
-set_target_properties(basisu_transcoder_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=0 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=libktx -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s FULL_ES3=1 -g4 ")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
-set_target_properties(basisu_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-target_link_libraries(basisu_transcoder_js
+set_property(TARGET ktx_basis_transcoder_js APPEND PROPERTY INCLUDE_DIRECTORIES ${ktx_basis_transcoder_js__include_dirs})
+set_target_properties(ktx_basis_transcoder_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c++11 --bind -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=0 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=libktx -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s FULL_ES3=1 -g4 ")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "NO")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(ktx_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+target_link_libraries(ktx_basis_transcoder_js
   libktx_es3
 )
 unset(TOOLSET)

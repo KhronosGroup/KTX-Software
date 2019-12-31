@@ -32,7 +32,7 @@
           ],
         }, # libktx.js
         {
-          'target_name': 'basisu_transcoder.js',
+          'target_name': 'ktx_basis_transcoder.js',
           'type': 'executable',
           'cflags_cc': [
             '--bind',
@@ -52,11 +52,11 @@
           'dependencies': [ 'libktx.es3' ],
           'mac_bundle': 0,
           'sources': [
-            'ktx_basisu_wrapper.cpp',
+            'ktx_basis_transcoder_wrapper.cpp',
           ],
           'include_dirs': [
               '../../include',
-              '../../lib/basisu/transcoder',
+              '../../lib',
           ],
           'ldflags': [
              '--bind',
@@ -69,7 +69,7 @@
              '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=[\'GL\']',
              '-s', 'FULL_ES3=1',
           ],
-        }, # transcoder.js
+        }, # ktx_basis_transcoder.js
       ], # targets
     }], # OS = "web"
   ], # conditions

@@ -53,6 +53,7 @@
       'basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc',
       'basis_sgd.h',
       'basis_encode.cpp',
+      'basis_image_transcoder.h',
       'basis_transcode.cpp',
       'checkheader.c',
       'dfdutils/createdfd.c',

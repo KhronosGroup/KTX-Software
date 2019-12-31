@@ -32,28 +32,6 @@ namespace ktx_wrapper
         texture(texture&) = delete;
         texture(texture&& other) = default;
 
-        static const uint32_t KTX_TTF_ETC1_RGB = ::KTX_TTF_ETC1_RGB;
-        static const uint32_t KTX_TTF_ETC2_RGBA = ::KTX_TTF_ETC2_RGBA;
-        static const uint32_t KTX_TTF_BC1_RGB = ::KTX_TTF_BC1_RGB;
-        static const uint32_t KTX_TTF_BC3_RGBA = ::KTX_TTF_BC3_RGBA;
-        static const uint32_t KTX_TTF_BC4_R = ::KTX_TTF_BC4_R;
-        static const uint32_t KTX_TTF_BC5_RG = ::KTX_TTF_BC5_RG;
-        static const uint32_t KTX_TTF_BC7_M6_RGB = ::KTX_TTF_BC7_M6_RGB;
-        static const uint32_t KTX_TTF_BC7_M5_RGBA = ::KTX_TTF_BC7_M5_RGBA;
-        static const uint32_t KTX_TTF_PVRTC1_4_RGB = ::KTX_TTF_PVRTC1_4_RGB;
-        static const uint32_t KTX_TTF_PVRTC1_4_RGBA = ::KTX_TTF_PVRTC1_4_RGBA;
-        static const uint32_t KTX_TTF_ASTC_4x4_RGBA = ::KTX_TTF_ASTC_4x4_RGBA;
-        static const uint32_t KTX_TTF_PVRTC2_4_RGB = ::KTX_TTF_PVRTC2_4_RGB;
-        static const uint32_t KTX_TTF_PVRTC2_4_RGBA = ::KTX_TTF_PVRTC2_4_RGBA;
-        static const uint32_t KTX_TTF_ETC2_EAC_R11 = ::KTX_TTF_ETC2_EAC_R11;
-        static const uint32_t KTX_TTF_ETC2_EAC_RG11 = ::KTX_TTF_ETC2_EAC_RG11;
-        static const uint32_t KTX_TTF_RGBA32 = ::KTX_TTF_RGBA32;
-        static const uint32_t KTX_TTF_RGB565 = ::KTX_TTF_RGB565;
-        static const uint32_t KTX_TTF_BGR565 = ::KTX_TTF_BGR565;
-        static const uint32_t KTX_TTF_RGBA4444 = ::KTX_TTF_RGBA4444;
-        static const uint32_t KTX_TTF_ETC = ::KTX_TTF_ETC;
-        static const uint32_t KTX_TTF_BC1_OR_3 = ::KTX_TTF_BC1_OR_3;
-
         static texture createFromMemory(const emscripten::val& data)
         {
             std::vector<uint8_t> bytes{};
@@ -142,6 +120,47 @@ namespace ktx_wrapper
         std::unique_ptr<ktxTexture, decltype(&destroy)> m_ptr;
         std::vector<uint8_t> m_bytes;
     };
+
+
+        static const uint32_t KTX_TTF_ETC1_RGB = ::KTX_TTF_ETC1_RGB;
+#if BASISD_SUPPORT_DXT1
+        static const uint32_t KTX_TTF_BC1_RGB = ::KTX_TTF_BC1_RGB;
+#endif
+#if BASISD_SUPPORT_DXT5A
+         static const uint32_t KTX_TTF_BC4_R = ::KTX_TTF_BC4_R;
+         static const uint32_t KTX_TTF_BC5_RG = ::KTX_TTF_BC5_RG;
+#endif
+#if BASISD_SUPPORT_DXT1 && BASISD_SUPPORT_DXT5A
+          static const uint32_t KTX_TTF_BC3_RGBA = ::KTX_TTF_BC3_RGBA;
+#endif
+#if BASISD_SUPPORT_PVRTC1
+        static const uint32_t KTX_TTF_PVRTC1_4_RGB = ::KTX_TTF_PVRTC1_4_RGB;
+        static const uint32_t KTX_TTF_PVRTC1_4_RGBA = ::KTX_TTF_PVRTC1_4_RGBA;
+#endif
+#if BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY
+        static const uint32_t KTX_TTF_BC7_M6_RGB = ::KTX_TTF_BC7_M6_RGB;
+#endif
+#if BASISD_SUPPORT_BC7_MODE5
+        static const uint32_t KTX_TTF_BC7_M5_RGBA = ::KTX_TTF_BC7_M5_RGBA;
+#endif
+#if BASISD_SUPPORT_ETC2_EAC_A8
+        static const uint32_t KTX_TTF_ETC2_RGBA = ::KTX_TTF_ETC2_RGBA;
+#endif
+#if BASISD_SUPPORT_ASTC
+        static const uint32_t KTX_TTF_ASTC_4x4_RGBA = ::KTX_TTF_ASTC_4x4_RGBA;
+#endif
+        static const uint32_t KTX_TTF_RGBA32 = ::KTX_TTF_RGBA32;
+        static const uint32_t KTX_TTF_RGB565 = ::KTX_TTF_RGB565;
+        static const uint32_t KTX_TTF_BGR565 = ::KTX_TTF_BGR565;
+        static const uint32_t KTX_TTF_RGBA4444 = ::KTX_TTF_RGBA4444;
+#if BASISD_SUPPORT_PVRTC2
+        static const uint32_t KTX_TTF_PVRTC2_4_RGB = ::KTX_TTF_PVRTC2_4_RGB;
+        static const uint32_t KTX_TTF_PVRTC2_4_RGBA = ::KTX_TTF_PVRTC2_4_RGBA;
+#endif
+#if BASISD_SUPPORT_ETC2_EAC_RG11
+        static const uint32_t KTX_TTF_ETC2_EAC_R11 = ::KTX_TTF_ETC2_EAC_R11;
+        static const uint32_t KTX_TTF_ETC2_EAC_RG11 = ::KTX_TTF_ETC2_EAC_RG11;
+#endif
 }
 
 EMSCRIPTEN_BINDINGS(ktx_wrapper)
