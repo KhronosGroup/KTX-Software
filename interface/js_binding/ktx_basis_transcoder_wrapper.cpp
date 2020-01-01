@@ -349,78 +349,11 @@ namespace ktx_basis_transcoder_wrapper {
             dst.call<void>("set", memoryView);
         }
 
-        static const uint32_t cETC1 = static_cast<uint32_t>(block_format::cETC1);
-        static const uint32_t KTX_TTF_ETC1_RGB = ::KTX_TTF_ETC1_RGB;
-#if BASISD_SUPPORT_DXT1
-        static const uint32_t cBC1 = static_cast<uint32_t>(block_format::cBC1);
-        static const uint32_t KTX_TTF_BC1_RGB = ::KTX_TTF_BC1_RGB;
-#endif
-#if BASISD_SUPPORT_DXT5A
-        static const uint32_t cBC4 = static_cast<uint32_t>(block_format::cBC4);
-        static const uint32_t KTX_TTF_BC4_R = ::KTX_TTF_BC4_R;
-        static const uint32_t KTX_TTF_BC5_RG = ::KTX_TTF_BC5_RG;
-#endif
-#if BASISD_SUPPORT_DXT1 && BASISD_SUPPORT_DXT5A
-        static const uint32_t KTX_TTF_BC3_RGBA = ::KTX_TTF_BC3_RGBA;
-#endif
-#if BASISD_SUPPORT_PVRTC1
-        static const uint32_t cPVRTC1_4_RGB = static_cast<uint32_t>(block_format::cPVRTC1_4_RGB);
-        static const uint32_t cPVRTC1_4_RGBA = static_cast<uint32_t>(block_format::cPVRTC1_4_RGBA);
-        static const uint32_t KTX_TTF_PVRTC1_4_RGB = ::KTX_TTF_PVRTC1_4_RGB;
-        static const uint32_t KTX_TTF_PVRTC1_4_RGBA = ::KTX_TTF_PVRTC1_4_RGBA;
-#endif
-#if BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY
-        static const uint32_t cBC7_M6_OPAQUE_ONLY = static_cast<uint32_t>(block_format::cBC7_M6_OPAQUE_ONLY);
-        static const uint32_t KTX_TTF_BC7_M6_RGB = ::KTX_TTF_BC7_M6_RGB;
-#endif
-#if BASISD_SUPPORT_BC7_MODE5
-        static const uint32_t cBC7_M5_COLOR = static_cast<uint32_t>(block_format::cBC7_M5_COLOR);
-        static const uint32_t cBC7_M5_ALPHA = static_cast<uint32_t>(block_format::cBC7_M5_ALPHA);
-        static const uint32_t KTX_TTF_BC7_M5_RGBA = ::KTX_TTF_BC7_M5_RGBA;
-#endif
-#if BASISD_SUPPORT_ETC2_EAC_A8
-        static const uint32_t cETC2_EAC_A8 = static_cast<uint32_t>(block_format::cETC2_EAC_A8);
-        static const uint32_t KTX_TTF_ETC2_RGBA = ::KTX_TTF_ETC2_RGBA;
-#endif
-#if BASISD_SUPPORT_ASTC
-        static const uint32_t cASTC_4x4 = static_cast<uint32_t>(block_format::cASTC_4x4);
-        static const uint32_t KTX_TTF_ASTC_4x4_RGBA = ::KTX_TTF_ASTC_4x4_RGBA;
-#endif
-#if BASISD_SUPPORT_ATC
-        static const uint32_t cATC_RGB = static_cast<uint32_t>(block_format::cATC_RGB);
-        static const uint32_t cATC_RGBA_INTERPOLATED_ALPHA = static_cast<uint32_t>(block_format::cATC_RGBA_INTERPOLATED_ALPHA);
-#endif
-#if BASISD_SUPPORT_FXT1
-        static const uint32_t cFXT1_RGB = static_cast<uint32_t>(block_format::cFXT1_RGB);
-#endif
-        static const uint32_t cIndices = static_cast<uint32_t>(block_format::cIndices);
+        // Declare constants.
+        #define BLOCK_FORMAT(c) static const uint32_t c;
+        #define TRANSCODE_FORMAT(c) static const uint32_t c;
+        #include "constlist.inl"
 
-        static const uint32_t cRGB32 = static_cast<uint32_t>(block_format::cRGB32);
-        static const uint32_t cRGBA32 = static_cast<uint32_t>(block_format::cRGBA32);
-        static const uint32_t cA32 = static_cast<uint32_t>(block_format::cA32);
-
-        static const uint32_t cRGB565 = static_cast<uint32_t>(block_format::cRGB565);
-        static const uint32_t cBGR565 = static_cast<uint32_t>(block_format::cBGR565);
-
-        static const uint32_t cRGBA4444_COLOR = static_cast<uint32_t>(block_format::cRGBA4444_COLOR);
-        static const uint32_t cRGBA4444_ALPHA = static_cast<uint32_t>(block_format::cRGBA4444_ALPHA);
-        static const uint32_t cRGBA4444_COLOR_OPAQUE = static_cast<uint32_t>(block_format::cRGBA4444_COLOR_OPAQUE);
-
-        static const uint32_t KTX_TTF_RGBA32 = ::KTX_TTF_RGBA32;
-        static const uint32_t KTX_TTF_RGB565 = ::KTX_TTF_RGB565;
-        static const uint32_t KTX_TTF_BGR565 = ::KTX_TTF_BGR565;
-        static const uint32_t KTX_TTF_RGBA4444 = ::KTX_TTF_RGBA4444;
-#if BASISD_SUPPORT_PVRTC2
-        static const uint32_t cPVRTC2_4_RGB = static_cast<uint32_t>(block_format::cPVRTC2_4_RGB);
-        static const uint32_t cPVRTC2_4_RGBA = static_cast<uint32_t>(block_format::cPVRTC2_4_RGBA);
-        static const uint32_t KTX_TTF_PVRTC2_4_RGB = ::KTX_TTF_PVRTC2_4_RGB;
-        static const uint32_t KTX_TTF_PVRTC2_4_RGBA = ::KTX_TTF_PVRTC2_4_RGBA;
-#endif
-#if BASISD_SUPPORT_ETC2_EAC_RG11
-        static const uint32_t cETC2_EAC_R11 = static_cast<uint32_t>(block_format::cPVRTC2_4_RGB);
-        static const uint32_t KTX_TTF_ETC2_EAC_R11 = ::KTX_TTF_ETC2_EAC_R11;
-        static const uint32_t KTX_TTF_ETC2_EAC_RG11 = ::KTX_TTF_ETC2_EAC_RG11;
-#endif
        protected:
         static basist::etc1_global_selector_codebook* pGlobal_codebook;
 
@@ -447,39 +380,27 @@ namespace ktx_basis_transcoder_wrapper {
             return (basist::etc1_global_selector_codebook*)bytes.data();
         }
 #endif
-   };
+    };
 
     basist::etc1_global_selector_codebook* ktxBasisTranscoder::pGlobal_codebook;
-    const uint32_t ktxBasisTranscoder::cETC1;
+
+    // Define constants.
+    #undef BLOCK_FORMAT
+    #undef TRANSCODE_FORMAT
+    #define BLOCK_FORMAT(c) const uint32_t ktxBasisTranscoder::c = static_cast<uint32_t>(block_format::c);
+    #define TRANSCODE_FORMAT(c) const uint32_t ktxBasisTranscoder::c = static_cast<uint32_t>(::c);
+    #include "constlist.inl"
 }
+
+#undef BLOCK_FORMAT
+#undef TRANSCODE_FORMAT
+#define BLOCK_FORMAT(c) .class_property(#c, &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::c)
+#define TRANSCODE_FORMAT(c) .class_property(#c, &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::c)
 
 EMSCRIPTEN_BINDINGS(ktx_wrappers)
 {
     class_<ktx_basis_transcoder_wrapper::ktxBasisTranscoder>("BasisLowLevelTranscoder")
-    .class_property("cPVRTC1_4_RGB", &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::cETC1)
-#if 0
-        .class_property("KTX_TTF_ETC1_RGB", &ktx_wrappers::texture::KTX_TTF_ETC1_RGB)
-        .class_property("KTX_TTF_ETC2_RGBA", &ktx_wrappers::texture::KTX_TTF_ETC2_RGBA)
-        .class_property("KTX_TTF_BC1_RGB", &ktx_wrappers::texture::KTX_TTF_BC1_RGB)
-        .class_property("KTX_TTF_BC3_RGBA", &ktx_wrappers::texture::KTX_TTF_BC3_RGBA)
-        .class_property("KTX_TTF_BC4_R", &ktx_wrappers::texture::KTX_TTF_BC4_R)
-        .class_property("KTX_TTF_BC5_RG", &ktx_wrappers::texture::KTX_TTF_BC5_RG)
-        .class_property("KTX_TTF_BC7_M6_RGB", &ktx_wrappers::texture::KTX_TTF_BC7_M6_RGB)
-        .class_property("KTX_TTF_BC7_M5_RGBA", &ktx_wrappers::texture::KTX_TTF_BC7_M5_RGBA)
-        .class_property("KTX_TTF_PVRTC1_4_RGB", &ktx_wrappers::texture::KTX_TTF_PVRTC1_4_RGB)
-        .class_property("KTX_TTF_PVRTC1_4_RGBA", &ktx_wrappers::texture::KTX_TTF_PVRTC1_4_RGBA)
-        .class_property("KTX_TTF_ASTC_4x4_RGBA", &ktx_wrappers::texture::KTX_TTF_ASTC_4x4_RGBA)
-        .class_property("KTX_TTF_PVRTC2_4_RGB", &ktx_wrappers::texture::KTX_TTF_PVRTC2_4_RGB)
-        .class_property("KTX_TTF_PVRTC2_4_RGBA", &ktx_wrappers::texture::KTX_TTF_PVRTC2_4_RGBA)
-        .class_property("KTX_TTF_ETC2_EAC_R11", &ktx_wrappers::texture::KTX_TTF_ETC2_EAC_R11)
-        .class_property("KTX_TTF_ETC2_EAC_RG11", &ktx_wrappers::texture::KTX_TTF_ETC2_EAC_RG11)
-        .class_property("KTX_TTF_RGBA32", &ktx_wrappers::texture::KTX_TTF_RGBA32)
-        .class_property("KTX_TTF_RGB565", &ktx_wrappers::texture::KTX_TTF_RGB565)
-        .class_property("KTX_TTF_BGR565", &ktx_wrappers::texture::KTX_TTF_BGR565)
-        .class_property("KTX_TTF_RGBA4444", &ktx_wrappers::texture::KTX_TTF_RGBA4444)
-        .class_property("KTX_TTF_ETC", &ktx_wrappers::texture::KTX_TTF_ETC)
-        .class_property("KTX_TTF_BC1_OR_3", &ktx_wrappers::texture::KTX_TTF_BC1_OR_3)
-#endif
+        #include "constlist.inl"
         .constructor()
         .class_function("initTranscoder", basisu_transcoder_init)
         .class_function("writeOpaqueAlphaBlocks",
