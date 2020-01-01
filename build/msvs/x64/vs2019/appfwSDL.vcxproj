@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -67,13 +67,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -89,13 +89,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -109,13 +109,13 @@
       <AdditionalDependencies></AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -130,72 +130,46 @@
       <AdditionalDependencies></AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\other_include;..\..\..\..\utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\utils;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantextoverlay.hpp"/>
     <None Include="..\..\..\..\ktxtests.gyp"/>
-    <None Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantextoverlay.hpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\AppBaseSDL.h"/>
     <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.h"/>
-    <ClInclude Include="..\..\..\..\utils\unused.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanAppSDL.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkancheckres.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanContext.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanSwapchain.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkandebug.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantools.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="..\..\..\..\utils\unused.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanAppSDL.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkancheckres.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanContext.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanSwapchain.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkandebug.h"/>
+    <ClInclude Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantools.h"/>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\main.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\AppBaseSDL.cpp"/>
     <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\GLAppSDL.cpp"/>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanAppSDL.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanContext.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanSwapchain.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkandebug.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantools.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanAppSDL.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanContext.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\VulkanSwapchain.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkandebug.cpp"/>
+    <ClCompile Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\vulkantools.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <frag2spirv Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\shaders\textoverlay.frag">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </frag2spirv>
-    <vert2spirv Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\shaders\textoverlay.vert">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </vert2spirv>
+    <frag2spirv Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\shaders\textoverlay.frag"/>
+    <vert2spirv Include="..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL\shaders\textoverlay.vert"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libsdl.vcxproj">
       <Project>{670DC44B-39C9-C295-954D-A964C4D5410A}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="vulkan_headers.vcxproj">
+      <Project>{44DDF1C7-5039-75FC-D551-120EB02BF370}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
