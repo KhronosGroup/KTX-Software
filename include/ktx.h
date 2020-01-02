@@ -883,6 +883,9 @@ KTX_APICALL void KTX_APIENTRY
 ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
                              ktx_uint32_t* componentByteLength);
 
+KTX_APICALL ktx_uint32_t KTX_APIENTRY
+ktxTexture2_GetNumComponents(ktxTexture2* This);
+
 /**
  * @memberof ktxTexture2
  * @~English

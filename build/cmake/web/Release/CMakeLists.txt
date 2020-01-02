@@ -40,6 +40,7 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/dfdutils/dfd2vk.c"
   "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
+  "../../../../lib/dfdutils/queries.c"
   "../../../../lib/dfdutils/vk2dfd.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"

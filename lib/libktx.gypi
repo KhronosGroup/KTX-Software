@@ -62,6 +62,7 @@
       'dfdutils/dfd2vk.inl',
       'dfdutils/interpretdfd.c',
       'dfdutils/printdfd.c',
+      'dfdutils/queries.c',
       'dfdutils/vk2dfd.c',
       'dfdutils/vk2dfd.inl',
       'etcdec.cxx',

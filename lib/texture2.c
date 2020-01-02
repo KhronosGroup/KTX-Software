@@ -1087,7 +1087,7 @@ ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Return information about the components of an image format.
+ * @brief Return information about the components of an image in a texture.
  *
  * @param[in]     This           pointer to the ktxTexture object of interest.
  * @param[in,out] pNumComponents pointer to location in which to write the
@@ -1096,13 +1096,37 @@ ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
  *                               pointer to the location in which to write
  *                               byte length of a component.
  */
- void
- ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
-                              uint32_t* pComponentByteLength)
+void
+ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
+                             uint32_t* pComponentByteLength)
 {
     // FIXME Need to handle packed case.
     getDFDComponentInfoUnpacked(This->pDfd, pNumComponents,
                                 pComponentByteLength);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Return the number of components in an image of the texture.
+ *
+ * Returns the number of components indicated by the DFD's sample information
+ * in accordance with the color model. For uncompressed textures it will be the actual
+ * number of components. For block-compressed textures, it will be 1 or 2 according to
+ * the format's DFD color model. For Basis compressed textures, it will be the
+ * the number of components in the image @e before encoding and deflation so it can
+ * be used to help choose a suitable transcode target format. For other supercompressed formats
+ * it returns the number of components prior to deflation.
+
+ *
+ * @param[in]     This           pointer to the ktxTexture object of interest.
+ *
+ * @return the number of components.
+ */
+ktx_uint32_t
+ktxTexture2_GetNumComponents(ktxTexture2* This)
+{
+    return getDFDNumComponents(This->pDfd);
 }
 
 /**
