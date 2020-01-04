@@ -545,7 +545,9 @@ cleanup: // FIXME when we stop modifying This until successful transcode.
  *                   @c false otherwise.
  * @param[in] transcodeAlphaToOpaqueFormats if @p targetFormat is a format lacking an
  *                                         alpha component, transcode the alpha slice into
- *                                         the RGB components.
+ *                                         the RGB components of the destination.
+ * @param[in,out] pState pointer to a transcoder_state object. Only needed when transcoding
+ *                      multiple mip levels in parallel on different threads.
  * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE  A non-real format was specified as @p targetFormat.
@@ -563,7 +565,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                                  uint32_t num_blocks_x,
                                  uint32_t num_blocks_y,
                                  bool isVideo,
-                                 bool transcodeAlphaToOpaqueFormats)
+                                 bool transcodeAlphaToOpaqueFormats,
+                                 basisu_transcoder_state* pState)
 {
     KTX_error_code result = KTX_SUCCESS;
 
@@ -609,7 +612,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     sliceByteLength,
                     basist::block_format::cETC1, bytes_per_block,
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
         }
@@ -626,7 +630,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     sliceByteLength,
                     basist::block_format::cBC1, bytes_per_block,
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
 
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -644,7 +649,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     sliceByteLength,
                     basist::block_format::cBC4, bytes_per_block,
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
 
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -663,7 +669,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     basist::block_format::cPVRTC1_4_RGB,
                     bytes_per_block,
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
 
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -682,7 +689,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     basist::block_format::cPVRTC2_4_RGB,
                     bytes_per_block,
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
 
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -705,7 +713,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                 image.alphaSliceByteLength,
                 basist::block_format::cIndices, sizeof(uint32_t),
                 true,
-                isVideo, true, level, width, height);
+                isVideo, true, level, width, height,
+                0 /* row_pitch */, pState);
 
         if (status) {
             // Now decode the color data.
@@ -720,7 +729,7 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     bytes_per_block,
                     true,
                     isVideo, false, level, width, height,
-                    0 /* row_pitch */, nullptr,
+                    0 /* row_pitch */, pState,
                     hasAlpha, temp_block_indices.data());
         }
         if (!status) {
@@ -741,7 +750,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     basist::block_format::cBC7_M6_OPAQUE_ONLY,
                     bytes_per_block,
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
         }
@@ -759,7 +769,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                 image.rgbSliceByteLength,
                 basist::block_format::cBC7_M5_COLOR, bytes_per_block,
                 true,
-                isVideo, false, level, width, height );
+                isVideo, false, level, width, height,
+                0 /* row_pitch */, pState);
 
         if (status) {
             if (hasAlpha) {
@@ -770,7 +781,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                         basist::block_format::cBC7_M5_ALPHA,
                         bytes_per_block,
                         true,
-                        isVideo, true, level, width, height );
+                        isVideo, true, level, width, height,
+                        0 /* row_pitch */, pState);
             } else {
                 basisu_transcoder::write_opaque_alpha_blocks(
                     num_blocks_x, num_blocks_y, writePtr,
@@ -798,7 +810,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     image.alphaSliceByteLength,
                     basist::block_format::cETC2_EAC_A8, bytes_per_block,
                     true,
-                    isVideo, true, level, width, height);
+                    isVideo, true, level, width, height,
+                    0 /* row_pitch */, pState);
         } else {
             basisu_transcoder::write_opaque_alpha_blocks(
                 num_blocks_x, num_blocks_y,
@@ -816,7 +829,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                   image.rgbSliceByteLength,
                   basist::block_format::cETC1, bytes_per_block,
                   true,
-                  isVideo, false, level, width, height);
+                  isVideo, false, level, width, height,
+                  0 /* row_pitch */, pState);
         }
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -837,7 +851,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     image.alphaSliceByteLength,
                     basist::block_format::cBC4, bytes_per_block,
                     true,
-                    isVideo, true, level, width, height);
+                    isVideo, true, level, width, height,
+                    0 /* row_pitch */, pState);
         } else {
             basisu_transcoder::write_opaque_alpha_blocks(
                 num_blocks_x, num_blocks_y, writePtr,
@@ -855,7 +870,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     image.rgbSliceByteLength,
                     basist::block_format::cBC1, bytes_per_block,
                     false, // Forbid 3 color blocks
-                    isVideo, false, level, width, height );
+                    isVideo, false, level, width, height,
+                    0 /* row_pitch */, pState);
         }
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -875,7 +891,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                 image.rgbSliceByteLength,
                 basist::block_format::cBC4, bytes_per_block,
                 0, // Forbid 3 color blocks
-                isVideo, false, level, width, height);
+                isVideo, false, level, width, height,
+                0 /* row_pitch */, pState);
 
         if (status) {
             if (hasAlpha) {
@@ -887,7 +904,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                         image.alphaSliceByteLength,
                         basist::block_format::cBC4, bytes_per_block,
                         true,
-                        isVideo, true, level, width, height);
+                        isVideo, true, level, width, height,
+                        0 /* row_pitch */, pState);
             } else {
                 basisu_transcoder::write_opaque_alpha_blocks(
                     num_blocks_x, num_blocks_y, writePtr + 8,
@@ -915,7 +933,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     image.alphaSliceByteLength,
                     basist::block_format::cIndices, bytes_per_block,
                     true,
-                    isVideo, true, level, width, height);
+                    isVideo, true, level, width, height,
+                    0 /* row_pitch */, pState);
         } else {
             status = true;
         }
@@ -932,7 +951,7 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     basist::block_format::cASTC_4x4, bytes_per_block,
                     true,
                     isVideo, false, level, width, height,
-                    0 /* row_pitch */, nullptr, hasAlpha);
+                    0 /* row_pitch */, pState, hasAlpha);
         }
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -953,7 +972,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     image.alphaSliceByteLength,
                     basist::block_format::cIndices, bytes_per_block,
                     true,
-                    isVideo, true, level, width, height );
+                    isVideo, true, level, width, height,
+                    0 /* row_pitch */, pState);
         } else {
             status = true;
         }
@@ -967,7 +987,7 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     bytes_per_block,
                     true,
                     isVideo, false, level, width, height,
-                    0 /* row_pitch */, nullptr, hasAlpha);
+                    0 /* row_pitch */, pState, hasAlpha);
         }
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -985,7 +1005,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     sliceByteLength,
                     basist::block_format::cRGB565, sizeof(uint16_t),
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
         }
@@ -1002,7 +1023,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     sliceByteLength,
                     basist::block_format::cBGR565, sizeof(uint16_t),
                     true,
-                    isVideo, isAlphaSlice, level, width, height);
+                    isVideo, isAlphaSlice, level, width, height,
+                    0 /* row_pitch */, pState);
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
         }
@@ -1021,7 +1043,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     basist::block_format::cRGBA4444_ALPHA,
                     sizeof(uint16_t),
                     true,
-                    isVideo, true, level, width, height);
+                    isVideo, true, level, width, height,
+                    0 /* row_pitch */, pState);
         } else {
             status = true;
         }
@@ -1034,7 +1057,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     hasAlpha ? basist::block_format::cRGBA4444_COLOR : basist::block_format::cRGBA4444_COLOR_OPAQUE,
                     sizeof(uint16_t),
                     true,
-                    isVideo, false, level, width, height);
+                    isVideo, false, level, width, height,
+                    0 /* row_pitch */, pState);
         }
         if (!status) {
              result = KTX_TRANSCODE_FAILED;
@@ -1053,7 +1077,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     image.alphaSliceByteLength,
                     basist::block_format::cA32, sizeof(uint32_t),
                     true,
-                    isVideo, true, level, width, height);
+                    isVideo, true, level, width, height,
+                    0 /* row_pitch */, pState);
         } else {
             status = true;
         }
@@ -1066,7 +1091,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     hasAlpha ? basist::block_format::cRGB32 : basist::block_format::cRGBA32,
                     sizeof(uint32_t),
                     true,
-                    isVideo, false, level, width, height);
+                    isVideo, false, level, width, height,
+                    0 /* row_pitch */, pState);
         }
 
         if (!status) {
@@ -1085,7 +1111,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                       sliceByteLength,
                       basist::block_format::cETC2_EAC_R11, bytes_per_block,
                       true,
-                      isVideo, isAlphaSlice, level, width, height);
+                      isVideo, isAlphaSlice, level, width, height,
+                      0 /* row_pitch */, pState);
 
           if (!status) {
                result = KTX_TRANSCODE_FAILED;
@@ -1105,7 +1132,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                       image.alphaSliceByteLength,
                       basist::block_format::cETC2_EAC_R11, bytes_per_block,
                       true,
-                      isVideo, true, level, width, height);
+                      isVideo, true, level, width, height,
+                      0 /* row_pitch */, pState);
           } else {
               basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x,
                       num_blocks_y, writePtr + 8,
@@ -1122,7 +1150,8 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                     image.rgbSliceByteLength,
                     basist::block_format::cETC2_EAC_R11, bytes_per_block,
                     true,
-                    isVideo, false, level, width, height );
+                    isVideo, false, level, width, height,
+                    0 /* row_pitch */, pState);
           }
           if (!status) {
                result = KTX_TRANSCODE_FAILED;

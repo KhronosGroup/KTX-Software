@@ -50,7 +50,8 @@ class ktxBasisImageTranscoder : public basisu_lowlevel_transcoder {
                                    uint32_t num_blocks_x,
                                    uint32_t num_blocks_y,
                                    bool isVideo = false,
-                                   bool transcodeAlphaToOpaqueFormats = false);
+                                   bool transcodeAlphaToOpaqueFormats = false,
+                                   basisu_transcoder_state* pState = nullptr);
 };
 
 #endif /* _BASIS_IMAGE_TRANSCODER_H_ */

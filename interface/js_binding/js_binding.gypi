@@ -32,7 +32,7 @@
           ],
         }, # libktx.js
         {
-          'target_name': 'ktx_basis_transcoder.js',
+          'target_name': 'msc_basis_transcoder.js',
           'type': 'executable',
           'cflags_cc': [
             '--bind',
@@ -52,7 +52,7 @@
           'dependencies': [ 'libktx.es3' ],
           'mac_bundle': 0,
           'sources': [
-            'ktx_basis_transcoder_wrapper.cpp',
+            'transcoder_wrapper.cpp',
           ],
           'include_dirs': [
               '../../include',
@@ -69,7 +69,21 @@
              '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=[\'GL\']',
              '-s', 'FULL_ES3=1',
           ],
-        }, # ktx_basis_transcoder.js
+        }, # msc_basis_transcoder.js
+#        {
+#          'target_name': 'install_js',
+#          'type': 'none',
+#          'dependencies': [ 'libktx.js', 'msc_basis_transcoder.js' ],
+#          'copies': [{
+#            'destination': '../../tests/webgl',
+#            'files': [
+#              '<(PRODUCT_DIR)/libktx.js',
+#              '<(PRODUCT_DIR)/libktx.wasm',
+#              '<(PRODUCT_DIR)/msc_basis_transcoder.js',
+#              '<(PRODUCT_DIR)/msc_basis_transcoder.wasm'
+#            ],
+#          }],
+#        }
       ], # targets
     }], # OS = "web"
   ], # conditions

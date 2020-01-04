@@ -23,10 +23,10 @@
 using namespace emscripten;
 using namespace basist;
 
-namespace ktx_basis_transcoder_wrapper {
-    class ktxBasisTranscoder : public ktxBasisImageTranscoder {
+namespace msc {
+    class BasisTranscoder : public ktxBasisImageTranscoder {
       public:
-        ktxBasisTranscoder() : ktxBasisImageTranscoder(buildSelectorCodebook())
+        BasisTranscoder() : ktxBasisImageTranscoder(buildSelectorCodebook())
         { }
 
         bool decode_palettes(uint32_t num_endpoints, const val& endpoints_val,
@@ -79,7 +79,7 @@ namespace ktx_basis_transcoder_wrapper {
         //
         // @param[in] imageDescVal emscripten::val of the JS object holding the
         //                         image descriptor for the to the i
-        //                         @c ktxBasisImageDesc of the image to be
+        //                         @c BasisImageDesc of the image to be
         //                         transcoded. This comes from the @c
         //                         supercompressionGlobalData area of a KTX2 file.
         // @param[in] targetFormat the format to which to transcode the image.
@@ -190,6 +190,9 @@ namespace ktx_basis_transcoder_wrapper {
         // in the final image. Despite their names, @p isAlphaSlice and
         // @p miplevel are only used for slices from video files.
         //
+        // FIXME: transcoder_state is only needed when transcoding multiple mip
+        // levels in parallel on different threads. Is it needed in JavaScript?
+        //
         // This is customized for use transcoding data from KTX2 files and
         // uploading to WebGL:
         // - It does not expose the @p output_row_pitch_in_blocks_or_pixels
@@ -207,7 +210,8 @@ namespace ktx_basis_transcoder_wrapper {
                              const bool isVideo, const bool isAlphaSlice,
                              const uint32_t miplevel,
                              const uint32_t orig_width, const uint32_t orig_height,
-                             const bool transcode_alpha = false)
+                             const bool transcode_alpha = false,
+                             const val& transcoder_state = static_cast<val>(m_def_state))
         {
             std::vector<uint8_t> image_data{};
             image_data.resize(imagedata["byteLength"].as<size_t>());
@@ -262,9 +266,9 @@ namespace ktx_basis_transcoder_wrapper {
                              const uint32_t miplevel,
                              const uint32_t orig_width, const uint32_t orig_height,
                              uint32_t output_row_pitch_in_blocks_or_pixels,
-                             const val& xcoder_state,
                              bool transcode_alpha,
                              const val& alphadata,
+                             const val& transcoder_state = static_cast<val>(m_def_state),
                              uint32_t output_rows_in_pixels = 0)
         {
             std::vector<uint8_t> image_data{};
@@ -302,7 +306,11 @@ namespace ktx_basis_transcoder_wrapper {
                                                  miplevel,
                                                  orig_width, orig_height,
                                                  0, /* output_row_pitch_in_blocks_or_pixels */
-                                                 nullptr, /* pState */
+                                                 // FIXME HOW TO CONVERT
+                                                 // transcoder_state val back to
+                                                 // the pointer to the C++
+                                                 // object?
+                                                 nullptr,
                                                  transcode_alpha,
                                                  alpha_data.data());
 
@@ -352,9 +360,11 @@ namespace ktx_basis_transcoder_wrapper {
         // Declare constants.
         #define BLOCK_FORMAT(c) static const uint32_t c;
         #define TRANSCODE_FORMAT(c) static const uint32_t c;
+        #define DECODE_FLAG(f)
         #include "constlist.inl"
 
-       protected:
+      protected:
+        static basisu_transcoder_state m_def_state;
         static basist::etc1_global_selector_codebook* pGlobal_codebook;
 
         static basist::etc1_global_selector_codebook*
@@ -382,57 +392,198 @@ namespace ktx_basis_transcoder_wrapper {
 #endif
     };
 
-    basist::etc1_global_selector_codebook* ktxBasisTranscoder::pGlobal_codebook;
+    basist::etc1_global_selector_codebook* BasisTranscoder::pGlobal_codebook;
 
     // Define constants.
     #undef BLOCK_FORMAT
     #undef TRANSCODE_FORMAT
-    #define BLOCK_FORMAT(c) const uint32_t ktxBasisTranscoder::c = static_cast<uint32_t>(block_format::c);
-    #define TRANSCODE_FORMAT(c) const uint32_t ktxBasisTranscoder::c = static_cast<uint32_t>(::c);
+    #define BLOCK_FORMAT(c) const uint32_t BasisTranscoder::c = static_cast<uint32_t>(block_format::c);
+    #define TRANSCODE_FORMAT(c) const uint32_t BasisTranscoder::c = static_cast<uint32_t>(::c);
     #include "constlist.inl"
 }
 
 #undef BLOCK_FORMAT
 #undef TRANSCODE_FORMAT
-#define BLOCK_FORMAT(c) .class_property(#c, &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::c)
-#define TRANSCODE_FORMAT(c) .class_property(#c, &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::c)
+#define BLOCK_FORMAT(c) .class_property(#c, &msc::BasisTranscoder::c)
+#define TRANSCODE_FORMAT(c) .class_property(#c, &msc::BasisTranscoder::c)
+
+/** @page transcoder_js_binding Using the JS Binding to the Low-Level Basis Transcoder
+
+== Recommended Way
+
+    // Fetch a URL of a file with Basis Universal compressed data
+    // into an ArrayBuffer, texdata.
+
+    // Parse the file, locating the supercompression global data and compresssed
+    // mip level data.
+
+    Module.BasisTranscoder.initTranscoder();
+    var transcoder = new Module.BasisTranscoder();
+    // Determine appropriate transcode format from available targets,
+    // info about the texture, e.g. texture.numComponents, and
+    // expected use.
+    var targetFormat = ...
+
+    // Determine total size of data transcoded to this format
+    var bufferByteLength = ...
+    var transcodedData = new UInt8ArrayBuffer[bufferByteLength];
+    // Alternatively you could make a buffer for each level or image.
+
+    // Determine if the file contains a video sequence...
+    var isVideo = ...
+
+    // Pseudo code ...
+    foreach level
+       var width = width of image at this level
+       var height = height of image at this level
+       var bw = 4; // for ETC1S based Basis compressed data.
+       var bh = 4; //            ditto
+       var num_blocks_x = (width + (bw - 1)) / bw;
+       var levelData = location of level within texdata
+       var num_blocks_y = (height + (bh - 1)) / bh;
+       foreach image in level
+           // Determine offset for this image within transcodedData
+           var transcodedImageOffset = ...
+           var imageDesc;
+           // In a .ktx2 file the following information is found in
+           // the supercompressionGlobalData field of a BasisU
+           // compressed file.
+           imageDesc[0] = rgb slice offset within levelData;
+           imageDesc[1] = rgb slice byte length;
+           // [2] and [3] must be 0 if no alpha slice.
+           imageDesc[2] = alpha slice offset with levelData;
+           imageDesc[3] = alpha slice byte length;
+           transcoder.transcodeImage(imageDesc,
+                                     targetFormat,
+                                     transcodedData + transcodedImageOffset,
+                                     bufferByteLength - transcodedImageOffseet,
+                                     level,
+                                     levelData,
+                                     width, height,
+                                     num_blocks_x,
+                                     num_blocks_y,
+                                     isVideo = false);
+
+== Low-level Way
+
+Here the application must transcode each slice individually and combine the
+slices to make a texture image ready for upload.
+
+    // Fetch a URL of a file with Basis Universal compressed data
+    // into an ArrayBuffer, texdata.
+
+    // Parse the file, locating the supercompression global data and compresssed
+    // mip level data.
+
+    Module.BasisTranscoder.initTranscoder();
+    var transcoder = new Module.BasisTranscoder();
+    // Determine appropriate transcode format from available targets,
+    // info about the texture, e.g. texture.numComponents, and
+    // expected use.
+    var targetFormat = ...
+
+    // Determine total size of data transcoded to this format
+    var bufferByteLength = ...
+    var transcodedData = new UInt8ArrayBuffer[bufferByteLength];
+    // Alternatively you could make a buffer for each level or image.
+
+    // Determine if the file contains a video sequence...
+    var isVideo = ...
+
+    // Determine if the encoded data has alpha...
+    var hasAlpha = ...
+
+    var bytes_per_block = 
+
+    // Pseudo code ...
+    foreach level
+       var width = width of image at this level
+       var height = height of image at this level
+       var bw = 4; // for ETC1S based Basis compressed data.
+       var bh = 4; //            ditto
+       var num_blocks_x = (width + (bw - 1)) / bw;
+       var levelData = location of level within texdata
+       var num_blocks_y = (height + (bh - 1)) / bh;
+       var bytes_per_block = transcoder.getBytesPerBlock(targetFormat)
+       foreach image in level
+           // Determine offset for this image within transcodedData
+           var transcodedImageOffset = ...
+           // When using the low-level decoder the application must
+           // transcode each slice and combine to make final result.
+           // The actual operations are dependent on the target
+           // format and the input data.
+           //
+           // This example does it only for ETC2_EAC_A8 target format.
+
+           // In a .ktx2 file the following information is found in
+           // the supercompressionGlobalData field of a BasisU
+           // compressed file.
+           var rgbSliceOffset = rgb slice offset within levelData;
+           var rgbSLiceByteLength - rgb slice byte length;
+           // Will be 0 if no alpha slice.
+           var alphaSliceOffset = alpha slice offset with levelData;
+           var alphaSliceByteLength = alpha slice byte length;
+
+            if (hasAlpha) {
+                status = transcoder.transcode_slice(
+                                transcodedData + transcodedImageOffset,
+                                num_blocks_x, num_blocks_y,
+                                levelData + image.alphaSliceByteOffset,
+                                image.alphaSliceByteLength,
+                                transcoder.cETC2_EAC_A8, bytes_per_block,
+                                true,
+                                isVideo, true, level, width, height);
+            } else {
+                basisu_transcoder::write_opaque_alpha_blocks(
+                    num_blocks_x, num_blocks_y,
+                    transcodedData + transcodedImageOffset,
+                    (uint32_t)(bufferByteLength / bytes_per_block),
+                    transcoder.cETC2_EAC_A8, bytes_per_block,
+                    0);
+                status = true;
+            }
+            if (status) {
+                // Now decode the color data.
+              status = transcode_slice(
+                      transcodedData + transcodedImageOffset + 8,
+                      num_blocks_x, num_blocks_y,
+                      levelDataPtr + image.rgbSliceByteOffset,
+                      image.rgbSliceByteLength,
+                      transcoder::cETC1, bytes_per_block,
+                      true,
+                      isVideo, false, level, width, height);
+            }
+            if (!status) {
+                 result = TRANSCODE_FAILED;
+            }
+*/
 
 EMSCRIPTEN_BINDINGS(ktx_wrappers)
 {
-    class_<ktx_basis_transcoder_wrapper::ktxBasisTranscoder>("BasisLowLevelTranscoder")
+    class_<msc::BasisTranscoder>("BasisTranscoder")
         #include "constlist.inl"
         .constructor()
         .class_function("initTranscoder", basisu_transcoder_init)
+        .class_function("getBytesPerBlock", basis_get_bytes_per_block)
         .class_function("writeOpaqueAlphaBlocks",
-                        &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::write_opaque_alpha_blocks)
-        .function("decodePalettes", &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::decode_palettes)
-        .function("decodeTables", &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::decode_tables)
-        .function("transcodeImage", &ktx_basis_transcoder_wrapper::ktxBasisTranscoder::transcode_image)
+                        &msc::BasisTranscoder::write_opaque_alpha_blocks)
+        .function("decodePalettes", &msc::BasisTranscoder::decode_palettes)
+        .function("decodeTables", &msc::BasisTranscoder::decode_tables)
+        .function("transcodeImage", &msc::BasisTranscoder::transcode_image)
         .function("transcodeSlice",
                   select_overload<bool(const val&, uint32_t, uint32_t, const val&,
                                   uint32_t, uint32_t, uint32_t, bool, bool, bool,
-                                  uint32_t, uint32_t, uint32_t, bool)>
-                  (&ktx_basis_transcoder_wrapper::ktxBasisTranscoder::transcode_slice))
-#if 0
-        .function("transcodeSlice",
-                  select_overload<bool(const val&, uint32_t, uint32_t, const val&,
-                                  uint32_t, uint32_t, uint32_t, bool,
-                                  uint32_t, uint32_t, bool)>
-                  (&ktx_basis_transcoder_wrapper::ktxBasisTranscoder::transcode_slice))
-#endif
+                                  uint32_t, uint32_t, uint32_t, bool, const val&)>
+                  (&msc::BasisTranscoder::transcode_slice))
         .function("transcodeSlice",
                   select_overload<bool(const val&, uint32_t, uint32_t, const val&,
                                   uint32_t, uint32_t, uint32_t, bool, bool, bool,
                                   uint32_t, uint32_t, uint32_t, uint32_t,
-                                  const val&, bool, const val&, uint32_t)>
-                  (&ktx_basis_transcoder_wrapper::ktxBasisTranscoder::transcode_slice))
-#if 0
-        .function("transcodeSlice",
-                  select_overload<bool(const val&, uint32_t, uint32_t, const val&,
-                                  uint32_t, uint32_t, uint32_t, bool,
-                                  uint32_t, uint32_t,
-                                  bool, const val&)>
-                  (&ktx_basis_transcoder_wrapper::ktxBasisTranscoder::transcode_slice))
-#endif
+                                  bool, const val&, const val&, uint32_t)>
+                  (&msc::BasisTranscoder::transcode_slice))
+        ;
+
+    class_<basisu_transcoder_state>("BasisTranscoderState")
+        .constructor()
         ;
 }
