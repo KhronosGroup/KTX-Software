@@ -244,6 +244,42 @@ target_link_libraries(libktx_js
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:install_js#target
+set(TARGET "install_js")
+set(TOOLSET "target")
+set(install_js__cpjs__input "${builddir}")
+list(APPEND install_js__cpjs__output
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/libktx.js"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/libktx.wasm"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/msc_basis_transcoder.js"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/msc_basis_transcoder.wasm")
+add_custom_command(OUTPUT ${install_js__cpjs__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tests/webgl
+  COMMAND cp "${builddir}/libktx.js" "${builddir}/libktx.wasm" "${builddir}/msc_basis_transcoder.js" "${builddir}/msc_basis_transcoder.wasm" tests/webgl
+  DEPENDS ${install_js__cpjs__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Copying .js & .wasm files to binding tests.
+  VERBATIM
+)
+add_custom_target(install_js__cpjs
+  DEPENDS ${install_js__cpjs__output}
+  SOURCES ${install_js__cpjs__input}
+)
+add_custom_target(install_js SOURCES)
+set_target_properties(install_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(install_js__cpjs PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(install_js__cpjs
+  libktx_js
+  msc_basis_transcoder_js
+)
+add_dependencies(install_js
+  libktx_js
+  msc_basis_transcoder_js
+  install_js__cpjs
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:libgl#target
 set(TARGET "libgl")
 set(TOOLSET "target")

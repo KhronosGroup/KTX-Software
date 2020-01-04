@@ -70,10 +70,10 @@
              '-s', 'FULL_ES3=1',
           ],
         }, # msc_basis_transcoder.js
-#        {
-#          'target_name': 'install_js',
-#          'type': 'none',
-#          'dependencies': [ 'libktx.js', 'msc_basis_transcoder.js' ],
+        {
+          'target_name': 'install_js',
+          'type': 'none',
+          'dependencies': [ 'libktx.js', 'msc_basis_transcoder.js' ],
 #          'copies': [{
 #            'destination': '../../tests/webgl',
 #            'files': [
@@ -83,7 +83,41 @@
 #              '<(PRODUCT_DIR)/msc_basis_transcoder.wasm'
 #            ],
 #          }],
-#        }
+          # This is a gross hack to workaround the failure of cmake to generate
+          # files due to the 'files' in the above copies not existing (when
+          # setting up a new build environment). The same problem appears with
+          # actions. To avoid it the missing inputs are not listed. How you
+          # are supposed to install the products of a build, I don't know.
+          'actions': [{
+            'variables': {
+              # Hack to get output dir relativized.
+              'output_dir': '../../tests/webgl'
+            },
+            'action_name': 'cpjs',
+            'message': 'Copying .js & .wasm files to binding tests.',
+            'inputs': [
+               '<(PRODUCT_DIR)',
+#              '<(PRODUCT_DIR)/libktx.js',
+#              '<(PRODUCT_DIR)/libktx.wasm',
+#              '<(PRODUCT_DIR)/msc_basis_transcoder.js',
+#              '<(PRODUCT_DIR)/msc_basis_transcoder.wasm'
+            ],
+            'outputs': [
+              '../../tests/webgl/libktx.js',
+              '../../tests/webgl/libktx.wasm',
+              '../../tests/webgl/msc_basis_transcoder.js',
+              '../../tests/webgl/msc_basis_transcoder.wasm'
+            ],
+            'action': [
+              'cp',
+              '<(PRODUCT_DIR)/libktx.js',
+              '<(PRODUCT_DIR)/libktx.wasm',
+              '<(PRODUCT_DIR)/msc_basis_transcoder.js',
+              '<(PRODUCT_DIR)/msc_basis_transcoder.wasm',
+              '<(output_dir)'
+            ],
+          }],
+        }
       ], # targets
     }], # OS = "web"
   ], # conditions
