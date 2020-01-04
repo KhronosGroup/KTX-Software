@@ -24,7 +24,7 @@ CFLAGS_CC_Debug := \
 	-Wno-pedantic
 
 INCS_Debug := \
-	-I$(srcdir)/interface/c_binding/inc \
+	-I$(srcdir)/interface/basisu_c_binding/inc \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/lib/basisu/transcoder \
 	-I$(srcdir)/utils \
@@ -53,7 +53,7 @@ CFLAGS_CC_Release := \
 	-Wno-pedantic
 
 INCS_Release := \
-	-I$(srcdir)/interface/c_binding/inc \
+	-I$(srcdir)/interface/basisu_c_binding/inc \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/lib/basisu/transcoder \
 	-I$(srcdir)/utils \
@@ -63,7 +63,7 @@ INCS_Release := \
 	-I$(srcdir)/other_include
 
 OBJS := \
-	$(obj).target/$(TARGET)/interface/c_binding/src/basisu_c_binding.o \
+	$(obj).target/$(TARGET)/interface/basisu_c_binding/src/basisu_c_binding.o \
 	$(obj).target/$(TARGET)/tests/transcodetests/transcodetests.o
 
 # Add to the list of files we specially track dependencies for.
