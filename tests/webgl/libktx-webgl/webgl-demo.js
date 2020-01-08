@@ -2,6 +2,11 @@ var cubeRotation = 0.0;
 var gl;
 var texture;
 
+var astcSupported = false;
+var etcSupported = false;
+var dxtSupported = false;
+var pvrtcSupported = false;
+
 main();
 
 //
@@ -17,6 +22,11 @@ function main() {
     alert('Unable to initialize WebGL. Your browser or machine may not support it.');
     return;
   }
+
+    astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
+    etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');
+    dxtSupported = !!gl.getExtension('WEBGL_compressed_texture_s3tc');
+    pvrtcSupported = !!(gl.getExtension('WEBGL_compressed_texture_pvrtc')) || !!(gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc'));
 
   // Vertex shader program
 
@@ -297,50 +307,87 @@ function initBuffers(gl) {
 
 function loadTexture(gl, url)
 {
-  // Must create texture via Emscripten so it knows of it.
+  // Make our WebGL context the current context for the Emscripten GL emulator
+  // in the LIBKTX module. Need to do this until I've figured out where to
+  // set preinitializedWebGLcontext on LIBKTX so it is early enough to be
+  // recognized.
+  LIBKTX.GL.makeContextCurrent(LIBKTX.GL.registerContext(gl, { majorVersion: 2.0 }));
+
+  // Because images have to be downloaded over the internet
+  // they might take a moment until they are ready. Until
+  // then create a temporary texture with a single pixel
+  // so we can use it immediately. When the image has finished
+  // downloading we'll update texture to the new texture.
+
+//  // Must create texture via Emscripten so it knows of it.
 //  var texName;
-//  const { ktxTexture } = window.Module;
-//  Module.GL._glGenTextures(1, texName);
-//  var texture = Module.GL.textures[texName];
-//  gl.bindTexture(gl.TEXTURE_2D, texture);
-//
-//  // Because images have to be downloaded over the internet
-//  // they might take a moment until they are ready.
-//  // Until then put a single pixel in the texture so we can
-//  // use it immediately. When the image has finished downloading
-//  // we'll update the texture with the contents of the image.
-//  const level = 0;
-//  const internalFormat = gl.RGBA;
-//  const width = 1;
-//  const height = 1;
-//  const border = 0;
-//  const srcFormat = gl.RGBA;
-//  const srcType = gl.UNSIGNED_BYTE;
-//  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
-//  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-//                width, height, border, srcFormat, srcType,
-//                pixel);
-//
+//  LIBKTX.GL._glGenTextures(1, texName);
+//  texture = LIBKTX.GL.textures[texName];
+    texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Until then put a single pixel in the texture so we can
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border, srcFormat, srcType,
+                pixel);
+
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
   xhr.onload = function(){
     // this.response is a generic binary buffer which
     // we can interpret as Uint8Array.
-    const ktxTexture = window.Module.ktxTexture;
-    Module.GL.makeContextCurrent(Module.GL.registerContext(gl, { majorVersion: 2.0 }));
-    //window.Module._glGenTextures(1, texName);
-    //var texture = window.Module.GL.textures[texName];
+    const { ktxTexture } = LIBKTX;
+    //window.LIBKTX._glGenTextures(1, texName);
+    //var texture = window.LIBKTX.GL.textures[texName];
     //gl.bindTexture(gl.TEXTURE_2D, texture);
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
+
+    if (ktexture.isBasisSupercompressed) {
+      var formatString;
+      var format;
+      if (astcSupported) {
+        formatString = 'ASTC';
+        format = ktexture.KTX_TTF_ASTC_4x4_RGBA;
+      } else if (dxtSupported) {
+        formatString = 'BC1 or BC3';
+        format = ktexture.KTX_TTF_BC1_OR_3;
+      } else if (pvrtcSupported) {
+        formatString = 'PVRTC1';
+        format = ktexture.KTX_TTF_PVRTC1_4_RGBA;
+      } else if (etcSupported) {
+        formatString = 'ETC';
+        format = ktexture.KTX_TTF_ETC;
+      } else {
+        formatString = 'RGBA4444';
+        format = ktexture.KTX_TTF_RGBA4444;
+      }
+      ktexture.transcodeBasis(format);
+    }
+
     const {texname, target, error} = ktexture.glUpload();
     if (error != gl.NO_ERROR) {
       alert('WebGL error when uploading texture, code = ' + error.toString(16));
       return undefined;
     }
-    texture = Module.GL.textures[texname];
-    gl.bindTexture(target, texture);
+    if (target != gl.TEXTURE_2D) {
+      alert('Loaded texture is not a TEXTURE2D.');
+      return undefined;
+    }
+
+    const newtex = LIBKTX.GL.textures[texname];
+    gl.bindTexture(target, newtex);
+    gl.deleteTexture(texture);
+    texture = newtex;
 
     if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
        // Enable bilinear mipmapping.

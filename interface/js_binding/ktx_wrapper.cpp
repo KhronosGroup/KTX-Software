@@ -78,7 +78,7 @@ namespace ktx
         bool isBasisSupercompressed() const
         {
             return (m_ptr->classId == ktxTexture2_c
-                    && ktxTexture2(m_ptr)->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS);
+                    && ktxTexture2(m_ptr)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS);
         }
 
         // @copydoc ktxTexture2::GetNumComponents
@@ -104,7 +104,7 @@ namespace ktx
             return ktxTexture2(m_ptr)->vkFormat;
         }
 
-        void transcodeBasis(uint32_t fmt, uint32_t decodeFlags = 0)
+        void transcodeBasis(uint32_t fmt, uint32_t decodeFlags)
         {
             if (m_ptr->classId != ktxTexture2_c)
             {
