@@ -1,21 +1,27 @@
-<!DOCTYPE html>
-<style>
-  body {
-    max-width: 500px;
-  }
-</style>
-<h1>KTX2 with Basis WebGL demos</h1>
-<p>
-  Example webpages to render Basis Universal compressed textures,
-  that are in KTX2 containers. All demos require WebAssembly and WebGL
-  support.
-</p>
-<ul>
-  <li><a href="libktx-webgl/">libktx and WebGL</a>: uses libktx and its embedded
-  Basisu transcoder compiled to .wasm and renders directly via WebGL.</li>
-  <li><a href="libktx-gltf/">libktx and glTF 2.0</a>: uses libktx and a glTF
-  engine to load glTF files with KHR_texture_basisu for textures.</li>
-  <li><a href="llt-gltf/">transcodeImage with Pure JS .ktx2 parser and glTF
-  2.0</a>: transcodeImage is a method of a BasisU transcoder modified to be independent of
-  .basis or any file format and compiled to .wasm.</li>
-</ul>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>JS Binding Tests & Demos</title>
+      <style>
+        body {
+          max-width: 500px;
+        }
+      </style>
+  </head>
+  <h1>KTX2 with Basis WebGL demos</h1>
+  <p>
+    Example webpages to render Basis Universal compressed textures,
+    that are in KTX2 containers. All demos require WebAssembly and WebGL
+    support.
+  </p>
+  <ul>
+    <li><a href="libktx-webgl/">libktx and WebGL</a>: uses libktx and its embedded
+    Basisu transcoder compiled to .wasm and renders directly via WebGL.</li>
+    <li><a href="libktx-gltf/">libktx and glTF 2.0</a>: uses libktx and a glTF
+    engine to load glTF files with KHR_texture_basisu for textures.</li>
+    <li><a href="llt-gltf/">transcodeImage with Pure JS .ktx2 parser and glTF
+    2.0</a>: transcodeImage is a method of a BasisU transcoder modified to be independent of
+    .basis or any file format and compiled to .wasm.</li>
+  </ul>
+</html>

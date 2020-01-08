@@ -11,5 +11,12 @@
   </body>
 
   <script src="../gl-matrix.js"></script>
+  <script src="../libktx.js"></script>
   <script src="webgl-demo.js"></script>
+  <script type="text/javascript">
+    LIBKTX({ preinitializedWebGLContext: gl });
+    LIBKTX({onRuntimeInitialized : () => {
+       texture = loadTexture(gl, 'ktx_app.ktx2');
+    }}).then(module => window.Module = module);
+  </script>
 </html>

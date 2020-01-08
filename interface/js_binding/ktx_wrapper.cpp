@@ -129,10 +129,10 @@ namespace ktx
         // created by ktxTexture_GLUpload via the Emscripten OpenGL ES emulation.
         emscripten::val glUpload()
         {
-            GLuint texture = 0;
+            GLuint texname = 0;
             GLenum target = 0;
             GLenum error = 0;
-            KTX_error_code result = ktxTexture_GLUpload(m_ptr.get(), &texture, &target, &error);
+            KTX_error_code result = ktxTexture_GLUpload(m_ptr.get(), &texname, &target, &error);
             if (result != KTX_SUCCESS)
             {
                 std::cout << "ERROR: Failed to GL upload: " << ktxErrorString(result) << std::endl;
@@ -140,7 +140,7 @@ namespace ktx
 
             emscripten::val ret = emscripten::val::object();
             // TODO: Find the WebGLTexture for texture.
-            ret.set("texture", texture);
+            ret.set("texname", texname);
             ret.set("target", target);
             ret.set("error", error);
             return std::move(ret);

@@ -1,4 +1,6 @@
 var cubeRotation = 0.0;
+var gl;
+var texture;
 
 main();
 
@@ -7,7 +9,7 @@ main();
 //
 function main() {
   const canvas = document.querySelector('#glcanvas');
-  const gl = canvas.getContext('webgl');
+  gl = canvas.getContext('webgl2');
 
   // If we don't have a GL context, give up now
 
@@ -95,8 +97,6 @@ function main() {
   // Here's where we call the routine that builds all the
   // objects we'll be drawing.
   const buffers = initBuffers(gl);
-
-  const texture = loadTexture(gl, 'ktx_app.png'); //'cubetexture.png');
 
   var then = 0;
 
@@ -295,16 +295,79 @@ function initBuffers(gl) {
   };
 }
 
+function loadTexture(gl, url)
+{
+  // Must create texture via Emscripten so it knows of it.
+//  var texName;
+//  const { ktxTexture } = window.Module;
+//  Module.GL._glGenTextures(1, texName);
+//  var texture = Module.GL.textures[texName];
+//  gl.bindTexture(gl.TEXTURE_2D, texture);
+//
+//  // Because images have to be downloaded over the internet
+//  // they might take a moment until they are ready.
+//  // Until then put a single pixel in the texture so we can
+//  // use it immediately. When the image has finished downloading
+//  // we'll update the texture with the contents of the image.
+//  const level = 0;
+//  const internalFormat = gl.RGBA;
+//  const width = 1;
+//  const height = 1;
+//  const border = 0;
+//  const srcFormat = gl.RGBA;
+//  const srcType = gl.UNSIGNED_BYTE;
+//  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+//  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+//                width, height, border, srcFormat, srcType,
+//                pixel);
+//
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url);
+  xhr.responseType = "arraybuffer";
+  xhr.onload = function(){
+    // this.response is a generic binary buffer which
+    // we can interpret as Uint8Array.
+    const ktxTexture = window.Module.ktxTexture;
+    Module.GL.makeContextCurrent(Module.GL.registerContext(gl, { majorVersion: 2.0 }));
+    //window.Module._glGenTextures(1, texName);
+    //var texture = window.Module.GL.textures[texName];
+    //gl.bindTexture(gl.TEXTURE_2D, texture);
+    var ktxdata = new Uint8Array(this.response);
+    ktexture = new ktxTexture(ktxdata);
+    const {texname, target, error} = ktexture.glUpload();
+    if (error != gl.NO_ERROR) {
+      alert('WebGL error when uploading texture, code = ' + error.toString(16));
+      return undefined;
+    }
+    texture = Module.GL.textures[texname];
+    gl.bindTexture(target, texture);
+
+    if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+       // Enable bilinear mipmapping.
+       gl.texParameteri(target,
+                        gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    else
+      gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    ktexture.delete();
+  };
+  //xhr.onprogress = runProgress;
+  //xhr.onloadstart = openProgress;
+  xhr.send();
+  return texture;
+}
+
+/*
 //
 // Initialize a texture and load an image.
 // When the image finished loading copy it into the texture.
 //
 function loadTexture(gl, url) {
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
+const texture = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  // Because images have to be download over the internet
-  // they might take a moment until they are ready.
+// Because images have to be download over the internet
+// they might take a moment until they are ready.
   // Until then put a single pixel in the texture so we can
   // use it immediately. When the image has finished downloading
   // we'll update the texture with the contents of the image.
@@ -344,6 +407,7 @@ function loadTexture(gl, url) {
 
   return texture;
 }
+*/
 
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
