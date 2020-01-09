@@ -305,6 +305,10 @@ function initBuffers(gl) {
   };
 }
 
+function elem(id) {
+  return document.getElementById(id);
+}
+
 function loadTexture(gl, url)
 {
   // Because images have to be downloaded over the internet
@@ -350,7 +354,7 @@ function loadTexture(gl, url)
         formatString = 'ASTC';
         format = TranscodeTarget.ASTC_4x4_RGBA;
       } else if (dxtSupported) {
-        formatString = 'BC1 or BC3';
+        formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
         format = TranscodeTarget.BC1_OR_3;
       } else if (pvrtcSupported) {
         formatString = 'PVRTC1';
@@ -363,6 +367,7 @@ function loadTexture(gl, url)
         format = TranscodeTarget.RGBA4444;
       }
       ktexture.transcodeBasis(format, 0);
+      elem('format').innerText = formatString;
     }
 
     const {newtexture, target, error} = ktexture.glUpload();

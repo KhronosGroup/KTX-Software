@@ -4,16 +4,28 @@
     <meta charset="utf-8">
     <title>WebGL Demo</title>
     <link rel="stylesheet" href="../webgl.css" type="text/css">
+    <style>
+      body {
+        /* Set margins to center the page. */
+        margin: 2em auto 2em auto;
+        max-width: 55em;
+      }
+      /* Center the canvas too. */
+      canvas {
+        display: block;
+        margin-left: auto;
+        margin-right: auto }
+      }
+    </style>
   </head>
 
   <body>
-<!--
     <h2>libktx Javascript Binding Test</h2>
     <p>This demo uses the Javascript binding for libktx which has been compiled to
-    Javascript using Emscripten. libktx includes a transcoder for Basis Universal payloads.
-    This demo uses a KTX2 file with a BasisU-compressed payload. It has transcoded the
-    images to it to <b id='format'>FORMAT</b>.
--->
+    Javascript using Emscripten. This demo uses a KTX2 file with a Basis Universal-compressed
+    payload. It has transcoded the images in it to <b id='format'>FORMAT</b>.
+    </p>
+
     <canvas id="glcanvas" width="640" height="480"></canvas>
   </body>
 
