@@ -1,3 +1,11 @@
+
+/*
+This code originated from sample 7 in the MDN WebGL examples
+at https://github.com/mdn/webgl-examples which is licensed
+under Creative Commons Zero v1.0 Universal. Modifications
+made here are also licensed under CC0v1.
+*/
+
 var cubeRotation = 0.0;
 var gl;
 var texture;
@@ -23,10 +31,10 @@ function main() {
     return;
   }
 
-    astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
-    etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');
-    dxtSupported = !!gl.getExtension('WEBGL_compressed_texture_s3tc');
-    pvrtcSupported = !!(gl.getExtension('WEBGL_compressed_texture_pvrtc')) || !!(gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc'));
+  astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
+  etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');
+  dxtSupported = !!gl.getExtension('WEBGL_compressed_texture_s3tc');
+  pvrtcSupported = !!(gl.getExtension('WEBGL_compressed_texture_pvrtc')) || !!(gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc'));
 
   // Vertex shader program
 
