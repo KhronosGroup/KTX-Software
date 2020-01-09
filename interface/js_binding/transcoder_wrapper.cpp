@@ -19,6 +19,7 @@
 
 #include <emscripten/bind.h>
 #include "basis_image_transcoder.h"
+#include "basis_transcoder_config.h"
 
 using namespace emscripten;
 using namespace basist;

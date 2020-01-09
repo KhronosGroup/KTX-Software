@@ -307,26 +307,22 @@ function initBuffers(gl) {
 
 function loadTexture(gl, url)
 {
-  // Make our WebGL context the current context for the Emscripten GL emulator
-  // in the LIBKTX module. Need to do this until I've figured out where to
-  // set preinitializedWebGLcontext on LIBKTX so it is early enough to be
-  // recognized.
-  LIBKTX.GL.makeContextCurrent(LIBKTX.GL.registerContext(gl, { majorVersion: 2.0 }));
-
   // Because images have to be downloaded over the internet
   // they might take a moment until they are ready. Until
-  // then create a temporary texture with a single pixel
+  // then temporarily fill the texture with a single pixel image
   // so we can use it immediately. When the image has finished
-  // downloading we'll update texture to the new texture.
+  // downloading we'll update texture to the new contents
 
 //  // Must create texture via Emscripten so it knows of it.
 //  var texName;
 //  LIBKTX.GL._glGenTextures(1, texName);
 //  texture = LIBKTX.GL.textures[texName];
-    texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+  // Since it doesn't seem possible to get the above to work
+  // use a placeholder texture object to hold the temporary
+  // image.
+  const placeholder = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, placeholder);
 
-  // Until then put a single pixel in the texture so we can
   const level = 0;
   const internalFormat = gl.RGBA;
   const width = 1;
@@ -343,12 +339,7 @@ function loadTexture(gl, url)
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
   xhr.onload = function(){
-    // this.response is a generic binary buffer which
-    // we can interpret as Uint8Array.
-    const { ktxTexture } = LIBKTX;
-    //window.LIBKTX._glGenTextures(1, texName);
-    //var texture = window.LIBKTX.GL.textures[texName];
-    //gl.bindTexture(gl.TEXTURE_2D, texture);
+    const { ktxTexture, TranscodeTarget } = LIBKTX;
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
 
@@ -357,24 +348,24 @@ function loadTexture(gl, url)
       var format;
       if (astcSupported) {
         formatString = 'ASTC';
-        format = ktexture.KTX_TTF_ASTC_4x4_RGBA;
+        format = TranscodeTarget.ASTC_4x4_RGBA;
       } else if (dxtSupported) {
         formatString = 'BC1 or BC3';
-        format = ktexture.KTX_TTF_BC1_OR_3;
+        format = TranscodeTarget.BC1_OR_3;
       } else if (pvrtcSupported) {
         formatString = 'PVRTC1';
-        format = ktexture.KTX_TTF_PVRTC1_4_RGBA;
+        format = TranscodeTarget.PVRTC1_4_RGBA;
       } else if (etcSupported) {
         formatString = 'ETC';
-        format = ktexture.KTX_TTF_ETC;
+        format = TranscodeTarget.ETC;
       } else {
         formatString = 'RGBA4444';
-        format = ktexture.KTX_TTF_RGBA4444;
+        format = TranscodeTarget.RGBA4444;
       }
-      ktexture.transcodeBasis(format);
+      ktexture.transcodeBasis(format, 0);
     }
 
-    const {texname, target, error} = ktexture.glUpload();
+    const {newtexture, target, error} = ktexture.glUpload();
     if (error != gl.NO_ERROR) {
       alert('WebGL error when uploading texture, code = ' + error.toString(16));
       return undefined;
@@ -384,10 +375,9 @@ function loadTexture(gl, url)
       return undefined;
     }
 
-    const newtex = LIBKTX.GL.textures[texname];
-    gl.bindTexture(target, newtex);
-    gl.deleteTexture(texture);
-    texture = newtex;
+    gl.bindTexture(target, newtexture);
+    gl.deleteTexture(placeholder);
+    texture = newtexture;
 
     if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
        // Enable bilinear mipmapping.
@@ -401,60 +391,8 @@ function loadTexture(gl, url)
   //xhr.onprogress = runProgress;
   //xhr.onloadstart = openProgress;
   xhr.send();
-  return texture;
+  return placeholder;
 }
-
-/*
-//
-// Initialize a texture and load an image.
-// When the image finished loading copy it into the texture.
-//
-function loadTexture(gl, url) {
-const texture = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, texture);
-
-// Because images have to be download over the internet
-// they might take a moment until they are ready.
-  // Until then put a single pixel in the texture so we can
-  // use it immediately. When the image has finished downloading
-  // we'll update the texture with the contents of the image.
-  const level = 0;
-  const internalFormat = gl.RGBA;
-  const width = 1;
-  const height = 1;
-  const border = 0;
-  const srcFormat = gl.RGBA;
-  const srcType = gl.UNSIGNED_BYTE;
-  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
-  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                width, height, border, srcFormat, srcType,
-                pixel);
-
-  const image = new Image();
-  image.onload = function() {
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                  srcFormat, srcType, image);
-
-    // WebGL1 has different requirements for power of 2 images
-    // vs non power of 2 images so check if the image is a
-    // power of 2 in both dimensions.
-    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-       // Yes, it's a power of 2. Generate mips.
-       gl.generateMipmap(gl.TEXTURE_2D);
-    } else {
-       // No, it's not a power of 2. Turn of mips and set
-       // wrapping to clamp to edge
-       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    }
-  };
-  image.src = url;
-
-  return texture;
-}
-*/
 
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;

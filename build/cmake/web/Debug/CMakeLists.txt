@@ -107,6 +107,7 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "../../../../lib/basis_sgd.h"
   "../../../../lib/basis_image_transcoder.h"
+  "../../../../lib/basis_transcoder_config.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/dfd2vk.inl"
   "../../../../lib/dfdutils/vk2dfd.inl"
@@ -217,9 +218,10 @@ set_target_properties(libktx_js PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/libktx.js PROPERTIES GENERATED "TRUE")
 list(APPEND libktx_js__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_js APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_js__include_dirs})
-set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "KHRONOS_STATIC=1;DEBUG;_DEBUG;")
+set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
 set_target_properties(libktx_js PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_WEBGL2=1 -O0 -g -std=c++11 --bind ")
 set_target_properties(libktx_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=LIBKTX -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s GL_PREINITIALIZED_CONTEXT=1 -s FULL_ES3=1 -s USE_WEBGL2=1 -g4 ")
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")

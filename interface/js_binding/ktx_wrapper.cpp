@@ -19,8 +19,9 @@
 
 #include <emscripten/bind.h>
 #include <ktx.h>
-
 #include <iostream>
+
+#include "basis_transcoder_config.h"
 
 using namespace emscripten;
 
@@ -104,7 +105,7 @@ namespace ktx
             return ktxTexture2(m_ptr)->vkFormat;
         }
 
-        void transcodeBasis(uint32_t fmt, uint32_t decodeFlags)
+        void transcodeBasis(const val& targetFormat, const val& decodeFlags)
         {
             if (m_ptr->classId != ktxTexture2_c)
             {
@@ -114,8 +115,8 @@ namespace ktx
 
             KTX_error_code result = ktxTexture2_TranscodeBasis(
                 reinterpret_cast<ktxTexture2*>(m_ptr.get()),
-                static_cast<ktx_texture_transcode_fmt_e>(fmt),
-                static_cast<ktx_uint32_t>(decodeFlags));
+                targetFormat.as<ktx_texture_transcode_fmt_e>(),
+                decodeFlags.as<ktx_transcode_flags>());
 
             if (result != KTX_SUCCESS)
             {
@@ -138,19 +139,14 @@ namespace ktx
                 std::cout << "ERROR: Failed to GL upload: " << ktxErrorString(result) << std::endl;
             }
 
-            emscripten::val ret = emscripten::val::object();
-            // TODO: Find the WebGLTexture for texture.
-            ret.set("texname", texname);
+            val ret = val::object();
+            // Find the WebGLTexture for texture.
+            val newtexture = val::module_property("GL")["textures"][texname];
+            ret.set("newtexture", newtexture);
             ret.set("target", target);
             ret.set("error", error);
             return std::move(ret);
         }
-
-        // Declare constants.
-        #define BLOCK_FORMAT(c)
-        #define TRANSCODE_FORMAT(c) static const uint32_t c;
-        #define DECODE_FLAG(f) static const uint32_t f;
-        #include "constlist.inl"
 
     private:
         texture(ktxTexture* ptr, std::vector<ktx_uint8_t> bytes)
@@ -167,46 +163,144 @@ namespace ktx
         std::unique_ptr<ktxTexture, decltype(&destroy)> m_ptr;
         std::vector<uint8_t> m_bytes;
     };
-
-    // Define constants.
-    #undef TRANSCODE_FORMAT
-    #undef DECODE_FLAG
-    #define TRANSCODE_FORMAT(c) const uint32_t texture::c = static_cast<uint32_t>(::c);
-    #define DECODE_FLAG(f) const uint32_t texture::f = static_cast<uint32_t>(::f);
-    #include "constlist.inl"
 }
 
 /** @page ktx_js_binding Using the JS binding to libktx
 
-    var buffer = new ArrayBuffer;
-    // In JS, fetch into buffer a URL representing a .ktx file
-    var texture = new Module.ktxTexture(buffer);
-    if (texture.isBasisSupercompressed) {
-        // Determine appropriate transcode format from available targets,
-        // info about the texture, e.g. texture.numComponents, and
-        // expected use.
-        texture.transcodeBasis(selectedFormat);
-    }
-    var { texture, target, error } = texture.glUpload();
-    if (error) {
-        // handle error
+=== Making the LIBKTX (Module) instance
+
+Add this to the .html file
+
+    <script type="text/javascript">
+      LIBKTX().then(module => {
+        window.LIBKTX = module;
+       // Make existing WebGL context current for Emscripten OpenGL.
+       LIBKTX.preinitializedWebGLContext = gl;
+       LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
+       texture = loadTexture('url');
+    </script>
+
+=== loadTexture function
+
+    // Set up an XHR to fetch the url into an ArrayBuffer.
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.responseType = "arrayBuffer";
+
+    const { ktxTexture, TranscodeTarget } = LIBKTX;
+    // this.response is a generic binary buffer which
+    // we can interpret as Uint8Array.
+    var ktxdata = new Uint8Array(this.response);
+    ktexture = new ktxTexture(ktxdata);
+
+    if (ktexture.isBasisSupercompressed) {
+      var formatString;
+      var format;
+      if (astcSupported) {
+        formatString = 'ASTC';
+        format = TranscodeTarget.ASTC_4x4_RGBA;
+      } else if (dxtSupported) {
+        formatString = 'BC1 or BC3';
+        format = TranscodeTarget.BC1_OR_3;
+      } else if (pvrtcSupported) {
+        formatString = 'PVRTC1';
+        format = TranscodeTarget.PVRTC1_4_RGBA;
+      } else if (etcSupported) {
+        formatString = 'ETC';
+        format = TranscodeTarget.ETC;
+      } else {
+        formatString = 'RGBA4444';
+        format = TranscodeTarget.RGBA4444;
+      }
+      ktexture.transcodeBasis(format, 0);
     }
 
-    // It is not clear if glUpload can be used with, e.g. THREE.js. It may
-    // be necessary to expose the ktxTexture_IterateLevelFaces or
-    // ktxTexture_IterateLoadLevelFaces API to JS with those calling a
-    // callback in JS to upload each image to OpenGL.
+    const {newtexture, target, error} = ktexture.glUpload();
+    if (error != gl.NO_ERROR) {
+      alert('WebGL error when uploading texture, code = ' + error.toString(16));
+      return undefined;
+    }
+    if (target != gl.TEXTURE_2D) {
+      alert('Loaded texture is not a TEXTURE2D.');
+      return undefined;
+    }
+
+    gl.bindTexture(target, newtexture);
+    // If using a placeholder texture during loading, delete
+    // it now.
+    //gl.deleteTexture(placeholder);
+    texture = newtex;
+
+    if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+       // Enable bilinear mipmapping.
+       gl.texParameteri(target,
+                        gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    else
+      gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    ktexture.delete();
+  };
+
+  xhr.send();
+
+It is not clear if glUpload can be used with, e.g. THREE.js. It may
+be necessary to expose the ktxTexture_IterateLevelFaces or
+ktxTexture_IterateLoadLevelFaces API to JS with those calling a
+callback in JS to upload each image to WebGL.
 */
 
 EMSCRIPTEN_BINDINGS(ktx)
 {
+    enum_<ktx_texture_transcode_fmt_e>("TranscodeTarget")
+        .value("ETC1_RGB", KTX_TTF_ETC1_RGB)
+#if BASISD_SUPPORT_DXT1
+        .value("BC1_RGB", KTX_TTF_BC1_RGB)
+#endif
+#if BASISD_SUPPORT_DXT5A
+        .value("BC4_R", KTX_TTF_BC4_R)
+        .value("BC5_RG", KTX_TTF_BC5_RG)
+#endif
+#if BASISD_SUPPORT_DXT1 && BASISD_SUPPORT_DXT5A
+        .value("BC3_RGBA", KTX_TTF_BC3_RGBA)
+        .value("BC1_OR_3", KTX_TTF_BC1_OR_3)
+#endif
+#if BASISD_SUPPORT_PVRTC1
+        .value("PVRTC1_4_RGB", KTX_TTF_PVRTC1_4_RGB)
+        .value("PVRTC1_4_RGBA", KTX_TTF_PVRTC1_4_RGBA)
+#endif
+#if BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY
+        .value("BC7_M6_RGB", KTX_TTF_BC7_M6_RGB)
+#endif
+#if BASISD_SUPPORT_BC7_MODE5
+        .value("BC7_M5_RGBA", KTX_TTF_BC7_M5_RGBA)
+#endif
+#if BASISD_SUPPORT_ETC2_EAC_A8
+        .value("ETC2_RGBA", KTX_TTF_ETC2_RGBA)
+#endif
+#if BASISD_SUPPORT_ASTC
+        .value("ASTC_4x4_RGBA", KTX_TTF_ASTC_4x4_RGBA)
+#endif
+        .value("RGBA32", KTX_TTF_RGBA32)
+        .value("RGB565", KTX_TTF_RGB565)
+        .value("BGR565", KTX_TTF_BGR565)
+        .value("RGBA4444", KTX_TTF_RGBA4444)
+#if BASISD_SUPPORT_PVRTC2
+        .value("PVRTC2_4_RGB", KTX_TTF_PVRTC2_4_RGB)
+        .value("PVRTC2_4_RGBA", KTX_TTF_PVRTC2_4_RGBA)
+#endif
+#if BASISD_SUPPORT_ETC2_EAC_RG11
+        .value("ETC", KTX_TTF_ETC)
+        .value("EAC_R11", KTX_TTF_ETC2_EAC_R11)
+        .value("EAC_RG11", KTX_TTF_ETC2_EAC_RG11)
+#endif
+    ;
+    enum_<ktx_transcode_flag_bits_e>("TranscodeFlagBits")
+        .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
+               KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
+    ;
+
     class_<ktx::texture>("ktxTexture")
         .constructor(&ktx::texture::createFromMemory)
-        #undef TRANSCODE_FORMAT
-        #undef DECODE_FLAG
-        #define TRANSCODE_FORMAT(c) .class_property(#c, &ktx::texture::c)
-        #define DECODE_FLAG(f) .class_property(#f, &ktx::texture::f)
-        #include "constlist.inl"
         //.class_function("createFromMemory", &ktx::texture::createFromMemory)
         // .property("data", &ktx::texture::getData)
         .property("baseWidth", &ktx::texture::baseWidth)

@@ -40,124 +40,13 @@
 #include "vk_format.h"
 #include "basis_sgd.h"
 #include "basis_image_transcoder.h"
+#include "basis_transcoder_config.h"
 #include "basisu/basisu_comp.h"
 #include "basisu/transcoder/basisu_file_headers.h"
 #include "basisu/transcoder/basisu_transcoder.h"
 
 using namespace basisu;
 using namespace basist;
-
-// WARNING: These values need to match the same definitions in
-// basisu_transcoder.cpp to truly omit the code from a build.
-#ifndef BASISD_SUPPORT_BC7
-#define BASISD_SUPPORT_BC7 1
-#endif
-
-#ifndef BASISD_SUPPORT_PVRTC1
-#define BASISD_SUPPORT_PVRTC1 1
-#endif
-
-#ifndef BASISD_SUPPORT_ETC2_EAC_A8
-#define BASISD_SUPPORT_ETC2_EAC_A8 1
-#endif
-
-#ifndef BASISD_SUPPORT_ASTC
-#define BASISD_SUPPORT_ASTC 1
-#endif
-
-#ifndef BASISD_SUPPORT_DXT1
-#define BASISD_SUPPORT_DXT1 1
-#endif
-
-#ifndef BASISD_SUPPORT_DXT5A
-#define BASISD_SUPPORT_DXT5A 1
-#endif
-
-// Disable all BC7 transcoders if necessary (useful when cross compiling
-// to WebAsm)
-#if defined(BASISD_SUPPORT_BC7) && !BASISD_SUPPORT_BC7
-  #ifndef BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY
-  #define BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY 0
-  #endif
-  #ifndef BASISD_SUPPORT_BC7_MODE5
-  #define BASISD_SUPPORT_BC7_MODE5 0
-  #endif
-#endif // !BASISD_SUPPORT_BC7
-
-// BC7 mode 6 opaque only is the highest quality (compared to ETC1), but the
-// tables are massive. For web/mobile use you probably should disable this.
-#ifndef BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY
-#define BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY 1
-#endif
-
-// BC7 mode 5 supports both opaque and opaque+alpha textures, and uses
-// substantially less memory than BC7 mode 6 and even BC1.
-#ifndef BASISD_SUPPORT_BC7_MODE5
-#define BASISD_SUPPORT_BC7_MODE5 1
-#endif
-
-#ifndef BASISD_SUPPORT_PVRTC1
-#define BASISD_SUPPORT_PVRTC1 1
-#endif
-
-#ifndef BASISD_SUPPORT_ETC2_EAC_A8
-#define BASISD_SUPPORT_ETC2_EAC_A8 1
-#endif
-
-#ifndef BASISD_SUPPORT_ASTC
-#define BASISD_SUPPORT_ASTC 1
-#endif
-
-// Note that if BASISD_SUPPORT_ATC is enabled, BASISD_SUPPORT_DXT5A should also
-// be enabled for alpha support.
-#ifndef BASISD_SUPPORT_ATC
-#define BASISD_SUPPORT_ATC 1
-#endif
-
-// Support for ETC2 EAC R11 and ETC2 EAC RG11
-#ifndef BASISD_SUPPORT_ETC2_EAC_RG11
-#define BASISD_SUPPORT_ETC2_EAC_RG11 1
-#endif
-
-#if BASISD_SUPPORT_PVRTC2
-#if !BASISD_SUPPORT_ATC
-#error BASISD_SUPPORT_ATC must be 1 if BASISD_SUPPORT_PVRTC2 is 1
-#endif
-#endif
-
-#if BASISD_SUPPORT_ATC
-#if !BASISD_SUPPORT_DXT5A
-#error BASISD_SUPPORT_DXT5A must be 1 if BASISD_SUPPORT_ATC is 1
-#endif
-#endif
-
-// If BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY is 1, opaque blocks will be
-// transcoded to ASTC at slightly higher quality (higher than BC1), but the
-// transcoder tables will be 2x as large. This impacts grayscale and
-// grayscale+alpha textures the most.
-#ifndef BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY
-  #ifdef __EMSCRIPTEN__
-    // Let's assume size matters more than quality when compiling with
-    // emscripten.
-    #define BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY 0
-  #else
-    // Compiling native, so an extra 64K lookup table is probably acceptable.
-    #define BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY 1
-  #endif
-#endif
-
-#ifndef BASISD_SUPPORT_FXT1
-#define BASISD_SUPPORT_FXT1 1
-#endif
-
-#ifndef BASISD_SUPPORT_PVRTC2
-#define BASISD_SUPPORT_PVRTC2 1
-#endif
-
-// This one is not in basisu_transcoder.cpp.
-#ifndef BASISD_SUPPORT_UNCOMPRESSED
-#define BASISD_SUPPORT_UNCOMPRESSED 1
-#endif
 
 // block size calculations
 static inline uint32_t getBlockWidth(uint32_t w, uint32_t bw)
@@ -996,9 +885,6 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
       }
       case KTX_TTF_RGB565:
       {
-#if !BASISD_SUPPORT_UNCOMPRESSED
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
         status = transcode_slice(writePtr,
                     num_blocks_x, num_blocks_y,
                     levelDataPtr + sliceByteOffset,
@@ -1014,9 +900,6 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
       }
       case KTX_TTF_BGR565:
       {
-#if !BASISD_SUPPORT_UNCOMPRESSED
-      return KTX_UNSUPPORTED_FEATURE;
-#endif
         status = transcode_slice(writePtr,
                     num_blocks_x, num_blocks_y,
                     levelDataPtr + sliceByteOffset,
@@ -1032,9 +915,6 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
       }
       case KTX_TTF_RGBA4444:
       {
-#if !BASISD_SUPPORT_UNCOMPRESSED
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
         if(hasAlpha) {
             status = transcode_slice(writePtr,
                     num_blocks_x, num_blocks_y,
@@ -1067,9 +947,6 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
       }
       case KTX_TTF_RGBA32:
       {
-#if !BASISD_SUPPORT_UNCOMPRESSED
-      return KTX_UNSUPPORTED_FEATURE;
-#endif
         if(hasAlpha) {
             status = transcode_slice(writePtr,
                     num_blocks_x, num_blocks_y,

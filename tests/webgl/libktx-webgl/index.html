@@ -7,6 +7,13 @@
   </head>
 
   <body>
+<!--
+    <h2>libktx Javascript Binding Test</h2>
+    <p>This demo uses the Javascript binding for libktx which has been compiled to
+    Javascript using Emscripten. libktx includes a transcoder for Basis Universal payloads.
+    This demo uses a KTX2 file with a BasisU-compressed payload. It has transcoded the
+    images to it to <b id='format'>FORMAT</b>.
+-->
     <canvas id="glcanvas" width="640" height="480"></canvas>
   </body>
 
@@ -14,9 +21,12 @@
   <script src="../libktx.js"></script>
   <script src="webgl-demo.js"></script>
   <script type="text/javascript">
-    LIBKTX({ preinitializedWebGLContext: gl }).then(module => {
-     window.LIBKTX = module;
-     texture = loadTexture(gl, 'ktx_app.ktx2');
+    LIBKTX().then(module => {
+      window.LIBKTX = module;
+      // Make existing WebGL context current for Emscripten OpenGL.
+      LIBKTX.preinitializedWebGLContext = gl;
+      LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
+      texture = loadTexture(gl, 'ktx_app.ktx2');
     });
   </script>
 </html>

@@ -19,12 +19,10 @@
 
 /**
  * @internal
- * @file basisu_sgd.h
+ * @file basisu_image_transcoder.h
  * @~English
  *
- * @brief Declare global data for Basis Universal supercompression.
- *
- * These functions are private and should not be used outside the library.
+ * @brief Declare BasisImageTranscoder class.
  */
 
 #ifndef _BASIS_IMAGE_TRANSCODER_H_

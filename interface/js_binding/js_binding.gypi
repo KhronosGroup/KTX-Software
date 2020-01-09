@@ -8,17 +8,32 @@
 {
   'conditions': [
     ['OS == "web"', {
+      'variables': {
+        'common_defines': [
+          'BASISD_SUPPORT_BC7=0',
+          'BASISD_SUPPORT_ATC=0',
+          'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
+          'BASISD_SUPPORT_PVRTC2=0',
+          'BASISD_SUPPORT_FXT1=0',
+          'BASISD_SUPPORT_ETC2_EAC_RG11=0',
+        ],
+        'common_include_dirs': [
+          '../../include',
+          '../../lib',
+        ]
+      },
       'targets': [
         {
           'target_name': 'libktx.js',
           'type': 'executable',
           'cflags_cc': [ '--bind' ],
           'dependencies': [ 'libktx.es3', 'libgles3' ],
+          'defines': [ '<@(common_defines)' ],
           'mac_bundle': 0,
           'sources': [
             'ktx_wrapper.cpp',
           ],
-          'include_dirs': [ '../../include' ],
+          'include_dirs': [ '<@(common_include_dirs)' ],
           'ldflags': [
              '--bind',
              '--source-map-base', './',
@@ -42,23 +57,13 @@
             '-Wno-nested-anon-types',
             '-Wno-gnu-anonymous-struct',
           ],
-          'defines': [
-            'BASISD_SUPPORT_BC7=0',
-            'BASISD_SUPPORT_ATC=0',
-            'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
-            'BASISD_SUPPORT_PVRTC2=0',
-            'BASISD_SUPPORT_FXT1=0',
-            'BASISD_SUPPORT_ETC2_EAC_RG11=0',
-          ],
+          'defines': [ '<@(common_defines)' ],
           'dependencies': [ 'libktx.es3' ],
           'mac_bundle': 0,
           'sources': [
             'transcoder_wrapper.cpp',
           ],
-          'include_dirs': [
-              '../../include',
-              '../../lib',
-          ],
+          'include_dirs': [ '<@(common_include_dirs)' ],
           'ldflags': [
              '--bind',
              '--source-map-base', './',

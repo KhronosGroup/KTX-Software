@@ -55,6 +55,7 @@
       'basis_encode.cpp',
       'basis_image_transcoder.h',
       'basis_transcode.cpp',
+      'basis_transcoder_config.h',
       'checkheader.c',
       'dfdutils/createdfd.c',
       'dfdutils/dfd.h',
