@@ -39,6 +39,14 @@ namespace ktx
         {
             std::vector<uint8_t> bytes{};
             bytes.resize(data["byteLength"].as<size_t>());
+            // Yes, this code IS copying the data. Sigh! According to Alon Zakai:
+            //     "There isn't a way to let compiled code access a new ArrayBuffer.
+            //     The compiled code has hardcoded access to the wasm Memory it was
+            //     instantiated with - all the pointers it can understand are indexes
+            //     into that Memory. It can't refer to anything else, I'm afraid."
+            //
+            //     "In the future using different address spaces or techniques with
+            //     reference types may open up some possibilities here."
             emscripten::val memory = emscripten::val::module_property("HEAP8")["buffer"];
             emscripten::val memoryView = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(bytes.data()), data["length"].as<uint32_t>());
             memoryView.call<void>("set", data);
