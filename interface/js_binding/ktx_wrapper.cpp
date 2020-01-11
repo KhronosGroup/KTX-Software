@@ -180,12 +180,12 @@ namespace ktx
 Add this to the .html file
 
     <script type="text/javascript">
-      LIBKTX().then(module => {
+      LIBKTX({preinitializedWebGLContext: gl}).then(module => {
         window.LIBKTX = module;
-       // Make existing WebGL context current for Emscripten OpenGL.
-       LIBKTX.preinitializedWebGLContext = gl;
-       LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
-       texture = loadTexture('url');
+        // Make existing WebGL context current for Emscripten OpenGL.
+        LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
+        texture = loadTexture(gl, 'ktx_app.ktx2');
+      });
     </script>
 
 === loadTexture function
