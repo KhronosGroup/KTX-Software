@@ -8140,7 +8140,7 @@ namespace basist
 	}
 
 	bool basisu_lowlevel_transcoder::transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
-		uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, const bool is_video, const bool alpha_flag, const uint32_t level_index, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels,
+		uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, const bool is_video, const bool is_alpha_slice, const uint32_t miplevel, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels,
 		basisu_transcoder_state* pState, bool transcode_alpha, void *pAlpha_blocks, uint32_t output_rows_in_pixels)
 	{
 		(void)transcode_alpha;
@@ -8174,13 +8174,13 @@ namespace basist
 		if (is_video)
 		{
 			// TODO: Add check to make sure the caller hasn't tried skipping past p-frames
-			if (level_index >= basisu_transcoder_state::cMaxPrevFrameLevels)
+			if (miplevel >= basisu_transcoder_state::cMaxPrevFrameLevels)
 			{
 				BASISU_DEVEL_ERROR("basisu_lowlevel_transcoder::transcode_slice: unsupported level_index\n");
 				return false;
 			}
 
-			pPrev_frame_indices = &pState->m_prev_frame_indices[alpha_flag][level_index];
+			pPrev_frame_indices = &pState->m_prev_frame_indices[is_alpha_slice][miplevel];
 			if (pPrev_frame_indices->size() < total_blocks)
 				pPrev_frame_indices->resize(total_blocks);
 		}

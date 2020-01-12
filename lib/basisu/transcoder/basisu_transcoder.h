@@ -139,7 +139,7 @@ namespace basist
 		bool decode_tables(const uint8_t *pTable_data, uint32_t table_data_size);
 
 		bool transcode_slice(void *pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t *pImage_data, uint32_t image_data_size, block_format fmt, 
-			uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, const bool video_flag, const bool alpha_flag, const uint32_t level_index, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels = 0,
+			uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, const bool is_video, const bool is_alpha_slice, const uint32_t miplevel, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels = 0,
 			basisu_transcoder_state *pState = nullptr, bool astc_transcode_alpha = false, void* pAlpha_blocks = nullptr, uint32_t output_rows_in_pixels = 0);
 
 		bool transcode_slice(void *pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t *pImage_data, uint32_t image_data_size, block_format fmt, 
@@ -147,10 +147,11 @@ namespace basist
 			basisu_transcoder_state *pState = nullptr, bool astc_transcode_alpha = false, void* pAlpha_blocks = nullptr, uint32_t output_rows_in_pixels = 0)
 		{
 			return transcode_slice(pDst_blocks, num_blocks_x, num_blocks_y, pImage_data, image_data_size, fmt, output_block_or_pixel_stride_in_bytes, bc1_allow_threecolor_blocks,
-								   header.m_tex_type == cBASISTexTypeVideoFrames, (slice_desc.m_flags & cSliceDescFlagsIsAlphaData) != 0, slice_desc.m_level_index, slice_desc.m_orig_width, slice_desc.m_orig_height, output_row_pitch_in_blocks_or_pixels, pState,
-                                       astc_transcode_alpha,
-                                       pAlpha_blocks,
-                                       output_rows_in_pixels);
+								   header.m_tex_type == cBASISTexTypeVideoFrames, (slice_desc.m_flags & cSliceDescFlagsIsAlphaData) != 0, slice_desc.m_level_index,
+                                   slice_desc.m_orig_width, slice_desc.m_orig_height, output_row_pitch_in_blocks_or_pixels, pState,
+                                   astc_transcode_alpha,
+                                   pAlpha_blocks,
+                                   output_rows_in_pixels);
 		}
 
 	private:

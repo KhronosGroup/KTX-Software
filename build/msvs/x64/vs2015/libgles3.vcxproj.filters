@@ -69,7 +69,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\ktxtests.gyp">
+    <None Include="..\..\..\..\libktx.gyp">
       <Filter>..\..\..\..</Filter>
     </None>
     <None Include="C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib\libEGL.dll">

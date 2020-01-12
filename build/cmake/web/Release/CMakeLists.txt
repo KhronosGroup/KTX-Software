@@ -40,6 +40,7 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/dfdutils/dfd2vk.c"
   "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
+  "../../../../lib/dfdutils/queries.c"
   "../../../../lib/dfdutils/vk2dfd.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
@@ -105,6 +106,8 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "../../../../lib/basis_sgd.h"
+  "../../../../lib/basis_image_transcoder.h"
+  "../../../../lib/basis_transcoder_config.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/dfd2vk.inl"
   "../../../../lib/dfdutils/vk2dfd.inl"
@@ -137,10 +140,10 @@ list(APPEND libktx_es3__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
-set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;KTX_OMIT_VULKAN=1;NDEBUG;")
-set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c99 ")
-set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
-set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g0 ")
+set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;KTX_OMIT_VULKAN=1;BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;NDEBUG;")
+set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -Oz -std=c99 ")
+set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -Oz -std=c++11 -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
+set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-Oz ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -152,6 +155,130 @@ set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_A
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:msc_basis_transcoder.js#target
+set(TARGET "msc_basis_transcoder.js")
+set(TOOLSET "target")
+set(msc_basis_transcoder_js__cxx_srcs "../../../../interface/js_binding/transcoder_wrapper.cpp")
+add_executable(msc_basis_transcoder_js ${msc_basis_transcoder_js__cxx_srcs})
+set_target_properties(msc_basis_transcoder_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(msc_basis_transcoder_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(msc_basis_transcoder_js PROPERTIES PREFIX "")
+set_target_properties(msc_basis_transcoder_js PROPERTIES RUNTIME_OUTPUT_NAME "msc_basis_transcoder.js")
+set_target_properties(msc_basis_transcoder_js PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/msc_basis_transcoder.js PROPERTIES GENERATED "TRUE")
+list(APPEND msc_basis_transcoder_js__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET msc_basis_transcoder_js APPEND PROPERTY INCLUDE_DIRECTORIES ${msc_basis_transcoder_js__include_dirs})
+set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;NDEBUG;")
+set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_FLAGS "-Wpedantic -Oz -std=c++11 --bind -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
+set_target_properties(msc_basis_transcoder_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=0 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=MSC_TRANSCODER -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s FULL_ES3=1 -Oz ")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+target_link_libraries(msc_basis_transcoder_js
+  libktx_es3
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libgles3#target
+set(TARGET "libgles3")
+set(TOOLSET "target")
+add_custom_target(libgles3 SOURCES)
+set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libktx.js#target
+set(TARGET "libktx.js")
+set(TOOLSET "target")
+set(libktx_js__cxx_srcs "../../../../interface/js_binding/ktx_wrapper.cpp")
+link_directories()
+add_executable(libktx_js ${libktx_js__cxx_srcs})
+set_target_properties(libktx_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(libktx_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(libktx_js PROPERTIES PREFIX "")
+set_target_properties(libktx_js PROPERTIES RUNTIME_OUTPUT_NAME "libktx.js")
+set_target_properties(libktx_js PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/libktx.js PROPERTIES GENERATED "TRUE")
+list(APPEND libktx_js__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
+set_property(TARGET libktx_js APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_js__include_dirs})
+set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;NDEBUG;")
+set_target_properties(libktx_js PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_WEBGL2=1 -Oz -std=c++11 --bind ")
+set_target_properties(libktx_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=LIBKTX -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s GL_PREINITIALIZED_CONTEXT=1 -s FULL_ES3=1 -s USE_WEBGL2=1 -Oz ")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(libktx_js
+  libgles3
+)
+target_link_libraries(libktx_js
+  libktx_es3
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:install_js#target
+set(TARGET "install_js")
+set(TOOLSET "target")
+set(install_js__cpjs__input "${builddir}")
+list(APPEND install_js__cpjs__output
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/libktx.js"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/libktx.wasm"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/msc_basis_transcoder.js"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/webgl/msc_basis_transcoder.wasm")
+add_custom_command(OUTPUT ${install_js__cpjs__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tests/webgl
+  COMMAND cp "${builddir}/libktx.js" "${builddir}/libktx.wasm" "${builddir}/msc_basis_transcoder.js" "${builddir}/msc_basis_transcoder.wasm" tests/webgl
+  DEPENDS ${install_js__cpjs__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Copying .js & .wasm files to binding tests.
+  VERBATIM
+)
+add_custom_target(install_js__cpjs
+  DEPENDS ${install_js__cpjs__output}
+  SOURCES ${install_js__cpjs__input}
+)
+add_custom_target(install_js SOURCES)
+set_target_properties(install_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(install_js__cpjs PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(install_js__cpjs
+  libktx_js
+  msc_basis_transcoder_js
+)
+add_dependencies(install_js
+  libktx_js
+  msc_basis_transcoder_js
+  install_js__cpjs
+)
 unset(TOOLSET)
 unset(TARGET)
 
@@ -371,8 +498,8 @@ list(APPEND appfwSDL__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils")
 set_property(TARGET appfwSDL APPEND PROPERTY INCLUDE_DIRECTORIES ${appfwSDL__include_dirs})
 set_target_properties(appfwSDL PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_SDL=2 -O3 ")
-set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-g0 ")
+set_target_properties(appfwSDL PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_SDL=2 -Oz ")
+set_target_properties(appfwSDL PROPERTIES LINK_FLAGS "-Oz ")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(appfwSDL PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -395,14 +522,6 @@ add_dependencies(appfwSDL
   appfwSDL__frag2spirv
   appfwSDL__vert2spirv
 )
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtests.gyp:libgles3#target
-set(TARGET "libgles3")
-set(TOOLSET "target")
-add_custom_target(libgles3 SOURCES)
-set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -455,8 +574,8 @@ list(APPEND es3loadtests_html__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET es3loadtests_html APPEND PROPERTY INCLUDE_DIRECTORIES ${es3loadtests_html__include_dirs})
 set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KHRONOS_STATIC=1;NDEBUG;")
-set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-Wpedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -O3 -std=c++11 ")
-set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g0 ")
+set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-Wpedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -Oz -std=c++11 ")
+set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -Oz ")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")

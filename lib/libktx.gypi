@@ -53,7 +53,9 @@
       'basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc',
       'basis_sgd.h',
       'basis_encode.cpp',
+      'basis_image_transcoder.h',
       'basis_transcode.cpp',
+      'basis_transcoder_config.h',
       'checkheader.c',
       'dfdutils/createdfd.c',
       'dfdutils/dfd.h',
@@ -61,6 +63,7 @@
       'dfdutils/dfd2vk.inl',
       'dfdutils/interpretdfd.c',
       'dfdutils/printdfd.c',
+      'dfdutils/queries.c',
       'dfdutils/vk2dfd.c',
       'dfdutils/vk2dfd.inl',
       'etcdec.cxx',
@@ -116,6 +119,7 @@
 
   'includes': [
     '../gyp_include/libgl.gypi',
+    '../gyp_include/libgles3.gypi',
     '../gyp_include/libvulkan.gypi',
   ],
 
@@ -140,6 +144,9 @@
             'KTX_USE_FUNCPTRS_FOR_VULKAN',
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
+            # To reduce size, don't support transcoding to ancient formats.
+            #'BASISD_SUPPORT_ATC=0',
+            #'BASISD_SUPPORT_FXT1=0',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -426,6 +433,9 @@
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
             'BASISU_NO_ITERATOR_DEBUG_LEVEL',
+            # To reduce size, don't support transcoding to ancient formats.
+            #'BASISD_SUPPORT_ATC=0',
+            #'BASISD_SUPPORT_FXT1=0',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
@@ -434,8 +444,8 @@
           'sources': [ '<@(sources)' ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
-            # The BasisU transcoder uses anon typs and structs. They compile ok in
-            # Visual Studio (2015+) and on Linux so quite the clang warnings.
+            # The BasisU transcoder uses anon typs and structs. They compile ok
+            # in Xcode Linux so quiet the clang warnings.
             'WARNING_CFLAGS': [
               '-Wno-nested-anon-types',
               '-Wno-gnu-anonymous-struct',
@@ -455,6 +465,9 @@
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
             'BASISU_NO_ITERATOR_DEBUG_LEVEL',
+            # To reduce size, don't support transcoding to ancient formats.
+            #'BASISD_SUPPORT_ATC=0',
+            #'BASISD_SUPPORT_FXT1=0',
           ],
           'dependencies': [ 'vulkan_headers' ],
           'direct_dependent_settings': {
@@ -467,22 +480,38 @@
           ],
           'conditions': [
           ['OS == "web"', {
-            'defines': [ 'KTX_OMIT_VULKAN=1' ],
+            # The BasisU transcoder uses anon typs and structs. They compile ok
+            # in Emscripten so quiet the clang warnings.
+            'cflags_cc': [
+              '-Wno-nested-anon-types',
+              '-Wno-gnu-anonymous-struct',
+            ],
+            'defines': [
+              'KTX_OMIT_VULKAN=1',
+              # To reduce size, don't support transcoding formats not supported
+              # by WebGL.
+              'BASISD_SUPPORT_BC7=0',
+              'BASISD_SUPPORT_ATC=0',
+              'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
+              'BASISD_SUPPORT_PVRTC2=0',
+              'BASISD_SUPPORT_FXT1=0',
+              'BASISD_SUPPORT_ETC2_EAC_RG11=0',
+            ],
             'dependencies!': [ 'vulkan_headers' ],
             'sources!': [ '<@(vksource_files)' ],
           }],
          ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
-            # The BasisU transcoder uses anon typs and structs. They compile ok in
-            # Visual Studio (2015+) and on Linux so quite the clang warnings.
+            # The BasisU transcoder uses anon typs and structs. They compile ok
+            # in Xcode so quiet the clang warnings.
             'WARNING_CFLAGS': [
               '-Wno-nested-anon-types',
               '-Wno-gnu-anonymous-struct',
             ],
           }
         }, # libktx.es3
-      ], # ios or win targets
+      ], # ios or win or web targets
     }], # OS == "ios" or OS == "win" or OS == "web"
   ], # conditions
 }

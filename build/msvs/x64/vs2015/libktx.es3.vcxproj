@@ -169,6 +169,8 @@
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_internal.h"/>
     <ClInclude Include="..\..\..\..\lib\basis_sgd.h"/>
+    <ClInclude Include="..\..\..\..\lib\basis_image_transcoder.h"/>
+    <ClInclude Include="..\..\..\..\lib\basis_transcoder_config.h"/>
     <ClInclude Include="..\..\..\..\lib\dfdutils\dfd.h"/>
     <ClInclude Include="..\..\..\..\lib\filestream.h"/>
     <ClInclude Include="..\..\..\..\lib\formatsize.h"/>
@@ -212,6 +214,7 @@
     <ClCompile Include="..\..\..\..\lib\dfdutils\dfd2vk.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\interpretdfd.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c"/>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\queries.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\vk2dfd.c"/>
     <ClCompile Include="..\..\..\..\lib\etcdec.cxx"/>
     <ClCompile Include="..\..\..\..\lib\etcunpack.cxx"/>

@@ -27,8 +27,8 @@
  * These functions are private and should not be used outside the library.
  */
 
-#ifndef _BASISU_SGD_H_
-#define _BASISU_SGD_H_
+#ifndef _BASIS_SGD_H_
+#define _BASIS_SGD_H_
 
 #include <stdint.h>
 
@@ -89,4 +89,4 @@ typedef struct ktxBasisImageDesc {
 }
 #endif
 
-#endif /* _BASISU_SGD_H_ */
+#endif /* _BASIS_SGD_H_ */

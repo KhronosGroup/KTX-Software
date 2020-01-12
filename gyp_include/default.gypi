@@ -277,8 +277,9 @@
         ],
         'conditions': [
           ['OS == "web"', {
-            'cflags': [ '-O3' ],
-            'ldflags': [ '-g0' ],
+            'cflags': [ '-Oz' ],
+            #'ldflags': [ '-g0' ],
+            'ldflags': [ '-Oz' ],
           }, {
             'cflags': [ '-O3' ],
           }],

@@ -111,9 +111,6 @@
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
     ['OS == "ios" or OS == "win" or OS == "web"', {
-      'includes': [
-        '../../../gyp_include/libgles3.gypi',
-      ],
       'variables': {
         # Putting this condition within the target causes a GYP error.
         # I've not been able to find a way to override EXECUTABLE_SUFFIX so...
@@ -133,7 +130,7 @@
           'dependencies': [
             'appfwSDL',
             'libktx.gyp:libktx.es3',
-            'libgles3',
+            'libktx.gyp:libgles3',
             'testimages',
           ],
           'sources': [

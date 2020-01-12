@@ -78,6 +78,7 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/dfdutils/dfd2vk.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/interpretdfd.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/printdfd.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/queries.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/vk2dfd.o \
 	$(obj).target/$(TARGET)/lib/etcdec.o \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \

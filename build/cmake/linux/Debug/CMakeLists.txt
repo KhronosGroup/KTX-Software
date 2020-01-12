@@ -152,7 +152,9 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_sgd.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_encode.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_image_transcoder.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcode.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcoder_config.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
@@ -160,6 +162,7 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd2vk.inl"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/interpretdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/printdfd.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/queries.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.inl"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
@@ -225,6 +228,14 @@ add_dependencies(libktx_doc
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:libgles3#target
+set(TARGET "libgles3")
+set(TOOLSET "target")
+add_custom_target(libgles3 SOURCES)
+set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:libgl#target
 set(TARGET "libgl")
 set(TOOLSET "target")
@@ -242,6 +253,7 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/dfdutils/dfd2vk.c"
   "../../../../lib/dfdutils/interpretdfd.c"
   "../../../../lib/dfdutils/printdfd.c"
+  "../../../../lib/dfdutils/queries.c"
   "../../../../lib/dfdutils/vk2dfd.c"
   "../../../../lib/filestream.c"
   "../../../../lib/glloader.c"
@@ -311,6 +323,8 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "../../../../lib/basis_sgd.h"
+  "../../../../lib/basis_image_transcoder.h"
+  "../../../../lib/basis_transcoder_config.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/dfd2vk.inl"
   "../../../../lib/dfdutils/vk2dfd.inl"
@@ -1824,9 +1838,9 @@ unset(TARGET)
 set(TARGET "transcodetests")
 set(TOOLSET "target")
 list(APPEND transcodetests__cxx_srcs
-  "../../../../interface/c_binding/src/basisu_c_binding.cpp"
+  "../../../../interface/basisu_c_binding/src/basisu_c_binding.cpp"
   "../../../../tests/transcodetests/transcodetests.cc")
-set(transcodetests__other_srcs "../../../../interface/c_binding/inc/basisu_c_binding.h")
+set(transcodetests__other_srcs "../../../../interface/basisu_c_binding/inc/basisu_c_binding.h")
 link_directories()
 add_executable(transcodetests ${transcodetests__cxx_srcs} ${transcodetests__other_srcs})
 set_target_properties(transcodetests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
@@ -1837,7 +1851,7 @@ set_target_properties(transcodetests PROPERTIES RUNTIME_OUTPUT_NAME "transcodete
 set_target_properties(transcodetests PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/transcodetests PROPERTIES GENERATED "TRUE")
 list(APPEND transcodetests__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../interface/c_binding/inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../interface/basisu_c_binding/inc"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"

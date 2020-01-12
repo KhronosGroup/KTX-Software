@@ -319,6 +319,18 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\dfdutils">
       <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
     </Filter>
@@ -600,9 +612,15 @@
     <ClCompile Include="..\..\..\..\lib\basis_encode.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\basis_image_transcoder.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\..\..\lib\basis_transcode.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\basis_transcoder_config.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\..\..\lib\checkheader.c">
       <Filter>lib</Filter>
     </ClCompile>
@@ -622,6 +640,9 @@
       <Filter>lib\dfdutils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\queries.c">
       <Filter>lib\dfdutils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\dfdutils\vk2dfd.c">

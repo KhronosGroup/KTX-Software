@@ -474,6 +474,8 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             if (!(createFlags & KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)) {
                 char* orientationStr;
                 ktx_uint32_t orientationLen;
+                ktx_uint32_t animData[3];
+                ktx_uint32_t animDataLen;
 
                 result = ktxHashList_Deserialize(&This->kvDataHead,
                                                  kvdLen, pKvd);
@@ -506,6 +508,27 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                     }
                 } else {
                     result = KTX_SUCCESS; // Not finding orientation is okay.
+                }
+                result = ktxHashList_FindValue(&This->kvDataHead,
+                                               KTX_ANIMDATA_KEY,
+                                               &animDataLen,
+                                               (void**)animData);
+                assert(result != KTX_INVALID_VALUE);
+                if (result == KTX_SUCCESS) {
+                    if (animDataLen != sizeof(animData)) {
+                        result = KTX_FILE_DATA_ERROR;
+                        goto cleanup;
+                    }
+                    if (This->isArray && This->numDimensions == 2
+                        && !This->isCubemap)
+                    {
+                        This->isVideo = KTX_TRUE;
+                        This->duration = animData[0];
+                        This->timescale = animData[1];
+                        This->loopcount = animData[2];
+                    }
+                } else {
+                    result = KTX_SUCCESS; // Not finding video is okay.
                 }
             } else {
                 This->kvDataLen = kvdLen;
@@ -1064,7 +1087,7 @@ ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Return information about the components of an image format.
+ * @brief Return information about the components of an image in a texture.
  *
  * @param[in]     This           pointer to the ktxTexture object of interest.
  * @param[in,out] pNumComponents pointer to location in which to write the
@@ -1073,13 +1096,37 @@ ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
  *                               pointer to the location in which to write
  *                               byte length of a component.
  */
- void
- ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
-                              uint32_t* pComponentByteLength)
+void
+ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
+                             uint32_t* pComponentByteLength)
 {
     // FIXME Need to handle packed case.
     getDFDComponentInfoUnpacked(This->pDfd, pNumComponents,
                                 pComponentByteLength);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Return the number of components in an image of the texture.
+ *
+ * Returns the number of components indicated by the DFD's sample information
+ * in accordance with the color model. For uncompressed textures it will be the actual
+ * number of components. For block-compressed textures, it will be 1 or 2 according to
+ * the format's DFD color model. For Basis compressed textures, it will be the
+ * the number of components in the image @e before encoding and deflation so it can
+ * be used to help choose a suitable transcode target format. For other supercompressed formats
+ * it returns the number of components prior to deflation.
+
+ *
+ * @param[in]     This           pointer to the ktxTexture object of interest.
+ *
+ * @return the number of components.
+ */
+ktx_uint32_t
+ktxTexture2_GetNumComponents(ktxTexture2* This)
+{
+    return getDFDNumComponents(This->pDfd);
 }
 
 /**

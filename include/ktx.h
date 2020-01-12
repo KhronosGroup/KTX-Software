@@ -118,17 +118,22 @@ extern "C" {
 
 /**
  * @~English
- * @brief Key String for standard orientation metadata.
+ * @brief Key string for standard writer metadata.
+ */
+#define KTX_ANIMDATA_KEY "KTXanimData"
+/**
+ * @~English
+ * @brief Key string for standard orientation metadata.
  */
 #define KTX_ORIENTATION_KEY "KTXorientation"
 /**
  * @~English
- * @brief Key String for standard swizzle metadata.
+ * @brief Key string for standard swizzle metadata.
  */
 #define KTX_SWIZZLE_KEY "KTXswizzle"
 /**
  * @~English
- * @brief Key String for standard writer metadata.
+ * @brief Key string for standard writer metadata.
  */
 #define KTX_WRITER_KEY "KTXwriter"
 /**
@@ -654,6 +659,10 @@ typedef struct ktxTexture2 {
     ktx_uint32_t  vkFormat;
     ktx_uint32_t* pDfd;
     ktxSupercmpScheme supercompressionScheme;
+    ktx_bool_t isVideo;
+    ktx_uint32_t duration;
+    ktx_uint32_t timescale;
+    ktx_uint32_t loopcount;
     struct ktxTexture2_private* _private;  /*!< Private data. */
 } ktxTexture2;
 
@@ -873,6 +882,9 @@ ktxTexture2_GetOETF(ktxTexture2* This);
 KTX_APICALL void KTX_APIENTRY
 ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
                              ktx_uint32_t* componentByteLength);
+
+KTX_APICALL ktx_uint32_t KTX_APIENTRY
+ktxTexture2_GetNumComponents(ktxTexture2* This);
 
 /**
  * @memberof ktxTexture2
