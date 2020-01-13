@@ -179,6 +179,7 @@ namespace ktx
 
 Add this to the .html file
 
+    <script src="libktx.js"></script>
     <script type="text/javascript">
       LIBKTX({preinitializedWebGLContext: gl}).then(module => {
         window.LIBKTX = module;

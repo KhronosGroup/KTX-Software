@@ -437,6 +437,7 @@ namespace msc {
 
 Add this to the .html file
 
+    <script src="msc_transcoder_wrapper.js></script>
     <script type="text/javascript">
       TRANSCODER().then(module => {
         window.TRANSCODER = module;
