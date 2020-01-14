@@ -176,7 +176,7 @@ list(APPEND msc_basis_transcoder_js__include_dirs
 set_property(TARGET msc_basis_transcoder_js APPEND PROPERTY INCLUDE_DIRECTORIES ${msc_basis_transcoder_js__include_dirs})
 set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;NDEBUG;")
 set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_FLAGS "-Wpedantic -Oz -std=c++11 --bind -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
-set_target_properties(msc_basis_transcoder_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=0 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=MSC_TRANSCODER -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s FULL_ES3=1 -Oz ")
+set_target_properties(msc_basis_transcoder_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=0 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=MSC_TRANSCODER -s FULL_ES3=1 -Oz ")
 set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
