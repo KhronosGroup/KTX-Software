@@ -378,7 +378,9 @@ function loadTexture(gl, url)
       elem('format').innerText = formatString;
     }
 
-    const {newtexture, target, error} = ktexture.glUpload();
+    const result = ktexture.glUpload();
+    const {target, error} = result;
+    texture = result.texture;
     if (error != gl.NO_ERROR) {
       alert('WebGL error when uploading texture, code = ' + error.toString(16));
       return undefined;
@@ -388,9 +390,8 @@ function loadTexture(gl, url)
       return undefined;
     }
 
-    gl.bindTexture(target, newtexture);
+    gl.bindTexture(target, texture);
     gl.deleteTexture(placeholder);
-    texture = newtexture;
 
     if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
        // Enable bilinear mipmapping.

@@ -72,7 +72,6 @@
              '-s', 'MALLOC=emmalloc',
              '-s', 'MODULARIZE=1',
              '-s', 'EXPORT_NAME=MSC_TRANSCODER',
-             '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=[\'GL\']',
              '-s', 'FULL_ES3=1',
           ],
         }, # msc_basis_transcoder.js

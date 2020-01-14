@@ -149,8 +149,8 @@ namespace ktx
 
             val ret = val::object();
             // Find the WebGLTexture for texture.
-            val newtexture = val::module_property("GL")["textures"][texname];
-            ret.set("newtexture", newtexture);
+            val texture = val::module_property("GL")["textures"][texname];
+            ret.set("texture", texture);
             ret.set("target", target);
             ret.set("error", error);
             return std::move(ret);
@@ -224,7 +224,13 @@ Add this to the .html file
       ktexture.transcodeBasis(format, 0);
     }
 
-    const {newtexture, target, error} = ktexture.glUpload();
+    // If there is no global variable "texture".
+    //const {texture, target, error} = ktexture.glUpload();
+    // If there is a globla variable "texture"
+    const result = ktexture.glUpload();
+    const {target, error} = result;
+    texture = result.texture;
+
     if (error != gl.NO_ERROR) {
       alert('WebGL error when uploading texture, code = ' + error.toString(16));
       return undefined;
@@ -234,11 +240,10 @@ Add this to the .html file
       return undefined;
     }
 
-    gl.bindTexture(target, newtexture);
+    gl.bindTexture(target, texture);
     // If using a placeholder texture during loading, delete
     // it now.
     //gl.deleteTexture(placeholder);
-    texture = newtex;
 
     if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
        // Enable bilinear mipmapping.

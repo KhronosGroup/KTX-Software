@@ -492,7 +492,7 @@ the actual data is not specific to that container format.
     // Set up a subarray pointing at the deflated image descriptions
     // in buData. This is for KTX2 containers. .basis containers will
     // require slightly different code. The image descriptions are
-    // located in supercompressionData.
+    // located in supercompressionGlobalData.
     var imageDescsStart = ...:
     // An imageDesc has 5 uint32 values.
     var imageDescs = new Uint32Data(buData.subarray(imageDescsStart,
@@ -506,8 +506,8 @@ the actual data is not specific to that container format.
        var bw = 4; // for ETC1S based Basis compressed data.
        var bh = 4; //            ditto
        var num_blocks_x = (width + (bw - 1)) / bw;
-       var levelData = location of level within texdata
        var num_blocks_y = (height + (bh - 1)) / bh;
+       var levelData = location of level within texdata
        foreach image in level {
            // In KTX2 container locate the imageDesc for this image.
            var imageDesc = imageDescs[curImageIndex++];
