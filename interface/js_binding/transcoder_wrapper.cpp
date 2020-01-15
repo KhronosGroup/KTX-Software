@@ -453,7 +453,7 @@ the actual data is not specific to that container format.
     // Locate the supercompression global data and compresssed
     // mip level data within the ArrayBuffer.
 
-    const { BasisTranscoder, BasisTranscoderState } = TRANSCODER;
+    const { BasisTranscoder, BasisTranscoderState, TranscodeTarget } = TRANSCODER;
     BasisTranscoder.init();
     var transcoder = new BasisTranscoder();
 
@@ -480,7 +480,7 @@ the actual data is not specific to that container format.
 
     // Determine appropriate transcode format from available targets,
     // info about the texture, e.g. texture.numComponents, and
-    // expected use.
+    // expected use. Use values from TranscodeTarget.
     var targetFormat = ...
 
     // Determine if the file contains a video sequence...
@@ -676,10 +676,6 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         .value("EAC_R11", KTX_TTF_ETC2_EAC_R11)
         .value("EAC_RG11", KTX_TTF_ETC2_EAC_RG11)
 #endif
-    ;
-    enum_<ktx_transcode_flag_bits_e>("TranscodeFlagBits")
-        .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
-               KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
     ;
 
     class_<msc::BasisTranscoder>("BasisTranscoder")
