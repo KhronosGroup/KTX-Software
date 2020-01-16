@@ -408,6 +408,7 @@ cleanup: // FIXME when we stop modifying This until successful transcode.
 }
 
 /**
+ * @internal
  * @~English
  * @brief Transcode a single Basis supercompressed image.
  *
@@ -445,17 +446,17 @@ cleanup: // FIXME when we stop modifying This until successful transcode.
  */
 KTX_error_code
 ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
-                                 ktx_transcode_fmt_e targetFormat,
-                                 ktx_uint8_t* writePtr,
-                                 ktx_size_t bufferByteLength,
-                                 uint32_t level,
-                                 ktx_uint8_t* levelDataPtr,
-                                 uint32_t width, uint32_t height,
-                                 uint32_t num_blocks_x,
-                                 uint32_t num_blocks_y,
-                                 bool isVideo,
-                                 bool transcodeAlphaToOpaqueFormats,
-                                 basisu_transcoder_state* pState)
+                                         ktx_transcode_fmt_e targetFormat,
+                                         ktx_uint8_t* writePtr,
+                                         ktx_size_t bufferByteLength,
+                                         uint32_t level,
+                                         ktx_uint8_t* levelDataPtr,
+                                         uint32_t width, uint32_t height,
+                                         uint32_t num_blocks_x,
+                                         uint32_t num_blocks_y,
+                                         bool isVideo,
+                                         bool transcodeAlphaToOpaqueFormats,
+                                         basisu_transcoder_state* pState)
 {
     KTX_error_code result = KTX_SUCCESS;
 

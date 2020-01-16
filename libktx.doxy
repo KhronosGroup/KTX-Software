@@ -765,6 +765,7 @@ INPUT                  = LICENSE.md \
                          TODO.md \
                          include \
                          lib/basis_encode.cpp \
+                         lib/basis_image_transcoder.h \
                          lib/basis_transcode.cpp \
                          lib/strings.c \
                          lib/mainpage.md \
