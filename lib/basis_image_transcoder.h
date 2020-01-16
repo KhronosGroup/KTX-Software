@@ -19,7 +19,7 @@
 
 /**
  * @internal
- * @file basisu_image_transcoder.h
+ * @file basis_image_transcoder.h
  * @~English
  *
  * @brief Declare BasisImageTranscoder class.
@@ -34,16 +34,26 @@
 
 using namespace basist;
 
+/**
+ * @class ktxBasisImageTranscoder
+ * Transcode a single Basis Universal image.
+ */
 class ktxBasisImageTranscoder : public basisu_lowlevel_transcoder {
   public:
+      /**
+       * @~English
+       * Constructor
+       * @param[in] gcb the etc1_global_selector_codebook to use.
+       */
       ktxBasisImageTranscoder(basist::etc1_global_selector_codebook* gcb)
            : basisu_lowlevel_transcoder(gcb) { }
+      // This is documented with the implementation.
       KTX_error_code transcode_image(const ktxBasisImageDesc& image,
                                    ktx_transcode_fmt_e targetFormat,
-                                   uint8_t* writePtr,
-                                   size_t bufferByteLength,
+                                   ktx_uint8_t* writePtr,
+                                   ktx_size_t bufferByteLength,
                                    uint32_t level,
-                                   uint8_t* levelDataPtr,
+                                   ktx_uint8_t* levelDataPtr,
                                    uint32_t width, uint32_t height,
                                    uint32_t num_blocks_x,
                                    uint32_t num_blocks_y,
