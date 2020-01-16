@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <script src="../msc_basis_transcoder.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@v0.112.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@v0.112.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="./KTX2Loader.js"></script>
+  <style>
+    html, body { width:100%; height:100%; margin:0; padding:0; }
+    canvas { display:block; }
+    h2 { margin-top: 0; }
+    #panel { position: absolute; top: 10px; left: 10px; color: white; background-color:rgba(0.3, 0.3, 0.3, 0.3); padding: 0.5em; max-width: 400px;}
+  </style>
+  <div id="panel">
+    <h2>msc_basis_transcoder test</h2>
+    <p>
+      Loads and parses a KTX2 file with a plain JS loader, transcodes the
+      Basis Universal-compressed payload with <code>msc_basis_transcoder</code>,
+      and renders the result with three.js.
+    </p>
+    <div id="log"></div>
+  </div>
+  <script>
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.setSize( width, height );
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    document.body.appendChild( renderer.domElement );
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xF0F0F0 );
+
+    const camera = new THREE.PerspectiveCamera( 60, width / height, 0.1, 100 );
+    camera.position.set( 2, 1.5, 1 );
+    camera.lookAt( scene.position );
+    scene.add(camera);
+
+    const controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.autoRotate = true;
+
+    // PlaneBufferGeometry UVs assume flipY=true, which compressed textures don't support.
+    const geometry = flipY( new THREE.PlaneBufferGeometry() );
+    const material = new THREE.MeshBasicMaterial( {
+      color: 0xFFFFFF,
+      side: THREE.DoubleSide
+    } );
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    requestIdleCallback(() => {
+
+      animate();
+
+      new THREE.KTX2Loader()
+        .detectSupport( renderer )
+        .load( '../libktx-webgl/ktx_app.ktx2', ( texture ) => {
+
+          material.map = texture;
+
+          material.needsUpdate = true;
+
+        }, ( p ) => console.log( `...${p}` ), ( e ) => console.error( e ) );
+
+    });
+
+    function animate() {
+
+      requestAnimationFrame( animate );
+
+      controls.update();
+
+      renderer.render( scene, camera );
+
+    }
+
+    window.addEventListener( 'resize', () => {
+
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize( width, height );
+
+    }, false );
+
+    /** Correct UVs to be compatible with `flipY=false` textures. */
+    function flipY ( geometry ) {
+
+      var uv = geometry.attributes.uv;
+
+      for ( var i = 0; i < uv.count; i ++ ) {
+
+        uv.setY( i, 1 - uv.getY( i ) );
+
+      }
+
+      return geometry;
+
+    }
+  </script>
+</html>
