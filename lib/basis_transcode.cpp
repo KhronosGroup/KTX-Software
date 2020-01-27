@@ -30,6 +30,7 @@
  */
 
 #include <inttypes.h>
+#include <stdio.h>
 #include <KHR/khr_df.h>
 
 #include "dfdutils/dfd.h"
@@ -324,7 +325,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     // FIXME: Need to avoid modifying This until transcode is successful.
     This->vkFormat = vkFormat;
     vkGetFormatSize(vkFormat, &This->_protected->_formatSize);
-    This->isCompressed = true;
+    This->isCompressed =
+          This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT;
 
     ktx_size_t transcodedDataSize = ktxTexture_calcDataSizeTexture(
                                             ktxTexture(This),
@@ -423,14 +425,16 @@ cleanup: // FIXME when we stop modifying This until successful transcode.
  * @param[in] levelDataPtr pointer to the start of the supercompressed data for mip level @p level.
  * @param[in] width the pixel width of a level @p level image.
  * @param[in] height the pixel height of a level @p level image.
- * @param[in] num_blocks_x number of blocks in the x dimension for mip level @p level in the
- *            pre-deflation input. When @c eBuIsETC1S is set in @c globalFlags in the
- *            supercompression global data, the block width to use for calculating this from
- *            @p width is 4.
- * @param[in] num_blocks_y number of blocks in the y dimension for mip level @p level in the
- *            pre-deflation input. When @c eBuIsETC1S is set in @c globalFlags in the
- *            supercompression global data, the block height to use for calculating this from
- *            @p height is 4.
+ * @param[in] num_blocks_x number of blocks in the x dimension of mip level @p level to be
+ *                         transcoded. This is the number of blocks in base block-compressed
+ *                         format used by Basis Universal. When the format is ETC1, as indicated
+ *                         by @c eBuIsETC1S being set in @c globalFlags in the
+ *                         supercompression global data, the block width to use for calculating
+ *                         this from @p width is 4.
+ * @param[in] num_blocks_y number of blocks in the y dimension of mip level @p level to be
+ *                        transcoded. When @c eBuIsETC1S is set in @c globalFlags in the
+ *                        supercompression global data the block height to use for calculating this
+ *                        from @p height is 4.
  * @param[in] isVideo @c true if the image comes from a file containing an animation sequence,
  *                   @c false otherwise.
  * @param[in] transcodeAlphaToOpaqueFormats if @p targetFormat is a format lacking an

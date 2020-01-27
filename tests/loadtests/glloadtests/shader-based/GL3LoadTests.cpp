@@ -46,6 +46,10 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "testimages/kodim17_basis.ktx2",
       "KTX2: Basis Transcode on RGB non mipmapped"
     },
+    { DrawTexture::create,
+      "--transcode-target RGBA4444 testimages/kodim17_basis.ktx2",
+      "KTX2: Basis Transcode of RGB non-mipmapped to RGBA4444"
+    },
     { BasisuTest::create,
       "testimages/FlightHelmet_baseColor_basis.ktx2",
       "KTX2: Basis Transcode on RGBA non mipmapped"
