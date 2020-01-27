@@ -970,6 +970,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
  * components, R will be in the opaque slice and G in the alpha slice which each value replicated in all
  * 3 components of its slice. If the original image had only 1 component it's value is replicated in all
  * 3 components of the opaque slice and there is no alpha slice.
+ *
+ * @note You should not transcode sRGB encoded data to @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG,
+ * @c KTX_TTF_ETC2_EAC_R{,G}11, @c KTX_TTF_RGB565, @c KTX_TTF_BGR565 or
+ * @c KTX_TTF_RGBA4444 formats as neither OpenGL nor Vulkan support sRGB variants of these. Doing
+ * sRGB decoding in the shader will not produce correct results if any texture filtering is being used.
  */
 typedef enum ktx_transcode_fmt_e {
         // Compressed formats

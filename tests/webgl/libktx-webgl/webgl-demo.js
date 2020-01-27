@@ -77,6 +77,13 @@ function main() {
 
     uniform sampler2D uSampler;
 
+    highp vec3 srgb_encode(vec3 color) {
+        highp float r = color.r < 0.0031308 ? 12.92 * color.r : 1.055 * pow(color.r, 1.0/2.4) - 0.055;
+        highp float g = color.g < 0.0031308 ? 12.92 * color.g : 1.055 * pow(color.g, 1.0/2.4) - 0.055;
+        highp float b = color.b < 0.0031308 ? 12.92 * color.b : 1.055 * pow(color.b, 1.0/2.4) - 0.055;
+        return vec3(r, g, b);
+    }
+
     void main(void) {
       highp vec3 vertexColor = vec3(0.9, 0.9, 0.9);
       highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
@@ -85,6 +92,7 @@ function main() {
       fragcolor.rgb = vertexColor.rgb * (1.0 - texelColor.a) + texelColor.rgb * texelColor.a;
       fragcolor.a = texelColor.a;
       fragcolor.rgb *= vLighting;
+      fragcolor.rgb = srgb_encode(fragcolor.rgb);
       gl_FragColor = fragcolor;
     }
   `;
