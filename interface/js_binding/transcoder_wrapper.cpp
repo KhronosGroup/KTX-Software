@@ -48,7 +48,6 @@ namespace msc {
         {
             std::vector<uint8_t> cEndpoints{}, cSelectors{};
             val memory = val::module_property("HEAP8")["buffer"];
-
             cEndpoints.resize(jsEndpoints["byteLength"].as<size_t>());
             val endpointsView = jsEndpoints["constructor"].new_(memory,
                                             reinterpret_cast<uintptr_t>(cEndpoints.data()),
@@ -84,7 +83,55 @@ namespace msc {
                                                           cTableData.size());
         }
 
-        //
+        // block size calculations
+        static inline uint32_t getWidthInBlocks(uint32_t w, uint32_t bw)
+        {
+            return (w + (bw - 1)) / bw;
+        }
+
+        static inline uint32_t getHeightInBlocks(uint32_t h, uint32_t bh)
+        {
+            return (h + (bh - 1)) / bh;
+        }        //
+
+        static size_t getTranscodedImageByteLength(transcoder_texture_format format,
+                                                   uint32_t width, uint32_t height)
+        {
+            uint32_t blockByteLength;
+            // The switch avoids a bug in basis_get_bytes_per_block.
+            switch (format) {
+              case transcoder_texture_format::cTFRGBA32:
+                  blockByteLength = sizeof(uint32_t);
+                  break;
+              case transcoder_texture_format::cTFRGB565:
+              case transcoder_texture_format::cTFBGR565:
+              case transcoder_texture_format::cTFRGBA4444:
+                  blockByteLength = sizeof(uint16_t);
+                  break;
+              default:
+                  blockByteLength =
+                      basis_get_bytes_per_block(format);
+                  break;
+            }
+            if (basis_transcoder_format_is_uncompressed(format)) {
+                return width * height * blockByteLength;
+            } else if (format == transcoder_texture_format::cTFPVRTC1_4_RGB
+                       || format == transcoder_texture_format::cTFPVRTC1_4_RGBA) {
+                // For PVRTC1, Basis only writes (or requires)
+                // blockWidth * blockHeight * blockByteLength. But GL requires
+                // extra padding for very small textures:
+                // https://www.khronos.org/registry/OpenGL/extensions/IMG/IMG_texture_compression_pvrtc.txt
+                const uint32_t paddedWidth = (width + 3) & ~3;
+                const uint32_t paddedHeight = (height + 3) & ~3;
+                return (std::max(8U, paddedWidth)
+                        * std::max(8U, paddedHeight) * 4 + 7) / 8;
+            } else {
+                uint32_t blockWidth = getWidthInBlocks(width, basis_get_block_width(format));
+                uint32_t blockHeight = getHeightInBlocks(height, basis_get_block_height(format));
+                return blockWidth * blockHeight * blockByteLength;
+            }
+        }
+
         // @~English
         // @brief Transcode a single Basis supercompressed image.
         //
@@ -107,13 +154,16 @@ namespace msc {
         // @param[in] level the mip level of the image being transcoded.
         // @param[in] width the pixel width of a level @p level image.
         // @param[in] height the pixel height of a level @p level image.
-        // @param[in] num_blocks_x number of blocks in the x dimension for mip
-        //                         level @p level in the pre-deflation input. When
-        //                         @c eBuIsETC1S is set in @c globalFlags in the
+        // @param[in] num_blocks_x number of blocks in the x dimension of mip
+        //                         level @p level to be transcoded. This is the
+        //                         number of blocks in base block-compressed
+        //                         format used by Basis Universal. When the
+        //                         format is ETC1, as indicated by @c eBuIsETC1S
+        //                         being set in @c globalFlags in the
         //                         supercompression global data, the block width
         //                         to use for calculating this from @p width is 4.
-        // @param[in] num_blocks_y number of blocks in the y dimension for mip
-        //                         level @p level in the pre-deflation input. When
+        // @param[in] num_blocks_y number of blocks in the y dimension of mip
+        //                         level @p level to be transcoded. When
         //                         @c eBuIsETC1S is set in @c globalFlags in the
         //                         supercompression global data the block height
         //                         to use for calculating this from @p height is 4.
@@ -174,6 +224,8 @@ namespace msc {
                 memoryView.call<void>("set", jsAlphaSlice);
             }
 
+            ktx_transcode_fmt_e cTargetFormat = jsTargetFormat.as<ktx_transcode_fmt_e>();
+
             ktxBasisImageDesc imageDesc;
             imageDesc.imageFlags = imageFlags;
             imageDesc.rgbSliceByteOffset = 0;
@@ -182,35 +234,16 @@ namespace msc {
                                                   0 : rgbSliceByteLength;
             imageDesc.alphaSliceByteLength = alphaSliceByteLength;
 
-
-            transcoder_texture_format cTargetFormat =
-                                          jsTargetFormat.as<transcoder_texture_format>();
-            uint32_t blockByteLength;
-            // The switch avoids a bug in basis_get_bytes_per_block.
-            switch (cTargetFormat) {
-              case transcoder_texture_format::cTFRGBA32:
-                  blockByteLength = sizeof(uint32_t);
-                  break;
-              case transcoder_texture_format::cTFRGB565:
-              case transcoder_texture_format::cTFBGR565:
-              case transcoder_texture_format::cTFRGBA4444:
-                  blockByteLength = sizeof(uint16_t);
-                  break;
-              default:
-                  blockByteLength = basis_get_bytes_per_block(static_cast<transcoder_texture_format>(cTargetFormat));
-                  break;
-            }
-
-            size_t bufferByteLength = num_blocks_x * num_blocks_y * blockByteLength;
             std::vector<uint8_t> dst;
-            dst.resize(bufferByteLength);
+            dst.resize(getTranscodedImageByteLength(static_cast<transcoder_texture_format>(cTargetFormat),
+                                                    width, height));
 
             KTX_error_code error;
             error = ktxBasisImageTranscoder::transcode_image(
                               imageDesc,
-                              static_cast<ktx_transcode_fmt_e>(cTargetFormat),
+                              cTargetFormat,
                               dst.data(),
-                              bufferByteLength,
+                              dst.size(),
                               level,
                               deflatedImage.data(),
                               width, height,
@@ -219,7 +252,7 @@ namespace msc {
                               transcodeAlphaToOpaqueFormats);
 
             val ret = val::object();
-            ret.set("error", error);
+            ret.set("error", static_cast<uint32_t>(error));
             if (error == KTX_SUCCESS) {
                 // FIXME: Who deletes dst and how?
                 ret.set("transcodedImage", typed_memory_view(dst.size(), dst.data()));
@@ -466,16 +499,15 @@ the actual data is not specific to that container format.
     // within buData. In KTX2 they are in the header of the
     // supercompressionGlobalData.
 
-    var endpoints = buData.subarray(endpointsStart,
-                                    endpointsStart + endpointsByteLength);
-    var selectors = buData.subarray(selectorsStart,
-                                    selectorsStart + selectorsByteLength);
+    var endpoints = new UInt8Array(buData, endpointsStart,
+                                   endpointsByteLength);
+    var selectors = new UINt8Array(buData, selectorsStart,
+                                   selectorsByteLength);
 
     transcoder.decodePalettes(numEndpoints, endpoints,
                               numSelectors, selectors);
 
-    var tables = buData.subarray(tablesStart,
-                                 tablesStart + tablesByteLength);
+    var tables = new UInt8Array(buData, tablesStart, tablesByteLength);
     transcoder.decodeTables(tables);
 
     // Determine appropriate transcode format from available targets,
@@ -495,8 +527,8 @@ the actual data is not specific to that container format.
     // located in supercompressionGlobalData.
     var imageDescsStart = ...:
     // An imageDesc has 5 uint32 values.
-    var imageDescs = new Uint32Data(buData.subarray(imageDescsStart,
-                                         imageDescsStart + numImages * 5 * 4);
+    var imageDescs = new Uint32Data(buData, imageDescsStart,
+                                    numImages * 5 * 4);
     var curImageIndex = 0;
 
     // Pseudo code ...
@@ -505,8 +537,8 @@ the actual data is not specific to that container format.
        var height = height of image at this level
        var bw = 4; // for ETC1S based Basis compressed data.
        var bh = 4; //            ditto
-       var num_blocks_x = (width + (bw - 1)) / bw;
-       var num_blocks_y = (height + (bh - 1)) / bh;
+       var num_blocks_x = Math.floor((width + (bw - 1)) / bw);
+       var num_blocks_y = Math.floor((height + (bh - 1)) / bh);
        var levelData = location of level within texdata
        foreach image in level {
            // In KTX2 container locate the imageDesc for this image.
@@ -516,13 +548,15 @@ the actual data is not specific to that container format.
            var levelData = ...;
            // Make a .subarray of the rgb slice data.
            var rgbSliceStart = levelData + imageDesc[1];
-           var rgbSliceEnd = rgbSliceStart + imageDesc[2];
-           var rgbSlice = buData.subarray(rgbSliceStart, rgbSliceEnd);
+           var rgbSliceByteLength = imageDesc[2];
+           var rgbSlice = new UInt8Array(buData, rgbSliceStart,
+           rgbSliceByteLength);
            // Do the same for the alpha slice. Length 0 is okay.
            var alphaSliceStart = levelData + imageDesc[3];
-           var alphaSliceEnd = alphaSliceStart + imageDesc[4];
-           var alphaSlice = buData.subarray(alphaSliceStart, alphaSliceEnd);
-           const {transcodedImage, status} = transcoder.transcodeImage(
+           var alphaSliceByteLength = imageDesc[4];
+           var alphaSlice = new UINt8Array(buData, alphaSliceStart,
+                                           alphaSliceByteLength);
+           const {transcodedImage, error} = transcoder.transcodeImage(
                                      imageDesc[0], // imageFlags,
                                      rgbSlice,
                                      alphaSlice,
@@ -533,7 +567,7 @@ the actual data is not specific to that container format.
                                      num_blocks_y,
                                      isVideo,
                                      false);
-            if (status) {
+            if (error) {
                 // Upload data in transcodedImage to WebGL.
             }
         }
@@ -567,7 +601,7 @@ slices to make a texture image ready for upload.
     // Determine if the encoded data has alpha...
     var hasAlpha = ...
 
-    var bytes_per_block = 
+    var bytes_per_block =
 
     // Pseudo code ...
     foreach level

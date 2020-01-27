@@ -1,5 +1,5 @@
 /* -*- tab-width: 4; -*- */
-/* vi: set sw=2 ts=4 expandtab: */
+/* vi: set sw=2 ts=4 expandtab textwidth=80: */
 
 /*
  * ©2019 Khronos Group, Inc.
@@ -59,7 +59,6 @@ namespace ktx
                 return texture(nullptr, {});
             }
 
-            // TODO: Is this move copying all the data? If so can we avoid it?
             return texture(ptr, std::move(bytes));
         }
 
