@@ -876,15 +876,18 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
-KTX_APICALL ktx_uint32_t KTX_APIENTRY
-ktxTexture2_GetOETF(ktxTexture2* This);
-
 KTX_APICALL void KTX_APIENTRY
 ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
                              ktx_uint32_t* componentByteLength);
 
 KTX_APICALL ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
+
+KTX_APICALL ktx_uint32_t KTX_APIENTRY
+ktxTexture2_GetOETF(ktxTexture2* This);
+
+KTX_APICALL ktx_bool_t KTX_APIENTRY
+ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);
 
 /**
  * @memberof ktxTexture2

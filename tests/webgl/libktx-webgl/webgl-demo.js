@@ -15,6 +15,8 @@ var etcSupported = false;
 var dxtSupported = false;
 var pvrtcSupported = false;
 
+const uvMatrix = mat3.create();
+
 main();
 
 //
@@ -41,20 +43,22 @@ function main() {
   const vsSource = `
     attribute vec4 aVertexPosition;
     attribute vec3 aVertexNormal;
-    attribute vec2 aTextureCoord;
+    attribute vec3 aTextureCoord;
 
     uniform mat4 uNormalMatrix;
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
+    uniform mat3 uUVMatrix;
 
     varying highp vec2 vTextureCoord;
     varying highp vec3 vLighting;
 
     void main(void) {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-      vTextureCoord.x = aTextureCoord.x;
+      //vTextureCoord.x = aTextureCoord.x;
       // Invert Y coordinate to account for PNG top-left origin.
-      vTextureCoord.y = aTextureCoord.y * -1.0 + 1.0;
+      //vTextureCoord.y = aTextureCoord.y * -1.0 + 1.0;
+      vTextureCoord = vec2(uUVMatrix * aTextureCoord);
 
       // Apply lighting effect
 
@@ -116,6 +120,7 @@ function main() {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
       normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
+      uvMatrix: gl.getUniformLocation(shaderProgram, 'uUVMatrix'),
       uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
     },
   };
@@ -359,7 +364,7 @@ function loadTexture(gl, url)
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
   xhr.onload = function(){
-    const { ktxTexture, TranscodeTarget } = LIBKTX;
+    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
 
@@ -408,6 +413,15 @@ function loadTexture(gl, url)
     else
       gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    if (ktexture.orientation.x == OrientationX.RIGHT) {
+        mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
+        mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
+    }
+    if (ktexture.orientation.y == OrientationY.DOWN) {
+        mat3.translate(uvMatrix, uvMatrix, [0.0, 1.0]);
+        mat3.scale(uvMatrix, uvMatrix, [1.0, -1.0]);
+    }
     ktexture.delete();
   };
   //xhr.onprogress = runProgress;
@@ -558,6 +572,10 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
       programInfo.uniformLocations.normalMatrix,
       false,
       normalMatrix);
+  gl.uniformMatrix3fv(
+    programInfo.uniformLocations.uvMatrix,
+    false,
+    uvMatrix);
 
   // Specify the texture to map onto the faces.
 
