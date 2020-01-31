@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8">
+    <title>msc_transcoder_test with three.js</title>
+  </head>
   <script src="../msc_basis_transcoder.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@v0.112.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@v0.112.0/examples/js/controls/OrbitControls.js"></script>
@@ -8,14 +12,23 @@
     html, body { width:100%; height:100%; margin:0; padding:0; }
     canvas { display:block; }
     h2 { margin-top: 0; }
-    #panel { position: absolute; top: 10px; left: 10px; color: white; background-color:rgba(0.3, 0.3, 0.3, 0.3); padding: 0.5em; max-width: 400px;}
+    #panel {
+      position: absolute;
+      color: white;
+      background-color:rgba(0.3, 0.3, 0.3, 0.3);
+      padding: 0.5em;
+      left: 50%;
+      transform: translate(-50%, 0);
+      max-width: 50em;
+    }
   </style>
   <div id="panel">
     <h2>msc_basis_transcoder test</h2>
     <p>
       Loads and parses a KTX2 file with a plain JS loader, transcodes the
       Basis Universal-compressed payload with <code>msc_basis_transcoder</code>,
-      and renders the result with three.js.
+      and renders the result with three.js. This texture has been transcoded
+      to <b id='format'>FORMAT</b>.
     </p>
     <div id="log"></div>
   </div>
@@ -48,6 +61,22 @@
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
+    var dict = {
+      FirstName: "Chris",
+      "one": 1,
+      1: "some value"
+    };
+
+
+    const formatStrings = {
+        [THREE.RGBA_ASTC_4x4_Format]: "RGBA_ASTC_4x4",
+        [THREE.RGB_S3TC_DXT1_Format]: "RGB_S3TC_DXT1",
+        [THREE.RGBA_S3TC_DXT5_Format]: "RGBA_S3TC_DXT5",
+        [THREE.RGB_PVRTC_4BPPV1_Format]: "RGB_PVRTC_4BPPV1",
+        [THREE.RGBA_PVRTC_4BPPV1_Format]: "RGBA_PVRTC_4BPPV1",
+        [THREE.RGB_ETC1_Format]: "RGB_ETC1"
+    };
+
     requestIdleCallback(() => {
 
       animate();
@@ -57,12 +86,17 @@
         .load( '../libktx-webgl/ktx_app.ktx2', ( texture ) => {
 
           material.map = texture;
+          elem('format').innerText = formatStrings[material.map.format];
 
           material.needsUpdate = true;
 
         }, ( p ) => console.log( `...${p}` ), ( e ) => console.error( e ) );
 
     });
+
+    function elem(id) {
+      return document.getElementById(id);
+    }
 
     function animate() {
 

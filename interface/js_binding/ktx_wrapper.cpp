@@ -89,6 +89,12 @@ namespace ktx
                     && ktxTexture2(m_ptr)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS);
         }
 
+        bool isPremultiplied() const
+        {
+            return (m_ptr->classId == ktxTexture2_c
+                    && ktxTexture2_GetPremultipliedAlpha(ktxTexture2(m_ptr)));
+        }
+
         // @copydoc ktxTexture2::GetNumComponents
         uint32_t numComponents() const
         {
@@ -110,6 +116,15 @@ namespace ktx
             }
 
             return ktxTexture2(m_ptr)->vkFormat;
+        }
+
+        emscripten::val orientation() const
+        {
+            val ret = val::object();
+            ret.set("x", m_ptr->orientation.x);
+            ret.set("y", m_ptr->orientation.y);
+            ret.set("z", m_ptr->orientation.z);
+            return std::move(ret);
         }
 
         void transcodeBasis(const val& targetFormat, const val& decodeFlags)
@@ -195,7 +210,7 @@ Add this to the .html file
     xhr.open('GET', url);
     xhr.responseType = "arrayBuffer";
 
-    const { ktxTexture, TranscodeTarget } = LIBKTX;
+    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
     // this.response is a generic binary buffer which
     // we can interpret as Uint8Array.
     var ktxdata = new Uint8Array(this.response);
@@ -251,6 +266,14 @@ Add this to the .html file
     else
       gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    if (ktexture.orientation.x == OrientationX.RIGHT) {
+      // Adjust u coords, e.g. by setting up a uv transform
+    }
+    if (ktexture.orientation.y == OrientationY.DOWN) {
+      // Adjust v coords, e.g. by setting up a uv transform
+    }
+
     ktexture.delete();
   };
 
@@ -311,6 +334,18 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
                KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
     ;
+    enum_<ktxOrientationX>("OrientationX")
+        .value("LEFT", KTX_ORIENT_X_LEFT)
+        .value("RIGHT", KTX_ORIENT_X_RIGHT)
+    ;
+    enum_<ktxOrientationY>("OrientationY")
+        .value("UP", KTX_ORIENT_Y_UP)
+        .value("DOWN", KTX_ORIENT_Y_DOWN)
+    ;
+    enum_<ktxOrientationZ>("OrientationZ")
+        .value("IN", KTX_ORIENT_Z_IN)
+        .value("OUT", KTX_ORIENT_Z_OUT)
+    ;
 
     class_<ktx::texture>("ktxTexture")
         .constructor(&ktx::texture::createFromMemory)
@@ -322,6 +357,8 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("isSupercompressed", &ktx::texture::isSupercompressed)
         .property("numComponents", &ktx::texture::numComponents)
         .property("vkFormat", &ktx::texture::vkFormat)
+        .property("isPremultiplied", &ktx::texture::isPremultiplied)
+        .property("orientation", &ktx::texture::orientation)
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
         .function("glUpload", &ktx::texture::glUpload)
     ;

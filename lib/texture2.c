@@ -1210,6 +1210,21 @@ ktxTexture2_GetOETF(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
+ * @brief Retrieve whether the RGB components have been premultiplied by the alpha component.
+ *
+ * @param[in]     This      pointer to the ktxTexture object of interest.
+ *
+ * @return KTX_TRUE if the components are premultiplied, KTX_FALSE otherwise.
+ */
+ktx_bool_t
+ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, FLAGS) & KHR_DF_FLAG_ALPHA_PREMULTIPLIED;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Calculate & return the size in bytes of an image at the specified
  *        mip level.
  *
