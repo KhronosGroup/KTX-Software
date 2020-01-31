@@ -267,7 +267,7 @@ Add this to the .html file
       gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    if (ktexture.orientation.x == OrientationX.RIGHT) {
+    if (ktexture.orientation.x == OrientationX.LEFT) {
       // Adjust u coords, e.g. by setting up a uv transform
     }
     if (ktexture.orientation.y == OrientationY.DOWN) {
