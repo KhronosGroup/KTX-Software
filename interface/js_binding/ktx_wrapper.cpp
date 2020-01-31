@@ -210,7 +210,7 @@ Add this to the .html file
     xhr.open('GET', url);
     xhr.responseType = "arrayBuffer";
 
-    const { ktxTexture, TranscodeTarget } = LIBKTX;
+    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
     // this.response is a generic binary buffer which
     // we can interpret as Uint8Array.
     var ktxdata = new Uint8Array(this.response);
@@ -266,6 +266,14 @@ Add this to the .html file
     else
       gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    if (ktexture.orientation.x == OrientationX.RIGHT) {
+      // Adjust u coords, e.g. by setting up a uv transform
+    }
+    if (ktexture.orientation.y == OrientationY.DOWN) {
+      // Adjust v coords, e.g. by setting up a uv transform
+    }
+
     ktexture.delete();
   };
 
