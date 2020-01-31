@@ -414,7 +414,7 @@ function loadTexture(gl, url)
       gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    if (ktexture.orientation.x == OrientationX.RIGHT) {
+    if (ktexture.orientation.x == OrientationX.LEFT) {
         mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
         mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
     }
