@@ -160,6 +160,7 @@ set(KTX_LIB_READ_SRC
     lib/dfdutils/createdfd.c
     lib/dfdutils/interpretdfd.c
     lib/dfdutils/printdfd.c
+    lib/dfdutils/queries.c
     lib/dfdutils/vk2dfd.c
 
     lib/dfdutils/dfd2vk.inl
@@ -363,7 +364,7 @@ target_include_directories(
     utils
     )
 
-add_subdirectory(interface/c_binding)
+add_subdirectory(interface/basisu_c_binding)
 
 if(NOT IOS AND NOT ANDROID)
     add_subdirectory(tools)
