@@ -11,7 +11,7 @@
         # NB for XCODE: Due to difficulties passing env. vars to Xcode, set
         # VULKAN_SDK in Xcode Preferences, Locations tab, Custom Paths. It
         # should point to whereever you have the Vulkan SDK installed.
-        'moltenvk': '$(VULKAN_SDK)/MoltenVK',
+        'moltenvk': '$(VULKAN_INSTALL_DIR)/MoltenVK',
       }, # end level 3
       'moltenvk': '<(moltenvk)',
       'conditions': [
@@ -20,7 +20,7 @@
           'vksdk': '<(moltenvk)' # Until there's an official SDK.
         }, 'OS == "mac"', {
           'mvklib': '<(moltenvk)/macOS',
-          'vksdk': '$(VULKAN_SDK)/macOS',
+          'vksdk': '$(VULKAN_SDK)',
         }]
       ], # conditions
     }, # end level 2

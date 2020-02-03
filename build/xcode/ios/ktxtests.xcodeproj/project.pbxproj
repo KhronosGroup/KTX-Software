@@ -202,6 +202,7 @@
 		77775F05084DEBDDFBD80723 /* hi_mark.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 94DD1C49F443105D08BF84A6 /* hi_mark.ktx */; };
 		780146DA59EC968A3060B1CA /* rgb-mipmap-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F88C1A31D6E7CA23FC0F3F12 /* rgb-mipmap-reference.ktx */; };
 		7906793B8688F41A4406137C /* etc2-sRGBa8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 4D53BD2F51C127B942371603 /* etc2-sRGBa8.ktx */; };
+		7A35191187AFF532C2D3F23D /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 664C2F7DD42E6F2E259A709F /* MoltenVK.framework */; };
 		7AA89A1E86B8E5056163F819 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C64420EDFCCC9D13D9DE2C86 /* AudioToolbox.framework */; };
 		7C50B157BBCAD4F488F4210B /* textoverlay.vert.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = A552749546C348CF371B0C82 /* textoverlay.vert.spv */; };
 		7C6EF0D8335786FBE35EDC34 /* texture.frag.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = CFC7D5064118A7AAAB5EFB89 /* texture.frag.spv */; };
@@ -281,7 +282,6 @@
 		C313E6792003E9B159920B39 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBEB39731669F1BFB32B9CF4 /* QuartzCore.framework */; };
 		C343236712582A4B8B553105 /* texturearray_astc_8x8_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = E2DCA26973609FEC6CC88905 /* texturearray_astc_8x8_unorm.ktx */; };
 		C367B57CCD10AAA5F354CB43 /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D95A567BDD85A819DCEF3462 /* rgba-reference.ktx */; };
-		C81016E2E3F4C0E9EA6E10B8 /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62C83994A2A83EF030217704 /* MoltenVK.framework */; };
 		CFF7FF64ED5E69ECA2728931 /* VulkanContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA3DC6AAF119B8A3F074A795 /* VulkanContext.cpp */; };
 		D111AFEB2426EDBC96BF4C3C /* rgba-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D95A567BDD85A819DCEF3462 /* rgba-reference.ktx */; };
 		D135E82465B09A16C3C172F9 /* VulkanLoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FF2B887314CE42EA371646D /* VulkanLoadTestSample.cpp */; };
@@ -880,11 +880,11 @@
 		5DCA7F0AD2F673F02EAD425D /* texture.frag */ = {isa = PBXFileReference; lastKnownFileType = text; path = texture.frag; sourceTree = "<group>"; };
 		61079C41F37F26C67FF5441D /* etc2-rgba8.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-rgba8.ktx"; sourceTree = "<group>"; };
 		61F0537A8FDB659A23E3F0BE /* conftestimage_SIGNED_RG11_EAC.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = conftestimage_SIGNED_RG11_EAC.ktx; sourceTree = "<group>"; };
-		62C83994A2A83EF030217704 /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = MoltenVK/iOS/MoltenVK.framework; sourceTree = VULKAN_SDK; };
 		62C8ED7D4BE000BE8F05196F /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
 		6328927DB4CEC2FA75D584FE /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		63DF9C03B0D4DC23476EECBE /* frame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = frame.h; sourceTree = "<group>"; };
 		64A2A6791C604987F5E7EFD3 /* LaunchImages.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = LaunchImages.xcassets; sourceTree = "<group>"; };
+		664C2F7DD42E6F2E259A709F /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = MoltenVK/iOS/MoltenVK.framework; sourceTree = VULKAN_INSTALL_DIR; };
 		66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		67988744372D177E29B6BA08 /* vulkandebug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkandebug.h; sourceTree = "<group>"; };
 		67F07F2FD0CD42D7644E0180 /* reflect.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = reflect.frag.spv; sourceTree = "<group>"; };
@@ -1070,7 +1070,7 @@
 				393BCC3BCF0958DC2E5ADE45 /* AVFoundation.framework in Frameworks */,
 				8C8939F56F01FDB8B95FC27E /* Foundation.framework in Frameworks */,
 				EF2337DDDCD466E2C33EA93D /* GameController.framework in Frameworks */,
-				C81016E2E3F4C0E9EA6E10B8 /* MoltenVK.framework in Frameworks */,
+				7A35191187AFF532C2D3F23D /* MoltenVK.framework in Frameworks */,
 				EA7D90998EA677C2F8B6A389 /* IOSurface.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1160,7 +1160,7 @@
 				0E112A84CE9183658432C21B /* GameController.framework */,
 				9C49A77B05E3CA35A468F87A /* IOSurface.framework */,
 				95B55C26B3D2ADC1077F74FA /* Metal.framework */,
-				62C83994A2A83EF030217704 /* MoltenVK.framework */,
+				664C2F7DD42E6F2E259A709F /* MoltenVK.framework */,
 				4064762A5A368ADCC9CC334F /* OpenGLES.framework */,
 				BBEB39731669F1BFB32B9CF4 /* QuartzCore.framework */,
 				66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */,
@@ -2175,7 +2175,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2193,7 +2193,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					"$(ASSIMP_HOME)/include",
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/include",
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/ios/Info.plist;
@@ -2201,12 +2201,12 @@
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
-					"$(VULKAN_SDK)/MoltenVK/iOS",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-lassimp -lz";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2302,7 +2302,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2317,7 +2317,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					"$(ASSIMP_HOME)/include",
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/include",
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/ios/Info.plist;
@@ -2325,12 +2325,12 @@
 				LIBRARY_SEARCH_PATHS = (
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
-					"$(VULKAN_SDK)/MoltenVK/iOS",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-lassimp -lz";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = vkloadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2393,7 +2393,7 @@
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = es3loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2450,7 +2450,7 @@
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = es1loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2551,7 +2551,7 @@
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = es1loadtests;
 				STRIP_INSTALLED_PRODUCT = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2608,7 +2608,7 @@
 					"$(SDKROOT)/System/Library/Frameworks",
 				);
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.${PRODUCT_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.khronos.ktx.${PRODUCT_NAME}";
 				PRODUCT_NAME = es3loadtests;
 				STRIP_INSTALLED_PRODUCT = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2631,7 +2631,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2642,7 +2642,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2681,7 +2681,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2695,7 +2695,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
-					"$(VULKAN_SDK)/MoltenVK/include",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;

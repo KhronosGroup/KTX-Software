@@ -674,8 +674,8 @@ static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum interna
 
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:					return VK_FORMAT_BC1_RGB_UNORM_BLOCK;		// line through 3D space, 4x4 blocks, unsigned normalized
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:					return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;		// line through 3D space plus 1-bit alpha, 4x4 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:					return VK_FORMAT_BC2_UNORM_BLOCK;			// line through 3D space plus line through 1D space, 4x4 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:					return VK_FORMAT_BC3_UNORM_BLOCK;			// line through 3D space plus 4-bit alpha, 4x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:					return VK_FORMAT_BC2_UNORM_BLOCK;			// line through 3D space plus line through 1D space, 4x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:					return VK_FORMAT_BC3_UNORM_BLOCK;			// line through 3D space plus 4-bit alpha, 4x4 blocks, unsigned normalized
 
 		case GL_COMPRESSED_SRGB_S3TC_DXT1_EXT:					return VK_FORMAT_BC1_RGB_SRGB_BLOCK;		// line through 3D space, 4x4 blocks, sRGB
 		case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:			return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;		// line through 3D space plus 1-bit alpha, 4x4 blocks, sRGB
@@ -718,19 +718,19 @@ static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum interna
 		//
 		// PVRTC
 		//
-		case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC, 16x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC,  8x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC, 16x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x8 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x4 blocks, unsigned normalized
-		case GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG:				return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  4x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG: return VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;			// 3-component PVRTC, 16x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG: return VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;			// 3-component PVRTC,  8x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: return VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;			// 4-component PVRTC, 16x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: return VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;			// 4-component PVRTC,  8x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG: return VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG;			// 4-component PVRTC,  8x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG: return VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;			// 4-component PVRTC,  4x4 blocks, unsigned normalized
 
-		case GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC, 16x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT:				return VK_FORMAT_UNDEFINED;					// 3-component PVRTC,  8x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC, 16x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x8 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  8x4 blocks, sRGB
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG:			return VK_FORMAT_UNDEFINED;					// 4-component PVRTC,  4x4 blocks, sRGB
+		case GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT: return VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;			// 3-component PVRTC, 16x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT: return VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;			// 3-component PVRTC,  8x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT: return VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC, 16x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT: return VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC,  8x8 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG: return VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC,  8x4 blocks, sRGB
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG: return VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG;	// 4-component PVRTC,  4x4 blocks, sRGB
 
 		//
 		// ASTC
@@ -1181,6 +1181,8 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
 		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
 		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+		case VK_FORMAT_BC4_UNORM_BLOCK:
+		case VK_FORMAT_BC4_SNORM_BLOCK:
 			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
@@ -1192,8 +1194,6 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 		case VK_FORMAT_BC2_SRGB_BLOCK:
 		case VK_FORMAT_BC3_UNORM_BLOCK:
 		case VK_FORMAT_BC3_SRGB_BLOCK:
-		case VK_FORMAT_BC4_UNORM_BLOCK:
-		case VK_FORMAT_BC4_SNORM_BLOCK:
 		case VK_FORMAT_BC5_UNORM_BLOCK:
 		case VK_FORMAT_BC5_SNORM_BLOCK:
 		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
@@ -1227,6 +1227,17 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 16 * 8;
+			pFormatSize->blockWidth = 4;
+			pFormatSize->blockHeight = 4;
+			pFormatSize->blockDepth = 1;
+			break;
+		case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
+		case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG:
+		case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
+		case VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG:
+			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->paletteSizeInBits = 0;
+			pFormatSize->blockSizeInBits = 8 * 8;
 			pFormatSize->blockWidth = 4;
 			pFormatSize->blockHeight = 4;
 			pFormatSize->blockDepth = 1;
@@ -1321,7 +1332,7 @@ static inline void vkGetFormatSize( const VkFormat format, VkFormatSize * pForma
 			pFormatSize->blockHeight = 6;
 			pFormatSize->blockDepth = 1;
 			break;
-		case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: 
+		case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
 			pFormatSize->flags = VK_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;

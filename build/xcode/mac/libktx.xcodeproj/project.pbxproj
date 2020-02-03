@@ -688,10 +688,11 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -704,16 +705,17 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
 					"-lazy_library",
-					"$(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan",
+					"$(VULKAN_SDK)/Frameworks/vulkan.framework/vulkan",
 				);
 				PRODUCT_NAME = ktx.gl;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Release;
 		};
@@ -880,7 +882,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -890,7 +892,7 @@
 					_DEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = libvulkan;
 			};
@@ -903,14 +905,14 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = libvulkan;
 			};
@@ -982,7 +984,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -995,7 +997,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx.es3;
@@ -1045,10 +1047,11 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1062,16 +1065,17 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
 					"-lazy_library",
-					"$(VULKAN_SDK)/macOS/Frameworks/vulkan.framework/vulkan",
+					"$(VULKAN_SDK)/Frameworks/vulkan.framework/vulkan",
 				);
 				PRODUCT_NAME = ktx.gl;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Debug;
 		};
@@ -1083,7 +1087,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1097,7 +1101,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					other_include,
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = ktx.es3;

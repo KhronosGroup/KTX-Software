@@ -8,7 +8,7 @@
   'variables': {
     'conditions': [
       ['OS == "mac" or OS == "ios"', {
-        'bin': '$(VULKAN_SDK)/macOS/bin/',
+        'bin': '$(VULKAN_SDK)/bin/',
       }, {
         'bin': '',
       }],

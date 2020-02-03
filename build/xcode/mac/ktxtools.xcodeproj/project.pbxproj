@@ -462,6 +462,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = "";
@@ -479,6 +480,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = toktx;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
 			name = Release;
@@ -488,6 +490,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_PREFIX = "";
@@ -508,6 +511,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = toktx;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
