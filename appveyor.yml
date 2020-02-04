@@ -71,7 +71,7 @@ before_build:
 - ps: |-
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/mainpage.md
-    git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md
+    git checkout -q TODO.md lib/mainpage.md pkgdoc/mainpage.md
 
 build_script:
 - ps: |-
