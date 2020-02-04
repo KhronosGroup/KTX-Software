@@ -90,7 +90,8 @@ configuration.
 #### Xcode Preferences
 
 You must create the following Custom Path preferences in Xcode:
-[`DEVELOPMENT_TEAM`](#development_team) & [`VULKAN_SDK`](#vulkan_sdk).
+[`DEVELOPMENT_TEAM`](#development_team),
+[`VULKAN_INSTALL_DIR`]("#vulkan_install_dir) & [`VULKAN_SDK`](#vulkan_sdk).
 If building for macOS you must also set [`ASSIMP_HOME`](#assimp_home).
 
 ##### DEVELOPMENT_TEAM 
@@ -137,9 +138,13 @@ git diff | grep DEVELOPMENT_TEAM
 git checkout build/xcode
 ```
 
-##### VULKAN_SDK
+##### VULKAN_INSTALL_DIR
 
 Set this to the location where you have installed the [Vulkan SDK for macOS](#vulkan-sdk).
+
+##### VULKAN_SDK
+
+Set this to `$VULKAN_INSTALL_DIR/macOS`.
 
 ##### ASSIMP_HOME
 
