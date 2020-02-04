@@ -598,7 +598,8 @@ VulkanAppSDL::findGpu()
     uint32_t gpuCount;
 
     // Make initial call to query gpu_count, then second call for gpu info.
-    err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, NULL);
+    err = vkctx.instance.enumeratePhysicalDevices(&gpuCount,
+                                                  (vk::PhysicalDevice*)nullptr);
     assert(err == vk::Result::eSuccess);
 
     if (gpuCount > 0) {
@@ -722,9 +723,9 @@ VulkanAppSDL::createDevice()
             uint32_t deviceExtensionCount = 0;
 
             err = vkctx.gpu.enumerateDeviceExtensionProperties(
-                                                       NULL,
-                                                       &deviceExtensionCount,
-                                                       NULL);
+                                            NULL,
+                                            &deviceExtensionCount,
+                                            (vk::ExtensionProperties*)nullptr);
             assert(err == vk::Result::eSuccess);
 
             std::vector<vk::ExtensionProperties> deviceExtensions;
