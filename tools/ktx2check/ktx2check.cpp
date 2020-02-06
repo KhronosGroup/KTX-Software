@@ -271,11 +271,14 @@ struct {
     issue IncorrectByteOffset {
         ERROR | 0x0061, "Level %d byteOffset does not match expected value."
     };
+    issue IncorrectByteOffsetExplained {
+        ERROR | 0x0062, "Level %d byteOffset does not match expected value.\n%s."
+    };
     issue ZeroOffsetOrLength {
-        ERROR | 0x0062, "Level %d's byteOffset or byteLength is 0."
+        ERROR | 0x0063, "Level %d's byteOffset or byteLength is 0."
     };
     issue ZeroUncompressedLength {
-        ERROR | 0x0063, "Level %d's uncompressedByteLength is 0."
+        ERROR | 0x0064, "Level %d's uncompressedByteLength is 0."
     };
 } LevelIndex;
 
@@ -380,6 +383,21 @@ class validation_failed : public runtime_error {
 };
 
 /////////////////////////////////////////////////////////////////////
+//                      Define Helpful Functions                   //
+/////////////////////////////////////////////////////////////////////
+
+// Increase nbytes to make it a multiple of n. Works for any n.
+size_t padn(uint32_t n, size_t nbytes) {
+    return n * ceilf((float)nbytes / n);
+}
+
+// Calculate number of bytes to add to nbytes to make it a multiple of n.
+// Works for any n.
+uint32_t padn_len(uint32_t n, size_t nbytes) {
+    return (n * ceilf((float)nbytes / n)) - nbytes;
+}
+
+/////////////////////////////////////////////////////////////////////
 //                    Validator Class Definition                   //
 /////////////////////////////////////////////////////////////////////
 
@@ -446,6 +464,12 @@ class ktxValidator : public ktxApp {
             if (pDfd4Format != nullptr) delete pDfd4Format;
         }
 
+        size_t kvDataEndOffset() {
+            return sizeof(KTX_header2) + levelIndexSize
+                   + header.dataFormatDescriptor.byteLength
+                   + header.keyValueData.byteLength;
+        }
+
         size_t calcImageSize(uint32_t level) {
             struct blockCount {
                 uint32_t x, y;
@@ -483,18 +507,38 @@ class ktxValidator : public ktxApp {
             return layerSize * header.faceCount;
         }
 
+        // Recursive function to return the greatest common divisor of a and b.
+        uint32_t gcd(uint32_t a, uint32_t b) {
+            if (a == 0)
+                return b;
+            return gcd(b % a, a);
+        }
+
+        // Function to return the least common multiple of a & 4.
+        uint32_t lcm4(uint32_t a)
+        {
+            if (!(a & 0x03))
+                return a;  // a is a multiple of 4.
+            return (a*4) / gcd(a, 4);
+        }
+
         size_t calcLevelOffset(uint32_t level) {
+            // This function is only useful when the following 2 conditions
+            // are met as otherwise we have no idea what the size of a level
+            // ought to be.
+            assert (header.vkFormat != VK_FORMAT_UNDEFINED);
+            assert (header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE);
+
             assert (level < levelCount);
-            size_t levelOffset;
             // Calculate the expected base offset in the file
-            levelOffset = sizeof(KTX_header2) + levelIndexSize
-                          + header.dataFormatDescriptor.byteLength
-                          + header.keyValueData.byteLength;
-            levelOffset = _KTX_PAD8(levelOffset);
+            size_t levelOffset = kvDataEndOffset();
+            levelOffset
+                  = padn(lcm4(formatInfo.blockByteLength), levelOffset);
             for (uint32_t i = levelCount - 1; i > level; i--) {
                 size_t levelSize;
                 levelSize = calcLevelSize(i);
-                levelOffset += _KTX_PAD8(levelSize);
+                levelOffset
+                    += padn(lcm4(formatInfo.blockByteLength), levelSize);
             }
             return levelOffset;
         }
@@ -526,6 +570,15 @@ class ktxValidator : public ktxApp {
                     return false;
             }
             return true;
+        }
+
+        uint32_t requiredLevelAlignment() {
+            if (header.supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+                return 1;
+            else if (header.vkFormat == VK_FORMAT_UNDEFINED)
+                return 16;
+            else
+                return lcm4(formatInfo.blockByteLength);
         }
 
         void init (FILE* f) {
@@ -576,8 +629,8 @@ class ktxValidator : public ktxApp {
 
     // Move read point from curOffset to next multiple of alignment bytes.
     // Use read not fseeko/setpos so stdin can be used.
-    void align(uint64_t curOffset, uint64_t alignment, FILE* f) {
-        uint32_t pLen = (uint32_t)_KTX_PADN_LEN(alignment, curOffset);
+    void skipPadding(uint64_t curOffset, uint32_t alignment, FILE* f) {
+        uint32_t pLen = padn_len(alignment, curOffset);
         uint8_t padBuf[8];
         if (pLen) {
             if (fread(padBuf, pLen, 1, f) != 1) {
@@ -933,7 +986,9 @@ ktxValidator::validateHeader(validationContext& ctx)
         if (offset != ctx.header.keyValueData.byteOffset)
             addIssue(logger::eError, HeaderData.InvalidKVDOffset);
         offset += ctx.header.keyValueData.byteLength;
-        offset = _KTX_PAD8(offset);
+        if (ctx.header.supercompressionGlobalData.byteOffset != 0)
+            // Pad before SGD.
+            offset = padn(8, offset);
     }
 
     if (ctx.header.supercompressionGlobalData.byteOffset != 0) {
@@ -969,16 +1024,41 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
 
         } else {
             // Can only do minimal validation as we have no idea what the
-            // level sizes are.
-            if (levelIndex[level].byteLength == 0 || levelIndex[level].byteOffset == 0)
+            // level sizes are. Sadly this means we can't tell if there is
+            // any superfluous padding between mip levels.
+            if (levelIndex[level].byteLength == 0
+                || levelIndex[level].byteOffset == 0)
                addIssue(logger::eError, LevelIndex.ZeroOffsetOrLength, level);
             if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS) {
+                if (level == ctx.levelCount - 1) {
+                    size_t expectedOffset = ctx.kvDataEndOffset();
+                    // Spec requires 16 byte alignment for VK_FORMAT_UNDEFINED.
+                    expectedOffset = padn(16, expectedOffset);
+                    if (levelIndex[level].byteOffset != expectedOffset)
+                        addIssue(logger::eError,
+                                 LevelIndex.IncorrectByteOffsetExplained,
+                                 level,
+                                 "Alignment to 16 byte multiple is required for VK_FORMAT_UNDEFINED");
+                }
                 if (levelIndex[level].uncompressedByteLength == 0)
-               addIssue(logger::eError, LevelIndex.ZeroUncompressedLength,
-                        level);
+                    addIssue(logger::eError, LevelIndex.ZeroUncompressedLength,
+                             level);
+            } else {
+                if (level == ctx.levelCount - 1) {
+                    ktxIndexEntry64 sgdIndex
+                                  = ctx.header.supercompressionGlobalData;
+                    size_t expectedOffset
+                                  = sgdIndex.byteOffset + sgdIndex.byteLength;
+                    if (levelIndex[level].byteOffset != expectedOffset)
+                        addIssue(logger::eError,
+                                 LevelIndex.IncorrectByteOffsetExplained,
+                                 level,
+                                 "There must be no padding between supercompressionGlobalData and the first mip level data");
+                }
             }
         }
-        ctx.dataSizeFromLevelIndex += _KTX_PAD8(levelIndex[level].byteLength);
+        ctx.dataSizeFromLevelIndex += padn(ctx.requiredLevelAlignment(),
+                                           levelIndex[level].byteLength);
     }
     delete[] levelIndex;
 }
@@ -1201,7 +1281,7 @@ ktxValidator::validateKvd(validationContext& ctx)
             else
                 addIssue(logger::eError, Metadata.ForbiddenBOM2, pCurKv);
         }
-        curKvLen = _KTX_PAD4(curKvLen);
+        curKvLen = (uint32_t)padn(4, curKvLen);
         lengthCheck += curKvLen;
         pCurKv += curKvLen;
     }
@@ -1259,8 +1339,13 @@ ktxValidator::validateKvd(validationContext& ctx)
             addIssue(logger::eError, Metadata.NoKTXwriter);
     }
 
-    // Need byteOffset because keyValue data starts on 4 byte alignment.
-    align(ctx.header.keyValueData.byteOffset + kvdLen, 8, ctx.inf);
+    if (ctx.header.supercompressionGlobalData.byteOffset != 0) {
+        // Need byteOffset because keyValue data starts on 4 byte alignment.
+        skipPadding(ctx.header.keyValueData.byteOffset + kvdLen, 8, ctx.inf);
+    } else {
+        skipPadding(ctx.header.keyValueData.byteOffset + kvdLen,
+                    ctx.requiredLevelAlignment(), ctx.inf);
+    }
 }
 
 bool
@@ -1429,10 +1514,9 @@ ktxValidator::validateSgd(validationContext& ctx)
     // Can't do anymore as we have no idea how many endpoints, etc there
     // should be.
 
-    // Advance read pos to beginning of image data. Since sgdByteOffset is
-    // 8-byte aligned can use just sgdByteLength as "curOffset" argument.
-    // Correct padding length will be calculated.
-    align(sgdByteLength, 8, ctx.inf);
+    // Advance read pos to beginning of image data.
+    skipPadding(ctx.header.supercompressionGlobalData.byteOffset + sgdByteLength,
+                ctx.requiredLevelAlignment(), ctx.inf);
 }
 
 void
