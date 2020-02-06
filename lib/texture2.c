@@ -53,6 +53,63 @@ struct ktxTexture_vtblInt ktxTexture2_vtblInt;
 extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
 
 /**
+* @memberof ktxTexture2 @private
+* @~English
+* @brief Initialize a ktxFormatSize object from the info in a DFD.
+*
+* This is used instead of referring to the DFD directly so code dealing
+* with format info can be common to KTX 1 & 2.
+*
+* @param[in] This   pointer the ktxTexture2 whose DFD to use.
+* @param[in] fi       pointer to the ktxFormatSize object to initialize.
+*
+* @return    KTX_TRUE on success, otherwise KTX_FALSE.
+*/
+static bool
+ktxTexture2_extractFormatInfo(ktxTexture2* This, ktxFormatSize* fi)
+{
+    uint32_t* pDfd = This->pDfd;
+    uint32_t* pBdb = pDfd + 1;
+    fi->blockWidth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION0) + 1;
+    fi->blockHeight = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION1) + 1;
+    fi->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
+    fi->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
+    fi->flags = 0;
+    if (KHR_DFDVAL(pBdb, MODEL) >= KHR_DF_MODEL_DXT1A) {
+        // A block compressed format. Entire block is a single sample.
+        fi->flags |= KTX_FORMAT_SIZE_COMPRESSED_BIT;
+    } else {
+        // An uncompressed format.
+
+        // Special case depth & depth stencil formats
+        if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_DEPTH) {
+            if (KHR_DFDSAMPLECOUNT(pBdb) == 1) {
+                fi->flags |= KTX_FORMAT_SIZE_DEPTH_BIT;
+            } else if (KHR_DFDSAMPLECOUNT(pBdb) == 2) {
+                fi->flags |= KTX_FORMAT_SIZE_STENCIL_BIT;
+                fi->flags |= KTX_FORMAT_SIZE_DEPTH_BIT;
+                fi->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
+            } else {
+                return false;
+            }
+        } else if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_STENCIL) {
+            fi->flags |= KTX_FORMAT_SIZE_STENCIL_BIT;
+        } else {
+            InterpretedDFDChannel r, g, b, a;
+            uint32_t wordBytes;
+            enum InterpretDFDResult result;
+
+            result = interpretDFD(pDfd, &r, &g, &b, &a, &wordBytes);
+            if (result >= i_UNSUPPORTED_ERROR_BIT)
+                return false;
+            if (result & i_PACKED_FORMAT_BIT)
+                fi->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
+        }
+    }
+    return true;
+}
+
+/**
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Do the part of ktxTexture2 construction that is common to
@@ -118,17 +175,28 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
     memset(This, 0, sizeof(*This));
 
     if (createInfo->vkFormat != VK_FORMAT_UNDEFINED) {
-        vkGetFormatSize(createInfo->vkFormat, &formatSize);
-        if (formatSize.blockSizeInBits == 0) {
-            return KTX_INVALID_VALUE; // TODO Return a more reasonable error?
-        } else {
-            This->pDfd = vk2dfd(createInfo->vkFormat);
-        }
+        This->pDfd = vk2dfd(createInfo->vkFormat);
+        if (!This->pDfd)
+            return KTX_INVALID_VALUE;  // Format is unknown or unsupported.
+#ifdef _DEBUG
+        // If this fires, an unsupported format or incorrect DFD
+        // has crept into vk2dfd.
+        assert(ktxTexture2_extractFormatInfo(This, &formatSize));
+#else
+        (void)ktxTexture2_extractFormatInfo(This, &formatSize);
+#endif
+
     } else {
-        // TODO Validate createInfo->pDfd and create formatSize from it.
+        // TODO: Validate createInfo->pDfd.
+        This->pDfd = (ktx_uint32_t*)malloc(*createInfo->pDfd);
+        if (!This->pDfd)
+            return KTX_OUT_OF_MEMORY;
+        memcpy(This->pDfd, createInfo->pDfd, *createInfo->pDfd);
+        if (ktxTexture2_extractFormatInfo(This, &formatSize)) {
+            result = KTX_UNSUPPORTED_TEXTURE_TYPE;
+            goto cleanup;
+        }
     }
-    if (!This->pDfd)
-        return KTX_UNSUPPORTED_TEXTURE_TYPE;
 
     result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize,
                                    storageAllocation);
@@ -140,6 +208,8 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
 
     This->vkFormat = createInfo->vkFormat;
 
+    // Ideally we'd set all these things in ktxTexture2_extractFormatInfo
+    // but This->_protected is not allocated until ktxTexture_construct;
     if (This->isCompressed)
         This->_protected->_typeSize = 1;
     else if (formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)

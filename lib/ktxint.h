@@ -27,6 +27,7 @@
 #ifndef KTXINT_H
 #define KTXINT_H
 
+#include <math.h>
 #include "stream.h"
 
 /* Define this to include the ETC unpack software in the library. */
@@ -222,13 +223,13 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
 /*
  * Pad nbytes to next multiple of n
  */
-/* Equivalent to n * ceil(nbytes / n) */
-#define _KTX_PADN(n, nbytes) ((nbytes + (n-1)) & ~(ktx_uint32_t)(n-1))
+#define _KTX_PADN(n, nbytes) (ktx_uint32_t)(n * ceilf((float)(nbytes) / n))
 /*
  * Calculate bytes of of padding needed to reach next multiple of n.
  */
 /* Equivalent to (n * ceil(nbytes / n)) - nbytes */
-#define _KTX_PADN_LEN(n, nbytes) ((n-1) - ((nbytes + (n-1)) & (n-1)))
+#define _KTX_PADN_LEN(n, nbytes) \
+    (ktx_uint32_t)((n * ceilf((float)(nbytes) / n)) - (nbytes))
 
 /*
  * Pad nbytes to next multiple of 4
