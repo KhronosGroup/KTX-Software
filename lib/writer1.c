@@ -780,7 +780,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
                 srcOffset += (ktx_uint32_t)imageSize;
             }
         }
-        if (result == KTX_SUCCESS & level != 0) {
+        if (result == KTX_SUCCESS && level != 0) {
             uint32_t mipPaddingLen = _KTX_PADN_LEN(requiredLevelAlignment,
                                                 dstLevelSize);
             if (mipPaddingLen)
