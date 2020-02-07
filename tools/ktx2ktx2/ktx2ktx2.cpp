@@ -195,6 +195,7 @@ int _tmain(int argc, _TCHAR* argv[])
     std::vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         _tstring infile = *it;
+        _tstring outfile;
 
         if (!infile.compare(_T("-"))) {
             inf = stdin;
@@ -212,12 +213,14 @@ int _tmain(int argc, _TCHAR* argv[])
             {
                 size_t dot;
 
-                options.outfile = infile;
-                dot = options.outfile.find_last_of(_T('.'));
+                outfile = infile;
+                dot = outfile.find_last_of(_T('.'));
                 if (dot != _tstring::npos) {
-                    options.outfile.erase(dot, _tstring::npos);
+                    outfile.erase(dot, _tstring::npos);
                 }
-                options.outfile += _T(".ktx2");
+                outfile += _T(".ktx2");
+            } else if (options.outfile.length()) {
+                outfile = options.outfile;
             }
 
             if (options.useStdout) {
@@ -226,8 +229,8 @@ int _tmain(int argc, _TCHAR* argv[])
                 /* Set "stdout" to have binary mode */
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
-            } else if (options.outfile.length()) {
-                outf = _tfopen(options.outfile.c_str(), "wxb");
+            } else if (outfile.length()) {
+                outf = _tfopen(outfile.c_str(), "wxb");
             }
 
             if (!outf && errno == EEXIST) {
@@ -244,7 +247,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = _tfopen(options.outfile.c_str(), "wb");
+                    outf = _tfopen(outfile.c_str(), "wb");
                 }
             }
 
