@@ -102,17 +102,17 @@ fi
 
 # Generate reference files for toktx-tests ...
 
-$ktx2ktx2 cubemap_yokohama_astc_8x8_unorm.ktx
-$ktx2ktx2 cubemap_yokohama_bc3_unorm.ktx
-$ktx2ktx2 cubemap_yokohama_etc2_unorm.ktx
-$ktx2ktx2 -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
-$ktx2ktx2 -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
-$ktx2ktx2 pattern_02_bc2.ktx
-$ktx2ktx2 -o rgb-mipmap-reference-u.ktx2 rgb-mipmap-reference.ktx
-$ktx2ktx2 -o rgba-reference-u.ktx2 rgba-reference.ktx
-$ktx2ktx2 texturearray_astc_8x8_unorm.ktx
-$ktx2ktx2 texturearray_bc3_unorm.ktx
-$ktx2ktx2 texturearray_etc2_unorm.ktx
+$ktx2ktx2 -f cubemap_yokohama_astc_8x8_unorm.ktx
+$ktx2ktx2 -f cubemap_yokohama_bc3_unorm.ktx
+$ktx2ktx2 -f cubemap_yokohama_etc2_unorm.ktx
+$ktx2ktx2 -f -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
+$ktx2ktx2 -f -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
+$ktx2ktx2 -f pattern_02_bc2.ktx
+$ktx2ktx2 -f -o rgb-mipmap-reference-u.ktx2 rgb-mipmap-reference.ktx
+$ktx2ktx2 -f -o rgba-reference-u.ktx2 rgba-reference.ktx
+$ktx2ktx2 -f texturearray_astc_8x8_unorm.ktx
+$ktx2ktx2 -f texturearray_bc3_unorm.ktx
+$ktx2ktx2 -f texturearray_etc2_unorm.ktx
 $toktx --bcmp FlightHelmet_baseColor_basis.ktx2  FlightHelmet_baseColor.png
 $toktx --bcmp alpha_simple_basis.ktx2 alpha_simple.png
 $toktx --bcmp kodim17_basis.ktx2 kodim17.png

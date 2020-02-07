@@ -699,7 +699,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         return KTX_OUT_OF_MEMORY;
 
     This->vkFormat = VK_FORMAT_UNDEFINED;
-    // Reflect this in the formatSize.
+    This->supercompressionScheme = KTX_SUPERCOMPRESSION_BASIS;
+
+    // Reflect this in the formatSize
     ktxFormatSize& formatSize = This->_protected->_formatSize;
     formatSize.flags = 0;
     formatSize.paletteSizeInBits = 0;
@@ -707,13 +709,15 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     formatSize.blockWidth = 1;
     formatSize.blockHeight = 1;
     formatSize.blockDepth = 1;
+    // and the requiredLevelAlignment.
+    This->_private->_requiredLevelAlignment = 1;
 
     // Since we only allow 8-bit components to be compressed ...
     assert(This->_protected->_typeSize == 1);
 
-    This->supercompressionScheme = KTX_SUPERCOMPRESSION_BASIS;
     priv._supercompressionGlobalData = bgd;
     priv._sgdByteLength = bgd_size;
+
 
     This->pData = new_data;
     This->dataSize = image_data_size;

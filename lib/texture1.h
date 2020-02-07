@@ -46,6 +46,8 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
                                          KTX_header* pHeader,
                                          ktxTextureCreateFlags createFlags);
 
+ktx_uint64_t ktxTexture1_calcDataSizeTexture(ktxTexture1* This);
+ktx_size_t ktxTexture1_calcLevelOffset(ktxTexture1* This, ktx_uint32_t level);
 ktx_uint32_t ktxTexture1_glTypeSize(ktxTexture1* This);
 
 #ifdef __cplusplus

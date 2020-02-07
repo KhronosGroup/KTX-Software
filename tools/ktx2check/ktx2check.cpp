@@ -631,7 +631,7 @@ class ktxValidator : public ktxApp {
     // Use read not fseeko/setpos so stdin can be used.
     void skipPadding(uint64_t curOffset, uint32_t alignment, FILE* f) {
         uint32_t pLen = padn_len(alignment, curOffset);
-        uint8_t padBuf[8];
+        uint8_t padBuf[32];
         if (pLen) {
             if (fread(padBuf, pLen, 1, f) != 1) {
                 if (ferror(f))

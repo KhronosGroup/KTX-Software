@@ -236,7 +236,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     ktx_uint8_t* pKvd;
     ktx_uint32_t align8PadLen;
     ktx_uint64_t sgdLen;
-    ktx_uint32_t sgdPadLen;
+    ktx_uint32_t initialLevelPadLen;
     ktx_uint32_t levelIndexSize;
     ktx_uint64_t baseOffset;
 
@@ -291,16 +291,21 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.keyValueData.byteOffset = kvdLen != 0 ? (uint32_t)baseOffset : 0;
     header.keyValueData.byteLength = kvdLen;
-
-    align8PadLen = _KTX_PAD8_LEN(baseOffset + kvdLen);
-    baseOffset += kvdLen + align8PadLen;
+    baseOffset += kvdLen;
 
     sgdLen = private->_sgdByteLength;
+    if (sgdLen) {
+        align8PadLen = _KTX_PAD8_LEN(baseOffset);
+        baseOffset += align8PadLen;
+    }
+
     header.supercompressionGlobalData.byteOffset = sgdLen != 0 ? baseOffset : 0;
     header.supercompressionGlobalData.byteLength = sgdLen;
+    baseOffset += sgdLen;
 
-    sgdPadLen = _KTX_PAD8_LEN(sgdLen);
-    baseOffset += sgdLen + sgdPadLen;
+    initialLevelPadLen = _KTX_PADN_LEN(This->_private->_requiredLevelAlignment,
+                                       baseOffset);
+    baseOffset += initialLevelPadLen;
 
     // write header and indices
     result = dststr->write(dststr, &header, sizeof(header), 1);
@@ -338,24 +343,24 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
         }
     }
 
-    char padding[] = {0,0,0,0,0,0,0};
-    if (align8PadLen) {
-        result = dststr->write(dststr, padding, 1, align8PadLen);
-        if (result != KTX_SUCCESS) {
-             return result;
-        }
-    }
-
+    char padding[32] = { 0 };
     // write supercompressionGlobalData & sgdPadding
     if (private->_sgdByteLength != 0) {
+        if (align8PadLen) {
+            result = dststr->write(dststr, padding, 1, align8PadLen);
+            if (result != KTX_SUCCESS) {
+                 return result;
+            }
+        }
+
         result = dststr->write(dststr, private->_supercompressionGlobalData,
                                1, private->_sgdByteLength);
         if (result != KTX_SUCCESS) {
             return result;
         }
 
-        if (sgdPadLen) {
-            result = dststr->write(dststr, padding, 1, sgdPadLen);
+        if (initialLevelPadLen) {
+            result = dststr->write(dststr, padding, 1, initialLevelPadLen);
             if (result != KTX_SUCCESS) {
                  return result;
             }
@@ -406,10 +411,12 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
         // Write entire level.
         result = dststr->write(dststr, This->pData + srcLevelOffset,
                                levelSize, 1);
-        if (result == KTX_SUCCESS) {
-            align8PadLen = _KTX_PAD8_LEN(levelSize);
-            if (align8PadLen != 0)
-             result = dststr->write(dststr, padding, 1, align8PadLen);
+        if (result == KTX_SUCCESS && level > 0) { // No padding at end.
+            ktx_uint32_t levelPadLen
+                       = _KTX_PADN_LEN(This->_private->_requiredLevelAlignment,
+                                       levelSize);
+            if (levelPadLen != 0)
+              result = dststr->write(dststr, padding, 1, align8PadLen);
         }
     }
 

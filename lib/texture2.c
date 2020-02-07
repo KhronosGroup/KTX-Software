@@ -65,10 +65,9 @@ extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
 *
 * @return    KTX_TRUE on success, otherwise KTX_FALSE.
 */
-static bool
-ktxTexture2_extractFormatInfo(ktxTexture2* This, ktxFormatSize* fi)
+bool
+ktxTexture2_extractFormatInfo(ktx_uint32_t* pDfd, ktxFormatSize* fi)
 {
-    uint32_t* pDfd = This->pDfd;
     uint32_t* pBdb = pDfd + 1;
     fi->blockWidth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION0) + 1;
     fi->blockHeight = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION1) + 1;
@@ -146,7 +145,6 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
     return KTX_SUCCESS;
 }
 
-
 /**
  * @memberof ktxTexture2 @private
  * @~English
@@ -160,14 +158,14 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
  *                       enum indicating whether or not to allocate storage
  *                       for the texture images.
  * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
- * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture or image data.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
  *                              The request VkFormat is one of the
  *                              prohibited formats.
  */
 static KTX_error_code
 ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
-                        ktxTextureCreateStorageEnum storageAllocation)
+                      ktxTextureCreateStorageEnum storageAllocation)
 {
     ktxFormatSize formatSize;
     KTX_error_code result;
@@ -181,9 +179,9 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
 #ifdef _DEBUG
         // If this fires, an unsupported format or incorrect DFD
         // has crept into vk2dfd.
-        assert(ktxTexture2_extractFormatInfo(This, &formatSize));
+        assert(ktxTexture2_extractFormatInfo(This->pDfd, &formatSize));
 #else
-        (void)ktxTexture2_extractFormatInfo(This, &formatSize);
+        (void)ktxTexture2_extractFormatInfo(This->pDfd, &formatSize);
 #endif
 
     } else {
@@ -192,14 +190,14 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
         if (!This->pDfd)
             return KTX_OUT_OF_MEMORY;
         memcpy(This->pDfd, createInfo->pDfd, *createInfo->pDfd);
-        if (ktxTexture2_extractFormatInfo(This, &formatSize)) {
+        if (ktxTexture2_extractFormatInfo(This->pDfd, &formatSize)) {
             result = KTX_UNSUPPORTED_TEXTURE_TYPE;
             goto cleanup;
         }
     }
 
-    result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize,
-                                   storageAllocation);
+    result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize);
+
     if (result != KTX_SUCCESS)
         return result;
     result = ktxTexture2_constructCommon(This, createInfo->numLevels);
@@ -228,6 +226,9 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
 
     This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
 
+    This->_private->_requiredLevelAlignment
+                        = ktxTexture2_calcRequiredLevelAlignment(This);
+
     // Create levelIndex. Offsets are from start of the KTX2 stream.
     ktxLevelIndexEntry* levelIndex = This->_private->_levelIndex;
     ktx_uint32_t levelIndexSize;
@@ -242,15 +243,13 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
         levelIndex[level].byteLength =
             levelIndex[level].uncompressedByteLength;
         levelIndex[level].byteOffset =
-            ktxTexture_calcLevelOffset(ktxTexture(This), level,
-                                       KTX_FORMAT_VERSION_TWO);
+            ktxTexture_calcLevelOffset(ktxTexture(This), level);
     }
 
     // Allocate storage, if requested.
     if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
         This->dataSize
-                = ktxTexture_calcDataSizeTexture(ktxTexture(This),
-                                                 KTX_FORMAT_VERSION_TWO);
+                = ktxTexture_calcDataSizeTexture(ktxTexture(This));
         This->pData = malloc(This->dataSize);
         if (This->pData == NULL) {
             result = KTX_OUT_OF_MEMORY;
@@ -448,12 +447,6 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
      */
     This->vkFormat = pHeader->vkFormat;
     This->supercompressionScheme = pHeader->supercompressionScheme;
-    if (This->vkFormat != VK_FORMAT_UNDEFINED) {
-        vkGetFormatSize(This->vkFormat, &This->_protected->_formatSize);
-        if (This->_protected->_formatSize.blockSizeInBits == 0) {
-            return KTX_INVALID_VALUE; // TODO Return a more reasonable error?
-        }
-    }
 
     This->_protected->_typeSize = pHeader->typeSize;
     // Can these be done by a ktxTexture_constructFromStream?
@@ -488,7 +481,6 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     // ktxCheckHeader2_ does the max(1, levelCount) and sets
     // suppInfo.generateMipmaps when it was originally 0.
     This->numLevels = pHeader->levelCount;
-    This->isCompressed = (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
     This->generateMipmaps = suppInfo.generateMipmaps;
 
     // Read level index
@@ -511,6 +503,15 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                           pHeader->dataFormatDescriptor.byteLength);
     if (result != KTX_SUCCESS)
         goto cleanup;
+
+    if (!ktxTexture2_extractFormatInfo(This->pDfd, &This->_protected->_formatSize)) {
+        result = KTX_UNSUPPORTED_TEXTURE_TYPE;
+        goto cleanup;
+    }
+    This->isCompressed = (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
+
+    This->_private->_requiredLevelAlignment
+                          = ktxTexture2_calcRequiredLevelAlignment(This);
 
     // Make an empty hash list.
     ktxHashList_Construct(&This->kvDataHead);
@@ -633,7 +634,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     // Calculate size of the image data.
     This->dataSize = 0;
     for (ktx_uint32_t i = 0; i < This->numLevels; i++) {
-        This->dataSize += _KTX_PAD8(private->_levelIndex[i].byteLength);
+        This->dataSize += private->_levelIndex[i].byteLength;
     }
 
     /*
@@ -1137,6 +1138,39 @@ ktxTexture2_Destroy(ktxTexture2* This)
 /**
  * @memberof ktxTexture2 @private
  * @~English
+ * @brief Calculate the size of the image data for the specified number
+ *        of levels.
+ *
+ * The data size is the sum of the sizes of each level up to the number
+ * specified and includes any @c mipPadding between levels. It does
+ * not include initial @c mipPadding required in the file.
+ *
+ * @param[in] This     pointer to the ktxTexture object of interest.
+ * @param[in] levels   number of levels whose data size to return.
+ *
+ * @return the data size in bytes.
+ */
+ktx_size_t
+ktxTexture2_calcDataSizeLevels(ktxTexture2* This, ktx_uint32_t levels)
+{
+    ktx_size_t dataSize = 0;
+
+    assert(This != NULL);
+    assert(levels <= This->numLevels);
+    for (ktx_uint32_t i = levels - 1; i > 0; i--) {
+        ktx_size_t levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
+                                                        KTX_FORMAT_VERSION_TWO);
+        dataSize += _KTX_PADN(This->_private->_requiredLevelAlignment,
+                              levelSize);
+    }
+    dataSize += ktxTexture_calcLevelSize(ktxTexture(This), 0,
+                                         KTX_FORMAT_VERSION_TWO);
+    return dataSize;
+}
+
+/**
+ * @memberof ktxTexture2 @private
+ * @~English
  *
  * @copydoc ktxTexture::ktxTexture_doCalcFaceLodSize
  */
@@ -1153,6 +1187,90 @@ ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
     else
         return This->_private->_levelIndex[level].uncompressedByteLength;
 }
+
+/**
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Return the offset of a level in bytes from the start of the image
+ *        data in a ktxTexture.
+ *
+ * Since the offset is from the start of the image data, it does not include the initial
+ * @c mipPadding required in the file.
+ *
+ * @param[in]     This  pointer to the ktxTexture object of interest.
+ * @param[in]     level level whose offset to return.
+ *
+ * @return the data size in bytes.
+ */
+ktx_size_t
+ktxTexture2_calcLevelOffset(ktxTexture2* This, ktx_uint32_t level)
+{
+  assert (This != NULL);
+  assert (level < This->numLevels);
+  ktx_size_t levelOffset = 0;
+  for (ktx_uint32_t i = This->numLevels - 1; i > level; i--) {
+      ktx_size_t levelSize;
+      levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
+                                           KTX_FORMAT_VERSION_TWO);
+      levelOffset += _KTX_PADN(This->_private->_requiredLevelAlignment,
+                               levelSize);
+  }
+  return levelOffset;
+}
+
+
+/**
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Retrieve the offset of a level's first image within the KTX2 file.
+ *
+ * @param[in] This pointer to the ktxTexture object of interest.
+ */
+ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level)
+{
+    assert(This->_private->_firstLevelFileOffset != 0);
+    return This->_private->_levelIndex[level].byteOffset
+           + This->_private->_firstLevelFileOffset;
+}
+
+// Recursive function to return the greatest common divisor of a and b.
+static uint32_t
+gcd(uint32_t a, uint32_t b) {
+    if (a == 0)
+        return b;
+    return gcd(b % a, a);
+}
+
+// Function to return the least common multiple of a & 4.
+uint32_t
+lcm4(uint32_t a)
+{
+    if (!(a & 0x03))
+        return a;  // a is a multiple of 4.
+    return (a*4) / gcd(a, 4);
+}
+
+/**
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Return the required alignment for levels of this texture.
+ *
+ * @param[in] This       pointer to the ktxTexture2 object of interest.
+ *
+ * @return    The required alignment for levels.
+ */
+ ktx_uint32_t
+ ktxTexture2_calcRequiredLevelAlignment(ktxTexture2* This)
+ {
+    ktx_uint32_t alignment;
+    if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+        alignment = 1;
+    else if (This->vkFormat != VK_FORMAT_UNDEFINED)
+        alignment = lcm4(This->_protected->_formatSize.blockSizeInBits / 8);
+    else
+        alignment = 16;
+    return alignment;
+ }
 
 /**
  * @memberof ktxTexture2
@@ -1607,20 +1725,6 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
 /**
  * @memberof ktxTexture2 @private
  * @~English
- * @brief Retrieve the offset of a level's first image within the KTX2 file.
- *
- * @param[in] This pointer to the ktxTexture object of interest.
- */
-ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level)
-{
-    assert(This->_private->_firstLevelFileOffset != 0);
-    return This->_private->_levelIndex[level].byteOffset
-           + This->_private->_firstLevelFileOffset;
-}
-
-/**
- * @memberof ktxTexture2 @private
- * @~English
  * @brief Retrieve the offset of a level's first image within the ktxTexture2's
  *        image data.
  *
@@ -1637,7 +1741,9 @@ ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level)
  */
 
 struct ktxTexture_vtblInt ktxTexture2_vtblInt = {
-    (PFNCALCFACELODSIZE)ktxTexture2_calcFaceLodSize
+    (PFNCALCDATASIZELEVELS)ktxTexture2_calcDataSizeLevels,
+    (PFNCALCFACELODSIZE)ktxTexture2_calcFaceLodSize,
+    (PFNCALCLEVELOFFSET)ktxTexture2_calcLevelOffset
 };
 
 struct ktxTexture_vtbl ktxTexture2_vtbl = {
