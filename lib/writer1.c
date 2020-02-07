@@ -697,8 +697,8 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
     }
 
     // Write the image data
-    for (ktx_uint32_t level = This->numLevels;
-         level > 0 && result == KTX_SUCCESS; )
+    for (ktx_int32_t level = This->numLevels - 1;
+         level >= 0 && result == KTX_SUCCESS; --level)
     {
         //ktx_uint64_t faceLodSize;
         ktx_uint32_t layer, levelDepth, numImages;
@@ -708,9 +708,6 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 #if defined(DEBUG) || DUMP_IMAGE
         ktx_size_t pos;
 #endif
-
-        --level; // Calc proper level number for below. Conveniently
-                 // decrements loop variable as well.
         imageSize = ktxTexture_calcImageSize(ktxTexture(This), level,
                                              KTX_FORMAT_VERSION_TWO);
 #if defined(DEBUG)
