@@ -1073,10 +1073,9 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
                          LevelIndex.IncorrectByteOffset,
                          level);
             }
-            if (levelIndex[level].byteLength < lastByteLength)
-                addIssue(logger.eError, LevelIndex.IncorrectLevelOrder);
-            lastByteLength = levelIndex[level].byteLength;
             if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
+                if (levelIndex[level].byteLength < lastByteLength)
+                    addIssue(logger.eError, LevelIndex.IncorrectLevelOrder);
                 if (levelIndex[level].byteOffset % requiredLevelAlignment != 0)
                     addIssue(logger::eError, LevelIndex.UnalignedOffset,
                              level, requiredLevelAlignment);
@@ -1084,6 +1083,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
                     addIssue(logger::eError, LevelIndex.ZeroUncompressedLength,
                              level);
                 }
+                lastByteLength = levelIndex[level].byteLength;
             }
             expectedOffset += padn(requiredLevelAlignment,
                                    levelIndex[level].byteLength);
