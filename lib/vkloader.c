@@ -319,6 +319,8 @@ optimalTilingCallback(int miplevel, int face,
     return KTX_SUCCESS;
 }
 
+uint32_t lcm4(uint32_t a);
+
 /**
  * @internal
  * @~English
@@ -389,9 +391,8 @@ optimalTilingPadCallback(int miplevel, int face,
     if (ud->offset % ud->elementSize != 0 || ud->offset % 4 != 0) {
         // Only elementSizes of 1,2 and 3 will bring us here.
         assert(ud->elementSize < 4 && ud->elementSize > 0);
-        ktx_uint32_t lcm = ud->elementSize == 3 ? 12 : 4;
-        // Can't use _KTX_PADN shortcut because 12 is not power of 2.
-        ud->offset = (ktx_uint32_t)(lcm * ceil((float)ud->offset / lcm));
+        ktx_uint32_t lcm = lcm4(ud->elementSize);
+        ud->offset = _KTX_PADN(lcm, ud->offset);
     }
     // These 2 are expressed in texels; not suitable for dealing with padding.
     ud->region->bufferRowLength = 0;
