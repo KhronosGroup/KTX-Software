@@ -198,6 +198,9 @@ struct {
     issue ScSchemeVkFormatMismatch {
         ERROR | 0x0033, "VK_FORMAT_UNDEFINED is valid only with supercompressionSchemes NONE and BASIS."
     };
+    issue ZeroLevelCountForBC {
+        ERROR | 0x0033, "levelCount must be > 0 for block-compressed formats."
+    };
 } HeaderData;
 
 struct {
@@ -285,6 +288,9 @@ struct {
     };
     issue ZeroUncompressedLength {
         ERROR | 0x0066, "Level %d's uncompressedByteLength is 0."
+    };
+    issue IncorrectLevelOrder {
+        ERROR | 0x0067, "Larger mip levels are before smaller."
     };
 } LevelIndex;
 
@@ -944,6 +950,8 @@ ktxValidator::validateHeader(validationContext& ctx)
             if (ctx.formatInfo.isBlockCompressed) {
                 if (ctx.header.typeSize != 1)
                     addIssue(logger::eError, HeaderData.TypeSizeNotOne);
+                if (ctx.header.levelCount == 0)
+                    addIssue(logger::eError, HeaderData.ZeroLevelCountForBC);
             } else {
                 if (ctx.header.typeSize != ctx.formatInfo.wordSize)
                      addIssue(logger::eError, HeaderData.TypeSizeMismatch);
@@ -1016,6 +1024,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
 
     uint32_t requiredLevelAlignment = ctx.requiredLevelAlignment();
     size_t expectedOffset;
+    size_t lastByteLength = 0;
     if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
         expectedOffset = padn(requiredLevelAlignment, ctx.kvDataEndOffset());
     } else {
@@ -1064,6 +1073,9 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
                          LevelIndex.IncorrectByteOffset,
                          level);
             }
+            if (levelIndex[level].byteLength < lastByteLength)
+                addIssue(logger.eError, LevelIndex.IncorrectLevelOrder);
+            lastByteLength = levelIndex[level].byteLength;
             if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
                 if (levelIndex[level].byteOffset % requiredLevelAlignment != 0)
                     addIssue(logger::eError, LevelIndex.UnalignedOffset,
