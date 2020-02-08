@@ -64,9 +64,6 @@ static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
  *                       information describing the texture.
  * @param[in] formatSize pointer to a ktxFormatSize giving size information
  *                       about the texture's elements.
- * @param[in] storageAllocation
- *                       enum indicating whether or not to allocate storage
- *                       for the texture images.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -92,12 +89,11 @@ static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
  *                              @p createInfo is requesting more mip levels
  *                              than needed for the specified
  *                              <tt>base{Width,Height,Depth}</tt>.
- * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture.
  */
 KTX_error_code
 ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
-                     ktxFormatSize* formatSize,
-                     ktxTextureCreateStorageEnum storageAllocation)
+                     ktxFormatSize* formatSize)
 {
     DECLARE_PROTECTED(ktxTexture);
 
@@ -190,15 +186,6 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
     This->isArray = createInfo->isArray;
 
     ktxHashList_Construct(&This->kvDataHead);
-    if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
-// XXX FIXME Need a virtual function here
-        This->dataSize
-                    = ktxTexture_calcDataSizeTexture(This,
-                                                     KTX_FORMAT_VERSION_ONE);
-        This->pData = malloc(This->dataSize);
-        if (This->pData == NULL)
-            return KTX_OUT_OF_MEMORY;
-    }
     return KTX_SUCCESS;
 }
 
@@ -808,76 +795,6 @@ ktxTexture_doCalcFaceLodSize(ktxTexture* This, ktx_uint32_t level,
         return ktxTexture_calcLevelSize(This, level, fv);
 }
 
-/**
- * @memberof ktxTexture @private
- * @~English
- * @brief Calculate the size of the image data for the specified number
- *        of levels.
- *
- * The data size is the sum of the sizes of each level up to the number
- * specified and includes any @c mipPadding.
- *
- * @param[in] This     pointer to the ktxTexture object of interest.
- * @param[in] levels   number of levels whose data size to return.
- *
- * @return the data size in bytes.
- */
-inline ktx_size_t
-ktxTexture_calcDataSizeLevels(ktxTexture* This, ktx_uint32_t levels,
-                              ktxFormatVersionEnum fv)
-{
-    ktx_uint32_t i;
-    ktx_size_t dataSize = 0;
-
-    assert(This != NULL);
-    assert(levels <= This->numLevels);
-    for (i = 0; i < levels; i++) {
-        ktx_size_t levelSize = ktxTexture_calcLevelSize(This, i, fv);
-        /* mipPadding. NOTE: this adds padding after the last level too. */
-        if (fv == KTX_FORMAT_VERSION_TWO)
-            dataSize += _KTX_PAD8(levelSize);
-        else if (KTX_GL_UNPACK_ALIGNMENT != 4)
-            dataSize += _KTX_PAD4(levelSize);
-        else
-            dataSize += levelSize;
-    }
-    return dataSize;
-}
-
-/**
- * @memberof ktxTexture @private
- * @~English
- * @brief Return the offset of a level in bytes from the start of the image
- *        data in a ktxTexture.
- *
- * The caclulated size does not include space for storing the @c imageSize
- * fields of each mip level.
- *
- * @param[in]     This  pointer to the ktxTexture object of interest.
- * @param[in]     level level whose offset to return.
- * @param[in]     fv    enum specifying format version for which to calculate
- *                      image size.
- *
- * @return the data size in bytes.
- */
-ktx_size_t
-ktxTexture_calcLevelOffset(ktxTexture* This, ktx_uint32_t level,
-                           ktxFormatVersionEnum fv)
-{
-    assert (This != NULL);
-    assert (level < This->numLevels);
-    if (fv == KTX_FORMAT_VERSION_ONE) {
-        return ktxTexture_calcDataSizeLevels(This, level, fv);
-    } else {
-        ktx_size_t levelOffset = 0;
-        for (ktx_uint32_t i = This->numLevels - 1; i > level; i--) {
-            ktx_size_t levelSize;
-            levelSize = ktxTexture_calcLevelSize(This, i, fv);
-            levelOffset += _KTX_PAD8(levelSize);
-        }
-        return levelOffset;
-    }
-}
 
 /**
  * @memberof ktxTexture @private
@@ -895,10 +812,10 @@ ktxTexture_calcLevelOffset(ktxTexture* This, ktx_uint32_t level,
  * @return the data size in bytes.
  */
 ktx_size_t
-ktxTexture_calcDataSizeTexture(ktxTexture* This, ktxFormatVersionEnum fv)
+ktxTexture_calcDataSizeTexture(ktxTexture* This)
 {
     assert (This != NULL);
-    return ktxTexture_calcDataSizeLevels(This, This->numLevels, fv);
+    return ktxTexture_calcDataSizeLevels(This, This->numLevels);
 }
 
 /**

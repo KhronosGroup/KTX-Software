@@ -77,6 +77,10 @@ ktxTexture1_constructCommon(ktxTexture1* This)
     return KTX_SUCCESS;
 }
 
+/**
+ * @memberof ktxTexture1 @private
+ * @copydoc ktxTexture2_construct
+ */
 static KTX_error_code
 ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
                       ktxTextureCreateStorageEnum storageAllocation)
@@ -100,10 +104,10 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
     if (glFormat == GL_INVALID_VALUE) {
             return KTX_INVALID_VALUE;
     }
-    result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize,
-                                   storageAllocation);
+    result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize);
     if (result != KTX_SUCCESS)
         return result;
+
     result = ktxTexture1_constructCommon(This);
     if (result != KTX_SUCCESS)
         return result;
@@ -144,11 +148,12 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
 
     if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
         This->dataSize
-                    = ktxTexture_calcDataSizeTexture(ktxTexture(This),
-                                                     KTX_FORMAT_VERSION_ONE);
+                    = ktxTexture_calcDataSizeTexture(ktxTexture(This));
         This->pData = malloc(This->dataSize);
-        if (This->pData == NULL)
-            return KTX_OUT_OF_MEMORY;
+        if (This->pData == NULL) {
+            result = KTX_OUT_OF_MEMORY;
+            goto cleanup;
+        }
     }
     return result;
 
@@ -814,16 +819,74 @@ ktxTexture1_Destroy(ktxTexture1* This)
 }
 
 /**
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Calculate the size of the image data for the specified number
+ *        of levels.
+ *
+ * The data size is the sum of the sizes of each level up to the number
+ * specified and includes any @c mipPadding.
+ *
+ * @param[in] This     pointer to the ktxTexture object of interest.
+ * @param[in] levels   number of levels whose data size to return.
+ *
+ * @return the data size in bytes.
+ */
+ktx_size_t
+ktxTexture1_calcDataSizeLevels(ktxTexture1* This, ktx_uint32_t levels)
+{
+    ktx_uint32_t i;
+    ktx_size_t dataSize = 0;
+
+    assert(This != NULL);
+    assert(levels <= This->numLevels);
+    for (i = 0; i < levels; i++) {
+        ktx_size_t levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
+                                                        KTX_FORMAT_VERSION_ONE);
+        /* mipPadding. NOTE: this adds padding after the last level too. */
+        if (KTX_GL_UNPACK_ALIGNMENT != 4)
+            dataSize += _KTX_PAD4(levelSize);
+        else
+            dataSize += levelSize;
+    }
+    return dataSize;
+}
+
+/**
  * @memberof ktxTexture1 @private
  * @~English
  *
  * @copydoc ktxTexture::ktxTexture_doCalcFaceLodSize
  */
 ktx_size_t
-ktxTexture1_calcFaceLodSize(ktxTexture* This, ktx_uint32_t level)
+ktxTexture1_calcFaceLodSize(ktxTexture1* This, ktx_uint32_t level)
 {
     return ktxTexture_doCalcFaceLodSize(ktxTexture(This), level,
                                         KTX_FORMAT_VERSION_ONE);
+}
+
+/**
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Return the offset of a level in bytes from the start of the image
+ *        data in a ktxTexture.
+ *
+ * The caclulated size does not include space for storing the @c imageSize
+ * fields of each mip level.
+ *
+ * @param[in]     This  pointer to the ktxTexture object of interest.
+ * @param[in]     level level whose offset to return.
+ * @param[in]     fv    enum specifying format version for which to calculate
+ *                      image size.
+ *
+ * @return the data size in bytes.
+ */
+ktx_size_t
+ktxTexture1_calcLevelOffset(ktxTexture1* This, ktx_uint32_t level)
+{
+    assert (This != NULL);
+    assert (level < This->numLevels);
+    return ktxTexture1_calcDataSizeLevels(This, level);
 }
 
 /**
@@ -869,8 +932,7 @@ ktxTexture1_GetImageOffset(ktxTexture1* This, ktx_uint32_t level,
     }
 
     // Get the size of the data up to the start of the indexed level.
-    *pOffset = ktxTexture_calcDataSizeLevels(ktxTexture(This), level,
-                                             KTX_FORMAT_VERSION_ONE);
+    *pOffset = ktxTexture_calcDataSizeLevels(ktxTexture(This), level);
 
     // All layers, faces & slices within a level are the same size.
     if (layer != 0) {
@@ -1245,7 +1307,9 @@ cleanup:
  */
 
 struct ktxTexture_vtblInt ktxTexture1_vtblInt = {
-    (PFNCALCFACELODSIZE)ktxTexture1_calcFaceLodSize
+    (PFNCALCDATASIZELEVELS)ktxTexture1_calcDataSizeLevels,
+    (PFNCALCFACELODSIZE)ktxTexture1_calcFaceLodSize,
+    (PFNCALCLEVELOFFSET)ktxTexture1_calcLevelOffset
 };
 
 struct ktxTexture_vtbl ktxTexture1_vtbl = {

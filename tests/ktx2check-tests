@@ -171,7 +171,7 @@ else
 fi
 
 numtests=$numtests+1
-output=$($ktx2check --quiet *.ktx2)
+output=$($ktx2check --quiet invalid_face_count.ktx2)
 if [ $? -eq 0 ]; then
     echo "Invalid face count not spotted."
     failed=$failed+1
@@ -184,6 +184,28 @@ else
     fi
 fi
 
+numtests=$numtests+1
+cd ../badktx2
+if $ktx2check incorrect_mip_layout_and_padding.ktx2 > /dev/null; then
+    echo "Invalid mip layout not spotted."
+    failed=$failed+1
+else
+    passed=$passed+1
+fi
+
+numtests=$numtests+1
+output=$($ktx2check --quiet incorrect_mip_layout_and_padding.ktx2)
+if [ $? -eq 0 ]; then
+    echo "Invalid mip layout not spotted."
+    failed=$failed+1
+else
+    if [ -z $output ]; then
+        passed=$passed+1
+    else
+        echo "Output written with --quiet."
+        failed=$failed+1
+    fi
+fi
 echo "Tests run: $numtests; passed: $passed; failed: $failed"
 if [ $failed -gt 0 ]; then
   exit 1;

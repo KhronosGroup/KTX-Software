@@ -28,14 +28,15 @@ EXPORTS
     ktxMemStream_destruct
     ktxMemStream_getdata
     ktxTexture_calcImageSize
-    ktxTexture_calcLevelOffset
     ktxTexture_calcLevelSize
     ktxTexture1_Destroy
     ktxTexture1_SetImageFromMemory
     ktxTexture1_WriteToMemory
+    ktxTexture1_calcLevelOffset
     ktxTexture1_destruct
     ktxTexture1_glTypeSize
     ktxTexture2_GetImageOffset
+    ktxTexture2_calcLevelOffset
     ktxTexture2_destruct
     vk2dfd
     vkFormatString

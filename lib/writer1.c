@@ -507,6 +507,8 @@ ktxTexture1_WriteToMemory(ktxTexture1* This,
 
 }
 
+ktx_uint32_t lcm4(uint32_t a);
+
 /**
  * @memberof ktxTexture @private
  * @~English
@@ -538,13 +540,11 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
     KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
-    ktx_uint32_t align8PadLen;
-    ktx_uint32_t sgdLen;
-    ktx_uint32_t sgdPadLen;
-    ktx_uint32_t level, levelOffset;
+    ktx_uint32_t initialLevelPadLen;
     ktxLevelIndexEntry* levelIndex;
     ktx_uint32_t levelIndexSize;
     ktx_uint32_t offset;
+    ktx_uint32_t requiredLevelAlignment;
 
     if (!dststr) {
         return KTX_INVALID_VALUE;
@@ -641,26 +641,25 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.keyValueData.byteOffset = kvdLen != 0 ? offset : 0;
     header.keyValueData.byteLength = kvdLen;
+    offset += kvdLen;
 
-    align8PadLen = _KTX_PAD8_LEN(offset + kvdLen);
-    offset += kvdLen + align8PadLen;
+    header.supercompressionGlobalData.byteOffset = 0;
+    header.supercompressionGlobalData.byteLength = 0;
 
-    sgdLen = 0;
-    header.supercompressionGlobalData.byteOffset = sgdLen != 0 ? offset : 0;
-    header.supercompressionGlobalData.byteLength = sgdLen;
+    requiredLevelAlignment
+                = lcm4(This->_protected->_formatSize.blockSizeInBits / 8);
+    initialLevelPadLen = _KTX_PADN_LEN(requiredLevelAlignment, offset);
+    offset += initialLevelPadLen;
 
-    sgdPadLen = _KTX_PAD8_LEN(sgdLen);
-    offset += sgdLen + sgdPadLen;
-
-    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
-        levelIndex[level].uncompressedByteLength =
+    for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
+        ktx_size_t levelSize =
             ktxTexture_calcLevelSize(ktxTexture(This), level,
                                      KTX_FORMAT_VERSION_TWO);
-        levelIndex[level].byteLength =
-            levelIndex[level].uncompressedByteLength;
-        levelIndex[level].byteOffset = offset +
-            ktxTexture_calcLevelOffset(ktxTexture(This), level,
-                                       KTX_FORMAT_VERSION_TWO);
+
+        levelIndex[level].uncompressedByteLength = levelSize;
+        levelIndex[level].byteLength = levelSize;
+        levelIndex[level].byteOffset = offset;
+        offset += _KTX_PADN(requiredLevelAlignment, levelSize);
     }
 
     // write header and indices
@@ -687,31 +686,28 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         }
     }
 
-    char padding[] = {0,0,0,0,0,0,0};
-    if (align8PadLen) {
-        result = dststr->write(dststr, padding, 1, align8PadLen);
+    char padding[32] = { 0 };
+    // write supercompressionGlobalData & sgdPadding
+
+    if (initialLevelPadLen) {
+        result = dststr->write(dststr, padding, 1, initialLevelPadLen);
         if (result != KTX_SUCCESS) {
              return result;
         }
     }
 
-    // write supercompressionGlobalData & sgdPadding
-
     // Write the image data
-    for (level = This->numLevels, levelOffset=0;
-         level > 0 && result == KTX_SUCCESS; )
+    for (ktx_int32_t level = This->numLevels - 1;
+         level >= 0 && result == KTX_SUCCESS; --level)
     {
         //ktx_uint64_t faceLodSize;
         ktx_uint32_t layer, levelDepth, numImages;
         ktx_uint32_t srcLevelOffset, srcOffset;
-        ktx_size_t imageSize;
+        ktx_size_t imageSize, dstLevelSize = 0;
 #define DUMP_IMAGE 0
 #if defined(DEBUG) || DUMP_IMAGE
         ktx_size_t pos;
 #endif
-
-        --level; // Calc proper level number for below. Conveniently
-                 // decrements loop variable as well.
         imageSize = ktxTexture_calcImageSize(ktxTexture(This), level,
                                              KTX_FORMAT_VERSION_TWO);
 #if defined(DEBUG)
@@ -736,8 +732,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         }
         srcLevelOffset = (ktx_uint32_t)ktxTexture_calcLevelOffset(
                                                     ktxTexture(This),
-                                                    level,
-                                                    KTX_FORMAT_VERSION_ONE);
+                                                    level);
         srcOffset = srcLevelOffset;
         for (layer = 0; layer < This->numLayers; layer++) {
             ktx_uint32_t faceSlice;
@@ -762,6 +757,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
                     // Write entire image.
                     result = dststr->write(dststr, This->pData + srcOffset,
                                            imageSize, 1);
+                    dstLevelSize += imageSize;
                 } else {
                     /* Copy the rows individually, removing padding. */
                     ktx_uint32_t row;
@@ -775,6 +771,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 #endif
                         result = dststr->write(dststr, src + rowOffset,
                                                packedRowBytes, 1);
+                        dstLevelSize += packedRowBytes;
                     }
                 }
 #if DUMP_IMAGE
@@ -783,9 +780,11 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
                 srcOffset += (ktx_uint32_t)imageSize;
             }
         }
-        if (result == KTX_SUCCESS) {
-            result = dststr->write(dststr, padding, 1,
-                                   _KTX_PAD8_LEN(srcOffset - srcLevelOffset));
+        if (result == KTX_SUCCESS && level != 0) {
+            uint32_t mipPaddingLen = _KTX_PADN_LEN(requiredLevelAlignment,
+                                                dstLevelSize);
+            if (mipPaddingLen)
+                result = dststr->write(dststr, padding, 1, mipPaddingLen);
         }
     }
 

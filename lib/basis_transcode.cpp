@@ -321,18 +321,36 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         return KTX_INVALID_VALUE;
     }
 
-    // Set these so we can get the size needed for the output.
-    // FIXME: Need to avoid modifying This until transcode is successful.
+    uint32_t* newDfd = vk2dfd(vkFormat);
+    if (!newDfd) {
+        delete[] firstImages;
+        return KTX_OUT_OF_MEMORY;
+    }
+
+    ktx_size_t transcodedDataSize;
+    ktx_uint8_t* basisData = 0;
+    ktxLevelIndexEntry* levelIndex;
+    uint64_t levelOffsetWrite;
+
+    // Temporarily set format size, vkFormat, isCompressed and
+    // _requiredLevelAlinment so we can use the texture size calculation.
+    ktxFormatSize oldFormatSize;
+    memcpy(&oldFormatSize, &This->_protected->_formatSize,
+           sizeof(ktxFormatSize));
+    if (!ktxTexture2_extractFormatInfo(newDfd, &This->_protected->_formatSize)) {
+        result =  KTX_UNSUPPORTED_TEXTURE_TYPE;
+        goto cleanup;
+    }
     This->vkFormat = vkFormat;
-    vkGetFormatSize(vkFormat, &This->_protected->_formatSize);
     This->isCompressed =
           This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT;
+    This->_private->_requiredLevelAlignment
+                        = ktxTexture2_calcRequiredLevelAlignment(This);
 
-    ktx_size_t transcodedDataSize = ktxTexture_calcDataSizeTexture(
-                                            ktxTexture(This),
-                                            KTX_FORMAT_VERSION_TWO);
+    transcodedDataSize = ktxTexture_calcDataSizeTexture(
+                                                    ktxTexture(This));
 
-    ktx_uint8_t* basisData = This->pData;
+    basisData = This->pData;
     This->pData = (uint8_t*) malloc(transcodedDataSize);
     This->dataSize = transcodedDataSize;
 
@@ -342,8 +360,8 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     // the app can query file_info and image_info from the transcoder which
     // returns a structure with lots of info about the image.
 
-    ktxLevelIndexEntry* levelIndex = priv._levelIndex;
-    uint64_t levelOffsetWrite = 0;
+    levelIndex = priv._levelIndex;
+    levelOffsetWrite = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         uint64_t levelOffset = ktxTexture2_levelDataOffset(This, level);
         uint64_t writeOffset = levelOffsetWrite;
@@ -382,7 +400,10 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
             if (result != KTX_SUCCESS)
                 goto cleanup;
 
+
             writeOffset += ktxTexture2_GetImageSize(This, level);
+            writeOffset = _KTX_PADN(This->_private->_requiredLevelAlignment,
+                                    writeOffset);
         } // end images loop
 
         // FIXME: Figure out a way to get the size out of the transcoder.
@@ -395,17 +416,24 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         assert(levelOffsetWrite == writeOffset);
     } // level loop
 
+    // Fix up the rest of the texture
     delete This->pDfd;
-    //This->isCompressed = true;
-    This->pDfd = vk2dfd((enum VkFormat)This->vkFormat);
+    This->pDfd = newDfd;
     delete basisData;
     delete[] firstImages;
     return KTX_SUCCESS;
 
-cleanup: // FIXME when we stop modifying This until successful transcode.
-    delete basisData;
+cleanup:
+    This->vkFormat = VK_FORMAT_UNDEFINED;
+    This->isCompressed = false;
+    memcpy(&This->_protected->_formatSize, &oldFormatSize,
+           sizeof(ktxFormatSize));
+    This->_private->_requiredLevelAlignment = 1;
+    if (basisData) {
+        delete This->pData;
+        This->pData = basisData;
+    }
     delete[] firstImages;
-    delete This->pData;
     return result;
 }
 

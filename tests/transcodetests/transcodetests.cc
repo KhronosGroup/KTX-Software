@@ -103,7 +103,7 @@ bool read_file( string path, void** data, long *fsize ) {
     fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
 
     *data = malloc(*fsize);
-    long numRead = fread(*data, 1, *fsize, f);
+    size_t numRead = fread(*data, 1, *fsize, f);
     fclose(f);
     return numRead == *fsize;
 }

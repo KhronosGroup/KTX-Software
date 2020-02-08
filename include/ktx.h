@@ -44,7 +44,7 @@
 
 /*
  * Don't use khrplatform.h in order not to break apps existing
- * before this definitions were needed.
+ * before these definitions were needed.
  */
 #if defined(KHRONOS_STATIC)
   #define KTX_APICALL

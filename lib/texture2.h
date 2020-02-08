@@ -43,6 +43,7 @@ extern "C" {
 
 typedef struct ktxTexture2_private {
     ktx_uint8_t* _supercompressionGlobalData;
+    ktx_uint32_t _requiredLevelAlignment;
     ktx_uint64_t _sgdByteLength;
     ktx_uint64_t _firstLevelFileOffset; /*!< Always 0, unless the texture was
                                          created from a stream and the image
@@ -65,6 +66,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                                          KTX_header2* pHeader,
                                          ktxTextureCreateFlags createFlags);
 
+ktx_uint64_t ktxTexture2_calcDataSizeTexture(ktxTexture2* This);
+ktx_size_t ktxTexture2_calcLevelOffset(ktxTexture2* This, ktx_uint32_t level);
+ktx_uint32_t ktxTexture2_calcRequiredLevelAlignment(ktxTexture2* This);
+bool ktxTexture2_extractFormatInfo(ktx_uint32_t* pDfd, ktxFormatSize* fi);
 ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level);
 ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level);
 
