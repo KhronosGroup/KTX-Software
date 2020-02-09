@@ -781,10 +781,10 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
             }
         }
         if (result == KTX_SUCCESS && level != 0) {
-            uint32_t mipPaddingLen = _KTX_PADN_LEN(requiredLevelAlignment,
-                                                dstLevelSize);
-            if (mipPaddingLen)
-                result = dststr->write(dststr, padding, 1, mipPaddingLen);
+            uint32_t levelPadLen = _KTX_PADN_LEN(requiredLevelAlignment,
+                                                 dstLevelSize);
+            if (levelPadLen)
+                result = dststr->write(dststr, padding, 1, levelPadLen);
         }
     }
 
