@@ -113,6 +113,7 @@ $ktx2ktx2 -f -o rgba-reference-u.ktx2 rgba-reference.ktx
 $ktx2ktx2 -f texturearray_astc_8x8_unorm.ktx
 $ktx2ktx2 -f texturearray_bc3_unorm.ktx
 $ktx2ktx2 -f texturearray_etc2_unorm.ktx
+$toktx --t2 --mipmap rgb-mipmap-reference-u.ktx2 level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 $toktx --bcmp FlightHelmet_baseColor_basis.ktx2  FlightHelmet_baseColor.png
 $toktx --bcmp alpha_simple_basis.ktx2 alpha_simple.png
 $toktx --bcmp kodim17_basis.ktx2 kodim17.png

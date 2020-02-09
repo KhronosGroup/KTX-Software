@@ -358,12 +358,12 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
         if (result != KTX_SUCCESS) {
             return result;
         }
+    }
 
-        if (initialLevelPadLen) {
-            result = dststr->write(dststr, padding, 1, initialLevelPadLen);
-            if (result != KTX_SUCCESS) {
-                 return result;
-            }
+    if (initialLevelPadLen) {
+        result = dststr->write(dststr, padding, 1, initialLevelPadLen);
+        if (result != KTX_SUCCESS) {
+             return result;
         }
     }
 
@@ -416,7 +416,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
                        = _KTX_PADN_LEN(This->_private->_requiredLevelAlignment,
                                        levelSize);
             if (levelPadLen != 0)
-              result = dststr->write(dststr, padding, 1, align8PadLen);
+              result = dststr->write(dststr, padding, 1, levelPadLen);
         }
     }
 
