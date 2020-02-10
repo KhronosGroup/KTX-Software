@@ -72,14 +72,18 @@
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    const formatStrings = {
-        [THREE.RGBA_ASTC_4x4_Format]: "RGBA_ASTC_4x4",
-        [THREE.RGB_S3TC_DXT1_Format]: "RGB_S3TC_DXT1",
-        [THREE.RGBA_S3TC_DXT5_Format]: "RGBA_S3TC_DXT5",
-        [THREE.RGB_PVRTC_4BPPV1_Format]: "RGB_PVRTC_4BPPV1",
-        [THREE.RGBA_PVRTC_4BPPV1_Format]: "RGBA_PVRTC_4BPPV1",
-        [THREE.RGB_ETC1_Format]: "RGB_ETC1"
-    };
+    const formats = [
+      'RGBA_ASTC_4x4_Format',
+      'RGB_S3TC_DXT1_Format',
+      'RGBA_S3TC_DXT5_Format',
+      'RGB_PVRTC_4BPPV1_Format',
+      'RGBA_PVRTC_4BPPV1_Format',
+      'RGB_ETC1_Format',
+      'RGB_ETC2_Format',
+      'RGBA_ETC2_EAC_Format',
+    ];
+
+    const formatToString = ( format ) => formats.find( ( name ) => THREE[ name ] === format );
 
     animate();
 
@@ -88,7 +92,7 @@
       .load( '../libktx-webgl/ktx_app.ktx2', ( texture ) => {
 
         material.map = texture;
-        elem('format').innerText = formatStrings[material.map.format];
+        elem('format').innerText = formatToString( material.map.format );
 
         material.needsUpdate = true;
 
