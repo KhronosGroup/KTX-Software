@@ -6,6 +6,8 @@
   </head>
   <script src="../msc_basis_transcoder.js"></script>
   <script defer src="https://unpkg.com/es-module-shims@0.4.6/dist/es-module-shims.js"></script>
+  <!-- Use an import map shim to ensure KTX2Loader and the demo itself
+       use the same CDN-hosted copy of the threejs library. -->
   <script type="importmap-shim">
   {
     "imports": {
