@@ -5,9 +5,14 @@
     <title>msc_transcoder_test with three.js</title>
   </head>
   <script src="../msc_basis_transcoder.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@v0.112.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@v0.112.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="./KTX2Loader.js"></script>
+  <script defer src="https://unpkg.com/es-module-shims@0.4.6/dist/es-module-shims.js"></script>
+  <script type="importmap-shim">
+  {
+    "imports": {
+      "https://raw.githack.com/donmccurdy/three.js/feat-ktx2loader/build/three.module.js": "https://unpkg.com/three@0.113.2/build/three.module.js"
+    }
+  }
+  </script>
   <style>
     html, body { width:100%; height:100%; margin:0; padding:0; }
     canvas { display:block; }
@@ -32,7 +37,11 @@
     </p>
     <div id="log"></div>
   </div>
-  <script>
+  <script type="module-shim">
+    import * as THREE from 'https://unpkg.com/three@0.113.2/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.113.2/examples/jsm/controls/OrbitControls.js';
+    import { KTX2Loader } from 'https://raw.githack.com/donmccurdy/three.js/feat-ktx2loader/examples/jsm/loaders/KTX2Loader.js';
+
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -49,7 +58,7 @@
     camera.lookAt( scene.position );
     scene.add(camera);
 
-    const controls = new THREE.OrbitControls( camera, renderer.domElement );
+    const controls = new OrbitControls( camera, renderer.domElement );
     controls.autoRotate = true;
 
     // PlaneBufferGeometry UVs assume flipY=true, which compressed textures don't support.
@@ -61,13 +70,6 @@
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    var dict = {
-      FirstName: "Chris",
-      "one": 1,
-      1: "some value"
-    };
-
-
     const formatStrings = {
         [THREE.RGBA_ASTC_4x4_Format]: "RGBA_ASTC_4x4",
         [THREE.RGB_S3TC_DXT1_Format]: "RGB_S3TC_DXT1",
@@ -77,22 +79,18 @@
         [THREE.RGB_ETC1_Format]: "RGB_ETC1"
     };
 
-    requestIdleCallback(() => {
+    animate();
 
-      animate();
+    new KTX2Loader()
+      .detectSupport( renderer )
+      .load( '../libktx-webgl/ktx_app.ktx2', ( texture ) => {
 
-      new THREE.KTX2Loader()
-        .detectSupport( renderer )
-        .load( '../libktx-webgl/ktx_app.ktx2', ( texture ) => {
+        material.map = texture;
+        elem('format').innerText = formatStrings[material.map.format];
 
-          material.map = texture;
-          elem('format').innerText = formatStrings[material.map.format];
+        material.needsUpdate = true;
 
-          material.needsUpdate = true;
-
-        }, ( p ) => console.log( `...${p}` ), ( e ) => console.error( e ) );
-
-    });
+      }, ( p ) => console.log( `...${p}` ), ( e ) => console.error( e ) );
 
     function elem(id) {
       return document.getElementById(id);
