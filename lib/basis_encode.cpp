@@ -329,7 +329,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint32_t layersFaces = This->numLayers * This->numFaces;
     uint32_t num_images = 0;
     for (uint32_t level = 1; level <= This->numLevels; level++) {
-        // NOTA BENE: numFaces * depth is only reasoable because they can't
+        // NOTA BENE: numFaces * depth is only reasonable because they can't
         // both be > 1. I.e there are no 3d cubemaps.
         num_images += layersFaces * MAX(This->baseDepth >> (level - 1), 1);
     }
