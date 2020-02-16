@@ -1,4 +1,4 @@
-﻿// -*- tab-width: 4; -*-
+// -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 expandtab:
 
 //
@@ -482,6 +482,7 @@ OETFtransform(size_t imageBytes, uint8_t* pixels,
             brightness = clamp(encode(intensity), 0.0f, 1.0f);
             *pixels++ = (uint8_t)roundf(brightness * 255);
         }
+        if (components == 4) pixels++;
     }
 }
 
