@@ -146,18 +146,14 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     KTX_supplemental_info suppInfo;
     KTX_error_code result;
 
+    if (pHeader->endianness == KTX_ENDIAN_REF_REV) {
+        fprintf(stdout, "This file has opposite endianness to this machine. Following\n"
+                        "are the converted pHeader values\n\n");
+    } else {
+        fprintf(stdout, "Header\n\n");
+    }
     // Print first as ktxCheckHeader1_ modifies the header.
     printKTXHeader(pHeader);
-
-    if (pHeader->bytesOfKeyValueData) {
-        fprintf(stdout, "\nKey/Value Data\n\n");
-        metadata = malloc(pHeader->bytesOfKeyValueData);
-        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
-        printKVData(metadata, pHeader->bytesOfKeyValueData);
-        free(metadata);
-    } else {
-        fprintf(stdout, "\nNo Key/Value data.\n");
-    }
 
     result = ktxCheckHeader1_(pHeader, &suppInfo);
     if (result != KTX_SUCCESS) {
@@ -176,12 +172,44 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         return;
     }
 
-    if (pHeader->endianness == KTX_ENDIAN_REF_REV) {
-        fprintf(stdout, "This file has opposite endianness to this machine. Following\n"
-                        "are the converted pHeader values\n\n");
+    if (pHeader->bytesOfKeyValueData) {
+        fprintf(stdout, "\nKey/Value Data\n\n");
+        metadata = malloc(pHeader->bytesOfKeyValueData);
+        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        printKVData(metadata, pHeader->bytesOfKeyValueData);
+        free(metadata);
     } else {
-        fprintf(stdout, "Header\n\n");
+        fprintf(stdout, "\nNo Key/Value data.\n");
     }
+
+    uint32_t levelCount = MAX(1, pHeader->numberOfMipLevels);
+    bool nonArrayCubemap;
+    if (pHeader->numberOfArrayElements == 0 && pHeader->numberOfFaces == 6)
+        nonArrayCubemap = true;
+    else
+        nonArrayCubemap = false;
+    ktx_size_t dataSize = 0, dataSizePadded = 0;
+    for (uint32_t level = 0; level < levelCount; level++) {
+        ktx_uint32_t faceLodSize, faceLodSizePadded;
+        ktx_uint32_t lodSize, lodSizePadded;
+        result = stream->read(stream, &faceLodSize, sizeof(ktx_uint32_t));
+        if (pHeader->endianness == KTX_ENDIAN_REF_REV)
+            _ktxSwapEndian32(&faceLodSize, 1);
+        faceLodSizePadded = _KTX_PAD4(faceLodSize);
+        if (nonArrayCubemap) {
+            lodSize = faceLodSize * 6;
+            lodSizePadded = faceLodSizePadded * 6;
+        } else {
+            lodSize = faceLodSize;
+            lodSizePadded = faceLodSizePadded;
+        }
+        result = stream->skip(stream, lodSizePadded);
+        dataSize += lodSize;
+        dataSizePadded += lodSizePadded;
+    }
+    fprintf(stdout, "\nTotal data size = %zu\n", dataSize);
+    fprintf(stdout, "Total data size including mip- & cube-padding = %zu\n",
+            dataSizePadded);
 }
 
 /**
