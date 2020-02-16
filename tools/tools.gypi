@@ -51,7 +51,7 @@
                 'ktx2ktx2/ktx2ktx2.cpp',
                 'ktxinfo/ktxinfo.cpp',
                 'ktxsc/ktxsc.cpp',
-                'toktx/toktx.cpp',
+                'toktx/toktx.cc',
               ],
               # See ../lib/libktx.gypi for comment about why only
               # timestamp is in this list.

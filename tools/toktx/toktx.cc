@@ -1,7 +1,7 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 sts=4 expandtab:
 
-// $Id$
+// $Id: aaf1dc131758d6a2a60a7ad1e797c02451aecd32 $
 
 //
 // ©2010-2018 The Khronos Group, Inc.
@@ -39,8 +39,7 @@
 #include "ktx.h"
 #include "../../lib/vkformat_enum.h"
 #include "argparser.h"
-#include "image.h"
-#include "lodepng.h"
+#include "image.hpp"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
@@ -185,7 +184,7 @@ struct commandOptions {
     int          metadata;
     int          mipmap;
     int          two_d;
-    oetf_e       oetf;
+    Image::oetf_e oetf;
     int          useStdin;
     int          lower_left_maps_to_s0t0;
     int          bcmp;
@@ -204,7 +203,7 @@ struct commandOptions {
       useStdin = false;
       bcmp = false;
       levels = 1;
-      oetf = OETF_UNSET;
+      oetf = Image::eOETFUnset;
       /* The OGLES WG recommended approach, even though it is opposite
        * to the OpenGL convention. Suki ja nai.
        */
@@ -220,8 +219,6 @@ static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
 static void processOptions(argparser& parser, struct commandOptions& options);
-static void yflip(unsigned char*& srcImage, size_t imageSize,
-                  unsigned int w, unsigned int h, unsigned int pixelSize);
 #if IMAGE_DEBUG
 static void dumpImage(_TCHAR* name, int width, int height, int components,
                       int componentSize, unsigned char* srcImage);
@@ -578,15 +575,13 @@ version(const _tstring& appName)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-    FILE* f;
     KTX_error_code ret;
     ktxTextureCreateInfo createInfo;
     ktxTexture* texture = 0;
     struct commandOptions options;
-    size_t imageSize;
     int exitCode = 0, face;
-    unsigned int components, i, level, levelWidth, levelHeight;
-    oetf_e chosenOETF, fileOETF;
+    unsigned int componentCount = 1, i, level, levelWidth, levelHeight;
+    Image::oetf_e chosenOETF, fileOETF;
 
     processCommandLine(argc, argv, options);
 
@@ -604,427 +599,233 @@ int _tmain(int argc, _TCHAR* argv[])
     for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
         _tstring& infile = options.infilenames[i];
 
-        f = _tfopen(infile.c_str(),"rb");
+        Image* image;
+        try {
+            image =
+              Image::CreateFromFile(infile, options.oetf == Image::eOETFUnset);
+        } catch (std::exception& e) {
+            std::cerr << appName << ": failed to create image from "
+                      << infile << ". " << e.what() << std::endl;
+            exit(2);
+        }
 
-        if (f) {
-            unsigned int w, h, componentSize;
-            uint8_t* srcImg = 0;
-            enum fileType_e { NPBM, PNG } fileType;
-            oetf_e curfileOETF;
+        /* Sanity check. */
+        assert(image->getWidth() * image->getHeight() * image->getPixelSize()
+                  == image->getByteCount());
 
-            FileResult npbmResult = readNPBM(f, w, h, components,
-                                             componentSize, imageSize, &srcImg);
-            if (npbmResult == INVALID_FORMAT) {
-                // Try .png. Unfortunately LoadPNG doesn't believe in stdio plus
-                // the function we need only reads from memory. To avoid
-                // a potentially unnecessary read of the whole file check the
-                // signature ourselves.
-                uint8_t pngsig[8] = {
-                    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
-                };
-                uint8_t filesig[sizeof(pngsig)];
-                if (fseek(f, 0L, SEEK_SET) < 0) {
-                    fprintf(stderr, "%s: Could not seek in \"%s\". %s\n",
-                            appName.c_str(), infile.c_str(), strerror(errno));
-                    exitCode = 1;
-                    goto cleanup;
-                }
-                if (fread(filesig, sizeof(pngsig), 1, f) != 1) {
-                    fprintf(stderr, "%s: Could not read \"%s\". %s\n",
-                            appName.c_str(), infile.c_str(), strerror(errno));
-                    exitCode = 1;
-                    goto cleanup;
-                }
-                if (memcmp(filesig, pngsig, sizeof(pngsig))) {
-                    fprintf(stderr, "%s: \"%s\" is not a .pam, .pgm, .ppm or .png file\n",
-                            appName.c_str(), infile.c_str());
-                    exitCode = 1;
-                    goto cleanup;
-                }
-                fileType = PNG;
-            } else if (npbmResult == SUCCESS) {
-                fileType = NPBM;
-                if (options.oetf == OETF_UNSET) {
-                    // Convert to sRGB
-                    if (componentSize == 1) {
-                        OETFtransform(imageSize, srcImg, components,
-                                      decode709, encode_sRGB);
-                    } else {
-                        OETFtransform(imageSize, (uint16_t*)srcImg, components,
-                                      decode709, encode_sRGB);
-                    }
-                    curfileOETF = OETF_SRGB;
-                }
+        if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
+            image->yflip();
+        }
+
+        if (i == 0) {
+            bool srgb;
+
+            fileOETF = image->getOetf();
+            if (options.oetf == Image::eOETFUnset) {
+                chosenOETF = fileOETF;
             } else {
-                fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm, or .ppm file\n",
-                        appName.c_str(), infile.c_str());
+                chosenOETF = options.oetf;
+            }
+
+            componentCount = image->getComponentCount();
+            srgb = (chosenOETF == Image::eOETFsRGB);
+            switch (componentCount) {
+              case 1:
+                switch (image->getComponentSize()) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SR8 : GL_R8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8_SRGB
+                                           : VK_FORMAT_R8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_R16;
+                    createInfo.vkFormat = VK_FORMAT_R16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_R32F;
+                    createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
+                    break;
+                }
+                break;
+
+              case 2:
+                 switch (image->getComponentSize()) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SRG8 : GL_RG8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8G8_SRGB
+                                           : VK_FORMAT_R8G8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_RG16;
+                    createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_RG32F;
+                    createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
+                    break;
+                }
+                break;
+
+              case 3:
+                 switch (image->getComponentSize()) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SRGB8 : GL_RGB8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8G8B8_SRGB
+                                           : VK_FORMAT_R8G8B8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_RGB16;
+                    createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_RGB32F;
+                    createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+                    break;
+                }
+                break;
+
+              case 4:
+                 switch (image->getComponentSize()) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8G8B8A8_SRGB
+                                           : VK_FORMAT_R8G8B8A8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_RGBA16;
+                    createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_RGBA32F;
+                    createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+                    break;
+                }
+                break;
+
+              default:
+                /* If we get here there's a bug. */
+                assert(0);
+            }
+            createInfo.baseWidth = levelWidth = image->getWidth();
+            createInfo.baseHeight = levelHeight = image->getHeight();
+            createInfo.baseDepth = 1;
+            if (image->getWidth() == 1 && !options.two_d)
+                createInfo.numDimensions = 1;
+            else
+                createInfo.numDimensions = 2;
+            if (options.automipmap) {
+                createInfo.numLevels = 1;
+                createInfo.generateMipmaps = KTX_TRUE;
+            } else {
+                createInfo.generateMipmaps = KTX_FALSE;
+                GLuint levels = 0;
+                if (options.mipmap) {
+                    // Calculate number of miplevels
+                    GLuint max_dim = image->getWidth() > image->getHeight() ?
+                                     image->getWidth() : image->getHeight();
+                    levels = log2(max_dim) + 1;
+                } else {
+                    levels = options.levels;
+                }
+                // Check we have enough.
+                if (levels * createInfo.numFaces > options.infilenames.size()) {
+                    fprintf(stderr,
+                            "%s: too few files for %d mipmap levels and %d faces.\n",
+                            appName.c_str(), levels,
+                            createInfo.numFaces);
+                    exitCode = 1;
+                    goto cleanup;
+                } else if (levels * createInfo.numFaces < options.infilenames.size()) {
+                    fprintf(stderr,
+                            "%s: too many files for %d mipmap levels and %d faces."
+                            " Extras will be ignored.\n",
+                            appName.c_str(), levels,
+                            createInfo.numFaces);
+                }
+                createInfo.numLevels = levels;
+            }
+            if (options.ktx2) {
+                ret = ktxTexture2_Create(&createInfo,
+                                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                         (ktxTexture2**)&texture);
+            } else {
+                ret = ktxTexture1_Create(&createInfo,
+                                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                         (ktxTexture1**)&texture);
+            }
+            if (KTX_SUCCESS != ret) {
+                fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
+                        appName.c_str(), ktxErrorString(ret));
+                exitCode = 2;
+                goto cleanup;
+            }
+        } else {
+            if (image->getOetf() != fileOETF) {
+                fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
+                                "(OETF) than preceding files.\n",
+                                appName.c_str(), infile.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
-
-            if (fileType == PNG) {
-                size_t fsz;
-                fseek(f, 0L, SEEK_END);
-                fsz = ftell(f);
-                fseek(f, 0L, SEEK_SET);
-
-                std::vector<uint8_t> png;
-                png.resize(fsz);
-                if (fread(png.data(), 1L, png.size(), f) != png.size()) {
-                    if (feof(f)) {
-                        fprintf(stderr,
-                                "%s: Unexpected end of file reading \"%s\" \n",
+            if (face == (options.cubemap ? 6 : 1)) {
+                level++;
+                if (level < createInfo.numLevels) {
+                    levelWidth >>= 1;
+                    levelHeight >>= 1;
+                    if (image->getWidth() != levelWidth
+                        || image->getHeight() != levelHeight) {
+                        fprintf(stderr, "%s: \"%s\" has incorrect width or height for current mipmap level\n",
                                 appName.c_str(), infile.c_str());
-                    } else {
-                        fprintf(stderr, "%s: Error reading \"%s\": %s\n",
-                                appName.c_str(), infile.c_str(),
-                                strerror(ferror(f)));
-                    }
-                    exitCode = 1;
-                    goto cleanup;
-                }
-
-                lodepng::State state;
-                // Find out the color type so we can request that type when
-                // decoding and avoid conversions. Oh for an option to decode
-                // to file's colortype. What a palaver! Sigh!
-                lodepng_inspect(&w, &h, &state, &png[0], png.size());
-                switch (state.info_png.color.colortype) {
-                  case LCT_GREY:
-                    components = 1;
-                    break;
-                  case LCT_RGB:
-                    components = 3;
-                    break;
-                  case LCT_PALETTE:
-                    fprintf(stderr,
-                    "%s: \"%s\" is a paletted image which are not supported.\n",
-                    appName.c_str(), infile.c_str());
-                    exitCode = 1;
-                    goto cleanup;
-                  case LCT_GREY_ALPHA:
-                    components = 2;
-                    break;
-                  case LCT_RGBA:
-                    components = 4;
-                    break;
-                }
-                componentSize = state.info_png.color.bitdepth / 8;
-
-                // Tell the decoder we want the same color type as the file
-                state.info_raw = state.info_png.color;
-                uint32_t error = lodepng_decode(&srcImg, &w, &h, &state,
-                                                png.data(), png.size());
-                if (srcImg && !error) {
-                    imageSize = lodepng_get_raw_size(w, h, &state.info_raw);
-                } else {
-                    delete srcImg;
-                    std::cerr << appName << ": " << "PNG decoder error:"
-                              << lodepng_error_text(error) << std::endl;
-                    exitCode = 1;
-                    goto cleanup;
-                }
-
-                // state will have been updated with the rest of the file info.
-
-                // Here is the priority of the color space info in PNG:
-                //
-                // 1. No color-info chunks: assume sRGB default or 2.2 gamma
-                //    (up to the implementation).
-                // 2. sRGB chunk: use sRGB intent specified in the chunk, ignore
-                //    all other color space information.
-                // 3. iCCP chunk: use the provided ICC profile, ignore gamma and
-                //    primaries.
-                // 4. gAMA and/or cHRM chunks: use provided gamma and primaries.
-                //
-                // A PNG image could signal linear transfer function with one
-                // of these two options:
-                //
-                // 1. Provide an ICC profile in iCCP chunk.
-                // 2. Use a gAMA chunk with a value that yields linear
-                //    function (100000).
-                //
-                // Using no. 1 above or setting transfer func & primaries from
-                // the ICC profile would require parsing the ICC payload.
-                //
-                // Using cHRM to get the primaries would require matching a set
-                // of primary values to a DFD primaries id.
-
-                if (state.info_png.srgb_defined) {
-                    // intent is a matter for the user when a color transform
-                    // is needed during rendering, especially when gamut
-                    // mapping. It does not affect the meaning or value of the
-                    // image pixels so there is nothing to do here.
-                    curfileOETF = OETF_SRGB;
-                } else {
-                    if (state.info_png.iccp_defined) {
-                        delete srcImg;
-                        std::cerr << appName
-                                  << ": PNG file has ICC profile chunk. "
-                                  << "These are not supported." << std::endl;
                         exitCode = 1;
                         goto cleanup;
-                    } else if (state.info_png.gama_defined) {
-                        if (state.info_png.gama_gamma == 100000)
-                            curfileOETF = OETF_LINEAR;
-                        else if (state.info_png.gama_gamma == 45455)
-                            curfileOETF = OETF_SRGB;
-                        else {
-                            delete srcImg;
-                            std::cerr << appName
-                                      << ": PNG image has gamma of "
-                                      << (float)100000 / state.info_png.gama_gamma
-                                      << ". This is currently unsupported."
-                                      << std::endl;
-                            exitCode = 1;
-                            goto cleanup;
-                        }
-                    } else {
-                        curfileOETF = OETF_SRGB;
                     }
-                }
-            }
-
-            if (srcImg || npbmResult == SUCCESS) {
-
-                /* Sanity check. */
-                assert(w * h * componentSize * components == imageSize);
-
-                if (h > 1 && options.lower_left_maps_to_s0t0) {
-                    if (!srcImg) {
-                        FileResult readResult = readImage(f, imageSize, srcImg);
-                        if (SUCCESS != readResult) {
-                            fprintf(stderr, "%s: \"%s\" is not a valid .pam, .pgm or .ppm file\n",
-                                    appName.c_str(), infile.c_str());
-                            exitCode = 1;
-                            goto cleanup;
-                        }
-                    }
-                    yflip(srcImg, imageSize, w, h, components*componentSize);
-                }
-
-                if (i == 0) {
-                    bool srgb;
-
-                    fileOETF = curfileOETF;
-                    if (options.oetf == OETF_UNSET) {
-                        chosenOETF = fileOETF;
-                    } else {
-                        chosenOETF = options.oetf;
-                    }
-
-                    srgb = (chosenOETF == OETF_SRGB);
-                    switch (components) {
-                      case 1:
-                        switch (componentSize) {
-                          case 1:
-                            createInfo.glInternalformat
-                                            = srgb ? GL_SR8 : GL_R8;
-                            createInfo.vkFormat
-                                            = srgb ? VK_FORMAT_R8_SRGB
-                                                   : VK_FORMAT_R8_UNORM;
-                            break;
-                          case 2:
-                            createInfo.glInternalformat = GL_R16;
-                            createInfo.vkFormat = VK_FORMAT_R16_UNORM;
-                            break;
-                          case 4:
-                            createInfo.glInternalformat = GL_R32F;
-                            createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
-                            break;
-                        }
-                        break;
-
-                      case 2:
-                         switch (componentSize) {
-                          case 1:
-                            createInfo.glInternalformat
-                                            = srgb ? GL_SRG8 : GL_RG8;
-                            createInfo.vkFormat
-                                            = srgb ? VK_FORMAT_R8G8_SRGB
-                                                   : VK_FORMAT_R8G8_UNORM;
-                            break;
-                          case 2:
-                            createInfo.glInternalformat = GL_RG16;
-                            createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
-                            break;
-                          case 4:
-                            createInfo.glInternalformat = GL_RG32F;
-                            createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
-                            break;
-                        }
-                        break;
-
-                      case 3:
-                         switch (componentSize) {
-                          case 1:
-                            createInfo.glInternalformat
-                                            = srgb ? GL_SRGB8 : GL_RGB8;
-                            createInfo.vkFormat
-                                            = srgb ? VK_FORMAT_R8G8B8_SRGB
-                                                   : VK_FORMAT_R8G8B8_UNORM;
-                            break;
-                          case 2:
-                            createInfo.glInternalformat = GL_RGB16;
-                            createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
-                            break;
-                          case 4:
-                            createInfo.glInternalformat = GL_RGB32F;
-                            createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                            break;
-                        }
-                        break;
-
-                      case 4:
-                         switch (componentSize) {
-                          case 1:
-                            createInfo.glInternalformat
-                                            = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-                            createInfo.vkFormat
-                                            = srgb ? VK_FORMAT_R8G8B8A8_SRGB
-                                                   : VK_FORMAT_R8G8B8A8_UNORM;
-                            break;
-                          case 2:
-                            createInfo.glInternalformat = GL_RGBA16;
-                            createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
-                            break;
-                          case 4:
-                            createInfo.glInternalformat = GL_RGBA32F;
-                            createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-                            break;
-                        }
-                        break;
-
-                      default:
-                        /* If we get here there's a bug. */
-                        assert(0);
-                    }
-                    createInfo.baseWidth = levelWidth = w;
-                    createInfo.baseHeight = levelHeight = h;
-                    createInfo.baseDepth = 1;
-                    if (h == 1 && !options.two_d)
-                        createInfo.numDimensions = 1;
-                    else
-                        createInfo.numDimensions = 2;
-                    if (options.automipmap) {
-                        createInfo.numLevels = 1;
-                        createInfo.generateMipmaps = KTX_TRUE;
-                    } else {
-                        createInfo.generateMipmaps = KTX_FALSE;
-                        GLuint levels = 0;
-                        if (options.mipmap) {
-                            // Calculate number of miplevels
-                            GLuint max_dim = w > h ? w : h;
-                            levels = log2(max_dim) + 1;
-                        } else {
-                            levels = options.levels;
-                        }
-                        // Check we have enough.
-                        if (levels * createInfo.numFaces > options.infilenames.size()) {
-                            fprintf(stderr,
-                                    "%s: too few files for %d mipmap levels and %d faces.\n",
-                                    appName.c_str(), levels,
-                                    createInfo.numFaces);
-                            exitCode = 1;
-                            goto cleanup;
-                        } else if (levels * createInfo.numFaces < options.infilenames.size()) {
-                            fprintf(stderr,
-                                    "%s: too many files for %d mipmap levels and %d faces."
-                                    " Extras will be ignored.\n",
-                                    appName.c_str(), levels,
-                                    createInfo.numFaces);
-                        }
-                        createInfo.numLevels = levels;
-                    }
-                    if (options.ktx2) {
-                        ret = ktxTexture2_Create(&createInfo,
-                                                 KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                                 (ktxTexture2**)&texture);
-                    } else {
-                        ret = ktxTexture1_Create(&createInfo,
-                                                 KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                                 (ktxTexture1**)&texture);
-                    }
-                    if (KTX_SUCCESS != ret) {
-                        fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
-                                appName.c_str(), ktxErrorString(ret));
-                        exitCode = 2;
-                        goto cleanup;
-                    }
+                    face = 0;
                 } else {
-                    if (options.oetf == OETF_UNSET) {
-                        if (curfileOETF != fileOETF) {
-                            fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
-                                            "(OETF) than preceding files.\n",
-                                            appName.c_str(), infile.c_str());
-                            exitCode = 1;
-                            goto cleanup;
-                        }
-                    }
-                    if (face == (options.cubemap ? 6 : 1)) {
-                        level++;
-                        if (level < createInfo.numLevels) {
-                            levelWidth >>= 1;
-                            levelHeight >>= 1;
-                            if (w != levelWidth || h != levelHeight) {
-                                fprintf(stderr, "%s: \"%s\" has incorrect width or height for current mipmap level\n",
-                                        appName.c_str(), infile.c_str());
-                                exitCode = 1;
-                                goto cleanup;
-                            }
-                            face = 0;
-                        } else {
-                            break;
-                        }
-                    }
+                    break;
                 }
-                if (options.cubemap && w != h && w != levelWidth) {
-                    fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
-                                    "size for current mipmap level\n",
-                            appName.c_str(), infile.c_str());
-                    exitCode = 1;
-                    goto cleanup;
-                }
-                if (srcImg) {
-#if TRAVIS_DEBUG
-                    if (options.bcmp) {
-                        std::cout << "level = " << level << ", face = " << face;
-                        std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
-                        std::cout << ", imageSize = " << imageSize << std::endl;
-                    }
-#endif
-                    ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                                  level,
-                                                  0,
-                                                  face,
-                                                  srcImg,
-                                                  imageSize);
-
-                } else
-                    ktxTexture_SetImageFromStdioStream(ktxTexture(texture),
-                                                       level,
-                                                       0,
-                                                       face,
-                                                       f, imageSize);
-
-#if IMAGE_DEBUG
-                {
-                    ktx_size_t offset;
-                    ktxTexture_GetImageOffset(texture, level, 0, face, &offset);
-                    dumpImage(infile, w, h, components, componentSize,
-                              texture.pData + offset);
-                }
-#endif
-
-                face++;
             }
-            (void)fclose(f);
-        } else {
-            fprintf(stderr, "%s could not open input file \"%s\". %s\n",
-                    appName.c_str(), infile.c_str(), strerror(errno));
-            exitCode = 2;
+        }
+        if (options.cubemap && image->getWidth() != image->getHeight()
+            && image->getWidth() != levelWidth) {
+            fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
+                            "size for current mipmap level\n",
+                    appName.c_str(), infile.c_str());
+            exitCode = 1;
             goto cleanup;
         }
+#if TRAVIS_DEBUG
+        if (options.bcmp) {
+            std::cout << "level = " << level << ", face = " << face;
+            std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
+            std::cout << ", imageSize = " << imageSize << std::endl;
+        }
+#endif
+        ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                      level,
+                                      0,
+                                      face,
+                                      *image,
+                                      image->getByteCount());
+
+#if IMAGE_DEBUG
+        {
+            ktx_size_t offset;
+            ktxTexture_GetImageOffset(texture, level, 0, face, &offset);
+            dumpImage(infile, image->getWidth(), image->getHeight(),
+                      image->getComponentCount(), image->getComponentSize(),
+                      texture.pData + offset);
+        }
+#endif
+
+        face++;
     }
 
     /*
@@ -1058,6 +859,7 @@ int _tmain(int argc, _TCHAR* argv[])
                               writer.str().c_str());
     }
 
+    FILE* f;
     if (options.outfile.compare("-") == 0) {
         f = stdout;
 #if defined(_WIN32)
@@ -1070,7 +872,7 @@ int _tmain(int argc, _TCHAR* argv[])
     if (f) {
         if (options.bcmp) {
             commandOptions::basisOptions& bopts = options.bopts;
-            if (bopts.normalMap && chosenOETF != OETF_LINEAR) {
+            if (bopts.normalMap && chosenOETF != Image::eOETFLinear) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
                         " not linear.", appName.c_str());
                 exitCode = 1;
@@ -1078,7 +880,7 @@ int _tmain(int argc, _TCHAR* argv[])
             }
             if (bopts.noMultithreading)
                 bopts.threadCount = 1;
-            if (components == 1 || components == 2) {
+            if (componentCount == 1 || componentCount == 2) {
                 // Ensure this is not set as it would result in R in both
                 // RGB and A. This is because we have to pass RGBA to the BasisU
                 // encoder and, since a 2-channel file is considered
@@ -1124,7 +926,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
 cleanup:
     if (texture) ktxTexture_Destroy(ktxTexture(texture));
-    if (f) (void)fclose(f);
     return exitCode;
 }
 
@@ -1429,6 +1230,7 @@ log2(ktx_uint32_t v)
 }
 
 
+#if 0
 static void
 yflip(unsigned char*& srcImage, size_t imageSize,
       unsigned int w, unsigned int h, unsigned int pixelSize)
@@ -1452,7 +1254,7 @@ yflip(unsigned char*& srcImage, size_t imageSize,
     srcImage = flipped;
     delete temp;
 }
-
+#endif
 
 #if IMAGE_DEBUG
 static void

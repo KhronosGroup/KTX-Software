@@ -22,7 +22,7 @@
 //! @~English
 //! @file
 //!
-//! @brief Read netpbm format (.pam, .pbm or .pgm) files.
+//! @brief Create Images from netpbm format (.pam, .pbm or .pgm) files.
 //!
 //! @author Mark Callow, HI Corporation.
 //! @author Jacob Str&ouml;m, Ericsson AB.
@@ -31,7 +31,9 @@
 #include "stdafx.h"
 #include <inttypes.h>
 #include <stdlib.h>
-#include "image.h"
+#include <filesystem>
+#include "image.hpp"
+
 
 static int tupleSize(const char* tupleType);
 
@@ -54,7 +56,6 @@ void skipComments(FILE *src)
     }
     ungetc(c, src);
 }
-
 
 // Skips over white spaces in a netpbm file
 //
@@ -83,6 +84,12 @@ void skipNonData(FILE *src)
     skipSpaces(src);
 }
 
+static Image* createFromPPM(FILE*, bool transformOETF);
+static Image* createFromPGM(FILE*, bool transformOETF);
+static Image* createFromPAM(FILE*, bool transformOETF);
+static void parseHeader(FILE* src, uint32_t& width, uint32_t& height,
+                        int32_t& maxval);
+static void readImage(FILE* src, Image& dst);
 
 //!
 //! @internal
@@ -111,10 +118,8 @@ void skipNonData(FILE *src)
 //!
 //! @author Mark Callow
 //!
-FileResult
-readNPBM(FILE* src, unsigned int& width, unsigned int& height,
-         unsigned int& components, unsigned int& componentSize,
-         size_t& imageSize, unsigned char** pixels)
+Image*
+Image::CreateFromNPBM(FILE* src, bool transformOETF)
 {
     char line[255];
     int numvals;
@@ -122,20 +127,17 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
     skipNonData(src);
 
     numvals = fscanf(src, "%3s", line);
-        if (numvals == 0) {
-        fprintf(stderr, "Error: PBM type string missing.\n");
-        return INVALID_FORMAT;
+    if (numvals != 0) {
+        if (strcmp(line, "P6") == 0) {
+            return createFromPPM(src, transformOETF);
+        } else if (strcmp(line, "P5") == 0) {
+            return createFromPGM(src, transformOETF);
+        } else if (strcmp(line, "P7") == 0) {
+            return createFromPAM(src, transformOETF);
         }
+    }
+    throw different_format();
 
-    if (strcmp(line, "P6") == 0) {
-        return readPPM(src, width, height, components, componentSize, imageSize, pixels);
-    } else if (strcmp(line, "P5") == 0) {
-        components = 1;
-        return readPGM(src, width, height, components, componentSize, imageSize, pixels);
-    } else if (strcmp(line, "P7") == 0) {
-        return readPAM(src, width, height, components, componentSize, imageSize, pixels);
-    } else
-        return INVALID_FORMAT;
 }
 
 
@@ -179,59 +181,35 @@ readNPBM(FILE* src, unsigned int& width, unsigned int& height,
 //! @author Jacob Str&ouml;m
 //! @author Mark Callow
 //!
-FileResult
-readPPM(FILE* src, unsigned int& width, unsigned int& height,
-        unsigned int& components, unsigned int& componentSize,
-        size_t& imageSize, unsigned char** pixels)
+Image*
+createFromPPM(FILE* src, bool transformOETF)
 {
-    int maxval;
-    int numvals;
+    int32_t maxval;
+    uint32_t numvals, width, height;
+    Image* image;
 
     skipNonData(src);
 
-    numvals = fscanf(src, "%u %u", &width, &height);
-    if (numvals != 2)
-    {
-        fprintf(stderr, "Error: width or height missing.\n");
-        fclose(src);
-        return INVALID_VALUE;
-        }
-    if( width<=0 || height <=0)
-    {
-        fprintf(stderr, "Error: width or height negative.\n");
-        fclose(src);
-        return INVALID_VALUE;
-    }
-
-    skipNonData(src);
-
-    components = 3;
-
-    numvals = fscanf(src, "%d", &maxval);
-        if (numvals == 0) {
-        fprintf(stderr, "Error: maxval must be an integer.\n");
-        return INVALID_VALUE;
-        }
-    if (maxval <= 0 || maxval >= (1<<16)) {
-        fprintf(stderr, "Error: Color resolution must be > 0 && < 65536.\n");
-        return INVALID_VALUE;
-    }
+    parseHeader(src, width, height, maxval);
     //fprintf(stderr, "maxval is %d\n",maxval);
+
+    // PPM is 3 components
     if (maxval > 255)
-        componentSize=2;
+        image = new rgb16image(width, height);
     else
-        componentSize=1;
+        image = new rgb8image(width, height);
 
     // We need to remove the newline.
     char c = 0;
     while(c != '\n')
         numvals = fscanf(src, "%c", &c);
 
-    imageSize = width * height * components * componentSize;
-    if (pixels)
-        return readImage(src, imageSize, *pixels);
-    else
-        return SUCCESS;
+    readImage(src, *image);
+    if (transformOETF) {
+        image->transformOETF(decode709, encode_sRGB);
+        image->setOetf(Image::eOETFsRGB);
+    }
+    return image;
 }
 
 
@@ -274,54 +252,34 @@ readPPM(FILE* src, unsigned int& width, unsigned int& height,
 //! @author Jacob Str&ouml;m
 //! @author Mark Callow
 //!
-FileResult
-readPGM(FILE* src, unsigned int& width, unsigned int& height,
-        unsigned int& components, unsigned int& componentSize,
-        size_t& imageSize, unsigned char** pixels)
+Image*
+createFromPGM(FILE* src, bool transformOETF)
 {
     int maxval;
     int numvals;
+    uint32_t width, height;
+    Image* image;
 
     skipNonData(src);
-    numvals = fscanf(src,"%u %u", &width, &height);
-    if (numvals != 2)
-    {
-        fprintf(stderr, "Error: image width or height missing.\n");
-        fclose(src);
-        return INVALID_VALUE;
-        }
-    if (width<=0 || height<=0)
-    {
-        fprintf(stderr, "Error: width and height of the image must be greater than zero.\n");
-        return INVALID_VALUE;
-    }
-    skipNonData(src);
 
-    components = 1;
+    parseHeader(src, width, height, maxval);
 
-    numvals = fscanf(src,"%d",&maxval);
-        if (numvals == 0) {
-        fprintf(stderr, "Error: maxval must be an integer.\n");
-        return INVALID_VALUE;
-        }
-    if (maxval <= 0 || maxval >= (1<<16)) {
-        fprintf(stderr, "Error: maxval must be > 1 && < 65536.\n");
-        return INVALID_VALUE;
-    }
+    // PGM is 1 component.
     if (maxval>255)
-        componentSize = 2;
+        image = new r16image(width, height);
     else
-        componentSize = 1;
+        image = new r8image(width, height);
 
     /* gotta eat the newline too */
     char ch=0;
     while(ch!='\n') numvals = fscanf(src,"%c",&ch);
 
-    imageSize = width * height * componentSize;
-    if (pixels)
-        return readImage(src, imageSize, *pixels);
-    else
-        return SUCCESS;
+    readImage(src, *image);
+    if (transformOETF) {
+        image->transformOETF(decode709, encode_sRGB);
+        image->setOetf(Image::eOETFsRGB);
+    }
+    return image;
 }
 
 
@@ -367,26 +325,27 @@ readPGM(FILE* src, unsigned int& width, unsigned int& height,
 //!
 //! @author Mark Callow
 //!
-FileResult
-readPAM(FILE* src, unsigned int& width, unsigned int& height,
-        unsigned int& components, unsigned int& componentSize,
-        size_t& imageSize, unsigned char** pixels)
+Image*
+createFromPAM(FILE* src, bool transformOETF)
 {
     char line[255];
 #define MAX_TUPLETYPE_SIZE 20
 #define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
 #define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
     char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
+    unsigned int width, height;
     unsigned int maxval, depth;
     unsigned int numFieldsFound = 0;
+    unsigned int components;
+    Image* image;
 
     for (;;) {
         skipNonData(src);
         if (!fgets(line, sizeof(line), src)) {
             if (feof(src))
-                return UNEXPECTED_EOF;
+                throw std::runtime_error("Unexpected end of file.");
             else
-                return IO_ERROR;
+                throw std::runtime_error("IO error.");
         }
         if (strcmp(line, "ENDHDR\n") == 0)
             break;
@@ -405,28 +364,56 @@ readPAM(FILE* src, unsigned int& width, unsigned int& height,
     };
 
     if (numFieldsFound < 5)
-        return INVALID_PAM_HEADER;
+        throw Image::invalid_file("Invalid PAM header.");
 
     if ((components = tupleSize(tupleType)) < 1)
-        return INVALID_TUPLETYPE;
+        throw Image::invalid_file("Invalid TUPLTYPE.");
 
     if (components != depth)
-        return INVALID_VALUE;
+        throw Image::invalid_file("Mismatched TUPLTYPE and DEPTH.");
 
     if (maxval <= 0 || maxval >= (1<<16)) {
-        fprintf(stderr, "Error: maxval must be > 1 && < 65536.\n");
-        return INVALID_VALUE;
+        throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
     }
-    if (maxval > 255)
-        componentSize = 2;
-    else
-        componentSize = 1;
+    if (maxval > 255) {
+        switch (components) {
+          case 1:
+            image = new r16image(width, height);
+            break;
+          case 2:
+            image = new rg16image(width, height);
+            break;
+          case 3:
+            image = new rgb16image(width, height);
+            break;
+          case 4:
+            image = new rgba16image(width, height);
+            break;
+        }
+    } else {
+        switch (components) {
+          case 1:
+            image = new r8image(width, height);
+            break;
+          case 2:
+            image = new rg8image(width, height);
+            break;
+          case 3:
+            image = new rgb8image(width, height);
+            break;
+          case 4:
+            image = new rgba8image(width, height);
+            break;
+        }
+    }
 
-    imageSize = width * height * components * componentSize;
-    if (pixels)
-        return readImage(src, imageSize, *pixels);
-    else
-        return SUCCESS;
+    readImage(src, *image);
+    if (transformOETF) {
+        image->transformOETF(decode709, encode_sRGB);
+        image->setOetf(Image::eOETFsRGB);
+    }
+
+    return image;
 }
 
 
@@ -448,58 +435,45 @@ tupleSize(const char* tupleType)
 }
 
 
-FileResult
-readImage(FILE* src, size_t imageSize, unsigned char*& pixels)
-{
-    pixels = new unsigned char[imageSize];
-    if (!pixels)
-    {
-        fprintf(stderr, "Error: could not allocate memory for the pixels of the texture.\n");
-        return OUT_OF_MEMORY;
-    }
-
-    if (fread(pixels, imageSize, 1, src) != 1)
-    {
-        fprintf(stderr, "Error: could not read %zu bytes of pixel data.\n",
-                imageSize);
-        free(pixels);
-        pixels = 0;
-        return UNEXPECTED_EOF;
-    }
-    return SUCCESS;
-}
-
 void
-OETFtransform(size_t imageBytes, uint8_t* pixels,
-              uint32_t components, OETFFunc decode, OETFFunc encode)
+readImage(FILE* src, Image& image)
 {
-    uint32_t pixelBytes = components * sizeof(*pixels);
-    for (size_t i = 0; i < imageBytes; i += pixelBytes) {
-        // Don't transform the alpha component. --------  v
-        for (uint32_t comp = 0; comp < components && comp < 3; comp++) {
-            float brightness = (float)(*pixels) / 255;
-            float intensity = decode(brightness);
-            brightness = clamp(encode(intensity), 0.0f, 1.0f);
-            *pixels++ = (uint8_t)roundf(brightness * 255);
-        }
-        if (components == 4) pixels++;
+    if (fread(image, image.getByteCount(), 1, src) != 1)
+    {
+        std::stringstream message;
+        message << "unexpected end of file. Could not read "
+                << image.getByteCount() << " bytes of pixel data.";
+        throw std::runtime_error(message.str());
+    }
+    image.setOetf(Image::eOETF709);
+}
+
+void parseHeader(FILE* src, uint32_t& width, uint32_t& height, int32_t& maxval)
+{
+    uint32_t numvals;
+
+    numvals = fscanf(src, "%u %u", &width, &height);
+    if (numvals != 2) {
+        fclose(src);
+        throw Image::invalid_file("width or height is missing.");
+    }
+    if (width <= 0 || height <= 0) {
+        fclose(src);
+        throw Image::invalid_file("width or height is negative.");
+    }
+
+    skipNonData(src);
+
+    numvals = fscanf(src, "%d", &maxval);
+    if (numvals == 0) {
+        fclose(src);
+        throw Image::invalid_file("maxval must be an integer.");
+    }
+    if (maxval <= 0 || maxval >= (1<<16)) {
+        fclose(src);
+        throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
     }
 }
 
-void
-OETFtransform(size_t imageBytes, uint16_t* pixels,
-              uint32_t components, OETFFunc decode, OETFFunc encode)
-{
-    uint32_t pixelBytes = components * sizeof(*pixels);
-    for (size_t i = 0; i < imageBytes; i += pixelBytes) {
-        // Don't transform the alpha component. --------  v
-        for (uint32_t comp = 0; comp < components && comp < 3; comp++) {
-            float brightness = (float)(*pixels) / 255;
-            float intensity = decode(brightness);
-            brightness = clamp(encode(intensity), 0.0f, 1.0f);
-            *pixels++ = (uint16_t)roundf(brightness * 255);
-        }
-    }
-}
 
 
