@@ -118,6 +118,8 @@ struct clampedOption
   T max;
 };
 
+template <typename S> inline S maximum(S a, S b) { return (a > b) ? a : b; }
+
 struct commandOptions {
     struct basisOptions : public ktxBasisParams {
         // The remaining numeric fields are clamped within the Basis library.
@@ -180,11 +182,12 @@ struct commandOptions {
 
     int          automipmap;
     int          cubemap;
+    int          genmipmap;
     int          ktx2;
     int          metadata;
     int          mipmap;
     int          two_d;
-    Image::oetf_e oetf;
+    Image::eOETF oetf;
     int          useStdin;
     int          lower_left_maps_to_s0t0;
     int          bcmp;
@@ -194,8 +197,9 @@ struct commandOptions {
     std::vector<_tstring> infilenames;
 
     commandOptions() {
-      automipmap = 0;
-      cubemap = 0;
+      automipmap = false;
+      cubemap = false;
+      genmipmap = false;
       ktx2 = 0;
       metadata = 1;
       mipmap = 0;
@@ -203,7 +207,7 @@ struct commandOptions {
       useStdin = false;
       bcmp = false;
       levels = 1;
-      oetf = Image::eOETFUnset;
+      oetf = Image::eOETF::Unset;
       /* The OGLES WG recommended approach, even though it is opposite
        * to the OpenGL convention. Suki ja nai.
        */
@@ -581,7 +585,7 @@ int _tmain(int argc, _TCHAR* argv[])
     struct commandOptions options;
     int exitCode = 0, face;
     unsigned int componentCount = 1, i, level, levelWidth, levelHeight;
-    Image::oetf_e chosenOETF, fileOETF;
+    Image::eOETF chosenOETF, fileOETF;
 
     processCommandLine(argc, argv, options);
 
@@ -598,11 +602,14 @@ int _tmain(int argc, _TCHAR* argv[])
 
     for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
         _tstring& infile = options.infilenames[i];
+        GLuint levelCount = 1;
+        std::vector<Image*> mips;
 
         Image* image;
         try {
             image =
-              Image::CreateFromFile(infile, options.oetf == Image::eOETFUnset);
+              Image::CreateFromFile(infile, options.oetf == Image::eOETF::Unset);
+            mips.push_back(image);
         } catch (std::exception& e) {
             std::cerr << appName << ": failed to create image from "
                       << infile << ". " << e.what() << std::endl;
@@ -621,14 +628,14 @@ int _tmain(int argc, _TCHAR* argv[])
             bool srgb;
 
             fileOETF = image->getOetf();
-            if (options.oetf == Image::eOETFUnset) {
+            if (options.oetf == Image::eOETF::Unset) {
                 chosenOETF = fileOETF;
             } else {
                 chosenOETF = options.oetf;
             }
 
             componentCount = image->getComponentCount();
-            srgb = (chosenOETF == Image::eOETFsRGB);
+            srgb = (chosenOETF == Image::eOETF::sRGB);
             switch (componentCount) {
               case 1:
                 switch (image->getComponentSize()) {
@@ -726,31 +733,34 @@ int _tmain(int argc, _TCHAR* argv[])
                 createInfo.generateMipmaps = KTX_TRUE;
             } else {
                 createInfo.generateMipmaps = KTX_FALSE;
-                GLuint levels = 0;
-                if (options.mipmap) {
+                if (options.mipmap || options.genmipmap) {
                     // Calculate number of miplevels
                     GLuint max_dim = image->getWidth() > image->getHeight() ?
                                      image->getWidth() : image->getHeight();
-                    levels = log2(max_dim) + 1;
-                } else {
-                    levels = options.levels;
+                    levelCount = log2(max_dim) + 1;
+                }
+                if (options.levels > 1) {
+                    // Override the above.
+                    levelCount = options.levels;
                 }
                 // Check we have enough.
-                if (levels * createInfo.numFaces > options.infilenames.size()) {
-                    fprintf(stderr,
-                            "%s: too few files for %d mipmap levels and %d faces.\n",
-                            appName.c_str(), levels,
-                            createInfo.numFaces);
-                    exitCode = 1;
-                    goto cleanup;
-                } else if (levels * createInfo.numFaces < options.infilenames.size()) {
-                    fprintf(stderr,
-                            "%s: too many files for %d mipmap levels and %d faces."
-                            " Extras will be ignored.\n",
-                            appName.c_str(), levels,
-                            createInfo.numFaces);
+                if (options.mipmap) {
+                    if (levelCount * createInfo.numFaces > options.infilenames.size()) {
+                        fprintf(stderr,
+                                "%s: too few files for %d mipmap levelCount and %d faces.\n",
+                                appName.c_str(), levelCount,
+                                createInfo.numFaces);
+                        exitCode = 1;
+                        goto cleanup;
+                    } else if (levelCount * createInfo.numFaces < options.infilenames.size()) {
+                        fprintf(stderr,
+                                "%s: too many files for %d mipmap levelCount and %d faces."
+                                " Extras will be ignored.\n",
+                                appName.c_str(), levelCount,
+                                createInfo.numFaces);
+                    }
                 }
-                createInfo.numLevels = levels;
+                createInfo.numLevels = levelCount;
             }
             if (options.ktx2) {
                 ret = ktxTexture2_Create(&createInfo,
@@ -808,12 +818,47 @@ int _tmain(int argc, _TCHAR* argv[])
             std::cout << ", imageSize = " << imageSize << std::endl;
         }
 #endif
-        ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                      level,
-                                      0,
-                                      face,
-                                      *image,
-                                      image->getByteCount());
+        if (options.genmipmap) {
+            for (uint32_t level = 1; level < levelCount; level++)
+            {
+                const uint32_t levelWidth
+                    = maximum<uint32_t>(1, image->getWidth() >> level);
+                const uint32_t levelHeight
+                    = maximum<uint32_t>(1, image->getHeight() >> level);
+
+                Image *levelImage = image->createImage(levelWidth, levelHeight);
+                mips.push_back(levelImage);
+
+                // TODO: Need options for filter, scale and wrapping.
+                // sRGB is a bool indicating if image is sRGB
+                // filter is a string defaults to "lancos4".
+                // filter scale defaults to 1.0.
+                // wrapping defaults to false. Sets BOUNDARY clampe is false,
+                // BOUNDARY_WRAP is true.
+                // first_comp, num_comps maybe we don't need.
+                bool status = image->resample(*levelImage);
+                if (!status)
+                {
+                    std::cerr << "Image::resample() failed!" << std::endl;
+                    exitCode = 1;
+                    goto cleanup;
+                }
+
+                // TODO: and an option for renormalize;
+                //if (m_params.m_mip_renormalize)
+                //    levelImage->renormalize_normal_map();
+            }
+        }
+
+        std::vector<Image*>::const_iterator it = mips.begin();
+        for (uint32_t level = 0; it < mips.end(); it++, level++) {
+            ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                          level,
+                                          0,
+                                          face,
+                                          **it,
+                                          (*it)->getByteCount());
+        }
 
 #if IMAGE_DEBUG
         {
@@ -872,7 +917,7 @@ int _tmain(int argc, _TCHAR* argv[])
     if (f) {
         if (options.bcmp) {
             commandOptions::basisOptions& bopts = options.bopts;
-            if (bopts.normalMap && chosenOETF != Image::eOETFLinear) {
+            if (bopts.normalMap && chosenOETF != Image::eOETF::Linear) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
                         " not linear.", appName.c_str());
                 exitCode = 1;
@@ -1048,6 +1093,7 @@ processOptions(argparser& parser,
         { "2d", argparser::option::no_argument, &options.two_d, 1 },
         { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
         { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
+        { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
         { "levels", argparser::option::required_argument, NULL, 'l' },
         { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },

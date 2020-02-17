@@ -24,7 +24,19 @@
 //!
 //! @brief Create Images from netpbm format (.pam, .pbm or .pgm) files.
 //!
-//! @author Mark Callow, HI Corporation.
+//! The loader transforms the image from its bt.709 transfer function to
+//! something supported by by 3D APIs. The .ppm specification
+//! (http://netpbm.sourceforge.net/doc/ppm.html)
+//! does not indicate that BT.709 only applies when maxval <= 255
+//! so transformation is always performed. Since 3D APIs, quite
+//! sensibly, only provide sRGB support for 8-bit formats, larger formats
+//! are transformed to a linear OETF.
+//!
+//! The specification also says that both sRGB and linear encoding are
+//! often used with the netpbm formats. Since there is no metadata
+//! to indicate a differing transform, this loader always assumes bt.709.
+//!
+//! @author Mark Callow.
 //! @author Jacob Str&ouml;m, Ericsson AB.
 //!
 
@@ -94,27 +106,19 @@ static void readImage(FILE* src, Image& dst);
 //!
 //! @internal
 //! @~English
-//! @brief Read a netpbm file, either PAM, PGM or PPM
+//! @brief Create an Image from a netpbm file, either PAM, PGM or PPM
 //!
 //! The file type is determined from the magic number.
 //! P5 is a PGM file. P6 is a PPM binary file, P7 is a PAM file.
 //!
-//! @param [in]  src        pointer to FILE stream to read
-//! @param [out] width      reference to variable in which to store the image width
-//! @param [out] height     reference to variable in which to store the image height
-//! @param [out] components reference to variable in which to store the number of
-//!                         components in an image pixel
-//! @param [out] componentSize
-//!                         reference to variable in which to store the size in bytes
-//!                         of each component of a pixel.
-//! @param [out] imageSize  reference to variable in which to store the size in bytes
-//!                         of the image.
-//! @param [out] pixels     reference to variable in which to store a pointer to the
-//!                         image's pixels.
+//! @param [in] src           pointer to FILE stream to read
+//! @param [in] transformOETF transform the image from the
+//!                           bt.709 OETF of the input.
 //!
-//! @return an error indicator or SUCCESS
+//! @return A newly constructed Image with the type matching the file contents
+//!         and containing the file contents.
 //!
-//! @exception INVALID_FORMAT the file is not in .pam, .pgm or .ppm format
+//! @exception different_format the file is not in .pam, .pgm or .ppm format
 //!
 //! @author Mark Callow
 //!
@@ -137,17 +141,16 @@ Image::CreateFromNPBM(FILE* src, bool transformOETF)
         }
     }
     throw different_format();
-
 }
 
 
 //!
 //! @internal
 //! @~English
-//! @brief Read a PPM file with P6 header
+//! @brief Create an Image from a PPM file with a P6 header.
 //!
-//! P6 indicates binary, as opposed to P5, which is ASCII format. The header must
-//! look like this:
+//! P6 indicates binary, as opposed to P5, which is ASCII format. The
+//! header must look like this:
 //!
 //! P6
 //! # Comments (not necessary)
@@ -156,29 +159,15 @@ Image::CreateFromNPBM(FILE* src, bool transformOETF)
 //!
 //! after that follows RGBRGBRGB...
 //!
-//! @param [in]  src        pointer to FILE stream to read
-//! @param [out] width      reference to variable in which to store the image width
-//! @param [out] height     reference to variable in which to store the image height
-//! @param [out] components reference to variable in which to store the number of
-//!                         components in an image pixel. Always set to 3.
-//! @param [out] componentSize
-//!                         reference to variable in which to store the size in bytes
-//!                         of each component of a pixel. Set to 1 or 2.
-//! @param [out] imageSize  reference to variable in which to store the size in bytes
-//!                         of the image.
-//! @param [out] pixels     reference to variable in which to store a pointer to the
-//!                         image's pixels.
+//! @param [in] src           pointer to FILE stream to read
+//! @param [in] transformOETF transform the image from the
+//!                           bt.709 OETF of the input.
 //!
-//! @return an error indicator or SUCCESS
+//! @return A newly constructed Image with the type matching the file contents
+//!         and containing the file contents.
 //!
-//! @exception INVALID_VALUE the width or height is < 0 or the maxval value is not
-//!                          between 1 and 65535.
-//! @exception OUT_OF_MEMORY not enough memory to allocate a buffer for the file
-//!                          contents.
-//! @exception UNEXPECTED_EOF not enough bytes in the file for the specified image
-//!                           size.
+//! @exception invalid_file @sa parseHeader for details.
 //!
-//! @author Jacob Str&ouml;m
 //! @author Mark Callow
 //!
 Image*
@@ -206,8 +195,13 @@ createFromPPM(FILE* src, bool transformOETF)
 
     readImage(src, *image);
     if (transformOETF) {
-        image->transformOETF(decode709, encode_sRGB);
-        image->setOetf(Image::eOETFsRGB);
+        if (maxval <= 255) {
+            image->transformOETF(decode_bt709, encode_sRGB);
+            image->setOetf(Image::eOETF::sRGB);
+        } else {
+            image->transformOETF(decode_bt709, encode_linear);
+            image->setOetf(Image::eOETF::Linear);
+        }
     }
     return image;
 }
@@ -216,40 +210,27 @@ createFromPPM(FILE* src, bool transformOETF)
 //!
 //! @internal
 //! @~English
-//! @brief Read a PGM file with P5 header
+//! @brief Create an Image from a PGM file with a P5 header.
 //!
-//! The header must look like this:
+//! P6 indicates binary, as opposed to P3, which is ASCII format. The
+//! header must look like this:
 //!
 //! P5
-//! # Comments if you want to
+//! # Comments (not necessary)
 //! width height
 //! 255
 //!
-//! then follows GRAYGRAYGRAYGRAY...
+//! after that follows RGBRGBRGB...
 //!
-//! @param [in]  src        pointer to FILE stream to read
-//! @param [out] width      reference to variable in which to store the image width
-//! @param [out] height     reference to variable in which to store the image height
-//! @param [out] components reference to variable in which to store the number of
-//!                         components in an image pixel. Always set to 1.
-//! @param [out] componentSize
-//!                         reference to variable in which to store the size in bytes
-//!                         of each component of a pixel. Set to 1 or 2.
-//! @param [out] imageSize  reference to variable in which to store the size in bytes
-//!                         of the image.
-//! @param [out] pixels     reference to variable in which to store a pointer to the
-//!                         image's pixels.
+//! @param [in] src           pointer to FILE stream to read
+//! @param [in] transformOETF transform the image from the
+//!                           bt.709 OETF of the input.
 //!
-//! @return an error indicator or SUCCESS
+//! @return A newly constructed Image with the type matching the file contents
+//!         and containing the file contents.
 //!
-//! @exception INVALID_VALUE the width or height is < 0 or the maxval value is not
-//!                          between 1 and 65535.
-//! @exception OUT_OF_MEMORY not enough memory to allocate a buffer for the file
-//!                          contents.
-//! @exception UNEXPECTED_EOF not enough bytes in the file for the specified image
-//!                           size.
+//! @exception invalid_file @sa parseHeader for details.
 //!
-//! @author Jacob Str&ouml;m
 //! @author Mark Callow
 //!
 Image*
@@ -276,8 +257,13 @@ createFromPGM(FILE* src, bool transformOETF)
 
     readImage(src, *image);
     if (transformOETF) {
-        image->transformOETF(decode709, encode_sRGB);
-        image->setOetf(Image::eOETFsRGB);
+         if (maxval <= 255) {
+            image->transformOETF(decode_bt709, encode_sRGB);
+            image->setOetf(Image::eOETF::sRGB);
+        } else {
+            image->transformOETF(decode_bt709, encode_linear);
+            image->setOetf(Image::eOETF::Linear);
+        }
     }
     return image;
 }
@@ -286,7 +272,7 @@ createFromPGM(FILE* src, bool transformOETF)
 //!
 //! @internal
 //! @~English
-//! @brief Read a PAM file with P7 header
+//! @brief Create an Image from a PAM file with a P7 header.
 //!
 //! The header must look like this:
 //!
@@ -301,27 +287,15 @@ createFromPGM(FILE* src, bool transformOETF)
 //!
 //! then follows TUPLETUPLETUPLETUPLE...
 //!
-//! @param [in]  src        pointer to FILE stream to read
-//! @param [out] width      reference to variable in which to store the image width
-//! @param [out] height     reference to variable in which to store the image height
-//! @param [out] components reference to variable in which to store the number of
-//!                         components in an image pixel.
-//! @param [out] componentSize
-//!                         reference to variable in which to store the size in bytes
-//!                         of each component of a pixel.
-//! @param [out] imageSize  reference to variable in which to store the size in bytes
-//!                         of the image.
-//! @param [out] pixels     reference to variable in which to store a pointer to the
-//!                         image's pixels.
+//! @param [in] src           pointer to FILE stream to read
+//! @param [in] transformOETF transform the image from the
+//!                           bt.709 OETF of the input.
 //!
-//! @return an error indicator or SUCCESS
+//! @return A newly constructed Image with the type matching the file contents
+//!         and containing the file contents.
 //!
-//! @exception INVALID_VALUE the width or height is < 0 or the maxval value is not
-//!                          between 1 and 65535.
-//! @exception OUT_OF_MEMORY not enough memory to allocate a buffer for the file
-//!                          contents.
-//! @exception UNEXPECTED_EOF not enough bytes in the file for the specified image
-//!                           size.
+//! @exception invalid_file if the PAM header or TUPLETYPE is invalid, the
+//!            TUPLTYPE does not match DEPTH or MAXVAL is out of range.
 //!
 //! @author Mark Callow
 //!
@@ -376,7 +350,7 @@ createFromPAM(FILE* src, bool transformOETF)
         throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
     }
     if (maxval > 255) {
-        switch (components) {
+        switch (depth) {
           case 1:
             image = new r16image(width, height);
             break;
@@ -391,7 +365,7 @@ createFromPAM(FILE* src, bool transformOETF)
             break;
         }
     } else {
-        switch (components) {
+        switch (depth) {
           case 1:
             image = new r8image(width, height);
             break;
@@ -409,8 +383,13 @@ createFromPAM(FILE* src, bool transformOETF)
 
     readImage(src, *image);
     if (transformOETF) {
-        image->transformOETF(decode709, encode_sRGB);
-        image->setOetf(Image::eOETFsRGB);
+        if (maxval <= 255) {
+            image->transformOETF(decode_bt709, encode_sRGB);
+            image->setOetf(Image::eOETF::sRGB);
+        } else {
+            image->transformOETF(decode_bt709, encode_linear);
+            image->setOetf(Image::eOETF::Linear);
+        }
     }
 
     return image;
@@ -445,9 +424,23 @@ readImage(FILE* src, Image& image)
                 << image.getByteCount() << " bytes of pixel data.";
         throw std::runtime_error(message.str());
     }
-    image.setOetf(Image::eOETF709);
+    image.setOetf(Image::eOETF::bt709);
 }
 
+
+//!
+//! @internal
+//! @~English
+//! @brief parse the header of a PGM or PPM file.
+//!
+//! @param [in]  src    pointer to FILE stream to read
+//! @param [out] width  reference to a var in which to write the image width.
+//! @param [out] height reference to a var in which to write the image height
+//! @param [out] maxval reference to a var in which to write the maxval.
+//!
+//! @exception invalid_file if there is no width or height, if maxval is not
+//!                         an integer or if maxval is out of range.
+//!
 void parseHeader(FILE* src, uint32_t& width, uint32_t& height, int32_t& maxval)
 {
     uint32_t numvals;

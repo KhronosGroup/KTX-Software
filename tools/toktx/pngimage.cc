@@ -196,7 +196,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF)
        // is needed during rendering, especially when gamut
        // mapping. It does not affect the meaning or value of the
        // image pixels so there is nothing to do here.
-       image->setOetf(Image::eOETFsRGB);
+       image->setOetf(Image::eOETF::sRGB);
     } else {
        if (state.info_png.iccp_defined) {
            //delete image;
@@ -204,9 +204,9 @@ Image::CreateFromPNG(FILE* src, bool transformOETF)
                                     "These are not supported");
        } else if (state.info_png.gama_defined) {
            if (state.info_png.gama_gamma == 100000)
-               image->setOetf(Image::eOETFLinear);
+               image->setOetf(Image::eOETF::Linear);
            else if (state.info_png.gama_gamma == 45455)
-               image->setOetf(Image::eOETFsRGB);
+               image->setOetf(Image::eOETF::sRGB);
            else {
                //delete image;
                std::stringstream message;
@@ -216,7 +216,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF)
                throw std::runtime_error(message.str());
            }
        } else {
-           image->setOetf(Image::eOETFsRGB);
+           image->setOetf(Image::eOETF::sRGB);
        }
     }
 

@@ -187,18 +187,18 @@ class Image {
             : std::runtime_error("Invalid file: " + error) { }
     };
 
-    enum oetf_e {
-      eOETFLinear = 0,
-      eOETFsRGB = 1,
-      eOETF709 = 2,
-      eOETFUnset = 3
+    enum class eOETF {
+      Linear = 0,
+      sRGB = 1,
+      bt709 = 2,
+      Unset = 3
     };
 
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
-    oetf_e getOetf() const { return oetf; }
-    void setOetf(oetf_e oetf) { this->oetf = oetf; }
+    eOETF getOetf() const { return oetf; }
+    void setOetf(eOETF oetf) { this->oetf = oetf; }
 
     typedef Image* (*CreateFunction)(FILE* f, bool oetfTransform);
     static const std::vector<CreateFunction> CreateFunctions;
@@ -212,8 +212,12 @@ class Image {
     virtual uint32_t getPixelSize() = 0;
     virtual uint32_t getComponentCount() = 0;
     virtual uint32_t getComponentSize() = 0;
+    virtual Image* createImage(uint32_t width, uint32_t height) = 0;
     virtual Image& clear() = 0;
     virtual Image& crop(uint32_t w, uint32_t h) = 0;
+    virtual bool resample(Image& dst, bool srgb = false,
+                          const char *pFilter = "lanczos4",
+                          float filter_scale = 1.0f, bool wrapping = false) = 0;
     virtual Image& resize(uint32_t w, uint32_t h) = 0;
     virtual Image& yflip() = 0;
     virtual Image& transformOETF(OETFFunc decode, OETFFunc encode) = 0;
@@ -223,7 +227,7 @@ class Image {
     Image(uint32_t w, uint32_t h) : width(w), height(h) { }
 
     uint32_t width, height;  // In pixels
-    oetf_e oetf;
+    eOETF oetf;
 
 };
 
@@ -232,6 +236,8 @@ template<class Color, class Alloc = std::allocator<Color>>
 class imageTBase : public Image {
   public:
     using colorVector = std::vector<Color, Alloc>;
+
+    imageTBase(uint32_t w, uint32_t h) : Image(w, h) { }
 
     virtual operator uint8_t*() { return (uint8_t*)pixels.data(); }
 
@@ -252,6 +258,12 @@ class imageTBase : public Image {
         return *this;
     }
 
+    virtual Image* createImage(uint32_t width, uint32_t height) {
+        Image* image = new imageTBase<Color>(width, height);
+        image->resize(width, height);
+        return image;
+    }
+
     virtual imageTBase& crop(uint32_t w, uint32_t h) {
         if (w == width && h == height)
             return *this;
@@ -265,6 +277,12 @@ class imageTBase : public Image {
         width = w;
         height = h;
         return *this;
+    }
+
+    virtual bool resample(Image& dst, bool srgb, const char *pFilter,
+                          float filter_scale, bool wrapping)
+    {
+        return true;
     }
 
     virtual imageTBase& resize(uint32_t w, uint32_t h) {
@@ -305,7 +323,6 @@ class imageTBase : public Image {
   protected:
     imageTBase() : Image() { }
     imageTBase(Alloc alloc) : Image(), pixels(alloc) { }
-    imageTBase(uint32_t w, uint32_t h) : Image(w, h) { }
     imageTBase(Alloc alloc, uint32_t w, uint32_t h)
         : Image(w, h), pixels(alloc) { }
 
@@ -428,7 +445,7 @@ encode709(float const intensity) {
 }
 
 static INLINE float
-decode709(float const brightness)
+decode_bt709(float const brightness)
 {
     float const gamma = 2.2f;
     float const oneOverGamma = 1.0f / gamma;
@@ -456,6 +473,12 @@ encode_sRGB(float const intensity)
         brightness = 1.055f * pow(intensity, 1.0f/2.4f) - 0.055f;
 
     return brightness;
+}
+
+static INLINE float
+encode_linear(float const intensity)
+{
+    return intensity;
 }
 
 #endif /* IMAGE_HPP */
