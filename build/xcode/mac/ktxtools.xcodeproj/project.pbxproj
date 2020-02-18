@@ -1395,6 +1395,7 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					utils,
+					lib/basisu,
 					include,
 					other_include,
 				);
@@ -1436,6 +1437,7 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					utils,
+					lib/basisu,
 					include,
 					other_include,
 				);

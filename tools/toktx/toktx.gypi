@@ -28,7 +28,10 @@
           'type': '<(executable)',
           # To quiet warnings about the anon structs and unions.
           'cflags_cc': [ '-Wno-pedantic' ],
-          'include_dirs': [ '../../utils' ],
+          'include_dirs': [
+            '../../utils',
+            '../../lib/basisu',
+          ],
           'mac_bundle': 0,
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'sources': [

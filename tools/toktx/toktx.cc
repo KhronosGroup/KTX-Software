@@ -118,8 +118,6 @@ struct clampedOption
   T max;
 };
 
-template <typename S> inline S maximum(S a, S b) { return (a > b) ? a : b; }
-
 struct commandOptions {
     struct basisOptions : public ktxBasisParams {
         // The remaining numeric fields are clamped within the Basis library.
@@ -585,7 +583,7 @@ int _tmain(int argc, _TCHAR* argv[])
     struct commandOptions options;
     int exitCode = 0, face;
     unsigned int componentCount = 1, i, level, levelWidth, levelHeight;
-    Image::eOETF chosenOETF, fileOETF;
+    Image::eOETF chosenOETF, firstImageOETF;
 
     processCommandLine(argc, argv, options);
 
@@ -603,13 +601,11 @@ int _tmain(int argc, _TCHAR* argv[])
     for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
         _tstring& infile = options.infilenames[i];
         GLuint levelCount = 1;
-        std::vector<Image*> mips;
 
         Image* image;
         try {
             image =
               Image::CreateFromFile(infile, options.oetf == Image::eOETF::Unset);
-            mips.push_back(image);
         } catch (std::exception& e) {
             std::cerr << appName << ": failed to create image from "
                       << infile << ". " << e.what() << std::endl;
@@ -625,11 +621,12 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 
         if (i == 0) {
+            // First file.
             bool srgb;
 
-            fileOETF = image->getOetf();
+            firstImageOETF = image->getOetf();
             if (options.oetf == Image::eOETF::Unset) {
-                chosenOETF = fileOETF;
+                chosenOETF = firstImageOETF;
             } else {
                 chosenOETF = options.oetf;
             }
@@ -778,13 +775,17 @@ int _tmain(int argc, _TCHAR* argv[])
                 goto cleanup;
             }
         } else {
-            if (image->getOetf() != fileOETF) {
-                fprintf(stderr, "%s: \"%s\" is encoded with a different transfer function"
-                                "(OETF) than preceding files.\n",
+            // Subsequent files.
+            if (image->getOetf() != firstImageOETF) {
+                fprintf(stderr, "%s: \"%s\" is encoded with a different transfer"
+                                " function (OETF) than preceding files.\n",
                                 appName.c_str(), infile.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
+            // TODO: Change order of images to face n then face n mipmap. It
+            // seems easier for the user and is consistent with mipmap
+            // generation. Do this when adding array support.
             if (face == (options.cubemap ? 6 : 1)) {
                 level++;
                 if (level < createInfo.numLevels) {
@@ -803,6 +804,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 }
             }
         }
+
         if (options.cubemap && image->getWidth() != image->getHeight()
             && image->getWidth() != levelWidth) {
             fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
@@ -818,16 +820,23 @@ int _tmain(int argc, _TCHAR* argv[])
             std::cout << ", imageSize = " << imageSize << std::endl;
         }
 #endif
+        ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                      level,
+                                      0,
+                                      face,
+                                      *image,
+                                      image->getByteCount());
         if (options.genmipmap) {
             for (uint32_t level = 1; level < levelCount; level++)
             {
+                // Note: level variable in this loop is different from that
+                // with the same name outside it.
                 const uint32_t levelWidth
                     = maximum<uint32_t>(1, image->getWidth() >> level);
                 const uint32_t levelHeight
                     = maximum<uint32_t>(1, image->getHeight() >> level);
 
                 Image *levelImage = image->createImage(levelWidth, levelHeight);
-                mips.push_back(levelImage);
 
                 // TODO: Need options for filter, scale and wrapping.
                 // sRGB is a bool indicating if image is sRGB
@@ -836,10 +845,12 @@ int _tmain(int argc, _TCHAR* argv[])
                 // wrapping defaults to false. Sets BOUNDARY clampe is false,
                 // BOUNDARY_WRAP is true.
                 // first_comp, num_comps maybe we don't need.
-                bool status = image->resample(*levelImage);
-                if (!status)
-                {
-                    std::cerr << "Image::resample() failed!" << std::endl;
+                try {
+                    image->resample(*levelImage,
+                                    chosenOETF == Image::eOETF::sRGB);
+                } catch (std::runtime_error e) {
+                    std::cerr << "Image::resample() failed!"
+                              << e.what() << std::endl;
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -847,17 +858,15 @@ int _tmain(int argc, _TCHAR* argv[])
                 // TODO: and an option for renormalize;
                 //if (m_params.m_mip_renormalize)
                 //    levelImage->renormalize_normal_map();
-            }
-        }
 
-        std::vector<Image*>::const_iterator it = mips.begin();
-        for (uint32_t level = 0; it < mips.end(); it++, level++) {
-            ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                          level,
-                                          0,
-                                          face,
-                                          **it,
-                                          (*it)->getByteCount());
+                ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                              level,
+                                              0,
+                                              face,
+                                              *levelImage,
+                                              levelImage->getByteCount());
+                delete levelImage;
+            }
         }
 
 #if IMAGE_DEBUG
@@ -871,6 +880,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #endif
 
         face++;
+        delete image;
     }
 
     /*
@@ -1011,11 +1021,11 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     argparser parser(argc, argv);
     processOptions(parser, options);
 
-    if (options.mipmap && options.levels > 1) {
+    if (options.automipmap + options.genmipmap + options.mipmap > 1) {
         usage(appName);
         exit(1);
     }
-    if (options.automipmap && (options.mipmap || options.levels > 1)) {
+    if (options.automipmap && options.levels > 1) {
         usage(appName);
         exit(1);
     }

@@ -34,11 +34,113 @@
 #include <vector>
 
 #include "argparser.h"
+#include "basisu_resampler.h"
+#include "basisu_resampler_filters.h"
 
 typedef float (*OETFFunc)(float const);
 
 template <typename T> inline T clamp(T value, T low, T high) {
     return (value < low) ? low : ((value > high) ? high : value);
+}
+template <typename T> inline T saturate(T value) {
+    return clamp<T>(value, 0, 1.0f);
+}
+
+template <typename S> inline S maximum(S a, S b) { return (a > b) ? a : b; }
+template <typename S> inline S minimum(S a, S b) { return (a < b) ? a : b; }
+
+#if defined(_MSC_VER)
+#define INLINE __inline
+#else
+#define INLINE __inline__
+#endif
+
+static INLINE float
+encode709(float const intensity) {
+    /* We're following what Netpbm does. This is their comment and code. */
+
+    /* Here are parameters of the gamma transfer function for the Netpbm
+       formats.  This is ITU-R Recommendation BT.709, FKA CIE Rec 709.  It is
+       also ITU-R Recommendation BT.601, FKA CCIR 601.
+
+       This transfer function is linear for sample values 0 .. .018
+       and an exponential for larger sample values.
+       The exponential is slightly stretched and translated, though,
+       unlike the popular pure exponential gamma transfer function.
+
+       The standard actually defines the linear expansion as 4.500, which
+       means there is a discontinuity at linear intensity .018.  We instead
+       use ~4.514 to make a continuous function.  This may have been simply
+       a mistake when this code was written or based on an actual benefit
+       to having a continuous function -- The history is not clear.
+
+       Note that the discrepancy is below the precision of a maxval 255
+       image.
+    */
+    float const gamma = 2.2f;
+    float const oneOverGamma = 1.0f / gamma;
+    float const linearCutoff = 0.018f;
+    float const linearExpansion =
+        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
+
+    float brightness;
+
+    if (intensity < linearCutoff)
+        brightness = intensity * linearExpansion;
+    else
+        brightness = 1.099f * pow(intensity, oneOverGamma) - 0.099f;
+
+    return brightness;
+}
+
+static INLINE float
+decode_bt709(float const brightness)
+{
+    float const gamma = 2.2f;
+    float const oneOverGamma = 1.0f / gamma;
+    float const linearCutoff = 0.018f;
+    float const linearExpansion =
+        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
+
+    float intensity;
+
+    if (brightness < linearCutoff * linearExpansion)
+        intensity = brightness / linearExpansion;
+    else
+        intensity = pow((brightness + 0.099f) / 1.099f, gamma);
+
+    return intensity;
+}
+
+static INLINE float
+encode_sRGB(float const intensity)
+{
+    float brightness;
+    if (intensity < 0.0031308f)
+        brightness = 12.92f * intensity;
+    else
+        brightness = 1.055f * pow(intensity, 1.0f/2.4f) - 0.055f;
+
+    return brightness;
+}
+
+static INLINE float
+decode_sRGB(float const brightness)
+{
+    float intensity;
+
+    if (brightness < .04045f)
+        intensity = saturate(brightness * (1.0f/12.92f));
+    else
+        intensity = saturate(powf((brightness + .055f) * (1.0f/1.055f), 2.4f));
+
+    return intensity;
+}
+
+static INLINE float
+encode_linear(float const intensity)
+{
+    return intensity;
 }
 
 template <typename T>
@@ -78,9 +180,11 @@ class PreAllocator
 template <typename componentType, uint32_t componentCount>
 class color_base {
     public:
-       uint32_t getComponentCount() const { return componentCount; }
-       uint32_t getComponentSize() const { return sizeof(componentType); }
-       uint32_t getPixelSize() const {
+       uint32_t const getComponentCount() const { return componentCount; }
+       uint32_t const getComponentSize() const {
+           return sizeof(componentType);
+       }
+       uint32_t const getPixelSize() const {
           return componentCount * sizeof(componentType);
        }
 };
@@ -194,6 +298,8 @@ class Image {
       Unset = 3
     };
 
+    virtual ~Image() { };
+
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
@@ -208,14 +314,15 @@ class Image {
     static Image* CreateFromFile(_tstring& name, bool transformOETF = true);
 
     virtual operator uint8_t*() = 0;
-    virtual size_t getByteCount() = 0;
-    virtual uint32_t getPixelSize() = 0;
-    virtual uint32_t getComponentCount() = 0;
-    virtual uint32_t getComponentSize() = 0;
+
+    virtual size_t getByteCount() const = 0;
+    virtual const uint32_t getPixelSize() const = 0;
+    virtual const uint32_t getComponentCount() const = 0;
+    virtual const uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
     virtual Image& clear() = 0;
     virtual Image& crop(uint32_t w, uint32_t h) = 0;
-    virtual bool resample(Image& dst, bool srgb = false,
+    virtual void resample(Image& dst, bool srgb = false,
                           const char *pFilter = "lanczos4",
                           float filter_scale = 1.0f, bool wrapping = false) = 0;
     virtual Image& resize(uint32_t w, uint32_t h) = 0;
@@ -237,19 +344,30 @@ class imageTBase : public Image {
   public:
     using colorVector = std::vector<Color, Alloc>;
 
-    imageTBase(uint32_t w, uint32_t h) : Image(w, h) { }
+    imageTBase(uint32_t w, uint32_t h) { resize(w, h); }
+    virtual ~imageTBase() { }
 
+    virtual const Color &operator() (uint32_t x, uint32_t y) const {
+       assert(x < width && y < height); return pixels[x + y * width];
+    }
+    virtual Color &operator() (uint32_t x, uint32_t y) {
+        assert(x < width && y < height); return pixels[x + y * width];
+    }
     virtual operator uint8_t*() { return (uint8_t*)pixels.data(); }
 
-    virtual size_t getByteCount() {
+    virtual size_t getByteCount() const {
         return pixels.size() * sizeof(Color);
     }
 
-    virtual uint32_t getPixelSize() { return pixels[0].getPixelSize(); }
-    virtual uint32_t getComponentCount() {
+    virtual const uint32_t getPixelSize() const {
+        return pixels[0].getPixelSize();
+    }
+    virtual const uint32_t getComponentCount() const {
         return pixels[0].getComponentCount();
     }
-    virtual uint32_t getComponentSize() { return pixels[0].getComponentSize(); }
+    virtual const uint32_t getComponentSize() const {
+        return pixels[0].getComponentSize();
+    }
 
     virtual imageTBase& clear() {
         width = 0;
@@ -259,8 +377,7 @@ class imageTBase : public Image {
     }
 
     virtual Image* createImage(uint32_t width, uint32_t height) {
-        Image* image = new imageTBase<Color>(width, height);
-        image->resize(width, height);
+        imageTBase<Color>* image = new imageTBase<Color>(width, height);
         return image;
     }
 
@@ -279,10 +396,135 @@ class imageTBase : public Image {
         return *this;
     }
 
-    virtual bool resample(Image& dst, bool srgb, const char *pFilter,
+    virtual void resample(Image& abstract_dst, bool srgb, const char *pFilter,
                           float filter_scale, bool wrapping)
     {
-        return true;
+        using namespace basisu;
+
+        imageTBase<Color>& dst = static_cast<imageTBase<Color>&>(abstract_dst);
+
+        const uint32_t src_w = width, src_h = height;
+        const uint32_t dst_w = dst.getWidth(), dst_h = dst.getHeight();
+        assert(src_w && src_h && dst_w && dst_h);
+
+        if (::maximum(src_w, src_h) > BASISU_RESAMPLER_MAX_DIMENSION
+            || ::maximum(dst_w, dst_h) > BASISU_RESAMPLER_MAX_DIMENSION)
+        {
+            std::stringstream message;
+            message << "Image larger than max supported size of "
+                    << BASISU_RESAMPLER_MAX_DIMENSION;
+            throw std::runtime_error(message.str());
+        }
+
+        // TODO: Consider just using {decode,encode}_sRGB directly.
+        float srgb_to_linear_table[256];
+        if (srgb) {
+          for (int i = 0; i < 256; ++i)
+            srgb_to_linear_table[i] = decode_sRGB((float)i * (1.0f/255.0f));
+        }
+
+        const int LINEAR_TO_SRGB_TABLE_SIZE = 8192;
+        uint8_t linear_to_srgb_table[LINEAR_TO_SRGB_TABLE_SIZE];
+
+        if (srgb)
+        {
+            for (int i = 0; i < LINEAR_TO_SRGB_TABLE_SIZE; ++i)
+              linear_to_srgb_table[i] = (uint8_t)::clamp<int>((int)(255.0f * encode_sRGB((float)i * (1.0f / (LINEAR_TO_SRGB_TABLE_SIZE - 1))) + .5f), 0, 255);
+        }
+
+        // Sadly the compiler doesn't realize that getComponentCount() is a
+        // constant value for each template so size the arrays to the max.
+        // number of components.
+        std::vector<float> samples[4];
+        Resampler *resamplers[4];
+
+        resamplers[0] = new basisu::Resampler(src_w, src_h, dst_w, dst_h,
+            wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP,
+            0.0f, 1.0f,
+            pFilter, nullptr, nullptr, filter_scale, filter_scale, 0, 0);
+        samples[0].resize(src_w);
+
+        for (uint32_t i = 1; i < getComponentCount(); ++i)
+        {
+            resamplers[i] = new Resampler(src_w, src_h, dst_w, dst_h,
+                wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP,
+                0.0f, 1.0f,
+                pFilter, resamplers[0]->get_clist_x(),
+                resamplers[0]->get_clist_y(),
+                filter_scale, filter_scale, 0, 0);
+            samples[i].resize(src_w);
+        }
+
+        uint32_t dst_y = 0;
+
+        for (uint32_t src_y = 0; src_y < src_h; ++src_y)
+        {
+          //const Color *pSrc = &(this(0, src_y));
+          Color* pSrc = &((*this)(0, src_y));
+
+          // Put source lines into resampler(s)
+          for (uint32_t x = 0; x < src_w; ++x)
+          {
+            for (uint32_t ci = 0; ci < getComponentCount(); ++ci)
+            {
+              const uint32_t v = (*pSrc)[ci];
+
+              if (!srgb || (ci == 3))
+                  samples[ci][x] = v * (1.0f / 255.0f);
+              else
+                  samples[ci][x] = srgb_to_linear_table[v];
+            }
+
+            pSrc++;
+          }
+
+          for (uint32_t ci = 0; ci < getComponentCount(); ++ci)
+          {
+            if (!resamplers[ci]->put_line(&samples[ci][0]))
+            {
+                for (uint32_t i = 0; i < getComponentCount(); i++)
+                    delete resamplers[i];
+                throw std::runtime_error("Resampler::put_line failed.");
+            }
+          }
+
+          // Now retrieve any output lines
+          for (;;)
+          {
+            uint32_t ci;
+            for (ci = 0; ci < getComponentCount(); ++ci)
+            {
+                const float *pOutput_samples = resamplers[ci]->get_line();
+                if (!pOutput_samples)
+                    break;
+
+                const bool linear_flag = !srgb || (ci == 3);
+
+                Color* pDst = &dst(0, dst_y);
+
+                for (uint32_t x = 0; x < dst_w; x++)
+                {
+                    // TODO: Add dithering
+                    if (linear_flag) {
+                      int j = (int)(255.0f * pOutput_samples[x] + .5f);
+                      pDst->set(ci, (uint8_t)::clamp<int>(j, 0, 255));
+                    } else {
+                      int j = (int)((LINEAR_TO_SRGB_TABLE_SIZE - 1) * pOutput_samples[x] + .5f);
+                      pDst->set(ci, linear_to_srgb_table[::clamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
+                    }
+
+                    pDst++;
+                  }
+              }
+              if (ci < getComponentCount())
+                break;
+
+              ++dst_y;
+          }
+      }
+
+      for (uint32_t i = 0; i < getComponentCount(); ++i)
+        delete resamplers[i];
     }
 
     virtual imageTBase& resize(uint32_t w, uint32_t h) {
@@ -323,8 +565,9 @@ class imageTBase : public Image {
   protected:
     imageTBase() : Image() { }
     imageTBase(Alloc alloc) : Image(), pixels(alloc) { }
-    imageTBase(Alloc alloc, uint32_t w, uint32_t h)
-        : Image(w, h), pixels(alloc) { }
+    imageTBase(Alloc alloc, uint32_t w, uint32_t h) : pixels(alloc) {
+        resize(w, h);
+    }
 
     colorVector pixels;
 };
@@ -343,20 +586,24 @@ template<class Color>
 class ImageT<Color, PreAllocator<Color>> : public imageTBase<Color, PreAllocator<Color>> {
   public:
     using imageTBase<Color, PreAllocator<Color>>::pixels;
+    using Image::width;
+    using Image::height;
     using Alloc = PreAllocator<Color>;
     ImageT(uint32_t w, uint32_t h, Color* data, size_t pixelCount)
-        : imageTBase<Color, Alloc>(Alloc(data, pixelCount), w, h), data(data) {
+        : imageTBase<Color, Alloc>(Alloc(data, pixelCount)), data(data) {
             // This and PreAllocator is a hack to get "data" to appear in the
             // vector. resize() would overwrite the data.
+            width = w;
+            height = h;
             pixels.reserve(pixelCount);
     }
 
-    ImageT() {
-        pixels.erase();
+    ~ImageT() {
+        pixels.erase(pixels.begin(), pixels.end());
         free(data);
     }
 
-    virtual size_t getByteCount() {
+    virtual size_t getByteCount() const {
         // Since space has only been reserved, size() will return 0.
         return pixels.max_size() * sizeof(Color);
     }
@@ -399,87 +646,6 @@ class rgba16image : public ImageT<color<uint16_t, 4>> {
   public:
     rgba16image(uint32_t w, uint32_t h) : ImageT<color<uint16_t, 4>>(w, h) { }
 };
-
-#if defined(_MSC_VER)
-#define INLINE __inline
-#else
-#define INLINE __inline__
-#endif
-
-static INLINE float
-encode709(float const intensity) {
-    /* We're following what Netpbm does. This is their comment and code. */
-
-    /* Here are parameters of the gamma transfer function for the Netpbm
-       formats.  This is ITU-R Recommendation BT.709, FKA CIE Rec 709.  It is
-       also ITU-R Recommendation BT.601, FKA CCIR 601.
-
-       This transfer function is linear for sample values 0 .. .018
-       and an exponential for larger sample values.
-       The exponential is slightly stretched and translated, though,
-       unlike the popular pure exponential gamma transfer function.
-
-       The standard actually defines the linear expansion as 4.500, which
-       means there is a discontinuity at linear intensity .018.  We instead
-       use ~4.514 to make a continuous function.  This may have been simply
-       a mistake when this code was written or based on an actual benefit
-       to having a continuous function -- The history is not clear.
-
-       Note that the discrepancy is below the precision of a maxval 255
-       image.
-    */
-    float const gamma = 2.2f;
-    float const oneOverGamma = 1.0f / gamma;
-    float const linearCutoff = 0.018f;
-    float const linearExpansion =
-        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
-
-    float brightness;
-
-    if (intensity < linearCutoff)
-        brightness = intensity * linearExpansion;
-    else
-        brightness = 1.099f * pow(intensity, oneOverGamma) - 0.099f;
-
-    return brightness;
-}
-
-static INLINE float
-decode_bt709(float const brightness)
-{
-    float const gamma = 2.2f;
-    float const oneOverGamma = 1.0f / gamma;
-    float const linearCutoff = 0.018f;
-    float const linearExpansion =
-        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
-
-    float intensity;
-
-    if (brightness < linearCutoff * linearExpansion)
-        intensity = brightness / linearExpansion;
-    else
-        intensity = pow((brightness + 0.099f) / 1.099f, gamma);
-
-    return intensity;
-}
-
-static INLINE float
-encode_sRGB(float const intensity)
-{
-    float brightness;
-    if (intensity < 0.0031308f)
-        brightness = 12.92f * intensity;
-    else
-        brightness = 1.055f * pow(intensity, 1.0f/2.4f) - 0.055f;
-
-    return brightness;
-}
-
-static INLINE float
-encode_linear(float const intensity)
-{
-    return intensity;
-}
 
 #endif /* IMAGE_HPP */
 
