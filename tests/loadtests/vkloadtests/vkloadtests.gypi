@@ -89,6 +89,7 @@
         'shaders/texture/texture.vert',
         'shaders/texturearray/instancing.frag',
         'shaders/texturearray/instancing.vert',
+        'utils/TextureTranscoder.hpp',
         'utils/VulkanMeshLoader.hpp',
         'VulkanLoadTests.cpp',
         'VulkanLoadTests.h',

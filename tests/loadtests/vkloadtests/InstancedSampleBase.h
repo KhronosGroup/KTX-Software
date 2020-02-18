@@ -40,6 +40,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
     virtual void run(uint32_t msTicks);
 
     //virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
+    virtual const char* const customizeTitle(const char* const title);
 
   protected:
     std::string filename;
@@ -49,8 +50,11 @@ class InstancedSampleBase : public VulkanLoadTestSample
     vk::ImageTiling tiling;
     vk::Filter filter;
 
-
     uint32_t instanceCount;
+
+    bool transcoded;
+    ktx_transcode_fmt_e transcodedFormat;
+    std::string title;
 
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;

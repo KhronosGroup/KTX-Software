@@ -45,6 +45,7 @@
 #include "argparser.h"
 #include "InstancedSampleBase.h"
 #include "ltexceptions.h"
+#include "TextureTranscoder.hpp"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
@@ -64,6 +65,7 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
     rotationSpeed = 0.25f;
     rotation = { -15.0f, 35.0f, 0.0f };
     tiling = vk::ImageTiling::eOptimal;
+    uboVS.instance = nullptr;
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
@@ -83,6 +85,15 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
         message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
         << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
+    }
+
+    if (kTexture->classId == ktxTexture2_c
+        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+    {
+        TextureTranscoder tc(vkctx);
+        tc.transcode((ktxTexture2*)kTexture);
+        transcoded = true;
+        transcodedFormat = tc.getFormat();
     }
 
     vk::Format vkFormat
@@ -638,4 +649,14 @@ InstancedSampleBase::prepare(const char* const fragShaderName,
     buildCommandBuffers();
 }
 
-
+const char* const
+InstancedSampleBase::customizeTitle(const char* const title)
+{
+    if (transcoded) {
+        this->title = title;
+        this->title += " to ";
+        this->title += ktxTranscodeFormatString(transcodedFormat);
+        return this->title.c_str();
+    }
+    return title;
+}

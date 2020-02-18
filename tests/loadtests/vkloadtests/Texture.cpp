@@ -45,6 +45,7 @@
 
 #include "argparser.h"
 #include "Texture.h"
+#include "TextureTranscoder.hpp"
 #include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
@@ -109,37 +110,12 @@ Texture::Texture(VulkanContext& vkctx,
     if (kTexture->classId == ktxTexture2_c
         && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
     {
-        ktx_transcode_fmt_e tf;
-        vk::PhysicalDeviceFeatures deviceFeatures;
-        vkctx.gpu.getFeatures(&deviceFeatures);
-
-        if (deviceFeatures.textureCompressionASTC_LDR)
-            tf = KTX_TTF_ASTC_4x4_RGBA;
-        else if (deviceFeatures.textureCompressionETC2)
-            tf = KTX_TTF_ETC;
-        else if (deviceFeatures.textureCompressionBC)
-            tf = KTX_TTF_BC1_OR_3;
-        else if (vkctx.enabledDeviceExtensions.pvrtc) {
-            tf = KTX_TTF_PVRTC2_4_RGBA;
-        } else {
-            std::stringstream message;
-
-            message << "Vulkan implementation does not support any available transcode target.";
-            throw std::runtime_error(message.str());
-        }
-
-        ktxresult = ktxTexture2_TranscodeBasis((ktxTexture2*)kTexture, tf, 0);
-        if (KTX_SUCCESS != ktxresult) {
-            std::stringstream message;
-
-            message << "Transcoding of ktxTexture2 to "
-                    << ktxTranscodeFormatString(tf) << " failed: "
-                    << ktxErrorString(ktxresult);
-            throw std::runtime_error(message.str());
-        }
+        TextureTranscoder tc(vkctx);
+        tc.transcode((ktxTexture2*)kTexture);
         transcoded = true;
-        transcodedFormat = tf;
+        transcodedFormat = tc.getFormat();
     }
+    
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
     vk::FormatProperties properties;

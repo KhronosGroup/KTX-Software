@@ -223,13 +223,25 @@ VulkanLoadTests::onFPSUpdate()
 /* ------------------------------------------------------------------------ */
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
+    { TextureMipmap::create,
+      "testimages/ktx_app_basis.ktx2",
+      "RGBA8 + Mipmap"
+    },
+    { TextureMipmap::create,
+      "testimages/rgba-mipmap-reference-u.ktx2",
+      "RGBA8 + Mipmap"
+    },
+    { TextureMipmap::create,
+      "testimages/rgba-mipmap-reference-basis.ktx2",
+      "Basis Compressed RGBA8 + Mipmap Transcoded"
+    },
     { Texture::create,
       "testimages/color_grid_basis.ktx2",
-      "KTX2 RGB non-mipmapped: Basis Transcoded"
+      "Basis Compressed KTX2 RGB non-mipmapped Transcoded"
     },
     { Texture::create,
       "testimages/kodim17_basis.ktx2",
-      "KTX2 RGB non-mipmapped: Basis Transcoded"
+      "Basis Compressed KTX2 RGB non-mipmapped Transcoded"
     },
     { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx2",
