@@ -215,7 +215,7 @@ struct commandOptions {
 
 static _tstring      appName;
 
-static bool loadFileList(const _tstring &f,
+static bool loadFileList(const _tstring &f, bool relativize,
                          std::vector<_tstring>& filenames);
 static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
@@ -582,7 +582,8 @@ int _tmain(int argc, _TCHAR* argv[])
     ktxTexture* texture = 0;
     struct commandOptions options;
     int exitCode = 0, face;
-    unsigned int componentCount = 1, i, level, levelWidth, levelHeight;
+    unsigned int componentCount = 1, i, level, levelCount = 1;
+    unsigned int levelWidth, levelHeight;
     Image::eOETF chosenOETF, firstImageOETF;
 
     processCommandLine(argc, argv, options);
@@ -600,7 +601,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
     for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
         _tstring& infile = options.infilenames[i];
-        GLuint levelCount = 1;
 
         Image* image;
         try {
@@ -787,6 +787,13 @@ int _tmain(int argc, _TCHAR* argv[])
             // seems easier for the user and is consistent with mipmap
             // generation. Do this when adding array support.
             if (face == (options.cubemap ? 6 : 1)) {
+                if (!options.mipmap) {
+                    std::cerr << appName
+                              << ": Too many files. Did you forget --mipmap, "
+                              << "--cubemap or --array?" << std::endl;
+                    exitCode = 1;
+                    goto cleanup;
+                }
                 level++;
                 if (level < createInfo.numLevels) {
                     levelWidth >>= 1;
@@ -1042,8 +1049,10 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         }
 
         for (; i < argc; i++) {
-            if (parser.argv[i].front() == _T('@')) {
-                if (!loadFileList(parser.argv[i], options.infilenames)) {
+            if (parser.argv[i][0] == _T('@')) {
+                if (!loadFileList(parser.argv[i],
+                                  parser.argv[i][1] == _T('@'),
+                                  options.infilenames)) {
                     exit(1);
                 }
             } else {
@@ -1201,10 +1210,11 @@ processOptions(argparser& parser,
 }
 
 static bool
-loadFileList(const _tstring &f, std::vector<_tstring>& filenames)
+loadFileList(const _tstring &f, bool relativize,
+             std::vector<_tstring>& filenames)
 {
     _tstring listName(f);
-    listName.erase(0, 1);
+    listName.erase(0, relativize ? 2 : 1);
 
     FILE *lf = nullptr;
 #ifdef _WIN32
@@ -1220,6 +1230,16 @@ loadFileList(const _tstring &f, std::vector<_tstring>& filenames)
     }
 
     uint32_t totalFilenames = 0;
+    _tstring dirname;
+
+    if (relativize) {
+        size_t dirnameEnd = listName.find_last_of('/');
+        if (dirnameEnd == std::string::npos) {
+            relativize = false;
+        } else {
+            dirname = listName.substr(0, dirnameEnd + 1);
+        }
+    }
 
     for (;;) {
         char buf[PATH_MAX];
@@ -1253,7 +1273,10 @@ loadFileList(const _tstring &f, std::vector<_tstring>& filenames)
         }
 
         if (readFilename.size()) {
-            filenames.push_back(readFilename);
+            if (relativize)
+                filenames.push_back(dirname + readFilename);
+            else
+                filenames.push_back(readFilename);
             totalFilenames++;
         }
     }
