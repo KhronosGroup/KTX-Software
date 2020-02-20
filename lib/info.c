@@ -188,28 +188,27 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         nonArrayCubemap = true;
     else
         nonArrayCubemap = false;
-    ktx_size_t dataSize = 0, dataSizePadded = 0;
+    ktx_size_t dataSize = 0;
+    // A note about padding: Since KTX requires a row alignment of 4 for
+    // uncompressed and all block-compressed formats have block sizes that
+    // are a multiple of 4, all levels and faces will also be a multiple
+    // of 4 so mipPadding and facePadding will always be 0. So they are
+    // ignored here.
     for (uint32_t level = 0; level < levelCount; level++) {
-        ktx_uint32_t faceLodSize, faceLodSizePadded;
-        ktx_uint32_t lodSize, lodSizePadded;
+        ktx_uint32_t faceLodSize;
+        ktx_uint32_t lodSize;
         result = stream->read(stream, &faceLodSize, sizeof(ktx_uint32_t));
         if (pHeader->endianness == KTX_ENDIAN_REF_REV)
             _ktxSwapEndian32(&faceLodSize, 1);
-        faceLodSizePadded = _KTX_PAD4(faceLodSize);
         if (nonArrayCubemap) {
             lodSize = faceLodSize * 6;
-            lodSizePadded = faceLodSizePadded * 6;
         } else {
             lodSize = faceLodSize;
-            lodSizePadded = faceLodSizePadded;
         }
-        result = stream->skip(stream, lodSizePadded);
+        result = stream->skip(stream, lodSize);
         dataSize += lodSize;
-        dataSizePadded += lodSizePadded;
     }
     fprintf(stdout, "\nTotal data size = %zu\n", dataSize);
-    fprintf(stdout, "Total data size including mip- & cube-padding = %zu\n",
-            dataSizePadded);
 }
 
 /**
