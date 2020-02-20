@@ -84,7 +84,7 @@ class Texture : public VulkanLoadTestSample
     int sign_t = 1;
 
     bool transcoded;
-    ktx_transcode_fmt_e transcodedFormat;
+    vk::Format transcodedFormat;
     std::string title;
 
     void cleanup();

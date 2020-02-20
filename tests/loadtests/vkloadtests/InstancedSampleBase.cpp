@@ -66,6 +66,7 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
     rotation = { -15.0f, 35.0f, 0.0f };
     tiling = vk::ImageTiling::eOptimal;
     uboVS.instance = nullptr;
+    transcoded = false;
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
@@ -93,11 +94,11 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
         TextureTranscoder tc(vkctx);
         tc.transcode((ktxTexture2*)kTexture);
         transcoded = true;
-        transcodedFormat = tc.getFormat();
     }
 
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    transcodedFormat = vkFormat;
     vk::FormatProperties properties;
     vkctx.gpu.getFormatProperties(vkFormat, &properties);
     vk::FormatFeatureFlags features =  tiling == vk::ImageTiling::eLinear ?
@@ -655,7 +656,7 @@ InstancedSampleBase::customizeTitle(const char* const title)
     if (transcoded) {
         this->title = title;
         this->title += " to ";
-        this->title += ktxTranscodeFormatString(transcodedFormat);
+        this->title += vkFormatString((VkFormat)transcodedFormat);
         return this->title.c_str();
     }
     return title;

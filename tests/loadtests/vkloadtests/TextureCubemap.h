@@ -40,6 +40,7 @@ class TextureCubemap : public VulkanLoadTestSample
     virtual void run(uint32_t msTicks);
 
     virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
+    virtual const char* const customizeTitle(const char* const title);
 
     static VulkanLoadTestSample*
     create(VulkanContext& vkctx,
@@ -51,6 +52,10 @@ class TextureCubemap : public VulkanLoadTestSample
     int preloadImages = 0;
 
     bool displaySkybox = true;
+
+    bool transcoded;
+    vk::Format transcodedFormat;
+    std::string title;
 
     ktxVulkanTexture cubeMap;
     vk::Sampler sampler;

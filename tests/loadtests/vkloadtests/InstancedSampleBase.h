@@ -53,7 +53,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
     uint32_t instanceCount;
 
     bool transcoded;
-    ktx_transcode_fmt_e transcodedFormat;
+    vk::Format transcodedFormat;
     std::string title;
 
     struct {

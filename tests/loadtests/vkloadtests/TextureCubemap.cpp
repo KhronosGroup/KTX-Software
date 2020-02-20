@@ -40,6 +40,7 @@
 
 #include <vulkan/vulkan.h>
 #include "TextureCubemap.h"
+#include "TextureTranscoder.hpp"
 #include "argparser.h"
 #include "ltexceptions.h"
 
@@ -70,6 +71,7 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     zoom = -4.0f;
     rotationSpeed = 0.25f;
     rotation = { -7.25f, 120.0f, 0.0f };
+    transcoded = false;
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
@@ -92,8 +94,17 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
-    vk::Format vkFormat
-                = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    if (kTexture->classId == ktxTexture2_c
+        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+    {
+        TextureTranscoder tc(vkctx);
+        tc.transcode((ktxTexture2*)kTexture);
+        transcoded = true;
+    }
+
+    vk::Format
+        vkFormat = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    transcodedFormat = vkFormat;
     vk::FormatProperties properties;
     vkctx.gpu.getFormatProperties(vkFormat, &properties);
     vk::FormatFeatureFlags wantedFeatures =
@@ -751,3 +762,16 @@ TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
                          5.0f, yOffset+40.0f, VulkanTextOverlay::alignLeft);
 }
+
+const char* const
+TextureCubemap::customizeTitle(const char* const title)
+{
+    if (transcoded) {
+        this->title = title;
+        this->title += " to ";
+        this->title += vkFormatString((VkFormat)transcodedFormat);
+        return this->title.c_str();
+    }
+    return title;
+}
+
