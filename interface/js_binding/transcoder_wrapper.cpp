@@ -254,8 +254,12 @@ namespace msc {
             val ret = val::object();
             ret.set("error", static_cast<uint32_t>(error));
             if (error == KTX_SUCCESS) {
-                // FIXME: Who deletes dst and how?
-                ret.set("transcodedImage", typed_memory_view(dst.size(), dst.data()));
+                val memoryView = val::global("Uint8Array").new_(memory, reinterpret_cast<uintptr_t>(dst.data()), dst.size());
+
+                val memoryCopy = val::global("Uint8Array").new_(dst.size());
+                memoryCopy.call<void>("set", memoryView);
+
+                ret.set("transcodedImage", memoryCopy);
             }
             return std::move(ret);
         }
