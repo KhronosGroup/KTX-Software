@@ -46,11 +46,12 @@
 const GLchar* pszReflectFs =
     "uniform UBO\n"
     "{\n"
-    "    mat4 projection;\n"
-    "    mat4 modelView;\n"
-    "    mat4 invModelView;\n"
-    "    mat4 uvwTransform;\n"
-    "    float lodBias;\n"
+    "  mat4 projection;\n"
+    "  mat4 modelView;\n"
+    "  mat4 skyboxView;\n"
+    "  mat4 invModelView;\n"
+    "  mat4 uvwTransform;\n"
+    "  float lodBias;\n"
     "} ubo;\n\n"
 
     "uniform samplerCube uSamplerColor;\n\n"
@@ -85,11 +86,12 @@ const GLchar* pszReflectFs =
 const GLchar* pszReflectSrgbEncodeFs =
     "uniform UBO\n"
     "{\n"
-    "    mat4 projection;\n"
-    "    mat4 modelView;\n"
-    "    mat4 invModelView;\n"
-    "    mat4 uvwTransform;\n"
-    "    float lodBias;\n"
+    "  mat4 projection;\n"
+    "  mat4 modelView;\n"
+    "  mat4 skyboxView;\n"
+    "  mat4 invModelView;\n"
+    "  mat4 uvwTransform;\n"
+    "  float lodBias;\n"
     "} ubo;\n\n"
 
     "uniform samplerCube uSamplerColor;\n\n"
@@ -137,6 +139,7 @@ const GLchar* pszReflectVs =
     "{\n"
     "  mat4 projection;\n"
     "  mat4 modelView;\n"
+    "  mat4 skyboxView;\n"
     "  mat4 invModelView;\n"
     "  mat4 uvwTransform;\n"
     "  float lodBias;\n"
@@ -206,6 +209,7 @@ const GLchar* pszSkyboxVs =
     "{\n"
     "  mat4 projection;\n"
     "  mat4 modelView;\n"
+    "  mat4 skyboxView;\n"
     "  mat4 invModelView;\n"
     "  mat4 uvwTransform;\n"
     "} ubo;\n\n"
@@ -221,7 +225,7 @@ const GLchar* pszSkyboxVs =
     "{\n"
     "  vUVW = (ubo.uvwTransform * vec4(inPos.xyz, 1.0)).xyz;\n"
     "  //vUVW = inPos.xyz;\n"
-    "  gl_Position = (ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0)).xyww;\n"
+    "  gl_Position = (ubo.projection * ubo.skyboxView * vec4(inPos.xyz, 1.0)).xyww;\n"
     "}\n";
 
 /* ------------------------------------------------------------------------- */
@@ -252,7 +256,7 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
                            const char* const szArgs,
                            const std::string sBasePath)
         : GL3LoadTestSample(width, height, szArgs, sBasePath),
-          cubemapTexUnit(GL_TEXTURE0), uniformBufferBindIds{0, 1},
+          cubemapTexUnit(GL_TEXTURE0), uniformBufferBindId(0),
           bInitialized(false)
 {
     zoom = -4.0f;
@@ -427,27 +431,20 @@ TextureCubemap::prepareUniformBuffers()
        throw std::runtime_error(message.str());
     }
 
-    glGenBuffers(2, gnUbo);
+    glGenBuffers(1, &gnUbo);
 
-    // Reflect UBO
-    glBindBuffer(GL_UNIFORM_BUFFER, gnUbo[0]);
+    glBindBuffer(GL_UNIFORM_BUFFER, gnUbo);
     // Create the data store.
     glBufferData(GL_UNIFORM_BUFFER, sizeof(ubo), 0, GL_DYNAMIC_DRAW);
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferBindIds[0], gnUbo[0]);
+    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferBindId, gnUbo);
     glUseProgram(gnReflectProg);
     glUniformBlockBinding(gnReflectProg, uReflectProgramUniforms,
-                          uniformBufferBindIds[0]);
+                          uniformBufferBindId);
 
-    // Skybox UBO
-    glBindBuffer(GL_UNIFORM_BUFFER, gnUbo[1]);
-    // Create the data store.
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(ubo), 0, GL_DYNAMIC_DRAW);
-
-    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferBindIds[1], gnUbo[1]);
     glUseProgram(gnSkyboxProg);
     glUniformBlockBinding(gnSkyboxProg, uSkyboxProgramUniforms,
-                          uniformBufferBindIds[1]);
+                          uniformBufferBindId);
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -483,10 +480,13 @@ TextureCubemap::updateUniformBuffers()
                                 glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z),
                                 glm::vec3(0.0f, 0.0f, 1.0f));
+    // Remove translation from modelView so the skybox doesn't move.
+    ubo.skyboxView = glm::mat4(glm::mat3(ubo.modelView));
     // Do the inverse here because doing it in every fragment is a bit much.
     ubo.invModelView = glm::inverse(ubo.modelView);
 
-    glBindBuffer(GL_UNIFORM_BUFFER, gnUbo[0]);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, gnUbo);
 #if !defined(EMSCRIPTEN)
     uint8_t* pData = (uint8_t*)glMapBufferRange(GL_UNIFORM_BUFFER,
                                                 0, sizeof(ubo),
@@ -497,23 +497,6 @@ TextureCubemap::updateUniformBuffers()
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
 #endif
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    // Skybox
-    // Remove translation from modelView so the skybox doesn't move.
-    ubo.modelView = glm::mat4(glm::mat3(ubo.modelView));
-    // Inverse not needed by skybox.
-
-    glBindBuffer(GL_UNIFORM_BUFFER, gnUbo[1]);
-#if !defined(EMSCRIPTEN)
-    pData = (uint8_t*)glMapBufferRange(GL_UNIFORM_BUFFER,
-                                        0, sizeof(ubo),
-                                        GL_MAP_WRITE_BIT);
-    memcpy(pData, &ubo, sizeof(ubo));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
-#else
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
-#endif
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void

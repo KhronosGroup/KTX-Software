@@ -55,13 +55,13 @@ class TextureCubemap : public GL3LoadTestSample
 
   protected:
     const GLuint cubemapTexUnit;
-    const GLuint uniformBufferBindIds[2];
+    const GLuint uniformBufferBindId;
     GLuint levelCount = 0;
     GLenum cubemapTexTarget;
     GLuint gnCubemapTexture;
     GLuint gnReflectProg;
     GLuint gnSkyboxProg;
-    GLuint gnUbo[2];
+    GLuint gnUbo;
     
     bool bInitialized;
     bool bIsMipmapped;
@@ -85,6 +85,7 @@ class TextureCubemap : public GL3LoadTestSample
         // Global matrices
         glm::mat4 projection;
         glm::mat4 modelView;
+        glm::mat4 skyboxView;
         glm::mat4 invModelView;
         glm::mat4 uvwTransform;
         float lodBias = 0.0f;
