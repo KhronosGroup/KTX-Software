@@ -45,7 +45,7 @@
 
 #include "argparser.h"
 #include "Texture.h"
-#include "TextureTranscoder.hpp"
+#include "VulkanTextureTranscoder.hpp"
 #include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0

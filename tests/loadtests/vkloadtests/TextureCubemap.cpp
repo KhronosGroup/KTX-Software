@@ -40,12 +40,13 @@
 
 #include <vulkan/vulkan.h>
 #include "TextureCubemap.h"
-#include "TextureTranscoder.hpp"
+#include "VulkanTextureTranscoder.hpp"
 #include "argparser.h"
 #include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
+#define USE_GL_RH_NDC 0
 
 // Vertex layout for this example
 std::vector<vkMeshLoader::VertexLayout> vertexLayout =
@@ -60,13 +61,15 @@ TextureCubemap::create(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
                  const char* const szArgs, const std::string sBasePath)
 {
-    return new TextureCubemap(vkctx, width, height, szArgs, sBasePath);
+    return new TextureCubemap(vkctx, width, height, szArgs, sBasePath,
+                              USE_GL_RH_NDC ? 1 : -1);
 }
 
 TextureCubemap::TextureCubemap(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
-                 const char* const szArgs, const std::string sBasePath)
-        : VulkanLoadTestSample(vkctx, width, height, sBasePath)
+                 const char* const szArgs, const std::string sBasePath,
+                 int32_t yflip)
+        : VulkanLoadTestSample(vkctx, width, height, sBasePath, yflip)
 {
     zoom = -4.0f;
     rotationSpeed = 0.25f;
@@ -257,9 +260,16 @@ TextureCubemap::buildCommandBuffers()
                 &static_cast<const VkRenderPassBeginInfo&>(renderPassBeginInfo),
                 VK_SUBPASS_CONTENTS_INLINE);
 
+#if !USE_GL_RH_NDC
         vk::Viewport viewport(0, 0,
                               (float)w_width, (float)w_height,
                               0.0f, 1.0f);
+#else
+        // Make OpenGL style viewport
+        vk::Viewport viewport(0, (float)w_height,
+                              (float)w_width, -(float)w_height,
+                              0.0f, 1.0f);
+#endif
         vkCmdSetViewport(vkctx.drawCmdBuffers[i], 0, 1,
                 &static_cast<const VkViewport&>(viewport));
 
@@ -500,7 +510,14 @@ TextureCubemap::preparePipelines()
     rasterizationState.rasterizerDiscardEnable = VK_FALSE;
     rasterizationState.polygonMode = vk::PolygonMode::eFill;
     rasterizationState.cullMode = vk::CullModeFlagBits::eBack;
+    // Make the faces on the inside of the cube the front faces. The mesh
+    // was designed with the exterior faces as the front faces for OpenGL's
+    // default of GL_CCW.
+#if !USE_GL_RH_NDC
     rasterizationState.frontFace = vk::FrontFace::eCounterClockwise;
+#else
+    rasterizationState.frontFace = vk::FrontFace::eClockwise;
+#endif
     rasterizationState.lineWidth = 1.0f;
 
     vk::PipelineColorBlendAttachmentState blendAttachmentState;
@@ -609,21 +626,37 @@ TextureCubemap::prepareUniformBuffers()
 void
 TextureCubemap::updateUniformBuffers()
 {
+
+    // I do not yet understand why the flipping performed by this scaling is
+    // necessary.
+    #if !USE_GL_RH_NDC
+        // No difference if KTXorientation is down for Vulkan and up for GL.
+        // Of orientation is opposite then y scale must be 1 and posy & negy
+        // images need flipping.
+        ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(-1, 1, 1));
+    #else
+        ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, 1));
+    #endif
+
     // 3D object
     glm::mat4 viewMatrix = glm::mat4();
-    ubo.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
+    ubo.projection = glm::perspective(glm::radians(60.0f),
+                                      (float)w_width / (float)w_height,
+                                      0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
     ubo.modelView = glm::mat4();
     ubo.modelView = viewMatrix * glm::translate(ubo.modelView, cameraPos);
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x),
+                                glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y),
+                                glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z),
+                                glm::vec3(0.0f, 0.0f, 1.0f));
     // Do the inverse here because doing it in every fragment is a bit much.
     // Also MetalSL does not have inverse() and does not support passing
     // transforms between stages.
     ubo.invModelView = glm::inverse(ubo.modelView);
-    
 
     uint8_t *pData;
     VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformData.object.memory, 0, sizeof(ubo), 0, (void **)&pData));
@@ -631,14 +664,8 @@ TextureCubemap::updateUniformBuffers()
     vkUnmapMemory(vkctx.device, uniformData.object.memory);
 
     // Skybox
-    viewMatrix = glm::mat4();
-    ubo.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
-
-    ubo.modelView = glm::mat4();
-    ubo.modelView = viewMatrix * glm::translate(ubo.modelView, glm::vec3(0, 0, 0));
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Remove translation from modelView so the skybox doesn't move.
+    ubo.modelView = glm::mat4(glm::mat3(ubo.modelView));
     // Inverse not needed by skybox.
 
     VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformData.skybox.memory, 0, sizeof(ubo), 0, (void **)&pData));

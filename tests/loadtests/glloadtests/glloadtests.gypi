@@ -41,10 +41,14 @@
       'shader-based/GL3LoadTestSample.h',
       'shader-based/TextureArray.cpp',
       'shader-based/TextureArray.h',
+      'shader-based/TextureCubemap.cpp',
+      'shader-based/TextureCubemap.h',
       'shader-based/TexturedCube.cpp',
       'shader-based/TexturedCube.h',
       'shader-based/mygl.h',
       'shader-based/shaders.cpp',
+      'utils/GLMeshLoader.hpp',
+      'utils/GLTextureTranscoder.hpp',
     ],
     'ios_resource_files': [
       '../../../icons/ios/CommonIcons.xcassets',
@@ -70,6 +74,7 @@
           ],
           'dependencies': [
             'appfwSDL',
+            'libassimp',
             'libktx.gyp:libktx.gl',
             'libktx.gyp:libgl',
             'testimages',
@@ -78,11 +83,21 @@
             '<@(common_source_files)',
             '<@(gl3_source_files)',
           ],
+          'copies': [{
+            'destination': '<(model_dest)',
+            'files': [
+              '../common/models/cube.obj',
+              '../common/models/sphere.obj',
+              '../common/models/teapot.dae',
+              '../common/models/torusknot.obj',
+            ],
+          }],
           'include_dirs': [
             '.',
             '../common',
             '../geom',
             '../../../utils',
+            'utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE',
@@ -129,6 +144,7 @@
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
+#            'libassimp',
             'libktx.gyp:libktx.es3',
             'libktx.gyp:libgles3',
             'testimages',
@@ -138,11 +154,33 @@
             '<@(common_source_files)',
             '<@(gl3_source_files)',
           ], # sources
+          'conditions': [
+            ['OS == "web"', {
+              'sources!': [
+                'shader-based/TextureCubemap.cpp',
+                'shader-based/TextureCubemap.h',
+              ],
+            }, {
+              'dependencies': [
+                'libassimp',
+              ],
+              'copies': [{
+                'destination': '<(model_dest)',
+                'files': [
+                  '../common/models/cube.obj',
+                  '../common/models/sphere.obj',
+                  '../common/models/teapot.dae',
+                  '../common/models/torusknot.obj',
+                ],
+              }],
+            }],
+          ],
           'include_dirs': [
             '.',
             '../common',
             '../geom',
             '../../../utils',
+            'utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
@@ -176,6 +214,7 @@
               ],
               'ldflags': [
                 '--source-map-base', './',
+                '--preload-file', 'models',
                 '--preload-file', 'testimages',
                 '--exclude-file', 'testimages/genref',
                 '--exclude-file', 'testimages/*.pgm',

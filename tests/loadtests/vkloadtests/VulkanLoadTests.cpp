@@ -223,8 +223,16 @@ VulkanLoadTests::onFPSUpdate()
 /* ------------------------------------------------------------------------ */
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
+    { TextureCubemap::create,
+        "testimages/yokohama3_basis_ru_yinv.ktx2",
+        "KTX2: BasisU Compressed Cube Map Transcoded"
+    },
     { TextureMipmap::create,
-      "testimages/ktx_app_basis.ktx2",
+      "testimages/trout_mip.ktx2",
+      "RGBA8 + Mipmap"
+    },
+    { TextureMipmap::create,
+      "testimages/ktx_document_basis.ktx2",
       "RGBA8 + Mipmap"
     },
     { TextureMipmap::create,

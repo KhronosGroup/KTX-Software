@@ -33,7 +33,7 @@ class TextureCubemap : public VulkanLoadTestSample
     TextureCubemap(VulkanContext& vkctx,
             uint32_t width, uint32_t height,
             const char* const szArgs,
-            const std::string sBasePath);
+            const std::string sBasePath, int32_t yflip);
     ~TextureCubemap();
 
     virtual void resize(uint32_t width, uint32_t height);
@@ -81,7 +81,8 @@ class TextureCubemap : public VulkanLoadTestSample
     struct {
         glm::mat4 projection;
         glm::mat4 modelView;
-        glm::mat4  invModelView;
+        glm::mat4 invModelView;
+        glm::mat4 uvwTransform;
         float lodBias = 0.0f;
     } ubo;
 
@@ -114,10 +115,9 @@ class TextureCubemap : public VulkanLoadTestSample
     // Prepare and initialize uniform buffer containing shader uniforms
     void prepareUniformBuffers();
     void updateUniformBuffers();
-    
     void prepareSamplerAndView();
-
     void prepare();
+
     void toggleSkyBox();
     void toggleObject();
     void changeLodBias(float delta);

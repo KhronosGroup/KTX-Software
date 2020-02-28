@@ -41,6 +41,7 @@
   },
   'includes': [
     'appfwSDL/appfwSDL.gypi',
+    '../../gyp_include/libassimp.gypi',
     'glloadtests/glloadtests.gypi',
   ],
   'conditions': [

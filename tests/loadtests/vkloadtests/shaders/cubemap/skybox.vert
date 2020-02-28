@@ -9,6 +9,8 @@ layout (binding = 0) uniform UBO
 {
 	mat4 projection;
 	mat4 modelView;
+    mat4 invModelView;
+    mat4 uvwTransform;
 } ubo;
 
 layout (location = 0) out vec3 outUVW;
@@ -20,8 +22,13 @@ out gl_PerVertex
 
 void main() 
 {
-	outUVW = inPos;
-	// Compensate for original images in texture being opposite to reality.
-	outUVW.x = -outUVW.x;
-	gl_Position = ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0);
+	outUVW = (ubo.uvwTransform * vec4(inPos.xyz, 1.0)).xyz;
+    //outUVW = inPos.xyz;
+	// Need this to make the images match the reality.
+	//outUVW.x = -outUVW.x;
+    // And this if using OpenGL RH NDC
+    //outUVW.y = -outUVW.y;
+    // Override the Z component with the W component to guarantee that the
+    // final Z value of the position will be 1.0.
+	gl_Position = (ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0)).xyww;
 }
