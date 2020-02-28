@@ -352,22 +352,23 @@ TextureCubemap::run(uint32_t msTicks)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDisable(GL_CULL_FACE); // Temporary.
-    // Change so depth test passes when values are equal to the
-    // depth buffer's content.
-    glDepthFunc(GL_LEQUAL);
-
-    if (bDisplaySkybox) {
-        // Make inside faces of the cube mesh the front faces.
-        glFrontFace(GL_CW);
-        glUseProgram(gnSkyboxProg);
-        meshes.skybox.Draw();
-    }
-    // Revert to default for 3D object.
-    glFrontFace(GL_CCW);
+    // Draw object.
     glUseProgram(gnReflectProg);
     meshes.objects[meshes.objectIndex].Draw();
     assert(GL_NO_ERROR == glGetError());
+    if (bDisplaySkybox) {
+        // Make inside faces of the cube mesh the front faces.
+        glFrontFace(GL_CW);
+        // Change so depth test passes when values are equal to the
+        // depth buffer's content. This works in conjunction with the
+        // gl_Position = inPos.xyww trick in the shader.
+        glDepthFunc(GL_LEQUAL);
+        glUseProgram(gnSkyboxProg);
+        meshes.skybox.Draw();
+        // Revert to defaults for 3D object.
+        glFrontFace(GL_CCW);
+        glDepthFunc(GL_LESS);
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -590,9 +591,6 @@ TextureCubemap::prepare()
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2f,0.3f,0.4f,1.0f);
 
-
-    //prepareSamplerAndView();
-    //setupVertexDescriptions();
     loadMeshes();
 
     preparePrograms();
