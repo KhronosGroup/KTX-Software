@@ -60,8 +60,11 @@ class TextureTranscoder {
         }
     }
 
-    void transcode(ktxTexture2* kTexture) {
+    void transcode(ktxTexture2* kTexture,
+                   ktx_transcode_fmt_e otf = KTX_TTF_NOSELECTION) {
         KTX_error_code ktxresult;
+        if (otf != KTX_TTF_NOSELECTION)
+            tf = otf;
         ktxresult = ktxTexture2_TranscodeBasis(kTexture, tf, 0);
         if (KTX_SUCCESS != ktxresult) {
             std::stringstream message;

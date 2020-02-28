@@ -1066,6 +1066,8 @@ typedef enum ktx_transcode_fmt_e {
             /*!< Automatically selects @c KTX_TTF_BC1_RGB or @c KTX_TTF_BC3_RGBA
               according to presence of alpha. */
 
+        KTX_TTF_NOSELECTION = 0x7fffffff,
+
         // Old enums for compatibility with code compiled against previous
         // versions of libktx.
         KTX_TF_ETC1 = KTX_TTF_ETC1_RGB,

@@ -38,6 +38,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DrawTexture.h"
+#include "GLTextureTranscoder.hpp"
 #include "frame.h"
 #include "quad.h"
 #include "argparser.h"
@@ -76,7 +77,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     KTX_error_code ktxresult;
 
     bInitialized = false;
-    transcodeTarget = static_cast<ktx_transcode_fmt_e>(-1);
+    transcodeTarget = KTX_TTF_NOSELECTION;
     gnTexture = 0;
 
     processArgs(szArgs);
@@ -97,44 +98,8 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     if (kTexture->classId == ktxTexture2_c
         && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
     {
-        ktx_transcode_fmt_e tf;
-        if (transcodeTarget < 0) {
-            compressedTexFeatures features;
-
-            determineCompressedTexFeatures(features);
-
-            // We know this app is only being used for 3 or 4 component 2D
-            // textures so we can cheat a bit. No need to look at RGTC for
-            // 2-components, for example.
-            if (features.astc_ldr)
-                tf = KTX_TTF_ASTC_4x4_RGBA;
-            else if (features.bc3)
-                tf = KTX_TTF_BC1_OR_3;
-            else if (features.etc2)
-                tf = KTX_TTF_ETC; // Let transcoder decide between RGB or RGBA
-            else if (features.pvrtc1)
-                tf = KTX_TTF_PVRTC1_4_RGBA;
-            else if (features.etc1)
-                tf = KTX_TTF_ETC1_RGB;
-            else {
-                std::stringstream message;
-
-                message << "OpenGL implementation does not support any available transcode target.";
-                throw std::runtime_error(message.str());
-            }
-        } else {
-            tf = transcodeTarget;
-        }
-
-        ktxresult = ktxTexture2_TranscodeBasis((ktxTexture2*)kTexture, tf, 0);
-        if (KTX_SUCCESS != ktxresult) {
-            std::stringstream message;
-
-            message << "Transcoding of ktxTexture2 to "
-                    << ktxTranscodeFormatString(tf) << " failed: "
-                    << ktxErrorString(ktxresult);
-            throw std::runtime_error(message.str());
-        }
+        TextureTranscoder tc;
+        tc.transcode((ktxTexture2*)kTexture, transcodeTarget);
     }
 
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
