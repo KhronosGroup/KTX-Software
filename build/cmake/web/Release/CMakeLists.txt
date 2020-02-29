@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 cmake_policy(VERSION 2.8.8)
-project(es3loadtests.html)
+project(libassimp)
 set(configuration "Release")
 enable_language(ASM)
 set(builddir "${CMAKE_CURRENT_BINARY_DIR}")
@@ -330,13 +330,19 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_basis_rd.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_document_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-mipmap-reference-basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx2"
@@ -378,13 +384,19 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/alpha_simple_basis.ktx2"
   "${builddir}/testimages/color_grid_basis.ktx2"
   "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2"
   "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2"
   "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2"
   "${builddir}/testimages/kodim17_basis.ktx2"
+  "${builddir}/testimages/ktx_app-u.ktx2"
+  "${builddir}/testimages/ktx_app_basis.ktx2"
+  "${builddir}/testimages/ktx_document_basis.ktx2"
   "${builddir}/testimages/orient-down-metadata-u.ktx2"
   "${builddir}/testimages/orient-up-metadata-u.ktx2"
+  "${builddir}/testimages/orient-up-metadata.ktx2"
   "${builddir}/testimages/pattern_02_bc2.ktx2"
   "${builddir}/testimages/rgb-mipmap-reference-u.ktx2"
+  "${builddir}/testimages/rgba-mipmap-reference-basis.ktx2"
   "${builddir}/testimages/rgba-reference-u.ktx2"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2"
   "${builddir}/testimages/texturearray_bc3_unorm.ktx2"
@@ -427,13 +439,19 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.k
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2 ${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app-u.ktx2 ${builddir}/testimages/ktx_app-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app_basis.ktx2 ${builddir}/testimages/ktx_app_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_document_basis.ktx2 ${builddir}/testimages/ktx_document_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx2 ${builddir}/testimages/orient-up-metadata.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference-u.ktx2 ${builddir}/testimages/rgb-mipmap-reference-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-mipmap-reference-basis.ktx2 ${builddir}/testimages/rgba-mipmap-reference-basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference-u.ktx2 ${builddir}/testimages/rgba-reference-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx2 ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx2 ${builddir}/testimages/texturearray_bc3_unorm.ktx2
@@ -554,7 +572,9 @@ list(APPEND es3loadtests_html__other_srcs
   "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.h"
   "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.h"
   "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.h"
-  "../../../../tests/loadtests/glloadtests/shader-based/mygl.h")
+  "../../../../tests/loadtests/glloadtests/shader-based/mygl.h"
+  "../../../../tests/loadtests/glloadtests/utils/GLMeshLoader.hpp"
+  "../../../../tests/loadtests/glloadtests/utils/GLTextureTranscoder.hpp")
 link_directories()
 add_executable(es3loadtests_html ${es3loadtests_html__cxx_srcs} ${es3loadtests_html__other_srcs})
 set_target_properties(es3loadtests_html PROPERTIES EXCLUDE_FROM_ALL "FALSE")
@@ -569,13 +589,14 @@ list(APPEND es3loadtests_html__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests/utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET es3loadtests_html APPEND PROPERTY INCLUDE_DIRECTORIES ${es3loadtests_html__include_dirs})
 set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KHRONOS_STATIC=1;NDEBUG;")
 set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-Wpedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -Oz -std=c++11 ")
-set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -Oz ")
+set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file models --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -Oz ")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
@@ -603,5 +624,13 @@ target_link_libraries(es3loadtests_html
   libktx_es3
 -Wl,--end-group
 )
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:libassimp#target
+set(TARGET "libassimp")
+set(TOOLSET "target")
+add_custom_target(libassimp SOURCES)
+set_target_properties(libassimp PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
