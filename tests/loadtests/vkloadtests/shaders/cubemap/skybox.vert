@@ -22,12 +22,8 @@ out gl_PerVertex
 
 void main() 
 {
-	outUVW = (ubo.uvwTransform * vec4(inPos.xyz, 1.0)).xyz;
     //outUVW = inPos.xyz;
-	// Need this to make the images match the reality.
-	//outUVW.x = -outUVW.x;
-    // And this if using OpenGL RH NDC
-    //outUVW.y = -outUVW.y;
+	outUVW = (ubo.uvwTransform * vec4(inPos.xyz, 1.0)).xyz;
     // Override the Z component with the W component to guarantee that the
     // final Z value of the position will be 1.0.
 	gl_Position = (ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0)).xyww;

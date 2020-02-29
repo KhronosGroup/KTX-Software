@@ -27,12 +27,8 @@ void main()
 	vec3 cI = normalize (inPos);
 	vec3 cR = reflect (cI, normalize(inNormal));
 
-    //cR = vec3(inInvModelView * vec4(cR, 0.0));
+    //cR = vec3(ubo.invModelView * vec4(cR, 0.0));
     cR = vec3(ubo.uvwTransform * ubo.invModelView * vec4(cR, 0.0));
-	// Compensate for ??
-	//cR.x = -cR.x;
-    // Compensate for ??. Needed when using OpenGL RH NDC.
-    //cR.y = -cR.y;
 
 	vec4 color = texture(samplerColor, cR, inLodBias);
 
