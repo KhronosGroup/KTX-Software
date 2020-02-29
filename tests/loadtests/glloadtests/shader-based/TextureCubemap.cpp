@@ -44,6 +44,7 @@
 #define member_size(type, member) sizeof(((type *)0)->member)
 
 const GLchar* pszReflectFs =
+    "precision highp float;"
     "uniform UBO\n"
     "{\n"
     "  mat4 projection;\n"
@@ -84,6 +85,7 @@ const GLchar* pszReflectFs =
     "}\n";
 
 const GLchar* pszReflectSrgbEncodeFs =
+    "precision highp float;"
     "uniform UBO\n"
     "{\n"
     "  mat4 projection;\n"
@@ -132,6 +134,7 @@ const GLchar* pszReflectSrgbEncodeFs =
     "}\n";
 
 const GLchar* pszReflectVs =
+    "precision highp float;"
     "layout (location = 0) in vec3 inPos;\n"
     "layout (location = 1) in vec3 inNormal;\n\n"
 
@@ -151,11 +154,6 @@ const GLchar* pszReflectVs =
     "out vec3 vViewVec;\n"
     "out vec3 vLightVec;\n\n"
 
-    "out gl_PerVertex\n"
-    "{\n"
-    "  vec4 gl_Position;\n"
-    "};\n\n"
-
     "void main()\n"
     "{\n"
     "  gl_Position = ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0);\n\n"
@@ -170,6 +168,7 @@ const GLchar* pszReflectVs =
     "}\n";
 
 const GLchar* pszSkyboxFs =
+    "precision highp float;"
     "uniform samplerCube uSamplerColor;\n\n"
 
     "in vec3 vUVW;\n\n"
@@ -182,6 +181,7 @@ const GLchar* pszSkyboxFs =
     "}\n";
 
 const GLchar* pszSkyboxSrgbEncodeFs =
+    "precision highp float;"
     "uniform samplerCube samplerColor;\n\n"
 
     "in vec3 vUVW;\n\n"
@@ -203,6 +203,7 @@ const GLchar* pszSkyboxSrgbEncodeFs =
     "}\n";
 
 const GLchar* pszSkyboxVs =
+    "precision highp float;"
     "layout (location = 0) in vec3 inPos;\n\n"
 
     "uniform UBO\n"
@@ -215,11 +216,6 @@ const GLchar* pszSkyboxVs =
     "} ubo;\n\n"
 
     "out vec3 vUVW;\n\n"
-
-    "out gl_PerVertex\n"
-    "{\n"
-    "  vec4 gl_Position;\n"
-    "};\n\n"
 
     "void main()\n"
     "{\n"
@@ -356,23 +352,26 @@ TextureCubemap::run(uint32_t msTicks)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
     // Draw object.
+    // There's a left-handed coordinate system inside the cube so the front
+    // faces of the object will have CW winding and the inside (back) faces
+    // of the skybox will have CCW winding instead of the GL defaults.
+    glFrontFace(GL_CW);
     glUseProgram(gnReflectProg);
     meshes.objects[meshes.objectIndex].Draw();
-    assert(GL_NO_ERROR == glGetError());
     if (bDisplaySkybox) {
-        // Make inside faces of the cube mesh the front faces.
-        glFrontFace(GL_CW);
         // Change so depth test passes when values are equal to the
         // depth buffer's content. This works in conjunction with the
         // gl_Position = inPos.xyww trick in the shader.
         glDepthFunc(GL_LEQUAL);
+        glFrontFace(GL_CCW);
         glUseProgram(gnSkyboxProg);
         meshes.skybox.Draw();
         // Revert to defaults for 3D object.
-        glFrontFace(GL_CCW);
         glDepthFunc(GL_LESS);
     }
+    assert(GL_NO_ERROR == glGetError());
 }
 
 /* ------------------------------------------------------------------------- */
@@ -381,7 +380,7 @@ void
 TextureCubemap::cleanup()
 {
     glEnable(GL_DITHER);
-    glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
     glDisable(GL_DEPTH_TEST);
     if (bInitialized) {
@@ -457,8 +456,8 @@ TextureCubemap::prepareUniformBuffers()
 void
 TextureCubemap::updateUniformBuffers()
 {
-    // I do not yet understand why the flipping performed by this scaling is
-    // necessary.
+    // Convert the right-handed coords of the triangle into left-handed for
+    // cubemap face selection. Bizarre spec!
     ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1));
 
     // Reflect / 3D object
@@ -572,6 +571,7 @@ TextureCubemap::prepare()
     glDisable(GL_DITHER);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glClearColor(0.2f,0.3f,0.4f,1.0f);
 
     loadMeshes();
