@@ -223,26 +223,6 @@ VulkanLoadTests::onFPSUpdate()
 /* ------------------------------------------------------------------------ */
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
-    { TextureCubemap::create,
-        "testimages/yokohama3_basis_ru_yinv.ktx2",
-        "KTX2: BasisU Compressed Cube Map Transcoded"
-    },
-    { TextureMipmap::create,
-      "testimages/trout_mip.ktx2",
-      "RGBA8 + Mipmap"
-    },
-    { TextureMipmap::create,
-      "testimages/ktx_document_basis.ktx2",
-      "RGBA8 + Mipmap"
-    },
-    { TextureMipmap::create,
-      "testimages/rgba-mipmap-reference-u.ktx2",
-      "RGBA8 + Mipmap"
-    },
-    { TextureMipmap::create,
-      "testimages/rgba-mipmap-reference-basis.ktx2",
-      "Basis Compressed RGBA8 + Mipmap Transcoded"
-    },
     { Texture::create,
       "testimages/color_grid_basis.ktx2",
       "Basis Compressed KTX2 RGB non-mipmapped Transcoded"
@@ -254,6 +234,18 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx2",
         "KTX2: BC2 (S3TC DXT3) Compressed 2D"
+    },
+    { TextureMipmap::create,
+      "testimages/ktx_document_basis.ktx2",
+      "RGBA8 + Mipmap Transcoded"
+    },
+    { TextureMipmap::create,
+      "testimages/rgba-mipmap-reference-basis.ktx2",
+      "Basis Compressed RGBA8 + Mipmap Transcoded"
+    },
+    { TextureCubemap::create,
+        "testimages/cubemap_yokohama_basis_rd.ktx2",
+        "KTX2: BasisU Compressed Cube Map Transcoded"
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_bc3_unorm.ktx2",

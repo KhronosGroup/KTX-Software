@@ -33,6 +33,7 @@
 #include "BasisuTest.h"
 #include "DrawTexture.h"
 #include "TexturedCube.h"
+#include "TextureCubemap.h"
 #include "TextureArray.h"
 
 #define TEST_BASIS_COMPRESSION 1
@@ -58,6 +59,12 @@ const GLLoadTests::sampleInvocation siSamples[] = {
     { BasisuTest::create,
       "testimages/rgba-reference-u.ktx2",
       "KTX2: Encode and transcode Basis with RGBA non mipmapped"
+    },
+#endif
+#if !defined(__EMSCRIPTEN__)
+    { TextureCubemap::create,
+      "testimages/cubemap_yokohama_basis_rd.ktx2",
+      "KTX2: Basis Transcode on mipmapped cubemap",
     },
 #endif
     { DrawTexture::create,

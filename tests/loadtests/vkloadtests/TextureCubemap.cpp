@@ -128,6 +128,25 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     }
     
     // Checking if KVData contains keys of interest would go here.
+    if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN) {
+        // Assume a cube map made for OpenGL. That means the faces are in a
+        // LH coord system with +y up. Rotate the LH coord system so Y is down.
+#if !USE_GL_RH_NDC
+        scale = glm::vec3(1, -1, -1);
+#else
+        scale = glm::vec3(1, 1, -1);
+#endif
+    } else {
+        // Assume a broken(?) texture imported from Willem's Vulkan tutorials,
+        // modified by us to show it is an sRGB format and to label its actual
+        // y up orientation. These textures have posy and negy flipped compared
+        // to the original images and OpenGL version.
+#if !USE_GL_RH_NDC
+        scale = glm::vec3(1, 1, -1);
+#else
+        scale = glm::vec3(1, -1, -1);
+#endif
+    }
     
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&vdi);
@@ -627,16 +646,7 @@ void
 TextureCubemap::updateUniformBuffers()
 {
 
-    // I do not yet understand why the flipping performed by this scaling is
-    // necessary.
-    #if !USE_GL_RH_NDC
-        // No difference if KTXorientation is down for Vulkan and up for GL.
-        // Of orientation is opposite then y scale must be 1 and posy & negy
-        // images need flipping.
-        ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(-1, 1, 1));
-    #else
-        ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, 1));
-    #endif
+    ubo.uvwTransform = glm::scale(glm::mat4(1.0f), scale);
 
     // 3D object
     glm::mat4 viewMatrix = glm::mat4();
