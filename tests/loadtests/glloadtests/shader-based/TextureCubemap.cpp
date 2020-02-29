@@ -370,10 +370,8 @@ TextureCubemap::run(uint32_t msTicks)
 
 
     // Draw object.
-    // There's a left-handed coordinate system inside the cube so the front
-    // faces of the object will have CW winding and the inside (back) faces
-    // of the skybox will have CCW winding instead of the GL defaults.
-    glFrontFace(GL_CW);
+    glFrontFace(GL_CW); // Why is everything CW?
+    glCullFace(GL_BACK);
     glUseProgram(gnReflectProg);
     meshes.objects[meshes.objectIndex].Draw();
     if (bDisplaySkybox) {
@@ -381,7 +379,9 @@ TextureCubemap::run(uint32_t msTicks)
         // depth buffer's content. This works in conjunction with the
         // gl_Position = inPos.xyww trick in the shader.
         glDepthFunc(GL_LEQUAL);
-        glFrontFace(GL_CCW);
+        // The cube is a regular mesh with the front faces on the outside.
+        // We're inside the cube so want to see the back faces.
+        glCullFace(GL_FRONT);
         glUseProgram(gnSkyboxProg);
         meshes.skybox.Draw();
         // Revert to defaults for 3D object.
@@ -397,6 +397,7 @@ TextureCubemap::cleanup()
 {
     glEnable(GL_DITHER);
     glDisable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glDisable(GL_DEPTH_TEST);
     if (bInitialized) {
