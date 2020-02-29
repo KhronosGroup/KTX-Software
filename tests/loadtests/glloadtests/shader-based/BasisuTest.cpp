@@ -214,7 +214,7 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
 BasisuTest::~BasisuTest()
 {
     glEnable(GL_DITHER);
-    glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
     if (bInitialized) {
         glUseProgram(0);
         glDeleteTextures(1, &gnTexture);
