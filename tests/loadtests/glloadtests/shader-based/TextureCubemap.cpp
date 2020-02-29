@@ -257,7 +257,7 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
 {
     zoom = -4.0f;
     rotationSpeed = 0.25f;
-    rotation = { -7.25f, -60.0f, 0.0f };
+    rotation = { -7.25f, 120.0f, 0.0f };
     gnCubemapTexture = 0;
     // Ensure we're using the desired unit
     glActiveTexture(cubemapTexUnit);
@@ -320,8 +320,24 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
 
     levelCount = kTexture->numLevels;
 
-    // Checking if KVData contains keys of interest would go here.
-    
+    if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN) {
+        // Assume a cube map made for OpenGL. That means the faces are in a
+        // LH coord system with +y up. Scale the skybox cube's z by -1
+        // to convert it to LH coords to match the cube map.
+        ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1));
+    } else {
+        // Assume a broken(?) texture imported from Willem's Vulkan tutorials,
+        // (modified by us to show it is an sRGB format and to label its actual
+        // y up orientation). These textures have posy and negy flipped
+        // compared to the original images  and OpenGL version (so what gets
+        // loaded into the cubemap's posy is the ground). In other words
+        // they have a right-handed coord system. Rotate the skybox cube's
+        // coords around the x axis so it's +y goes down correctly
+        // selecting the ground.
+        ubo.uvwTransform = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f),
+                                       glm::vec3(1.0f, 0.0f, 0.0f));
+    }
+
     ktxTexture_Destroy(kTexture);
 
     try {
@@ -456,10 +472,6 @@ TextureCubemap::prepareUniformBuffers()
 void
 TextureCubemap::updateUniformBuffers()
 {
-    // Convert the right-handed coords of the triangle into left-handed for
-    // cubemap face selection. Bizarre spec!
-    ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1));
-
     // Reflect / 3D object
     glm::mat4 viewMatrix = glm::mat4(1.0f);
     ubo.projection = glm::perspective(glm::radians(60.0f),

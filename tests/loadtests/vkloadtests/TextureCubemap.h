@@ -61,8 +61,6 @@ class TextureCubemap : public VulkanLoadTestSample
     vk::Sampler sampler;
     vk::ImageView imageView;
 
-    glm::vec3 scale;
-
     struct {
         vk::PipelineVertexInputStateCreateInfo inputState;
         std::vector<vk::VertexInputBindingDescription> bindingDescriptions;

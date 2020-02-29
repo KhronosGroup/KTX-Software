@@ -127,24 +127,33 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
     
-    // Checking if KVData contains keys of interest would go here.
     if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN) {
         // Assume a cube map made for OpenGL. That means the faces are in a
-        // LH coord system with +y up. Rotate the LH coord system so Y is down.
+        // LH coord system with +y up. Rotate the skybox coordinates around
+        // the x axis so +y is up to match the cube map.
 #if !USE_GL_RH_NDC
-        scale = glm::vec3(1, -1, -1);
+        ubo.uvwTransform = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f),
+                                       glm::vec3(1.0f, 0.0f, 0.0f));
 #else
-        scale = glm::vec3(1, 1, -1);
+        // Scale the skybox cube's z by -1 to convert it to LH coords to match
+        // the cube map.
+        ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1));
 #endif
     } else {
         // Assume a broken(?) texture imported from Willem's Vulkan tutorials,
-        // modified by us to show it is an sRGB format and to label its actual
-        // y up orientation. These textures have posy and negy flipped compared
-        // to the original images and OpenGL version.
+        // (modified by us to show it is an sRGB format and to label its actual
+        // y up orientation). These textures have posy and negy flipped
+        // compared to the original images  and OpenGL version (so what gets
+        // loaded into the cubemap's posy is the ground). In other words
+        // they have a right-handed coord system. Scale skybox cube's z by -1
+        // to convert to RH coords to match the cube map.
 #if !USE_GL_RH_NDC
-        scale = glm::vec3(1, 1, -1);
+        ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1));
 #else
-        scale = glm::vec3(1, -1, -1);
+        // Rotate the skybox cube's coords around the x axis so it's +y goes
+        // down correctly selecting the ground.
+        ubo.uvwTransform = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f),
+                                       glm::vec3(1.0f, 0.0f, 0.0f));
 #endif
     }
     
@@ -645,9 +654,6 @@ TextureCubemap::prepareUniformBuffers()
 void
 TextureCubemap::updateUniformBuffers()
 {
-
-    ubo.uvwTransform = glm::scale(glm::mat4(1.0f), scale);
-
     // 3D object
     glm::mat4 viewMatrix = glm::mat4();
     ubo.projection = glm::perspective(glm::radians(60.0f),
