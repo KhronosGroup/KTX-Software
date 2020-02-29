@@ -144,37 +144,16 @@
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
-#            'libassimp',
+            'libassimp',
             'libktx.gyp:libktx.es3',
             'libktx.gyp:libgles3',
             'testimages',
           ],
-          'sources': [
+         'sources': [
             '../geom/quad.h',
             '<@(common_source_files)',
             '<@(gl3_source_files)',
           ], # sources
-          'conditions': [
-            ['OS == "web"', {
-              'sources!': [
-                'shader-based/TextureCubemap.cpp',
-                'shader-based/TextureCubemap.h',
-              ],
-            }, {
-              'dependencies': [
-                'libassimp',
-              ],
-              'copies': [{
-                'destination': '<(model_dest)',
-                'files': [
-                  '../common/models/cube.obj',
-                  '../common/models/sphere.obj',
-                  '../common/models/teapot.dae',
-                  '../common/models/torusknot.obj',
-                ],
-              }],
-            }],
-          ],
           'include_dirs': [
             '.',
             '../common',
@@ -212,6 +191,7 @@
               'cflags': [
                 '-s', 'DISABLE_EXCEPTION_CATCHING=0',
               ],
+              'dependencies!': [ 'libassimp' ],
               'ldflags': [
                 '--source-map-base', './',
                 '--preload-file', 'models',
@@ -224,7 +204,22 @@
                 '-s', 'ALLOW_MEMORY_GROWTH=1',
                 '-s', 'DISABLE_EXCEPTION_CATCHING=0',
               ],
-            }], # OS == "ios" else OS = "win"
+              'sources!': [
+                'shader-based/TextureCubemap.cpp',
+                'shader-based/TextureCubemap.h',
+              ],
+            }], # OS == "ios" else "win" else "web"
+            ['OS != "web"', {
+              'copies': [{
+                'destination': '<(model_dest)',
+                'files': [
+                  '../common/models/cube.obj',
+                  '../common/models/sphere.obj',
+                  '../common/models/teapot.dae',
+                  '../common/models/torusknot.obj',
+                ],
+              }],
+            }], # OS != "web"
           ],
         }, # es3loadtests
       ], # 'OS == "ios" or OS == "win"' targets
