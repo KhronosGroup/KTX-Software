@@ -73,7 +73,7 @@
     <ClCompile Include="..\..\..\..\tools\ktxsc\ktxsc.cpp">
       <Filter>tools\ktxsc\_excluded_files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
+    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cc">
       <Filter>tools\toktx\_excluded_files</Filter>
     </ClCompile>
   </ItemGroup>

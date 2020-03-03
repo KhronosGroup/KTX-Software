@@ -28,6 +28,8 @@
 //! @author Jacob Str&ouml;m, Ericsson AB.
 //!
 
+#include "stdafx.h"
+
 #include <sstream>
 #include <stdexcept>
 

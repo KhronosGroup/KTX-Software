@@ -158,16 +158,17 @@ class PreAllocator
 
         PreAllocator(T* memory_ptr, std::size_t memory_size) : memory_ptr(memory_ptr), memory_size(memory_size) {}
 
-        PreAllocator(const PreAllocator& other) throw() : memory_ptr(other.memory_ptr), memory_size(other.memory_size) {};
+        PreAllocator(const PreAllocator& other) throw() : memory_ptr(other.address()), memory_size(other.max_size()) {};
 
         template<typename U>
-        PreAllocator(const PreAllocator<U>& other) throw() : memory_ptr(other.memory_ptr), memory_size(other.memory_size) {};
+        PreAllocator(const PreAllocator<U>& other) throw() : memory_ptr(static_cast<PreAllocator>(other).address()), memory_size(other.max_size()) {};
 
         template<typename U>
         PreAllocator& operator = (const PreAllocator<U>& other) { return *this; }
         PreAllocator<T>& operator = (const PreAllocator& other) { return *this; }
         ~PreAllocator() {}
 
+		pointer address() const { return memory_ptr; }
         // TODO: Figure out what these should really do.
         pointer address(T& x) { return memory_ptr; }
         const pointer address(const T& x) { memory_ptr; }
@@ -536,7 +537,7 @@ class imageTBase : public Image {
         // Minimize memory use by only buffering a single row.
         Color* rowBuffer = new Color[width];
 
-        for (int sy = height-1, dy = 0; sy >= height / 2; sy--, dy++) {
+        for (uint32_t sy = height-1, dy = 0; sy >= height / 2; sy--, dy++) {
             Color* srcRow = &pixels[width * sy];
             Color* dstRow = &pixels[width * dy];
 

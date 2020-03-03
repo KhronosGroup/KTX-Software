@@ -25,11 +25,12 @@
 //! @brief Image creation functions
 //!
 
+#include "stdafx.h"
+
 #include <sstream>
 #include <stdexcept>
 #include <vector>
 
-#include "stdafx.h"
 #include "image.hpp"
 
 const std::vector<Image::CreateFunction> Image::CreateFunctions = {

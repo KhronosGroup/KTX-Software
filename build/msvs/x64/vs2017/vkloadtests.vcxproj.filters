@@ -370,6 +370,18 @@
     <Filter Include="tests\loadtests\vkloadtests">
       <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tests\loadtests\vkloadtests\utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests">
+      <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\loadtests\vkloadtests">
+      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tests">
       <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
     </Filter>
@@ -439,10 +451,10 @@
     <Filter Include="tests\loadtests">
       <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests">
-      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests\models">
+    <Filter Include="tests\loadtests\common\models">
       <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
@@ -451,10 +463,10 @@
     <Filter Include="tests\loadtests">
       <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests">
-      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests\models">
+    <Filter Include="tests\loadtests\common\models">
       <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
@@ -463,10 +475,10 @@
     <Filter Include="tests\loadtests">
       <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests">
-      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests\models">
+    <Filter Include="tests\loadtests\common\models">
       <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
     </Filter>
     <Filter Include="tests">
@@ -475,10 +487,10 @@
     <Filter Include="tests\loadtests">
       <UniqueIdentifier>{00CAA24F-D078-82B8-DBBC-FF1F153469F4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests">
-      <UniqueIdentifier>{6DDE258A-5FAF-02D2-B1EC-15B0C0E466C2}</UniqueIdentifier>
+    <Filter Include="tests\loadtests\common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests\loadtests\vkloadtests\models">
+    <Filter Include="tests\loadtests\common\models">
       <UniqueIdentifier>{1DEC29F1-A71F-2305-0F9D-CB993E18E9AB}</UniqueIdentifier>
     </Filter>
     <Filter Include="other_lib">
@@ -606,6 +618,9 @@
     <ClInclude Include="..\..\..\..\tests\loadtests\vkloadtests\TextureMipmap.h">
       <Filter>tests\loadtests\vkloadtests</Filter>
     </ClInclude>
+    <None Include="..\..\..\..\tests\loadtests\vkloadtests\utils\VulkanTextureTranscoder.hpp">
+      <Filter>tests\loadtests\vkloadtests\utils</Filter>
+    </None>
     <None Include="..\..\..\..\tests\loadtests\vkloadtests\utils\VulkanMeshLoader.hpp">
       <Filter>tests\loadtests\vkloadtests\utils</Filter>
     </None>
@@ -631,17 +646,17 @@
       <Filter>tests\loadtests\vkloadtests\resources\win</Filter>
     </ClInclude>
     <None Include="..\..\..\..\ktxtests.gyp"/>
-    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\cube.obj">
-      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    <None Include="..\..\..\..\tests\loadtests\common\models\cube.obj">
+      <Filter>tests\loadtests\common\models</Filter>
     </None>
-    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\sphere.obj">
-      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    <None Include="..\..\..\..\tests\loadtests\common\models\sphere.obj">
+      <Filter>tests\loadtests\common\models</Filter>
     </None>
-    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\teapot.dae">
-      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    <None Include="..\..\..\..\tests\loadtests\common\models\teapot.dae">
+      <Filter>tests\loadtests\common\models</Filter>
     </None>
-    <None Include="..\..\..\..\tests\loadtests\vkloadtests\models\torusknot.obj">
-      <Filter>tests\loadtests\vkloadtests\models</Filter>
+    <None Include="..\..\..\..\tests\loadtests\common\models\torusknot.obj">
+      <Filter>tests\loadtests\common\models</Filter>
     </None>
     <None Include="..\..\..\..\other_lib\win\Release-$(PlatformName)\assimp.dll">
       <Filter>other_lib\win\Release-$(PlatformName)</Filter>
