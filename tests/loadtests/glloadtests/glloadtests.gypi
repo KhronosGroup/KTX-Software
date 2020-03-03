@@ -194,7 +194,7 @@
               'dependencies!': [ 'libassimp' ],
               'ldflags': [
                 '--source-map-base', './',
-                '--preload-file', 'models',
+                #'--preload-file', '../common/models',
                 '--preload-file', 'testimages',
                 '--exclude-file', 'testimages/genref',
                 '--exclude-file', 'testimages/*.pgm',
