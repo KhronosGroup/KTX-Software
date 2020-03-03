@@ -161,7 +161,7 @@ class PreAllocator
         PreAllocator(const PreAllocator& other) throw() : memory_ptr(other.address()), memory_size(other.max_size()) {};
 
         template<typename U>
-        PreAllocator(const PreAllocator<U>& other) throw() : memory_ptr(static_cast<PreAllocator>(other).address()), memory_size(other.max_size()) {};
+        PreAllocator(const PreAllocator<U>& other) throw() : memory_ptr(reinterpret_cast<const PreAllocator&>(other).address()), memory_size(other.max_size()) {};
 
         template<typename U>
         PreAllocator& operator = (const PreAllocator<U>& other) { return *this; }

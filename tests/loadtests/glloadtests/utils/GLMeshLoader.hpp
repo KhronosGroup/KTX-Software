@@ -22,9 +22,6 @@ using namespace std;
 #include <assimp/Importer.hpp> 
 #include <assimp/scene.h>     
 #include <assimp/postprocess.h>
-//#include <assimp/cimport.h>
-
-#include <GL/glcorearb.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
