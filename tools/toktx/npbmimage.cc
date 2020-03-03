@@ -43,7 +43,6 @@
 #include "stdafx.h"
 #include <inttypes.h>
 #include <stdlib.h>
-#include <filesystem>
 #include "image.hpp"
 
 

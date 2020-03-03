@@ -18,10 +18,12 @@ CFLAGS_C_Debug := \
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Debug := \
-	-std=c++11
+	-std=c++11 \
+	-Wno-pedantic
 
 INCS_Debug := \
 	-I$(srcdir)/utils \
+	-I$(srcdir)/lib/basisu \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
@@ -39,10 +41,12 @@ CFLAGS_C_Release := \
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Release := \
-	-std=c++11
+	-std=c++11 \
+	-Wno-pedantic
 
 INCS_Release := \
 	-I$(srcdir)/utils \
+	-I$(srcdir)/lib/basisu \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
@@ -50,6 +54,8 @@ OBJS := \
 	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tools/toktx/image.o \
 	$(obj).target/$(TARGET)/tools/toktx/lodepng.o \
+	$(obj).target/$(TARGET)/tools/toktx/npbmimage.o \
+	$(obj).target/$(TARGET)/tools/toktx/pngimage.o \
 	$(obj).target/$(TARGET)/tools/toktx/toktx.o
 
 # Add to the list of files we specially track dependencies for.
@@ -66,12 +72,21 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(B
 
 # Suffix rules, putting all outputs into $(obj).
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cc FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # Try building from generated source, too.
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cc FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
+
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
