@@ -56,6 +56,7 @@ namespace glMeshLoader
         GLuint vao = 0;
         MeshBufferInfo vertices;
         MeshBufferInfo indices;
+        GLuint primitiveType;
         uint32_t indexCount = 0;
         glm::vec3 dim;
         glm::mat4 modelTransform;  // To display the model correctly in the
@@ -133,6 +134,7 @@ class GLMeshLoader {
         uint32_t NumIndices;
         uint32_t MaterialIndex;
         uint32_t vertexBase;
+        uint32_t primitiveType;
         std::vector<Vertex> Vertices;
         std::vector<unsigned int> Indices;
     };
@@ -167,6 +169,7 @@ class GLMeshLoader {
     void LoadMesh(const std::string& filename)
     {
         int flags = aiProcess_Triangulate | aiProcess_PreTransformVertices
+                  | aiProcess_JoinIdenticalVertices
                   | aiProcess_CalcTangentSpace
                   | aiProcess_GenSmoothNormals;
 
@@ -292,6 +295,19 @@ class GLMeshLoader {
             m_Entries[index].Indices.push_back(Face.mIndices[1]);
             m_Entries[index].Indices.push_back(Face.mIndices[2]);
         }
+
+        switch (paiMesh->mPrimitiveTypes) {
+          case aiPrimitiveType_POINT:
+            m_Entries[index].primitiveType = GL_POINTS ;
+            break;
+          case aiPrimitiveType_LINE:
+            m_Entries[index].primitiveType = GL_LINES;
+            break;
+          case aiPrimitiveType_TRIANGLE:
+            m_Entries[index].primitiveType = GL_TRIANGLES;
+            break;
+          default: assert(false); // Shouldn't happen because of triangulate.
+        }
     }
 
     void CreateBuffers(glMeshLoader::MeshBuffer& meshBuffer,
@@ -396,6 +412,7 @@ class GLMeshLoader {
         }
         meshBuffer.indices.size = indexBuffer.size() * sizeof(uint32_t);
         meshBuffer.indexCount = (uint32_t)indexBuffer.size();
+        meshBuffer.primitiveType = m_Entries[0].primitiveType;
 
           // Make the GL buffers
 

@@ -156,7 +156,7 @@ const GLchar* pszReflectVs =
 
     "void main()\n"
     "{\n"
-    "  gl_Position = ubo.projection * ubo.modelView * vec4(inPos.xyz, 1.0);\n\n"
+    "  gl_Position = ubo.projection * ubo.modelView * vec4(inPos, 1.0);\n\n"
 
     "  vPos = vec3(ubo.modelView * vec4(inPos, 1.0));\n"
     "  vNormal = mat3(ubo.modelView) * inNormal;\n"
@@ -480,12 +480,14 @@ TextureCubemap::updateUniformBuffers()
                                       0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
-    //ubo.modelView = meshes.objects[meshes.objectIndex].modelTransform;
-    //glm::mat4 model;
-    //model = glm::rotate(model, glm::radians(180.0f),
-    //                    glm::vec3(0.0f, 0.0f, 1.0f));
+    // I do not understand why this is necessary. Assimp is supposed to
+    // put models in the GL coordinate system by default but the teapot is
+    // upside down. Since the other objects are symmetrical it is not possible
+    // to say if they are upside down.
+    glm::mat4 object;
+    object = glm::rotate(object, glm::radians(180.0f),
+                         glm::vec3(1.0f, 0.0f, 0.0f));
     ubo.modelView = viewMatrix * glm::translate(glm::mat4(), cameraPos);
-    //ubo.modelView = ubo.modelView * model;
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x),
                                 glm::vec3(1.0f, 0.0f, 0.0f));
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y),
@@ -496,6 +498,8 @@ TextureCubemap::updateUniformBuffers()
     ubo.skyboxView = glm::mat4(glm::mat3(ubo.modelView));
     // Do the inverse here because doing it in every fragment is a bit much.
     ubo.invModelView = glm::inverse(ubo.modelView);
+    // Now add the object rotation.
+    ubo.modelView = ubo.modelView * object;
 
 
     glBindBuffer(GL_UNIFORM_BUFFER, gnUbo);
