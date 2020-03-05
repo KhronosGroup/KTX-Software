@@ -87,6 +87,8 @@ enum oetf_e {
   #undef max
 #endif
 
+using namespace std;
+
 template<typename T>
 struct clampedOption
 {
@@ -134,7 +136,7 @@ struct commandOptions {
             maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
             noMultithreading(0)
         {
-            uint32_t tc = std::thread::hardware_concurrency();
+            uint32_t tc = thread::hardware_concurrency();
             if (tc == 0) tc = 1;
             threadCount.max = tc;
             threadCount = tc;
@@ -156,24 +158,24 @@ struct commandOptions {
 #define TRAVIS_DEBUG 0
 #if TRAVIS_DEBUG
         void print() {
-            std::cout << "threadCount = " << threadCount.value << std::endl;
-            std::cout << "qualityLevel = " << qualityLevel.value << std::endl;
-            std::cout << "maxEndpoints = " << maxEndpoints.value << std::endl;
-            std::cout << "maxSelectors = " << maxSelectors.value << std::endl;
-            std::cout << "structSize = " << structSize << std::endl;
-            std::cout << "threadCount = " << ktxBasisParams::threadCount << std::endl;
-            std::cout << "compressionLevel = " << compressionLevel << std::endl;
-            std::cout << "qualityLevel = " << ktxBasisParams::qualityLevel << std::endl;
-            std::cout << "compressionLevel = " << compressionLevel << std::endl;
-            std::cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << std::endl;
-            std::cout << "endpointRDOThreshold = " << endpointRDOThreshold << std::endl;
-            std::cout << "maxSelectors = " << ktxBasisParams::maxSelectors << std::endl;
-            std::cout << "selectorRDOThreshold = " << selectorRDOThreshold << std::endl;
-            std::cout << "normalMap = " << normalMap << std::endl;
-            std::cout << "separateRGToRGB_A = " << separateRGToRGB_A << std::endl;
-            std::cout << "preSwizzle = " << preSwizzle << std::endl;
-            std::cout << "noEndpointRDO = " << noEndpointRDO << std::endl;
-            std::cout << "noSelectorRDO = " << noSelectorRDO << std::endl;
+            cout << "threadCount = " << threadCount.value << endl;
+            cout << "qualityLevel = " << qualityLevel.value << endl;
+            cout << "maxEndpoints = " << maxEndpoints.value << endl;
+            cout << "maxSelectors = " << maxSelectors.value << endl;
+            cout << "structSize = " << structSize << endl;
+            cout << "threadCount = " << ktxBasisParams::threadCount << endl;
+            cout << "compressionLevel = " << compressionLevel << endl;
+            cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
+            cout << "compressionLevel = " << compressionLevel << endl;
+            cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
+            cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
+            cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
+            cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
+            cout << "normalMap = " << normalMap << endl;
+            cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
+            cout << "preSwizzle = " << preSwizzle << endl;
+            cout << "noEndpointRDO = " << noEndpointRDO << endl;
+            cout << "noSelectorRDO = " << noSelectorRDO << endl;
         }
 #endif
     };
@@ -191,8 +193,9 @@ struct commandOptions {
     int          bcmp;
     struct basisOptions bopts;
     _tstring     outfile;
+    unsigned int layers;
     unsigned int levels;
-    std::vector<_tstring> infilenames;
+    vector<_tstring> infilenames;
 
     commandOptions() {
       automipmap = false;
@@ -204,6 +207,7 @@ struct commandOptions {
       two_d = false;
       useStdin = false;
       bcmp = false;
+      layers = 1;
       levels = 1;
       oetf = Image::eOETF::Unset;
       /* The OGLES WG recommended approach, even though it is opposite
@@ -216,7 +220,7 @@ struct commandOptions {
 static _tstring      appName;
 
 static bool loadFileList(const _tstring &f, bool relativize,
-                         std::vector<_tstring>& filenames);
+                         vector<_tstring>& filenames);
 static ktx_uint32_t log2(ktx_uint32_t v);
 static void processCommandLine(int argc, _TCHAR* argv[],
                                struct commandOptions& options);
@@ -339,7 +343,7 @@ Create a KTX file from netpbm format files.
       <dl>
       <dt>--no_multithreading</dt>
       <dd>Disable multithreading. By default Basis compression will use the
-          numnber of threads reported by @c std::thread::hardware_concurrency or
+          numnber of threads reported by @c thread::hardware_concurrency or
           1 if value returned is 0.</dd>
       <dt>--threads &lt;count&gt;</dt>
       <dd>Explicitly set the number of threads to use during compression.
@@ -503,7 +507,7 @@ usage(const _tstring appName)
         "       --no_multithreading\n"
         "               Disable multithreading. By default Basis compression will use\n"
         "               the numnber of threads reported by\n"
-        "               @c std::thread::hardware_concurrency or 1 if value returned is 0.\n"
+        "               @c thread::hardware_concurrency or 1 if value returned is 0.\n"
         "      --threads <count>\n"
         "               Explicitly set the number of threads to use during compression.\n"
         "               --no_multithreading must not be set.\n"
@@ -563,7 +567,7 @@ usage(const _tstring appName)
 #define VERSION 2.0
 
 static void
-writeId(std::ostream& dst, _tstring& appName)
+writeId(ostream& dst, _tstring& appName)
 {
     dst << appName << " version " << VERSION;
 }
@@ -581,8 +585,8 @@ int _tmain(int argc, _TCHAR* argv[])
     ktxTextureCreateInfo createInfo;
     ktxTexture* texture = 0;
     struct commandOptions options;
-    int exitCode = 0, face;
-    unsigned int componentCount = 1, i, level, levelCount = 1;
+    int exitCode = 0;
+    unsigned int componentCount = 1, face, i, level, layer, levelCount = 1;
     unsigned int levelWidth, levelHeight;
     Image::eOETF chosenOETF, firstImageOETF;
 
@@ -594,21 +598,21 @@ int _tmain(int argc, _TCHAR* argv[])
       createInfo.numFaces = 1;
 
     // TO DO: handle array textures
-    createInfo.numLayers = 1;
+    createInfo.numLayers = options.layers;
     createInfo.isArray = KTX_FALSE;
 
     // TO DO: handle 3D textures.
 
-    for (i = 0, face = 0, level = 0; i < options.infilenames.size(); i++) {
+    for (i = face = layer = level = 0; i < options.infilenames.size(); i++) {
         _tstring& infile = options.infilenames[i];
 
         Image* image;
         try {
             image =
               Image::CreateFromFile(infile, options.oetf == Image::eOETF::Unset);
-        } catch (std::exception& e) {
-            std::cerr << appName << ": failed to create image from "
-                      << infile << ". " << e.what() << std::endl;
+        } catch (exception& e) {
+            cerr << appName << ": failed to create image from "
+                      << infile << ". " << e.what() << endl;
             exit(2);
         }
 
@@ -734,30 +738,44 @@ int _tmain(int argc, _TCHAR* argv[])
                     // Calculate number of miplevels
                     GLuint max_dim = image->getWidth() > image->getHeight() ?
                                      image->getWidth() : image->getHeight();
-                    levelCount = log2(max_dim) + 1;
-                }
-                if (options.levels > 1) {
-                    // Override the above.
-                    levelCount = options.levels;
-                }
-                // Check we have enough.
-                if (options.mipmap) {
-                    if (levelCount * createInfo.numFaces > options.infilenames.size()) {
-                        fprintf(stderr,
-                                "%s: too few files for %d mipmap levelCount and %d faces.\n",
-                                appName.c_str(), levelCount,
-                                createInfo.numFaces);
-                        exitCode = 1;
-                        goto cleanup;
-                    } else if (levelCount * createInfo.numFaces < options.infilenames.size()) {
-                        fprintf(stderr,
-                                "%s: too many files for %d mipmap levelCount and %d faces."
-                                " Extras will be ignored.\n",
-                                appName.c_str(), levelCount,
-                                createInfo.numFaces);
+                    createInfo.numLevels = log2(max_dim) + 1;
+                    if (options.levels > 1) {
+                        if (options.levels > createInfo.numLevels) {
+                            cerr << appName << "--levels value is greater than "
+                                 << "the maximum levels for the image size."
+                                 << endl;
+                            exitCode = 1;
+                            goto cleanup;
+                        }
+                        // Override the above.
+                        createInfo.numLevels = options.levels;
                     }
+                } else {
+                    createInfo.numLevels = 1;
                 }
-                createInfo.numLevels = levelCount;
+                // Figure out how many levels we'll read from files.
+                if (options.mipmap) {
+                    levelCount = createInfo.numLevels;
+                } else {
+                    levelCount = 1;
+                }
+            }
+            // Check we have enough files.
+            uint32_t requiredFileCount =
+                              createInfo.numLayers * createInfo.numFaces;
+            requiredFileCount *= options.genmipmap ? 1 : levelCount;
+            if (requiredFileCount > options.infilenames.size()) {
+                cerr << appName << ": too few files for " << levelCount
+                     << " levels, " << createInfo.numLayers
+                     << " layers and " << createInfo.numFaces
+                     << " faces." << endl;
+                exitCode = 1;
+                goto cleanup;
+            } else if (requiredFileCount < options.infilenames.size()) {
+                cerr << appName << ": too many files for " << levelCount
+                     << " levels, " << createInfo.numLayers
+                     << " layers and " << createInfo.numFaces
+                     << " faces. Extras will be ignored." << endl;
             }
             if (options.ktx2) {
                 ret = ktxTexture2_Create(&createInfo,
@@ -783,58 +801,51 @@ int _tmain(int argc, _TCHAR* argv[])
                 exitCode = 1;
                 goto cleanup;
             }
-            // TODO: Change order of images to face n then face n mipmap. It
-            // seems easier for the user and is consistent with mipmap
-            // generation. Do this when adding array support.
-            if (face == (options.cubemap ? 6 : 1)) {
-                if (!options.mipmap) {
-                    std::cerr << appName
-                              << ": Too many files. Did you forget --mipmap, "
-                              << "--cubemap or --array?" << std::endl;
-                    exitCode = 1;
-                    goto cleanup;
-                }
-                level++;
-                if (level < createInfo.numLevels) {
-                    levelWidth >>= 1;
-                    levelHeight >>= 1;
-                    if (image->getWidth() != levelWidth
-                        || image->getHeight() != levelHeight) {
-                        fprintf(stderr, "%s: \"%s\" has incorrect width or height for current mipmap level\n",
-                                appName.c_str(), infile.c_str());
-                        exitCode = 1;
-                        goto cleanup;
-                    }
+            // Input file order is layer, face, level. This seems easier for
+            // a human to manage than the order in a KTX file. It keeps the
+            // base level images and their mip levels together.
+            level++;
+            levelWidth >>= 1;
+            levelHeight >>= 1;
+            if (level == levelCount) {
+                face++;
+                level = 0;
+                levelWidth = createInfo.baseWidth;
+                levelHeight = createInfo.baseHeight;
+                if (face == (options.cubemap ? 6 : 1)) {
                     face = 0;
-                } else {
-                    break;
+                    layer++;
+                    if (layer == options.layers) {
+                        // We're done.
+                        break;
+                    }
                 }
             }
         }
 
         if (options.cubemap && image->getWidth() != image->getHeight()
             && image->getWidth() != levelWidth) {
-            fprintf(stderr, "%s: \"%s,\" intended for a cubemap face, is not square or has incorrect\n"
-                            "size for current mipmap level\n",
-                    appName.c_str(), infile.c_str());
+            cerr << appName << ": \"" << infile << "\" intended for a cubemap "
+                            << "face, is not square or has incorrect" << endl
+                            << "size for current mipmap level" << endl;
             exitCode = 1;
             goto cleanup;
         }
 #if TRAVIS_DEBUG
         if (options.bcmp) {
-            std::cout << "level = " << level << ", face = " << face;
-            std::cout << ", srcImg = " << std::hex  << (void *)srcImg << std::dec;
-            std::cout << ", imageSize = " << imageSize << std::endl;
+            cout << "level = " << level << ", face = " << face;
+            cout << ", srcImg = " << hex  << (void *)srcImg << dec;
+            cout << ", imageSize = " << imageSize << endl;
         }
 #endif
         ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                       level,
-                                      0,
+                                      layer,
                                       face,
                                       *image,
                                       image->getByteCount());
         if (options.genmipmap) {
-            for (uint32_t level = 1; level < levelCount; level++)
+            for (uint32_t level = 1; level < createInfo.numLevels; level++)
             {
                 // Note: level variable in this loop is different from that
                 // with the same name outside it.
@@ -849,15 +860,15 @@ int _tmain(int argc, _TCHAR* argv[])
                 // sRGB is a bool indicating if image is sRGB
                 // filter is a string defaults to "lancos4".
                 // filter scale defaults to 1.0.
-                // wrapping defaults to false. Sets BOUNDARY clampe is false,
+                // wrapping defaults to false. Sets BOUNDARY clamp is false,
                 // BOUNDARY_WRAP is true.
                 // first_comp, num_comps maybe we don't need.
                 try {
                     image->resample(*levelImage,
                                     chosenOETF == Image::eOETF::sRGB);
-                } catch (std::runtime_error e) {
-                    std::cerr << "Image::resample() failed!"
-                              << e.what() << std::endl;
+                } catch (runtime_error e) {
+                    cerr << "Image::resample() failed!"
+                              << e.what() << endl;
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -868,7 +879,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
                 ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                               level,
-                                              0,
+                                              layer,
                                               face,
                                               *levelImage,
                                               levelImage->getByteCount());
@@ -886,7 +897,6 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 #endif
 
-        face++;
         delete image;
     }
 
@@ -914,7 +924,7 @@ int _tmain(int argc, _TCHAR* argv[])
     }
     if (options.ktx2) {
         // Add required writer metadata.
-        std::stringstream writer;
+        stringstream writer;
         writeId(writer, appName);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                               (ktx_uint32_t)writer.str().length() + 1,
@@ -1011,7 +1021,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
 
     toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
     if (toktx_options) {
-        std::istringstream iss(toktx_options);
+        istringstream iss(toktx_options);
         argvector arglist;
         for (_tstring w; iss >> w; )
             arglist.push_back(w);
@@ -1019,7 +1029,8 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         argparser optparser(arglist, 0);
         processOptions(optparser, options);
         if (optparser.optind != arglist.size()) {
-            fprintf(stderr, "Only options are allowed in the TOKTX_OPTIONS environment variable.\n");
+            cerr << "Only options are allowed in the TOKTX_OPTIONS "
+                 << "environment variable." << endl;
             usage(appName);
             exit(1);
         }
@@ -1029,10 +1040,20 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     processOptions(parser, options);
 
     if (options.automipmap + options.genmipmap + options.mipmap > 1) {
+        cerr << "Only one of --automipmap, --genmipmap and "
+             << "--mipmap may be specified." << endl;
         usage(appName);
         exit(1);
     }
-    if (options.automipmap && options.levels > 1) {
+    if ((options.automipmap || options.genmipmap) && options.levels > 1) {
+        cerr << "Cannot specify --levels > 1 with --automipmap or --genmipmap."
+            << endl;
+        usage(appName);
+        exit(1);
+    }
+    if (options.cubemap && options.lower_left_maps_to_s0t0) {
+        cerr << "Cubemaps require images to have an upper-left origin."
+             << endl;
         usage(appName);
         exit(1);
     }
@@ -1063,17 +1084,18 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
             /* Check for attempt to use stdin as one of the
              * input files.
              */
-            std::vector<_tstring>::const_iterator it;
+            vector<_tstring>::const_iterator it;
             for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
                 if (it->compare(_T("-")) == 0) {
-                    fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n", appName.c_str());
+                    cerr << "Cannot use stdin as one among many inputs."
+                         << endl;
                     usage(appName);
                     exit(1);
                 }
             }
             ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
             if (requiredInputFiles > options.infilenames.size()) {
-                fprintf(stderr, "%s: too few input files.\n", appName.c_str());
+                cerr << "Too few input files." << endl;
                 exit(1);
             }
             /* Whether there are enough input files for all the mipmap levels in
@@ -1081,12 +1103,12 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
              * read and the size determined.
              */
         } else {
-            // Need some input files.
+            cerr << "Need some input files." << endl;
             usage(appName);
             exit(1);
         }
     } else {
-        // Need an output file and some input files.
+        cerr << "Need an output file and some input files." << endl;
         usage(appName);
         exit(1);
     }
@@ -1113,6 +1135,7 @@ processOptions(argparser& parser,
         { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
         { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
         { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
+        { "layers", argparser::option::no_argument, NULL, 'a' },
         { "levels", argparser::option::required_argument, NULL, 'l' },
         { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
@@ -1148,6 +1171,9 @@ processOptions(argparser& parser,
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
+            break;
+          case 'a':
+            options.layers = atoi(parser.optarg.c_str());
             break;
           case 'l':
             options.levels = atoi(parser.optarg.c_str());
@@ -1211,7 +1237,7 @@ processOptions(argparser& parser,
 
 static bool
 loadFileList(const _tstring &f, bool relativize,
-             std::vector<_tstring>& filenames)
+             vector<_tstring>& filenames)
 {
     _tstring listName(f);
     listName.erase(0, relativize ? 2 : 1);
@@ -1234,7 +1260,7 @@ loadFileList(const _tstring &f, bool relativize,
 
     if (relativize) {
         size_t dirnameEnd = listName.find_last_of('/');
-        if (dirnameEnd == std::string::npos) {
+        if (dirnameEnd == string::npos) {
             relativize = false;
         } else {
             dirname = listName.substr(0, dirnameEnd + 1);
@@ -1256,7 +1282,7 @@ loadFileList(const _tstring &f, bool relativize,
             break;
         }
 
-        std::string readFilename(p);
+        string readFilename(p);
         while (readFilename.size()) {
             if (readFilename[0] == _T(' '))
               readFilename.erase(0, 1);
@@ -1307,33 +1333,6 @@ log2(ktx_uint32_t v)
 
     return e;
 }
-
-
-#if 0
-static void
-yflip(unsigned char*& srcImage, size_t imageSize,
-      unsigned int w, unsigned int h, unsigned int pixelSize)
-{
-    int rowSize = w * pixelSize;
-    unsigned char *flipped, *temp;
-
-    flipped = new unsigned char[imageSize];
-    if (!flipped) {
-        fprintf(stderr, "Not enough memory\n");
-        exit(2);
-    }
-
-    for (int sy = h-1, dy = 0; sy >= 0; sy--, dy++) {
-        unsigned char* src = &srcImage[rowSize * sy];
-        unsigned char* dst = &flipped[rowSize * dy];
-
-        memcpy(dst, src, rowSize);
-    }
-    temp = srcImage;
-    srcImage = flipped;
-    delete temp;
-}
-#endif
 
 #if IMAGE_DEBUG
 static void
