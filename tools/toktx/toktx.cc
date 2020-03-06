@@ -193,6 +193,7 @@ struct commandOptions {
     int          bcmp;
     struct basisOptions bopts;
     _tstring     outfile;
+    unsigned int depth;
     unsigned int layers;
     unsigned int levels;
     vector<_tstring> infilenames;
@@ -207,6 +208,7 @@ struct commandOptions {
       two_d = false;
       useStdin = false;
       bcmp = false;
+      depth = 1;
       layers = 1;
       levels = 1;
       oetf = Image::eOETF::Unset;
@@ -578,6 +580,20 @@ version(const _tstring& appName)
     fprintf(stderr, "%s version %s\n", appName.c_str(), STR(VERSION));
 }
 
+static uint32_t
+imageCount(uint32_t levelCount, uint32_t layerCount,
+           uint32_t faceCount, uint32_t baseDepth)
+{
+    assert((faceCount == 1 && baseDepth >= 1)
+           || faceCount > 1 && baseDepth == 1);
+
+    uint32_t layerPixelDepth = baseDepth;
+    for(uint32_t level = 1; level < levelCount; level++)
+        layerPixelDepth += maximum(baseDepth >> level, 1U);
+    // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
+    // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
+    return layerCount * faceCount * layerPixelDepth;
+}
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -586,8 +602,8 @@ int _tmain(int argc, _TCHAR* argv[])
     ktxTexture* texture = 0;
     struct commandOptions options;
     int exitCode = 0;
-    unsigned int componentCount = 1, face, i, level, layer, levelCount = 1;
-    unsigned int levelWidth, levelHeight;
+    unsigned int componentCount = 1, faceSlice, i, level, layer, levelCount = 1;
+    unsigned int levelWidth, levelHeight, levelDepth;
     Image::eOETF chosenOETF, firstImageOETF;
 
     processCommandLine(argc, argv, options);
@@ -603,7 +619,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
     // TO DO: handle 3D textures.
 
-    for (i = face = layer = level = 0; i < options.infilenames.size(); i++) {
+    faceSlice = layer = level = 0;
+    for (i = 0; i < options.infilenames.size(); i++) {
         _tstring& infile = options.infilenames[i];
 
         Image* image;
@@ -724,7 +741,7 @@ int _tmain(int argc, _TCHAR* argv[])
             }
             createInfo.baseWidth = levelWidth = image->getWidth();
             createInfo.baseHeight = levelHeight = image->getHeight();
-            createInfo.baseDepth = 1;
+            createInfo.baseDepth = levelDepth = options.depth;
             if (image->getWidth() == 1 && !options.two_d)
                 createInfo.numDimensions = 1;
             else
@@ -761,9 +778,10 @@ int _tmain(int argc, _TCHAR* argv[])
                 }
             }
             // Check we have enough files.
-            uint32_t requiredFileCount =
-                              createInfo.numLayers * createInfo.numFaces;
-            requiredFileCount *= options.genmipmap ? 1 : levelCount;
+            uint32_t requiredFileCount = imageCount(options.genmipmap ? 1 : levelCount,
+                                             createInfo.numLayers,
+                                             createInfo.numFaces,
+                                             createInfo.baseDepth);
             if (requiredFileCount > options.infilenames.size()) {
                 cerr << appName << ": too few files for " << levelCount
                      << " levels, " << createInfo.numLayers
@@ -801,19 +819,20 @@ int _tmain(int argc, _TCHAR* argv[])
                 exitCode = 1;
                 goto cleanup;
             }
-            // Input file order is layer, face, level. This seems easier for
+            // Input file order is layer, faceSlice, level. This seems easier for
             // a human to manage than the order in a KTX file. It keeps the
             // base level images and their mip levels together.
             level++;
             levelWidth >>= 1;
             levelHeight >>= 1;
+            levelDepth >>= 1;
             if (level == levelCount) {
-                face++;
+                faceSlice++;
                 level = 0;
                 levelWidth = createInfo.baseWidth;
                 levelHeight = createInfo.baseHeight;
-                if (face == (options.cubemap ? 6 : 1)) {
-                    face = 0;
+                if (faceSlice == (options.cubemap ? 6 : levelDepth)) {
+                    faceSlice = 0;
                     layer++;
                     if (layer == options.layers) {
                         // We're done.
@@ -833,7 +852,7 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 #if TRAVIS_DEBUG
         if (options.bcmp) {
-            cout << "level = " << level << ", face = " << face;
+            cout << "level = " << level << ", faceSlice = " << faceSlice;
             cout << ", srcImg = " << hex  << (void *)srcImg << dec;
             cout << ", imageSize = " << imageSize << endl;
         }
@@ -841,7 +860,7 @@ int _tmain(int argc, _TCHAR* argv[])
         ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                       level,
                                       layer,
-                                      face,
+                                      faceSlice,
                                       *image,
                                       image->getByteCount());
         if (options.genmipmap) {
@@ -880,7 +899,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                               level,
                                               layer,
-                                              face,
+                                              faceSlice,
                                               *levelImage,
                                               levelImage->getByteCount());
                 delete levelImage;
@@ -890,7 +909,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #if IMAGE_DEBUG
         {
             ktx_size_t offset;
-            ktxTexture_GetImageOffset(texture, level, 0, face, &offset);
+            ktxTexture_GetImageOffset(texture, level, 0, faceSlice, &offset);
             dumpImage(infile, image->getWidth(), image->getHeight(),
                       image->getComponentCount(), image->getComponentSize(),
                       texture.pData + offset);
@@ -1057,6 +1076,16 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         usage(appName);
         exit(1);
     }
+    if (options.cubemap && options.depth > 1) {
+        cerr << "Cubemaps cannot have depth > 1." << endl;
+        usage(appName);
+        exit(1);
+    }
+    if (options.layers > 1 && options.depth > 1) {
+        cerr << "Cannot have 3D array textures." << endl;
+        usage(appName);
+        exit(1);
+    }
 
     i = parser.optind;
 
@@ -1135,6 +1164,7 @@ processOptions(argparser& parser,
         { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
         { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
         { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
+        { "depth", argparser::option::required_argument, NULL, 'd' },
         { "layers", argparser::option::no_argument, NULL, 'a' },
         { "levels", argparser::option::required_argument, NULL, 'l' },
         { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
@@ -1174,6 +1204,9 @@ processOptions(argparser& parser,
             break;
           case 'a':
             options.layers = atoi(parser.optarg.c_str());
+            break;
+          case 'd':
+            options.depth = atoi(parser.optarg.c_str());
             break;
           case 'l':
             options.levels = atoi(parser.optarg.c_str());
