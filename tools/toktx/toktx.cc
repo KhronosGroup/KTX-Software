@@ -179,6 +179,14 @@ struct commandOptions {
         }
 #endif
     };
+    struct mipgenOptions {
+        string filter;
+        float filterScale;
+        bool wrapping;
+
+        mipgenOptions() : filter("lanczos4"), filterScale(1.0),
+                          wrapping(false) { }
+    };
 
     int          automipmap;
     int          cubemap;
@@ -192,6 +200,7 @@ struct commandOptions {
     int          lower_left_maps_to_s0t0;
     int          bcmp;
     struct basisOptions bopts;
+    struct mipgenOptions gmopts;
     _tstring     outfile;
     unsigned int depth;
     unsigned int layers;
@@ -232,6 +241,12 @@ static void dumpImage(_TCHAR* name, int width, int height, int components,
                       int componentSize, unsigned char* srcImage);
 #endif
 
+/*
+ { "box", box_filter, BOX_FILTER_SUPPORT }, { "tent", tent_filter, TENT_FILTER_SUPPORT }, { "bell", bell_filter, BELL_SUPPORT }, { "b-spline", B_spline_filter, B_SPLINE_SUPPORT },
+ { "mitchell", mitchell_filter, MITCHELL_SUPPORT }, { "lanczos3", lanczos3_filter, LANCZOS3_SUPPORT }, { "blackman", blackman_filter, BLACKMAN_SUPPORT }, { "lanczos4", lanczos4_filter, LANCZOS4_SUPPORT },
+ { "lanczos6", lanczos6_filter, LANCZOS6_SUPPORT }, { "lanczos12", lanczos12_filter, LANCZOS12_SUPPORT }, { "kaiser", kaiser_filter, KAISER_SUPPORT }, { "gaussian", gaussian_filter, GAUSSIAN_SUPPORT },
+ { "catmullrom", catmull_rom_filter, CATMULL_ROM_SUPPORT }, { "quadratic_interp", quadratic_interp_filter, QUADRATIC_SUPPORT }, { "quadratic_approx", quadratic_approx_filter, QUADRATIC_SUPPORT }, { "quadratic_mix", quadratic_mix_filter, QUADRATIC_SUPPORT },
+ */
 /** @page toktx toktx
 @~English
 
@@ -249,7 +264,10 @@ Create a KTX file from netpbm format files.
  
     @b toktx reads each named @e infile. which must be in .pam, .ppm, .pgm or
     .png format. @e infiles prefixed with '@' are read as text files listing
-    actual file names to process with one name per line.
+    actual file names to process with one file path per line. Paths must be
+    absolute or relative to the current directory when @b toktx is run. If
+    '@@' is used instead, paths must be absolute or relative to the location
+    of the list file.
 
     .ppm files yield RGB textures, .pgm files RED textures, .pam files RED, RG,
     RGB or RGBA textures according to the file's TUPLTYPE and DEPTH and .png
@@ -274,36 +292,72 @@ Create a KTX file from netpbm format files.
         <dd>General ICC profiles are not supported by toktx or the KTX2 format.
         sRGB chunk must not be present.</dd>
     <dt>gAMA and/or cHRM chunks present without sRGB or iCCP:</dt>
-        <dd>If gAMA is 45455 the OETF is set to sRGB, if 100000 it
-        is set to linear. Other gAMA values are unsupported. cHRM is currently
+        <dd>If gAMA is 45455 the OETF is set to sRGB, if 100000 it is set to
+        linear. Other gAMA values are unsupported. cHRM is currently
         unsupported. We should attempt to map the primary values to one of
         the standard sets listed in the Khronos Data Format specification.</dd>
     </dl>
- 
+
     The following options are always available:
     <dl>
     <dt>--2d</dt>
     <dd>If the image height is 1, by default a KTX file for a 1D texture is
         created. With this option one for a 2D texture is created instead.</dd>
     <dt>--automipmap</dt>
-    <dd>A mipmap pyramid will be automatically generated when the KTX
-        file is loaded. This option is mutually exclusive with @b --levels and
-        @b --mipmap.</dd>
+    <dd>Causes the KTX file to be marked to request generation of a mipmap
+        pyramid when the file is loaded. This option is mutually exclusive
+        with @b --genmipmap, @b --levels and @b --mipmap.</dd>
     <dt>--cubemap</dt>
     <dd>KTX file is for a cubemap. At least 6 @e infiles must be provided,
         more if --mipmap is also specified. Provide the images in the
-        order: +X, -X, +Y, -Y, +Z, -Z.</dd>
-    <dt>--levels levels</dt>
-    <dd>KTX file is for a mipmap pyramid with @e levels rather than a
-        full pyramid. @e levels must be &lt;= the maximum number of levels
+        order: +X, -X, +Y, -Y, +Z, -Z where the arrangement is a
+        left-handed coordinate system with +Y up. So if you're facing +Z,
+        -X will be on your left and +X on your right. Images must have
+        an upper left origin so it is an error to specify
+        --lower_left_maps_to_s0t0 with this option.</dd>
+    <dt>--depth &lt;number&gt;</dt>
+    <dd>KTX file is for a 3D texture with a depth of @e number. Provide the
+        file(s) for z=0 first then those for z=1, etc. It is an error
+        to specify this together with @b --layers %gt; 1.</dd>
+    <dt>--genmipmap</dt>
+    <dd>Causes mipmaps to be generated for each input file. This option is
+        mutually exclusive with @b --automipmap and @b --mipmap. When set,
+        the following mipmap-generation related options become valid
+        otherwise they are ignored.
+        <dl>
+        <dt>--filter &lt;name&gt;</dt>
+        <dd>Specifies the filter to use when generating the mipmaps. @e name
+            is a string. The default is @e lanczos4. The following names are
+            recognized: @e box, @e tent, @e bell, @e b-spline, @e mitchell,
+            @e lanczos3, @e lanczos4, @e lanczos6, @e lanczos12, @e blackman,
+            @e kaiser, @e gaussian, @e catmullrom, @e quadratic_interp,
+            @e quadratic_approx and @e quadratic_mix.</dd>
+        <dt>--fscale &lt;floatVal&gt;</dt>
+        <dd>The filter scale to use. The default is 1.0.</dd>
+        <dt>--wrapping &lt;mode&gt;</dt>
+        <dd>Specify how to sample pixels near the image boundaries. Values
+            are @e wrap, @e reflect and @e clamp. The default is @e clamp.</dd>
+        <dd>
+        </dl>
+    </dd>
+    <dt>--layers &lt;number&gt;</dt>
+    <dd>KTX file is for an array texture with @e number of layers. Provide the
+        file(s) for layer 0 first then those for layer 1, etc. It is an error
+        to specify this together with @b --depth %gt; 1.</dd>
+    <dt>--levels &lt;number&gt;</dt>
+    <dd>KTX file is for a mipmap pyramid with @e number of levels rather than
+        a full pyramid. @e number must be &lt;= the maximum number of levels
         determined from the size of the base image. Provide the base level
-        image first. This option is mutually exclusive with @b --automipmap
-        and @b --mipmap.
+        image first, if using @b --mipmap. This option is mutually exclusive
+        with @b --automipmap.</dd>
     <dt>--mipmap</dt>
-    <dd>KTX file is for a full mipmap pyramid. One @e infile per level must
-        be provided. Provide the base-level image first then in order
-        down to the 1x1 image. This option is mutually exclusive with
-        @b --automipmap and @b --levels.</dd>
+    <dd>KTX file is for a mipmap pyramid with one @infile being explicitly
+        provided for each level. Provide the images in the order of layer
+        then face or depth slice then level with the base-level image first
+        then in order down to the 1x1 image or the level specified by
+        @b --levels. @note This ordering differs from that in the created
+        texture as it is felt to be more user-friendly. This option is
+        mutually exclusive with @b --automipmap and @b --genmipmap.</dd>
     <dt>--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
@@ -380,7 +434,8 @@ Create a KTX file from netpbm format files.
           selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
       <dt>--separate_rg_to_color_alpha</dt>
       <dd>Separates the input R and G channels to RGB and A (for tangent
-          space XY normal maps). Only needed with 3 or 4 component input images.</dd>
+          space XY normal maps). Only needed with 3 or 4 component input
+          images.</dd>
       <dt>--no_endpoint_rdo</dt>
       <dd>Disable endpoint rate distortion optimizations. Slightly faster,
           less noisy output, but lower quality per output bit. Default is
@@ -431,7 +486,7 @@ Sun Dec 25 07:02:41 2016 -0200
 */
 
 // I really HATE this duplication of text but I cannot find a simple way to
-// it that works on all platforms (e.g running man toktx) even if I was
+// avoid it that works on all platforms (e.g running man toktx) even if I was
 // willing to tolerate markup commands in the usage output.
 static void
 usage(const _tstring appName)
@@ -884,7 +939,10 @@ int _tmain(int argc, _TCHAR* argv[])
                 // first_comp, num_comps maybe we don't need.
                 try {
                     image->resample(*levelImage,
-                                    chosenOETF == Image::eOETF::sRGB);
+                                    chosenOETF == Image::eOETF::sRGB,
+                                    options.gmopts.filter.c_str(),
+                                    options.gmopts.filterScale,
+                                    options.gmopts.wrapping);
                 } catch (runtime_error e) {
                     cerr << "Image::resample() failed!"
                               << e.what() << endl;
@@ -1164,6 +1222,9 @@ processOptions(argparser& parser,
         { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
         { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
         { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
+        { "filter", argparser::option::required_argument, NULL, 'f' },
+        { "fscale", argparser::option::required_argument, NULL, 'F' },
+        { "wrapping", argparser::option::no_argument, (int*)&options.gmopts.wrapping, 1 },
         { "depth", argparser::option::required_argument, NULL, 'd' },
         { "layers", argparser::option::no_argument, NULL, 'a' },
         { "levels", argparser::option::required_argument, NULL, 'l' },
@@ -1175,16 +1236,16 @@ processOptions(argparser& parser,
         { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
         { "bcmp", argparser::option::no_argument, NULL, 'b' },
-        { "mo_multithreading", argparser::option::no_argument, NULL, 'm' },
+        { "no_multithreading", argparser::option::no_argument, NULL, 'N' },
         { "threads", argparser::option::required_argument, NULL, 't' },
         { "clevel", argparser::option::required_argument, NULL, 'c' },
         { "qlevel", argparser::option::required_argument, NULL, 'q' },
         { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
-        { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'f' },
+        { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'E' },
         { "max_selectors", argparser::option::required_argument, NULL, 's' },
         { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'u' },
         { "normal_map", argparser::option::no_argument, NULL, 'n' },
-        { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 'r' },
+        { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
         { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
         { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
@@ -1227,10 +1288,16 @@ processOptions(argparser& parser,
           case 'e':
             options.bopts.maxEndpoints = atoi(parser.optarg.c_str());
             break;
-          case 'f':
+          case 'E':
             options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
             break;
-          case 'm':
+          case 'f':
+            options.gmopts.filter = parser.optarg;
+            break;
+          case 'F':
+            options.gmopts.filterScale = strtof(parser.optarg.c_str(), nullptr);
+            break;
+          case 'N':
             options.bopts.noMultithreading = 1;
             break;
           case 'n':
@@ -1245,17 +1312,17 @@ processOptions(argparser& parser,
           case 'q':
             options.bopts.qualityLevel = atoi(parser.optarg.c_str());
             break;
-          case 'r':
+          case 1000:
             options.bopts.separateRGToRGB_A = 1;
             break;
           case 's':
             options.bopts.maxSelectors = atoi(parser.optarg.c_str());
             break;
+          case 'S':
+            options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+            break;
           case 't':
             options.bopts.threadCount = atoi(parser.optarg.c_str());
-            break;
-          case 'u':
-            options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
             break;
           case 'i':
             break;
