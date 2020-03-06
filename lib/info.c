@@ -377,12 +377,12 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
             // Calculate number of images
             //
             uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
-            uint32_t numImages = 0;
-            for (uint32_t level = 1; level <= MAX(pHeader->levelCount, 1); level++) {
-                // NOTA BENE: numFaces * depth is only reasoable because they can't
-                // both be > 1. I.e there are no 3d cubemaps.
-                numImages += layersFaces * MAX(MAX(pHeader->pixelDepth, 1) >> (level - 1), 1);
-            }
+            uint32_t layerPixelDepth = MAX(pHeader->pixelDepth, 1);
+            for(uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
+                layerPixelDepth += MAX(MAX(pHeader->pixelDepth, 1) >> level, 1U);
+            // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
+            // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
+            uint32_t numImages = layersFaces * layerPixelDepth;
             fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
             printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
         } else {
