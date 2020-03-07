@@ -325,7 +325,9 @@ class Image {
     virtual Image& crop(uint32_t w, uint32_t h) = 0;
     virtual void resample(Image& dst, bool srgb = false,
                           const char *pFilter = "lanczos4",
-                          float filter_scale = 1.0f, bool wrapping = false) = 0;
+                          float filter_scale = 1.0f,
+                          basisu::Resampler::Boundary_Op wrapMode
+                          = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) = 0;
     virtual Image& resize(uint32_t w, uint32_t h) = 0;
     virtual Image& yflip() = 0;
     virtual Image& transformOETF(OETFFunc decode, OETFFunc encode) = 0;
@@ -398,7 +400,8 @@ class imageTBase : public Image {
     }
 
     virtual void resample(Image& abstract_dst, bool srgb, const char *pFilter,
-                          float filter_scale, bool wrapping)
+                          float filter_scale,
+                          basisu::Resampler::Boundary_Op wrapMode)
     {
         using namespace basisu;
 
@@ -440,19 +443,23 @@ class imageTBase : public Image {
         Resampler *resamplers[4];
 
         resamplers[0] = new basisu::Resampler(src_w, src_h, dst_w, dst_h,
-            wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP,
-            0.0f, 1.0f,
-            pFilter, nullptr, nullptr, filter_scale, filter_scale, 0, 0);
+                                              wrapMode,
+                                              0.0f, 1.0f,
+                                              pFilter, nullptr, nullptr,
+                                              filter_scale, filter_scale,
+                                              0, 0);
         samples[0].resize(src_w);
 
         for (uint32_t i = 1; i < getComponentCount(); ++i)
         {
             resamplers[i] = new Resampler(src_w, src_h, dst_w, dst_h,
-                wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP,
-                0.0f, 1.0f,
-                pFilter, resamplers[0]->get_clist_x(),
-                resamplers[0]->get_clist_y(),
-                filter_scale, filter_scale, 0, 0);
+                                          wrapMode,
+                                          0.0f, 1.0f,
+                                          pFilter,
+                                          resamplers[0]->get_clist_x(),
+                                          resamplers[0]->get_clist_y(),
+                                          filter_scale, filter_scale,
+                                          0, 0);
             samples[i].resize(src_w);
         }
 

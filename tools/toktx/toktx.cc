@@ -182,10 +182,10 @@ struct commandOptions {
     struct mipgenOptions {
         string filter;
         float filterScale;
-        bool wrapping;
+        enum basisu::Resampler::Boundary_Op wrapMode;
 
         mipgenOptions() : filter("lanczos4"), filterScale(1.0),
-                          wrapping(false) { }
+                  wrapMode(basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) { }
     };
 
     int          automipmap;
@@ -241,12 +241,6 @@ static void dumpImage(_TCHAR* name, int width, int height, int components,
                       int componentSize, unsigned char* srcImage);
 #endif
 
-/*
- { "box", box_filter, BOX_FILTER_SUPPORT }, { "tent", tent_filter, TENT_FILTER_SUPPORT }, { "bell", bell_filter, BELL_SUPPORT }, { "b-spline", B_spline_filter, B_SPLINE_SUPPORT },
- { "mitchell", mitchell_filter, MITCHELL_SUPPORT }, { "lanczos3", lanczos3_filter, LANCZOS3_SUPPORT }, { "blackman", blackman_filter, BLACKMAN_SUPPORT }, { "lanczos4", lanczos4_filter, LANCZOS4_SUPPORT },
- { "lanczos6", lanczos6_filter, LANCZOS6_SUPPORT }, { "lanczos12", lanczos12_filter, LANCZOS12_SUPPORT }, { "kaiser", kaiser_filter, KAISER_SUPPORT }, { "gaussian", gaussian_filter, GAUSSIAN_SUPPORT },
- { "catmullrom", catmull_rom_filter, CATMULL_ROM_SUPPORT }, { "quadratic_interp", quadratic_interp_filter, QUADRATIC_SUPPORT }, { "quadratic_approx", quadratic_approx_filter, QUADRATIC_SUPPORT }, { "quadratic_mix", quadratic_mix_filter, QUADRATIC_SUPPORT },
- */
 /** @page toktx toktx
 @~English
 
@@ -266,7 +260,7 @@ Create a KTX file from netpbm format files.
     .png format. @e infiles prefixed with '@' are read as text files listing
     actual file names to process with one file path per line. Paths must be
     absolute or relative to the current directory when @b toktx is run. If
-    '@@' is used instead, paths must be absolute or relative to the location
+    '\@@' is used instead, paths must be absolute or relative to the location
     of the list file.
 
     .ppm files yield RGB textures, .pgm files RED textures, .pam files RED, RG,
@@ -309,20 +303,22 @@ Create a KTX file from netpbm format files.
         with @b --genmipmap, @b --levels and @b --mipmap.</dd>
     <dt>--cubemap</dt>
     <dd>KTX file is for a cubemap. At least 6 @e infiles must be provided,
-        more if --mipmap is also specified. Provide the images in the
-        order: +X, -X, +Y, -Y, +Z, -Z where the arrangement is a
+        more if @b --mipmap or @b --layers is also specified. Provide the
+        images in the order +X, -X, +Y, -Y, +Z, -Z where the arrangement is a
         left-handed coordinate system with +Y up. So if you're facing +Z,
-        -X will be on your left and +X on your right. Images must have
-        an upper left origin so it is an error to specify
-        --lower_left_maps_to_s0t0 with this option.</dd>
+        -X will be on your left and +X on your right. If @b --layers &gt; 1 is
+        specified, provide the faces for layer 0 first then for layer 1, etc.
+        Images must have an upper left origin so --lower_left_maps_to_s0t0
+        is ignored with this option.</dd>
     <dt>--depth &lt;number&gt;</dt>
-    <dd>KTX file is for a 3D texture with a depth of @e number. Provide the
-        file(s) for z=0 first then those for z=1, etc. It is an error
-        to specify this together with @b --layers %gt; 1.</dd>
+    <dd>KTX file is for a 3D texture with a depth of @e number where
+        @e number &gt; 1. Provide the file(s) for z=0 first then those for
+        z=1, etc. It is an error to specify this together with
+        @b --layers &gt; 1 or @b --cubemap.</dd>
     <dt>--genmipmap</dt>
     <dd>Causes mipmaps to be generated for each input file. This option is
         mutually exclusive with @b --automipmap and @b --mipmap. When set,
-        the following mipmap-generation related options become valid
+        the following mipmap-generation related options become valid,
         otherwise they are ignored.
         <dl>
         <dt>--filter &lt;name&gt;</dt>
@@ -334,16 +330,16 @@ Create a KTX file from netpbm format files.
             @e quadratic_approx and @e quadratic_mix.</dd>
         <dt>--fscale &lt;floatVal&gt;</dt>
         <dd>The filter scale to use. The default is 1.0.</dd>
-        <dt>--wrapping &lt;mode&gt;</dt>
+        <dt>--wmode &lt;mode&gt;</dt>
         <dd>Specify how to sample pixels near the image boundaries. Values
             are @e wrap, @e reflect and @e clamp. The default is @e clamp.</dd>
-        <dd>
         </dl>
     </dd>
     <dt>--layers &lt;number&gt;</dt>
-    <dd>KTX file is for an array texture with @e number of layers. Provide the
-        file(s) for layer 0 first then those for layer 1, etc. It is an error
-        to specify this together with @b --depth %gt; 1.</dd>
+    <dd>KTX file is for an array texture with @e number of layers where
+        @e number &gt; 1. Provide the file(s) for layer 0 first then those
+        for layer 1, etc. It is an error to specify this together with
+        @b --depth &gt; 1.</dd>
     <dt>--levels &lt;number&gt;</dt>
     <dd>KTX file is for a mipmap pyramid with @e number of levels rather than
         a full pyramid. @e number must be &lt;= the maximum number of levels
@@ -351,13 +347,13 @@ Create a KTX file from netpbm format files.
         image first, if using @b --mipmap. This option is mutually exclusive
         with @b --automipmap.</dd>
     <dt>--mipmap</dt>
-    <dd>KTX file is for a mipmap pyramid with one @infile being explicitly
+    <dd>KTX file is for a mipmap pyramid with one @b infile being explicitly
         provided for each level. Provide the images in the order of layer
         then face or depth slice then level with the base-level image first
         then in order down to the 1x1 image or the level specified by
-        @b --levels. @note This ordering differs from that in the created
-        texture as it is felt to be more user-friendly. This option is
-        mutually exclusive with @b --automipmap and @b --genmipmap.</dd>
+        @b --levels.  This option is mutually exclusive with @b --automipmap
+        and @b --genmipmap. @note This ordering differs from that in the
+        created texture as it is felt to be more user-friendly.</dd>
     <dt>--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
@@ -376,7 +372,8 @@ Create a KTX file from netpbm format files.
         to a lower-left origin. When this option is in effect, toktx
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
-        ignores the orientation value, the image will appear upside down.</dd>
+        ignores the orientation value, the image will appear upside down.
+        This option is ignored with @b --cubemap.</dd>
     <dt>--linear</dt>
     <dd>Force the created texture to have a linear transfer function. Use this
         only when you know the file format information is wrong and the input
@@ -500,7 +497,11 @@ usage(const _tstring appName)
         "               formats can be readily converted to these formats using tools\n"
         "               such as ImageMagick and XnView. When no infile is specified,\n"
         "               stdin is used. infiles prefixed with '@' are read as text files\n"
-        "               listing actual file names to process with one name per line.\n"
+        "               listing actual file names to process with one file path per line.\n"
+        "               Paths must be absolute or relative to the current directory when\n"
+        "               toktx is run. If '@@' is used instead, paths must be absolute or\n"
+        "               relative to the location of the list file.\n"
+        "\n"
         "               .ppm files yield RGB textures, .pgm files RED textures, .pam\n"
         "               files RED, RG, RGB or RGBA textures according to the file's\n"
         "               TUPLTYPE and DEPTH and .png files RED, RG, RGB or RGBA textures\n"
@@ -511,22 +512,55 @@ usage(const _tstring appName)
         "  --2d         If the image height is 1, by default a KTX file for a 1D\n"
         "               texture is created. With this option one for a 2D texture is\n"
         "               created instead.\n"
-        "  --automipmap A mipmap pyramid will be automatically generated when the KTX\n"
-        "               file is loaded. This option is mutually exclusive with --levels\n"
-        "               and --mipmap.\n"
+        "  --automipmap Causes the KTX file to be marked to request generation of a\n"
+        "               mipmap pyramid when the file is loaded. This option is mutually\n"
+        "               exclusive with --genmipmap, --levels and --mipmap.\n"
         "  --cubemap    KTX file is for a cubemap. At least 6 <infile>s must be provided,\n"
         "               more if --mipmap is also specified. Provide the images in the\n"
-        "               order: +X, -X, +Y, -Y, +Z, -Z.\n"
-        "  --levels levels\n"
-        "               KTX file is for a mipmap pyramid with @e levels rather than a\n"
-        "               full pyramid. @e levels must be <= the maximum number of levels\n"
-        "               determined from the size of the base image. Provide the base\n"
-        "               level image first. This option is mutually exclusive with\n"
-        "               --automipmap and --mipmap.\n"
-        "  --mipmap     KTX file is for a full mipmap pyramid. One <infile> per level\n"
-        "               must be provided. Provide the base-level image first then in\n"
-        "               order down to the 1x1 image. This option is mutually exclusive\n"
-        "               with --automipmap and --levels.\n"
+        "               order +X, -X, +Y, -Y, +Z, -Z where the arrangement is a\n"
+        "               left-handed coordinate system with +Y up. So if you're facing +Z,\n"
+        "               -X will be on your left and +X on your right. If --layers > 1\n"
+        "               is specified, provide the faces for layer 0 first then for\n"
+        "               layer 1, etc. Images must have an upper left origin so\n"
+        "               --lower_left_maps_to_s0t0 is ignored with this option.\n"
+        "  --depth <number>\n"
+        "               KTX file is for a 3D texture with a depth of number where\n"
+        "               number > 1. Provide the file(s) for z=0 first then those for\n"
+        "               z=1, etc. It is an error to specify this together with\n"
+        "               --layers > 1 or --cubemap.\n"
+        "  --genmipmap  Causes mipmaps to be generated for each input file. This option\n"
+        "               is mutually exclusive with --automipmap and --mipmap. When set\n"
+        "               the following mipmap-generation related options become valid,\n"
+        "               otherwise they are ignored.\n"
+        "      --filter <name>\n"
+        "               Specifies the filter to use when generating the mipmaps. name\n"
+        "               is a string. The default is lanczos4. The following names are\n"
+        "               recognized: box, tent, bell, b-spline, mitchell, lanczos3\n"
+        "               lanczos4, lanczos6, lanczos12, blackman, kaiser, gaussian,\n"
+        "               catmullrom, quadratic_interp, quadratic_approx and\n"
+        "               quadratic_mix.\n"
+        "      --fscale <floatVal>\n"
+        "               The filter scale to use. The default is 1.0.\n"
+        "      --wmode <mode>\n"
+        "               Specify how to sample pixels near the image boundaries. Values\n"
+        "               are wrap, reflect and clamp. The default is clamp.\n"
+        "  --layers <number>\n"
+        "               KTX file is for an array texture with number of layers\n"
+        "               where number > 1. Provide the file(s) for layer 0 first then\n"
+        "               those for layer 1, etc. It is an error to specify this\n"
+        "               together with --depth > 1.\n"
+        "  --levels <number>\n"
+        "               KTX file is for a mipmap pyramid with number of levels rather\n"
+        "               than a full pyramid. number must be <= the maximum number of\n"
+        "               levels determined from the size of the base image. This option is\n"
+        "               mutually exclusive with @b --automipmap.\n"
+        "  --mipmap     KTX file is for a mipmap pyramid with one infile being explicitly\n"
+        "               provided for each level. Provide the images in the order of layer\n"
+        "               then face or depth slice then level with the base-level image\n"
+        "               first then in order down to the 1x1 image or the level specified\n"
+        "               by --levels.  This option is mutually exclusive with --automipmap\n"
+        "               and --genmipmap. Note that this ordering differs from that in the\n"
+        "               created texture as it is felt to be more user-friendly.\n"
         "  --nometadata Do not write KTXorientation metadata into the output file.\n"
         "               Use of this option is not recommended.\n"
         "  --upper_left_maps_to_s0t0\n"
@@ -545,7 +579,7 @@ usage(const _tstring appName)
         "               toktx writes a KTXorientation value of S=r,T=u into the output\n"
         "               file to inform loaders of the logical orientation. If a Vulkan\n"
         "               loader ignores the orientation value, the image will appear\n"
-        "               upside down.\n"
+        "               upside down. This option is ignored with --cubemap.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
         "               Use this only when you know the file format information is wrong\n"
         "               and the input file uses a linear transfer function. If this is\n"
@@ -561,7 +595,7 @@ usage(const _tstring appName)
         "               will have R in the RGB part and G in the alpha part of the\n"
         "               compressed texture. When set, the following Basis-related\n"
         "               options become valid, otherwise they are ignored.\n\n"
-        "       --no_multithreading\n"
+        "      --no_multithreading\n"
         "               Disable multithreading. By default Basis compression will use\n"
         "               the numnber of threads reported by\n"
         "               @c thread::hardware_concurrency or 1 if value returned is 0.\n"
@@ -942,7 +976,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                     chosenOETF == Image::eOETF::sRGB,
                                     options.gmopts.filter.c_str(),
                                     options.gmopts.filterScale,
-                                    options.gmopts.wrapping);
+                                    options.gmopts.wrapMode);
                 } catch (runtime_error e) {
                     cerr << "Image::resample() failed!"
                               << e.what() << endl;
@@ -1129,10 +1163,9 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         exit(1);
     }
     if (options.cubemap && options.lower_left_maps_to_s0t0) {
-        cerr << "Cubemaps require images to have an upper-left origin."
-             << endl;
-        usage(appName);
-        exit(1);
+        cerr << "Cubemaps require images to have an upper-left origin. "
+             << "Ignoring --lower_left_maps_to_s0t0.\n" << endl;
+        options.lower_left_maps_to_s0t0 = 0;
     }
     if (options.cubemap && options.depth > 1) {
         cerr << "Cubemaps cannot have depth > 1." << endl;
@@ -1224,7 +1257,7 @@ processOptions(argparser& parser,
         { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
         { "filter", argparser::option::required_argument, NULL, 'f' },
         { "fscale", argparser::option::required_argument, NULL, 'F' },
-        { "wrapping", argparser::option::no_argument, (int*)&options.gmopts.wrapping, 1 },
+        { "wrapping", argparser::option::required_argument, NULL, 'w' },
         { "depth", argparser::option::required_argument, NULL, 'd' },
         { "layers", argparser::option::no_argument, NULL, 'a' },
         { "levels", argparser::option::required_argument, NULL, 'l' },
@@ -1296,6 +1329,23 @@ processOptions(argparser& parser,
             break;
           case 'F':
             options.gmopts.filterScale = strtof(parser.optarg.c_str(), nullptr);
+            break;
+          case 'w':
+            if (!parser.optarg.compare("wrap")) {
+                options.gmopts.wrapMode
+                      = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
+            } else if (!parser.optarg.compare("clamp")) {
+                options.gmopts.wrapMode
+                      = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP;
+            } else if (!parser.optarg.compare("reflect")) {
+                options.gmopts.wrapMode
+                      = basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT;
+            } else {
+                cerr << "Unrecognized mode \"" << parser.optarg
+                     << "\" passed to --wmode" << endl;
+                usage(appName);
+                exit(1);
+            }
             break;
           case 'N':
             options.bopts.noMultithreading = 1;
