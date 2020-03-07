@@ -23,6 +23,7 @@
 #include <ktx.h>
 #include "LoadTestSample.h"
 #include "mygl.h"
+#include "utils/GLMeshLoader.hpp"
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -66,6 +67,9 @@ class GL3LoadTestSample : public LoadTestSample {
 
     static void determineCompressedTexFeatures(compressedTexFeatures& features);
     static GLint framebufferColorEncoding();
+    void loadMesh(std::string filename, glMeshLoader::MeshBuffer& meshBuffer,
+                  std::vector<glMeshLoader::VertexLayout> vertexLayout,
+                  float scale);
     static void makeShader(GLenum type, const GLchar* const source,
                            GLuint* shader);
     static void makeProgram(GLuint vs, GLuint fs, GLuint* program);

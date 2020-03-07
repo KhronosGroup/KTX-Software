@@ -30,14 +30,16 @@
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
+extern "C" const char* vkFormatString(VkFormat format);
+
 class VulkanLoadTestSample : public LoadTestSample {
   public:
     typedef uint64_t ticks_t;
     VulkanLoadTestSample(VulkanContext& vkctx,
                      uint32_t width, uint32_t height,
                      /* const char* const szArgs, */
-                     const std::string sBasePath)
-           : LoadTestSample(width, height, /*szArgs,*/ sBasePath, -1),
+                     const std::string sBasePath, int32_t yflip = -1)
+           : LoadTestSample(width, height, /*szArgs,*/ sBasePath, yflip),
              vkctx(vkctx),
              defaultClearColor(std::array<float,4>({0.025f, 0.025f, 0.025f, 1.0f}))
     {

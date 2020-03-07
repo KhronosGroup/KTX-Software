@@ -211,7 +211,7 @@
             }], # _type == "shared_library"
           ], # conditions
           'xcode_settings': {
-            # The BasisU transcoder uses anon typs and structs. They compile ok in
+            # The BasisU transcoder uses anon types and structs. They compile ok in
             # Visual Studio (2015+) and on Linux so quiet the clang warnings.
             'WARNING_CFLAGS': [
               '-Wno-nested-anon-types',

@@ -23,21 +23,21 @@ $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx: $(srcdir)/tests/testim
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-$(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx: $(srcdir)/tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx FORCE_DO_CMD
+$(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx: $(srcdir)/tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx
-$(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx: $(srcdir)/tests/testimages/cubemap_yokohama_bc3_unorm.ktx FORCE_DO_CMD
+all_deps += $(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx
+$(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx: $(srcdir)/tests/testimages/cubemap_yokohama_bc2_srgb.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx
-$(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx: $(srcdir)/tests/testimages/cubemap_yokohama_etc2_unorm.ktx FORCE_DO_CMD
+all_deps += $(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx
+$(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx: $(srcdir)/tests/testimages/cubemap_yokohama_etc2_srgb.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx
+all_deps += $(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx
 $(builddir)/testimages/etc1.ktx: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/etc1.ktx: $(srcdir)/tests/testimages/etc1.ktx FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -173,21 +173,26 @@ $(builddir)/testimages/color_grid_basis.ktx2: $(srcdir)/tests/testimages/color_g
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/color_grid_basis.ktx2
-$(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2: $(srcdir)/tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 FORCE_DO_CMD
+$(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2: $(srcdir)/tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2 FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
-$(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx2: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx2: $(srcdir)/tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 FORCE_DO_CMD
+all_deps += $(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2
+$(builddir)/testimages/cubemap_yokohama_basis_rd.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama_basis_rd.ktx2: $(srcdir)/tests/testimages/cubemap_yokohama_basis_rd.ktx2 FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx2
-$(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx2: TOOLSET := $(TOOLSET)
-$(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx2: $(srcdir)/tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 FORCE_DO_CMD
+all_deps += $(builddir)/testimages/cubemap_yokohama_basis_rd.ktx2
+$(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx2: $(srcdir)/tests/testimages/cubemap_yokohama_bc2_srgb.ktx2 FORCE_DO_CMD
 	$(call do_cmd,copy)
 
-all_deps += $(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx2
+all_deps += $(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx2
+$(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx2: $(srcdir)/tests/testimages/cubemap_yokohama_etc2_srgb.ktx2 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx2
 $(builddir)/testimages/FlightHelmet_baseColor_basis.ktx2: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/FlightHelmet_baseColor_basis.ktx2: $(srcdir)/tests/testimages/FlightHelmet_baseColor_basis.ktx2 FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -198,11 +203,31 @@ $(builddir)/testimages/kodim17_basis.ktx2: $(srcdir)/tests/testimages/kodim17_ba
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/kodim17_basis.ktx2
+$(builddir)/testimages/ktx_app_basis.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/ktx_app_basis.ktx2: $(srcdir)/tests/testimages/ktx_app_basis.ktx2 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/ktx_app_basis.ktx2
+$(builddir)/testimages/ktx_app-u.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/ktx_app-u.ktx2: $(srcdir)/tests/testimages/ktx_app-u.ktx2 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/ktx_app-u.ktx2
+$(builddir)/testimages/ktx_document_basis.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/ktx_document_basis.ktx2: $(srcdir)/tests/testimages/ktx_document_basis.ktx2 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/ktx_document_basis.ktx2
 $(builddir)/testimages/orient-down-metadata-u.ktx2: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/orient-down-metadata-u.ktx2: $(srcdir)/tests/testimages/orient-down-metadata-u.ktx2 FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/orient-down-metadata-u.ktx2
+$(builddir)/testimages/orient-up-metadata.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/orient-up-metadata.ktx2: $(srcdir)/tests/testimages/orient-up-metadata.ktx2 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/orient-up-metadata.ktx2
 $(builddir)/testimages/orient-up-metadata-u.ktx2: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/orient-up-metadata-u.ktx2: $(srcdir)/tests/testimages/orient-up-metadata-u.ktx2 FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -213,6 +238,11 @@ $(builddir)/testimages/pattern_02_bc2.ktx2: $(srcdir)/tests/testimages/pattern_0
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/pattern_02_bc2.ktx2
+$(builddir)/testimages/rgba-mipmap-reference-basis.ktx2: TOOLSET := $(TOOLSET)
+$(builddir)/testimages/rgba-mipmap-reference-basis.ktx2: $(srcdir)/tests/testimages/rgba-mipmap-reference-basis.ktx2 FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/testimages/rgba-mipmap-reference-basis.ktx2
 $(builddir)/testimages/rgba-reference-u.ktx2: TOOLSET := $(TOOLSET)
 $(builddir)/testimages/rgba-reference-u.ktx2: $(srcdir)/tests/testimages/rgba-reference-u.ktx2 FORCE_DO_CMD
 	$(call do_cmd,copy)
@@ -238,7 +268,7 @@ $(builddir)/testimages/texturearray_etc2_unorm.ktx2: $(srcdir)/tests/testimages/
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/testimages/texturearray_etc2_unorm.ktx2
-ktxtests_gyp_testimages_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx $(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx $(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance-reference-metadata.ktx $(builddir)/testimages/metalplate-amg-rgba8.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/not4_rgb888_srgb.ktx $(builddir)/testimages/orient-down-metadata.ktx $(builddir)/testimages/orient-up.ktx $(builddir)/testimages/orient-up-metadata.ktx $(builddir)/testimages/pattern_02_bc2.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/rgb-reference-metadata.ktx $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx $(builddir)/testimages/texturearray_bc3_unorm.ktx $(builddir)/testimages/texturearray_etc2_unorm.ktx $(builddir)/testimages/alpha_simple_basis.ktx2 $(builddir)/testimages/color_grid_basis.ktx2 $(builddir)/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 $(builddir)/testimages/cubemap_yokohama_bc3_unorm.ktx2 $(builddir)/testimages/cubemap_yokohama_etc2_unorm.ktx2 $(builddir)/testimages/FlightHelmet_baseColor_basis.ktx2 $(builddir)/testimages/kodim17_basis.ktx2 $(builddir)/testimages/orient-down-metadata-u.ktx2 $(builddir)/testimages/orient-up-metadata-u.ktx2 $(builddir)/testimages/pattern_02_bc2.ktx2 $(builddir)/testimages/rgba-reference-u.ktx2 $(builddir)/testimages/rgb-mipmap-reference-u.ktx2 $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx2 $(builddir)/testimages/texturearray_bc3_unorm.ktx2 $(builddir)/testimages/texturearray_etc2_unorm.ktx2
+ktxtests_gyp_testimages_target_copies = $(builddir)/testimages/conftestimage_R11_EAC.ktx $(builddir)/testimages/conftestimage_RG11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_R11_EAC.ktx $(builddir)/testimages/conftestimage_SIGNED_RG11_EAC.ktx $(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx $(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx $(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx $(builddir)/testimages/etc1.ktx $(builddir)/testimages/etc2-rgba1.ktx $(builddir)/testimages/etc2-rgba8.ktx $(builddir)/testimages/etc2-rgb.ktx $(builddir)/testimages/etc2-sRGBa1.ktx $(builddir)/testimages/etc2-sRGBa8.ktx $(builddir)/testimages/etc2-sRGB.ktx $(builddir)/testimages/hi_mark.ktx $(builddir)/testimages/hi_mark_sq.ktx $(builddir)/testimages/luminance-reference-metadata.ktx $(builddir)/testimages/metalplate-amg-rgba8.ktx $(builddir)/testimages/no-npot.ktx $(builddir)/testimages/not4_rgb888_srgb.ktx $(builddir)/testimages/orient-down-metadata.ktx $(builddir)/testimages/orient-up.ktx $(builddir)/testimages/orient-up-metadata.ktx $(builddir)/testimages/pattern_02_bc2.ktx $(builddir)/testimages/rgb-amg-reference.ktx $(builddir)/testimages/rgba-reference.ktx $(builddir)/testimages/rgb-mipmap-reference.ktx $(builddir)/testimages/rgb-reference.ktx $(builddir)/testimages/rgb-reference-metadata.ktx $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx $(builddir)/testimages/texturearray_bc3_unorm.ktx $(builddir)/testimages/texturearray_etc2_unorm.ktx $(builddir)/testimages/alpha_simple_basis.ktx2 $(builddir)/testimages/color_grid_basis.ktx2 $(builddir)/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2 $(builddir)/testimages/cubemap_yokohama_basis_rd.ktx2 $(builddir)/testimages/cubemap_yokohama_bc2_srgb.ktx2 $(builddir)/testimages/cubemap_yokohama_etc2_srgb.ktx2 $(builddir)/testimages/FlightHelmet_baseColor_basis.ktx2 $(builddir)/testimages/kodim17_basis.ktx2 $(builddir)/testimages/ktx_app_basis.ktx2 $(builddir)/testimages/ktx_app-u.ktx2 $(builddir)/testimages/ktx_document_basis.ktx2 $(builddir)/testimages/orient-down-metadata-u.ktx2 $(builddir)/testimages/orient-up-metadata.ktx2 $(builddir)/testimages/orient-up-metadata-u.ktx2 $(builddir)/testimages/pattern_02_bc2.ktx2 $(builddir)/testimages/rgba-mipmap-reference-basis.ktx2 $(builddir)/testimages/rgba-reference-u.ktx2 $(builddir)/testimages/rgb-mipmap-reference-u.ktx2 $(builddir)/testimages/texturearray_astc_8x8_unorm.ktx2 $(builddir)/testimages/texturearray_bc3_unorm.ktx2 $(builddir)/testimages/texturearray_etc2_unorm.ktx2
 
 ### Rules for final target.
 # Build our special outputs first.

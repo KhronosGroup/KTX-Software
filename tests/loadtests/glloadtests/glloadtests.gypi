@@ -41,10 +41,14 @@
       'shader-based/GL3LoadTestSample.h',
       'shader-based/TextureArray.cpp',
       'shader-based/TextureArray.h',
+      'shader-based/TextureCubemap.cpp',
+      'shader-based/TextureCubemap.h',
       'shader-based/TexturedCube.cpp',
       'shader-based/TexturedCube.h',
       'shader-based/mygl.h',
       'shader-based/shaders.cpp',
+      'utils/GLMeshLoader.hpp',
+      'utils/GLTextureTranscoder.hpp',
     ],
     'ios_resource_files': [
       '../../../icons/ios/CommonIcons.xcassets',
@@ -70,6 +74,7 @@
           ],
           'dependencies': [
             'appfwSDL',
+            'libassimp',
             'libktx.gyp:libktx.gl',
             'libktx.gyp:libgl',
             'testimages',
@@ -78,11 +83,21 @@
             '<@(common_source_files)',
             '<@(gl3_source_files)',
           ],
+          'copies': [{
+            'destination': '<(model_dest)',
+            'files': [
+              '../common/models/cube.obj',
+              '../common/models/sphere.obj',
+              '../common/models/teapot.dae',
+              '../common/models/torusknot.obj',
+            ],
+          }],
           'include_dirs': [
             '.',
             '../common',
             '../geom',
             '../../../utils',
+            'utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE',
@@ -129,11 +144,12 @@
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
+            'libassimp',
             'libktx.gyp:libktx.es3',
             'libktx.gyp:libgles3',
             'testimages',
           ],
-          'sources': [
+         'sources': [
             '../geom/quad.h',
             '<@(common_source_files)',
             '<@(gl3_source_files)',
@@ -143,6 +159,7 @@
             '../common',
             '../geom',
             '../../../utils',
+            'utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
@@ -174,8 +191,10 @@
               'cflags': [
                 '-s', 'DISABLE_EXCEPTION_CATCHING=0',
               ],
+              'dependencies!': [ 'libassimp' ],
               'ldflags': [
                 '--source-map-base', './',
+                #'--preload-file', '../common/models',
                 '--preload-file', 'testimages',
                 '--exclude-file', 'testimages/genref',
                 '--exclude-file', 'testimages/*.pgm',
@@ -185,7 +204,22 @@
                 '-s', 'ALLOW_MEMORY_GROWTH=1',
                 '-s', 'DISABLE_EXCEPTION_CATCHING=0',
               ],
-            }], # OS == "ios" else OS = "win"
+              'sources!': [
+                'shader-based/TextureCubemap.cpp',
+                'shader-based/TextureCubemap.h',
+              ],
+            }], # OS == "ios" else "win" else "web"
+            ['OS != "web"', {
+              'copies': [{
+                'destination': '<(model_dest)',
+                'files': [
+                  '../common/models/cube.obj',
+                  '../common/models/sphere.obj',
+                  '../common/models/teapot.dae',
+                  '../common/models/torusknot.obj',
+                ],
+              }],
+            }], # OS != "web"
           ],
         }, # es3loadtests
       ], # 'OS == "ios" or OS == "win"' targets

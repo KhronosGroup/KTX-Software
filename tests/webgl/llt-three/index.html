@@ -89,7 +89,7 @@
 
     new KTX2Loader()
       .detectSupport( renderer )
-      .load( '../libktx-webgl/ktx_app.ktx2', ( texture ) => {
+      .load( '../libktx-webgl/ktx_app_basis.ktx2', ( texture ) => {
 
         material.map = texture;
         elem('format').innerText = formatToString( material.map.format );

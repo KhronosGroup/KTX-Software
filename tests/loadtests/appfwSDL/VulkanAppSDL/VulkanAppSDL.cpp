@@ -691,6 +691,7 @@ VulkanAppSDL::createDevice()
     std::vector<const char*> extensionsToEnable;
 
     wantedExtensions.push_back({VK_KHR_SWAPCHAIN_EXTENSION_NAME, required});
+    wantedExtensions.push_back({VK_KHR_MAINTENANCE1_EXTENSION_NAME, required});
     wantedExtensions.push_back({VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, optional});
 #if 0
     wantedExtensions.push_back(

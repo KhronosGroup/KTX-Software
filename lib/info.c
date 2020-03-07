@@ -146,18 +146,14 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     KTX_supplemental_info suppInfo;
     KTX_error_code result;
 
+    if (pHeader->endianness == KTX_ENDIAN_REF_REV) {
+        fprintf(stdout, "This file has opposite endianness to this machine. Following\n"
+                        "are the converted pHeader values\n\n");
+    } else {
+        fprintf(stdout, "Header\n\n");
+    }
     // Print first as ktxCheckHeader1_ modifies the header.
     printKTXHeader(pHeader);
-
-    if (pHeader->bytesOfKeyValueData) {
-        fprintf(stdout, "\nKey/Value Data\n\n");
-        metadata = malloc(pHeader->bytesOfKeyValueData);
-        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
-        printKVData(metadata, pHeader->bytesOfKeyValueData);
-        free(metadata);
-    } else {
-        fprintf(stdout, "\nNo Key/Value data.\n");
-    }
 
     result = ktxCheckHeader1_(pHeader, &suppInfo);
     if (result != KTX_SUCCESS) {
@@ -176,12 +172,43 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         return;
     }
 
-    if (pHeader->endianness == KTX_ENDIAN_REF_REV) {
-        fprintf(stdout, "This file has opposite endianness to this machine. Following\n"
-                        "are the converted pHeader values\n\n");
+    if (pHeader->bytesOfKeyValueData) {
+        fprintf(stdout, "\nKey/Value Data\n\n");
+        metadata = malloc(pHeader->bytesOfKeyValueData);
+        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        printKVData(metadata, pHeader->bytesOfKeyValueData);
+        free(metadata);
     } else {
-        fprintf(stdout, "Header\n\n");
+        fprintf(stdout, "\nNo Key/Value data.\n");
     }
+
+    uint32_t levelCount = MAX(1, pHeader->numberOfMipLevels);
+    bool nonArrayCubemap;
+    if (pHeader->numberOfArrayElements == 0 && pHeader->numberOfFaces == 6)
+        nonArrayCubemap = true;
+    else
+        nonArrayCubemap = false;
+    ktx_size_t dataSize = 0;
+    // A note about padding: Since KTX requires a row alignment of 4 for
+    // uncompressed and all block-compressed formats have block sizes that
+    // are a multiple of 4, all levels and faces will also be a multiple
+    // of 4 so mipPadding and facePadding will always be 0. So they are
+    // ignored here.
+    for (uint32_t level = 0; level < levelCount; level++) {
+        ktx_uint32_t faceLodSize;
+        ktx_uint32_t lodSize;
+        result = stream->read(stream, &faceLodSize, sizeof(ktx_uint32_t));
+        if (pHeader->endianness == KTX_ENDIAN_REF_REV)
+            _ktxSwapEndian32(&faceLodSize, 1);
+        if (nonArrayCubemap) {
+            lodSize = faceLodSize * 6;
+        } else {
+            lodSize = faceLodSize;
+        }
+        result = stream->skip(stream, lodSize);
+        dataSize += lodSize;
+    }
+    fprintf(stdout, "\nTotal data size = %zu\n", dataSize);
 }
 
 /**
@@ -350,12 +377,12 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
             // Calculate number of images
             //
             uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
-            uint32_t numImages = 0;
-            for (uint32_t level = 1; level <= MAX(pHeader->levelCount, 1); level++) {
-                // NOTA BENE: numFaces * depth is only reasoable because they can't
-                // both be > 1. I.e there are no 3d cubemaps.
-                numImages += layersFaces * MAX(MAX(pHeader->pixelDepth, 1) >> (level - 1), 1);
-            }
+            uint32_t layerPixelDepth = MAX(pHeader->pixelDepth, 1);
+            for(uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
+                layerPixelDepth += MAX(MAX(pHeader->pixelDepth, 1) >> level, 1U);
+            // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
+            // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
+            uint32_t numImages = layersFaces * layerPixelDepth;
             fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
             printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
         } else {

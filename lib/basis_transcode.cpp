@@ -419,6 +419,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     // Fix up the rest of the texture
     delete This->pDfd;
     This->pDfd = newDfd;
+    This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
     delete basisData;
     delete[] firstImages;
     return KTX_SUCCESS;

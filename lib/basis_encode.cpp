@@ -329,7 +329,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint32_t layersFaces = This->numLayers * This->numFaces;
     uint32_t num_images = 0;
     for (uint32_t level = 1; level <= This->numLevels; level++) {
-        // NOTA BENE: numFaces * depth is only reasoable because they can't
+        // NOTA BENE: numFaces * depth is only reasonable because they can't
         // both be > 1. I.e there are no 3d cubemaps.
         num_images += layersFaces * MAX(This->baseDepth >> (level - 1), 1);
     }
@@ -491,20 +491,19 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     //bool_param<false> m_seperate_rg_to_color_alpha;
 
     // m_tex_type, m_userdata0, m_userdata1, m_framerate - These fields go
-    // directly into the Basis file header. FIXME: Don't think there is any
-    // need to set these for encoding. We don't use them in decoding.
-    if (This->isCubemap)
-        cparams.m_tex_type = cBASISTexTypeCubemapArray;
-    else if (This->isArray && This->baseHeight > 1)
-         cparams.m_tex_type = cBASISTexType2DArray;
-    else if (This->baseDepth > 1)
-         cparams.m_tex_type = cBASISTexTypeVolume;
-    else if (This->baseHeight > 1)
-         cparams.m_tex_type = cBASISTexType2D;
-    else
-        return KTX_INVALID_OPERATION;
+    // directly into the Basis file header.
+    //
+    // Set m_tex_type to cBASISTexType2D as any other setting is likely to
+    // cause validity checks, that the encoder performs on its results, to
+    // fail. The checks only work properly when the encoder generates mipmaps
+    // itself and are oriented to ensuring the .basis file is sensible.
+    // Underlying compression works fine and we already know what level, layer
+    // and face/slice each image belongs too.
+    //
+    cparams.m_tex_type = cBASISTexType2D;
 
-    // TODO When video support is added set m_tex_type to this if video.
+    // TODO When video support is added, may need to set m_tex_type to this
+    // if video.
     //cBASISTexTypeVideoFrames
     // and set cparams.m_us_per_frame;
 

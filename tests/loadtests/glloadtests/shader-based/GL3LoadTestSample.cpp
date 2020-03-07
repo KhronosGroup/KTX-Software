@@ -214,3 +214,26 @@ GL3LoadTestSample::framebufferColorEncoding()
     }
     return encoding;
 }
+
+void
+GL3LoadTestSample::loadMesh(std::string filename,
+                            glMeshLoader::MeshBuffer& meshBuffer,
+                            std::vector<glMeshLoader::VertexLayout> vertexLayout,
+                            float scale)
+{
+    GLMeshLoader *mesh = new GLMeshLoader();
+
+    mesh->LoadMesh(filename);
+
+    assert(mesh->m_Entries.size() > 0);
+
+    mesh->CreateBuffers(
+          meshBuffer,
+          vertexLayout,
+          scale);
+
+    meshBuffer.dim = mesh->dim.size;
+
+    delete(mesh);
+}
+

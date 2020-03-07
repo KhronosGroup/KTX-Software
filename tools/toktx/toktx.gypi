@@ -26,25 +26,40 @@
         {
           'target_name': 'toktx',
           'type': '<(executable)',
-          'include_dirs': [ '../../utils' ],
+          # To quiet warnings about the anon structs and unions.
+          'cflags_cc': [ '-Wno-pedantic' ],
+          'include_dirs': [
+            '../../utils',
+            '../../lib/basisu',
+          ],
           'mac_bundle': 0,
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'sources': [
             '../../utils/argparser.cpp',
             '../../utils/argparser.h',
-            'image.cpp',
-            'image.h',
-            'lodepng.cpp',
+            'image.cc',
+            'image.hpp',
+            'lodepng.cc',
             'lodepng.h',
+            'npbmimage.cc',
+            'pngimage.cc',
             'stdafx.h',
             'targetver.h',
-            'toktx.cpp',
+            'toktx.cc',
           ],
           'msvs_settings': {
             'VCLinkerTool': {
               # /SUBSYSTEM:CONSOLE
               'SubSystem': '1',
             },
+          },
+          'xcode_settings': {
+            # toktx uses anon types and structs. They compile ok in
+            # Visual Studio (2015+) and on Linux so quiet the clang warnings.
+            'WARNING_CFLAGS': [
+              '-Wno-nested-anon-types',
+              '-Wno-gnu-anonymous-struct',
+            ],
           },
         }, # toktx target
         {

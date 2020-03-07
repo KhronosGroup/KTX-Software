@@ -437,12 +437,14 @@ set(TARGET "toktx")
 set(TOOLSET "target")
 list(APPEND toktx__cxx_srcs
   "../../../../utils/argparser.cpp"
-  "../../../../tools/toktx/image.cpp"
-  "../../../../tools/toktx/lodepng.cpp"
-  "../../../../tools/toktx/toktx.cpp")
+  "../../../../tools/toktx/image.cc"
+  "../../../../tools/toktx/lodepng.cc"
+  "../../../../tools/toktx/npbmimage.cc"
+  "../../../../tools/toktx/pngimage.cc"
+  "../../../../tools/toktx/toktx.cc")
 list(APPEND toktx__other_srcs
   "../../../../utils/argparser.h"
-  "../../../../tools/toktx/image.h"
+  "../../../../tools/toktx/image.hpp"
   "../../../../tools/toktx/lodepng.h"
   "../../../../tools/toktx/stdafx.h"
   "../../../../tools/toktx/targetver.h")
@@ -456,11 +458,12 @@ set_target_properties(toktx PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/toktx PROPERTIES GENERATED "TRUE")
 list(APPEND toktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
 set_target_properties(toktx PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
-set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
+set_target_properties(toktx PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 -Wno-pedantic ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -472,8 +475,9 @@ set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
-set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 target_link_libraries(toktx
   libktx_gl
 )
@@ -724,7 +728,7 @@ list(APPEND ktxtools_doc__buildKtxtoolsDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2ktx2/ktx2ktx2.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxinfo/ktxinfo.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxsc/ktxsc.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cpp")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cc")
 set(ktxtools_doc__buildKtxtoolsDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.ktxtoolsdoc_gentimestamp")
 add_custom_command(OUTPUT ${ktxtools_doc__buildKtxtoolsDoc__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
@@ -862,9 +866,9 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_RG11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc2_srgb.ktx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_srgb.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba1.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/etc2-rgba8.ktx"
@@ -892,14 +896,20 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc3_unorm.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_unorm.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_basis_rd.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc2_srgb.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_document_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/pattern_02_bc2.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-mipmap-reference-basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgba-reference-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/rgb-mipmap-reference-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_astc_8x8_unorm.ktx2"
@@ -910,9 +920,9 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/conftestimage_RG11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx"
   "${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx"
-  "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx"
-  "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx"
-  "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx"
+  "${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx"
+  "${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx"
+  "${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx"
   "${builddir}/testimages/etc1.ktx"
   "${builddir}/testimages/etc2-rgba1.ktx"
   "${builddir}/testimages/etc2-rgba8.ktx"
@@ -940,14 +950,20 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
   "${builddir}/testimages/alpha_simple_basis.ktx2"
   "${builddir}/testimages/color_grid_basis.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2"
+  "${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${builddir}/testimages/kodim17_basis.ktx2"
+  "${builddir}/testimages/ktx_app_basis.ktx2"
+  "${builddir}/testimages/ktx_app-u.ktx2"
+  "${builddir}/testimages/ktx_document_basis.ktx2"
   "${builddir}/testimages/orient-down-metadata-u.ktx2"
+  "${builddir}/testimages/orient-up-metadata.ktx2"
   "${builddir}/testimages/orient-up-metadata-u.ktx2"
   "${builddir}/testimages/pattern_02_bc2.ktx2"
+  "${builddir}/testimages/rgba-mipmap-reference-basis.ktx2"
   "${builddir}/testimages/rgba-reference-u.ktx2"
   "${builddir}/testimages/rgb-mipmap-reference-u.ktx2"
   "${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2"
@@ -959,9 +975,9 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_R11_EAC.ktx ${bu
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_RG11_EAC.ktx ${builddir}/testimages/conftestimage_RG11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_R11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_R11_EAC.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/conftestimage_SIGNED_RG11_EAC.ktx ${builddir}/testimages/conftestimage_SIGNED_RG11_EAC.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx ${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc2_srgb.ktx ${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_srgb.ktx ${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc1.ktx ${builddir}/testimages/etc1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba1.ktx ${builddir}/testimages/etc2-rgba1.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/etc2-rgba8.ktx ${builddir}/testimages/etc2-rgba8.ktx
@@ -989,14 +1005,20 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${b
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_unorm.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc3_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_bc3_unorm.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_unorm.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_unorm.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2 ${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app_basis.ktx2 ${builddir}/testimages/ktx_app_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app-u.ktx2 ${builddir}/testimages/ktx_app-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_document_basis.ktx2 ${builddir}/testimages/ktx_document_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx2 ${builddir}/testimages/orient-up-metadata.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/pattern_02_bc2.ktx2 ${builddir}/testimages/pattern_02_bc2.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-mipmap-reference-basis.ktx2 ${builddir}/testimages/rgba-mipmap-reference-basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgba-reference-u.ktx2 ${builddir}/testimages/rgba-reference-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/rgb-mipmap-reference-u.ktx2 ${builddir}/testimages/rgb-mipmap-reference-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.ktx2 ${builddir}/testimages/texturearray_astc_8x8_unorm.ktx2
@@ -1166,90 +1188,6 @@ add_dependencies(appfwSDL
   vulkan_headers
   appfwSDL__frag2spirv
   appfwSDL__vert2spirv
-)
-unset(TOOLSET)
-unset(TARGET)
-
-#ktxtests.gyp:gl3loadtests#target
-set(TARGET "gl3loadtests")
-set(TOOLSET "target")
-list(APPEND gl3loadtests__cxx_srcs
-  "../../../../utils/argparser.cpp"
-  "../../../../tests/loadtests/common/LoadTestSample.cpp"
-  "../../../../tests/loadtests/common/SwipeDetector.cpp"
-  "../../../../tests/loadtests/glloadtests/GLLoadTests.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTests.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.cpp"
-  "../../../../tests/loadtests/glloadtests/shader-based/shaders.cpp")
-list(APPEND gl3loadtests__other_srcs
-  "../../../../utils/argparser.h"
-  "../../../../tests/loadtests/common/LoadTestSample.h"
-  "../../../../tests/loadtests/common/SwipeDetector.h"
-  "../../../../tests/loadtests/geom/cube.h"
-  "../../../../tests/loadtests/geom/frame.h"
-  "../../../../tests/loadtests/glloadtests/GLLoadTests.h"
-  "../../../../tests/loadtests/common/ltexceptions.h"
-  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.h"
-  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.h"
-  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.h"
-  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.h"
-  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.h"
-  "../../../../tests/loadtests/glloadtests/shader-based/mygl.h")
-link_directories( ../../../../other_lib/linux/${configuration}-x64
-)
-add_executable(gl3loadtests ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
-set_target_properties(gl3loadtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_source_files_properties(${gl3loadtests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
-set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
-set_target_properties(gl3loadtests PROPERTIES PREFIX "")
-set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_NAME "gl3loadtests")
-set_target_properties(gl3loadtests PROPERTIES SUFFIX "")
-set_source_files_properties(${builddir}/gl3loadtests PROPERTIES GENERATED "TRUE")
-list(APPEND gl3loadtests__include_dirs
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
-set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
-set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;NDEBUG;")
-set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
-set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
-set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-add_dependencies(gl3loadtests
-  libgl
-  testimages
-  libsdl
-  vulkan_headers
-)
-target_link_libraries(gl3loadtests
-  appfwSDL
-  libktx_gl
-  "-lSDL2-2.0"
-  "-lSDL2main"
-  "-ldl"
-  "-lpthread"
-  "-lGL"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -1538,10 +1476,10 @@ SOURCES ${vkloadtests__vert2spirv__input}
   ../../../../tests/loadtests/vkloadtests/shaders/texturemipmap/instancinglod.vert
 )
 list(APPEND vkloadtests__copies__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/cube.obj"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/sphere.obj"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/teapot.dae"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/models/torusknot.obj")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/cube.obj"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/sphere.obj"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/teapot.dae"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/torusknot.obj")
 list(APPEND vkloadtests__copies__output
   "${builddir}/models/cube.obj"
   "${builddir}/models/sphere.obj"
@@ -1549,10 +1487,10 @@ list(APPEND vkloadtests__copies__output
   "${builddir}/models/torusknot.obj")
 add_custom_command(
 OUTPUT ${vkloadtests__copies__output}
-COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/cube.obj ${builddir}/models/cube.obj
-COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/sphere.obj ${builddir}/models/sphere.obj
-COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/teapot.dae ${builddir}/models/teapot.dae
-COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/vkloadtests/models/torusknot.obj ${builddir}/models/torusknot.obj
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/cube.obj ${builddir}/models/cube.obj
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/sphere.obj ${builddir}/models/sphere.obj
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/teapot.dae ${builddir}/models/teapot.dae
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/torusknot.obj ${builddir}/models/torusknot.obj
 DEPENDS ${vkloadtests__copies__input}
 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
 COMMENT Copying for vkloadtests
@@ -1599,6 +1537,7 @@ list(APPEND vkloadtests__other_srcs
   "../../../../tests/loadtests/vkloadtests/TextureCubemap.h"
   "../../../../tests/loadtests/vkloadtests/TexturedCube.h"
   "../../../../tests/loadtests/vkloadtests/TextureMipmap.h"
+  "../../../../tests/loadtests/vkloadtests/utils/VulkanTextureTranscoder.hpp"
   "../../../../tests/loadtests/vkloadtests/utils/VulkanMeshLoader.hpp"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTests.h"
   "../../../../tests/loadtests/vkloadtests/VulkanLoadTestSample.h")
@@ -1620,6 +1559,7 @@ list(APPEND vkloadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/vkloadtests/utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
@@ -1690,6 +1630,135 @@ target_link_libraries(vkloadtests
   "-ldl"
   "-lassimp"
   "-lvulkan"
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:gl3loadtests#target
+set(TARGET "gl3loadtests")
+set(TOOLSET "target")
+list(APPEND gl3loadtests__copies__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/cube.obj"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/sphere.obj"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/teapot.dae"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common/models/torusknot.obj")
+list(APPEND gl3loadtests__copies__output
+  "${builddir}/models/cube.obj"
+  "${builddir}/models/sphere.obj"
+  "${builddir}/models/teapot.dae"
+  "${builddir}/models/torusknot.obj")
+add_custom_command(
+OUTPUT ${gl3loadtests__copies__output}
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/cube.obj ${builddir}/models/cube.obj
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/sphere.obj ${builddir}/models/sphere.obj
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/teapot.dae ${builddir}/models/teapot.dae
+COMMAND ${CMAKE_COMMAND} -E copy tests/loadtests/common/models/torusknot.obj ${builddir}/models/torusknot.obj
+DEPENDS ${gl3loadtests__copies__input}
+WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+COMMENT Copying for gl3loadtests
+VERBATIM
+)
+add_custom_target(gl3loadtests__copies
+  DEPENDS ${gl3loadtests__copies__output}
+  SOURCES ${gl3loadtests__copies__input}
+)
+list(APPEND gl3loadtests__cxx_srcs
+  "../../../../utils/argparser.cpp"
+  "../../../../tests/loadtests/common/LoadTestSample.cpp"
+  "../../../../tests/loadtests/common/SwipeDetector.cpp"
+  "../../../../tests/loadtests/glloadtests/GLLoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTests.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureCubemap.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.cpp"
+  "../../../../tests/loadtests/glloadtests/shader-based/shaders.cpp")
+list(APPEND gl3loadtests__other_srcs
+  "../../../../utils/argparser.h"
+  "../../../../tests/loadtests/common/LoadTestSample.h"
+  "../../../../tests/loadtests/common/SwipeDetector.h"
+  "../../../../tests/loadtests/geom/cube.h"
+  "../../../../tests/loadtests/geom/frame.h"
+  "../../../../tests/loadtests/glloadtests/GLLoadTests.h"
+  "../../../../tests/loadtests/common/ltexceptions.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/BasisuTest.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/DrawTexture.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureArray.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/TextureCubemap.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/TexturedCube.h"
+  "../../../../tests/loadtests/glloadtests/shader-based/mygl.h"
+  "../../../../tests/loadtests/glloadtests/utils/GLMeshLoader.hpp"
+  "../../../../tests/loadtests/glloadtests/utils/GLTextureTranscoder.hpp")
+link_directories( ../../../../other_lib/linux/${configuration}-x64
+ $ENV{ASSIMP_HOME}/lib
+)
+add_executable(gl3loadtests ${gl3loadtests__cxx_srcs} ${gl3loadtests__other_srcs})
+set_target_properties(gl3loadtests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(gl3loadtests__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${gl3loadtests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
+set_target_properties(gl3loadtests PROPERTIES PREFIX "")
+set_target_properties(gl3loadtests PROPERTIES RUNTIME_OUTPUT_NAME "gl3loadtests")
+set_target_properties(gl3loadtests PROPERTIES SUFFIX "")
+set_source_files_properties(${builddir}/gl3loadtests PROPERTIES GENERATED "TRUE")
+list(APPEND gl3loadtests__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/common"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/geom"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests/utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../$ENV{ASSIMP_HOME}/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
+set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
+set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;NDEBUG;")
+set_target_properties(gl3loadtests PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -std=c++11 ")
+set_target_properties(gl3loadtests PROPERTIES LINK_FLAGS "-Wl,-rpath,. ")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT "YES")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "tests/loadtests/glloadtests/resources/mac/Info.plist")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(gl3loadtests__copies
+  appfwSDL
+  libktx_gl
+  libassimp
+  libgl
+  testimages
+  libsdl
+  vulkan_headers
+)
+add_dependencies(gl3loadtests
+  libassimp
+  libgl
+  testimages
+  libsdl
+  vulkan_headers
+  gl3loadtests__copies
+)
+target_link_libraries(gl3loadtests
+  appfwSDL
+  libktx_gl
+  "-lSDL2-2.0"
+  "-lSDL2main"
+  "-ldl"
+  "-lpthread"
+  "-lassimp"
+  "-lGL"
 )
 unset(TOOLSET)
 unset(TARGET)

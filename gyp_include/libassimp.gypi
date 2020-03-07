@@ -27,6 +27,9 @@
               'assimp_lib': '<(winolibr_dir)',
             }],
           ], # inner conditions
+        }, 'OS == "web"', {
+           'assimp_include': '',
+           'assimp_lib': '',
         }, 'GENERATOR == "cmake"', {
           'assimp_include': '$ENV{ASSIMP_HOME}/include',
           'assimp_lib': '$ENV{ASSIMP_HOME}/lib',

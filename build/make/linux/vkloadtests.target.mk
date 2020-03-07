@@ -148,22 +148,22 @@ rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs := \
 
 ### Generated for copy rule.
 $(builddir)/models/cube.obj: TOOLSET := $(TOOLSET)
-$(builddir)/models/cube.obj: $(srcdir)/tests/loadtests/vkloadtests/models/cube.obj FORCE_DO_CMD
+$(builddir)/models/cube.obj: $(srcdir)/tests/loadtests/common/models/cube.obj FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/cube.obj
 $(builddir)/models/sphere.obj: TOOLSET := $(TOOLSET)
-$(builddir)/models/sphere.obj: $(srcdir)/tests/loadtests/vkloadtests/models/sphere.obj FORCE_DO_CMD
+$(builddir)/models/sphere.obj: $(srcdir)/tests/loadtests/common/models/sphere.obj FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/sphere.obj
 $(builddir)/models/teapot.dae: TOOLSET := $(TOOLSET)
-$(builddir)/models/teapot.dae: $(srcdir)/tests/loadtests/vkloadtests/models/teapot.dae FORCE_DO_CMD
+$(builddir)/models/teapot.dae: $(srcdir)/tests/loadtests/common/models/teapot.dae FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/teapot.dae
 $(builddir)/models/torusknot.obj: TOOLSET := $(TOOLSET)
-$(builddir)/models/torusknot.obj: $(srcdir)/tests/loadtests/vkloadtests/models/torusknot.obj FORCE_DO_CMD
+$(builddir)/models/torusknot.obj: $(srcdir)/tests/loadtests/common/models/torusknot.obj FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/torusknot.obj
@@ -191,6 +191,7 @@ INCS_Debug := \
 	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/tests/loadtests/vkloadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
@@ -218,6 +219,7 @@ INCS_Release := \
 	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/tests/loadtests/vkloadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
