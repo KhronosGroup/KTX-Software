@@ -1247,7 +1247,7 @@ static void
 processOptions(argparser& parser,
                struct commandOptions& options)
 {
-    _TCHAR ch;
+    int ch;
     static struct argparser::option option_list[] = {
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "version", argparser::option::no_argument, NULL, 'v' },
