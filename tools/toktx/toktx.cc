@@ -964,13 +964,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
                 Image *levelImage = image->createImage(levelWidth, levelHeight);
 
-                // TODO: Need options for filter, scale and wrapping.
-                // sRGB is a bool indicating if image is sRGB
-                // filter is a string defaults to "lancos4".
-                // filter scale defaults to 1.0.
-                // wrapping defaults to false. Sets BOUNDARY clamp is false,
-                // BOUNDARY_WRAP is true.
-                // first_comp, num_comps maybe we don't need.
                 try {
                     image->resample(*levelImage,
                                     chosenOETF == Image::eOETF::sRGB,
@@ -978,7 +971,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                     options.gmopts.filterScale,
                                     options.gmopts.wrapMode);
                 } catch (runtime_error e) {
-                    cerr << "Image::resample() failed!"
+                    cerr << "Image::resample() failed! "
                               << e.what() << endl;
                     exitCode = 1;
                     goto cleanup;
