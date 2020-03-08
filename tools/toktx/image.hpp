@@ -399,6 +399,30 @@ class imageTBase : public Image {
         return *this;
     }
 
+    static void checkResamplerStatus(basisu::Resampler& resampler,
+                                     const char* pFilter)
+    {
+        using namespace basisu;
+
+        switch (resampler.status()) {
+          case Resampler::Status::STATUS_OKAY:
+            break;
+          case Resampler::Status::STATUS_OUT_OF_MEMORY:
+            throw std::runtime_error("Resampler or Resampler::put_line out of memory.");
+            break;
+          case Resampler::Status::STATUS_BAD_FILTER_NAME:
+          {
+            std::string msg("Unknown filter: ");
+            msg += pFilter;
+            throw std::runtime_error(msg);
+            break;
+          }
+          case Resampler::Status::STATUS_SCAN_BUFFER_FULL:
+            throw std::runtime_error("Resampler::put_line scan buffer full.");
+            break;
+        }
+    }
+
     virtual void resample(Image& abstract_dst, bool srgb, const char *pFilter,
                           float filter_scale,
                           basisu::Resampler::Boundary_Op wrapMode)
@@ -442,12 +466,13 @@ class imageTBase : public Image {
         std::vector<float> samples[4];
         Resampler *resamplers[4];
 
-        resamplers[0] = new basisu::Resampler(src_w, src_h, dst_w, dst_h,
-                                              wrapMode,
-                                              0.0f, 1.0f,
-                                              pFilter, nullptr, nullptr,
-                                              filter_scale, filter_scale,
-                                              0, 0);
+        resamplers[0] = new Resampler(src_w, src_h, dst_w, dst_h,
+                                      wrapMode,
+                                      0.0f, 1.0f,
+                                      pFilter, nullptr, nullptr,
+                                      filter_scale, filter_scale,
+                                      0, 0);
+        checkResamplerStatus(*resamplers[0], pFilter);
         samples[0].resize(src_w);
 
         for (uint32_t i = 1; i < getComponentCount(); ++i)
@@ -460,6 +485,7 @@ class imageTBase : public Image {
                                           resamplers[0]->get_clist_y(),
                                           filter_scale, filter_scale,
                                           0, 0);
+            checkResamplerStatus(*resamplers[i], pFilter);
             samples[i].resize(src_w);
         }
 
@@ -467,33 +493,31 @@ class imageTBase : public Image {
 
         for (uint32_t src_y = 0; src_y < src_h; ++src_y)
         {
-          //const Color *pSrc = &(this(0, src_y));
-          Color* pSrc = &((*this)(0, src_y));
+            //const Color *pSrc = &(this(0, src_y));
+            Color* pSrc = &((*this)(0, src_y));
 
-          // Put source lines into resampler(s)
-          for (uint32_t x = 0; x < src_w; ++x)
-          {
-            for (uint32_t ci = 0; ci < getComponentCount(); ++ci)
+            // Put source lines into resampler(s)
+            for (uint32_t x = 0; x < src_w; ++x)
             {
-              const uint32_t v = (*pSrc)[ci];
+                for (uint32_t ci = 0; ci < getComponentCount(); ++ci)
+                {
+                  const uint32_t v = (*pSrc)[ci];
 
-              if (!srgb || (ci == 3))
-                  samples[ci][x] = v * (1.0f / 255.0f);
-              else
-                  samples[ci][x] = srgb_to_linear_table[v];
+                  if (!srgb || (ci == 3))
+                      samples[ci][x] = v * (1.0f / 255.0f);
+                  else
+                      samples[ci][x] = srgb_to_linear_table[v];
+                }
+
+                pSrc++;
             }
-
-            pSrc++;
-          }
 
           for (uint32_t ci = 0; ci < getComponentCount(); ++ci)
           {
-            if (!resamplers[ci]->put_line(&samples[ci][0]))
-            {
-                for (uint32_t i = 0; i < getComponentCount(); i++)
-                    delete resamplers[i];
-                throw std::runtime_error("Resampler::put_line failed.");
-            }
+              if (!resamplers[ci]->put_line(&samples[ci][0]))
+              {
+                  checkResamplerStatus(*resamplers[ci], pFilter);
+              }
           }
 
           // Now retrieve any output lines
@@ -514,25 +538,25 @@ class imageTBase : public Image {
                 {
                     // TODO: Add dithering
                     if (linear_flag) {
-                      int j = (int)(255.0f * pOutput_samples[x] + .5f);
-                      pDst->set(ci, (uint8_t)::clamp<int>(j, 0, 255));
+                        int j = (int)(255.0f * pOutput_samples[x] + .5f);
+                        pDst->set(ci, (uint8_t)::clamp<int>(j, 0, 255));
                     } else {
-                      int j = (int)((LINEAR_TO_SRGB_TABLE_SIZE - 1) * pOutput_samples[x] + .5f);
-                      pDst->set(ci, linear_to_srgb_table[::clamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
+                        int j = (int)((LINEAR_TO_SRGB_TABLE_SIZE - 1) * pOutput_samples[x] + .5f);
+                        pDst->set(ci, linear_to_srgb_table[::clamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
                     }
 
                     pDst++;
                   }
               }
               if (ci < getComponentCount())
-                break;
+                  break;
 
               ++dst_y;
           }
       }
 
       for (uint32_t i = 0; i < getComponentCount(); ++i)
-        delete resamplers[i];
+          delete resamplers[i];
     }
 
     virtual imageTBase& resize(uint32_t w, uint32_t h) {
