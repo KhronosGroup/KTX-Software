@@ -483,7 +483,7 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         ;
 
     class_<msc::TranscodedImage>("TranscodedImage")
-        .function( "get_typed_memory_view()", &msc::TranscodedImage::get_typed_memory_view )
+        .function( "get_typed_memory_view", &msc::TranscodedImage::get_typed_memory_view )
     ;
 
 }
