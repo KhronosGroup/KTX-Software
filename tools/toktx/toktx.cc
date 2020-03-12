@@ -39,6 +39,7 @@
 #include "ktx.h"
 #include "../../lib/vkformat_enum.h"
 #include "argparser.h"
+#include "version.h"
 #include "image.hpp"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
@@ -199,6 +200,7 @@ struct commandOptions {
     int          useStdin;
     int          lower_left_maps_to_s0t0;
     int          bcmp;
+    int          test;
     struct basisOptions bopts;
     struct mipgenOptions gmopts;
     _tstring     outfile;
@@ -217,6 +219,7 @@ struct commandOptions {
       two_d = false;
       useStdin = false;
       bcmp = false;
+      test = false;
       depth = 1;
       layers = 1;
       levels = 1;
@@ -654,19 +657,21 @@ usage(const _tstring appName)
         appName.c_str());
 }
 
-#define STR(x) #x
-#define VERSION 2.0
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
 
 static void
-writeId(ostream& dst, _tstring& appName)
+writeId(ostream& dst, const _tstring& appName, bool test = false)
 {
-    dst << appName << " version " << VERSION;
+    dst << appName << " " << (test ? STR(TOKTX_DEFAULT_VERSION)
+                                   : STR(TOKTX_VERSION));
 }
 
 static void
 version(const _tstring& appName)
 {
-    fprintf(stderr, "%s version %s\n", appName.c_str(), STR(VERSION));
+    writeId(cerr, appName);
+    cerr << endl;
 }
 
 static uint32_t
@@ -1029,7 +1034,7 @@ int _tmain(int argc, _TCHAR* argv[])
     if (options.ktx2) {
         // Add required writer metadata.
         stringstream writer;
-        writeId(writer, appName);
+        writeId(writer, appName, options.test);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                               (ktx_uint32_t)writer.str().length() + 1,
                               writer.str().c_str());
@@ -1274,6 +1279,7 @@ processOptions(argparser& parser,
         { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
         { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
         { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
+        { "test", argparser::option::no_argument, &options.test, 1},
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It

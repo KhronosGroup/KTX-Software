@@ -41,6 +41,7 @@
               'SubSystem': '1',
             },
           },
+          'includes': [ '../../gyp_include/genversion.gypi' ],
         }, # ktxinfo target
 #        {
 #          'target_name': 'ktxinfo-tests',

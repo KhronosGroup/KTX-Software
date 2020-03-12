@@ -46,6 +46,7 @@
               'SubSystem': '1',
             },
           },
+          'includes': [ '../../gyp_include/genversion.gypi' ],
         }, # ktx2check target
         {
           'target_name': 'ktx2check-tests',

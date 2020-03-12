@@ -38,9 +38,7 @@
 #  undef IMAGE_DEBUG
 #  define IMAGE_DEBUG 0
 #endif
-
-#define COMMIT "$Id$"
-#define VERSION "1.0.0"
+#include "version.h"
 
 struct commandOptions {
     _tstring      outfile;
@@ -111,12 +109,13 @@ usage(_tstring& appName)
         appName.c_str());
 }
 
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
 
 static void
 version(_tstring& appName)
 {
-    fprintf(stderr, "%s version %s. Commit %s\n", appName.c_str(),
-            VERSION, COMMIT);
+    std::cerr << appName << " " << STR(KTXINFO_VERSION) << std::endl;
 }
 
 

@@ -41,6 +41,7 @@
               'SubSystem': '1',
             },
           },
+          'includes': [ '../../gyp_include/genversion.gypi' ],
         }, # ktx2ktx2 target
 #        {
 #          'target_name': 'ktx2ktx2-tests',

@@ -29,6 +29,7 @@
 
 #include "ktx.h"
 #include "argparser.h"
+#include "version.h"
 
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
@@ -37,8 +38,6 @@
   #define isatty _isatty
   #define unlink _unlink
 #endif
-
-#define VERSION "1.0.0"
 
 #if defined(_MSC_VER)
   #undef min
@@ -119,11 +118,13 @@ struct commandOptions {
     _tstring            outfile;
     bool                useStdout;
     bool                force;
+    int                 test;
     struct basisOptions bopts;
     std::vector<_tstring> infilenames;
 
     commandOptions() {
         force = false;
+        test = false;
         useStdout = false;
     }
 };
@@ -316,19 +317,22 @@ usage(_tstring& appName)
         appName.c_str());
 }
 
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
 
 static void
-writeId(std::ostream& dst, _tstring& appName)
+writeId(std::ostream& dst, const _tstring& appName, bool test = false)
 {
-    dst << appName << " version " << VERSION;
+    dst << appName << " " << (test ? STR(KTXSC_DEFAULT_VERSION)
+                                   : STR(KTXSC_VERSION));
 }
 
 
 static void
-version(_tstring& appName)
+version(const _tstring& appName)
 {
     writeId(cerr, appName);
-    cerr << std::endl;
+    cerr << endl;
 }
 
 
@@ -584,6 +588,7 @@ processOptions(argparser& parser,
         { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 'r' },
         { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'b' },
         { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
+        { "test", argparser::option::no_argument, &options.test, 1},
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It

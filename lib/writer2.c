@@ -50,6 +50,8 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 
+#include "version.h"
+
 #if defined(_MSC_VER)
 #define strncasecmp _strnicmp
 #endif
@@ -59,6 +61,41 @@
  * @brief Write KTX-formatted data.
  * @{
  */
+
+/** @internal
+ *  @~English
+ *  @brief Append the library's id to existing writeId.
+ */
+KTX_error_code
+appendLibIdToWriter(ktxHashList* head, ktxHashListEntry* writerEntry)
+{
+    KTX_error_code result;
+    const char* id;
+    const char* libId;
+    const char idIntro[] = " / libktx ";
+    ktx_uint32_t idLen;
+    result = ktxHashListEntry_GetValue(writerEntry, &idLen, (void**)&id);
+    if (strnstr(id, "__default__", idLen) != NULL) {
+        libId = STR(LIBKTX_DEFAULT_VERSION);
+    } else {
+        libId = STR(LIBKTX_VERSION);
+    }
+    if (id[idLen-1] == '\0')
+      idLen--;
+    // sizeof(idIntro) includes the terminating NUL which we will overwrite
+    // so no need for +1 after strlen.
+    ktx_uint32_t fullIdLen = idLen + sizeof(idIntro)
+                             + (ktx_uint32_t)strlen(libId);
+    char* fullId = malloc(fullIdLen);
+    strncpy(fullId, id, idLen);
+    strncpy(&fullId[idLen], idIntro, sizeof(idIntro));
+    strcpy(&fullId[idLen + sizeof(idIntro)-1], libId);
+
+    ktxHashList_DeleteEntry(head, writerEntry);
+    result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY, fullIdLen, fullId);
+    free(fullId);
+    return result;
+}
 
 /**
  * @memberof ktxTexture @private
@@ -275,8 +312,26 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 
         ktxHashListEntry_GetKey(pEntry, &keyLen, &key);
         if (strncasecmp(key, "KTX", 3) == 0) {
-            // FIXME. Check for an undefined key.
-            //return KTX_INVALID_OPERATION;
+            ktx_uint32_t i;
+            const char* knownKeys[] = {
+              "KTXcubemapIncomplete",
+              "KTXorientation",
+              "KTXglFormat",
+              "KTXdxgiFormat__",
+              "KTXswizzle",
+              "KTXwriter",
+              "KTXastcDecodeMode",
+              "KTXanimData"
+            };
+            if (strncmp(key, "ktx", 3) == 0)
+                return KTX_INVALID_OPERATION;
+            // Check for unrecognized KTX keys.
+            for (i = 0; i < sizeof(knownKeys)/sizeof(char*); i++) {
+                if (strcmp(key, knownKeys[i]) == 0)
+                    break;
+            }
+            if (i == sizeof(knownKeys)/sizeof(char*))
+                return KTX_INVALID_OPERATION;
         }
     }
 
@@ -285,6 +340,10 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     if (result != KTX_SUCCESS) {
         // KTXwriter is required in KTX2. Caller must set it.
         return KTX_INVALID_OPERATION;
+    } else {
+        result = appendLibIdToWriter(&This->kvDataHead, pEntry);
+        if (result != KTX_SUCCESS)
+            return result;
     }
 
     ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.

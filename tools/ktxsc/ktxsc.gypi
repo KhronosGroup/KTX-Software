@@ -42,6 +42,7 @@
               'SubSystem': '1',
             },
           },
+          'includes': [ '../../gyp_include/genversion.gypi' ],
         }, # ktxsc target
 #        {
 #          'target_name': 'ktxsc-tests',

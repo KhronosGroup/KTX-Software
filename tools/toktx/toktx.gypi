@@ -61,7 +61,8 @@
               '-Wno-gnu-anonymous-struct',
             ],
           },
-        }, # toktx target
+          'includes': [ '../../gyp_include/genversion.gypi' ],
+       }, # toktx target
         {
           'target_name': 'toktx-tests',
           'type': 'none',

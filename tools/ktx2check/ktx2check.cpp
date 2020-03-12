@@ -50,9 +50,9 @@
     #define fseeko fseek
   #endif
 #endif
+#include "version.h"
 
-#define VERSION "1.0.0 alpha"
-std::string myversion(VERSION);
+std::string myversion(STR(KTX2CHECK_VERSION));
 
 /** @page ktx2check ktx2check
 @~English
