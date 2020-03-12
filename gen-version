@@ -1,0 +1,87 @@
+#!/bin/bash
+
+VF=version.h
+DEF_VER=v4.0
+
+LF='
+'
+
+function genversion() {
+  # Try git-describe, then default.
+  if [ -d ${GIT_DIR:-.git} -o -f .git ]; then
+    if [ -z "$1" ]; then
+      # Get version number for HEAD revision of repo.
+      VN=$(git describe --match "v[0-9]*" HEAD 2>/dev/null)
+    else
+        # Get version number containing the object identified in
+        # $1.
+        VN=$(git describe --contains --match "v[0-9]*" $(git rev-list -1 HEAD $1) 2>/dev/null)
+      if [ -z "$VN" ]; then
+        # If no containing tag, get version number for $1 based on
+        # previous tag.
+        VN=$(git describe --match "v[0-9]*" $(git rev-list -1 HEAD $1) 2>/dev/null)
+      fi
+    fi
+    case "$VN" in
+    *$LF*) (exit 1) ;;
+    v[0-9]*)
+        git update-index -q --refresh
+        test -z "$(git diff-index --name-only HEAD --)" ||
+        VN="$VN-dirty" ;;
+    esac
+    VN=$(echo "$VN" | sed -e 's/-/./g')
+  else
+      VN="$DEF_VER"
+  fi
+}
+
+function setfile() {
+  local VC
+  local verstring=$1_VERSION
+  if [ -r $2 ]; then
+    VC=$(grep $verstring $2 | sed -e "s/^#define $verstring //")
+  else
+    VC=unset
+  fi
+  if [ $force -eq 1 -o "$VN" != "$VC" ]; then
+    echo "#define $verstring $VN" > $2
+    if [ "$1" = "TOKTX" -o "$1" = "KTX2KTX2" -o "$1" = "KTXSC" ]
+    then
+      echo "#define $1_DEFAULT_VERSION $DEF_VER.__default__" >> $2
+    fi
+  fi
+}
+
+force=0
+if [ $# -eq 1 -a "$1" = "-f" ]; then
+  force=1;
+fi
+
+# Special handling for lib/VERSION
+verstring=LIBKTX_VERSION
+genversion lib
+if [ -r lib/$VF ]; then
+  VC=$(grep $verstring lib/$VF | sed -e "s/^#define $verstring //")
+else
+  VC=unset
+fi
+if [ $force -eq 1 -o "$VN" != "$VC" ]; then
+  (echo "/*"
+  echo "// [API version]"
+  echo "@version $DEF_VER"
+  echo "// [API version]"
+  echo "*/"
+  echo "#define $verstring $VN"
+  echo "#define LIBKTX_DEFAULT_VERSION ${DEF_VER}.__default__") > lib/$VF
+fi
+# Standard handling for all the tools.
+for i in tools/*; do
+  if [ -d $i -a "$i" != "tools/package" ]; then
+    genversion $i
+    ON=$(basename $i)
+    ON=$(echo $ON | tr [:lower:] [:upper:])
+    setfile $ON $i/$VF
+  fi
+done
+
+# vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
