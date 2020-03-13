@@ -1,1 +1,0 @@
-#define KTX2CHECK_VERSION v3.0.82.g6139b72f.dirty
