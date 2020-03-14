@@ -105,7 +105,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/vulkan_headers.stamp $(obj).target/libgl.stamp
+$(OBJS): | $(obj).target/vulkan_headers.stamp $(obj).target/version.h.stamp $(obj).target/libgl.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.

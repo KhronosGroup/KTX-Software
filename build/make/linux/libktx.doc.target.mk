@@ -21,10 +21,10 @@ action_libktx_gyp_libktx_doc_target_buildLibktxDoc_outputs := build/docs/.libktx
 $(obj).target/libktx.doc.stamp: | $(action_libktx_gyp_libktx_doc_target_buildLibktxDoc_outputs)
 
 # Preserve order dependency of special output on deps.
-$(action_libktx_gyp_libktx_doc_target_buildLibktxDoc_outputs): | 
+$(action_libktx_gyp_libktx_doc_target_buildLibktxDoc_outputs): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
 
 $(obj).target/libktx.doc.stamp: TOOLSET := $(TOOLSET)
-$(obj).target/libktx.doc.stamp:  FORCE_DO_CMD
+$(obj).target/libktx.doc.stamp: $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so FORCE_DO_CMD
 	$(call do_cmd,touch)
 
 all_deps += $(obj).target/libktx.doc.stamp

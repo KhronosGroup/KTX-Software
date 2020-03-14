@@ -2,6 +2,20 @@
 
 TOOLSET := target
 TARGET := ktxinfo
+### Rules for action "genversion":
+quiet_cmd_ktxtools_gyp_ktxinfo_target_genversion = ACTION ktxtools_gyp_ktxinfo_target_genversion $@
+cmd_ktxtools_gyp_ktxinfo_target_genversion = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p tools/ktxinfo; ./gen-version -o version.h tools/ktxinfo
+
+tools/ktxinfo/version.h: obj := $(abs_obj)
+tools/ktxinfo/version.h: builddir := $(abs_builddir)
+tools/ktxinfo/version.h: TOOLSET := $(TOOLSET)
+tools/ktxinfo/version.h: $(srcdir)/gen-version $(srcdir)/.git FORCE_DO_CMD
+	$(call do_cmd,ktxtools_gyp_ktxinfo_target_genversion)
+
+all_deps += tools/ktxinfo/version.h
+action_ktxtools_gyp_ktxinfo_target_genversion_outputs := tools/ktxinfo/version.h
+
+
 DEFS_Debug := \
 	'-DDEBUG' \
 	'-D_DEBUG'
@@ -56,6 +70,9 @@ all_deps += $(OBJS)
 # Make sure our dependencies are built before any of us.
 $(OBJS): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
 
+# Make sure our actions/rules run before any of us.
+$(OBJS): | $(action_ktxtools_gyp_ktxinfo_target_genversion_outputs)
+
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
 $(OBJS): TOOLSET := $(TOOLSET)
@@ -77,6 +94,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
+# Build our special outputs first.
+$(builddir)/ktxinfo: | $(action_ktxtools_gyp_ktxinfo_target_genversion_outputs)
+
+# Preserve order dependency of special output on deps.
+$(action_ktxtools_gyp_ktxinfo_target_genversion_outputs): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
+
 LDFLAGS_Debug := \
 	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \

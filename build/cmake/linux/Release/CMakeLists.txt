@@ -31,6 +31,34 @@ add_dependencies(libvulkan
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:version.h#target
+set(TARGET "version.h")
+set(TOOLSET "target")
+list(APPEND version_h__genversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../gen-version"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(version_h__genversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/version.h")
+add_custom_command(OUTPUT ${version_h__genversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory lib
+  COMMAND ./gen-version -o version.h lib
+  DEPENDS ${version_h__genversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT version_h__genversion
+  VERBATIM
+)
+add_custom_target(version_h__genversion
+  DEPENDS ${version_h__genversion__output}
+  SOURCES ${version_h__genversion__input}
+)
+add_custom_target(version_h SOURCES)
+set_target_properties(version_h PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(version_h__genversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(version_h
+  version_h__genversion
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:mkvkformatfiles#target
 set(TARGET "mkvkformatfiles")
 set(TOOLSET "target")
@@ -94,136 +122,6 @@ add_dependencies(mkvkformatfiles
   mkvkformatfiles__run_mkvkformatfiles
   mkvkformatfiles__run_makevkswitch
   mkvkformatfiles__run_makedfdtovk
-)
-unset(TOOLSET)
-unset(TARGET)
-
-#libktx.gyp:libktx.doc#target
-set(TARGET "libktx.doc")
-set(TOOLSET "target")
-list(APPEND libktx_doc__buildLibktxDoc__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../libktx.doxy"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/mainpage.md"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_astc_decomp.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_astc_decomp.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_backend.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_backend.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_basis_file.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_basis_file.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_comp.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_comp.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_enc.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_enc.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_etc.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_etc.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_frontend.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_frontend.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_global_selector_palette_helpers.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_global_selector_palette_helpers.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_gpu_texture.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_gpu_texture.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_pvrtc1_4.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_pvrtc1_4.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resample_filters.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler_filters.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_file_headers.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_astc.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_astc_0_255.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_atc_55.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_atc_56.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_alpha.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_color.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m6.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_5.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_6.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_sgd.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_encode.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_image_transcoder.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcode.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcoder_config.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd2vk.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd2vk.inl"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/interpretdfd.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/printdfd.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/queries.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.inl"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcunpack.cxx"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/filestream.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/filestream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/formatsize.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_format.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashlist.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/info.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxgl.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/stream.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/strings.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture_funcs.inl"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture1.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture1.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture2.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture2.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_check.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_str.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer1.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer2.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture1_vvtbl.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture2_vvtbl.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funclist.inl"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.h")
-set(libktx_doc__buildLibktxDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.libktx_gentimestamp")
-add_custom_command(OUTPUT ${libktx_doc__buildLibktxDoc__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
-  COMMAND ./runDoxygen -t build/docs/.libktx_gentimestamp -o build/docs/html libktx.doxy
-  DEPENDS ${libktx_doc__buildLibktxDoc__input}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Generating libktx documentation with Doxygen
-  VERBATIM
-)
-add_custom_target(libktx_doc__buildLibktxDoc
-  DEPENDS ${libktx_doc__buildLibktxDoc__output}
-  SOURCES ${libktx_doc__buildLibktxDoc__input}
-)
-add_custom_target(libktx_doc SOURCES)
-set_target_properties(libktx_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(libktx_doc__buildLibktxDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-add_dependencies(libktx_doc
-  libktx_doc__buildLibktxDoc
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -381,10 +279,145 @@ set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_E
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(libktx_gl
   vulkan_headers
+  version_h
   libgl
 )
 target_link_libraries(libktx_gl
   "-lGL"
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libktx.doc#target
+set(TARGET "libktx.doc")
+set(TOOLSET "target")
+list(APPEND libktx_doc__buildLibktxDoc__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../libktx.doxy"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/mainpage.md"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE.md"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_astc_decomp.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_astc_decomp.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_backend.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_backend.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_basis_file.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_basis_file.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_comp.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_comp.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_enc.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_enc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_etc.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_etc.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_frontend.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_frontend.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_global_selector_palette_helpers.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_global_selector_palette_helpers.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_gpu_texture.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_gpu_texture.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_pvrtc1_4.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_pvrtc1_4.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resample_filters.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_resampler_filters.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/lodepng.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_file_headers.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_internal.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_astc.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_astc_0_255.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_atc_55.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_atc_56.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_alpha.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_color.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m6.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_5.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_6.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_sgd.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_encode.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_image_transcoder.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcode.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcoder_config.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd2vk.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd2vk.inl"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/interpretdfd.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/printdfd.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/queries.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.inl"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcdec.cxx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/etcunpack.cxx"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/filestream.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/filestream.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/formatsize.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_format.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcptrs.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashlist.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/info.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxgl.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/stream.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/strings.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/swap.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture_funcs.inl"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture1.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture1.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture2.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture2.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/uthash.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_check.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_str.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer1.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer2.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture1_vvtbl.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture2_vvtbl.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funclist.inl"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funcs.h")
+set(libktx_doc__buildLibktxDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.libktx_gentimestamp")
+add_custom_command(OUTPUT ${libktx_doc__buildLibktxDoc__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
+  COMMAND ./runDoxygen -t build/docs/.libktx_gentimestamp -o build/docs/html libktx.doxy
+  DEPENDS ${libktx_doc__buildLibktxDoc__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating libktx documentation with Doxygen
+  VERBATIM
+)
+add_custom_target(libktx_doc__buildLibktxDoc
+  DEPENDS ${libktx_doc__buildLibktxDoc__output}
+  SOURCES ${libktx_doc__buildLibktxDoc__input}
+)
+add_custom_target(libktx_doc SOURCES)
+set_target_properties(libktx_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(libktx_doc__buildLibktxDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(libktx_doc__buildLibktxDoc
+  libktx_gl
+)
+add_dependencies(libktx_doc
+  libktx_doc__buildLibktxDoc
+  libktx_gl
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -435,6 +468,22 @@ unset(TARGET)
 #ktxtools.gyp:toktx#target
 set(TARGET "toktx")
 set(TOOLSET "target")
+list(APPEND toktx__genversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../gen-version"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(toktx__genversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/version.h")
+add_custom_command(OUTPUT ${toktx__genversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/toktx
+  COMMAND ./gen-version -o version.h tools/toktx
+  DEPENDS ${toktx__genversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT toktx__genversion
+  VERBATIM
+)
+add_custom_target(toktx__genversion
+  DEPENDS ${toktx__genversion__output}
+  SOURCES ${toktx__genversion__input}
+)
 list(APPEND toktx__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/toktx/image.cc"
@@ -450,6 +499,7 @@ list(APPEND toktx__other_srcs
   "../../../../tools/toktx/targetver.h")
 add_executable(toktx ${toktx__cxx_srcs} ${toktx__other_srcs})
 set_target_properties(toktx PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(toktx__genversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${toktx__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(toktx PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(toktx PROPERTIES PREFIX "")
@@ -478,6 +528,12 @@ set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERR
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+add_dependencies(toktx__genversion
+  libktx_gl
+)
+add_dependencies(toktx
+  toktx__genversion
+)
 target_link_libraries(toktx
   libktx_gl
 )
@@ -517,6 +573,22 @@ unset(TARGET)
 #ktxtools.gyp:ktxsc#target
 set(TARGET "ktxsc")
 set(TOOLSET "target")
+list(APPEND ktxsc__genversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../gen-version"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktxsc__genversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxsc/version.h")
+add_custom_command(OUTPUT ${ktxsc__genversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktxsc
+  COMMAND ./gen-version -o version.h tools/ktxsc
+  DEPENDS ${ktxsc__genversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktxsc__genversion
+  VERBATIM
+)
+add_custom_target(ktxsc__genversion
+  DEPENDS ${ktxsc__genversion__output}
+  SOURCES ${ktxsc__genversion__input}
+)
 list(APPEND ktxsc__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktxsc/ktxsc.cpp")
@@ -525,6 +597,7 @@ list(APPEND ktxsc__other_srcs
   "../../../../tools/ktxsc/stdafx.h")
 add_executable(ktxsc ${ktxsc__cxx_srcs} ${ktxsc__other_srcs})
 set_target_properties(ktxsc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktxsc__genversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktxsc__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktxsc PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktxsc PROPERTIES PREFIX "")
@@ -551,6 +624,12 @@ set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automati
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktxsc__genversion
+  libktx_gl
+)
+add_dependencies(ktxsc
+  ktxsc__genversion
+)
 target_link_libraries(ktxsc
   libktx_gl
 )
@@ -560,6 +639,22 @@ unset(TARGET)
 #ktxtools.gyp:ktxinfo#target
 set(TARGET "ktxinfo")
 set(TOOLSET "target")
+list(APPEND ktxinfo__genversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../gen-version"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktxinfo__genversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxinfo/version.h")
+add_custom_command(OUTPUT ${ktxinfo__genversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktxinfo
+  COMMAND ./gen-version -o version.h tools/ktxinfo
+  DEPENDS ${ktxinfo__genversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktxinfo__genversion
+  VERBATIM
+)
+add_custom_target(ktxinfo__genversion
+  DEPENDS ${ktxinfo__genversion__output}
+  SOURCES ${ktxinfo__genversion__input}
+)
 list(APPEND ktxinfo__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktxinfo/ktxinfo.cpp")
@@ -568,6 +663,7 @@ list(APPEND ktxinfo__other_srcs
   "../../../../tools/ktxinfo/stdafx.h")
 add_executable(ktxinfo ${ktxinfo__cxx_srcs} ${ktxinfo__other_srcs})
 set_target_properties(ktxinfo PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktxinfo__genversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktxinfo__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktxinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktxinfo PROPERTIES PREFIX "")
@@ -594,6 +690,12 @@ set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automa
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktxinfo__genversion
+  libktx_gl
+)
+add_dependencies(ktxinfo
+  ktxinfo__genversion
+)
 target_link_libraries(ktxinfo
   libktx_gl
 )
@@ -603,6 +705,22 @@ unset(TARGET)
 #ktxtools.gyp:ktx2ktx2#target
 set(TARGET "ktx2ktx2")
 set(TOOLSET "target")
+list(APPEND ktx2ktx2__genversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../gen-version"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktx2ktx2__genversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2ktx2/version.h")
+add_custom_command(OUTPUT ${ktx2ktx2__genversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktx2ktx2
+  COMMAND ./gen-version -o version.h tools/ktx2ktx2
+  DEPENDS ${ktx2ktx2__genversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktx2ktx2__genversion
+  VERBATIM
+)
+add_custom_target(ktx2ktx2__genversion
+  DEPENDS ${ktx2ktx2__genversion__output}
+  SOURCES ${ktx2ktx2__genversion__input}
+)
 list(APPEND ktx2ktx2__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktx2ktx2/ktx2ktx2.cpp")
@@ -611,6 +729,7 @@ list(APPEND ktx2ktx2__other_srcs
   "../../../../tools/ktx2ktx2/stdafx.h")
 add_executable(ktx2ktx2 ${ktx2ktx2__cxx_srcs} ${ktx2ktx2__other_srcs})
 set_target_properties(ktx2ktx2 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktx2ktx2__genversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktx2ktx2__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktx2ktx2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktx2ktx2 PROPERTIES PREFIX "")
@@ -637,6 +756,12 @@ set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Autom
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktx2ktx2__genversion
+  libktx_gl
+)
+add_dependencies(ktx2ktx2
+  ktx2ktx2__genversion
+)
 target_link_libraries(ktx2ktx2
   libktx_gl
 )
@@ -646,6 +771,22 @@ unset(TARGET)
 #ktxtools.gyp:ktx2check#target
 set(TARGET "ktx2check")
 set(TOOLSET "target")
+list(APPEND ktx2check__genversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../gen-version"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktx2check__genversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2check/version.h")
+add_custom_command(OUTPUT ${ktx2check__genversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktx2check
+  COMMAND ./gen-version -o version.h tools/ktx2check
+  DEPENDS ${ktx2check__genversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktx2check__genversion
+  VERBATIM
+)
+add_custom_target(ktx2check__genversion
+  DEPENDS ${ktx2check__genversion__output}
+  SOURCES ${ktx2check__genversion__input}
+)
 list(APPEND ktx2check__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktx2check/ktx2check.cpp")
@@ -655,6 +796,7 @@ list(APPEND ktx2check__other_srcs
   "../../../../tools/ktx2check/stdafx.h")
 add_executable(ktx2check ${ktx2check__cxx_srcs} ${ktx2check__other_srcs})
 set_target_properties(ktx2check PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktx2check__genversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktx2check__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktx2check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktx2check PROPERTIES PREFIX "")
@@ -682,6 +824,12 @@ set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Auto
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktx2check__genversion
+  libktx_gl
+)
+add_dependencies(ktx2check
+  ktx2check__genversion
+)
 target_link_libraries(ktx2check
   libktx_gl
 )
@@ -896,10 +1044,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_basis_rd.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc2_srgb.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app_basis.ktx2"
@@ -950,10 +1095,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
   "${builddir}/testimages/alpha_simple_basis.ktx2"
   "${builddir}/testimages/color_grid_basis.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
   "${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${builddir}/testimages/kodim17_basis.ktx2"
   "${builddir}/testimages/ktx_app_basis.ktx2"
@@ -1005,10 +1147,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${b
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2 ${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app_basis.ktx2 ${builddir}/testimages/ktx_app_basis.ktx2
