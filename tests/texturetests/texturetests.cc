@@ -1713,8 +1713,8 @@ class ktxTexture1WriteKTX2TestBase
         }
         if (writeWriterMeta) {
             ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                                  sizeof(helper.writer_ktx2),
-                                  helper.writer_ktx2);
+                                  (uint32_t)helper.writer_ktx2.size(),
+                                  helper.writer_ktx2.data());
         }
 
         result = helper.copyImagesToTexture(texture);
@@ -1807,8 +1807,8 @@ class ktxTexture1WriteKTX2TestBase
         char rubbishValue[] = "some rubbish value";
         for (uint32_t i = 0; i < 2; i++) {
             ktxHashList_AddKVPair(hlists[i], KTX_WRITER_KEY,
-                                  sizeof(helper.writer_ktx2),
-                                  helper.writer_ktx2);
+                                  (uint32_t)helper.writer_ktx2.size(),
+                                  helper.writer_ktx2.data());
             if (unrecognizedKey) {
                 ktxHashList_AddKVPair(hlists[i], unrecognizedKey,
                                       sizeof(rubbishValue),
@@ -1821,6 +1821,12 @@ class ktxTexture1WriteKTX2TestBase
             }
             ktxHashList_Sort(hlists[i]);
         }
+        // Get the library to add its Id to the writer key so it will be
+        // included in the serialized data.
+        ktxHashListEntry* pWriter;
+        ktxHashList_FindEntry(hl, KTX_WRITER_KEY, &pWriter);
+        appendLibId(hl, pWriter);
+        ktxHashList_Sort(hl);
         ktxHashList_Serialize(hl, &kvDataLen, &kvData);
         ktxHashList_Destruct(hl);
 
@@ -2037,8 +2043,8 @@ class ktxTexture2ReadTestBase
                               (unsigned int)strlen(helper.orientation) + 1,
                               helper.orientation);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                              sizeof(helper.writer_ktx2),
-                              helper.writer_ktx2);
+                              (uint32_t)helper.writer_ktx2.size(),
+                              helper.writer_ktx2.data());
 
         result = helper.copyImagesToTexture(texture);
         EXPECT_EQ(result, KTX_SUCCESS);
