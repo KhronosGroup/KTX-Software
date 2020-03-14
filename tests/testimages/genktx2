@@ -119,3 +119,5 @@ $toktx --test --bcmp color_grid_basis.ktx2 color_grid.png
 # ... and additional files for the load tests.
 
 $toktx --test --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx rgb.ppm
+
+#$toktx --test --cubemap --genmipmap --bcmp cubemap_yokohama_basis_rd.ktx2 @@yokohama3/filelist.txt
