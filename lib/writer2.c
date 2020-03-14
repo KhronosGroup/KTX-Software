@@ -67,14 +67,19 @@
  *  @brief Append the library's id to existing writeId.
  */
 KTX_error_code
-appendLibIdToWriter(ktxHashList* head, ktxHashListEntry* writerEntry)
+appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 {
     KTX_error_code result;
     const char* id;
     const char* libId;
     const char idIntro[] = " / libktx ";
     ktx_uint32_t idLen;
-    result = ktxHashListEntry_GetValue(writerEntry, &idLen, (void**)&id);
+    if (writerEntry) {
+        result = ktxHashListEntry_GetValue(writerEntry, &idLen, (void**)&id);
+    } else {
+        id = "Unidentified app";
+        idLen = 17;
+    }
     if (strstr(id, "__default__") != NULL) {
         libId = STR(LIBKTX_DEFAULT_VERSION);
     } else {
@@ -341,7 +346,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
         // KTXwriter is required in KTX2. Caller must set it.
         return KTX_INVALID_OPERATION;
     } else {
-        result = appendLibIdToWriter(&This->kvDataHead, pEntry);
+        result = appendLibId(&This->kvDataHead, pEntry);
         if (result != KTX_SUCCESS)
             return result;
     }

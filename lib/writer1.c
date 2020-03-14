@@ -509,8 +509,8 @@ ktxTexture1_WriteToMemory(ktxTexture1* This,
 }
 
 ktx_uint32_t lcm4(uint32_t a);
-KTX_error_code appendLibIdToWriter(ktxHashList* head,
-                                   ktxHashListEntry* writerEntry);
+KTX_error_code appendLibId(ktxHashList* head,
+                           ktxHashListEntry* writerEntry);
 
 /**
  * @memberof ktxTexture @private
@@ -639,7 +639,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         result = KTX_INVALID_OPERATION;
         goto cleanup;
     } else {
-        result = appendLibIdToWriter(&This->kvDataHead, pEntry);
+        result = appendLibId(&This->kvDataHead, pEntry);
         if (result != KTX_SUCCESS)
             goto cleanup;
     }
