@@ -247,30 +247,6 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "testimages/cubemap_yokohama_basis_rd.ktx2",
         "KTX2: BasisU Compressed Cube Map Transcoded"
     },
-    { TextureCubemap::create,
-        "testimages/cubemap_yokohama_bc2_srgb.ktx2",
-        "KTX2: BC2 (S3TC DXT3) Compressed Cube Map"
-    },
-    { TextureCubemap::create,
-        "testimages/cubemap_yokohama_astc_8x8_srgb.ktx2",
-        "KTX2: ASTC Compressed Cube Map"
-    },
-    { TextureCubemap::create,
-        "testimages/cubemap_yokohama_etc2_srgb.ktx2",
-        "KTX2: ETC2 Compressed Cube Map"
-    },
-    { TextureCubemap::create,
-        "--preload testimages/cubemap_yokohama_bc2_srgb.ktx2",
-        "KTX2: BC2 (S3TC DXT3) Compressed Cube Map from Preloaded Images."
-    },
-    { TextureCubemap::create,
-        "--preload testimages/cubemap_yokohama_astc_8x8_srgb.ktx2",
-        "KTX2: ASTC Compressed Cube Map from Preloaded Images."
-    },
-    { TextureCubemap::create,
-        "--preload testimages/cubemap_yokohama_etc2_srgb.ktx2",
-        "KTX2: ETC2 Compressed Cube Map from Preloaded Images."
-    },
     { Texture::create,
       "testimages/orient-down-metadata.ktx",
       "RGB8 2D + KTXOrientation down"

@@ -102,9 +102,6 @@ fi
 
 # Generate reference files for toktx-tests ...
 
-$ktx2ktx2 --test -f cubemap_yokohama_astc_8x8_srgb.ktx
-$ktx2ktx2 --test -f cubemap_yokohama_bc2_srgb.ktx
-$ktx2ktx2 --test -f cubemap_yokohama_etc2_srgb.ktx
 $ktx2ktx2 --test -f -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
 $ktx2ktx2 --test -f -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
 $ktx2ktx2 --test -f pattern_02_bc2.ktx
