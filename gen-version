@@ -2,7 +2,7 @@
 
 # @copyright © 2020, Mark Callow. For license see LICENSE.md.
 
-# Script to generate version number files using te output of git
+# Script to generate version number files using the output of git
 # describe.
 
 # A file of this name will be created in the subdir (object) for which a
