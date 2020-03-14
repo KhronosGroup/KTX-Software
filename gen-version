@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# @copyright © 2020, Mark Callow. For license see LICENSE.md.
+
+# Script to generate version number files using te output of git
+# describe.
+
+# A file of this name will be created in the subdir (object) for which a
+# version number is being generated.
 VF=version.h
 DEF_VER=v4.0
 
@@ -35,6 +42,8 @@ function genversion() {
   fi
 }
 
+# Write the version file, if the new version is different than the
+# existing one.
 function setfile() {
   local VC
   local verstring=$1_VERSION
@@ -44,44 +53,77 @@ function setfile() {
     VC=unset
   fi
   if [ $force -eq 1 -o "$VN" != "$VC" ]; then
-    echo "#define $verstring $VN" > $2
-    if [ "$1" = "TOKTX" -o "$1" = "KTX2KTX2" -o "$1" = "KTXSC" ]
-    then
-      echo "#define $1_DEFAULT_VERSION $DEF_VER.__default__" >> $2
+    if [ "$3" = "include_apiversion" ]; then
+      (echo "/*"
+      echo "// [API version]"
+      echo "@version $DEF_VER"
+      echo "// [API version]"
+      echo "*/"
+      echo "#define $verstring $VN"
+      echo "#define LIBKTX_DEFAULT_VERSION ${DEF_VER}.__default__") > $2
+    else
+      echo "#define $verstring $VN" > $2
+      if [ "$1" = "TOKTX" -o "$1" = "KTX2KTX2" -o "$1" = "KTXSC" ]
+      then
+        echo "#define $1_DEFAULT_VERSION $DEF_VER.__default__" >> $2
+      fi
     fi
   fi
 }
 
-force=0
-if [ $# -eq 1 -a "$1" = "-f" ]; then
-  force=1;
-fi
-
-# Special handling for lib/VERSION
-verstring=LIBKTX_VERSION
-genversion lib
-if [ -r lib/$VF ]; then
-  VC=$(grep $verstring lib/$VF | sed -e "s/^#define $verstring //")
-else
-  VC=unset
-fi
-if [ $force -eq 1 -o "$VN" != "$VC" ]; then
-  (echo "/*"
-  echo "// [API version]"
-  echo "@version $DEF_VER"
-  echo "// [API version]"
-  echo "*/"
-  echo "#define $verstring $VN"
-  echo "#define LIBKTX_DEFAULT_VERSION ${DEF_VER}.__default__") > lib/$VF
-fi
-# Standard handling for all the tools.
-for i in tools/*; do
-  if [ -d $i -a "$i" != "tools/package" ]; then
-    genversion $i
-    ON=$(basename $i)
-    ON=$(echo $ON | tr [:lower:] [:upper:])
-    setfile $ON $i/$VF
+# Figure out the object name and write its version file.
+function writeversion() {
+  genversion $1
+  local vfp;
+  if [ -z "$1" ]; then
+    vfp=$VF
+  else
+    vfp=$1/$VF
   fi
+  if [ "$1" = "lib" ]; then
+    ON=LIBKTX
+    setfile $ON $1/$VF "include_apiversion"
+  else
+    ON=$(basename $1)
+    ON=$(echo $ON | tr [:lower:] [:upper:])
+    setfile $ON $1/$VF
+  fi
+}
+
+function usage() {
+    echo 'Usage: $0 [-a] [-f] [<object> <version file>]'
+}
+
+force=0
+write_all=0;
+args=$(getopt afo: $*)
+
+set -- $args
+for i; do
+  case "$i" in
+    -a) write_all=1;
+        shift;;
+    -f) force=1;
+        shift;;
+    -o) VF=$2; shift; shift;;
+    --) shift; break;;
+  esac
 done
+
+case $# in
+  0) ;;
+  1) OBJ=$1;;
+  2) usage;;
+esac
+
+if [ $write_all -eq 1 ]; then
+  for i in lib tools/*; do
+    if [ -d $i -a "$i" != "tools/package" ]; then
+      writeversion $i
+    fi
+  done
+else
+  writeversion $OBJ
+fi
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

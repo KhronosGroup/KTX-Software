@@ -46,7 +46,15 @@
               'SubSystem': '1',
             },
           },
-          'includes': [ '../../gyp_include/genversion.gypi' ],
+          'actions': [{
+            'action_name': 'genversion',
+            'inputs': [
+              '../../gen-version',
+              '../../.git'
+            ],
+            'outputs': [ 'version.h' ],
+            'action': [ './gen-version', '-o', 'version.h', 'tools/ktx2check' ],
+          }],
         }, # ktx2check target
         {
           'target_name': 'ktx2check-tests',

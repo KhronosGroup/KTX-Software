@@ -33,7 +33,7 @@
  * @author Mark Callow, Edgewise Consulting and while at HI Corporation
  * @author Based on original work by Georg Kolling, Imagination Technology
  *
- * @snippet{doc} VERSION API version
+ * @snippet{doc} version.h API version
  *
  * @todo Find a way so that applications do not have to define KTX_OPENGL{,_ES*}
  *       when using the library.

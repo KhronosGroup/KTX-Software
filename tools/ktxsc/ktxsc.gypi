@@ -42,7 +42,15 @@
               'SubSystem': '1',
             },
           },
-          'includes': [ '../../gyp_include/genversion.gypi' ],
+          'actions': [{
+            'action_name': 'genversion',
+            'inputs': [
+              '../../gen-version',
+              '../../.git'
+            ],
+            'outputs': [ 'version.h' ],
+            'action': [ './gen-version', '-o', 'version.h', 'tools/ktxsc' ],
+          }],
         }, # ktxsc target
 #        {
 #          'target_name': 'ktxsc-tests',

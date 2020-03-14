@@ -39,7 +39,7 @@
 #include "dfdutils/dfd.h"
 #include "texture.h"
 #include "basis_sgd.h"
-// Gotta love Windows :-(
+// Gotta love Windows :-)
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
   #if defined(_WIN64)

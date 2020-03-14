@@ -75,5 +75,5 @@ build/packages
 .DS_Store
 
 # version files
-VERSION
+version.h
 

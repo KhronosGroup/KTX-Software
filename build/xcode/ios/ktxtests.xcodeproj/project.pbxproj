@@ -80,6 +80,7 @@
 				13DE58403453D78F969AB93D /* PBXTargetDependency */,
 				8583147BA086CE61C7CB744D /* PBXTargetDependency */,
 				60AF49F67D5F21F773400170 /* PBXTargetDependency */,
+				E9474549B80D2012F7A22C85 /* PBXTargetDependency */,
 			);
 			name = "vkloadtests Support";
 			productName = "vkloadtests Support";
@@ -559,6 +560,20 @@
 			remoteGlobalIDString = 5D14C76351FD143925D22373;
 			remoteInfo = appfwSDL;
 		};
+		9E670E972E84F6F80668826C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4322E581A34BD85A7790FF99;
+			remoteInfo = version.h;
+		};
+		9F1DE24A3C4308AB5D03901E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4322E581A34BD85A7790FF99;
+			remoteInfo = version.h;
+		};
 		A6297501880C399EC28329B0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
@@ -629,6 +644,13 @@
 			remoteGlobalIDString = E63EF3CB8887944110516954;
 			remoteInfo = es3loadtests;
 		};
+		DCC356683EAC5114E380E579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4322E581A34BD85A7790FF99;
+			remoteInfo = version.h;
+		};
 		DEA08D14B9C3483C282FB6E8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
@@ -670,6 +692,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CA0BF733B14DB39E93B75C67;
 			remoteInfo = libktx.es3;
+		};
+		F6C7E0A4386387CB3BEC3416 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4322E581A34BD85A7790FF99;
+			remoteInfo = version.h;
 		};
 		FC157DA11232B55FDAFBEFD1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1750,6 +1779,7 @@
 				8F787EB143B653A4F308CB5C /* PBXTargetDependency */,
 				BE06FD24F5745B0B7FFD8C7B /* PBXTargetDependency */,
 				EEF13D4CDD687A696BC24EB8 /* PBXTargetDependency */,
+				F25B32610232B57180A77671 /* PBXTargetDependency */,
 			);
 			name = vkloadtests;
 			productName = vkloadtests;
@@ -1794,6 +1824,7 @@
 				E66F220A8A3EF3F4C0C16E9C /* PBXTargetDependency */,
 				E4634EF7D92E4FF3D4294863 /* PBXTargetDependency */,
 				FC2DD494C2C4094E73AF52A1 /* PBXTargetDependency */,
+				E23047CDB03C940F53438D6B /* PBXTargetDependency */,
 			);
 			name = es1loadtests;
 			productName = es1loadtests;
@@ -1821,6 +1852,7 @@
 				EA6C018960598A7D6AB3D93B /* PBXTargetDependency */,
 				5AAE8A542C9D53D2E9EA8DD5 /* PBXTargetDependency */,
 				144496CBF855608A009EAF12 /* PBXTargetDependency */,
+				EA78E9CBA9D55FD10B7A2EDE /* PBXTargetDependency */,
 			);
 			name = es3loadtests;
 			productName = es3loadtests;
@@ -2243,6 +2275,11 @@
 			target = E28123D177A5F5B4703C8895 /* appfwSDL Support */;
 			targetProxy = 239804169CF6F36233D15E3B /* PBXContainerItemProxy */;
 		};
+		E23047CDB03C940F53438D6B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = version.h;
+			targetProxy = 9E670E972E84F6F80668826C /* PBXContainerItemProxy */;
+		};
 		E4634EF7D92E4FF3D4294863 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
@@ -2253,15 +2290,30 @@
 			target = 09BA8FB5F992B0DCA38C21BE /* testimages */;
 			targetProxy = 7AED6BEEEACB7CE0062A20C1 /* PBXContainerItemProxy */;
 		};
+		E9474549B80D2012F7A22C85 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = version.h;
+			targetProxy = F6C7E0A4386387CB3BEC3416 /* PBXContainerItemProxy */;
+		};
 		EA6C018960598A7D6AB3D93B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 09BA8FB5F992B0DCA38C21BE /* testimages */;
 			targetProxy = 680683F2E2EB9A11042427F0 /* PBXContainerItemProxy */;
 		};
+		EA78E9CBA9D55FD10B7A2EDE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = version.h;
+			targetProxy = DCC356683EAC5114E380E579 /* PBXContainerItemProxy */;
+		};
 		EEF13D4CDD687A696BC24EB8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = vulkan_headers;
 			targetProxy = D52BBCA38105B986CC505188 /* PBXContainerItemProxy */;
+		};
+		F25B32610232B57180A77671 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = version.h;
+			targetProxy = 9F1DE24A3C4308AB5D03901E /* PBXContainerItemProxy */;
 		};
 		F7086993AD2770FA8A78501B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
