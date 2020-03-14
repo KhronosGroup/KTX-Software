@@ -75,7 +75,7 @@ appendLibIdToWriter(ktxHashList* head, ktxHashListEntry* writerEntry)
     const char idIntro[] = " / libktx ";
     ktx_uint32_t idLen;
     result = ktxHashListEntry_GetValue(writerEntry, &idLen, (void**)&id);
-    if (strnstr(id, "__default__", idLen) != NULL) {
+    if (strstr(id, "__default__") != NULL) {
         libId = STR(LIBKTX_DEFAULT_VERSION);
     } else {
         libId = STR(LIBKTX_VERSION);

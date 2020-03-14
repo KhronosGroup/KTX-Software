@@ -185,6 +185,10 @@
       <Project>{D5786794-E205-1340-D109-A32073028A53}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="version.h.vcxproj">
+      <Project>{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>

@@ -229,6 +229,12 @@
     <ClCompile Include="..\..\..\..\lib\writer1.c"/>
     <ClCompile Include="..\..\..\..\lib\writer2.c"/>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="version.h.vcxproj">
+      <Project>{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -47,10 +47,14 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{203A1C77-D790-2C33-8498-F3ADF9C31210}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{4DE25350-2030-6E8E-D09C-436DF04998C6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2660AE66-2984-EF7D-7AF2-6AF530F36C1C} = {2660AE66-2984-EF7D-7AF2-6AF530F36C1C}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{2660AE66-2984-EF7D-7AF2-6AF530F36C1C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{44DDF1C7-5039-75FC-D551-120EB02BF370} = {44DDF1C7-5039-75FC-D551-120EB02BF370}
+		{E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2} = {E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2}
 		{203A1C77-D790-2C33-8498-F3ADF9C31210} = {203A1C77-D790-2C33-8498-F3ADF9C31210}
 	EndProjectSection
 EndProject
@@ -68,6 +72,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.
 	ProjectSection(ProjectDependencies) = postProject
 		{78EDF81E-ED55-7F23-A5E7-1BCFA6716104} = {78EDF81E-ED55-7F23-A5E7-1BCFA6716104}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "version.h", "version.h.vcxproj", "{E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{44DDF1C7-5039-75FC-D551-120EB02BF370}"
 EndProject
@@ -137,6 +143,10 @@ Global
 		{D94DD6FC-9315-ADC6-D13A-B802B2E7A89C}.Debug|x64.Build.0 = Debug|x64
 		{D94DD6FC-9315-ADC6-D13A-B802B2E7A89C}.Release|x64.ActiveCfg = Release|x64
 		{D94DD6FC-9315-ADC6-D13A-B802B2E7A89C}.Release|x64.Build.0 = Release|x64
+		{E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2}.Debug|x64.ActiveCfg = Debug|x64
+		{E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2}.Debug|x64.Build.0 = Debug|x64
+		{E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2}.Release|x64.ActiveCfg = Release|x64
+		{E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

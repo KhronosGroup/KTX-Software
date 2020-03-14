@@ -139,8 +139,8 @@
       'actions': [{
         'action_name': 'genversion',
         'inputs': [
-          '../../gen-version',
-          '../../.git'
+          '../gen-version',
+          '../.git'
         ],
         'outputs': [ '<(version_file)' ],
         'action': [ './gen-version', '-o', 'version.h', 'lib' ],

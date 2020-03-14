@@ -61,6 +61,12 @@
     <Filter Include="tools\toktx">
       <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
     </Filter>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp">
@@ -97,5 +103,11 @@
       <Filter>tools\toktx</Filter>
     </ClCompile>
     <None Include="..\..\..\..\ktxtools.gyp"/>
+    <None Include="..\..\..\..\gen-version">
+      <Filter>_excluded_files</Filter>
+    </None>
+    <None Include="..\..\..\..\.git">
+      <Filter>_excluded_files</Filter>
+    </None>
   </ItemGroup>
 </Project>

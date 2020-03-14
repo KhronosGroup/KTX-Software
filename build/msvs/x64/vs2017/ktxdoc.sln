@@ -8,7 +8,23 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxpkg.doc", "ktxpkg.doc.vc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{A1A4933E-BBFB-A51B-FDED-306933C5CEF4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{9BC92E4F-6E47-FBFF-8042-72CE18ADE475}"
+	ProjectSection(ProjectDependencies) = postProject
+		{620E7140-06AD-551D-2FA9-8C20620B9DF8} = {620E7140-06AD-551D-2FA9-8C20620B9DF8}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{620E7140-06AD-551D-2FA9-8C20620B9DF8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3912F5B3-26E3-AF72-E487-5542E0D023A2} = {3912F5B3-26E3-AF72-E487-5542E0D023A2}
+		{8067EA64-6997-5A21-6DAF-B2E76BF0EB94} = {8067EA64-6997-5A21-6DAF-B2E76BF0EB94}
+		{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD} = {1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "version.h", "version.h.vcxproj", "{8067EA64-6997-5A21-6DAF-B2E76BF0EB94}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{3912F5B3-26E3-AF72-E487-5542E0D023A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,6 +32,22 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}.Debug|x64.ActiveCfg = Debug|x64
+		{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}.Debug|x64.Build.0 = Debug|x64
+		{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}.Release|x64.ActiveCfg = Release|x64
+		{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}.Release|x64.Build.0 = Release|x64
+		{3912F5B3-26E3-AF72-E487-5542E0D023A2}.Debug|x64.ActiveCfg = Debug|x64
+		{3912F5B3-26E3-AF72-E487-5542E0D023A2}.Debug|x64.Build.0 = Debug|x64
+		{3912F5B3-26E3-AF72-E487-5542E0D023A2}.Release|x64.ActiveCfg = Release|x64
+		{3912F5B3-26E3-AF72-E487-5542E0D023A2}.Release|x64.Build.0 = Release|x64
+		{620E7140-06AD-551D-2FA9-8C20620B9DF8}.Debug|x64.ActiveCfg = Debug|x64
+		{620E7140-06AD-551D-2FA9-8C20620B9DF8}.Debug|x64.Build.0 = Debug|x64
+		{620E7140-06AD-551D-2FA9-8C20620B9DF8}.Release|x64.ActiveCfg = Release|x64
+		{620E7140-06AD-551D-2FA9-8C20620B9DF8}.Release|x64.Build.0 = Release|x64
+		{8067EA64-6997-5A21-6DAF-B2E76BF0EB94}.Debug|x64.ActiveCfg = Debug|x64
+		{8067EA64-6997-5A21-6DAF-B2E76BF0EB94}.Debug|x64.Build.0 = Debug|x64
+		{8067EA64-6997-5A21-6DAF-B2E76BF0EB94}.Release|x64.ActiveCfg = Release|x64
+		{8067EA64-6997-5A21-6DAF-B2E76BF0EB94}.Release|x64.Build.0 = Release|x64
 		{809888BE-46BF-0F79-CCEE-40624F54E034}.Debug|x64.ActiveCfg = Debug|x64
 		{809888BE-46BF-0F79-CCEE-40624F54E034}.Debug|x64.Build.0 = Debug|x64
 		{809888BE-46BF-0F79-CCEE-40624F54E034}.Release|x64.ActiveCfg = Release|x64

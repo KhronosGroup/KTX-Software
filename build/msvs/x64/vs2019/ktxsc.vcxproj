@@ -132,6 +132,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtools.gyp"/>
+    <None Include="..\..\..\..\.git">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
@@ -140,6 +143,16 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp"/>
     <ClCompile Include="..\..\..\..\tools\ktxsc\ktxsc.cpp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\gen-version">
+      <FileType>Document</FileType>
+      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./gen-version\&quot; \&quot;-o\&quot; \&quot;version.h\&quot; \&quot;tools/ktxsc\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>genversion</Message>
+      <Outputs>..\..\..\..\tools\ktxsc\version.h</Outputs>
+      <LinkObjects>false</LinkObjects>
+      <AdditionalInputs>..\..\..\..\.git</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libktx.gl.vcxproj">

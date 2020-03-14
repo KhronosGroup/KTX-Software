@@ -19,6 +19,12 @@
     <Filter Include="tools\ktx2ktx2">
       <UniqueIdentifier>{F903D08D-6D9F-A1B5-CB58-35DA8B95E3CD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp">
@@ -34,5 +40,11 @@
       <Filter>tools\ktx2ktx2</Filter>
     </ClInclude>
     <None Include="..\..\..\..\ktxtools.gyp"/>
+    <None Include="..\..\..\..\gen-version">
+      <Filter>_excluded_files</Filter>
+    </None>
+    <None Include="..\..\..\..\.git">
+      <Filter>_excluded_files</Filter>
+    </None>
   </ItemGroup>
 </Project>
