@@ -342,14 +342,12 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 
     result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
                                    &pEntry);
-    if (result != KTX_SUCCESS) {
-        // KTXwriter is required in KTX2. Caller must set it.
-        return KTX_INVALID_OPERATION;
-    } else {
-        result = appendLibId(&This->kvDataHead, pEntry);
-        if (result != KTX_SUCCESS)
-            return result;
-    }
+    pEntry = NULL;
+    result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
+                                   &pEntry);
+    result = appendLibId(&This->kvDataHead, pEntry);
+    if (result != KTX_SUCCESS)
+        return result;
 
     ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
