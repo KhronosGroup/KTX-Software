@@ -20,6 +20,7 @@ EXPORTS
 	??0Resampler@basisu@@QEAA@HHHHW4Boundary_Op@01@MMPEBDPEAUContrib_List@01@2MMMM@Z
 	?put_line@Resampler@basisu@@QEAA_NPEBM@Z
 	?get_line@Resampler@basisu@@QEAAPEBMXZ
+	appendLibId
     createDFDUnpacked
     createDFDPacked
     createDFDCompressed

@@ -48,7 +48,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{967359B1-4F65-53AC-1706-811F22BD00A6}"
 	ProjectSection(ProjectDependencies) = postProject
-		{41CEBDB2-D52F-C759-BE77-94847732446D} = {41CEBDB2-D52F-C759-BE77-94847732446D}
+		{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4} = {A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.gl", "libktx.gl.vcxproj", "{41CEBDB2-D52F-C759-BE77-94847732446D}"

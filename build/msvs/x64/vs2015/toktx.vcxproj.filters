@@ -103,7 +103,7 @@
       <Filter>tools\toktx</Filter>
     </ClCompile>
     <None Include="..\..\..\..\ktxtools.gyp"/>
-    <None Include="..\..\..\..\gen-version">
+    <None Include="..\..\..\..\mkversion">
       <Filter>_excluded_files</Filter>
     </None>
     <None Include="..\..\..\..\.git">

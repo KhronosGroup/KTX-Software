@@ -117,10 +117,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\..\gen-version">
+    <CustomBuild Include="..\..\..\..\mkversion">
       <FileType>Document</FileType>
-      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./gen-version\&quot; \&quot;-o\&quot; \&quot;version.h\&quot; \&quot;lib\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>genversion</Message>
+      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./mkversion\&quot; \&quot;-o\&quot; \&quot;version.h\&quot; \&quot;lib\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>mkversion</Message>
       <Outputs>..\..\..\..\lib\version.h</Outputs>
       <LinkObjects>false</LinkObjects>
       <AdditionalInputs>..\..\..\..\.git</AdditionalInputs>

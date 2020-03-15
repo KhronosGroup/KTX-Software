@@ -10,7 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\libktx.gyp"/>
-    <None Include="..\..\..\..\gen-version">
+    <None Include="..\..\..\..\mkversion">
       <Filter>_excluded_files</Filter>
     </None>
     <None Include="..\..\..\..\.git">
