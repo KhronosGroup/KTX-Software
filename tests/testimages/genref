@@ -81,10 +81,10 @@ $toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx up.ppm
 $toktx orient-down-metadata.ktx up.ppm
 $toktx --lower_left_maps_to_s0t0 --mipmap --nometadata rgb-mipmap-reference.ktx level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 $toktx --lower_left_maps_to_s0t0 --nometadata rgba-reference.ktx rgba.pam
-$toktx --bcmp alpha_simple_basis.ktx2 alpha_simple.png
-$toktx --bcmp kodim17_basis.ktx2 kodim17.png
-$toktx --bcmp color_grid_basis.ktx2 color_grid.png
-$toktx --t2 --bcmp --mipmap rgba-mipmap-reference-basis.ktx2 level0-alpha.ppm level1-alpha.ppm level2-alpha.ppm level3-alpha.ppm level4-alpha.ppm level5-alpha.ppm level6-alpha.ppm
+$toktx --bcmp --test alpha_simple_basis.ktx2 alpha_simple.png
+$toktx --bcmp --test kodim17_basis.ktx2 kodim17.png
+$toktx --bcmp --test color_grid_basis.ktx2 color_grid.png
+$toktx --t2 --bcmp --mipmap --test rgba-mipmap-reference-basis.ktx2 level0-alpha.pam level1-alpha.pam level2-alpha.pam level3-alpha.pam level4-alpha.pam level5-alpha.pam level6-alpha.pam
 
 # ... and additional files for the load tests.
 

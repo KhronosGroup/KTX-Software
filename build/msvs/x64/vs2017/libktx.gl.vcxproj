@@ -244,6 +244,10 @@
       <Project>{3912F5B3-26E3-AF72-E487-5542E0D023A2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="version.h.vcxproj">
+      <Project>{8067EA64-6997-5A21-6DAF-B2E76BF0EB94}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="libgl.vcxproj">
       <Project>{1A960E57-88AA-E6D2-EFCF-BF21423AFAAD}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

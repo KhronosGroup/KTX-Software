@@ -31,6 +31,34 @@ add_dependencies(libvulkan
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:version.h#target
+set(TARGET "version.h")
+set(TOOLSET "target")
+list(APPEND version_h__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(version_h__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/version.h")
+add_custom_command(OUTPUT ${version_h__mkversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory lib
+  COMMAND ./mkversion -o version.h lib
+  DEPENDS ${version_h__mkversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT version_h__mkversion
+  VERBATIM
+)
+add_custom_target(version_h__mkversion
+  DEPENDS ${version_h__mkversion__output}
+  SOURCES ${version_h__mkversion__input}
+)
+add_custom_target(version_h SOURCES)
+set_target_properties(version_h PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(version_h__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(version_h
+  version_h__mkversion
+)
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:libktx.es3#target
 set(TARGET "libktx.es3")
 set(TOOLSET "target")
@@ -155,6 +183,9 @@ set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_A
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+add_dependencies(libktx_es3
+  version_h
+)
 unset(TOOLSET)
 unset(TARGET)
 
@@ -190,6 +221,9 @@ set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_CODE_SI
 set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(msc_basis_transcoder_js
+  version_h
+)
 target_link_libraries(msc_basis_transcoder_js
   libktx_es3
 )
@@ -239,6 +273,7 @@ set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PA
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(libktx_js
   libgles3
+  version_h
 )
 target_link_libraries(libktx_js
   libktx_es3
@@ -329,10 +364,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_basis_rd.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc2_srgb.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app_basis.ktx2"
@@ -383,10 +415,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${builddir}/testimages/alpha_simple_basis.ktx2"
   "${builddir}/testimages/color_grid_basis.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
   "${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${builddir}/testimages/kodim17_basis.ktx2"
   "${builddir}/testimages/ktx_app-u.ktx2"
   "${builddir}/testimages/ktx_app_basis.ktx2"
@@ -438,10 +467,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2 ${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app-u.ktx2 ${builddir}/testimages/ktx_app-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app_basis.ktx2 ${builddir}/testimages/ktx_app_basis.ktx2
@@ -617,6 +643,7 @@ add_dependencies(es3loadtests_html
   libgles3
   testimages
   libsdl
+  version_h
 )
 target_link_libraries(es3loadtests_html
 -Wl,--start-group

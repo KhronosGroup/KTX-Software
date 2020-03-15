@@ -2,6 +2,20 @@
 
 TOOLSET := target
 TARGET := ktx2check
+### Rules for action "mkversion":
+quiet_cmd_ktxtools_gyp_ktx2check_target_mkversion = ACTION ktxtools_gyp_ktx2check_target_mkversion $@
+cmd_ktxtools_gyp_ktx2check_target_mkversion = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p tools/ktx2check; ./mkversion -o version.h tools/ktx2check
+
+tools/ktx2check/version.h: obj := $(abs_obj)
+tools/ktx2check/version.h: builddir := $(abs_builddir)
+tools/ktx2check/version.h: TOOLSET := $(TOOLSET)
+tools/ktx2check/version.h: $(srcdir)/mkversion $(srcdir)/.git FORCE_DO_CMD
+	$(call do_cmd,ktxtools_gyp_ktx2check_target_mkversion)
+
+all_deps += tools/ktx2check/version.h
+action_ktxtools_gyp_ktx2check_target_mkversion_outputs := tools/ktx2check/version.h
+
+
 DEFS_Debug := \
 	'-DDEBUG' \
 	'-D_DEBUG'
@@ -58,6 +72,9 @@ all_deps += $(OBJS)
 # Make sure our dependencies are built before any of us.
 $(OBJS): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
 
+# Make sure our actions/rules run before any of us.
+$(OBJS): | $(action_ktxtools_gyp_ktx2check_target_mkversion_outputs)
+
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
 $(OBJS): TOOLSET := $(TOOLSET)
@@ -79,6 +96,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
+# Build our special outputs first.
+$(builddir)/ktx2check: | $(action_ktxtools_gyp_ktx2check_target_mkversion_outputs)
+
+# Preserve order dependency of special output on deps.
+$(action_ktxtools_gyp_ktx2check_target_mkversion_outputs): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
+
 LDFLAGS_Debug := \
 	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \

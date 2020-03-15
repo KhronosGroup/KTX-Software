@@ -102,23 +102,22 @@ fi
 
 # Generate reference files for toktx-tests ...
 
-$ktx2ktx2 -f cubemap_yokohama_astc_8x8_unorm.ktx
-$ktx2ktx2 -f cubemap_yokohama_bc3_unorm.ktx
-$ktx2ktx2 -f cubemap_yokohama_etc2_unorm.ktx
-$ktx2ktx2 -f -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
-$ktx2ktx2 -f -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
-$ktx2ktx2 -f pattern_02_bc2.ktx
-$ktx2ktx2 -f -o rgb-mipmap-reference-u.ktx2 rgb-mipmap-reference.ktx
-$ktx2ktx2 -f -o rgba-reference-u.ktx2 rgba-reference.ktx
-$ktx2ktx2 -f texturearray_astc_8x8_unorm.ktx
-$ktx2ktx2 -f texturearray_bc3_unorm.ktx
-$ktx2ktx2 -f texturearray_etc2_unorm.ktx
-$toktx --t2 --mipmap rgb-mipmap-reference-u.ktx2 level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
-$toktx --bcmp FlightHelmet_baseColor_basis.ktx2  FlightHelmet_baseColor.png
-$toktx --bcmp alpha_simple_basis.ktx2 alpha_simple.png
-$toktx --bcmp kodim17_basis.ktx2 kodim17.png
-$toktx --bcmp color_grid_basis.ktx2 color_grid.png
+$ktx2ktx2 --test -f -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
+$ktx2ktx2 --test -f -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
+$ktx2ktx2 --test -f pattern_02_bc2.ktx
+$ktx2ktx2 --test -f -o rgb-mipmap-reference-u.ktx2 rgb-mipmap-reference.ktx
+$ktx2ktx2 --test -f -o rgba-reference-u.ktx2 rgba-reference.ktx
+$ktx2ktx2 --test -f texturearray_astc_8x8_unorm.ktx
+$ktx2ktx2 --test -f texturearray_bc3_unorm.ktx
+$ktx2ktx2 --test -f texturearray_etc2_unorm.ktx
+$toktx --test --t2 --mipmap rgb-mipmap-reference-u.ktx2 level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
+$toktx --test --bcmp FlightHelmet_baseColor_basis.ktx2  FlightHelmet_baseColor.png
+$toktx --test --bcmp alpha_simple_basis.ktx2 alpha_simple.png
+$toktx --test --bcmp kodim17_basis.ktx2 kodim17.png
+$toktx --test --bcmp color_grid_basis.ktx2 color_grid.png
 
 # ... and additional files for the load tests.
 
-$toktx --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx rgb.ppm
+$toktx --test --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx rgb.ppm
+
+#$toktx --test --cubemap --genmipmap --bcmp cubemap_yokohama_basis_rd.ktx2 @@yokohama3/filelist.txt

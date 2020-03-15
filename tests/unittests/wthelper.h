@@ -52,6 +52,9 @@ class wthTexInfo : public ktxTextureCreateInfo {
         ktx_uint32_t headerNumLayers;
 };
 
+extern "C" KTX_error_code appendLibId(ktxHashList* head,
+                                      ktxHashListEntry* writerEntry);
+
 /**
  * @internal @~English
  * @brief Template class for creating writer test helpers.
@@ -72,9 +75,7 @@ class WriterTestHelper {
     };
     typedef ktx_uint32_t createFlags;
 
-    WriterTestHelper() { 
-        memcpy(writer_ktx2, "WriteTestHelper 1.0", sizeof(writer_ktx2));
-    }
+    WriterTestHelper() : writer_ktx2("WriteTestHelper 1.0 __default__") { }
 
     ~WriterTestHelper() {
         ktxHashList_Destruct(&kvHash);
@@ -179,8 +180,15 @@ class WriterTestHelper {
 
         ktxHashList_Construct(&kvHash_ktx2);
         ktxHashList_AddKVPair(&kvHash_ktx2, KTX_WRITER_KEY,
-                              sizeof(writer_ktx2),
-                              writer_ktx2);
+                              (ktx_uint32_t)writer_ktx2.size(),
+                              writer_ktx2.data());
+
+        // Get the library to add its Id to the writer key so it will be
+        // included in the serialized data.
+        ktxHashListEntry* pWriter;
+        ktxHashList_FindEntry(&kvHash_ktx2, KTX_WRITER_KEY,
+                              &pWriter);
+        appendLibId(&kvHash_ktx2, pWriter);
 
         ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
         ktxHashList_AddKVPair(&kvHash_ktx2, KTX_ORIENTATION_KEY,
@@ -312,7 +320,9 @@ class WriterTestHelper {
     ktxHashList kvHash;
     ktxHashList kvHash_ktx2;
     char orientation_ktx2[4];
-    char writer_ktx2[20];
+    std::string writer_ktx2;
+    std::string comparisonWriter_ktx2;
+    
 
     ktx_size_t imageDataSize;
     std::vector< std::vector < std::vector < std::vector<component_type> > > > images;

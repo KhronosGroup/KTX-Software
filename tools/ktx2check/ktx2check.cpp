@@ -39,7 +39,7 @@
 #include "dfdutils/dfd.h"
 #include "texture.h"
 #include "basis_sgd.h"
-// Gotta love Windows :-(
+// Gotta love Windows :-)
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
   #if defined(_WIN64)
@@ -50,9 +50,9 @@
     #define fseeko fseek
   #endif
 #endif
+#include "version.h"
 
-#define VERSION "1.0.0 alpha"
-std::string myversion(VERSION);
+std::string myversion(STR(KTX2CHECK_VERSION));
 
 /** @page ktx2check ktx2check
 @~English
@@ -400,13 +400,13 @@ class validation_failed : public runtime_error {
 
 // Increase nbytes to make it a multiple of n. Works for any n.
 size_t padn(uint32_t n, size_t nbytes) {
-    return n * ceilf((float)nbytes / n);
+    return (size_t)(n * ceilf((float)nbytes / n));
 }
 
 // Calculate number of bytes to add to nbytes to make it a multiple of n.
 // Works for any n.
 uint32_t padn_len(uint32_t n, size_t nbytes) {
-    return (n * ceilf((float)nbytes / n)) - nbytes;
+    return (uint32_t)((n * ceilf((float)nbytes / n)) - nbytes);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1173,11 +1173,11 @@ ktxValidator::validateDfd(validationContext& ctx)
                   && channelID != KHR_DF_CHANNEL_RGBSDA_B
                   && channelID != KHR_DF_CHANNEL_RGBSDA_A)
                   addIssue(logger::eError, DFD.InvalidChannelForBasis);
-              if (KHR_DFDSVAL(bdb, sample, BITOFFSET != 0)
-                  && KHR_DFDSVAL(bdb, sample, BITLENGTH != 0))
+              if (KHR_DFDSVAL(bdb, sample, BITOFFSET) != 0
+                  && KHR_DFDSVAL(bdb, sample, BITLENGTH) != 0)
                   addIssue(logger::eError, DFD.NonZeroLengthOrOffset);
-              if (KHR_DFDSVAL(bdb, sample, SAMPLELOWER != 0)
-                  && KHR_DFDSVAL(bdb, sample, SAMPLEUPPER != 0))
+              if (KHR_DFDSVAL(bdb, sample, SAMPLELOWER) != 0
+                  && KHR_DFDSVAL(bdb, sample, SAMPLEUPPER) != 0)
                   addIssue(logger::eError, DFD.NonZeroUpperOrLower);
           }
           break;
@@ -1557,11 +1557,11 @@ ktxValidator::validateDataSize(validationContext& ctx)
     // the start of the data.
     off_t dataSizeInFile;
     if (ctx.inf != stdin) {
-        off_t dataStart = ftello(ctx.inf);
+        off_t dataStart = (off_t)ftello(ctx.inf);
         if (fseeko(ctx.inf, 0, SEEK_END) < 0)
             addIssue(logger::eFatal, IOError.FileSeekEndFailure,
                      strerror(errno));
-        off_t dataEnd = ftello(ctx.inf);
+        off_t dataEnd = (off_t)ftello(ctx.inf);
         if (dataEnd < 0)
             addIssue(logger::eFatal, IOError.FileTellFailure, strerror(errno));
         dataSizeInFile = dataEnd - dataStart;

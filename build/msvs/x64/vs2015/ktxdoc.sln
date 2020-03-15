@@ -9,6 +9,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ktxtools.doc", "ktxtools.doc.vcxproj", "{10369A2C-2C1E-B70B-D6A1-9305F50CE860}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx.doc", "libktx.doc.vcxproj", "{967359B1-4F65-53AC-1706-811F22BD00A6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4} = {A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "version.h", "version.h.vcxproj", "{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +33,10 @@ Global
 		{967359B1-4F65-53AC-1706-811F22BD00A6}.Debug|x64.Build.0 = Debug|x64
 		{967359B1-4F65-53AC-1706-811F22BD00A6}.Release|x64.ActiveCfg = Release|x64
 		{967359B1-4F65-53AC-1706-811F22BD00A6}.Release|x64.Build.0 = Release|x64
+		{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}.Debug|x64.ActiveCfg = Debug|x64
+		{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}.Debug|x64.Build.0 = Debug|x64
+		{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}.Release|x64.ActiveCfg = Release|x64
+		{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

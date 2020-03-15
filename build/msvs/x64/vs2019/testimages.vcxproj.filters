@@ -301,24 +301,6 @@
     <Filter Include="tests\testimages">
       <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtests.gyp"/>
@@ -424,16 +406,7 @@
     <None Include="..\..\..\..\tests\testimages\color_grid_basis.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\cubemap_yokohama_astc_8x8_srgb.ktx2">
-      <Filter>tests\testimages</Filter>
-    </None>
     <None Include="..\..\..\..\tests\testimages\cubemap_yokohama_basis_rd.ktx2">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\cubemap_yokohama_bc2_srgb.ktx2">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\cubemap_yokohama_etc2_srgb.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\FlightHelmet_baseColor_basis.ktx2">

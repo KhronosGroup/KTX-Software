@@ -49,6 +49,7 @@
 #include "dfdutils/dfd.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
+#include "version.h"
 
 #if defined(_MSC_VER)
 #define strncasecmp _strnicmp
@@ -508,6 +509,8 @@ ktxTexture1_WriteToMemory(ktxTexture1* This,
 }
 
 ktx_uint32_t lcm4(uint32_t a);
+KTX_error_code appendLibId(ktxHashList* head,
+                           ktxHashListEntry* writerEntry);
 
 /**
  * @memberof ktxTexture @private
@@ -619,7 +622,7 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
             result = KTX_FILE_DATA_ERROR;
             goto cleanup;
         } else if (count > This->numDimensions) {
-            // KTX 1 is less strict than KTX2 so there is a chance of having
+            // KTX 1 is less strict than KTX 2 so there is a chance of having
             // more dimensions than needed.
             count = This->numDimensions;
             newOrient[count] = '\0';
@@ -629,13 +632,12 @@ ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         ktxHashList_AddKVPair(&This->kvDataHead, KTX_ORIENTATION_KEY,
                               count+1, newOrient);
     }
+    pEntry = NULL;
     result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
                                    &pEntry);
-    if (result != KTX_SUCCESS) {
-        // KTXwriter is required in KTX2. Caller must set it.
-        result = KTX_INVALID_OPERATION;
+    result = appendLibId(&This->kvDataHead, pEntry);
+    if (result != KTX_SUCCESS)
         goto cleanup;
-    }
 
     ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);

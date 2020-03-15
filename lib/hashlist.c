@@ -291,7 +291,7 @@ ktxHashList_DeleteEntry(ktxHashList* pHead, ktxHashListEntry* pEntry)
  *
  * @param [in]     pHead        pointer to the head of the target hash list.
  * @param [in]     key          pointer to a UTF8 NUL-terminated string to find.
- * @param [in,out] ppEntry      @p *ppEntry is set to the point the
+ * @param [in,out] ppEntry      @p *ppEntry is set to the point at the
  *                              ktxHashListEntry.
  *
  * @return KTX_SUCCESS or one of the following error codes.
@@ -576,8 +576,7 @@ ktxHashListEntry_GetKey(ktxHashListEntry* This,
  * @param [in]      This        The target hash list entry.
  * @param [in,out] pValueLen    @p *pValueLen is set to the number of bytes of
  *                              data in the returned value.
- * @param [in,out] ppValue      @p *ppValue is set to the point to the value for
- *                              @p key.
+ * @param [in,out] ppValue      @p *ppValue is set to point to the value for @p key.
  *
  * @return KTX_SUCCESS or one of the following error codes.
  *

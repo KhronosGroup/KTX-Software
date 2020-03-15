@@ -42,6 +42,16 @@
               'SubSystem': '1',
             },
           },
+          'actions': [{
+            'action_name': 'mkversion',
+            'inputs': [
+              '../../mkversion',
+              '../../.git'
+            ],
+            'outputs': [ 'version.h' ],
+            'msvs_cygwin_shell': 1,
+            'action': [ './mkversion', '-o', 'version.h', 'tools/ktxsc' ],
+          }],
         }, # ktxsc target
 #        {
 #          'target_name': 'ktxsc-tests',

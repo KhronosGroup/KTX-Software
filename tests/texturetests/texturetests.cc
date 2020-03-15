@@ -1697,6 +1697,10 @@ class ktxTexture1WriteKTX2TestBase
         ktx_uint8_t* ktxMemFile;
         ktx_size_t ktxMemFileLen;
         ktx_uint8_t* filePtr;
+        ktxHashList* hl;
+        ktxHashList_Create(&hl);
+        ktx_uint8_t* kvData;
+        ktx_uint32_t kvDataLen;
 
         result = ktxTexture1_Create(&helper.createInfo,
                                    KTX_TEXTURE_CREATE_ALLOC_STORAGE,
@@ -1710,12 +1714,27 @@ class ktxTexture1WriteKTX2TestBase
             ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY,
                                   (unsigned int)strlen(helper.orientation) + 1,
                                   helper.orientation);
+            // This is for the comparison metadata.
+            ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY,
+                                  (unsigned int)strlen(helper.orientation_ktx2) + 1,
+                                  helper.orientation_ktx2);
         }
         if (writeWriterMeta) {
             ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                                  sizeof(helper.writer_ktx2),
-                                  helper.writer_ktx2);
+                                  (uint32_t)helper.writer_ktx2.size(),
+                                  helper.writer_ktx2.data());
+            ktxHashList_AddKVPair(hl, KTX_WRITER_KEY,
+                                  (uint32_t)helper.writer_ktx2.size(),
+                                  helper.writer_ktx2.data());
         }
+        // Now update the comparison metadata by doing the things WriteKTX2 is
+        // supposed to do so we can check it's actually doing it..
+        ktxHashListEntry* pWriter = nullptr;;
+        ktxHashList_FindEntry(hl, KTX_WRITER_KEY, &pWriter);
+        appendLibId(hl, pWriter);
+        ktxHashList_Sort(hl);
+        // And retrieve the comparison metadata.
+        ktxHashList_Serialize(hl, &kvDataLen, &kvData);
 
         result = helper.copyImagesToTexture(texture);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -1725,61 +1744,63 @@ class ktxTexture1WriteKTX2TestBase
         result = ktxTexture1_WriteKTX2ToMemory(texture,
                                                &ktxMemFile,
                                                &ktxMemFileLen);
-        if (writeWriterMeta) {
-            ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteKTX2ToMemory failed: "
-                                               << ktxErrorString(result);
 
-            KTX_header2* header = (KTX_header2*)ktxMemFile;
+        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteKTX2ToMemory failed: "
+                                           << ktxErrorString(result);
 
-            EXPECT_EQ(memcmp(header, ktxId2, sizeof(ktxId2)), 0);
-            EXPECT_EQ(helper.texinfo.compare(header), true);
+        KTX_header2* header = (KTX_header2*)ktxMemFile;
 
-            // Check the format descriptor.
-            // This uses the same code to generate the comparator DFD as the
-            // code under test. However we have separate tests for the
-            // generator, so can be reasonably confident in it. This test
-            // ensures there is a DFD in the file.
-            ktx_uint32_t* dfd = vk2dfd(static_cast<VkFormat>(header->vkFormat));
-            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
-                             dfd,
-                             *dfd), 0);
+        EXPECT_EQ(memcmp(header, ktxId2, sizeof(ktxId2)), 0);
+        EXPECT_EQ(helper.texinfo.compare(header), true);
 
-            // Check the metadata.
-            filePtr = ktxMemFile + header->keyValueData.byteOffset;
-            if (writeOrientationMeta) {
-                EXPECT_EQ(header->keyValueData.byteLength,
-                          helper.kvDataLenAll_ktx2);
-                EXPECT_EQ(memcmp(filePtr, helper.kvDataAll_ktx2,
-                                 helper.kvDataLenAll_ktx2), 0);
-                filePtr += helper.kvDataLenAll_ktx2;
-            } else {
-                EXPECT_EQ(header->keyValueData.byteLength,
-                          helper.kvDataLenWriter_ktx2);
-                EXPECT_EQ(memcmp(filePtr, helper.kvDataWriter_ktx2,
-                                 helper.kvDataLenWriter_ktx2), 0);
-                filePtr += helper.kvDataLenWriter_ktx2;
-            }
+        // Check the format descriptor.
+        // This uses the same code to generate the comparator DFD as the
+        // code under test. However we have separate tests for the
+        // generator, so can be reasonably confident in it. This test
+        // ensures there is a DFD in the file.
+        ktx_uint32_t* dfd = vk2dfd(static_cast<VkFormat>(header->vkFormat));
+        EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
+                         dfd,
+                         *dfd), 0);
 
-            // Offset of level 0 is first item in leveIndex after header.
-            ktxLevelIndexEntry* levelIndex =
-                reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
+        // Check the metadata.
+        filePtr = ktxMemFile + header->keyValueData.byteOffset;
+        EXPECT_EQ(header->keyValueData.byteLength, kvDataLen);
+        EXPECT_EQ(memcmp(filePtr, kvData, kvDataLen), 0);
+        filePtr += kvDataLen;
 
-            ktx_uint64_t prevOffset = UINT64_MAX;
-            for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
-                ktx_uint64_t levelOffset = levelIndex[level].byteOffset;
-                // Check offset is properly aligned.
-                EXPECT_EQ(levelOffset % requiredLevelAlignment, 0);
-                // Check mipmaps are in order of increasing size in the file
-                // therefore each offset should be smaller than the previous.
-                EXPECT_LE(levelOffset, prevOffset);
-                prevOffset = levelOffset;
-            }
-
-            EXPECT_EQ(helper.compareRawImages(levelIndex, ktxMemFile), true);
-            delete ktxMemFile;
+#if 0
+        if (writeOrientationMeta) {
+            EXPECT_EQ(header->keyValueData.byteLength,
+                      helper.kvDataLenAll_ktx2);
+            EXPECT_EQ(memcmp(filePtr, helper.kvDataAll_ktx2,
+                             helper.kvDataLenAll_ktx2), 0);
+            filePtr += helper.kvDataLenAll_ktx2;
         } else {
-            EXPECT_EQ(result, KTX_INVALID_OPERATION);
+            EXPECT_EQ(header->keyValueData.byteLength,
+                      helper.kvDataLenWriter_ktx2);
+            EXPECT_EQ(memcmp(filePtr, helper.kvDataWriter_ktx2,
+                             helper.kvDataLenWriter_ktx2), 0);
+            filePtr += helper.kvDataLenWriter_ktx2;
         }
+#endif
+        // Offset of level 0 is first item in leveIndex after header.
+        ktxLevelIndexEntry* levelIndex =
+            reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
+
+        ktx_uint64_t prevOffset = UINT64_MAX;
+        for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
+            ktx_uint64_t levelOffset = levelIndex[level].byteOffset;
+            // Check offset is properly aligned.
+            EXPECT_EQ(levelOffset % requiredLevelAlignment, 0);
+            // Check mipmaps are in order of increasing size in the file
+            // therefore each offset should be smaller than the previous.
+            EXPECT_LE(levelOffset, prevOffset);
+            prevOffset = levelOffset;
+        }
+
+        EXPECT_EQ(helper.compareRawImages(levelIndex, ktxMemFile), true);
+        delete ktxMemFile;
         ktxTexture_Destroy(ktxTexture(texture));
     }
 
@@ -1807,8 +1828,8 @@ class ktxTexture1WriteKTX2TestBase
         char rubbishValue[] = "some rubbish value";
         for (uint32_t i = 0; i < 2; i++) {
             ktxHashList_AddKVPair(hlists[i], KTX_WRITER_KEY,
-                                  sizeof(helper.writer_ktx2),
-                                  helper.writer_ktx2);
+                                  (uint32_t)helper.writer_ktx2.size(),
+                                  helper.writer_ktx2.data());
             if (unrecognizedKey) {
                 ktxHashList_AddKVPair(hlists[i], unrecognizedKey,
                                       sizeof(rubbishValue),
@@ -1821,6 +1842,12 @@ class ktxTexture1WriteKTX2TestBase
             }
             ktxHashList_Sort(hlists[i]);
         }
+        // Get the library to add its Id to the writer key so it will be
+        // included in the serialized data.
+        ktxHashListEntry* pWriter;
+        ktxHashList_FindEntry(hl, KTX_WRITER_KEY, &pWriter);
+        appendLibId(hl, pWriter);
+        ktxHashList_Sort(hl);
         ktxHashList_Serialize(hl, &kvDataLen, &kvData);
         ktxHashList_Destruct(hl);
 
@@ -2037,8 +2064,8 @@ class ktxTexture2ReadTestBase
                               (unsigned int)strlen(helper.orientation) + 1,
                               helper.orientation);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                              sizeof(helper.writer_ktx2),
-                              helper.writer_ktx2);
+                              (uint32_t)helper.writer_ktx2.size(),
+                              helper.writer_ktx2.data());
 
         result = helper.copyImagesToTexture(texture);
         EXPECT_EQ(result, KTX_SUCCESS);

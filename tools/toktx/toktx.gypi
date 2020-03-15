@@ -61,7 +61,17 @@
               '-Wno-gnu-anonymous-struct',
             ],
           },
-        }, # toktx target
+         'actions': [{
+           'action_name': 'mkversion',
+           'inputs': [
+             '../../mkversion',
+             '../../.git'
+           ],
+           'outputs': [ 'version.h' ],
+           'msvs_cygwin_shell': 1,
+           'action': [ './mkversion', '-o', 'version.h', 'tools/toktx' ],
+         }],
+       }, # toktx target
         {
           'target_name': 'toktx-tests',
           'type': 'none',

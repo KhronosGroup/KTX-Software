@@ -115,6 +115,7 @@
       '../include',
       '../other_include',
     ],
+    'version_file': 'version.h',
   }, # variables
 
   'includes': [
@@ -131,6 +132,22 @@
       'DSTROOT': '/tmp/ktx.dst',
   },
 
+  'targets': [
+    {
+      'target_name': 'version.h',
+      'type': 'none',
+      'actions': [{
+        'action_name': 'mkversion',
+        'inputs': [
+          '../mkversion',
+          '../.git'
+        ],
+        'outputs': [ '<(version_file)' ],
+        'msvs_cygwin_shell': 1,
+        'action': [ './mkversion', '-o', 'version.h', 'lib' ],
+      }],
+    },
+  ],
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
       'targets': [
@@ -153,7 +170,7 @@
           },
           'include_dirs': [ '<@(include_dirs)' ],
           'mac_bundle': 0,
-          'dependencies': [ 'vulkan_headers' ],
+          'dependencies': [ 'vulkan_headers', 'version.h' ],
           'sources': [
             '<@(sources)',
             '<@(vksource_files)',
@@ -297,6 +314,8 @@
               ],
             }, # buildLibktxDoc action
           ], # actions
+          # For 'version.h'.
+          'dependencies': [ 'version.h' ],
         }, # libktx.doc
         {
           'target_name': 'mkvkformatfiles',
@@ -441,6 +460,7 @@
             'include_dirs': [ '<@(include_dirs)' ],
             'defines': [ 'KHRONOS_STATIC=1' ],
           },
+          'dependencies': [ 'version.h' ],
           'sources': [ '<@(sources)' ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
@@ -469,7 +489,7 @@
             #'BASISD_SUPPORT_ATC=0',
             #'BASISD_SUPPORT_FXT1=0',
           ],
-          'dependencies': [ 'vulkan_headers' ],
+          'dependencies': [ 'vulkan_headers', 'version.h' ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
             'defines': [ 'KHRONOS_STATIC=1' ],

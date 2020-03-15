@@ -34,6 +34,7 @@
 
 #include "ktx.h"
 #include "argparser.h"
+#include "version.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
@@ -48,8 +49,6 @@
   #define unlink _unlink
 #endif
 
-#define VERSION "1.0.0"
-
 struct commandOptions {
     _tstring     appName;
     _tstring     outfile;
@@ -57,12 +56,14 @@ struct commandOptions {
     bool         useStdout;
     bool         force;
     bool         rewriteBadOrientation;
+    int          test;
     std::vector<_tstring> infiles;
 
     commandOptions() {
         useStdout = false;
         force = false;
         rewriteBadOrientation = false;
+        test = false;
     }
 };
 
@@ -166,19 +167,22 @@ usage(_tstring& appName)
         appName.c_str());
 }
 
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
 
 static void
-writeId(std::ostream& dst, _tstring& appName)
+writeId(std::ostream& dst, const _tstring& appName, bool test = false)
 {
-    dst << appName << " version " << VERSION;
+    dst << appName << " " << (test ? STR(KTX2KTX2_DEFAULT_VERSION)
+                                   : STR(KTX2KTX2_VERSION));
 }
 
 
 static void
-version(_tstring& appName)
+version(const _tstring& appName)
 {
     writeId(cerr, appName);
-    cerr << std::endl;
+    cerr << endl;
 }
 
 
@@ -264,7 +268,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     goto cleanup;
                 }
 
-                // Some in-the-wild KTX 2 files have incorrect KTXOrientation
+                // Some in-the-wild KTX files have incorrect KTXOrientation
                 // Warn about dropping invalid metadata.
                 ktxHashListEntry* pEntry;
                 for (pEntry = texture->kvDataHead;
@@ -302,7 +306,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
                 // Add required writer metadata.
                 std::stringstream writer;
-                writeId(writer, options.appName);
+                writeId(writer, options.appName, options.test);
                 ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                                       (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
@@ -425,6 +429,7 @@ processOptions(argparser& parser,
         { "outfile", argparser::option::required_argument, NULL, 'o' },
         { "outdir", argparser::option::required_argument, NULL, 'd' },
         { "rewritebado", argparser::option::no_argument, NULL, 'b' },
+        { "test", argparser::option::no_argument, &options.test, 1},
         { "version", argparser::option::no_argument, NULL, 'v' },
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when

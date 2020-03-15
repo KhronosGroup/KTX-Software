@@ -31,69 +31,30 @@ add_dependencies(libvulkan
 unset(TOOLSET)
 unset(TARGET)
 
-#libktx.gyp:mkvkformatfiles#target
-set(TARGET "mkvkformatfiles")
+#libktx.gyp:version.h#target
+set(TARGET "version.h")
 set(TOOLSET "target")
-list(APPEND mkvkformatfiles__run_mkvkformatfiles__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vulkan/vulkan_core.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/mkvkformatfiles")
-list(APPEND mkvkformatfiles__run_mkvkformatfiles__output
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_check.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_str.c")
-add_custom_command(OUTPUT ${mkvkformatfiles__run_mkvkformatfiles__output}
+list(APPEND version_h__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(version_h__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/version.h")
+add_custom_command(OUTPUT ${version_h__mkversion__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory lib
-  COMMAND lib/mkvkformatfiles lib
-  DEPENDS ${mkvkformatfiles__run_mkvkformatfiles__input}
+  COMMAND ./mkversion -o version.h lib
+  DEPENDS ${version_h__mkversion__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Generating VkFormat-related source files
+  COMMENT version_h__mkversion
   VERBATIM
 )
-add_custom_target(mkvkformatfiles__run_mkvkformatfiles
-  DEPENDS ${mkvkformatfiles__run_mkvkformatfiles__output}
-  SOURCES ${mkvkformatfiles__run_mkvkformatfiles__input}
+add_custom_target(version_h__mkversion
+  DEPENDS ${version_h__mkversion__output}
+  SOURCES ${version_h__mkversion__input}
 )
-list(APPEND mkvkformatfiles__run_makevkswitch__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/makevkswitch.pl")
-set(mkvkformatfiles__run_makevkswitch__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.inl")
-add_custom_command(OUTPUT ${mkvkformatfiles__run_makevkswitch__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-  COMMAND lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
-  DEPENDS ${mkvkformatfiles__run_makevkswitch__input}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Generating VkFormat/DFD switch body
-  VERBATIM
-)
-add_custom_target(mkvkformatfiles__run_makevkswitch
-  DEPENDS ${mkvkformatfiles__run_makevkswitch__output}
-  SOURCES ${mkvkformatfiles__run_makevkswitch__input}
-)
-list(APPEND mkvkformatfiles__run_makedfdtovk__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/makedfd2vk.pl")
-set(mkvkformatfiles__run_makedfdtovk__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd2vk.inl")
-add_custom_command(OUTPUT ${mkvkformatfiles__run_makedfdtovk__output}
-  COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-  COMMAND lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
-  DEPENDS ${mkvkformatfiles__run_makedfdtovk__input}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT Generating DFD/VkFormat switch body
-  VERBATIM
-)
-add_custom_target(mkvkformatfiles__run_makedfdtovk
-  DEPENDS ${mkvkformatfiles__run_makedfdtovk__output}
-  SOURCES ${mkvkformatfiles__run_makedfdtovk__input}
-)
-add_custom_target(mkvkformatfiles SOURCES)
-set_target_properties(mkvkformatfiles PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(mkvkformatfiles__run_mkvkformatfiles PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(mkvkformatfiles__run_makevkswitch PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(mkvkformatfiles__run_makedfdtovk PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-add_dependencies(mkvkformatfiles
-  mkvkformatfiles__run_mkvkformatfiles
-  mkvkformatfiles__run_makevkswitch
-  mkvkformatfiles__run_makedfdtovk
+add_custom_target(version_h SOURCES)
+set_target_properties(version_h PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(version_h__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(version_h
+  version_h__mkversion
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -222,8 +183,79 @@ add_custom_target(libktx_doc__buildLibktxDoc
 add_custom_target(libktx_doc SOURCES)
 set_target_properties(libktx_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(libktx_doc__buildLibktxDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(libktx_doc__buildLibktxDoc
+  version_h
+)
 add_dependencies(libktx_doc
+  version_h
   libktx_doc__buildLibktxDoc
+)
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:mkvkformatfiles#target
+set(TARGET "mkvkformatfiles")
+set(TOOLSET "target")
+list(APPEND mkvkformatfiles__run_mkvkformatfiles__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vulkan/vulkan_core.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/mkvkformatfiles")
+list(APPEND mkvkformatfiles__run_mkvkformatfiles__output
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_check.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_str.c")
+add_custom_command(OUTPUT ${mkvkformatfiles__run_mkvkformatfiles__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory lib
+  COMMAND lib/mkvkformatfiles lib
+  DEPENDS ${mkvkformatfiles__run_mkvkformatfiles__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating VkFormat-related source files
+  VERBATIM
+)
+add_custom_target(mkvkformatfiles__run_mkvkformatfiles
+  DEPENDS ${mkvkformatfiles__run_mkvkformatfiles__output}
+  SOURCES ${mkvkformatfiles__run_mkvkformatfiles__input}
+)
+list(APPEND mkvkformatfiles__run_makevkswitch__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/makevkswitch.pl")
+set(mkvkformatfiles__run_makevkswitch__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/vk2dfd.inl")
+add_custom_command(OUTPUT ${mkvkformatfiles__run_makevkswitch__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+  COMMAND lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+  DEPENDS ${mkvkformatfiles__run_makevkswitch__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating VkFormat/DFD switch body
+  VERBATIM
+)
+add_custom_target(mkvkformatfiles__run_makevkswitch
+  DEPENDS ${mkvkformatfiles__run_makevkswitch__output}
+  SOURCES ${mkvkformatfiles__run_makevkswitch__input}
+)
+list(APPEND mkvkformatfiles__run_makedfdtovk__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkformat_enum.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/makedfd2vk.pl")
+set(mkvkformatfiles__run_makedfdtovk__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd2vk.inl")
+add_custom_command(OUTPUT ${mkvkformatfiles__run_makedfdtovk__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+  COMMAND lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
+  DEPENDS ${mkvkformatfiles__run_makedfdtovk__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT Generating DFD/VkFormat switch body
+  VERBATIM
+)
+add_custom_target(mkvkformatfiles__run_makedfdtovk
+  DEPENDS ${mkvkformatfiles__run_makedfdtovk__output}
+  SOURCES ${mkvkformatfiles__run_makedfdtovk__input}
+)
+add_custom_target(mkvkformatfiles SOURCES)
+set_target_properties(mkvkformatfiles PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(mkvkformatfiles__run_mkvkformatfiles PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(mkvkformatfiles__run_makevkswitch PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(mkvkformatfiles__run_makedfdtovk PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_dependencies(mkvkformatfiles
+  mkvkformatfiles__run_mkvkformatfiles
+  mkvkformatfiles__run_makevkswitch
+  mkvkformatfiles__run_makedfdtovk
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -382,6 +414,7 @@ set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_E
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(libktx_gl
   vulkan_headers
+  version_h
   libgl
 )
 target_link_libraries(libktx_gl
@@ -436,6 +469,22 @@ unset(TARGET)
 #ktxtools.gyp:toktx#target
 set(TARGET "toktx")
 set(TOOLSET "target")
+list(APPEND toktx__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(toktx__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/version.h")
+add_custom_command(OUTPUT ${toktx__mkversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/toktx
+  COMMAND ./mkversion -o version.h tools/toktx
+  DEPENDS ${toktx__mkversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT toktx__mkversion
+  VERBATIM
+)
+add_custom_target(toktx__mkversion
+  DEPENDS ${toktx__mkversion__output}
+  SOURCES ${toktx__mkversion__input}
+)
 list(APPEND toktx__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/toktx/image.cc"
@@ -451,6 +500,7 @@ list(APPEND toktx__other_srcs
   "../../../../tools/toktx/targetver.h")
 add_executable(toktx ${toktx__cxx_srcs} ${toktx__other_srcs})
 set_target_properties(toktx PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(toktx__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${toktx__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(toktx PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(toktx PROPERTIES PREFIX "")
@@ -480,6 +530,12 @@ set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERR
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+add_dependencies(toktx__mkversion
+  libktx_gl
+)
+add_dependencies(toktx
+  toktx__mkversion
+)
 target_link_libraries(toktx
   libktx_gl
 )
@@ -519,6 +575,22 @@ unset(TARGET)
 #ktxtools.gyp:ktxsc#target
 set(TARGET "ktxsc")
 set(TOOLSET "target")
+list(APPEND ktxsc__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktxsc__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxsc/version.h")
+add_custom_command(OUTPUT ${ktxsc__mkversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktxsc
+  COMMAND ./mkversion -o version.h tools/ktxsc
+  DEPENDS ${ktxsc__mkversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktxsc__mkversion
+  VERBATIM
+)
+add_custom_target(ktxsc__mkversion
+  DEPENDS ${ktxsc__mkversion__output}
+  SOURCES ${ktxsc__mkversion__input}
+)
 list(APPEND ktxsc__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktxsc/ktxsc.cpp")
@@ -527,6 +599,7 @@ list(APPEND ktxsc__other_srcs
   "../../../../tools/ktxsc/stdafx.h")
 add_executable(ktxsc ${ktxsc__cxx_srcs} ${ktxsc__other_srcs})
 set_target_properties(ktxsc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktxsc__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktxsc__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktxsc PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktxsc PROPERTIES PREFIX "")
@@ -554,6 +627,12 @@ set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automati
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktxsc__mkversion
+  libktx_gl
+)
+add_dependencies(ktxsc
+  ktxsc__mkversion
+)
 target_link_libraries(ktxsc
   libktx_gl
 )
@@ -563,6 +642,22 @@ unset(TARGET)
 #ktxtools.gyp:ktxinfo#target
 set(TARGET "ktxinfo")
 set(TOOLSET "target")
+list(APPEND ktxinfo__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktxinfo__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxinfo/version.h")
+add_custom_command(OUTPUT ${ktxinfo__mkversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktxinfo
+  COMMAND ./mkversion -o version.h tools/ktxinfo
+  DEPENDS ${ktxinfo__mkversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktxinfo__mkversion
+  VERBATIM
+)
+add_custom_target(ktxinfo__mkversion
+  DEPENDS ${ktxinfo__mkversion__output}
+  SOURCES ${ktxinfo__mkversion__input}
+)
 list(APPEND ktxinfo__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktxinfo/ktxinfo.cpp")
@@ -571,6 +666,7 @@ list(APPEND ktxinfo__other_srcs
   "../../../../tools/ktxinfo/stdafx.h")
 add_executable(ktxinfo ${ktxinfo__cxx_srcs} ${ktxinfo__other_srcs})
 set_target_properties(ktxinfo PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktxinfo__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktxinfo__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktxinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktxinfo PROPERTIES PREFIX "")
@@ -598,6 +694,12 @@ set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automa
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktxinfo__mkversion
+  libktx_gl
+)
+add_dependencies(ktxinfo
+  ktxinfo__mkversion
+)
 target_link_libraries(ktxinfo
   libktx_gl
 )
@@ -607,6 +709,22 @@ unset(TARGET)
 #ktxtools.gyp:ktx2ktx2#target
 set(TARGET "ktx2ktx2")
 set(TOOLSET "target")
+list(APPEND ktx2ktx2__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktx2ktx2__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2ktx2/version.h")
+add_custom_command(OUTPUT ${ktx2ktx2__mkversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktx2ktx2
+  COMMAND ./mkversion -o version.h tools/ktx2ktx2
+  DEPENDS ${ktx2ktx2__mkversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktx2ktx2__mkversion
+  VERBATIM
+)
+add_custom_target(ktx2ktx2__mkversion
+  DEPENDS ${ktx2ktx2__mkversion__output}
+  SOURCES ${ktx2ktx2__mkversion__input}
+)
 list(APPEND ktx2ktx2__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktx2ktx2/ktx2ktx2.cpp")
@@ -615,6 +733,7 @@ list(APPEND ktx2ktx2__other_srcs
   "../../../../tools/ktx2ktx2/stdafx.h")
 add_executable(ktx2ktx2 ${ktx2ktx2__cxx_srcs} ${ktx2ktx2__other_srcs})
 set_target_properties(ktx2ktx2 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktx2ktx2__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktx2ktx2__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktx2ktx2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktx2ktx2 PROPERTIES PREFIX "")
@@ -642,6 +761,12 @@ set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Autom
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktx2ktx2__mkversion
+  libktx_gl
+)
+add_dependencies(ktx2ktx2
+  ktx2ktx2__mkversion
+)
 target_link_libraries(ktx2ktx2
   libktx_gl
 )
@@ -651,6 +776,22 @@ unset(TARGET)
 #ktxtools.gyp:ktx2check#target
 set(TARGET "ktx2check")
 set(TOOLSET "target")
+list(APPEND ktx2check__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
+set(ktx2check__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2check/version.h")
+add_custom_command(OUTPUT ${ktx2check__mkversion__output}
+  COMMAND ${CMAKE_COMMAND} -E make_directory tools/ktx2check
+  COMMAND ./mkversion -o version.h tools/ktx2check
+  DEPENDS ${ktx2check__mkversion__input}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
+  COMMENT ktx2check__mkversion
+  VERBATIM
+)
+add_custom_target(ktx2check__mkversion
+  DEPENDS ${ktx2check__mkversion__output}
+  SOURCES ${ktx2check__mkversion__input}
+)
 list(APPEND ktx2check__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/ktx2check/ktx2check.cpp")
@@ -660,6 +801,7 @@ list(APPEND ktx2check__other_srcs
   "../../../../tools/ktx2check/stdafx.h")
 add_executable(ktx2check ${ktx2check__cxx_srcs} ${ktx2check__other_srcs})
 set_target_properties(ktx2check PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(ktx2check__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${ktx2check__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
 set_target_properties(ktx2check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
 set_target_properties(ktx2check PROPERTIES PREFIX "")
@@ -688,6 +830,12 @@ set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Auto
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+add_dependencies(ktx2check__mkversion
+  libktx_gl
+)
+add_dependencies(ktx2check
+  ktx2check__mkversion
+)
 target_link_libraries(ktx2check
   libktx_gl
 )
@@ -902,10 +1050,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_basis_rd.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_bc2_srgb.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app_basis.ktx2"
@@ -956,10 +1101,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
   "${builddir}/testimages/alpha_simple_basis.ktx2"
   "${builddir}/testimages/color_grid_basis.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2"
   "${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2"
-  "${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2"
   "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
   "${builddir}/testimages/kodim17_basis.ktx2"
   "${builddir}/testimages/ktx_app_basis.ktx2"
@@ -1011,10 +1153,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${b
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_astc_8x8_srgb.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2 ${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_bc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_bc2_srgb.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_etc2_srgb.ktx2 ${builddir}/testimages/cubemap_yokohama_etc2_srgb.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app_basis.ktx2 ${builddir}/testimages/ktx_app_basis.ktx2

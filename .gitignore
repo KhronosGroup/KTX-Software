@@ -73,3 +73,7 @@ build/packages
 
 # macOS noise
 .DS_Store
+
+# version files
+version.h
+

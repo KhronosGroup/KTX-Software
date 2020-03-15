@@ -133,6 +133,9 @@
   <ItemGroup>
     <None Include="..\..\..\..\tools\toktx\image.hpp"/>
     <None Include="..\..\..\..\ktxtools.gyp"/>
+    <None Include="..\..\..\..\.git">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
@@ -147,6 +150,16 @@
     <ClCompile Include="..\..\..\..\tools\toktx\npbmimage.cc"/>
     <ClCompile Include="..\..\..\..\tools\toktx\pngimage.cc"/>
     <ClCompile Include="..\..\..\..\tools\toktx\toktx.cc"/>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\mkversion">
+      <FileType>Document</FileType>
+      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./mkversion\&quot; \&quot;-o\&quot; \&quot;version.h\&quot; \&quot;tools/toktx\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>mkversion</Message>
+      <Outputs>..\..\..\..\tools\toktx\version.h</Outputs>
+      <LinkObjects>false</LinkObjects>
+      <AdditionalInputs>..\..\..\..\.git</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libktx.gl.vcxproj">

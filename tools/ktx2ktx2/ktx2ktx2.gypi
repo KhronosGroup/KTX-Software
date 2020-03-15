@@ -41,6 +41,16 @@
               'SubSystem': '1',
             },
           },
+          'actions': [{
+            'action_name': 'mkversion',
+            'inputs': [
+              '../../mkversion',
+              '../../.git'
+            ],
+            'outputs': [ 'version.h' ],
+            'msvs_cygwin_shell': 1,
+            'action': [ './mkversion', '-o', 'version.h', 'tools/ktx2ktx2' ],
+          }],
         }, # ktx2ktx2 target
 #        {
 #          'target_name': 'ktx2ktx2-tests',

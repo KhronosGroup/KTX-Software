@@ -42,6 +42,9 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #endif
 
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
+
 #define KTX2_IDENTIFIER_REF  { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x30, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
 #define KTX2_HEADER_SIZE     (80)
 

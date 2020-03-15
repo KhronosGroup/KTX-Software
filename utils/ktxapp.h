@@ -22,6 +22,9 @@
 
 #include "argparser.h"
 
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
+
 using namespace std;
 
 template <typename T> inline T clamp(T value, T low, T high) {
@@ -150,12 +153,12 @@ class ktxApp {
     virtual void processOption(argparser& parser, _TCHAR opt) = 0;
 
     void writeId(std::ostream& dst) {
-        dst << name << " version " << version;
+        dst << name << " " << version;
     }
 
     void printVersion() {
         writeId(cerr);
-        cerr << std::endl;
+        cerr << endl;
     }
 
     _tstring        name;

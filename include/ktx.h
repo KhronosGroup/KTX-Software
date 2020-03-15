@@ -33,7 +33,7 @@
  * @author Mark Callow, Edgewise Consulting and while at HI Corporation
  * @author Based on original work by Georg Kolling, Imagination Technology
  *
- * @version 3.0
+ * @snippet{doc} version.h API version
  *
  * @todo Find a way so that applications do not have to define KTX_OPENGL{,_ES*}
  *       when using the library.
@@ -1245,6 +1245,8 @@ KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t*
 /**
 @~English
 @page libktx_history Revision History
+
+@section v7 @includedoc VERSION
 
 @section v6 Version 3.0
 Added:

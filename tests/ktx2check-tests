@@ -85,7 +85,7 @@ $ktx2check --foobar 2> /dev/null
 status=$?
 if [ $status -eq 1 ]; then
   passed=$passed+1
-elif [ $status -gt 1]; then
+elif [ $status -gt 1 ]; then
   echo "wrong exit code for invalid option."
   failed=$failed+1
 else

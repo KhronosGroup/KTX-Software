@@ -140,7 +140,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     uint32_t bWidth = basisu.getImageWidth(0,0);
     uint32_t bHeight = basisu.getImageHeight(0,0);
 
-    bool hasAlpha = basisu.getHasAlpha();
+    bool hasAlpha = basisu.getHasAlpha() > 0;
 
     ASSERT_EQ(hasAlpha,textureSet.hasAlpha);
 
