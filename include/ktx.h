@@ -760,6 +760,16 @@ ktxWriteKTXM(unsigned char** dst, GLsizei* size,
 @~English
 @page libktx_history Revision History
 
+@section v7 Version 3.0.1
+Fixed:
+@li GitHub issue #159: compile failure with recent Vulkan SDKs.
+@li Incorrect mapping of GL DXT3 and DXT5 formats to Vulkan equivalents.
+@li Incorrect BC4 blocksize.
+@li Missing mapping of PVRTC formats from GL to Vulkan.
+@li Incorrect block width and height calculations for sizes that are not
+    a multiple of the block size.
+@li Incorrect KTXorientation key in test images.
+
 @section v6 Version 3.0
 Added:
 @li new ktxTexture object based API for reading KTX files without an OpenGL context.
