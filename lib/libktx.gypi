@@ -143,6 +143,7 @@
           '../.git'
         ],
         'outputs': [ '<(version_file)' ],
+        'msvs_cygwin_shell': 1,
         'action': [ './mkversion', '-o', 'version.h', 'lib' ],
       }],
     },
