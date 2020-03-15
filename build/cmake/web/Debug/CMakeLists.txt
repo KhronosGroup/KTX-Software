@@ -34,27 +34,27 @@ unset(TARGET)
 #libktx.gyp:version.h#target
 set(TARGET "version.h")
 set(TOOLSET "target")
-list(APPEND version_h__genversion__input
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../gen-version"
+list(APPEND version_h__mkversion__input
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../mkversion"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../.git")
-set(version_h__genversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/version.h")
-add_custom_command(OUTPUT ${version_h__genversion__output}
+set(version_h__mkversion__output "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/version.h")
+add_custom_command(OUTPUT ${version_h__mkversion__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory lib
-  COMMAND ./gen-version -o version.h lib
-  DEPENDS ${version_h__genversion__input}
+  COMMAND ./mkversion -o version.h lib
+  DEPENDS ${version_h__mkversion__input}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../../
-  COMMENT version_h__genversion
+  COMMENT version_h__mkversion
   VERBATIM
 )
-add_custom_target(version_h__genversion
-  DEPENDS ${version_h__genversion__output}
-  SOURCES ${version_h__genversion__input}
+add_custom_target(version_h__mkversion
+  DEPENDS ${version_h__mkversion__output}
+  SOURCES ${version_h__mkversion__input}
 )
 add_custom_target(version_h SOURCES)
 set_target_properties(version_h PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_target_properties(version_h__genversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_target_properties(version_h__mkversion PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(version_h
-  version_h__genversion
+  version_h__mkversion
 )
 unset(TOOLSET)
 unset(TARGET)
