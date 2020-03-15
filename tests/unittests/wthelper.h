@@ -180,7 +180,7 @@ class WriterTestHelper {
 
         ktxHashList_Construct(&kvHash_ktx2);
         ktxHashList_AddKVPair(&kvHash_ktx2, KTX_WRITER_KEY,
-                              (uint32_t)writer_ktx2.size(),
+                              (ktx_uint32_t)writer_ktx2.size(),
                               writer_ktx2.data());
 
         // Get the library to add its Id to the writer key so it will be
@@ -189,11 +189,6 @@ class WriterTestHelper {
         ktxHashList_FindEntry(&kvHash_ktx2, KTX_WRITER_KEY,
                               &pWriter);
         appendLibId(&kvHash_ktx2, pWriter);
-        //char* newWriter;
-        //uint32_t newWriterLen;
-        //ktxHashList_FindValue(&kvHash_ktx2, KTX_WRITER_KEY,
-        //                      &newWriterLen, (void**)newWriter);
-        //comparisonWriter_ktx2 = newWriter;
 
         ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
         ktxHashList_AddKVPair(&kvHash_ktx2, KTX_ORIENTATION_KEY,

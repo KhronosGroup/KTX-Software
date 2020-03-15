@@ -343,7 +343,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     }
     This->vkFormat = vkFormat;
     This->isCompressed =
-          This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT;
+          (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT) != 0;
     This->_private->_requiredLevelAlignment
                         = ktxTexture2_calcRequiredLevelAlignment(This);
 
