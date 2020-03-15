@@ -43,13 +43,13 @@
             },
           },
           'actions': [{
-            'action_name': 'genversion',
+            'action_name': 'mkversion',
             'inputs': [
-              '../../gen-version',
+              '../../mkversion',
               '../../.git'
             ],
             'outputs': [ 'version.h' ],
-            'action': [ './gen-version', '-o', 'version.h', 'tools/ktxsc' ],
+            'action': [ './mkversion', '-o', 'version.h', 'tools/ktxsc' ],
           }],
         }, # ktxsc target
 #        {

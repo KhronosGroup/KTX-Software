@@ -47,13 +47,13 @@
             },
           },
           'actions': [{
-            'action_name': 'genversion',
+            'action_name': 'mkversion',
             'inputs': [
-              '../../gen-version',
+              '../../mkversion',
               '../../.git'
             ],
             'outputs': [ 'version.h' ],
-            'action': [ './gen-version', '-o', 'version.h', 'tools/ktx2check' ],
+            'action': [ './mkversion', '-o', 'version.h', 'tools/ktx2check' ],
           }],
         }, # ktx2check target
         {

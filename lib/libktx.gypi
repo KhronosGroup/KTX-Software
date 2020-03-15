@@ -137,13 +137,13 @@
       'target_name': 'version.h',
       'type': 'none',
       'actions': [{
-        'action_name': 'genversion',
+        'action_name': 'mkversion',
         'inputs': [
-          '../gen-version',
+          '../mkversion',
           '../.git'
         ],
         'outputs': [ '<(version_file)' ],
-        'action': [ './gen-version', '-o', 'version.h', 'lib' ],
+        'action': [ './mkversion', '-o', 'version.h', 'lib' ],
       }],
     },
   ],
@@ -314,7 +314,7 @@
             }, # buildLibktxDoc action
           ], # actions
           # For 'version.h'.
-          'dependencies': [ 'libktx.gl' ],
+          'dependencies': [ 'version.h' ],
         }, # libktx.doc
         {
           'target_name': 'mkvkformatfiles',

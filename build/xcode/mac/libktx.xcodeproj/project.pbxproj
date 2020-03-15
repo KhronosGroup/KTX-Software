@@ -14,7 +14,7 @@
 				F15D02DD548099D9CFB68DCE /* Action "buildLibktxDoc" */,
 			);
 			dependencies = (
-				E5398FB23044DFDD774FB27E /* PBXTargetDependency */,
+				A0B0C9ED19F953FE3C77727A /* PBXTargetDependency */,
 			);
 			name = libktx.doc;
 			productName = libktx.doc;
@@ -48,7 +48,7 @@
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 52EFBB7C893428377252E4EC /* Build configuration list for PBXAggregateTarget "version.h" */;
 			buildPhases = (
-				9F41BE1410AAC85187C4756E /* Action "genversion" */,
+				35F85E2BF8556C19A7356C21 /* Action "mkversion" */,
 			);
 			dependencies = (
 			);
@@ -121,57 +121,64 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		0370A102E32916789BE8D093 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
-		05153D442993D2B4AD001368 /* basisu_gpu_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E0835B603620D1B4C3C10C7 /* basisu_gpu_texture.cpp */; };
-		05C9367D5EEEDED3BC5F19F3 /* queries.c in Sources */ = {isa = PBXBuildFile; fileRef = B3ABAA3A4D5D74FAC0FB4D43 /* queries.c */; };
-		0A9F97FB16FD564C70A3B044 /* basisu_global_selector_palette_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B97E4CD359B47F78C6BAC4DD /* basisu_global_selector_palette_helpers.cpp */; };
-		0E30114B8DC6FEE4576A57CC /* basisu_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD81C993CB3BD488B91685BC /* basisu_enc.cpp */; };
-		11D35FEF2BE6ECCB75C20C11 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 276216C478E95FFB51AB76DC /* lodepng.cpp */; };
-		1B6918B6F7C53AE9E32F2A2C /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
-		26B046AEC7A655F8314BFCB2 /* basisu_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AC539267AEE0C27FB5A354C /* basisu_frontend.cpp */; };
-		27271A041C1EEA015F8CE00F /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		2992E293A09D82E0C73945DD /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		2F288D04462E57FB82486AA5 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		3B77B306EB00B123EAC034CD /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
-		40C19FB9AAE90729901CC772 /* texture1.c in Sources */ = {isa = PBXBuildFile; fileRef = 01854AF4C95CF0C47CCCAE9D /* texture1.c */; };
-		4827FE44B1B08C08669051E1 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		5341D1A946EED7E4D0437071 /* basisu_resampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F1EB8C4BF92389D93835E60 /* basisu_resampler.cpp */; };
-		53687A519F9BB3C7B0ADCA7D /* texture2_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */; };
-		556FAA2293F050B6F68148CE /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
-		5C9A10CD202850A06C63FEDB /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
-		5DC987FD9023517BDC8C8429 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
-		63929B968CEC3FA77EDD9BF1 /* basisu_backend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4DC4ABC756A23363F93C3A8C /* basisu_backend.cpp */; };
-		6E568AAFF52E3C01645D0B3A /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
-		73357A05D2E73077583A63A5 /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = C2E7B90F693D2ADDEB68C765 /* ktx.h */; };
-		7C02C387B98E25C5395654D8 /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {isa = PBXBuildFile; fileRef = E1564CD269FB33343DA6F442 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		83240AABA5AB023F544B1489 /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */; };
-		8C257EF0AD45A17B8C3A7CCE /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		0101BC421145A44775E70B7D /* basisu_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AC539267AEE0C27FB5A354C /* basisu_frontend.cpp */; };
+		0A99D7BB55B701EE6D199791 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		0ED41318AB0364E1C75392DD /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */ = {isa = PBXBuildFile; fileRef = E1564CD269FB33343DA6F442 /* libktx.gl.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		186B1A0F9EFB1998749120CA /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
+		2185C82291A01B3B1B35B9F9 /* basisu_etc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 965D273C04237BB07B944625 /* basisu_etc.cpp */; };
+		24D6FCBC400F757BDB1682B6 /* texture2_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AB26B9FF8392698BE96A507 /* texture2_vvtbl.c */; };
+		25D93799AD93987A2536EFDF /* basisu_astc_decomp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783ABCF5BBC99933E96F210F /* basisu_astc_decomp.cpp */; };
+		2A1F088B6C7B9FF68842A5DD /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
+		2FACEC96ED69F22639DFBB76 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
+		3078C54291699F753D20B8C6 /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {isa = PBXBuildFile; fileRef = 6DA6A0F32FFCF9B185ACB939 /* man3 */; };
+		3167607ECF0A8D2177531653 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
+		37F2301EE43060BDEF27C8A0 /* strings.c in Sources */ = {isa = PBXBuildFile; fileRef = B03573A8C0EFA88D798DA4FE /* strings.c */; };
+		3B1C2A5D59AE2866794245B8 /* texture1.c in Sources */ = {isa = PBXBuildFile; fileRef = 01854AF4C95CF0C47CCCAE9D /* texture1.c */; };
+		49F857F7796520AEFE85A976 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 276216C478E95FFB51AB76DC /* lodepng.cpp */; };
+		4E2F7F7CABBB0C3471991CD6 /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
+		5123FF79889E27FC1A5B1135 /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = C2E7B90F693D2ADDEB68C765 /* ktx.h */; };
+		55D337ECA09722611AD3F50C /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
+		57CDC5E3538D526EC0DC9794 /* basisu_pvrtc1_4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F84FD46737CD56C0FC15994D /* basisu_pvrtc1_4.cpp */; };
+		59783CCD93E08EA65131A6F2 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
+		5C5BAE405EDC961D01F66CEF /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
+		5E644C83EF0FD0605D43AE35 /* basisu_basis_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B74F0335EA973EC00D6EC4B0 /* basisu_basis_file.cpp */; };
+		5FC60B1F7859D83D2FF95071 /* basisu_comp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E84707D9BC5D4933AB5F84A /* basisu_comp.cpp */; };
+		7729AD824841A65B2C6FDFE5 /* basisu_gpu_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E0835B603620D1B4C3C10C7 /* basisu_gpu_texture.cpp */; };
+		7CBDA00D833542082B175D25 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		832378EAB75C43662CB395FF /* basisu_transcoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A9A1B8E89D52C3D9A64937C /* basisu_transcoder.cpp */; };
+		88FF8A42BC3380B0CCD5D87A /* vk2dfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 7B8DECB4D76F31A454E9900A /* vk2dfd.c */; };
+		89F17C004C8131211F16A2FE /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
 		92E48EBAE995313047B11375 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 952FB97003C3A1793841B79D /* OpenGL.framework */; };
-		970A8CDD31A23A2DD81FD233 /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		998E18AAF4C2DCAFC5BC793E /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
-		9CE93FC71CBDDD37171B39EA /* basisu_pvrtc1_4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F84FD46737CD56C0FC15994D /* basisu_pvrtc1_4.cpp */; };
-		9FEAADE5B02E7EFE870645C9 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
-		A15D0AFD3028017ACB34CFFF /* vkformat_check.c in Sources */ = {isa = PBXBuildFile; fileRef = D33DCAC2B453F9973ED1088F /* vkformat_check.c */; };
-		A4D59970FFF113CC6FB5FA97 /* basisu_comp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E84707D9BC5D4933AB5F84A /* basisu_comp.cpp */; };
-		B1A47275B4AD550F7F5F10CC /* strings.c in Sources */ = {isa = PBXBuildFile; fileRef = B03573A8C0EFA88D798DA4FE /* strings.c */; };
-		B366FBB0988E0E6FCD7FDDE7 /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {isa = PBXBuildFile; fileRef = 6DA6A0F32FFCF9B185ACB939 /* man3 */; };
-		B73CAD8CE6C0003C1DBF51A0 /* basis_encode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2862B8E86DE1D2FC2D068C60 /* basis_encode.cpp */; };
-		BA3B36425D016D1FA6761A2A /* basisu_resample_filters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B4AD48886F7C12FC5A82F24 /* basisu_resample_filters.cpp */; };
-		BD81C7770D2AD5884FFB1D57 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		C3A765D74E6D35BF56950C97 /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		C62AA901EF6A0E2C434DBF49 /* vk2dfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 7B8DECB4D76F31A454E9900A /* vk2dfd.c */; };
-		CEE903C6FE7AE4F66C5B3B08 /* basis_transcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C5345B97771C28DDCF5993E7 /* basis_transcode.cpp */; };
-		D01D312E03F4D6B6DB69DE58 /* basisu_transcoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A9A1B8E89D52C3D9A64937C /* basisu_transcoder.cpp */; };
-		DA586B4642B0979B7AD51963 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		DFD08AD51BCE691A2C5E0D82 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		E464B8E9EF0C8F1687BD2491 /* basisu_etc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 965D273C04237BB07B944625 /* basisu_etc.cpp */; };
-		E70A031B2CE5CADE8B2A78AE /* basisu_basis_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B74F0335EA973EC00D6EC4B0 /* basisu_basis_file.cpp */; };
-		E79177979DB36BE95D2746D1 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		EB3F6785C217261BE1552A4A /* dfd2vk.c in Sources */ = {isa = PBXBuildFile; fileRef = A555A1D5A7E4F839D975DAC3 /* dfd2vk.c */; };
-		EBA81D7CC8FC9FE293672605 /* basisu_astc_decomp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783ABCF5BBC99933E96F210F /* basisu_astc_decomp.cpp */; };
+		97C67EB05DA9CDE3457B96FB /* basis_encode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2862B8E86DE1D2FC2D068C60 /* basis_encode.cpp */; };
+		9B0C42633B0C7959514AA4F1 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
+		9BF33DF08B25E98A30EBBEB9 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
+		9FCA4C01D49B854C308C04BB /* queries.c in Sources */ = {isa = PBXBuildFile; fileRef = B3ABAA3A4D5D74FAC0FB4D43 /* queries.c */; };
+		A05E893B405E5217B8B2DE1A /* basis_transcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C5345B97771C28DDCF5993E7 /* basis_transcode.cpp */; };
+		A96B44BFDCAC841592F98B7F /* basisu_global_selector_palette_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B97E4CD359B47F78C6BAC4DD /* basisu_global_selector_palette_helpers.cpp */; };
+		AB086D50E5583E97A374A4FF /* texture1_vvtbl.c in Sources */ = {isa = PBXBuildFile; fileRef = F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */; };
+		B40386EF29B329D4A5552425 /* dfd2vk.c in Sources */ = {isa = PBXBuildFile; fileRef = A555A1D5A7E4F839D975DAC3 /* dfd2vk.c */; };
+		C4039C0CD29BFDC4D32F5130 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
+		C40CFCE139349678A95A2E5C /* basisu_resample_filters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B4AD48886F7C12FC5A82F24 /* basisu_resample_filters.cpp */; };
+		C84BA3C35E03DE2766D67875 /* basisu_resampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F1EB8C4BF92389D93835E60 /* basisu_resampler.cpp */; };
+		C9CFFCFDEC10A9A66E157C1A /* vkformat_check.c in Sources */ = {isa = PBXBuildFile; fileRef = D33DCAC2B453F9973ED1088F /* vkformat_check.c */; };
+		CB5B662E146CA9F7F32F7B62 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
+		CFDFC8E908F9791E4A8D1DE8 /* basisu_backend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4DC4ABC756A23363F93C3A8C /* basisu_backend.cpp */; };
+		D0DFEEDBA8B33B6FDB3773AF /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */ = {isa = PBXBuildFile; fileRef = D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */; };
+		E0700899A9A0D91623F0A589 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		E1A5197644D1954C08DAE55F /* basisu_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD81C993CB3BD488B91685BC /* basisu_enc.cpp */; };
+		ED0F7990582A28CC65FAF6C9 /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
+		EF94C24199702821FEBDE8D5 /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
+		F6C14AFCF66601395EA95BC1 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1108FC7DF0D11103E720A714 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4322E581A34BD85A7790FF99;
+			remoteInfo = version.h;
+		};
 		151C4A5ADF38F45F8CF03A3D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
@@ -270,13 +277,6 @@
 			remoteGlobalIDString = A53C7E625BBCBD48220BD07A;
 			remoteInfo = vulkan_headers;
 		};
-		DDCDE40E071B5E62ECF4CB95 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 362967529B3D7D3E12C3129D;
-			remoteInfo = libktx.gl;
-		};
 		F9721A6D539BE3627B0F1954 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
@@ -293,8 +293,8 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include";
 			dstSubfolderSpec = 0;
 			files = (
-				73357A05D2E73077583A63A5 /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
-				83240AABA5AB023F544B1489 /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
+				5123FF79889E27FC1A5B1135 /* ktx.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
+				D0DFEEDBA8B33B6FDB3773AF /* ktxvulkan.h in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/include";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -305,7 +305,7 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man";
 			dstSubfolderSpec = 0;
 			files = (
-				B366FBB0988E0E6FCD7FDDE7 /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */,
+				3078C54291699F753D20B8C6 /* man3 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -316,7 +316,7 @@
 			dstPath = "$(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib";
 			dstSubfolderSpec = 0;
 			files = (
-				7C02C387B98E25C5395654D8 /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */,
+				0ED41318AB0364E1C75392DD /* libktx.gl.dylib in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib */,
 			);
 			name = "Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/lib";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -428,6 +428,7 @@
 		D33DCAC2B453F9973ED1088F /* vkformat_check.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_check.c; sourceTree = "<group>"; };
 		D4E93BE5260F9F886F788BE7 /* filestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filestream.h; sourceTree = "<group>"; };
 		D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxvulkan.h; sourceTree = "<group>"; };
+		D69507910F6195E9AEF49F38 /* mkversion */ = {isa = PBXFileReference; lastKnownFileType = text; path = mkversion; sourceTree = "<group>"; };
 		D74889DC3E74AA049E37215D /* texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
 		D8E7D1476AD33F35FE7FC88F /* writer1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writer1.c; sourceTree = "<group>"; };
 		D90469833D0DE58F9F34DA8F /* .git */ = {isa = PBXFileReference; lastKnownFileType = text; path = .git; sourceTree = "<group>"; };
@@ -441,7 +442,6 @@
 		ECB3689C09712E7FB773CD43 /* basisu_gpu_texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = basisu_gpu_texture.h; sourceTree = "<group>"; };
 		ECD56E9BB7D9875D6B574A57 /* mkvkformatfiles */ = {isa = PBXFileReference; lastKnownFileType = text; path = mkvkformatfiles; sourceTree = "<group>"; };
 		ED45640C37E1E39322A55252 /* basisu_pvrtc1_4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = basisu_pvrtc1_4.h; sourceTree = "<group>"; };
-		EE108A30C715CBA516DBA0D9 /* gen-version */ = {isa = PBXFileReference; lastKnownFileType = text; path = "gen-version"; sourceTree = "<group>"; };
 		EFC201FA27B93EF88E0AB152 /* texture1.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture1.h; sourceTree = "<group>"; };
 		F1855B606AA3818BD9BE7DC0 /* createdfd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = createdfd.c; sourceTree = "<group>"; };
 		F40EC7F2BA1A30141EC57606 /* texture1_vvtbl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture1_vvtbl.c; sourceTree = "<group>"; };
@@ -547,7 +547,7 @@
 		30DF960E27ABEF24363F38D0 = {
 			isa = PBXGroup;
 			children = (
-				936D2E207CC69C820639FB7A /* Source */,
+				6078750DCFC517664EA232BA /* Source */,
 				F4FFA1782492E825706FCBFA /* Frameworks */,
 				7749F9A6CE66E58AC788006D /* Products */,
 				030C779202868DA5C880420F /* Build */,
@@ -607,15 +607,7 @@
 			name = BUILT_PRODUCTS_DIR;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		7749F9A6CE66E58AC788006D /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				F552AA19D91ECB8C25731D64 /* libktx.gl.dylib */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		936D2E207CC69C820639FB7A /* Source */ = {
+		6078750DCFC517664EA232BA /* Source */ = {
 			isa = PBXGroup;
 			children = (
 				5E3010785F14C800779DEEB1 /* BUILT_PRODUCTS_DIR */,
@@ -625,11 +617,19 @@
 				D90469833D0DE58F9F34DA8F /* .git */,
 				1BD886EACF703C7F42DB60DF /* LICENSE.md */,
 				1B63960A3BEABDC8BEE4A12A /* TODO.md */,
-				EE108A30C715CBA516DBA0D9 /* gen-version */,
 				813B3D494F0FD6BA2039BD20 /* libktx.doxy */,
+				D69507910F6195E9AEF49F38 /* mkversion */,
 				56F65688C8403CD76F6AEB58 /* runDoxygen */,
 			);
 			name = Source;
+			sourceTree = "<group>";
+		};
+		7749F9A6CE66E58AC788006D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F552AA19D91ECB8C25731D64 /* libktx.gl.dylib */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		A781EAA43302E7FC82CDB32C /* lib */ = {
@@ -754,6 +754,24 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		35F85E2BF8556C19A7356C21 /* Action "mkversion" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				mkversion,
+				.git,
+			);
+			name = "Action \"mkversion\"";
+			outputPaths = (
+				lib/version.h,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec ./mkversion -o version.h lib\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
 		8C88057421FF6849F8F8802E /* Action "run_makedfdtovk" */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -790,24 +808,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "echo note: \"Generating VkFormat-related source files\"\nexec lib/mkvkformatfiles lib\nexit 1\n";
-			showEnvVarsInLog = 0;
-		};
-		9F41BE1410AAC85187C4756E /* Action "genversion" */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"gen-version",
-				.git,
-			);
-			name = "Action \"genversion\"";
-			outputPaths = (
-				lib/version.h,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "exec ./gen-version -o version.h lib\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		DF438FB5533A901550BE5BDA /* Action "run_makevkswitch" */ = {
@@ -955,49 +955,49 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EBA81D7CC8FC9FE293672605 /* basisu_astc_decomp.cpp in Sources */,
-				63929B968CEC3FA77EDD9BF1 /* basisu_backend.cpp in Sources */,
-				E70A031B2CE5CADE8B2A78AE /* basisu_basis_file.cpp in Sources */,
-				A4D59970FFF113CC6FB5FA97 /* basisu_comp.cpp in Sources */,
-				0E30114B8DC6FEE4576A57CC /* basisu_enc.cpp in Sources */,
-				E464B8E9EF0C8F1687BD2491 /* basisu_etc.cpp in Sources */,
-				26B046AEC7A655F8314BFCB2 /* basisu_frontend.cpp in Sources */,
-				0A9F97FB16FD564C70A3B044 /* basisu_global_selector_palette_helpers.cpp in Sources */,
-				05153D442993D2B4AD001368 /* basisu_gpu_texture.cpp in Sources */,
-				9CE93FC71CBDDD37171B39EA /* basisu_pvrtc1_4.cpp in Sources */,
-				5341D1A946EED7E4D0437071 /* basisu_resampler.cpp in Sources */,
-				BA3B36425D016D1FA6761A2A /* basisu_resample_filters.cpp in Sources */,
-				11D35FEF2BE6ECCB75C20C11 /* lodepng.cpp in Sources */,
-				D01D312E03F4D6B6DB69DE58 /* basisu_transcoder.cpp in Sources */,
-				B73CAD8CE6C0003C1DBF51A0 /* basis_encode.cpp in Sources */,
-				CEE903C6FE7AE4F66C5B3B08 /* basis_transcode.cpp in Sources */,
-				8C257EF0AD45A17B8C3A7CCE /* checkheader.c in Sources */,
-				0370A102E32916789BE8D093 /* createdfd.c in Sources */,
-				EB3F6785C217261BE1552A4A /* dfd2vk.c in Sources */,
-				970A8CDD31A23A2DD81FD233 /* interpretdfd.c in Sources */,
-				5DC987FD9023517BDC8C8429 /* printdfd.c in Sources */,
-				05C9367D5EEEDED3BC5F19F3 /* queries.c in Sources */,
-				C62AA901EF6A0E2C434DBF49 /* vk2dfd.c in Sources */,
-				4827FE44B1B08C08669051E1 /* etcdec.cxx in Sources */,
-				3B77B306EB00B123EAC034CD /* etcunpack.cxx in Sources */,
-				C3A765D74E6D35BF56950C97 /* filestream.c in Sources */,
-				E79177979DB36BE95D2746D1 /* glloader.c in Sources */,
-				27271A041C1EEA015F8CE00F /* hashlist.c in Sources */,
-				9FEAADE5B02E7EFE870645C9 /* info.c in Sources */,
-				BD81C7770D2AD5884FFB1D57 /* memstream.c in Sources */,
-				B1A47275B4AD550F7F5F10CC /* strings.c in Sources */,
-				2F288D04462E57FB82486AA5 /* swap.c in Sources */,
-				DA586B4642B0979B7AD51963 /* texture.c in Sources */,
-				40C19FB9AAE90729901CC772 /* texture1.c in Sources */,
-				6E568AAFF52E3C01645D0B3A /* texture2.c in Sources */,
-				A15D0AFD3028017ACB34CFFF /* vkformat_check.c in Sources */,
-				2992E293A09D82E0C73945DD /* vkformat_str.c in Sources */,
-				5C9A10CD202850A06C63FEDB /* writer1.c in Sources */,
-				998E18AAF4C2DCAFC5BC793E /* writer2.c in Sources */,
-				1B6918B6F7C53AE9E32F2A2C /* texture1_vvtbl.c in Sources */,
-				53687A519F9BB3C7B0ADCA7D /* texture2_vvtbl.c in Sources */,
-				DFD08AD51BCE691A2C5E0D82 /* vkloader.c in Sources */,
-				556FAA2293F050B6F68148CE /* vk_funcs.c in Sources */,
+				25D93799AD93987A2536EFDF /* basisu_astc_decomp.cpp in Sources */,
+				CFDFC8E908F9791E4A8D1DE8 /* basisu_backend.cpp in Sources */,
+				5E644C83EF0FD0605D43AE35 /* basisu_basis_file.cpp in Sources */,
+				5FC60B1F7859D83D2FF95071 /* basisu_comp.cpp in Sources */,
+				E1A5197644D1954C08DAE55F /* basisu_enc.cpp in Sources */,
+				2185C82291A01B3B1B35B9F9 /* basisu_etc.cpp in Sources */,
+				0101BC421145A44775E70B7D /* basisu_frontend.cpp in Sources */,
+				A96B44BFDCAC841592F98B7F /* basisu_global_selector_palette_helpers.cpp in Sources */,
+				7729AD824841A65B2C6FDFE5 /* basisu_gpu_texture.cpp in Sources */,
+				57CDC5E3538D526EC0DC9794 /* basisu_pvrtc1_4.cpp in Sources */,
+				C84BA3C35E03DE2766D67875 /* basisu_resampler.cpp in Sources */,
+				C40CFCE139349678A95A2E5C /* basisu_resample_filters.cpp in Sources */,
+				49F857F7796520AEFE85A976 /* lodepng.cpp in Sources */,
+				832378EAB75C43662CB395FF /* basisu_transcoder.cpp in Sources */,
+				97C67EB05DA9CDE3457B96FB /* basis_encode.cpp in Sources */,
+				A05E893B405E5217B8B2DE1A /* basis_transcode.cpp in Sources */,
+				0A99D7BB55B701EE6D199791 /* checkheader.c in Sources */,
+				E0700899A9A0D91623F0A589 /* createdfd.c in Sources */,
+				B40386EF29B329D4A5552425 /* dfd2vk.c in Sources */,
+				55D337ECA09722611AD3F50C /* interpretdfd.c in Sources */,
+				7CBDA00D833542082B175D25 /* printdfd.c in Sources */,
+				9FCA4C01D49B854C308C04BB /* queries.c in Sources */,
+				88FF8A42BC3380B0CCD5D87A /* vk2dfd.c in Sources */,
+				9B0C42633B0C7959514AA4F1 /* etcdec.cxx in Sources */,
+				CB5B662E146CA9F7F32F7B62 /* etcunpack.cxx in Sources */,
+				3167607ECF0A8D2177531653 /* filestream.c in Sources */,
+				89F17C004C8131211F16A2FE /* glloader.c in Sources */,
+				186B1A0F9EFB1998749120CA /* hashlist.c in Sources */,
+				59783CCD93E08EA65131A6F2 /* info.c in Sources */,
+				2FACEC96ED69F22639DFBB76 /* memstream.c in Sources */,
+				37F2301EE43060BDEF27C8A0 /* strings.c in Sources */,
+				9BF33DF08B25E98A30EBBEB9 /* swap.c in Sources */,
+				5C5BAE405EDC961D01F66CEF /* texture.c in Sources */,
+				3B1C2A5D59AE2866794245B8 /* texture1.c in Sources */,
+				2A1F088B6C7B9FF68842A5DD /* texture2.c in Sources */,
+				C9CFFCFDEC10A9A66E157C1A /* vkformat_check.c in Sources */,
+				C4039C0CD29BFDC4D32F5130 /* vkformat_str.c in Sources */,
+				EF94C24199702821FEBDE8D5 /* writer1.c in Sources */,
+				4E2F7F7CABBB0C3471991CD6 /* writer2.c in Sources */,
+				AB086D50E5583E97A374A4FF /* texture1_vvtbl.c in Sources */,
+				24D6FCBC400F757BDB1682B6 /* texture2_vvtbl.c in Sources */,
+				F6C14AFCF66601395EA95BC1 /* vkloader.c in Sources */,
+				ED0F7990582A28CC65FAF6C9 /* vk_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1028,6 +1028,11 @@
 			isa = PBXTargetDependency;
 			target = A53C7E625BBCBD48220BD07A /* vulkan_headers */;
 			targetProxy = D84789EEB286E42F111FFE4C /* PBXContainerItemProxy */;
+		};
+		A0B0C9ED19F953FE3C77727A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4322E581A34BD85A7790FF99 /* version.h */;
+			targetProxy = 1108FC7DF0D11103E720A714 /* PBXContainerItemProxy */;
 		};
 		A403C6B52B08AAFFA5B11BC9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1063,11 +1068,6 @@
 			isa = PBXTargetDependency;
 			target = 362967529B3D7D3E12C3129D /* libktx.gl */;
 			targetProxy = 51D18C75D9A5B08407F50847 /* PBXContainerItemProxy */;
-		};
-		E5398FB23044DFDD774FB27E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 362967529B3D7D3E12C3129D /* libktx.gl */;
-			targetProxy = DDCDE40E071B5E62ECF4CB95 /* PBXContainerItemProxy */;
 		};
 		F17B536CED34277531019A4E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1168,14 +1168,6 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = (
-					include,
-					other_include,
-				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = libktx.doc;
 			};
@@ -1618,14 +1610,6 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = (
-					include,
-					other_include,
-				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = libktx.doc;
 			};

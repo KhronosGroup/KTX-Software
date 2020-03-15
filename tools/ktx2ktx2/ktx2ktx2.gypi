@@ -42,13 +42,13 @@
             },
           },
           'actions': [{
-            'action_name': 'genversion',
+            'action_name': 'mkversion',
             'inputs': [
-              '../../gen-version',
+              '../../mkversion',
               '../../.git'
             ],
             'outputs': [ 'version.h' ],
-            'action': [ './gen-version', '-o', 'version.h', 'tools/ktx2ktx2' ],
+            'action': [ './mkversion', '-o', 'version.h', 'tools/ktx2ktx2' ],
           }],
         }, # ktx2ktx2 target
 #        {

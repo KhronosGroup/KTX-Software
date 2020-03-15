@@ -62,13 +62,13 @@
             ],
           },
          'actions': [{
-           'action_name': 'genversion',
+           'action_name': 'mkversion',
            'inputs': [
-             '../../gen-version',
+             '../../mkversion',
              '../../.git'
            ],
            'outputs': [ 'version.h' ],
-           'action': [ './gen-version', '-o', 'version.h', 'tools/toktx' ],
+           'action': [ './mkversion', '-o', 'version.h', 'tools/toktx' ],
          }],
        }, # toktx target
         {
