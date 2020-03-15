@@ -3,4 +3,4 @@
 export builddir_name ?= ./build/make/linux/out
 .PHONY: all
 all:
-	$(MAKE) vulkan_headers libvulkan version.h mkvkformatfiles libgles3 libgl libktx.gl libktx.doc install.lib
+	$(MAKE) vulkan_headers libvulkan version.h libktx.doc mkvkformatfiles libgles3 libgl libktx.gl install.lib

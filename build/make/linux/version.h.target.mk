@@ -2,26 +2,26 @@
 
 TOOLSET := target
 TARGET := version.h
-### Rules for action "genversion":
-quiet_cmd_libktx_gyp_version_h_target_genversion = ACTION libktx_gyp_version_h_target_genversion $@
-cmd_libktx_gyp_version_h_target_genversion = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p lib; ./gen-version -o version.h lib
+### Rules for action "mkversion":
+quiet_cmd_libktx_gyp_version_h_target_mkversion = ACTION libktx_gyp_version_h_target_mkversion $@
+cmd_libktx_gyp_version_h_target_mkversion = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p lib; ./mkversion -o version.h lib
 
 lib/version.h: obj := $(abs_obj)
 lib/version.h: builddir := $(abs_builddir)
 lib/version.h: TOOLSET := $(TOOLSET)
-lib/version.h: $(srcdir)/gen-version $(srcdir)/.git FORCE_DO_CMD
-	$(call do_cmd,libktx_gyp_version_h_target_genversion)
+lib/version.h: $(srcdir)/mkversion $(srcdir)/.git FORCE_DO_CMD
+	$(call do_cmd,libktx_gyp_version_h_target_mkversion)
 
 all_deps += lib/version.h
-action_libktx_gyp_version_h_target_genversion_outputs := lib/version.h
+action_libktx_gyp_version_h_target_mkversion_outputs := lib/version.h
 
 
 ### Rules for final target.
 # Build our special outputs first.
-$(obj).target/version.h.stamp: | $(action_libktx_gyp_version_h_target_genversion_outputs)
+$(obj).target/version.h.stamp: | $(action_libktx_gyp_version_h_target_mkversion_outputs)
 
 # Preserve order dependency of special output on deps.
-$(action_libktx_gyp_version_h_target_genversion_outputs): | 
+$(action_libktx_gyp_version_h_target_mkversion_outputs): | 
 
 $(obj).target/version.h.stamp: TOOLSET := $(TOOLSET)
 $(obj).target/version.h.stamp:  FORCE_DO_CMD

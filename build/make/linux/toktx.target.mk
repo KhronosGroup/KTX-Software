@@ -2,18 +2,18 @@
 
 TOOLSET := target
 TARGET := toktx
-### Rules for action "genversion":
-quiet_cmd_ktxtools_gyp_toktx_target_genversion = ACTION ktxtools_gyp_toktx_target_genversion $@
-cmd_ktxtools_gyp_toktx_target_genversion = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p tools/toktx; ./gen-version -o version.h tools/toktx
+### Rules for action "mkversion":
+quiet_cmd_ktxtools_gyp_toktx_target_mkversion = ACTION ktxtools_gyp_toktx_target_mkversion $@
+cmd_ktxtools_gyp_toktx_target_mkversion = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd $(srcdir)/.; mkdir -p tools/toktx; ./mkversion -o version.h tools/toktx
 
 tools/toktx/version.h: obj := $(abs_obj)
 tools/toktx/version.h: builddir := $(abs_builddir)
 tools/toktx/version.h: TOOLSET := $(TOOLSET)
-tools/toktx/version.h: $(srcdir)/gen-version $(srcdir)/.git FORCE_DO_CMD
-	$(call do_cmd,ktxtools_gyp_toktx_target_genversion)
+tools/toktx/version.h: $(srcdir)/mkversion $(srcdir)/.git FORCE_DO_CMD
+	$(call do_cmd,ktxtools_gyp_toktx_target_mkversion)
 
 all_deps += tools/toktx/version.h
-action_ktxtools_gyp_toktx_target_genversion_outputs := tools/toktx/version.h
+action_ktxtools_gyp_toktx_target_mkversion_outputs := tools/toktx/version.h
 
 
 DEFS_Debug := \
@@ -79,7 +79,7 @@ all_deps += $(OBJS)
 $(OBJS): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
 
 # Make sure our actions/rules run before any of us.
-$(OBJS): | $(action_ktxtools_gyp_toktx_target_genversion_outputs)
+$(OBJS): | $(action_ktxtools_gyp_toktx_target_mkversion_outputs)
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -112,10 +112,10 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 # Build our special outputs first.
-$(builddir)/toktx: | $(action_ktxtools_gyp_toktx_target_genversion_outputs)
+$(builddir)/toktx: | $(action_ktxtools_gyp_toktx_target_mkversion_outputs)
 
 # Preserve order dependency of special output on deps.
-$(action_ktxtools_gyp_toktx_target_genversion_outputs): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
+$(action_ktxtools_gyp_toktx_target_mkversion_outputs): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
 
 LDFLAGS_Debug := \
 	-g \
