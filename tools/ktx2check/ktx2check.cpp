@@ -328,7 +328,7 @@ struct {
         ERROR | 0x0079, "%s has invalid value."
     };
     issue NoKTXwriter {
-        ERROR | 0x007a, "Required KTXwriter key is missing."
+        WARNING | 0x007a, "No KTXwriter key. Writers are strongly urged to identify themselves via this."
     };
 } Metadata;
 
@@ -978,8 +978,7 @@ ktxValidator::validateHeader(validationContext& ctx)
     checkRequiredIndexEntry(ctx.header.dataFormatDescriptor,
                     HeaderData.InvalidRequiredIndexEntry, "dfd");
 
-    // This is required because KTXwriter is required.
-    checkRequiredIndexEntry(ctx.header.keyValueData,
+    checkOptionalIndexEntry(ctx.header.keyValueData,
                     HeaderData.InvalidRequiredIndexEntry, "kvd");
 
     if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
@@ -1367,7 +1366,7 @@ ktxValidator::validateKvd(validationContext& ctx)
             }
         }
         if (!writerFound)
-            addIssue(logger::eError, Metadata.NoKTXwriter);
+            addIssue(logger::eWarning, Metadata.NoKTXwriter);
     }
 
     if (ctx.header.supercompressionGlobalData.byteOffset != 0) {
