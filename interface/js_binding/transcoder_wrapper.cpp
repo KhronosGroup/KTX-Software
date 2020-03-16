@@ -28,6 +28,21 @@ namespace msc {
     class BasisTranscoderState: public basisu_transcoder_state {
     };
 
+    class TranscodedImage {
+      public:
+        TranscodedImage(size_t size) : image(size) { }
+
+        uint8_t* data() { return image.data(); }
+        size_t size() { return image.size(); }
+
+        val get_typed_memory_view() {
+           return val(typed_memory_view(image.size(), image.data()));
+        }
+
+      protected:
+        std::vector<uint8_t> image;
+    };
+
     class BasisTranscoder : public ktxBasisImageTranscoder {
       public:
         BasisTranscoder() : ktxBasisImageTranscoder(buildSelectorCodebook())
@@ -234,16 +249,18 @@ namespace msc {
                                                   0 : rgbSliceByteLength;
             imageDesc.alphaSliceByteLength = alphaSliceByteLength;
 
-            std::vector<uint8_t> dst;
-            dst.resize(getTranscodedImageByteLength(static_cast<transcoder_texture_format>(cTargetFormat),
-                                                    width, height));
+            //std::vector<uint8_t> dst;
+            //dst.resize(getTranscodedImageByteLength(static_cast<transcoder_texture_format>(cTargetFormat),
+            size_t tiByteLength =
+            getTranscodedImageByteLength(static_cast<transcoder_texture_format>(cTargetFormat), width, height);
+            TranscodedImage* dst = new TranscodedImage(tiByteLength);
 
             KTX_error_code error;
             error = ktxBasisImageTranscoder::transcode_image(
                               imageDesc,
                               cTargetFormat,
-                              dst.data(),
-                              dst.size(),
+                              dst->data(),
+                              dst->size(),
                               level,
                               deflatedImage.data(),
                               width, height,
@@ -254,8 +271,7 @@ namespace msc {
             val ret = val::object();
             ret.set("error", static_cast<uint32_t>(error));
             if (error == KTX_SUCCESS) {
-                // FIXME: Who deletes dst and how?
-                ret.set("transcodedImage", typed_memory_view(dst.size(), dst.data()));
+                ret.set("transcodedImage", dst);
             }
             return std::move(ret);
         }
@@ -381,8 +397,14 @@ the actual data is not specific to that container format.
                                      num_blocks_y,
                                      isVideo,
                                      false);
-            if (error) {
-                // Upload data in transcodedImage to WebGL.
+            if (!error) {
+                let imgData = transcodedImage.get_typed_memory_view();
+
+                // Upload data in imgData to WebGL...
+
+                // Do not call delete() until data has been uploaded
+                // or otherwise copied.
+                transcodedImage.delete();
             }
         }
 
@@ -463,4 +485,9 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
     class_<basisu_transcoder_state>("BasisTranscoderState")
         .constructor()
         ;
+
+    class_<msc::TranscodedImage>("TranscodedImage")
+        .function( "get_typed_memory_view", &msc::TranscodedImage::get_typed_memory_view )
+    ;
+
 }
