@@ -399,7 +399,11 @@ the actual data is not specific to that container format.
                                      false);
             if (!error) {
                 let imgData = transcodedImage.get_typed_memory_view();
-                // Upload data in imgData to WebGL.
+
+                // Upload data in imgData to WebGL...
+
+                // Do not call delete() until data has been uploaded
+                // or otherwise copied.
                 transcodedImage.delete();
             }
         }
