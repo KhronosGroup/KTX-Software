@@ -15,24 +15,37 @@
   {
     'variables': {
       'conditions': [
-        ['GENERATOR == "cmake"', {
+        ['OS != "linux"', {
+          'assimp_include': '../other_include',
+          'conditions': [
+            # {ios,mac,win}olibr because repo has only a release version.
+            ['OS == "ios"', {
+              'assimp_lib': '<(iosolibr_dir)',
+            }, 'OS == "mac"', {
+              'assimp_lib': '<(macolibr_dir)',
+            }, {
+              'assimp_lib': '<(winolibr_dir)',
+            }],
+          ], # inner conditions
+        }, 'OS == "web"', {
+           'assimp_include': '',
+           'assimp_lib': '',
+        }, 'GENERATOR == "cmake"', {
           'assimp_include': '$ENV{ASSIMP_HOME}/include',
           'assimp_lib': '$ENV{ASSIMP_HOME}/lib',
         }, {
           'assimp_include': '$(ASSIMP_HOME)/include',
           'assimp_lib': '$(ASSIMP_HOME)/lib',
         }],
-      ],
+      ], # outer conditions
     }, # variables
     'target_name': 'libassimp',
     'type': 'none',
     'direct_dependent_settings': {
+      'include_dirs': [
+        '<(assimp_include)',
+      ],
       'conditions': [
-        ['OS != "linux"', {
-          'include_dirs': [
-            '<(assimp_include)',
-          ]
-        }],
         ['OS == "win"', {
           'copies': [{
             'destination': '<(PRODUCT_DIR)',
@@ -48,26 +61,28 @@
       ], # conditions
     }, # direct_dependent_settings
     'link_settings': {
+      'library_dirs': [ '<(assimp_lib)' ],
       'conditions': [
         ['OS == "ios"', {
-          'library_dirs': [ '<(iosolibr_dir)' ],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': '-lassimp -lz',
+          },
         }, 'OS == "mac"', {
-          'library_dirs': [ '<(assimp_lib)' ],
-        }, 'OS == "win"', {
-          # winolibr because repo has only a release version.
-          'library_dirs': [ '<(winolibr_dir)' ],
-        }],
-        ['GENERATOR != "xcode"', {
+          'xcode_settings': {
+            # Use static libs to avoid having to copy stuff to app bundle.
+            # Use macOS installed libz. Caution that if <(ASSIMP_HOME)/lib
+            # is in library_dirs, then that libz.dylib will be found which
+            # will not work with the hardened runtime.
+            'OTHER_LDFLAGS': '-lassimp -lIrrXML -lminizip -lz',
+          },
+        }, 'GENERATOR != "xcode"', {
           # '-lfoo' here confuses Xcode. It seems these values are
           # being put into an Xcode list that expects only framework
           # names, full or relative paths. The workaround is to use
-          # OTHER_LDFLAGS as below.
+          # OTHER_LDFLAGS as above.
           'libraries': [ '-lassimp' ],
         }],
       ], # conditions
-      'xcode_settings': {
-        'OTHER_LDFLAGS': '-lassimp -lz',
-      },
     }, # link_settings
   }], # targets
 }

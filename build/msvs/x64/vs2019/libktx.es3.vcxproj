@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EA72C50C-8569-A66B-9099-972CCCA3CEA0}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>libktx.es3</RootNamespace>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Locals">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets">
+    <Import Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"/>
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\..\..\..\bin\;$(MSBuildProjectDirectory)\..\..\..\..\bin\</ExecutablePath>
+    <IntDir>$(Configuration)\obj\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetPath>$(OutDir)lib\$(ProjectName)$(TargetExt)</TargetPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
+    </Lib>
+    <Link>
+      <AdditionalDependencies></AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
+    </Lib>
+    <Link>
+      <AdditionalDependencies></AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
+    </Lib>
+    <Link>
+      <AdditionalDependencies></AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
+    </Lib>
+    <Link>
+      <AdditionalDependencies></AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_astc.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_astc_0_255.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_atc_55.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_atc_56.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_alpha.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_color.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m6.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_5.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_6.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_pvrtc2_45.inc"/>
+    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_pvrtc2_alpha_33.inc"/>
+    <None Include="..\..\..\..\lib\dfdutils\dfd2vk.inl"/>
+    <None Include="..\..\..\..\lib\dfdutils\vk2dfd.inl"/>
+    <None Include="..\..\..\..\lib\texture_funcs.inl"/>
+    <None Include="..\..\..\..\lib\vk_funclist.inl"/>
+    <None Include="..\..\..\..\libktx.gyp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\include\ktx.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_astc_decomp.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_backend.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_basis_file.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_comp.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_enc.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_etc.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_frontend.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_global_selector_palette_helpers.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_gpu_texture.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_pvrtc1_4.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_resampler.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_resampler_filters.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\lodepng.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_file_headers.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_internal.h"/>
+    <ClInclude Include="..\..\..\..\lib\basis_sgd.h"/>
+    <ClInclude Include="..\..\..\..\lib\basis_image_transcoder.h"/>
+    <ClInclude Include="..\..\..\..\lib\basis_transcoder_config.h"/>
+    <ClInclude Include="..\..\..\..\lib\dfdutils\dfd.h"/>
+    <ClInclude Include="..\..\..\..\lib\filestream.h"/>
+    <ClInclude Include="..\..\..\..\lib\formatsize.h"/>
+    <ClInclude Include="..\..\..\..\lib\gl_format.h"/>
+    <ClInclude Include="..\..\..\..\lib\gl_funcptrs.h"/>
+    <ClInclude Include="..\..\..\..\lib\gles1_funcptrs.h"/>
+    <ClInclude Include="..\..\..\..\lib\gles2_funcptrs.h"/>
+    <ClInclude Include="..\..\..\..\lib\gles3_funcptrs.h"/>
+    <ClInclude Include="..\..\..\..\lib\ktxgl.h"/>
+    <ClInclude Include="..\..\..\..\lib\ktxint.h"/>
+    <ClInclude Include="..\..\..\..\lib\memstream.h"/>
+    <ClInclude Include="..\..\..\..\lib\stream.h"/>
+    <ClInclude Include="..\..\..\..\lib\texture.h"/>
+    <ClInclude Include="..\..\..\..\lib\texture1.h"/>
+    <ClInclude Include="..\..\..\..\lib\texture2.h"/>
+    <ClInclude Include="..\..\..\..\lib\uthash.h"/>
+    <ClInclude Include="..\..\..\..\lib\vkformat_enum.h"/>
+    <ClInclude Include="..\..\..\..\include\ktxvulkan.h"/>
+    <ClInclude Include="..\..\..\..\lib\vk_format.h"/>
+    <ClInclude Include="..\..\..\..\lib\vk_funcs.h"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_astc_decomp.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_backend.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_basis_file.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_comp.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_enc.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_etc.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_frontend.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_global_selector_palette_helpers.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_gpu_texture.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_pvrtc1_4.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_resampler.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_resample_filters.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\lodepng.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basis_encode.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basis_transcode.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\checkheader.c"/>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\createdfd.c"/>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\dfd2vk.c"/>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\interpretdfd.c"/>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\printdfd.c"/>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\queries.c"/>
+    <ClCompile Include="..\..\..\..\lib\dfdutils\vk2dfd.c"/>
+    <ClCompile Include="..\..\..\..\lib\etcdec.cxx"/>
+    <ClCompile Include="..\..\..\..\lib\etcunpack.cxx"/>
+    <ClCompile Include="..\..\..\..\lib\filestream.c"/>
+    <ClCompile Include="..\..\..\..\lib\glloader.c"/>
+    <ClCompile Include="..\..\..\..\lib\hashlist.c"/>
+    <ClCompile Include="..\..\..\..\lib\info.c"/>
+    <ClCompile Include="..\..\..\..\lib\memstream.c"/>
+    <ClCompile Include="..\..\..\..\lib\strings.c"/>
+    <ClCompile Include="..\..\..\..\lib\swap.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture1.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture2.c"/>
+    <ClCompile Include="..\..\..\..\lib\vkformat_check.c"/>
+    <ClCompile Include="..\..\..\..\lib\vkformat_str.c"/>
+    <ClCompile Include="..\..\..\..\lib\writer1.c"/>
+    <ClCompile Include="..\..\..\..\lib\writer2.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture1_vvtbl.c"/>
+    <ClCompile Include="..\..\..\..\lib\texture2_vvtbl.c"/>
+    <ClCompile Include="..\..\..\..\lib\vkloader.c"/>
+    <ClCompile Include="..\..\..\..\lib\vk_funcs.c"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="vulkan_headers.vcxproj">
+      <Project>{44DDF1C7-5039-75FC-D551-120EB02BF370}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="version.h.vcxproj">
+      <Project>{E5EBC67F-6F0C-7426-02F0-DE767A1E6AD2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+</Project>

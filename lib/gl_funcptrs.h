@@ -61,7 +61,7 @@ extern PFNGLGETSTRINGIPROC pfGlGetStringi;
     pfGlCompressedTexImage3D = glCompressedTexImage3D; \
     pfGlGenerateMipmap = glGenerateMipmap; \
     pfGlGetStringi = glGetStringi;
-    
+
 #ifdef __cplusplus
 }
 #endif

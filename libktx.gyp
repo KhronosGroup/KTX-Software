@@ -21,6 +21,7 @@
      'gyp_include/config.gypi',
      'gyp_include/default.gypi',
      'lib/libktx.gypi',
+     'interface/js_binding/js_binding.gypi'
   ],
 }
 

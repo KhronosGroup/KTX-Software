@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>libktx.js Demo with WebGL</title>
+    <link rel="stylesheet" href="../webgl.css" type="text/css">
+    <style>
+      body {
+        /* Set margins to center the page. */
+        margin: 2em auto 2em auto;
+        max-width: 55em;
+      }
+      /* Center the canvas too. */
+      canvas {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #panel {
+        color: white;
+        background-color:rgba(0.3, 0.3, 0.3, 0.3);
+        padding: 0.5em;
+        max-width: 55em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="panel">
+      <h2>libktx Javascript Binding Test</h2>
+      <p>This demo uses the Javascript binding for libktx which has been compiled to
+      Javascript using Emscripten. It uses a KTX2 file with a Basis Universal-compressed
+      payload. It has transcoded the images to <b id='format'>FORMAT</b>.
+      </p>
+    </div>
+    <p></p>
+
+    <canvas id="glcanvas" width="640" height="480"></canvas>
+  </body>
+
+  <script src="../gl-matrix.js"></script>
+  <script src="../libktx.js"></script>
+  <script src="webgl-demo.js"></script>
+  <script type="text/javascript">
+    LIBKTX({preinitializedWebGLContext: gl}).then(module => {
+      window.LIBKTX = module;
+      // Make existing WebGL context current for Emscripten OpenGL.
+      LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
+      texture = loadTexture(gl, 'ktx_app_basis.ktx2');
+    });
+  </script>
+</html>

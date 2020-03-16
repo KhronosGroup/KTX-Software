@@ -2,6 +2,29 @@
 
 TOOLSET := target
 TARGET := gl3loadtests
+### Generated for copy rule.
+$(builddir)/models/cube.obj: TOOLSET := $(TOOLSET)
+$(builddir)/models/cube.obj: $(srcdir)/tests/loadtests/common/models/cube.obj FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/models/cube.obj
+$(builddir)/models/sphere.obj: TOOLSET := $(TOOLSET)
+$(builddir)/models/sphere.obj: $(srcdir)/tests/loadtests/common/models/sphere.obj FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/models/sphere.obj
+$(builddir)/models/teapot.dae: TOOLSET := $(TOOLSET)
+$(builddir)/models/teapot.dae: $(srcdir)/tests/loadtests/common/models/teapot.dae FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/models/teapot.dae
+$(builddir)/models/torusknot.obj: TOOLSET := $(TOOLSET)
+$(builddir)/models/torusknot.obj: $(srcdir)/tests/loadtests/common/models/torusknot.obj FORCE_DO_CMD
+	$(call do_cmd,copy)
+
+all_deps += $(builddir)/models/torusknot.obj
+ktxtests_gyp_gl3loadtests_target_copies = $(builddir)/models/cube.obj $(builddir)/models/sphere.obj $(builddir)/models/teapot.dae $(builddir)/models/torusknot.obj
+
 DEFS_Debug := \
 	'-DGL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE' \
 	'-DGL_CONTEXT_MAJOR_VERSION=3' \
@@ -11,23 +34,28 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
+	-Wpedantic \
 	-Og \
 	-g
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/glloadtests \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/utils \
+	-I$(srcdir)/tests/loadtests/glloadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(ASSIMP_HOME)/include \
 	-I$(srcdir)/include
 
 DEFS_Release := \
@@ -38,32 +66,40 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
+	-Wpedantic \
 	-O3
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/tests/loadtests/glloadtests \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/utils \
+	-I$(srcdir)/tests/loadtests/glloadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(ASSIMP_HOME)/include \
 	-I$(srcdir)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tests/loadtests/common/LoadTestSample.o \
 	$(obj).target/$(TARGET)/tests/loadtests/common/SwipeDetector.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/GLLoadTests.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/BasisuTest.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/DrawTexture.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTests.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/GL3LoadTestSample.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/TextureArray.o \
+	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/TextureCubemap.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/TexturedCube.o \
 	$(obj).target/$(TARGET)/tests/loadtests/glloadtests/shader-based/shaders.o
 
@@ -71,7 +107,10 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libappfwSDL.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
+
+# Make sure our actions/rules run before any of us.
+$(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -94,24 +133,33 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
+# Build our special outputs first.
+$(builddir)/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
+
+# Preserve order dependency of special output on deps.
+$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
+
 LDFLAGS_Debug := \
 	-Wl,-rpath,. \
 	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/ \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64 \
+	-L$(ASSIMP_HOME)/lib
 
 LDFLAGS_Release := \
 	-Wl,-rpath,. \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/ \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64 \
+	-L$(ASSIMP_HOME)/lib
 
 LIBS := \
 	-lSDL2-2.0 \
 	-lSDL2main \
 	-ldl \
 	-lpthread \
+	-lassimp \
 	-lGL
 
 $(builddir)/gl3loadtests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))

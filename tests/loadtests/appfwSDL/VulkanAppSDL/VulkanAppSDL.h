@@ -30,12 +30,7 @@
 #include "VulkanContext.h"
 #include "VulkanSwapchain.h"
 #include "vulkantextoverlay.hpp"
-
-#if defined(NDEBUG) && defined(__GNUC__)
-#define U_ASSERT_ONLY __attribute__((unused))
-#else
-#define U_ASSERT_ONLY
-#endif
+#include "unused.h"
 
 class VulkanAppSDL : public AppBaseSDL {
   public:

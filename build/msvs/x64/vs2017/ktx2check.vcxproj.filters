@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\ktx2check">
+      <UniqueIdentifier>{9FB938A7-5B57-33F8-B8D8-BEEE3339C0C8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\ktx2check">
+      <UniqueIdentifier>{9FB938A7-5B57-33F8-B8D8-BEEE3339C0C8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\utils\argparser.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\utils\argparser.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\utils\ktxapp.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\tools\ktx2check\ktx2check.cpp">
+      <Filter>tools\ktx2check</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\tools\ktx2check\stdafx.h">
+      <Filter>tools\ktx2check</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\ktxtools.gyp"/>
+    <None Include="..\..\..\..\mkversion">
+      <Filter>_excluded_files</Filter>
+    </None>
+    <None Include="..\..\..\..\.git">
+      <Filter>_excluded_files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

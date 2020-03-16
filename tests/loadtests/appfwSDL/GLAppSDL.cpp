@@ -37,6 +37,9 @@
   #define _CRT_SECURE_NO_WARNINGS
   #include "GL/glew.h"
   #include "SDL2/SDL_loadso.h"
+#else
+  #define GL_GLEXT_PROTOTYPES 1
+  #include "GL/glcorearb.h"   // for glEnable and FRAMEBUFFER_RGB
 #endif
 
 #include <stdio.h>
@@ -58,7 +61,11 @@ GLAppSDL::initialize(int argc, char* argv[])
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
-#if defined(DEBUG)
+#if !defined(EMSCRIPTEN)
+    if (majorVersion >= 3)
+      SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
+#endif
+#if defined(DEBUG) && !defined(EMSCRIPTEN)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
@@ -196,7 +203,12 @@ GLAppSDL::initialize(int argc, char* argv[])
         }
     }
 #endif
-    
+
+    int srgb;
+    SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &srgb);
+    if (srgb && profile != SDL_GL_CONTEXT_PROFILE_ES)
+        glEnable(GL_FRAMEBUFFER_SRGB);
+
     // In case the window is created with a different size than specified.
     resizeWindow();
 

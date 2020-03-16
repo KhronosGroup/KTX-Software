@@ -14,7 +14,7 @@
         'imagedest': '<(android_assets_dir)/<(datadir)',
       }, 'OS == "ios" or OS == "mac"', {
         'imagedest': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/<(datadir)',
-      }, 'OS == "linux" or OS == "win"', {
+      }, 'OS == "linux" or OS == "win" or OS == "web"', {
         'imagedest': '<(PRODUCT_DIR)/<(datadir)',
       }], # OS == "android" and else clauses
     ], # conditions
@@ -32,13 +32,19 @@
           'direct_dependent_settings': {
             'copies': [{
              'destination': '<(imagedest)',
-             'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
+             'files': [
+                '<!@(ls <(testimages_dir)/*.ktx)',
+                '<!@(ls <(testimages_dir)/*.ktx2)',
+              ],
             }], # copies
           }, # direct_dependent_settings
         }, {
           'copies': [{
            'destination': '<(imagedest)',
-           'files': [ '<!@(ls <(testimages_dir)/*.ktx)' ],
+           'files': [
+                '<!@(ls <(testimages_dir)/*.ktx)',
+                '<!@(ls <(testimages_dir)/*.ktx2)',
+            ],
           }], # copies
         }],
       ],

@@ -11,6 +11,7 @@ layout (binding = 0) uniform UBO
 	mat4 projection;
 	mat4 modelView;
     mat4 invModelView;
+    mat4 uvwTransform;
 	float lodBias;
 } ubo;
 
@@ -19,7 +20,6 @@ layout (location = 1) out vec3 outNormal;
 layout (location = 2) out float outLodBias;
 layout (location = 3) out vec3 outViewVec;
 layout (location = 4) out vec3 outLightVec;
-layout (location = 5) out mat4 outInvModelView;
 
 out gl_PerVertex 
 {
@@ -34,9 +34,6 @@ void main()
 	outNormal = mat3(ubo.modelView) * inNormal;
 	outLodBias = ubo.lodBias;
 	
-    //outInvModelView = inverse(ubo.model);
-    //outInvModelView = ubo.invModel;
-
 	vec3 lightPos = vec3(0.0f, -5.0f, 5.0f);
 	outLightVec = lightPos.xyz - outPos.xyz;
 	outViewVec = -outPos.xyz;		

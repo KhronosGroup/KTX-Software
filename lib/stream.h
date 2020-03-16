@@ -52,7 +52,7 @@
 #if defined(_MSC_VER) && defined(_WIN64)
   typedef unsigned __int64 ktx_off_t;
 #else
-  typedef   size_t ktx_off_t;
+  typedef   off_t ktx_off_t;
 #endif
 typedef struct ktxMem ktxMem;
 typedef struct ktxStream ktxStream;
@@ -131,6 +131,7 @@ struct ktxStream
         FILE* file;
         ktxMem* mem;
     } data;                /**< @internal pointer to the stream data. */
+    ktx_off_t readpos;     /**< @internal used by FileStream for stdin. */
     ktx_bool_t closeOnDestruct; /**< @internal Close FILE* or dispose of memory on destruct. */
 };
 

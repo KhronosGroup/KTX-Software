@@ -43,7 +43,7 @@
 /* ------------------------------------------------------------------------- */
 
 extern const GLchar* pszVs;
-extern const GLchar* pszDecalFs;
+extern const GLchar *pszDecalFs, *pszDecalSrgbEncodeFs;
 
 /* ------------------------------------------------------------------------- */
 
@@ -63,18 +63,26 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     std::string filename;
     GLenum target;
     GLenum glerror;
-    GLboolean isMipmapped;
     GLuint gnDecalFs, gnVs;
     GLsizeiptr offset;
+    ktxTexture* kTexture;
     KTX_error_code ktxresult;
 
     bInitialized = GL_FALSE;
     gnTexture = 0;
 
     filename = getAssetPath() + szArgs;
-    ktxresult = ktxLoadTextureN(filename.c_str(), &gnTexture, &target,
-                               NULL, &isMipmapped, &glerror,
-                               0, NULL);
+    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
+                                               KTX_TEXTURE_CREATE_NO_FLAGS,
+                                               &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << filename
+                << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
         if (target != GL_TEXTURE_2D) {
@@ -87,7 +95,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
             throw std::runtime_error(message.str());
         }
 
-        if (isMipmapped)
+        if (kTexture->numLevels > 1)
             // Enable bilinear mipmapping.
             // TO DO: application can consider inserting a key,value pair in
             // the KTX file that indicates what type of filtering to use.
@@ -96,6 +104,8 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
         else
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        ktxTexture_Destroy(kTexture);
 
         assert(GL_NO_ERROR == glGetError());
     } else {
@@ -123,17 +133,16 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     glBindVertexArray(gnVao);
 
     // Must have vertex data in buffer objects to use VAO's on ES3/GL Core
-    glGenBuffers(1, &gnVbo);
-    glBindBuffer(GL_ARRAY_BUFFER, gnVbo);
+    glGenBuffers(2, gnVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, gnVbo[0]);
     // Must be done after the VAO is bound
-    // Use the same buffer for vertex attributes and element indices.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gnVbo);
+    // WebGL requires different buffers for data and indices.
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gnVbo[1]);
 
     // Create the buffer data store. 
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(cube_face) + sizeof(cube_color) + sizeof(cube_texture)
-                 + sizeof(cube_normal) + sizeof(cube_index_buffer),
-                 NULL, GL_STATIC_DRAW);
+                 + sizeof(cube_normal), NULL, GL_STATIC_DRAW);
 
     // Interleave data copying and attrib pointer setup so offset is only
     // computed once.
@@ -154,13 +163,24 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(cube_normal), cube_normal);
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
     offset += sizeof(cube_normal);
-    iIndicesOffset = offset;
-    // Either of the following can be used to buffer the data.
-    glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(cube_index_buffer),
-                    cube_index_buffer);
-    //glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset,
-    //                sizeof(cube_index_buffer), cube_index_buffer);
 
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_index_buffer),
+                 cube_index_buffer, GL_STATIC_DRAW);
+
+    const GLchar* actualDecalFs;
+    if (framebufferColorEncoding() == GL_LINEAR) {
+        actualDecalFs = pszDecalSrgbEncodeFs;
+    } else {
+        actualDecalFs = pszDecalFs;
+    }
+    try {
+        makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
+        makeShader(GL_FRAGMENT_SHADER, actualDecalFs, &gnDecalFs);
+        makeProgram(gnVs, gnDecalFs, &gnTexProg);
+        } catch (std::exception& e) {
+        (void)e; // To quiet unused variable warnings from some compilers.
+        throw;
+    }
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
         makeShader(GL_FRAGMENT_SHADER, pszDecalFs, &gnDecalFs);
@@ -190,7 +210,7 @@ TexturedCube::~TexturedCube()
         glUseProgram(0);
         glDeleteTextures(1, &gnTexture);
         glDeleteProgram(gnTexProg);
-        glDeleteBuffers(1, &gnVbo);
+        glDeleteBuffers(2, gnVbo);
         glDeleteVertexArrays(1, &gnVao);
     }
     assert(GL_NO_ERROR == glGetError());
@@ -225,8 +245,7 @@ TexturedCube::run(uint32_t msTicks)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUniformMatrix4fv(gulMvMatrixLocTP, 1, GL_FALSE, glm::value_ptr(matView));
 
-    glDrawElements(GL_TRIANGLES, CUBE_NUM_INDICES, GL_UNSIGNED_SHORT,
-                   (GLvoid*)(iIndicesOffset));
+    glDrawElements(GL_TRIANGLES, CUBE_NUM_INDICES, GL_UNSIGNED_SHORT, 0);
 
     assert(GL_NO_ERROR == glGetError());
 }

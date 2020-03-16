@@ -48,6 +48,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 #include "AppBaseSDL.h"
+#include "unused.h"
 
 #define ERROR_RETURN(msg)                                                     \
       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),    \
@@ -71,12 +72,6 @@
         ERROR_RETURN("vkGetDeviceProcAddr: unable to find vk"#entrypoint);  \
     }                                                                       \
   }
-
-#if defined(NDEBUG) && defined(__GNUC__)
-#define U_ASSERT_ONLY __attribute__((unused))
-#else
-#define U_ASSERT_ONLY
-#endif
 
 // Creates an os specific surface
 // Tries to find a graphics and a present queue

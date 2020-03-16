@@ -30,21 +30,73 @@
  */
 
 #include "GLLoadTests.h"
+#include "BasisuTest.h"
 #include "DrawTexture.h"
 #include "TexturedCube.h"
+#include "TextureCubemap.h"
 #include "TextureArray.h"
 
+#define TEST_BASIS_COMPRESSION 1
+
 const GLLoadTests::sampleInvocation siSamples[] = {
+    { DrawTexture::create,
+      "testimages/color_grid_basis.ktx2",
+      "KTX2: Basis Transcode on RGB non mipmapped"
+    },
+    { DrawTexture::create,
+      "testimages/kodim17_basis.ktx2",
+      "KTX2: Basis Transcode on RGB non mipmapped"
+    },
+    { DrawTexture::create,
+      "--transcode-target RGBA4444 testimages/kodim17_basis.ktx2",
+      "KTX2: Basis Transcode of RGB non-mipmapped to RGBA4444"
+    },
+    { BasisuTest::create,
+      "testimages/FlightHelmet_baseColor_basis.ktx2",
+      "KTX2: Basis Transcode on RGBA non mipmapped"
+    },
+#if TEST_BASIS_COMPRESSION
+    { BasisuTest::create,
+      "testimages/rgba-reference-u.ktx2",
+      "KTX2: Encode and transcode Basis with RGBA non mipmapped"
+    },
+#endif
+#if !defined(__EMSCRIPTEN__)
+    { TextureCubemap::create,
+      "testimages/cubemap_yokohama_basis_rd.ktx2",
+      "KTX2: Basis Transcode on mipmapped cubemap",
+    },
+#endif
+    { DrawTexture::create,
+      "testimages/orient-down-metadata-u.ktx2",
+      "KTX2: RGB8 + KTXOrientation down"
+    },
+    { DrawTexture::create,
+      "--preload testimages/orient-down-metadata-u.ktx2",
+      "KTX2: RGB8 + KTXOrientation down with pre-loaded images"
+    },
+    { TextureArray::create,
+      "testimages/texturearray_bc3_unorm.ktx2",
+      "KTX2: BC3 (S3TC DXT5) Compressed Texture Array"
+    },
+    { TextureArray::create,
+      "testimages/texturearray_astc_8x8_unorm.ktx2",
+      "KTX2: ASTC 8x8 Compressed Texture Array"
+    },
+    { TextureArray::create,
+      "testimages/texturearray_etc2_unorm.ktx2",
+      "KTX2: ETC2 Compressed Texture Array"
+    },
+    { TexturedCube::create,
+      "testimages/rgb-mipmap-reference-u.ktx2",
+      "KTX2: RGB8 Color/level mipmap"
+    },
     { DrawTexture::create,
       "testimages/hi_mark.ktx",
       "RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
-      "testimages/luminance-reference-metadata.ktx",
-      "LUMINANCE8 NPOT + KTXOrientation down"
-    },
-    { DrawTexture::create,
-      "testimages/orient-up.ktx",
+      "testimages/orient-up-metadata.ktx",
       "RGB8 + KTXOrientation up"
     },
     { DrawTexture::create,

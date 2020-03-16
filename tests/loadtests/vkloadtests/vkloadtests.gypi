@@ -9,7 +9,6 @@
     # The following is already included by appfwSDL.gypi, which
     # itself is included by this file's parent.
     #  '../../../gyp_include/libvulkan.gypi',
-    '../../../gyp_include/libassimp.gypi',
   ],
   'variables': { # level 1
     # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
@@ -28,7 +27,6 @@
       'target_name': 'vkloadtests',
       'type': '<(executable)',
       'mac_bundle': 1,
-      'cflags': [ '-std=c++11' ],
       'defines': [ ],
       'dependencies': [
         'appfwSDL',
@@ -45,6 +43,7 @@
         '../../../utils',
         '../common',
         '../geom',
+        'utils',
       ],
       'sources': [
         '../../../utils/argparser.h',
@@ -90,6 +89,7 @@
         'shaders/texture/texture.vert',
         'shaders/texturearray/instancing.frag',
         'shaders/texturearray/instancing.vert',
+        'utils/VulkanTextureTranscoder.hpp',
         'utils/VulkanMeshLoader.hpp',
         'VulkanLoadTests.cpp',
         'VulkanLoadTests.h',
@@ -99,10 +99,10 @@
       'copies': [{
         'destination': '<(model_dest)',
         'files': [
-          'models/cube.obj',
-          'models/sphere.obj',
-          'models/teapot.dae',
-          'models/torusknot.obj',
+          '../common/models/cube.obj',
+          '../common/models/sphere.obj',
+          '../common/models/teapot.dae',
+          '../common/models/torusknot.obj',
         ],
       }],
       'link_settings': {
@@ -119,8 +119,6 @@
         },
       },
       'xcode_settings': {
-        # For C++11
-        'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
         'INFOPLIST_FILE': '<(vkinfoplist_file)',
       }, # xcode_settings
       'conditions': [
@@ -143,7 +141,10 @@
             '../../../icons/mac/ktx_app.icns',
           ],
         }, 'OS == "win"', {
-          'dependencies': [ 'libktx.gyp:libktx.gl' ],
+          'dependencies': [
+            'libktx.gyp:libktx.gl',
+            'libktx.gyp:libgl'
+          ],
           'sources!': [ '<(vkinfoplist_file)' ],
           'sources': [
              '../../../icons/win/ktx_app.ico',

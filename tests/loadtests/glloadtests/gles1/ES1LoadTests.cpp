@@ -39,10 +39,6 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "LUMINANCE8 NPOT"
     },
     { DrawTexture::create,
-      "testimages/orient-up.ktx",
-      "RGB8 (no metadata)"
-    },
-    { DrawTexture::create,
       "testimages/orient-up-metadata.ktx",
       "RGB8 + KTXOrientation up"
     },

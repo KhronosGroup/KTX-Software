@@ -148,22 +148,22 @@ rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs := \
 
 ### Generated for copy rule.
 $(builddir)/models/cube.obj: TOOLSET := $(TOOLSET)
-$(builddir)/models/cube.obj: $(srcdir)/tests/loadtests/vkloadtests/models/cube.obj FORCE_DO_CMD
+$(builddir)/models/cube.obj: $(srcdir)/tests/loadtests/common/models/cube.obj FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/cube.obj
 $(builddir)/models/sphere.obj: TOOLSET := $(TOOLSET)
-$(builddir)/models/sphere.obj: $(srcdir)/tests/loadtests/vkloadtests/models/sphere.obj FORCE_DO_CMD
+$(builddir)/models/sphere.obj: $(srcdir)/tests/loadtests/common/models/sphere.obj FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/sphere.obj
 $(builddir)/models/teapot.dae: TOOLSET := $(TOOLSET)
-$(builddir)/models/teapot.dae: $(srcdir)/tests/loadtests/vkloadtests/models/teapot.dae FORCE_DO_CMD
+$(builddir)/models/teapot.dae: $(srcdir)/tests/loadtests/common/models/teapot.dae FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/teapot.dae
 $(builddir)/models/torusknot.obj: TOOLSET := $(TOOLSET)
-$(builddir)/models/torusknot.obj: $(srcdir)/tests/loadtests/vkloadtests/models/torusknot.obj FORCE_DO_CMD
+$(builddir)/models/torusknot.obj: $(srcdir)/tests/loadtests/common/models/torusknot.obj FORCE_DO_CMD
 	$(call do_cmd,copy)
 
 all_deps += $(builddir)/models/torusknot.obj
@@ -175,24 +175,27 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
-	-std=c++11 \
+	-Wpedantic \
 	-Og \
 	-g
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/tests/loadtests/vkloadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(ASSIMP_HOME)/include \
 	-I$(VULKAN_SDK)/include \
 	-I$(srcdir)/include
 
@@ -201,23 +204,26 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
-	-std=c++11 \
+	-Wpedantic \
 	-O3
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/utils \
 	-I$(srcdir)/tests/loadtests/common \
 	-I$(srcdir)/tests/loadtests/geom \
+	-I$(srcdir)/tests/loadtests/vkloadtests/utils \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(ASSIMP_HOME)/include \
 	-I$(VULKAN_SDK)/include \
 	-I$(srcdir)/include
 
@@ -275,13 +281,15 @@ LDFLAGS_Debug := \
 	-g \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/ \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64 \
+	-L$(ASSIMP_HOME)/lib
 
 LDFLAGS_Release := \
 	-Wl,-rpath,. \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/ \
-	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64
+	-L$(srcdir)/other_lib/linux/$(BUILDTYPE)-x64 \
+	-L$(ASSIMP_HOME)/lib
 
 LIBS := \
 	-lpthread \

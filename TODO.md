@@ -29,7 +29,7 @@ library testing
 toktx
 -----
 
-- [ ] support reading formats other than PPM, via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h)
+- [x] support reading formats other than PPM
 - [ ] create ddx2ktx tool.
 - [ ] support 3D and array textures
 - [ ] PPM & reference ktx files for 1D textures

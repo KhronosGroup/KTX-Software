@@ -1,0 +1,143 @@
+#! /usr/bin/awk -f
+
+# This script creates 3 files from vulkan/vulkan_core.h:
+#
+# - vkformat_enum.h, the VkFormat enum declaration for those who don't
+#   want to include vulkan_core.h.
+# - vkformat_str.c, a switch statement for converting VkFormat enums to
+#   to strings corresponding to the format names.
+# - vkformat_check.c, 2 functions: 1 to checking if a format is prohibited in
+#   KTX2 and the other to see if a format is valid.
+#   KTX2.
+
+BEGIN {
+    vulkan_core = "vulkan_core.h"
+    processing_core_formats = 0
+    processing_extension_formats = 0
+    # Range pattern matches 2nd line to avoid other comments so need
+    # comment opening.
+    copyright = "/*\n"
+    banner = ""
+    format_decl = ""
+    core_formats = ""
+    extension_formats = ""
+    end_range = ""
+    prohibited = "#include <stdint.h>\n#include <stdbool.h>\n\n"
+    prohibited = prohibited "#include \"vkformat_enum.h\"\n\n"
+    prohibited = prohibited "bool\nisProhibitedFormat(VkFormat format)\n{\n"
+    prohibited = prohibited "    switch (format) {\n";
+    valid = "bool\nisValidFormat(VkFormat format)\n{\n"
+    valid = valid "    if (format < VK_FORMAT_END_RANGE)\n"
+    valid = valid "        return true;\n    else switch(format) {\n"
+    if (ARGC == 2) {
+        output_dir = ARGV[1] "/";
+    }
+    format_hdr = output_dir "vkformat_enum.h"
+    format_strings = output_dir "vkformat_str.c"
+    format_check = output_dir "vkformat_check.c"
+# Use local vulkan_core.h until ASTC 3D texture extension is released.
+#    if (ENVIRON["VULKAN_SDK"]) {
+#        vulkan_include_root = ENVIRON["VULKAN_SDK"];
+#    } else {
+#        vulkan_include_root = "/usr";
+#    }
+#    ARGV[1] = vulkan_include_root"/include/vulkan/"vulkan_core; ARGC = 2
+     ARGV[1] = "lib/dfdutils/vulkan/"vulkan_core; ARGC = 2
+}
+
+# A range pattern to extract the copyright message.
+/\*\* Copyright*/,/\*\// { copyright = copyright $0 "\n" }
+
+/VK_HEADER_VERSION/ {
+  banner = "\n"
+  banner = banner "/***************************** Do not edit.  *****************************\n"
+  banner = banner " Automatically generated from " vulkan_core " version " $3 " by mkvkformatfiles.\n"
+  banner = banner " *************************************************************************/\n"
+}
+
+# Extract VkFlags definition.
+/typedef .* VkFlags/ {
+  format_decl = format_decl "#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.\n"
+  format_decl = format_decl "typedef unsigned __int32 VkFlags;\n#else\n"
+  format_decl = format_decl "#include <stdint.h>\n"
+  format_decl = format_decl $0 "\n#endif\n\n"
+}
+
+# A range pattern to extract the VkFormat declaration.
+/^typedef enum VkFormat {/,/^} VkFormat;/ {
+  if ($3 !~ /VK_FORMAT_.*/) { # Avoid values defined as existing values.
+    format_decl = format_decl $0 "\n"}
+  }
+
+/^    VK_FORMAT_END_RANGE/ {
+  sub(/,$/, "", $3);
+  end_range = "#define VK_FORMAT_END_RANGE " $3 "\n";
+}
+
+/.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
+#/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
+# Multiplane formats.
+/VK_FORMAT_[^F]/ && (/PLANE/ || /422/ || /420/) {
+  # Avoid values defined as existing values and avoid the MAX_ENUM value.
+  if ($3 !~ /VK_FORMAT_.*/ && $1 !~ /.*MAX_ENUM/) {
+    prohibited = prohibited "      case " $1 ":\n";
+  }
+}
+
+# Extract valid formats with values > VK_FORMAT_END_RANGE.
+/VK_FORMAT_[^F].* = 1000/ && ! /PLANE/ && ! /422/ && !/420/ {
+  valid = valid "        case " $1 ":\n";
+}
+
+# Extract VK_FORMAT token names. [^F] avoids the VK_FORMAT_FEATURE* tokens.
+/    VK_FORMAT_[^F].*/ {
+  # Avoid values defined as existing values and avoid the MAX_ENUM value.
+  if ($3 !~ /VK_FORMAT_.*/ && $1 !~ /.*MAX_ENUM/) {
+    switch_body = switch_body "      case " $1 ":\n        return \"" $1 "\";\n"
+  }
+}
+
+function write_header_file(guard1, guard2, body, filename) {
+    if (guard2) {
+        print "#if !defined("guard1") && !defined("guard2")" > filename
+    } else {
+        print "#ifndef "guard1 > filename
+    }
+    print "#define "guard1 > filename
+    print banner > filename
+    print copyright > filename
+    print body > filename
+    print "#endif /* "guard1" */" > filename
+}
+
+function write_source_file(body, filename) {
+    print banner > filename
+    print copyright > filename
+    print body > filename
+}
+
+END {
+    # vkformat_enum.h
+    write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_H_", format_decl "\n" end_range, format_hdr);
+
+    # vkformat_prohibited.c
+    prohibited = prohibited "        return true;\n"
+    prohibited = prohibited "      default:\n        return false;\n    }\n}\n";
+    valid = valid "        return true;\n"
+    valid = valid "      default:\n        return false;\n    }\n}\n";
+    write_source_file(prohibited "\n" valid, format_check)
+
+    # vkformat_str.c
+    prelude = "\n";
+    prelude = prelude "#include <stdint.h>\n\n";
+    prelude = prelude "#include \"vkformat_enum.h\"\n\n";
+    prelude = prelude "const char*\nvkFormatString(VkFormat format)\n{\n";
+    prelude = prelude "    switch (format) {\n";
+    postscript = "      default:\n        return \"VK_UNKNOWN_FORMAT\";\n";
+    postscript = postscript "    }\n";
+    postscript = postscript "}\n";
+    write_source_file(prelude switch_body postscript, format_strings);
+}
+
+# vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
+

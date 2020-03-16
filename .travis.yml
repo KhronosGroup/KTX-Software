@@ -1,6 +1,10 @@
 # CI build script for Travis.
 # See https://docs.travis-ci.com/user/multi-os/ for more info.
 
+language:
+  - cpp
+  - node_js
+
 matrix:
   include:
     # works on Precise and Trusty
@@ -16,22 +20,19 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - VULKAN_SDK_VER="1.1.85"
+      compiler: gcc # clang is tested by macOS build
+      services:
+        - docker
       sudo: required
+      node_js:
+        - node
     - os: osx
       env:
-        - ASSIMP_HOME="/usr/local"
         - VULKAN_SDK_VER="1.1.85.0"
         - VULKAN_INSTALL_DIR="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
+      compiler: clang
       osx_image: xcode9.3
-
-language:
-  - cpp
-
-compiler:
-  # clang compilation will be tested by xcode.
-  #- clang
-  - gcc
 
 #env:
   #global:
@@ -44,6 +45,12 @@ before_install:
 - eval "${MATRIX_EVAL}"
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
 - cat ~/.netrc
+- |
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    docker run -dit --name emscripten -v $(pwd):/src trzeci/emscripten:sdk-incoming-64bit bash
+    ;;
+  esac
 
 install:
 - |
@@ -66,11 +73,14 @@ install:
     git lfs install &&
     git lfs version &&
     brew install doxygen &&
-    brew install assimp &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
     wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
     tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
+    wget -O Packages.dmg http://s.sudre.free.fr/Software/files/Packages.dmg &&
+    hdiutil attach Packages.dmg &&
+    sudo installer -pkg /Volumes/Packages*/packages/packages.pkg -target / &&
+    hdiutil detach /Volumes/Packages* &&
     popd
     ;;
   esac
@@ -94,8 +104,8 @@ before_script:
     esac
   # Make sure embedded dates are correct.
   - ./install-gitconfig.sh
-  - rm TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cpp
-  - git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cpp
+  - rm TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cc
+  - git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cc
 
 script:
 - |
@@ -111,15 +121,19 @@ script:
     cmake . && make &&
     cd ../Release &&
     cmake . && make &&
+    make ktxpkg_doc &&
     popd &&
     pushd build/cmake/linux/Debug &&
     ./unittests &&
     ./texturetests &&
+    ./transcodetests ../../../../tests/testimages/ &&
     cd ../Release &&
     ./unittests &&
     ./texturetests &&
+    ./transcodetests ../../../../tests/testimages/ &&
     popd &&
-    ./runDoxygen ktxpkg.doxy
+    docker exec -it emscripten sh -c "cd build/cmake/web/Debug && emconfigure cmake . && make" &&
+    docker exec -it emscripten sh -c "cd build/cmake/web/Release && emconfigure cmake . && make"
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
@@ -150,12 +164,18 @@ script:
     pushd build/Debug &&
     ./unittests &&
     ./texturetests &&
-    cd ../Release &&
+    ./transcodetests ../../tests/testimages/ &&
+     cd ../Release &&
     ./unittests &&
     ./texturetests &&
+    ./transcodetests ../../tests/testimages/ &&
     popd
     ;;
     esac
+
+# See if this helps with truncated logs.
+after_script:
+ - sleep 10
 
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 

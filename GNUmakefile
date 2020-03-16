@@ -27,25 +27,28 @@ builddir := build
 stampfile := .${pname}-stamp
 
 msvs_buildd := $(builddir)/msvs
-msvs_platforms := x64 win32
-# vs2010e does not support 64-bit builds.
-msvs_x64_vernames := vs2010 vs2013 vs2013e vs2015 vs2017
-msvs_win32_vernames := $(msvs_x64_vernames) vs2010e
-# Build a set of targets by in form
-# "$(msvs_buildd)/{x64,win32}/vs{2010,2010e,2008}/.ktx-stamp"
+msvs_platforms := x64
+msvs_x64_vernames := vs2015 vs2017 vs2019
+#msvs_win32_vernames := $(msvs_x64_vernames)
+# Build a set of targets off the form
+# "$(msvs_buildd)/{x64,win32}/vs{2015,2017,2019}/.ktx-stamp"
 # by prefixing the list of msvs versions (${2}) with the platform (${1}).
 msvs_target_set = $(addprefix ${msvs_buildd}/${1}/,$(addsuffix /${stampfile},${2}))
 msvs_x64_targets = $(call msvs_target_set,x64,${msvs_x64_vernames})
-msvs_win32_targets = $(call msvs_target_set,win32,${msvs_win32_vernames})
-msvs_all_targets := $(msvs_x64_targets) $(msvs_win32_targets)
+#msvs_win32_targets = $(call msvs_target_set,win32,${msvs_win32_vernames})
+msvs_all_targets := $(msvs_x64_targets)
 
 xcode_buildd := $(builddir)/xcode
 xcode_platforms := ios mac
 xcode_targets = $(addsuffix /${stampfile},$(addprefix ${xcode_buildd}/,${xcode_platforms}))
 
 cmake_buildd := $(builddir)/cmake
-cmake_platforms := linux# mac
-cmake_targets = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,${cmake_platforms}))
+#cmake_platforms := linux# mac
+#cmake_targets = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,${cmake_platforms}))
+# Have to generate these platforms separately so provide macros for each.
+cmake_linux = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,linux))
+cmake_web = $(addsuffix /${stampfile},$(addprefix ${cmake_buildd}/,web))
+cmake_targets = $(cmake_linux) $(cmake_web)
 
 make_buildd := $(builddir)/make
 make_platforms := linux# mac
@@ -81,6 +84,7 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/libvulkan.gypi \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
+		 interface/js_binding/js_binding.gypi \
 		 lib/libktx.gypi \
 		 pkgdoc/pkgdoc.gypi \
 		 tests/tests.gypi \
@@ -91,8 +95,13 @@ gypfiles=ktxtests.gyp \
 		 tests/loadtests/vkloadtests/vkloadtests.gypi \
 		 tests/texturetests/texturetests.gypi \
 		 tests/testimages/testimages.gypi \
+		 tests/transcodetests/transcodetests.gypi \
 		 tests/unittests/unittests.gypi \
 		 tools/tools.gypi \
+		 tools/ktx2ktx2/ktx2ktx2.gypi \
+		 tools/ktx2check/ktx2check.gypi \
+		 tools/ktxinfo/ktxinfo.gypi \
+		 tools/ktxsc/ktxsc.gypi \
 		 tools/toktx/toktx.gypi
 
 # Uncomment these 2 lines if you do not want to install our modified
@@ -119,7 +128,7 @@ gyp=$(gypdir)gyp# --debug=all
 .PHONY: msvs xcode default
 
 default:
-	@echo Pick one of "\"make {all,cmake,make,msvs,msvs64,msvs32,xcode}\""
+	@echo Pick one of "\"make {all,cmake-linux,cmake-web,make,msvs,msvs64,xcode}\""
 
 all: $(formats)
 
@@ -129,11 +138,12 @@ msvs32: $(msvs_win32_targets)
 msvs64: win_platform := x64
 msvs64: $(msvs_x64_targets)
 
-msvs: msvs64 msvs32
+msvs: msvs64
 
 xcode: $(xcode_targets)
 
-cmake: $(cmake_targets)
+cmake cmake-linux: $(cmake_linux)
+cmake-web: $(cmake_web)
 
 make: $(make_targets)
 
@@ -143,19 +153,26 @@ make: $(make_targets)
 # {win+web,wingl}/vs<version> part of the target name. Uses the
 # msvs_version macro above to extract the version.
 $(msvs_all_targets): $(msvs_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f msvs -DWIN_PLATFORM=$(win_platform) -G msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. ktxtests.gyp ktxtools.gyp ktxdoc.gyp
+	$(gyp) -f msvs -DWIN_PLATFORM=$(win_platform) -G \
+	    msvs_version=$(msvs_version) --generator-output=$(dir $@) --depth=. \
+		libktx.gyp ktxtests.gyp ktxtools.gyp ktxdoc.gyp
 	@date -R > $@
 
 $(xcode_targets): $(xcode_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
+	$(gyp) -f xcode -DOS=$* --generator-output=$(dir $@) --depth=. \
+		libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
+$(cmake_linux): cmake_format := cmake
+$(cmake_web): cmake_format := cmake-web
 $(cmake_targets): $(cmake_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f cmake -DOS=$* --generator-output=$(dir $@) -G output_dir=. --depth=. ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
+	$(gyp) -f $(cmake_format) -DOS=$* --generator-output=$(dir $@) -G output_dir=. \
+		--depth=. libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
 $(make_targets): $(make_buildd)/%/$(stampfile): GNUmakefile $(gypfiles)
-	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
+	$(gyp) -f make -DOS=$* --generator-output=$(dir $@) --depth=. \
+		libktx.gyp ktxtests.gyp $(ktxtools.gyp) $(ktxdoc.gyp)
 	@date -R > $@
 
 # vim:ai:noexpandtab:ts=4:sts=4:sw=2:textwidth=75

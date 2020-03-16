@@ -210,7 +210,7 @@ VulkanLoadTests::invokeSample(Direction dir)
         }
     }
     prepared = true;
-    setAppTitle(sampleInv->title);
+    setAppTitle(pCurSample->customizeTitle(sampleInv->title));
 }
 
 
@@ -223,6 +223,30 @@ VulkanLoadTests::onFPSUpdate()
 /* ------------------------------------------------------------------------ */
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
+    { Texture::create,
+      "testimages/color_grid_basis.ktx2",
+      "Basis Compressed KTX2 RGB non-mipmapped Transcoded"
+    },
+    { Texture::create,
+      "testimages/kodim17_basis.ktx2",
+      "Basis Compressed KTX2 RGB non-mipmapped Transcoded"
+    },
+    { Texture::create,
+        "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx2",
+        "KTX2: BC2 (S3TC DXT3) Compressed 2D"
+    },
+    { TextureMipmap::create,
+      "testimages/ktx_document_basis.ktx2",
+      "RGBA8 + Mipmap Transcoded"
+    },
+    { TextureMipmap::create,
+      "testimages/rgba-mipmap-reference-basis.ktx2",
+      "Basis Compressed RGBA8 + Mipmap Transcoded"
+    },
+    { TextureCubemap::create,
+        "testimages/cubemap_yokohama_basis_rd.ktx2",
+        "KTX2: BasisU Compressed Cube Map Transcoded"
+    },
     { Texture::create,
       "testimages/orient-down-metadata.ktx",
       "RGB8 2D + KTXOrientation down"
@@ -304,27 +328,27 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "ETC2 Compressed Texture Array"
     },
     { TextureCubemap::create,
-        "testimages/cubemap_yokohama_bc3_unorm.ktx",
+        "testimages/cubemap_yokohama_bc2_srgb.ktx",
         "BC2 (S3TC DXT3) Compressed Cube Map"
     },
     { TextureCubemap::create,
-        "testimages/cubemap_yokohama_astc_8x8_unorm.ktx",
+        "testimages/cubemap_yokohama_astc_8x8_srgb.ktx",
         "ASTC Compressed Cube Map"
     },
     { TextureCubemap::create,
-        "testimages/cubemap_yokohama_etc2_unorm.ktx",
+        "testimages/cubemap_yokohama_etc2_srgb.ktx",
         "ETC2 Compressed Cube Map"
     },
     { TextureCubemap::create,
-        "--preload testimages/cubemap_yokohama_bc3_unorm.ktx",
+        "--preload testimages/cubemap_yokohama_bc2_srgb.ktx",
         "BC2 (S3TC DXT3) Compressed Cube Map from Preloaded Images."
     },
     { TextureCubemap::create,
-        "--preload testimages/cubemap_yokohama_astc_8x8_unorm.ktx",
+        "--preload testimages/cubemap_yokohama_astc_8x8_srgb.ktx",
         "ASTC Compressed Cube Map from Preloaded Images."
     },
     { TextureCubemap::create,
-        "--preload testimages/cubemap_yokohama_etc2_unorm.ktx",
+        "--preload testimages/cubemap_yokohama_etc2_srgb.ktx",
         "ETC2 Compressed Cube Map from Preloaded Images."
     },
 #if 0

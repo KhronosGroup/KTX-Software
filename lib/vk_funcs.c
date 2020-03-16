@@ -30,6 +30,7 @@
 #define UNIX 0
 #define MACOS 0
 #define WINDOWS 0
+#define IOS 0
 
 #if defined(_WIN32)
 #undef WINDOWS
@@ -47,10 +48,13 @@
 #undef MACOS
 #define MACOS 1
 #endif
-
+#if defined(__APPLE__) && (defined(__arm64__) || defined (__arm__))
+#undef IOS
+#define IOS 1
+#endif
 #if (IOS + MACOS + UNIX + WINDOWS) > 1
 #error "Multiple OS\'s defined"
-#endif 
+#endif
 
 #if WINDOWS
 #define WINDOWS_LEAN_AND_MEAN
@@ -62,10 +66,11 @@
 #include "vk_funcs.h"
 
 #if WINDOWS
-HMODULE ktxVulkanLibary;
-#define LoadLibrary LoadLibrary
+HMODULE ktxVulkanLibrary;
+#undef LoadLibrary  // winbase.h has a definition, probably to LoadLibraryA.
+#define LoadLibrary(name, flag) LoadLibraryA(name)
 #define LoadProcAddr GetProcAddress
-#elif MACOS || UNIX
+#elif MACOS || UNIX || IOS
 #define LoadLibrary dlopen
 #define LoadProcAddr dlsym
 void* ktxVulkanLibrary;
@@ -75,13 +80,17 @@ void* ktxVulkanLibrary;
 
 #if WINDOWS
 #define VULKANLIB "vulkan-1.dll"
+#elif IOS
+#define VULKANLIB "libMoltenVK.dylib"
 #elif MACOS
 #define VULKANLIB "vulkan.framework/vulkan"
 #elif UNIX
 #define VULKANLIB "libvulkan.so"
 #endif
 
+#if 0
 static PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
+#endif
 
 /* Define pointers for functions libktx is using. */
 #define VK_FUNCTION(fun) PFN_##fun ktx_##fun;
@@ -161,4 +170,4 @@ __attribute__((unused))
 #endif
 int keepISOCompilersHappy;
 
-#endif /* KTX_USE_FUNCPTRS_FOR_VULKAN */
+#endif /* !KTX_OMIT_VULKAN && KTX_USE_FUNCPTRS_FOR_VULKAN */

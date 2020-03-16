@@ -82,7 +82,7 @@ and MoltenVK.
 
 To find the Vulkan validation layers when running the macOS Vulkan
 load tests set the environment variable `VK_LAYER_PATH` to
-`$(VULKAN_SDK)/macOS/etc/vulkan/explicit_layers.d` when running the
+`$(VULKAN_SDK)/etc/vulkan/explicit_layers.d` when running the
 application. Environment variables are set in the Arguments section
 of Xcode's Scheme Editor. Validation is only enabled by the debug
 configuration.
@@ -91,17 +91,17 @@ configuration.
 
 You must create the following Custom Path preferences in Xcode:
 [`DEVELOPMENT_TEAM`](#development_team),
-[`VULKAN_INSTALL_DIR`]("#vulkan_install_dir) & [`VULKAN_SDK`](#vulkan_sdk).
+[`VULKAN_INSTALL_DIR`](#vulkan_install_dir) and [`VULKAN_SDK`](#vulkan_sdk)
 If building for macOS you must also set [`ASSIMP_HOME`](#assimp_home).
 
-##### DEVELOPMENT_TEAM 
+##### DEVELOPMENT_TEAM
 As of Xcode 8.0, Apple, in its wisdom, decided to require selection of a
 Development Team for signing. If you set the Development Team via the
 Xcode GUI, Xcode will store that selection in the `project.pbxproj` file.
 Thereafter `git status` will show the project file as `modified`.
 Instead abuse Xcode's _Custom Paths_ preference to store your
 development team identifier outside the `project.pbxproj` file by
-setting a DEVELOPMENT_TEAM custom path (replace ABCDEFGHIJ with your
+setting a `DEVELOPMENT_TEAM` custom path (replace ABCDEFGHIJ with your
 team identifier):
 
 ![Image of Xcode Preferences open at the `Locations` tab with
@@ -138,18 +138,46 @@ git diff | grep DEVELOPMENT_TEAM
 git checkout build/xcode
 ```
 
-##### VULKAN_INSTALL_DIR
+##### PROVISIONING\_PROFILE_SPECIFIER
+If you are a registered Apple developer you will need to specify the
+provisioning profile you wish to use. In order to keep the `project.pbxproj`
+file clean you should abuse Xcode's _Custom Paths_ for this as well. Set a `PROVISIONING_PROFILE_SPECIFIER` custom path with the value
 
-Set this to the location where you have installed the [Vulkan SDK for macOS](#vulkan-sdk).
+```
+<Your Profile Name> $(PLATFORM_NAME)
+```
+
+`$(PLATFORM_NAME)` is necessary because Apple will not let you have profiles for macOS and iOS with the same name. You should create your profiles with the names `<Your Profile Name> macosx` and `<Your Profile Name> iphoneos` using whatever you like for `<Your Profile Name>`.
+
+##### VULKAN\_INSTALL\_DIR
+
+Set this to directory where you have installed the
+[Vulkan SDK for macOS](#vulkan-sdk).
 
 ##### VULKAN_SDK
 
-Set this to `$VULKAN_INSTALL_DIR/macOS`.
+Set this to `$(VULKAN_INSTALL_DIR)/macOS`.
 
 ##### ASSIMP_HOME
 
-Set this to the location where [`libassimp`](#libassimp) is installed. If
+Set this to the directory where [`libassimp`](#libassimp) is installed. If
 you use the MacPorts version, this will be `/opt/local`.
+
+### Web/Emscripten
+
+Use the CMake files under `build/cmake/web` to build a library, load tests and JavaScript wrappers for libktx and the Basis Universal transcoder. The steps are
+
+```bash
+cd build/cmake/web/Debug # or .../Release
+emconfigure cmake .
+make                      # to build everything.
+make libktx_js            # to build just the libktx.
+make basisu_transcoder_js # to build the transcoder wrapper.
+```
+
+You will need an [Emscripten SDK](#emscripten-sdk) installed.
+
+**Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
 
 ### Windows
 
@@ -159,9 +187,38 @@ load tests and tools for Win32 or x64 plaforms. There are separate
 solutions for Win32 and x64 platforms.
 
 **Note:** Builds of the Vulkan loader tests require vs2015+ because they
-use `vulkan.hpp` which needs C++11 & in particular `constexpr`, so solutions
-other than vs2015 and vs2017 do not include a `vkloadtests` project
-and their `appfwSDL` projects do not include Vulkan app support.
+use `vulkan.hpp` which needs C++11 & in particular `constexpr`, so solutions other than vs2015 and vs2017 do not include a `vkloadtests` project and their `appfwSDL` projects do not include Vulkan app support.
+
+Installing
+----------
+
+The `install.lib` target in the `libktx` project builds a distribution directory hierarchy containing `libktx.gl`, the public include files and library man pages. Similarly `install.tools` in the `ktxtools` project builds a hierarchy with the tools, `libktx.gl` and the tools man pages. These targets are only available on GNU/Linux, macOS and Windows.
+
+To install these for use, the distribution hierarchies must be copied to the system root `/` on GNU/Linux & macOS. Everything is located in the distribution hierarchy at `usr/local/...` so the final home will be `/usr/local/...`.
+
+To skip building the distributions and install directly you can run the following commands:
+
+### GNU/Linux
+
+```bash
+cd build/cmake/linux/Release      # or Debug
+DSTROOT=/ sudo make install.tools # or install.lib
+```
+
+### macOS
+
+```bash
+cd build/xcode/mac
+sudo xcodebuild -project ktxtools.xcodeproj -configuration Release -target install.tools DEVELOPMENT_TEAM=<Your team id> VULKAN_SDK=<Your Vulkan SDK location> DSTROOT=/
+```
+
+`DEVELOPMENT_TEAM` and `VULKAN_SDK` must be set in Xcode's _Custom Paths_ preferences, as described above, but those IDE preferences are not seen by `xcodebuild`. 
+
+In theory `DEVELOPMENT_TEAM` and `VULKAN_SDK` can be set in your environment instead of at the end of the command but I have had bad luck with Xcode and environment variables. You will likely need to issue the following command first:
+
+```bash
+defaults write com.apple.dt.Xcode UseSanitizedBuildSystemEnvironment -bool NO
+```
 
 Dependencies
 ------------
@@ -295,7 +352,7 @@ for both iOS and macOS.
 
 ### libassimp
 
-Binaries for iOS and Windows are provided in the KTX Git repo.
+Binaries for iOS, macOS and Windows are provided in the KTX Git repo.
 
 #### GNU/Linux
 
@@ -305,18 +362,7 @@ Install from your package manager. For example on Ubuntu
 sudo apt-get install libassimp3v5
 ```
 
-macOS
-
-Install via [MacPorts](https://www.macports.org/) or
-[Homebrew](https://brew.sh/). For example
-
-```bash
-sudo port install assimp
-```
-
-Set an `ASSIMP_HOME` Custom Path in the Xcode preferences to the
-parent of the `include` and `lib` folders where `libassimp` is
-installed. For MacPorts this is `/opt/local`.
+If you do not install it in the standard location, `/usr/local` set an `ASSIMP_HOME` environment variable to the parent of the `include` and `lib` folders where these are installed.
 
 ### GYP
 
@@ -394,6 +440,10 @@ the documentation correctly. You can download binaries and
 also find instructions for building it from source at [Doxygen
 downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
 sure the directory containing the `doxygen` executable is in your `$PATH`.
+
+### Emscripten SDK
+
+Follow the Emscripten [download and install](https://emscripten.org/docs/getting_started/downloads.html) instructions.
 
 
 Generating Projects

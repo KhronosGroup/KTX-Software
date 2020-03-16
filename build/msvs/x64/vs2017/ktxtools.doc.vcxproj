@@ -24,7 +24,7 @@
     <RootNamespace>ktxtools.doc</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
   <PropertyGroup Label="Configuration">
@@ -118,18 +118,30 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cpp">
+    <ClCompile Include="..\..\..\..\tools\ktx2check\ktx2check.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tools\ktxinfo\ktxinfo.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tools\ktxsc\ktxsc.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\tools\toktx\toktx.cc">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\..\..\ktxtools.doxy">
       <FileType>Document</FileType>
-      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-t\&quot; \&quot;build/docs/.gentimestamp\&quot; \&quot;ktxtools.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
-      <Message>Generating tools documentation with Doxygen</Message>
-      <Outputs>..\..\..\..\build\docs\html\ktxtools;..\..\..\..\build\docs\man\ktxtools\man1\toktx.1;..\..\..\..\build\docs\.gentimestamp</Outputs>
+      <Command>call call &quot;$(ProjectDir)..\..\..\..\setup_env.bat&quot; &amp;&amp; set CYGWIN=nontsec&amp;&amp; bash -c &quot;\&quot;./runDoxygen\&quot; \&quot;-t\&quot; \&quot;build/docs/.ktxtoolsdoc_gentimestamp\&quot; \&quot;-o\&quot; \&quot;build/docs/html\&quot; \&quot;ktxtools.doxy\&quot;&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Generating KTX Tools documentation with Doxygen</Message>
+      <Outputs>..\..\..\..\build\docs\.ktxtoolsdoc_gentimestamp</Outputs>
       <LinkObjects>false</LinkObjects>
-      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\tools\toktx\toktx.cpp</AdditionalInputs>
+      <AdditionalInputs>..\..\..\..\runDoxygen;..\..\..\..\tools\ktx2check\ktx2check.cpp;..\..\..\..\tools\ktx2ktx2\ktx2ktx2.cpp;..\..\..\..\tools\ktxinfo\ktxinfo.cpp;..\..\..\..\tools\ktxsc\ktxsc.cpp;..\..\..\..\tools\toktx\toktx.cc</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

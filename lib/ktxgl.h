@@ -20,21 +20,15 @@
  */
 
 
-/* 
+/*
  * Author: Mark Callow from original code by Georg Kolling
  */
 
 #ifndef KTXGL_H
 #define KTXGL_H
 
-#ifndef SUPPORT_LEGACY_FORMAT_CONVERSION
-  #if KTX_OPENGL
-    #define SUPPORT_LEGACY_FORMAT_CONVERSION 1
-  #elif KTX_OPENGL_ES1
-    /* ES1, ES2 & ES3 support the legacy formats */
-    #define SUPPORT_LEGACY_FORMAT_CONVERSION 0
-  #endif
-#endif
+// Legacy format conversion no longer supported. Don't use deprecated formats.
+#define SUPPORT_LEGACY_FORMAT_CONVERSION 0
 
 #ifdef __cplusplus
 extern "C" {
@@ -216,7 +210,7 @@ typedef unsigned short GLhalf;
 #define GL_CONTEXT_CORE_PROFILE_BIT          0x00000001
 #define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT 0x00000002
 #endif
-    
+
 #ifndef GL_NUM_EXTENSIONS
 #define GL_NUM_EXTENSIONS              0x821D
 #endif

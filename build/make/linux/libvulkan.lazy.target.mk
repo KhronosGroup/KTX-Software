@@ -12,3 +12,7 @@ all_deps += $(obj).target/libvulkan.lazy.stamp
 .PHONY: libvulkan.lazy
 libvulkan.lazy: $(obj).target/libvulkan.lazy.stamp
 
+# Add target alias to "all" target.
+.PHONY: all
+all: libvulkan.lazy
+

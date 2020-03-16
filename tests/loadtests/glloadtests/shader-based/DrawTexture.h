@@ -46,6 +46,12 @@ class DrawTexture : public GL3LoadTestSample {
            const char* const szArgs, const std::string sBasePath);
 
   protected:
+    void processArgs(std::string sArgs);
+    ktx_transcode_fmt_e strtofmt(std::string format);
+
+    std::string filename;
+    int preloadImages = 0;
+
     uint32_t uWidth;
     uint32_t uHeight;
 
@@ -72,6 +78,7 @@ class DrawTexture : public GL3LoadTestSample {
     GLint gulPMatrixLocCP;
 
     bool bInitialized;
+    ktx_transcode_fmt_e transcodeTarget;
 };
 
 #endif /* DRAW_TEXTURE_H */

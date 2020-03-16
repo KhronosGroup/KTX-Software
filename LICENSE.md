@@ -30,12 +30,13 @@ libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
 Ström with contributions borrowed from Troy Hanson and Johannes van Waveren.
 The source contains code
 
-    © 2010 & © 2013 The Khronos Group Inc.
+    © 2010 ~ 2019 The Khronos Group Inc.
     © 2008 and © 2010 HI Corporation
     © 2005 Ericsson AB
     © 2003-2010, Troy D. Hanson
     © 2015-2018 Mark Callow
     © 2016 Oculus VR, LLC.
+    © 2019 Binomial LLC. All Rights Reserved.
 
 The KTX load tests are the work of Mark Callow with a few small portions borrowed
 from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL for portability.

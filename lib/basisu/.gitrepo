@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/BinomialLLC/basis_universal.git
+	branch = master
+	commit = 2f43afcc97d0a5dafdb73b4e24e123cf9687a418
+	parent = 53adbcb9f041cef79a2019f66b0daf06a5ddb269
+	method = merge
+	cmdver = 0.4.0

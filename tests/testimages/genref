@@ -2,7 +2,7 @@
 # -*- tab-width: 4; -*-
 # vi: set sw=2 ts=4:
 
-# Regenerate the reference ktx files.
+# Regenerate the reference files for toktx-tests.
 
 # ---------------------------------------------------------------
 #
@@ -61,22 +61,30 @@ elif [ -x "$toktx_make" ]; then
   toktx=$toktx_gmake
 elif [ -x "$toktx_make_d" ]; then
   toktx=$toktx_gmake
+elif which toktx >/dev/null; then
+  toktx=toktx
 else
   echo $0: None of $toktx_vs2013, $toktx_vs2015, $toktx_gmake or $toktx_cmake found.
+  echo $0: Nor was toktx found in along PATH.
   echo $0: Aborting generation
   exit 1
 fi
 
-# Generate reference files for toktx-tests ...
+# Generate the files ...
 
 $toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx rgb.ppm
-$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata rgb-amg-reference.ktx rgb.ppm
+# The purpose of this is testing automatic mipmap generation. Since SRGB is
+# not color renderable on ES3 or WebGL, therefore AMG won't work, use linear.
+$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata --linear rgb-amg-reference.ktx rgb.ppm
 $toktx --lower_left_maps_to_s0t0 --nometadata orient-up.ktx up.ppm
 $toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx up.ppm
 $toktx orient-down-metadata.ktx up.ppm
 $toktx --lower_left_maps_to_s0t0 --mipmap --nometadata rgb-mipmap-reference.ktx level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
 $toktx --lower_left_maps_to_s0t0 --nometadata rgba-reference.ktx rgba.pam
-$toktx --luminance luminance-reference-metadata.ktx luminance.pgm
+$toktx --bcmp --test alpha_simple_basis.ktx2 alpha_simple.png
+$toktx --bcmp --test kodim17_basis.ktx2 kodim17.png
+$toktx --bcmp --test color_grid_basis.ktx2 color_grid.png
+$toktx --t2 --bcmp --mipmap --test rgba-mipmap-reference-basis.ktx2 level0-alpha.pam level1-alpha.pam level2-alpha.pam level3-alpha.pam level4-alpha.pam level5-alpha.pam level6-alpha.pam
 
 # ... and additional files for the load tests.
 

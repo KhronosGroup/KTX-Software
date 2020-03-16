@@ -38,14 +38,17 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DrawTexture.h"
+#include "GLTextureTranscoder.hpp"
 #include "frame.h"
 #include "quad.h"
+#include "argparser.h"
+#include "ltexceptions.h"
 
 /* ------------------------------------------------------------------------- */
 
 extern const GLchar* pszVs;
-extern const GLchar* pszDecalFs;
-extern const GLchar* pszColorFs;
+extern const GLchar *pszDecalFs, *pszDecalSrgbEncodeFs;
+extern const GLchar *pszColorFs, *pszColorSrgbEncodeFs;
 
 /* ------------------------------------------------------------------------- */
 
@@ -62,50 +65,56 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
                          const std::string sBasePath)
         : GL3LoadTestSample(width, height, szArgs, sBasePath)
 {
-    std::string filename;
     GLfloat* pfQuadTexCoords = quad_texture;
     GLfloat  fTmpTexCoords[sizeof(quad_texture)/sizeof(GLfloat)];
     GLenum target;
-    GLboolean isMipmapped;
     GLenum glerror;
-    GLubyte* pKvData;
-    GLuint  kvDataLen;
     GLint sign_s = 1, sign_t = 1;
     GLint i;
     GLuint gnColorFs, gnDecalFs, gnVs;
     GLsizeiptr offset;
-    KTX_dimensions dimensions;
+    ktxTexture* kTexture;
     KTX_error_code ktxresult;
-    KTX_hash_table kvtable;
 
     bInitialized = false;
+    transcodeTarget = KTX_TTF_NOSELECTION;
     gnTexture = 0;
-    
-    filename = getAssetPath() + szArgs;    
-    ktxresult = ktxLoadTextureN(filename.c_str(), &gnTexture, &target,
-                               &dimensions, &isMipmapped, &glerror,
-                               &kvDataLen, &pKvData);
+
+    processArgs(szArgs);
+
+    ktxresult = ktxTexture_CreateFromNamedFile(
+                         (getAssetPath() + filename).c_str(),
+                         preloadImages ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT
+                                       : KTX_TEXTURE_CREATE_NO_FLAGS,
+                                               &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << filename
+                << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+
+    if (kTexture->classId == ktxTexture2_c
+        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+    {
+        TextureTranscoder tc;
+        tc.transcode((ktxTexture2*)kTexture, transcodeTarget);
+    }
+
+    ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
-
-        ktxresult = ktxHashTable_Deserialize(kvDataLen, pKvData, &kvtable);
-        if (KTX_SUCCESS == ktxresult) {
-            GLchar* pValue;
-            GLuint valueLen;
-
-            if (KTX_SUCCESS == ktxHashTable_FindValue(kvtable, KTX_ORIENTATION_KEY,
-                                                      &valueLen, (void**)&pValue))
-            {
-                char s, t;
-
-                if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-                    if (s == 'l') sign_s = -1;
-                    if (t == 'd') sign_t = -1;
-                }
-            }
-            ktxHashTable_Destroy(kvtable);
-            free(pKvData);
+        if (target != GL_TEXTURE_2D) {
+            /* Can only draw 2D textures */
+            glDeleteTextures(1, &gnTexture);
+            return;
         }
+
+        if (kTexture->orientation.x == KTX_ORIENT_X_LEFT)
+            sign_s = -1;
+        if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN)
+            sign_t = -1;
 
         if (sign_s < 0 || sign_t < 0) {
             // Transform the texture coordinates to get correct image
@@ -126,10 +135,10 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
             pfQuadTexCoords = fTmpTexCoords;
         }
 
-        uTexWidth = dimensions.width;
-        uTexHeight = dimensions.height;
+        uTexWidth = kTexture->baseWidth;
+        uTexHeight = kTexture->baseHeight;
 
-        if (isMipmapped)
+        if (kTexture->numLevels > 1)
             // Enable bilinear mipmapping.
             // TO DO: application can consider inserting a key,value pair in
             // the KTX file that indicates what type of filtering to use.
@@ -140,17 +149,25 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         assert(GL_NO_ERROR == glGetError());
+
+        ktxTexture_Destroy(kTexture);
     } else {
         std::stringstream message;
 
-        message << "Load of texture from \"" << filename << "\" failed: ";
-        if (ktxresult == KTX_GL_ERROR) {
-            message << std::showbase << "GL error " << std::hex << glerror
-                    << " occurred.";
+        message << "ktxTexture_GLUpload failed: ";
+        if (ktxresult != KTX_GL_ERROR) {
+             message << ktxErrorString(ktxresult);
+             throw std::runtime_error(message.str());
+        } else if (kTexture->isCompressed
+                   // Emscripten/WebGL returns INVALID_VALUE for unsupported
+                   // ETC formats.
+                   && (glerror == GL_INVALID_ENUM || glerror == GL_INVALID_VALUE)) {
+             throw unsupported_ctype();
         } else {
-            message << ktxErrorString(ktxresult);
+             message << std::showbase << "GL error " << std::hex << glerror
+                    << " occurred.";
+             throw std::runtime_error(message.str());
         }
-        throw std::runtime_error(message.str());
     }
 
     glClearColor(0.4f, 0.4f, 0.5f, 1.0f);
@@ -201,13 +218,22 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
 
     glBindVertexArray(0);
+
+    const GLchar *actualColorFs, *actualDecalFs;
+    if (framebufferColorEncoding() == GL_LINEAR) {
+        actualColorFs = pszColorSrgbEncodeFs;
+        actualDecalFs = pszDecalSrgbEncodeFs;
+    } else {
+        actualColorFs = pszColorFs;
+        actualDecalFs = pszDecalFs;
+    }
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
-        makeShader(GL_FRAGMENT_SHADER, pszColorFs, &gnColorFs);
+        makeShader(GL_FRAGMENT_SHADER, actualColorFs, &gnColorFs);
         makeProgram(gnVs, gnColorFs, &gnColProg);
         gulMvMatrixLocCP = glGetUniformLocation(gnColProg, "mvmatrix");
         gulPMatrixLocCP = glGetUniformLocation(gnColProg, "pmatrix");
-        makeShader(GL_FRAGMENT_SHADER, pszDecalFs, &gnDecalFs);
+        makeShader(GL_FRAGMENT_SHADER, actualDecalFs, &gnDecalFs);
         makeProgram(gnVs, gnDecalFs, &gnTexProg);
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.
@@ -253,6 +279,85 @@ DrawTexture::~DrawTexture()
         glDeleteVertexArrays(2, gnVaos);
     }
     assert(GL_NO_ERROR == glGetError());
+}
+
+/* ------------------------------------------------------------------------- */
+
+void
+DrawTexture::processArgs(std::string sArgs)
+{
+    // Options descriptor
+    struct argparser::option longopts[] = {
+        "preload",          argparser::option::no_argument, &preloadImages, 1,
+        "transcode-target", argparser::option::required_argument, nullptr, 2,
+        NULL,               argparser::option::no_argument,       nullptr, 0
+    };
+
+    argvector argv(sArgs);
+    argparser ap(argv);
+
+    int ch;
+    while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
+        switch (ch) {
+          case 0: break;
+          case 2:
+            transcodeTarget = strtofmt(ap.optarg);
+            break;
+          default: assert(false); // Error in args in sample table.
+        }
+    }
+    assert(ap.optind < argv.size());
+    filename = argv[ap.optind];
+
+}
+
+ktx_transcode_fmt_e
+DrawTexture::strtofmt(_tstring format)
+{
+    if (!format.compare("ETC1_RGB"))
+        return KTX_TTF_ETC1_RGB;
+    else if (!format.compare("ETC2_RGBA"))
+        return KTX_TTF_ETC2_RGBA;
+    else if (!format.compare("BC1_RGB"))
+        return KTX_TTF_BC1_RGB;
+    else if (!format.compare("BC3_RGBA"))
+        return KTX_TTF_BC3_RGBA;
+    else if (!format.compare("BC4_R"))
+        return KTX_TTF_BC4_R;
+    else if (!format.compare("BC5_RG"))
+        return KTX_TTF_BC5_RG;
+    else if (!format.compare("BC7_M6_RGB"))
+        return KTX_TTF_BC7_M6_RGB;
+    else if (!format.compare("BC7_M5_RGBA"))
+        return KTX_TTF_BC7_M5_RGBA;
+    else if (!format.compare("PVRTC1_4_RGB"))
+        return KTX_TTF_PVRTC1_4_RGB;
+    else if (!format.compare("PVRTC1_4_RGBA"))
+        return KTX_TTF_PVRTC1_4_RGBA;
+    else if (!format.compare("ASTC_4x4_RGBA"))
+        return KTX_TTF_ASTC_4x4_RGBA;
+    else if (!format.compare("PVRTC2_4_RGB"))
+        return KTX_TTF_PVRTC2_4_RGB;
+    else if (!format.compare("PVRTC2_4_RGBA"))
+        return KTX_TTF_PVRTC2_4_RGBA;
+    else if (!format.compare("ETC2_EAC_R11"))
+        return KTX_TTF_ETC2_EAC_R11;
+    else if (!format.compare("ETC2_EAC_RG11"))
+        return KTX_TTF_ETC2_EAC_RG11;
+    else if (!format.compare("RGBA32"))
+        return KTX_TTF_RGBA32;
+    else if (!format.compare("RGB565"))
+        return KTX_TTF_RGB565;
+    else if (!format.compare("BGR565"))
+        return KTX_TTF_BGR565;
+    else if (!format.compare("RGBA4444"))
+        return KTX_TTF_RGBA4444;
+    else if (!format.compare("ETC"))
+        return KTX_TTF_ETC;
+    else if (!format.compare("BC1_OR_3"))
+        return KTX_TTF_BC1_OR_3;
+    assert(false); // Error in args in sample table.
+    return static_cast<ktx_transcode_fmt_e>(-1); // To keep compilers happy.
 }
 
 /* ------------------------------------------------------------------------- */

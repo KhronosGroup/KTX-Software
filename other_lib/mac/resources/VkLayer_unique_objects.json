@@ -1,0 +1,11 @@
+{
+    "file_format_version" : "1.1.0",
+    "layer" : {
+        "name": "VK_LAYER_GOOGLE_unique_objects",
+        "type": "GLOBAL",
+        "library_path": "../../../Frameworks/libVkLayer_unique_objects.dylib",
+        "api_version": "1.1.85",
+        "implementation_version": "1",
+        "description": "Google Validation Layer"
+    }
+}

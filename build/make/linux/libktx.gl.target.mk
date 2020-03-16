@@ -5,22 +5,25 @@ TARGET := libktx.gl
 DEFS_Debug := \
 	'-DKTX_OPENGL=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
+	'-DLIBKTX=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
-	-std=c99 \
+	-Wpedantic \
 	-Og \
 	-g \
 	-fPIC
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11 \
+	-Wno-pedantic
 
 INCS_Debug := \
 	-I$(srcdir)/include \
@@ -30,20 +33,23 @@ INCS_Debug := \
 DEFS_Release := \
 	'-DKTX_OPENGL=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
+	'-DLIBKTX=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
-	-std=c99 \
+	-Wpedantic \
 	-O3 \
 	-fPIC
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11 \
+	-Wno-pedantic
 
 INCS_Release := \
 	-I$(srcdir)/include \
@@ -51,19 +57,47 @@ INCS_Release := \
 	-I$(VULKAN_SDK)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_astc_decomp.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_backend.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_basis_file.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_comp.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_enc.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_etc.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_frontend.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_global_selector_palette_helpers.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_gpu_texture.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_pvrtc1_4.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_resampler.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_resample_filters.o \
+	$(obj).target/$(TARGET)/lib/basisu/lodepng.o \
+	$(obj).target/$(TARGET)/lib/basisu/transcoder/basisu_transcoder.o \
+	$(obj).target/$(TARGET)/lib/basis_encode.o \
+	$(obj).target/$(TARGET)/lib/basis_transcode.o \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
-	$(obj).target/$(TARGET)/lib/errstr.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/createdfd.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/dfd2vk.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/interpretdfd.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/printdfd.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/queries.o \
+	$(obj).target/$(TARGET)/lib/dfdutils/vk2dfd.o \
 	$(obj).target/$(TARGET)/lib/etcdec.o \
 	$(obj).target/$(TARGET)/lib/etcunpack.o \
 	$(obj).target/$(TARGET)/lib/filestream.o \
 	$(obj).target/$(TARGET)/lib/glloader.o \
 	$(obj).target/$(TARGET)/lib/hashlist.o \
-	$(obj).target/$(TARGET)/lib/hashtable.o \
+	$(obj).target/$(TARGET)/lib/info.o \
 	$(obj).target/$(TARGET)/lib/memstream.o \
+	$(obj).target/$(TARGET)/lib/strings.o \
 	$(obj).target/$(TARGET)/lib/swap.o \
 	$(obj).target/$(TARGET)/lib/texture.o \
-	$(obj).target/$(TARGET)/lib/writer.o \
-	$(obj).target/$(TARGET)/lib/writer_v1.o \
+	$(obj).target/$(TARGET)/lib/texture1.o \
+	$(obj).target/$(TARGET)/lib/texture2.o \
+	$(obj).target/$(TARGET)/lib/vkformat_check.o \
+	$(obj).target/$(TARGET)/lib/vkformat_str.o \
+	$(obj).target/$(TARGET)/lib/writer1.o \
+	$(obj).target/$(TARGET)/lib/writer2.o \
+	$(obj).target/$(TARGET)/lib/texture1_vvtbl.o \
+	$(obj).target/$(TARGET)/lib/texture2_vvtbl.o \
 	$(obj).target/$(TARGET)/lib/vkloader.o \
 	$(obj).target/$(TARGET)/lib/vk_funcs.o
 
@@ -71,7 +105,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/vulkan_headers.stamp $(obj).target/libgl.stamp
+$(OBJS): | $(obj).target/vulkan_headers.stamp $(obj).target/version.h.stamp $(obj).target/libgl.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -84,6 +118,9 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(B
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.c FORCE_DO_CMD
 	@$(call do_cmd,cc,1)
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cxx FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
@@ -92,11 +129,17 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cxx FORCE_DO_CMD
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.c FORCE_DO_CMD
 	@$(call do_cmd,cc,1)
 
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
+
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cxx FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.c FORCE_DO_CMD
 	@$(call do_cmd,cc,1)
+
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
+	@$(call do_cmd,cxx,1)
 
 $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cxx FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)

@@ -7,31 +7,40 @@
 {
   'variables': { # level 1
     'variables': { # level 2
-      'variables': { # level 3
-        # NB for XCODE: Due to difficulties passing env. vars to Xcode, set
-        # VULKAN_SDK in Xcode Preferences, Locations tab, Custom Paths. It
-        # should point to whereever you have the Vulkan SDK installed.
-        'moltenvk': '$(VULKAN_INSTALL_DIR)/MoltenVK',
-      }, # end level 3
-      'moltenvk': '<(moltenvk)',
+      # NB for XCODE: Due to difficulties passing env. vars to Xcode, set
+      # the following in Xcode Preferences | Locations tab | Custom Paths.
+      #
+      # - VULKAN_INSTALL_DIR to the directory where you have installed
+      #                      the Khronos Vulkan SDK.
+      # - VULKAN_SDK as directed by the SDK instructions, like $VULKAN_SDK, to
+      #              the macOS folder of $(VULKAN_INSTALL_DIR). We can't just
+      #              create this here because it is needed in the environment
+      #              by some of the build commands.
+      #
+      # Note we can't just set VULKAN_INSTALL_DIR here to $(VULKAN_SDK)/..
+      # because gyp generators, at least the xcode one, will remove any leading
+      # component of a path that includes a '..'.
       'conditions': [
         ['OS == "ios"', {
-          'mvklib': '<(moltenvk)/iOS',
-          'vksdk': '<(moltenvk)' # Until there's an official SDK.
+          'vksdk': '$(VULKAN_SDK)',  # Until there is an official iOS SDK.
+          'mvklib': '$(VULKAN_INSTALL_DIR)/MoltenVK/iOS',
         }, 'OS == "mac"', {
-          'mvklib': '<(moltenvk)/macOS',
           'vksdk': '$(VULKAN_SDK)',
+          'vklib': '$(VULKAN_SDK)/lib',
+          'mvklib': '$(VULKAN_INSTALL_DIR)/MoltenVK/macOS',
         }]
       ], # conditions
     }, # end level 2
-    'moltenvk': '<(moltenvk)',
     'mvklib': '<(mvklib)',
+    'vklib': '<(vklib)',
     'vksdk': '<(vksdk)',
     'conditions': [
       ['OS == "ios"', {
         'fwdir': '<(mvklib)',
+        'runpath': '@executable_path/Frameworks',
       }, 'OS == "mac"', {
         'fwdir': '<(vksdk)/Frameworks',
+        'runpath': '@executable_path/../Frameworks',
       }]
     ], # conditions
   }, # variables
@@ -77,7 +86,8 @@
             # or ^. Both '-framework foo' and '-lfoo' confuse Xcode. It seems
             # these values are being put into an Xcode list that expects only
             # framework names, full or relative path.
-            '<(fwdir)/MoltenVK.framework',
+            #'<(fwdir)/MoltenVK.framework',
+            '<(fwdir)/libMoltenVK.dylib',
             '<(fwdir)/vulkan.framework',
             '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
             '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
@@ -98,42 +108,83 @@
           #  'OTHER_LDFLAGS': '-lc++',
           #}
         }, # link_settings
-        'conditions': [
-          ['OS == "mac"', {
-            'link_settings': {
-              'libraries!': [
-                '<(fwdir)/MoltenVK.framework',
-                '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
-                '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
-                '$(SDKROOT)/System/Library/Frameworks/IOSurface.framework',
-                '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
-              ],
-            },
-            # dds is needed because each app target gets its own directory.
-            'direct_dependent_settings': {
-              'xcode_settings': {
-                'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
-              },
-              'target_conditions': [
-                ['_mac_bundle == 1', {
-                  # Can't use mac_bundle_resources because that puts the files
-                  # into $(UNLOCALIZED_RESOURCES_FOLDER_PATH).
+        # dds is needed because each app target gets its own directory.
+        'direct_dependent_settings': {
+          'xcode_settings': {
+            'LD_RUNPATH_SEARCH_PATHS': [ '<(runpath)' ],
+          },
+          'target_conditions': [
+            ['_type == "executable" and _mac_bundle == 1', {
+              # Can't use mac_bundle_resources because that puts the files
+              # into $(UNLOCALIZED_RESOURCES_FOLDER_PATH).
+              'conditions': [
+                ['OS == "ios"', {
+                  'copies': [{
+                    'xcode_code_sign': 1,
+                    'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+                    'files': [
+                      '<(mvklib)/libMoltenVK.dylib',
+                    ],
+                  }], # ios copies
+                }, 'OS == "mac"', {
                   'copies': [{
                     'xcode_code_sign': 1,
                     'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                     'files': [
                       '<(fwdir)/vulkan.framework',
-                      '<(mvklib)/libMoltenVK.dylib',
+                      '<(vklib)/libMoltenVK.dylib',
+                      # Copy the layer dylibs so they can be signed, meeting
+                      # requirements for hardened runtime and notarization.
+                      # If we try to use layers from the Vulkan SDK via an
+                      # environment variable, the layers won't be loaded.
+                      # Layers are only needed for debug config but I don't
+                      # think there is any way to do a copy only for certain
+                      # configs.
+                      '<(vklib)/libVkLayer_core_validation.dylib',
+                      '<(vklib)/libVkLayer_object_tracker.dylib',
+                      '<(vklib)/libVkLayer_parameter_validation.dylib',
+                      '<(vklib)/libVkLayer_threading.dylib',
+                      '<(vklib)/libVkLayer_unique_objects.dylib',
+                      '<(vklib)/libvulkan.1.dylib',
+                      '<(vklib)/libvulkan.1.dylib',
+                      '<(vklib)/libvulkan.1.dylib',
                     ],
                   },
                   {
                     'xcode_code_sign': 1,
                     'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/icd.d',
                     'files': [ '<(otherlibroot_dir)/resources/MoltenVK_icd.json' ],
-                  }], # copies
-                }], # mac_bundle
-              ], # target_conditions
-            }, # direct_dependent_settings
+                  },
+                  {
+                    'xcode_code_sign': 1,
+                    'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/explicit_layer.d',
+                    'files': [
+                      # Need these to tell Vulkan loader where the layers are.
+                      '<(otherlibroot_dir)/resources/VkLayer_core_validation.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_object_tracker.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_parameter_validation.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_standard_validation.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_threading.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_unique_objects.json',
+                    ],
+                  }], # copies mac
+                }], # OS == "ios"
+              ], # conditions
+            }], # mac_bundle
+          ], # target_conditions
+        }, # direct_dependent_settings
+        'conditions': [
+          ['OS == "mac"', {
+            'link_settings': {
+              'libraries!': [
+                #'<(fwdir)/MoltenVK.framework',
+                '<(fwdir)/libMoltenVK.dylib',
+                '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+                '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+                '$(SDKROOT)/System/Library/Frameworks/IOSurface.framework',
+                '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+              ],
+            },
           }, 'OS == "ios"', {
             'link_settings': {
               'libraries!': [ '<(fwdir)/vulkan.framework' ],
@@ -157,34 +208,7 @@
         },
       }] # OS == 'ios' or OS == "mac", etc
     ], # conditions
-  }, # libvulkan target
-  {
-    'target_name': 'libvulkan.lazy',
-    'type': 'none',
-    'conditions': [
-      ['OS == "ios"', {
-        # Shared library, & therefore this target, not used on iOS.
-      }, 'OS == "mac"', {
-        'direct_dependent_settings': {
-          'xcode_settings': {
-            'OTHER_LDFLAGS': [
-              '-lazy_library',
-              '<(fwdir)/vulkan.framework/vulkan',
-            ],
-          },
-        },
-      }, 'OS == "win"', {
-        'msvs_settings': {
-          'VCLinkerTool': {
-            'DelayLoadDLLs': 'vulkan-1',
-          }
-        }
-      }, {
-        # Boo! Hiss! GCC & therefore linux does not support delay
-        # loading. Have to use dlopen/dlsym.
-     }], # OS == "ios", etc.
-    ],
-  }], # vulkan.framework target & targets
+  }], # libvulkan target & targets 
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

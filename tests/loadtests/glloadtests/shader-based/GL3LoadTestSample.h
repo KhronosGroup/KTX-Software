@@ -20,8 +20,10 @@
 #ifndef GL3_LOAD_TEST_SAMPLE_H
 #define GL3_LOAD_TEST_SAMPLE_H
 
+#include <ktx.h>
 #include "LoadTestSample.h"
 #include "mygl.h"
+#include "utils/GLMeshLoader.hpp"
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -48,7 +50,26 @@ class GL3LoadTestSample : public LoadTestSample {
   protected:
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
-    
+
+    struct compressedTexFeatures {
+        bool astc_ldr;
+        bool astc_hdr;
+        bool bc6h;
+        bool bc7;
+        bool etc1;
+        bool etc2;
+        bool bc3;
+        bool pvrtc1;
+        bool pvrtc_srgb;
+        bool pvrtc2;
+        bool rgtc;
+    };
+
+    static void determineCompressedTexFeatures(compressedTexFeatures& features);
+    static GLint framebufferColorEncoding();
+    void loadMesh(std::string filename, glMeshLoader::MeshBuffer& meshBuffer,
+                  std::vector<glMeshLoader::VertexLayout> vertexLayout,
+                  float scale);
     static void makeShader(GLenum type, const GLchar* const source,
                            GLuint* shader);
     static void makeProgram(GLuint vs, GLuint fs, GLuint* program);
