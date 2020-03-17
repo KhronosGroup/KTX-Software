@@ -91,7 +91,7 @@ typedef struct ktxVulkanTexture
     uint32_t layerCount; /*!< The number of array layers in the image. */
 } ktxVulkanTexture;
 
-void
+KTX_APICALL void KTX_APIENTRY
 ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
                           const VkAllocationCallbacks* pAllocator);
 
@@ -134,34 +134,54 @@ typedef struct ktxVulkanDeviceInfo {
     VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 } ktxVulkanDeviceInfo;
 
-ktxVulkanDeviceInfo*
+KTX_APICALL ktxVulkanDeviceInfo* KTX_APIENTRY
 ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
                            const VkAllocationCallbacks* pAllocator);
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
                          VkPhysicalDevice physicalDevice, VkDevice device,
                          VkQueue queue, VkCommandPool cmdPool,
                          const VkAllocationCallbacks* pAllocator);
-void
+KTX_APICALL void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
-void
+KTX_APICALL void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
 
+typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXVKUPLOAD)(ktxTexture* This,
+                                    ktxVulkanDeviceInfo* vdi,
+                                    ktxVulkanTexture* vkTexture);
 
-KTX_error_code
-ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXVKUPLOADEX)(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
                       VkImageTiling tiling,
                       VkImageUsageFlags usageFlags,
                       VkImageLayout layout);
 
-KTX_error_code
-ktxTexture_VkUpload(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *vkTexture);
+typedef VkFormat (KTX_APIENTRY* PFNKTEXGETVKFORMAT)(ktxTexture* This);
 
-VkFormat
-ktxTexture_GetVkFormat(ktxTexture* This);
+#define ktxTexture_VkUploadEx(This, vdi, vkTexture, tiling, usageFlags, \
+                              layout) \
+            This->vvtbl->VkUploadEx(This, vdi, vkTexture, tiling, \
+                                     usageFlags, layout)
+
+#define ktxTexture_VkUpload(This, vdi, vkTexture) \
+                    This->vvtbl->VkUpload(This, vdi, vkTexture)
+
+#define ktxTexture_GetVkFormat(This) This->vvtbl->GetVkFormat(This)
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Table of ktxTexture's virtual functions for Vulkan uploads.
+ */
+struct ktxTexture_vvtbl {
+    PFNKTEXVKUPLOADEX VkUploadEx;
+    PFNKTEXVKUPLOAD VkUpload;
+    PFNKTEXGETVKFORMAT GetVkFormat;
+};
 
 #ifdef __cplusplus
 }

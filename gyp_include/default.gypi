@@ -9,20 +9,10 @@
     'executable': 'executable',
     'emit_vs_x64_configs': 'false',
     'emit_vs_win32_configs': 'false',
-    'emit_emscripten_configs': 'false',
     'conditions': [
-      # TODO Emscripten support not yet correct or complete. DO NOT
-      # TRY TO USE.
-      # Emscripten "vs-tool" VS integration only supports MSVS 2010;
-#      ['GENERATOR=="make" or GENERATOR=="cmake" or (OS=="win" and GENERATOR=="msvs" and MSVS_VERSION=="2010")', {
-#        'emit_emscripten_configs': 'true',
-#      }, {
-#        'emit_emscripten_configs': 'false',
-#      }],
       ['OS == "android"', {
         'executable': 'shared_library',
-      }],
-      ['OS == "win" and GENERATOR == "msvs"', {
+      }, 'OS == "win" and GENERATOR == "msvs"', {
         # For now, we'll retain the possiblity of generating multi-platform
         # solutions so just use WIN_PLATFORM to set the existing
         # variables.
@@ -35,17 +25,20 @@
             'emit_vs_x64_configs': 'true',
           }],
         ],
-      }], # OS == "win" and GENERATOR == "msvs"
+      }], # OS == "android" and elses.
     ], # conditions
   }, # variables
-  'make_global_settings': [
-    ['AR.emscripten', 'emar'],
-
-    ['CC.emscripten', 'emcc'],
-    ['CXX.emscripten', 'emcc'],
-
-    ['LD.emscripten', 'emcc'],
-    ['LINK.emscripten', 'emcc'],
+  'conditions': [
+    ['OS == "web" and GENERATOR != "cmake"', {
+      # Used by make AND cmake. However the cmake generator relativizes these
+      # as if the commands exist inside the project. Haven't yet tried
+      # the make generator.
+      'make_global_settings': [
+        ['AR.emscripten', 'emar'],
+        ['CC.emscripten', 'emcc'],
+        ['CXX.emscripten', 'emcc'],
+      ],
+    }],
   ],
   'xcode_settings': {
     # Don't add anything new to this block unless you really need it!
@@ -124,7 +117,10 @@
         }],
       ],
     },
-    'cflags': [ '-pedantic' ],
+    'cflags': [ '-Wpedantic' ],
+    'cflags_c': [ '-std=c99' ],
+    # Use C++11 for Basis, vulkan.hpp in vkloadtests and gtest.
+    'cflags_cc': [ '-std=c++11' ],
     'msvs_configuration_attributes': {
       # When generating multi-platform solutions & projects these
       # directories must be augmented with $(PlatformName).
@@ -143,7 +139,14 @@
       },
     },
     'xcode_settings': {
+      # Avoid Xcode 10 warning: "Traditional headermap style is no
+      # longer supported".
+      'ALWAYS_SEARCH_USER_PATHS': 'NO',
+      # Use C++11 for Basis, vulkan.hpp in vkloadtests and gtest.
+      'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',
       'COPY_PHASE_STRIP': 'NO',
+      # Avoid Xcode 11 warning. Needed for app notarization anyway.
+      'ENABLE_HARDENED_RUNTIME': 'YES',
       # Avoid linker warnings about "Direct access in function'. These need
       # to be NO or YES everywhere. When not set here, for some reason, appfwSDL
       # had them set to NO while vkloadtests had them set to YES.
@@ -151,15 +154,15 @@
       'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
       # Use C99 for maximum portability. Sigh!
       'GCC_C_LANGUAGE_STANDARD': 'c99',
-      # Avoid Xcode 10 warning: "Traditional headermap style is no
-      # longer supported".
-      'ALWAYS_SEARCH_USER_PATHS': 'NO',
+      # Be extra pedantic.
+      'GCC_TREAT_WARNINGS_AS_ERRORS': 'YES',
       'conditions': [
         ['OS == "ios"', {
           # 1 = iPhone/iPod Touch; 2 = iPad
           'CODE_SIGN_IDENTITY': 'iPhone Developer',
           'IPHONEOS_DEPLOYMENT_TARGET': '8.0',
           'TARGETED_DEVICE_FAMILY': '1,2',
+          'VALID_ARCHS': 'arm64 arm64e',
         }, 'OS == "mac"', {
           # Need 10.9 for GL 4.1 or ARB_ES2_compatibility, 10.11 for Metal
           # compatibility.
@@ -207,10 +210,16 @@
             'cflags': [ '-fPIC' ],
           }], # OS == "linux" and library == "shared_library"
         ],
-
-        'cflags': [ '-Og', '-g' ],
+        'conditions': [
+          ['OS == "web"', {
+            'cflags': [ '-O0', '-g' ],
+            'ldflags': [ '-g4' ],
+          }, {
+            'cflags': [ '-Og', '-g' ],
+            'ldflags': [ '-g' ],
+          }],
+        ],
         'defines': [ 'DEBUG', '_DEBUG', ],
-        'ldflags': [ '-g' ],
         # If this isn't set, GYP defaults to Win32 so both platforms
         # get included when generating x64 configs.
         'msvs_configuration_platform': '<(WIN_PLATFORM)',
@@ -266,7 +275,15 @@
             'cflags': [ '-fPIC' ],
           }], # OS == "linux" and library == "shared_library"
         ],
-        'cflags': [ '-O3' ],
+        'conditions': [
+          ['OS == "web"', {
+            'cflags': [ '-Oz' ],
+            #'ldflags': [ '-g0' ],
+            'ldflags': [ '-Oz' ],
+          }, {
+            'cflags': [ '-O3' ],
+          }],
+        ],
         'defines': [ 'NDEBUG' ],
         'msvs_configuration_platform': '<(WIN_PLATFORM)',
         'msvs_settings': {
@@ -333,64 +350,8 @@
             },
           }, # Release_x64
         }], # emit_vs_x64_configs
-        ['emit_emscripten_configs=="true"', {
-          # The part after '_' must match the msvs_configuration_platform
-          'Debug_Emscripten': {
-            'inherit_from': ['Debug'],
-            'ldflags': '-O0',
-            'msvs_configuration_platform': 'Emscripten',
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'OptimizationLevel': 3, # -O0
-              },
-              'VCLinkerTool': {
-                'LinkerOptimizationLevel': 1, # -O0
-              },
-            },
-            # Not working. Investigate later.
-            # Variables are not propagated from configurations?
-            'OS': 'html5',
-            'toolset': 'emscripten',
-          }, # Debug_Emscripten
-          'Release_Emscripten': {
-            'inherit_from': ['Release'],
-            'ldflags': '-O3',
-            'msvs_configuration_platform': 'Emscripten',
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'OptimizationLevel': 6, # -O3
-              },
-              'VCLinkerTool': {
-                'LinkerOptimizationLevel': 4, # -O3
-              },
-            },
-            # ditto
-            'OS': 'html5',
-            'toolset': 'emscripten',
-          }, # Release_Emscripten
-        }],
       ], # conditional configurations
     }, # configurations
-    # Not having any effect. Fortunately vs-tool sets these so
-    # not needed unless want to change the default.
-#    'target_conditions': [
-#      ['_type=="executable" and emit_emscripten_configs=="true"', {
-#        'configurations': {
-#          'Debug_Emscripten': {
-#            'run_as': {
-#              'action': '<(emscripten_run_action)',
-#              'working_directory': '$(TargetDir)',
-#            },
-#          },
-#          'Release_Emscripten': {
-#            'run_as': {
-#              'action': '<(emscripten_run_action)',
-#              'working_directory': '$(TargetDir)',
-#            },
-#          },
-#        }
-#      }],
-#    ], # target_conditions
   }, # target_defaults
 }
 

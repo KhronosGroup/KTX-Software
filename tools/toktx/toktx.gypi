@@ -2,7 +2,7 @@
 # @internal
 # @copyright © 2015, Mark Callow. For license see LICENSE.md.
 #
-# @brief Generate project files for building KTX tools.
+# @brief Generate project files for building the toktx tool.
 #
 {
   'variables': { # level 1
@@ -20,24 +20,32 @@
     ],
   },
   'conditions': [
-    #  # No point in building this command line utility for Android
-    # or iOS.
+    # No point in building this command line utility for Android or iOS.
     ['OS == "linux" or OS == "mac" or OS == "win"', {
       'targets': [
         {
           'target_name': 'toktx',
           'type': '<(executable)',
-          'include_dirs' : [ '../../utils' ],
+          # To quiet warnings about the anon structs and unions.
+          'cflags_cc': [ '-Wno-pedantic' ],
+          'include_dirs': [
+            '../../utils',
+            '../../lib/basisu',
+          ],
           'mac_bundle': 0,
           'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'sources': [
             '../../utils/argparser.cpp',
             '../../utils/argparser.h',
-            'image.cpp',
-            'image.h',
+            'image.cc',
+            'image.hpp',
+            'lodepng.cc',
+            'lodepng.h',
+            'npbmimage.cc',
+            'pngimage.cc',
             'stdafx.h',
             'targetver.h',
-            'toktx.cpp',
+            'toktx.cc',
           ],
           'msvs_settings': {
             'VCLinkerTool': {
@@ -45,37 +53,25 @@
               'SubSystem': '1',
             },
           },
-          'conditions': [
-            ['emit_emscripten_configs=="true"', {
-              'configurations': {
-                'Debug_Emscripten': {
-                  'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [ '<(additional_emlink_options)' ],
-                  'msvs_settings': {
-                    'VCCLCompilerTool': {
-                      'AdditionalOptions': '<(additional_emcc_options)',
-                    },
-                    'VCLinkerTool': {
-                      'AdditionalOptions': '<(additional_emlink_options)',
-                    },
-                  },
-                },
-                'Release_Emscripten': {
-                  'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [ '<(additional_emlink_options)' ],
-                  'msvs_settings': {
-                    'VCCLCompilerTool': {
-                      'AdditionalOptions': '<(additional_emcc_options)',
-                    },
-                    'VCLinkerTool': {
-                      'AdditionalOptions': '<(additional_emlink_options)',
-                    },
-                  },
-                },
-              }, # configurations
-            }], # emit_emscripten_configs=="true"
-          ], # conditions
-        }, # toktx target
+          'xcode_settings': {
+            # toktx uses anon types and structs. They compile ok in
+            # Visual Studio (2015+) and on Linux so quiet the clang warnings.
+            'WARNING_CFLAGS': [
+              '-Wno-nested-anon-types',
+              '-Wno-gnu-anonymous-struct',
+            ],
+          },
+         'actions': [{
+           'action_name': 'mkversion',
+           'inputs': [
+             '../../mkversion',
+             '../../.git'
+           ],
+           'outputs': [ 'version.h' ],
+           'msvs_cygwin_shell': 1,
+           'action': [ './mkversion', '-o', 'version.h', 'tools/toktx' ],
+         }],
+       }, # toktx target
         {
           'target_name': 'toktx-tests',
           'type': 'none',
@@ -92,49 +88,6 @@
             }, # toktx-tests action
           ], # actions
         }, # toktx-tests target
-        {
-          'target_name': 'toktx.doc',
-          'type': 'none',
-          'variables': { # level 1
-            'variables': { # level 2
-              'output_dir': '../../build/docs',
-            },
-            'output_dir': '<(output_dir)',
-            'doxyConfig': 'ktxtools.doxy',
-            'timestamp': '<(output_dir)/.toktxdoc_gentimestamp',
-          },
-          # It is not possible to chain commands in an action with
-          # && because the generators will quote such strings.
-          # Instead we use an external script.
-          # these actions
-          'actions': [
-            {
-              'action_name': 'buildToktxDoc',
-              'message': 'Generating toktx documentation with Doxygen',
-              'inputs': [
-                '../../<(doxyConfig)',
-                '../../runDoxygen',
-                'toktx.cpp',
-              ],
-              # See ../../lib/libktx.gypi for comment about why only
-              # timestamp is in this list.
-              'outputs': [ '<(timestamp)' ],
-              # doxygen must be run in the top-level project directory
-              # so that ancestors of that directory will be removed
-              # from paths displayed in the documentation. That is also
-              # the directory where the .doxy and .gyp files are stored.
-              #
-              # See ../../lib/libktx.gypi for further comments.
-              'msvs_cygwin_shell': 1,
-              'action': [
-                './runDoxygen',
-                '-t', '<(timestamp)',
-                '-o', '<(output_dir)/html',
-                '<(doxyConfig)',
-              ],
-            }, # buildToktxDoc action
-          ], # actions
-        }, # toktx.doc
       ], # targets
     }], # 'OS == "linux" or OS == "mac" or OS == "win"'
   ] # conditions for conditional targets

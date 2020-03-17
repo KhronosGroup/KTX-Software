@@ -35,12 +35,7 @@
 #include "VulkanContext.h"
 // Until exceptions are used everywhere...
 #include "vulkancheckres.h"
-
-#if defined(NDEBUG) && defined(__GNUC__)
-#define U_ASSERT_ONLY __attribute__((unused))
-#else
-#define U_ASSERT_ONLY
-#endif
+#include "unused.h"
 
 vk::CommandBuffer
 VulkanContext::createCommandBuffer(vk::CommandBufferLevel level, bool begin)

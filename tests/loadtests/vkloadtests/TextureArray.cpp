@@ -63,7 +63,6 @@ TextureArray::TextureArray(VulkanContext& vkctx,
     if (texture.layerCount == 1) {
         std::stringstream message;
 
-        cleanup();
         message << "TextureArray requires an array texture.";
         throw std::runtime_error(message.str());
     }

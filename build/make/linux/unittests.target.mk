@@ -3,20 +3,24 @@
 TOOLSET := target
 TARGET := unittests
 DEFS_Debug := \
+	'-DGTEST_HAS_PTHREAD=0' \
+	'-D_HAS_EXCEPTIONS=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
+	-Wpedantic \
 	-Og \
 	-g
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/tests/gtest/include \
@@ -25,18 +29,22 @@ INCS_Debug := \
 	-I$(srcdir)/other_include
 
 DEFS_Release := \
+	'-DGTEST_HAS_PTHREAD=0' \
+	'-D_HAS_EXCEPTIONS=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
+	-Wpedantic \
 	-O3
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/tests/gtest/include \

@@ -78,6 +78,26 @@ ktxHashList_Construct(ktxHashList* pHead)
 /**
  * @memberof ktxHashList @public
  * @~English
+ * @brief Construct a hash list by copying another.
+ *
+ * @param [in] pHead pointer to head of the list.
+ * @param [in] orig  head of the original hash list.
+ */
+void
+ktxHashList_ConstructCopy(ktxHashList* pHead, ktxHashList orig)
+{
+    ktxHashListEntry* entry = orig;
+    *pHead = NULL;
+    for (; entry != NULL; entry = ktxHashList_Next(entry)) {
+        (void)ktxHashList_AddKVPair(pHead,
+                                    entry->key, entry->valueLen, entry->value);
+    }
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
  * @brief Destruct a hash list.
  *
  * All memory associated with the hash list's keys and values
@@ -90,7 +110,7 @@ ktxHashList_Destruct(ktxHashList* pHead)
 {
     ktxKVListEntry* kv;
     ktxKVListEntry* head = *pHead;
-    
+
     for(kv = head; kv != NULL;) {
         ktxKVListEntry* tmp = (ktxKVListEntry*)kv->hh.next;
         HASH_DELETE(hh, head, kv);
@@ -98,6 +118,8 @@ ktxHashList_Destruct(ktxHashList* pHead)
         kv = tmp;
     }
 }
+
+
 /**
  * @memberof ktxHashList @public
  * @~English
@@ -115,8 +137,33 @@ ktxHashList_Create(ktxHashList** ppHl)
     ktxHashList* hl = (ktxHashList*)malloc(sizeof (ktxKVListEntry*));
     if (hl == NULL)
         return KTX_OUT_OF_MEMORY;
-    
+
     ktxHashList_Construct(hl);
+    *ppHl = hl;
+    return KTX_SUCCESS;
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Create a copy of a hash list.
+ *
+ * @param [in,out] ppHl address of a variable in which to set a pointer to
+ *                      the newly created hash list.
+ * @param [in]     orig head of the ktxHashList to copy.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ * @exception KTX_OUT_OF_MEMORY if not enough memory.
+ */
+KTX_error_code
+ktxHashList_CreateCopy(ktxHashList** ppHl, ktxHashList orig)
+{
+    ktxHashList* hl = (ktxHashList*)malloc(sizeof (ktxKVListEntry*));
+    if (hl == NULL)
+        return KTX_OUT_OF_MEMORY;
+
+    ktxHashList_ConstructCopy(hl, orig);
     *ppHl = hl;
     return KTX_SUCCESS;
 }
@@ -145,13 +192,15 @@ ktxHashList_Destroy(ktxHashList* pHead)
  * @~English
  * @brief Add a key value pair to a hash list.
  *
+ * The value can be empty, i.e, its length can be 0.
+ *
  * @param [in] pHead    pointer to the head of the target hash list.
  * @param [in] key      pointer to the UTF8 NUL-terminated string to be used as the key.
  * @param [in] valueLen the number of bytes of data in @p value.
  * @param [in] value    pointer to the bytes of data constituting the value.
  *
  * @return KTX_SUCCESS or one of the following error codes.
- * @exception KTX_INVALID_VALUE if @p This, @p key or @p value are NULL, @p key is an
+ * @exception KTX_INVALID_VALUE if @p pHead, @p key or @p value are NULL, @p key is an
  *            empty string or @p valueLen == 0.
  */
 KTX_error_code
@@ -159,7 +208,6 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen
 {
     if (pHead && key && value && valueLen != 0) {
         unsigned int keyLen = (unsigned int)strlen(key) + 1;
-        /* ktxKVListEntry* head = *(ktxKVListEntry**)This; */
         ktxKVListEntry* kv;
 
         if (keyLen == 1)
@@ -170,14 +218,102 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen
         /* Put key first */
         kv->key = (char *)kv + sizeof(ktxKVListEntry);
         kv->keyLen = keyLen;
-        /* then value */
-        kv->value = kv->key + keyLen;
-        kv->valueLen = valueLen;
         memcpy(kv->key, key, keyLen);
-        memcpy(kv->value, value, valueLen);
+        /* then value */
+        kv->valueLen = valueLen;
+        if (valueLen > 0) {
+            kv->value = kv->key + keyLen;
+            memcpy(kv->value, value, valueLen);
+        } else {
+            kv->value = 0;
+        }
 
         HASH_ADD_KEYPTR( hh, *pHead, kv->key, kv->keyLen-1, kv);
         return KTX_SUCCESS;
+    } else
+        return KTX_INVALID_VALUE;
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Delete a key value pair to a hash list.
+ *
+ * @param [in] pHead    pointer to the head of the target hash list.
+ * @param [in] key      pointer to the UTF8 NUL-terminated string to be used as the key.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ * @exception KTX_INVALID_VALUE if @p pHead is NULL or @p key is an empty
+ *            string.
+ */
+KTX_error_code
+ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key)
+{
+    if (pHead && key) {
+        ktxKVListEntry* kv;
+
+        HASH_FIND_STR( *pHead, key, kv );  /* kv: pointer to target entry. */
+        HASH_DEL(*pHead, kv);
+        return KTX_SUCCESS;
+    } else
+        return KTX_INVALID_VALUE;
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Delete an entry from a hash list.
+ *
+ * @param [in] pHead    pointer to the head of the target hash list.
+ * @param [in] pEntry   pointer to the ktxHashListEntry to delete.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ * @exception KTX_INVALID_VALUE if @p pHead is NULL or @p key is an empty
+ *            string.
+ */
+KTX_error_code
+ktxHashList_DeleteEntry(ktxHashList* pHead, ktxHashListEntry* pEntry)
+{
+    if (pHead && pEntry) {
+        HASH_DEL(*pHead, pEntry);
+        return KTX_SUCCESS;
+    } else
+        return KTX_INVALID_VALUE;
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Looks up a key in a hash list and returns the entry.
+ *
+ * @param [in]     pHead        pointer to the head of the target hash list.
+ * @param [in]     key          pointer to a UTF8 NUL-terminated string to find.
+ * @param [in,out] ppEntry      @p *ppEntry is set to the point at the
+ *                              ktxHashListEntry.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ *
+ * @exception KTX_INVALID_VALUE if @p This, @p key or @p pValueLen or @p ppValue
+ *                              is NULL.
+ * @exception KTX_NOT_FOUND     an entry matching @p key was not found.
+ */
+KTX_error_code
+ktxHashList_FindEntry(ktxHashList* pHead, const char* key,
+                      ktxHashListEntry** ppEntry)
+{
+    if (pHead && key) {
+        ktxKVListEntry* kv;
+
+        HASH_FIND_STR( *pHead, key, kv );  /* kv: output pointer */
+
+        if (kv) {
+            *ppEntry = kv;
+            return KTX_SUCCESS;
+        } else
+            return KTX_NOT_FOUND;
     } else
         return KTX_INVALID_VALUE;
 }
@@ -204,20 +340,50 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen
 KTX_error_code
 ktxHashList_FindValue(ktxHashList *pHead, const char* key, unsigned int* pValueLen, void** ppValue)
 {
-    if (pHead && key && pValueLen && ppValue) {
-        ktxKVListEntry* kv;
-        /* ktxKVListEntry* head = *(ktxKVListEntry**)This; */
+    if (pValueLen && ppValue) {
+        ktxHashListEntry* pEntry;
+        KTX_error_code result;
 
-        HASH_FIND_STR( *pHead, key, kv );  /* kv: output pointer */
-
-        if (kv) {
-            *pValueLen = kv->valueLen;
-            *ppValue = kv->value;
+        result = ktxHashList_FindEntry(pHead, key, &pEntry);
+        if (result == KTX_SUCCESS) {
+            ktxHashListEntry_GetValue(pEntry, pValueLen, ppValue);
             return KTX_SUCCESS;
         } else
-            return KTX_NOT_FOUND;
+            return result;
     } else
         return KTX_INVALID_VALUE;
+}
+
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Returns the next entry in a ktxHashList.
+ *
+ * Use for iterating through the list:
+ * @code
+ *    ktxHashListEntry* entry;
+ *    for (entry = listHead; entry != NULL; entry = ktxHashList_Next(entry)) {
+ *       ...
+ *    };
+ * @endcode
+ *
+ * Note
+ *
+ * @param [in]  entry   pointer to a hash list entry. Note that a ktxHashList*,
+ *                      i.e. the list head, is also a pointer to an entry so
+ *                      can be passed to this function.
+ *
+ * @return a pointer to the next entry or NULL.
+ *
+ */
+ktxHashListEntry*
+ktxHashList_Next(ktxHashListEntry* entry)
+{
+    if (entry) {
+        return ((ktxKVListEntry*)entry)->hh.next;
+    } else
+        return NULL;
 }
 
 
@@ -276,7 +442,8 @@ ktxHashList_Serialize(ktxHashList* pHead,
             sd += sizeof(ktx_uint32_t);
             memcpy(sd, kv->key, kv->keyLen);
             sd += kv->keyLen;
-            memcpy(sd, kv->value, kv->valueLen);
+            if (kv->valueLen > 0)
+                memcpy(sd, kv->value, kv->valueLen);
             sd += kv->valueLen;
             padLen = _KTX_PAD4_LEN(keyValueLen);
             memcpy(sd, padding, padLen);
@@ -285,6 +452,35 @@ ktxHashList_Serialize(ktxHashList* pHead,
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;
+}
+
+
+int sort_by_key_codepoint(ktxKVListEntry* a, ktxKVListEntry* b) {
+  return strcmp(a->key, b->key);
+}
+
+/**
+ * @memberof ktxHashList @public
+ * @~English
+ * @brief Sort a hash list in order of the UTF8 codepoints.
+ *
+ * @param [in]     pHead        pointer to the head of the target hash list.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ *
+ * @exception KTX_INVALID_VALUE if @p This is NULL.
+ */
+KTX_error_code
+ktxHashList_Sort(ktxHashList* pHead)
+{
+    if (pHead) {
+        //ktxKVListEntry* kv = (ktxKVListEntry*)pHead;
+
+        HASH_SORT(*pHead, sort_by_key_codepoint);
+        return KTX_SUCCESS;
+    } else {
+        return KTX_INVALID_VALUE;
+    }
 }
 
 
@@ -316,14 +512,14 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
 
     if (kvdLen == 0 || pKvd == NULL || pHead == NULL)
         return KTX_INVALID_VALUE;
-    
+
     if (*pHead != NULL)
         return KTX_INVALID_OPERATION;
 
     result = KTX_SUCCESS;
     while (result == KTX_SUCCESS && src < (char *)pKvd + kvdLen) {
         char* key;
-        unsigned int keyLen;
+        unsigned int keyLen, valueLen;
         void* value;
         ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t*)src);
 
@@ -332,8 +528,9 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
         keyLen = (unsigned int)strlen(key) + 1;
         value = key + keyLen;
 
-        result = ktxHashList_AddKVPair(pHead, key, keyAndValueByteSize - keyLen,
-                                       value);
+        valueLen = keyAndValueByteSize - keyLen;
+        result = ktxHashList_AddKVPair(pHead, key, valueLen,
+                                       valueLen > 0 ? value : NULL);
         if (result == KTX_SUCCESS) {
             src += _KTX_PAD4(keyAndValueByteSize);
         }
@@ -342,3 +539,58 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
 }
 
 
+/**
+ * @memberof ktxHashListEntry @public
+ * @~English
+ * @brief Return the key of a ktxHashListEntry
+ *
+ * @param [in]     This       The target hash list entry.
+ * @param [in,out] pKeyLen    @p *pKeyLen is set to the byte length of
+ *                            the returned key.
+ * @param [in,out] ppKey      @p *ppKey is set to the point to the value of
+ *                            @p the key.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ *
+ * @exception KTX_INVALID_VALUE if @p pKvd or @p pHt is NULL or kvdLen == 0.
+ */
+KTX_error_code
+ktxHashListEntry_GetKey(ktxHashListEntry* This,
+                        unsigned int* pKeyLen, char** ppKey)
+{
+    if (pKeyLen && ppKey) {
+        ktxKVListEntry* kv = (ktxKVListEntry*)This;
+        *pKeyLen = kv->keyLen;
+        *ppKey = kv->key;
+        return KTX_SUCCESS;
+    } else
+        return KTX_INVALID_VALUE;
+}
+
+
+/**
+ * @memberof ktxHashListEntry @public
+ * @~English
+ * @brief Return the value from a ktxHashListEntry
+ *
+ * @param [in]      This        The target hash list entry.
+ * @param [in,out] pValueLen    @p *pValueLen is set to the number of bytes of
+ *                              data in the returned value.
+ * @param [in,out] ppValue      @p *ppValue is set to point to the value for @p key.
+ *
+ * @return KTX_SUCCESS or one of the following error codes.
+ *
+ * @exception KTX_INVALID_VALUE if @p pKvd or @p pHt is NULL or kvdLen == 0.
+ */
+KTX_error_code
+ktxHashListEntry_GetValue(ktxHashListEntry* This,
+                          unsigned int* pValueLen, void** ppValue)
+{
+    if (pValueLen && ppValue) {
+        ktxKVListEntry* kv = (ktxKVListEntry*)This;
+        *pValueLen = kv->valueLen;
+        *ppValue = kv->valueLen > 0 ? kv->value : NULL;
+        return KTX_SUCCESS;
+    } else
+        return KTX_INVALID_VALUE;
+}

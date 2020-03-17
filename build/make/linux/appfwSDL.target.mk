@@ -42,21 +42,24 @@ DEFS_Debug := \
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
+	-Wpedantic \
 	-Og \
 	-g
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Debug := \
+	-std=c++11 \
 	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(srcdir)/utils \
 	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
@@ -64,20 +67,23 @@ DEFS_Release := \
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
+	-Wpedantic \
 	-O3
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
 CFLAGS_CC_Release := \
+	-std=c++11 \
 	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/tests/loadtests/appfwSDL \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
+	-I$(srcdir)/utils \
 	-I$(VULKAN_SDK)/include
 
 OBJS := \

@@ -63,7 +63,6 @@ TextureMipmap::TextureMipmap(VulkanContext& vkctx,
     if (texture.levelCount == 1) {
         std::stringstream message;
 
-        cleanup();
         message << "TextureMipmap requires a mipmapped texture.";
         throw std::runtime_error(message.str());
     }

@@ -85,5 +85,3 @@ VulkanLoadTestSample::loadShader(std::string filename,
     shaderModules.push_back(shaderStage.module);
     return shaderStage;
 }
-
-

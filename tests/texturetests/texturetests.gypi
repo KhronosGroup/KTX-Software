@@ -42,14 +42,14 @@
         'gtest',
         'gtest_main',
         'libktx.gyp:libktx.gl',
+        'libktx.gyp:libgl',
       ],
       'include_dirs': [
         '../../lib',
         '../gtest/include',
         '../unittests',
       ],
-      'defines': [
-      ],
+      'defines': [ ],
       'sources': [
         '../unittests/wthelper.h',
         'texturetests.cc',
@@ -60,52 +60,19 @@
           'SubSystem': '1',
         },
       },
-#        'xcode_settings': {
-#          'INFOPLIST_FILE': '<(infoplist_file)',
-#        },
-      'conditions': [
-        ['emit_emscripten_configs=="true"', {
-          'configurations': {
-            'Debug_Emscripten': {
-              'cflags': [ '<(additional_emcc_options)' ],
-              'ldflags': [
-                '--preload-files <(PRODUCT_DIR)/(datadir)@/<(datadir)',
-                '<(additional_emlink_options)',
-              ],
-              'msvs_settings': {
-                'VCCLCompilerTool': {
-                  'AdditionalOptions': '<(additional_emcc_options)',
-                },
-                'VCLinkerTool': {
-                  'PreloadFile': '<(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                  'AdditionalOptions': '<(additional_emlink_options)',
-                },
-              },
-            },
-            'Release_Emscripten': {
-              'cflags': [ '<(additional_emcc_options)' ],
-              'ldflags': [
-                '--preload-files <(PRODUCT_DIR)/(datadir)@/<(datadir)',
-                '<(additional_emlink_options)',
-              ],
-              'msvs_settings': {
-                'VCCLCompilerTool': {
-                  'AdditionalOptions': '<(additional_emcc_options)',
-                },
-                'VCLinkerTool': {
-                  'PreloadFile': '<(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                  'AdditionalOptions': '<(additional_emlink_options)',
-                },
-              },
-            },
-          },
-        }], # emit_emscripten_configs=="true"
+      'xcode_settings': {
+        # Via the headermap Xcode is finding .../vkloadtests/Texture.h instead
+        # of the intended lib/texture.h.
+        'USE_HEADERMAP': 'NO',
+#       'INFOPLIST_FILE': '<(infoplist_file)',
+      },
+#      'conditions': [
 #        ['OS == "mac"', {
 #            'sources': [
 #            'resources_mac/Info.plist',
 #          ],
 #        }], # OS == "mac"
-      ], # conditions
+#      ], # conditions
     }, # texturetests
   ] # targets
 }

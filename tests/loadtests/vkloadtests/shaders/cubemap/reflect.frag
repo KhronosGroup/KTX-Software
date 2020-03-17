@@ -8,6 +8,7 @@ layout (binding = 0) uniform UBO
     mat4 projection;
     mat4 modelView;
     mat4 invModelView;
+    mat4 uvwTransform;
     float lodBias;
 } ubo;
 
@@ -18,7 +19,6 @@ layout (location = 1) in vec3 inNormal;
 layout (location = 2) in float inLodBias;
 layout (location = 3) in vec3 inViewVec;
 layout (location = 4) in vec3 inLightVec;
-layout (location = 5) in mat4 inInvModelView;
 
 layout (location = 0) out vec4 outFragColor;
 
@@ -27,10 +27,8 @@ void main()
 	vec3 cI = normalize (inPos);
 	vec3 cR = reflect (cI, normalize(inNormal));
 
-    //cR = vec3(inInvModelView * vec4(cR, 0.0));
-    cR = vec3(ubo.invModelView * vec4(cR, 0.0));
-	// Compensate for original images in texture being opposite to reality.
-	cR.x = -cR.x;
+    //cR = vec3(ubo.invModelView * vec4(cR, 0.0));
+    cR = vec3(ubo.uvwTransform * ubo.invModelView * vec4(cR, 0.0));
 
 	vec4 color = texture(samplerColor, cR, inLodBias);
 

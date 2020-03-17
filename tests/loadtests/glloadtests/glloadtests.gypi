@@ -6,22 +6,7 @@
 #
 {
   'variables': { # level 1
-    'variables': { # level 2 so can use in level 1
-       # This is a list to avoid a very wide line.
-       # -s is separate because '-s foo' in a list results
-       # in "-s foo" on output.
-       'additional_emcc_options': [
-         '-s', 'ERROR_ON_UNDEFINED_SYMBOLS=1',
-         '-s', 'TOTAL_MEMORY=52000000',
-         '-s', 'NO_EXIT_RUNTIME=1',
-       ],
-     }, # variables, level 2
     'datadir': 'testimages',
-    'additional_emcc_options': [ '<@(additional_emcc_options)' ],
-    'additional_emlink_options': [
-      '<@(additional_emcc_options)',
-      '-s', 'USE_SDL=2',
-    ],
     # A hack to get the file name relativized for xcode's INFOPLIST_FILE.
     # Keys ending in _file & _dir assumed to be paths and are made relative
     # to the main .gyp file.
@@ -33,6 +18,8 @@
       }],
     ],
     'common_source_files': [
+      '../../../utils/argparser.h',
+      '../../../utils/argparser.cpp',
       '../common/LoadTestSample.cpp',
       '../common/LoadTestSample.h',
       '../common/SwipeDetector.cpp',
@@ -45,6 +32,8 @@
     'gl3_source_files': [
        # .h files are included so they will appear in IDEs' file lists.
       '../common/ltexceptions.h',
+      'shader-based/BasisuTest.cpp',
+      'shader-based/BasisuTest.h',
       'shader-based/DrawTexture.cpp',
       'shader-based/DrawTexture.h',
       'shader-based/GL3LoadTests.cpp',
@@ -52,10 +41,14 @@
       'shader-based/GL3LoadTestSample.h',
       'shader-based/TextureArray.cpp',
       'shader-based/TextureArray.h',
+      'shader-based/TextureCubemap.cpp',
+      'shader-based/TextureCubemap.h',
       'shader-based/TexturedCube.cpp',
       'shader-based/TexturedCube.h',
       'shader-based/mygl.h',
       'shader-based/shaders.cpp',
+      'utils/GLMeshLoader.hpp',
+      'utils/GLTextureTranscoder.hpp',
     ],
     'ios_resource_files': [
       '../../../icons/ios/CommonIcons.xcassets',
@@ -81,6 +74,7 @@
           ],
           'dependencies': [
             'appfwSDL',
+            'libassimp',
             'libktx.gyp:libktx.gl',
             'libktx.gyp:libgl',
             'testimages',
@@ -89,10 +83,21 @@
             '<@(common_source_files)',
             '<@(gl3_source_files)',
           ],
+          'copies': [{
+            'destination': '<(model_dest)',
+            'files': [
+              '../common/models/cube.obj',
+              '../common/models/sphere.obj',
+              '../common/models/teapot.dae',
+              '../common/models/torusknot.obj',
+            ],
+          }],
           'include_dirs': [
             '.',
             '../common',
             '../geom',
+            '../../../utils',
+            'utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE',
@@ -111,42 +116,6 @@
             'INFOPLIST_FILE': '<(glinfoplist_file)',
           },
           'conditions': [
-            ['emit_emscripten_configs=="true"', {
-              'configurations': {
-                'Debug_Emscripten': {
-                  'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [
-                    '--preload-files <(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                    '<(additional_emlink_options)',
-                  ],
-                  'msvs_settings': {
-                    'VCCLCompilerTool': {
-                      'AdditionalOptions': '<(additional_emcc_options)',
-                    },
-                    'VCLinkerTool': {
-                      'PreloadFile': '<(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                      'AdditionalOptions': '<(additional_emlink_options)',
-                    },
-                  },
-                },
-                'Release_Emscripten': {
-                  'cflags': [ '<(additional_emcc_options)' ],
-                  'ldflags': [
-                    '--preload-files <(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                    '<(additional_emlink_options)',
-                  ],
-                  'msvs_settings': {
-                    'VCCLCompilerTool': {
-                      'AdditionalOptions': '<(additional_emcc_options)',
-                    },
-                    'VCLinkerTool': {
-                      'PreloadFile': '<(PRODUCT_DIR)/<(datadir)@/<(datadir)',
-                      'AdditionalOptions': '<(additional_emlink_options)',
-                    },
-                  },
-                },
-              },
-            }], # emit_emscripten_configs=="true"
             ['OS == "mac"', {
               'sources': [ '<(glinfoplist_file)' ],
             }, 'OS == "win"', {
@@ -156,23 +125,31 @@
         }, # gl3loadtests
       ], # 'OS == "mac" or OS == "win"' targets
     }], # 'OS == "mac" or OS == "win"'
-    ['OS == "ios" or OS == "win"', {
-      'includes': [
-        '../../../gyp_include/libgles3.gypi',
-      ],
+    ['OS == "ios" or OS == "win" or OS == "web"', {
+      'variables': {
+        # Putting this condition within the target causes a GYP error.
+        # I've not been able to find a way to override EXECUTABLE_SUFFIX so...
+        'conditions': [
+          ['OS == "web"', {
+            'target_name': 'es3loadtests.html',
+          }, {
+            'target_name': 'es3loadtests',
+          }],
+        ],
+      },
       'targets': [
         {
-          'target_name': 'es3loadtests',
+          'target_name': '<(target_name)',
           'type': '<(executable)',
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
+            'libassimp',
             'libktx.gyp:libktx.es3',
-            'libgles3',
+            'libktx.gyp:libgles3',
             'testimages',
           ],
-          #'toolsets': [target', 'emscripten'],
-          'sources': [
+         'sources': [
             '../geom/quad.h',
             '<@(common_source_files)',
             '<@(gl3_source_files)',
@@ -181,6 +158,8 @@
             '.',
             '../common',
             '../geom',
+            '../../../utils',
+            'utils',
           ],
           'defines': [
            'GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES',
@@ -208,7 +187,39 @@
               'mac_bundle_resources': [ '<@(ios_resource_files)' ],
             }, 'OS == "win"', {
               'sources': [ '<@(win_resource_files)' ],
-            }], # OS == "ios" else OS = "win"
+            }, 'OS == "web"', {
+              'cflags': [
+                '-s', 'DISABLE_EXCEPTION_CATCHING=0',
+              ],
+              'dependencies!': [ 'libassimp' ],
+              'ldflags': [
+                '--source-map-base', './',
+                #'--preload-file', '../common/models',
+                '--preload-file', 'testimages',
+                '--exclude-file', 'testimages/genref',
+                '--exclude-file', 'testimages/*.pgm',
+                '--exclude-file', 'testimages/*.ppm',
+                '--exclude-file', 'testimages/*.pam',
+                '--exclude-file', 'testimages/*.pspimage',
+                '-s', 'ALLOW_MEMORY_GROWTH=1',
+                '-s', 'DISABLE_EXCEPTION_CATCHING=0',
+              ],
+              'sources!': [
+                'shader-based/TextureCubemap.cpp',
+                'shader-based/TextureCubemap.h',
+              ],
+            }], # OS == "ios" else "win" else "web"
+            ['OS != "web"', {
+              'copies': [{
+                'destination': '<(model_dest)',
+                'files': [
+                  '../common/models/cube.obj',
+                  '../common/models/sphere.obj',
+                  '../common/models/teapot.dae',
+                  '../common/models/torusknot.obj',
+                ],
+              }],
+            }], # OS != "web"
           ],
         }, # es3loadtests
       ], # 'OS == "ios" or OS == "win"' targets
@@ -228,7 +239,6 @@
             'libgles1',
             'testimages',
           ],
-          #'toolsets': [target', 'emscripten'],
           'sources': [
             '<@(common_source_files)',
             'gles1/ES1LoadTests.cpp',

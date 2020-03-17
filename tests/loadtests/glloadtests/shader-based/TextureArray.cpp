@@ -56,6 +56,29 @@ const GLchar* pszInstancingFs =
     "    outFragColor = texture(uArraySampler, UV);\n"
     "}";
 
+const GLchar* pszInstancingSrgbEncodeFs =
+    "precision mediump float;\n"
+
+    "uniform mediump sampler2DArray uArraySampler;\n\n"
+
+    "in vec3 UV;\n\n"
+
+    "layout (location = 0) out vec4 outFragColor;\n\n"
+
+    "vec3 srgb_encode(vec3 color) {\n"
+    "   float r = color.r < 0.0031308 ? 12.92 * color.r : 1.055 * pow(color.r, 1.0/2.4) - 0.055;\n"
+    "   float g = color.g < 0.0031308 ? 12.92 * color.g : 1.055 * pow(color.g, 1.0/2.4) - 0.055;\n"
+    "   float b = color.b < 0.0031308 ? 12.92 * color.b : 1.055 * pow(color.b, 1.0/2.4) - 0.055;\n"
+    "   return vec3(r, g, b);\n"
+    "}\n\n"
+
+    "void main()\n"
+    "{\n"
+    "    vec4 t_color = texture(uArraySampler, UV);\n"
+    "    outFragColor.rgb = srgb_encode(t_color.rgb);\n"
+    "    outFragColor.a = t_color.a;\n"
+    "}";
+
 const GLchar* pszInstancingVs =
     "layout (location = 0) in vec4 inPos;\n"
     "layout (location = 1) in vec2 inUV;\n\n"
@@ -125,7 +148,7 @@ TextureArray::TextureArray(uint32_t width, uint32_t height,
         std::stringstream message;
         
         message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
-        << "\" failed: " << ktxErrorString(ktxresult);
+                << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
     ktxresult = ktxTexture_GLUpload(kTexture, &gnArrayTexture, &arrayTexTarget,
@@ -194,10 +217,9 @@ TextureArray::run(uint32_t msTicks)
 
     // Keep these permanently bound
     //glBindVertexArray(gnVao);
-    //glBindBuffer(GL_ARRAY_BUFFER, gnVbo);
     // Must be done after the VAO is bound
-    // Use the same buffer for vertex attributes and element indices.
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gnVbo);
+    //glBindBuffer(GL_ARRAY_BUFFER, gnVbo[0]);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gnVbo[1]);
     glDrawElementsInstanced(GL_TRIANGLES, quad.indexCount,
                             GL_UNSIGNED_INT, (GLvoid*)quad.indicesOffset,
                             numLayers);
@@ -218,7 +240,7 @@ TextureArray::cleanup()
         glUseProgram(0);
         glDeleteTextures(1, &gnArrayTexture);
         glDeleteProgram(gnInstancingProg);
-        glDeleteBuffers(1, &quad.gnVbo);
+        glDeleteBuffers(2, quad.gnVbo);
         glDeleteVertexArrays(1, &quad.gnVao);
         if (uboVS.instance)
             delete uboVS.instance;
@@ -250,16 +272,14 @@ TextureArray::generateQuad()
     glBindVertexArray(quad.gnVao);
     
     // Must have vertex data in buffer objects to use VAO's on ES3/GL Core
-    glGenBuffers(1, &quad.gnVbo);
-    glBindBuffer(GL_ARRAY_BUFFER, quad.gnVbo);
+    glGenBuffers(2, quad.gnVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, quad.gnVbo[0]);
     // Must be done after the VAO is bound
-    // Use the same buffer for vertex attributes and element indices.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.gnVbo);
+    // WebGL requires different buffers for data and indices.
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.gnVbo[1]);
 
     // Create the buffer data store.
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(vertices) + sizeof(indices),
-                 NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), NULL, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -271,11 +291,11 @@ TextureArray::generateQuad()
     offset += member_size(TAVertex, pos);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
                           sizeof(TAVertex), (GLvoid*)offset);
+    offset = sizeof(vertices);
 
-    offset = sizeof(vertices);;
-    glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(indices), indices);
-    //glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, sizeof(indices), indices);
-    quad.indicesOffset = offset;
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices),
+                 indices, GL_STATIC_DRAW);
+    quad.indicesOffset = 0;
 }
 
 #define LAYERS_DECLARED_IN_SHADER 8U
@@ -359,12 +379,17 @@ TextureArray::updateUniformBufferMatrices()
                                       glm::radians(rotation.z),
                                       glm::vec3(0.0f, 0.0f, 1.0f));
 
+#if !defined(EMSCRIPTEN)
     // Only update the matrices part of the uniform buffer
     uint8_t *pData = (uint8_t*)glMapBufferRange(GL_UNIFORM_BUFFER, 0,
                                                 sizeof(uboVS.matrices),
                                                 GL_MAP_WRITE_BIT);
     memcpy(pData, &uboVS.matrices, sizeof(uboVS.matrices));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
+#else
+    glBufferSubData(GL_UNIFORM_BUFFER, 0,
+                    sizeof(uboVS.matrices), &uboVS.matrices);
+#endif
 }
 
 void
@@ -396,9 +421,16 @@ void
 TextureArray::prepareProgram()
 {
     GLuint gnInstancingFs, gnInstancingVs;
+    const GLchar* actualFs;
+
+    if (framebufferColorEncoding() == GL_LINEAR) {
+        actualFs = pszInstancingSrgbEncodeFs;
+    } else {
+        actualFs = pszInstancingFs;
+    }
     try {
         makeShader(GL_VERTEX_SHADER, pszInstancingVs, &gnInstancingVs);
-        makeShader(GL_FRAGMENT_SHADER, pszInstancingFs, &gnInstancingFs);
+        makeShader(GL_FRAGMENT_SHADER, actualFs, &gnInstancingFs);
         makeProgram(gnInstancingVs, gnInstancingFs, &gnInstancingProg);
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.

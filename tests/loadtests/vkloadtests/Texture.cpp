@@ -45,6 +45,7 @@
 
 #include "argparser.h"
 #include "Texture.h"
+#include "VulkanTextureTranscoder.hpp"
 #include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
@@ -81,6 +82,8 @@ Texture::Texture(VulkanContext& vkctx,
     rgbcolor upperRightColor{ 0.4f, 1.0f, 0.5f };
     rgbcolor lowerRightColor{ 0.0f, 0.6f, 0.1f };
 
+    transcoded = false;
+
     quadColor = { upperLeftColor, lowerLeftColor,
                   upperRightColor, lowerRightColor };
 
@@ -104,8 +107,17 @@ Texture::Texture(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
+    if (kTexture->classId == ktxTexture2_c
+        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+    {
+        TextureTranscoder tc(vkctx);
+        tc.transcode((ktxTexture2*)kTexture);
+        transcoded = true;
+    }
+    
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    transcodedFormat = vkFormat;
     vk::FormatProperties properties;
     vkctx.gpu.getFormatProperties(vkFormat, &properties);
     vk::FormatFeatureFlags& features =  tiling == vk::ImageTiling::eLinear ?
@@ -131,19 +143,10 @@ Texture::Texture(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
-    char* pValue;
-    uint32_t valueLen;
-    if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
-                                             KTX_ORIENTATION_KEY,
-                                             &valueLen, (void**)&pValue))
-    {
-        char s, t;
-        
-        if (sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t) == 2) {
-            if (s == 'l') sign_s = -1;
-            if (t == 'u') sign_t = -1;
-        }
-    }
+    if (kTexture->orientation.x == KTX_ORIENT_X_LEFT)
+        sign_s = -1;
+    if (kTexture->orientation.y == KTX_ORIENT_Y_UP)
+        sign_t = -1;
 
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&vdi);
@@ -717,4 +720,15 @@ Texture::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
                          5.0f, yOffset, VulkanTextOverlay::alignLeft);
 }
 
+const char* const
+Texture::customizeTitle(const char* const title)
+{
+    if (transcoded) {
+        this->title = title;
+        this->title += " to ";
+        this->title += vkFormatString((VkFormat)transcodedFormat);
+        return this->title.c_str();
+    }
+    return title;
+}
 

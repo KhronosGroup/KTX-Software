@@ -76,7 +76,7 @@ class TextureArray : public GL3LoadTestSample
         uint32_t indexCount;
         glm::vec3 dim;
         GLuint gnVao;
-        GLuint gnVbo;
+        GLuint gnVbo[2];
         GLsizeiptr verticesOffset;
         GLsizeiptr indicesOffset;
     };

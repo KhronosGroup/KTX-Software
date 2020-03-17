@@ -3,20 +3,24 @@
 TOOLSET := target
 TARGET := texturetests
 DEFS_Debug := \
+	'-DGTEST_HAS_PTHREAD=0' \
+	'-D_HAS_EXCEPTIONS=1' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
 # Flags passed to all source files.
 CFLAGS_Debug := \
-	-pedantic \
+	-Wpedantic \
 	-Og \
 	-g
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug :=
+CFLAGS_CC_Debug := \
+	-std=c++11
 
 INCS_Debug := \
 	-I$(srcdir)/lib \
@@ -26,18 +30,22 @@ INCS_Debug := \
 	-I$(srcdir)/other_include
 
 DEFS_Release := \
+	'-DGTEST_HAS_PTHREAD=0' \
+	'-D_HAS_EXCEPTIONS=1' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
 CFLAGS_Release := \
-	-pedantic \
+	-Wpedantic \
 	-O3
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := \
+	-std=c99
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release :=
+CFLAGS_CC_Release := \
+	-std=c++11
 
 INCS_Release := \
 	-I$(srcdir)/lib \
@@ -53,7 +61,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/libktx.gl.so
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -85,7 +93,8 @@ LDFLAGS_Release := \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/
 
-LIBS :=
+LIBS := \
+	-lGL
 
 $(builddir)/texturetests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/texturetests: LIBS := $(LIBS)

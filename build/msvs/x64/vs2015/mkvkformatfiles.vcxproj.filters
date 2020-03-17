@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\vulkan">
+      <UniqueIdentifier>{D1E601E6-D524-3F95-F9D6-72301893D214}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\vulkan\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\libktx.gyp"/>
+    <ClInclude Include="..\..\..\..\lib\dfdutils\vulkan\vulkan_core.h">
+      <Filter>lib\dfdutils\vulkan\_excluded_files</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\lib\mkvkformatfiles">
+      <Filter>lib\_excluded_files</Filter>
+    </None>
+    <ClInclude Include="..\..\..\..\lib\vkformat_enum.h">
+      <Filter>lib\_excluded_files</Filter>
+    </ClInclude>
+    <None Include="..\..\..\..\lib\dfdutils\makevkswitch.pl">
+      <Filter>lib\dfdutils\_excluded_files</Filter>
+    </None>
+    <None Include="..\..\..\..\lib\dfdutils\makedfd2vk.pl">
+      <Filter>lib\dfdutils\_excluded_files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

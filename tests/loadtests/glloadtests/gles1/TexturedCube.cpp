@@ -61,11 +61,11 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     const GLchar*  szExtensions = (const GLchar*)glGetString(GL_EXTENSIONS);
     const char* filename;
     std::string pathname;
-    GLuint texture = 0;
+    GLuint gnTexture = 0;
     GLenum target;
     GLenum glerror;
-    GLboolean isMipmapped;
     GLboolean npotSupported, npotTexture;
+    ktxTexture* kTexture;
     KTX_error_code ktxresult;
 
     if (strstr(szExtensions, "OES_texture_npot") != NULL)
@@ -92,20 +92,28 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
         filename = "testimages/no-npot.ktx";
     }
     pathname = getAssetPath() + filename;
-    
 
-    ktxresult = ktxLoadTextureN(pathname.c_str(), &texture, &target, NULL,
-                                &isMipmapped, &glerror, 0, NULL);
+    ktxresult = ktxTexture_CreateFromNamedFile(pathname.c_str(),
+                                               KTX_TEXTURE_CREATE_NO_FLAGS,
+                                               &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << pathname
+                << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+    ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
         if (target != GL_TEXTURE_2D) {
             /* Can only draw 2D textures */
-            glDeleteTextures(1, &texture);
+            glDeleteTextures(1, &gnTexture);
             return;
         }
         glEnable(target);
 
-        if (isMipmapped)
+        if (kTexture->numLevels > 1)
             // Enable bilinear mipmapping.
             // TO DO: application can consider inserting a key,value pair in
             // the KTX file that indicates what type of filtering to use.
@@ -115,6 +123,8 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+        ktxTexture_Destroy(kTexture);
     } else {
         std::stringstream message;
 

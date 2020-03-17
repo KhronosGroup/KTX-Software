@@ -1,10 +1,10 @@
 version: 3.0.{build}
 
-#os: Visual Studio 2017
+#os: Visual Studio 2019
 image:
-  - Visual Studio 2013
   - Visual Studio 2015
   - Visual Studio 2017
+  - Visual Studio 2019
 
 configuration:
   - Debug
@@ -12,13 +12,17 @@ configuration:
 
 platform:
   - x64
-  - Win32
+#  - Win32
 
 environment:
   GIT_TRACE: 0
   VULKAN_SDK_VER: 1.1.85.0
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2017_R1
+
+branches:
+  except:
+    - /subrepo\/*/
 
 # Following is for GIT_TRACE: 1 above.
 #on_failure:
@@ -67,7 +71,10 @@ install:
 #  - other_lib
 
 before_build:
-# Expand date keywords.
+# Expand date keywords. -q is because the VS2019 image has a more
+# recent git version (2.21.0) in which git checkout writes to StdErr
+# which PS treats as an exception, causing the build to fail. The
+# write is an innocuous message about the number of paths updated.
 - ps: |-
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/mainpage.md
@@ -77,17 +84,18 @@ build_script:
 - ps: |-
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
     refreshenv
-    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2013”) {$env:KTX_VSVER = “vs2013"}
+    $ErrorActionPreference = 'Stop'
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2015”) {$env:KTX_VSVER = “vs2015"}
     IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2017”) {$env:KTX_VSVER = “vs2017"}
+    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2019”) {$env:KTX_VSVER = “vs2019"}
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
     MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxdoc.sln
-- cmd: |-
-    .\setup_env.bat && bash -c "./runDoxygen ktxpkg.doxy"
 
 test_script:
 - ps: |-
     cd build\msvs\$env:PLATFORM\$env:KTX_VSVER\$env:CONFIGURATION
     .\texturetests.exe
     .\unittests.exe
+    .\transcodetests ..\..\..\..\..\tests\testimages\
+ 

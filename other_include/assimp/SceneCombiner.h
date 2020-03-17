@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2017, assimp team
+Copyright (c) 2006-2019, assimp team
+
 
 All rights reserved.
 
@@ -64,6 +65,7 @@ struct aiLight;
 struct aiMetadata;
 struct aiBone;
 struct aiMesh;
+struct aiAnimMesh;
 struct aiAnimation;
 struct aiNodeAnim;
 
@@ -197,13 +199,17 @@ struct SceneHelper
  * The class is currently being used by various postprocessing steps
  * and loaders (ie. LWS).
  */
-class ASSIMP_API SceneCombiner
-{
+class ASSIMP_API SceneCombiner {
     // class cannot be instanced
-    SceneCombiner() {}
+    SceneCombiner() {
+        // empty
+    }
+
+    ~SceneCombiner() {
+        // empty
+    }
 
 public:
-
     // -------------------------------------------------------------------
     /** Merges two or more scenes.
      *
@@ -358,6 +364,7 @@ public:
     static void Copy     (aiMesh** dest, const aiMesh* src);
 
     // similar to Copy():
+    static void Copy  (aiAnimMesh** dest, const aiAnimMesh* src);
     static void Copy  (aiMaterial** dest, const aiMaterial* src);
     static void Copy  (aiTexture** dest, const aiTexture* src);
     static void Copy  (aiAnimation** dest, const aiAnimation* src);

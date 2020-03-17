@@ -45,6 +45,7 @@
 #include "argparser.h"
 #include "InstancedSampleBase.h"
 #include "ltexceptions.h"
+#include "VulkanTextureTranscoder.hpp"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
@@ -64,6 +65,8 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
     rotationSpeed = 0.25f;
     rotation = { -15.0f, 35.0f, 0.0f };
     tiling = vk::ImageTiling::eOptimal;
+    uboVS.instance = nullptr;
+    transcoded = false;
 
     ktxVulkanDeviceInfo vdi;
     ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
@@ -85,8 +88,17 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
+    if (kTexture->classId == ktxTexture2_c
+        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
+    {
+        TextureTranscoder tc(vkctx);
+        tc.transcode((ktxTexture2*)kTexture);
+        transcoded = true;
+    }
+
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
+    transcodedFormat = vkFormat;
     vk::FormatProperties properties;
     vkctx.gpu.getFormatProperties(vkFormat, &properties);
     vk::FormatFeatureFlags features =  tiling == vk::ImageTiling::eLinear ?
@@ -638,4 +650,14 @@ InstancedSampleBase::prepare(const char* const fragShaderName,
     buildCommandBuffers();
 }
 
-
+const char* const
+InstancedSampleBase::customizeTitle(const char* const title)
+{
+    if (transcoded) {
+        this->title = title;
+        this->title += " to ";
+        this->title += vkFormatString((VkFormat)transcodedFormat);
+        return this->title.c_str();
+    }
+    return title;
+}

@@ -37,20 +37,20 @@
 /*
  * Construct from a string of arguments.
  */
-argvector::argvector(const tstring& sArgs)
+argvector::argvector(const _tstring& sArgs)
 {
-    const char *sep = " \t\n\r\v\f";
+    const _tstring sep(_T(" \t\n\r\v\f"));
     size_t pos;
 
     pos = sArgs.find_first_not_of(sep);
-    assert(pos != tstring::npos);
+    assert(pos != _tstring::npos);
     
     do {
         size_t epos = sArgs.find_first_of(sep, pos);
-        size_t len = epos == tstring::npos ? epos : epos - pos;
+        size_t len = epos == _tstring::npos ? epos : epos - pos;
         push_back(sArgs.substr(pos, len));
         pos = sArgs.find_first_not_of(sep, epos);
-    } while (pos != tstring::npos);
+    } while (pos != _tstring::npos);
 }
 
 /*
@@ -67,13 +67,13 @@ argvector::argvector(int argc, const _TCHAR* const* argv)
  * Functions the same as getopt_long. See `man 3 getopt_long`.
  */
 int
-argparser::getopt(tstring* shortopts, const struct option* longopts,
+argparser::getopt(_tstring* shortopts, const struct option* longopts,
                   int* longindex)
 {
     if (optind == argv.size())
         return -1;
 
-    tstring arg;
+    _tstring arg;
     arg = argv[optind];
     if (arg[0] != _T('-') || (arg[0] == _T('-') && arg.size() == 1))
         return -1;
@@ -83,7 +83,7 @@ argparser::getopt(tstring* shortopts, const struct option* longopts,
     if (arg.compare(0, 2, _T("--")) == 0) {
         const struct option* opt = longopts;
         while (opt->name != nullptr) {
-            if (arg.compare(2, tstring::npos, opt->name) == 0) {
+            if (arg.compare(2, _tstring::npos, opt->name) == 0) {
                 retval = opt->val;
                 if (opt->has_arg != option::no_argument) {
                     if (optind >= argv.size() || (optarg = argv[optind++])[0] == '-') {
@@ -103,7 +103,7 @@ argparser::getopt(tstring* shortopts, const struct option* longopts,
         }
     } else if (shortopts != nullptr && arg.compare(0, 1, _T("-")) == 0) {
         size_t pos = shortopts->find(arg.substr(1, 1));
-        if (pos != tstring::npos) {
+        if (pos != _tstring::npos) {
             retval = (*shortopts)[pos];
             if ((pos < shortopts->length()) && (*shortopts)[++pos] == ':') {
                 if (optind >= argv.size() || (optarg = argv[optind++])[0] == '-') {
