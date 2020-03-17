@@ -83,11 +83,7 @@ Print information about a KTX or KTX2 file.
 
 @section ktxinfo_history HISTORY
 
-@version 1.0.alpha2:
-Mon, Jun 10 2019 08:49:22 +0900
- - Support latest KTX2 draft and fix man page typos.
-@version 1.0.alpha1:
-Sat, 28 Apr 2018 14:41:22 +0900
+@par Version 4.0
  - Initial version
 
 @section ktxinfo_author AUTHOR

@@ -18,7 +18,8 @@ libktx
 
 Read the [libktx Reference](libktx/index.html).
 
-Current version is 3.0.0.
+Current version is @snippet{doc} version.h Code version
+<br>
 
 View the @ref libktx_history
 
@@ -59,16 +60,18 @@ Authors
 =======
 
 libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
-Ström with contributions borrowed from Troy Hanson, Johannes van Waveren
-and Rich Geldreich.
+Ström with contributions borrowed from Troy Hanson, Johannes van Waveren,
+Lode Vandevenne and Rich Geldreich.
 
 The libKTX tests are also the work of Mark Callow with some contributions
 borrowed from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL
 for portability.
 
-`ktx2check`, `ktx2ktx2`, `ktxinfo`, `ktxsc` and `toktx` are the work of Mark Callow.
+`ktx2check`, `ktx2ktx2`, `ktxinfo`, `ktxsc` and `toktx` are the work of
+Mark Callow.
 
 The KTX application and file icons were designed by Manmohan Bishnoi.
 
-$Date$
+---
+@par This page last modified $Date$
 

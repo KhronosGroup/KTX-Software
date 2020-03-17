@@ -1246,6 +1246,12 @@ KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t*
 @~English
 @page libktx_history Revision History
 
+@section v8 Version 4.0
+Added:
+@li Support for KTX Version 2.
+@li Support for encoding and transcoding Basis Universal images in KTX Version 2 files.
+@li Function to print info about a KTX file.
+
 @section v7 Version 3.0.1
 Fixed:
 @li GitHub issue #159: compile failure with recent Vulkan SDKs.

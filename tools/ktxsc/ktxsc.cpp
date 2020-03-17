@@ -236,10 +236,8 @@ Supercompress the images in a KTX2 file.
 
 @section ktxsc_history HISTORY
 
-@version 1.0.alpha1:
-Mon, 15 Jul 2019 19:25:43 -0700
+@par Version 4.0
  - Initial version.
-
 
 @section ktxsc_author AUTHOR
     Mark Callow, Edgewise Consulting www.edgewise-consulting.com
