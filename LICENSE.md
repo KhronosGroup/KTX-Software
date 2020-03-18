@@ -27,8 +27,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
-Ström with contributions borrowed from Troy Hanson and Johannes van Waveren.
-The source contains code
+Ström with contributions borrowed from Troy Hanson, Johannes van Waveren,
+Lode Vandevenne and Rich Geldreich. The source contains code
 
     © 2010 ~ 2019 The Khronos Group Inc.
     © 2008 and © 2010 HI Corporation
