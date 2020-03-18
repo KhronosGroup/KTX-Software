@@ -3,9 +3,10 @@ Main Page        {#mainpage}
 
 The KTX software consists of
 - libktx, a small library of functions for writing and reading KTX (Khronos TeXture)
-  files and instantiating OpenGL<sup>&reg;</sup>, OpenGL ES and Vulkan<sup>&reg;</sup>
-  textures from them.
-- The KTX tools including `toktx` for creating KTX files from Netpbm format images.
+  files, transcoding those encoded in Basis Universal format and instantiating
+  OpenGL<sup>&reg;</sup>, OpenGL ES™️ and
+  Vulkan<sup>&reg;</sup> textures from them.
+- The KTX tools including `toktx` for creating KTX files from PNG or Netpbm format images.
 
 For information about the KTX format see the
 <a href="http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/">
