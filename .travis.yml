@@ -98,14 +98,18 @@ before_script:
     linux)
       ;;
     osx)
+      git status &&
       git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
+      git status &&
       sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
       ;;
     esac
   # Make sure embedded dates are correct.
   - ./install-gitconfig.sh
+  - git status
   - rm TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cc
   - git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cc
+  - git status
 
 script:
 - |
@@ -151,6 +155,7 @@ script:
     #security unlock-keychain -p travis $KEY_CHAIN
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
+    git status &&
     pushd build/xcode/mac &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
@@ -160,6 +165,7 @@ script:
     cd ../ios &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
     xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
+    git status &&
     popd &&
     pushd build/Debug &&
     ./unittests &&
