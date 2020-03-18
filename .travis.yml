@@ -99,15 +99,15 @@ before_script:
       ;;
     osx)
       git status &&
-      git lfs pull --include=other_lib/mac,other_lib/ios && #| cat &&
+      git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
       git status &&
-      git diff &&
       sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
       ;;
     esac
   # Make sure embedded dates are correct.
   - ./install-gitconfig.sh
   - git status
+  - git diff
   - rm TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cc
   - git checkout TODO.md lib/mainpage.md pkgdoc/mainpage.md tools/toktx/toktx.cc
   - git status
