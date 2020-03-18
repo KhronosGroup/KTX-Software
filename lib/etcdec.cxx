@@ -1,7 +1,6 @@
 /*
  
 @~English
-@page license License
  
 @section etcdec etcdec.cxx License
  

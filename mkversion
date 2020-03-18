@@ -53,21 +53,18 @@ function setfile() {
     VC=unset
   fi
   if [ $force -eq 1 -o "$VN" != "$VC" ]; then
-    if [ "$3" = "include_apiversion" ]; then
-      (echo "/*"
-      echo "// [API version]"
+    echo "/*" > $2
+    if [ "$1" = "LIBKTX" ]; then
+      (echo "// [API version]"
       echo "@version $DEF_VER"
-      echo "// [API version]"
-      echo "*/"
-      echo "#define $verstring $VN"
-      echo "#define LIBKTX_DEFAULT_VERSION ${DEF_VER}.__default__") > $2
-    else
-      echo "#define $verstring $VN" > $2
-      if [ "$1" = "TOKTX" -o "$1" = "KTX2KTX2" -o "$1" = "KTXSC" ]
-      then
-        echo "#define $1_DEFAULT_VERSION $DEF_VER.__default__" >> $2
-      fi
+      echo "// [API version]") >> $2
     fi
+    (echo "// [Code version]"
+    echo "$VN"
+    echo "// [Code version]"
+    echo "*/"
+    echo "#define $verstring $VN"
+    echo "#define $1_DEFAULT_VERSION $DEF_VER.__default__") >> $2
   fi
 }
 
@@ -82,7 +79,7 @@ function writeversion() {
   fi
   if [ "$1" = "lib" ]; then
     ON=LIBKTX
-    setfile $ON $1/$VF "include_apiversion"
+    setfile $ON $1/$VF
   else
     ON=$(basename $1)
     ON=$(echo $ON | tr [:lower:] [:upper:])
@@ -91,7 +88,8 @@ function writeversion() {
 }
 
 function usage() {
-    echo 'Usage: $0 [-a] [-f] [<object> <version file>]'
+    echo "Usage: $0 [-a] [-f] [<object>]"
+    exit 1
 }
 
 force=0
@@ -111,7 +109,7 @@ for i; do
 done
 
 case $# in
-  0) ;;
+  0) if [ $write_all -ne 1 ]; then usage; fi;;
   1) OBJ=$1;;
   2) usage;;
 esac

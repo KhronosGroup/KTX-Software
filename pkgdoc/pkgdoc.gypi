@@ -13,6 +13,7 @@
           'target_name': 'ktxpkg.doc',
           'type': 'none',
           'dependencies': [
+            'libktx.gyp:version.h',
             'libktx.gyp:libktx.doc',
             'ktxtools.gyp:ktxtools.doc',
           ],

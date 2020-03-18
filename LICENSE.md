@@ -27,16 +27,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
-Ström with contributions borrowed from Troy Hanson and Johannes van Waveren.
-The source contains code
+Ström with contributions borrowed from Troy Hanson, Johannes van Waveren,
+Lode Vandevenne and Rich Geldreich. The source contains code
 
     © 2010 ~ 2019 The Khronos Group Inc.
     © 2008 and © 2010 HI Corporation
     © 2005 Ericsson AB
     © 2003-2010, Troy D. Hanson
-    © 2015-2018 Mark Callow
+    © 2015-2020 Mark Callow
     © 2016 Oculus VR, LLC.
     © 2019 Binomial LLC. All Rights Reserved.
+    © 2005-2019 Lode Vandevenne
 
 The KTX load tests are the work of Mark Callow with a few small portions borrowed
 from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL for portability.
@@ -46,7 +47,7 @@ The source contains code
     © 2008 and © 2010 HI Corporation
     © 1997-2018 Sam Lantinga
     © 2016 Sascha Willems
-    © 2015-2018 Mark Callow
+    © 2015-2020 Mark Callow
 
 -----------------
 
@@ -226,4 +227,32 @@ Copyright &copy; 2016 Sascha Willems - www.saschawillems.de
 
 {VulkanMeshLoader,vulkantextoverlay}.hpp and vulkandebug.* are licensed
 under the [MIT license](http://opensource.org/licenses/MIT)
+
+## Tools Exceptions
+
+### tools/toktx/lodepng.[ch]
+
+Copyright (c) 2005-2019 Lode Vandevenne
+
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software
+    in a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source
+    distribution.
+
+
+
 

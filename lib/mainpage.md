@@ -2,11 +2,12 @@ Introduction             {#mainpage}
 =========
 
 libktx is a small library of functions for creating and reading KTX (Khronos
-TeXture) files and instantiating OpenGL&reg; and OpenGL&reg; ES
-textures and Vulkan images from them.
+TeXture) files, version 1 and 2 and instantiating OpenGL&reg; and OpenGL&reg; ES
+textures and Vulkan images from them. KTX version 2 files can contain images
+supercompressed with Basis Universal. libktx can encode and transcode these images.
 
 For information about the KTX format see the
-<a href="http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/">
+<a href="http://github.khronos.org/KTX-Specification/">
 formal specification.</a>
 
 The library is open source software. Source code is available at
@@ -26,7 +27,7 @@ Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a
 Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>\n
 Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
 
-@version 3.0.0
+@snippet{doc} version.h API version
 
 $Date$
 

@@ -465,20 +465,24 @@ Create a KTX file from netpbm format files.
 
 @section toktx_history HISTORY
 
-@version 1.3:
-Sat, 28 Apr 2018 14:41:22 +0900
+@par Version 4.0 (using new version numbering system)
+  - Add KTX version 2 support including Basis Universal encoding.
+  - Add .png reader.
+  - Transform NetPBM input files to sRGB OETF.
+  - Add mipmap generation.
+  - Remove legacy items.
+
+@par Version 1.3
  - Switch to ktxTexture API.
  - Add --levels option.
  - Add --2d option.
  
-@version 1.2:
-Fri Oct 13 18:15:05 2017 +0900
+@par Version 1.2
  - Remove --sized; always create sized format.
  - Write metadata by default.
  - Bug fixes.
 
-@version 1.1:
-Sun Dec 25 07:02:41 2016 -0200
+@par Version 1.1
  - Moved --alpha and --luminance to legacy.
 
 @section toktx_author AUTHOR

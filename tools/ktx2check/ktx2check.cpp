@@ -72,7 +72,7 @@ Check the validity of a KTX 2 file.
     <dl>
     <dt>-q, --quiet</dt>
     <dd>Validate silently. Indicate valid or invalid via exit code.</dd>
-    <dt>-m &lt;num%gt;, --max-issues &lt;num&gt;</dt>
+    <dt>-m &lt;num&gt;, --max-issues &lt;num&gt;</dt>
     <dd>Set the maximum number of issues to be reported per file"
         provided -q is not set.</dd>
 
@@ -82,8 +82,7 @@ Check the validity of a KTX 2 file.
 
 @section ktx2check_history HISTORY
 
-@version 1.0.alpha:
-Sun, 08 Sep 2019 13:14:28 -0700
+@par Version 4.0
  - Initial version.
 
 @section ktx2check_author AUTHOR

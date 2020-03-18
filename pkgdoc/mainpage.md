@@ -3,9 +3,10 @@ Main Page        {#mainpage}
 
 The KTX software consists of
 - libktx, a small library of functions for writing and reading KTX (Khronos TeXture)
-  files and instantiating OpenGL<sup>&reg;</sup>, OpenGL ES and Vulkan<sup>&reg;</sup>
-  textures from them.
-- The KTX tools including `toktx` for creating KTX files from Netpbm format images.
+  files, transcoding those encoded in Basis Universal format and instantiating
+  OpenGL<sup>&reg;</sup>, OpenGL ES™️ and
+  Vulkan<sup>&reg;</sup> textures from them.
+- The KTX tools including `toktx` for creating KTX files from PNG or Netpbm format images.
 
 For information about the KTX format see the
 <a href="http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/">
@@ -18,7 +19,8 @@ libktx
 
 Read the [libktx Reference](libktx/index.html).
 
-Current version is 3.0.0.
+Current version is @snippet{doc} version.h Code version
+<br>
 
 View the @ref libktx_history
 
@@ -59,16 +61,18 @@ Authors
 =======
 
 libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
-Ström with contributions borrowed from Troy Hanson, Johannes van Waveren
-and Rich Geldreich.
+Ström with contributions borrowed from Troy Hanson, Johannes van Waveren,
+Lode Vandevenne and Rich Geldreich.
 
 The libKTX tests are also the work of Mark Callow with some contributions
 borrowed from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL
 for portability.
 
-`ktx2check`, `ktx2ktx2`, `ktxinfo`, `ktxsc` and `toktx` are the work of Mark Callow.
+`ktx2check`, `ktx2ktx2`, `ktxinfo`, `ktxsc` and `toktx` are the work of
+Mark Callow.
 
 The KTX application and file icons were designed by Manmohan Bishnoi.
 
-$Date$
+---
+@par This page last modified $Date$
 

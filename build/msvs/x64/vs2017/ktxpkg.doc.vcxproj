@@ -137,6 +137,10 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="version.h.vcxproj">
+      <Project>{8067EA64-6997-5A21-6DAF-B2E76BF0EB94}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="libktx.doc.vcxproj">
       <Project>{9BC92E4F-6E47-FBFF-8042-72CE18ADE475}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
