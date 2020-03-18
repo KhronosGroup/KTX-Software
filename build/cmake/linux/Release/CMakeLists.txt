@@ -995,10 +995,12 @@ add_custom_target(ktxpkg_doc SOURCES)
 set_target_properties(ktxpkg_doc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(ktxpkg_doc__buildPackageDoc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(ktxpkg_doc__buildPackageDoc
+  version_h
   libktx_doc
   ktxtools_doc
 )
 add_dependencies(ktxpkg_doc
+  version_h
   libktx_doc
   ktxtools_doc
   ktxpkg_doc__buildPackageDoc
