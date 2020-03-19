@@ -98,7 +98,7 @@ before_script:
     linux)
       ;;
     osx)
-      git lfs pull --include=other_lib/mac,other_lib/ios | cat &&
+      git lfs pull --include=other_lib/mac,other_lib/ios &&
       sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
       ;;
     esac

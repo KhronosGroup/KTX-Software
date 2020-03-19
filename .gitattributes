@@ -57,4 +57,7 @@ tools/toktx/toktx.cpp filter=keyworder ident
 # Use LFS only on the actual shared object. *.so and
 # *.so.? are symbolic links to *.so.?.?.?.
 *.so.?.?.? filter=lfs -text
-*.framework/versions/[AZ]/* filter=lfs -text
+# Because of the / in the middle of this path, we need
+# to prefix with '**/' otherwise git will try to match
+# the path relative to this .gitattributes file.
+**/*.framework/[Vv]ersions/[A-Za-z]/* filter=lfs -text
