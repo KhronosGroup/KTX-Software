@@ -22,6 +22,7 @@ build/msvs/* eol=crlf
 
 # Denote all files that are truly binary and should not be modified.
 *.ktx binary
+*.ktx2 binary
 *.jpg binary
 *.lib binary
 *.png binary
@@ -61,3 +62,8 @@ tools/toktx/toktx.cpp filter=keyworder ident
 # to prefix with '**/' otherwise git will try to match
 # the path relative to this .gitattributes file.
 **/*.framework/[Vv]ersions/[A-Za-z]/* filter=lfs -text
+# Large images
+tests/testimages/*.png filter=lfs -text
+tests/testimages/cubemap* filter=lfs -text
+tests/testimages/texturearray* filter=lfs -text
+tests/testimages/FlightHelmet*.ktx2 filter=lfs -text
