@@ -40,6 +40,7 @@ TODO.md filter=keyworder
 lib/mainpage.md filter=keyworder
 lib/*.[ch] ident
 lib/*.cxx ident
+lib/mainpage.md filter=keyworder
 pkgdoc/mainpage.md filter=keyworder
 tests/loadtests/common/at.[ch] ident
 tests/loadtests/common/egltowgl.c ident
