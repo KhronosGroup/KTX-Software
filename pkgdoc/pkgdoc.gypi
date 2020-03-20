@@ -34,10 +34,11 @@
               'message': 'Generating package documentation with Doxygen',
               'inputs': [
                 '../<(doxyConfig)',
-                '../LICENSE.md',
+                '../interface/js_binding/ktx_wrapper.cpp',
+                '../interface/js_binding/transcoder_wrapper.cpp',
                 '../runDoxygen',
                 '../TODO.md',
-                'mainpage.md',
+                'mainpages.md',
               ],
               # See ../../lib/libktx.gypi for comment about why only
               # timestamp is in this list.

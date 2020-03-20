@@ -294,27 +294,108 @@ namespace msc {
     basist::etc1_global_selector_codebook* BasisTranscoder::pGlobal_codebook;
 }
 
-/** @page transcoder_js_binding Using the JS Binding to the Low-Level Basis Transcoder
+/** @page msc_basis_transcoder Basis Image Transcoder binding
 
-== Html File
+ ## WebIDL for the binding
 
-Add this to the .html file
+@code{.unparsed}
+interface BasisTranscoderState {
+    void BasisTranscoderState();
+};
 
-    <script src="msc_transcoder_wrapper.js></script>
-    <script type="text/javascript">
+interface TranscodedImage {
+    ArrayBufferView get_typed_memory_view();
+};
+
+interface TranscodeResult {
+
+    uint32_t error;
+    TranscodedImage transcodedImage;
+};
+
+interface BasisTranscoder {
+    void BasisTranscoder();
+    static void init();
+    static long getBytesPerBlock();
+    bool decode_palettes(uint32_t num_endpoints,
+                         const ArrayBufferView endpoints,
+                         uint32_t num_selectors,
+                         const ArrayBufferView selectors);
+    bool decode_tables(const ArrayBufferView tableData);
+    TranscodeResult transcode_image(uint32_t imageFlags,
+                                    const ArrayBufferView rgbSlice,
+                                    const ArrayBufferView alphaSlice,
+                                    const TranscodeTarget targetFormat,
+                                    uint32_t level,
+                                    uint32_t width, uint32_t height,
+                                    uint32_t num_blocks_x,
+                                    uint32_t num_blocks_y,
+                                    bool isVideo = false,
+                                    bool transcodeAlphaToOpaqueFormats = false);
+};
+
+// Some targets may not be available depending on options used when compiling
+// the web assembly.
+enum TranscodeTarget = {
+    "ETC1_RGB",
+    "BC1_RGB",
+    "BC4_R",
+    "BC5_RG",
+    "BC3_RGBA",
+    "BC1_OR_3",
+    "PVRTC1_4_RGB",
+    "PVRTC1_4_RGBA",
+    "BC7_M6_RGB",
+    "BC7_M5_RGBA",
+    "ETC2_RGBA",
+    "ASTC_4x4_RGBA",
+    "RGBA32",
+    "RGB565",
+    "BGR565",
+    "RGBA4444",
+    "PVRTC2_4_RGB",
+    "PVRTC2_4_RGBA",
+    "ETC",
+    "EAC_R11",
+    "EAC_RG11"
+};
+@endcode
+
+## How to use
+
+Put msc_basis_transcoder.js and msc_basis_transcoder.wasm in a
+directory on your server. Create a script tag with
+msc_basis_tranacoder.js as the @c src as shown below, changing
+the path as necessary for the relative locations of your .html
+file and the script source. msc_basis_transcoder.js will
+automatically load msc_basis_transcoder.wasm.
+
+### Create an instance of the MSC_TRANSCODER module
+
+Add this to the .html file to initialize the transcoder and make it available on the main window.
+@code{.unparsed}
+    &lt;script src="msc_transcoder_wrapper.js">&lt;/script>
+    &lt;script type="text/javascript">
       MSC_TRANSCODER().then(module => {
         window.MSC_TRANSCODER = module;
         // Call a function to begin loading or transcoding..
-    </script>
+    &lt;/script>
+@endcode
 
-=== Somewhere in the load/transcoder
+@e After the module is initialized, invoke code that will directly or indirectly cause
+a function with code like the following to be executed.
 
-After file is received into a Uint8Array, "buData"... Note the names of
-the data items used here are those from the KTX2 specification but
-the actual data is not specific to that container format.
+## Somewhere in the loader/transcoder
 
+Assume a KTX file is fetched via an XMLHttpRequest which deposits the data into a Uint8Array, "buData"...
+
+@note The names of the data items used in the following code are those
+from the KTX2 specification but the actual data is not specific to that
+container format.
+
+@code{.unparsed}
     // Locate the supercompression global data and compresssed
-    // mip level data within the ArrayBuffer.
+    // mip level data within buData.
 
     const { BasisTranscoder, BasisTranscoderState, TranscodeTarget } = MSC_TRANSCODER;
     BasisTranscoder.init();
@@ -407,6 +488,7 @@ the actual data is not specific to that container format.
                 transcodedImage.delete();
             }
         }
+@endcode
 
 */
 
