@@ -526,9 +526,6 @@ KTX_error_code appendLibId(ktxHashList* head,
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
  * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
- * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture contains unknownY KTX- or ktx-
  *                              prefixed metadata keys.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
@@ -797,12 +794,11 @@ cleanup:
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to a stdio stream in KTX2 format.
  *
- * If there is no KTXwriter item in the texture's metadata, the function
- * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
  * It can be added by code, similar to the following, prior to calling this
  * function.
  * @code
@@ -821,9 +817,6 @@ cleanup:
  * @exception KTX_INVALID_VALUE @p This or @p dstsstr is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
- * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture contains unknownY KTX- or ktx-
  *                              prefixed metadata keys.
@@ -849,12 +842,11 @@ ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to a named file in KTX2 format.
  *
- * If there is no KTXwriter item in the texture's metadata, the function
- * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
  * It can be added by code, similar to the following, prior to calling this
  * function.
  * @code
@@ -873,9 +865,6 @@ ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr)
  * @exception KTX_INVALID_VALUE @p This or @p dstname is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
- * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture contains unknownY KTX- or ktx-
  *                              prefixed metadata keys.
@@ -904,15 +893,14 @@ ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to block of memory in KTX2 format.
  *
  * Memory is allocated by the function and the caller is responsible for
  * freeing it.
  *
- * If there is no KTXwriter item in the texture's metadata, the function
- * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
  * It can be added by code, similar to the following, prior to calling this
  * function.
  * @code
@@ -935,9 +923,6 @@ ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname)
  * @exception KTX_INVALID_VALUE @p This, @p ppDstBytes or @p pSize is NULL.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture does not contain any image data.
- * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture contains unknownY KTX- or ktx-
  *                              prefixed metadata keys.

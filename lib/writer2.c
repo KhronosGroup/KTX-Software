@@ -103,7 +103,7 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 }
 
 /**
- * @memberof ktxTexture @private
+ * @memberof ktxTexture2 @private
  * @~English
  * @brief Set image for level, layer, faceSlice from a ktxStream source.
  *
@@ -153,14 +153,13 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @~English
  * @brief Set image for level, layer, faceSlice from a stdio stream source.
  *
  * Uncompressed images read from the stream are expected to have their rows
- * tightly packed as is the norm for most image file formats. The copied image
- * is padded as necessary to achieve the KTX-specified row alignment. No
- * padding is done if the ktxTexture's @c isCompressed field is @c KTX_TRUE.
+ * tightly packed as is the norm for most image file formats. KTX 2 also requires
+ * tight packing this function does not add any padding.
  *
  * Level, layer, faceSlice rather than offset are specified to enable some
  * validation.
@@ -199,14 +198,13 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @~English
  * @brief Set image for level, layer, faceSlice from an image in memory.
  *
  * Uncompressed images in memory are expected to have their rows tightly packed
- * as is the norm for most image file formats. The copied image is padded as
- * necessary to achieve the KTX-specified row alignment. No padding is done if
- * the ktxTexture's @c isCompressed field is @c KTX_TRUE.
+ * as is the norm for most image file formats.  KTX 2 also requires
+ * tight packing this function does not add any padding.
  *
  * Level, layer, faceSlice rather than offset are specified to enable some
  * validation.
@@ -245,7 +243,7 @@ ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture @private
+ * @memberof ktxTexture2 @private
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX format.
  *
@@ -260,9 +258,6 @@ ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
- * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -486,12 +481,11 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @~English
  * @brief Write a ktxTexture object to a stdio stream in KTX format.
  *
- * If there is no KTXwriter item in the texture's metadata, the function
- * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
  * It can be added by code, similar to the following, prior to calling this
  * function.
  * @code
@@ -513,9 +507,6 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
- * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -538,12 +529,11 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @~English
  * @brief Write a ktxTexture object to a named file in KTX format.
  *
- * If there is no KTXwriter item in the texture's metadata, the function
- * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
  * It can be added by code, similar to the following, prior to calling this
  * function.
  * @code
@@ -565,9 +555,6 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
- * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -593,15 +580,14 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @~English
  * @brief Write a ktxTexture object to block of memory in KTX format.
  *
  * Memory is allocated by the function and the caller is responsible for
  * freeing it.
  *
- * If there is no KTXwriter item in the texture's metadata, the function
- * returns @c KTX_INVALID_OPERATION. KTXwriter is required by the specification.
+ * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
  * It can be added by code, similar to the following, prior to calling this
  * function.
  * @code
@@ -627,9 +613,6 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
- * @exception KTX_INVALID_OPERATION
- *                              The ktxTexture does not contain KTXwriter
- *                              metadata.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
