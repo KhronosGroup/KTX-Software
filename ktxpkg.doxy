@@ -758,7 +758,7 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = pkgdoc/mainpages.md \
+INPUT                  = pkgdoc/pages.md \
                          TODO.md \
                          interface/js_binding
 

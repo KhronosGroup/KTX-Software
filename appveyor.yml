@@ -77,8 +77,8 @@ before_build:
 # write is an innocuous message about the number of paths updated.
 - ps: |-
     ./install-gitconfig.bat
-    rm TODO.md, lib/mainpage.md, pkgdoc/mainpage.md
-    git checkout -q TODO.md lib/mainpage.md pkgdoc/mainpage.md
+    rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
+    git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
 
 build_script:
 - ps: |-

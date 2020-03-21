@@ -38,7 +38,7 @@
                 '../interface/js_binding/transcoder_wrapper.cpp',
                 '../runDoxygen',
                 '../TODO.md',
-                'mainpages.md',
+                'pages.md',
               ],
               # See ../../lib/libktx.gypi for comment about why only
               # timestamp is in this list.
