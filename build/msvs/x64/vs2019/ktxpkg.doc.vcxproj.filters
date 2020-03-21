@@ -52,7 +52,7 @@
     <None Include="..\..\..\..\TODO.md">
       <Filter>_excluded_files</Filter>
     </None>
-    <None Include="..\..\..\..\pkgdoc\mainpages.md">
+    <None Include="..\..\..\..\pkgdoc\pages.md">
       <Filter>pkgdoc\_excluded_files</Filter>
     </None>
   </ItemGroup>

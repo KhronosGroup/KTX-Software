@@ -118,7 +118,7 @@
     <None Include="..\..\..\..\TODO.md">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
-    <None Include="..\..\..\..\pkgdoc\mainpages.md">
+    <None Include="..\..\..\..\pkgdoc\pages.md">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
   </ItemGroup>
@@ -137,7 +137,7 @@
       <Message>Generating package documentation with Doxygen</Message>
       <Outputs>..\..\..\..\build\docs\.package_gentimestamp</Outputs>
       <LinkObjects>false</LinkObjects>
-      <AdditionalInputs>..\..\..\..\interface\js_binding\ktx_wrapper.cpp;..\..\..\..\interface\js_binding\transcoder_wrapper.cpp;..\..\..\..\runDoxygen;..\..\..\..\TODO.md;..\..\..\..\pkgdoc\mainpages.md</AdditionalInputs>
+      <AdditionalInputs>..\..\..\..\interface\js_binding\ktx_wrapper.cpp;..\..\..\..\interface\js_binding\transcoder_wrapper.cpp;..\..\..\..\runDoxygen;..\..\..\..\TODO.md;..\..\..\..\pkgdoc\pages.md</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
