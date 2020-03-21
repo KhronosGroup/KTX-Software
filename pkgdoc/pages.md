@@ -72,5 +72,5 @@ Mark Callow.
 The KTX application and file icons were designed by Manmohan Bishnoi.
 
 ---
-@par This page last modified $Date: Thu Sep 12 18:22:12 2019 -0700 $
+@par This page last modified $Date$
 
