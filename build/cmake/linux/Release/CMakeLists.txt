@@ -978,7 +978,7 @@ list(APPEND ktxpkg_doc__buildPackageDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../interface/js_binding/transcoder_wrapper.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../runDoxygen"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../TODO.md"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../pkgdoc/mainpages.md")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../pkgdoc/pages.md")
 set(ktxpkg_doc__buildPackageDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.package_gentimestamp")
 add_custom_command(OUTPUT ${ktxpkg_doc__buildPackageDoc__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory build/docs

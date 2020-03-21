@@ -9,7 +9,7 @@ cmd_ktxdoc_gyp_ktxpkg_doc_target_buildPackageDoc = LD_LIBRARY_PATH=$(builddir)/l
 build/docs/.package_gentimestamp: obj := $(abs_obj)
 build/docs/.package_gentimestamp: builddir := $(abs_builddir)
 build/docs/.package_gentimestamp: TOOLSET := $(TOOLSET)
-build/docs/.package_gentimestamp: $(srcdir)/ktxpkg.doxy $(srcdir)/interface/js_binding/ktx_wrapper.cpp $(srcdir)/interface/js_binding/transcoder_wrapper.cpp $(srcdir)/runDoxygen $(srcdir)/TODO.md $(srcdir)/pkgdoc/mainpages.md FORCE_DO_CMD
+build/docs/.package_gentimestamp: $(srcdir)/ktxpkg.doxy $(srcdir)/interface/js_binding/ktx_wrapper.cpp $(srcdir)/interface/js_binding/transcoder_wrapper.cpp $(srcdir)/runDoxygen $(srcdir)/TODO.md $(srcdir)/pkgdoc/pages.md FORCE_DO_CMD
 	$(call do_cmd,ktxdoc_gyp_ktxpkg_doc_target_buildPackageDoc)
 
 all_deps += build/docs/.package_gentimestamp
