@@ -1,5 +1,5 @@
-Main Page        {#mainpage}
-=========
+Abstract        {#abstract}
+======
 
 The KTX software consists of
 - libktx, a small library of functions for writing and reading KTX (Khronos TeXture)
@@ -14,8 +14,7 @@ formal specification.</a>
 
 The software is open source software. See @ref license for details.
 
-libktx
-======
+@page libktx_main libktx
 
 Read the [libktx Reference](libktx/index.html).
 
@@ -24,8 +23,7 @@ Current version is @snippet{doc} version.h Code version
 
 View the @ref libktx_history
 
-KTX Tools
-=========
+@page ktxtools KTX Tools
 
 ktx2check
 ---------
@@ -57,8 +55,8 @@ toktx
  - @ref toktx reference page.
  - @ref toktx_history.
 
-Authors
-=======
+
+@page authors Authors
 
 libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
 Ström with contributions borrowed from Troy Hanson, Johannes van Waveren,
@@ -74,5 +72,5 @@ Mark Callow.
 The KTX application and file icons were designed by Manmohan Bishnoi.
 
 ---
-@par This page last modified $Date$
+@par This page last modified $Date: Thu Sep 12 18:22:12 2019 -0700 $
 

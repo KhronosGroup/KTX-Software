@@ -187,102 +187,199 @@ namespace ktx
     };
 }
 
-/** @page ktx_js_binding Using the JS binding to libktx
+/** @page js_bindings Javascript Bindings
 
-=== Making the LIBKTX (Module) instance
+ Javascript bindings are provided to:
 
-Add this to the .html file
+ @li @subpage libktx_js libktx.js
+ @li @subpage msc_basis_transcoder msc_basis_transcoder.js
 
-    <script src="libktx.js"></script>
-    <script type="text/javascript">
+ */
+
+/** @page libktx_js libktx Binding
+
+## WebIDL for the binding
+
+@code{.unparsed}
+interface ktxOrientation {
+    readonly attribute OrientationX x;
+    readonly attribute OrientationY y;
+    readonly attribute OrientationZ z;
+};
+
+interface ktxUploadResult {
+    readonly attribute WebGLTexture texture;
+    readonly attribute GLenum target;
+    readonly attribute GLenum error;
+};
+
+interface ktxTexture {
+    void ktxTexture(ArrayBufferView fileData);
+    ktxUploadResult glUpload();
+    void transcodeBasis();
+
+    readonly attribute long baseWidth;
+    readonly attribute long baseHeight;
+    readonly attribute bool isBasisSupercompressed;
+    readonly attribute bool isSupercompressed;
+    readonly attribute long numComponents;
+    readonly attribute long vkFormat;
+    readonly attribute bool isPremultiplied;
+    readonly attribute ktxOrientation orientation;
+};
+
+// Some targets may not be available depending on options used when compiling
+// the web assembly.
+enum TranscodeTarget = {
+    "ETC1_RGB",
+    "BC1_RGB",
+    "BC4_R",
+    "BC5_RG",
+    "BC3_RGBA",
+    "BC1_OR_3",
+    "PVRTC1_4_RGB",
+    "PVRTC1_4_RGBA",
+    "BC7_M6_RGB",
+    "BC7_M5_RGBA",
+    "ETC2_RGBA",
+    "ASTC_4x4_RGBA",
+    "RGBA32",
+    "RGB565",
+    "BGR565",
+    "RGBA4444",
+    "PVRTC2_4_RGB",
+    "PVRTC2_4_RGBA",
+    "ETC",
+    "EAC_R11",
+    "EAC_RG11"
+};
+
+enum TranscodeFlagBits {
+   "TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS"
+};
+
+enum OrientationX {
+    "LEFT",
+    "RIGHT"
+};
+enum OrientationY {
+    "UP",
+    "DOWN"
+};
+enum OrientationZ {
+    "IN",
+    "OUT"
+};
+@endcode
+
+## How to use
+
+Put libktx.js and libktx.wasm in a directory on your server. Create a script
+tag with libktx.js as the @c src as shown below, changing the path as necessary
+for the relative locations of your .html file and the script source. libktx.js
+will automatically load msc_basis_transcoder.wasm.
+
+### Create an instance of the LIBKTX module
+
+Add this to the .html file to initialize the libktx module and make it available on the main window.
+@code{.unparsed}
+    &lt;script src="libktx.js">&lt;/script>
+    &lt;script type="text/javascript">
       LIBKTX({preinitializedWebGLContext: gl}).then(module => {
         window.LIBKTX = module;
         // Make existing WebGL context current for Emscripten OpenGL.
         LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
         texture = loadTexture(gl, 'ktx_app.ktx2');
       });
-    </script>
+    &lt;/script>
+@endcode
 
-=== loadTexture function
+@e After the module is initialized, invoke code that will directly or indirectly cause
+a function like the following to be executed.
 
+### loadTexture function
+
+@code{.unparsed}
     // Set up an XHR to fetch the url into an ArrayBuffer.
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.responseType = "arrayBuffer";
+    xhr.onload = function() {
+      const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+      // this.response is a generic binary buffer which
+      // we can interpret as Uint8Array.
+      var ktxdata = new Uint8Array(this.response);
+      ktexture = new ktxTexture(ktxdata);
 
-    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
-    // this.response is a generic binary buffer which
-    // we can interpret as Uint8Array.
-    var ktxdata = new Uint8Array(this.response);
-    ktexture = new ktxTexture(ktxdata);
-
-    if (ktexture.isBasisSupercompressed) {
-      var formatString;
-      var format;
-      if (astcSupported) {
-        formatString = 'ASTC';
-        format = TranscodeTarget.ASTC_4x4_RGBA;
-      } else if (dxtSupported) {
-        formatString = 'BC1 or BC3';
-        format = TranscodeTarget.BC1_OR_3;
-      } else if (pvrtcSupported) {
-        formatString = 'PVRTC1';
-        format = TranscodeTarget.PVRTC1_4_RGBA;
-      } else if (etcSupported) {
-        formatString = 'ETC';
-        format = TranscodeTarget.ETC;
-      } else {
-        formatString = 'RGBA4444';
-        format = TranscodeTarget.RGBA4444;
+      if (ktexture.isBasisSupercompressed) {
+        var formatString;
+        var format;
+        if (astcSupported) {
+          formatString = 'ASTC';
+          format = TranscodeTarget.ASTC_4x4_RGBA;
+        } else if (dxtSupported) {
+          formatString = 'BC1 or BC3';
+          format = TranscodeTarget.BC1_OR_3;
+        } else if (pvrtcSupported) {
+          formatString = 'PVRTC1';
+          format = TranscodeTarget.PVRTC1_4_RGBA;
+        } else if (etcSupported) {
+          formatString = 'ETC';
+          format = TranscodeTarget.ETC;
+        } else {
+          formatString = 'RGBA4444';
+          format = TranscodeTarget.RGBA4444;
+        }
+        ktexture.transcodeBasis(format, 0);
       }
-      ktexture.transcodeBasis(format, 0);
+
+      // If there is no global variable "texture".
+      //const {texture, target, error} = ktexture.glUpload();
+      // If there is a globla variable "texture"
+      const result = ktexture.glUpload();
+      const {target, error} = result;
+      texture = result.texture;
+
+      if (error != gl.NO_ERROR) {
+        alert('WebGL error when uploading texture, code = ' + error.toString(16));
+        return undefined;
+      }
+      if (target != gl.TEXTURE_2D) {
+        alert('Loaded texture is not a TEXTURE2D.');
+        return undefined;
+      }
+
+      gl.bindTexture(target, texture);
+      // If using a placeholder texture during loading, delete
+      // it now.
+      //gl.deleteTexture(placeholder);
+
+      if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+         // Enable bilinear mipmapping.
+         gl.texParameteri(target,
+                          gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+      else
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+      if (ktexture.orientation.x == OrientationX.LEFT) {
+        // Adjust u coords, e.g. by setting up a uv transform
+      }
+      if (ktexture.orientation.y == OrientationY.DOWN) {
+        // Adjust v coords, e.g. by setting up a uv transform
+      }
+      ktexture.delete();
     }
 
-    // If there is no global variable "texture".
-    //const {texture, target, error} = ktexture.glUpload();
-    // If there is a globla variable "texture"
-    const result = ktexture.glUpload();
-    const {target, error} = result;
-    texture = result.texture;
+    xhr.send();
+@endcode
 
-    if (error != gl.NO_ERROR) {
-      alert('WebGL error when uploading texture, code = ' + error.toString(16));
-      return undefined;
-    }
-    if (target != gl.TEXTURE_2D) {
-      alert('Loaded texture is not a TEXTURE2D.');
-      return undefined;
-    }
-
-    gl.bindTexture(target, texture);
-    // If using a placeholder texture during loading, delete
-    // it now.
-    //gl.deleteTexture(placeholder);
-
-    if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
-       // Enable bilinear mipmapping.
-       gl.texParameteri(target,
-                        gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-    else
-      gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    if (ktexture.orientation.x == OrientationX.LEFT) {
-      // Adjust u coords, e.g. by setting up a uv transform
-    }
-    if (ktexture.orientation.y == OrientationY.DOWN) {
-      // Adjust v coords, e.g. by setting up a uv transform
-    }
-
-    ktexture.delete();
-  };
-
-  xhr.send();
-
-It is not clear if glUpload can be used with, e.g. THREE.js. It may
+@note It is not clear if glUpload can be used with, e.g. THREE.js. It may
 be necessary to expose the ktxTexture_IterateLevelFaces or
 ktxTexture_IterateLoadLevelFaces API to JS with those calling a
 callback in JS to upload each image to WebGL.
+
+
 */
 
 EMSCRIPTEN_BINDINGS(ktx)

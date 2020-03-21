@@ -37,10 +37,10 @@ GNUmakefile eol=lf
 # Keyword expansion
 GNUmakefile ident
 TODO.md filter=keyworder
-lib/mainpage.md filter=keyworder
 lib/*.[ch] ident
 lib/*.cxx ident
-pkgdoc/mainpage.md filter=keyworder
+lib/mainpage.md filter=keyworder
+pkgdoc/pages.md filter=keyworder
 tests/loadtests/common/at.[ch] ident
 tests/loadtests/common/egltowgl.c ident
 tests/loadtests/gles1/*.c ident
