@@ -326,8 +326,8 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
 
                 result = ktxHashList_Deserialize(&This->kvDataHead,
                                                  kvdLen, pKvd);
+                free(pKvd);
                 if (result != KTX_SUCCESS) {
-                    free(pKvd);
                     goto cleanup;
                 }
 
