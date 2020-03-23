@@ -113,7 +113,7 @@ Create a KTX 2 file from a KTX file.
         be written in @e outdir. If @b infile is @e stdin or @b outfile is
         @e stdout, the command prints its usage message and exits.</dd>
     <dt>-f, --force</dt>
-    <dd>If the destination file cannot be opened, remove it and create a
+    <dd>If the destination file already exists, remove it and create a
         new file, without prompting for confirmation regardless of its
         permissions.</dd>
 
@@ -157,7 +157,7 @@ usage(_tstring& appName)
         "               --output and --output-dir are specified, outfile\n"
         "               will be written in outdir. If infile is stdin or outfile is\n"
         "               stdout, the command prints its usage message and exits.\n"
-        "  -f, --force  If the output file cannot be opened, remove it and create a\n"
+        "  -f, --force  If the output file already exists, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
         "               its permissions.\n",
         appName.c_str());

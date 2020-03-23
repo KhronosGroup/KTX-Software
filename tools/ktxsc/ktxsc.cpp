@@ -163,7 +163,7 @@ Supercompress the images in a KTX2 file.
     @b ktxsc reads each named @e infile and compresses it in place. When @e
     infile is not specified, a single file will be read from @e stdin. and the
     output written to @e stdout. When one or more files is specified each will
-    be comoressed in place.
+    be compressed in place.
 
     The following options are available:
     <dl>

@@ -73,7 +73,7 @@ Check the validity of a KTX 2 file.
     <dt>-q, --quiet</dt>
     <dd>Validate silently. Indicate valid or invalid via exit code.</dd>
     <dt>-m &lt;num&gt;, --max-issues &lt;num&gt;</dt>
-    <dd>Set the maximum number of issues to be reported per file"
+    <dd>Set the maximum number of issues to be reported per file
         provided -q is not set.</dd>
 
 @section ktx2check_exitstatus EXIT STATUS

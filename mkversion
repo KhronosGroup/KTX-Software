@@ -56,7 +56,8 @@ function setfile() {
     echo "/*" > $2
     if [ "$1" = "LIBKTX" ]; then
       (echo "// [API version]"
-      echo "@version $DEF_VER"
+      echo "@par API Version"
+      echo "$DEF_VER"
       echo "// [API version]") >> $2
     fi
     (echo "// [Code version]"

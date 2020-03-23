@@ -253,29 +253,28 @@ Create a KTX file from netpbm format files.
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
 
 @section toktx_description DESCRIPTION
-    Create a Khronos format texture file (KTX) from a set of Netpbm
-    format (.pam, .pgm, .ppm) or PNG (.png) images. Currently @b toktx only
-    supports creating a KTX file holding a 2D or cube map texture. It writes
-    the destination ktx file to @e outfile, appending ".ktx{,2}" if necessary.
-    If @e outfile is '-' the output will be written to stdout.
+    Create a Khronos format texture file (KTX) from a set of PNG (.png)
+    or Netpbm format (.pam, .pgm, .ppm) images. It writes the destination
+    ktx file to @e outfile, appending ".ktx{,2}" if necessary. If @e outfile
+    is '-' the output will be written to stdout.
  
-    @b toktx reads each named @e infile. which must be in .pam, .ppm, .pgm or
-    .png format. @e infiles prefixed with '@' are read as text files listing
+    @b toktx reads each named @e infile. which must be in .png, .pam, .ppm,
+    or .pgm format. @e infiles prefixed with '@' are read as text files listing
     actual file names to process with one file path per line. Paths must be
     absolute or relative to the current directory when @b toktx is run. If
     '\@@' is used instead, paths must be absolute or relative to the location
     of the list file.
 
-    .ppm files yield RGB textures, .pgm files RED textures, .pam files RED, RG,
-    RGB or RGBA textures according to the file's TUPLTYPE and DEPTH and .png
-    files RED, RG, RGB or RGBA textures according to the files's @e color type.
-    Other formats can be readily converted to the supported formats using tools
-    such as ImageMagick and XnView.
+    .png files yield RED, RG, RGB or RGBA textures according to the files's
+    @e color type, .ppm files RGB textures, .pgm files RED textures and .pam
+    files RED, RG, RGB or RGBA textures according to the file's TUPLTYPE
+    and DEPTH. Other formats can be readily converted to the supported
+    formats using tools such as ImageMagick and XnView.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
     based on the input file. Netpbm files always use BT.709/sRGB primaries and
-    the BT.709 OETF. @b toktx tranforms the image to sRGB, sets the transfer
-    function to sRGB and creates sRGB textures for these inputs.
+    the BT.709 OETF. @b toktx tranforms the image to the sRGB OETF, sets the
+    transfer function to sRGB and creates sRGB textures for these inputs.
 
     For .png files the OETF is set as follows:
 
@@ -500,7 +499,7 @@ usage(const _tstring appName)
         "\n"
         "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
         "               If it is '-' the output will be written to stdout.\n"
-        "  <infile>     One or more image files in .pam, .ppm, .pgm or .png format. Other\n"
+        "  <infile>     One or more image files in .png, .pam, .ppm, or .pgm format. Other\n"
         "               formats can be readily converted to these formats using tools\n"
         "               such as ImageMagick and XnView. When no infile is specified,\n"
         "               stdin is used. infiles prefixed with '@' are read as text files\n"
@@ -509,10 +508,10 @@ usage(const _tstring appName)
         "               toktx is run. If '@@' is used instead, paths must be absolute or\n"
         "               relative to the location of the list file.\n"
         "\n"
-        "               .ppm files yield RGB textures, .pgm files RED textures, .pam\n"
-        "               files RED, RG, RGB or RGBA textures according to the file's\n"
-        "               TUPLTYPE and DEPTH and .png files RED, RG, RGB or RGBA textures\n"
-        "               according to the files's color type.\n"
+        "               .png files yield RED, RG, RGB or RGBA textures according to the\n"
+        "               files's color type, .ppm files RGB textures, .pgm files RED\n"
+        "               textures and .pam files RED, RG, RGB or RGBA textures according\n"
+        "               to the file's TUPLTYPE and DEPTH.\n"
         "\n"
         "  Options are:\n"
         "\n"
