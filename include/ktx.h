@@ -1003,15 +1003,8 @@ typedef enum ktx_transcode_fmt_e {
         KTX_TTF_BC5_RG = 5,
             /*!<Two BC4 blocks, R=opaque.g and G=alpha.g The texture should have an alpha
               channel (if not G will be all 255's. For tangent space normal maps. */
-        KTX_TTF_BC7_M6_RGB = 6,
-            /*!< Opaque only.  Returns RGB or alpha data, if
-              KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is specified.
-              Highest quality of all the non-ETC formats. The texture memory footprint is the same as
-              @c KTX_TTF_BC7_M5_RGBA but transcoding is slower. */
-        KTX_TTF_BC7_M5_RGBA = 7,
-        	/*!< Opaque+alpha. The alpha channel will be opaque for textures without an alpha channel.
-              The texture memory footprint is the same as @c KTX_TTF_BC7_M6_RGB but transcoding
-              is faster. */
+        KTX_TTF_BC7_RGBA = 6,
+            /*!< RGB or RGBA mode 5 for ETC1S,  modes 1, 2, 3, 4, 5, 6, 7 for UASTC. */
 
         // PVRTC1 4bpp (mobile, PowerVR devices)
         KTX_TTF_PVRTC1_4_RGB = 8,
@@ -1059,6 +1052,7 @@ typedef enum ktx_transcode_fmt_e {
               A at bit position 0. */
 
         // Values for automatic selection of RGB or RGBA depending if alpha
+        // present.
         KTX_TTF_ETC = 22,
             /*!< Automatically selects @c KTX_TTF_ETC1_RGB or @c KTX_TTF_ETC2_RGBA
               according to presence of alpha. */
@@ -1082,8 +1076,12 @@ typedef enum ktx_transcode_fmt_e {
             //!< @deprecated. Use #KTX_TTF_BC4_R.
         KTX_TF_BC5 = KTX_TTF_BC5_RG,
             //!< @deprecated. Use #KTX_TTF_BC5_RG.
-        KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TTF_BC7_M6_RGB,
-            //!< @deprecated. Use #KTX_TTF_BC7_M6_RGB.
+        KTX_TTF_BC7_M6_RGB = KTX_TTF_BC7_RGBA,
+            //!< @deprecated. Use #KTX_TTF_BC7_RGBA.
+        KTX_TTF_BC7_M5_RGBA = KTX_TTF_BC7_RGBA,
+            //!< @deprecated. Use #KTX_TTF_BC7_RGBA.
+        KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TTF_BC7_RGBA,
+            //!< @deprecated. Use #KTX_TTX_BC7_RGBA.
         KTX_TF_PVRTC1_4_OPAQUE_ONLY = KTX_TTF_PVRTC1_4_RGB
             //!< @deprecated. Use #KTX_TTF_PVRTC1_4_RGB.
 } ktx_transcode_fmt_e;

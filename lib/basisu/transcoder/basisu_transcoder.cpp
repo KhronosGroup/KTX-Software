@@ -20,9 +20,9 @@
 #ifndef IS_BIG_ENDIAN
 // TODO: This doesn't work on OSX. How can this be so difficult?
 //#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN) || defined(BIG_ENDIAN)
-//	#define IS_BIG_ENDIAN (1)
+//	#define IS_BIG_ENDIAN 1
 //#else
-	#define IS_BIG_ENDIAN (0)
+	#define IS_BIG_ENDIAN 0
 //#endif
 #endif
 
@@ -1250,7 +1250,6 @@ namespace basist
 		{ -4, -6, -8, -9, 3, 5, 7, 8 },
 		{ -3, -5, -7, -9, 2, 4, 6, 8 }
 	};
- #endif
 
 	// Used by ETC2 EAC A8 and ETC2 EAC R11/RG11.
 	struct eac_block
@@ -5992,7 +5991,6 @@ namespace basist
 #include "basisu_transcoder_tables_pvrtc2_alpha_33.inc"
 	};
 #endif
-#endif
 
 #endif
 
@@ -7875,7 +7873,7 @@ namespace basist
 		return true;
 	}
 
-	bool basisu_lowlevel_transcoder::transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
+	bool basisu_lowlevel_etc1s_transcoder::transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
 		uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, const bool is_video, const bool is_alpha_slice, const uint32_t miplevel, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels,
 		basisu_transcoder_state* pState, bool transcode_alpha, void *pAlpha_blocks, uint32_t output_rows_in_pixels)
 	{
@@ -7914,10 +7912,8 @@ namespace basist
 		if (is_video)
 		{
 			// TODO: Add check to make sure the caller hasn't tried skipping past p-frames
-			const bool alpha_flag = (slice_desc.m_flags & cSliceDescFlagsHasAlpha) != 0;
-			const uint32_t level_index = slice_desc.m_level_index;
 
-			if (level_index >= basisu_transcoder_state::cMaxPrevFrameLevels)
+			if (miplevel >= basisu_transcoder_state::cMaxPrevFrameLevels)
 			{
 				BASISU_DEVEL_ERROR("basisu_lowlevel_etc1s_transcoder::transcode_slice: unsupported level_index\n");
 				return false;
@@ -14682,7 +14678,7 @@ namespace basist
 				total_r += r; total_g += g; total_b += b;
 			}
 
-			avg_r = (total_r + 8) >> 4, avg_g = (total_g + 8) >> 4, avg_b = (total_b + 8) >> 4;
+          static_cast<void>(avg_r = (total_r + 8) >> 4), static_cast<void>(avg_g = (total_g + 8) >> 4), avg_b = (total_b + 8) >> 4;
 
 			int icov[6] = { 0, 0, 0, 0, 0, 0 };
 			for (uint32_t i = 0; i < 16; i++)
@@ -14778,7 +14774,7 @@ namespace basist
 						total_b += pSrc_pixels[i].b;
 					}
 
-					avg_r = (total_r + 8) >> 4, avg_g = (total_g + 8) >> 4, avg_b = (total_b + 8) >> 4;
+                  static_cast<void>(avg_r = (total_r + 8) >> 4), static_cast<void>(avg_g = (total_g + 8) >> 4), avg_b = (total_b + 8) >> 4;
 				}
 
 				// All selectors equal - treat it as a solid block which should always be equal or better.
@@ -14929,7 +14925,7 @@ namespace basist
 			}
 			else
 			{
-				avg_r = (total_r + 8) >> 4, avg_g = (total_g + 8) >> 4, avg_b = (total_b + 8) >> 4;
+              static_cast<void>(avg_r = (total_r + 8) >> 4), static_cast<void>(avg_g = (total_g + 8) >> 4), avg_b = (total_b + 8) >> 4;
 
 				// Find the shortest vector from a AABB corner to the block's average color.
 				// This is to help avoid outliers.
@@ -15039,20 +15035,20 @@ namespace basist
 						}
 					}
 
-					low_c = low_dot0 & 15, high_c = ~high_dot0 & 15;
+                  static_cast<void>(low_c = low_dot0 & 15), high_c = ~high_dot0 & 15;
 					uint32_t r = (high_dot0 & ~15) - (low_dot0 & ~15);
 
 					uint32_t tr = (high_dot1 & ~15) - (low_dot1 & ~15);
 					if (tr > r)
-						low_c = low_dot1 & 15, high_c = ~high_dot1 & 15, r = tr;
+                      static_cast<void>(low_c = low_dot1 & 15), static_cast<void>(high_c = ~high_dot1 & 15), r = tr;
 
 					tr = (high_dot2 & ~15) - (low_dot2 & ~15);
 					if (tr > r)
-						low_c = low_dot2 & 15, high_c = ~high_dot2 & 15, r = tr;
+                      static_cast<void>(low_c = low_dot2 & 15), static_cast<void>(high_c = ~high_dot2 & 15), r = tr;
 
 					tr = (high_dot3 & ~15) - (low_dot3 & ~15);
 					if (tr > r)
-						low_c = low_dot3 & 15, high_c = ~high_dot3 & 15;
+                      static_cast<void>(low_c = low_dot3 & 15), high_c = ~high_dot3 & 15;
 				}
 
 				lr = to_5(pSrc_pixels[low_c].r);
@@ -15086,7 +15082,7 @@ namespace basist
 						total_b += pSrc_pixels[i].b;
 					}
 
-					avg_r = (total_r + 8) >> 4, avg_g = (total_g + 8) >> 4, avg_b = (total_b + 8) >> 4;
+                  static_cast<void>(avg_r = (total_r + 8) >> 4), static_cast<void>(avg_g = (total_g + 8) >> 4), avg_b = (total_b + 8) >> 4;
 				}
 
 				// All selectors equal - treat it as a solid block which should always be equal or better.

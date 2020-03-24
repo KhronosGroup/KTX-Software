@@ -138,7 +138,6 @@
     <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_atc_56.inc"/>
     <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_alpha.inc"/>
     <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m5_color.inc"/>
-    <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_bc7_m6.inc"/>
     <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_5.inc"/>
     <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_dxt1_6.inc"/>
     <None Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_tables_pvrtc2_45.inc"/>
@@ -152,9 +151,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\apg_bmp.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_astc_decomp.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_backend.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_basis_file.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_bc7enc.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_comp.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_enc.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_etc.h"/>
@@ -169,6 +170,7 @@
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_file_headers.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_internal.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\basisu_uastc_enc.h"/>
     <ClInclude Include="..\..\..\..\lib\basis_sgd.h"/>
     <ClInclude Include="..\..\..\..\lib\basis_image_transcoder.h"/>
     <ClInclude Include="..\..\..\..\lib\basis_transcoder_config.h"/>
@@ -194,9 +196,11 @@
     <ClInclude Include="..\..\..\..\lib\vk_funcs.h"/>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\lib\basisu\apg_bmp.c"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_astc_decomp.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_backend.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_basis_file.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_bc7enc.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_comp.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_enc.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_etc.cpp"/>
@@ -208,6 +212,7 @@
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_resample_filters.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\lodepng.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\basisu_uastc_enc.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basis_encode.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basis_transcode.cpp"/>
     <ClCompile Include="..\..\..\..\lib\checkheader.c"/>

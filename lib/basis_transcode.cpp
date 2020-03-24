@@ -81,8 +81,8 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
  *
  * The following block compressed transcode targets are available: @c KTX_TTF_ETC1_RGB,
  * @c KTX_TTF_ETC2_RGBA, @c KTX_TTF_BC1_RGB, @c KTX_TTF_BC3_RGBA,
- * @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG, @c KTX_TTF_BC7_M6_RGB,
- * @c KTX_TTF_BC7_M5_RGBA, @c KTX_TTF_PVRTC1_4_RGB, @c KTX_TTF_PVRTC1_4_RGBA,
+ * @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG, @c KTX_TTF_BC7_RGBA,
+ * @c @c KTX_TTF_PVRTC1_4_RGB, @c KTX_TTF_PVRTC1_4_RGBA,
  * @c KTX_TTF_PVRTC2_4_RGB, @c KTX_TTF_PVRTC2_4_RGBA, @c KTX_TTF_ASTC_4x4_RGBA,
  * @c KTX_TTF_ETC2_EAC_R11, @c KTX_TTF_ETC2_EAC_RG11, @c KTX_TTF_ETC and
  * @c KTX_TTF_BC1_OR_3.
@@ -93,7 +93,7 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
  * @c KTX_TTF_PVRTC1_4_RGBA or @c KTX_TTF_PVRTC2_4_RGBA is specified and there is no alpha
  * channel @c KTX_TTF_PVRTC1_4_RGB or @c KTX_TTF_PVRTC2_4_RGB respectively will be selected.
  *
- * ATC & FXT1 formats are not supported by KTX2 as there are no equivalent Vulkan formats.
+ * ATC & FXT1 formats are not supported by KTX2 & libktx as there are no equivalent Vulkan formats.
  *
  * The following uncompressed transcode targets are also available: @c KTX_TTF_RGBA32,
  * @c KTX_TTF_RGB565, KTX_TTF_BGR565 and KTX_TTF_RGBA4444.
@@ -292,11 +292,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         vkFormat = srgb ? VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG
                         : VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;
         break;
-      case KTX_TTF_BC7_M6_RGB:
-        vkFormat = srgb ? VK_FORMAT_BC7_SRGB_BLOCK
-                        : VK_FORMAT_BC7_UNORM_BLOCK;
-        break;
-      case KTX_TTF_BC7_M5_RGBA:
+      case KTX_TTF_BC7_RGBA:
         vkFormat = srgb ? VK_FORMAT_BC7_SRGB_BLOCK
                         : VK_FORMAT_BC7_UNORM_BLOCK;
         break;
@@ -502,7 +498,7 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
     bool hasAlpha, isAlphaSlice;
     uint32_t sliceByteOffset, sliceByteLength;
     uint32_t bytes_per_block
-          = basis_get_bytes_per_block((transcoder_texture_format)targetFormat);
+              = basis_get_bytes_per_block_or_pixel((transcoder_texture_format)targetFormat);
 
     hasAlpha = image.alphaSliceByteLength > 0;
     // If the caller wants us to transcode the mip level's alpha data,
@@ -660,27 +656,7 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
         }
         break;
       }
-      case KTX_TTF_BC7_M6_RGB:
-      {
-#if !BASISD_SUPPORT_BC7
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cBC7_M6_OPAQUE_ONLY,
-                    bytes_per_block,
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_BC7_M5_RGBA:
+      case KTX_TTF_BC7_RGBA:
       {
 #if !BASISD_SUPPORT_BC7
         return KTX_UNSUPPORTED_FEATURE;
@@ -695,25 +671,16 @@ ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
                 isVideo, false, level, width, height,
                 0 /* row_pitch */, pState);
 
-        if (status) {
-            if (hasAlpha) {
-                status = transcode_slice(writePtr,
-                        num_blocks_x, num_blocks_y,
-                        levelDataPtr + image.alphaSliceByteOffset,
-                        image.alphaSliceByteLength,
-                        basist::block_format::cBC7_M5_ALPHA,
-                        bytes_per_block,
-                        true,
-                        isVideo, true, level, width, height,
-                        0 /* row_pitch */, pState);
-            } else {
-                basisu_transcoder::write_opaque_alpha_blocks(
-                    num_blocks_x, num_blocks_y, writePtr,
-                    (uint32_t)(bufferByteLength / bytes_per_block),
-                    basist::block_format::cBC7_M5_ALPHA, bytes_per_block,
-                    0);
-                status = true;
-            }
+        if (status && hasAlpha) {
+            status = transcode_slice(writePtr,
+                    num_blocks_x, num_blocks_y,
+                    levelDataPtr + image.alphaSliceByteOffset,
+                    image.alphaSliceByteLength,
+                    basist::block_format::cBC7_M5_ALPHA,
+                    bytes_per_block,
+                    true,
+                    isVideo, true, level, width, height,
+                    0 /* row_pitch */, pState);
         }
 
         if (!status) {

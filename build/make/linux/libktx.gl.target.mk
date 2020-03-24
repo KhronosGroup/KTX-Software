@@ -57,9 +57,11 @@ INCS_Release := \
 	-I$(VULKAN_SDK)/include
 
 OBJS := \
+	$(obj).target/$(TARGET)/lib/basisu/apg_bmp.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_astc_decomp.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_backend.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_basis_file.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_bc7enc.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_comp.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_enc.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_etc.o \
@@ -71,6 +73,7 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_resample_filters.o \
 	$(obj).target/$(TARGET)/lib/basisu/lodepng.o \
 	$(obj).target/$(TARGET)/lib/basisu/transcoder/basisu_transcoder.o \
+	$(obj).target/$(TARGET)/lib/basisu/basisu_uastc_enc.o \
 	$(obj).target/$(TARGET)/lib/basis_encode.o \
 	$(obj).target/$(TARGET)/lib/basis_transcode.o \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
