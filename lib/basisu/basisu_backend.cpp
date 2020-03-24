@@ -1,5 +1,5 @@
 // basisu_backend.cpp
-// Copyright (C) 2019 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2020 Binomial LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -202,6 +202,9 @@ namespace basisu
 			for (uint32_t slice_index = 0; slice_index < m_slices.size(); slice_index++)
 			{
 				//const uint32_t first_block_index = m_slices[slice_index].m_first_block_index;
+
+				//const uint32_t width = m_slices[slice_index].m_width;
+				//const uint32_t height = m_slices[slice_index].m_height;
 				const uint32_t num_blocks_x = m_slices[slice_index].m_num_blocks_x;
 				const uint32_t num_blocks_y = m_slices[slice_index].m_num_blocks_y;
 
@@ -333,7 +336,10 @@ namespace basisu
 		for (uint32_t slice_index = 0; slice_index < m_slices.size(); slice_index++)
 		{
 			const bool is_iframe = m_slices[slice_index].m_iframe;
+			//const uint32_t first_block_index = m_slices[slice_index].m_first_block_index;
 
+			//const uint32_t width = m_slices[slice_index].m_width;
+			//const uint32_t height = m_slices[slice_index].m_height;
 			const uint32_t num_blocks_x = m_slices[slice_index].m_num_blocks_x;
 			const uint32_t num_blocks_y = m_slices[slice_index].m_num_blocks_y;
 			const int prev_frame_slice_index = find_video_frame(slice_index, -1);
@@ -405,6 +411,8 @@ namespace basisu
 			const bool is_iframe = m_slices[slice_index].m_iframe;
 			const uint32_t first_block_index = m_slices[slice_index].m_first_block_index;
 
+			//const uint32_t width = m_slices[slice_index].m_width;
+			//const uint32_t height = m_slices[slice_index].m_height;
 			const uint32_t num_blocks_x = m_slices[slice_index].m_num_blocks_x;
 			const uint32_t num_blocks_y = m_slices[slice_index].m_num_blocks_y;
 
@@ -582,6 +590,7 @@ namespace basisu
 	{
 		for (uint32_t slice_index = 0; slice_index < m_slices.size(); slice_index++)
 		{
+			//const uint32_t first_block_index = m_slices[slice_index].m_first_block_index;
 			const uint32_t width = m_slices[slice_index].m_width;
 			const uint32_t height = m_slices[slice_index].m_height;
 			const uint32_t num_blocks_x = m_slices[slice_index].m_num_blocks_x;
@@ -674,6 +683,8 @@ namespace basisu
 			//const int prev_frame_slice_index = is_video ? find_video_frame(slice_index, -1) : -1;
 			//const int next_frame_slice_index = is_video ? find_video_frame(slice_index, 1) : -1;
 			const uint32_t first_block_index = m_slices[slice_index].m_first_block_index;
+			//const uint32_t width = m_slices[slice_index].m_width;
+			//const uint32_t height = m_slices[slice_index].m_height;
 			const uint32_t num_blocks_x = m_slices[slice_index].m_num_blocks_x;
 			const uint32_t num_blocks_y = m_slices[slice_index].m_num_blocks_y;
 
@@ -1157,6 +1168,8 @@ namespace basisu
 
 		for (uint32_t slice_index = 0; slice_index < m_slices.size(); slice_index++)
 		{
+			//const uint32_t width = m_slices[slice_index].m_width;
+			//const uint32_t height = m_slices[slice_index].m_height;
 			const uint32_t num_blocks_x = m_slices[slice_index].m_num_blocks_x;
 			const uint32_t num_blocks_y = m_slices[slice_index].m_num_blocks_y;
 
