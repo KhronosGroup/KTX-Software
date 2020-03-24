@@ -112,22 +112,8 @@ namespace msc {
         static size_t getTranscodedImageByteLength(transcoder_texture_format format,
                                                    uint32_t width, uint32_t height)
         {
-            uint32_t blockByteLength;
-            // The switch avoids a bug in basis_get_bytes_per_block.
-            switch (format) {
-              case transcoder_texture_format::cTFRGBA32:
-                  blockByteLength = sizeof(uint32_t);
-                  break;
-              case transcoder_texture_format::cTFRGB565:
-              case transcoder_texture_format::cTFBGR565:
-              case transcoder_texture_format::cTFRGBA4444:
-                  blockByteLength = sizeof(uint16_t);
-                  break;
-              default:
-                  blockByteLength =
-                      basis_get_bytes_per_block(format);
-                  break;
-            }
+            uint32_t blockByteLength = 
+                      basis_get_bytes_per_block_or_pixel(format);
             if (basis_transcoder_format_is_uncompressed(format)) {
                 return width * height * blockByteLength;
             } else if (format == transcoder_texture_format::cTFPVRTC1_4_RGB
@@ -541,7 +527,7 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
     class_<msc::BasisTranscoder>("BasisTranscoder")
         .constructor()
         .class_function("init", basisu_transcoder_init)
-        .class_function("getBytesPerBlock", basis_get_bytes_per_block)
+        .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
 #if SUPPORT_TRANSCODE_SLICE
         .class_function("writeOpaqueAlphaBlocks",
                         &msc::BasisTranscoder::write_opaque_alpha_blocks)

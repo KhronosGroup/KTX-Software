@@ -628,7 +628,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         uint32_t depth = MAX(1, This->baseDepth >> level);
         uint32_t level_byte_length = 0;
 
-        assert(!(slice->m_flags & cSliceDescFlagsIsAlphaData));
+      assert(!(slice->m_flags & cSliceDescFlagsHasAlpha));
         level_file_offsets[level] = slice->m_file_ofs;
         for (uint32_t layer = 0; layer < This->numLayers; layer++) {
             uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
@@ -648,7 +648,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                     kimages[image].alphaSliceByteLength = 0;
                 }
                 // Get the IFrame flag, if it's set.
-                kimages[image].imageFlags = slice->m_flags & ~cSliceDescFlagsIsAlphaData;
+              kimages[image].imageFlags = slice->m_flags & ~cSliceDescFlagsHasAlpha;
                 slice++;
                 image++;
             }

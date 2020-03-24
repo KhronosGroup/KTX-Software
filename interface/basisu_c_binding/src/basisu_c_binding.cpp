@@ -140,7 +140,7 @@ uint32_t basis_file::getImageTranscodedSizeInBytes(uint32_t image_index, uint32_
     else
     {
         // Compressed formats are 2D arrays of blocks.
-        const uint32_t bytes_per_block = basis_get_bytes_per_block(transcoder_format);
+        const uint32_t bytes_per_block = basis_get_bytes_per_block_or_pixel(transcoder_format);
 
         if (transcoder_format == transcoder_texture_format::cTFPVRTC1_4_RGB || transcoder_format == transcoder_texture_format::cTFPVRTC1_4_RGBA)
         {
@@ -178,7 +178,7 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
     if (!m_transcoder.get_image_level_desc(m_file, byteLength, image_index, level_index, orig_width, orig_height, total_blocks))
         return 0;
 
-    uint32_t flags = get_alpha_for_opaque_formats ? basisu_transcoder::cDecodeFlagsTranscodeAlphaDataToOpaqueFormats : 0;
+  uint32_t flags = get_alpha_for_opaque_formats ? cDecodeFlagsTranscodeAlphaDataToOpaqueFormats : 0;
 
     uint32_t status;
 
@@ -201,7 +201,7 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
     }
     else
     {
-        uint32_t bytes_per_block = basis_get_bytes_per_block(transcoder_format);
+        uint32_t bytes_per_block = basis_get_bytes_per_block_or_pixel(transcoder_format);
 
         uint32_t required_size = total_blocks * bytes_per_block;
 

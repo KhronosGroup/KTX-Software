@@ -38,7 +38,7 @@ using namespace basist;
  * @class ktxBasisImageTranscoder
  * Transcode a single Basis Universal image.
  */
-class ktxBasisImageTranscoder : public basisu_lowlevel_transcoder {
+class ktxBasisImageTranscoder : public basisu_lowlevel_etc1s_transcoder {
   public:
       /**
        * @~English
@@ -46,7 +46,7 @@ class ktxBasisImageTranscoder : public basisu_lowlevel_transcoder {
        * @param[in] gcb the etc1_global_selector_codebook to use.
        */
       ktxBasisImageTranscoder(basist::etc1_global_selector_codebook* gcb)
-           : basisu_lowlevel_transcoder(gcb) { }
+           : basisu_lowlevel_etc1s_transcoder(gcb) { }
       // This is documented with the implementation.
       KTX_error_code transcode_image(const ktxBasisImageDesc& image,
                                    ktx_transcode_fmt_e targetFormat,

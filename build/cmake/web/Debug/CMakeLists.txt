@@ -63,6 +63,7 @@ unset(TARGET)
 set(TARGET "libktx.es3")
 set(TOOLSET "target")
 list(APPEND libktx_es3__c_srcs
+  "../../../../lib/basisu/apg_bmp.c"
   "../../../../lib/checkheader.c"
   "../../../../lib/dfdutils/createdfd.c"
   "../../../../lib/dfdutils/dfd2vk.c"
@@ -88,6 +89,7 @@ list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/basisu/basisu_astc_decomp.cpp"
   "../../../../lib/basisu/basisu_backend.cpp"
   "../../../../lib/basisu/basisu_basis_file.cpp"
+  "../../../../lib/basisu/basisu_bc7enc.cpp"
   "../../../../lib/basisu/basisu_comp.cpp"
   "../../../../lib/basisu/basisu_enc.cpp"
   "../../../../lib/basisu/basisu_etc.cpp"
@@ -99,15 +101,18 @@ list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/basisu/basisu_resample_filters.cpp"
   "../../../../lib/basisu/lodepng.cpp"
   "../../../../lib/basisu/transcoder/basisu_transcoder.cpp"
+  "../../../../lib/basisu/basisu_uastc_enc.cpp"
   "../../../../lib/basis_encode.cpp"
   "../../../../lib/basis_transcode.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_es3__other_srcs
   "../../../../include/ktx.h"
+  "../../../../lib/basisu/apg_bmp.h"
   "../../../../lib/basisu/basisu_astc_decomp.h"
   "../../../../lib/basisu/basisu_backend.h"
   "../../../../lib/basisu/basisu_basis_file.h"
+  "../../../../lib/basisu/basisu_bc7enc.h"
   "../../../../lib/basisu/basisu_comp.h"
   "../../../../lib/basisu/basisu_enc.h"
   "../../../../lib/basisu/basisu_etc.h"
@@ -128,11 +133,11 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_atc_56.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_alpha.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m5_color.inc"
-  "../../../../lib/basisu/transcoder/basisu_transcoder_tables_bc7_m6.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_5.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_dxt1_6.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_45.inc"
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
+  "../../../../lib/basisu/basisu_uastc_enc.h"
   "../../../../lib/basis_sgd.h"
   "../../../../lib/basis_image_transcoder.h"
   "../../../../lib/basis_transcoder_config.h"

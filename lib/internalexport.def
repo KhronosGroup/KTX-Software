@@ -5,7 +5,7 @@
 
 LIBRARY
 EXPORTS
-    ?basis_get_bytes_per_block@basist@@YAIW4transcoder_texture_format@1@@Z
+    ?basis_get_bytes_per_block_or_pixel@basist@@YAIW4transcoder_texture_format@1@@Z
     ?basis_transcoder_format_is_uncompressed@basist@@YA_NW4transcoder_texture_format@1@@Z
     ?basis_get_uncompressed_bytes_per_pixel@basist@@YAIW4transcoder_texture_format@1@@Z
     ?validate_header@basisu_transcoder@basist@@QEBA_NPEBXI@Z
@@ -13,7 +13,7 @@ EXPORTS
     ?get_image_level_desc@basisu_transcoder@basist@@QEBA_NPEBXIIIAEAI11@Z
     ?get_image_info@basisu_transcoder@basist@@QEBA_NPEBXIAEAUbasisu_image_info@2@I@Z
     ?get_image_level_info@basisu_transcoder@basist@@QEBA_NPEBXIAEAUbasisu_image_level_info@2@II@Z
-    ?start_transcoding@basisu_transcoder@basist@@QEBA_NPEBXI@Z
+    ?start_transcoding@basisu_transcoder@basist@@QEAA_NPEBXI@Z
     ?transcode_image_level@basisu_transcoder@basist@@QEBA_NPEBXIIIPEAXIW4transcoder_texture_format@2@IIPEAUbasisu_transcoder_state@2@I@Z
     ??0basisu_transcoder@basist@@QEAA@PEBVetc1_global_selector_codebook@1@@Z
 	??1Resampler@basisu@@QEAA@XZ
