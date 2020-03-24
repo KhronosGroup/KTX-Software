@@ -85,12 +85,15 @@ IFACEMETHODIMP BasisThumbProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALP
 							basisu_file_info fileInfo;
 							transcoder.get_file_info(data, size, fileInfo);
 							if (transcoder.start_transcoding(data, size)) {
-								if (void* dxtBuf = malloc(basis_get_bytes_per_block(cTFBC1) * blocks)) {
-									if (transcoder.transcode_image_level(data, size, 0, level, dxtBuf, blocks, cTFBC1)) {
+								uint32_t bytes = basis_get_uncompressed_bytes_per_pixel(transcoder_texture_format::cTFRGBA32) * descW * descH;
+								dprintf("Started transcode (%dx%d @ %d bytes)", descW, descH, bytes);
+								if (void* rgbBuf = malloc(bytes)) {
+									// Note: the API expects total pixels here instead of blocks for cTFRGBA32
+									if (transcoder.transcode_image_level(data, size, 0, level, rgbBuf, descW * descH, transcoder_texture_format::cTFRGBA32)) {
 										dprintf("Decoded!!!!");
-										*phbmp = dxtToBitmap(static_cast<uint8_t*>(dxtBuf), descW, descH, fileInfo.m_y_flipped);
+										*phbmp = rgbToBitmap(static_cast<uint32_t*>(rgbBuf), descW, descH, fileInfo.m_y_flipped);
 									}
-									delete dxtBuf;
+									delete rgbBuf;
 								}
 							}
 						}
