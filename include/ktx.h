@@ -1081,7 +1081,7 @@ typedef enum ktx_transcode_fmt_e {
         KTX_TTF_BC7_M5_RGBA = KTX_TTF_BC7_RGBA,
             //!< @deprecated. Use #KTX_TTF_BC7_RGBA.
         KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TTF_BC7_RGBA,
-            //!< @deprecated. Use #KTX_TTX_BC7_RGBA.
+            //!< @deprecated. Use #KTX_TTF_BC7_RGBA
         KTX_TF_PVRTC1_4_OPAQUE_ONLY = KTX_TTF_PVRTC1_4_RGB
             //!< @deprecated. Use #KTX_TTF_PVRTC1_4_RGB.
 } ktx_transcode_fmt_e;
