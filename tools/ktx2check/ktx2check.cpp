@@ -264,97 +264,103 @@ struct {
     issue NonZeroUpperOrLower {
         ERROR | 0x005f, "All DFD samples' sampleLower and sampleUpper must be 0 for Basis compressed textures."
     };
+    issue SgdMismatchNoAlpha {
+        ERROR | 0x0060, "supercompressionGlobalData indicates no alpha channel but DFD indicated alpha channel."
+    };
+    issue SgdMismatchAlpha {
+        ERROR | 0x0061, "supercompressionGlobalData indicates an alpha channel but DFD indicated no alpha channel."
+    };
 } DFD;
 
 struct {
     issue IncorrectByteLength {
-        ERROR | 0x0060, "Level %d byteLength or uncompressedByteLength does not match expected value."
+        ERROR | 0x0070, "Level %d byteLength or uncompressedByteLength does not match expected value."
     };
     issue ByteOffsetTooSmall {
-        ERROR | 0x0061, "Level %d byteOffset is smaller than expected value."
+        ERROR | 0x0071, "Level %d byteOffset is smaller than expected value."
     };
     issue IncorrectByteOffset {
-        ERROR | 0x0062, "Level %d byteOffset does not match expected value."
+        ERROR | 0x0072, "Level %d byteOffset does not match expected value."
     };
     issue UnalignedOffset {
-        ERROR | 0x0063, "Level %d byteOffset is not aligned to required %d byte alignment."
+        ERROR | 0x0073, "Level %d byteOffset is not aligned to required %d byte alignment."
     };
     issue ExtraPadding {
-        ERROR | 0x0064, "Level %d has disallowed extra padding."
+        ERROR | 0x0074, "Level %d has disallowed extra padding."
     };
     issue ZeroOffsetOrLength {
-        ERROR | 0x0065, "Level %d's byteOffset or byteLength is 0."
+        ERROR | 0x0075, "Level %d's byteOffset or byteLength is 0."
     };
     issue ZeroUncompressedLength {
-        ERROR | 0x0066, "Level %d's uncompressedByteLength is 0."
+        ERROR | 0x0076, "Level %d's uncompressedByteLength is 0."
     };
     issue IncorrectLevelOrder {
-        ERROR | 0x0067, "Larger mip levels are before smaller."
+        ERROR | 0x0077, "Larger mip levels are before smaller."
     };
 } LevelIndex;
 
 struct {
     issue MissingNulTerminator {
-        ERROR | 0x0070, "Required NUL terminator missing from metadata key beginning \"%5s\".\n"
+        ERROR | 0x0080, "Required NUL terminator missing from metadata key beginning \"%5s\".\n"
                         "Abandoning validation of individual metadata entries."
     };
     issue ForbiddenBOM1 {
-        ERROR | 0x0071, "Metadata key beginning \"%5s\" has forbidden BOM."
+        ERROR | 0x0081, "Metadata key beginning \"%5s\" has forbidden BOM."
     };
     issue ForbiddenBOM2 {
-        ERROR | 0x0072, "Metadata key beginning \"%s\" has forbidden BOM."
+        ERROR | 0x0082, "Metadata key beginning \"%s\" has forbidden BOM."
     };
     issue InvalidStructure {
-        ERROR | 0x0073, "Invalid metadata structure? keyAndValueByteLengths failed to total kvdByteLength\n"
+        ERROR | 0x0083, "Invalid metadata structure? keyAndValueByteLengths failed to total kvdByteLength\n"
                         "after %d KV pairs."
     };
     issue MissingFinalPadding {
-        ERROR | 0x0074, "Required valuePadding after last metadata value missing."
+        ERROR | 0x0084, "Required valuePadding after last metadata value missing."
     };
     issue OutOfOrder {
-        ERROR | 0x0075, "Metadata keys are not sorted in codepoint order."
+        ERROR | 0x0085, "Metadata keys are not sorted in codepoint order."
     };
     issue CustomMetadata {
-        WARNING | 0x0076, "Custom metadata \"%s\" found."
+        WARNING | 0x0086, "Custom metadata \"%s\" found."
     };
     issue IllegalMetadata {
-        ERROR | 0x0077, "Unrecognized metadata \"%s\" found with KTX or ktx prefix found."
+        ERROR | 0x0087, "Unrecognized metadata \"%s\" found with KTX or ktx prefix found."
     };
     issue ValueNotNulTerminated {
-        ERROR | 0x0078, "%s value missing required NUL termination."
+        ERROR | 0x0088, "%s value missing required NUL termination."
     };
     issue InvalidValue {
-        ERROR | 0x0079, "%s has invalid value."
+        ERROR | 0x0089, "%s has invalid value."
     };
     issue NoKTXwriter {
-        WARNING | 0x007a, "No KTXwriter key. Writers are strongly urged to identify themselves via this."
+        WARNING | 0x008a, "No KTXwriter key. Writers are strongly urged to identify themselves via this."
     };
 } Metadata;
 
 struct {
     issue UnexpectedSupercompressionGlobalData {
-        ERROR | 0x0080, "Supercompression global data found scheme that is not Basis."
+        ERROR | 0x0090, "Supercompression global data found scheme that is not Basis."
     };
     issue MissingSupercompressionGlobalData {
-        ERROR | 0x0081, "Basis supercompression global data missing."
+        ERROR | 0x0091, "Basis supercompression global data missing."
     };
     issue InvalidGlobalFlagBit {
-        ERROR | 0x0082, "Basis supercompression global data globalFlags has an invalid bit set."
+        ERROR | 0x0092, "Basis supercompression global data globalFlags has an invalid bit set."
     };
     issue InvalidImageFlagBit {
-        ERROR | 0x0083, "Basis supercompression global data imageDesc.imageFlags has an invalid bit set."
+        ERROR | 0x0093, "Basis supercompression global data imageDesc.imageFlags has an invalid bit set."
     };
     issue IncorrectGlobalDataSize {
-        ERROR | 0x0084, "Basis supercompression global data has incorrect size."
+        ERROR | 0x0094, "Basis supercompression global data has incorrect size."
     };
     issue ExtendedByteLengthNotZero {
-        ERROR | 0x0085, "extendedByteLength != 0 in Basis supercompression global data."
+        ERROR | 0x0095, "extendedByteLength != 0 in Basis supercompression global data."
     };
 } SGD;
 
 struct {
     issue OutOfMemory {
-        ERROR | 0x0090, "System out of memory."
+        ERROR | 0x00a0, "System out of memory."
     };
 } System;
 
@@ -453,6 +459,7 @@ class ktxValidator : public ktxApp {
         uint32_t levelCount;
         uint32_t dimensionCount;
         uint32_t* pDfd4Format;
+        uint32_t* pActualDfd;
         uint64_t dataSizeFromLevelIndex;
 
         struct formatInfo {
@@ -469,10 +476,12 @@ class ktxValidator : public ktxApp {
         validationContext() {
             inf = nullptr;
             pDfd4Format = nullptr;
+            pActualDfd = nullptr;
         }
 
         ~validationContext() {
             if (pDfd4Format != nullptr) delete pDfd4Format;
+            if (pActualDfd != nullptr) delete pActualDfd;
         }
 
         size_t kvDataEndOffset() {
@@ -1100,15 +1109,15 @@ ktxValidator::validateDfd(validationContext& ctx)
 
     // We are right after the levelIndex. We've already checked that
     // header.dataFormatDescriptor.byteOffset points to this location.
-    uint32_t* pDfd = new uint32_t[ctx.header.dataFormatDescriptor.byteLength
-                                   / sizeof(uint32_t)];
-    if (fread(pDfd, ctx.header.dataFormatDescriptor.byteLength, 1, ctx.inf) != 1) {
+    ctx.pActualDfd = new uint32_t[ctx.header.dataFormatDescriptor.byteLength
+                               / sizeof(uint32_t)];
+    if (fread(ctx.pActualDfd, ctx.header.dataFormatDescriptor.byteLength, 1, ctx.inf) != 1) {
         if (ferror(ctx.inf))
             addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
         else
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
     }
-    uint32_t* bdb = pDfd+ 1; // Basic descriptor block.
+    uint32_t* bdb = ctx.pActualDfd + 1; // Basic descriptor block.
 
     uint32_t xferFunc;
     if ((xferFunc = KHR_DFDVAL(bdb, TRANSFER)) != KHR_DF_TRANSFER_SRGB
@@ -1121,7 +1130,7 @@ ktxValidator::validateDfd(validationContext& ctx)
       case KTX_SUPERCOMPRESSION_NONE:
         if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
             // Do a simple comparison.
-            analyze = !memcmp(pDfd, ctx.pDfd4Format, *ctx.pDfd4Format);
+            analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format, *ctx.pDfd4Format);
         } else {
             // Checking the basics
             if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
@@ -1194,11 +1203,11 @@ ktxValidator::validateDfd(validationContext& ctx)
           // here too.
           if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
               // compare up to BYTESPLANE.
-              analyze = !memcmp(pDfd, ctx.pDfd4Format,
+              analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format,
                                 KHR_DF_WORD_BYTESPLANE0 * 4);
               // Compare the sample information.
               if (!analyze) {
-                  analyze = !memcmp(&pDfd[KHR_DF_WORD_SAMPLESTART+1],
+                  analyze = !memcmp(&ctx.pActualDfd[KHR_DF_WORD_SAMPLESTART+1],
                                     &ctx.pDfd4Format[KHR_DF_WORD_SAMPLESTART+1],
                                     numSamples * KHR_DF_WORD_SAMPLEWORDS);
               }
@@ -1210,7 +1219,7 @@ ktxValidator::validateDfd(validationContext& ctx)
     }
 
     if (analyze) {
-        // pDfd differs from what is expected. To help developers, do a
+        // ctx.pActualDfd differs from what is expected. To help developers, do a
         // more in depth analysis.
         if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
             || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
@@ -1227,7 +1236,7 @@ ktxValidator::validateDfd(validationContext& ctx)
             InterpretDFDResult result;
             string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
 
-            result = interpretDFD(pDfd, &r, &g, &b, &a, &componentByteLength);
+            result = interpretDFD(ctx.pActualDfd, &r, &g, &b, &a, &componentByteLength);
             if (result > i_UNSUPPORTED_ERROR_BIT)
                 addIssue(logger::eError, DFD.TooComplex);
 
@@ -1521,6 +1530,17 @@ ktxValidator::validateSgd(validationContext& ctx)
     ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(sgd);
     if (bgdh.globalFlags & ~(eBuIsETC1S | eBUHasAlphaSlices))
         addIssue(logger::eError, SGD.InvalidGlobalFlagBit);
+    uint32_t numSamples = KHR_DFDSAMPLECOUNT(ctx.pActualDfd + 1);
+    // Crosscheck the DFD.
+    if (!(bgdh.globalFlags & eBUHasAlphaSlices)
+        && (numSamples == 2 || numSamples == 4)) {
+        addIssue(logger::eError, DFD.SgdMismatchNoAlpha);
+    }
+    if ((bgdh.globalFlags & eBUHasAlphaSlices)
+        && (numSamples == 1 || numSamples == 3)) {
+        addIssue(logger::eError, DFD.SgdMismatchAlpha);
+    }
+
     uint64_t expectedBgdByteLength = sizeof(ktxBasisGlobalHeader)
                                    + sizeof(ktxBasisImageDesc) * imageCount
                                    + bgdh.endpointsByteLength

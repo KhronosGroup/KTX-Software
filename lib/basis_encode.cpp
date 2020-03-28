@@ -214,18 +214,37 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
 }
 #endif
 
-// Rewrite DFD changing it to unsized
+// Rewrite DFD changing it to unsized. Account for the Basis compressor
+// not including an all 1's alpha channel, which would have been removed before
+// encoding and supercompression, by looking at hasAlpha.
 static KTX_error_code
-ktxTexture2_rewriteDfd(ktxTexture2* This)
+ktxTexture2_rewriteDfd(ktxTexture2* This, bool hasAlpha)
 {
     uint32_t* cdfd = This->pDfd;
-    uint32_t* ndfd = (uint32_t *)malloc(*cdfd);
+    uint32_t* cbdb = cdfd + 1;
+    uint32_t newSampleCount = KHR_DFDSAMPLECOUNT(cbdb);
+
+    if (newSampleCount == 4 && !hasAlpha)
+        newSampleCount = 3;
+
+    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART
+                       + newSampleCount * KHR_DF_WORD_SAMPLEWORDS;
+    ndbSize *= sizeof(uint32_t);
+    uint32_t ndfdSize = ndbSize + 1 * sizeof(uint32_t);
+    uint32_t* ndfd = (uint32_t *)malloc(ndfdSize);
+    uint32_t* nbdb = ndfd + 1;
 
     if (!ndfd)
         return KTX_OUT_OF_MEMORY;
-    uint32_t* nbdb = ndfd + 1;
 
-    memcpy(ndfd, cdfd, *cdfd);
+    // Copy the basic dfd + wanted samples.
+    memcpy(ndfd, cdfd, ndfdSize);
+    if (ndfdSize != *cdfd) {
+        // Set the size of the new DFD.
+        *ndfd = ndfdSize;
+        // And the descriptor block size
+        KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
+    }
 
     // Show it describes an unsized format.
     nbdb[KHR_DF_WORD_BYTESPLANE0] = 0;
@@ -235,8 +254,7 @@ ktxTexture2_rewriteDfd(ktxTexture2* This)
     // encoded data and what they will be after inflation depends on the
     // transcode target.
     nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 0;
-    uint32_t numSamples = KHR_DFDSAMPLECOUNT(nbdb);
-    for (uint32_t sample = 0; sample < numSamples; sample++) {
+    for (uint32_t sample = 0; sample < newSampleCount; sample++) {
         KHR_DFDSETSVAL(nbdb, sample, BITOFFSET, 0);
         KHR_DFDSETSVAL(nbdb, sample, BITLENGTH, 0);
         KHR_DFDSETSVAL(nbdb, sample, SAMPLELOWER, 0);
@@ -687,7 +705,16 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // We have a complete global data package and compressed images.
     // Update This texture and copy compressed image data to it.
     //
-    result = ktxTexture2_rewriteDfd(This);
+
+    // Since we've left m_check_for_alpha set and m_force_alpha unset in
+    // the compressor parameters, the basis encoder will not have included
+    // an input alpha channel, if every alpha pixel in every image is 255.
+    // This step occurs prior to encoding and supercompression and, per spec,
+    // the DFD needs to reflect the input to the encoder not this texture.
+    // Pass a parameter, set from the alpha flag of the emitted .basis header,
+    // to rewriteDfd to allow it to do this.
+    bool hasAlpha = (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) != 0;
+    result = ktxTexture2_rewriteDfd(This, hasAlpha);
     if (result != KTX_SUCCESS) {
         delete bgd;
         return result;
