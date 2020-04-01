@@ -12,24 +12,24 @@ for the Khronos KTX library and tools.
 
 KTX (Khronos Texture) is a lightweight file format textures for OpenGL<sup>®</sup>, Vulkan<sup>®</sup> and other GPU APIs. KTX files contain all the parameters needed for texture loading. A single file can contain anything from a simple base-level 2D texture through to a cubemap array texture with mipmaps. Textures can be stored in Basis Universal or any of the block-compressed formats supported by OpenGL family and Vulkan APIs and extensions or can be stored uncompressed. Basis Universal is a supercompressed block-compressed format that can be quickly transcoded to any GPU-supported format.
 
-The software consists of:
+The software consists of: (links are to source folders in the KhronosGroup repo)
 
 - *libktx* - a small library of functions for writing and reading KTX
 files, and instantiating OpenGL®, OpenGL ES™️ and Vulkan® textures
-from them.
+from them. [`lib`](https://github.com/KhronosGroup/KTX-Software/tree/master/lib)
 - *libktx.{js,wasm}* - Web assembly version of libktx and
-Javascript wrapper.
+Javascript wrapper. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
 - *msc\_basis\_transcoder.{js,wasm}* - Web assembly transcoder and
-Javascript wrapper for Basis Universal format images. For use with KTX parsers written in Javascript.
-- *ktx2check* - a tool for validating KTX Version 2 format files
+Javascript wrapper for Basis Universal format images. For use with KTX parsers written in Javascript. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
+- *ktx2check* - a tool for validating KTX Version 2 format files. [`tools/ktx2check`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2check)
 - *ktx2ktx2* - a tool for converting a KTX Version 1 file to a KTX
-Version 2 file.
+Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2ktx2)
 - *ktxinfo* - a tool to display information about a KTX file in
-human readable form.
+human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxinfo)
 - *ktxsc* - a tool to supercompress a KTX Version 2 file that
-contains uncompressed images.
+contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxsc)
 - *toktx* - a tool to create KTX files from PNG or Netpbm format images. It supports mipmap generation and encoding & supercompression to
-Basis Universal format.
+Basis Universal format.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
 
 See the Doxygen generated [live documentation](https://github.khronos.org/KTX-Software/)
 for API and tool usage information.
