@@ -780,7 +780,7 @@ KTX_APICALL ktx_size_t KTX_APIENTRY
 ktxTexture_GetSize(ktxTexture* This);
 
 /* Uploads a texture to OpenGL {,ES}. */
-KTX_error_code
+KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
                     GLenum* pGlerror);
 

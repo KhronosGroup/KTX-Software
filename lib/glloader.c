@@ -641,7 +641,6 @@ compressedTexImage3DCallback(int miplevel, int face,
 }
 /* [imageCallbacks] */
 
-#undef ktxTexture_GLUpload
 /**
  * @memberof ktxTexture @private
  * @~English

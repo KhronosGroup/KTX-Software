@@ -237,8 +237,6 @@
     <ClCompile Include="..\..\..\..\lib\vkformat_str.c"/>
     <ClCompile Include="..\..\..\..\lib\writer1.c"/>
     <ClCompile Include="..\..\..\..\lib\writer2.c"/>
-    <ClCompile Include="..\..\..\..\lib\texture1_vvtbl.c"/>
-    <ClCompile Include="..\..\..\..\lib\texture2_vvtbl.c"/>
     <ClCompile Include="..\..\..\..\lib\vkloader.c"/>
     <ClCompile Include="..\..\..\..\lib\vk_funcs.c"/>
   </ItemGroup>
