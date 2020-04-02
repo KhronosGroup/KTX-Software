@@ -169,13 +169,14 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
         if (!ktxVulkanLoadLibrary())
             // Normal use is for this constructor to be called by an application
             // that has completed Vulkan initialization. In that case the only
-            // cause for failure would be an incompatible in the version of libvulkan
-            // that is loaded. The only other cause would be an application calling
-            // Vulkan functions without having initialized Vulkan.
+            // cause for failure would be an incompatibility in the version
+            // of libvulkan that is loaded. The only other cause would be an
+            // application calling Vulkan functions without having initialized
+            // Vulkan.
             //
-            // In these cases, an abort along with the messages sent to stderr by
-            // ktxVulkanLoadLibrary is sufficient as released applications should
-            // never suffer these.
+            // In these cases, an abort along with the messages sent to stderr
+            // by ktxVulkanLoadLibrary is sufficient as released applications
+            // should never suffer these.
             abort();
     }
 #endif
@@ -1150,6 +1151,8 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture1 object.
  *
+ * This simplly calls ktxTexture_VkUploadEx.
+ *
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
 KTX_error_code
@@ -1171,11 +1174,11 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
  * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
  * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
  *
- * @sa ktxTexture1_VkUploadEx() for details and use that for complete
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
  *     control.
  */
 KTX_error_code
-ktxTexture1_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
                      ktxVulkanTexture *vkTexture)
 {
     return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
@@ -1187,6 +1190,8 @@ ktxTexture1_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
 /** @memberof ktxTexture2
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture2 object.
+ *
+ * This simplly calls ktxTexture_VkUploadEx.
  *
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
@@ -1222,27 +1227,12 @@ ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-/** @memberof ktxTexture
- * @~English
- * @brief Return the VkFormat enum of a ktxTexture object.
- *
- * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
- *         there is no mapping from the GL internalformat and format.
- */
-VkFormat
-ktxTexture_GetVkFormat(ktxTexture* This)
-{
-    if (This->classId == ktxTexture2_c)
-        return ktxTexture2_GetVkFormat((ktxTexture2*)This);
-    else
-        return ktxTexture1_GetVkFormat((ktxTexture1*)This);
-}
-
 /** @memberof ktxTexture1
  * @~English
  * @brief Return the VkFormat enum of a ktxTexture1 object.
  *
- * @copydetails ktxTexture_GetVkFormat
+ * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
+ *         there is no mapping from the GL internalformat and format.
  */
 VkFormat
 ktxTexture1_GetVkFormat(ktxTexture1* This)
@@ -1261,7 +1251,7 @@ ktxTexture1_GetVkFormat(ktxTexture1* This)
  * @~English
  * @brief Return the VkFormat enum of a ktxTexture2 object.
  *
- * @copydetails ktxTexture_GetVkFormat
+ * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
  */
 VkFormat
 ktxTexture2_GetVkFormat(ktxTexture2* This)
@@ -1269,7 +1259,23 @@ ktxTexture2_GetVkFormat(ktxTexture2* This)
     return This->vkFormat;
 }
 
+/** @memberof ktxTexture
+ * @~English
+ * @brief Return the VkFormat enum of a ktxTexture object.
+ *
+ * In ordert to ensure that the Vulkan uploader is not linked into an application unless explicitly called,
+ * this is not a virtual function. It determines the texture type then dispatches to the correct function.
 
+ * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
+ */
+VkFormat
+ktxTexture_GetVkFormat(ktxTexture* This)
+{
+    if (This->classId == ktxTexture2_c)
+        return ktxTexture2_GetVkFormat((ktxTexture2*)This);
+    else
+        return ktxTexture1_GetVkFormat((ktxTexture1*)This);
+}
 
 //======================================================================
 //  Utilities
