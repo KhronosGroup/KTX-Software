@@ -49,7 +49,6 @@ typedef struct ktxTexture1_private {
 
 struct ktxTexture_vtbl ktxTexture1_vtbl;
 struct ktxTexture_vtblInt ktxTexture1_vtblInt;
-extern struct ktxTexture_vvtbl* pKtxTexture1_vvtbl;
 
 static KTX_error_code
 ktxTexture1_constructCommon(ktxTexture1* This)
@@ -59,15 +58,6 @@ ktxTexture1_constructCommon(ktxTexture1* This)
     This->classId = ktxTexture1_c;
     This->vtbl = &ktxTexture1_vtbl;
     This->_protected->_vtbl = ktxTexture1_vtblInt;
-#if !KTX_OMIT_VULKAN
-    This->vvtbl = pKtxTexture1_vvtbl;
-#else
-    // FIXME: Figure out how to add some warning functions instead
-    // of just crashing if called. Issue is how to cast such a
-    // function to the necessary PFN type without needing
-    // Vulkan types.
-    This->vvtbl = NULL;
-#endif
     This->_private = (ktxTexture1_private*)malloc(sizeof(ktxTexture1_private));
     if (This->_private == NULL) {
         return KTX_OUT_OF_MEMORY;
@@ -1316,7 +1306,6 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXDESTROY)ktxTexture1_Destroy,
     (PFNKTEXGETIMAGEOFFSET)ktxTexture1_GetImageOffset,
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
-    (PFNKTEXGLUPLOAD)ktxTexture1_GLUpload,
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
     (PFNKTEXLOADIMAGEDATA)ktxTexture1_LoadImageData,

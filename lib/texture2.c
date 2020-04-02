@@ -50,7 +50,6 @@
 
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
-extern struct ktxTexture_vvtbl* pKtxTexture2_vvtbl;
 
 /**
 * @memberof ktxTexture2 @private
@@ -130,11 +129,6 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
     This->classId = ktxTexture2_c;
     This->vtbl = &ktxTexture2_vtbl;
     This->_protected->_vtbl = ktxTexture2_vtblInt;
-#if !KTX_OMIT_VULKAN
-    This->vvtbl = pKtxTexture2_vvtbl;
-#else
-    This->vvtbl = NULL;
-#endif
     privateSize = sizeof(ktxTexture2_private)
                 + sizeof(ktxLevelIndexEntry) * (numLevels - 1);
     This->_private = (ktxTexture2_private*)malloc(privateSize);
@@ -1750,7 +1744,6 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXDESTROY)ktxTexture2_Destroy,
     (PFNKTEXGETIMAGEOFFSET)ktxTexture2_GetImageOffset,
     (PFNKTEXGETIMAGESIZE)ktxTexture2_GetImageSize,
-    (PFNKTEXGLUPLOAD)ktxTexture2_GLUpload,
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXLOADIMAGEDATA)ktxTexture2_LoadImageData,

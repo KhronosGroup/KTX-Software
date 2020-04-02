@@ -108,8 +108,6 @@
     # Use _files to get the names relativized
     'vksource_files': [
       '../include/ktxvulkan.h',
-      'texture1_vvtbl.c',
-      'texture2_vvtbl.c',
       'vk_format.h',
       'vkloader.c',
       'vk_funclist.inl',

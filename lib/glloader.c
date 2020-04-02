@@ -1037,4 +1037,23 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
     return result;
 }
 
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Create a GL texture object from a ktxTexture1 object.
+ *
+ * @copydetails ktxTexture1_GLUpload
+ */
+KTX_error_code
+ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
+                    GLenum* pGlerror)
+{
+    if (This->classId == ktxTexture2_c)
+        return ktxTexture2_GLUpload((ktxTexture2*)This, pTexture, pTarget,
+                                     pGlerror);
+    else
+        return ktxTexture1_GLUpload((ktxTexture1*)This, pTexture, pTarget,
+                                     pGlerror);
+}
+
 /** @} */
