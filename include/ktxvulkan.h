@@ -147,41 +147,24 @@ KTX_APICALL void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
 KTX_APICALL void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
-
-typedef KTX_error_code
-    (KTX_APIENTRY* PFNKTEXVKUPLOAD)(ktxTexture* This,
-                                    ktxVulkanDeviceInfo* vdi,
-                                    ktxVulkanTexture* vkTexture);
-
-typedef KTX_error_code
-    (KTX_APIENTRY* PFNKTEXVKUPLOADEX)(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
                       VkImageTiling tiling,
                       VkImageUsageFlags usageFlags,
-                      VkImageLayout layout);
+                      VkImageLayout finalLayout);
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
+                    ktxVulkanTexture *vkTexture);
 
-typedef VkFormat (KTX_APIENTRY* PFNKTEXGETVKFORMAT)(ktxTexture* This);
+KTX_APICALL VkFormat KTX_APIENTRY
+ktxTexture_GetVkFormat(ktxTexture* This);
 
-#define ktxTexture_VkUploadEx(This, vdi, vkTexture, tiling, usageFlags, \
-                              layout) \
-            This->vvtbl->VkUploadEx(This, vdi, vkTexture, tiling, \
-                                     usageFlags, layout)
+KTX_APICALL VkFormat KTX_APIENTRY
+ktxTexture1_GetVkFormat(ktxTexture1* This);
 
-#define ktxTexture_VkUpload(This, vdi, vkTexture) \
-                    This->vvtbl->VkUpload(This, vdi, vkTexture)
-
-#define ktxTexture_GetVkFormat(This) This->vvtbl->GetVkFormat(This)
-
-/**
- * @memberof ktxTexture
- * @~English
- * @brief Table of ktxTexture's virtual functions for Vulkan uploads.
- */
-struct ktxTexture_vvtbl {
-    PFNKTEXVKUPLOADEX VkUploadEx;
-    PFNKTEXVKUPLOAD VkUpload;
-    PFNKTEXGETVKFORMAT GetVkFormat;
-};
+KTX_APICALL VkFormat KTX_APIENTRY
+ktxTexture2_GetVkFormat(ktxTexture2* This);
 
 #ifdef __cplusplus
 }

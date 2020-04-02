@@ -169,13 +169,14 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
         if (!ktxVulkanLoadLibrary())
             // Normal use is for this constructor to be called by an application
             // that has completed Vulkan initialization. In that case the only
-            // cause for failure would be an incompatible in the version of libvulkan
-            // that is loaded. The only other cause would be an application calling
-            // Vulkan functions without having initialized Vulkan.
+            // cause for failure would be an incompatibility in the version
+            // of libvulkan that is loaded. The only other cause would be an
+            // application calling Vulkan functions without having initialized
+            // Vulkan.
             //
-            // In these cases, an abort along with the messages sent to stderr by
-            // ktxVulkanLoadLibrary is sufficient as released applications should
-            // never suffer these.
+            // In these cases, an abort along with the messages sent to stderr
+            // by ktxVulkanLoadLibrary is sufficient as released applications
+            // should never suffer these.
             abort();
     }
 #endif
@@ -550,24 +551,62 @@ linearTilingPadCallback(int miplevel, int face,
 }
 
 /**
- * @memberof ktxTexture @private
+ * @memberof ktxTexture
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
- * @copydetails ktxTexture1::ktxTexture1_VkUploadEx
+ * Creates a VkImage with @c VkFormat etc. matching the KTX data and uploads
+ * the images. Also creates a VkImageView object for accessing the image.
+ * Mipmaps will be generated if the @c ktxTexture's @c generateMipmaps
+ * flag is set. Returns the handles of the created objects and information
+ * about the texture in the @c ktxVulkanTexture pointed at by @p vkTexture.
+ *
+ * @p usageFlags and thus acceptable usage of the created image may be
+ * augmented as follows:
+ * - with @c VK_IMAGE_USAGE_TRANSFER_DST_BIT if @p tiling is
+ *   @c VK_IMAGE_TILING_OPTIMAL
+ * - with <code>VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT</code>
+ *   if @c generateMipmaps is set in the @c ktxTexture.
+ *
+ * Most Vulkan implementations support VK_IMAGE_TILING_LINEAR only for a very
+ * limited number of formats and features. Generally VK_IMAGE_TILING_OPTIMAL is
+ * preferred. The latter requires a staging buffer so will use more memory
+ * during loading.
+ *
+ * @param[in] This          pointer to the ktxTexture from which to upload.
+ * @param [in] vdi          pointer to a ktxVulkanDeviceInfo structure providing
+ *                          information about the Vulkan device onto which to
+ *                          load the texture.
+ * @param [in,out] vkTexture pointer to a ktxVulkanTexture structure into which
+ *                           the function writes information about the created
+ *                           VkImage.
+ * @param [in] tiling       type of tiling to use in the destination image
+ *                          on the Vulkan device.
+ * @param [in] usageFlags   a set of VkImageUsageFlags bits indicating the
+ *                          intended usage of the destination image.
+ * @param [in] finalLayout  a VkImageLayout value indicating the desired
+ *                          final layout of the created image.
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This, @p vdi or @p vkTexture is @c NULL.
+ * @exception KTX_INVALID_OPERATION The ktxTexture contains neither images nor
+ *                                  an active stream from which to read them.
+ * @exception KTX_INVALID_OPERATION The combination of the ktxTexture's format,
+ *                                  @p tiling and @p usageFlags is not supported
+ *                                  by the physical device.
+ * @exception KTX_INVALID_OPERATION Requested mipmap generation is not supported
+ *                                  by the physical device for the combination
+ *                                  of the ktxTexture's format and @p tiling.
+ * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated
+ *                              on either the CPU or the Vulkan device.
  */
- /*
-  * Either @private or @internal on the above prevents a @copydetails in
-  * another function's doc from finding this. So, even though this function
-  * does all the work, the doc has been moved to ktxTexture1_VkUploadEx.
-  * Update that doc whenever this function changes.
-  */
 KTX_error_code
-ktxTexture_VkUploadExPrivate(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                             ktxVulkanTexture* vkTexture,
-                             VkImageTiling tiling,
-                             VkImageUsageFlags usageFlags,
-                             VkImageLayout finalLayout)
+ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                      ktxVulkanTexture* vkTexture,
+                      VkImageTiling tiling,
+                      VkImageUsageFlags usageFlags,
+                      VkImageLayout finalLayout)
 {
     KTX_error_code           kResult;
     VkFilter                 blitFilter = VK_FILTER_LINEAR;
@@ -1087,11 +1126,112 @@ ktxTexture_VkUploadExPrivate(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
     return KTX_SUCCESS;
 }
 
+/** @memberof ktxTexture
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture1 object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
+                    ktxVulkanTexture *vkTexture)
+{
+    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
+                                 VK_IMAGE_TILING_OPTIMAL,
+                                 VK_IMAGE_USAGE_SAMPLED_BIT,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+/** @memberof ktxTexture1
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture1 object.
+ *
+ * This simplly calls ktxTexture_VkUploadEx.
+ *
+ * @copydetails ktxTexture::ktxTexture_VkUploadEx
+ */
+KTX_error_code
+ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout)
+{
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
+                                 usageFlags, finalLayout);
+}
+
+/** @memberof ktxTexture1
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture1 object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
+ * @sa ktxTexture_VkUploadEx() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
+                     ktxVulkanTexture *vkTexture)
+{
+    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
+                                 VK_IMAGE_TILING_OPTIMAL,
+                                 VK_IMAGE_USAGE_SAMPLED_BIT,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture2 object.
+ *
+ * This simplly calls ktxTexture_VkUploadEx.
+ *
+ * @copydetails ktxTexture::ktxTexture_VkUploadEx
+ */
+KTX_error_code
+ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout)
+{
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
+                                 usageFlags, finalLayout);
+}
+
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture2 object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
+ * @sa ktxTexture2_VkUploadEx() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+                     ktxVulkanTexture *vkTexture)
+{
+    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
+                                 VK_IMAGE_TILING_OPTIMAL,
+                                 VK_IMAGE_USAGE_SAMPLED_BIT,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
 /** @memberof ktxTexture1
  * @~English
  * @brief Return the VkFormat enum of a ktxTexture1 object.
  *
- * @return The VkFormat of the ktxTexture1. May return VK_FORMAT_UNDEFINED if
+ * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
  *         there is no mapping from the GL internalformat and format.
  */
 VkFormat
@@ -1109,10 +1249,9 @@ ktxTexture1_GetVkFormat(ktxTexture1* This)
 
 /** @memberof ktxTexture2
  * @~English
- * @brief Return the VkFormat enum of a ktxTexture object.
+ * @brief Return the VkFormat enum of a ktxTexture2 object.
  *
- * @return The VkFormat of the ktxTexture2. May return VK_FORMAT_UNDEFINED if
- *         this is a supercompressed texture.
+ * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
  */
 VkFormat
 ktxTexture2_GetVkFormat(ktxTexture2* This)
@@ -1120,125 +1259,24 @@ ktxTexture2_GetVkFormat(ktxTexture2* This)
     return This->vkFormat;
 }
 
-/** @memberof ktxTexture1
- * @~English
- * @brief Create a Vulkan image object from a ktxTexture1 object.
- *
- * Creates a VkImage with @c VkFormat etc. matching the KTX data and uploads
- * the images. Also creates a VkImageView object for accessing the image.
- * Mipmaps will be generated if the @c ktxTexture's @c generateMipmaps
- * flag is set. Returns the handles of the created objects and information
- * about the texture in the @c ktxVulkanTexture pointed at by @p vkTexture.
- *
- * @p usageFlags and thus acceptable usage of the created image may be
- * augmented as follows:
- * - with @c VK_IMAGE_USAGE_TRANSFER_DST_BIT if @p tiling is
- *   @c VK_IMAGE_TILING_OPTIMAL
- * - with <code>VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT</code>
- *   if @c generateMipmaps is set in the @c ktxTexture.
- *
- * Most Vulkan implementations support VK_IMAGE_TILING_LINEAR only for a very
- * limited number of formats and features. Generally VK_IMAGE_TILING_OPTIMAL is
- * preferred. The latter requires a staging buffer so will use more memory
- * during loading.
- *
- * @param[in] This          pointer to the ktxTexture from which to upload.
- * @param [in] vdi          pointer to a ktxVulkanDeviceInfo structure providing
- *                          information about the Vulkan device onto which to
- *                          load the texture.
- * @param [in,out] vkTexture pointer to a ktxVulkanTexture structure into which
- *                           the function writes information about the created
- *                           VkImage.
- * @param [in] tiling       type of tiling to use in the destination image
- *                          on the Vulkan device.
- * @param [in] usageFlags   a set of VkImageUsageFlags bits indicating the
- *                          intended usage of the destination image.
- * @param [in] finalLayout  a VkImageLayout value indicating the desired
- *                          final layout of the created image.
- *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE @p This, @p vdi or @p vkTexture is @c NULL.
- * @exception KTX_INVALID_OPERATION The ktxTexture contains neither images nor
- *                                  an active stream from which to read them.
- * @exception KTX_INVALID_OPERATION The combination of the ktxTexture's format,
- *                                  @p tiling and @p usageFlags is not supported
- *                                  by the physical device.
- * @exception KTX_INVALID_OPERATION Requested mipmap generation is not supported
- *                                  by the physical device for the combination
- *                                  of the ktxTexture's format and @p tiling.
- * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated
- *                              on either the CPU or the Vulkan device.
- */
-KTX_error_code
-ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
-                       ktxVulkanTexture* vkTexture,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usageFlags,
-                       VkImageLayout finalLayout)
-{
-    return ktxTexture_VkUploadExPrivate(ktxTexture(This), vdi, vkTexture, tiling,
-                                        usageFlags, finalLayout);
-}
-
-/** @memberof ktxTexture1
- * @~English
- * @brief Create a Vulkan image object from a ktxTexture object.
- *
- * Calls ktxTexture_VkUploadEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
- * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- *
- * @sa ktxTexture1_VkUploadEx() for details and use that for complete
- *     control.
- */
-KTX_error_code
-ktxTexture1_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
-                     ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadExPrivate(ktxTexture(texture), vdi, vkTexture,
-                                   VK_IMAGE_TILING_OPTIMAL,
-                                   VK_IMAGE_USAGE_SAMPLED_BIT,
-                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-}
-
-/** @memberof ktxTexture2
- * @~English
- * @brief Create a Vulkan image object from a ktxTexture object.
- *
- * @copydetails ktxTexture1::ktxTexture1_VkUploadEx
- */
-KTX_error_code
-ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
-                       ktxVulkanTexture* vkTexture,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usageFlags,
-                       VkImageLayout finalLayout)
-{
-    return ktxTexture_VkUploadExPrivate(ktxTexture(This), vdi, vkTexture, tiling,
-                                        usageFlags, finalLayout);
-}
-
 /** @memberof ktxTexture
  * @~English
- * @brief Create a Vulkan image object from a ktxTexture object.
+ * @brief Return the VkFormat enum of a ktxTexture object.
  *
- * Calls ktxTexture_VkUploadEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
- * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- *
- * @sa ktxTexture2_VkUploadEx() for details and use that for complete
- *     control.
+ * In ordert to ensure that the Vulkan uploader is not linked into an application unless explicitly called,
+ * this is not a virtual function. It determines the texture type then dispatches to the correct function.
+
+ * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
  */
-KTX_error_code
-ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
-                     ktxVulkanTexture *vkTexture)
+VkFormat
+ktxTexture_GetVkFormat(ktxTexture* This)
 {
-    return ktxTexture_VkUploadExPrivate(ktxTexture(texture), vdi, vkTexture,
-                                   VK_IMAGE_TILING_OPTIMAL,
-                                   VK_IMAGE_USAGE_SAMPLED_BIT,
-                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    if (This->classId == ktxTexture2_c)
+        return ktxTexture2_GetVkFormat((ktxTexture2*)This);
+    else
+        return ktxTexture1_GetVkFormat((ktxTexture1*)This);
 }
+
 //======================================================================
 //  Utilities
 //======================================================================

@@ -641,7 +641,6 @@ compressedTexImage3DCallback(int miplevel, int face,
 }
 /* [imageCallbacks] */
 
-#undef ktxTexture_GLUpload
 /**
  * @memberof ktxTexture @private
  * @~English
@@ -1035,6 +1034,28 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
     }
 
     return result;
+}
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Create a GL texture object from a ktxTexture1 object.
+ *
+ * In ordert to ensure that the GL uploader is not linked into an application unless explicitly called,
+ * this is not a virtual function. It determines the texture type then dispatches to the correct function.
+ *
+ * @copydetails ktxTexture1::ktxTexture1_GLUpload
+ */
+KTX_error_code
+ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
+                    GLenum* pGlerror)
+{
+    if (This->classId == ktxTexture2_c)
+        return ktxTexture2_GLUpload((ktxTexture2*)This, pTexture, pTarget,
+                                     pGlerror);
+    else
+        return ktxTexture1_GLUpload((ktxTexture1*)This, pTexture, pTarget,
+                                     pGlerror);
 }
 
 /** @} */

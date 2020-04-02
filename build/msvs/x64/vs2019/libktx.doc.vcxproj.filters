@@ -844,18 +844,6 @@
     <Filter Include="lib\_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib\_excluded_files">
-      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib\_excluded_files">
-      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\libktx.gyp"/>
@@ -1165,12 +1153,6 @@
     <ClInclude Include="..\..\..\..\include\ktxvulkan.h">
       <Filter>include\_excluded_files</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\lib\texture1_vvtbl.c">
-      <Filter>lib\_excluded_files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\texture2_vvtbl.c">
-      <Filter>lib\_excluded_files</Filter>
-    </ClCompile>
     <ClInclude Include="..\..\..\..\lib\vk_format.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>

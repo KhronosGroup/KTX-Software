@@ -441,10 +441,6 @@ typedef KTX_error_code
 typedef ktx_size_t
     (KTX_APIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
 typedef KTX_error_code
-    (KTX_APIENTRY* PFNKTEXGLUPLOAD)(ktxTexture* This,
-                                    GLuint* pTexture, GLenum* pTarget,
-                                    GLenum* pGlerror);
-typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXITERATELEVELS)(ktxTexture* This, PFNKTXITERCB iterCb,
                                          void* userdata);
 
@@ -488,7 +484,6 @@ typedef KTX_error_code
     PFNKTEXDESTROY Destroy;
     PFNKTEXGETIMAGEOFFSET GetImageOffset;
     PFNKTEXGETIMAGESIZE GetImageSize;
-    PFNKTEXGLUPLOAD GLUpload;
     PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXLOADIMAGEDATA LoadImageData;
@@ -526,12 +521,6 @@ typedef KTX_error_code
  */
 #define ktxTexture_GetImageSize(This, level) \
             (This)->vtbl->GetImageSize(This, level)
-
-/*
- * Uploads the image data from a ktxTexture Thisect to an OpenGL {,ES} texture
- * Thisect.
- */
-#define ktxTexture_GLUpload(This, a, b, c) (This)->vtbl->GLUpload(This, a, b, c)
 
 /**
  * @~English
@@ -789,6 +778,11 @@ ktxTexture_GetElementSize(ktxTexture* This);
  */
 KTX_APICALL ktx_size_t KTX_APIENTRY
 ktxTexture_GetSize(ktxTexture* This);
+
+/* Uploads a texture to OpenGL {,ES}. */
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
+                    GLenum* pGlerror);
 
 /*
  * Iterate over the levels or faces in a ktxTexture object.

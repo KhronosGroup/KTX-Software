@@ -99,8 +99,6 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/vkformat_str.o \
 	$(obj).target/$(TARGET)/lib/writer1.o \
 	$(obj).target/$(TARGET)/lib/writer2.o \
-	$(obj).target/$(TARGET)/lib/texture1_vvtbl.o \
-	$(obj).target/$(TARGET)/lib/texture2_vvtbl.o \
 	$(obj).target/$(TARGET)/lib/vkloader.o \
 	$(obj).target/$(TARGET)/lib/vk_funcs.o
 

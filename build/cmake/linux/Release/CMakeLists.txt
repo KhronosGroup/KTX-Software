@@ -165,8 +165,6 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer1.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/writer2.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture1_vvtbl.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/texture2_vvtbl.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vkloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/vk_funclist.inl"
@@ -307,8 +305,6 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/vkformat_str.c"
   "../../../../lib/writer1.c"
   "../../../../lib/writer2.c"
-  "../../../../lib/texture1_vvtbl.c"
-  "../../../../lib/texture2_vvtbl.c"
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")
 list(APPEND libktx_gl__cxx_srcs

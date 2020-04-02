@@ -520,12 +520,6 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\ktx.h">
@@ -819,12 +813,6 @@
     <ClInclude Include="..\..\..\..\include\ktxvulkan.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\lib\texture1_vvtbl.c">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\texture2_vvtbl.c">
-      <Filter>lib</Filter>
-    </ClCompile>
     <ClInclude Include="..\..\..\..\lib\vk_format.h">
       <Filter>lib</Filter>
     </ClInclude>
