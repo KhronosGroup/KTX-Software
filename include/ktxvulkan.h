@@ -156,6 +156,24 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout);
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
+                    ktxVulkanTexture *vkTexture);
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                       ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout);
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+                     ktxVulkanTexture *vkTexture);
 
 KTX_APICALL VkFormat KTX_APIENTRY
 ktxTexture_GetVkFormat(ktxTexture* This);
