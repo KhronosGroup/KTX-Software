@@ -71,6 +71,7 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_pvrtc1_4.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_resampler.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_resample_filters.o \
+	$(obj).target/$(TARGET)/lib/basisu/jpgd.o \
 	$(obj).target/$(TARGET)/lib/basisu/lodepng.o \
 	$(obj).target/$(TARGET)/lib/basisu/transcoder/basisu_transcoder.o \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_uastc_enc.o \

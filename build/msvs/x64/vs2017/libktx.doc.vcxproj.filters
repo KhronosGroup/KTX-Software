@@ -301,6 +301,24 @@
     <Filter Include="lib\basisu">
       <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\basisu\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{68149439-E5E6-1C31-1F66-A2853895ADC6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\basisu\transcoder">
       <UniqueIdentifier>{391096AF-C7CA-03D0-505C-96CF6969707A}</UniqueIdentifier>
     </Filter>
@@ -947,6 +965,12 @@
       <Filter>lib\basisu\_excluded_files</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_resampler_filters.h">
+      <Filter>lib\basisu\_excluded_files</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\lib\basisu\jpgd.cpp">
+      <Filter>lib\basisu\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\basisu\jpgd.h">
       <Filter>lib\basisu\_excluded_files</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\lib\basisu\lodepng.cpp">
