@@ -164,6 +164,7 @@
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_pvrtc1_4.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_resampler.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_resampler_filters.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu\jpgd.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\lodepng.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_file_headers.h"/>
@@ -209,6 +210,7 @@
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_pvrtc1_4.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_resampler.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_resample_filters.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu\jpgd.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\lodepng.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_uastc_enc.cpp"/>
