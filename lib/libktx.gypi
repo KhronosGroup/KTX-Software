@@ -37,6 +37,8 @@
       'basisu/basisu_resampler.h',
       'basisu/basisu_resample_filters.cpp',
       'basisu/basisu_resampler_filters.h',
+      'basisu/jpgd.cpp',
+      'basisu/jpgd.h',
       'basisu/lodepng.cpp',
       'basisu/lodepng.h',
       'basisu/transcoder/basisu.h',
