@@ -82,89 +82,91 @@
 		036E1CE451725C62223B2587 /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
 		038E3023DF3CB0AF83399041 /* basis_encode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2862B8E86DE1D2FC2D068C60 /* basis_encode.cpp */; };
 		03B3E145FD22BD4B506A1A56 /* strings.c in Sources */ = {isa = PBXBuildFile; fileRef = B03573A8C0EFA88D798DA4FE /* strings.c */; };
-		07007E63D04FA5FAD0250BDA /* basisu_bc7enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E4E908FD909E4C559CDA832 /* basisu_bc7enc.cpp */; };
-		0E5A66B99A5EFA1F18C0191F /* basisu_etc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 965D273C04237BB07B944625 /* basisu_etc.cpp */; };
-		13B56DA3E68B51322B18EAED /* basisu_global_selector_palette_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B97E4CD359B47F78C6BAC4DD /* basisu_global_selector_palette_helpers.cpp */; };
+		0DD4128214CFCE852F11D7CE /* basisu_etc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 965D273C04237BB07B944625 /* basisu_etc.cpp */; };
+		1445A45D635E77627216025E /* basisu_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD81C993CB3BD488B91685BC /* basisu_enc.cpp */; };
 		1763BA1109D7BBB2BF95F1C6 /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
 		219FED9E56AEBAA1A5F91A3C /* texture1.c in Sources */ = {isa = PBXBuildFile; fileRef = 01854AF4C95CF0C47CCCAE9D /* texture1.c */; };
+		2AB392067A93107A4723BDD1 /* basisu_bc7enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E4E908FD909E4C559CDA832 /* basisu_bc7enc.cpp */; };
+		2D107B93D2D67E06D7785ABE /* apg_bmp.c in Sources */ = {isa = PBXBuildFile; fileRef = 7DCB4AB4D668CD0453351683 /* apg_bmp.c */; };
 		2E0F6DD78D6FC6A64FE97EBA /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
-		31109D76754173A4E4DE739B /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 276216C478E95FFB51AB76DC /* lodepng.cpp */; };
 		32B747C9140A261477C09537 /* dfd2vk.c in Sources */ = {isa = PBXBuildFile; fileRef = A555A1D5A7E4F839D975DAC3 /* dfd2vk.c */; };
+		331D083A5DED7B4AB965A297 /* basisu_resample_filters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B4AD48886F7C12FC5A82F24 /* basisu_resample_filters.cpp */; };
+		34A3613DBA4D98763AD2CE28 /* basisu_comp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E84707D9BC5D4933AB5F84A /* basisu_comp.cpp */; };
+		35E232BBB4C331AED250B442 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 276216C478E95FFB51AB76DC /* lodepng.cpp */; };
 		35EEFAFD27B624B3720EA758 /* strings.c in Sources */ = {isa = PBXBuildFile; fileRef = B03573A8C0EFA88D798DA4FE /* strings.c */; };
-		37AC941F03A0F14FEBD94F19 /* basisu_pvrtc1_4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F84FD46737CD56C0FC15994D /* basisu_pvrtc1_4.cpp */; };
+		3909F7313162F05C5730B1F8 /* basisu_bc7enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E4E908FD909E4C559CDA832 /* basisu_bc7enc.cpp */; };
 		3D167677D1601BB9E28C2812 /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
 		3D68125A5D0140E26B226A31 /* vk2dfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 7B8DECB4D76F31A454E9900A /* vk2dfd.c */; };
+		3D9DACC0284FBBAFFBEE328C /* basisu_basis_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B74F0335EA973EC00D6EC4B0 /* basisu_basis_file.cpp */; };
+		3F696276E1DED920E1B85FAA /* basisu_resampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F1EB8C4BF92389D93835E60 /* basisu_resampler.cpp */; };
 		413568B6B191DC89AEC15965 /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
 		42A07CC1E30466519BD6DAED /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		43E5A0245E2F497B96BE2C0B /* basisu_resample_filters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B4AD48886F7C12FC5A82F24 /* basisu_resample_filters.cpp */; };
 		44180E2A1ECDEFC5A0D5C422 /* texture1.c in Sources */ = {isa = PBXBuildFile; fileRef = 01854AF4C95CF0C47CCCAE9D /* texture1.c */; };
 		45AAFB3203C7F1FD7F9832DB /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		49613000463F4F45C1830B17 /* basisu_gpu_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E0835B603620D1B4C3C10C7 /* basisu_gpu_texture.cpp */; };
 		49A024AE152CC30383653C6D /* basis_transcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C5345B97771C28DDCF5993E7 /* basis_transcode.cpp */; };
-		4E4BA5453B1F60028F303FB6 /* basisu_astc_decomp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783ABCF5BBC99933E96F210F /* basisu_astc_decomp.cpp */; };
 		4F5108C5BF5B65A049F19ED0 /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
+		54366BCCCDF96178E7A31C90 /* basisu_transcoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A9A1B8E89D52C3D9A64937C /* basisu_transcoder.cpp */; };
+		55B8FDC16F953BC6CB8C21B9 /* basisu_global_selector_palette_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B97E4CD359B47F78C6BAC4DD /* basisu_global_selector_palette_helpers.cpp */; };
 		57234E17E507CFD596BFFD01 /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
 		57B0B484882995EE371BDB7B /* vk_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 0F6BC27BA1545D9A6F2405B8 /* vk_funcs.c */; };
-		5C5E25227CEF9CD7C9B6D0EB /* basisu_transcoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A9A1B8E89D52C3D9A64937C /* basisu_transcoder.cpp */; };
-		5CF56B582F1B7AC88134376E /* basisu_backend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4DC4ABC756A23363F93C3A8C /* basisu_backend.cpp */; };
-		5F60CB85876F05A1D0D02158 /* apg_bmp.c in Sources */ = {isa = PBXBuildFile; fileRef = 7DCB4AB4D668CD0453351683 /* apg_bmp.c */; };
+		58801DBF8A89DC2DE115B8DA /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 276216C478E95FFB51AB76DC /* lodepng.cpp */; };
+		602B6DF48D07DDCC83E8C89F /* basisu_transcoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A9A1B8E89D52C3D9A64937C /* basisu_transcoder.cpp */; };
 		603CE9A26759FEB4FC5DE5FE /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		6127CE6498CD224E04442DE1 /* basisu_pvrtc1_4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F84FD46737CD56C0FC15994D /* basisu_pvrtc1_4.cpp */; };
 		615F6DFE3C1B380DFF5EC8C6 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		66898D47F13C36F495261674 /* basisu_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD81C993CB3BD488B91685BC /* basisu_enc.cpp */; };
-		67155DC15657F8ED7BAA41CF /* basisu_comp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E84707D9BC5D4933AB5F84A /* basisu_comp.cpp */; };
-		6A6C5A4642C2E720A3A43129 /* basisu_resample_filters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B4AD48886F7C12FC5A82F24 /* basisu_resample_filters.cpp */; };
 		6B456D8FCA3A35FBE9F4A729 /* writer1.c in Sources */ = {isa = PBXBuildFile; fileRef = D8E7D1476AD33F35FE7FC88F /* writer1.c */; };
+		6C1ED5D1DBA18BE8E1623107 /* basisu_pvrtc1_4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F84FD46737CD56C0FC15994D /* basisu_pvrtc1_4.cpp */; };
+		6D67ABE59C7FB2B48EBF0F52 /* basisu_backend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4DC4ABC756A23363F93C3A8C /* basisu_backend.cpp */; };
+		710C0C3351F970864A6B29AC /* basisu_astc_decomp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783ABCF5BBC99933E96F210F /* basisu_astc_decomp.cpp */; };
 		71E7F4FBD85C5A082DC1622F /* glloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D421DB86018062B6870C747 /* glloader.c */; };
-		76A92881D714846D826A63DF /* basisu_uastc_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00833ADA35FA38294EDB628C /* basisu_uastc_enc.cpp */; };
+		7BDF831ADF6B2F953DEEC84A /* basisu_global_selector_palette_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B97E4CD359B47F78C6BAC4DD /* basisu_global_selector_palette_helpers.cpp */; };
 		7DD51E27FC346EB85351F8CB /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		7E8516603B0F1BCE42F66DAB /* basisu_resampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F1EB8C4BF92389D93835E60 /* basisu_resampler.cpp */; };
 		7FF2A0E99438B838DEF35021 /* vk2dfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 7B8DECB4D76F31A454E9900A /* vk2dfd.c */; };
 		81A40072B0096CD2B6108B68 /* vkformat_check.c in Sources */ = {isa = PBXBuildFile; fileRef = D33DCAC2B453F9973ED1088F /* vkformat_check.c */; };
 		820C4925CC43104840CE61F1 /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
 		89C5A902A34F31E543965E23 /* vkformat_check.c in Sources */ = {isa = PBXBuildFile; fileRef = D33DCAC2B453F9973ED1088F /* vkformat_check.c */; };
 		8D7677CA05087D2ABBD82A88 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
 		8EBF51ACC3597CB96B1ED35E /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = B173E34FD52E42EBF0F24CF0 /* swap.c */; };
-		98D37D3C84B6C14EFA8BFEBF /* basisu_gpu_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E0835B603620D1B4C3C10C7 /* basisu_gpu_texture.cpp */; };
-		9B6F44613076FF249C11B0A2 /* basisu_bc7enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E4E908FD909E4C559CDA832 /* basisu_bc7enc.cpp */; };
+		92FC1D600F2109710DD99AD0 /* jpgd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D093F7148565C260D80A5694 /* jpgd.cpp */; };
+		95BD84319A9B07A225D5EFEA /* basisu_uastc_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00833ADA35FA38294EDB628C /* basisu_uastc_enc.cpp */; };
+		9C4B2680BC6C6F8BC35B8EDC /* basisu_backend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4DC4ABC756A23363F93C3A8C /* basisu_backend.cpp */; };
 		9FA5B392C5EA8F76433F50D0 /* createdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = F1855B606AA3818BD9BE7DC0 /* createdfd.c */; };
+		A02844D19FFD0590D5E4D80F /* basisu_resample_filters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B4AD48886F7C12FC5A82F24 /* basisu_resample_filters.cpp */; };
 		A144A8495F6679B2CC3F8840 /* texture2.c in Sources */ = {isa = PBXBuildFile; fileRef = 354CF91415443924B64F07B3 /* texture2.c */; };
-		A5B7143B85F3C854AB145170 /* basisu_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD81C993CB3BD488B91685BC /* basisu_enc.cpp */; };
-		A752E46C9EB41E41D9EEE858 /* basisu_basis_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B74F0335EA973EC00D6EC4B0 /* basisu_basis_file.cpp */; };
+		A1E94903A44114A57EE234C6 /* basisu_astc_decomp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783ABCF5BBC99933E96F210F /* basisu_astc_decomp.cpp */; };
 		A78F7462235E728AB56B4A4D /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
 		A8DFC9FCBD391026DE66CF62 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = 92794EBE6DABF950FC03CFE8 /* texture.c */; };
 		AA97E2E0781E37358EA2E5F7 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
 		AC6F256DC797BD388D5351C3 /* hashlist.c in Sources */ = {isa = PBXBuildFile; fileRef = FC5A736041E56A19740046E1 /* hashlist.c */; };
-		ACDA2500F9E7881355C636B3 /* basisu_global_selector_palette_helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B97E4CD359B47F78C6BAC4DD /* basisu_global_selector_palette_helpers.cpp */; };
 		ADEDA1B5605D188C74BEAA7B /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		AFF590A146065614257D02C7 /* basisu_etc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 965D273C04237BB07B944625 /* basisu_etc.cpp */; };
-		B062370B83E421CA65C2428B /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 276216C478E95FFB51AB76DC /* lodepng.cpp */; };
+		AF8828B609D18F1524C36915 /* basisu_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD81C993CB3BD488B91685BC /* basisu_enc.cpp */; };
+		B5FDB7BEAAC74DD39D78D541 /* basisu_uastc_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00833ADA35FA38294EDB628C /* basisu_uastc_enc.cpp */; };
 		B62895E4BD2472DCA83DE838 /* vkloader.c in Sources */ = {isa = PBXBuildFile; fileRef = 53941C3F4EB820F20A47DA0E /* vkloader.c */; };
-		B68D11ED3D05C2B65D4A62B5 /* basisu_comp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E84707D9BC5D4933AB5F84A /* basisu_comp.cpp */; };
 		B7B184A709A6ABAD74D238FE /* checkheader.c in Sources */ = {isa = PBXBuildFile; fileRef = EC2F140ED1C840A390FE4436 /* checkheader.c */; };
 		B82B952AE72F78036C38A05D /* vkformat_str.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C8BD124834875302BD54E96 /* vkformat_str.c */; };
-		BDA3E1EE67F81F305A607DDA /* basisu_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AC539267AEE0C27FB5A354C /* basisu_frontend.cpp */; };
-		BDCCFF741B7A727B07554933 /* basisu_astc_decomp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783ABCF5BBC99933E96F210F /* basisu_astc_decomp.cpp */; };
-		C1DB8896F650F8E602E41D47 /* basisu_pvrtc1_4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F84FD46737CD56C0FC15994D /* basisu_pvrtc1_4.cpp */; };
+		B8ECFFE4692FD4BFB8A11D2A /* basisu_basis_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B74F0335EA973EC00D6EC4B0 /* basisu_basis_file.cpp */; };
+		BDB61C259069EBA1014A3C56 /* basisu_etc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 965D273C04237BB07B944625 /* basisu_etc.cpp */; };
 		C2F6DFB8325DF9F49D05C299 /* memstream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F80151F983F77C60709E872 /* memstream.c */; };
-		C323A2ED48054FAC034DD887 /* basisu_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AC539267AEE0C27FB5A354C /* basisu_frontend.cpp */; };
 		C389B15AE0961F059496F3A6 /* queries.c in Sources */ = {isa = PBXBuildFile; fileRef = B3ABAA3A4D5D74FAC0FB4D43 /* queries.c */; };
+		CA68AD2EE75A3851AE78D574 /* basisu_gpu_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E0835B603620D1B4C3C10C7 /* basisu_gpu_texture.cpp */; };
 		CA70E56AB48EEC25FF86A0DB /* basis_transcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C5345B97771C28DDCF5993E7 /* basis_transcode.cpp */; };
-		CB34E4466EF273EE99566702 /* basisu_gpu_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E0835B603620D1B4C3C10C7 /* basisu_gpu_texture.cpp */; };
+		CB8833E5C1493602E2087F7F /* basisu_comp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E84707D9BC5D4933AB5F84A /* basisu_comp.cpp */; };
+		CB98B39984E309C06B31C83E /* basisu_resampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F1EB8C4BF92389D93835E60 /* basisu_resampler.cpp */; };
+		CE5E601C307F9C0B66C7FF9B /* basisu_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AC539267AEE0C27FB5A354C /* basisu_frontend.cpp */; };
 		D418EB6732D968B7FDCF220E /* queries.c in Sources */ = {isa = PBXBuildFile; fileRef = B3ABAA3A4D5D74FAC0FB4D43 /* queries.c */; };
 		D59DF55FB05C0F4466979247 /* printdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 82527C2532AA96299FE18243 /* printdfd.c */; };
+		D613FF27A9704E3A9B4C1181 /* apg_bmp.c in Sources */ = {isa = PBXBuildFile; fileRef = 7DCB4AB4D668CD0453351683 /* apg_bmp.c */; };
 		D787C68CE96C03201297056B /* filestream.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AB3EA425110875438DBA37A /* filestream.c */; };
-		DA3DA28D10B2533B03EA9192 /* basisu_uastc_enc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00833ADA35FA38294EDB628C /* basisu_uastc_enc.cpp */; };
 		DC7225C76035B6ABF2472612 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F80940DA17EAD2393C23A5F /* info.c */; };
 		DCF014C93D46C46D986279FE /* interpretdfd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3ABE606CF569F264728DBFDE /* interpretdfd.c */; };
-		DDE70E63B466EF9086E12CDE /* basisu_basis_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B74F0335EA973EC00D6EC4B0 /* basisu_basis_file.cpp */; };
-		E01D6D7C9A7801E1278F1111 /* basisu_resampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F1EB8C4BF92389D93835E60 /* basisu_resampler.cpp */; };
 		E5B5D9FF9C5E5E7A005FFCB6 /* dfd2vk.c in Sources */ = {isa = PBXBuildFile; fileRef = A555A1D5A7E4F839D975DAC3 /* dfd2vk.c */; };
-		EAB0657A6597CCE180847A4A /* basisu_backend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4DC4ABC756A23363F93C3A8C /* basisu_backend.cpp */; };
 		EB05F525939CA394E12D3C68 /* writer2.c in Sources */ = {isa = PBXBuildFile; fileRef = B2BB7F984182A7A7045D8510 /* writer2.c */; };
 		EC6309D875B4A6E4B89CEFAD /* etcunpack.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D99DA506B22F56ED2D1AA917 /* etcunpack.cxx */; };
 		EF798C323CFE4BC8B24CF295 /* etcdec.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DF0814AF15BCF65D8C69 /* etcdec.cxx */; };
-		F2B477852C1426270783245F /* apg_bmp.c in Sources */ = {isa = PBXBuildFile; fileRef = 7DCB4AB4D668CD0453351683 /* apg_bmp.c */; };
+		F2A2D1B1E8DFD4EB3AAC7E96 /* basisu_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AC539267AEE0C27FB5A354C /* basisu_frontend.cpp */; };
+		F35C60592AD0580DAD8179A7 /* jpgd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D093F7148565C260D80A5694 /* jpgd.cpp */; };
 		FD0E76744E73F79763276882 /* basis_encode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2862B8E86DE1D2FC2D068C60 /* basis_encode.cpp */; };
-		FEAC3F2B8617A41BB0A8B4BD /* basisu_transcoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A9A1B8E89D52C3D9A64937C /* basisu_transcoder.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -287,6 +289,7 @@
 		572C7B13557402439C277D80 /* libgles3.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgles3.gypi; path = gyp_include/libgles3.gypi; sourceTree = "<group>"; };
 		5C8BD124834875302BD54E96 /* vkformat_str.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_str.c; sourceTree = "<group>"; };
 		5F80151F983F77C60709E872 /* memstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = memstream.c; sourceTree = "<group>"; };
+		6FEA7041607F0E0A1B044EC3 /* jpgd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = jpgd.h; sourceTree = "<group>"; };
 		70C1BA265C39C7FE7E5DE10B /* texture_funcs.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = texture_funcs.inl; sourceTree = "<group>"; };
 		77AE2C7A5E0A0B1E4E13C186 /* basis_transcoder_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = basis_transcoder_config.h; sourceTree = "<group>"; };
 		783ABCF5BBC99933E96F210F /* basisu_astc_decomp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = basisu_astc_decomp.cpp; sourceTree = "<group>"; };
@@ -345,6 +348,7 @@
 		C5345B97771C28DDCF5993E7 /* basis_transcode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = basis_transcode.cpp; sourceTree = "<group>"; };
 		CB35CE35D0029A25103CB066 /* apg_bmp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = apg_bmp.h; sourceTree = "<group>"; };
 		D085D834087565F1CD69EFD7 /* config.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = config.gypi; path = gyp_include/config.gypi; sourceTree = "<group>"; };
+		D093F7148565C260D80A5694 /* jpgd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = jpgd.cpp; sourceTree = "<group>"; };
 		D33DCAC2B453F9973ED1088F /* vkformat_check.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vkformat_check.c; sourceTree = "<group>"; };
 		D4E93BE5260F9F886F788BE7 /* filestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filestream.h; sourceTree = "<group>"; };
 		D5162AE4ABEA3E466B5B3C3F /* ktxvulkan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ktxvulkan.h; sourceTree = "<group>"; };
@@ -427,7 +431,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		DD01361A63566403617D3B53 /* basisu */ = {
+		C59811C14798FEFF29C9F5E3 /* basisu */ = {
 			isa = PBXGroup;
 			children = (
 				EC7D5A1F1598062E5EF62DA1 /* transcoder */,
@@ -461,6 +465,8 @@
 				801B4AE27C0AC08B6AEEC5D7 /* basisu_resampler_filters.h */,
 				00833ADA35FA38294EDB628C /* basisu_uastc_enc.cpp */,
 				796AA699FBABDCD189812EDC /* basisu_uastc_enc.h */,
+				D093F7148565C260D80A5694 /* jpgd.cpp */,
+				6FEA7041607F0E0A1B044EC3 /* jpgd.h */,
 				276216C478E95FFB51AB76DC /* lodepng.cpp */,
 				19A2C2BA6D6E2EB68E4A28AF /* lodepng.h */,
 			);
@@ -508,7 +514,7 @@
 		F84C095AC428A75F603783FD /* lib */ = {
 			isa = PBXGroup;
 			children = (
-				DD01361A63566403617D3B53 /* basisu */,
+				C59811C14798FEFF29C9F5E3 /* basisu */,
 				F59F9811C7089FF61660E51D /* dfdutils */,
 				2862B8E86DE1D2FC2D068C60 /* basis_encode.cpp */,
 				96C7F4956E978716578EC663 /* basis_image_transcoder.h */,
@@ -665,23 +671,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F2B477852C1426270783245F /* apg_bmp.c in Sources */,
-				BDCCFF741B7A727B07554933 /* basisu_astc_decomp.cpp in Sources */,
-				5CF56B582F1B7AC88134376E /* basisu_backend.cpp in Sources */,
-				A752E46C9EB41E41D9EEE858 /* basisu_basis_file.cpp in Sources */,
-				07007E63D04FA5FAD0250BDA /* basisu_bc7enc.cpp in Sources */,
-				67155DC15657F8ED7BAA41CF /* basisu_comp.cpp in Sources */,
-				A5B7143B85F3C854AB145170 /* basisu_enc.cpp in Sources */,
-				AFF590A146065614257D02C7 /* basisu_etc.cpp in Sources */,
-				C323A2ED48054FAC034DD887 /* basisu_frontend.cpp in Sources */,
-				ACDA2500F9E7881355C636B3 /* basisu_global_selector_palette_helpers.cpp in Sources */,
-				98D37D3C84B6C14EFA8BFEBF /* basisu_gpu_texture.cpp in Sources */,
-				37AC941F03A0F14FEBD94F19 /* basisu_pvrtc1_4.cpp in Sources */,
-				7E8516603B0F1BCE42F66DAB /* basisu_resampler.cpp in Sources */,
-				43E5A0245E2F497B96BE2C0B /* basisu_resample_filters.cpp in Sources */,
-				B062370B83E421CA65C2428B /* lodepng.cpp in Sources */,
-				FEAC3F2B8617A41BB0A8B4BD /* basisu_transcoder.cpp in Sources */,
-				DA3DA28D10B2533B03EA9192 /* basisu_uastc_enc.cpp in Sources */,
+				2D107B93D2D67E06D7785ABE /* apg_bmp.c in Sources */,
+				710C0C3351F970864A6B29AC /* basisu_astc_decomp.cpp in Sources */,
+				6D67ABE59C7FB2B48EBF0F52 /* basisu_backend.cpp in Sources */,
+				3D9DACC0284FBBAFFBEE328C /* basisu_basis_file.cpp in Sources */,
+				3909F7313162F05C5730B1F8 /* basisu_bc7enc.cpp in Sources */,
+				34A3613DBA4D98763AD2CE28 /* basisu_comp.cpp in Sources */,
+				AF8828B609D18F1524C36915 /* basisu_enc.cpp in Sources */,
+				BDB61C259069EBA1014A3C56 /* basisu_etc.cpp in Sources */,
+				F2A2D1B1E8DFD4EB3AAC7E96 /* basisu_frontend.cpp in Sources */,
+				55B8FDC16F953BC6CB8C21B9 /* basisu_global_selector_palette_helpers.cpp in Sources */,
+				49613000463F4F45C1830B17 /* basisu_gpu_texture.cpp in Sources */,
+				6127CE6498CD224E04442DE1 /* basisu_pvrtc1_4.cpp in Sources */,
+				CB98B39984E309C06B31C83E /* basisu_resampler.cpp in Sources */,
+				331D083A5DED7B4AB965A297 /* basisu_resample_filters.cpp in Sources */,
+				F35C60592AD0580DAD8179A7 /* jpgd.cpp in Sources */,
+				58801DBF8A89DC2DE115B8DA /* lodepng.cpp in Sources */,
+				54366BCCCDF96178E7A31C90 /* basisu_transcoder.cpp in Sources */,
+				B5FDB7BEAAC74DD39D78D541 /* basisu_uastc_enc.cpp in Sources */,
 				FD0E76744E73F79763276882 /* basis_encode.cpp in Sources */,
 				CA70E56AB48EEC25FF86A0DB /* basis_transcode.cpp in Sources */,
 				4F5108C5BF5B65A049F19ED0 /* checkheader.c in Sources */,
@@ -714,23 +721,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F60CB85876F05A1D0D02158 /* apg_bmp.c in Sources */,
-				4E4BA5453B1F60028F303FB6 /* basisu_astc_decomp.cpp in Sources */,
-				EAB0657A6597CCE180847A4A /* basisu_backend.cpp in Sources */,
-				DDE70E63B466EF9086E12CDE /* basisu_basis_file.cpp in Sources */,
-				9B6F44613076FF249C11B0A2 /* basisu_bc7enc.cpp in Sources */,
-				B68D11ED3D05C2B65D4A62B5 /* basisu_comp.cpp in Sources */,
-				66898D47F13C36F495261674 /* basisu_enc.cpp in Sources */,
-				0E5A66B99A5EFA1F18C0191F /* basisu_etc.cpp in Sources */,
-				BDA3E1EE67F81F305A607DDA /* basisu_frontend.cpp in Sources */,
-				13B56DA3E68B51322B18EAED /* basisu_global_selector_palette_helpers.cpp in Sources */,
-				CB34E4466EF273EE99566702 /* basisu_gpu_texture.cpp in Sources */,
-				C1DB8896F650F8E602E41D47 /* basisu_pvrtc1_4.cpp in Sources */,
-				E01D6D7C9A7801E1278F1111 /* basisu_resampler.cpp in Sources */,
-				6A6C5A4642C2E720A3A43129 /* basisu_resample_filters.cpp in Sources */,
-				31109D76754173A4E4DE739B /* lodepng.cpp in Sources */,
-				5C5E25227CEF9CD7C9B6D0EB /* basisu_transcoder.cpp in Sources */,
-				76A92881D714846D826A63DF /* basisu_uastc_enc.cpp in Sources */,
+				D613FF27A9704E3A9B4C1181 /* apg_bmp.c in Sources */,
+				A1E94903A44114A57EE234C6 /* basisu_astc_decomp.cpp in Sources */,
+				9C4B2680BC6C6F8BC35B8EDC /* basisu_backend.cpp in Sources */,
+				B8ECFFE4692FD4BFB8A11D2A /* basisu_basis_file.cpp in Sources */,
+				2AB392067A93107A4723BDD1 /* basisu_bc7enc.cpp in Sources */,
+				CB8833E5C1493602E2087F7F /* basisu_comp.cpp in Sources */,
+				1445A45D635E77627216025E /* basisu_enc.cpp in Sources */,
+				0DD4128214CFCE852F11D7CE /* basisu_etc.cpp in Sources */,
+				CE5E601C307F9C0B66C7FF9B /* basisu_frontend.cpp in Sources */,
+				7BDF831ADF6B2F953DEEC84A /* basisu_global_selector_palette_helpers.cpp in Sources */,
+				CA68AD2EE75A3851AE78D574 /* basisu_gpu_texture.cpp in Sources */,
+				6C1ED5D1DBA18BE8E1623107 /* basisu_pvrtc1_4.cpp in Sources */,
+				3F696276E1DED920E1B85FAA /* basisu_resampler.cpp in Sources */,
+				A02844D19FFD0590D5E4D80F /* basisu_resample_filters.cpp in Sources */,
+				92FC1D600F2109710DD99AD0 /* jpgd.cpp in Sources */,
+				35E232BBB4C331AED250B442 /* lodepng.cpp in Sources */,
+				602B6DF48D07DDCC83E8C89F /* basisu_transcoder.cpp in Sources */,
+				95BD84319A9B07A225D5EFEA /* basisu_uastc_enc.cpp in Sources */,
 				038E3023DF3CB0AF83399041 /* basis_encode.cpp in Sources */,
 				49A024AE152CC30383653C6D /* basis_transcode.cpp in Sources */,
 				B7B184A709A6ABAD74D238FE /* checkheader.c in Sources */,
