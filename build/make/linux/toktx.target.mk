@@ -67,7 +67,7 @@ INCS_Release := \
 OBJS := \
 	$(obj).target/$(TARGET)/utils/argparser.o \
 	$(obj).target/$(TARGET)/tools/toktx/image.o \
-	$(obj).target/$(TARGET)/tools/toktx/lodepng.o \
+	$(obj).target/$(TARGET)/tools/toktx/jpgimage.o \
 	$(obj).target/$(TARGET)/tools/toktx/npbmimage.o \
 	$(obj).target/$(TARGET)/tools/toktx/pngimage.o \
 	$(obj).target/$(TARGET)/tools/toktx/toktx.o

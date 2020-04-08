@@ -35,7 +35,8 @@
 
 const std::vector<Image::CreateFunction> Image::CreateFunctions = {
     CreateFromNPBM,
-    CreateFromPNG
+    CreateFromPNG,
+    CreateFromJPG
 };
 
 Image* Image::CreateFromFile(_tstring& name, bool transformOETF) {
@@ -58,6 +59,7 @@ Image* Image::CreateFromFile(_tstring& name, bool transformOETF) {
             image = (*func)(f, transformOETF);
             return image;
         } catch (different_format) {
+            rewind(f);
             continue;
         }
     }

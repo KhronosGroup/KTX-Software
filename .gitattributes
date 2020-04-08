@@ -67,3 +67,5 @@ tests/testimages/*.png filter=lfs -text
 tests/testimages/cubemap* filter=lfs -text
 tests/testimages/texturearray* filter=lfs -text
 tests/testimages/FlightHelmet*.ktx2 filter=lfs -text
+tests/srcimages/*.jpg
+tests/srcimages/*.png

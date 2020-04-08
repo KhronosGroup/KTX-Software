@@ -139,14 +139,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
-    <ClInclude Include="..\..\..\..\tools\toktx\lodepng.h"/>
     <ClInclude Include="..\..\..\..\tools\toktx\stdafx.h"/>
     <ClInclude Include="..\..\..\..\tools\toktx\targetver.h"/>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\utils\argparser.cpp"/>
     <ClCompile Include="..\..\..\..\tools\toktx\image.cc"/>
-    <ClCompile Include="..\..\..\..\tools\toktx\lodepng.cc"/>
+    <ClCompile Include="..\..\..\..\tools\toktx\jpgimage.cc"/>
     <ClCompile Include="..\..\..\..\tools\toktx\npbmimage.cc"/>
     <ClCompile Include="..\..\..\..\tools\toktx\pngimage.cc"/>
     <ClCompile Include="..\..\..\..\tools\toktx\toktx.cc"/>
