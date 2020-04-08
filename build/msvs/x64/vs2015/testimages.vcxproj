@@ -373,6 +373,13 @@
       <Outputs>$(OutDir)\testimages\conftestimage_SIGNED_R11_EAC.ktx</Outputs>
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
+    <CustomBuild Include="..\..\..\..\tests\testimages\cimg5293.ktx2">
+      <FileType>Document</FileType>
+      <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\cimg5293.ktx2&quot; &quot;$(OutDir)testimages\cimg5293.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>
+      <Message>Copying tests/testimages/cimg5293.ktx2 to $(OutDir)\testimages</Message>
+      <Outputs>$(OutDir)\testimages\cimg5293.ktx2</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
     <CustomBuild Include="..\..\..\..\tests\testimages\alpha_simple_basis.ktx2">
       <FileType>Document</FileType>
       <Command>call mkdir &quot;$(OutDir)testimages&quot; 2&gt;nul &amp; set ERRORLEVEL=0 &amp; copy /Y &quot;..\..\..\..\tests\testimages\alpha_simple_basis.ktx2&quot; &quot;$(OutDir)testimages\alpha_simple_basis.ktx2&quot;&#xD;&#xA;if %errorlevel% neq 0 exit /b %errorlevel%</Command>

@@ -55,12 +55,6 @@
     <Filter Include="tools\toktx">
       <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tools">
-      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tools\toktx">
-      <UniqueIdentifier>{E9C7CE00-4BD8-E878-9EAD-72847FE27A06}</UniqueIdentifier>
-    </Filter>
     <Filter Include="_excluded_files">
       <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
     </Filter>
@@ -81,12 +75,9 @@
     <None Include="..\..\..\..\tools\toktx\image.hpp">
       <Filter>tools\toktx</Filter>
     </None>
-    <ClCompile Include="..\..\..\..\tools\toktx\lodepng.cc">
+    <ClCompile Include="..\..\..\..\tools\toktx\jpgimage.cc">
       <Filter>tools\toktx</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\..\tools\toktx\lodepng.h">
-      <Filter>tools\toktx</Filter>
-    </ClInclude>
     <ClCompile Include="..\..\..\..\tools\toktx\npbmimage.cc">
       <Filter>tools\toktx</Filter>
     </ClCompile>
