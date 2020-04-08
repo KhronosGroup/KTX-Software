@@ -37,7 +37,7 @@
 #include "lodepng.h"
 
 Image*
-Image::CreateFromPNG(FILE* src, bool transformOETF)
+Image::CreateFromPNG(FILE* src, bool)
 {
     // Unfortunately LoadPNG doesn't believe in stdio plus
     // the function we need only reads from memory. To avoid
@@ -144,7 +144,8 @@ Image::CreateFromPNG(FILE* src, bool transformOETF)
             break;
           } case 4: {
             using Color = color<uint16_t, 4>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);            break;
+            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            break;
           }
         }
     } else {
@@ -163,7 +164,8 @@ Image::CreateFromPNG(FILE* src, bool transformOETF)
             break;
           } case 4: {
             using Color = color<uint8_t, 4>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);            break;
+            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            break;
           }
         }
     }

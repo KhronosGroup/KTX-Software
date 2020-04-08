@@ -170,6 +170,7 @@ if [ $(uname) == "Darwin" ]; then
   gencmpktx alpha_simple_basis.ktx2 --test --bcmp alpha_simple.png
   gencmpktx kodim17_basis.ktx2 --test --bcmp kodim17.png
   gencmpktx color_grid_basis.ktx2 --test --bcmp color_grid.png
+  gencmpktx cimg5293.ktx2 --test --bcmp --genmipmap ../srcimages/CIMG5293.jpg
 fi
 
 filelist=$(mktemp)

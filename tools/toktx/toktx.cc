@@ -891,6 +891,8 @@ int _tmain(int argc, _TCHAR* argv[])
                      << " levels, " << createInfo.numLayers
                      << " layers and " << createInfo.numFaces
                      << " faces. Extras will be ignored." << endl;
+                options.infilenames.erase(options.infilenames.begin() + requiredFileCount,
+                                          options.infilenames.end());
             }
             if (options.ktx2) {
                 ret = ktxTexture2_Create(&createInfo,

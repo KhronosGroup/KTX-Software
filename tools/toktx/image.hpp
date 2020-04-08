@@ -311,6 +311,7 @@ class Image {
     static const std::vector<CreateFunction> CreateFunctions;
 
     static Image* CreateFromNPBM(FILE*, bool transformOETF = true);
+    static Image* CreateFromJPG(FILE* f, bool transformOETF = true);
     static Image* CreateFromPNG(FILE* f, bool transformOETF = true);
     static Image* CreateFromFile(_tstring& name, bool transformOETF = true);
 

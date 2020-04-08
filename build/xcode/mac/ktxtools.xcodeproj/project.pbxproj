@@ -159,19 +159,18 @@
 		0926A507DB17E983DC1E9C7D /* ktx2check in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 80F829362717628DB2E45619 /* ktx2check */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0BB71C8E3D6EAD446D7584E6 /* ktxinfo in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = F275A3E14410D5B59A00B213 /* ktxinfo */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		13CCB9F0F20FBF981D2012DC /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
-		169DFDC2D18F7CA2F422AC54 /* lodepng.cc in Sources */ = {isa = PBXBuildFile; fileRef = 9E7DF054A1945FC2B807B6AA /* lodepng.cc */; };
 		1796EE96D724C854F21691FE /* man1 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/share/man */ = {isa = PBXBuildFile; fileRef = D089E409802E25C29E799696 /* man1 */; };
 		1936D3EE25F7906B45B11175 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		1C8A058DBBF318C7F2CFA3CD /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		1E17E8B9260670D58084E3A8 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
-		2F3DC4C73B5981EE979160EB /* toktx.cc in Sources */ = {isa = PBXBuildFile; fileRef = 63862D3067E71C8161E487CF /* toktx.cc */; };
-		3FF2CF4D1283D84C098D0E80 /* pngimage.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5560AB21DC02A7F83C68DC83 /* pngimage.cc */; };
+		2AC7E0F5C84B4131A1157C14 /* npbmimage.cc in Sources */ = {isa = PBXBuildFile; fileRef = 22DBB882FC84F2F39D34C354 /* npbmimage.cc */; };
+		4E2DE86B18A87A8A657D689E /* image.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6CDD4A8B4D4CE4EA6EF4DFFB /* image.cc */; };
 		615E7F2196EF0DBD9CF39235 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
-		7111193E5301A6C34FD762C8 /* image.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6CDD4A8B4D4CE4EA6EF4DFFB /* image.cc */; };
+		6646C8539C813F0D8DEA995D /* pngimage.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5560AB21DC02A7F83C68DC83 /* pngimage.cc */; };
 		753617D521338E19F78CEE19 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		857F95F74D26BE55C122D854 /* ktxsc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD010438A3ED3EC86AE1110E /* ktxsc.cpp */; };
 		87E454435A7121A5DCA8F338 /* ktx2ktx2 in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 56C859EDDD90106359C989F0 /* ktx2ktx2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		A541046C79D883B3E15619B2 /* npbmimage.cc in Sources */ = {isa = PBXBuildFile; fileRef = 22DBB882FC84F2F39D34C354 /* npbmimage.cc */; };
+		88CF566EB0069609ED1AE72C /* jpgimage.cc in Sources */ = {isa = PBXBuildFile; fileRef = CF037AD8375D49AAB1E84292 /* jpgimage.cc */; };
 		AB65BA4859066A20E1A054FE /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 		B1E9EF8EC59A8DB281B2AB35 /* libktx.gl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7042D0AB1676B2DD7C96577D /* libktx.gl.dylib */; };
 		CD092A16BDF39A3C6B7BEF44 /* toktx in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 2E5F681D5C6F1BE626ECEB9D /* toktx */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -180,6 +179,7 @@
 		D41C44678621E36AC94C96CD /* ktx2ktx2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC70D852F49571AE410DF987 /* ktx2ktx2.cpp */; };
 		E56DF1812AA43550FB3FD4D5 /* ktx2check.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B8345FDEE4E4EC28FECC6F4 /* ktx2check.cpp */; };
 		F8FD74DBAFE3D38375F7BE27 /* ktxsc in Copy to $(WRAPPER_NAME)/../../$(DSTROOT)/$(INSTALL_PATH)/bin */ = {isa = PBXBuildFile; fileRef = 921D8375F2EF20B5E97697D8 /* ktxsc */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		FAB952F8DD4ABF9C4F53341E /* toktx.cc in Sources */ = {isa = PBXBuildFile; fileRef = 63862D3067E71C8161E487CF /* toktx.cc */; };
 		FDC077952656C7B728C9A5F4 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 443108B5D46423C057E80865 /* argparser.cpp */; };
 /* End PBXBuildFile section */
 
@@ -500,7 +500,6 @@
 		930390B57F3E7FC7724DF343 /* version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
 		97D19D2595D87F77A4CDC362 /* stdafx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
 		9DED3B165AA3B618D5F5E1AD /* ktx2ktx2.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ktx2ktx2.gypi; path = tools/ktx2ktx2/ktx2ktx2.gypi; sourceTree = "<group>"; };
-		9E7DF054A1945FC2B807B6AA /* lodepng.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lodepng.cc; sourceTree = "<group>"; };
 		9FDEDCE310E000EE3C1F8868 /* pvremu.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = pvremu.gypi; path = gyp_include/pvremu.gypi; sourceTree = "<group>"; };
 		A17ED16C420B2458BFAFE7CD /* ktxtools.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = ktxtools.gyp; sourceTree = "<group>"; };
 		A70ADC63B30492A0A8FE4CEC /* testsrun */ = {isa = PBXFileReference; lastKnownFileType = text; path = testsrun; sourceTree = "<group>"; };
@@ -510,6 +509,7 @@
 		B6C3F24523648045AB33FCA3 /* tools.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = tools.gypi; path = tools/tools.gypi; sourceTree = "<group>"; };
 		BC70D852F49571AE410DF987 /* ktx2ktx2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ktx2ktx2.cpp; sourceTree = "<group>"; };
 		CD010438A3ED3EC86AE1110E /* ktxsc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ktxsc.cpp; sourceTree = "<group>"; };
+		CF037AD8375D49AAB1E84292 /* jpgimage.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = jpgimage.cc; sourceTree = "<group>"; };
 		D089E409802E25C29E799696 /* man1 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = man1; sourceTree = "<group>"; };
 		D2C3FD552A0E9500694FADD5 /* stdafx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
 		D2DB837E3AD402BCCD582172 /* version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
@@ -522,7 +522,6 @@
 		E41E528C48467DFD6CD757F5 /* .ktxtoolsdoc_gentimestamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = .ktxtoolsdoc_gentimestamp; sourceTree = "<group>"; };
 		EF55AECBDFF99406D66B9031 /* ktxinfo.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ktxinfo.gypi; path = tools/ktxinfo/ktxinfo.gypi; sourceTree = "<group>"; };
 		F275A3E14410D5B59A00B213 /* ktxinfo */ = {isa = PBXFileReference; lastKnownFileType = text; path = ktxinfo; sourceTree = "<group>"; };
-		F386CC0D3B598CBFE51EE628 /* lodepng.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lodepng.h; sourceTree = "<group>"; };
 		F81AD7E2418F05F7343B6FEB /* ktxinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ktxinfo; sourceTree = BUILT_PRODUCTS_DIR; };
 		F826B458A9A417525DAFB89E /* ktxtools.pkgproj */ = {isa = PBXFileReference; lastKnownFileType = text; path = ktxtools.pkgproj; sourceTree = "<group>"; };
 		FAA647F3D2A4BF6CCB3866AE /* targetver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = targetver.h; sourceTree = "<group>"; };
@@ -572,6 +571,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0FB9D0588B91365F0FBC0FBB /* toktx */ = {
+			isa = PBXGroup;
+			children = (
+				6CDD4A8B4D4CE4EA6EF4DFFB /* image.cc */,
+				10B4191D497AADC7F4D3CFEF /* image.hpp */,
+				CF037AD8375D49AAB1E84292 /* jpgimage.cc */,
+				22DBB882FC84F2F39D34C354 /* npbmimage.cc */,
+				5560AB21DC02A7F83C68DC83 /* pngimage.cc */,
+				D2C3FD552A0E9500694FADD5 /* stdafx.h */,
+				FAA647F3D2A4BF6CCB3866AE /* targetver.h */,
+				A70ADC63B30492A0A8FE4CEC /* testsrun */,
+				63862D3067E71C8161E487CF /* toktx.cc */,
+				D2DB837E3AD402BCCD582172 /* version.h */,
+			);
+			path = toktx;
+			sourceTree = "<group>";
+		};
 		2124B6966417FA4F2C4CE2AD /* ktx2ktx2 */ = {
 			isa = PBXGroup;
 			children = (
@@ -602,7 +618,7 @@
 				856AF25082699FD43664B736 /* ktxinfo */,
 				501D814E5BFA8BA1B7820969 /* ktxsc */,
 				D23C27D185500222DD81A9EA /* package/mac */,
-				C4DB430A324AFEFEAC618115 /* toktx */,
+				0FB9D0588B91365F0FBC0FBB /* toktx */,
 			);
 			path = tools;
 			sourceTree = "<group>";
@@ -732,24 +748,6 @@
 				CBC3E5C3480EA9B081B43FA6 /* packages/mac */,
 			);
 			path = build;
-			sourceTree = "<group>";
-		};
-		C4DB430A324AFEFEAC618115 /* toktx */ = {
-			isa = PBXGroup;
-			children = (
-				6CDD4A8B4D4CE4EA6EF4DFFB /* image.cc */,
-				10B4191D497AADC7F4D3CFEF /* image.hpp */,
-				9E7DF054A1945FC2B807B6AA /* lodepng.cc */,
-				F386CC0D3B598CBFE51EE628 /* lodepng.h */,
-				22DBB882FC84F2F39D34C354 /* npbmimage.cc */,
-				5560AB21DC02A7F83C68DC83 /* pngimage.cc */,
-				D2C3FD552A0E9500694FADD5 /* stdafx.h */,
-				FAA647F3D2A4BF6CCB3866AE /* targetver.h */,
-				A70ADC63B30492A0A8FE4CEC /* testsrun */,
-				63862D3067E71C8161E487CF /* toktx.cc */,
-				D2DB837E3AD402BCCD582172 /* version.h */,
-			);
-			path = toktx;
 			sourceTree = "<group>";
 		};
 		CBC3E5C3480EA9B081B43FA6 /* packages/mac */ = {
@@ -1145,11 +1143,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				FDC077952656C7B728C9A5F4 /* argparser.cpp in Sources */,
-				7111193E5301A6C34FD762C8 /* image.cc in Sources */,
-				169DFDC2D18F7CA2F422AC54 /* lodepng.cc in Sources */,
-				A541046C79D883B3E15619B2 /* npbmimage.cc in Sources */,
-				3FF2CF4D1283D84C098D0E80 /* pngimage.cc in Sources */,
-				2F3DC4C73B5981EE979160EB /* toktx.cc in Sources */,
+				4E2DE86B18A87A8A657D689E /* image.cc in Sources */,
+				88CF566EB0069609ED1AE72C /* jpgimage.cc in Sources */,
+				2AC7E0F5C84B4131A1157C14 /* npbmimage.cc in Sources */,
+				6646C8539C813F0D8DEA995D /* pngimage.cc in Sources */,
+				FAB952F8DD4ABF9C4F53341E /* toktx.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

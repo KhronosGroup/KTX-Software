@@ -85,6 +85,7 @@ $toktx --bcmp --test alpha_simple_basis.ktx2 alpha_simple.png
 $toktx --bcmp --test kodim17_basis.ktx2 kodim17.png
 $toktx --bcmp --test color_grid_basis.ktx2 color_grid.png
 $toktx --t2 --bcmp --mipmap --test rgba-mipmap-reference-basis.ktx2 level0-alpha.pam level1-alpha.pam level2-alpha.pam level3-alpha.pam level4-alpha.pam level5-alpha.pam level6-alpha.pam
+$toktx --bcmp --genmipmap --test cimg5293.ktx2 ../srcimages/CIMG5293.jpg
 
 # ... and additional files for the load tests.
 
