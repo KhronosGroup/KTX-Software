@@ -497,14 +497,13 @@ add_custom_target(toktx__mkversion
 list(APPEND toktx__cxx_srcs
   "../../../../utils/argparser.cpp"
   "../../../../tools/toktx/image.cc"
-  "../../../../tools/toktx/lodepng.cc"
+  "../../../../tools/toktx/jpgimage.cc"
   "../../../../tools/toktx/npbmimage.cc"
   "../../../../tools/toktx/pngimage.cc"
   "../../../../tools/toktx/toktx.cc")
 list(APPEND toktx__other_srcs
   "../../../../utils/argparser.h"
   "../../../../tools/toktx/image.hpp"
-  "../../../../tools/toktx/lodepng.h"
   "../../../../tools/toktx/stdafx.h"
   "../../../../tools/toktx/targetver.h")
 add_executable(toktx ${toktx__cxx_srcs} ${toktx__other_srcs})
@@ -1056,6 +1055,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cimg5293.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_basis_rd.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
@@ -1107,6 +1107,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
   "${builddir}/testimages/alpha_simple_basis.ktx2"
+  "${builddir}/testimages/cimg5293.ktx2"
   "${builddir}/testimages/color_grid_basis.ktx2"
   "${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2"
   "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
@@ -1159,6 +1160,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.kt
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cimg5293.ktx2 ${builddir}/testimages/cimg5293.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2 ${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
