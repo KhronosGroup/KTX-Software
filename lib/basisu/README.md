@@ -17,6 +17,10 @@ Basis Universal supports "skip blocks" in ETC1S compressed texture arrays, which
 
 ### Important Usage Notes
 
+Probably the most important concept to understand about Basis Universal before using it: The system supports **two** very different universal texture modes: The original "ETC1S" mode is low/medium quality, but the resulting file sizes are very small because the system has built-in compression for ETC1S texture format files. This is the command line encoding tool's default mode. ETC1S textures work best on images, photos, map data, or albedo/specular/etc. textures, but don't work as well on normal maps. There's the second "UASTC" mode, which is significantly higher quality (near-BC7 grade), and is usable on all texture types including complex normal maps. UASTC mode purposely does not have built-in file compression like ETC1S mode does, so the resulting files are quite large (8-bits/texel - same as BC7) compared to ETC1S mode. The UASTC encoder has an optional Rate Distortion Optimization (RDO) encoding mode (implemented as a post-process over the encoded UASTC texture data), which lowers the output data's entropy in a way that results in better compression when UASTC .basis files are compressed with Deflate/Zstd, etc. In UASTC mode, you must losslessly compress the file yourself.
+
+Basis Universal is not an image compression codec. It's a texture compression codec. It can be used just like an image compression codec, but that's not the only use case. Here's a [good intro](http://renderingpipeline.com/2012/07/texture-compression/) to GPU texture compression. If you're looking to primarily use the system as an image compression codec on sRGB photographic content, use the default ETC1S mode, because it has built-in compression. 
+
 **The "-q X" option controls the output quality in ETC1S mode.** The default is quality level 128. "-q 255" will increase quality quite a bit. If you want even higher quality, try "-max_selectors 16128 -max_endpoints 16128" instead of -q. -q internally tries to set the codebook sizes (or the # of quantization intervals for endpoints/selectors) for you. You need to experiment with the quality level on your content.
 
 For tangent space normal maps, you should separate X into RGB and Y into Alpha, and provide the compressor with 32-bit/pixel input images. Or use the "-separate_rg_to_color_alpha" command line option which does this for you. The internal texture format that Basis Universal uses (ETC1S) doesn't handle tangent space normal maps encoded into RGB well. You need to separate the channels and recover Z in the pixel shader using z=sqrt(1-x^2-y^2).
@@ -150,7 +154,7 @@ After compression, the compressor transcodes all slices in the output .basis fil
 
 For best quality, you must supply basisu with original uncompressed source images. Any other type of lossy compression applied before basisu (including ETC1/BC1-5, BC7, JPEG, etc.) will cause multi-generational artifacts to appear in the final output textures. 
 
-For the maximum possible achievable quality with the current format and encoder (completely ignoring encoding speed!), use:
+For the maximum possible achievable ETC1S mode quality with the current format and encoder (completely ignoring encoding speed!), use:
 
 `basisu x.png -comp_level 5 -max_endpoints 16128 -max_selectors 16128 -no_selector_rdo -no_endpoint_rdo`
 
@@ -187,7 +191,10 @@ Note that -comp_level 2 is equivalent to the initial release's default, and -com
 ### More detailed examples
 
 `basisu x.png`\
-Compress sRGB image x.png to x.basis using default settings (multiple filenames OK)
+Compress sRGB image x.png to a ETC1S format x.basis file using default settings (multiple filenames OK). ETC1S format files are typically very small on disk (around .5-1.5 bits/texel).
+
+`basisu -uastc x.png`\
+Compress image x.png to a UASTC format x.basis file using default settings (multiple filenames OK). UASTC files are the same size as BC7 on disk (8-bpp). Be sure to compress UASTC .basis files yourself using Deflate, zstd, etc. To increase .basis file compressibility (trading off quality for smaller compressed files) use the "-uastc_rdo_q X" command line parameter.
 
 `basisu -q 255 x.png`\
 Compress sRGB image x.png to x.basis at max quality level achievable without  manually setting the codebook sizes (multiple filenames OK)
@@ -238,7 +245,7 @@ Note: The one exception to this promise are .basis textures marked as video. We 
 
 ### Encoder speed
 
-Total time for basisu.exe to compress a 1024x1024 texture on a 7 year old 4-core 2.2GHz Core i7 laptop - timings are "without mipmaps/with mipmaps":
+Total time for basisu.exe to compress a 1024x1024 ETC1S texture on a 7 year old 4-core 2.2GHz Core i7 laptop - timings are "without mipmaps/with mipmaps":
 
 * -comp_level 0: 
 
