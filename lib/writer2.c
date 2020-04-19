@@ -50,7 +50,6 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 
-#include "version.h"
 
 #if defined(_MSC_VER)
 #define strncasecmp _strnicmp

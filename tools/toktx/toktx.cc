@@ -39,7 +39,6 @@
 #include "ktx.h"
 #include "../../lib/vkformat_enum.h"
 #include "argparser.h"
-#include "version.h"
 #include "image.hpp"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"

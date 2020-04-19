@@ -38,7 +38,6 @@
 #  undef IMAGE_DEBUG
 #  define IMAGE_DEBUG 0
 #endif
-#include "version.h"
 
 struct commandOptions {
     _tstring      outfile;

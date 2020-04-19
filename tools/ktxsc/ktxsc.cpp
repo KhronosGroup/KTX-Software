@@ -29,7 +29,6 @@
 
 #include "ktx.h"
 #include "argparser.h"
-#include "version.h"
 
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp

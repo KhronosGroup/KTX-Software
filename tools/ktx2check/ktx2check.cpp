@@ -50,7 +50,6 @@
     #define fseeko fseek
   #endif
 #endif
-#include "version.h"
 
 std::string myversion(STR(KTX2CHECK_VERSION));
 
