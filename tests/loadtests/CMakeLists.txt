@@ -16,6 +16,7 @@ add_executable( glloadtest
     glloadtests/shader-based/GL3LoadTestSample.cpp
     glloadtests/shader-based/GL3LoadTests.cpp
     glloadtests/shader-based/TextureArray.cpp
+    glloadtests/shader-based/TextureCubemap.cpp
     glloadtests/shader-based/TexturedCube.cpp
     glloadtests/shader-based/shaders.cpp
     ${SDL_SRC}
@@ -32,6 +33,7 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/utils
     common
     geom
+    glloadtests/utils
     appfwSDL
     glloadtests
     )
@@ -42,6 +44,10 @@ target_link_libraries(
     ${SDL2_LIBRARIES}
     gtest
     ktx
+    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
+    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
+    z
     )
 
 target_compile_definitions(
@@ -80,6 +86,7 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/utils
     common
     geom
+    vkloadtests/utils
     appfwSDL
     appfwSDL/VulkanAppSDL
     vkloadtests
@@ -184,7 +191,7 @@ add_custom_target(
 set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
 file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${builddir}")
-file(COPY vkloadtests/models DESTINATION "${builddir}")
+file(COPY common/models DESTINATION "${builddir}")
 
 add_dependencies(
     vkloadtest

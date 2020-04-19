@@ -1745,7 +1745,6 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXGETIMAGEOFFSET)ktxTexture2_GetImageOffset,
     (PFNKTEXGETIMAGESIZE)ktxTexture2_GetImageSize,
 #ifdef KTX_FEATURE_UPLOAD
-    (PFNKTEXGLUPLOAD)ktxTexture2_GLUpload,
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXLOADIMAGEDATA)ktxTexture2_LoadImageData,
@@ -1755,7 +1754,6 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXWRITETONAMEDFILE)ktxTexture2_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture2_WriteToMemory,
 #else
-    (PFNKTEXGLUPLOAD)NULL,
     (PFNKTEXITERATELEVELS)NULL,
     (PFNKTEXITERATELOADLEVELFACES)NULL,
     (PFNKTEXLOADIMAGEDATA)NULL,

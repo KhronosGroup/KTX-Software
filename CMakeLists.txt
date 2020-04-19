@@ -199,9 +199,11 @@ set(KTX_LIB_READ_LIBS)
 if(KTX_FEATURE_WRITE)
 
     set(BASISU_WRITE_SRC
+        lib/basisu/apg_bmp.c
         lib/basisu/basisu_astc_decomp.cpp
         lib/basisu/basisu_backend.cpp
         lib/basisu/basisu_basis_file.cpp
+        lib/basisu/basisu_bc7enc.cpp
         lib/basisu/basisu_comp.cpp
         lib/basisu/basisu_enc.cpp
         lib/basisu/basisu_etc.cpp
@@ -213,9 +215,16 @@ if(KTX_FEATURE_WRITE)
         lib/basisu/basisu_resampler.cpp
         lib/basisu/basisu_ssim.cpp
         lib/basisu/basisu_tool.cpp
+        lib/basisu/basisu_uastc_enc.cpp
+        lib/basisu/jpgd.cpp
         lib/basisu/lodepng.cpp
     )
     add_library( objBasisuWrite OBJECT ${BASISU_WRITE_SRC} )
+    target_include_directories(
+        objBasisuWrite
+        PUBLIC
+        lib/basisu
+    )
 
     list(APPEND KTX_LIB_WRITE_SRC
         lib/basis_encode.cpp
@@ -249,9 +258,6 @@ if(KTX_FEATURE_UPLOAD OR KTX_FEATURE_WRITE)
     list(APPEND KTX_LIB_READ_SRC
         lib/etcunpack.cxx
         lib/etcdec.cxx
-        
-        lib/texture1_vvtbl.c
-        lib/texture2_vvtbl.c
     )
 
     if(KTX_FEATURE_UPLOAD_OPENGL)
