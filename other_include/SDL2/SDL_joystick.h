@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -105,6 +105,7 @@ typedef enum
     SDL_JOYSTICK_POWER_MAX
 } SDL_JoystickPowerLevel;
 
+
 /* Function prototypes */
 
 /**
@@ -131,6 +132,12 @@ extern DECLSPEC int SDLCALL SDL_NumJoysticks(void);
  *  If no name can be found, this function returns NULL.
  */
 extern DECLSPEC const char *SDLCALL SDL_JoystickNameForIndex(int device_index);
+
+/**
+ *  Get the player index of a joystick, or -1 if it's not available
+ *  This can be called before any joysticks are opened.
+ */
+extern DECLSPEC int SDLCALL SDL_JoystickGetDevicePlayerIndex(int device_index);
 
 /**
  *  Return the GUID for the joystick at this index
@@ -186,13 +193,64 @@ extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickOpen(int device_index);
 /**
  * Return the SDL_Joystick associated with an instance id.
  */
-extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickFromInstanceID(SDL_JoystickID joyid);
+extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickFromInstanceID(SDL_JoystickID instance_id);
+
+/**
+ * Return the SDL_Joystick associated with a player index.
+ */
+extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickFromPlayerIndex(int player_index);
+
+/**
+ * Attaches a new virtual joystick.
+ * Returns the joystick's device index, or -1 if an error occurred.
+ */
+extern DECLSPEC int SDLCALL SDL_JoystickAttachVirtual(SDL_JoystickType type,
+                                                      int naxes,
+                                                      int nbuttons,
+                                                      int nhats);
+
+/**
+ * Detaches a virtual joystick
+ * Returns 0 on success, or -1 if an error occurred.
+ */
+extern DECLSPEC int SDLCALL SDL_JoystickDetachVirtual(int device_index);
+
+/**
+ * Indicates whether or not a virtual-joystick is at a given device index.
+ */
+extern DECLSPEC SDL_bool SDLCALL SDL_JoystickIsVirtual(int device_index);
+
+/**
+ * Set values on an opened, virtual-joystick's controls.
+ * Please note that values set here will not be applied until the next
+ * call to SDL_JoystickUpdate, which can either be called directly,
+ * or can be called indirectly through various other SDL APIS,
+ * including, but not limited to the following: SDL_PollEvent,
+ * SDL_PumpEvents, SDL_WaitEventTimeout, SDL_WaitEvent.
+ * 
+ * Returns 0 on success, -1 on error.
+ */
+extern DECLSPEC int SDLCALL SDL_JoystickSetVirtualAxis(SDL_Joystick * joystick, int axis, Sint16 value);
+extern DECLSPEC int SDLCALL SDL_JoystickSetVirtualButton(SDL_Joystick * joystick, int button, Uint8 value);
+extern DECLSPEC int SDLCALL SDL_JoystickSetVirtualHat(SDL_Joystick * joystick, int hat, Uint8 value);
 
 /**
  *  Return the name for this currently opened joystick.
  *  If no name can be found, this function returns NULL.
  */
 extern DECLSPEC const char *SDLCALL SDL_JoystickName(SDL_Joystick * joystick);
+
+/**
+ *  Get the player index of an opened joystick, or -1 if it's not available
+ *
+ *  For XInput controllers this returns the XInput user index.
+ */
+extern DECLSPEC int SDLCALL SDL_JoystickGetPlayerIndex(SDL_Joystick * joystick);
+
+/**
+ *  Set the player index of an opened joystick
+ */
+extern DECLSPEC void SDLCALL SDL_JoystickSetPlayerIndex(SDL_Joystick * joystick, int player_index);
 
 /**
  *  Return the GUID for this opened joystick
