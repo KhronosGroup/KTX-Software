@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef _SDL_sensor_h
-#define _SDL_sensor_h
+#ifndef SDL_sensor_h_
+#define SDL_sensor_h_
 
 #include "SDL_stdinc.h"
 #include "SDL_error.h"
@@ -120,6 +120,19 @@ typedef enum
  */
 
 /* Function prototypes */
+
+/**
+ * Locking for multi-threaded access to the sensor API
+ *
+ * If you are using the sensor API or handling events from multiple threads
+ * you should use these locking functions to protect access to the sensors.
+ *
+ * In particular, you are guaranteed that the sensor list won't change, so
+ * the API functions that take a sensor index will be valid, and sensor
+ * events will not be delivered.
+ */
+extern DECLSPEC void SDLCALL SDL_LockSensors(void);
+extern DECLSPEC void SDLCALL SDL_UnlockSensors(void);
 
 /**
  *  \brief Count the number of sensors attached to the system right now
@@ -246,6 +259,6 @@ extern DECLSPEC void SDLCALL SDL_SensorUpdate(void);
 #endif
 #include "close_code.h"
 
-#endif /* _SDL_sensor_h */
+#endif /* SDL_sensor_h_ */
 
 /* vi: set ts=4 sw=4 expandtab: */

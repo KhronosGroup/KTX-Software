@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -96,7 +96,6 @@ typedef struct SDL_Window SDL_Window;
  */
 typedef enum
 {
-    /* !!! FIXME: change this to name = (1<<x). */
     SDL_WINDOW_FULLSCREEN = 0x00000001,         /**< fullscreen window */
     SDL_WINDOW_OPENGL = 0x00000002,             /**< window usable with OpenGL context */
     SDL_WINDOW_SHOWN = 0x00000004,              /**< window is visible */
@@ -119,7 +118,8 @@ typedef enum
     SDL_WINDOW_UTILITY       = 0x00020000,      /**< window should be treated as a utility window */
     SDL_WINDOW_TOOLTIP       = 0x00040000,      /**< window should be treated as a tooltip */
     SDL_WINDOW_POPUP_MENU    = 0x00080000,      /**< window should be treated as a popup menu */
-    SDL_WINDOW_VULKAN        = 0x10000000       /**< window usable for Vulkan surface */
+    SDL_WINDOW_VULKAN        = 0x10000000,      /**< window usable for Vulkan surface */
+    SDL_WINDOW_METAL         = 0x20000000       /**< window usable for Metal view */
 } SDL_WindowFlags;
 
 /**
@@ -485,7 +485,8 @@ extern DECLSPEC Uint32 SDLCALL SDL_GetWindowPixelFormat(SDL_Window * window);
  *               ::SDL_WINDOW_HIDDEN,        ::SDL_WINDOW_BORDERLESS,
  *               ::SDL_WINDOW_RESIZABLE,     ::SDL_WINDOW_MAXIMIZED,
  *               ::SDL_WINDOW_MINIMIZED,     ::SDL_WINDOW_INPUT_GRABBED,
- *               ::SDL_WINDOW_ALLOW_HIGHDPI, ::SDL_WINDOW_VULKAN.
+ *               ::SDL_WINDOW_ALLOW_HIGHDPI, ::SDL_WINDOW_VULKAN
+ *               ::SDL_WINDOW_METAL.
  *
  *  \return The created window, or NULL if window creation failed.
  *
@@ -503,6 +504,9 @@ extern DECLSPEC Uint32 SDLCALL SDL_GetWindowPixelFormat(SDL_Window * window);
  *
  *  If SDL_WINDOW_VULKAN is specified and there isn't a working Vulkan driver,
  *  SDL_CreateWindow() will fail because SDL_Vulkan_LoadLibrary() will fail.
+ *
+ *  If SDL_WINDOW_METAL is specified on an OS that does not support Metal,
+ *  SDL_CreateWindow() will fail.
  *
  *  \note On non-Apple devices, SDL requires you to either not link to the
  *        Vulkan loader or link to a dynamic library version. This limitation
