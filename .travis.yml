@@ -16,9 +16,8 @@ matrix:
           packages:
             - gcc-7
             - g++-7
-      dist: xenial
+      dist: bionic
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - VULKAN_SDK_VER="1.1.85"
       compiler: gcc # clang is tested by macOS build
       services:
