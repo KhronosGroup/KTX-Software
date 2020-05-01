@@ -60,7 +60,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
@@ -82,7 +82,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
@@ -103,7 +103,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
@@ -124,7 +124,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;assimp.lib;libGLESv2.lib;libEGL.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\$(Configuration)-$(Platform);..\..\..\..\other_lib\win\Release-$(Platform);C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_2017_R1\Builds\Windows\x86_$(PlatformArchitecture)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>

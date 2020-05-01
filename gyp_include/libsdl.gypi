@@ -173,7 +173,7 @@
         }], # OS = "ios" or OS == "mac"
         ['OS == "win"', {
           'link_settings': {
-            'libraries=': [ '-lSDL2', '-lSDL2main' ],
+            'libraries=': [ '-lSDL2', '-lSDL2main', '-lShell32' ],
             'library_dirs': [ '<(sdl2_lib_dir)' ],
           },
           'conditions': [
