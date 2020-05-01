@@ -64,17 +64,25 @@
       'library_dirs': [ '<(assimp_lib)' ],
       'conditions': [
         ['OS == "ios"', {
-          'xcode_settings': {
-            'OTHER_LDFLAGS': '-lassimp -lz',
-          },
+          'libraries': [ 'libassimp.a', 'libz.a' ]
         }, 'OS == "mac"', {
-          'xcode_settings': {
-            # Use static libs to avoid having to copy stuff to app bundle.
-            # Use macOS installed libz. Caution that if <(ASSIMP_HOME)/lib
-            # is in library_dirs, then that libz.dylib will be found which
-            # will not work with the hardened runtime.
-            'OTHER_LDFLAGS': '-lassimp -lIrrXML -lminizip -lz',
-          },
+          # Use static libs for ios & macOS to avoid having to sign and copy
+          # stuff to the app bundle. Note too that if there is a libfoo.dylib
+          # in the search path the bloody Apple linker will pick that despite
+          # giving the full file name.
+          #
+          # '-lfoo' here confuses Xcode. It seems these values are being put
+          # into an Xcode list that expects only framework names, full or
+          # relative paths.
+          #
+          # We're using the macOS/ios installed libz though by dint of not having
+          # one in other_lib. Caution that if <(ASSIMP_HOME)/lib
+          # is in library_dirs, then that libz.dylib will be found which
+          # will not work with the hardened runtime.
+          'libraries': [
+            'libassimp.a', 'libIrrXML.a',
+            'libminizip.a', 'libz.a'
+          ],
         }, 'GENERATOR != "xcode"', {
           # '-lfoo' here confuses Xcode. It seems these values are
           # being put into an Xcode list that expects only framework

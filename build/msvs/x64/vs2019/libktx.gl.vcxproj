@@ -49,87 +49,87 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>zstd_static.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>..\..\..\..\lib\internalexport.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>zstd_static.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>..\..\..\..\lib\internalexport.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>zstd_static.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>..\..\..\..\lib\internalexport.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>zstd_static.lib;opengl32.lib;glew32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>..\..\..\..\lib\internalexport.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\other_include;..\..\..\..\..\other_include;$(VULKAN_SDK)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_APICALL=__declspec(dllexport);BASISU_NO_ITERATOR_DEBUG_LEVEL;NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -174,8 +174,8 @@
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_internal.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_uastc_enc.h"/>
     <ClInclude Include="..\..\..\..\lib\basis_sgd.h"/>
-    <ClInclude Include="..\..\..\..\lib\basis_image_transcoder.h"/>
-    <ClInclude Include="..\..\..\..\lib\basis_transcoder_config.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu_image_transcoders.h"/>
+    <ClInclude Include="..\..\..\..\lib\basisu_transcoder_config.h"/>
     <ClInclude Include="..\..\..\..\lib\dfdutils\dfd.h"/>
     <ClInclude Include="..\..\..\..\lib\filestream.h"/>
     <ClInclude Include="..\..\..\..\lib\formatsize.h"/>
@@ -218,6 +218,7 @@
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_uastc_enc.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basis_encode.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basis_transcode.cpp"/>
+    <ClCompile Include="..\..\..\..\lib\basisu_image_transcoders.cpp"/>
     <ClCompile Include="..\..\..\..\lib\checkheader.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\createdfd.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\dfd2vk.c"/>
@@ -245,6 +246,10 @@
     <ClCompile Include="..\..\..\..\lib\vk_funcs.c"/>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="libzstd.vcxproj">
+      <Project>{199CDE40-1ED5-1CC7-9DEC-FC371D91257C}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="vulkan_headers.vcxproj">
       <Project>{44DDF1C7-5039-75FC-D551-120EB02BF370}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

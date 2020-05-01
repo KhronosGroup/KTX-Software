@@ -82,6 +82,7 @@ gypfiles=ktxtests.gyp \
 		 gyp_include/libgles3.gypi \
 		 gyp_include/libsdl.gypi \
 		 gyp_include/libvulkan.gypi \
+		 gyp_include/libzstd.gypi \
 		 gyp_include/maliemu.gypi \
 		 gyp_include/pvremu.gypi \
 		 interface/js_binding/js_binding.gypi \

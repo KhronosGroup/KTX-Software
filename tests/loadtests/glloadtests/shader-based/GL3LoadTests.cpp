@@ -40,6 +40,22 @@
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
+      "testimages/Iron_Bars_001_normal.ktx2",
+      "UASTC+rdo+zstd compressed KTX2 normal map mipmapped"
+    },
+    { DrawTexture::create,
+      "testimages/color_grid_uastc_zstd.ktx2",
+      "UASTC+Zstd Compressed KTX2 RGB non-mipmapped Transcoded"
+    },
+    { DrawTexture::create,
+      "testimages/color_grid_zstd.ktx2",
+      "Zstd Compressed KTX2 RGB non-mipmapped"
+    },
+    { DrawTexture::create,
+      "testimages/color_grid_uastc.ktx2",
+      "UASTC Compressed KTX2 RGB non-mipmapped Transcoded"
+    },
+    { DrawTexture::create,
       "testimages/color_grid_basis.ktx2",
       "KTX2: Basis Transcode on RGB non mipmapped"
     },
@@ -63,8 +79,12 @@ const GLLoadTests::sampleInvocation siSamples[] = {
 #endif
 #if !defined(__EMSCRIPTEN__)
     { TextureCubemap::create,
+      "testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
+      "KTX2: Transcode of UASTC+rdo+zstd compressed mipmapped cube map"
+    },
+    { TextureCubemap::create,
       "testimages/cubemap_yokohama_basis_rd.ktx2",
-      "KTX2: Basis Transcode on mipmapped cubemap",
+      "KTX2: Transcode of BasisU compressed mipmapped cube map",
     },
 #endif
     { DrawTexture::create,

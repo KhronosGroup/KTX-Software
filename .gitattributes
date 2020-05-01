@@ -63,9 +63,13 @@ tools/toktx/toktx.cpp filter=keyworder ident
 # the path relative to this .gitattributes file.
 **/*.framework/[Vv]ersions/[A-Za-z]/* filter=lfs -text
 # Large images
-tests/testimages/*.png filter=lfs -text
+tests/testimages/color_grid*.ktx2 filter=lfs -text
 tests/testimages/cubemap* filter=lfs -text
+tests/testimages/metalplate* filter=lfs -text
+tests/testimages/no-npot* filter=lfs -text
+tests/testimages/not4* filter=lfs -text
+tests/testimages/pattern* filter=lfs -text
 tests/testimages/texturearray* filter=lfs -text
 tests/testimages/FlightHelmet*.ktx2 filter=lfs -text
-tests/srcimages/*.jpg
-tests/srcimages/*.png
+tests/srcimages/**/*.jpg filter=lfs -text
+tests/srcimages/**/*.png filter=lfs -text

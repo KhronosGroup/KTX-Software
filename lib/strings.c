@@ -127,9 +127,12 @@ ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
     switch (scheme) {
       case KTX_SUPERCOMPRESSION_NONE: return "KTX_SUPERCOMPRESSION_NONE";
       case KTX_SUPERCOMPRESSION_BASIS: return "KTX_SUPERCOMPRESSION_BASIS";
-      case KTX_SUPERCOMPRESSION_LZMA: return "KTX_SUPERCOMPRESSION_LZMA";
-      case KTX_SUPERCOMPRESSION_ZLIB: return "KTX_SUPERCOMPRESSION_ZLIB";
       case KTX_SUPERCOMPRESSION_ZSTD: return "KTX_SUPERCOMPRESSION_ZSTD";
-      default: return "Invalid scheme value";
+      default:
+        if (scheme < KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE
+            || scheme >= KTX_SUPERCOMPRESSION_BEGIN_RESERVED)
+            return "Invalid scheme value";
+        else
+            return "Vendor scheme";
     }
 }

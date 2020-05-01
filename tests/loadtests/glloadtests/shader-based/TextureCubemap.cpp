@@ -277,9 +277,7 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
     }
 
-    if (kTexture->classId == ktxTexture2_c
-        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
-    {
+    if (ktxTexture_NeedsTranscoding(kTexture)) {
         TextureTranscoder tc;
         tc.transcode((ktxTexture2*)kTexture);
         //transcoded = true;

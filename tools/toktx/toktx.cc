@@ -34,6 +34,7 @@
 #include <vector>
 #include <limits.h>
 #include <inttypes.h>
+#include <zstd.h>
 
 #include "GL/glcorearb.h"
 #include "ktx.h"
@@ -93,8 +94,8 @@ using namespace std;
 template<typename T>
 struct clampedOption
 {
-  clampedOption(T& val, T min_v, T max_v) :
-    value(val),
+  clampedOption(T& option, T min_v, T max_v) :
+    option(option),
     min(min_v),
     max(max_v)
   {
@@ -102,7 +103,39 @@ struct clampedOption
 
   void clear()
   {
-    value = 0;
+    option = 0;
+  }
+
+  operator T() const
+  {
+    return option;
+  }
+
+  T operator= (T v)
+  {
+    option = clamp<T>(v, min, max);
+    return option;
+  }
+
+  T& option;
+  T min;
+  T max;
+};
+
+template<typename T>
+struct clamped
+{
+  clamped(T def_v, T min_v, T max_v) :
+    def(def_v),
+    min(min_v),
+    max(max_v),
+    value(def_v)
+  {
+  }
+
+  void clear()
+  {
+    value = def;
   }
 
   operator T() const
@@ -116,9 +149,10 @@ struct clampedOption
     return value;
   }
 
-  T& value;
+  T def;
   T min;
   T max;
+  T value;
 };
 
 struct commandOptions {
@@ -128,6 +162,8 @@ struct commandOptions {
         clampedOption<ktx_uint32_t> qualityLevel;
         clampedOption<ktx_uint32_t> maxEndpoints;
         clampedOption<ktx_uint32_t> maxSelectors;
+        clampedOption<ktx_uint32_t> uastcRDODictSize;
+        clampedOption<float> uastcRDOQualityScalar;
         int noMultithreading;
 
         basisOptions() :
@@ -135,6 +171,9 @@ struct commandOptions {
             qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
             maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
             maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
+            uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
+            uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
+                                  0.001f, 10.0f),
             noMultithreading(0)
         {
             uint32_t tc = thread::hardware_concurrency();
@@ -154,6 +193,11 @@ struct commandOptions {
             preSwizzle = false;
             noEndpointRDO = false;
             noSelectorRDO = false;
+            uastc = false; // Default to ETC1S.
+            uastcRDO = false;
+            uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
+            uastcRDODictSize.clear();
+            uastcRDOQualityScalar.clear();
         }
 
 #define TRAVIS_DEBUG 0
@@ -177,6 +221,11 @@ struct commandOptions {
             cout << "preSwizzle = " << preSwizzle << endl;
             cout << "noEndpointRDO = " << noEndpointRDO << endl;
             cout << "noSelectorRDO = " << noSelectorRDO << endl;
+            cout << "uastc = " << uastc << endl;
+            cout << "uastcFlags = " << uastcFlags << endl;
+            cout << "uastcRDO = " << uastcRDO << endl;
+            cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
+            cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
         }
 #endif
     };
@@ -200,6 +249,8 @@ struct commandOptions {
     int          useStdin;
     int          lower_left_maps_to_s0t0;
     int          bcmp;
+    int          zcmp;
+    clamped<ktx_uint32_t> zcmpLevel;
     int          test;
     struct basisOptions bopts;
     struct mipgenOptions gmopts;
@@ -209,7 +260,7 @@ struct commandOptions {
     unsigned int levels;
     vector<_tstring> infilenames;
 
-    commandOptions() {
+    commandOptions() : zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U) {
       automipmap = false;
       cubemap = false;
       genmipmap = false;
@@ -219,14 +270,13 @@ struct commandOptions {
       two_d = false;
       useStdin = false;
       bcmp = false;
+      zcmp = false;
       test = false;
       depth = 1;
       layers = 1;
       levels = 1;
       oetf = Image::eOETF::Unset;
-      /* The OGLES WG recommended approach, even though it is opposite
-       * to the OpenGL convention. Suki ja nai.
-       */
+      // As required by spec. Opposite of OpenGL {,ES}, same as Vulkan, et al.
       lower_left_maps_to_s0t0 = 0;
     }
 };
@@ -253,26 +303,28 @@ Create a KTX file from netpbm format files.
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
 
 @section toktx_description DESCRIPTION
-    Create a Khronos format texture file (KTX) from a set of PNG (.png)
-    or Netpbm format (.pam, .pgm, .ppm) images. It writes the destination
-    ktx file to @e outfile, appending ".ktx{,2}" if necessary. If @e outfile
-    is '-' the output will be written to stdout.
+    Create a Khronos format texture file (KTX) from a set of JPEG (.jpg),
+    PNG (.png) or Netpbm format (.pam, .pgm, .ppm) images. It writes the
+    destination ktx file to @e outfile, appending ".ktx{,2}" if necessary. If
+    @e outfile is '-' the output will be written to stdout.
  
-    @b toktx reads each named @e infile. which must be in .png, .pam, .ppm,
-    or .pgm format. @e infiles prefixed with '@' are read as text files listing
+    @b toktx reads each named @e infile. which must be in .jpg, .png, .pam,
+    .ppm or .pgm format. @e infiles prefixed with '@' are read as text files listing
     actual file names to process with one file path per line. Paths must be
     absolute or relative to the current directory when @b toktx is run. If
     '\@@' is used instead, paths must be absolute or relative to the location
     of the list file.
 
-    .png files yield RED, RG, RGB or RGBA textures according to the files's
-    @e color type, .ppm files RGB textures, .pgm files RED textures and .pam
-    files RED, RG, RGB or RGBA textures according to the file's TUPLTYPE
-    and DEPTH. Other formats can be readily converted to the supported
-    formats using tools such as ImageMagick and XnView.
+    .jpg files yeild RED or RGB textures according to the actual components
+    in the file. .png files yield RED, RG, RGB or RGBA textures according to
+    the files's @e color type, .ppm files RGB textures, .pgm files RED textures
+    and .pam files RED, RG, RGB or RGBA textures according to the file's
+    TUPLTYPE and DEPTH. Other formats can be readily converted to the
+    supported formats using tools such as ImageMagick and XnView.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
-    based on the input file. Netpbm files always use BT.709/sRGB primaries and
+    based on the input file. .jpg files always useBT709/sRGB primaries and the
+    sRGB OETF. Netpbm files always use BT.709/sRGB primaries and the
     the BT.709 OETF. @b toktx tranforms the image to the sRGB OETF, sets the
     transfer function to sRGB and creates sRGB textures for these inputs.
 
@@ -445,12 +497,51 @@ Create a KTX file from netpbm format files.
           to do selector RDO.</dd>
       </dl>
     </dd>
+    <dt>--uastc [&lt;level&gt;]</dt>
+    <dd>Create a texture in high-quality transcodable UASTC format. Implies @b --t2.
+        The optional parameter @e level selects a speed vs quality tradeoff as shown
+        in the following table:
+
+        Level | Speed | Quality
+        :-----: | :-----: | :-------:
+        0        | Fastest | 43.45dB
+        1        | Faster | 46.49dB
+        2        | Default | 47.47dB
+        3        | Slower | 48.01dB
+        4        | Very slow | 48.24dB
+
+        When set the following options become available for controlling the optional
+        Rate Distortion Optimization (RDO) post-process stage that conditions the
+        encoded UASTC texture data so it can be more effectively LZ compressed:
+      <dl>
+      <dt>--uastc_rdo_q [&lt;quality&gt;]</dt>
+      <dd>Enable UASTC RDO post-processing and optionally set UASTC RDO
+          quality scalar to @e quality.  Lower values yield higher quality/larger LZ
+          compressed files, higher values yield lower quality/smaller LZ compressed
+          files. A good range to try is [.2-4]." Full range is .001 to 10.0. Default is
+          1.0.</dd>
+      <dt>--uastc_rdo_d &lt;dictsize&gt;</dt>
+      <dd> Set UASTC RDO dictionary size in bytes. Default is 32768. Lower
+          values=faster, but give less compression. Possible range is 256 to
+          65536.</dd>
+      </dl>
+    </dd>
+    <dt>--zcmp [&lt;compressionLevel&gt;]</dt>
+    <dd>Supercompress the data with Zstandard. Implies @b --t2. Can be used with data
+        in any format except Basis Universal (@b --bcmp). Most effective with
+        RDO-conditioned UASTC or uncompressed formats. The optional
+        @e compressionLevel range is 1 - 22 and the default is 3. Lower values=faster but
+        give less compression. Values above 20 should be used with caution as they
+        require more memory.
     <dt>--help</dt>
     <dd>Print this usage message and exit.</dd>
     <dt>--version</dt>
     <dd>Print the version number of this program and exit.</dd>
     </dl>
- 
+
+    In case of ambiguity, such as when the last option is one with an optional parameter,
+    options can be separated from file names with " -- ".
+
     Options can also be set in the environment variable TOKTX_OPTIONS.
     TOKTX_OPTIONS is parsed first. If conflicting options appear in
     TOKTX_OPTIONS or the command line, the last one seen wins. However if both
@@ -499,19 +590,20 @@ usage(const _tstring appName)
         "\n"
         "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
         "               If it is '-' the output will be written to stdout.\n"
-        "  <infile>     One or more image files in .png, .pam, .ppm, or .pgm format. Other\n"
-        "               formats can be readily converted to these formats using tools\n"
-        "               such as ImageMagick and XnView. When no infile is specified,\n"
-        "               stdin is used. infiles prefixed with '@' are read as text files\n"
-        "               listing actual file names to process with one file path per line.\n"
-        "               Paths must be absolute or relative to the current directory when\n"
-        "               toktx is run. If '@@' is used instead, paths must be absolute or\n"
-        "               relative to the location of the list file.\n"
+        "  <infile>     One or more image files in .jpg, .png, .pam, .ppm, or .pgm\n"
+        "               format. Other formats can be readily converted to these formats\n"
+        "               using tools such as ImageMagick and XnView. When no infile is\n"
+        "               specified, stdin is used. infiles prefixed with '@' are read as\n"
+        "               text files listing actual file names to process with one file path\n"
+        "               per line. Paths must be absolute or relative to the current\n"
+        "               directory when toktx is run. If '@@' is used instead, paths must\n"
+        "               be absolute or relative to the location of the list file.\n"
         "\n"
-        "               .png files yield RED, RG, RGB or RGBA textures according to the\n"
-        "               files's color type, .ppm files RGB textures, .pgm files RED\n"
-        "               textures and .pam files RED, RG, RGB or RGBA textures according\n"
-        "               to the file's TUPLTYPE and DEPTH.\n"
+        "               .jpg files yield RED or RGB textures according to the actual\n"
+        "               number of components. .png files yield RED, RG, RGB or RGBA\n"
+        "               textures according to the files's color type, .ppm files RGB\n"
+        "               textures, .pgm files RED textures and .pam files RED, RG, RGB\n"
+        "               or RGBA textures according to the file's TUPLTYPE and DEPTH.\n"
         "\n"
         "  Options are:\n"
         "\n"
@@ -595,8 +687,7 @@ usage(const _tstring appName)
         "               As with --linear, use with caution.  Like @b --linear, the\n"
         "               default color transform of Netpbm images will not be performed.\n"
         "  --t2         Output in KTX2 format. Default is KTX.\n"
-        "  --bcmp\n"
-        "               Supercompress the image data with Basis Universal. Implies --t2.\n"
+        "  --bcmp       Supercompress the image data with Basis Universal. Implies --t2.\n"
         "               RED images will become RGB with RED in each component. RG images\n"
         "               will have R in the RGB part and G in the alpha part of the\n"
         "               compressed texture. When set, the following Basis-related\n"
@@ -647,9 +738,46 @@ usage(const _tstring appName)
         "      --no_selector_rdo\n"
         "               Disable selector rate distortion optimizations. Slightly faster,\n"
         "               less noisy output, but lower quality per output bit. Default is\n"
-        "               to do selector RDO.\n"
+        "               to do selector RDO.\n\n"
+        "  --uastc [<level>]\n"
+        "               Create a texture in high-quality transcodable UASTC format.\n"
+        "               Implies --t2. The optional parameter <level> selects a speed\n"
+        "               vs quality tradeoff as shown in the following table:\n"
+        "\n"
+        "                 Level |  Speed    | Quality\n"
+        "                 ----- | -------   | -------\n"
+        "                   0   |  Fastest  | 43.45dB\n"
+        "                   1   |  Faster   | 46.49dB\n"
+        "                   2   |  Default  | 47.47dB\n"
+        "                   3   |  Slower   | 48.01dB\n"
+        "                   4   | Very slow | 48.24dB\n"
+        "\n"
+        "               When set the following options become available for controlling\n"
+        "               the optional Rate Distortion Optimization (RDO) post-process stage\n"
+        "               that conditions the encoded UASTC texture data so it can be more\n"
+        "               effectively LZ compressed:\n\n"
+        "      --uastc_rdo_q [<quality>]\n"
+        "               Enable UASTC RDO post-processing and optionally set UASTC RDO\n"
+        "               quality scalar to <quality>.  Lower values yield higher\n"
+        "               quality/larger LZ compressed files, higher values yield lower\n"
+        "               quality/smaller LZ compressed files. A good range to try is [.2-4].\n"
+        "               Full range is .001 to 10.0. Default is 1.0.\n"
+        "      --uastc_rdo_d <dictsize>\n"
+        "               Set UASTC RDO dictionary size in bytes. Default is 32768. Lower\n"
+        "               values=faster, but give less compression. Possible range is 256\n"
+        "               to 65536.\n\n"
+        "  --zcmp [<compressionLevel>]\n"
+        "               Supercompress the data with Zstandard. Implies --t2. Can be used\n"
+        "               with data in any format except Basis Universal (--bcmp). Most\n"
+        "               effective with RDO-conditioned UASTC or uncompressed formats. The\n"
+        "               optional compressionLevel range is 1 - 22 and the default is 3.\n"
+        "               Lower values=faster but give less compression. Values above 20\n"
+        "               should be used with caution as they require more memory.\n"
         "  --help       Print this usage message and exit.\n"
         "  --version    Print the version number of this program and exit.\n"
+        "\n"
+        "In case of ambiguity, such as when the last option is one with an optional\n"
+        "parameter, options can be separated from file names with \" -- \".\n"
         "\n"
         "Options can also be set in the environment variable TOKTX_OPTIONS.\n"
         "TOKTX_OPTIONS is parsed first. If conflicting options appear in TOKTX_OPTIONS\n"
@@ -981,7 +1109,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                     options.gmopts.filterScale,
                                     options.gmopts.wrapMode);
                 } catch (runtime_error e) {
-                    cerr << "Image::resample() failed! "
+                    cerr << appName << ": Image::resample() failed! "
                               << e.what() << endl;
                     exitCode = 1;
                     goto cleanup;
@@ -1056,7 +1184,7 @@ int _tmain(int argc, _TCHAR* argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-        if (options.bcmp) {
+        if (options.bcmp || options.bopts.uastc) {
             commandOptions::basisOptions& bopts = options.bopts;
             if (bopts.normalMap && chosenOETF != Image::eOETF::Linear) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
@@ -1083,19 +1211,32 @@ int _tmain(int argc, _TCHAR* argv[])
 #endif
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
+                fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
                         appName.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
+                exitCode = 2;
+                goto cleanup;
             }
         } else {
             ret = KTX_SUCCESS;
         }
         if (KTX_SUCCESS == ret) {
+            if (options.zcmp) {
+                ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
+                                               options.zcmpLevel);
+                if (KTX_SUCCESS != ret) {
+                    cerr << appName << ": Zstd deflation failed; KTX error: "
+                         << ktxErrorString(ret) << endl;
+                    exitCode = 2;
+                    goto cleanup;
+                }
+            }
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                    appName.c_str(), options.outfile.c_str(),
-                    ktxErrorString(ret));
+                        appName.c_str(), options.outfile.c_str(),
+                        ktxErrorString(ret));
+                exitCode = 2;
             }
         }
         if (KTX_SUCCESS != ret) {
@@ -1237,6 +1378,19 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
     }
 }
 
+static int strtoi(const char* str)
+{
+    char* endptr;
+    int value = (int)strtol(str, &endptr, 0);
+    // Some implementations set errno == EINVAL but we can't rely on it.
+    if (value == 0 && endptr && *endptr != '\0') {
+        cerr << "Argument \"" << endptr << "\" not a number." << endl;
+        usage(appName);
+        exit(1);
+    }
+    return value;
+}
+
 /*
  * @brief process potential command line options
  *
@@ -1272,6 +1426,7 @@ processOptions(argparser& parser,
         { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
         { "bcmp", argparser::option::no_argument, NULL, 'b' },
+        { "zcmp", argparser::option::optional_argument, NULL, 'z' },
         { "no_multithreading", argparser::option::no_argument, NULL, 'N' },
         { "threads", argparser::option::required_argument, NULL, 't' },
         { "clevel", argparser::option::required_argument, NULL, 'c' },
@@ -1284,6 +1439,9 @@ processOptions(argparser& parser,
         { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
         { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
         { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
+        { "uastc", argparser::option::optional_argument, NULL, 1001 },
+        { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1002 },
+        { "uastc_rdo_d", argparser::option::required_argument, NULL, 1003 },
         { "test", argparser::option::no_argument, &options.test, 1},
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
@@ -1291,7 +1449,7 @@ processOptions(argparser& parser,
         // defaults to checked and is saved in a user-specific file not the
         // pbxproj file so it can't be disabled in a generated project.
         // Remove these from the arguments under consideration.
-        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 'i' },
+        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 10000 },
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
@@ -1301,13 +1459,13 @@ processOptions(argparser& parser,
           case 0:
             break;
           case 'a':
-            options.layers = atoi(parser.optarg.c_str());
+            options.layers = strtoi(parser.optarg.c_str());
             break;
           case 'd':
-            options.depth = atoi(parser.optarg.c_str());
+            options.depth = strtoi(parser.optarg.c_str());
             break;
           case 'l':
-            options.levels = atoi(parser.optarg.c_str());
+            options.levels = strtoi(parser.optarg.c_str());
             break;
           case 'h':
             usage(appName);
@@ -1316,14 +1474,39 @@ processOptions(argparser& parser,
             version(appName);
             exit(0);
           case 'b':
+            if (options.zcmp) {
+                cerr << "Only one of --bcmp and --zcmp can be specified."
+                     << endl;
+                usage(appName);
+                exit(1);
+            }
+            if (options.bopts.uastc) {
+                cerr << "Only one of --bcmp and --uastc can be specified."
+                     << endl;
+                usage(appName);
+                exit(1);
+            }
             options.bcmp = 1;
             options.ktx2 = 1;
             break;
+          case 'z':
+            if (options.bcmp) {
+                cerr << "Only one of --bcmp and --zcmp can be specified."
+                     << endl;
+                usage(appName);
+                exit(1);
+            }
+            options.zcmp = 1;
+            options.ktx2 = 1;
+            if (parser.optarg.size() > 0) {
+                options.zcmpLevel = strtoi(parser.optarg.c_str());
+            }
+            break;
           case 'c':
-            options.bopts.compressionLevel = atoi(parser.optarg.c_str());
+            options.bopts.compressionLevel = strtoi(parser.optarg.c_str());
             break;
           case 'e':
-            options.bopts.maxEndpoints = atoi(parser.optarg.c_str());
+            options.bopts.maxEndpoints = strtoi(parser.optarg.c_str());
             break;
           case 'E':
             options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
@@ -1364,21 +1547,48 @@ processOptions(argparser& parser,
             options.bopts.noSelectorRDO = 1;
             break;
           case 'q':
-            options.bopts.qualityLevel = atoi(parser.optarg.c_str());
+            options.bopts.qualityLevel = strtoi(parser.optarg.c_str());
             break;
           case 1000:
             options.bopts.separateRGToRGB_A = 1;
             break;
           case 's':
-            options.bopts.maxSelectors = atoi(parser.optarg.c_str());
+            options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
             break;
           case 'S':
             options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
             break;
           case 't':
-            options.bopts.threadCount = atoi(parser.optarg.c_str());
+            options.bopts.threadCount = strtoi(parser.optarg.c_str());
             break;
-          case 'i':
+          case 1001:
+            if (options.bcmp) {
+                 cerr << "Only one of --bcmp and --uastc can be specified."
+                      << endl;
+                 usage(appName);
+                 exit(1);
+            }
+            options.bopts.uastc = 1;
+            options.ktx2 = 1;
+            if (parser.optarg.size() > 0) {
+                ktx_uint32_t level = strtoi(parser.optarg.c_str());
+                level = clamp<ktx_uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
+                // Ensure the last one wins in case of multiple of these args.
+                options.bopts.uastcFlags = ~KTX_PACK_UASTC_LEVEL_MASK;
+                options.bopts.uastcFlags |= level;
+            }
+            break;
+          case 1002:
+            options.bopts.uastcRDO = true;
+            if (parser.optarg.size() > 0) {
+                options.bopts.uastcRDOQualityScalar =
+                                    strtof(parser.optarg.c_str(), nullptr);
+            }
+            break;
+          case 1003:
+            options.bopts.uastcRDODictSize = strtoi(parser.optarg.c_str());
+            break;
+          case 10000:
             break;
           case '?':
           case ':':

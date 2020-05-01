@@ -52,6 +52,8 @@
                 'ktxinfo/ktxinfo.cpp',
                 'ktxsc/ktxsc.cpp',
                 'toktx/toktx.cc',
+                '../utils/ktxapp.h',
+                '../utils/scapp.h',
               ],
               # See ../lib/libktx.gypi for comment about why only
               # timestamp is in this list.

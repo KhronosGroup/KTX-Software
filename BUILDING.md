@@ -172,7 +172,7 @@ cd build/cmake/web/Debug # or .../Release
 emconfigure cmake .
 make                      # to build everything.
 make libktx_js            # to build just the libktx.
-make basisu_transcoder_js # to build the transcoder wrapper.
+make msc_basis_transcoder_js # to build the transcoder wrapper.
 ```
 
 You will need an [Emscripten SDK](#emscripten-sdk) installed.

@@ -238,7 +238,9 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen
 /**
  * @memberof ktxHashList @public
  * @~English
- * @brief Delete a key value pair to a hash list.
+ * @brief Delete a key value pair in a hash list.
+ *
+ * Is a nop if the key is not in the hash.
  *
  * @param [in] pHead    pointer to the head of the target hash list.
  * @param [in] key      pointer to the UTF8 NUL-terminated string to be used as the key.
@@ -254,7 +256,8 @@ ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key)
         ktxKVListEntry* kv;
 
         HASH_FIND_STR( *pHead, key, kv );  /* kv: pointer to target entry. */
-        HASH_DEL(*pHead, kv);
+        if (kv != NULL)
+            HASH_DEL(*pHead, kv);
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;

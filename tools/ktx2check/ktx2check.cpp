@@ -53,6 +53,7 @@
 #include "version.h"
 
 std::string myversion(STR(KTX2CHECK_VERSION));
+std::string mydefversion(STR(KTX2CHECK_DEFAULT_VERSION));
 
 /** @page ktx2check ktx2check
 @~English
@@ -75,6 +76,8 @@ Check the validity of a KTX 2 file.
     <dt>-m &lt;num&gt;, --max-issues &lt;num&gt;</dt>
     <dd>Set the maximum number of issues to be reported per file
         provided -q is not set.</dd>
+    </dl>
+    @snippetdoc ktxapp.h ktxApp options
 
 @section ktx2check_exitstatus EXIT STATUS
     @b toktx exits 0 on success, 1 on command line errors and 2 on
@@ -193,9 +196,6 @@ struct {
     };
     issue TypeSizeNotOne {
         ERROR | 0x0032, "typeSize for a block compressed or supercompressed format must be 1."
-    };
-    issue ScSchemeVkFormatMismatch {
-        ERROR | 0x0033, "VK_FORMAT_UNDEFINED is valid only with supercompressionSchemes NONE and BASIS."
     };
     issue ZeroLevelCountForBC {
         ERROR | 0x0033, "levelCount must be > 0 for block-compressed formats."
@@ -615,7 +615,7 @@ class ktxValidator : public ktxApp {
         logger.addIssue(severity, issue, args);
         va_end(args);
     }
-    virtual void processOption(argparser& parser, _TCHAR opt);
+    virtual bool processOption(argparser& parser, int opt);
     int validateFile(const string&);
     void validateHeader(validationContext& ctx);
     void validateLevelIndex(validationContext& ctx);
@@ -694,7 +694,7 @@ vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
 //                     Validator Implementation                    //
 /////////////////////////////////////////////////////////////////////
 
-ktxValidator::ktxValidator() : ktxApp(myversion, options)
+ktxValidator::ktxValidator() : ktxApp(myversion, mydefversion, options)
 {
     argparser::option my_option_list[] = {
         { "quiet", argparser::option::no_argument, NULL, 'q' },
@@ -834,8 +834,8 @@ ktxValidator::validateFile(const string& filename)
     return logger.getIssueCount();
 }
 
-void
-ktxValidator::processOption(argparser& parser, _TCHAR opt)
+bool
+ktxValidator::processOption(argparser& parser, int opt)
 {
     switch (opt) {
       case 'q':
@@ -845,9 +845,9 @@ ktxValidator::processOption(argparser& parser, _TCHAR opt)
         options.maxIssues = atoi(parser.optarg.c_str());
         break;
       default:
-        usage();
-        exit(1);
+        return false;
     }
+    return true;
 }
 
 void
@@ -970,9 +970,7 @@ ktxValidator::validateHeader(validationContext& ctx)
     } else {
         if (ctx.header.typeSize != 1)
             addIssue(logger::eError, HeaderData.TypeSizeNotOne);
-        if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS
-            && ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
-            addIssue(logger::eError, HeaderData.ScSchemeVkFormatMismatch);
+        // TODO: Validate DFDs for UASTC and for BasisU.
     }
 
 #define checkRequiredIndexEntry(index, issue, name)     \
@@ -1032,12 +1030,16 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
     uint32_t requiredLevelAlignment = ctx.requiredLevelAlignment();
     size_t expectedOffset;
     size_t lastByteLength = 0;
-    if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
+    switch (ctx.header.supercompressionScheme) {
+      case KTX_SUPERCOMPRESSION_NONE:
+      case KTX_SUPERCOMPRESSION_ZSTD:
         expectedOffset = padn(requiredLevelAlignment, ctx.kvDataEndOffset());
-    } else {
+        break;
+      case KTX_SUPERCOMPRESSION_BASIS:
         ktxIndexEntry64 sgdIndex = ctx.header.supercompressionGlobalData;
         // No padding here.
         expectedOffset = sgdIndex.byteOffset + sgdIndex.byteLength;
+        break;
     }
     expectedOffset = padn(requiredLevelAlignment, expectedOffset);
     // Last mip level is first in the file. Count down so we can check the
@@ -1189,8 +1191,6 @@ ktxValidator::validateDfd(validationContext& ctx)
           }
           break;
 
-        case KTX_SUPERCOMPRESSION_LZMA:
-        case KTX_SUPERCOMPRESSION_ZLIB:
         case KTX_SUPERCOMPRESSION_ZSTD:
           // Check for unsized.
           if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0

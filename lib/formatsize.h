@@ -42,6 +42,9 @@ typedef enum ktxFormatSizeFlagBits {
 
 typedef ktx_uint32_t ktxFormatSizeFlags;
 
+/**
+ * @brief Structure for holding size information for a texture format.
+ */
 typedef struct ktxFormatSize {
     ktxFormatSizeFlags  flags;
     unsigned int        paletteSizeInBits;  // For KTX1.
@@ -50,5 +53,15 @@ typedef struct ktxFormatSize {
     unsigned int        blockHeight;        // in texels
     unsigned int        blockDepth;         // in texels
 } ktxFormatSize;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+bool ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif /* _FORMATSIZE_H_ */

@@ -439,6 +439,8 @@ typedef KTX_error_code
                                           ktx_uint32_t faceSlice,
                                           ktx_size_t* pOffset);
 typedef ktx_size_t
+    (KTX_APIENTRY* PFNKTEXGETDATASIZEUNCOMPRESSED)(ktxTexture* This);
+typedef ktx_size_t
     (KTX_APIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXITERATELEVELS)(ktxTexture* This, PFNKTXITERCB iterCb,
@@ -452,6 +454,9 @@ typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXLOADIMAGEDATA)(ktxTexture* This,
                                          ktx_uint8_t* pBuffer,
                                          ktx_size_t bufSize);
+typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXNEEDSTRANSCODING)(ktxTexture* This);
+
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXSETIMAGEFROMMEMORY)(ktxTexture* This,
                                               ktx_uint32_t level,
@@ -483,9 +488,11 @@ typedef KTX_error_code
  struct ktxTexture_vtbl {
     PFNKTEXDESTROY Destroy;
     PFNKTEXGETIMAGEOFFSET GetImageOffset;
+    PFNKTEXGETDATASIZEUNCOMPRESSED GetDataSizeUncompressed;
     PFNKTEXGETIMAGESIZE GetImageSize;
     PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
+    PFNKTEXNEEDSTRANSCODING NeedsTranscoding;
     PFNKTEXLOADIMAGEDATA LoadImageData;
     PFNKTEXSETIMAGEFROMMEMORY SetImageFromMemory;
     PFNKTEXSETIMAGEFROMSTDIOSTREAM SetImageFromStdioStream;
@@ -513,6 +520,17 @@ typedef KTX_error_code
  */
 #define ktxTexture_GetImageOffset(This, faceSlice, layer, level, pOffset) \
             (This)->vtbl->GetImageOffset(This, faceSlice, layer, level, pOffset)
+
+/**
+ * @~English
+ * @brief Helper for calling the GetDataSizeUncompressed virtual method of a ktxTexture.
+ *
+ * For a ktxTexture1 this will always return the value of This->dataSize.
+ *
+ * @copydetails ktxTexture2_GetDataSizeUncompressed
+ */
+#define ktxTexture_GetDataSizeUncompressed(This) \
+                                (This)->vtbl->GetDataSizeUncompressed(This)
 
 /**
  * @~English
@@ -549,8 +567,15 @@ typedef KTX_error_code
 
 /**
  * @~English
+ * @brief Helper for calling the NeedsTranscoding virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_NeedsTranscoding
+ */
+#define ktxTexture_NeedsTranscoding(This) (This)->vtbl->NeedsTranscoding(This)
+
+/**
+ * @~English
  * @brief Helper for calling the SetImageFromMemory virtual method of a
- * ktxTexture.
+ *        ktxTexture.
  * @copydoc ktxTexture2_SetImageFromMemory
  */
 #define ktxTexture_SetImageFromMemory(This, level, layer, faceSlice, \
@@ -560,7 +585,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the SetImageFromStdioStream virtual method of a
- * ktxTexture.
+ *        ktxTexture.
  * @copydoc ktxTexture2_SetImageFromStdioStream
  */
 #define ktxTexture_SetImageFromStdioStream(This, level, layer, faceSlice, \
@@ -571,7 +596,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the WriteToStdioStream virtual method of a
- * ktxTexture.
+ *        ktxTexture.
  * @copydoc ktxTexture2_WriteToStdioStream
  */
 #define ktxTexture_WriteToStdioStream(This, dstsstr) \
@@ -580,7 +605,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the WriteToNamedfile virtual method of a
- * ktxTexture.
+ *        ktxTexture.
  * @copydoc ktxTexture2_WriteToNamedFile
  */
 #define ktxTexture_WriteToNamedFile(This, dstname) \
@@ -625,9 +650,7 @@ typedef struct ktxTexture1 {
 typedef enum ktxSupercmpScheme {
     KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
     KTX_SUPERCOMPRESSION_BASIS = 1, /*!< Basis Universal supercompression. */
-    KTX_SUPERCOMPRESSION_LZMA = 2,  /*!< LZMA supercompression. */
-    KTX_SUPERCOMPRESSION_ZLIB = 3,  /*!< Zlib supercompression. */
-    KTX_SUPERCOMPRESSION_ZSTD = 4,  /*!< ZStd supercompression. */
+    KTX_SUPERCOMPRESSION_ZSTD = 2,  /*!< ZStd supercompression. */
     KTX_SUPERCOMPRESSION_BEGIN_RANGE = KTX_SUPERCOMPRESSION_NONE,
     KTX_SUPERCOMPRESSION_END_RANGE = KTX_SUPERCOMPRESSION_ZSTD,
     KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE = 0x10000,
@@ -777,7 +800,7 @@ ktxTexture_GetElementSize(ktxTexture* This);
  * Returns the size of all the image data of a ktxTexture object in bytes.
  */
 KTX_APICALL ktx_size_t KTX_APIENTRY
-ktxTexture_GetSize(ktxTexture* This);
+ktxTexture_GetDataSize(ktxTexture* This);
 
 /* Uploads a texture to OpenGL {,ES}. */
 KTX_APICALL KTX_error_code KTX_APIENTRY
@@ -816,6 +839,9 @@ ktxTexture1_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture1** newTex);
 
+KTX_APICALL ktx_bool_t KTX_APIENTRY
+ktxTexture1_NeedsTranscoding(ktxTexture1* This);
+
 /*
  * Write a ktxTexture object to a stdio stream in KTX format.
  */
@@ -846,8 +872,8 @@ ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
 /*
  * Create a new ktxTexture2 as a copy of an existing texture.
  */
- KTX_APICALL KTX_error_code KTX_APIENTRY
- ktxTexture2_CreateCopy(ktxTexture2* orig, ktxTexture2** newTex);
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture2_CreateCopy(ktxTexture2* orig, ktxTexture2** newTex);
 
  /*
   * These three create a ktxTexture2 provided the data is in KTX2 format.
@@ -870,6 +896,9 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 KTX_APICALL KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
+KTX_APICALL KTX_error_code KTX_APIENTRY
+ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t level);
+
 KTX_APICALL void KTX_APIENTRY
 ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
                              ktx_uint32_t* componentByteLength);
@@ -882,6 +911,41 @@ ktxTexture2_GetOETF(ktxTexture2* This);
 
 KTX_APICALL ktx_bool_t KTX_APIENTRY
 ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);
+
+KTX_APICALL ktx_bool_t KTX_APIENTRY
+ktxTexture2_NeedsTranscoding(ktxTexture2* This);
+
+/**
+ * @~English
+ * @brief Flags specifiying UASTC encoding options.
+ */
+typedef enum ktx_pack_uastc_flag_bits_e {
+    KTX_PACK_UASTC_LEVEL_FASTEST  = 0,
+        /*!< Fastest compression. 43.45dB. */
+    KTX_PACK_UASTC_LEVEL_FASTER   = 1,
+        /*!< Faster compression. 46.49dB. */
+    KTX_PACK_UASTC_LEVEL_DEFAULT  = 2,
+        /*!< Default compression. 47.47dB. */
+    KTX_PACK_UASTC_LEVEL_SLOWER   = 3,
+        /*!< Slower compression. 48.01dB. */
+    KTX_PACK_UASTC_LEVEL_VERYSLOW = 4,
+        /*!< Very slow compression. 48.24dB. */
+    KTX_PACK_UASTC_MAX_LEVEL = KTX_PACK_UASTC_LEVEL_VERYSLOW,
+        /*!< Maximum supported quality level. */
+    KTX_PACK_UASTC_LEVEL_MASK     = 0xF,
+        /*!< Mask to extract the level from the other bits. */
+    KTX_PACK_UASTC_FAVOR_UASTC_ERROR = 8,
+        /*!< Optimize for lowest UASTC error. */
+    KTX_PACK_UASTC_FAVOR_BC7_ERROR = 16,
+        /*!< Optimize for lowest BC7 error. */
+    KTX_PACK_UASTC_ETC1_FASTER_HINTS = 64,
+        /*!< Optimize for faster transcoding to ETC1. */
+    KTX_PACK_UASTC_ETC1_FASTEST_HINTS = 128,
+        /*!< Optimize for fastest transcoding to ETC1. */
+    KTX_PACK_UASTC__ETC1_DISABLE_FLIP_AND_INDIVIDUAL = 256
+        /*!< Not documented in BasisU code. */
+} ktx_pack_uastc_flag_bits_e;
+typedef ktx_uint32_t ktx_pack_uastc_flags;
 
 /**
  * @memberof ktxTexture2
@@ -897,8 +961,13 @@ typedef struct ktxBasisParams {
         /*!< Size of this struct. Used so library can tell which version
              of struct is being passed.
          */
+    ktx_bool_t uastc;
+        /*!<  True to use UASTC base, false to use ETC1S base. */
     ktx_uint32_t threadCount;
         /*!< Number of threads used for compression. Default is 1. */
+
+    /* ETC1S params */
+
     ktx_uint32_t compressionLevel;
         /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5, default
              is 1. Higher values are slower, but give higher quality.
@@ -952,6 +1021,35 @@ typedef struct ktxBasisParams {
              less noisy output, but lower quality per output bit. Default is
              KTX_FALSE.
          */
+
+    /* UASTC params */
+
+    ktx_pack_uastc_flags uastcFlags;
+        /*!<  A set of ::ktx_pack_uastc_flag_bits_e controlling UASTC
+             encoding. The most important value is the level given in the
+             least-significant 4 bits which selects a speed vs quality tradeoff
+             as shown in the following table:
+
+                Level/Speed | Quality
+                :-----: | :-------:
+                KTX_PACK_UASTC_LEVEL_FASTEST | 43.45dB
+                KTX_PACK_UASTC_LEVEL_FASTER | 46.49dB
+                KTX_PACK_UASTC_LEVEL_DEFAULT | 47.47dB
+                KTX_PACK_UASTC_LEVEL_SLOWER  | 48.01dB
+                KTX_PACK_UASTC_LEVEL_VERYSLOW | 48.24dB
+         */
+    ktx_bool_t uastcRDO;
+        /*!< Enable Rate Distortion Optimization (RDO) post-processing. */
+    float uastcRDOQualityScalar;
+        /*!< Set UASTC RDO quality scalar.  Lower values yield higher quality/larger LZ
+             compressed files, higher values yield lower quality/smaller LZ compressed
+             files. A good range to try is [.2-4]." Full range is .001 to 10.0. Default is
+             1.0.*/
+    ktx_uint32_t uastcRDODictSize;
+        /*!< Set UASTC RDO dictionary size in bytes. Default is 32768. Lower
+             values=faster, but give less compression. Possible range is 256 to
+             65536.*/
+
 } ktxBasisParams;
 
 KTX_APICALL KTX_error_code KTX_APIENTRY
@@ -961,12 +1059,14 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
  * @~English
  * @brief Enumerators for specifying the transcode target format.
  *
- * @e Opaque and @e alpha here refer to 2 separate RGB images, a.k.a slices within the Basis compressed
- * data. The opaque slice holds the RGB components of the original image. The alpha slice holds the alpha
- * component whose value is replicated in all three components. If the original image had only 2
- * components, R will be in the opaque slice and G in the alpha slice which each value replicated in all
- * 3 components of its slice. If the original image had only 1 component it's value is replicated in all
- * 3 components of the opaque slice and there is no alpha slice.
+ * For BasisU/ETC1S format, @e Opaque and @e alpha here refer to 2 separate
+ * RGB images, a.k.a slices within the BasisU compressed data. For UASTC
+ * format they refer to the RGB and the alpha components of the UASTC data. If
+ * the original image had only 2 components, R will be in the opaque portion and G
+ * in the alpha portion. The R value will be replicated in the RGB components. In
+ * the case of BasisU the G value will be replicated in all 3 components of the
+ * alpha slice. If the original image had only 1 component it's value is replicated in all
+ * 3 components of the opaque portion and there is no alpha.
  *
  * @note You should not transcode sRGB encoded data to @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG,
  * @c KTX_TTF_ETC2_EAC_R{,G}11, @c KTX_TTF_RGB565, @c KTX_TTF_BGR565 or
@@ -1085,11 +1185,6 @@ typedef enum ktx_transcode_fmt_e {
  * @brief Flags guiding transcoding of Basis Universal compressed textures.
  */
 typedef enum ktx_transcode_flag_bits_e {
-    KTX_TF_PVRTC_WRAP_ADDRESSING = 1,
-        /*!< PVRTC1: texture will use wrap addressing vs. clamp (most PVRTC
-             viewer tools assume wrap addressing, so we default to wrap although
-             that can cause edge artifacts).
-        */
     KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 = 2,
         /*!< PVRTC1: decode non-pow2 ETC1S texture level to the next larger
              power of 2 (not implemented yet, but we're going to support it).
@@ -1099,6 +1194,10 @@ typedef enum ktx_transcode_flag_bits_e {
         /*!< When decoding to an opaque texture format, if the Basis data has
              alpha, decode the alpha slice instead of the color slice to the
              output texture format. Has no effect if there is no alpha data.
+         */
+    KTX_TF_HIGH_QUALITY = 32,
+        /*!< Request higher quality transcode of UASTC to BC1, BC3, ETC2_EAC_R11 and
+             ETC2_EAC_RG11. The flag is unused by other UASTC transcoders.
          */
 } ktx_transcode_flag_bits_e;
 typedef ktx_uint32_t ktx_transcode_flags;
@@ -1233,6 +1332,11 @@ KTX_APICALL KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t*
  * @deprecated Will be dropped before V4 release.
  */
 #define ktx_texture_decode_flags ktx_transcode_flag_bits
+
+/**
+ * @deprecated Will be dropped before V4 release.
+ */
+#define ktxTexture_GetSize ktxTexture_getDatasize
 
 /**
 @~English

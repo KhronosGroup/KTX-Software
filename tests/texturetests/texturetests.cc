@@ -973,7 +973,7 @@ TEST_F(ktxTexture1_LoadImageDataTest, LoadImageDataInternal) {
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
-        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetSize(texture));
+        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture1Images(ktxTexture_GetData(texture)), true);
         if (texture)
             ktxTexture_Destroy(texture);
@@ -995,7 +995,7 @@ TEST_F(ktxTexture1_LoadImageDataTest, LoadImageDataExternal) {
         buf = new ktx_uint8_t[paddedImageDataSize];
         EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
                   KTX_SUCCESS);
-        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetSize(texture));
+        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture1Images(buf), true);
         if (texture)
             ktxTexture_Destroy(texture);
@@ -1061,7 +1061,7 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataInternal) {
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
-        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetSize(texture));
+        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture2Images(ktxTexture_GetData(texture)), true);
         if (texture)
             ktxTexture_Destroy(texture);
@@ -1083,7 +1083,7 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataExternal) {
         buf = new ktx_uint8_t[paddedImageDataSize];
         EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
                   KTX_SUCCESS);
-        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetSize(texture));
+        EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture2Images(buf), true);
         if (texture)
             ktxTexture_Destroy(texture);

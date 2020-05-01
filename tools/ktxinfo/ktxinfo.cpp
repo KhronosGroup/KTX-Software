@@ -144,7 +144,7 @@ int _tmain(int argc, _TCHAR* argv[])
             if (result ==  KTX_FILE_UNEXPECTED_EOF) {
                 cerr << appName
                      << ": Unexpected end of file reading \""
-                     << (infile.compare(_T("-")) ? "stdin" : infile) << "\"."
+                     << (infile.compare(_T("-")) ? infile : "stdin" ) << "\"."
                      << endl;
                      exit(2);
             }

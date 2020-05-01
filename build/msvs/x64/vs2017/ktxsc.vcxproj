@@ -138,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\utils\argparser.h"/>
+    <ClInclude Include="..\..\..\..\utils\scapp.h"/>
     <ClInclude Include="..\..\..\..\tools\ktxsc\stdafx.h"/>
   </ItemGroup>
   <ItemGroup>

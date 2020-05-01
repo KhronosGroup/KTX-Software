@@ -224,12 +224,32 @@ VulkanLoadTests::onFPSUpdate()
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
+      "testimages/Iron_Bars_001_normal.ktx2",
+      "UASTC+rdo+zstd compressed KTX2 normal map mipmapped"
+    },
+    { Texture::create,
+      "testimages/ktx_document_uastc_rdo_zstd.ktx2",
+      "UASTC+rdo+zstd compressed KTX2 RGBA8 mipmapped"
+    },
+    { Texture::create,
+      "testimages/color_grid_uastc_zstd.ktx2",
+      "UASTC+zstd Compressed KTX2 RGB non-mipmapped Transcoded"
+    },
+    { Texture::create,
+      "testimages/color_grid_zstd.ktx2",
+      "Zstd Compressed KTX2 RGB non-mipmapped"
+    },
+    { Texture::create,
+      "testimages/color_grid_uastc.ktx2",
+      "UASTC Compressed KTX2 RGB non-mipmapped Transcoded"
+    },
+    { Texture::create,
       "testimages/color_grid_basis.ktx2",
-      "Basis Compressed KTX2 RGB non-mipmapped Transcoded"
+      "BasisU Compressed KTX2 RGB non-mipmapped Transcoded"
     },
     { Texture::create,
       "testimages/kodim17_basis.ktx2",
-      "Basis Compressed KTX2 RGB non-mipmapped Transcoded"
+      "BasisU Compressed KTX2 RGB non-mipmapped Transcoded"
     },
     { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx2",
@@ -242,6 +262,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     { TextureMipmap::create,
       "testimages/rgba-mipmap-reference-basis.ktx2",
       "Basis Compressed RGBA8 + Mipmap Transcoded"
+    },
+    { TextureCubemap::create,
+      "testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
+      "UASTC+rdo+zstd Compressed Cube Map Transcoded"
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_basis_rd.ktx2",
