@@ -33,6 +33,7 @@
           'sources': [
             '../../utils/argparser.cpp',
             '../../utils/argparser.h',
+            '../../utils/scapp.h',
             'ktxsc.cpp',
             'stdafx.h',
           ],

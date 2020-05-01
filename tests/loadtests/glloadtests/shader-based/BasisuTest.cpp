@@ -84,8 +84,7 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
     }
 
-    if (kTexture->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS
-        && !kTexture->isCompressed) {
+    if (!ktxTexture2_NeedsTranscoding(kTexture) && !kTexture->isCompressed) {
         ktxresult = ktxTexture2_CompressBasis(kTexture, 0);
         if (KTX_SUCCESS != ktxresult) {
             std::stringstream message;

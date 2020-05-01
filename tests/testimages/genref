@@ -72,21 +72,22 @@ fi
 
 # Generate the files ...
 
-$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx rgb.ppm
+$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx ../srcimages/rgb.ppm
 # The purpose of this is testing automatic mipmap generation. Since SRGB is
 # not color renderable on ES3 or WebGL, therefore AMG won't work, use linear.
-$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata --linear rgb-amg-reference.ktx rgb.ppm
-$toktx --lower_left_maps_to_s0t0 --nometadata orient-up.ktx up.ppm
-$toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx up.ppm
-$toktx orient-down-metadata.ktx up.ppm
-$toktx --lower_left_maps_to_s0t0 --mipmap --nometadata rgb-mipmap-reference.ktx level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
-$toktx --lower_left_maps_to_s0t0 --nometadata rgba-reference.ktx rgba.pam
-$toktx --bcmp --test alpha_simple_basis.ktx2 alpha_simple.png
-$toktx --bcmp --test kodim17_basis.ktx2 kodim17.png
-$toktx --bcmp --test color_grid_basis.ktx2 color_grid.png
-$toktx --t2 --bcmp --mipmap --test rgba-mipmap-reference-basis.ktx2 level0-alpha.pam level1-alpha.pam level2-alpha.pam level3-alpha.pam level4-alpha.pam level5-alpha.pam level6-alpha.pam
-$toktx --bcmp --genmipmap --test cimg5293.ktx2 ../srcimages/CIMG5293.jpg
+$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata --linear rgb-amg-reference.ktx ../srcimages/rgb.ppm
+$toktx --lower_left_maps_to_s0t0 --nometadata orient-up.ktx ../srcimages/up.ppm
+$toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx ../srcimages/up.ppm
+$toktx orient-down-metadata.ktx ../srcimages/up.ppm
+$toktx --lower_left_maps_to_s0t0 --mipmap --nometadata rgb-mipmap-reference.ktx ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+$toktx --lower_left_maps_to_s0t0 --nometadata rgba-reference.ktx ../srcimages/rgba.pam
+$toktx --bcmp --test alpha_simple_basis.ktx2 ../srcimages/alpha_simple.png
+$toktx --bcmp --test kodim17_basis.ktx2 ../srcimages/kodim17.png
+$toktx --bcmp --test color_grid_basis.ktx2 ../srcimages/color_grid.png
+$toktx --t2 --bcmp --mipmap --test rgba-mipmap-reference-basis.ktx2 ../srcimages/level0-alpha.pam ../srcimages/level1-alpha.pam ../srcimages/level2-alpha.pam ../srcimages/level3-alpha.pam ../srcimages/level4-alpha.pam ../srcimages/level5-alpha.pam ../srcimages/level6-alpha.pam
+$toktx --uastc --genmipmap --test cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg
+$toktx --zcmp --uastc --genmipmap --test cimg5293_uastc_zstd.ktx2 ../srcimages/CIMG5293.jpg
 
 # ... and additional files for the load tests.
 
-$toktx --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx rgb.ppm
+$toktx --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx ../srcimages/rgb.ppm

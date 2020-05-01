@@ -120,9 +120,10 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu/basisu_uastc_enc.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_sgd.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_encode.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_image_transcoder.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcode.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcoder_config.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu_image_transcoders.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu_image_transcoders.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu_transcoder_config.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
@@ -265,6 +266,14 @@ add_dependencies(mkvkformatfiles
 unset(TOOLSET)
 unset(TARGET)
 
+#libktx.gyp:libzstd#target
+set(TARGET "libzstd")
+set(TOOLSET "target")
+add_custom_target(libzstd SOURCES)
+set_target_properties(libzstd PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
 #libktx.gyp:libgles3#target
 set(TARGET "libgles3")
 set(TOOLSET "target")
@@ -329,6 +338,7 @@ list(APPEND libktx_gl__cxx_srcs
   "../../../../lib/basisu/basisu_uastc_enc.cpp"
   "../../../../lib/basis_encode.cpp"
   "../../../../lib/basis_transcode.cpp"
+  "../../../../lib/basisu_image_transcoders.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx_gl__other_srcs
@@ -365,8 +375,8 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "../../../../lib/basisu/basisu_uastc_enc.h"
   "../../../../lib/basis_sgd.h"
-  "../../../../lib/basis_image_transcoder.h"
-  "../../../../lib/basis_transcoder_config.h"
+  "../../../../lib/basisu_image_transcoders.h"
+  "../../../../lib/basisu_transcoder_config.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/dfd2vk.inl"
   "../../../../lib/dfdutils/vk2dfd.inl"
@@ -391,7 +401,8 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/vk_format.h"
   "../../../../lib/vk_funclist.inl"
   "../../../../lib/vk_funcs.h")
-link_directories()
+link_directories( ../../../../other_lib/linux/Release-x64
+)
 add_library(libktx_gl SHARED ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
 set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${libktx_gl__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -403,9 +414,10 @@ set_source_files_properties(${builddir}/lib.${TOOLSET}/libktx.gl.so PROPERTIES G
 list(APPEND libktx_gl__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../../other_include"
   "/$ENV{VULKAN_SDK}/include")
 set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
-set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;NDEBUG;")
+set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;NDEBUG;")
 set_source_files_properties(${libktx_gl__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -fPIC -std=c99 ")
 set_source_files_properties(${libktx_gl__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -fPIC -std=c++11 -Wno-pedantic ")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
@@ -422,11 +434,13 @@ set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(libktx_gl
+  libzstd
   vulkan_headers
   version_h
   libgl
 )
 target_link_libraries(libktx_gl
+  "-lzstd"
   "-lGL"
 )
 unset(TOOLSET)
@@ -603,6 +617,7 @@ list(APPEND ktxsc__cxx_srcs
   "../../../../tools/ktxsc/ktxsc.cpp")
 list(APPEND ktxsc__other_srcs
   "../../../../utils/argparser.h"
+  "../../../../utils/scapp.h"
   "../../../../tools/ktxsc/stdafx.h")
 add_executable(ktxsc ${ktxsc__cxx_srcs} ${ktxsc__other_srcs})
 set_target_properties(ktxsc PROPERTIES EXCLUDE_FROM_ALL "FALSE")
@@ -885,7 +900,9 @@ list(APPEND ktxtools_doc__buildKtxtoolsDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktx2ktx2/ktx2ktx2.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxinfo/ktxinfo.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/ktxsc/ktxsc.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cc")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/toktx/toktx.cc"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils/ktxapp.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../utils/scapp.h")
 set(ktxtools_doc__buildKtxtoolsDoc__output "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/.ktxtoolsdoc_gentimestamp")
 add_custom_command(OUTPUT ${ktxtools_doc__buildKtxtoolsDoc__output}
   COMMAND ${CMAKE_COMMAND} -E make_directory build/docs
@@ -1055,14 +1072,21 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cimg5293.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cimg5293_uastc.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cimg5293_uastc_zstd.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_uastc.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_uastc_zstd.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/color_grid_zstd.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cubemap_yokohama_basis_rd.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/Iron_Bars_001_normal.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_document_basis.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_document_uastc_rdo_zstd.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
@@ -1107,14 +1131,21 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
   "${builddir}/testimages/alpha_simple_basis.ktx2"
-  "${builddir}/testimages/cimg5293.ktx2"
+  "${builddir}/testimages/cimg5293_uastc.ktx2"
+  "${builddir}/testimages/cimg5293_uastc_zstd.ktx2"
   "${builddir}/testimages/color_grid_basis.ktx2"
+  "${builddir}/testimages/color_grid_uastc.ktx2"
+  "${builddir}/testimages/color_grid_uastc_zstd.ktx2"
+  "${builddir}/testimages/color_grid_zstd.ktx2"
+  "${builddir}/testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2"
   "${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2"
   "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
+  "${builddir}/testimages/Iron_Bars_001_normal.ktx2"
   "${builddir}/testimages/kodim17_basis.ktx2"
   "${builddir}/testimages/ktx_app_basis.ktx2"
   "${builddir}/testimages/ktx_app-u.ktx2"
   "${builddir}/testimages/ktx_document_basis.ktx2"
+  "${builddir}/testimages/ktx_document_uastc_rdo_zstd.ktx2"
   "${builddir}/testimages/orient-down-metadata-u.ktx2"
   "${builddir}/testimages/orient-up-metadata.ktx2"
   "${builddir}/testimages/orient-up-metadata-u.ktx2"
@@ -1160,14 +1191,21 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.kt
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cimg5293.ktx2 ${builddir}/testimages/cimg5293.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cimg5293_uastc.ktx2 ${builddir}/testimages/cimg5293_uastc.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cimg5293_uastc_zstd.ktx2 ${builddir}/testimages/cimg5293_uastc_zstd.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_basis.ktx2 ${builddir}/testimages/color_grid_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_uastc.ktx2 ${builddir}/testimages/color_grid_uastc.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_uastc_zstd.ktx2 ${builddir}/testimages/color_grid_uastc_zstd.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/color_grid_zstd.ktx2 ${builddir}/testimages/color_grid_zstd.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2 ${builddir}/testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2 ${builddir}/testimages/cubemap_yokohama_basis_rd.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/Iron_Bars_001_normal.ktx2 ${builddir}/testimages/Iron_Bars_001_normal.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app_basis.ktx2 ${builddir}/testimages/ktx_app_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app-u.ktx2 ${builddir}/testimages/ktx_app-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_document_basis.ktx2 ${builddir}/testimages/ktx_document_basis.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_document_uastc_rdo_zstd.ktx2 ${builddir}/testimages/ktx_document_uastc_rdo_zstd.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx2 ${builddir}/testimages/orient-up-metadata.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2

@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <stdarg.h>
+#include <ktx.h>
 
 #include "argparser.h"
 
@@ -32,18 +33,19 @@ template <typename T> inline T clamp(T value, T low, T high) {
 }
 
 template<typename T>
-struct clampedOption
+struct clamped
 {
-  clampedOption(T& val, T min_v, T max_v) :
-    value(val),
+  clamped(T def_v, T min_v, T max_v) :
+    def(def_v),
     min(min_v),
-    max(max_v)
+    max(max_v),
+    value(def_v)
   {
   }
 
   void clear()
   {
-    value = 0;
+    value = def;
   }
 
   operator T() const
@@ -57,10 +59,23 @@ struct clampedOption
     return value;
   }
 
-  T& value;
+  T def;
   T min;
   T max;
+  T value;
 };
+
+/**
+//! [ktxApp options]
+  <dl>
+  <dt>--help</dt>
+  <dd>Print this usage message and exit.</dd>
+  <dt>--version</dt>
+  <dd>Print the version number of this program and exit.</dd>
+  </dl>
+
+//! [ktxApp options]
+*/
 
 class ktxApp {
   public:
@@ -74,10 +89,15 @@ class ktxApp {
   protected:
     struct commandOptions {
         std::vector<_tstring> infiles;
+        int test;
+
+        commandOptions() : test(false) { }
     };
 
-    ktxApp(std::string& version, commandOptions& options)
-            : version(version), options(options) { }
+    ktxApp(std::string& version, std::string& defaultVersion,
+           commandOptions& options)
+        : version(version), defaultVersion(defaultVersion),
+          options(options) { }
 
     void error(const char *pFmt, ...) {
         va_list args;
@@ -87,6 +107,19 @@ class ktxApp {
         vfprintf(stderr, pFmt, args);
         va_end(args);
         cerr << "\n";
+    }
+
+    int strtoi(const char* str)
+    {
+        char* endptr;
+        int value = (int)strtol(str, &endptr, 0);
+        // Some implementations set errno == EINVAL but we can't rely on it.
+        if (value == 0 && endptr && *endptr != '\0') {
+            cerr << "Argument \"" << endptr << "\" not a number." << endl;
+            usage();
+            exit(1);
+        }
+        return value;
     }
 
     enum StdinUse { eDisallowStdin, eAllowStdin };
@@ -133,10 +166,12 @@ class ktxApp {
     }
 
     virtual void processOptions(argparser& parser) {
-        _TCHAR opt;
+        int opt;
         while ((opt = parser.getopt(&short_opts, option_list.data(), NULL)) != -1) {
             switch (opt) {
               case 0:
+                break;
+              case 10000:
                 break;
               case 'h':
                 usage();
@@ -145,90 +180,47 @@ class ktxApp {
                 printVersion();
                 exit(0);
               default:
-                processOption(parser, opt);
+                if (!processOption(parser, opt)) {
+                    usage();
+                    exit(1);
+                }
             }
         }
     }
 
-    virtual void processOption(argparser& parser, _TCHAR opt) = 0;
+    virtual bool processOption(argparser& parser, int opt) = 0;
 
-    void writeId(std::ostream& dst) {
-        dst << name << " " << version;
+    void writeId(std::ostream& dst, bool chktest) {
+        dst << name << " ";
+        dst << (!chktest || !options.test ? version : defaultVersion);
     }
 
     void printVersion() {
-        writeId(cerr);
+        writeId(cerr, false);
         cerr << endl;
     }
 
     _tstring        name;
     _tstring&       version;
+    _tstring&       defaultVersion;
 
     commandOptions& options;
 
     std::vector<argparser::option> option_list {
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "version", argparser::option::no_argument, NULL, 'v' },
+        { "test", argparser::option::no_argument, &options.test, 1},
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It
         // defaults to checked and is saved in a user-specific file not the
         // pbxproj file so it can't be disabled in a generated project.
         // Remove these from the arguments under consideration.
-        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 'i' },
+        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 10000 },
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
     _tstring short_opts = _T("hv");
 };
 
-#if 0
-struct commandOptions {
-    struct basisOptions : public ktxBasisParams {
-        // The remaining numeric fields are clamped within the Basis library.
-        clampedOption<ktx_uint32_t> threadCount;
-        clampedOption<ktx_uint32_t> qualityLevel;
-        clampedOption<ktx_uint32_t> maxEndpoints;
-        clampedOption<ktx_uint32_t> maxSelectors;
-        int noMultithreading;
-
-        basisOptions() :
-            threadCount(ktxBasisParams::threadCount, 1, 10000),
-            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
-            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
-            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
-            noMultithreading(0)
-        {
-            uint32_t tc = std::thread::hardware_concurrency();
-            if (tc == 0) tc = 1;
-            threadCount.max = tc;
-            threadCount = tc;
-
-            structSize = sizeof(ktxBasisParams);
-            compressionLevel = 0;
-            maxEndpoints.clear();
-            endpointRDOThreshold = 0.0f;
-            maxSelectors.clear();
-            selectorRDOThreshold = 0.0f;
-            normalMap = false;
-            separateRGToRGB_A = false;
-            preSwizzle = false;
-            noEndpointRDO = false;
-            noSelectorRDO = false;
-        }
-    };
-    
-    _tstring            appName;
-    _tstring            outfile;
-    bool                useStdout;
-    bool                force;
-    struct basisOptions bopts;
-    std::vector<_tstring> infilenames;
-
-    commandOptions() {
-        force = false;
-        useStdout = false;
-    }
-};
-#endif
 

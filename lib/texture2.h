@@ -69,7 +69,6 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
 ktx_uint64_t ktxTexture2_calcDataSizeTexture(ktxTexture2* This);
 ktx_size_t ktxTexture2_calcLevelOffset(ktxTexture2* This, ktx_uint32_t level);
 ktx_uint32_t ktxTexture2_calcRequiredLevelAlignment(ktxTexture2* This);
-bool ktxTexture2_extractFormatInfo(ktx_uint32_t* pDfd, ktxFormatSize* fi);
 ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level);
 ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level);
 

@@ -799,7 +799,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         user_cbdata_optimal cbData;
 
 
-        textureSize = ktxTexture_GetSize(This);
+        textureSize = ktxTexture_GetDataSizeUncompressed(This);
         bufferCreateInfo.size = textureSize;
         if (canUseFasterPath) {
             /*
@@ -1126,6 +1126,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
     return KTX_SUCCESS;
 }
 
+
 /** @memberof ktxTexture
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture1 object.
@@ -1162,8 +1163,8 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
                        VkImageUsageFlags usageFlags,
                        VkImageLayout finalLayout)
 {
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
-                                 usageFlags, finalLayout);
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
+                                 tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture1
@@ -1202,8 +1203,8 @@ ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
                        VkImageUsageFlags usageFlags,
                        VkImageLayout finalLayout)
 {
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture, tiling,
-                                 usageFlags, finalLayout);
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
+                                 tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture2
@@ -1218,10 +1219,10 @@ ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  *     control.
  */
 KTX_error_code
-ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
+ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
                      ktxVulkanTexture *vkTexture)
 {
-    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -1265,7 +1266,6 @@ ktxTexture2_GetVkFormat(ktxTexture2* This)
  *
  * In ordert to ensure that the Vulkan uploader is not linked into an application unless explicitly called,
  * this is not a virtual function. It determines the texture type then dispatches to the correct function.
-
  * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
  */
 VkFormat

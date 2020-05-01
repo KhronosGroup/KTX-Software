@@ -6,6 +6,7 @@ DEFS_Debug := \
 	'-DKTX_OPENGL=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
 	'-DLIBKTX=1' \
+	'-DBASISD_SUPPORT_FXT1=0' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
@@ -28,12 +29,14 @@ CFLAGS_CC_Debug := \
 INCS_Debug := \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include \
+	-I$(srcdir)/../other_include \
 	-I$(VULKAN_SDK)/include
 
 DEFS_Release := \
 	'-DKTX_OPENGL=1' \
 	'-DKTX_USE_FUNCPTRS_FOR_VULKAN' \
 	'-DLIBKTX=1' \
+	'-DBASISD_SUPPORT_FXT1=0' \
 	'-DNDEBUG'
 
 # Flags passed to all source files.
@@ -54,6 +57,7 @@ CFLAGS_CC_Release := \
 INCS_Release := \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include \
+	-I$(srcdir)/../other_include \
 	-I$(VULKAN_SDK)/include
 
 OBJS := \
@@ -77,6 +81,7 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_uastc_enc.o \
 	$(obj).target/$(TARGET)/lib/basis_encode.o \
 	$(obj).target/$(TARGET)/lib/basis_transcode.o \
+	$(obj).target/$(TARGET)/lib/basisu_image_transcoders.o \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/createdfd.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/dfd2vk.o \
@@ -107,7 +112,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/vulkan_headers.stamp $(obj).target/version.h.stamp $(obj).target/libgl.stamp
+$(OBJS): | $(obj).target/libzstd.stamp $(obj).target/vulkan_headers.stamp $(obj).target/version.h.stamp $(obj).target/libgl.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -149,11 +154,14 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cxx FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := \
-	-g
+	-g \
+	-L$(srcdir)/other_lib/linux/Release-x64
 
-LDFLAGS_Release :=
+LDFLAGS_Release := \
+	-L$(srcdir)/other_lib/linux/Release-x64
 
 LIBS := \
+	-lzstd \
 	-lGL
 
 $(obj).target/libktx.gl.so: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))

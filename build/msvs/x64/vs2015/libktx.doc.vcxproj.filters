@@ -550,6 +550,12 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\dfdutils">
       <UniqueIdentifier>{A0A2CCA4-32CF-E23F-3384-4F2BE74A71DB}</UniqueIdentifier>
     </Filter>
@@ -1036,13 +1042,16 @@
     <ClCompile Include="..\..\..\..\lib\basis_encode.cpp">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\..\lib\basis_image_transcoder.h">
-      <Filter>lib\_excluded_files</Filter>
-    </ClInclude>
     <ClCompile Include="..\..\..\..\lib\basis_transcode.cpp">
       <Filter>lib\_excluded_files</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\..\lib\basis_transcoder_config.h">
+    <ClCompile Include="..\..\..\..\lib\basisu_image_transcoders.cpp">
+      <Filter>lib\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\basisu_image_transcoders.h">
+      <Filter>lib\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\basisu_transcoder_config.h">
       <Filter>lib\_excluded_files</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\lib\checkheader.c">

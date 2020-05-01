@@ -60,9 +60,10 @@
       'basisu/basisu_uastc_enc.h',
       'basis_sgd.h',
       'basis_encode.cpp',
-      'basis_image_transcoder.h',
       'basis_transcode.cpp',
-      'basis_transcoder_config.h',
+      'basisu_image_transcoders.cpp',
+      'basisu_image_transcoders.h',
+      'basisu_transcoder_config.h',
       'checkheader.c',
       'dfdutils/createdfd.c',
       'dfdutils/dfd.h',
@@ -127,6 +128,7 @@
     '../gyp_include/libgl.gypi',
     '../gyp_include/libgles3.gypi',
     '../gyp_include/libvulkan.gypi',
+    '../gyp_include/libzstd.gypi',
   ],
 
   'xcode_settings': {
@@ -167,15 +169,14 @@
             'KHRONOS_STATIC=1',
             'LIBKTX=1',
             # To reduce size, don't support transcoding to ancient formats.
-            #'BASISD_SUPPORT_ATC=0',
-            #'BASISD_SUPPORT_FXT1=0',
+            'BASISD_SUPPORT_FXT1=0',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
           },
           'include_dirs': [ '<@(include_dirs)' ],
           'mac_bundle': 0,
-          'dependencies': [ 'vulkan_headers', 'version.h' ],
+          'dependencies': [ 'libzstd', 'vulkan_headers', 'version.h' ],
           'sources': [
             '<@(sources)',
             '<@(vksource_files)',
@@ -230,6 +231,8 @@
                   'sources': [ 'internalexport.def' ],
                 }] # OS == "mac or OS == "ios"
               ], # conditions
+            }, {
+              'export_dependent_settings': [ 'libzstd' ],
             }], # _type == "shared_library"
           ], # conditions
           'xcode_settings': {
@@ -458,14 +461,14 @@
             'LIBKTX=1',
             'BASISU_NO_ITERATOR_DEBUG_LEVEL',
             # To reduce size, don't support transcoding to ancient formats.
-            #'BASISD_SUPPORT_ATC=0',
-            #'BASISD_SUPPORT_FXT1=0',
+            'BASISD_SUPPORT_FXT1=0',
           ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
             'defines': [ 'KHRONOS_STATIC=1' ],
           },
-          'dependencies': [ 'version.h' ],
+          'export_dependent_settings': [ 'libzstd' ],
+          'dependencies': [ 'libzstd', 'version.h' ],
           'sources': [ '<@(sources)' ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
@@ -491,10 +494,9 @@
             'LIBKTX=1',
             'BASISU_NO_ITERATOR_DEBUG_LEVEL',
             # To reduce size, don't support transcoding to ancient formats.
-            #'BASISD_SUPPORT_ATC=0',
-            #'BASISD_SUPPORT_FXT1=0',
+            'BASISD_SUPPORT_FXT1=0',
           ],
-          'dependencies': [ 'vulkan_headers', 'version.h' ],
+          'dependencies': [ 'libzstd', 'vulkan_headers', 'version.h' ],
           'direct_dependent_settings': {
             'include_dirs': [ '<@(include_dirs)' ],
             'defines': [ 'KHRONOS_STATIC=1' ],
@@ -502,30 +504,41 @@
           'sources': [
             '<@(sources)',
             '<@(vksource_files)',
+            'zstddeclib.c',
           ],
           'conditions': [
-          ['OS == "web"', {
-            # The BasisU transcoder uses anon typs and structs. They compile ok
-            # in Emscripten so quiet the clang warnings.
-            'cflags_cc': [
-              '-Wno-nested-anon-types',
-              '-Wno-gnu-anonymous-struct',
-            ],
-            'defines': [
-              'KTX_OMIT_VULKAN=1',
-              # To reduce size, don't support transcoding formats not supported
-              # by WebGL.
-              'BASISD_SUPPORT_BC7=0',
-              'BASISD_SUPPORT_ATC=0',
-              'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
-              'BASISD_SUPPORT_PVRTC2=0',
-              'BASISD_SUPPORT_FXT1=0',
-              'BASISD_SUPPORT_ETC2_EAC_RG11=0',
-            ],
-            'dependencies!': [ 'vulkan_headers' ],
-            'sources!': [ '<@(vksource_files)' ],
-          }],
-         ],
+            ['OS == "web"', {
+              # The BasisU transcoder uses anon types and structs. They compile
+              # ok in Emscripten so quiet the clang warnings.
+              'cflags_cc': [
+                '-Wno-nested-anon-types',
+                '-Wno-gnu-anonymous-struct',
+              ],
+              # The zstd decoder does not use macros with variadic macros
+              # correctly and they seem unwilling to fix so turn those
+              # off too.
+              'cflags_c': [
+                '-Wno-gnu-zero-variadic-macro-arguments',
+              ],
+              'defines': [
+                'KTX_OMIT_VULKAN=1',
+                # To reduce size, don't support transcoding to formats not
+                # supported by WebGL.
+                'BASISD_SUPPORT_BC7=0',
+                'BASISD_SUPPORT_ATC=0',
+                'BASISD_SUPPORT_PVRTC2=0',
+                'BASISD_SUPPORT_FXT1=0',
+                'BASISD_SUPPORT_ETC2_EAC_RG11=0',
+                # Don't support higher quality mode to avoid 64k table.
+                'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
+              ],
+              'dependencies!': [ 'libzstd', 'vulkan_headers' ],
+              'sources!': [ '<@(vksource_files)' ],
+            }, {
+              'export_dependent_settings': [ 'libzstd' ],
+              'sources!': [ 'zstddeclib.c' ],
+            }],
+          ],
           'include_dirs': [ '<@(include_dirs)' ],
           'xcode_settings': {
             # The BasisU transcoder uses anon typs and structs. They compile ok

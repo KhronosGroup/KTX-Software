@@ -281,9 +281,7 @@ result = ktxTexture_CreateFromNamedFile("mytex3d_basis.ktx2",
 //                                         KTX_TEXTURE_CREATE_NO_FLAGS,
 //                                         &kTexture);
 
-if (texture->classId == ktxTexture2_c
-        && texture->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
-{
+if (ktxTexture2_NeedsTranscoding(texture)) {
     ktx_texture_transcode_fmt_e tf;
 
     // Using VkGetPhysicalDeviceFeatures or GL_COMPRESSED_TEXTURE_FORMATS or

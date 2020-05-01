@@ -49,7 +49,7 @@
 #include "texture2.h"
 #include "uthash.h"
 
-ktx_size_t ktxTexture_GetSize(ktxTexture* This);
+ktx_size_t ktxTexture_GetDataSize(ktxTexture* This);
 
 static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
 
@@ -508,10 +508,13 @@ ktxTexture_GetData(ktxTexture* This)
  * @~English
  * @brief Return the total size of the texture image data in bytes.
  *
+ * For a ktxTexture2 with supercompressionScheme != KTX_SUPERCOMPRESSION_NONE this will
+ * return the deflated size of the data.
+ *
  * @param[in] This pointer to the ktxTexture object of interest.
  */
 ktx_size_t
-ktxTexture_GetSize(ktxTexture* This)
+ktxTexture_GetDataSize(ktxTexture* This)
 {
     assert(This != NULL);
     return This->dataSize;

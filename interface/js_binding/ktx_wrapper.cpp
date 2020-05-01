@@ -21,7 +21,7 @@
 #include <ktx.h>
 #include <iostream>
 
-#include "basis_transcoder_config.h"
+#include "basisu_transcoder_config.h"
 
 using namespace emscripten;
 

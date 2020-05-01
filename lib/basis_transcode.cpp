@@ -19,10 +19,10 @@
 
 /**
  * @internal
- * @file basis_transcode.c
+ * @file basis_transcode.cpp
  * @~English
  *
- * @brief Functions for transcoding a Basis Universal texture.
+ * @brief Functions for transcoding Basis Universal ETC1S and UASTC textures.
  *
  * Two worlds collide here too. More uglyness!
  *
@@ -40,11 +40,17 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
-#include "basis_image_transcoder.h"
-#include "basis_transcoder_config.h"
+#include "basisu_transcoder_config.h"
+#include "basisu_image_transcoders.h"
 #include "basisu/basisu_comp.h"
 #include "basisu/transcoder/basisu_file_headers.h"
 #include "basisu/transcoder/basisu_transcoder.h"
+#include "basisu/transcoder/basisu_transcoder_internal.h"
+
+#undef DECLARE_PRIVATE
+#undef DECLARE_PROTECTED
+#define DECLARE_PRIVATE(n,t2) ktxTexture2_private& n = *(t2->_private)
+#define DECLARE_PROTECTED(n,t2) ktxTexture_protected& n = *(t2->_protected)
 
 using namespace basisu;
 using namespace basist;
@@ -64,20 +70,36 @@ inline bool isPow2(uint32_t x) { return x && ((x & (x - 1U)) == 0U); }
 
 inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
 
+KTX_error_code
+ktxTexture2_transcodeEtc1s(ktxTexture2* This,
+                           bool hasAlpha,
+                           ktxTexture2* prototype,
+                           ktx_transcode_fmt_e outputFormat,
+                           ktx_transcode_flags transcodeFlags);
+KTX_error_code
+ktxTexture2_transcodeUastc(ktxTexture2* This,
+                           bool hasAlpha,
+                           ktxTexture2* prototype,
+                           ktx_transcode_fmt_e outputFormat,
+                           ktx_transcode_flags transcodeFlags);
+
 /**
  * @memberof ktxTexture2
  * @ingroup reader
  * @~English
- * @brief Transcode a KTX2 texture with Basis supercompressed images.
+ * @brief Transcode a KTX2 texture with Basis Universal (ETC1S) or UASTC images.
  *
- * Inflates the images from Basis Universal supercompression back to ETC1S
- * then transcodes them to the specified block-compressed format. The
- * transcoded images replace the original images and the texture's fields
- * including the DFD are modified to reflect the new format.
+ * If the texture contains Basis Universal image, Inflates them from
+ * supercompression back to ETC1S then transcodes them to the specified
+ * block-compressed format. If the texture contains UASTC images, inflates
+ * them, if they have been supercompressed with zstd, then transcodes
+ * then to the specified format, The transcoded images replace the original
+ * images and the texture's fields including the DFD are modified to reflect
+ * the new format.
  *
- * Basis supercompressed textures must be transcoded to a desired target
- * block-compressed format before they can be uploaded to a GPU via a graphics
- * API.
+ * These types of textures must be transcoded to a desired target
+ * block-compressed format before they can be uploaded to a GPU via a
+ * graphics API.
  *
  * The following block compressed transcode targets are available: @c KTX_TTF_ETC1_RGB,
  * @c KTX_TTF_ETC2_RGBA, @c KTX_TTF_BC1_RGB, @c KTX_TTF_BC3_RGBA,
@@ -93,7 +115,8 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
  * @c KTX_TTF_PVRTC1_4_RGBA or @c KTX_TTF_PVRTC2_4_RGBA is specified and there is no alpha
  * channel @c KTX_TTF_PVRTC1_4_RGB or @c KTX_TTF_PVRTC2_4_RGB respectively will be selected.
  *
- * ATC & FXT1 formats are not supported by KTX2 & libktx as there are no equivalent Vulkan formats.
+ * Transcoding to ATC & FXT1 formats is not supported by libktx as there
+ * are no equivalent Vulkan formats.
  *
  * The following uncompressed transcode targets are also available: @c KTX_TTF_RGBA32,
  * @c KTX_TTF_RGB565, KTX_TTF_BGR565 and KTX_TTF_RGBA4444.
@@ -104,9 +127,9 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
  *
  * @param[in]   This         pointer to the ktxTexture2 object of interest.
  * @param[in]   outputFormat a value from the ktx_texture_transcode_fmt_e enum
- *                           specifying the target format.
+ *                                             specifying the target format.
  * @param[in]   transcodeFlags  bitfield of flags modifying the transcode
- *                           operation. @sa ktx_texture_decode_flags_e.
+ *                                                operation. @sa ktx_texture_decode_flags_e.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -133,102 +156,47 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
  *                              included in the library being used.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out transcoding.
  */
-KTX_error_code
-ktxTexture2_TranscodeBasis(ktxTexture2* This,
-                           ktx_transcode_fmt_e outputFormat,
-                           ktx_transcode_flags transcodeFlags)
+ KTX_error_code
+ ktxTexture2_TranscodeBasis(ktxTexture2* This,
+                            ktx_transcode_fmt_e outputFormat,
+                            ktx_transcode_flags transcodeFlags)
 {
-    ktxTexture2_private& priv = *This->_private;
-    KTX_error_code result = KTX_SUCCESS;
+    uint32_t* BDB = This->pDfd + 1;
+    khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
+    if (colorModel != KHR_DF_MODEL_UASTC
+         && This->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS)
+    return KTX_INVALID_OPERATION; // Not in a transcodable format.
 
-    if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS)
-        return KTX_INVALID_OPERATION;
-
-    if (!priv._supercompressionGlobalData || priv._sgdByteLength == 0)
-        return KTX_INVALID_OPERATION;
+    DECLARE_PRIVATE(priv, This);
+    if (This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+        if (!priv._supercompressionGlobalData || priv._sgdByteLength == 0)
+            return KTX_INVALID_OPERATION;
+    }
 
     if (transcodeFlags & KTX_TF_PVRTC_DECODE_TO_NEXT_POW2) {
-        debug_printf("ktxTexture_TranscodeBasis: KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 currently unsupported\n");
-        return KTX_UNSUPPORTED_FEATURE;
+         debug_printf("ktxTexture_TranscodeBasis: KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 currently unsupported\n");
+         return KTX_UNSUPPORTED_FEATURE;
     }
 
     if (outputFormat == KTX_TTF_PVRTC1_4_RGB
         || outputFormat == KTX_TTF_PVRTC1_4_RGBA) {
-        if ((!isPow2(This->baseWidth)) || (!isPow2(This->baseHeight))) {
-            debug_printf("ktxTexture_TranscodeBasis: PVRTC1 only supports power of 2 dimensions\n");
-            return KTX_INVALID_OPERATION;
-       }
-    }
-
-    if (!This->pData) {
-        if (ktxTexture_isActiveStream((ktxTexture*)This)) {
-             // Load pending. Complete it.
-            result = ktxTexture2_LoadImageData(This, NULL, 0);
-            if (result != KTX_SUCCESS)
-                return result;
-        } else {
-            // No data to transcode.
-            return KTX_INVALID_OPERATION;
+         if ((!isPow2(This->baseWidth)) || (!isPow2(This->baseHeight))) {
+             debug_printf("ktxTexture_TranscodeBasis: PVRTC1 only supports power of 2 dimensions\n");
+             return KTX_INVALID_OPERATION;
         }
     }
 
-    uint8_t* bgd = priv._supercompressionGlobalData;
-    ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
-    if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {
-            debug_printf("ktxTexture_TranscodeBasis: missing endpoints, selectors or tables");
-            return KTX_FILE_DATA_ERROR;
-    }
-
-    // Compute some helpful numbers.
-    //
-    // firstImages contains the indices of the first images for each level to
-    // ease finding the correct slice description when iterating from smallest
-    // level to largest or when randomly accessing them (t.b.c). The last array
-    // entry contains the total number of images, for calculating the offsets
-    // of the endpoints, etc.
-    uint32_t* firstImages = new uint32_t[This->numLevels+1];
-
-    // Temporary invariant value
-    uint32_t layersFaces = This->numLayers * This->numFaces;
-    firstImages[0] = 0;
-    for (uint32_t level = 1; level <= This->numLevels; level++) {
-        // NOTA BENE: numFaces * depth is only reasonable because they can't
-        // both be > 1. I.e there are no 3d cubemaps.
-        firstImages[level] = firstImages[level - 1]
-                           + layersFaces * MAX(This->baseDepth >> (level - 1), 1);
-    }
-    uint32_t& imageCount = firstImages[This->numLevels];
-
-    if (BGD_TABLES_ADDR(0, bgdh, imageCount) + bgdh.tablesByteLength > priv._sgdByteLength) {
-        return KTX_FILE_DATA_ERROR;
-    }
-    // FIXME: Do more validation.
-
-    // Prepare low-level transcoder for transcoding slices.
-
-    basisu_transcoder_init();
-
-    static basist::etc1_global_selector_codebook *global_codebook
-        = new basist::etc1_global_selector_codebook(g_global_selector_cb_size,
-                                                    g_global_selector_cb);
-    ktxBasisImageTranscoder bit(global_codebook);
-
-    bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
-                        bgdh.endpointsByteLength,
-                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
-                        bgdh.selectorsByteLength);
-
-    bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount), bgdh.tablesByteLength);
-
-    // Find matching VkFormat and calculate output sizes.
-
-    const bool hasAlpha = (bgdh.globalFlags & cBASISHeaderFlagHasAlphaSlices) != 0;
-    const bool transcodeAlphaToOpaqueFormats
-     = (hasAlpha && (transcodeFlags & KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS));
-    const bool isVideo = This->isVideo;
-
-    uint32_t* BDB = This->pDfd + 1;
     const bool srgb = (KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB);
+    bool hasAlpha = false;
+    if (This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+        uint32_t numComponents = ktxTexture2_GetNumComponents(This);
+        if (numComponents == 2 || numComponents == 4)
+            hasAlpha = true;
+    } else {
+        assert(colorModel == KHR_DF_MODEL_UASTC);
+        if (KHR_DFDSVAL(BDB, 0, CHANNELID) == KHR_DF_CHANNEL_UASTC_ALPHAPRESENT)
+            hasAlpha = true;
+    }
 
     VkFormat vkFormat;
 
@@ -317,38 +285,234 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         return KTX_INVALID_VALUE;
     }
 
-    uint32_t* newDfd = vk2dfd(vkFormat);
-    if (!newDfd) {
-        delete[] firstImages;
-        return KTX_OUT_OF_MEMORY;
+    // Create a prototype texture to use for calculating sizes in the target
+    // format and, as useful side effects, provide us with a properly sized
+    // data allocation and the DFD for the target format.
+    ktxTextureCreateInfo createInfo;
+    createInfo.glInternalformat = 0;
+    createInfo.vkFormat = vkFormat;
+    createInfo.baseWidth = This->baseWidth;
+    createInfo.baseHeight = This->baseHeight;
+    createInfo.baseDepth = This->baseDepth;
+    createInfo.generateMipmaps = This->generateMipmaps;
+    createInfo.isArray = This->isArray;
+    createInfo.numDimensions = This->numDimensions;
+    createInfo.numFaces = This->numFaces;
+    createInfo.numLayers = This->numLayers;
+    createInfo.numLevels = This->numLevels;
+    createInfo.pDfd = nullptr;
+
+    KTX_error_code result;
+    ktxTexture2* prototype;
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                &prototype);
+
+    if (result != KTX_SUCCESS) {
+        assert(result == KTX_OUT_OF_MEMORY); // The only run time error
+        return result;
     }
 
-    ktx_size_t transcodedDataSize;
-    ktx_uint8_t* basisData = 0;
-    ktxLevelIndexEntry* levelIndex;
+    if (!This->pData) {
+        if (ktxTexture_isActiveStream((ktxTexture*)This)) {
+             // Load pending. Complete it.
+            result = ktxTexture2_LoadImageData(This, NULL, 0);
+            if (result != KTX_SUCCESS)
+                return result;
+        } else {
+            // No data to transcode.
+            return KTX_INVALID_OPERATION;
+        }
+    }
+
+    // Transcoder global initialization. Requires ~9 milliseconds when compiled
+    // and executed natively on a Core i7 2.2 GHz. If this is too slow, the
+    // tables it computes can easily be moved to be compiled in.
+    static bool transcoderInitialized;
+    if (!transcoderInitialized)
+        basisu_transcoder_init();
+
+    if (This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+        result = ktxTexture2_transcodeEtc1s(This, hasAlpha, prototype,
+                                            outputFormat, transcodeFlags);
+    } else {
+        result = ktxTexture2_transcodeUastc(This, hasAlpha, prototype,
+                                            outputFormat, transcodeFlags);
+    }
+
+    if (result == KTX_SUCCESS) {
+        // Fix up the current texture
+        DECLARE_PROTECTED(thisPrtctd, This);
+        DECLARE_PRIVATE(protoPriv, prototype);
+        DECLARE_PROTECTED(protoPrtctd, prototype);
+        memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize,
+               sizeof(ktxFormatSize));
+        This->vkFormat = vkFormat;
+        This->isCompressed = prototype->isCompressed;
+        This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
+        priv._requiredLevelAlignment = protoPriv._requiredLevelAlignment;
+        // Copy the levelIndex from the prototype to This.
+        memcpy(priv._levelIndex, protoPriv._levelIndex,
+               This->numLevels * sizeof(ktxLevelIndexEntry));
+        // Move the DFD and data from the prototype to This.
+        delete This->pDfd;
+        This->pDfd = prototype->pDfd;
+        prototype->pDfd = 0;
+        delete This->pData;
+        This->pData = prototype->pData;
+        This->dataSize = prototype->dataSize;
+        prototype->pData = 0;
+        prototype->dataSize = 0;
+    }
+    ktxTexture2_Destroy(prototype);
+    return result;
+ }
+
+#if 0
+static basist::etc1_global_selector_codebook
+            global_codebook(g_global_selector_cb_size, g_global_selector_cb);
+#endif
+
+/**
+ * @memberof ktxTexture2 @private
+ * @ingroup reader
+ * @~English
+ * @brief Transcode a KTX2 texture with Basis supercompressed images.
+ *
+ * Inflates the images from Basis Universal supercompression back to ETC1S
+ * then transcodes them to the specified block-compressed format. The
+ * transcoded images replace the original images and the texture's fields
+ * including the DFD are modified to reflect the new format.
+ *
+ * Basis supercompressed textures must be transcoded to a desired target
+ * block-compressed format before they can be uploaded to a GPU via a graphics
+ * API.
+ *
+ * The following block compressed transcode targets are available: @c KTX_TTF_ETC1_RGB,
+ * @c KTX_TTF_ETC2_RGBA, @c KTX_TTF_BC1_RGB, @c KTX_TTF_BC3_RGBA,
+ * @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG, @c KTX_TTF_BC7_RGBA,
+ * @c @c KTX_TTF_PVRTC1_4_RGB, @c KTX_TTF_PVRTC1_4_RGBA,
+ * @c KTX_TTF_PVRTC2_4_RGB, @c KTX_TTF_PVRTC2_4_RGBA, @c KTX_TTF_ASTC_4x4_RGBA,
+ * @c KTX_TTF_ETC2_EAC_R11, @c KTX_TTF_ETC2_EAC_RG11, @c KTX_TTF_ETC and
+ * @c KTX_TTF_BC1_OR_3.
+ *
+ * @c KTX_TTF_ETC automatically selects between @c KTX_TTF_ETC1_RGB and
+ * @c KTX_TTF_ETC2_RGBA according to whether an alpha channel is available. @c KTX_TTF_BC1_OR_3
+ * does likewise between @c KTX_TTF_BC1_RGB and @c KTX_TTF_BC3_RGBA. Note that if
+ * @c KTX_TTF_PVRTC1_4_RGBA or @c KTX_TTF_PVRTC2_4_RGBA is specified and there is no alpha
+ * channel @c KTX_TTF_PVRTC1_4_RGB or @c KTX_TTF_PVRTC2_4_RGB respectively will be selected.
+ *
+ * ATC & FXT1 formats are not supported by KTX2 & libktx as there are no equivalent Vulkan formats.
+ *
+ * The following uncompressed transcode targets are also available: @c KTX_TTF_RGBA32,
+ * @c KTX_TTF_RGB565, KTX_TTF_BGR565 and KTX_TTF_RGBA4444.
+ *
+ * The following @p transcodeFlags are available.
+ *
+ * @sa ktxtexture2_CompressBasis().
+ *
+ * @param[in]   This         pointer to the ktxTexture2 object of interest.
+ * @param[in]   outputFormat a value from the ktx_texture_transcode_fmt_e enum
+ *                           specifying the target format.
+ * @param[in]   transcodeFlags  bitfield of flags modifying the transcode
+ *                           operation. @sa ktx_texture_decode_flags_e.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR
+ *                              Supercompression global data is corrupted.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture is not supercompressed.
+ * @exception KTX_INVALID_OPERATION
+ *                              Supercompression global data is missing, i.e.,
+ *                              the texture object is invalid.
+ * @exception KTX_INVALID_OPERATION
+ *                              Image data is missing, i.e., the texture object
+ *                              is invalid.
+ * @exception KTX_INVALID_OPERATION
+ *                              @p outputFormat is PVRTC1 but the texture does
+ *                              does not have power-of-two dimensions.
+ * @exception KTX_INVALID_VALUE @p outputFormat is invalid.
+ * @exception KTX_TRANSCODE_FAILED
+ *                              Something went wrong during transcoding. The
+ *                              texture object will be corrupted.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 was requested
+ *                              or the specified transcode target has not been
+ *                              included in the library being used.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out transcoding.
+ */
+KTX_error_code
+ktxTexture2_transcodeEtc1s(ktxTexture2* This,
+                           bool hasAlpha,
+                           ktxTexture2* prototype,
+                           ktx_transcode_fmt_e outputFormat,
+                           ktx_transcode_flags transcodeFlags)
+{
+    DECLARE_PRIVATE(priv, This);
+    DECLARE_PRIVATE(protoPriv, prototype);
+    KTX_error_code result = KTX_SUCCESS;
+
+    assert(This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS);
+
+    uint8_t* bgd = priv._supercompressionGlobalData;
+    ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
+    if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {
+            debug_printf("ktxTexture_TranscodeBasis: missing endpoints, selectors or tables");
+            return KTX_FILE_DATA_ERROR;
+    }
+
+    // Compute some helpful numbers.
+    //
+    // firstImages contains the indices of the first images for each level to
+    // ease finding the correct slice description when iterating from smallest
+    // level to largest or when randomly accessing them (t.b.c). The last array
+    // entry contains the total number of images, for calculating the offsets
+    // of the endpoints, etc.
+    uint32_t* firstImages = new uint32_t[This->numLevels+1];
+
+    // Temporary invariant value
+    uint32_t layersFaces = This->numLayers * This->numFaces;
+    firstImages[0] = 0;
+    for (uint32_t level = 1; level <= This->numLevels; level++) {
+        // NOTA BENE: numFaces * depth is only reasonable because they can't
+        // both be > 1. I.e there are no 3d cubemaps.
+        firstImages[level] = firstImages[level - 1]
+                           + layersFaces * MAX(This->baseDepth >> (level - 1), 1);
+    }
+    uint32_t& imageCount = firstImages[This->numLevels];
+
+    if (BGD_TABLES_ADDR(0, bgdh, imageCount) + bgdh.tablesByteLength > priv._sgdByteLength) {
+        return KTX_FILE_DATA_ERROR;
+    }
+    // FIXME: Do more validation.
+
+    // Prepare low-level transcoder for transcoding slices.
+
+    static basist::etc1_global_selector_codebook *global_codebook
+        = new basist::etc1_global_selector_codebook(g_global_selector_cb_size,
+                                                    g_global_selector_cb);
+
+    ktxBasisImageTranscoder bit(global_codebook);
+
+    bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
+                        bgdh.endpointsByteLength,
+                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
+                        bgdh.selectorsByteLength);
+
+    bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount),
+                      bgdh.tablesByteLength);
+
+    // Find matching VkFormat and calculate output sizes.
+
+    assert(hasAlpha == ((bgdh.globalFlags & cBASISHeaderFlagHasAlphaSlices) != 0));
+    const bool transcodeAlphaToOpaqueFormats
+     = (hasAlpha && (transcodeFlags & KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS));
+    const bool isVideo = This->isVideo;
+
+    ktx_uint8_t* basisData = This->pData;
+    ktx_uint8_t* xcodedData = prototype->pData;
+    ktxLevelIndexEntry* protoLevelIndex;
     uint64_t levelOffsetWrite;
-
-    // Temporarily set format size, vkFormat, isCompressed and
-    // _requiredLevelAlinment so we can use the texture size calculation.
-    ktxFormatSize oldFormatSize;
-    memcpy(&oldFormatSize, &This->_protected->_formatSize,
-           sizeof(ktxFormatSize));
-    if (!ktxTexture2_extractFormatInfo(newDfd, &This->_protected->_formatSize)) {
-        result =  KTX_UNSUPPORTED_TEXTURE_TYPE;
-        goto cleanup;
-    }
-    This->vkFormat = vkFormat;
-    This->isCompressed =
-          (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT) != 0;
-    This->_private->_requiredLevelAlignment
-                        = ktxTexture2_calcRequiredLevelAlignment(This);
-
-    transcodedDataSize = ktxTexture_calcDataSizeTexture(
-                                                    ktxTexture(This));
-
-    basisData = This->pData;
-    This->pData = (uint8_t*) malloc(transcodedDataSize);
-    This->dataSize = transcodedDataSize;
 
     // Finally we're ready to transcode the slices.
 
@@ -356,7 +520,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
     // the app can query file_info and image_info from the transcoder which
     // returns a structure with lots of info about the image.
 
-    levelIndex = priv._levelIndex;
+    protoLevelIndex = protoPriv._levelIndex;
     levelOffsetWrite = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         uint64_t levelOffset = ktxTexture2_levelDataOffset(This, level);
@@ -370,14 +534,17 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
         uint32_t numImages = This->numLayers * faceSlices;
         uint32_t image = firstImages[level];
         uint32_t endImage = image + numImages;
+        ktx_size_t levelImageSizeOut, levelSizeOut;
 
         // 4x4 is the ETC1S block size.
         const uint32_t num_blocks_x = getBlockWidth(width, 4);
         const uint32_t num_blocks_y = getBlockHeight(height, 4);
 
+        levelSizeOut = 0;
+        // FIXME: Figure out a way to get the size out of the transcoder.
+        levelImageSizeOut = ktxTexture2_GetImageSize(prototype, level);
         for (; image < endImage; image++) {
-            ktx_uint8_t* writePtr = This->pData + writeOffset;
-            ktx_size_t bufferByteLength = This->dataSize - writeOffset;
+            ktx_size_t bufferByteLength = prototype->dataSize - writeOffset;
 
             if (hasAlpha)
             {
@@ -388,7 +555,7 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
             }
 
             result = bit.transcode_image(imageDescs[image], outputFormat,
-                                writePtr, bufferByteLength,
+                                xcodedData + writeOffset, bufferByteLength,
                                 level,
                                 basisData + levelOffset,
                                 width, height, num_blocks_x, num_blocks_y,
@@ -396,648 +563,94 @@ ktxTexture2_TranscodeBasis(ktxTexture2* This,
             if (result != KTX_SUCCESS)
                 goto cleanup;
 
-
-            writeOffset += ktxTexture2_GetImageSize(This, level);
-            writeOffset = _KTX_PADN(This->_private->_requiredLevelAlignment,
-                                    writeOffset);
+            writeOffset += levelImageSizeOut;
+            levelSizeOut += levelImageSizeOut;
         } // end images loop
-
-        // FIXME: Figure out a way to get the size out of the transcoder.
-        uint64_t levelSize = ktxTexture_calcLevelSize(ktxTexture(This), level,
-                                                      KTX_FORMAT_VERSION_TWO);
-        levelIndex[level].byteOffset = levelOffsetWrite;
-        levelIndex[level].byteLength = levelSize;
-        levelIndex[level].uncompressedByteLength = levelSize;
-        levelOffsetWrite += levelSize;
+        protoLevelIndex[level].byteOffset = levelOffsetWrite;
+        protoLevelIndex[level].byteLength = levelSizeOut;
+        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
+        levelOffsetWrite += levelSizeOut;
         assert(levelOffsetWrite == writeOffset);
+        // In case of transcoding to uncompressed.
+        levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment,
+                                     levelOffsetWrite);
     } // level loop
 
-    // Fix up the rest of the texture
-    delete This->pDfd;
-    This->pDfd = newDfd;
-    This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
-    delete basisData;
-    delete[] firstImages;
-    return KTX_SUCCESS;
+    result = KTX_SUCCESS;
 
 cleanup:
-    This->vkFormat = VK_FORMAT_UNDEFINED;
-    This->isCompressed = false;
-    memcpy(&This->_protected->_formatSize, &oldFormatSize,
-           sizeof(ktxFormatSize));
-    This->_private->_requiredLevelAlignment = 1;
-    if (basisData) {
-        delete This->pData;
-        This->pData = basisData;
-    }
     delete[] firstImages;
     return result;
 }
 
-/**
- * @internal
- * @~English
- * @brief Transcode a single Basis supercompressed image.
- *
- * @param[in] image     reference to the @c ktxBasisImageDesc of the image to be transcoded.
- *                   This comes from the @c supercompressionGlobalData area of a KTX2 file.
- * @param[in] targetFormat the format to which to transcode the image. Only real formats are
- *                        accepted, i.e., any format accepted by ktxTexture2_TranscodeBasis
- *                        except @c KTX_TTF_ETC and @c KTX_TTF_BC1_OR_3.
- * @param[in] writePtr pointer to the location to write the transcoded image.
- * @param[in] bufferByteLength the length of the buffer pointed to by @p writePtr.
- * @param[in] level the mip level of the image being transcoded.
- * @param[in] levelDataPtr pointer to the start of the supercompressed data for mip level @p level.
- * @param[in] width the pixel width of a level @p level image.
- * @param[in] height the pixel height of a level @p level image.
- * @param[in] num_blocks_x number of blocks in the x dimension of mip level @p level to be
- *                         transcoded. This is the number of blocks in base block-compressed
- *                         format used by Basis Universal. When the format is ETC1, as indicated
- *                         by @c eBuIsETC1S being set in @c globalFlags in the
- *                         supercompression global data, the block width to use for calculating
- *                         this from @p width is 4.
- * @param[in] num_blocks_y number of blocks in the y dimension of mip level @p level to be
- *                        transcoded. When @c eBuIsETC1S is set in @c globalFlags in the
- *                        supercompression global data the block height to use for calculating this
- *                        from @p height is 4.
- * @param[in] isVideo @c true if the image comes from a file containing an animation sequence,
- *                   @c false otherwise.
- * @param[in] transcodeAlphaToOpaqueFormats if @p targetFormat is a format lacking an
- *                                         alpha component, transcode the alpha slice into
- *                                         the RGB components of the destination.
- * @param[in,out] pState pointer to a transcoder_state object. Only needed when transcoding
- *                      multiple mip levels in parallel on different threads.
- * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE  A non-real format was specified as @p targetFormat.
- * @exception KTX_TRANSCODE_FAILED   Something went wrong during transcoding. The
- *                                 image will be corrupted.
- */
+
 KTX_error_code
-ktxBasisImageTranscoder::transcode_image(const ktxBasisImageDesc& image,
-                                         ktx_transcode_fmt_e targetFormat,
-                                         ktx_uint8_t* writePtr,
-                                         ktx_size_t bufferByteLength,
-                                         uint32_t level,
-                                         ktx_uint8_t* levelDataPtr,
-                                         uint32_t width, uint32_t height,
-                                         uint32_t num_blocks_x,
-                                         uint32_t num_blocks_y,
-                                         bool isVideo,
-                                         bool transcodeAlphaToOpaqueFormats,
-                                         basisu_transcoder_state* pState)
+ktxTexture2_transcodeUastc(ktxTexture2* This,
+                           bool hasAlpha,
+                           ktxTexture2* prototype,
+                           ktx_transcode_fmt_e outputFormat,
+                           ktx_transcode_flags transcodeFlags)
 {
+    assert(This->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS);
+
     KTX_error_code result = KTX_SUCCESS;
+    ktx_uint8_t* writePtr = prototype->pData;
+    ktx_size_t bufferByteLength = prototype->dataSize;
+    DECLARE_PRIVATE(protoPriv, prototype);
+    ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
+    ktx_size_t levelOffsetWrite = 0;
 
-    if (targetFormat > KTX_TTF_ETC) {
-        // Only real format values can be accepted here.
-        return KTX_INVALID_VALUE;
+    ktxUastcImageTranscoder uit;
+    for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--)
+    {
+        ktx_uint32_t width, height, depth;
+        uint64_t writeOffset = levelOffsetWrite;
+        ktx_size_t levelImageSizeIn, levelImageSizeOut, levelSizeOut;
+        ktx_uint32_t levelImageCount;
+        const ktx_uint8_t* pDataIn = This->pData;
+
+        /* Array textures have the same number of layers at each mip level. */
+        width = MAX(1, This->baseWidth  >> level);
+        height = MAX(1, This->baseHeight >> level);
+        depth = MAX(1, This->baseDepth  >> level);
+
+        // 4x4 is the UASTC block size.
+        const uint32_t num_blocks_x = getBlockWidth(width, 4);
+        const uint32_t num_blocks_y = getBlockHeight(height, 4);
+
+        levelImageCount = This->numLayers * This->numFaces * depth;
+        // Note: this is the inflated size of an image.
+        levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), level,
+                                                    KTX_FORMAT_VERSION_TWO);
+        levelImageSizeOut = ktxTexture_calcImageSize(ktxTexture(prototype),
+                                                     level,
+                                                     KTX_FORMAT_VERSION_TWO);
+
+        pDataIn += ktxTexture2_levelDataOffset(This, level);
+        levelSizeOut = 0;
+        for (uint32_t image = 0; image < levelImageCount; image++) {
+            result = uit.transcode_image(outputFormat,
+                              writePtr + writeOffset,
+                              bufferByteLength,
+                              level,
+                              pDataIn,
+                              (ktx_uint32_t)levelImageSizeIn,
+                              width, height, num_blocks_x, num_blocks_y,
+                              hasAlpha,
+                              transcodeFlags);
+            pDataIn += levelImageSizeIn;
+            writeOffset += levelImageSizeOut;
+            bufferByteLength -= levelImageSizeOut;
+            levelSizeOut += levelImageSizeOut;
+        }
+        protoLevelIndex[level].byteOffset = levelOffsetWrite;
+        // writeOffset will be equal to total size of the images in the level.
+        protoLevelIndex[level].byteLength = levelSizeOut;
+        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
+        levelOffsetWrite += levelSizeOut;
     }
-
-    bool status = false;
-    bool hasAlpha, isAlphaSlice;
-    uint32_t sliceByteOffset, sliceByteLength;
-    uint32_t bytes_per_block
-              = basis_get_bytes_per_block_or_pixel((transcoder_texture_format)targetFormat);
-
-    hasAlpha = image.alphaSliceByteLength > 0;
-    // If the caller wants us to transcode the mip level's alpha data,
-    // for opaque formats then use alpha slice.
-    if (hasAlpha && transcodeAlphaToOpaqueFormats) {
-        sliceByteOffset = image.alphaSliceByteOffset;
-        sliceByteLength = image.alphaSliceByteLength;
-        isAlphaSlice = true;
-    } else {
-        sliceByteOffset = image.rgbSliceByteOffset;
-        sliceByteLength = image.rgbSliceByteLength;
-        isAlphaSlice = false;
-    }
-    switch (targetFormat) {
-      case KTX_TTF_ETC1_RGB:
-      {
-        // No need to pass output_row_pitch_in_blocks. It defaults to
-        // num_blocks_x.
-        // transcoder state is only necessary for video.
-
-        // level is used as an index, together with isAlphaSlice, into
-        // to retrieve an array of previous frame indices from a 2D
-        // table maintained in the transcoder state when transcoding
-        // video.
-        // TODO: Find out what if any ordering of the levels is
-        // necessary for transcoding video frames with mip levels.
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cETC1, bytes_per_block,
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_BC1_RGB:
-      {
-#if !BASISD_SUPPORT_DXT1
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cBC1, bytes_per_block,
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_BC4_R:
-      {
-#if !BASISD_SUPPORT_DXT5A
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cBC4, bytes_per_block,
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_PVRTC1_4_RGB:
-      {
-#if !BASISD_SUPPORT_PVRTC1
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cPVRTC1_4_RGB,
-                    bytes_per_block,
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_PVRTC2_4_RGB:
-      {
-#if !BASISD_SUPPORT_PVRTC2
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cPVRTC2_4_RGB,
-                    bytes_per_block,
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_PVRTC1_4_RGBA:
-      {
-#if !BASISD_SUPPORT_PVRTC1
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        assert(hasAlpha);
-
-        std::vector<uint32_t> temp_block_indices(num_blocks_x * num_blocks_y);
-
-        // First decode alpha to temp buffer
-        status = transcode_slice(temp_block_indices.data(),
-                num_blocks_x, num_blocks_y,
-                levelDataPtr + image.alphaSliceByteOffset,
-                image.alphaSliceByteLength,
-                basist::block_format::cIndices, sizeof(uint32_t),
-                true,
-                isVideo, true, level, width, height,
-                0 /* row_pitch */, pState);
-
-        if (status) {
-            // Now decode the color data.
-            // Note that output_row_pitch_in_blocks is actually ignored
-            // when transcoding to PVRTC1. Since we're using the
-            // the default, 0, this is not an issue.
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.rgbSliceByteOffset,
-                    image.rgbSliceByteLength,
-                    basist::block_format::cPVRTC1_4_RGBA,
-                    bytes_per_block,
-                    true,
-                    isVideo, false, level, width, height,
-                    0 /* row_pitch */, pState,
-                    hasAlpha, temp_block_indices.data());
-        }
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_BC7_RGBA:
-      {
-#if !BASISD_SUPPORT_BC7
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        // Decode the color data
-        status = transcode_slice(writePtr,
-                num_blocks_x, num_blocks_y,
-                levelDataPtr + image.rgbSliceByteOffset,
-                image.rgbSliceByteLength,
-                basist::block_format::cBC7_M5_COLOR, bytes_per_block,
-                true,
-                isVideo, false, level, width, height,
-                0 /* row_pitch */, pState);
-
-        if (status && hasAlpha) {
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.alphaSliceByteOffset,
-                    image.alphaSliceByteLength,
-                    basist::block_format::cBC7_M5_ALPHA,
-                    bytes_per_block,
-                    true,
-                    isVideo, true, level, width, height,
-                    0 /* row_pitch */, pState);
-        }
-
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_ETC2_RGBA:
-      {
-#if !BASISD_SUPPORT_ETC2_EAC_A8
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        if (hasAlpha) {
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.alphaSliceByteOffset,
-                    image.alphaSliceByteLength,
-                    basist::block_format::cETC2_EAC_A8, bytes_per_block,
-                    true,
-                    isVideo, true, level, width, height,
-                    0 /* row_pitch */, pState);
-        } else {
-            basisu_transcoder::write_opaque_alpha_blocks(
-                num_blocks_x, num_blocks_y,
-                writePtr,
-                (uint32_t)(bufferByteLength / bytes_per_block),
-                basist::block_format::cETC2_EAC_A8, bytes_per_block,
-                0);
-            status = true;
-        }
-        if (status) {
-            // Now decode the color data.
-          status = transcode_slice(writePtr + 8,
-                  num_blocks_x, num_blocks_y,
-                  levelDataPtr + image.rgbSliceByteOffset,
-                  image.rgbSliceByteLength,
-                  basist::block_format::cETC1, bytes_per_block,
-                  true,
-                  isVideo, false, level, width, height,
-                  0 /* row_pitch */, pState);
-        }
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_BC3_RGBA:
-      {
-#if !BASISD_SUPPORT_DXT1 && !BASISD_SUPPORT_DXT5A
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-         // First decode the alpha data
-
-        if (hasAlpha) {
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.alphaSliceByteOffset,
-                    image.alphaSliceByteLength,
-                    basist::block_format::cBC4, bytes_per_block,
-                    true,
-                    isVideo, true, level, width, height,
-                    0 /* row_pitch */, pState);
-        } else {
-            basisu_transcoder::write_opaque_alpha_blocks(
-                num_blocks_x, num_blocks_y, writePtr,
-                (uint32_t)(bufferByteLength/ bytes_per_block),
-                basist::block_format::cBC4, bytes_per_block, 0);
-            status = true;
-        }
-
-        if (status) {
-            // Now decode the color data. Forbid BC1 3 color blocks,
-            // which aren't supported in BC3.
-            status = transcode_slice(writePtr + 8,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.rgbSliceByteOffset,
-                    image.rgbSliceByteLength,
-                    basist::block_format::cBC1, bytes_per_block,
-                    false, // Forbid 3 color blocks
-                    isVideo, false, level, width, height,
-                    0 /* row_pitch */, pState);
-        }
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_BC5_RG:
-      {
-#if !BASISD_SUPPORT_DXT5A
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        // Decode the R data (actually the green channel of the color
-        // data slice in the basis file)
-        status = transcode_slice(writePtr,
-                num_blocks_x, num_blocks_y,
-                levelDataPtr + image.rgbSliceByteOffset,
-                image.rgbSliceByteLength,
-                basist::block_format::cBC4, bytes_per_block,
-                0, // Forbid 3 color blocks
-                isVideo, false, level, width, height,
-                0 /* row_pitch */, pState);
-
-        if (status) {
-            if (hasAlpha) {
-                // Decode the G data (actually the green channel of the
-                // alpha data slice in the basis file)
-                status = transcode_slice(writePtr + 8,
-                        num_blocks_x, num_blocks_y,
-                        levelDataPtr + image.alphaSliceByteOffset,
-                        image.alphaSliceByteLength,
-                        basist::block_format::cBC4, bytes_per_block,
-                        true,
-                        isVideo, true, level, width, height,
-                        0 /* row_pitch */, pState);
-            } else {
-                basisu_transcoder::write_opaque_alpha_blocks(
-                    num_blocks_x, num_blocks_y, writePtr + 8,
-                    (uint32_t)((bufferByteLength - 8) / bytes_per_block),
-                    basist::block_format::cBC4, bytes_per_block, 0);
-                status = true;
-            }
-        }
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_ASTC_4x4_RGBA:
-      {
-#if !BASISD_SUPPORT_ASTC
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        if (hasAlpha) {
-            // First decode alpha to the output using the output texture
-            // as a temporary buffer.
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.alphaSliceByteOffset,
-                    image.alphaSliceByteLength,
-                    basist::block_format::cIndices, bytes_per_block,
-                    true,
-                    isVideo, true, level, width, height,
-                    0 /* row_pitch */, pState);
-        } else {
-            status = true;
-        }
-        if (status) {
-            // Now decode the color data and transcode to ASTC. The
-            // transcoder function will read the alpha selector data
-            // from the output texture as it converts and transcode
-            // both the alpha and color data at the same time to
-            // ASTC. hasAlpha tells the transcoder alpha is present.
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.rgbSliceByteOffset,
-                    image.rgbSliceByteLength,
-                    basist::block_format::cASTC_4x4, bytes_per_block,
-                    true,
-                    isVideo, false, level, width, height,
-                    0 /* row_pitch */, pState, hasAlpha);
-        }
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_PVRTC2_4_RGBA:
-      {
-#if !BASISD_SUPPORT_PVRTC2
-        return KTX_UNSUPPORTED_FEATURE;
-#endif
-        if (hasAlpha) {
-            // As with ASTC, use the output texture as a temporary
-            // buffer for alpha.
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.alphaSliceByteOffset,
-                    image.alphaSliceByteLength,
-                    basist::block_format::cIndices, bytes_per_block,
-                    true,
-                    isVideo, true, level, width, height,
-                    0 /* row_pitch */, pState);
-        } else {
-            status = true;
-        }
-        if (status) {
-            // Now decode the color data and transcode to PVRTC.
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.rgbSliceByteOffset,
-                    image.rgbSliceByteLength,
-                    basist::block_format::cPVRTC2_4_RGBA,
-                    bytes_per_block,
-                    true,
-                    isVideo, false, level, width, height,
-                    0 /* row_pitch */, pState, hasAlpha);
-        }
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_RGB565:
-      {
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cRGB565, sizeof(uint16_t),
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_BGR565:
-      {
-        status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + sliceByteOffset,
-                    sliceByteLength,
-                    basist::block_format::cBGR565, sizeof(uint16_t),
-                    true,
-                    isVideo, isAlphaSlice, level, width, height,
-                    0 /* row_pitch */, pState);
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_RGBA4444:
-      {
-        if(hasAlpha) {
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.alphaSliceByteOffset,
-                    image.alphaSliceByteLength,
-                    basist::block_format::cRGBA4444_ALPHA,
-                    sizeof(uint16_t),
-                    true,
-                    isVideo, true, level, width, height,
-                    0 /* row_pitch */, pState);
-        } else {
-            status = true;
-        }
-
-        if (status) {
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.rgbSliceByteOffset,
-                    image.rgbSliceByteLength,
-                    hasAlpha ? basist::block_format::cRGBA4444_COLOR : basist::block_format::cRGBA4444_COLOR_OPAQUE,
-                    sizeof(uint16_t),
-                    true,
-                    isVideo, false, level, width, height,
-                    0 /* row_pitch */, pState);
-        }
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-      }
-      case KTX_TTF_RGBA32:
-      {
-        if(hasAlpha) {
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.alphaSliceByteOffset,
-                    image.alphaSliceByteLength,
-                    basist::block_format::cA32, sizeof(uint32_t),
-                    true,
-                    isVideo, true, level, width, height,
-                    0 /* row_pitch */, pState);
-        } else {
-            status = true;
-        }
-
-        if (status) {
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.rgbSliceByteOffset,
-                    image.rgbSliceByteLength,
-                    hasAlpha ? basist::block_format::cRGB32 : basist::block_format::cRGBA32,
-                    sizeof(uint32_t),
-                    true,
-                    isVideo, false, level, width, height,
-                    0 /* row_pitch */, pState);
-        }
-
-        if (!status) {
-             result = KTX_TRANSCODE_FAILED;
-        }
-        break;
-        }
-        case KTX_TTF_ETC2_EAC_R11:
-        {
-#if !BASISD_SUPPORT_ETC2_EAC_RG11
-          return KTX_UNSUPPORTED_FEATURE;
-#endif
-          status = transcode_slice(writePtr,
-                      num_blocks_x, num_blocks_y,
-                      levelDataPtr + sliceByteOffset,
-                      sliceByteLength,
-                      basist::block_format::cETC2_EAC_R11, bytes_per_block,
-                      true,
-                      isVideo, isAlphaSlice, level, width, height,
-                      0 /* row_pitch */, pState);
-
-          if (!status) {
-               result = KTX_TRANSCODE_FAILED;
-          }
-          break;
-        }
-        case KTX_TTF_ETC2_EAC_RG11:
-        {
-#if !BASISD_SUPPORT_ETC2_EAC_RG11
-          return KTX_UNSUPPORTED_FEATURE;
-#endif
-          if (hasAlpha) {
-              // Decode the alpha data to G.
-              status = transcode_slice(writePtr + 8,
-                      num_blocks_x, num_blocks_y,
-                      levelDataPtr + image.alphaSliceByteOffset,
-                      image.alphaSliceByteLength,
-                      basist::block_format::cETC2_EAC_R11, bytes_per_block,
-                      true,
-                      isVideo, true, level, width, height,
-                      0 /* row_pitch */, pState);
-          } else {
-              basisu_transcoder::write_opaque_alpha_blocks(num_blocks_x,
-                      num_blocks_y, writePtr + 8,
-                      (uint32_t)(bufferByteLength / bytes_per_block),
-                      basist::block_format::cETC2_EAC_R11,
-                      bytes_per_block, 0);
-              status = true;
-          }
-          if (status) {
-              // Now decode the color data to R.
-            status = transcode_slice(writePtr,
-                    num_blocks_x, num_blocks_y,
-                    levelDataPtr + image.rgbSliceByteOffset,
-                    image.rgbSliceByteLength,
-                    basist::block_format::cETC2_EAC_R11, bytes_per_block,
-                    true,
-                    isVideo, false, level, width, height,
-                    0 /* row_pitch */, pState);
-          }
-          if (!status) {
-               result = KTX_TRANSCODE_FAILED;
-          }
-          break;
-        }
-        default:
-          return KTX_INVALID_VALUE;
-    } // end targetFormat switch
-    return result;
+    // In case of transcoding to uncompressed.
+    levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment,
+                                 levelOffsetWrite);
+    return KTX_SUCCESS;
 }

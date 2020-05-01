@@ -81,6 +81,7 @@ argparser::getopt(_tstring* shortopts, const struct option* longopts,
     
     int retval = '?';
     if (arg.compare(0, 2, _T("--")) == 0) {
+        if (arg.size() == 2) return -1; // " -- " separates options and files
         const struct option* opt = longopts;
         while (opt->name != nullptr) {
             if (arg.compare(2, _tstring::npos, opt->name) == 0) {
@@ -105,10 +106,12 @@ argparser::getopt(_tstring* shortopts, const struct option* longopts,
         size_t pos = shortopts->find(arg.substr(1, 1));
         if (pos != _tstring::npos) {
             retval = (*shortopts)[pos];
-            if ((pos < shortopts->length()) && (*shortopts)[++pos] == ':') {
+            if (pos < shortopts->length()
+                && ((*shortopts)[++pos] == ':' || (*shortopts)[pos] == ';')) {
                 if (optind >= argv.size() || (optarg = argv[optind++])[0] == '-') {
                     optarg.clear();
                     optind--;
+                    if ((*shortopts)[pos] == ':') // required argument
                     retval = ':';
                 }
             }

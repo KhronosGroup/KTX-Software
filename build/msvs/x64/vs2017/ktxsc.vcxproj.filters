@@ -7,6 +7,9 @@
     <Filter Include="utils">
       <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
     </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{742E9A0E-D1B0-643D-E893-71064FFA2C51}</UniqueIdentifier>
+    </Filter>
     <Filter Include="tools">
       <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
     </Filter>
@@ -31,6 +34,9 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClInclude Include="..\..\..\..\utils\argparser.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\utils\scapp.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\tools\ktxsc\ktxsc.cpp">

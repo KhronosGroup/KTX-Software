@@ -18,8 +18,8 @@
  */
 
 #include <emscripten/bind.h>
-#include "basis_image_transcoder.h"
-#include "basis_transcoder_config.h"
+#include "basisu_image_transcoders.h"
+#include "basisu_transcoder_config.h"
 
 using namespace emscripten;
 using namespace basist;
@@ -43,17 +43,57 @@ namespace msc {
         std::vector<uint8_t> image;
     };
 
-    class BasisTranscoder : public ktxBasisImageTranscoder {
+    class ImageTranscoderHelper {
+        // block size calculations
+        static inline uint32_t getWidthInBlocks(uint32_t w, uint32_t bw)
+        {
+            return (w + (bw - 1)) / bw;
+        }
+
+        static inline uint32_t getHeightInBlocks(uint32_t h, uint32_t bh)
+        {
+            return (h + (bh - 1)) / bh;
+        }        //
+
       public:
-        BasisTranscoder() : ktxBasisImageTranscoder(buildSelectorCodebook())
+        static size_t getTranscodedImageByteLength(transcoder_texture_format format,
+                                                   uint32_t width, uint32_t height)
+        {
+            uint32_t blockByteLength =
+                      basis_get_bytes_per_block_or_pixel(format);
+            if (basis_transcoder_format_is_uncompressed(format)) {
+                return width * height * blockByteLength;
+            } else if (format == transcoder_texture_format::cTFPVRTC1_4_RGB
+                       || format == transcoder_texture_format::cTFPVRTC1_4_RGBA) {
+                // For PVRTC1, Basis only writes (or requires)
+                // blockWidth * blockHeight * blockByteLength. But GL requires
+                // extra padding for very small textures:
+                // https://www.khronos.org/registry/OpenGL/extensions/IMG/IMG_texture_compression_pvrtc.txt
+                const uint32_t paddedWidth = (width + 3) & ~3;
+                const uint32_t paddedHeight = (height + 3) & ~3;
+                return (std::max(8U, paddedWidth)
+                        * std::max(8U, paddedHeight) * 4 + 7) / 8;
+            } else {
+                uint32_t blockWidth = getWidthInBlocks(width, basis_get_block_width(format));
+                uint32_t blockHeight = getHeightInBlocks(height, basis_get_block_height(format));
+                return blockWidth * blockHeight * blockByteLength;
+            }
+        }
+    };
+
+
+    class BasisUImageTranscoder : public ktxBasisImageTranscoder {
+      public:
+        BasisUImageTranscoder() : ktxBasisImageTranscoder(buildSelectorCodebook())
         { }
 
         // Yes, code in the following functions handling data coming in from
         // ArrayBuffers IS copying the data. Sigh! According to Alon Zakai:
         //     "There isn't a way to let compiled code access a new ArrayBuffer.
         //     The compiled code has hardcoded access to the wasm Memory it was
-        //     instantiated with - all the pointers it can understand are indexes
-        //     into that Memory. It can't refer to anything else, I'm afraid."
+        //     instantiated with - all the pointers it can understand are
+        //     indexes into that Memory. It can't refer to anything else,
+        //     I'm afraid."
         //
         //     "In the future using different address spaces or techniques with
         //     reference types may open up some possibilities here."
@@ -96,41 +136,6 @@ namespace msc {
 
             return ktxBasisImageTranscoder::decode_tables(cTableData.data(),
                                                           cTableData.size());
-        }
-
-        // block size calculations
-        static inline uint32_t getWidthInBlocks(uint32_t w, uint32_t bw)
-        {
-            return (w + (bw - 1)) / bw;
-        }
-
-        static inline uint32_t getHeightInBlocks(uint32_t h, uint32_t bh)
-        {
-            return (h + (bh - 1)) / bh;
-        }        //
-
-        static size_t getTranscodedImageByteLength(transcoder_texture_format format,
-                                                   uint32_t width, uint32_t height)
-        {
-            uint32_t blockByteLength = 
-                      basis_get_bytes_per_block_or_pixel(format);
-            if (basis_transcoder_format_is_uncompressed(format)) {
-                return width * height * blockByteLength;
-            } else if (format == transcoder_texture_format::cTFPVRTC1_4_RGB
-                       || format == transcoder_texture_format::cTFPVRTC1_4_RGBA) {
-                // For PVRTC1, Basis only writes (or requires)
-                // blockWidth * blockHeight * blockByteLength. But GL requires
-                // extra padding for very small textures:
-                // https://www.khronos.org/registry/OpenGL/extensions/IMG/IMG_texture_compression_pvrtc.txt
-                const uint32_t paddedWidth = (width + 3) & ~3;
-                const uint32_t paddedHeight = (height + 3) & ~3;
-                return (std::max(8U, paddedWidth)
-                        * std::max(8U, paddedHeight) * 4 + 7) / 8;
-            } else {
-                uint32_t blockWidth = getWidthInBlocks(width, basis_get_block_width(format));
-                uint32_t blockHeight = getHeightInBlocks(height, basis_get_block_height(format));
-                return blockWidth * blockHeight * blockByteLength;
-            }
         }
 
         // @~English
@@ -225,7 +230,8 @@ namespace msc {
                 memoryView.call<void>("set", jsAlphaSlice);
             }
 
-            ktx_transcode_fmt_e cTargetFormat = jsTargetFormat.as<ktx_transcode_fmt_e>();
+            transcoder_texture_format cTargetFormat
+                            = jsTargetFormat.as<transcoder_texture_format>();
 
             ktxBasisImageDesc imageDesc;
             imageDesc.imageFlags = imageFlags;
@@ -238,21 +244,23 @@ namespace msc {
             //std::vector<uint8_t> dst;
             //dst.resize(getTranscodedImageByteLength(static_cast<transcoder_texture_format>(cTargetFormat),
             size_t tiByteLength =
-            getTranscodedImageByteLength(static_cast<transcoder_texture_format>(cTargetFormat), width, height);
+            ImageTranscoderHelper::getTranscodedImageByteLength(cTargetFormat,
+                                                                width,
+                                                                height);
             TranscodedImage* dst = new TranscodedImage(tiByteLength);
 
-            KTX_error_code error;
-            error = ktxBasisImageTranscoder::transcode_image(
-                              imageDesc,
-                              cTargetFormat,
-                              dst->data(),
-                              dst->size(),
-                              level,
-                              deflatedImage.data(),
-                              width, height,
-                              num_blocks_x, num_blocks_y,
-                              isVideo,
-                              transcodeAlphaToOpaqueFormats);
+            KTX_error_code error =
+                ktxBasisImageTranscoder::transcode_image(
+                                              imageDesc,
+                                              cTargetFormat,
+                                              dst->data(),
+                                              dst->size(),
+                                              level,
+                                              deflatedImage.data(),
+                                              width, height,
+                                              num_blocks_x, num_blocks_y,
+                                              isVideo,
+                                              transcodeAlphaToOpaqueFormats);
 
             val ret = val::object();
             ret.set("error", static_cast<uint32_t>(error));
@@ -270,14 +278,73 @@ namespace msc {
         {
            if (!pGlobal_codebook) {
                 pGlobal_codebook = new basist::etc1_global_selector_codebook(
-                                                                g_global_selector_cb_size,
-                                                                g_global_selector_cb);
+                                                     g_global_selector_cb_size,
+                                                     g_global_selector_cb);
             }
             return pGlobal_codebook;
         }
     };
 
-    basist::etc1_global_selector_codebook* BasisTranscoder::pGlobal_codebook;
+    class UastcImageTranscoder : public ktxUastcImageTranscoder {
+      public:
+        UastcImageTranscoder() : ktxUastcImageTranscoder() { }
+
+        emscripten::val transcode_image(
+                                   const val& jsTargetFormat,
+                                   uint32_t level,
+                                   const val& jsInImage,
+                                   uint32_t width, uint32_t height,
+                                   uint32_t num_blocks_x,
+                                   uint32_t num_blocks_y,
+                                   bool hasAlpha = false,
+                                   uint32_t transcode_flags = 0
+                                   /*basisu_transcoder_state* pState = nullptr*/)
+        {
+
+
+            transcoder_texture_format cTargetFormat
+                            = jsTargetFormat.as<transcoder_texture_format>();
+            // Copy in the deflated image.
+            std::vector <uint8_t> deflatedImage;
+            size_t deflatedImageByteLength
+                                     = jsInImage["byteLength"].as<size_t>();
+            deflatedImage.resize(deflatedImageByteLength);
+            val memory = val::module_property("HEAP8")["buffer"];
+            val memoryView = jsInImage["constructor"].new_(memory,
+                              reinterpret_cast<uintptr_t>(deflatedImage.data()),
+                              deflatedImageByteLength);
+            memoryView.call<void>("set", jsInImage);
+
+            size_t tiByteLength =
+            ImageTranscoderHelper::getTranscodedImageByteLength(cTargetFormat,
+                                                                width,
+                                                                height);
+            TranscodedImage* dst = new TranscodedImage(tiByteLength);
+
+            ktx_error_code_e error =
+                ktxUastcImageTranscoder::transcode_image(
+                                              cTargetFormat,
+                                              dst->data(),
+                                              dst->size(),
+                                              level,
+                                              deflatedImage.data(),
+                                              deflatedImage.size(),
+                                              width, height,
+                                              num_blocks_x, num_blocks_y,
+                                              hasAlpha,
+                                              transcode_flags
+                                              /*pState*/);
+
+            val ret = val::object();
+            ret.set("error", static_cast<uint32_t>(error));
+            if (error == KTX_SUCCESS) {
+                ret.set("transcodedImage", dst);
+            }
+            return std::move(ret);
+        }
+    };
+
+    basist::etc1_global_selector_codebook* BasisUImageTranscoder::pGlobal_codebook;
 }
 
 /** @page msc_basis_transcoder Basis Image Transcoder binding
@@ -524,30 +591,20 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
 #endif
     ;
 
-    class_<msc::BasisTranscoder>("BasisTranscoder")
+    function("InitTranscoderGlobal", basisu_transcoder_init);
+
+    class_<msc::BasisUImageTranscoder>("BasisUImageTranscoder")
         .constructor()
-        .class_function("init", basisu_transcoder_init)
         .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
-#if SUPPORT_TRANSCODE_SLICE
-        .class_function("writeOpaqueAlphaBlocks",
-                        &msc::BasisTranscoder::write_opaque_alpha_blocks)
-#endif
-        .function("decodePalettes", &msc::BasisTranscoder::decode_palettes)
-        .function("decodeTables", &msc::BasisTranscoder::decode_tables)
-        .function("transcodeImage", &msc::BasisTranscoder::transcode_image)
-#if SUPPORT_TRANSCODE_SLICE
-        .function("transcodeSlice",
-                  select_overload<bool(const val&, uint32_t, uint32_t, const val&,
-                                  uint32_t, uint32_t, uint32_t, bool, bool, bool,
-                                  uint32_t, uint32_t, uint32_t, bool, const val&)>
-                  (&msc::BasisTranscoder::transcode_slice))
-        .function("transcodeSlice",
-                  select_overload<bool(const val&, uint32_t, uint32_t, const val&,
-                                  uint32_t, uint32_t, uint32_t, bool, bool, bool,
-                                  uint32_t, uint32_t, uint32_t, uint32_t,
-                                  bool, const val&, const val&)>
-                  (&msc::BasisTranscoder::transcode_slice))
-#endif
+        .function("decodePalettes", &msc::BasisUImageTranscoder::decode_palettes)
+        .function("decodeTables", &msc::BasisUImageTranscoder::decode_tables)
+        .function("transcodeImage", &msc::BasisUImageTranscoder::transcode_image)
+        ;
+
+    class_<msc::UastcImageTranscoder>("UastcImageTranscoder")
+        .constructor()
+        .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
+        .function("transcodeImage", &msc::UastcImageTranscoder::transcode_image)
         ;
 
     class_<basisu_transcoder_state>("BasisTranscoderState")

@@ -107,9 +107,7 @@ Texture::Texture(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
-    if (kTexture->classId == ktxTexture2_c
-        && ((ktxTexture2*)kTexture)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS)
-    {
+    if (ktxTexture_NeedsTranscoding(kTexture)) {
         TextureTranscoder tc(vkctx);
         tc.transcode((ktxTexture2*)kTexture);
         transcoded = true;

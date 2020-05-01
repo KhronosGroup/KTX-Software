@@ -110,9 +110,26 @@ numtests=$numtests+1
 if ! $toktx --luminance a b 2> /dev/null; then
   passed=$passed+1
 else
-  echo "Simultaneous --luminance allowed"
+  echo "--luminance allowed"
   failed=$failed+1
 fi
+
+numtests=$numtests+1
+if ! $toktx --zcmp --bcmp a b 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "Simultaneous --bcmp & --zcmp allowed"
+  failed=$failed+1
+fi
+
+numtests=$numtests+1
+if ! $toktx --bcmp --uastc a b 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "Simultaneous --bcmp & --uastc allowed"
+  failed=$failed+1
+fi
+
 
 function cmpktx () {
   if diff $1 $2; then
@@ -157,30 +174,31 @@ function gencmpktx() {
 #---------------- Tests start here -----------------------
 
 
-gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgb.ppm 
-gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --linear --nometadata rgb.ppm
-TOKTX_OPTIONS="--lower_left_maps_to_s0t0 --nometadata" gencmpktx orient-up.ktx up.ppm
-gencmpktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 up.ppm
-gencmpktx orient-down-metadata.ktx up.ppm
-gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata rgba.pam
-gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
-gencmpktx rgb-mipmap-reference-u.ktx2 --test --t2 --mipmap level0.ppm level1.ppm level2.ppm level3.ppm level4.ppm level5.ppm level6.ppm
+gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 --nometadata ../srcimages/rgb.ppm
+gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --linear --nometadata ../srcimages/rgb.ppm
+TOKTX_OPTIONS="--lower_left_maps_to_s0t0 --nometadata" gencmpktx orient-up.ktx ../srcimages/up.ppm
+gencmpktx orient-up-metadata.ktx --lower_left_maps_to_s0t0 ../srcimages/up.ppm
+gencmpktx orient-down-metadata.ktx ../srcimages/up.ppm
+gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata ../srcimages/rgba.pam
+gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+gencmpktx rgb-mipmap-reference-u.ktx2 --test --t2 --mipmap ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
 if [ $(uname) == "Darwin" ]; then
   # Run only on macOS until we figure out the Basis compressor non-determinancy.
-  gencmpktx alpha_simple_basis.ktx2 --test --bcmp alpha_simple.png
-  gencmpktx kodim17_basis.ktx2 --test --bcmp kodim17.png
-  gencmpktx color_grid_basis.ktx2 --test --bcmp color_grid.png
-  gencmpktx cimg5293.ktx2 --test --bcmp --genmipmap ../srcimages/CIMG5293.jpg
+  gencmpktx alpha_simple_basis.ktx2 --test --bcmp ../srcimages/alpha_simple.png
+  gencmpktx kodim17_basis.ktx2 --test --bcmp ../srcimages/kodim17.png
+  gencmpktx color_grid_basis.ktx2 --test --bcmp ../srcimages/color_grid.png
+  gencmpktx cimg5293_uastc.ktx2 --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
+  gencmpktx cimg5293_uastc_zstd.ktx2 --zcmp --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
 fi
 
 filelist=$(mktemp)
-printf "level0.ppm\nlevel1.ppm\nlevel2.ppm\nlevel3.ppm\nlevel4.ppm\nlevel5.ppm\nlevel6.ppm" > $filelist
+printf "../srcimages/level0.ppm\n../srcimages/level1.ppm\n../srcimages/level2.ppm\n../srcimages/level3.ppm\n../srcimages/level4.ppm\n../srcimages/level5.ppm\n../srcimages/level6.ppm" > $filelist
 gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata @$filelist
 rm $filelist
 
 numtests=$numtests+1
 tempfile=$(mktmp)
-TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx --nometadata - rgb.ppm > $tempfile
+TOKTX_OPTIONS=--lower_left_maps_to_s0t0 $toktx --nometadata - ../srcimages/rgb.ppm > $tempfile
 cmpktx $tempfile rgb-reference.ktx
 
 echo "Tests run: $numtests; passed: $passed; failed: $failed"

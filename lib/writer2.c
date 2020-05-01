@@ -38,6 +38,9 @@
 #if defined(__GNUC__)
 #include <strings.h>  // For strncasecmp on GNU/Linux
 #endif
+#include <zstd.h>
+#include <zstd_errors.h>
+#include <KHR/khr_df.h>
 
 #include "ktx.h"
 #include "ktxint.h"
@@ -652,6 +655,106 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
     ktxMemStream_destruct(&dststr);
     return KTX_SUCCESS;
 
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Deflate the data in a ktxTexture2 object using Zstandard.
+ *
+ * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
+ * all be updated after successful deflation to reflect the deflated data.
+ *
+ * @param[in] This pointer to the ktxTexture2 object of interest.
+ * @param[in] compressionLevel set speed vs compression ratio trade-off. Values
+ *            between 1 and 22 are accepted. The lower the level the faster. Values
+ *            above 20 should be used with caution as they require more memory.
+ */
+KTX_error_code
+ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
+{
+    ktx_uint32_t levelIndexByteLength =
+                            This->numLevels * sizeof(ktxLevelIndexEntry);
+    // Allocate a temporary buffer the same size as the current data since
+    // that will clearly be big enough.
+    ktx_uint8_t* workBuf = malloc(This->dataSize + levelIndexByteLength);
+    ktx_uint8_t* cmpData;
+    ktx_size_t dstRemainingByteLength = This->dataSize;
+    ktx_size_t byteLengthCmp = 0;
+    ktx_size_t levelOffset = 0;
+    ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
+    ktxLevelIndexEntry* nindex = (ktxLevelIndexEntry*)workBuf;
+    ktx_uint8_t* pCmpDst = &workBuf[levelIndexByteLength];
+
+    ZSTD_CCtx* cctx = ZSTD_createCCtx();
+
+    if (workBuf == NULL)
+        return KTX_OUT_OF_MEMORY;
+
+    if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+        return KTX_INVALID_OPERATION;
+
+    for (int32_t level = This->numLevels - 1; level >= 0; level--) {
+        size_t levelByteLengthCmp =
+            ZSTD_compressCCtx(cctx, pCmpDst + levelOffset,
+                              dstRemainingByteLength,
+                              &This->pData[cindex[level].byteOffset],
+                              cindex[level].byteLength,
+                              compressionLevel);
+        if (ZSTD_isError(levelByteLengthCmp)) {
+            free(workBuf);
+            ZSTD_ErrorCode error = ZSTD_getErrorCode(levelByteLengthCmp);
+            switch(error) {
+              case ZSTD_error_parameter_outOfBound:
+                return KTX_INVALID_VALUE;
+              case ZSTD_error_dstSize_tooSmall:
+              case ZSTD_error_workSpace_tooSmall:
+#ifdef DEBUG
+                assert(true); // inflatedDataCapacity too small.
+#else
+                return KTX_OUT_OF_MEMORY;
+#endif
+              case ZSTD_error_memory_allocation:
+                return KTX_OUT_OF_MEMORY;
+              default:
+                // The remaining errors look they should only occur during
+                // decompression but just in case.
+#ifdef DEBUG
+                assert(true);
+#else
+                return KTX_INVALID_OPERATION;
+#endif
+            }
+        }
+        nindex[level].byteOffset = levelOffset;
+        nindex[level].uncompressedByteLength = cindex[level].byteLength;
+        nindex[level].byteLength = levelByteLengthCmp;
+        byteLengthCmp += levelByteLengthCmp;
+        levelOffset += levelByteLengthCmp;
+        dstRemainingByteLength -= levelByteLengthCmp;
+    }
+    ZSTD_freeCCtx(cctx);
+
+    // Move the compressed data into a correctly sized buffer.
+    cmpData = malloc(byteLengthCmp);
+    if (cmpData == NULL) {
+        free(workBuf);
+        return KTX_OUT_OF_MEMORY;
+    }
+    // Now modify the texture.
+    memcpy(cmpData, pCmpDst, byteLengthCmp); // Copy data to sized buffer.
+    memcpy(cindex, nindex, levelIndexByteLength); // Update level index
+    free(workBuf);
+    free(This->pData);
+    This->pData = cmpData;
+    This->dataSize = byteLengthCmp;
+    This->supercompressionScheme = KTX_SUPERCOMPRESSION_ZSTD;
+    This->_private->_requiredLevelAlignment = 1;
+    // Clear bytesPlane to indicate we're now unsized.
+    uint32_t* bdb = This->pDfd + 1;
+    bdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
+
+    return KTX_SUCCESS;
 }
 
 /** @} */

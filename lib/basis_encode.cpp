@@ -19,7 +19,7 @@
 
 /**
  * @internal
- * @file basis_encode.c
+ * @file basis_encode.cpp
  * @~English
  *
  * @brief Functions for supercompressing a texture with Basis Universal.
@@ -30,6 +30,7 @@
  */
 
 #include <inttypes.h>
+#include <zstd.h>
 #include <KHR/khr_df.h>
 
 #include "ktx.h"
@@ -45,6 +46,22 @@
 
 using namespace basisu;
 using namespace basist;
+
+typedef struct ktxBasisParamsV1 {
+    ktx_uint32_t structSize;
+    ktx_uint32_t threadCount;
+    ktx_uint32_t compressionLevel;
+    ktx_uint32_t qualityLevel;
+    ktx_uint32_t maxEndpoints;
+    float endpointRDOThreshold;
+    ktx_uint32_t maxSelectors;
+    float selectorRDOThreshold;
+    ktx_bool_t normalMap;
+    ktx_bool_t separateRGToRGB_A;
+    ktx_bool_t preSwizzle;
+    ktx_bool_t noEndpointRDO;
+    ktx_bool_t noSelectorRDO;
+} ktxBasisParamsV1;
 
 enum swizzle_e {
     R = 0,
@@ -218,7 +235,7 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
 // not including an all 1's alpha channel, which would have been removed before
 // encoding and supercompression, by looking at hasAlpha.
 static KTX_error_code
-ktxTexture2_rewriteDfd(ktxTexture2* This, bool hasAlpha)
+ktxTexture2_rewriteDfd4BasisU(ktxTexture2* This, bool hasAlpha)
 {
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
@@ -266,15 +283,66 @@ ktxTexture2_rewriteDfd(ktxTexture2* This, bool hasAlpha)
     return KTX_SUCCESS;
 }
 
+static KTX_error_code
+ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This, bool hasAlpha)
+{
+    uint32_t* cdfd = This->pDfd;
+    uint32_t* cbdb = cdfd + 1;
+
+    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART
+                       + 1 * KHR_DF_WORD_SAMPLEWORDS;
+    ndbSize *= sizeof(uint32_t);
+    uint32_t ndfdSize = ndbSize + 1 * sizeof(uint32_t);
+    uint32_t* ndfd = (uint32_t *)malloc(ndfdSize);
+    uint32_t* nbdb = ndfd + 1;
+
+    if (!ndfd)
+        return KTX_OUT_OF_MEMORY;
+
+    *ndfd = ndfdSize;
+    KHR_DFDSETVAL(nbdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
+    KHR_DFDSETVAL(nbdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
+    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC);
+    KHR_DFDSETVAL(nbdb, PRIMARIES, KHR_DFDVAL(cbdb, PRIMARIES));
+    KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
+    KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
+
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] =
+                            3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+    nbdb[KHR_DF_WORD_BYTESPLANE0] = 16; /* bytesPlane0 = 16, bytesPlane3..1 = 0 */
+    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
+
+    // Set the data for our single sample
+    KHR_DFDSETSVAL(nbdb, 0, CHANNELID,
+                   hasAlpha ? KHR_DF_CHANNEL_UASTC_ALPHAPRESENT
+                            : KHR_DF_CHANNEL_UASTC_DATA);
+    KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, 0);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
+    KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
+    KHR_DFDSETSVAL(nbdb, 0, BITLENGTH, 127);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLELOWER, 0);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEUPPER, UINT32_MAX);
+
+    This->pDfd = ndfd;
+    free(cdfd);
+    return KTX_SUCCESS;
+}
+
+static bool basisuEncoderInitialized = false;
+
 /**
  * @memberof ktxTexture2
  * @ingroup writer
  * @~English
- * @brief Supercompress a KTX2 texture with uncpompressed images.
+ * @brief Encode and possibly Supercompress a KTX2 texture with uncompressed images.
  *
- * The images are encoded to ETC1S block-compressed format and supercompressed
- * with Basis Universal. The encoded images replace the original images and the
- * texture's fields including the DFD are modified to reflect the new state.
+ * The images are either encoded to ETC1S block-compressed format and supercompressed
+ * with Basis Universal or they are encoded to UASTC block-compressed format.  UASTC format is
+ * selected by setting the @c uastc field of @a params to @c KTX_TRUE. The encoded images
+ * replace the original images and the texture's fields including the DFD are modified to reflect the new
+ * state.
  *
  * Such textures must be transcoded to a desired target block compressed format
  * before they can be uploaded to a GPU via a graphics API.
@@ -311,10 +379,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
 
     if (This->isCompressed)
-        return KTX_INVALID_OPERATION;  // Basis can't be applied to compression
-                                       // types other than ETC1S and underlying
-                                       // Basis software does ETC1S encoding &
-                                       // Basis supercompression together.
+        return KTX_INVALID_OPERATION;  // Only non-block compressed formats
+                                       // can be encoded into a Basis format.
 
     if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
         return KTX_INVALID_OPERATION;
@@ -326,7 +392,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
 
     if (component_size != 1)
-        return KTX_INVALID_OPERATION; // ETC/Basis must have 8-bit components.
+        return KTX_INVALID_OPERATION; // Basis must have 8-bit components.
 
     if (params->separateRGToRGB_A && num_components == 1)
         return KTX_INVALID_OPERATION;
@@ -335,6 +401,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         result = ktxTexture2_LoadImageData(This, NULL, 0);
         if (result != KTX_SUCCESS)
             return result;
+    }
+
+    if (!basisuEncoderInitialized) {
+        basisu_encoder_init();
+        basisuEncoderInitialized = true;
     }
 
     basis_compressor_params cparams;
@@ -415,7 +486,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
     }
 
-    // NOTA BENE: Mipmap levels are ordered from largest to smallest in .basis.
+    // NOTA BENE: It is advantageous for the LZ compression in Basis Universal
+    // to order mipmap levels from largest to smallest.
     for (uint32_t level = 0; level < This->numLevels; level++) {
         uint32_t width = MAX(1, This->baseWidth >> level);
         uint32_t height = MAX(1, This->baseHeight >> level);
@@ -442,57 +514,73 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     //
     // Setup rest of compressor parameters
     //
-    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    if (transfer == KHR_DF_TRANSFER_SRGB)
-        cparams.m_perceptual = true;
-    else
-        cparams.m_perceptual = false;
-
-    cparams.m_mip_gen = false; // We provide the mip levels.
-
-    ktx_uint32_t countThreads = params->threadCount;
-    if (countThreads < 1)
-        countThreads = 1;
-
-    job_pool jpool(countThreads);
-    cparams.m_pJob_pool = &jpool;
-
-    // Defaults to BASISU_DEFAULT_COMPRESSION_LEVEL
-    if (params->compressionLevel)
-        cparams.m_compression_level = params->compressionLevel;
-
-    // There's no default for m_quality_level. Mimic basisu_tool.
-    if (params->qualityLevel != 0) {
-        cparams.m_max_endpoint_clusters = 0;
-        cparams.m_max_selector_clusters = 0;
-        cparams.m_quality_level = params->qualityLevel;
-    } else if (!params->maxEndpoints || !params->maxSelectors) {
-        cparams.m_max_endpoint_clusters = 0;
-        cparams.m_max_selector_clusters = 0;
-        cparams.m_quality_level = 128;
-    } else {
-        cparams.m_max_endpoint_clusters = params->maxEndpoints;
-        cparams.m_max_selector_clusters = params->maxSelectors;
-        // cparams.m_quality_level = -1; // Default setting.
-    }
-
-    if (params->endpointRDOThreshold > 0)
-        cparams.m_endpoint_rdo_thresh = params->endpointRDOThreshold;
-    if (params->selectorRDOThreshold > 0)
-        cparams.m_selector_rdo_thresh = params->selectorRDOThreshold;
-
-    if (params->normalMap) {
-        cparams.m_no_endpoint_rdo = true;
-        cparams.m_no_selector_rdo = true;
-    } else {
-        cparams.m_no_endpoint_rdo = params->noEndpointRDO;
-        cparams.m_no_selector_rdo = params->noSelectorRDO;
-    }
 
     // Why's there no default for this? I have no idea.
     basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
                                                        basist::g_global_selector_cb);
-    cparams.m_pSel_codebook = &sel_codebook;
+
+    ktx_uint32_t countThreads = params->threadCount;
+    if (countThreads < 1)
+        countThreads = 1;
+    job_pool jpool(countThreads);
+    cparams.m_pJob_pool = &jpool;
+
+    cparams.m_uastc = params->uastc;
+    if (params->uastc) {
+        cparams.m_pack_uastc_flags = params->uastcFlags;
+        if (params->uastcRDOQualityScalar > 0.0f) {
+            cparams.m_rdo_uastc_quality_scalar = params->uastcRDOQualityScalar;
+            cparams.m_rdo_uastc = true;
+        }
+        if (params->uastcRDODictSize > 0) {
+            cparams.m_rdo_uastc_dict_size = params->uastcRDODictSize;
+            cparams.m_rdo_uastc = true;
+        }
+    } else {
+        // ETC1S-related params.
+        ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+        if (transfer == KHR_DF_TRANSFER_SRGB)
+            cparams.m_perceptual = true;
+        else
+            cparams.m_perceptual = false;
+
+        cparams.m_mip_gen = false; // We provide the mip levels.
+
+
+        // Defaults to BASISU_DEFAULT_COMPRESSION_LEVEL
+        if (params->compressionLevel)
+            cparams.m_compression_level = params->compressionLevel;
+
+        // There's no default for m_quality_level. Mimic basisu_tool.
+        if (params->qualityLevel != 0) {
+            cparams.m_max_endpoint_clusters = 0;
+            cparams.m_max_selector_clusters = 0;
+            cparams.m_quality_level = params->qualityLevel;
+        } else if (!params->maxEndpoints || !params->maxSelectors) {
+            cparams.m_max_endpoint_clusters = 0;
+            cparams.m_max_selector_clusters = 0;
+            cparams.m_quality_level = 128;
+        } else {
+            cparams.m_max_endpoint_clusters = params->maxEndpoints;
+            cparams.m_max_selector_clusters = params->maxSelectors;
+            // cparams.m_quality_level = -1; // Default setting.
+        }
+
+        if (params->endpointRDOThreshold > 0)
+            cparams.m_endpoint_rdo_thresh = params->endpointRDOThreshold;
+        if (params->selectorRDOThreshold > 0)
+            cparams.m_selector_rdo_thresh = params->selectorRDOThreshold;
+
+        if (params->normalMap) {
+            cparams.m_no_endpoint_rdo = true;
+            cparams.m_no_selector_rdo = true;
+        } else {
+            cparams.m_no_endpoint_rdo = params->noEndpointRDO;
+            cparams.m_no_selector_rdo = params->noSelectorRDO;
+        }
+
+        cparams.m_pSel_codebook = &sel_codebook;
+    }
 
     // Flip images across Y axis
     // cparams.m_y_flip = false; // Let tool, e.g. toktx do its own yflip so
@@ -590,121 +678,152 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     const uint8_vec& bf = c.get_output_basis_file();
     const basis_file_header& bfh = *reinterpret_cast<const basis_file_header*>(bf.data());
-    uint8_t* bgd;
-    uint32_t bgd_size;
-    uint32_t image_desc_size;
 
     assert(bfh.m_total_images == num_images);
 
-    //
-    // Allocate supercompression global data and write its header.
-    //
-    image_desc_size = sizeof(ktxBasisImageDesc);
-
-    bgd_size = sizeof(ktxBasisGlobalHeader)
-             + image_desc_size * num_images
-             + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
-             + bfh.m_tables_file_size;
-    bgd = new ktx_uint8_t[bgd_size];
-    ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
-    // Get the flags that are set while ensuring we don't get
-    // cBASISHeaderFlagYFlipped
-    bgdh.globalFlags = bfh.m_flags & ~cBASISHeaderFlagYFlipped;
-    bgdh.endpointCount = bfh.m_total_endpoints;
-    bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
-    bgdh.selectorCount = bfh.m_total_selectors;
-    bgdh.selectorsByteLength = bfh.m_selector_cb_file_size;
-    bgdh.tablesByteLength = bfh.m_tables_file_size;
-    bgdh.extendedByteLength = 0;
-
-    //
-    // Write the index of slice descriptions to the global data.
-    //
-
+    uint8_t* bgd = nullptr;
+    uint32_t bgd_size;
+    uint32_t image_data_size = 0;
     ktxTexture2_private& priv = *This->_private;
     uint32_t base_offset = bfh.m_slice_desc_file_ofs;
     const basis_slice_desc* slice
-                = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
-    ktxBasisImageDesc* kimages = BGD_IMAGE_DESCS(bgd);
-
-    // 3 things to remember about offsets:
-    //    1. levelIndex offsets at this point are relative to This->pData;
-    //    2. In the ktx image descriptors, slice offsets are relative to the
-    //       start of the mip level;
-    //    3. basis_slice_desc offsets are relative to the end of the basis
-    //       header. Hence base_offset set above is used to rebase offsets
-    //       relative to the start of the slice data.
-
-    // Assumption here is that slices produced by the compressor are in the
-    // same order as we passed them in above, i.e. ordered by mip level.
-    // Note also that slice->m_level_index is always 0, unless the compressor
-    // generated mip levels, so essentially useless. Alpha slices are always
-    // the odd numbered slices.
+            = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
     std::vector<uint32_t> level_file_offsets(This->numLevels);
-    uint32_t image_data_size = 0, image = 0;
-    for (uint32_t level = 0; level < This->numLevels; level++) {
-        uint32_t depth = MAX(1, This->baseDepth >> level);
-        uint32_t level_byte_length = 0;
 
-      assert(!(slice->m_flags & cSliceDescFlagsHasAlpha));
-        level_file_offsets[level] = slice->m_file_ofs;
-        for (uint32_t layer = 0; layer < This->numLayers; layer++) {
-            uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
-            for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
-                level_byte_length += slice->m_file_size;
-                kimages[image].rgbSliceByteOffset = slice->m_file_ofs
-                                               - level_file_offsets[level];
-                kimages[image].rgbSliceByteLength = slice->m_file_size;
-                if (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) {
-                    slice++;
-                    level_byte_length += slice->m_file_size;
-                    kimages[image].alphaSliceByteOffset = slice->m_file_ofs
-                                                  - level_file_offsets[level];
-                    kimages[image].alphaSliceByteLength = slice->m_file_size;
-                } else {
-                    kimages[image].alphaSliceByteOffset = 0;
-                    kimages[image].alphaSliceByteLength = 0;
-                }
-                // Get the IFrame flag, if it's set.
-              kimages[image].imageFlags = slice->m_flags & ~cSliceDescFlagsHasAlpha;
-                slice++;
-                image++;
+    if (params->uastc) {
+        for (uint32_t level = 0; level < This->numLevels; level++) {
+            uint32_t depth = MAX(1, This->baseDepth >> level);
+            uint32_t levelByteLength = 0;
+            uint32_t levelImageCount = This->numLayers * This->numFaces * depth;
+
+            level_file_offsets[level] = slice->m_file_ofs;
+            for (uint32_t image = 0; image < levelImageCount; image++, slice++) {
+                image_data_size += slice->m_file_size;
+                levelByteLength += slice->m_file_size;
             }
+            priv._levelIndex[level].byteLength = levelByteLength;
+            priv._levelIndex[level].uncompressedByteLength = levelByteLength;
         }
-        priv._levelIndex[level].byteLength = level_byte_length;
-        priv._levelIndex[level].uncompressedByteLength = 0;
-        image_data_size += level_byte_length;
+    } else {
+        //
+        // Allocate supercompression global data and write its header.
+        //
+        uint32_t image_desc_size = sizeof(ktxBasisImageDesc);
+
+        bgd_size = sizeof(ktxBasisGlobalHeader)
+                 + image_desc_size * num_images
+                 + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
+                 + bfh.m_tables_file_size;
+        bgd = new ktx_uint8_t[bgd_size];
+        ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
+        // Get the flags that are set while ensuring we don't get
+        // cBASISHeaderFlagYFlipped
+        bgdh.globalFlags = bfh.m_flags & ~cBASISHeaderFlagYFlipped;
+        bgdh.endpointCount = bfh.m_total_endpoints;
+        bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
+        bgdh.selectorCount = bfh.m_total_selectors;
+        bgdh.selectorsByteLength = bfh.m_selector_cb_file_size;
+        bgdh.tablesByteLength = bfh.m_tables_file_size;
+        bgdh.extendedByteLength = 0;
+
+        //
+        // Write the index of slice descriptions to the global data.
+        //
+
+        ktxBasisImageDesc* kimages = BGD_IMAGE_DESCS(bgd);
+
+        // 3 things to remember about offsets:
+        //    1. levelIndex offsets at this point are relative to This->pData;
+        //    2. In the ktx image descriptors, slice offsets are relative to the
+        //       start of the mip level;
+        //    3. basis_slice_desc offsets are relative to the end of the basis
+        //       header. Hence base_offset set above is used to rebase offsets
+        //       relative to the start of the slice data.
+
+        // Assumption here is that slices produced by the compressor are in the
+        // same order as we passed them in above, i.e. ordered by mip level.
+        // Note also that slice->m_level_index is always 0, unless the compressor
+        // generated mip levels, so essentially useless. Alpha slices are always
+        // the odd numbered slices.
+        uint32_t image = 0;
+        for (uint32_t level = 0; level < This->numLevels; level++) {
+            uint32_t depth = MAX(1, This->baseDepth >> level);
+            uint32_t level_byte_length = 0;
+
+            assert(!(slice->m_flags & cSliceDescFlagsHasAlpha));
+            level_file_offsets[level] = slice->m_file_ofs;
+            for (uint32_t layer = 0; layer < This->numLayers; layer++) {
+                uint32_t faceSlices = This->numFaces == 1 ? depth
+                                                          : This->numFaces;
+                for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
+                    level_byte_length += slice->m_file_size;
+                    kimages[image].rgbSliceByteOffset = slice->m_file_ofs
+                                                   - level_file_offsets[level];
+                    kimages[image].rgbSliceByteLength = slice->m_file_size;
+                    if (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) {
+                        slice++;
+                        level_byte_length += slice->m_file_size;
+                        kimages[image].alphaSliceByteOffset =
+                                slice->m_file_ofs - level_file_offsets[level];
+                        kimages[image].alphaSliceByteLength =
+                                slice->m_file_size;
+                    } else {
+                        kimages[image].alphaSliceByteOffset = 0;
+                        kimages[image].alphaSliceByteLength = 0;
+                    }
+                    // Get the IFrame flag, if it's set.
+                    kimages[image].imageFlags =
+                                    slice->m_flags & ~cSliceDescFlagsHasAlpha;
+                    slice++;
+                    image++;
+                }
+            }
+            priv._levelIndex[level].byteLength = level_byte_length;
+            priv._levelIndex[level].uncompressedByteLength = 0;
+            image_data_size += level_byte_length;
+        }
+
+        //
+        // Copy the global code books & huffman tables to global data.
+        //
+
+        // Slightly sleazy but as image is now the last valid index in the
+        // slice description array plus 1, &kimages[image] points at the first
+        // byte where the endpoints, etc. must be written.
+        uint8_t* dstptr = reinterpret_cast<uint8_t*>(&kimages[image]);
+        // Copy the endpoints ...
+        memcpy(dstptr,
+               &bf[bfh.m_endpoint_cb_file_ofs],
+               bfh.m_endpoint_cb_file_size);
+        dstptr += bgdh.endpointsByteLength;
+        // selectors ...
+        memcpy(dstptr,
+               &bf[bfh.m_selector_cb_file_ofs],
+               bfh.m_selector_cb_file_size);
+        dstptr += bgdh.selectorsByteLength;
+        // and the huffman tables.
+        memcpy(dstptr,
+               &bf[bfh.m_tables_file_ofs],
+               bfh.m_tables_file_size);
+
+        assert((dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
+
+        //
+        // We have a complete global data package.
+        //
+
+        priv._supercompressionGlobalData = bgd;
+        priv._sgdByteLength = bgd_size;
     }
 
     //
-    // Copy the global code books & huffman tables to global data.
-    //
-
-    // Slightly sleazy but as image is now the last valid index in the
-    // slice description array plus 1, so &kimages[image] points at the first
-    // byte after where the endpoints, etc. must be written.
-    uint8_t* dstptr = reinterpret_cast<uint8_t*>(&kimages[image]);
-    // Copy the endpoints ...
-    memcpy(dstptr,
-           &bf[bfh.m_endpoint_cb_file_ofs],
-           bfh.m_endpoint_cb_file_size);
-    dstptr += bgdh.endpointsByteLength;
-    // selectors ...
-    memcpy(dstptr,
-           &bf[bfh.m_selector_cb_file_ofs],
-           bfh.m_selector_cb_file_size);
-    dstptr += bgdh.selectorsByteLength;
-    // and the huffman tables.
-    memcpy(dstptr,
-           &bf[bfh.m_tables_file_ofs],
-           bfh.m_tables_file_size);
-
-    assert((dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
-
-    //
-    // We have a complete global data package and compressed images.
     // Update This texture and copy compressed image data to it.
     //
+
+    // Declare here so can use goto cleanup.
+    uint8_t* new_data = 0;
+    ktxFormatSize& formatSize = This->_protected->_formatSize;
+    uint64_t level_offset = 0;
 
     // Since we've left m_check_for_alpha set and m_force_alpha unset in
     // the compressor parameters, the basis encoder will not have included
@@ -714,55 +833,64 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Pass a parameter, set from the alpha flag of the emitted .basis header,
     // to rewriteDfd to allow it to do this.
     bool hasAlpha = (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) != 0;
-    result = ktxTexture2_rewriteDfd(This, hasAlpha);
-    if (result != KTX_SUCCESS) {
-        delete bgd;
-        return result;
+
+    new_data = (uint8_t*) malloc(image_data_size);
+    if (!new_data) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
     }
 
-    uint8_t* new_data = (uint8_t*) malloc(image_data_size);
-    if (!new_data)
-        return KTX_OUT_OF_MEMORY;
+    // Delayed modifying texture until here so it's after points of
+    // possible failure.
+    if (params->uastc) {
+        result = ktxTexture2_rewriteDfd4Uastc(This, hasAlpha);
+        if (result != KTX_SUCCESS) goto cleanup;
 
+        // Reflect this in the formatSize
+        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        // and the requiredLevelAlignment.
+        priv._requiredLevelAlignment = 4 * 4;
+    } else {
+        result = ktxTexture2_rewriteDfd4BasisU(This, hasAlpha);
+        if (result != KTX_SUCCESS) goto cleanup;
+
+        This->supercompressionScheme = KTX_SUPERCOMPRESSION_BASIS;
+        // Reflect this in the formatSize
+        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        // and the requiredLevelAlignment.
+        priv._requiredLevelAlignment = 1;
+    }
     This->vkFormat = VK_FORMAT_UNDEFINED;
-    This->supercompressionScheme = KTX_SUPERCOMPRESSION_BASIS;
-
-    // Reflect this in the formatSize
-    ktxFormatSize& formatSize = This->_protected->_formatSize;
-    formatSize.flags = 0;
-    formatSize.paletteSizeInBits = 0;
-    formatSize.blockSizeInBits = 0 * 8;
-    formatSize.blockWidth = 1;
-    formatSize.blockHeight = 1;
-    formatSize.blockDepth = 1;
-    // and the requiredLevelAlignment.
-    This->_private->_requiredLevelAlignment = 1;
 
     // Since we only allow 8-bit components to be compressed ...
     assert(This->_protected->_typeSize == 1);
 
-    priv._supercompressionGlobalData = bgd;
-    priv._sgdByteLength = bgd_size;
-
+    // Copy in the compressed image data.
 
     This->pData = new_data;
+
     This->dataSize = image_data_size;
 
-    // Copy in the compressed image data.
-    // NOTA BENE: Mipmap levels are ordered from largest to smallest in .basis.
-    // We have to reorder.
-
-    uint64_t level_offset = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         priv._levelIndex[level].byteOffset = level_offset;
         // byteLength was set in loop above
         memcpy(This->pData + level_offset,
                &bf[level_file_offsets[level]],
                priv._levelIndex[level].byteLength);
-        level_offset += priv._levelIndex[level].byteLength;
+        level_offset += _KTX_PADN(priv._requiredLevelAlignment,
+                                  priv._levelIndex[level].byteLength);
     }
 
     return KTX_SUCCESS;
+
+cleanup:
+    if (bgd) {
+        delete bgd;
+        priv._supercompressionGlobalData = 0;
+        priv._sgdByteLength = 0;
+    }
+    if (new_data) delete new_data;
+    return result;
 }
 
 /**

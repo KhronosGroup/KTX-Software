@@ -947,6 +947,23 @@ ktxTexture1_GetImageOffset(ktxTexture1* This, ktx_uint32_t level,
 /**
  * @memberof ktxTexture1
  * @~English
+ * @brief Return the total size in bytes of the uncompressed data of a ktxTexture1.
+ *
+ * This always returns the value of @c This->dataSize. The function is provided for
+ * symmetry with ktxTexture2.
+ *
+ * @param[in]     This     pointer to the ktxTexture1 object of interest.
+ * @return    The size of the data in the texture.
+ */
+ktx_size_t
+ktxTexture1_GetDataSizeUncompressed(ktxTexture1* This)
+{
+    return This->dataSize;
+}
+
+/**
+ * @memberof ktxTexture1
+ * @~English
  * @brief Calculate & return the size in bytes of an image at the specified
  *        mip level.
  *
@@ -956,7 +973,7 @@ ktxTexture1_GetImageOffset(ktxTexture1* This, ktx_uint32_t level,
  * The size reflects the padding of each row to KTX_GL_UNPACK_ALIGNMENT.
  *
  * @param[in]     This     pointer to the ktxTexture1 object of interest.
- * @param[in]     level    level of interest. *
+ * @param[in]     level    level of interest.
  */
 ktx_size_t
 ktxTexture1_GetImageSize(ktxTexture1* This, ktx_uint32_t level)
@@ -1291,6 +1308,12 @@ cleanup:
     return result;
 }
 
+ktx_bool_t
+ktxTexture1_NeedsTranscoding(ktxTexture1* This)
+{
+    return KTX_FALSE;
+}
+
 /*
  * Initialized here at the end to avoid the need for multiple declarations of
  * these functions.
@@ -1305,9 +1328,11 @@ struct ktxTexture_vtblInt ktxTexture1_vtblInt = {
 struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXDESTROY)ktxTexture1_Destroy,
     (PFNKTEXGETIMAGEOFFSET)ktxTexture1_GetImageOffset,
+    (PFNKTEXGETDATASIZEUNCOMPRESSED)ktxTexture1_GetDataSizeUncompressed,
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
+    (PFNKTEXNEEDSTRANSCODING)ktxTexture1_NeedsTranscoding,
     (PFNKTEXLOADIMAGEDATA)ktxTexture1_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture1_SetImageFromMemory,
     (PFNKTEXSETIMAGEFROMSTDIOSTREAM)ktxTexture1_SetImageFromStdioStream,
