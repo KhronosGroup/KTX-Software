@@ -511,12 +511,6 @@
     <Filter Include="lib">
       <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
     </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib">
-      <UniqueIdentifier>{2739B19F-16DF-601C-060A-FF86F6A40045}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{57CA55B8-BCC5-4000-CE3A-58972F82E9CB}</UniqueIdentifier>
     </Filter>
@@ -756,16 +750,13 @@
     <ClInclude Include="..\..\..\..\lib\gl_format.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\gl_funcptrs.h">
+    <None Include="..\..\..\..\lib\gl_funclist.inl">
       <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\gles1_funcptrs.h">
+    </None>
+    <ClCompile Include="..\..\..\..\lib\gl_funcs.c">
       <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\gles2_funcptrs.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\gles3_funcptrs.h">
+    </ClCompile>
+    <ClInclude Include="..\..\..\..\lib\gl_funcs.h">
       <Filter>lib</Filter>
     </ClInclude>
     <ClCompile Include="..\..\..\..\lib\glloader.c">
@@ -777,9 +768,6 @@
     <ClCompile Include="..\..\..\..\lib\info.c">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClInclude Include="..\..\..\..\lib\ktxgl.h">
-      <Filter>lib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\ktxint.h">
       <Filter>lib</Filter>
     </ClInclude>

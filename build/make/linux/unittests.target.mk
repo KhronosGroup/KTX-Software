@@ -59,7 +59,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(builddir)/lib.target/libktx.so $(obj).target/libktx.so
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -91,13 +91,15 @@ LDFLAGS_Release := \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/
 
-LIBS :=
+LIBS := \
+	-ldl \
+	-lpthread
 
 $(builddir)/unittests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/unittests: LIBS := $(LIBS)
-$(builddir)/unittests: LD_INPUTS := $(OBJS) $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(obj).target/libktx.gl.so
+$(builddir)/unittests: LD_INPUTS := $(OBJS) $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(obj).target/libktx.so
 $(builddir)/unittests: TOOLSET := $(TOOLSET)
-$(builddir)/unittests: $(OBJS) $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(obj).target/libktx.gl.so FORCE_DO_CMD
+$(builddir)/unittests: $(OBJS) $(obj).target/libgtest.a $(obj).target/libgtest_main.a $(obj).target/libktx.so FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/unittests

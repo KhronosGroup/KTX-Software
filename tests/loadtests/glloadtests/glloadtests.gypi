@@ -75,7 +75,7 @@
           'dependencies': [
             'appfwSDL',
             'libassimp',
-            'libktx.gyp:libktx.gl',
+            'libktx.gyp:libktx',
             'libktx.gyp:libgl',
             'testimages',
           ],
@@ -145,7 +145,7 @@
           'dependencies': [
             'appfwSDL',
             'libassimp',
-            'libktx.gyp:libktx.es3',
+            'libktx.gyp:libktx',
             'libktx.gyp:libgles3',
             'testimages',
           ],
@@ -235,7 +235,7 @@
           'mac_bundle': 1,
           'dependencies': [
             'appfwSDL',
-            'libktx.gyp:libktx.es1',
+            'libktx.gyp:libktx',
             'libgles1',
             'testimages',
           ],

@@ -59,10 +59,10 @@ add_dependencies(version_h
 unset(TOOLSET)
 unset(TARGET)
 
-#libktx.gyp:libktx.es3#target
-set(TARGET "libktx.es3")
+#libktx.gyp:libktx#target
+set(TARGET "libktx")
 set(TOOLSET "target")
-list(APPEND libktx_es3__c_srcs
+list(APPEND libktx__c_srcs
   "../../../../lib/basisu/apg_bmp.c"
   "../../../../lib/checkheader.c"
   "../../../../lib/dfdutils/createdfd.c"
@@ -72,6 +72,7 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/dfdutils/queries.c"
   "../../../../lib/dfdutils/vk2dfd.c"
   "../../../../lib/filestream.c"
+  "../../../../lib/gl_funcs.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
   "../../../../lib/info.c"
@@ -86,7 +87,7 @@ list(APPEND libktx_es3__c_srcs
   "../../../../lib/writer1.c"
   "../../../../lib/writer2.c"
   "../../../../lib/zstddeclib.c")
-list(APPEND libktx_es3__cxx_srcs
+list(APPEND libktx__cxx_srcs
   "../../../../lib/basisu/basisu_astc_decomp.cpp"
   "../../../../lib/basisu/basisu_backend.cpp"
   "../../../../lib/basisu/basisu_basis_file.cpp"
@@ -109,7 +110,7 @@ list(APPEND libktx_es3__cxx_srcs
   "../../../../lib/basisu_image_transcoders.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
-list(APPEND libktx_es3__other_srcs
+list(APPEND libktx__other_srcs
   "../../../../include/ktx.h"
   "../../../../lib/basisu/apg_bmp.h"
   "../../../../lib/basisu/basisu_astc_decomp.h"
@@ -151,11 +152,8 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/filestream.h"
   "../../../../lib/formatsize.h"
   "../../../../lib/gl_format.h"
-  "../../../../lib/gl_funcptrs.h"
-  "../../../../lib/gles1_funcptrs.h"
-  "../../../../lib/gles2_funcptrs.h"
-  "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxgl.h"
+  "../../../../lib/gl_funclist.inl"
+  "../../../../lib/gl_funcs.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
@@ -165,34 +163,34 @@ list(APPEND libktx_es3__other_srcs
   "../../../../lib/texture2.h"
   "../../../../lib/uthash.h"
   "../../../../lib/vkformat_enum.h")
-add_library(libktx_es3 STATIC ${libktx_es3__c_srcs} ${libktx_es3__cxx_srcs} ${libktx_es3__other_srcs})
-set_target_properties(libktx_es3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_source_files_properties(${libktx_es3__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
-set_target_properties(libktx_es3 PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
-set_target_properties(libktx_es3 PROPERTIES PREFIX "lib")
-set_target_properties(libktx_es3 PROPERTIES ARCHIVE_OUTPUT_NAME "ktx.es3")
-set_target_properties(libktx_es3 PROPERTIES SUFFIX ".a")
-set_source_files_properties(${obj}.${TOOLSET}/libktx.es3.a PROPERTIES GENERATED "TRUE")
-list(APPEND libktx_es3__include_dirs
+add_library(libktx STATIC ${libktx__c_srcs} ${libktx__cxx_srcs} ${libktx__other_srcs})
+set_target_properties(libktx PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${libktx__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(libktx PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${obj}.${TOOLSET}/")
+set_target_properties(libktx PROPERTIES PREFIX "lib")
+set_target_properties(libktx PROPERTIES ARCHIVE_OUTPUT_NAME "ktx")
+set_target_properties(libktx PROPERTIES SUFFIX ".a")
+set_source_files_properties(${obj}.${TOOLSET}/libktx.a PROPERTIES GENERATED "TRUE")
+list(APPEND libktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
-set_property(TARGET libktx_es3 APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_es3__include_dirs})
-set_target_properties(libktx_es3 PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL_ES3=1;KTX_USE_FUNCPTRS_FOR_VULKAN;KHRONOS_STATIC=1;LIBKTX=1;BASISU_NO_ITERATOR_DEBUG_LEVEL;BASISD_SUPPORT_FXT1=0;KTX_OMIT_VULKAN=1;BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;DEBUG;_DEBUG;")
-set_source_files_properties(${libktx_es3__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c99 -Wno-gnu-zero-variadic-macro-arguments ")
-set_source_files_properties(${libktx_es3__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c++11 -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
-set_target_properties(libktx_es3 PROPERTIES LINK_FLAGS "-g4 ")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_es3 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
-add_dependencies(libktx_es3
+set_property(TARGET libktx APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx__include_dirs})
+set_target_properties(libktx PROPERTIES COMPILE_DEFINITIONS "KHRONOS_STATIC=1;LIBKTX=1;BASISD_SUPPORT_FXT1=0;KTX_OMIT_VULKAN=1;BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;DEBUG;_DEBUG;")
+set_source_files_properties(${libktx__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c99 -Wno-gnu-zero-variadic-macro-arguments ")
+set_source_files_properties(${libktx__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c++11 -Wno-pedantic ")
+set_target_properties(libktx PROPERTIES LINK_FLAGS "-g4 ")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "0")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+add_dependencies(libktx
   version_h
 )
 unset(TOOLSET)
@@ -214,7 +212,7 @@ list(APPEND msc_basis_transcoder_js__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET msc_basis_transcoder_js APPEND PROPERTY INCLUDE_DIRECTORIES ${msc_basis_transcoder_js__include_dirs})
-set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_UASTC=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
+set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_UASTC=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;DEBUG;_DEBUG;")
 set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c++11 --bind -Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(msc_basis_transcoder_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=0 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=MSC_TRANSCODER -s FULL_ES3=1 -g4 ")
 set_target_properties(msc_basis_transcoder_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
@@ -234,7 +232,7 @@ add_dependencies(msc_basis_transcoder_js
   version_h
 )
 target_link_libraries(msc_basis_transcoder_js
-  libktx_es3
+  libktx
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -272,7 +270,7 @@ list(APPEND libktx_js__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_js APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_js__include_dirs})
-set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_UASTC=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
+set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_UASTC=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;DEBUG;_DEBUG;")
 set_target_properties(libktx_js PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_WEBGL2=1 -O0 -g -std=c++11 --bind ")
 set_target_properties(libktx_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=LIBKTX -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s GL_PREINITIALIZED_CONTEXT=1 -s FULL_ES3=1 -s USE_WEBGL2=1 -g4 ")
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
@@ -293,7 +291,7 @@ add_dependencies(libktx_js
   version_h
 )
 target_link_libraries(libktx_js
-  libktx_es3
+  libktx
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -661,7 +659,7 @@ list(APPEND es3loadtests_html__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET es3loadtests_html APPEND PROPERTY INCLUDE_DIRECTORIES ${es3loadtests_html__include_dirs})
-set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;KHRONOS_STATIC=1;DEBUG;_DEBUG;")
+set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;DEBUG;_DEBUG;")
 set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-Wpedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -O0 -g -std=c++11 ")
 set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g4 ")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
@@ -689,7 +687,7 @@ add_dependencies(es3loadtests_html
 target_link_libraries(es3loadtests_html
 -Wl,--start-group
   appfwSDL
-  libktx_es3
+  libktx
 -Wl,--end-group
 )
 unset(TOOLSET)

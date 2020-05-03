@@ -1796,7 +1796,7 @@
 													<key>GID</key>
 													<integer>0</integer>
 													<key>PATH</key>
-													<string>/private/tmp/ktx.dst/usr/local/lib/libktx.gl.dylib</string>
+													<string>/private/tmp/ktx.dst/usr/local/lib/libktx.dylib</string>
 													<key>PATH_TYPE</key>
 													<integer>0</integer>
 													<key>PERMISSIONS</key>

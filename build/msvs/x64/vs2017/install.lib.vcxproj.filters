@@ -78,10 +78,10 @@
     <None Include="..\..\..\..\libktx.gyp">
       <Filter>..\..\..\..</Filter>
     </None>
-    <None Include="$(OutDir)\lib\libktx.gl.lib">
+    <None Include="$(OutDir)\lib\libktx.lib">
       <Filter>$(OutDir)\lib</Filter>
     </None>
-    <None Include="$(OutDir)\libktx.gl.dll">
+    <None Include="$(OutDir)\libktx.dll">
       <Filter>$(OutDir)</Filter>
     </None>
     <ClInclude Include="..\..\..\..\include\ktx.h">

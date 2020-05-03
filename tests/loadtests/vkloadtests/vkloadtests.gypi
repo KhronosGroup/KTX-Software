@@ -32,6 +32,7 @@
         'appfwSDL',
         'libassimp',
         'libktx.gyp:libvulkan',
+        'libktx.gyp:libktx',
         'testimages',
       ],
       'includes': [
@@ -123,7 +124,6 @@
       }, # xcode_settings
       'conditions': [
         ['OS == "ios"', {
-          'dependencies': [ 'libktx.gyp:libktx.es3' ],
           'mac_bundle_resources': [
             '../../../icons/ios/CommonIcons.xcassets',
             'resources/ios/LaunchImages.xcassets',
@@ -134,17 +134,11 @@
             'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
           },
         }, 'OS == "linux"', {
-          'dependencies': [ 'libktx.gyp:libktx.gl' ],
         }, 'OS == "mac"', {
-          'dependencies': [ 'libktx.gyp:libktx.gl' ],
           'mac_bundle_resources': [
             '../../../icons/mac/ktx_app.icns',
           ],
         }, 'OS == "win"', {
-          'dependencies': [
-            'libktx.gyp:libktx.gl',
-            'libktx.gyp:libgl'
-          ],
           'sources!': [ '<(vkinfoplist_file)' ],
           'sources': [
              '../../../icons/win/ktx_app.ico',

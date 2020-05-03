@@ -34,9 +34,6 @@
  * @author Based on original work by Georg Kolling, Imagination Technology
  *
  * @snippet{doc} version.h API version
- *
- * @todo Find a way so that applications do not have to define KTX_OPENGL{,_ES*}
- *       when using the library.
  */
 
 #include <stdio.h>
@@ -183,7 +180,8 @@ typedef enum ktx_error_code_e {
     KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */
     KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
     KTX_UNSUPPORTED_FEATURE,  /*!< Feature not included in in-use library or not yet implemented. */
-	KTX_ERROR_MAX_ENUM = KTX_UNSUPPORTED_FEATURE /*!< For safety checks. */
+    KTX_LIBRARY_NOT_LINKED,  /*!< Library dependency (OpenGL or Vulkan) not linked into application. */
+	KTX_ERROR_MAX_ENUM = KTX_LIBRARY_NOT_LINKED /*!< For safety checks. */
 } ktx_error_code_e;
 /**
  * @deprecated

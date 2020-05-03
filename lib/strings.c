@@ -46,7 +46,8 @@ static const char* const errorStrings[] = {
     "Transcoding of block compressed texture failed.",/* KTX_TRANSCODE_FAILED */
     "Not a KTX file.",                                /* KTX_UNKNOWN_FILE_FORMAT */
     "Texture type not supported.",      /* KTX_UNSUPPORTED_TEXTURE_TYPE */
-    "Feature not included in in-use library or not yet implemented." /* KTX_UNSUPPORTED_FEATURE */
+    "Feature not included in in-use library or not yet implemented.", /* KTX_UNSUPPORTED_FEATURE */
+    "Library dependency (OpenGL or Vulkan) not linked into application." /* KTX_LIBRARY_NOT_LINKED */
 };
 /* This will cause compilation to fail if number of messages and codes doesn't match */
 typedef int errorStrings_SIZE_ASSERT[sizeof(errorStrings) / sizeof(char*) - 1 == KTX_ERROR_MAX_ENUM];

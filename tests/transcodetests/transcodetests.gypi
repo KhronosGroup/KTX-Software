@@ -32,7 +32,7 @@
       'dependencies': [
         #'appfwSDL',
         'gtest',
-        'libktx.gyp:libktx.gl',
+        'libktx.gyp:libktx',
         'libktx.gyp:libgl',
       ],
       'include_dirs': [

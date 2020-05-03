@@ -80,14 +80,12 @@
       'filestream.h',
       'formatsize.h',
       'gl_format.h',
-      'gl_funcptrs.h',
-      'gles1_funcptrs.h',
-      'gles2_funcptrs.h',
-      'gles3_funcptrs.h',
+      'gl_funclist.inl',
+      'gl_funcs.c',
+      'gl_funcs.h',
       'glloader.c',
       'hashlist.c',
       'info.c',
-      'ktxgl.h',
       'ktxint.h',
       'memstream.c',
       'memstream.h',
@@ -154,100 +152,130 @@
         'action': [ './mkversion', '-o', 'version.h', 'lib' ],
       }],
     },
+    {
+      'target_name': 'libktx',
+      'type': '<(library)',
+      # To quiet warnings about the anon structs and unions in Basisu.
+      'cflags_cc': [ '-Wno-pedantic' ],
+      'defines': [
+        'KHRONOS_STATIC=1',
+        'LIBKTX=1',
+        # To reduce size, don't support transcoding to ancient formats.
+        'BASISD_SUPPORT_FXT1=0',
+      ],
+      'direct_dependent_settings': {
+        'include_dirs': [ '<@(include_dirs)' ],
+      },
+      'include_dirs': [ '<@(include_dirs)' ],
+      'mac_bundle': 0,
+      'dependencies': [ 'libzstd', 'vulkan_headers', 'version.h' ],
+      'sources': [
+        '<@(sources)',
+        '<@(vksource_files)',
+      ],
+      'link_settings': {
+        'conditions': [
+          ['OS == "linux"', {
+            'libraries': [ '-ldl', '-lpthread' ],
+          }],
+        ],
+      },
+      'conditions': [
+        ['_type == "shared_library"', {
+          'defines!': ['KHRONOS_STATIC=1'],
+          'conditions': [
+            ['OS == "mac" or OS == "ios"', {
+              'direct_dependent_settings': {
+                'target_conditions': [
+                  ['_type != "none" and _mac_bundle == 1', {
+                    'copies': [{
+                      'xcode_code_sign': 1,
+                      'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
+                      'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
+                    }], # copies
+                    'xcode_settings': {
+                      # Tell DYLD where to search for this dylib.
+                      # "man ld" for more information. Look for -rpath.
+                      'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
+                    },
+                  }, {
+                    'xcode_settings': {
+                      'LD_RUNPATH_SEARCH_PATHS': [
+                        '@executable_path',
+                        '/usr/local/lib',
+                      ],
+                    },
+                  }], # _mac_bundle == 1
+                ], # target_conditions
+              }, # direct_dependent_settings
+              'xcode_settings': {
+                # Set the "install name" to instruct dyld to search a list of
+                # paths in order to locate the library. If left at the default
+                # of an absolute location (/usr/local/lib), that path will be
+                # built into any executables that link with it and dyld will
+                # search only that location. For bundles, the path we set above
+                # is built into the executable. For non bundle's nothing will be
+                # built into the executable and the standard dyld search path
+                # will be used.
+                'INSTALL_PATH': '@rpath',
+              }
+            }, 'OS == "win"', {
+              'defines': [
+                'KTX_APICALL=__declspec(dllexport)',
+                'BASISU_NO_ITERATOR_DEBUG_LEVEL',
+              ],
+              # The msvs generator automatically sets the needed VCLinker
+              # option when a .def file is seen in sources.
+              'sources': [ 'internalexport.def' ],
+            }] # OS == "mac or OS == "ios"
+          ], # conditions
+        }, {
+          'conditions': [
+            ['OS == "web"', {
+              # The zstd decoder does not use macros with variadic macros
+              # correctly and they seem unwilling to fix so turn those
+              # off too.
+              'cflags_c': [
+                '-Wno-gnu-zero-variadic-macro-arguments',
+              ],
+              'defines': [
+                'KTX_OMIT_VULKAN=1',
+                # To reduce size, don't support transcoding to formats not
+                # supported # by WebGL.
+                'BASISD_SUPPORT_BC7=0',
+                'BASISD_SUPPORT_ATC=0',
+                 'BASISD_SUPPORT_PVRTC2=0',
+                'BASISD_SUPPORT_FXT1=0',
+                'BASISD_SUPPORT_ETC2_EAC_RG11=0',
+                # Don't support higher quality mode to avoid 64k table.
+                'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
+              ],
+              'dependencies!': [ 'libzstd', 'vulkan_headers' ],
+              'sources!': [ '<@(vksource_files)' ],
+              'sources': [ 'zstddeclib.c' ],
+            }, {
+              'export_dependent_settings': [ 'libzstd' ],
+            }],
+          ]
+        }], # _type == "shared_library"
+      ], # conditions
+      'xcode_settings': {
+        # The BasisU transcoder uses anon types and structs. They compile ok in
+        # Visual Studio (2015+) and on Linux so quiet the clang warnings.
+        'WARNING_CFLAGS': [
+          '-Wno-nested-anon-types',
+          '-Wno-gnu-anonymous-struct',
+        ],
+        # This is used by a Copy Headers phase which gyp only allows to be
+        # be created for a framework bundle. Remember in case we want to
+        # switch the lib to a framework.
+        #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
+      },
+    }, # libktx target
   ],
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
       'targets': [
-        {
-          'target_name': 'libktx.gl',
-          'type': '<(library)',
-          # To quiet warnings about the anon structs and unions in Basisu.
-          'cflags_cc': [ '-Wno-pedantic' ],
-          'defines': [
-            'KTX_OPENGL=1',
-            'KTX_USE_FUNCPTRS_FOR_VULKAN',
-            'KHRONOS_STATIC=1',
-            'LIBKTX=1',
-            # To reduce size, don't support transcoding to ancient formats.
-            'BASISD_SUPPORT_FXT1=0',
-          ],
-          'direct_dependent_settings': {
-            'include_dirs': [ '<@(include_dirs)' ],
-          },
-          'include_dirs': [ '<@(include_dirs)' ],
-          'mac_bundle': 0,
-          'dependencies': [ 'libzstd', 'vulkan_headers', 'version.h' ],
-          'sources': [
-            '<@(sources)',
-            '<@(vksource_files)',
-          ],
-          'conditions': [
-            ['_type == "shared_library"', {
-              'dependencies': [ 'libgl' ],
-              'defines!': ['KHRONOS_STATIC=1'],
-              'conditions': [
-                ['OS == "mac" or OS == "ios"', {
-                  'direct_dependent_settings': {
-                    'target_conditions': [
-                      ['_type != "none" and _mac_bundle == 1', {
-                        'copies': [{
-                          'xcode_code_sign': 1,
-                          'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
-                          'files': [ '<(PRODUCT_DIR)/<(_target_name)<(SHARED_LIB_SUFFIX)' ],
-                        }], # copies
-                        'xcode_settings': {
-                          # Tell DYLD where to search for this dylib.
-                          # "man ld" for more information. Look for -rpath.
-                          'LD_RUNPATH_SEARCH_PATHS': [ '@executable_path/../Frameworks' ],
-                        },
-                      }, {
-                        'xcode_settings': {
-                          'LD_RUNPATH_SEARCH_PATHS': [
-                            '@executable_path',
-                            '/usr/local/lib',
-                          ],
-                        },
-                      }], # _mac_bundle == 1
-                    ], # target_conditions
-                  }, # direct_dependent_settings
-                  'xcode_settings': {
-                    # Set the "install name" to instruct dyld to search a list of
-                    # paths in order to locate the library. If left at the default
-                    # of an absolute location (/usr/local/lib), that path will be
-                    # built into any executables that link with it and dyld will
-                    # search only that location. For bundles, the path we set above
-                    # is built into the executable. For non bundle's nothing will be
-                    # built into the executable and the standard dyld search path
-                    # will be used.
-                    'INSTALL_PATH': '@rpath',
-                  }
-                }, 'OS == "win"', {
-                  'defines': [
-                     'KTX_APICALL=__declspec(dllexport)',
-                     'BASISU_NO_ITERATOR_DEBUG_LEVEL',
-                   ],
-                  # The msvs generator automatically sets the needed VCLinker
-                  # option when a .def file is seen in sources.
-                  'sources': [ 'internalexport.def' ],
-                }] # OS == "mac or OS == "ios"
-              ], # conditions
-            }, {
-              'export_dependent_settings': [ 'libzstd' ],
-            }], # _type == "shared_library"
-          ], # conditions
-          'xcode_settings': {
-            # The BasisU transcoder uses anon types and structs. They compile ok in
-            # Visual Studio (2015+) and on Linux so quiet the clang warnings.
-            'WARNING_CFLAGS': [
-              '-Wno-nested-anon-types',
-              '-Wno-gnu-anonymous-struct',
-            ],
-            # This is used by a Copy Headers phase which gyp only allows to be
-            # be created for a framework bundle. Remember in case we want to
-            # switch the lib to a framework.
-            #'PUBLIC_HEADERS_FOLDER_PATH': '/usr/local/include',
-          },
-        }, # libktx.gl target
         {
           'target_name': 'libktx.doc',
           'type': 'none',
@@ -422,7 +450,7 @@
               }],
             ], # conditions
           }, # variables
-          'dependencies': [ 'libktx.gl', 'libktx.doc' ],
+          'dependencies': [ 'libktx', 'libktx.doc' ],
           'xcode_settings': {
             'INSTALL_PATH': '/usr/local',
           },
@@ -431,10 +459,10 @@
             'destination': '<(dstroot)/<(installpath)/lib',
             'conditions': [
               ['OS == "win" or "<(library)" != "shared_library"', {
-                'files': [ '<(staticlib_dir)/libktx.gl<(STATIC_LIB_SUFFIX)' ],
+                'files': [ '<(staticlib_dir)/libktx<(STATIC_LIB_SUFFIX)' ],
               }],
               ['"<(library)" == "shared_library"', {
-                'files': [ '<(libktx_dir)/libktx.gl<(SHARED_LIB_SUFFIX)' ],
+                'files': [ '<(libktx_dir)/libktx<(SHARED_LIB_SUFFIX)' ],
               }],
             ], # conditions
           }, {
@@ -449,108 +477,6 @@
         } # install_lib target
       ], # mac, win or linux targets
     }], # OS == "mac" or OS == "win" or OS == "linux"
-    ['OS == "ios" or (OS == "win" and es1support == "true")', {
-      'targets': [
-        {
-          'target_name': 'libktx.es1',
-          'type': 'static_library',
-          'defines': [
-            'KTX_OPENGL_ES1=1',
-            'KTX_OMIT_VULKAN=1',
-            'KHRONOS_STATIC=1',
-            'LIBKTX=1',
-            'BASISU_NO_ITERATOR_DEBUG_LEVEL',
-            # To reduce size, don't support transcoding to ancient formats.
-            'BASISD_SUPPORT_FXT1=0',
-          ],
-          'direct_dependent_settings': {
-            'include_dirs': [ '<@(include_dirs)' ],
-            'defines': [ 'KHRONOS_STATIC=1' ],
-          },
-          'export_dependent_settings': [ 'libzstd' ],
-          'dependencies': [ 'libzstd', 'version.h' ],
-          'sources': [ '<@(sources)' ],
-          'include_dirs': [ '<@(include_dirs)' ],
-          'xcode_settings': {
-            # The BasisU transcoder uses anon typs and structs. They compile ok
-            # in Xcode Linux so quiet the clang warnings.
-            'WARNING_CFLAGS': [
-              '-Wno-nested-anon-types',
-              '-Wno-gnu-anonymous-struct',
-            ],
-          }
-        }, # libktx.es1
-      ], # ios or win targets
-    }], # OS == "ios" or (OS == "win" and es1support == "true")
-    ['OS == "ios" or OS == "win" or OS == "web"', {
-      'targets': [
-        {
-          'target_name': 'libktx.es3',
-          'type': 'static_library',
-          'defines': [
-            'KTX_OPENGL_ES3=1',
-            'KTX_USE_FUNCPTRS_FOR_VULKAN',
-            'KHRONOS_STATIC=1',
-            'LIBKTX=1',
-            'BASISU_NO_ITERATOR_DEBUG_LEVEL',
-            # To reduce size, don't support transcoding to ancient formats.
-            'BASISD_SUPPORT_FXT1=0',
-          ],
-          'dependencies': [ 'libzstd', 'vulkan_headers', 'version.h' ],
-          'direct_dependent_settings': {
-            'include_dirs': [ '<@(include_dirs)' ],
-            'defines': [ 'KHRONOS_STATIC=1' ],
-          },
-          'sources': [
-            '<@(sources)',
-            '<@(vksource_files)',
-            'zstddeclib.c',
-          ],
-          'conditions': [
-            ['OS == "web"', {
-              # The BasisU transcoder uses anon types and structs. They compile
-              # ok in Emscripten so quiet the clang warnings.
-              'cflags_cc': [
-                '-Wno-nested-anon-types',
-                '-Wno-gnu-anonymous-struct',
-              ],
-              # The zstd decoder does not use macros with variadic macros
-              # correctly and they seem unwilling to fix so turn those
-              # off too.
-              'cflags_c': [
-                '-Wno-gnu-zero-variadic-macro-arguments',
-              ],
-              'defines': [
-                'KTX_OMIT_VULKAN=1',
-                # To reduce size, don't support transcoding to formats not
-                # supported by WebGL.
-                'BASISD_SUPPORT_BC7=0',
-                'BASISD_SUPPORT_ATC=0',
-                'BASISD_SUPPORT_PVRTC2=0',
-                'BASISD_SUPPORT_FXT1=0',
-                'BASISD_SUPPORT_ETC2_EAC_RG11=0',
-                # Don't support higher quality mode to avoid 64k table.
-                'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
-              ],
-              'dependencies!': [ 'libzstd', 'vulkan_headers' ],
-              'sources!': [ '<@(vksource_files)' ],
-            }, {
-              'export_dependent_settings': [ 'libzstd' ],
-              'sources!': [ 'zstddeclib.c' ],
-            }],
-          ],
-          'include_dirs': [ '<@(include_dirs)' ],
-          'xcode_settings': {
-            # The BasisU transcoder uses anon typs and structs. They compile ok
-            # in Xcode so quiet the clang warnings.
-            'WARNING_CFLAGS': [
-              '-Wno-nested-anon-types',
-              '-Wno-gnu-anonymous-struct',
-            ],
-          }
-        }, # libktx.es3
-      ], # ios or win or web targets
-    }], # OS == "ios" or OS == "win" or OS == "web"
   ], # conditions
 }
 

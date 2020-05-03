@@ -41,7 +41,7 @@
         #'appfwSDL',
         'gtest',
         'gtest_main',
-        'libktx.gyp:libktx.gl',
+        'libktx.gyp:libktx',
       ],
       'sources': [
         'unittests.cc',

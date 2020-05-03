@@ -37,58 +37,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#if KTX_OPENGL
-
-  #ifdef _WIN32
-    #include <windows.h>
-    #undef KTX_USE_GETPROC  /* Must use GETPROC on Windows */
-    #define KTX_USE_GETPROC 1
-  #else
-    #if !defined(KTX_USE_GETPROC)
-      #define KTX_USE_GETPROC 0
-    #endif
-  #endif
-  #if KTX_USE_GETPROC
-    #include <GL/glew.h>
-  #else
-    #define GL_GLEXT_PROTOTYPES
-    #include <GL/glcorearb.h>
-  #endif
-
-  #define GL_APIENTRY APIENTRY
-  #include "gl_funcptrs.h"
-
-#elif KTX_OPENGL_ES1
-
-  #include <GLES/gl.h>
-  #include <GLES/glext.h>
-  #include "gles1_funcptrs.h"
-
-#elif KTX_OPENGL_ES2
-
-  #define GL_GLEXT_PROTOTYPES
-  #include <GLES2/gl2.h>
-  #include <GLES2/gl2ext.h>
-  #include "gles2_funcptrs.h"
-
-#elif KTX_OPENGL_ES3
-
-  #define GL_GLEXT_PROTOTYPES
-  #include <GLES3/gl3.h>
-  #include <GLES2/gl2ext.h>
-  #include "gles3_funcptrs.h"
-
-#else
-  #error Please #define one of KTX_OPENGL, KTX_OPENGL_ES1, KTX_OPENGL_ES2 or KTX_OPENGL_ES3 as 1
-#endif
+#include "gl_funcs.h"
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "ktxgl.h"
 #include "texture.h"
 #include "gl_format.h"      // Must come after texture.h.
-
-DECLARE_GL_FUNCPTRS
 
 /**
  * @defgroup ktx_glloader OpenGL Texture Image Loader
@@ -120,6 +74,15 @@ DECLARE_GL_FUNCPTRS
  * load the image data into it.
  * @snippet this loadGLTexture
  */
+
+/**
+ * @internal
+ * @~English
+ * @brief Token for use with OpenGL ES 1 and old versions of OpenGL.
+ *
+ * Only used when glGenerateMipmaps not available.
+ */
+#define GL_GENERATE_MIPMAP              0x8191
 
 /**
  * @internal
@@ -190,18 +153,9 @@ static GLboolean supportsCubeMapArrays = GL_FALSE;
 /**
  * @internal
  * @~English
- * @brief Workaround mismatch of glGetString declaration and standard string
- *        function parameters.
+ * @brief Indicates if the current context supports cube map arrays.
  */
-#define glGetString(x) (const char*)glGetString(x)
-
-/**
- * @internal
- * @~English
- * @brief Workaround mismatch of glGetStringi declaration and standard string
- *        function parameters.
- */
-#define pfGlGetStringi(x,y) (const char*)pfGlGetStringi(x,y)
+static GLboolean supportsMaxLevel = GL_FALSE;
 
 /**
  * @internal
@@ -211,17 +165,18 @@ static GLboolean supportsCubeMapArrays = GL_FALSE;
 static GLboolean
 hasExtension(const char* extension)
 {
-    if (pfGlGetStringi == NULL) {
-        if (strstr(glGetString(GL_EXTENSIONS), extension) != NULL)
+    if (gl.glGetStringi == NULL) {
+        if (strstr(glGetString(GL_EXTENSIONS), extension) != NULL) {
             return GL_TRUE;
-        else
+        } else {
             return GL_FALSE;
+        }
     } else {
         int i, n;
 
         glGetIntegerv(GL_NUM_EXTENSIONS, &n);
         for (i = 0; i < n; i++) {
-            if (strcmp(pfGlGetStringi(GL_EXTENSIONS, i), extension) == 0)
+            if (strcmp((const char*)gl.glGetStringi(GL_EXTENSIONS, i), extension) == 0)
                 return GL_TRUE;
         }
         return GL_FALSE;
@@ -240,17 +195,13 @@ hasExtension(const char* extension)
  * @li supportsSwizzle
  * @li supportsSRGB
  * @li b16Formats
+ * @li supportsMaxLevel
  */
 static void
 discoverContextCapabilities(void)
 {
     GLint majorVersion = 1;
     GLint minorVersion = 0;
-
-    // Done here so things will work when GLEW, or equivalent, is being used
-    // and GL function names are defined as pointers. Initialization at
-    // declaration would happen before these pointers have been initialized.
-    INITIALIZE_GL_FUNCPTRS
 
     if (strstr(glGetString(GL_VERSION), "GL ES") != NULL)
         contextProfile = _CONTEXT_ES_PROFILE_BIT;
@@ -272,11 +223,30 @@ discoverContextCapabilities(void)
             sizedFormats = _NO_SIZED_FORMATS;
             R16Formats = _KTX_NO_R16_FORMATS;
             supportsSRGB = GL_FALSE;
+            // These things could be found by dlsym when, e.g. the same driver
+            // supports ES1, ES2 and ES3. For all but Tex*3D, there's no
+            // corresponding extension whose presence we could check. Just zero
+            // the pointers to prevent use.
+            gl.glGetStringi = NULL;
+            gl.glCompressedTexImage1D = NULL;
+            gl.glTexStorage1D = NULL;
+            gl.glTexStorage2D = NULL;
+            gl.glTexStorage3D = NULL;
+            if (!hasExtension("GL_OES_texture_3D")) {
+                gl.glCompressedTexImage3D = NULL;
+                gl.glCompressedTexSubImage3D = NULL;
+                gl.glTexImage3D = NULL;
+                gl.glTexSubImage3D = NULL;
+            }
+            if (majorVersion < 2)
+                gl.glGenerateMipmap = NULL;
+
         } else {
             sizedFormats = _NON_LEGACY_FORMATS;
             if (hasExtension("GL_EXT_texture_cube_map_array")) {
                 supportsCubeMapArrays = GL_TRUE;
             }
+            supportsMaxLevel = GL_TRUE;
         }
         if (hasExtension("GL_OES_required_internalformat")) {
             sizedFormats |= _ALL_SIZED_FORMATS;
@@ -295,6 +265,7 @@ discoverContextCapabilities(void)
                 sizedFormats &= ~_LEGACY_FORMATS;
             if (majorVersion >= 4)
                 supportsCubeMapArrays = GL_TRUE;
+            supportsMaxLevel = GL_TRUE;
         } else {
             // < 3.2
             contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
@@ -307,6 +278,12 @@ discoverContextCapabilities(void)
             if (majorVersion == 3) {
                 if (minorVersion == 0)
                     R16Formats &= ~_KTX_R16_FORMATS_SNORM;
+                if (minorVersion < 1) {
+                    if (hasExtension("GL_ARB_texture_query_levels"))
+                        supportsMaxLevel = GL_TRUE;
+                } else {
+                  supportsMaxLevel = GL_TRUE;
+                }
             } else if (hasExtension("GL_ARB_texture_rg")) {
                 R16Formats &= ~_KTX_R16_FORMATS_SNORM;
             } else {
@@ -466,8 +443,8 @@ texImage1DCallback(int miplevel, int face,
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
 
-    assert(pfGlTexImage1D != NULL);
-    pfGlTexImage1D(cbData->glTarget + face, miplevel,
+    assert(gl.glTexImage1D != NULL);
+    gl.glTexImage1D(cbData->glTarget + face, miplevel,
                    cbData->glInternalformat, width, 0,
                    cbData->glFormat, cbData->glType, pixels);
 
@@ -490,8 +467,8 @@ compressedTexImage1DCallback(int miplevel, int face,
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
 
-    assert(pfGlCompressedTexImage1D != NULL);
-    pfGlCompressedTexImage1D(cbData->glTarget + face, miplevel,
+    assert(gl.glCompressedTexImage1D != NULL);
+    gl.glCompressedTexImage1D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat, width, 0,
                              (ktx_uint32_t)faceLodSize, pixels);
 
@@ -598,8 +575,8 @@ texImage3DCallback(int miplevel, int face,
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
 
-    assert(pfGlTexImage3D != NULL);
-    pfGlTexImage3D(cbData->glTarget + face, miplevel,
+    assert(gl.glTexImage3D != NULL);
+    gl.glTexImage3D(cbData->glTarget + face, miplevel,
                    cbData->glInternalformat,
                    width, height,
                    cbData->numLayers == 0 ? depth : cbData->numLayers,
@@ -625,8 +602,8 @@ compressedTexImage3DCallback(int miplevel, int face,
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
 
-    assert(pfGlCompressedTexImage3D != NULL);
-    pfGlCompressedTexImage3D(cbData->glTarget + face, miplevel,
+    assert(gl.glCompressedTexImage3D != NULL);
+    gl.glCompressedTexImage3D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat,
                              width, height,
                              cbData->numLayers == 0 ? depth : cbData->numLayers,
@@ -648,8 +625,7 @@ compressedTexImage3DCallback(int miplevel, int face,
  *        ktxTexture object.
  *
  * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
- * number of levels in the KTX data, provided the library has been compiled
- * with a version of gl.h where GL_TEXTURE_MAX_LEVEL is defined.
+ * number of levels in the KTX data, provided the context supports this feature.
  *
  * Unpacks compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
  * textures in software when the format is not supported by the GL context,
@@ -730,8 +706,8 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
             target = GL_TEXTURE_CUBE_MAP_ARRAY;
         } else {
             switch (This->numDimensions) {
-              case 1: target = GL_TEXTURE_1D_ARRAY_EXT; break;
-              case 2: target = GL_TEXTURE_2D_ARRAY_EXT; break;
+              case 1: target = GL_TEXTURE_1D_ARRAY; break;
+              case 2: target = GL_TEXTURE_2D_ARRAY; break;
               /* _ktxCheckHeader should have caught this. */
               default: assert(KTX_TRUE);
             }
@@ -755,16 +731,16 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
     }
 
     if (target == GL_TEXTURE_1D &&
-        ((This->isCompressed && (pfGlCompressedTexImage1D == NULL)) ||
-         (!This->isCompressed && (pfGlTexImage1D == NULL))))
+        ((This->isCompressed && (gl.glCompressedTexImage1D == NULL)) ||
+         (!This->isCompressed && (gl.glTexImage1D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
 
     /* Reject 3D texture if unsupported. */
     if (target == GL_TEXTURE_3D &&
-        ((This->isCompressed && (pfGlCompressedTexImage3D == NULL)) ||
-         (!This->isCompressed && (pfGlTexImage3D == NULL))))
+        ((This->isCompressed && (gl.glCompressedTexImage3D == NULL)) ||
+         (!This->isCompressed && (gl.glTexImage3D == NULL))))
     {
         return KTX_UNSUPPORTED_TEXTURE_TYPE;
     }
@@ -796,13 +772,12 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
     glBindTexture(target, texname);
 
     // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-    if (This->generateMipmaps && (pfGlGenerateMipmap == NULL)) {
+    if (This->generateMipmaps && (gl.glGenerateMipmap == NULL)) {
         glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
     }
-#ifdef GL_TEXTURE_MAX_LEVEL
-    if (!This->generateMipmaps)
+
+    if (!This->generateMipmaps && supportsMaxLevel)
         glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, This->numLevels - 1);
-#endif
 
     if (target == GL_TEXTURE_CUBE_MAP) {
         cbData.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
@@ -847,8 +822,8 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
     if (result == KTX_SUCCESS)
     {
         // Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-        if (This->generateMipmaps && pfGlGenerateMipmap) {
-            pfGlGenerateMipmap(target);
+        if (This->generateMipmaps && gl.glGenerateMipmap) {
+            gl.glGenerateMipmap(target);
         }
         *pTarget = target;
         if (pTexture) {
@@ -867,8 +842,7 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
  * @brief Create a GL texture object from a ktxTexture1 object.
  *
  * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
- * number of levels in the KTX data, provided the library has been compiled
- * with a version of gl.h where GL_TEXTURE_MAX_LEVEL is defined.
+ * number of levels in the KTX data, provided the context supports this feature.
  *
  * Unpacks compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
  * textures in software when the format is not supported by the GL context,
@@ -922,6 +896,12 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
         return KTX_INVALID_VALUE;
     }
 
+    if (!ktxOpenGLModuleHandle) {
+        ktx_error_code_e result = ktxLoadOpenGLLibrary();
+        if (result != KTX_SUCCESS) {
+            return result;
+        }
+    }
     /* KTX 1 files require an unpack alignment of 4 */
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
     if (previousUnpackAlignment != KTX_GL_UNPACK_ALIGNMENT) {
@@ -951,8 +931,7 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
  * @brief Create a GL texture object from a ktxTexture2 object.
  *
  * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
- * number of levels in the KTX data, provided the library has been compiled
- * with a version of gl.h where GL_TEXTURE_MAX_LEVEL is defined.
+ * number of levels in the KTX data, provided the context supports this feature.
  *
  * Unpacks compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
  * textures in software when the format is not supported by the GL context,
@@ -991,7 +970,7 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
                      GLenum* pGlerror)
 {
     GLint                 previousUnpackAlignment;
-    KTX_error_code        result = KTX_SUCCESS;
+    ktx_error_code_e      result = KTX_SUCCESS;
     ktx_glformatinfo      formatInfo;
 
     if (!This) {
@@ -1000,6 +979,13 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
 
     if (!pTarget) {
         return KTX_INVALID_VALUE;
+    }
+
+    if (!ktxOpenGLModuleHandle) {
+        result = ktxLoadOpenGLLibrary();
+        if (result != KTX_SUCCESS) {
+            return result;
+        }
     }
 
     if (This->vkFormat != VK_FORMAT_UNDEFINED) {

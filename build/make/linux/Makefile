@@ -388,8 +388,8 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,libktx.gl.target.mk)))),)
-  include libktx.gl.target.mk
+                 $(join ^,libktx.target.mk)))),)
+  include libktx.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\

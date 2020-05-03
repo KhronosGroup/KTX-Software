@@ -192,7 +192,7 @@ use `vulkan.hpp` which needs C++11 & in particular `constexpr`, so solutions oth
 Installing
 ----------
 
-The `install.lib` target in the `libktx` project builds a distribution directory hierarchy containing `libktx.gl`, the public include files and library man pages. Similarly `install.tools` in the `ktxtools` project builds a hierarchy with the tools, `libktx.gl` and the tools man pages. These targets are only available on GNU/Linux, macOS and Windows.
+The `install.lib` target in the `libktx` project builds a distribution directory hierarchy containing `libktx`, the public include files and library man pages. Similarly `install.tools` in the `ktxtools` project builds a hierarchy with the tools, `libktx` and the tools man pages. These targets are only available on GNU/Linux, macOS and Windows.
 
 To install these for use, the distribution hierarchies must be copied to the system root `/` on GNU/Linux & macOS. Everything is located in the distribution hierarchy at `usr/local/...` so the final home will be `/usr/local/...`.
 

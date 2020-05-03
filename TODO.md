@@ -8,7 +8,7 @@ $Date$
 library
 -------
 
-- [ ] Find a way so that applications do not have to define KTX_OPENGL{,_ES*} when
+- [x] Find a way so that applications do not have to define KTX_OPENGL{,_ES*} when
       using the library.
 - [x] make reader that is usable without OpenGL context
 - [ ] use TexStorage in GL texture loader when available

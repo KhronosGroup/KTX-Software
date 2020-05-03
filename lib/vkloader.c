@@ -37,9 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 #include "vk_funcs.h"   // Must be included before ktxvulkan.h.
-#endif
 #include "ktxvulkan.h"
 #include "ktxint.h"
 #include "texture1.h"
@@ -165,19 +163,10 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
 
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
     // Delay loading not supported so must do it ourselves.
-    if (!ktxVulkanLibrary) {
-        if (!ktxVulkanLoadLibrary())
-            // Normal use is for this constructor to be called by an application
-            // that has completed Vulkan initialization. In that case the only
-            // cause for failure would be an incompatibility in the version
-            // of libvulkan that is loaded. The only other cause would be an
-            // application calling Vulkan functions without having initialized
-            // Vulkan.
-            //
-            // In these cases, an abort along with the messages sent to stderr
-            // by ktxVulkanLoadLibrary is sufficient as released applications
-            // should never suffer these.
-            abort();
+    if (!ktxVulkanModuleHandle) {
+        result = ktxLoadVulkanLibrary();
+        if (result != KTX_SUCCESS)
+            return result;
     }
 #endif
 
