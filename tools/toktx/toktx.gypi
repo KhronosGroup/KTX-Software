@@ -33,7 +33,7 @@
             '../../lib/basisu',
           ],
           'mac_bundle': 0,
-          'dependencies': [ 'libktx.gyp:libktx.gl' ],
+          'dependencies': [ 'libktx.gyp:libktx' ],
           'sources': [
             '../../utils/argparser.cpp',
             '../../utils/argparser.h',

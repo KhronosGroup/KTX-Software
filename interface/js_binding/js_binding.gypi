@@ -28,7 +28,7 @@
           'target_name': 'libktx.js',
           'type': 'executable',
           'cflags_cc': [ '--bind' ],
-          'dependencies': [ 'libktx.es3', 'libgles3' ],
+          'dependencies': [ 'libktx', 'libgles3' ],
           'defines': [ '<@(common_defines)' ],
           'mac_bundle': 0,
           'sources': [
@@ -59,7 +59,7 @@
             '-Wno-gnu-anonymous-struct',
           ],
           'defines': [ '<@(common_defines)' ],
-          'dependencies': [ 'libktx.es3' ],
+          'dependencies': [ 'libktx' ],
           'mac_bundle': 0,
           'sources': [
             'transcoder_wrapper.cpp',

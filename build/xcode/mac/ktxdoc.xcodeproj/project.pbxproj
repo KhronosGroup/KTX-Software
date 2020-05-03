@@ -45,13 +45,6 @@
 			remoteGlobalIDString = D565D6063B17DDC8F9AF4D91;
 			remoteInfo = ktx2check;
 		};
-		3079ADF769C2044F2FC6729A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F552AA19D91ECB8C25731D64;
-			remoteInfo = libktx.gl;
-		};
 		4FAA6414D02D87C7174E0019 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
@@ -72,6 +65,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1DECD74B6E574582E25FE647;
 			remoteInfo = libktx.doc;
+		};
+		ADD943BCCD4631C7A321E94B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7B523B8D345586A761772C37;
+			remoteInfo = libktx;
 		};
 		EBF9B23442056391C147ABFE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -132,6 +132,14 @@
 			name = Source;
 			sourceTree = "<group>";
 		};
+		13E3C093D9D5E8CD84D18E47 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4282ED32B8E47CAAFBE8DDEA /* libktx.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1C2458A14BCA3DC0EA020732 = {
 			isa = PBXGroup;
 			children = (
@@ -157,14 +165,6 @@
 				9EE6D2C8B00769F5A26D78C1 /* transcoder_wrapper.cpp */,
 			);
 			path = interface/js_binding;
-			sourceTree = "<group>";
-		};
-		481F0A79C17B595DCD1E1422 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C32CE01C77BF92559608122A /* libktx.gl.dylib */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		6F202E38E1550810E61B2DBF /* pkgdoc */ = {
@@ -218,7 +218,7 @@
 					ProjectRef = 1D0654AF33F746C5D9266C16 /* ktxtools.xcodeproj */;
 				},
 				{
-					ProductGroup = 481F0A79C17B595DCD1E1422 /* Products */;
+					ProductGroup = 13E3C093D9D5E8CD84D18E47 /* Products */;
 					ProjectRef = AAC20ABF6C5EF7231E6DB332 /* libktx.xcodeproj */;
 				},
 			);
@@ -230,6 +230,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		4282ED32B8E47CAAFBE8DDEA /* libktx.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libktx.dylib;
+			remoteRef = ADD943BCCD4631C7A321E94B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		6527CB59EC7BD66F84551A43 /* toktx */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.executable";
@@ -242,13 +249,6 @@
 			fileType = "compiled.mach-o.executable";
 			path = ktxsc;
 			remoteRef = EBF9B23442056391C147ABFE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		C32CE01C77BF92559608122A /* libktx.gl.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.dylib";
-			path = libktx.gl.dylib;
-			remoteRef = 3079ADF769C2044F2FC6729A /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		DEF63C54EBAA2835FE433A21 /* ktxinfo */ = {

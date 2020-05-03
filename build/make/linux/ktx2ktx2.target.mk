@@ -68,7 +68,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
+$(OBJS): | $(builddir)/lib.target/libktx.so $(obj).target/libktx.so
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(action_ktxtools_gyp_ktx2ktx2_target_mkversion_outputs)
@@ -98,7 +98,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 $(builddir)/ktx2ktx2: | $(action_ktxtools_gyp_ktx2ktx2_target_mkversion_outputs)
 
 # Preserve order dependency of special output on deps.
-$(action_ktxtools_gyp_ktx2ktx2_target_mkversion_outputs): | $(builddir)/lib.target/libktx.gl.so $(obj).target/libktx.gl.so
+$(action_ktxtools_gyp_ktx2ktx2_target_mkversion_outputs): | $(builddir)/lib.target/libktx.so $(obj).target/libktx.so
 
 LDFLAGS_Debug := \
 	-g \
@@ -109,13 +109,15 @@ LDFLAGS_Release := \
 	-Wl,-rpath=\$$ORIGIN/lib.target/ \
 	-Wl,-rpath-link=\$(builddir)/lib.target/
 
-LIBS :=
+LIBS := \
+	-ldl \
+	-lpthread
 
 $(builddir)/ktx2ktx2: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/ktx2ktx2: LIBS := $(LIBS)
-$(builddir)/ktx2ktx2: LD_INPUTS := $(OBJS) $(obj).target/libktx.gl.so
+$(builddir)/ktx2ktx2: LD_INPUTS := $(OBJS) $(obj).target/libktx.so
 $(builddir)/ktx2ktx2: TOOLSET := $(TOOLSET)
-$(builddir)/ktx2ktx2: $(OBJS) $(obj).target/libktx.gl.so FORCE_DO_CMD
+$(builddir)/ktx2ktx2: $(OBJS) $(obj).target/libktx.so FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/ktx2ktx2

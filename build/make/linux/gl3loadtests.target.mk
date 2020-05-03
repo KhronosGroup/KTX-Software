@@ -107,7 +107,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(builddir)/lib.target/libktx.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.so
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(ktxtests_gyp_gl3loadtests_target_copies)
@@ -137,7 +137,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 $(builddir)/gl3loadtests: | $(ktxtests_gyp_gl3loadtests_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
+$(ktxtests_gyp_gl3loadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(builddir)/lib.target/libktx.so $(obj).target/libgl.stamp $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.so
 
 LDFLAGS_Debug := \
 	-Wl,-rpath,. \
@@ -164,9 +164,9 @@ LIBS := \
 
 $(builddir)/gl3loadtests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/gl3loadtests: LIBS := $(LIBS)
-$(builddir)/gl3loadtests: LD_INPUTS := $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.so
+$(builddir)/gl3loadtests: LD_INPUTS := $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.so
 $(builddir)/gl3loadtests: TOOLSET := $(TOOLSET)
-$(builddir)/gl3loadtests: $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.so FORCE_DO_CMD
+$(builddir)/gl3loadtests: $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.so FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/gl3loadtests

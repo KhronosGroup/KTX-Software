@@ -220,8 +220,8 @@
       <Project>{3DFE2F1D-2B19-517D-86A8-AF86AC4D86B8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="libktx.gl.vcxproj">
-      <Project>{2660AE66-2984-EF7D-7AF2-6AF530F36C1C}</Project>
+    <ProjectReference Include="libktx.vcxproj">
+      <Project>{7BBD5180-5CDE-C6F4-7488-22EC4755908F}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="libgl.vcxproj">

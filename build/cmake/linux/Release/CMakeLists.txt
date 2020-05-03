@@ -140,14 +140,12 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/filestream.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/formatsize.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_format.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles1_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles2_funcptrs.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gles3_funcptrs.h"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funclist.inl"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcs.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/gl_funcs.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/glloader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/hashlist.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/info.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxgl.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/ktxint.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/memstream.h"
@@ -274,26 +272,10 @@ set_target_properties(libzstd PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
-#libktx.gyp:libgles3#target
-set(TARGET "libgles3")
+#libktx.gyp:libktx#target
+set(TARGET "libktx")
 set(TOOLSET "target")
-add_custom_target(libgles3 SOURCES)
-set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
-#libktx.gyp:libgl#target
-set(TARGET "libgl")
-set(TOOLSET "target")
-add_custom_target(libgl SOURCES)
-set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
-#libktx.gyp:libktx.gl#target
-set(TARGET "libktx.gl")
-set(TOOLSET "target")
-list(APPEND libktx_gl__c_srcs
+list(APPEND libktx__c_srcs
   "../../../../lib/basisu/apg_bmp.c"
   "../../../../lib/checkheader.c"
   "../../../../lib/dfdutils/createdfd.c"
@@ -303,6 +285,7 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/dfdutils/queries.c"
   "../../../../lib/dfdutils/vk2dfd.c"
   "../../../../lib/filestream.c"
+  "../../../../lib/gl_funcs.c"
   "../../../../lib/glloader.c"
   "../../../../lib/hashlist.c"
   "../../../../lib/info.c"
@@ -318,7 +301,7 @@ list(APPEND libktx_gl__c_srcs
   "../../../../lib/writer2.c"
   "../../../../lib/vkloader.c"
   "../../../../lib/vk_funcs.c")
-list(APPEND libktx_gl__cxx_srcs
+list(APPEND libktx__cxx_srcs
   "../../../../lib/basisu/basisu_astc_decomp.cpp"
   "../../../../lib/basisu/basisu_backend.cpp"
   "../../../../lib/basisu/basisu_basis_file.cpp"
@@ -341,7 +324,7 @@ list(APPEND libktx_gl__cxx_srcs
   "../../../../lib/basisu_image_transcoders.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
-list(APPEND libktx_gl__other_srcs
+list(APPEND libktx__other_srcs
   "../../../../include/ktx.h"
   "../../../../lib/basisu/apg_bmp.h"
   "../../../../lib/basisu/basisu_astc_decomp.h"
@@ -383,11 +366,8 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/filestream.h"
   "../../../../lib/formatsize.h"
   "../../../../lib/gl_format.h"
-  "../../../../lib/gl_funcptrs.h"
-  "../../../../lib/gles1_funcptrs.h"
-  "../../../../lib/gles2_funcptrs.h"
-  "../../../../lib/gles3_funcptrs.h"
-  "../../../../lib/ktxgl.h"
+  "../../../../lib/gl_funclist.inl"
+  "../../../../lib/gl_funcs.h"
   "../../../../lib/ktxint.h"
   "../../../../lib/memstream.h"
   "../../../../lib/stream.h"
@@ -403,45 +383,45 @@ list(APPEND libktx_gl__other_srcs
   "../../../../lib/vk_funcs.h")
 link_directories( ../../../../other_lib/linux/Release-x64
 )
-add_library(libktx_gl SHARED ${libktx_gl__c_srcs} ${libktx_gl__cxx_srcs} ${libktx_gl__other_srcs})
-set_target_properties(libktx_gl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-set_source_files_properties(${libktx_gl__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
-set_target_properties(libktx_gl PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${builddir}/lib.${TOOLSET}")
-set_target_properties(libktx_gl PROPERTIES PREFIX "lib")
-set_target_properties(libktx_gl PROPERTIES LIBRARY_OUTPUT_NAME "ktx.gl")
-set_target_properties(libktx_gl PROPERTIES SUFFIX ".so")
-set_source_files_properties(${builddir}/lib.${TOOLSET}/libktx.gl.so PROPERTIES GENERATED "TRUE")
-list(APPEND libktx_gl__include_dirs
+add_library(libktx SHARED ${libktx__c_srcs} ${libktx__cxx_srcs} ${libktx__other_srcs})
+set_target_properties(libktx PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+set_source_files_properties(${libktx__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
+set_target_properties(libktx PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${builddir}/lib.${TOOLSET}")
+set_target_properties(libktx PROPERTIES PREFIX "lib")
+set_target_properties(libktx PROPERTIES LIBRARY_OUTPUT_NAME "ktx")
+set_target_properties(libktx PROPERTIES SUFFIX ".so")
+set_source_files_properties(${builddir}/lib.${TOOLSET}/libktx.so PROPERTIES GENERATED "TRUE")
+list(APPEND libktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../../other_include"
   "/$ENV{VULKAN_SDK}/include")
-set_property(TARGET libktx_gl APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_gl__include_dirs})
-set_target_properties(libktx_gl PROPERTIES COMPILE_DEFINITIONS "KTX_OPENGL=1;KTX_USE_FUNCPTRS_FOR_VULKAN;LIBKTX=1;BASISD_SUPPORT_FXT1=0;NDEBUG;")
-set_source_files_properties(${libktx_gl__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -fPIC -std=c99 ")
-set_source_files_properties(${libktx_gl__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -fPIC -std=c++11 -Wno-pedantic ")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-set_target_properties(libktx_gl PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
-add_dependencies(libktx_gl
+set_property(TARGET libktx APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx__include_dirs})
+set_target_properties(libktx PROPERTIES COMPILE_DEFINITIONS "LIBKTX=1;BASISD_SUPPORT_FXT1=0;NDEBUG;")
+set_source_files_properties(${libktx__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -fPIC -std=c99 ")
+set_source_files_properties(${libktx__cxx_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -O3 -fPIC -std=c++11 -Wno-pedantic ")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "NO")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_OPTIMIZATION_LEVEL "3")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
+set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
+add_dependencies(libktx
   libzstd
   vulkan_headers
   version_h
-  libgl
 )
-target_link_libraries(libktx_gl
+target_link_libraries(libktx
+  "-ldl"
+  "-lpthread"
   "-lzstd"
-  "-lGL"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -450,18 +430,18 @@ unset(TARGET)
 set(TARGET "install.lib")
 set(TOOLSET "target")
 list(APPEND install_lib__copies__input
-  "${builddir}/lib.target/libktx.gl.so"
+  "${builddir}/lib.target/libktx.so"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktx.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include/ktxvulkan.h")
 list(APPEND install_lib__copies__output
-  "/tmp/ktx.dst//usr/local/lib/libktx.gl.so"
+  "/tmp/ktx.dst//usr/local/lib/libktx.so"
   "/tmp/ktx.dst//usr/local/include/ktx.h"
   "/tmp/ktx.dst//usr/local/include/ktxvulkan.h")
 set(install_lib__copies__input_dirs "${CMAKE_CURRENT_LIST_DIR}/../../../../build/docs/man/man3")
 set(install_lib__copies__output_dirs "/tmp/ktx.dst//usr/local/share/man/man3")
 add_custom_command(
 OUTPUT ${install_lib__copies__output} ${install_lib__copies__output_dirs}
-COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.gl.so /tmp/ktx.dst//usr/local/lib/libktx.gl.so
+COMMAND ${CMAKE_COMMAND} -E copy ${builddir}/lib.target/libktx.so /tmp/ktx.dst//usr/local/lib/libktx.so
 COMMAND ${CMAKE_COMMAND} -E copy include/ktx.h /tmp/ktx.dst//usr/local/include/ktx.h
 COMMAND ${CMAKE_COMMAND} -E copy include/ktxvulkan.h /tmp/ktx.dst//usr/local/include/ktxvulkan.h
 COMMAND ${CMAKE_COMMAND} -E copy_directory build/docs/man/man3/ /tmp/ktx.dst//usr/local/share/man/man3
@@ -478,13 +458,13 @@ add_custom_target(install_lib SOURCES)
 set_target_properties(install_lib PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(install_lib__copies PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 add_dependencies(install_lib__copies
-  libktx_gl
+  libktx
   libktx_doc
 )
 add_dependencies(install_lib
   libktx_doc
   install_lib__copies
-  libktx_gl
+  libktx
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -552,13 +532,15 @@ set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nest
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(toktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(toktx__mkversion
-  libktx_gl
+  libktx
 )
 add_dependencies(toktx
   toktx__mkversion
 )
 target_link_libraries(toktx
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -649,13 +631,15 @@ set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERR
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxsc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(ktxsc__mkversion
-  libktx_gl
+  libktx
 )
 add_dependencies(ktxsc
   ktxsc__mkversion
 )
 target_link_libraries(ktxsc
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -715,13 +699,15 @@ set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_E
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktxinfo PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(ktxinfo__mkversion
-  libktx_gl
+  libktx
 )
 add_dependencies(ktxinfo
   ktxinfo__mkversion
 )
 target_link_libraries(ktxinfo
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -781,13 +767,15 @@ set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktx2ktx2 PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(ktx2ktx2__mkversion
-  libktx_gl
+  libktx
 )
 add_dependencies(ktx2ktx2
   ktx2ktx2__mkversion
 )
 target_link_libraries(ktx2ktx2
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -849,13 +837,15 @@ set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(ktx2check PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(ktx2check__mkversion
-  libktx_gl
+  libktx
 )
 add_dependencies(ktx2check
   ktx2check__mkversion
 )
 target_link_libraries(ktx2check
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -887,6 +877,22 @@ add_dependencies(ktx2check-tests
   ktx2check
   ktx2check-tests__ktx2check-tests
 )
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libgles3#target
+set(TARGET "libgles3")
+set(TOOLSET "target")
+add_custom_target(libgles3 SOURCES)
+set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
+#libktx.gyp:libgl#target
+set(TARGET "libgl")
+set(TOOLSET "target")
+add_custom_target(libgl SOURCES)
+set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -1778,7 +1784,7 @@ set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_
 set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(vkloadtests__frag2spirv
   appfwSDL
-  libktx_gl
+  libktx
   libassimp
   libvulkan
   testimages
@@ -1787,7 +1793,7 @@ add_dependencies(vkloadtests__frag2spirv
 )
 add_dependencies(vkloadtests__vert2spirv
   appfwSDL
-  libktx_gl
+  libktx
   libassimp
   libvulkan
   testimages
@@ -1796,7 +1802,7 @@ add_dependencies(vkloadtests__vert2spirv
 )
 add_dependencies(vkloadtests__copies
   appfwSDL
-  libktx_gl
+  libktx
   libassimp
   libvulkan
   testimages
@@ -1815,7 +1821,7 @@ add_dependencies(vkloadtests
 )
 target_link_libraries(vkloadtests
   appfwSDL
-  libktx_gl
+  libktx
   "-lpthread"
   "-lSDL2-2.0"
   "-lSDL2main"
@@ -1927,7 +1933,7 @@ set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER
 set_target_properties(gl3loadtests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(gl3loadtests__copies
   appfwSDL
-  libktx_gl
+  libktx
   libassimp
   libgl
   testimages
@@ -1944,7 +1950,7 @@ add_dependencies(gl3loadtests
 )
 target_link_libraries(gl3loadtests
   appfwSDL
-  libktx_gl
+  libktx
   "-lSDL2-2.0"
   "-lSDL2main"
   "-ldl"
@@ -2080,7 +2086,9 @@ target_link_libraries(unittests
   gtest
   gtest_main
 -Wl,--end-group
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -2134,7 +2142,9 @@ add_dependencies(transcodetests
 )
 target_link_libraries(transcodetests
   gtest
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
   "-lGL"
 )
 unset(TOOLSET)
@@ -2186,7 +2196,9 @@ target_link_libraries(texturetests
   gtest
   gtest_main
 -Wl,--end-group
-  libktx_gl
+  libktx
+  "-ldl"
+  "-lpthread"
   "-lGL"
 )
 unset(TOOLSET)

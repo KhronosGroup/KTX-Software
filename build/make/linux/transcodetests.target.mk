@@ -70,7 +70,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libgtest.a $(builddir)/lib.target/libktx.gl.so $(obj).target/libgl.stamp $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libgtest.a $(builddir)/lib.target/libktx.so $(obj).target/libgl.stamp $(obj).target/libktx.so
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -112,13 +112,15 @@ LDFLAGS_Release := \
 	-Wl,-rpath-link=\$(builddir)/lib.target/
 
 LIBS := \
+	-ldl \
+	-lpthread \
 	-lGL
 
 $(builddir)/transcodetests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/transcodetests: LIBS := $(LIBS)
-$(builddir)/transcodetests: LD_INPUTS := $(OBJS) $(obj).target/libgtest.a $(obj).target/libktx.gl.so
+$(builddir)/transcodetests: LD_INPUTS := $(OBJS) $(obj).target/libgtest.a $(obj).target/libktx.so
 $(builddir)/transcodetests: TOOLSET := $(TOOLSET)
-$(builddir)/transcodetests: $(OBJS) $(obj).target/libgtest.a $(obj).target/libktx.gl.so FORCE_DO_CMD
+$(builddir)/transcodetests: $(OBJS) $(obj).target/libgtest.a $(obj).target/libktx.so FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/transcodetests

@@ -76,8 +76,8 @@
 				496539DC9AB0009F458D9053 /* PBXTargetDependency */,
 				4447E693BC9460A830F85EFE /* PBXTargetDependency */,
 				48AFFFC376B01EE17A7F99A5 /* PBXTargetDependency */,
+				2EFEC125B6F4909E78DF7F34 /* PBXTargetDependency */,
 				8284817A8139C1D41DFB14C7 /* PBXTargetDependency */,
-				13DE58403453D78F969AB93D /* PBXTargetDependency */,
 				8583147BA086CE61C7CB744D /* PBXTargetDependency */,
 				60AF49F67D5F21F773400170 /* PBXTargetDependency */,
 				DF548075E2327EC5FE57C59D /* PBXTargetDependency */,
@@ -134,7 +134,6 @@
 		11B893DF1937B78937FD6CAC /* color_grid_uastc_zstd.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 7C2C8748003DCAABF9F6E1E3 /* color_grid_uastc_zstd.ktx2 */; };
 		12C5FFB61D16120F52E43AF9 /* cimg5293_uastc_zstd.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F98A949630D0E04283227C6D /* cimg5293_uastc_zstd.ktx2 */; };
 		143FB1A8C990B14CC4503C34 /* ktx_document_uastc_rdo_zstd.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F5C433275DF17201D01A54B9 /* ktx_document_uastc_rdo_zstd.ktx2 */; };
-		17ED63B06EC81D875D8C6C70 /* libktx.es1.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 719FBA3A9E8179251EA3FB5C /* libktx.es1.a */; };
 		1899B388017B9E33AE67EC7A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */; };
 		18A7877781916C66DD8AE912 /* cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C87F512BE05A5BF907DA6D04 /* cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2 */; };
 		1992C3F435676218983240CE /* etc2-sRGBa8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 4D53BD2F51C127B942371603 /* etc2-sRGBa8.ktx */; };
@@ -147,6 +146,7 @@
 		1FF767567DF7472B0E86B260 /* etc2-rgba8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 61079C41F37F26C67FF5441D /* etc2-rgba8.ktx */; };
 		201180E7A3E57CF88C43D4C4 /* ktx_app_basis.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = B48A7E111D70DBB538884F06 /* ktx_app_basis.ktx2 */; };
 		2150C94F77142FDC29C0B81E /* cubemap_yokohama_bc2_srgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 83B07CE149D3772FAE960E25 /* cubemap_yokohama_bc2_srgb.ktx */; };
+		24D379DC4D9AC69B3D14CD6E /* libktx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A63F0226C80055F99A670D3 /* libktx.a */; };
 		2937A3CCE35526785D0F8AC2 /* etc2-rgba8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 61079C41F37F26C67FF5441D /* etc2-rgba8.ktx */; };
 		2B59089A8129B9ECE325616A /* rgba-mipmap-reference-basis.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C7AE0BE36E4A584DCF9439E7 /* rgba-mipmap-reference-basis.ktx2 */; };
 		2E0375B4F92C5078D71A4C02 /* rgb-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 950C8C60F3478061F24DC0B5 /* rgb-reference.ktx */; };
@@ -225,6 +225,7 @@
 		7126E6088366A56FFF55D6D9 /* etc2-sRGBa8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 4D53BD2F51C127B942371603 /* etc2-sRGBa8.ktx */; };
 		723C864521468BEBF1FCFF15 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F72E191E6D512390AECB3D67 /* LaunchScreen.storyboard */; };
 		724750CBE9BA9B2BDEB9A4B3 /* ktx_app-u.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 15B72264180922B557A3EF27 /* ktx_app-u.ktx2 */; };
+		726F54273BC579B707EBF924 /* libktx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A63F0226C80055F99A670D3 /* libktx.a */; };
 		727364469F6D7AB903BFD737 /* texturearray_astc_8x8_unorm.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 587490B588EEED98F9F6EDED /* texturearray_astc_8x8_unorm.ktx2 */; };
 		738B90B597EF830BCB670E6B /* texturearray_astc_8x8_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = E2DCA26973609FEC6CC88905 /* texturearray_astc_8x8_unorm.ktx */; };
 		75362A1F5A10C0831D2B4416 /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
@@ -341,6 +342,7 @@
 		C030E383E8E5976CC9837E05 /* sphere.obj in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/models */ = {isa = PBXBuildFile; fileRef = 2D0B77EEBF7DE19461B05580 /* sphere.obj */; };
 		C13FF1B35B3A3E468EF6FF05 /* Iron_Bars_001_normal.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F62B38268C06BD259BAAB413 /* Iron_Bars_001_normal.ktx2 */; };
 		C379C4ADDB37B4F25B2B6AA2 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D8E679046C6DF857DC47217 /* libSDL2.a */; };
+		C41ABE7BAE73829E309642B7 /* libktx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A63F0226C80055F99A670D3 /* libktx.a */; };
 		C4A53A6DE2141936B76856DE /* teapot.dae in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/models */ = {isa = PBXBuildFile; fileRef = 3D1FE72FDD43948854967C7B /* teapot.dae */; };
 		C601E664537A1056DAF7F693 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A94571C868EE7D97217B7D8E /* libz.a */; };
 		C75A86C25974260113E66D69 /* texturearray_etc2_unorm.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 06EE1608224F5CA44B9FFCEE /* texturearray_etc2_unorm.ktx2 */; };
@@ -350,7 +352,6 @@
 		CA4B0ACD8C4198E2F90C5CF4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3B80B8D833B43C34EA4AD8B /* CoreGraphics.framework */; };
 		CB824B2B930675144EE8FEBA /* LoadTestSample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB140A0EC6DCF3BC985BE719 /* LoadTestSample.cpp */; };
 		CD0437C940C48E8EDD4E0B86 /* color_grid_uastc.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 9ECBE33655FA4B5275B8D2DB /* color_grid_uastc.ktx2 */; };
-		CF0B4D101DADF8E85151E2BE /* libktx.es3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F936FB865FD39A798F331D2A /* libktx.es3.a */; };
 		CF5CF4F56CC2EC62EC77ABB1 /* orient-down-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D581FEEAC989F4C91D34F6FB /* orient-down-metadata.ktx */; };
 		D159BD0D189BFBC5B46A9765 /* color_grid_zstd.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 640A9B1507EE6AC5D52C1885 /* color_grid_zstd.ktx2 */; };
 		D211125A3CF11E4C4466A079 /* conftestimage_SIGNED_RG11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 61F0537A8FDB659A23E3F0BE /* conftestimage_SIGNED_RG11_EAC.ktx */; };
@@ -381,7 +382,6 @@
 		E7227E5440D55D4C1E0CE476 /* argparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F58E73089BA4A3B169DB2C4 /* argparser.cpp */; };
 		E8C65356D450EE7F6EFF36E7 /* rgb-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 43DA556B988369A49E1AD800 /* rgb-reference-metadata.ktx */; };
 		EB1032AD9CCF0ADBD1B048F6 /* texturearray_astc_8x8_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = E2DCA26973609FEC6CC88905 /* texturearray_astc_8x8_unorm.ktx */; };
-		EB129150E9883876A1473F59 /* libktx.es3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F936FB865FD39A798F331D2A /* libktx.es3.a */; };
 		EC05F6FC27187A591A1587E6 /* kodim17_basis.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = A0394EFB4937A77323905B36 /* kodim17_basis.ktx2 */; };
 		EC241292962A3CBD45C03B68 /* hi_mark.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 94DD1C49F443105D08BF84A6 /* hi_mark.ktx */; };
 		ECDEED87B4793D1A24E8D8AF /* ES1LoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 302E1A2843C10512C03DF10A /* ES1LoadTests.cpp */; };
@@ -450,6 +450,13 @@
 			remoteGlobalIDString = 09BA8FB5F992B0DCA38C21BE;
 			remoteInfo = testimages;
 		};
+		40D691963F6D455CD845ADAF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 59E0D964997D9130E9ADA0FE;
+			remoteInfo = libktx;
+		};
 		439B44E51B5C974270A0AE31 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
@@ -463,13 +470,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 09BA8FB5F992B0DCA38C21BE;
 			remoteInfo = testimages;
-		};
-		4BA9CFB8D1810879252F81BA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 7DFB01C2A0C66136843F9C90;
-			remoteInfo = libktx.es1;
 		};
 		4C88BA42DAA10F3EC9A1BCFA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -485,12 +485,12 @@
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
 		};
-		5070932F3B77D2FEB8E982A8 /* PBXContainerItemProxy */ = {
+		4E23381757099E3F015BD34C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = CA0BF733B14DB39E93B75C67;
-			remoteInfo = libktx.es3;
+			remoteGlobalIDString = D15D12842F0A33D21222E25B;
+			remoteInfo = libktx;
 		};
 		5601972D06F04B381BB80D21 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -576,13 +576,6 @@
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
 		};
-		8BAC6BFFDE206C0A0A4A16BE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = CA0BF733B14DB39E93B75C67;
-			remoteInfo = libktx.es3;
-		};
 		8ED99BD72D95EDC4769485E6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
@@ -632,12 +625,26 @@
 			remoteGlobalIDString = B90F68E062B75853DE301BEB;
 			remoteInfo = es1loadtests;
 		};
+		C1CA0400982B4EC3AC2BFE08 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D15D12842F0A33D21222E25B;
+			remoteInfo = libktx;
+		};
 		C3C9277F7807439763413AD9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = A53C7E625BBCBD48220BD07A;
 			remoteInfo = vulkan_headers;
+		};
+		C59A3E13B7808B281D96C504 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D15D12842F0A33D21222E25B;
+			remoteInfo = libktx;
 		};
 		C7446B2A70D1BBD3D905237E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -659,13 +666,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
-		};
-		D0F51123F239AF492FF834E7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 555F14739B20F130C104F38F;
-			remoteInfo = libktx.es1;
 		};
 		D52BBCA38105B986CC505188 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -716,12 +716,12 @@
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
 		};
-		F2BE1D6C7AFD62808E0061FC /* PBXContainerItemProxy */ = {
+		E5A63E287E18B9A428913A77 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 998EA7B9AC7E5B6EB606DF64;
-			remoteInfo = libktx.es3;
+			proxyType = 1;
+			remoteGlobalIDString = D15D12842F0A33D21222E25B;
+			remoteInfo = libktx;
 		};
 		F5D482A4921D8AF45D931373 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -729,13 +729,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = DAA715274807967C046D9300;
 			remoteInfo = "vkloadtests Support";
-		};
-		F6C348CB616972B03A9D5BF6 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = CA0BF733B14DB39E93B75C67;
-			remoteInfo = libktx.es3;
 		};
 		F6C7E0A4386387CB3BEC3416 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1280,7 +1273,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				53A4DCFBEF931525D5C8370E /* libappfwSDL.a in Frameworks */,
-				EB129150E9883876A1473F59 /* libktx.es3.a in Frameworks */,
+				C41ABE7BAE73829E309642B7 /* libktx.a in Frameworks */,
 				C379C4ADDB37B4F25B2B6AA2 /* libSDL2.a in Frameworks */,
 				1899B388017B9E33AE67EC7A /* UIKit.framework in Frameworks */,
 				113ABD221B60D72847C82BDF /* CoreBluetooth.framework in Frameworks */,
@@ -1305,7 +1298,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				47317ECCC29C796F42D7BA5A /* libappfwSDL.a in Frameworks */,
-				17ED63B06EC81D875D8C6C70 /* libktx.es1.a in Frameworks */,
+				726F54273BC579B707EBF924 /* libktx.a in Frameworks */,
 				64FB70270ECD0689F2D88E28 /* libSDL2.a in Frameworks */,
 				10A9EB2F3DC2F9E146CCCA29 /* UIKit.framework in Frameworks */,
 				E377751C46443347748ED54A /* CoreBluetooth.framework in Frameworks */,
@@ -1335,7 +1328,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A853FCE5B8D75F89811D7F5A /* libappfwSDL.a in Frameworks */,
-				CF0B4D101DADF8E85151E2BE /* libktx.es3.a in Frameworks */,
+				24D379DC4D9AC69B3D14CD6E /* libktx.a in Frameworks */,
 				7DC074C9C1A9F03FE08547F2 /* libSDL2.a in Frameworks */,
 				6F11F7FEA12EF730A6662D15 /* UIKit.framework in Frameworks */,
 				F269BC5553755F014C1A26F5 /* CoreBluetooth.framework in Frameworks */,
@@ -1412,6 +1405,14 @@
 				12A88D00515F6DCC12EE926D /* skybox.vert */,
 			);
 			path = cubemap;
+			sourceTree = "<group>";
+		};
+		300D32E96BA88C95A7A429F8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5A63F0226C80055F99A670D3 /* libktx.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		40DB698DC264432222DA7B0E /* vkloadtests */ = {
@@ -1774,15 +1775,6 @@
 			name = Intermediates;
 			sourceTree = SHARED_INTERMEDIATE_DIR;
 		};
-		CF06A980158108DBD2B63B82 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				719FBA3A9E8179251EA3FB5C /* libktx.es1.a */,
-				F936FB865FD39A798F331D2A /* libktx.es3.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		E01D2F91237942E8B3336374 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
@@ -1864,8 +1856,8 @@
 				B01F61003EE3215240EFE974 /* PBXTargetDependency */,
 				9CAC0F132BF38E176F95A808 /* PBXTargetDependency */,
 				0184BE52D53508FBB3D726ED /* PBXTargetDependency */,
+				A01C9A8079748C693217C8C4 /* PBXTargetDependency */,
 				F7086993AD2770FA8A78501B /* PBXTargetDependency */,
-				8F787EB143B653A4F308CB5C /* PBXTargetDependency */,
 				BE06FD24F5745B0B7FFD8C7B /* PBXTargetDependency */,
 				EEF13D4CDD687A696BC24EB8 /* PBXTargetDependency */,
 				FE4AFB882A597977EC58A461 /* PBXTargetDependency */,
@@ -1909,7 +1901,7 @@
 			);
 			dependencies = (
 				C9BCD1DC5F91D4F7F1C68C93 /* PBXTargetDependency */,
-				6075C17D7E57D5211F065658 /* PBXTargetDependency */,
+				A4EEB0A05CE3BBDEB7F6B61F /* PBXTargetDependency */,
 				F8DBE4212E80154108E99C2D /* PBXTargetDependency */,
 				E66F220A8A3EF3F4C0C16E9C /* PBXTargetDependency */,
 				E4634EF7D92E4FF3D4294863 /* PBXTargetDependency */,
@@ -1938,7 +1930,7 @@
 			dependencies = (
 				A04AF921FD6BF87D56D805A3 /* PBXTargetDependency */,
 				44EAE9578842CE2CF5D93F3E /* PBXTargetDependency */,
-				045F5A237B8B9E8043BD0A26 /* PBXTargetDependency */,
+				8B0ECBFCB33B2115875CC35A /* PBXTargetDependency */,
 				55E1972FC9421466A9A93301 /* PBXTargetDependency */,
 				EA6C018960598A7D6AB3D93B /* PBXTargetDependency */,
 				5AAE8A542C9D53D2E9EA8DD5 /* PBXTargetDependency */,
@@ -1970,7 +1962,7 @@
 			projectDirPath = ../../..;
 			projectReferences = (
 				{
-					ProductGroup = CF06A980158108DBD2B63B82 /* Products */;
+					ProductGroup = 300D32E96BA88C95A7A429F8 /* Products */;
 					ProjectRef = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
 				},
 			);
@@ -1992,18 +1984,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		719FBA3A9E8179251EA3FB5C /* libktx.es1.a */ = {
+		5A63F0226C80055F99A670D3 /* libktx.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libktx.es1.a;
-			remoteRef = 4BA9CFB8D1810879252F81BA /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		F936FB865FD39A798F331D2A /* libktx.es3.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libktx.es3.a;
-			remoteRef = F2BE1D6C7AFD62808E0061FC /* PBXContainerItemProxy */;
+			path = libktx.a;
+			remoteRef = 40D691963F6D455CD845ADAF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -2207,20 +2192,10 @@
 			name = libvulkan;
 			targetProxy = FF9C5792FFCBE94F02E8B2C2 /* PBXContainerItemProxy */;
 		};
-		045F5A237B8B9E8043BD0A26 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libktx.es3;
-			targetProxy = 8BAC6BFFDE206C0A0A4A16BE /* PBXContainerItemProxy */;
-		};
 		0B4A0F5EA77FB20A30C1358E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B90F68E062B75853DE301BEB /* es1loadtests */;
 			targetProxy = C1143EB52BAF5251FAC324CF /* PBXContainerItemProxy */;
-		};
-		13DE58403453D78F969AB93D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libktx.es3;
-			targetProxy = 5070932F3B77D2FEB8E982A8 /* PBXContainerItemProxy */;
 		};
 		144496CBF855608A009EAF12 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2241,6 +2216,11 @@
 			isa = PBXTargetDependency;
 			target = 1548AEB99CD1C5C270961D30 /* libassimp */;
 			targetProxy = 26D9453A97D1D9AB76BA9BA3 /* PBXContainerItemProxy */;
+		};
+		2EFEC125B6F4909E78DF7F34 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libktx;
+			targetProxy = C1CA0400982B4EC3AC2BFE08 /* PBXContainerItemProxy */;
 		};
 		3245857A59FE0D0D41CF4552 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2292,11 +2272,6 @@
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
 			targetProxy = 4D18D1CDEE03C4B4925CEE64 /* PBXContainerItemProxy */;
 		};
-		6075C17D7E57D5211F065658 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libktx.es1;
-			targetProxy = D0F51123F239AF492FF834E7 /* PBXContainerItemProxy */;
-		};
 		60AF49F67D5F21F773400170 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = vulkan_headers;
@@ -2317,15 +2292,20 @@
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
 			targetProxy = 89CA4075A92763DFD33C5A25 /* PBXContainerItemProxy */;
 		};
-		8F787EB143B653A4F308CB5C /* PBXTargetDependency */ = {
+		8B0ECBFCB33B2115875CC35A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = libktx.es3;
-			targetProxy = F6C348CB616972B03A9D5BF6 /* PBXContainerItemProxy */;
+			name = libktx;
+			targetProxy = 4E23381757099E3F015BD34C /* PBXContainerItemProxy */;
 		};
 		9CAC0F132BF38E176F95A808 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1548AEB99CD1C5C270961D30 /* libassimp */;
 			targetProxy = 5EE110DF0068C7A65AD8DB5B /* PBXContainerItemProxy */;
+		};
+		A01C9A8079748C693217C8C4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libktx;
+			targetProxy = E5A63E287E18B9A428913A77 /* PBXContainerItemProxy */;
 		};
 		A04AF921FD6BF87D56D805A3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2336,6 +2316,11 @@
 			isa = PBXTargetDependency;
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
 			targetProxy = E26D0B1CABE4E7B309504209 /* PBXContainerItemProxy */;
+		};
+		A4EEB0A05CE3BBDEB7F6B61F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libktx;
+			targetProxy = C59A3E13B7808B281D96C504 /* PBXContainerItemProxy */;
 		};
 		AB07FFA753B2400DA124E204 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2545,7 +2530,6 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"KHRONOS_STATIC=1",
 					DEBUG,
 					_DEBUG,
 				);
@@ -2685,10 +2669,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"KHRONOS_STATIC=1",
-					NDEBUG,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
@@ -2764,7 +2745,6 @@
 					"GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES",
 					"GL_CONTEXT_MAJOR_VERSION=3",
 					"GL_CONTEXT_MINOR_VERSION=0",
-					"KHRONOS_STATIC=1",
 					DEBUG,
 					_DEBUG,
 				);
@@ -2837,10 +2817,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"KHRONOS_STATIC=1",
-					NDEBUG,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
@@ -2935,7 +2912,6 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"KHRONOS_STATIC=1",
 					DEBUG,
 					_DEBUG,
 				);
@@ -3001,7 +2977,6 @@
 					"GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES",
 					"GL_CONTEXT_MAJOR_VERSION=3",
 					"GL_CONTEXT_MINOR_VERSION=0",
-					"KHRONOS_STATIC=1",
 					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;

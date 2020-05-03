@@ -32,6 +32,10 @@
 #ifndef _VK_FUNCS_H_
 #define _VK_FUNCS_H_
 
+#if !defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
+#define KTX_USE_FUNCPTRS_FOR_VULKAN 1
+#endif
+
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 #define VK_NO_PROTOTYPES
 #endif
@@ -44,12 +48,12 @@
 #if WINDOWS
 #define WINDOWS_LEAN_AND_MEAN
 #include <windows.h>
-extern HMODULE ktxVulkanLibary;
+extern HMODULE ktxVulkanModuleHandle;
 #else
-extern void* ktxVulkanLibrary;
+extern void* ktxVulkanModuleHandle;
 #endif
 
-extern ktx_bool_t ktxVulkanLoadLibrary(void);
+extern ktx_bool_t ktxLoadVulkanLibrary(void);
 
 /* Declare pointers for functions libktx is using. */
 #define VK_FUNCTION(fun) extern PFN_##fun ktx_##fun;

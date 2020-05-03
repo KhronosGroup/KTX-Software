@@ -244,7 +244,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(obj).target/libvulkan.stamp $(obj).target/testimages.stamp $(builddir)/lib.target/libktx.gl.so $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
+$(OBJS): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(obj).target/libvulkan.stamp $(builddir)/lib.target/libktx.so $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.so
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(rule_ktxtests_gyp_vkloadtests_target_frag2spirv_outputs) $(rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs) $(ktxtests_gyp_vkloadtests_target_copies)
@@ -274,7 +274,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
 $(builddir)/vkloadtests: | $(rule_ktxtests_gyp_vkloadtests_target_frag2spirv_outputs) $(rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs) $(ktxtests_gyp_vkloadtests_target_copies)
 
 # Preserve order dependency of special output on deps.
-$(rule_ktxtests_gyp_vkloadtests_target_frag2spirv_outputs) $(rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs) $(ktxtests_gyp_vkloadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(obj).target/libvulkan.stamp $(obj).target/testimages.stamp $(builddir)/lib.target/libktx.gl.so $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.gl.so
+$(rule_ktxtests_gyp_vkloadtests_target_frag2spirv_outputs) $(rule_ktxtests_gyp_vkloadtests_target_vert2spirv_outputs) $(ktxtests_gyp_vkloadtests_target_copies): | $(obj).target/libappfwSDL.a $(obj).target/libassimp.stamp $(obj).target/libvulkan.stamp $(builddir)/lib.target/libktx.so $(obj).target/testimages.stamp $(obj).target/libsdl.stamp $(obj).target/vulkan_headers.stamp $(obj).target/libktx.so
 
 LDFLAGS_Debug := \
 	-Wl,-rpath,. \
@@ -301,9 +301,9 @@ LIBS := \
 
 $(builddir)/vkloadtests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/vkloadtests: LIBS := $(LIBS)
-$(builddir)/vkloadtests: LD_INPUTS := $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.so
+$(builddir)/vkloadtests: LD_INPUTS := $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.so
 $(builddir)/vkloadtests: TOOLSET := $(TOOLSET)
-$(builddir)/vkloadtests: $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.gl.so FORCE_DO_CMD
+$(builddir)/vkloadtests: $(OBJS) $(obj).target/libappfwSDL.a $(obj).target/libktx.so FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/vkloadtests
