@@ -369,7 +369,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 
     if (pHeader->supercompressionGlobalData.byteOffset != 0
         && pHeader->supercompressionGlobalData.byteLength != 0) {
-        if (pHeader->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+        if (pHeader->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
             ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
             stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
             stream->read(stream, sgd, pHeader->supercompressionGlobalData.byteLength);

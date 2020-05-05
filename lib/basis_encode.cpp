@@ -375,7 +375,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     if (params->structSize != sizeof(struct ktxBasisParams))
         return KTX_INVALID_VALUE;
 
-    if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+    if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
 
     if (This->isCompressed)
@@ -854,7 +854,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         result = ktxTexture2_rewriteDfd4BasisU(This, hasAlpha);
         if (result != KTX_SUCCESS) goto cleanup;
 
-        This->supercompressionScheme = KTX_SUPERCOMPRESSION_BASIS;
+        This->supercompressionScheme = KTX_SS_BASIS_UNIVERSAL;
         // Reflect this in the formatSize
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
         // and the requiredLevelAlignment.

@@ -547,7 +547,7 @@ class ktxValidator : public ktxApp {
             // are met as otherwise we have no idea what the size of a level
             // ought to be.
             assert (header.vkFormat != VK_FORMAT_UNDEFINED);
-            assert (header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE);
+            assert (header.supercompressionScheme == KTX_SS_NONE);
 
             assert (level < levelCount);
             // Calculate the expected base offset in the file
@@ -593,7 +593,7 @@ class ktxValidator : public ktxApp {
         }
 
         uint32_t requiredLevelAlignment() {
-            if (header.supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+            if (header.supercompressionScheme != KTX_SS_NONE)
                 return 1;
             else if (header.vkFormat == VK_FORMAT_UNDEFINED)
                 return 16;
@@ -933,19 +933,19 @@ ktxValidator::validateHeader(validationContext& ctx)
     // Set layerCount to actual number of layers.
     ctx.layerCount = MAX(ctx.header.layerCount, 1);
 
-    if (ctx.header.supercompressionScheme > KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE
-        && ctx.header.supercompressionScheme < KTX_SUPERCOMPRESSION_END_VENDOR_RANGE)
+    if (ctx.header.supercompressionScheme > KTX_SS_BEGIN_VENDOR_RANGE
+        && ctx.header.supercompressionScheme < KTX_SS_END_VENDOR_RANGE)
     {
         addIssue(logger::eWarning, HeaderData.VendorSupercompression);
-    } else if (ctx.header.supercompressionScheme < KTX_SUPERCOMPRESSION_BEGIN_RANGE
-        || ctx.header.supercompressionScheme > KTX_SUPERCOMPRESSION_END_RANGE)
+    } else if (ctx.header.supercompressionScheme < KTX_SS_BEGIN_RANGE
+        || ctx.header.supercompressionScheme > KTX_SS_END_RANGE)
     {
         addIssue(logger::eError, HeaderData.InvalidSupercompression,
                  ctx.header.supercompressionScheme);
     }
 
     if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
-        if (ctx.header.supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS) {
+        if (ctx.header.supercompressionScheme != KTX_SS_BASIS_UNIVERSAL) {
             uint32_t* pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
             if (pDfd == nullptr)
                 addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
@@ -987,7 +987,7 @@ ktxValidator::validateHeader(validationContext& ctx)
     checkOptionalIndexEntry(ctx.header.keyValueData,
                     HeaderData.InvalidRequiredIndexEntry, "kvd");
 
-    if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+    if (ctx.header.supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
         checkRequiredIndexEntry(ctx.header.supercompressionGlobalData,
                                 HeaderData.InvalidOptionalIndexEntry, "sgd");
     } else {
@@ -1031,11 +1031,11 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
     size_t expectedOffset;
     size_t lastByteLength = 0;
     switch (ctx.header.supercompressionScheme) {
-      case KTX_SUPERCOMPRESSION_NONE:
-      case KTX_SUPERCOMPRESSION_ZSTD:
+      case KTX_SS_NONE:
+      case KTX_SS_ZSTD:
         expectedOffset = padn(requiredLevelAlignment, ctx.kvDataEndOffset());
         break;
-      case KTX_SUPERCOMPRESSION_BASIS:
+      case KTX_SS_BASIS_UNIVERSAL:
         ktxIndexEntry64 sgdIndex = ctx.header.supercompressionGlobalData;
         // No padding here.
         expectedOffset = sgdIndex.byteOffset + sgdIndex.byteLength;
@@ -1046,7 +1046,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
     // distance between levels for the UNDEFINED and SUPERCOMPRESSION cases.
     for (int32_t level = ctx.levelCount-1; level >= 0; level--) {
         if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED
-            && ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
+            && ctx.header.supercompressionScheme == KTX_SS_NONE) {
             if (levelIndex[level].uncompressedByteLength !=
                 ctx.calcLevelSize(level))
                 addIssue(logger::eError, LevelIndex.IncorrectByteLength, level);
@@ -1082,7 +1082,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
                          LevelIndex.IncorrectByteOffset,
                          level);
             }
-            if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_NONE) {
+            if (ctx.header.supercompressionScheme == KTX_SS_NONE) {
                 if (levelIndex[level].byteLength < lastByteLength)
                     addIssue(logger.eError, LevelIndex.IncorrectLevelOrder);
                 if (levelIndex[level].byteOffset % requiredLevelAlignment != 0)
@@ -1129,7 +1129,7 @@ ktxValidator::validateDfd(validationContext& ctx)
     bool analyze = false;
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(bdb);
     switch (ctx.header.supercompressionScheme) {
-      case KTX_SUPERCOMPRESSION_NONE:
+      case KTX_SS_NONE:
         if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
             // Do a simple comparison.
             analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format, *ctx.pDfd4Format);
@@ -1154,7 +1154,7 @@ ktxValidator::validateDfd(validationContext& ctx)
         }
         break;
 
-      case KTX_SUPERCOMPRESSION_BASIS:
+      case KTX_SS_BASIS_UNIVERSAL:
           // validateHeader has already checked if vkFormat is the required
           // VK_FORMAT_UNDEFINED so no check here.
 
@@ -1191,7 +1191,7 @@ ktxValidator::validateDfd(validationContext& ctx)
           }
           break;
 
-        case KTX_SUPERCOMPRESSION_ZSTD:
+        case KTX_SS_ZSTD:
           // Check for unsized.
           if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
               || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
@@ -1493,7 +1493,7 @@ void
 ktxValidator::validateSgd(validationContext& ctx)
 {
     uint64_t sgdByteLength = ctx.header.supercompressionGlobalData.byteLength;
-    if (ctx.header.supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+    if (ctx.header.supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
         if (sgdByteLength == 0) {
             addIssue(logger::eError, SGD.MissingSupercompressionGlobalData);
             return;

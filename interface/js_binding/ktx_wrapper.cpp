@@ -80,13 +80,13 @@ namespace ktx
         bool isSupercompressed() const
         {
             return (m_ptr->classId == ktxTexture2_c
-                    && ktxTexture2(m_ptr)->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE);
+                    && ktxTexture2(m_ptr)->supercompressionScheme != KTX_SS_NONE);
         }
 
         bool isBasisSupercompressed() const
         {
             return (m_ptr->classId == ktxTexture2_c
-                    && ktxTexture2(m_ptr)->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS);
+                    && ktxTexture2(m_ptr)->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL);
         }
 
         bool isPremultiplied() const

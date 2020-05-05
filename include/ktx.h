@@ -646,14 +646,18 @@ typedef struct ktxTexture1 {
  * @brief Enumerators identifying the supercompression scheme.
  */
 typedef enum ktxSupercmpScheme {
-    KTX_SUPERCOMPRESSION_NONE = 0,  /*!< No supercompression. */
-    KTX_SUPERCOMPRESSION_BASIS = 1, /*!< Basis Universal supercompression. */
-    KTX_SUPERCOMPRESSION_ZSTD = 2,  /*!< ZStd supercompression. */
-    KTX_SUPERCOMPRESSION_BEGIN_RANGE = KTX_SUPERCOMPRESSION_NONE,
-    KTX_SUPERCOMPRESSION_END_RANGE = KTX_SUPERCOMPRESSION_ZSTD,
-    KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE = 0x10000,
-    KTX_SUPERCOMPRESSION_END_VENDOR_RANGE = 0x1ffff,
-    KTX_SUPERCOMPRESSION_BEGIN_RESERVED = 0x20000,
+    KTX_SS_NONE = 0,            /*!< No supercompression. */
+    KTX_SS_BASIS_UNIVERSAL = 1, /*!< Basis Universal supercompression with ETC1S. */
+    KTX_SS_ZSTD = 2,            /*!< ZStd supercompression. */
+    KTX_SS_BEGIN_RANGE = KTX_SS_NONE,
+    KTX_SS_END_RANGE = KTX_SS_ZSTD,
+    KTX_SS_BEGIN_VENDOR_RANGE = 0x10000,
+    KTX_SS_END_VENDOR_RANGE = 0x1ffff,
+    KTX_SS_BEGIN_RESERVED = 0x20000,
+    KTX_SUPERCOMPRESSION_BASIS = KTX_SS_BASIS_UNIVERSAL,
+        /*!< @deprecated Will be removed before v4 release. Use  KTX_SS_BASIS_UNIVERSAL instead. */
+    KTX_SUPERCOMPRESSION_ZSTD = KTX_SS_ZSTD
+        /*!< @deprecated Will be removed before v4 release. Use  KTX_SS_ZSTD instead. */
 } ktxSupercmpScheme;
 
 /**

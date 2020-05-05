@@ -126,12 +126,12 @@ const char *
 ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
 {
     switch (scheme) {
-      case KTX_SUPERCOMPRESSION_NONE: return "KTX_SUPERCOMPRESSION_NONE";
-      case KTX_SUPERCOMPRESSION_BASIS: return "KTX_SUPERCOMPRESSION_BASIS";
-      case KTX_SUPERCOMPRESSION_ZSTD: return "KTX_SUPERCOMPRESSION_ZSTD";
+      case KTX_SS_NONE: return "KTX_SS_NONE";
+      case KTX_SS_BASIS_UNIVERSAL: return "KTX_SS_BASIS_UNIVERSAL";
+      case KTX_SS_ZSTD: return "KTX_SS_ZSTD";
       default:
-        if (scheme < KTX_SUPERCOMPRESSION_BEGIN_VENDOR_RANGE
-            || scheme >= KTX_SUPERCOMPRESSION_BEGIN_RESERVED)
+        if (scheme < KTX_SS_BEGIN_VENDOR_RANGE
+            || scheme >= KTX_SS_BEGIN_RESERVED)
             return "Invalid scheme value";
         else
             return "Vendor scheme";

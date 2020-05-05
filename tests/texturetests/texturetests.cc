@@ -2178,7 +2178,7 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
 
         dataSize = texture->dataSize;
         ktxTexture2_CompressBasis(texture, 0);
-        EXPECT_EQ(texture->supercompressionScheme, KTX_SUPERCOMPRESSION_BASIS);
+        EXPECT_EQ(texture->supercompressionScheme, KTX_SS_BASIS_UNIVERSAL);
         EXPECT_TRUE(texture->_private->_supercompressionGlobalData > (ktx_uint8_t*)0);
         EXPECT_EQ(texture->numLevels, helper.numLevels);
         EXPECT_LT(texture->dataSize, dataSize);
