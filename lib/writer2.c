@@ -691,7 +691,7 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     if (workBuf == NULL)
         return KTX_OUT_OF_MEMORY;
 
-    if (This->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE)
+    if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION;
 
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
@@ -748,7 +748,7 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     free(This->pData);
     This->pData = cmpData;
     This->dataSize = byteLengthCmp;
-    This->supercompressionScheme = KTX_SUPERCOMPRESSION_ZSTD;
+    This->supercompressionScheme = KTX_SS_ZSTD;
     This->_private->_requiredLevelAlignment = 1;
     // Clear bytesPlane to indicate we're now unsized.
     uint32_t* bdb = This->pDfd + 1;

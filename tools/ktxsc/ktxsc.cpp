@@ -267,7 +267,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                     exitCode = 1;
                     goto cleanup;
                 }
-                if (texture->supercompressionScheme != KTX_SUPERCOMPRESSION_NONE) {
+                if (texture->supercompressionScheme != KTX_SS_NONE) {
                     cerr << name << ": "
                          << "Cannot supercompress already supercompressed files."
                          << endl;

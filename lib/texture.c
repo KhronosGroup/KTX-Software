@@ -508,7 +508,7 @@ ktxTexture_GetData(ktxTexture* This)
  * @~English
  * @brief Return the total size of the texture image data in bytes.
  *
- * For a ktxTexture2 with supercompressionScheme != KTX_SUPERCOMPRESSION_NONE this will
+ * For a ktxTexture2 with supercompressionScheme != KTX_SS_NONE this will
  * return the deflated size of the data.
  *
  * @param[in] This pointer to the ktxTexture object of interest.

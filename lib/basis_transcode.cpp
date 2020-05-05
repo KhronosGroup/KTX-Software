@@ -164,11 +164,11 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_UASTC
-         && This->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS)
+         && This->supercompressionScheme != KTX_SS_BASIS_UNIVERSAL)
     return KTX_INVALID_OPERATION; // Not in a transcodable format.
 
     DECLARE_PRIVATE(priv, This);
-    if (This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
         if (!priv._supercompressionGlobalData || priv._sgdByteLength == 0)
             return KTX_INVALID_OPERATION;
     }
@@ -188,7 +188,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
 
     const bool srgb = (KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB);
     bool hasAlpha = false;
-    if (This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
         uint32_t numComponents = ktxTexture2_GetNumComponents(This);
         if (numComponents == 2 || numComponents == 4)
             hasAlpha = true;
@@ -331,7 +331,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     if (!transcoderInitialized)
         basisu_transcoder_init();
 
-    if (This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
         result = ktxTexture2_transcodeEtc1s(This, hasAlpha, prototype,
                                             outputFormat, transcodeFlags);
     } else {
@@ -348,7 +348,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                sizeof(ktxFormatSize));
         This->vkFormat = vkFormat;
         This->isCompressed = prototype->isCompressed;
-        This->supercompressionScheme = KTX_SUPERCOMPRESSION_NONE;
+        This->supercompressionScheme = KTX_SS_NONE;
         priv._requiredLevelAlignment = protoPriv._requiredLevelAlignment;
         // Copy the levelIndex from the prototype to This.
         memcpy(priv._levelIndex, protoPriv._levelIndex,
@@ -452,7 +452,7 @@ ktxTexture2_transcodeEtc1s(ktxTexture2* This,
     DECLARE_PRIVATE(protoPriv, prototype);
     KTX_error_code result = KTX_SUCCESS;
 
-    assert(This->supercompressionScheme == KTX_SUPERCOMPRESSION_BASIS);
+    assert(This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL);
 
     uint8_t* bgd = priv._supercompressionGlobalData;
     ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
@@ -591,7 +591,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                            ktx_transcode_fmt_e outputFormat,
                            ktx_transcode_flags transcodeFlags)
 {
-    assert(This->supercompressionScheme != KTX_SUPERCOMPRESSION_BASIS);
+    assert(This->supercompressionScheme != KTX_SS_BASIS_UNIVERSAL);
 
     KTX_error_code result = KTX_SUCCESS;
     ktx_uint8_t* writePtr = prototype->pData;

@@ -385,8 +385,8 @@ class WriterTestHelper {
                 && header->layerCount == headerNumLayers
                 && header->faceCount == numFaces
                 && header->levelCount == numLevels
-                && header->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
-                && header->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
+                && header->supercompressionScheme >= KTX_SS_BEGIN_RANGE
+                && header->supercompressionScheme <= KTX_SS_END_RANGE)
                 return true;
             else
                 return false;
@@ -403,8 +403,8 @@ class WriterTestHelper {
                 && texture->numLayers == numLayers
                 && texture->numFaces == numFaces
                 && texture->numLevels == numLevels
-                && texture->supercompressionScheme >= KTX_SUPERCOMPRESSION_BEGIN_RANGE
-                && texture->supercompressionScheme <= KTX_SUPERCOMPRESSION_END_RANGE)
+                && texture->supercompressionScheme >= KTX_SS_BEGIN_RANGE
+                && texture->supercompressionScheme <= KTX_SS_END_RANGE)
                 return true;
             else
                 return false;
