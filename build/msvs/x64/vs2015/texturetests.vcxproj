@@ -59,8 +59,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies></AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Console</SubSystem>
@@ -81,8 +80,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies></AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Console</SubSystem>
@@ -102,8 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies></AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Console</SubSystem>
     </Link>
@@ -123,8 +120,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glew32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\other_lib\win\Release-$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies></AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Console</SubSystem>
     </Link>
@@ -153,10 +149,6 @@
     </ProjectReference>
     <ProjectReference Include="libktx.vcxproj">
       <Project>{2F271BF3-8B9A-93F1-9930-826DE0250ACC}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="libgl.vcxproj">
-      <Project>{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

@@ -42,7 +42,6 @@
         'gtest',
         'gtest_main',
         'libktx.gyp:libktx',
-        'libktx.gyp:libgl',
       ],
       'include_dirs': [
         '../../lib',

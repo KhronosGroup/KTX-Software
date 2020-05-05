@@ -158,7 +158,6 @@
 		3FDA031BBFB1D18DE2AD67BC /* ktx_app-u.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 15B72264180922B557A3EF27 /* ktx_app-u.ktx2 */; };
 		3FFBB870D7D4D5C3615E31F6 /* GL3LoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA845BAA67354A721D27F33 /* GL3LoadTests.cpp */; };
 		4009554B89F0DE82D64F94A8 /* texturearray_etc2_unorm.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 06EE1608224F5CA44B9FFCEE /* texturearray_etc2_unorm.ktx2 */; };
-		41882756A2960740416C4844 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7DAC0A8FCF8DCEA95FB887 /* OpenGL.framework */; };
 		41B82E93F16704781825AC5A /* VulkanLoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 206637DEB2070AE7E2FAEF9A /* VulkanLoadTests.cpp */; };
 		41E76F4D32E1E25441E9D8D0 /* conftestimage_SIGNED_R11_EAC.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = DEB82770AA1E2FDA526105A7 /* conftestimage_SIGNED_R11_EAC.ktx */; };
 		434563DED26643BC894BFD28 /* libMoltenVK.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = DD19610E9D10563580A6ED09 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -327,7 +326,6 @@
 		F6B1A301D2C52E6D830BD2A3 /* texturearray_bc3_unorm.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 25DC2620595696491FA6454B /* texturearray_bc3_unorm.ktx */; };
 		F825265750A01BA5DBA99318 /* libktx.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D776A82B615D04BA7C919FA4 /* libktx.dylib */; };
 		F8A0A4ED28BC6B1AFC6E676D /* TextureMipmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E347F73F0E8FD330C3720F1 /* TextureMipmap.cpp */; };
-		FA47693A010EB0D33CB73477 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7DAC0A8FCF8DCEA95FB887 /* OpenGL.framework */; };
 		FA847A3AE0368745B0E9A1BA /* orient-up-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 0C0C552E9898B6893411C2DE /* orient-up-metadata.ktx */; };
 		FB75D47213A07D9B02F730C1 /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
 		FC3C649718B6B3111EB391FA /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B55FC7E6C507AA74A964E92 /* AVFoundation.framework */; };
@@ -600,20 +598,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
-		};
-		E2CC0925A0F0A56A5ECEDF2A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 2C49C1BC3266E196E5B13666;
-			remoteInfo = libgl;
-		};
-		E3DDE244D794BB25EFF36A05 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 2C49C1BC3266E196E5B13666;
-			remoteInfo = libgl;
 		};
 		E71A37322603FB8527F1EE1E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1216,7 +1200,6 @@
 				363B61F4180A16B4E50BA728 /* libgtest.a in Frameworks */,
 				0FEA8A7C322966B14C4F6498 /* libgtest_main.a in Frameworks */,
 				1F00C020F336996170CF9C74 /* libktx.dylib in Frameworks */,
-				FA47693A010EB0D33CB73477 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1293,7 +1276,6 @@
 			files = (
 				D6A402B03B8FBF6BFBC0044C /* libgtest.a in Frameworks */,
 				39290F65A536400F9234BD1B /* libktx.dylib in Frameworks */,
-				41882756A2960740416C4844 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2064,7 +2046,6 @@
 			dependencies = (
 				C9A331D3E6B434D6F94CA221 /* PBXTargetDependency */,
 				3094A12B084BE93D7FB0F21D /* PBXTargetDependency */,
-				450BF08D6998719D151A5298 /* PBXTargetDependency */,
 			);
 			name = transcodetests;
 			productName = transcodetests;
@@ -2100,7 +2081,6 @@
 				2BFE974BEE6098E11FBCEB78 /* PBXTargetDependency */,
 				29AABFF5F65078B237177DE4 /* PBXTargetDependency */,
 				132C1A15460218B554E9A99A /* PBXTargetDependency */,
-				F85BE5EACF81F0F96E528005 /* PBXTargetDependency */,
 			);
 			name = texturetests;
 			productName = texturetests;
@@ -2432,11 +2412,6 @@
 			target = 1548AEB99CD1C5C270961D30 /* libassimp */;
 			targetProxy = 89A00B288636F579B4BE9C02 /* PBXContainerItemProxy */;
 		};
-		450BF08D6998719D151A5298 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libgl;
-			targetProxy = E2CC0925A0F0A56A5ECEDF2A /* PBXContainerItemProxy */;
-		};
 		48E4BBB7FE65A02F8F79E55D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = libgl;
@@ -2596,11 +2571,6 @@
 			isa = PBXTargetDependency;
 			target = 09BA8FB5F992B0DCA38C21BE /* testimages */;
 			targetProxy = 40367276502FE623C439FE02 /* PBXContainerItemProxy */;
-		};
-		F85BE5EACF81F0F96E528005 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libgl;
-			targetProxy = E3DDE244D794BB25EFF36A05 /* PBXContainerItemProxy */;
 		};
 		FDD4B7ACC509FA25CBFDC384 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2998,7 +2968,6 @@
 					"@executable_path",
 					/usr/local/lib,
 				);
-				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = transcodetests;
@@ -3216,7 +3185,6 @@
 					"@executable_path",
 					/usr/local/lib,
 				);
-				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = texturetests;
@@ -3263,7 +3231,6 @@
 					"@executable_path",
 					/usr/local/lib,
 				);
-				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = transcodetests;
@@ -3415,7 +3382,6 @@
 					"@executable_path",
 					/usr/local/lib,
 				);
-				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = texturetests;

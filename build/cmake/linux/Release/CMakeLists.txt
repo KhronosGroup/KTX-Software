@@ -2100,7 +2100,6 @@ list(APPEND transcodetests__cxx_srcs
   "../../../../interface/basisu_c_binding/src/basisu_c_binding.cpp"
   "../../../../tests/transcodetests/transcodetests.cc")
 set(transcodetests__other_srcs "../../../../interface/basisu_c_binding/inc/basisu_c_binding.h")
-link_directories()
 add_executable(transcodetests ${transcodetests__cxx_srcs} ${transcodetests__other_srcs})
 set_target_properties(transcodetests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${transcodetests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -2137,15 +2136,11 @@ set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNIN
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "-Wno-nested-anon-types -Wno-gnu-anonymous-struct ")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 set_target_properties(transcodetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
-add_dependencies(transcodetests
-  libgl
-)
 target_link_libraries(transcodetests
   gtest
   libktx
   "-ldl"
   "-lpthread"
-  "-lGL"
 )
 unset(TOOLSET)
 unset(TARGET)
@@ -2155,7 +2150,6 @@ set(TARGET "texturetests")
 set(TOOLSET "target")
 set(texturetests__cxx_srcs "../../../../tests/texturetests/texturetests.cc")
 set(texturetests__other_srcs "../../../../tests/unittests/wthelper.h")
-link_directories()
 add_executable(texturetests ${texturetests__cxx_srcs} ${texturetests__other_srcs})
 set_target_properties(texturetests PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_source_files_properties(${texturetests__other_srcs} PROPERTIES HEADER_FILE_ONLY "TRUE")
@@ -2188,9 +2182,6 @@ set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS "YES")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(texturetests PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
-add_dependencies(texturetests
-  libgl
-)
 target_link_libraries(texturetests
 -Wl,--start-group
   gtest
@@ -2199,7 +2190,6 @@ target_link_libraries(texturetests
   libktx
   "-ldl"
   "-lpthread"
-  "-lGL"
 )
 unset(TOOLSET)
 unset(TARGET)
