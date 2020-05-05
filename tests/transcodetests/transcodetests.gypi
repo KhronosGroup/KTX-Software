@@ -33,7 +33,6 @@
         #'appfwSDL',
         'gtest',
         'libktx.gyp:libktx',
-        'libktx.gyp:libgl',
       ],
       'include_dirs': [
         '../../interface/basisu_c_binding/inc',

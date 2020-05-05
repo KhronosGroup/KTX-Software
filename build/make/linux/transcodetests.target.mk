@@ -70,7 +70,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libgtest.a $(builddir)/lib.target/libktx.so $(obj).target/libgl.stamp $(obj).target/libktx.so
+$(OBJS): | $(obj).target/libgtest.a $(builddir)/lib.target/libktx.so $(obj).target/libktx.so
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -113,8 +113,7 @@ LDFLAGS_Release := \
 
 LIBS := \
 	-ldl \
-	-lpthread \
-	-lGL
+	-lpthread
 
 $(builddir)/transcodetests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/transcodetests: LIBS := $(LIBS)
