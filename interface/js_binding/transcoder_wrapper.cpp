@@ -89,6 +89,7 @@ namespace msc {
 
         // Yes, code in the following functions handling data coming in from
         // ArrayBuffers IS copying the data. Sigh! According to Alon Zakai:
+        //
         //     "There isn't a way to let compiled code access a new ArrayBuffer.
         //     The compiled code has hardcoded access to the wasm Memory it was
         //     instantiated with - all the pointers it can understand are
@@ -366,10 +367,9 @@ interface TranscodeResult {
     TranscodedImage transcodedImage;
 };
 
-interface BasisTranscoder {
-    void BasisTranscoder();
-    static void init();
-    static long getBytesPerBlock();
+interface BasisUImageTranscoder {
+    void BasisUImageTranscoder();
+    uint32_t getBytesPerBlock(const TranscodeTarget format);
     bool decode_palettes(uint32_t num_endpoints,
                          const ArrayBufferView endpoints,
                          uint32_t num_selectors,
@@ -385,6 +385,19 @@ interface BasisTranscoder {
                                     uint32_t num_blocks_y,
                                     bool isVideo = false,
                                     bool transcodeAlphaToOpaqueFormats = false);
+};
+
+interface UastcImageTranscoder {
+    void UastcImageTranscoder();
+    uint32_t getBytesPerBlock(const TranscodeTarget format);
+    TranscodeResult transcode_image(const val& jsTargetFormat,
+                                    uint32_t level,
+                                    const ArrayBufferView jsInImage,
+                                    uint32_t width, uint32_t height,
+                                    uint32_t num_blocks_x,
+                                    uint32_t num_blocks_y,
+                                    bool hasAlpha = false,
+                                    uint32_t transcode_flags = 0);
 };
 
 // Some targets may not be available depending on options used when compiling
@@ -412,6 +425,12 @@ enum TranscodeTarget = {
     "EAC_R11",
     "EAC_RG11"
 };
+
+enum TranscodeFlagBits = {
+    "TRANSCODE_ALPHA_DAT_TO_OPAQUE_FORMATS",
+    "HIGH_QUALITY"
+};
+
 @endcode
 
 ## How to use
@@ -425,7 +444,8 @@ automatically load msc_basis_transcoder.wasm.
 
 ### Create an instance of the MSC_TRANSCODER module
 
-Add this to the .html file to initialize the transcoder and make it available on the main window.
+Add this to the .html file to initialize the transcoder and make it available on the
+main window.
 @code{.unparsed}
     &lt;script src="msc_transcoder_wrapper.js">&lt;/script>
     &lt;script type="text/javascript">
@@ -440,19 +460,49 @@ a function with code like the following to be executed.
 
 ## Somewhere in the loader/transcoder
 
-Assume a KTX file is fetched via an XMLHttpRequest which deposits the data into a Uint8Array, "buData"...
+Assume a KTX file is fetched via an XMLHttpRequest which deposits the data into
+a Uint8Array, "buData"...
 
 @note The names of the data items used in the following code are those
 from the KTX2 specification but the actual data is not specific to that
 container format.
 
 @code{.unparsed}
+    const {
+        InitTranscoderGlobal,
+        BasisUImageTranscoder,
+        UastcImageTranscoder,
+        BasisTranscoderState,
+        TranscodeTarget
+    } = MSC_TRANSCODER;
+
+    InitTranscoderGlobal();
+
+    // Determine from the KTX2 header information in buData if
+    // the data format  is BasisU or Uastc.
+    // supercompressionScheme value == 1, it's BasisU.
+    // DFD colorModel == 166, it's UASTC.
+
+    // Determine appropriate transcode format from available targets,
+    // info about the texture, e.g. texture.numComponents, and
+    // expected use. Use values from TranscodeTarget.
+    var targetFormat = ...
+
+    if (Uastc) {
+        transcodeUastc(targetFormat);
+    } else {
+        transcodeEtc1s(targetFormat);
+    }
+@endcode
+
+This is the function for transcoding etc1s.
+
+@code{.unparsed}
+transcodeEtc1s(targetFormat) {
     // Locate the supercompression global data and compresssed
     // mip level data within buData.
 
-    const { BasisTranscoder, BasisTranscoderState, TranscodeTarget } = MSC_TRANSCODER;
-    BasisTranscoder.init();
-    var transcoder = new BasisTranscoder();
+    var bit = new BasisUImageTranscoder();
 
     // Find the index of the starts of the endpoints, selectors and tables
     // data within buData...
@@ -463,21 +513,16 @@ container format.
     // within buData. In KTX2 they are in the header of the
     // supercompressionGlobalData.
 
-    var endpoints = new UInt8Array(buData, endpointsStart,
+    var endpoints = new Uint8Array(buData, endpointsStart,
                                    endpointsByteLength);
-    var selectors = new UINt8Array(buData, selectorsStart,
+    var selectors = new Uint8Array(buData, selectorsStart,
                                    selectorsByteLength);
 
-    transcoder.decodePalettes(numEndpoints, endpoints,
+    bit.decodePalettes(numEndpoints, endpoints,
                               numSelectors, selectors);
 
     var tables = new UInt8Array(buData, tablesStart, tablesByteLength);
-    transcoder.decodeTables(tables);
-
-    // Determine appropriate transcode format from available targets,
-    // info about the texture, e.g. texture.numComponents, and
-    // expected use. Use values from TranscodeTarget.
-    var targetFormat = ...
+    bit.decodeTables(tables);
 
     // Determine if the file contains a video sequence...
     var isVideo = ...
@@ -496,14 +541,13 @@ container format.
     var curImageIndex = 0;
 
     // Pseudo code ...
-    foreach level
+    foreach level {
        var width = width of image at this level
        var height = height of image at this level
        var bw = 4; // for ETC1S based Basis compressed data.
        var bh = 4; //            ditto
        var num_blocks_x = Math.ceil(width / bw);
        var num_blocks_y = Math.ceil(height / bh);
-       var levelData = location of level within texdata
        foreach image in level {
            // In KTX2 container locate the imageDesc for this image.
            var imageDesc = imageDescs[curImageIndex++];
@@ -518,9 +562,9 @@ container format.
            // Do the same for the alpha slice. Length 0 is okay.
            var alphaSliceStart = levelData + imageDesc[3];
            var alphaSliceByteLength = imageDesc[4];
-           var alphaSlice = new UINt8Array(buData, alphaSliceStart,
+           var alphaSlice = new Uint8Array(buData, alphaSliceStart,
                                            alphaSliceByteLength);
-           const {transcodedImage, error} = transcoder.transcodeImage(
+           const {transcodedImage, error} = bit.transcodeImage(
                                      imageDesc[0], // imageFlags,
                                      rgbSlice,
                                      alphaSlice,
@@ -541,6 +585,71 @@ container format.
                 transcodedImage.delete();
             }
         }
+    }
+}
+@endcode
+
+This is the function for transcoding Uastc.
+
+@code{.unparsed}
+transcodeUastc(targetFormat) {
+    var uit = new UastcImageTranscoder();
+
+    // Determine if the data is supercompressed.
+    var zstd = (supercompressionScheme == 2);
+
+    // Determine if the data has alpha.
+    var hasAlpha = (Channel ID of sample in DFD == 1);
+
+    var dctx;
+    if (zstd) {
+        // Initialize the zstd decoder. Zstd JS wrapper + wasm is
+        // a separate package.
+        dctx = ZSTD_createDCtx();
+    }
+
+    // Pseudo code ...
+    foreach level {
+        // Determine the location in the ArrayBuffer buData of the
+        // start of the deflated data for the level.
+        var levelData = ...
+        if (zstd) {
+            // Inflate the level data
+            levelData = ZSTD_decompressDCtx(dctx, levelData, ... );
+        }
+
+        var width = width of image at this level
+        var height = height of image at this level
+        var depth = depth of texture at this level
+        var bw = 4; // for UASTC 4x4 block-compressed data.
+        var bh = 4; //            ditto
+        var num_blocks_x = Math.ceil(width / bw);
+        var num_blocks_y = Math.ceil(height / bh);
+        levelImageCount = number of layers * number of faces * depth;
+
+        foreach image in level {
+            inImage = Uint8Array(levelData, imageStart, imageEnd);
+            const {transcodedImage, error} = uit.transcodeImage(
+                                                        targetFormat,
+                                                        level,
+                                                        inImage,
+                                                        width, height,
+                                                        num_blocks_x,
+                                                        num_blocks_y,
+                                                        hasAlpha,
+                                                        0);
+            if (!error) {
+                let imgData = transcodedImage.get_typed_memory_view();
+
+                // Upload data in imgData to WebGL...
+
+                // Do not call delete() until data has been uploaded
+                // or otherwise copied.
+                transcodedImage.delete();
+            }
+        }
+    }
+}
 @endcode
 
 */
@@ -589,6 +698,12 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         .value("EAC_R11", KTX_TTF_ETC2_EAC_R11)
         .value("EAC_RG11", KTX_TTF_ETC2_EAC_RG11)
 #endif
+    ;
+
+    enum_<ktx_transcode_flag_bits_e>("TranscodeFlagBits")
+        .value("TRANSCODE_ALPHA_DAT_TO_OPAQUE_FORMATS",
+               KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
+        .value("HIGH_QUALITY", KTX_TF_HIGH_QUALITY)
     ;
 
     function("InitTranscoderGlobal", basisu_transcoder_init);
