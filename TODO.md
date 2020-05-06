@@ -22,8 +22,9 @@ library testing
 - [x] proper mipmap test (multiple planes each showing a different miplevel)
 - [ ] GLES2 load tests
 - [x] cubemap & array texture loading tests for Vulkan
-- [ ] 3D texture test for Vulkan
-- [ ] cubemap, 3D & array texture loading tests for OpenGL
+- [ ] 3D texture loading test for Vulkan
+- [x] cubemap & array texture loading tests for OpenGL
+- [ ]  3D texture loading tests for OpenGL
 - [ ] port test framework to Android.
 
 toktx
@@ -31,6 +32,7 @@ toktx
 
 - [x] support reading formats other than PPM
 - [ ] create ddx2ktx tool.
-- [ ] support 3D and array textures
-- [ ] PPM & reference ktx files for 1D textures
-- [ ] PPM & reference ktx files for cubemap, 3D & array texture creation tests
+- [x] support 3D and array textures
+- [ ] Source & reference ktx files for 1D textures
+- [x] Source & reference ktx files for cubemap & array texture creation tests
+- [ ] Source & reference ktx files for 3D texture creation tests

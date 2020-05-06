@@ -233,10 +233,14 @@ typedef enum class_id {
     ktxTexture2_c = 2
 } class_id;
 
+/**
+ * @~English
+ * @brief Struct describing the logical orientation of an image.
+ */
 struct ktxOrientation {
-    ktxOrientationX x;
-    ktxOrientationY y;
-    ktxOrientationZ z;
+    ktxOrientationX x;  /*!< Orientation in X */
+    ktxOrientationY y;  /*!< Orientation in Y */
+    ktxOrientationZ z;  /*!< Orientation in Z */
 };
 
 #define KTXTEXTURECLASSDEFN                   \
