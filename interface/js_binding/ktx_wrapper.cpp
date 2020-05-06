@@ -39,33 +39,37 @@ namespace ktx
         {
             std::vector<uint8_t> bytes{};
             bytes.resize(data["byteLength"].as<size_t>());
-            // Yes, this code IS copying the data. Sigh! According to Alon Zakai:
-            //     "There isn't a way to let compiled code access a new ArrayBuffer.
-            //     The compiled code has hardcoded access to the wasm Memory it was
-            //     instantiated with - all the pointers it can understand are indexes
-            //     into that Memory. It can't refer to anything else, I'm afraid."
+            // Yes, this code IS copying the data. Sigh! According to Alon
+            // Zakai:
+            //     "There isn't a way to let compiled code access a new
+            //     ArrayBuffer. The compiled code has hardcoded access to the
+            //     wasm Memory it was instantiated with - all the pointers it
+            //     can understand are indexes into that Memory. It can't refer
+            //     to anything else, I'm afraid."
             //
-            //     "In the future using different address spaces or techniques with
-            //     reference types may open up some possibilities here."
+            //     "In the future using different address spaces or techniques
+            //     with reference types may open up some possibilities here."
             emscripten::val memory = emscripten::val::module_property("HEAP8")["buffer"];
             emscripten::val memoryView = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(bytes.data()), data["length"].as<uint32_t>());
             memoryView.call<void>("set", data);
 
+            // Load the image data now, otherwise we'd have to  copy it from
+            // JS into a buffer only for it to be copied from that buffer into
+            // the texture later.
             ktxTexture* ptr = nullptr;
-            KTX_error_code result = ktxTexture_CreateFromMemory(bytes.data(), bytes.size(), KTX_TEXTURE_CREATE_NO_FLAGS, &ptr);
+            KTX_error_code result = ktxTexture_CreateFromMemory(
+                                        bytes.data(),
+                                        bytes.size(),
+                                        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                        &ptr);
             if (result != KTX_SUCCESS)
             {
                 std::cout << "ERROR: Failed to create from memory: " << ktxErrorString(result) << std::endl;
-                return texture(nullptr, {});
+                return texture(nullptr);
             }
 
-            return texture(ptr, std::move(bytes));
+            return texture(ptr);
         }
-
-        // emscripten::val getData() const
-        // {
-        //     return emscripten::val(emscripten::typed_memory_view(ktxTexture_GetSize(m_ptr), ktxTexture_GetData(m_ptr)));
-        // }
 
         uint32_t baseWidth() const
         {
@@ -77,22 +81,15 @@ namespace ktx
             return m_ptr->baseHeight;
         }
 
-        bool isSupercompressed() const
+        bool needsTranscoding() const
         {
-            return (m_ptr->classId == ktxTexture2_c
-                    && ktxTexture2(m_ptr)->supercompressionScheme != KTX_SS_NONE);
-        }
-
-        bool isBasisSupercompressed() const
-        {
-            return (m_ptr->classId == ktxTexture2_c
-                    && ktxTexture2(m_ptr)->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL);
+            return ktxTexture_NeedsTranscoding(m_ptr.get());
         }
 
         bool isPremultiplied() const
         {
             return (m_ptr->classId == ktxTexture2_c
-                    && ktxTexture2_GetPremultipliedAlpha(ktxTexture2(m_ptr)));
+                    && ktxTexture2_GetPremultipliedAlpha(ktxTexture2(m_ptr.get())));
         }
 
         // @copydoc ktxTexture2::GetNumComponents
@@ -104,10 +101,18 @@ namespace ktx
                 return 0;
             }
 
-            return ktxTexture2_GetNumComponents(ktxTexture2(m_ptr));
+            return ktxTexture2_GetNumComponents(ktxTexture2(m_ptr.get()));
         }
 
-        uint32_t vkFormat() const
+        enum ktxSupercmpScheme supercompressionScheme() const
+        {
+            if (m_ptr->classId == ktxTexture1_c)
+                return KTX_SS_NONE;
+            else
+                return ktxTexture2(m_ptr.get())->supercompressionScheme;
+        }
+
+         uint32_t vkFormat() const
         {
             if (m_ptr->classId != ktxTexture2_c)
             {
@@ -115,36 +120,33 @@ namespace ktx
                 return 0;
             }
 
-            return ktxTexture2(m_ptr)->vkFormat;
+            return ktxTexture2(m_ptr.get())->vkFormat;
         }
 
-        emscripten::val orientation() const
+        struct ktxOrientation orientation() const
         {
-            val ret = val::object();
-            ret.set("x", m_ptr->orientation.x);
-            ret.set("y", m_ptr->orientation.y);
-            ret.set("z", m_ptr->orientation.z);
-            return std::move(ret);
+            return m_ptr->orientation;
         }
 
-        void transcodeBasis(const val& targetFormat, const val& decodeFlags)
+        bool transcodeBasis(const val& targetFormat, const val& decodeFlags)
         {
             if (m_ptr->classId != ktxTexture2_c)
             {
                 std::cout << "ERROR: transcodeBasis is only supported for KTX2" << std::endl;
-                return;
+                return false;
             }
 
             KTX_error_code result = ktxTexture2_TranscodeBasis(
-                reinterpret_cast<ktxTexture2*>(m_ptr.get()),
+                ktxTexture2(m_ptr.get()),
                 targetFormat.as<ktx_texture_transcode_fmt_e>(),
                 decodeFlags.as<ktx_transcode_flags>());
 
             if (result != KTX_SUCCESS)
             {
                 std::cout << "ERROR: Failed to transcode: " << ktxErrorString(result) << std::endl;
-                return;
+                return false;
             }
+            return true;
         }
 
         // NOTE: WebGLTexture objects are completely opaque so the option of passing in the texture
@@ -171,9 +173,8 @@ namespace ktx
         }
 
     private:
-        texture(ktxTexture* ptr, std::vector<ktx_uint8_t> bytes)
+        texture(ktxTexture* ptr)
             : m_ptr{ ptr, &destroy }
-            , m_bytes{ std::move(bytes) }
         {
         }
 
@@ -183,7 +184,6 @@ namespace ktx
         }
 
         std::unique_ptr<ktxTexture, decltype(&destroy)> m_ptr;
-        std::vector<uint8_t> m_bytes;
     };
 }
 
@@ -220,11 +220,11 @@ interface ktxTexture {
 
     readonly attribute long baseWidth;
     readonly attribute long baseHeight;
-    readonly attribute bool isBasisSupercompressed;
-    readonly attribute bool isSupercompressed;
+    readonly attribute bool isPremultiplied;
+    readonly attribute bool needsTranscoding;
     readonly attribute long numComponents;
     readonly attribute long vkFormat;
-    readonly attribute bool isPremultiplied;
+    readonly attribute SupercmpScheme supercompressionScheme;
     readonly attribute ktxOrientation orientation;
 };
 
@@ -270,6 +270,13 @@ enum OrientationZ {
     "IN",
     "OUT"
 };
+
+enum SupercmpScheme {
+    "NONE",
+    "BASIS_UNIVERSAL",
+    "ZSTD"
+};
+
 @endcode
 
 ## How to use
@@ -311,7 +318,7 @@ a function like the following to be executed.
       var ktxdata = new Uint8Array(this.response);
       ktexture = new ktxTexture(ktxdata);
 
-      if (ktexture.isBasisSupercompressed) {
+      if (ktexture.needsTranscoding) {
         var formatString;
         var format;
         if (astcSupported) {
@@ -331,6 +338,10 @@ a function like the following to be executed.
           format = TranscodeTarget.RGBA4444;
         }
         ktexture.transcodeBasis(format, 0);
+        if (!ktexture.transcodeBasis(format, 0)) {
+          alert('Texture transcode failed. See console for details.');
+          return undefined;
+        }
       }
 
       // If there is no global variable "texture".
@@ -342,6 +353,10 @@ a function like the following to be executed.
 
       if (error != gl.NO_ERROR) {
         alert('WebGL error when uploading texture, code = ' + error.toString(16));
+        return undefined;
+      }
+      if (texture === undefined) {
+        alert('Texture upload failed. See console for details.');
         return undefined;
       }
       if (target != gl.TEXTURE_2D) {
@@ -443,6 +458,17 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("IN", KTX_ORIENT_Z_IN)
         .value("OUT", KTX_ORIENT_Z_OUT)
     ;
+    enum_<ktxSupercmpScheme>("SupercmpScheme")
+        .value("NONE", KTX_SS_NONE)
+        .value("BASIS_UNIVERSAL", KTX_SS_BASIS_UNIVERSAL)
+        .value("ZSTD", KTX_SS_ZSTD)
+    ;
+
+    value_object<ktxOrientation>("Orientation")
+        .field("x", &ktxOrientation::x)
+        .field("y", &ktxOrientation::y)
+        .field("z", &ktxOrientation::z)
+        ;
 
     class_<ktx::texture>("ktxTexture")
         .constructor(&ktx::texture::createFromMemory)
@@ -450,12 +476,12 @@ EMSCRIPTEN_BINDINGS(ktx)
         // .property("data", &ktx::texture::getData)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
-        .property("isBasisSupercompressed", &ktx::texture::isBasisSupercompressed)
-        .property("isSupercompressed", &ktx::texture::isSupercompressed)
-        .property("numComponents", &ktx::texture::numComponents)
-        .property("vkFormat", &ktx::texture::vkFormat)
         .property("isPremultiplied", &ktx::texture::isPremultiplied)
+        .property("needsTranscoding", &ktx::texture::needsTranscoding)
+        .property("numComponents", &ktx::texture::numComponents)
         .property("orientation", &ktx::texture::orientation)
+        .property("supercompressScheme", &ktx::texture::supercompressionScheme)
+        .property("vkFormat", &ktx::texture::vkFormat)
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
         .function("glUpload", &ktx::texture::glUpload)
     ;
