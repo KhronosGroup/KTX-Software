@@ -368,7 +368,7 @@ function loadTexture(gl, url)
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
 
-    if (ktexture.isBasisSupercompressed) {
+    if (ktexture.needsTranscoding) {
       var formatString;
       var format;
       if (astcSupported) {
@@ -387,7 +387,10 @@ function loadTexture(gl, url)
         formatString = 'RGBA4444';
         format = TranscodeTarget.RGBA4444;
       }
-      ktexture.transcodeBasis(format, 0);
+      if (!ktexture.transcodeBasis(format, 0)) {
+          alert('Texture transcode failed. See console for details.');
+          return undefined;
+      }
       elem('format').innerText = formatString;
     }
 
@@ -396,6 +399,10 @@ function loadTexture(gl, url)
     texture = result.texture;
     if (error != gl.NO_ERROR) {
       alert('WebGL error when uploading texture, code = ' + error.toString(16));
+      return undefined;
+    }
+    if (texture === undefined) {
+      alert('Texture upload failed. See console for details.');
       return undefined;
     }
     if (target != gl.TEXTURE_2D) {

@@ -233,6 +233,12 @@ typedef enum class_id {
     ktxTexture2_c = 2
 } class_id;
 
+struct ktxOrientation {
+    ktxOrientationX x;
+    ktxOrientationY y;
+    ktxOrientationZ z;
+};
+
 #define KTXTEXTURECLASSDEFN                   \
     class_id classId;                         \
     struct ktxTexture_vtbl* vtbl;             \
@@ -249,11 +255,7 @@ typedef enum class_id {
     ktx_uint32_t numLevels;                   \
     ktx_uint32_t numLayers;                   \
     ktx_uint32_t numFaces;                    \
-    struct {                                  \
-        ktxOrientationX x;                    \
-        ktxOrientationY y;                    \
-        ktxOrientationZ z;                    \
-    } orientation;                            \
+    struct ktxOrientation orientation;        \
     ktxHashList  kvDataHead;                  \
     ktx_uint32_t kvDataLen;                   \
     ktx_uint8_t* kvData;                      \
