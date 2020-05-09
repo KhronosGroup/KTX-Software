@@ -886,22 +886,6 @@ add_dependencies(ktx2check-tests
 unset(TOOLSET)
 unset(TARGET)
 
-#libktx.gyp:libgles3#target
-set(TARGET "libgles3")
-set(TOOLSET "target")
-add_custom_target(libgles3 SOURCES)
-set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
-#libktx.gyp:libgl#target
-set(TARGET "libgl")
-set(TOOLSET "target")
-add_custom_target(libgl SOURCES)
-set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
 #ktxtools.gyp:ktxtools.doc#target
 set(TARGET "ktxtools.doc")
 set(TOOLSET "target")
@@ -1394,6 +1378,14 @@ add_dependencies(appfwSDL
   appfwSDL__frag2spirv
   appfwSDL__vert2spirv
 )
+unset(TOOLSET)
+unset(TARGET)
+
+#ktxtests.gyp:libgl#target
+set(TARGET "libgl")
+set(TOOLSET "target")
+add_custom_target(libgl SOURCES)
+set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 

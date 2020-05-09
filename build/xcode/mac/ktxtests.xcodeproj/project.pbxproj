@@ -44,9 +44,20 @@
 				F182281C1D7F8C7B0B7C91C1 /* PBXTargetDependency */,
 				3E6FBFA567680CF6B3F164B5 /* PBXTargetDependency */,
 				1705CFEC82A917D7000886EB /* PBXTargetDependency */,
+				0655988067943BD4E87E6BC1 /* PBXTargetDependency */,
 			);
 			name = All;
 			productName = All;
+		};
+		BF97B2EE853A57EA8400D402 /* libgl */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 0DDFE8133819512A57AB18CF /* Build configuration list for PBXAggregateTarget "libgl" */;
+			buildPhases = (
+			);
+			dependencies = (
+			);
+			name = libgl;
+			productName = libgl;
 		};
 		C9FA79AED7857DAE20C5CEC8 /* libsdl */ = {
 			isa = PBXAggregateTarget;
@@ -354,6 +365,13 @@
 			remoteGlobalIDString = D15D12842F0A33D21222E25B;
 			remoteInfo = libktx;
 		};
+		0BC4B402EADCF557CBC61F11 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF97B2EE853A57EA8400D402;
+			remoteInfo = libgl;
+		};
 		135A124849C80B9566398DB4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
@@ -472,6 +490,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = FAEB3BB157F191BE9FBE9B91;
 			remoteInfo = texturetests;
+		};
+		786E69F372B7E7C68F003D5F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF97B2EE853A57EA8400D402;
+			remoteInfo = libgl;
 		};
 		81EFD01707951DE440D60ECE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -619,13 +644,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = DAA715274807967C046D9300;
 			remoteInfo = "vkloadtests Support";
-		};
-		F63E2BAAD04DB53EDF371689 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A6C569DA3F7B1FFE4CD88BA2 /* libktx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 2C49C1BC3266E196E5B13666;
-			remoteInfo = libgl;
 		};
 		F98A24BF9FE5CF919A095FFB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -989,6 +1007,7 @@
 		3757596CF5EBB13311F8ACE1 /* gtest-spi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gtest-spi.h"; sourceTree = "<group>"; };
 		37D7E3D6E01F63C2AEAFB401 /* LoadTestSample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadTestSample.h; sourceTree = "<group>"; };
 		38B8C5331BB99134BAF98E94 /* cubemap_yokohama_astc_8x8_srgb.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = cubemap_yokohama_astc_8x8_srgb.ktx; sourceTree = "<group>"; };
+		39AB8B5957A513B36D5A740C /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
 		3BD133E541BCE1D84F68BD5A /* VkLayer_parameter_validation.json */ = {isa = PBXFileReference; lastKnownFileType = text; path = VkLayer_parameter_validation.json; sourceTree = "<group>"; };
 		3C3189261CFEBD5203C9545F /* vulkancheckres.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkancheckres.h; sourceTree = "<group>"; };
 		3C78D53B79E6B85A94EF13AA /* textoverlay.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = textoverlay.vert; sourceTree = "<group>"; };
@@ -1106,6 +1125,7 @@
 		AAD1426AAE3F0AC66ABCD994 /* vulkantools.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vulkantools.cpp; sourceTree = "<group>"; };
 		ABD17367D6CB44977CFCC554 /* libgtest_main.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libgtest_main.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC8DF30DD2BDAAB5832F302D /* instancing.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancing.vert; sourceTree = "<group>"; };
+		ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgles3.gypi; path = gyp_include/libgles3.gypi; sourceTree = "<group>"; };
 		B2969CAD7B2C60C84F699D74 /* GLAppSDL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GLAppSDL.cpp; sourceTree = "<group>"; };
 		B2F96B6D85B4F16FF30FE218 /* testimages.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = testimages.gypi; path = tests/testimages/testimages.gypi; sourceTree = "<group>"; };
 		B48649384D767FFD99D55EAF /* VkLayer_standard_validation.json */ = {isa = PBXFileReference; lastKnownFileType = text; path = VkLayer_standard_validation.json; sourceTree = "<group>"; };
@@ -1607,7 +1627,7 @@
 				BE87322074888456974DB31C /* Projects */,
 				BE243C76587BADF144529972 /* Frameworks */,
 				C7F8C3E00F474A339AD4A116 /* Products */,
-				C2FBA04F8B8BCE1736365E1F /* Build */,
+				E02CB6BCAB7AB78304B9F411 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1732,31 +1752,6 @@
 			name = Projects;
 			sourceTree = "<group>";
 		};
-		C2FBA04F8B8BCE1736365E1F /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
-				62C8ED7D4BE000BE8F05196F /* config.gypi */,
-				2A10C481083B8ADF83741784 /* default.gypi */,
-				2B15D5D51FED2F56FB42C26A /* glloadtests.gypi */,
-				097F83286050358E20912929 /* glsl2spirv.gypi */,
-				83C1B5B5C7591FC49A217ED7 /* gtest.gypi */,
-				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
-				BFE4EA6B67AE6EAFADB5840E /* libassimp.gypi */,
-				DCA2A2C870993F0227174041 /* libgles1.gypi */,
-				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
-				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
-				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
-				B2F96B6D85B4F16FF30FE218 /* testimages.gypi */,
-				443BA60BE91B83D924E4DD4E /* tests.gypi */,
-				92F7CBC841260CD2B88F9326 /* texturetests.gypi */,
-				E8F2CA4D47010B8A16AF2043 /* transcodetests.gypi */,
-				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
-				7D7EB44CBBC6ED2A89825D2F /* vkloadtests.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		C3D5BDD71864ED418ADAB793 /* vkloadtests */ = {
 			isa = PBXGroup;
 			children = (
@@ -1834,6 +1829,33 @@
 				3C78D53B79E6B85A94EF13AA /* textoverlay.vert */,
 			);
 			path = shaders;
+			sourceTree = "<group>";
+		};
+		E02CB6BCAB7AB78304B9F411 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
+				62C8ED7D4BE000BE8F05196F /* config.gypi */,
+				2A10C481083B8ADF83741784 /* default.gypi */,
+				2B15D5D51FED2F56FB42C26A /* glloadtests.gypi */,
+				097F83286050358E20912929 /* glsl2spirv.gypi */,
+				83C1B5B5C7591FC49A217ED7 /* gtest.gypi */,
+				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
+				BFE4EA6B67AE6EAFADB5840E /* libassimp.gypi */,
+				39AB8B5957A513B36D5A740C /* libgl.gypi */,
+				DCA2A2C870993F0227174041 /* libgles1.gypi */,
+				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
+				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
+				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
+				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
+				B2F96B6D85B4F16FF30FE218 /* testimages.gypi */,
+				443BA60BE91B83D924E4DD4E /* tests.gypi */,
+				92F7CBC841260CD2B88F9326 /* texturetests.gypi */,
+				E8F2CA4D47010B8A16AF2043 /* transcodetests.gypi */,
+				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
+				7D7EB44CBBC6ED2A89825D2F /* vkloadtests.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		E5FA5D8E03E7BA4B5F74AB79 /* BUILT_PRODUCTS_DIR */ = {
@@ -1938,7 +1960,7 @@
 				4250122D9591CD3EAFDB8204 /* PBXTargetDependency */,
 				86FE3D8E7DFAD7976C759747 /* PBXTargetDependency */,
 				8003CDD6D5FF7D30374676BC /* PBXTargetDependency */,
-				48E4BBB7FE65A02F8F79E55D /* PBXTargetDependency */,
+				4AC3EFAA12119AA52B6E8673 /* PBXTargetDependency */,
 				6F05847775198376158D9DEB /* PBXTargetDependency */,
 				60F9441EDDC9856E8FCF601F /* PBXTargetDependency */,
 				99712E18BA8A7AD8639CB5E3 /* PBXTargetDependency */,
@@ -2126,6 +2148,7 @@
 				5C02A4F65B8C516F2E3508EB /* vkloadtests */,
 				DAA715274807967C046D9300 /* vkloadtests Support */,
 				0B2F68F79FDD3BDDF975D5F6 /* gl3loadtests */,
+				BF97B2EE853A57EA8400D402 /* libgl */,
 			);
 		};
 /* End PBXProject section */
@@ -2347,6 +2370,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0655988067943BD4E87E6BC1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF97B2EE853A57EA8400D402 /* libgl */;
+			targetProxy = 0BC4B402EADCF557CBC61F11 /* PBXContainerItemProxy */;
+		};
 		132C1A15460218B554E9A99A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = libktx;
@@ -2412,15 +2440,15 @@
 			target = 1548AEB99CD1C5C270961D30 /* libassimp */;
 			targetProxy = 89A00B288636F579B4BE9C02 /* PBXContainerItemProxy */;
 		};
-		48E4BBB7FE65A02F8F79E55D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libgl;
-			targetProxy = F63E2BAAD04DB53EDF371689 /* PBXContainerItemProxy */;
-		};
 		496539DC9AB0009F458D9053 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5D14C76351FD143925D22373 /* appfwSDL */;
 			targetProxy = 9BC5EAA55131D948634EE421 /* PBXContainerItemProxy */;
+		};
+		4AC3EFAA12119AA52B6E8673 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF97B2EE853A57EA8400D402 /* libgl */;
+			targetProxy = 786E69F372B7E7C68F003D5F /* PBXContainerItemProxy */;
 		};
 		51E2AFFEDAF0678050613EC3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2783,6 +2811,28 @@
 			};
 			name = Release;
 		};
+		24D99494169CE267633F1979 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = libgl;
+			};
+			name = Release;
+		};
 		2FF8380A3E74BB60D8467B24 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2868,6 +2918,31 @@
 				PRODUCT_NAME = libsdl;
 			};
 			name = Release;
+		};
+		5E330C6A58B0132F5466D2A3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = libgl;
+			};
+			name = Debug;
 		};
 		638297006311DDA35DC6BA03 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -3498,6 +3573,15 @@
 			buildConfigurations = (
 				DA428A276FAA4EEA90931208 /* Debug */,
 				DCB2B054ADB7225D346A0742 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		0DDFE8133819512A57AB18CF /* Build configuration list for PBXAggregateTarget "libgl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E330C6A58B0132F5466D2A3 /* Debug */,
+				24D99494169CE267633F1979 /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;

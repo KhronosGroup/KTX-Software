@@ -39,6 +39,7 @@
 				4027C510644AB80FFAC1E03C /* PBXTargetDependency */,
 				3E6FBFA567680CF6B3F164B5 /* PBXTargetDependency */,
 				84FE45E18EA2F550427AAD79 /* PBXTargetDependency */,
+				B0B21B4957ACEF4E809ACCD4 /* PBXTargetDependency */,
 				0B4A0F5EA77FB20A30C1358E /* PBXTargetDependency */,
 				18C8492570A8D5A1FBC58EF6 /* PBXTargetDependency */,
 			);
@@ -99,6 +100,16 @@
 			);
 			name = "appfwSDL Support";
 			productName = "appfwSDL Support";
+		};
+		F7B5E4323F9CF21041EC9677 /* libgles3 */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2590866F1FE11BBDC678D479 /* Build configuration list for PBXAggregateTarget "libgles3" */;
+			buildPhases = (
+			);
+			dependencies = (
+			);
+			name = libgles3;
+			productName = libgles3;
 		};
 /* End PBXAggregateTarget section */
 
@@ -534,11 +545,11 @@
 			remoteGlobalIDString = 09BA8FB5F992B0DCA38C21BE;
 			remoteInfo = testimages;
 		};
-		6DFD6B9EFE44CF202F025C27 /* PBXContainerItemProxy */ = {
+		6BA360F08F8E12AED3D60EA0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 318C079F5709CE3BE6391E24 /* libktx.xcodeproj */;
+			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D0E66A423BEABCB0842D89A2;
+			remoteGlobalIDString = F7B5E4323F9CF21041EC9677;
 			remoteInfo = libgles3;
 		};
 		7AED6BEEEACB7CE0062A20C1 /* PBXContainerItemProxy */ = {
@@ -708,6 +719,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = C9FA79AED7857DAE20C5CEC8;
 			remoteInfo = libsdl;
+		};
+		E14E308578A6C1B02DFADDAC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BB9FCA83D31EF60B4873AF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F7B5E4323F9CF21041EC9677;
+			remoteInfo = libgles3;
 		};
 		E26D0B1CABE4E7B309504209 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1098,6 +1116,7 @@
 		3648C28B173126F28F3E5297 /* TexturedCube.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TexturedCube.cpp; sourceTree = "<group>"; };
 		37D7E3D6E01F63C2AEAFB401 /* LoadTestSample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadTestSample.h; sourceTree = "<group>"; };
 		38B8C5331BB99134BAF98E94 /* cubemap_yokohama_astc_8x8_srgb.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = cubemap_yokohama_astc_8x8_srgb.ktx; sourceTree = "<group>"; };
+		39AB8B5957A513B36D5A740C /* libgl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgl.gypi; path = gyp_include/libgl.gypi; sourceTree = "<group>"; };
 		3C3189261CFEBD5203C9545F /* vulkancheckres.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkancheckres.h; sourceTree = "<group>"; };
 		3C78D53B79E6B85A94EF13AA /* textoverlay.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = textoverlay.vert; sourceTree = "<group>"; };
 		3D1FE72FDD43948854967C7B /* teapot.dae */ = {isa = PBXFileReference; lastKnownFileType = text; path = teapot.dae; sourceTree = "<group>"; };
@@ -1195,6 +1214,7 @@
 		A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = appfwSDL.gypi; path = tests/loadtests/appfwSDL/appfwSDL.gypi; sourceTree = "<group>"; };
 		AAD1426AAE3F0AC66ABCD994 /* vulkantools.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vulkantools.cpp; sourceTree = "<group>"; };
 		AC8DF30DD2BDAAB5832F302D /* instancing.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancing.vert; sourceTree = "<group>"; };
+		ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libgles3.gypi; path = gyp_include/libgles3.gypi; sourceTree = "<group>"; };
 		B2969CAD7B2C60C84F699D74 /* GLAppSDL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GLAppSDL.cpp; sourceTree = "<group>"; };
 		B2F96B6D85B4F16FF30FE218 /* testimages.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = testimages.gypi; path = tests/testimages/testimages.gypi; sourceTree = "<group>"; };
 		B48A7E111D70DBB538884F06 /* ktx_app_basis.ktx2 */ = {isa = PBXFileReference; lastKnownFileType = text; path = ktx_app_basis.ktx2; sourceTree = "<group>"; };
@@ -1645,7 +1665,7 @@
 				BE87322074888456974DB31C /* Projects */,
 				73BBEBB06432A44F1C288B4B /* Frameworks */,
 				7942D0C510ADBFDB50D290B9 /* Products */,
-				C2FBA04F8B8BCE1736365E1F /* Build */,
+				E02CB6BCAB7AB78304B9F411 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1719,31 +1739,6 @@
 			name = Projects;
 			sourceTree = "<group>";
 		};
-		C2FBA04F8B8BCE1736365E1F /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
-				62C8ED7D4BE000BE8F05196F /* config.gypi */,
-				2A10C481083B8ADF83741784 /* default.gypi */,
-				2B15D5D51FED2F56FB42C26A /* glloadtests.gypi */,
-				097F83286050358E20912929 /* glsl2spirv.gypi */,
-				83C1B5B5C7591FC49A217ED7 /* gtest.gypi */,
-				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
-				BFE4EA6B67AE6EAFADB5840E /* libassimp.gypi */,
-				DCA2A2C870993F0227174041 /* libgles1.gypi */,
-				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
-				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
-				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
-				B2F96B6D85B4F16FF30FE218 /* testimages.gypi */,
-				443BA60BE91B83D924E4DD4E /* tests.gypi */,
-				92F7CBC841260CD2B88F9326 /* texturetests.gypi */,
-				E8F2CA4D47010B8A16AF2043 /* transcodetests.gypi */,
-				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
-				7D7EB44CBBC6ED2A89825D2F /* vkloadtests.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		C7066B4504C4E3790C77ABD8 /* resources/ios */ = {
 			isa = PBXGroup;
 			children = (
@@ -1782,6 +1777,33 @@
 				3C78D53B79E6B85A94EF13AA /* textoverlay.vert */,
 			);
 			path = shaders;
+			sourceTree = "<group>";
+		};
+		E02CB6BCAB7AB78304B9F411 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A9BF82BBF71049593EEEE331 /* appfwSDL.gypi */,
+				62C8ED7D4BE000BE8F05196F /* config.gypi */,
+				2A10C481083B8ADF83741784 /* default.gypi */,
+				2B15D5D51FED2F56FB42C26A /* glloadtests.gypi */,
+				097F83286050358E20912929 /* glsl2spirv.gypi */,
+				83C1B5B5C7591FC49A217ED7 /* gtest.gypi */,
+				1269CC9E49858D4E21549BBF /* ktxtests.gyp */,
+				BFE4EA6B67AE6EAFADB5840E /* libassimp.gypi */,
+				39AB8B5957A513B36D5A740C /* libgl.gypi */,
+				DCA2A2C870993F0227174041 /* libgles1.gypi */,
+				ADE5D83DBF4D5F4D02E33210 /* libgles3.gypi */,
+				B9148F70DA7443433D8DADDA /* libsdl.gypi */,
+				D5B472D37886135871C1D3D8 /* loadtests.gypi */,
+				55094AE30A4060D7DAF62B7C /* pvremu.gypi */,
+				B2F96B6D85B4F16FF30FE218 /* testimages.gypi */,
+				443BA60BE91B83D924E4DD4E /* tests.gypi */,
+				92F7CBC841260CD2B88F9326 /* texturetests.gypi */,
+				E8F2CA4D47010B8A16AF2043 /* transcodetests.gypi */,
+				01DC52AF35415F9935B9FCAC /* unittests.gypi */,
+				7D7EB44CBBC6ED2A89825D2F /* vkloadtests.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		E4C98DAD61B6C4704941488A /* resources/ios */ = {
@@ -1931,7 +1953,7 @@
 				A04AF921FD6BF87D56D805A3 /* PBXTargetDependency */,
 				44EAE9578842CE2CF5D93F3E /* PBXTargetDependency */,
 				8B0ECBFCB33B2115875CC35A /* PBXTargetDependency */,
-				55E1972FC9421466A9A93301 /* PBXTargetDependency */,
+				E9BD2109E650C5E0DF76ECA0 /* PBXTargetDependency */,
 				EA6C018960598A7D6AB3D93B /* PBXTargetDependency */,
 				5AAE8A542C9D53D2E9EA8DD5 /* PBXTargetDependency */,
 				144496CBF855608A009EAF12 /* PBXTargetDependency */,
@@ -1977,6 +1999,7 @@
 				5C02A4F65B8C516F2E3508EB /* vkloadtests */,
 				DAA715274807967C046D9300 /* vkloadtests Support */,
 				E63EF3CB8887944110516954 /* es3loadtests */,
+				F7B5E4323F9CF21041EC9677 /* libgles3 */,
 				B90F68E062B75853DE301BEB /* es1loadtests */,
 				65B9FC0E5B92783625634829 /* libgles1 */,
 			);
@@ -2262,11 +2285,6 @@
 			target = 5D14C76351FD143925D22373 /* appfwSDL */;
 			targetProxy = 9BC5EAA55131D948634EE421 /* PBXContainerItemProxy */;
 		};
-		55E1972FC9421466A9A93301 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = libgles3;
-			targetProxy = 6DFD6B9EFE44CF202F025C27 /* PBXContainerItemProxy */;
-		};
 		5AAE8A542C9D53D2E9EA8DD5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C9FA79AED7857DAE20C5CEC8 /* libsdl */;
@@ -2332,6 +2350,11 @@
 			target = 5D14C76351FD143925D22373 /* appfwSDL */;
 			targetProxy = CAB57943812A48939F9327AD /* PBXContainerItemProxy */;
 		};
+		B0B21B4957ACEF4E809ACCD4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F7B5E4323F9CF21041EC9677 /* libgles3 */;
+			targetProxy = E14E308578A6C1B02DFADDAC /* PBXContainerItemProxy */;
+		};
 		B2779F5EE4D4364956F81739 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = libzstd;
@@ -2386,6 +2409,11 @@
 			isa = PBXTargetDependency;
 			name = version.h;
 			targetProxy = F6C7E0A4386387CB3BEC3416 /* PBXContainerItemProxy */;
+		};
+		E9BD2109E650C5E0DF76ECA0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F7B5E4323F9CF21041EC9677 /* libgles3 */;
+			targetProxy = 6BA360F08F8E12AED3D60EA0 /* PBXContainerItemProxy */;
 		};
 		EA6C018960598A7D6AB3D93B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2495,6 +2523,32 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = libassimp;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
+			};
+			name = Debug;
+		};
+		27B03995FD8475F2D5FE8037 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DEBUG,
+					_DEBUG,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = libgles3;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = "arm64 arm64e";
 			};
@@ -2848,6 +2902,29 @@
 			};
 			name = Release;
 		};
+		B688AF1A71810BE0AB2F86DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = libgles3;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 arm64e";
+			};
+			name = Release;
+		};
 		B6E90208BD315A0A66385B0C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3135,6 +3212,15 @@
 			buildConfigurations = (
 				F5125667E248F18591A9DA2D /* Debug */,
 				E8F2039F5C1B6E7D75A73A1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		2590866F1FE11BBDC678D479 /* Build configuration list for PBXAggregateTarget "libgles3" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27B03995FD8475F2D5FE8037 /* Debug */,
+				B688AF1A71810BE0AB2F86DC /* Release */,
 			);
 			defaultConfigurationIsVisible = 1;
 			defaultConfigurationName = Debug;

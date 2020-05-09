@@ -36,7 +36,9 @@
 #include "TextureCubemap.h"
 #include "TextureArray.h"
 
+#if !defined TEST_BASIS_COMPRESSION
 #define TEST_BASIS_COMPRESSION 1
+#endif
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,

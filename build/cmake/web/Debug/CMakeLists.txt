@@ -237,27 +237,10 @@ target_link_libraries(msc_basis_transcoder_js
 unset(TOOLSET)
 unset(TARGET)
 
-#libktx.gyp:libzstd#target
-set(TARGET "libzstd")
-set(TOOLSET "target")
-add_custom_target(libzstd SOURCES)
-set_target_properties(libzstd PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
-#libktx.gyp:libgles3#target
-set(TARGET "libgles3")
-set(TOOLSET "target")
-add_custom_target(libgles3 SOURCES)
-set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-unset(TOOLSET)
-unset(TARGET)
-
 #libktx.gyp:libktx.js#target
 set(TARGET "libktx.js")
 set(TOOLSET "target")
 set(libktx_js__cxx_srcs "../../../../interface/js_binding/ktx_wrapper.cpp")
-link_directories()
 add_executable(libktx_js ${libktx_js__cxx_srcs})
 set_target_properties(libktx_js PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 set_target_properties(libktx_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${builddir}")
@@ -271,8 +254,8 @@ list(APPEND libktx_js__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_js APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_js__include_dirs})
 set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "BASISD_SUPPORT_BC7=0;BASISD_SUPPORT_ATC=0;BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0;BASISD_SUPPORT_UASTC=0;BASISD_SUPPORT_PVRTC2=0;BASISD_SUPPORT_FXT1=0;BASISD_SUPPORT_ETC2_EAC_RG11=0;DEBUG;_DEBUG;")
-set_target_properties(libktx_js PROPERTIES COMPILE_FLAGS "-Wpedantic -s USE_WEBGL2=1 -O0 -g -std=c++11 --bind ")
-set_target_properties(libktx_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=LIBKTX -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s GL_PREINITIALIZED_CONTEXT=1 -s FULL_ES3=1 -s USE_WEBGL2=1 -g4 ")
+set_target_properties(libktx_js PROPERTIES COMPILE_FLAGS "-Wpedantic -O0 -g -std=c++11 --bind ")
+set_target_properties(libktx_js PROPERTIES LINK_FLAGS "--bind --source-map-base ./ -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s MALLOC=emmalloc -s MODULARIZE=1 -s EXPORT_NAME=LIBKTX -s EXTRA_EXPORTED_RUNTIME_METHODS=['GL'] -s GL_PREINITIALIZED_CONTEXT=1 -s FULL_ES3=1 -g4 ")
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "c99")
@@ -287,7 +270,6 @@ set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 set_target_properties(libktx_js PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "NO")
 add_dependencies(libktx_js
-  libgles3
   version_h
 )
 target_link_libraries(libktx_js
@@ -332,11 +314,11 @@ add_dependencies(install_js
 unset(TOOLSET)
 unset(TARGET)
 
-#libktx.gyp:libgl#target
-set(TARGET "libgl")
+#libktx.gyp:libzstd#target
+set(TARGET "libzstd")
 set(TOOLSET "target")
-add_custom_target(libgl SOURCES)
-set_target_properties(libgl PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+add_custom_target(libzstd SOURCES)
+set_target_properties(libzstd PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 unset(TOOLSET)
 unset(TARGET)
 
@@ -608,6 +590,14 @@ add_dependencies(appfwSDL
 unset(TOOLSET)
 unset(TARGET)
 
+#ktxtests.gyp:libgles3#target
+set(TARGET "libgles3")
+set(TOOLSET "target")
+add_custom_target(libgles3 SOURCES)
+set_target_properties(libgles3 PROPERTIES EXCLUDE_FROM_ALL "FALSE")
+unset(TOOLSET)
+unset(TARGET)
+
 #ktxtests.gyp:es3loadtests.html#target
 set(TARGET "es3loadtests.html")
 set(TOOLSET "target")
@@ -659,7 +649,7 @@ list(APPEND es3loadtests_html__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET es3loadtests_html APPEND PROPERTY INCLUDE_DIRECTORIES ${es3loadtests_html__include_dirs})
-set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;DEBUG;_DEBUG;")
+set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;TEST_BASIS_COMPRESSION=0;DEBUG;_DEBUG;")
 set_target_properties(es3loadtests_html PROPERTIES COMPILE_FLAGS "-Wpedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -O0 -g -std=c++11 ")
 set_target_properties(es3loadtests_html PROPERTIES LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g4 ")
 set_target_properties(es3loadtests_html PROPERTIES XCODE_ATTRIBUTE_COPY_PHASE_STRIP "NO")

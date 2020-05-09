@@ -6,10 +6,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "install.lib", "install.lib.
 		{967359B1-4F65-53AC-1706-811F22BD00A6} = {967359B1-4F65-53AC-1706-811F22BD00A6}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgl", "libgl.vcxproj", "{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgles3", "libgles3.vcxproj", "{52DA91CD-3F0D-3225-3CFE-0B480184BCA4}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx", "libktx.vcxproj", "{2F271BF3-8B9A-93F1-9930-826DE0250ACC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{47873421-1C9D-93F7-46D8-2F1E087E3B2F} = {47873421-1C9D-93F7-46D8-2F1E087E3B2F}
@@ -41,10 +37,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}.Debug|x64.ActiveCfg = Debug|x64
-		{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}.Debug|x64.Build.0 = Debug|x64
-		{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}.Release|x64.ActiveCfg = Release|x64
-		{0381B3F7-CE15-695A-9BF6-1ED69D04ADE4}.Release|x64.Build.0 = Release|x64
 		{0AABC900-B2A9-0152-EC2E-B307045F56A8}.Debug|x64.ActiveCfg = Debug|x64
 		{0AABC900-B2A9-0152-EC2E-B307045F56A8}.Debug|x64.Build.0 = Debug|x64
 		{0AABC900-B2A9-0152-EC2E-B307045F56A8}.Release|x64.ActiveCfg = Release|x64
@@ -61,10 +53,6 @@ Global
 		{47873421-1C9D-93F7-46D8-2F1E087E3B2F}.Debug|x64.Build.0 = Debug|x64
 		{47873421-1C9D-93F7-46D8-2F1E087E3B2F}.Release|x64.ActiveCfg = Release|x64
 		{47873421-1C9D-93F7-46D8-2F1E087E3B2F}.Release|x64.Build.0 = Release|x64
-		{52DA91CD-3F0D-3225-3CFE-0B480184BCA4}.Debug|x64.ActiveCfg = Debug|x64
-		{52DA91CD-3F0D-3225-3CFE-0B480184BCA4}.Debug|x64.Build.0 = Debug|x64
-		{52DA91CD-3F0D-3225-3CFE-0B480184BCA4}.Release|x64.ActiveCfg = Release|x64
-		{52DA91CD-3F0D-3225-3CFE-0B480184BCA4}.Release|x64.Build.0 = Release|x64
 		{967359B1-4F65-53AC-1706-811F22BD00A6}.Debug|x64.ActiveCfg = Debug|x64
 		{967359B1-4F65-53AC-1706-811F22BD00A6}.Debug|x64.Build.0 = Debug|x64
 		{967359B1-4F65-53AC-1706-811F22BD00A6}.Release|x64.ActiveCfg = Release|x64

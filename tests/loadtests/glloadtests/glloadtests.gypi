@@ -64,6 +64,9 @@
 
   'conditions': [
     ['OS == "mac" or OS == "win" or OS == "linux"', {
+      'includes': [
+        '../../../gyp_include/libgl.gypi'
+      ],
       'targets': [
         {
           'target_name': 'gl3loadtests',
@@ -76,7 +79,7 @@
             'appfwSDL',
             'libassimp',
             'libktx.gyp:libktx',
-            'libktx.gyp:libgl',
+            'libgl',
             'testimages',
           ],
           'sources': [
@@ -137,6 +140,9 @@
           }],
         ],
       },
+      'includes': [
+        '../../../gyp_include/libgles3.gypi'
+      ],
       'targets': [
         {
           'target_name': '<(target_name)',
@@ -146,7 +152,7 @@
             'appfwSDL',
             'libassimp',
             'libktx.gyp:libktx',
-            'libktx.gyp:libgles3',
+            'libgles3',
             'testimages',
           ],
          'sources': [
@@ -191,6 +197,7 @@
               'cflags': [
                 '-s', 'DISABLE_EXCEPTION_CATCHING=0',
               ],
+              'defines': [ 'TEST_BASIS_COMPRESSION=0' ],
               'dependencies!': [ 'libassimp' ],
               'ldflags': [
                 '--source-map-base', './',
