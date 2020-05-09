@@ -163,8 +163,10 @@ add_custom_target(version_h
 
 # Main library
 add_library( ktx SHARED
-    $<TARGET_OBJECTS:objKtxRead>
     $<TARGET_OBJECTS:objBasisu>
+    $<TARGET_OBJECTS:objKtxRead>
+    $<TARGET_OBJECTS:objKtxOpenGLLoader>
+    $<TARGET_OBJECTS:objKtxVulkanLoader>
 )
 
 add_library( objKtxRead OBJECT
@@ -197,9 +199,20 @@ add_library( objBasisu OBJECT
     lib/basisu/transcoder/basisu_transcoder.cpp
 )
 
+add_library( objKtxOpenGLLoader OBJECT
+    lib/etcdec.cxx
+    lib/etcunpack.cxx
+    lib/glloader.c
+    lib/gl_funcs.c
+)
+
+add_library( objKtxVulkanLoader OBJECT
+    lib/vkloader.c
+)
+
 set(KTX_DEFS LIBKTX)
 
-if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND KTX_DEFS
         _DEBUG)
 endif()
@@ -300,6 +313,34 @@ target_include_directories(
     PRIVATE
     "${VULKAN_SDK}/include"
     other_include
+)
+
+target_include_directories(
+    objKtxOpenGLLoader
+    PUBLIC
+    include
+    other_include
+    ${OPENGL_INCLUDE_DIR}
+)
+
+target_compile_definitions(
+    objKtxOpenGLLoader
+    PRIVATE
+    ${KTX_DEFS}
+)
+
+target_include_directories(
+    objKtxVulkanLoader
+    PUBLIC
+    include
+    other_include
+    ${Vulkan_INCLUDE_DIRS}
+)
+
+target_compile_definitions(
+    objKtxVulkanLoader
+    PRIVATE
+    ${KTX_DEFS}
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
