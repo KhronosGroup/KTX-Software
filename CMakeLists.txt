@@ -286,7 +286,7 @@ if(KTX_FEATURE_WRITE)
     )
 endif()
 
-if(VULKAN_SDK)
+if(Vulkan_FOUND)
     list(APPEND KTX_DEFS
         USE_VULKAN_SDK
     )    
@@ -311,7 +311,7 @@ target_include_directories(
     PUBLIC
     include
     PRIVATE
-    "${VULKAN_SDK}/include"
+    ${Vulkan_INCLUDE_DIRS}
     other_include
 )
 
