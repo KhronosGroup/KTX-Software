@@ -12,7 +12,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\libktx.gyp"/>
+    <None Include="..\..\..\..\ktxtests.gyp"/>
     <None Include="..\..\..\..\other_lib\win\Release-$(PlatformName)\glew32.dll">
       <Filter>other_lib\win\Release-$(PlatformName)</Filter>
     </None>

@@ -123,8 +123,6 @@
   }, # variables
 
   'includes': [
-    '../gyp_include/libgl.gypi',
-    '../gyp_include/libgles3.gypi',
     '../gyp_include/libvulkan.gypi',
     '../gyp_include/libzstd.gypi',
   ],
@@ -244,7 +242,7 @@
                 # supported # by WebGL.
                 'BASISD_SUPPORT_BC7=0',
                 'BASISD_SUPPORT_ATC=0',
-                 'BASISD_SUPPORT_PVRTC2=0',
+                'BASISD_SUPPORT_PVRTC2=0',
                 'BASISD_SUPPORT_FXT1=0',
                 'BASISD_SUPPORT_ETC2_EAC_RG11=0',
                 # Don't support higher quality mode to avoid 64k table.

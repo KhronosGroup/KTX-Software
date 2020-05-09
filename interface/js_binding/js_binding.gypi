@@ -28,7 +28,7 @@
           'target_name': 'libktx.js',
           'type': 'executable',
           'cflags_cc': [ '--bind' ],
-          'dependencies': [ 'libktx', 'libgles3' ],
+          'dependencies': [ 'libktx' ],
           'defines': [ '<@(common_defines)' ],
           'mac_bundle': 0,
           'sources': [

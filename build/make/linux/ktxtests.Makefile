@@ -3,4 +3,4 @@
 export builddir_name ?= ./build/make/linux/out
 .PHONY: all
 all:
-	$(MAKE) testimages libsdl appfwSDL libassimp vkloadtests gl3loadtests gtest_main gtest unittests transcodetests texturetests
+	$(MAKE) testimages libsdl appfwSDL libgl libassimp vkloadtests gl3loadtests gtest_main gtest unittests transcodetests texturetests
