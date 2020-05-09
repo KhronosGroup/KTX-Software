@@ -337,9 +337,9 @@ target_include_directories(
     utils
     )
 
-# if(NOT IOS AND NOT ANDROID)
-#     add_subdirectory(tools)
-#     add_subdirectory(tests)
-# endif()
+if(NOT IOS AND NOT ANDROID)
+    add_subdirectory(tools)
+    # add_subdirectory(tests)
+endif()
 
 install(TARGETS ktx)
