@@ -28,7 +28,19 @@ target_link_libraries(
     ${OPENGL_LIBRARIES}
 )
 
+#Get a list of all of the files in the testimages
+file(GLOB_RECURSE TEST_IMAGES "${PROJECT_SOURCE_DIR}/tests/testimages/*")
+#Get a list of all of the files in the models
+file(GLOB_RECURSE MODELS "common/models/*")
+
+set( GL_LOAD_TEST_RESOURCE_FILES
+    ${TEST_IMAGES}
+    ${MODELS}
+    "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
+)
+
 add_executable( gl3loadtests
+    MACOSX_BUNDLE
     $<TARGET_OBJECTS:appfwSDL>
     $<TARGET_OBJECTS:objUtil>
     appfwSDL/GLAppSDL.cpp
@@ -43,6 +55,7 @@ add_executable( gl3loadtests
     glloadtests/shader-based/TextureArray.cpp
     glloadtests/shader-based/TextureCubemap.cpp
     glloadtests/shader-based/TexturedCube.cpp
+    ${GL_LOAD_TEST_RESOURCE_FILES}
     )
 
 target_include_directories(
@@ -83,6 +96,7 @@ target_compile_definitions(
 )
 
 add_executable( vkloadtests
+    MACOSX_BUNDLE
     $<TARGET_OBJECTS:appfwSDL>
     $<TARGET_OBJECTS:objUtil>
     appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
@@ -100,6 +114,7 @@ add_executable( vkloadtests
     vkloadtests/TextureMipmap.cpp
     vkloadtests/VulkanLoadTests.cpp
     vkloadtests/VulkanLoadTestSample.cpp
+    ${GL_LOAD_TEST_RESOURCE_FILES}
     )
 
 target_include_directories(
@@ -195,6 +210,21 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
 
     set_target_properties(${shader_target} PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
+    target_sources( gl3loadtests
+    PUBLIC
+        ${frag2spirv_out}
+        ${vert2spirv_out}
+    )
+
+    target_sources( vkloadtests
+    PUBLIC
+        ${frag2spirv_out}
+        ${vert2spirv_out}
+    )
+
+    SET_SOURCE_FILES_PROPERTIES(${frag2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+    SET_SOURCE_FILES_PROPERTIES(${vert2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+
 endfunction(compileshader)
 
 compileshader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
@@ -219,8 +249,36 @@ add_custom_target(
 
 set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
-file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${builddir}")
-file(COPY common/models DESTINATION "${builddir}")
+SET_SOURCE_FILES_PROPERTIES(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
+SET_SOURCE_FILES_PROPERTIES(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
+# Hack to prevent *.obj 3D files to be mistaken as linkable obj files
+SET_SOURCE_FILES_PROPERTIES(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
+
+
+# Variables used in Info.plist template
+set(PRODUCT_NAME gl3loadtests)
+set(EXECUTABLE_NAME ${PRODUCT_NAME})
+set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
+
+set_target_properties( gl3loadtests PROPERTIES
+    RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
+    MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
+    MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+    )
+
+# Variables used in Info.plist template
+set(PRODUCT_NAME vkloadtests)
+set(EXECUTABLE_NAME ${PRODUCT_NAME})
+set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
+    
+set_target_properties( vkloadtests PROPERTIES
+    RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
+    MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
+    MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+)
+
+# file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${builddir}")
+# file(COPY common/models DESTINATION "${builddir}")
 
 add_dependencies(
     vkloadtests
