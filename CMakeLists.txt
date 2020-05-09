@@ -337,9 +337,11 @@ target_include_directories(
     utils
     )
 
+add_subdirectory(interface/basisu_c_binding)
+
 if(NOT IOS AND NOT ANDROID)
     add_subdirectory(tools)
-    # add_subdirectory(tests)
+    add_subdirectory(tests)
 endif()
 
 install(TARGETS ktx)
