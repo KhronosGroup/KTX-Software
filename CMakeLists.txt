@@ -263,7 +263,6 @@ if(KTX_FEATURE_WRITE)
         PRIVATE
         lib
         other_include
-        "${VULKAN_SDK}/include"
         )
 
     target_sources(
