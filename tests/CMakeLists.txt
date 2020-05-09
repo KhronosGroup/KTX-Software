@@ -71,7 +71,7 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     )
 
-# add_subdirectory(loadtests)
+add_subdirectory(loadtests)
 
 add_test( NAME unittests COMMAND unittests )
 add_test( NAME texturetests COMMAND texturetests )
