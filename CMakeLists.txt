@@ -161,7 +161,13 @@ add_custom_target(version_h
 
 # End auto-generated code
 
-set(KTX_LIB_READ_SRC
+# Main library
+add_library( ktx SHARED
+    $<TARGET_OBJECTS:objKtxRead>
+    $<TARGET_OBJECTS:objBasisu>
+)
+
+add_library( objKtxRead OBJECT
     lib/basis_transcode.cpp
     lib/basisu_image_transcoders.cpp
     lib/checkheader.c
@@ -185,8 +191,9 @@ set(KTX_LIB_READ_SRC
 
     lib/dfdutils/dfd2vk.inl
     )
+add_dependencies(objKtxRead version_h mkvk)
 
-set(BASISU_SRC
+add_library( objBasisu OBJECT
     lib/basisu/transcoder/basisu_transcoder.cpp
 )
 
@@ -201,7 +208,9 @@ if(KTX_FEATURE_KTX1)
     list( APPEND KTX_DEFS
         KTX_FEATURE_KTX1
     )
-    list(APPEND KTX_LIB_READ_SRC
+    target_sources(
+        objKtxRead
+        PRIVATE
         lib/texture1.c
     )
 endif()
@@ -212,13 +221,9 @@ if(KTX_FEATURE_KTX2)
     )
 endif()
 
-set(KTX_LIB_SRC)
-set(KTX_LIB_WRITE_SRC "")
-set(KTX_LIB_READ_LIBS)
-
 if(KTX_FEATURE_WRITE)
 
-    set(BASISU_WRITE_SRC
+    add_library( objBasisuWrite OBJECT
         lib/basisu/apg_bmp.c
         lib/basisu/basisu_astc_decomp.cpp
         lib/basisu/basisu_backend.cpp
@@ -239,20 +244,17 @@ if(KTX_FEATURE_WRITE)
         lib/basisu/jpgd.cpp
         lib/basisu/lodepng.cpp
     )
-    add_library( objBasisuWrite OBJECT ${BASISU_WRITE_SRC} )
     target_include_directories(
         objBasisuWrite
         PUBLIC
         lib/basisu
     )
 
-    list(APPEND KTX_LIB_WRITE_SRC
+    add_library( objKtxWrite OBJECT
         lib/basis_encode.cpp
         lib/writer1.c
         lib/writer2.c
     )
-    add_library( objKtxWrite OBJECT ${KTX_LIB_WRITE_SRC} )
-
     add_dependencies(objKtxWrite version_h mkvk)
     target_include_directories(
         objKtxWrite
@@ -263,12 +265,10 @@ if(KTX_FEATURE_WRITE)
         other_include
         "${VULKAN_SDK}/include"
         )
-    target_compile_definitions(
-        objKtxWrite
+
+    target_sources(
+        ktx
         PRIVATE
-        ${KTX_DEFS}
-        )
-    list(APPEND KTX_LIB_SRC
         $<TARGET_OBJECTS:objKtxWrite>
         $<TARGET_OBJECTS:objBasisuWrite>
     )
@@ -279,19 +279,6 @@ if(VULKAN_SDK)
         USE_VULKAN_SDK
     )    
 endif()
-
-add_library( objBasisu OBJECT ${BASISU_SRC} )
-add_library( objKtxRead OBJECT ${KTX_LIB_READ_SRC} )
-
-add_library( ktx SHARED
-    $<TARGET_OBJECTS:objKtxRead>
-    $<TARGET_OBJECTS:objBasisu>
-    ${KTX_LIB_SRC}
-    )
-
-add_dependencies(objKtxRead version_h mkvk)
-
-target_link_libraries( ktx ${KTX_LIB_READ_LIBS} )
 
 if(APPLE)
 target_link_libraries(
@@ -336,6 +323,13 @@ target_compile_definitions(
     PRIVATE
     ${KTX_DEFS}
 )
+if(KTX_FEATURE_WRITE)
+    target_compile_definitions(
+        objKtxWrite
+        PRIVATE
+        ${KTX_DEFS}
+        )
+endif()
 
 add_library( objUtil OBJECT utils/argparser.cpp )
 target_include_directories(
@@ -343,5 +337,10 @@ target_include_directories(
     PUBLIC
     utils
     )
+
+# if(NOT IOS AND NOT ANDROID)
+#     add_subdirectory(tools)
+#     add_subdirectory(tests)
+# endif()
 
 install(TARGETS ktx)
