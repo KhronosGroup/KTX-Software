@@ -198,7 +198,7 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
 endfunction(compileshader)
 
 compileshader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
-compileshader(shader_cube cube vkloadtests/shaders/cube shaders/cube )
+compileshader(shader_cube cube vkloadtests/shaders/cube shaders )
 compileshader(shader_cubemap_reflect reflect vkloadtests/shaders/cubemap shaders )
 compileshader(shader_cubemap_skybox skybox vkloadtests/shaders/cubemap shaders )
 compileshader(shader_texture texture vkloadtests/shaders/texture shaders )
