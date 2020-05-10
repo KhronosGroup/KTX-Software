@@ -17,86 +17,119 @@ set( DOXYGEN_GENERATE_LATEX NO )
 set( DOXYGEN_GENERATE_MAN YES )
 
 # ktx.doc
-set( DOXYGEN_PROJECT_NAME "libktx - The KTX Library" )
-set( DOXYGEN_ALIASES error=\"\\par Errors\\n\" )
-set( DOXYGEN_TYPEDEF_HIDES_STRUCT YES )
-set( DOXYGEN_EXCLUDE lib/uthash.h )
-set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
-set( DOXYGEN_EXAMPLE_PATH examples lib )
-set( DOXYGEN_HTML_OUTPUT html/libktx )
-set( DOXYGEN_MAN_LINKS YES )
-set( DOXYGEN_MACRO_EXPANSION YES )
-set( DOXYGEN_EXPAND_ONLY_PREDEF YES )
+function( CreateDocLibKTX )
+    set( DOXYGEN_PROJECT_NAME "libktx - The KTX Library" )
+    set( DOXYGEN_ALIASES error=\"\\par Errors\\n\" )
+    set( DOXYGEN_TYPEDEF_HIDES_STRUCT YES )
+    set( DOXYGEN_EXCLUDE lib/uthash.h )
+    set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
+    set( DOXYGEN_EXAMPLE_PATH examples lib )
+    set( DOXYGEN_HTML_OUTPUT html/libktx )
+    set( DOXYGEN_MAN_LINKS YES )
+    set( DOXYGEN_MACRO_EXPANSION YES )
+    set( DOXYGEN_EXPAND_ONLY_PREDEF YES )
 
-set( DOXYGEN_PREDEFINED
-"KTXTEXTURECLASSDEFN=class_id classId\; \\
-    struct ktxTexture_vtbl* vtbl\;             \\
-    struct ktxTexture_vvtbl* vvtbl\;           \\
-    struct ktxTexture_protected* _protected\;  \\
-    ktx_bool_t   isArray\;                     \\
-    ktx_bool_t   isCubemap\;                   \\
-    ktx_bool_t   isCompressed\;                \\
-    ktx_bool_t   generateMipmaps\;             \\
-    ktx_uint32_t baseWidth\;                   \\
-    ktx_uint32_t baseHeight\;                  \\
-    ktx_uint32_t baseDepth\;                   \\
-    ktx_uint32_t numDimensions\;               \\
-    ktx_uint32_t numLevels\;                   \\
-    ktx_uint32_t numLayers\;                   \\
-    ktx_uint32_t numFaces\;                    \\
-    struct {                                  \\
-        ktxOrientationX x\;                    \\
-        ktxOrientationY y\;                    \\
-        ktxOrientationZ z\;                    \\
-    } orientation\;                            \\
-    ktxHashList  kvDataHead\;                  \\
-    ktx_uint32_t kvDataLen\;                   \\
-    ktx_uint8_t* kvData\;                      \\
-    ktx_size_t dataSize\;                      \\
-    ktx_uint8_t* pData\;"
-)
-set( DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/docs/libktx.tag )
+    set( DOXYGEN_PREDEFINED
+    "KTXTEXTURECLASSDEFN=class_id classId\; \\
+        struct ktxTexture_vtbl* vtbl\;             \\
+        struct ktxTexture_vvtbl* vvtbl\;           \\
+        struct ktxTexture_protected* _protected\;  \\
+        ktx_bool_t   isArray\;                     \\
+        ktx_bool_t   isCubemap\;                   \\
+        ktx_bool_t   isCompressed\;                \\
+        ktx_bool_t   generateMipmaps\;             \\
+        ktx_uint32_t baseWidth\;                   \\
+        ktx_uint32_t baseHeight\;                  \\
+        ktx_uint32_t baseDepth\;                   \\
+        ktx_uint32_t numDimensions\;               \\
+        ktx_uint32_t numLevels\;                   \\
+        ktx_uint32_t numLayers\;                   \\
+        ktx_uint32_t numFaces\;                    \\
+        struct {                                  \\
+            ktxOrientationX x\;                    \\
+            ktxOrientationY y\;                    \\
+            ktxOrientationZ z\;                    \\
+        } orientation\;                            \\
+        ktxHashList  kvDataHead\;                  \\
+        ktx_uint32_t kvDataLen\;                   \\
+        ktx_uint8_t* kvData\;                      \\
+        ktx_size_t dataSize\;                      \\
+        ktx_uint8_t* pData\;"
+    )
+    set( DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/docs/libktx.tag )
 
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs )
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/html )
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs )
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/html )
 
-doxygen_add_docs(
-    ktx.doc
-    LICENSE.md
-    TODO.md
-    include
-    lib/basis_encode.cpp
-    lib/basisu_image_transcoders.h
-    lib/basis_transcode.cpp
-    lib/strings.c
-    lib/mainpage.md
-    lib/glloader.c
-    lib/hashlist.c
-    lib/texture.c
-    lib/texture1.c
-    lib/texture2.c
-    lib/vkloader.c
-    lib/writer1.c
-    lib/writer2.c
-)
+    doxygen_add_docs(
+        libktx.doc
+        LICENSE.md
+        TODO.md
+        include
+        lib/basis_encode.cpp
+        lib/basisu_image_transcoders.h
+        lib/basis_transcode.cpp
+        lib/strings.c
+        lib/mainpage.md
+        lib/glloader.c
+        lib/hashlist.c
+        lib/texture.c
+        lib/texture1.c
+        lib/texture2.c
+        lib/vkloader.c
+        lib/writer1.c
+        lib/writer2.c
+    )
+endfunction()
 
 # ktxtools.doc
-set( DOXYGEN_PROJECT_NAME "Khronos Texture Tools" )
-set( DOXYGEN_FULL_PATH_NAMES NO )
-set( DOXYGEN_ALIASES author=\"\\section AUTHOR\n\" )
-set( DOXYGEN_SHOW_FILES NO )
-set( DOXYGEN_FILE_PATTERNS *.cpp )
-set( DOXYGEN_RECURSIVE YES )
-set( DOXYGEN_EXAMPLE_PATH utils )
-set( DOXYGEN_HTML_OUTPUT html/ktxtools )
-set( DOXYGEN_MAN_EXTENSION .1 )
-set( DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/docs/ktxtools.tag )
+function( CreateDocKTXTools )
+    set( DOXYGEN_PROJECT_NAME "Khronos Texture Tools" )
+    set( DOXYGEN_FULL_PATH_NAMES NO )
+    set( DOXYGEN_ALIASES author=\"\\section AUTHOR\n\" )
+    set( DOXYGEN_SHOW_FILES NO )
+    set( DOXYGEN_FILE_PATTERNS *.cpp )
+    set( DOXYGEN_RECURSIVE YES )
+    set( DOXYGEN_EXAMPLE_PATH utils )
+    set( DOXYGEN_HTML_OUTPUT html/ktxtools )
+    set( DOXYGEN_MAN_EXTENSION .1 )
+    set( DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/docs/ktxtools.tag )
 
-doxygen_add_docs(
-    ktxtools.doc
-    tools/ktxinfo/ktxinfo.cpp
-    tools/ktx2check/ktx2check.cpp
-    tools/ktx2ktx2/ktx2ktx2.cpp
-    tools/ktxsc/ktxsc.cpp
-    tools/toktx/toktx.cc
-)
+    doxygen_add_docs(
+        ktxtools.doc
+        tools/ktxinfo/ktxinfo.cpp
+        tools/ktx2check/ktx2check.cpp
+        tools/ktx2ktx2/ktx2ktx2.cpp
+        tools/ktxsc/ktxsc.cpp
+        tools/toktx/toktx.cc
+    )
+endfunction()
+
+
+# ktxpkg.doc
+function( CreateDocKTX )
+    set( DOXYGEN_PROJECT_NAME "Khronos Texture Software" )
+    set( DOXYGEN_ALIASES pversion=\"\\par Package Version\n\" )
+    set( DOXYGEN_LAYOUT_FILE pkgdoc/packageDoxyLayout.xml )
+    set( DOXYGEN_EXCLUDE lib/uthash.h )
+    set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
+    set( DOXYGEN_EXAMPLE_PATH lib )
+    set( DOXYGEN_HTML_HEADER pkgdoc/header.html )
+    set( DOXYGEN_MAN_OUTPUT man/ktx )
+    set( DOXYGEN_MAN_LINKS YES )
+    set( DOXYGEN_TAGFILES ${CMAKE_BINARY_DIR}/docs/libktx.tag=libktx ${CMAKE_BINARY_DIR}/docs/ktxtools.tag=ktxtools )
+
+    doxygen_add_docs(
+        ktxpkg.doc
+        pkgdoc/pages.md
+        TODO.md
+        interface/js_binding
+    )
+endfunction()
+
+CreateDocLibKTX()
+CreateDocKTXTools()
+CreateDocKTX()
+
+add_dependencies( ktxtools.doc libktx.doc )
+add_dependencies( ktxpkg.doc ktxtools.doc )
