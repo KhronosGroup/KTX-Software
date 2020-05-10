@@ -161,13 +161,8 @@ add_custom_target(version_h
 
 # Main library
 add_library( ktx SHARED
-    $<TARGET_OBJECTS:objBasisu>
-    $<TARGET_OBJECTS:objKtxRead>
     $<TARGET_OBJECTS:objKtxOpenGLLoader>
     $<TARGET_OBJECTS:objKtxVulkanLoader>
-)
-
-add_library( objKtxRead OBJECT
     lib/basis_transcode.cpp
     lib/basisu_image_transcoders.cpp
     lib/checkheader.c
@@ -190,12 +185,9 @@ add_library( objKtxRead OBJECT
     lib/dfdutils/vk2dfd.c
 
     lib/dfdutils/dfd2vk.inl
-    )
-add_dependencies(objKtxRead version_h mkvk)
-
-add_library( objBasisu OBJECT
     lib/basisu/transcoder/basisu_transcoder.cpp
-)
+    )
+add_dependencies(ktx version_h mkvk)
 
 add_library( objKtxOpenGLLoader OBJECT
     lib/etcdec.cxx
@@ -220,7 +212,7 @@ if(KTX_FEATURE_KTX1)
         KTX_FEATURE_KTX1
     )
     target_sources(
-        objKtxRead
+        ktx
         PRIVATE
         lib/texture1.c
     )
@@ -299,18 +291,13 @@ elseif(LINUX)
 endif()
 
 target_include_directories(
-    objBasisu
-    PUBLIC
-    lib/basisu/transcoder
-)
-
-target_include_directories(
-    objKtxRead
+    ktx
     PUBLIC
     include
     PRIVATE
     ${Vulkan_INCLUDE_DIRS}
     other_include
+    lib/basisu/transcoder
 )
 
 target_include_directories(
@@ -357,7 +344,7 @@ else()
 endif()
 
 target_compile_definitions(
-    objKtxRead
+    ktx
     PRIVATE
     ${KTX_DEFS}
 )
