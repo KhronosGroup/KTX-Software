@@ -8,7 +8,7 @@ find_package (Threads)
 add_subdirectory(gtest)
 enable_testing()
 
-get_property(objKtxRead_include_dirs TARGET objKtxRead PROPERTY INCLUDE_DIRECTORIES)
+get_property(ktx_include_dirs TARGET ktx PROPERTY INCLUDE_DIRECTORIES)
 
 add_subdirectory(transcodetests)
 
@@ -36,7 +36,7 @@ add_executable( unittests
 target_include_directories(
     unittests
     PRIVATE
-    ${objKtxRead_include_dirs}
+    ${ktx_include_dirs}
     ${PROJECT_SOURCE_DIR}/lib
     )
 
@@ -57,7 +57,7 @@ target_include_directories(
     # PUBLIC
     PRIVATE
     ${OPENGL_INCLUDE_DIR}
-    ${objKtxRead_include_dirs}
+    ${ktx_include_dirs}
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/lib
     unittests
