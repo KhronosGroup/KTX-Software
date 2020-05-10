@@ -254,23 +254,12 @@ SET_SOURCE_FILES_PROPERTIES(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resour
 # Hack to prevent *.obj 3D files to be mistaken as linkable obj files
 SET_SOURCE_FILES_PROPERTIES(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
 
-
-# Variables used in Info.plist template
-set(PRODUCT_NAME gl3loadtests)
-set(EXECUTABLE_NAME ${PRODUCT_NAME})
-set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-
 set_target_properties( gl3loadtests PROPERTIES
     RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
-    )
+)
 
-# Variables used in Info.plist template
-set(PRODUCT_NAME vkloadtests)
-set(EXECUTABLE_NAME ${PRODUCT_NAME})
-set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-    
 set_target_properties( vkloadtests PROPERTIES
     RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
