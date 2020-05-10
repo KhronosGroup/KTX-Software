@@ -1,28 +1,29 @@
-
-set( DOXYGEN_PROJECT_NAME "libktx - The KTX Library" )
-
+# Global
 set( DOXYGEN_PROJECT_LOGO icons/ktx_document_small.png )
 set( DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/docs)
-set( DOXYGEN_ALIASES error=\"\\par Errors\\n\" )
 set( DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES )
-set( DOXYGEN_TYPEDEF_HIDES_STRUCT YES )
 set( DOXYGEN_EXTRACT_LOCAL_CLASSES NO )
 set( DOXYGEN_HIDE_UNDOC_MEMBERS YES )
 set( DOXYGEN_CASE_SENSE_NAMES YES )
 set( DOXYGEN_SHOW_USED_FILES NO )
-set( DOXYGEN_EXCLUDE lib/uthash.h )
-set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
-set( DOXYGEN_EXAMPLE_PATH examples lib )
 set( DOXYGEN_VERBATIM_HEADERS NO )
 set( DOXYGEN_CLANG_ASSISTED_PARSING NO )
 set( DOXYGEN_ALPHABETICAL_INDEX NO )
-set( DOXYGEN_HTML_OUTPUT html/libktx )
 set( DOXYGEN_HTML_TIMESTAMP YES )
 set( DOXYGEN_DISABLE_INDEX YES )
 set( DOXYGEN_GENERATE_TREEVIEW YES )
 set( DOXYGEN_GENERATE_LATEX NO )
 # set( DOXYGEN_PAPER_TYPE a4wide ) # note: invalid value!
 set( DOXYGEN_GENERATE_MAN YES )
+
+# ktx.doc
+set( DOXYGEN_PROJECT_NAME "libktx - The KTX Library" )
+set( DOXYGEN_ALIASES error=\"\\par Errors\\n\" )
+set( DOXYGEN_TYPEDEF_HIDES_STRUCT YES )
+set( DOXYGEN_EXCLUDE lib/uthash.h )
+set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
+set( DOXYGEN_EXAMPLE_PATH examples lib )
+set( DOXYGEN_HTML_OUTPUT html/libktx )
 set( DOXYGEN_MAN_LINKS YES )
 set( DOXYGEN_MACRO_EXPANSION YES )
 set( DOXYGEN_EXPAND_ONLY_PREDEF YES )
@@ -77,4 +78,25 @@ doxygen_add_docs(
     lib/vkloader.c
     lib/writer1.c
     lib/writer2.c
+)
+
+# ktxtools.doc
+set( DOXYGEN_PROJECT_NAME "Khronos Texture Tools" )
+set( DOXYGEN_FULL_PATH_NAMES NO )
+set( DOXYGEN_ALIASES author=\"\\section AUTHOR\n\" )
+set( DOXYGEN_SHOW_FILES NO )
+set( DOXYGEN_FILE_PATTERNS *.cpp )
+set( DOXYGEN_RECURSIVE YES )
+set( DOXYGEN_EXAMPLE_PATH utils )
+set( DOXYGEN_HTML_OUTPUT html/ktxtools )
+set( DOXYGEN_MAN_EXTENSION .1 )
+set( DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/docs/ktxtools.tag )
+
+doxygen_add_docs(
+    ktxtools.doc
+    tools/ktxinfo/ktxinfo.cpp
+    tools/ktx2check/ktx2check.cpp
+    tools/ktx2ktx2/ktx2ktx2.cpp
+    tools/ktxsc/ktxsc.cpp
+    tools/toktx/toktx.cc
 )
