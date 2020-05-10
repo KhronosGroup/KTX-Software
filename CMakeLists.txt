@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
+
 project(KTX-Software)
 
 include(CTest)
@@ -290,6 +292,14 @@ target_link_libraries(
     ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
     )
 elseif(LINUX)
+    find_package(zstd REQUIRED)
+    find_package(Threads REQUIRED)
+    target_link_libraries(
+        ktx
+        dl
+        Threads::Threads
+        zstd::zstd
+    )
 endif()
 
 target_include_directories(
