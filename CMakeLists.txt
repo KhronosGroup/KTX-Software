@@ -4,6 +4,8 @@ project(KTX-Software)
 
 include(CTest)
 
+find_package(Doxygen)
+
 if(NOT ANDROID)
     find_package(OpenGL)
 endif()
@@ -368,6 +370,12 @@ add_subdirectory(interface/basisu_c_binding)
 if(NOT IOS AND NOT ANDROID)
     add_subdirectory(tools)
     add_subdirectory(tests)
+endif()
+
+if(DOXYGEN_FOUND)
+    include(cmake/docs.cmake)
+else()
+    message("Doxygen not found -> skipping documentation")
 endif()
 
 install(TARGETS ktx)
