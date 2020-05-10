@@ -1,5 +1,8 @@
 
-find_package(SDL2)
+find_package(SDL2 REQUIRED)
+if(NOT APPLE)
+    find_package(assimp REQUIRED)
+endif()
 
 add_library( appfwSDL OBJECT
     appfwSDL/AppBaseSDL.cpp
@@ -20,12 +23,6 @@ target_include_directories(
     geom
     glloadtests
     glloadtests/utils
-)
-
-target_link_libraries(
-    appfwSDL
-    ${SDL2_LIBRARIES}
-    ${OPENGL_LIBRARIES}
 )
 
 #Get a list of all of the files in the testimages
@@ -73,18 +70,28 @@ target_include_directories(
     glloadtests/utils
     )
 
+
 target_link_libraries(
     gl3loadtests
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
     ${OPENGL_LIBRARIES}
     ${SDL2_LIBRARIES}
-    appfwSDL
-    gtest
     ktx
     z
+)
+
+if(APPLE)
+    target_link_libraries(
+        gl3loadtests
+        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
+        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
     )
+elseif(LINUX)
+    target_link_libraries(
+        gl3loadtests
+        ${assimp_LIBRARIES}
+    )
+endif()
 
 target_compile_definitions(
     gl3loadtests
@@ -124,6 +131,7 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
+    ${SDL2_INCLUDE_DIRS}
     ${Vulkan_INCLUDE_DIRS}
     appfwSDL
     appfwSDL/VulkanAppSDL
@@ -136,27 +144,29 @@ target_include_directories(
 target_link_libraries(
     vkloadtests
     ${Vulkan_LIBRARIES}
-    ${SDL2_LIBRARIES}
-    gtest
     ktx
+    z
 )
 
-target_link_libraries(
-    vkloadtests
-    z
-    )
-
 if(APPLE)
-target_link_libraries(
-    vkloadtests
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
+    target_link_libraries(
+        vkloadtests
+        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
+        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
+        ${SDL2_LIBRARIES}
     )
 elseif(LINUX)
-target_link_libraries(
-    vkloadtests
-    assimp
+
+    set( LINUX_LIB_DIR Release )
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set( LINUX_LIB_DIR Debug )
+    endif()
+
+    target_link_libraries(
+        vkloadtests
+        ${assimp_LIBRARIES}
+        ${CMAKE_SOURCE_DIR}/other_lib/linux/${LINUX_LIB_DIR}-x64/libSDL2.a
     )
 endif()
 
