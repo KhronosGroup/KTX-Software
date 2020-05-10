@@ -11,7 +11,7 @@ target_include_directories(
     PUBLIC
     ${SDL2_INCLUDE_DIRS}
     appfwSDL
-    ${objKtxRead_include_dirs}
+    ${ktx_include_dirs}
     ${OPENGL_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
@@ -61,7 +61,7 @@ add_executable( gl3loadtests
 target_include_directories(
     gl3loadtests
     PRIVATE
-    ${objKtxRead_include_dirs}
+    ${ktx_include_dirs}
     ${OPENGL_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
@@ -120,7 +120,7 @@ add_executable( vkloadtests
 target_include_directories(
     vkloadtests
     PRIVATE
-    ${objKtxRead_include_dirs}
+    ${ktx_include_dirs}
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
