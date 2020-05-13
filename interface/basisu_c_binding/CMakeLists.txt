@@ -1,4 +1,5 @@
 add_library(obj_basisu_cbind OBJECT
+    inc/basisu_c_binding.h
     src/basisu_c_binding.cpp
     )
 
