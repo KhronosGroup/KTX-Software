@@ -1,10 +1,12 @@
 add_executable( toktx
+    $<TARGET_OBJECTS:objUtil>
     image.cc
     jpgimage.cc
     npbmimage.cc
     pngimage.cc
+    stdafx.h
+    targetver.h
     toktx.cc
-    $<TARGET_OBJECTS:objUtil>
     )
 
 get_property(ktx_include_dirs TARGET ktx PROPERTY INCLUDE_DIRECTORIES)
