@@ -167,40 +167,67 @@ add_custom_target(version_h
 add_library( ktx SHARED
     $<TARGET_OBJECTS:objKtxOpenGLLoader>
     $<TARGET_OBJECTS:objKtxVulkanLoader>
+    include/ktx.h
+    lib/basis_sgd.h
     lib/basis_transcode.cpp
     lib/basisu_image_transcoders.cpp
+    lib/basisu_image_transcoders.h
+    lib/basisu_transcoder_config.h
+    lib/basisu/transcoder/basisu_file_headers.h
+    lib/basisu/transcoder/basisu_global_selector_cb.h
+    lib/basisu/transcoder/basisu_global_selector_palette.h
+    lib/basisu/transcoder/basisu_transcoder_internal.h
+    lib/basisu/transcoder/basisu_transcoder_uastc.h
+    lib/basisu/transcoder/basisu_transcoder.cpp
+    lib/basisu/transcoder/basisu_transcoder.h
+    lib/basisu/transcoder/basisu.h
     lib/checkheader.c
-    lib/filestream.c
-    lib/hashlist.c
-    lib/info.c
-    lib/memstream.c
-    lib/strings.c
-    lib/swap.c
-    lib/texture.c
-    lib/texture2.c
-    lib/vk_funcs.c
-    lib/vkformat_check.c
-    lib/vkformat_str.c
-
     lib/dfdutils/createdfd.c
+    lib/dfdutils/dfd.h
+    lib/dfdutils/dfd2vk.inl
     lib/dfdutils/interpretdfd.c
     lib/dfdutils/printdfd.c
     lib/dfdutils/queries.c
     lib/dfdutils/vk2dfd.c
-
-    lib/dfdutils/dfd2vk.inl
-    lib/basisu/transcoder/basisu_transcoder.cpp
+    lib/dfdutils/vulkan/vk_platform.h
+    lib/dfdutils/vulkan/vulkan_core.h
+    lib/filestream.c
+    lib/filestream.h
+    lib/formatsize.h
+    lib/hashlist.c
+    lib/info.c
+    lib/ktxint.h
+    lib/memstream.c
+    lib/memstream.h
+    lib/stream.h
+    lib/strings.c
+    lib/swap.c
+    lib/texture.c
+    lib/texture.h
+    lib/texture2.c
+    lib/texture2.h
+    lib/uthash.h
+    lib/version.h
+    lib/vk_format.h
+    lib/vkformat_check.c
+    lib/vkformat_enum.h
+    lib/vkformat_str.c
     )
 add_dependencies(ktx version_h mkvk)
 
 add_library( objKtxOpenGLLoader OBJECT
     lib/etcdec.cxx
     lib/etcunpack.cxx
-    lib/glloader.c
+    lib/gl_format.h
     lib/gl_funcs.c
+    lib/gl_funcs.h
+    lib/glloader.c
 )
 
 add_library( objKtxVulkanLoader OBJECT
+    include/ktxvulkan.h
+    lib/vk_funcs.c
+    lib/vk_funcs.h
     lib/vkloader.c
 )
 
@@ -219,6 +246,7 @@ if(KTX_FEATURE_KTX1)
         ktx
         PRIVATE
         lib/texture1.c
+        lib/texture1.h
     )
 endif()
 
@@ -232,24 +260,42 @@ if(KTX_FEATURE_WRITE)
 
     add_library( objBasisuWrite OBJECT
         lib/basisu/apg_bmp.c
+        lib/basisu/apg_bmp.h
         lib/basisu/basisu_astc_decomp.cpp
+        lib/basisu/basisu_astc_decomp.h
         lib/basisu/basisu_backend.cpp
+        lib/basisu/basisu_backend.h
         lib/basisu/basisu_basis_file.cpp
+        lib/basisu/basisu_basis_file.h
         lib/basisu/basisu_bc7enc.cpp
+        lib/basisu/basisu_bc7enc.h
         lib/basisu/basisu_comp.cpp
+        lib/basisu/basisu_comp.h
         lib/basisu/basisu_enc.cpp
+        lib/basisu/basisu_enc.h
         lib/basisu/basisu_etc.cpp
+        lib/basisu/basisu_etc.h
         lib/basisu/basisu_frontend.cpp
+        lib/basisu/basisu_frontend.h
         lib/basisu/basisu_global_selector_palette_helpers.cpp
+        lib/basisu/basisu_global_selector_palette_helpers.h
         lib/basisu/basisu_gpu_texture.cpp
+        lib/basisu/basisu_gpu_texture.h
+        lib/basisu/basisu_miniz.h
         lib/basisu/basisu_pvrtc1_4.cpp
+        lib/basisu/basisu_pvrtc1_4.h
         lib/basisu/basisu_resample_filters.cpp
+        lib/basisu/basisu_resampler_filters.h
         lib/basisu/basisu_resampler.cpp
+        lib/basisu/basisu_resampler.h
         lib/basisu/basisu_ssim.cpp
-        lib/basisu/basisu_tool.cpp
+        lib/basisu/basisu_ssim.h
         lib/basisu/basisu_uastc_enc.cpp
+        lib/basisu/basisu_uastc_enc.h
         lib/basisu/jpgd.cpp
+        lib/basisu/jpgd.h
         lib/basisu/lodepng.cpp
+        lib/basisu/lodepng.h
     )
     target_include_directories(
         objBasisuWrite
@@ -368,7 +414,13 @@ if(KTX_FEATURE_WRITE)
         )
 endif()
 
-add_library( objUtil OBJECT utils/argparser.cpp )
+add_library( objUtil OBJECT
+    utils/argparser.cpp
+    utils/argparser.h
+    utils/ktxapp.h
+    utils/scapp.h
+    utils/unused.h
+    )
 target_include_directories(
     objUtil
     PUBLIC

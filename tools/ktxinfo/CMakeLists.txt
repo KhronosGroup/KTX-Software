@@ -1,6 +1,7 @@
 add_executable( ktxinfo
-    ktxinfo.cpp
     $<TARGET_OBJECTS:objUtil>
+    ktxinfo.cpp
+    stdafx.h
     )
 
 get_property(ktx_include_dirs TARGET ktx PROPERTY INCLUDE_DIRECTORIES)
