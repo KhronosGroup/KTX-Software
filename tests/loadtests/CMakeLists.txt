@@ -15,7 +15,6 @@ target_include_directories(
     ${SDL2_INCLUDE_DIRS}
     appfwSDL
     ${ktx_include_dirs}
-    ${OPENGL_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
@@ -24,6 +23,14 @@ target_include_directories(
     glloadtests
     glloadtests/utils
 )
+
+if(OPENGL_FOUND)
+    target_include_directories(
+        appfwSDL
+        PUBLIC
+        ${OPENGL_INCLUDE_DIR}
+    )
+endif()
 
 #Get a list of all of the files in the testimages
 file(GLOB_RECURSE TEST_IMAGES "${PROJECT_SOURCE_DIR}/tests/testimages/*")
@@ -59,7 +66,6 @@ target_include_directories(
     gl3loadtests
     PRIVATE
     ${ktx_include_dirs}
-    ${OPENGL_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
@@ -70,6 +76,13 @@ target_include_directories(
     glloadtests/utils
     )
 
+if(OPENGL_FOUND)
+    target_include_directories(
+        gl3loadtests
+        PRIVATE
+        ${OPENGL_INCLUDE_DIR}
+    )
+endif()
 
 target_link_libraries(
     gl3loadtests
@@ -132,7 +145,6 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
     ${SDL2_INCLUDE_DIRS}
-    ${Vulkan_INCLUDE_DIRS}
     appfwSDL
     appfwSDL/VulkanAppSDL
     common
@@ -143,10 +155,21 @@ target_include_directories(
 
 target_link_libraries(
     vkloadtests
-    ${Vulkan_LIBRARIES}
     ktx
     z
 )
+
+if(Vulkan_FOUND)
+    target_include_directories(
+        vkloadtests
+        PRIVATE
+        ${Vulkan_INCLUDE_DIRS}
+    )
+    target_link_libraries(
+        vkloadtests
+        ${Vulkan_LIBRARIES}
+    )
+endif()
 
 if(APPLE)
     target_link_libraries(
