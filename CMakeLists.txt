@@ -7,14 +7,8 @@ project(KTX-Software)
 include(CTest)
 
 find_package(Doxygen)
-
-if(NOT ANDROID)
-    find_package(OpenGL)
-endif()
-
-if(NOT IOS AND NOT ANDROID)
-    find_package(Vulkan)
-endif()
+find_package(OpenGL)
+find_package(Vulkan)
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
@@ -333,10 +327,17 @@ if(Vulkan_FOUND)
 endif()
 
 if(APPLE)
-target_link_libraries(
-    ktx
-    ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
-    )
+    if(IOS)
+        target_link_libraries(
+            ktx
+            ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libzstd.a
+            )
+    else()
+        target_link_libraries(
+            ktx
+            ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
+            )
+    endif()
 elseif(LINUX)
     find_package(zstd REQUIRED)
     find_package(Threads REQUIRED)
@@ -353,7 +354,6 @@ target_include_directories(
     PUBLIC
     include
     PRIVATE
-    ${Vulkan_INCLUDE_DIRS}
     other_include
     lib/basisu/transcoder
 )
@@ -363,8 +363,15 @@ target_include_directories(
     PUBLIC
     include
     other_include
-    ${OPENGL_INCLUDE_DIR}
 )
+
+if(OPENGL_FOUND)
+    target_include_directories(
+        objKtxOpenGLLoader
+        PRIVATE
+        ${OPENGL_INCLUDE_DIR}
+    )
+endif()
 
 target_compile_definitions(
     objKtxOpenGLLoader
@@ -377,8 +384,22 @@ target_include_directories(
     PUBLIC
     include
     other_include
-    ${Vulkan_INCLUDE_DIRS}
 )
+if(Vulkan_FOUND)
+    target_include_directories(
+        objKtxVulkanLoader
+        PRIVATE
+        ${Vulkan_INCLUDE_DIRS}
+    )
+elseif(APPLE)
+    # TODO: Make it more elegant than fallback to MOLTEN_VK variable
+    target_include_directories(
+        objKtxVulkanLoader
+        PUBLIC
+        ${MOLTEN_VK}/include
+    )
+endif()
+
 
 target_compile_definitions(
     objKtxVulkanLoader
@@ -431,8 +452,9 @@ add_subdirectory(interface/basisu_c_binding)
 
 if(NOT IOS AND NOT ANDROID)
     add_subdirectory(tools)
-    add_subdirectory(tests)
 endif()
+
+add_subdirectory(tests)
 
 if(DOXYGEN_FOUND)
     include(cmake/docs.cmake)

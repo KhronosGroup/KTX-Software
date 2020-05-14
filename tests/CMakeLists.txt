@@ -47,29 +47,30 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     )
 
+if(OPENGL_FOUND)
+    add_executable( texturetests
+        texturetests/texturetests.cc
+        )
 
-add_executable( texturetests
-    texturetests/texturetests.cc
-    )
+    target_include_directories(
+        texturetests
+        # PUBLIC
+        PRIVATE
+        ${OPENGL_INCLUDE_DIR}
+        ${ktx_include_dirs}
+        ${PROJECT_SOURCE_DIR}/other_include
+        ${PROJECT_SOURCE_DIR}/lib
+        unittests
+        )
 
-target_include_directories(
-    texturetests
-    # PUBLIC
-    PRIVATE
-    ${OPENGL_INCLUDE_DIR}
-    ${ktx_include_dirs}
-    ${PROJECT_SOURCE_DIR}/other_include
-    ${PROJECT_SOURCE_DIR}/lib
-    unittests
-    )
-
-target_link_libraries(
-    texturetests
-    ${OPENGL_LIBRARIES}
-    gtest
-    ktx
-    ${CMAKE_THREAD_LIBS_INIT}
-    )
+    target_link_libraries(
+        texturetests
+        ${OPENGL_LIBRARIES}
+        gtest
+        ktx
+        ${CMAKE_THREAD_LIBS_INIT}
+        )
+endif()
 
 add_subdirectory(loadtests)
 
