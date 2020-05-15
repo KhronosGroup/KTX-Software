@@ -21,8 +21,6 @@
 #include <ktx.h>
 #include <iostream>
 
-#include "basisu_transcoder_config.h"
-
 using namespace emscripten;
 
 #define ktxTexture2(t) reinterpret_cast<ktxTexture2*>(m_ptr.get())
@@ -112,7 +110,7 @@ namespace ktx
                 return ktxTexture2(m_ptr.get())->supercompressionScheme;
         }
 
-         uint32_t vkFormat() const
+        uint32_t vkFormat() const
         {
             if (m_ptr->classId != ktxTexture2_c)
             {
@@ -128,12 +126,12 @@ namespace ktx
             return m_ptr->orientation;
         }
 
-        bool transcodeBasis(const val& targetFormat, const val& decodeFlags)
+        ktx_error_code_e transcodeBasis(const val& targetFormat, const val& decodeFlags)
         {
             if (m_ptr->classId != ktxTexture2_c)
             {
                 std::cout << "ERROR: transcodeBasis is only supported for KTX2" << std::endl;
-                return false;
+                return KTX_INVALID_VALUE;
             }
 
             KTX_error_code result = ktxTexture2_TranscodeBasis(
@@ -144,9 +142,8 @@ namespace ktx
             if (result != KTX_SUCCESS)
             {
                 std::cout << "ERROR: Failed to transcode: " << ktxErrorString(result) << std::endl;
-                return false;
             }
-            return true;
+            return result;
         }
 
         // NOTE: WebGLTexture objects are completely opaque so the option of passing in the texture
@@ -215,8 +212,8 @@ interface ktxUploadResult {
 
 interface ktxTexture {
     void ktxTexture(ArrayBufferView fileData);
-    ktxUploadResult glUpload();
-    void transcodeBasis();
+    UploadResult glUpload();
+    ErrorCode transcodeBasis();
 
     readonly attribute long baseWidth;
     readonly attribute long baseHeight;
@@ -228,8 +225,30 @@ interface ktxTexture {
     readonly attribute ktxOrientation orientation;
 };
 
+enum ErrorCode = {
+    "SUCCESS",
+    "FILE_DATA_ERROR",
+    "FILE_ISPIPE",
+    "FILE_OPEN_FAILED",
+    "FILE_OVERFLOW",
+    "FILE_READ_ERROR",
+    "FILE_SEEK_ERROR",
+    "FILE_UNEXPECTED_ERROR",
+    "FILE_WRITE_ERROR",
+    "GL_ERROR",
+    "INVALID_OPERATION",
+    "INVALID_VALUE",
+    "NOT_FOUND",
+    "OUT_OF_MEMORY",
+    "TRANSCODE_FAILED",
+    "UNKNOWN_FILE_FORMAT",
+    "UNSUPPORTED_TEXTURE_TYPE",
+    "UNSUPPORTED_FEATURE",
+    "LIBRARY_NOT_LINKED"
+};
+
 // Some targets may not be available depending on options used when compiling
-// the web assembly.
+// the web assembly. ktxTexture.transcodeBasis will report this.
 enum TranscodeTarget = {
     "ETC1_RGB",
     "BC1_RGB",
@@ -338,7 +357,7 @@ a function like the following to be executed.
           format = TranscodeTarget.RGBA4444;
         }
         ktexture.transcodeBasis(format, 0);
-        if (!ktexture.transcodeBasis(format, 0)) {
+        if (ktexture.transcodeBasis(format, 0) != LIBKTX.ErrorCode.SUCCESS) {
           alert('Texture transcode failed. See console for details.');
           return undefined;
         }
@@ -399,48 +418,50 @@ callback in JS to upload each image to WebGL.
 
 EMSCRIPTEN_BINDINGS(ktx)
 {
+    enum_<ktx_error_code_e>("ErrorCode")
+        .value("SUCCESS", KTX_SUCCESS)
+        .value("FILE_DATA_ERROR", KTX_FILE_DATA_ERROR)
+        .value("FILE_ISPIPE", KTX_FILE_ISPIPE)
+        .value("FILE_OPEN_FAILED", KTX_FILE_OPEN_FAILED)
+        .value("FILE_OVERFLOW", KTX_FILE_OVERFLOW)
+        .value("FILE_READ_ERROR", KTX_FILE_READ_ERROR)
+        .value("FILE_SEEK_ERROR", KTX_FILE_SEEK_ERROR)
+        .value("FILE_UNEXPECTED_ERROR", KTX_FILE_UNEXPECTED_EOF)
+        .value("FILE_WRITE_ERROR", KTX_FILE_WRITE_ERROR)
+        .value("GL_ERROR", KTX_GL_ERROR)
+        .value("INVALID_OPERATION", KTX_INVALID_OPERATION)
+        .value("INVALID_VALUE", KTX_INVALID_VALUE)
+        .value("NOT_FOUND", KTX_NOT_FOUND)
+        .value("OUT_OF_MEMORY", KTX_OUT_OF_MEMORY)
+        .value("TRANSCODE_FAILED", KTX_TRANSCODE_FAILED)
+        .value("UNKNOWN_FILE_FORMAT", KTX_UNKNOWN_FILE_FORMAT)
+        .value("UNSUPPORTED_TEXTURE_TYPE", KTX_UNSUPPORTED_TEXTURE_TYPE)
+        .value("UNSUPPORTED_FEATURE", KTX_UNSUPPORTED_FEATURE)
+        .value("LIBRARY_NOT_LINKED", KTX_LIBRARY_NOT_LINKED)
+        ;
+
     enum_<ktx_texture_transcode_fmt_e>("TranscodeTarget")
         .value("ETC1_RGB", KTX_TTF_ETC1_RGB)
-#if BASISD_SUPPORT_DXT1
         .value("BC1_RGB", KTX_TTF_BC1_RGB)
-#endif
-#if BASISD_SUPPORT_DXT5A
         .value("BC4_R", KTX_TTF_BC4_R)
         .value("BC5_RG", KTX_TTF_BC5_RG)
-#endif
-#if BASISD_SUPPORT_DXT1 && BASISD_SUPPORT_DXT5A
         .value("BC3_RGBA", KTX_TTF_BC3_RGBA)
         .value("BC1_OR_3", KTX_TTF_BC1_OR_3)
-#endif
-#if BASISD_SUPPORT_PVRTC1
         .value("PVRTC1_4_RGB", KTX_TTF_PVRTC1_4_RGB)
         .value("PVRTC1_4_RGBA", KTX_TTF_PVRTC1_4_RGBA)
-#endif
-#if BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY
         .value("BC7_M6_RGB", KTX_TTF_BC7_M6_RGB)
-#endif
-#if BASISD_SUPPORT_BC7_MODE5
         .value("BC7_M5_RGBA", KTX_TTF_BC7_M5_RGBA)
-#endif
-#if BASISD_SUPPORT_ETC2_EAC_A8
         .value("ETC2_RGBA", KTX_TTF_ETC2_RGBA)
-#endif
-#if BASISD_SUPPORT_ASTC
         .value("ASTC_4x4_RGBA", KTX_TTF_ASTC_4x4_RGBA)
-#endif
         .value("RGBA32", KTX_TTF_RGBA32)
         .value("RGB565", KTX_TTF_RGB565)
         .value("BGR565", KTX_TTF_BGR565)
         .value("RGBA4444", KTX_TTF_RGBA4444)
-#if BASISD_SUPPORT_PVRTC2
         .value("PVRTC2_4_RGB", KTX_TTF_PVRTC2_4_RGB)
         .value("PVRTC2_4_RGBA", KTX_TTF_PVRTC2_4_RGBA)
-#endif
-#if BASISD_SUPPORT_ETC2_EAC_RG11
         .value("ETC", KTX_TTF_ETC)
         .value("EAC_R11", KTX_TTF_ETC2_EAC_R11)
         .value("EAC_RG11", KTX_TTF_ETC2_EAC_RG11)
-#endif
     ;
     enum_<ktx_transcode_flag_bits_e>("TranscodeFlagBits")
         .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",

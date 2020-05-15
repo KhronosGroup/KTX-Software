@@ -245,11 +245,11 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { Texture::create,
       "testimages/color_grid_basis.ktx2",
-      "BasisU Compressed KTX2 RGB non-mipmapped Transcoded"
+      "ETC1S+BasisLZ Compressed KTX2 RGB non-mipmapped Transcoded"
     },
     { Texture::create,
       "testimages/kodim17_basis.ktx2",
-      "BasisU Compressed KTX2 RGB non-mipmapped Transcoded"
+      "ETC1S+BasisLZ Compressed KTX2 RGB non-mipmapped Transcoded"
     },
     { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx2",
@@ -257,11 +257,11 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { TextureMipmap::create,
       "testimages/ktx_document_basis.ktx2",
-      "RGBA8 + Mipmap Transcoded"
+      "ETC1S+BasisLZ  compressed RGBA8 + Mipmap Transcoded"
     },
     { TextureMipmap::create,
       "testimages/rgba-mipmap-reference-basis.ktx2",
-      "Basis Compressed RGBA8 + Mipmap Transcoded"
+      "ETC1S+BasisLZ Compressed RGBA8 + Mipmap Transcoded"
     },
     { TextureCubemap::create,
       "testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
@@ -269,7 +269,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_basis_rd.ktx2",
-        "KTX2: BasisU Compressed Cube Map Transcoded"
+        "ETC1S+BasisLZ Compressed Cube Map Transcoded"
     },
     { Texture::create,
       "testimages/orient-down-metadata.ktx",

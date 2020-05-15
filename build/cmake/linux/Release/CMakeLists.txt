@@ -121,9 +121,6 @@ list(APPEND libktx_doc__buildLibktxDoc__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_sgd.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_encode.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basis_transcode.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu_image_transcoders.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu_image_transcoders.h"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu_transcoder_config.h"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/checkheader.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/createdfd.c"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils/dfd.h"
@@ -321,7 +318,6 @@ list(APPEND libktx__cxx_srcs
   "../../../../lib/basisu/basisu_uastc_enc.cpp"
   "../../../../lib/basis_encode.cpp"
   "../../../../lib/basis_transcode.cpp"
-  "../../../../lib/basisu_image_transcoders.cpp"
   "../../../../lib/etcdec.cxx"
   "../../../../lib/etcunpack.cxx")
 list(APPEND libktx__other_srcs
@@ -358,8 +354,6 @@ list(APPEND libktx__other_srcs
   "../../../../lib/basisu/transcoder/basisu_transcoder_tables_pvrtc2_alpha_33.inc"
   "../../../../lib/basisu/basisu_uastc_enc.h"
   "../../../../lib/basis_sgd.h"
-  "../../../../lib/basisu_image_transcoders.h"
-  "../../../../lib/basisu_transcoder_config.h"
   "../../../../lib/dfdutils/dfd.h"
   "../../../../lib/dfdutils/dfd2vk.inl"
   "../../../../lib/dfdutils/vk2dfd.inl"

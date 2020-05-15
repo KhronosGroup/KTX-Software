@@ -43,50 +43,50 @@
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
       "testimages/Iron_Bars_001_normal.ktx2",
-      "UASTC+rdo+zstd compressed KTX2 normal map mipmapped"
+      "Transcode of UASTC+rdo+zstd Compressed KTX2 normal map mipmapped"
     },
     { DrawTexture::create,
       "testimages/color_grid_uastc_zstd.ktx2",
-      "UASTC+Zstd Compressed KTX2 RGB non-mipmapped Transcoded"
+      "Transcode of UASTC+Zstd Compressed KTX2 RGB not mipmapped "
     },
     { DrawTexture::create,
       "testimages/color_grid_zstd.ktx2",
-      "Zstd Compressed KTX2 RGB non-mipmapped"
+      "Zstd Compressed KTX2 RGB not mipmapped"
     },
     { DrawTexture::create,
       "testimages/color_grid_uastc.ktx2",
-      "UASTC Compressed KTX2 RGB non-mipmapped Transcoded"
+      "Transcode of UASTC Compressed KTX2 RGB not mipmapped"
     },
     { DrawTexture::create,
       "testimages/color_grid_basis.ktx2",
-      "KTX2: Basis Transcode on RGB non mipmapped"
+      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGB not mipmapped"
     },
     { DrawTexture::create,
       "testimages/kodim17_basis.ktx2",
-      "KTX2: Basis Transcode on RGB non mipmapped"
+      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGB not mipmapped"
     },
     { DrawTexture::create,
       "--transcode-target RGBA4444 testimages/kodim17_basis.ktx2",
-      "KTX2: Basis Transcode of RGB non-mipmapped to RGBA4444"
+      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGB not mipmapped to RGBA4444"
     },
     { BasisuTest::create,
       "testimages/FlightHelmet_baseColor_basis.ktx2",
-      "KTX2: Basis Transcode on RGBA non mipmapped"
+      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGBA not mipmapped"
     },
 #if TEST_BASIS_COMPRESSION
     { BasisuTest::create,
       "testimages/rgba-reference-u.ktx2",
-      "KTX2: Encode and transcode Basis with RGBA non mipmapped"
+      "Encode to ETC1S+BasisLZ then Transcode of Compressed KTX2 RGBA not mipmapped"
     },
 #endif
 #if !defined(__EMSCRIPTEN__)
     { TextureCubemap::create,
       "testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
-      "KTX2: Transcode of UASTC+rdo+zstd compressed mipmapped cube map"
+      "Transcode of UASTC+rdo+zstd Compressed KTX2 Cube Map Transcoded"
     },
     { TextureCubemap::create,
       "testimages/cubemap_yokohama_basis_rd.ktx2",
-      "KTX2: Transcode of BasisU compressed mipmapped cube map",
+      "Transcode of ETC1S/BasisLZ Compressed KTX2 mipmapped cube map",
     },
 #endif
     { DrawTexture::create,

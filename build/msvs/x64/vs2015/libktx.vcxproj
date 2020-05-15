@@ -174,8 +174,6 @@
     <ClInclude Include="..\..\..\..\lib\basisu\transcoder\basisu_transcoder_internal.h"/>
     <ClInclude Include="..\..\..\..\lib\basisu\basisu_uastc_enc.h"/>
     <ClInclude Include="..\..\..\..\lib\basis_sgd.h"/>
-    <ClInclude Include="..\..\..\..\lib\basisu_image_transcoders.h"/>
-    <ClInclude Include="..\..\..\..\lib\basisu_transcoder_config.h"/>
     <ClInclude Include="..\..\..\..\lib\dfdutils\dfd.h"/>
     <ClInclude Include="..\..\..\..\lib\filestream.h"/>
     <ClInclude Include="..\..\..\..\lib\formatsize.h"/>
@@ -214,7 +212,6 @@
     <ClCompile Include="..\..\..\..\lib\basisu\basisu_uastc_enc.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basis_encode.cpp"/>
     <ClCompile Include="..\..\..\..\lib\basis_transcode.cpp"/>
-    <ClCompile Include="..\..\..\..\lib\basisu_image_transcoders.cpp"/>
     <ClCompile Include="..\..\..\..\lib\checkheader.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\createdfd.c"/>
     <ClCompile Include="..\..\..\..\lib\dfdutils\dfd2vk.c"/>

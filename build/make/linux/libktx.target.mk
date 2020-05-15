@@ -77,7 +77,6 @@ OBJS := \
 	$(obj).target/$(TARGET)/lib/basisu/basisu_uastc_enc.o \
 	$(obj).target/$(TARGET)/lib/basis_encode.o \
 	$(obj).target/$(TARGET)/lib/basis_transcode.o \
-	$(obj).target/$(TARGET)/lib/basisu_image_transcoders.o \
 	$(obj).target/$(TARGET)/lib/checkheader.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/createdfd.o \
 	$(obj).target/$(TARGET)/lib/dfdutils/dfd2vk.o \

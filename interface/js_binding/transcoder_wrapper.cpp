@@ -18,13 +18,32 @@
  */
 
 #include <emscripten/bind.h>
-#include "basisu_image_transcoders.h"
-#include "basisu_transcoder_config.h"
+#include "basisu/transcoder/basisu_transcoder.h"
 
 using namespace emscripten;
 using namespace basist;
 
 namespace msc {
+    // This is needed because the enum defining CDecode* is anonymous.
+    enum TranscodeFlagBits {
+        TranscodeAlphaDataToOpaqueFormats =
+               cDecodeFlagsTranscodeAlphaDataToOpaqueFormats,
+        HighQuality = cDecodeFlagsHighQuality
+    };
+
+    struct BlockDimensions {
+        uint32_t w;
+        uint32_t h;
+    };
+
+    BlockDimensions getTexFormatBlockDimensions(basis_tex_format fmt) {
+        BlockDimensions dim;
+        // Currently all formats are 4x4.
+        dim.w = 4;
+        dim.h = 4;
+        return std::move(dim);
+    }
+
     class BasisTranscoderState: public basisu_transcoder_state {
     };
 
@@ -82,10 +101,10 @@ namespace msc {
     };
 
 
-    class BasisUImageTranscoder : public ktxBasisImageTranscoder {
+    class BasisLzEtc1sImageTranscoder : public basisu_etc1s_image_transcoder {
       public:
-        BasisUImageTranscoder() : ktxBasisImageTranscoder(buildSelectorCodebook())
-        { }
+        BasisLzEtc1sImageTranscoder()
+                : basisu_etc1s_image_transcoder(buildSelectorCodebook()) { }
 
         // Yes, code in the following functions handling data coming in from
         // ArrayBuffers IS copying the data. Sigh! According to Alon Zakai:
@@ -116,7 +135,7 @@ namespace msc {
                                             jsSelectors["length"].as<uint32_t>());
             selectorsView.call<void>("set", jsSelectors);
 
-            return ktxBasisImageTranscoder::decode_palettes(num_endpoints,
+            return basisu_etc1s_image_transcoder::decode_palettes(num_endpoints,
                                                        cEndpoints.data(),
                                                        cEndpoints.size(),
                                                        num_selectors,
@@ -135,137 +154,70 @@ namespace msc {
                                             jsTableData["length"].as<uint32_t>());
             TableDataView.call<void>("set", jsTableData);
 
-            return ktxBasisImageTranscoder::decode_tables(cTableData.data(),
+            return basisu_etc1s_image_transcoder::decode_tables(
+                                                          cTableData.data(),
                                                           cTableData.size());
         }
 
         // @~English
-        // @brief Transcode a single Basis supercompressed image.
+        // @brief Transcode a single BasisLZ supercompressed ETC1S image.
         //
-        // Most applications should use this transcoder in preference to the
-        // low-level slice transcoder.
-        //
-        // @param[in] imageFlags   flags from the first uint32_t in an imageDesc
-        //                         from a KTX2 file's supercompressionGlobalData
-        //                         or a sliceDesc in a .basis file.
-        // @param[in] jsRgbSlice   emscripten::val of a .subarray pointing to the
-        //                         rgbSlice of the data to be transcoded within
-        //                         the ArrayBuffer holding the file data.
-        // @param[in] jsAlphaSlice emscripten::val of a .subarray pointing to the
-        //                         alphaSlice of the data to be transcoded
-        //                         within the ArrayBuffer holding the file data.
         // @param[in] targetFormat the format to which to transcode the image.
-        //                         Only real formats are accepted, i.e., any
-        //                         format accepted by ktxTexture2_TranscodeBasis
-        //                         except @c KTX_TTF_ETC and @c KTX_TTF_BC1_OR_3.
-        // @param[in] level the mip level of the image being transcoded.
-        // @param[in] width the pixel width of a level @p level image.
-        // @param[in] height the pixel height of a level @p level image.
-        // @param[in] num_blocks_x number of blocks in the x dimension of mip
-        //                         level @p level to be transcoded. This is the
-        //                         number of blocks in base block-compressed
-        //                         format used by Basis Universal. When the
-        //                         format is ETC1, as indicated by @c eBuIsETC1S
-        //                         being set in @c globalFlags in the
-        //                         supercompression global data, the block width
-        //                         to use for calculating this from @p width is 4.
-        // @param[in] num_blocks_y number of blocks in the y dimension of mip
-        //                         level @p level to be transcoded. When
-        //                         @c eBuIsETC1S is set in @c globalFlags in the
-        //                         supercompression global data the block height
-        //                         to use for calculating this from @p height is 4.
-        // @param[in] isVideo @c true if the image comes from a file containing
-        //                    an animation sequence, @c false otherwise.
-        // @param[in] transcodeAlphaToOpaqueFormats if @p targetFormat is a
-        //                                          format lacking an alpha
-        //                                          component, transcode the
-        //                                          alpha slice into the RGB
-        //                                          components.
-        // @return An emscripten::val possibly 2 entries, @c result and @c
-        //         transcodedImage. If error is not KTX_SUCCESS (0), it will be
-        //         set to one of the following values:
-        // @exception KTX_INVALID_VALUE  A non-real format was specified as
-        //                               @p targetFormat.
-        // @exception KTX_TRANSCODE_FAILED   Something went wrong during transcoding.
-        //                                   The image will be corrupted.
+        //                         This enum comes from Basis Universal.
+        // @param[in] jsInSlices   emscripten::val of a .subarray of the 
+        //                         ArrayBuffer holding the file data that
+        //                         points to the first slice for this image.
+        //                         An alpha slice, if it exists, always
+        //                         immediately follows the rgb slice.
+        // @param[in] imageDesc    reference to a struct basisu_image_desc
+        //                         giving information about the image.
+        // @param[in] decodeFlags
+        //                   an OR of basisu_decode_flags bits setting decode
+        //                   options. The only one of general interest is
+        //                   @c cDecodeFlagsTranscodeAlphaDataToOpaqueFormats.
+        //                   This can be used when @p targetFormat lacks an
+        //                   alpha component. When set the alpha slice is
+        //                   transcoded into the RGB components of the target.
         //
-        emscripten::val transcode_image(uint32_t imageFlags,
-                                     const val& jsRgbSlice,
-                                     const val& jsAlphaSlice,
-                                     const val& jsTargetFormat,
-                                     uint32_t level,
-                                     uint32_t width, uint32_t height,
-                                     uint32_t num_blocks_x,
-                                     uint32_t num_blocks_y,
-                                     bool isVideo = false,
-                                     bool transcodeAlphaToOpaqueFormats = false)
+        // @return An emscripten::val with 1 entries, @c transcodedImage. If
+        //         the transcode failed, @c transcodedImage will be undefined.
+        //
+        emscripten::val transcode_image(
+                          transcoder_texture_format targetFormat,
+                          const val& jsInSlices,
+                          basisu_image_desc& imageDesc,
+                          uint32_t decodeFlags = 0,
+                          bool isVideo = false)
         {
             val memory = val::module_property("HEAP8")["buffer"];
 
-            // Must reconstruct an imageDesc which is an array of 5 uint32_ts as
-            // found in the supercompressionGlobalData of a KTX2 file:
-            //
-            //    uint32_t imageFlags
-            //    uint32_t rgbSliceByteOffset
-            //    uint32_t rgbSliceByteLength
-            //    uint32_t alphaSliceByteOffset
-            //    uint32_t alphaSliceByteLength
-            //
-            // Maybe there is a better way to pass the information in from Java
-            // that can avoid the need for reconstruction.
-
             // First of all copy in the deflated data.
-            std::vector <uint8_t> deflatedImage;
-            size_t rgbSliceByteLength = jsRgbSlice["byteLength"].as<size_t>();
-            size_t alphaSliceByteLength = jsAlphaSlice["byteLength"].as<size_t>();
-            deflatedImage.resize(rgbSliceByteLength + alphaSliceByteLength);
+            std::vector <uint8_t> deflatedSlices;
+            uint32_t deflatedSlicesByteLength
+                                     = jsInSlices["byteLength"].as<uint32_t>();
+            deflatedSlices.resize(deflatedSlicesByteLength);
+            val memoryView = jsInSlices["constructor"].new_(memory,
+                             reinterpret_cast<uintptr_t>(deflatedSlices.data()),
+                             deflatedSlices.size());
+            memoryView.call<void>("set", jsInSlices);
 
-            val memoryView = jsRgbSlice["constructor"].new_(memory,
-                                         reinterpret_cast<uintptr_t>(deflatedImage.data()),
-                                         rgbSliceByteLength);
-            memoryView.call<void>("set", jsRgbSlice);
-            if (alphaSliceByteLength != 0) {
-                val memoryView = jsAlphaSlice["constructor"].new_(memory,
-                                             reinterpret_cast<uintptr_t>(&deflatedImage[rgbSliceByteLength]),
-                                             alphaSliceByteLength);
-                memoryView.call<void>("set", jsAlphaSlice);
-            }
-
-            transcoder_texture_format cTargetFormat
-                            = jsTargetFormat.as<transcoder_texture_format>();
-
-            ktxBasisImageDesc imageDesc;
-            imageDesc.imageFlags = imageFlags;
-            imageDesc.rgbSliceByteOffset = 0;
-            imageDesc.rgbSliceByteLength = rgbSliceByteLength;
-            imageDesc.alphaSliceByteOffset = alphaSliceByteLength == 0 ?
-                                                  0 : rgbSliceByteLength;
-            imageDesc.alphaSliceByteLength = alphaSliceByteLength;
-
-            //std::vector<uint8_t> dst;
-            //dst.resize(getTranscodedImageByteLength(static_cast<transcoder_texture_format>(cTargetFormat),
             size_t tiByteLength =
-            ImageTranscoderHelper::getTranscodedImageByteLength(cTargetFormat,
-                                                                width,
-                                                                height);
+            ImageTranscoderHelper::getTranscodedImageByteLength(targetFormat,
+                                                      imageDesc.m_orig_width,
+                                                      imageDesc.m_orig_height);
             TranscodedImage* dst = new TranscodedImage(tiByteLength);
 
-            KTX_error_code error =
-                ktxBasisImageTranscoder::transcode_image(
-                                              imageDesc,
-                                              cTargetFormat,
+            bool status = basisu_etc1s_image_transcoder::transcode_image(
+                                              targetFormat,
                                               dst->data(),
                                               dst->size(),
-                                              level,
-                                              deflatedImage.data(),
-                                              width, height,
-                                              num_blocks_x, num_blocks_y,
-                                              isVideo,
-                                              transcodeAlphaToOpaqueFormats);
+                                              deflatedSlices.data(),
+                                              imageDesc,
+                                              decodeFlags,
+                                              isVideo);
 
             val ret = val::object();
-            ret.set("error", static_cast<uint32_t>(error));
-            if (error == KTX_SUCCESS) {
+            if (status) {
                 ret.set("transcodedImage", dst);
             }
             return std::move(ret);
@@ -286,25 +238,39 @@ namespace msc {
         }
     };
 
-    class UastcImageTranscoder : public ktxUastcImageTranscoder {
+    class UastcImageTranscoder : public basisu_uastc_image_transcoder {
       public:
-        UastcImageTranscoder() : ktxUastcImageTranscoder() { }
+        UastcImageTranscoder() : basisu_uastc_image_transcoder() { }
 
+        // @~English
+        // @brief Transcode a single UASTC encoded image.
+        //
+        // @param[in] targetFormat the format to which to transcode the image.
+        //                         This enum comes from Basis Universal.
+        // @param[in] jsInSlices   emscripten::val of a .subarray of the 
+        //                         ArrayBuffer holding the file data that
+        //                         points to the the image to transcode.
+        // @param[in] imageDesc    reference to a struct basisu_image_desc
+        //                         giving information about the image.
+        // @param[in] decodeFlags
+        //                   an OR of basisu_decode_flags bits setting decode
+        //                   options. The only one of general interest is
+        //                   @c cDecodeFlagsTranscodeAlphaDataToOpaqueFormats.
+        //                   This can be used when @p targetFormat lacks an
+        //                   alpha component. When set, the alpha components
+        //                   are decoded into the RGB components of the target.
+        //
+        // @return An emscripten::val with 1 entries, @c transcodedImage. If
+        //         the transcode failed, @c transcodedImage will be undefined.
+        //
         emscripten::val transcode_image(
-                                   const val& jsTargetFormat,
-                                   uint32_t level,
-                                   const val& jsInImage,
-                                   uint32_t width, uint32_t height,
-                                   uint32_t num_blocks_x,
-                                   uint32_t num_blocks_y,
-                                   bool hasAlpha = false,
-                                   uint32_t transcode_flags = 0
-                                   /*basisu_transcoder_state* pState = nullptr*/)
+                          transcoder_texture_format targetFormat,
+                          const val& jsInImage,
+                          basisu_image_desc& imageDesc,
+                          uint32_t decodeFlags = 0,
+                          bool hasAlpha = false,
+                          bool isVideo = false)
         {
-
-
-            transcoder_texture_format cTargetFormat
-                            = jsTargetFormat.as<transcoder_texture_format>();
             // Copy in the deflated image.
             std::vector <uint8_t> deflatedImage;
             size_t deflatedImageByteLength
@@ -317,35 +283,30 @@ namespace msc {
             memoryView.call<void>("set", jsInImage);
 
             size_t tiByteLength =
-            ImageTranscoderHelper::getTranscodedImageByteLength(cTargetFormat,
-                                                                width,
-                                                                height);
+            ImageTranscoderHelper::getTranscodedImageByteLength(targetFormat,
+                                                      imageDesc.m_orig_width,
+                                                      imageDesc.m_orig_height);
             TranscodedImage* dst = new TranscodedImage(tiByteLength);
-
-            ktx_error_code_e error =
-                ktxUastcImageTranscoder::transcode_image(
-                                              cTargetFormat,
+            bool status =
+                basisu_uastc_image_transcoder::transcode_image(
+                                              targetFormat,
                                               dst->data(),
                                               dst->size(),
-                                              level,
                                               deflatedImage.data(),
-                                              deflatedImage.size(),
-                                              width, height,
-                                              num_blocks_x, num_blocks_y,
+                                              imageDesc,
+                                              decodeFlags,
                                               hasAlpha,
-                                              transcode_flags
-                                              /*pState*/);
+                                              isVideo);
 
             val ret = val::object();
-            ret.set("error", static_cast<uint32_t>(error));
-            if (error == KTX_SUCCESS) {
+            if (status) {
                 ret.set("transcodedImage", dst);
             }
             return std::move(ret);
         }
     };
 
-    basist::etc1_global_selector_codebook* BasisUImageTranscoder::pGlobal_codebook;
+    basist::etc1_global_selector_codebook* BasisLzEtc1sImageTranscoder::pGlobal_codebook;
 }
 
 /** @page msc_basis_transcoder Basis Image Transcoder binding
@@ -353,6 +314,11 @@ namespace msc {
  ## WebIDL for the binding
 
 @code{.unparsed}
+void initTranscoders();
+
+bool isFormatSupported(TranscodeTarget targetFormat, TextureFormat texFormat);
+BlockDimensions getTexFormatBlockDimensions(TextureFormat texFormat);
+
 interface BasisTranscoderState {
     void BasisTranscoderState();
 };
@@ -362,42 +328,54 @@ interface TranscodedImage {
 };
 
 interface TranscodeResult {
-
-    uint32_t error;
     TranscodedImage transcodedImage;
 };
 
-interface BasisUImageTranscoder {
-    void BasisUImageTranscoder();
-    uint32_t getBytesPerBlock(const TranscodeTarget format);
+interface BasisLzEtc1sImageTranscoder {
+    void BasisLzEtc1sImageTranscoder();
+    uint32_t getBytesPerBlock(TranscodeTarget format);
     bool decode_palettes(uint32_t num_endpoints,
-                         const ArrayBufferView endpoints,
+                         const Uint8Array endpoints,
                          uint32_t num_selectors,
-                         const ArrayBufferView selectors);
-    bool decode_tables(const ArrayBufferView tableData);
-    TranscodeResult transcode_image(uint32_t imageFlags,
-                                    const ArrayBufferView rgbSlice,
-                                    const ArrayBufferView alphaSlice,
-                                    const TranscodeTarget targetFormat,
-                                    uint32_t level,
-                                    uint32_t width, uint32_t height,
-                                    uint32_t num_blocks_x,
-                                    uint32_t num_blocks_y,
-                                    bool isVideo = false,
-                                    bool transcodeAlphaToOpaqueFormats = false);
+                         const Uint8Array selectors);
+    bool decode_tables(const Uint8Array tableData);
+    TranscodeResult transcode_image(
+                          TranscodeTarget targetFormat,
+                          const Uint8Array jsInSlices,
+                          ImageInfo imageInfo,
+                          uint32_t decodeFlags = 0,
+                          bool isVideo = false);
 };
 
-interface UastcImageTranscoder {
-    void UastcImageTranscoder();
+interface BasisUastcImageTranscoder {
+    void BasisUastcImageTranscoder();
     uint32_t getBytesPerBlock(const TranscodeTarget format);
-    TranscodeResult transcode_image(const val& jsTargetFormat,
-                                    uint32_t level,
-                                    const ArrayBufferView jsInImage,
-                                    uint32_t width, uint32_t height,
-                                    uint32_t num_blocks_x,
-                                    uint32_t num_blocks_y,
-                                    bool hasAlpha = false,
-                                    uint32_t transcode_flags = 0);
+    TranscodeResult transcode_image(
+                          TranscodeTarget targetFormat,
+                          const Uint8Array jsInImage,
+                          basisu_image_desc& imageDesc,
+                          uint32_t decodeFlags = 0,
+                          bool hasAlpha = false,
+                          bool isVideo = false);
+
+interface ImageInfo = {
+    ImageInfo(TextureFormat texFormat, uint32_t width, uint32_t height,
+              uint32_t level);
+    attribute uint32_t flags;
+    attribute long rgbByteOffset;
+    attribute long rgbByteLength;
+    attribute long alphaByteOffset;
+    attribute long alphaByteLength;
+    attribute uint32_t width;
+    attribute uint32_t height;
+    attribute uint32_t numBlocksX;
+    attribute uint32_t numBlocksY;
+    attribute uint32_t level;
+};
+
+Dictionary BlockDimensions = {
+    uint32_t w;
+    uint32_t h;
 };
 
 // Some targets may not be available depending on options used when compiling
@@ -408,7 +386,6 @@ enum TranscodeTarget = {
     "BC4_R",
     "BC5_RG",
     "BC3_RGBA",
-    "BC1_OR_3",
     "PVRTC1_4_RGB",
     "PVRTC1_4_RGBA",
     "BC7_M6_RGB",
@@ -421,13 +398,22 @@ enum TranscodeTarget = {
     "RGBA4444",
     "PVRTC2_4_RGB",
     "PVRTC2_4_RGBA",
-    "ETC",
     "EAC_R11",
     "EAC_RG11"
 };
 
+enum TextureFormat = {
+    "ETC1S",
+    "UASTC4x4",
+};
+
+enum TranscodeFlagBits = 
+    "TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
+    "HIGH_QUALITY",
+};
+
 enum TranscodeFlagBits = {
-    "TRANSCODE_ALPHA_DAT_TO_OPAQUE_FORMATS",
+    "TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
     "HIGH_QUALITY"
 };
 
@@ -444,13 +430,14 @@ automatically load msc_basis_transcoder.wasm.
 
 ### Create an instance of the MSC_TRANSCODER module
 
-Add this to the .html file to initialize the transcoder and make it available on the
-main window.
+For example, add this to the .html file to initialize the transcoder and
+make it available on the main window.
 @code{.unparsed}
     &lt;script src="msc_transcoder_wrapper.js">&lt;/script>
     &lt;script type="text/javascript">
       MSC_TRANSCODER().then(module => {
         window.MSC_TRANSCODER = module;
+        module.initTranscoders();
         // Call a function to begin loading or transcoding..
     &lt;/script>
 @endcode
@@ -469,29 +456,32 @@ container format.
 
 @code{.unparsed}
     const {
-        InitTranscoderGlobal,
-        BasisUImageTranscoder,
-        UastcImageTranscoder,
-        BasisTranscoderState,
+        BasisLzEtc1sImageTranscoder,
+        BasisUastcImageTranscoder,
         TranscodeTarget
     } = MSC_TRANSCODER;
 
-    InitTranscoderGlobal();
-
     // Determine from the KTX2 header information in buData if
     // the data format  is BasisU or Uastc.
-    // supercompressionScheme value == 1, it's BasisU.
-    // DFD colorModel == 166, it's UASTC.
+    // supercompressionScheme value == 1, it's TextureFormat.ETC1S.
+    // DFD colorModel == 166, it's TextureFormat.UASTC4x4.
+    const texFormat = ...
 
     // Determine appropriate transcode format from available targets,
     // info about the texture, e.g. texture.numComponents, and
     // expected use. Use values from TranscodeTarget.
-    var targetFormat = ...
+    const targetFormat = ...
+    if ( !MSC_TRANSCODER.isFormatSupported(targetFormat, texFormat) {
+        throw new Error( ... );
+    }
 
-    if (Uastc) {
-        transcodeUastc(targetFormat);
+    if (TextureFormat.UASTC4x4) {
+        var result = transcodeUastc(targetFormat);
     } else {
-        transcodeEtc1s(targetFormat);
+        var result = transcodeEtc1s(targetFormat);
+    }
+    if ( result.transcodedImage === undefined ) {
+        throw new Error( 'Unable to transcode image.' );
     }
 @endcode
 
@@ -502,7 +492,7 @@ transcodeEtc1s(targetFormat) {
     // Locate the supercompression global data and compresssed
     // mip level data within buData.
 
-    var bit = new BasisUImageTranscoder();
+    var bit = new BasisLzEtc1sImageTranscoder();
 
     // Find the index of the starts of the endpoints, selectors and tables
     // data within buData...
@@ -540,51 +530,48 @@ transcodeEtc1s(targetFormat) {
                                     numImages * 5 * 4);
     var curImageIndex = 0;
 
+    var blockDims = getTexFormatBlockDimensions(texFormat);
+
     // Pseudo code ...
     foreach level {
-       var width = width of image at this level
-       var height = height of image at this level
-       var bw = 4; // for ETC1S based Basis compressed data.
-       var bh = 4; //            ditto
-       var num_blocks_x = Math.ceil(width / bw);
-       var num_blocks_y = Math.ceil(height / bh);
-       foreach image in level {
-           // In KTX2 container locate the imageDesc for this image.
-           var imageDesc = imageDescs[curImageIndex++];
-           // Determine the location in the ArrayBuffer of the start
-           // of the deflated data for level.
-           var levelData = ...;
-           // Make a .subarray of the rgb slice data.
-           var rgbSliceStart = levelData + imageDesc[1];
-           var rgbSliceByteLength = imageDesc[2];
-           var rgbSlice = new UInt8Array(buData, rgbSliceStart,
-           rgbSliceByteLength);
-           // Do the same for the alpha slice. Length 0 is okay.
-           var alphaSliceStart = levelData + imageDesc[3];
-           var alphaSliceByteLength = imageDesc[4];
-           var alphaSlice = new Uint8Array(buData, alphaSliceStart,
-                                           alphaSliceByteLength);
-           const {transcodedImage, error} = bit.transcodeImage(
-                                     imageDesc[0], // imageFlags,
-                                     rgbSlice,
-                                     alphaSlice,
+      var leveWidth = width of image at this level
+      var levelHeight = height of image at this level
+      imageInfo = new ImageInfo(TextureFormat::ETC1S, levelWidth, levelHeight,
+                                level);
+      foreach image in level {
+        // In KTX2 container locate the imageDesc for this image.
+        var imageDesc = imageDescs[curImageIndex++];
+        imageInfo.flags = imageDesc.imageFlags;
+        imageInfo.rgbByteOffset = 0;
+        imageInfo.rgbByteLength = imageDesc.rgbSliceByteLength;
+        imageInfo.alphaByteOffset = imageDesc.alphaSliceByteOffset > 0 ? imageDesc.rgbSliceByteLength : 0;
+        imageInfo.alphaByteLength = imageDesc.alphaSliceByteLength;
+        // Determine the location in the ArrayBuffer of the start
+        // of the deflated data for level.
+        var levelOffset = ...
+        // Make a .subarray of the rgb slice data.
+        var levelData = new Uint8Array(
+                     buData,
+                     levelOffset + imageDesc.rgbSliceByteOffset,
+                     imageDesc.rgbSliceByteLength + imageDesc.alphaByteLength
+                     );
+        var result = bit.transcodeImage(
                                      targetFormat,
-                                     level,
-                                     width, height,
-                                     num_blocks_x,
-                                     num_blocks_y,
-                                     isVideo,
-                                     false);
-            if (!error) {
-                let imgData = transcodedImage.get_typed_memory_view();
-
-                // Upload data in imgData to WebGL...
-
-                // Do not call delete() until data has been uploaded
-                // or otherwise copied.
-                transcodedImage.delete();
-            }
+                                     levelData,
+                                     imageInfo,
+                                     0,
+                                     isVideo);
+        if ( result.transcodedImage === undefined ) {
+            throw new Error( ... );
         }
+        let imgData = transcodedImage.get_typed_memory_view();
+
+        // Upload data in imgData to WebGL...
+
+        // Do not call delete() until data has been uploaded
+        // or otherwise copied.
+        transcodedImage.delete();
+      }
     }
 }
 @endcode
@@ -599,7 +586,7 @@ transcodeUastc(targetFormat) {
     var zstd = (supercompressionScheme == 2);
 
     // Determine if the data has alpha.
-    var hasAlpha = (Channel ID of sample in DFD == 1);
+    var hasAlpha = (Channel ID of sample[0] in DFD == 1);
 
     var dctx;
     if (zstd) {
@@ -608,47 +595,59 @@ transcodeUastc(targetFormat) {
         dctx = ZSTD_createDCtx();
     }
 
+    var blockDims = getTexFormatBlockDimensions(TextureFormat::UASTC4x4);
+
     // Pseudo code ...
     foreach level {
-        // Determine the location in the ArrayBuffer buData of the
-        // start of the deflated data for the level.
-        var levelData = ...
-        if (zstd) {
-            // Inflate the level data
-            levelData = ZSTD_decompressDCtx(dctx, levelData, ... );
-        }
+      // Determine the location in the ArrayBuffer buData of the
+      // start of the deflated data for the level.
+      var levelData = ...
+      if (zstd) {
+          // Inflate the level data
+          levelData = ZSTD_decompressDCtx(dctx, levelData, ... );
+      }
 
-        var width = width of image at this level
-        var height = height of image at this level
-        var depth = depth of texture at this level
-        var bw = 4; // for UASTC 4x4 block-compressed data.
-        var bh = 4; //            ditto
-        var num_blocks_x = Math.ceil(width / bw);
-        var num_blocks_y = Math.ceil(height / bh);
-        levelImageCount = number of layers * number of faces * depth;
+      var levelWidth = width of image at this level
+      var levelHeight = height of image at this level
+      var depth = depth of texture at this level
+      var numBlocksX = Math.ceil(width / blockDims.w);
+      var numblocksY = Math.ceil(height / blockDims.h);
+      var levelImageCount = number of layers * number of faces * depth;
+      var levelImageByteLength = blockDims.w * blockDims.h * DFD bytesPlane0;
+      var imageOffsetInLevel = 0;
+      
+      var imageInfo = new ImageInfo(TextureFormat::UASTC4x4,
+                                    levelWidth, levelHeight, level);
+ 
+      foreach image in level {
+        inImage = Uint8Array(levelData, imageOffsetInLevel, levelImageByteLength);
+        imageInfo.flags = 0;
+        imageInfo.rgbByteOffset = 0;
+        imageInfo.rgbByteLength = levelImageByteLength;
+        imageInfo.alphaByteOffset = 0;
+        imageInfo.alphaByteLength = 0;
 
-        foreach image in level {
-            inImage = Uint8Array(levelData, imageStart, imageEnd);
-            const {transcodedImage, error} = uit.transcodeImage(
-                                                        targetFormat,
-                                                        level,
-                                                        inImage,
-                                                        width, height,
-                                                        num_blocks_x,
-                                                        num_blocks_y,
-                                                        hasAlpha,
-                                                        0);
-            if (!error) {
-                let imgData = transcodedImage.get_typed_memory_view();
+        const {transcodedImage} = uit.transcodeImage(
+                                                    targetFormat,
+                                                    inImage,
+                                                    imageInfo,
+                                                    0,
+                                                    hasAlpha,
+                                                    isVideo);
+       if ( result.transcodedImage === undefined ) {
+           throw new Error( ... );
+       }
+       let imgData = transcodedImage.get_typed_memory_view();
 
-                // Upload data in imgData to WebGL...
+       // Upload data in imgData to WebGL...
 
-                // Do not call delete() until data has been uploaded
-                // or otherwise copied.
-                transcodedImage.delete();
-            }
-        }
+       // Do not call delete() until data has been uploaded
+       // or otherwise copied.
+       transcodedImage.delete();
+
+       imageOffsetInLevel += levelImageByteLength;
     }
+  }
 }
 @endcode
 
@@ -656,70 +655,78 @@ transcodeUastc(targetFormat) {
 
 EMSCRIPTEN_BINDINGS(ktx_wrappers)
 {
-    enum_<ktx_texture_transcode_fmt_e>("TranscodeTarget")
-        .value("ETC1_RGB", KTX_TTF_ETC1_RGB)
-#if BASISD_SUPPORT_DXT1
-        .value("BC1_RGB", KTX_TTF_BC1_RGB)
-#endif
-#if BASISD_SUPPORT_DXT5A
-        .value("BC4_R", KTX_TTF_BC4_R)
-        .value("BC5_RG", KTX_TTF_BC5_RG)
-#endif
-#if BASISD_SUPPORT_DXT1 && BASISD_SUPPORT_DXT5A
-        .value("BC3_RGBA", KTX_TTF_BC3_RGBA)
-        .value("BC1_OR_3", KTX_TTF_BC1_OR_3)
-#endif
-#if BASISD_SUPPORT_PVRTC1
-        .value("PVRTC1_4_RGB", KTX_TTF_PVRTC1_4_RGB)
-        .value("PVRTC1_4_RGBA", KTX_TTF_PVRTC1_4_RGBA)
-#endif
-#if BASISD_SUPPORT_BC7_MODE6_OPAQUE_ONLY
-        .value("BC7_M6_RGB", KTX_TTF_BC7_M6_RGB)
-#endif
-#if BASISD_SUPPORT_BC7_MODE5
-        .value("BC7_M5_RGBA", KTX_TTF_BC7_M5_RGBA)
-#endif
-#if BASISD_SUPPORT_ETC2_EAC_A8
-        .value("ETC2_RGBA", KTX_TTF_ETC2_RGBA)
-#endif
-#if BASISD_SUPPORT_ASTC
-        .value("ASTC_4x4_RGBA", KTX_TTF_ASTC_4x4_RGBA)
-#endif
-        .value("RGBA32", KTX_TTF_RGBA32)
-        .value("RGB565", KTX_TTF_RGB565)
-        .value("BGR565", KTX_TTF_BGR565)
-        .value("RGBA4444", KTX_TTF_RGBA4444)
-#if BASISD_SUPPORT_PVRTC2
-        .value("PVRTC2_4_RGB", KTX_TTF_PVRTC2_4_RGB)
-        .value("PVRTC2_4_RGBA", KTX_TTF_PVRTC2_4_RGBA)
-#endif
-#if BASISD_SUPPORT_ETC2_EAC_RG11
-        .value("ETC", KTX_TTF_ETC)
-        .value("EAC_R11", KTX_TTF_ETC2_EAC_R11)
-        .value("EAC_RG11", KTX_TTF_ETC2_EAC_RG11)
-#endif
+    enum_<transcoder_texture_format>("TranscodeTarget")
+        .value("ETC1_RGB", transcoder_texture_format::cTFETC1_RGB)
+        .value("BC1_RGB", transcoder_texture_format::cTFBC1_RGB)
+        .value("BC4_R", transcoder_texture_format::cTFBC4_R)
+        .value("BC5_RG", transcoder_texture_format::cTFBC5_RG)
+        .value("BC3_RGBA", transcoder_texture_format::cTFBC3_RGBA)
+        .value("PVRTC1_4_RGB", transcoder_texture_format::cTFPVRTC1_4_RGB)
+        .value("PVRTC1_4_RGBA", transcoder_texture_format::cTFPVRTC1_4_RGBA)
+        .value("BC7_M6_RGB", transcoder_texture_format::cTFBC7_M6_RGB)
+        .value("BC7_M5_RGBA", transcoder_texture_format::cTFBC7_M5_RGBA)
+        .value("ETC2_RGBA", transcoder_texture_format::cTFETC2_RGBA)
+        .value("ASTC_4x4_RGBA", transcoder_texture_format::cTFASTC_4x4_RGBA)
+        .value("RGBA32", transcoder_texture_format::cTFRGBA32)
+        .value("RGB565", transcoder_texture_format::cTFRGB565)
+        .value("BGR565", transcoder_texture_format::cTFBGR565)
+        .value("RGBA4444", transcoder_texture_format::cTFRGBA4444)
+        .value("PVRTC2_4_RGB", transcoder_texture_format::cTFPVRTC2_4_RGB)
+        .value("PVRTC2_4_RGBA", transcoder_texture_format::cTFPVRTC2_4_RGBA)
+        .value("EAC_R11", transcoder_texture_format::cTFETC2_EAC_R11)
+        .value("EAC_RG11", transcoder_texture_format::cTFETC2_EAC_RG11)
     ;
 
-    enum_<ktx_transcode_flag_bits_e>("TranscodeFlagBits")
-        .value("TRANSCODE_ALPHA_DAT_TO_OPAQUE_FORMATS",
-               KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
-        .value("HIGH_QUALITY", KTX_TF_HIGH_QUALITY)
+    enum_<basis_tex_format>("TextureFormat")
+        .value("ETC1S", basis_tex_format::cETC1S)
+        .value("UASTC4x4", basis_tex_format::cUASTC4x4)
     ;
 
-    function("InitTranscoderGlobal", basisu_transcoder_init);
+    enum_<msc::TranscodeFlagBits>("TranscodeFlagBits")
+        .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
+               msc::TranscodeAlphaDataToOpaqueFormats)
+        .value("HIGH_QUALITY", msc::HighQuality)
+    ;
 
-    class_<msc::BasisUImageTranscoder>("BasisUImageTranscoder")
+    value_object<msc::BlockDimensions>("BlockDimensions")
+        .field("w", &msc::BlockDimensions::w)
+        .field("h", &msc::BlockDimensions::h)
+    ;
+
+    function("initTranscoders", basisu_transcoder_init);
+    function("isFormatSupported", basis_is_format_supported);
+    function("getTexFormatBlockDimensions", msc::getTexFormatBlockDimensions);
+
+    class_<basisu_image_desc>("ImageInfo")
+        .constructor<basis_tex_format,uint32_t,uint32_t,uint32_t>()
+        .property("flags", &basisu_image_desc::m_flags)
+        .property("rgbByteOffset", &basisu_image_desc::m_rgb_byte_offset)
+        .property("rgbByteLength", &basisu_image_desc::m_rgb_byte_length)
+        .property("alphaByteOffset", &basisu_image_desc::m_alpha_byte_offset)
+        .property("alphaByteLength", &basisu_image_desc::m_alpha_byte_length)
+        .property("width", &basisu_image_desc::m_orig_width)
+        .property("height", &basisu_image_desc::m_orig_height)
+        .property("numBlocksX", &basisu_image_desc::m_num_blocks_x)
+        .property("numBlocksY", &basisu_image_desc::m_num_blocks_y)
+        .property("level", &basisu_image_desc::m_level)
+        ;
+
+    class_<msc::BasisLzEtc1sImageTranscoder>("BasisLzEtc1sImageTranscoder")
         .constructor()
         .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
-        .function("decodePalettes", &msc::BasisUImageTranscoder::decode_palettes)
-        .function("decodeTables", &msc::BasisUImageTranscoder::decode_tables)
-        .function("transcodeImage", &msc::BasisUImageTranscoder::transcode_image)
+        .function("decodePalettes",
+                  &msc::BasisLzEtc1sImageTranscoder::decode_palettes)
+        .function("decodeTables",
+                  &msc::BasisLzEtc1sImageTranscoder::decode_tables)
+        .function("transcodeImage",
+                  &msc::BasisLzEtc1sImageTranscoder::transcode_image)
         ;
 
     class_<msc::UastcImageTranscoder>("UastcImageTranscoder")
         .constructor()
         .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
-        .function("transcodeImage", &msc::UastcImageTranscoder::transcode_image)
+        .function("transcodeImage",
+                  &msc::UastcImageTranscoder::transcode_image)
         ;
 
     class_<basisu_transcoder_state>("BasisTranscoderState")
@@ -727,7 +734,8 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         ;
 
     class_<msc::TranscodedImage>("TranscodedImage")
-        .function( "get_typed_memory_view", &msc::TranscodedImage::get_typed_memory_view )
+        .function( "get_typed_memory_view",
+                  &msc::TranscodedImage::get_typed_memory_view )
     ;
 
 }

@@ -73,3 +73,4 @@ tests/testimages/texturearray* filter=lfs -text
 tests/testimages/FlightHelmet*.ktx2 filter=lfs -text
 tests/srcimages/**/*.jpg filter=lfs -text
 tests/srcimages/**/*.png filter=lfs -text
+tests/webgl/**/*.ktx2 filter=lfs -text
