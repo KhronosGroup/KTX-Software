@@ -2,13 +2,17 @@ cmake_minimum_required(VERSION 3.14)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
+
 project(KTX-Software)
 
 include(CTest)
 
 find_package(Doxygen)
 find_package(OpenGL)
-find_package(Vulkan)
+if(NOT EMSCRIPTEN)
+    find_package(Vulkan)
+endif()
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
@@ -31,7 +35,13 @@ endif()
 set( KTX_FEATURE_WRITE ON )
 set( KTX_FEATURE_KTX1 ON )
 set( KTX_FEATURE_KTX2 ON )
+set( KTX_FEATURE_VULKAN ON )
+set( KTX_FEATURE_DOC ON )
 
+if(EMSCRIPTEN)
+    set( KTX_FEATURE_VULKAN OFF )
+    set( KTX_FEATURE_VULKAN OFF )
+endif()
 
 set( KTX_GL_CONTEXT_PROFILE "CORE" CACHE STRING "Open GL context profile" )
 set_property(CACHE KTX_GL_CONTEXT_PROFILE PROPERTY STRINGS
@@ -157,10 +167,18 @@ add_custom_target(version_h
 
 # End auto-generated code
 
+set( KTX_DEFS LIBKTX )
+
+if(EMSCRIPTEN)
+    set(LIB_TYPE STATIC)
+    list( APPEND KTX_DEFS KHRONOS_STATIC )
+else()
+    set(LIB_TYPE SHARED)
+endif()
+
 # Main library
-add_library( ktx SHARED
+add_library( ktx ${LIB_TYPE}
     $<TARGET_OBJECTS:objKtxOpenGLLoader>
-    $<TARGET_OBJECTS:objKtxVulkanLoader>
     include/ktx.h
     lib/basis_sgd.h
     lib/basis_transcode.cpp
@@ -218,14 +236,13 @@ add_library( objKtxOpenGLLoader OBJECT
     lib/glloader.c
 )
 
-add_library( objKtxVulkanLoader OBJECT
-    include/ktxvulkan.h
-    lib/vk_funcs.c
-    lib/vk_funcs.h
-    lib/vkloader.c
-)
-
-set(KTX_DEFS LIBKTX)
+# list(APPEND KTX_DEFS
+#     BASISD_SUPPORT_FXT1=1
+#     BASISD_SUPPORT_BC7=1
+#     BASISD_SUPPORT_PVRTC2=1
+#     BASISD_SUPPORT_ETC2_EAC_RG11=1
+#     BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=1
+#     )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND KTX_DEFS
@@ -320,12 +337,6 @@ if(KTX_FEATURE_WRITE)
     )
 endif()
 
-if(Vulkan_FOUND)
-    list(APPEND KTX_DEFS
-        USE_VULKAN_SDK
-    )    
-endif()
-
 if(APPLE)
     if(IOS)
         target_link_libraries(
@@ -338,6 +349,12 @@ if(APPLE)
             ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
             )
     endif()
+elseif(EMSCRIPTEN)
+    target_sources(
+        ktx
+        PRIVATE
+        lib/zstddeclib.c
+    )
 elseif(LINUX)
     find_package(zstd REQUIRED)
     find_package(Threads REQUIRED)
@@ -379,33 +396,68 @@ target_compile_definitions(
     ${KTX_DEFS}
 )
 
-target_include_directories(
-    objKtxVulkanLoader
-    PUBLIC
-    include
-    other_include
-)
-if(Vulkan_FOUND)
-    target_include_directories(
-        objKtxVulkanLoader
-        PRIVATE
-        ${Vulkan_INCLUDE_DIRS}
+if(KTX_FEATURE_VULKAN)
+    add_library( objKtxVulkanLoader OBJECT
+        include/ktxvulkan.h
+        lib/vk_funcs.c
+        lib/vk_funcs.h
+        lib/vkloader.c
     )
-elseif(APPLE)
-    # TODO: Make it more elegant than fallback to MOLTEN_VK variable
+    target_sources( ktx PRIVATE $<TARGET_OBJECTS:objKtxVulkanLoader> )
     target_include_directories(
         objKtxVulkanLoader
         PUBLIC
-        ${MOLTEN_VK}/include
+        include
+        other_include
     )
+    target_compile_definitions(
+        objKtxVulkanLoader
+        PRIVATE
+        ${KTX_DEFS}
+    )
+
+    if(Vulkan_FOUND)
+        list(APPEND KTX_DEFS
+            USE_VULKAN_SDK
+        )
+        target_include_directories(
+            objKtxVulkanLoader
+            PRIVATE
+            ${Vulkan_INCLUDE_DIRS}
+        )
+    elseif(APPLE)
+        # TODO: Make it more elegant than fallback to VULKAN_SDK variable
+        target_include_directories(
+            objKtxVulkanLoader
+            PUBLIC
+            ${VULKAN_SDK}/include
+        )
+    endif()
+else()
+    target_compile_definitions( ktx PRIVATE KTX_OMIT_VULKAN=1 )
 endif()
 
+if(EMSCRIPTEN)
 
-target_compile_definitions(
-    objKtxVulkanLoader
-    PRIVATE
-    ${KTX_DEFS}
-)
+    add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
+    target_link_libraries( ktx_js ktx )
+    target_include_directories( ktx_js
+        PRIVATE
+        lib
+        lib/basisu/transcoder
+    )
+    target_link_options( ktx_js PUBLIC --bind )
+    
+    add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )
+    target_link_libraries( msc_basis_transcoder_js ktx )
+    target_include_directories( msc_basis_transcoder_js
+        PRIVATE
+        lib
+        lib/basisu/transcoder
+    )
+    target_link_options( msc_basis_transcoder_js PUBLIC --bind )
+
+endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_STANDARD 11)
@@ -450,16 +502,18 @@ target_include_directories(
 
 add_subdirectory(interface/basisu_c_binding)
 
-if(NOT IOS AND NOT ANDROID)
+if(NOT IOS AND NOT ANDROID AND NOT EMSCRIPTEN)
     add_subdirectory(tools)
 endif()
 
 add_subdirectory(tests)
 
-if(DOXYGEN_FOUND)
-    include(cmake/docs.cmake)
-else()
-    message("Doxygen not found -> skipping documentation")
+if(KTX_FEATURE_DOC)
+    if(DOXYGEN_FOUND)
+        include(cmake/docs.cmake)
+    else()
+        message("Doxygen not found -> skipping documentation")
+    endif()
 endif()
 
 install(TARGETS ktx)
