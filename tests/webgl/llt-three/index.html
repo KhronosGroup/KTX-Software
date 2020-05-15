@@ -5,9 +5,12 @@
     <title>msc_transcoder_test with three.js</title>
   </head>
   <script src="../msc_basis_transcoder.js"></script>
+  <!--
   <script defer src="https://unpkg.com/es-module-shims@0.4.6/dist/es-module-shims.js"></script>
+  -->
   <!-- Use an import map shim to ensure KTX2Loader and the demo itself
        use the same CDN-hosted copy of the threejs library. -->
+  <!--
   <script type="importmap-shim">
   {
     "imports": {
@@ -15,6 +18,7 @@
     }
   }
   </script>
+  -->
   <style>
     html, body { width:100%; height:100%; margin:0; padding:0; }
     canvas { display:block; }
@@ -32,17 +36,22 @@
   <div id="panel">
     <h2>msc_basis_transcoder test</h2>
     <p>
-      Loads and parses a KTX2 file with a plain JS loader, transcodes the
-      Basis Universal-compressed payload with <code>msc_basis_transcoder</code>,
-      and renders the result with three.js. This texture has been transcoded
-      to <b id='format'>FORMAT</b>.
+      Loads and parses KTX2 files with a plain JS loader, transcodes the
+      Basis Universal payload with <code>msc_basis_transcoder</code>,
+      and renders the result with three.js. The first KTX2 file contains
+      BasisLZ/ETC1S format and the second UASTC format. These textures
+      have been transcoded to <b id='format'>FORMAT</b>.
     </p>
     <div id="log"></div>
   </div>
-  <script type="module-shim">
+  <!-- <script type="module-shim"> -->
+  <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.114.0/build/three.module.js';
     import { OrbitControls } from 'https://unpkg.com/three@0.114.0/examples/jsm/controls/OrbitControls.js';
+    /*
     import { KTX2Loader } from 'https://raw.githack.com/donmccurdy/three.js/feat-ktx2loader/examples/jsm/loaders/KTX2Loader.js';
+    */
+    import { KTX2Loader } from '/llt-three/KTX2Loader.js';
 
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -63,14 +72,42 @@
     const controls = new OrbitControls( camera, renderer.domElement );
     controls.autoRotate = true;
 
+    // FIXME: compressed textures don't support? KTX2 compressed textures do.
     // PlaneBufferGeometry UVs assume flipY=true, which compressed textures don't support.
     const geometry = flipY( new THREE.PlaneBufferGeometry() );
-    const material = new THREE.MeshBasicMaterial( {
+    const materialEtc1s = new THREE.MeshBasicMaterial( {
+      color: 0xFFFFFF,
+      side: THREE.DoubleSide,
+      defines: {DECAL: ""}
+    } );
+    /* This isn't working. No time for further investigation.
+    const myShader = [
+        'diffuseColor *= texelColor;',
+        '#ifndef DECAL',
+        '    diffuseColor *= texelColor;',
+        '#else',
+        '    diffuseColor = vec4( mix( diffuse, texelColor.rgb, texelColor.a ), opacity );',
+        '#endif',
+    ].join( '\n' );
+    materialEtc1s.onBeforeCompile = function ( shader ) {
+        shader.fragmentShader = shader.fragmentShader.replace(
+            myShader
+        );
+    };
+    */
+
+    const materialUastc = new THREE.MeshBasicMaterial( {
+      alphaTest: 1.0,
       color: 0xFFFFFF,
       side: THREE.DoubleSide
     } );
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+    var meshEtc1s = new THREE.Mesh(geometry, materialEtc1s);
+    meshEtc1s.position.z = -0.5;
+
+    var meshUastc = new THREE.Mesh(geometry, materialUastc);
+    meshUastc.position.z = +0.5;
+
+    scene.add(meshEtc1s, meshUastc);
 
     const formats = [
       'RGBA_ASTC_4x4_Format',
@@ -87,14 +124,23 @@
 
     animate();
 
-    new KTX2Loader()
-      .detectSupport( renderer )
-      .load( '../libktx-webgl/ktx_app_basis.ktx2', ( texture ) => {
+    var loader = new KTX2Loader().detectSupport( renderer )
 
-        material.map = texture;
-        elem('format').innerText = formatToString( material.map.format );
+    loader.load( '../libktx-webgl/ktx_app_basis.ktx2', ( texture ) => {
 
-        material.needsUpdate = true;
+        materialEtc1s.map = texture;
+        elem('format').innerText = formatToString( materialEtc1s.map.format );
+
+        materialEtc1s.needsUpdate = true;
+
+      }, ( p ) => console.log( `...${p}` ), ( e ) => console.error( e ) );
+
+    loader.load( '../libktx-webgl/ktx_document_uastc_rdo.ktx2', ( texture ) => {
+
+        materialUastc.map = texture;
+        //elem('format').innerText = formatToString( materialEtc1s.map.format );
+
+        materialUastc.needsUpdate = true;
 
       }, ( p ) => console.log( `...${p}` ), ( e ) => console.error( e ) );
 
@@ -106,6 +152,7 @@
 
       requestAnimationFrame( animate );
 
+      meshUastc.needsUpdate = true;
       controls.update();
 
       renderer.render( scene, camera );
@@ -123,6 +170,8 @@
 
     }, false );
 
+    // FIXME: read the orientation metadata and only do this if it indicates
+    // Y orientation is up.
     /** Correct UVs to be compatible with `flipY=false` textures. */
     function flipY ( geometry ) {
 

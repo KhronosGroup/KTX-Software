@@ -40,8 +40,6 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
-#include "basisu_transcoder_config.h"
-#include "basisu_image_transcoders.h"
 #include "basisu/basisu_comp.h"
 #include "basisu/transcoder/basisu_file_headers.h"
 #include "basisu/transcoder/basisu_transcoder.h"
@@ -54,17 +52,6 @@
 
 using namespace basisu;
 using namespace basist;
-
-// block size calculations
-static inline uint32_t getBlockWidth(uint32_t w, uint32_t bw)
-{
-    return (w + (bw - 1)) / bw;
-}
-
-static inline uint32_t getBlockHeight(uint32_t h, uint32_t bh)
-{
-    return (h + (bh - 1)) / bh;
-}
 
 inline bool isPow2(uint32_t x) { return x && ((x & (x - 1U)) == 0U); }
 
@@ -148,8 +135,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
  *                              does not have power-of-two dimensions.
  * @exception KTX_INVALID_VALUE @p outputFormat is invalid.
  * @exception KTX_TRANSCODE_FAILED
- *                              Something went wrong during transcoding. The
- *                              texture object will be corrupted.
+ *                              Something went wrong during transcoding.
  * @exception KTX_UNSUPPORTED_FEATURE
  *                              KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 was requested
  *                              or the specified transcode target has not been
@@ -285,6 +271,18 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         return KTX_INVALID_VALUE;
     }
 
+    basis_tex_format textureFormat;
+    if (colorModel == KHR_DF_MODEL_UASTC)
+        textureFormat = basis_tex_format::cUASTC4x4;
+    else
+        textureFormat = basis_tex_format::cETC1S;
+
+    if (!basis_is_format_supported((transcoder_texture_format)outputFormat,
+                                    textureFormat)) {
+        return KTX_UNSUPPORTED_FEATURE;
+    }
+
+
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
     // data allocation and the DFD for the target format.
@@ -328,10 +326,12 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     // and executed natively on a Core i7 2.2 GHz. If this is too slow, the
     // tables it computes can easily be moved to be compiled in.
     static bool transcoderInitialized;
-    if (!transcoderInitialized)
+    if (!transcoderInitialized) {
         basisu_transcoder_init();
+        transcoderInitialized = true;
+    }
 
-    if (This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
+    if (textureFormat == basis_tex_format::cETC1S) {
         result = ktxTexture2_transcodeEtc1s(This, hasAlpha, prototype,
                                             outputFormat, transcodeFlags);
     } else {
@@ -367,10 +367,8 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     return result;
  }
 
-#if 0
 static basist::etc1_global_selector_codebook
             global_codebook(g_global_selector_cb_size, g_global_selector_cb);
-#endif
 
 /**
  * @memberof ktxTexture2 @private
@@ -487,12 +485,7 @@ ktxTexture2_transcodeEtc1s(ktxTexture2* This,
     // FIXME: Do more validation.
 
     // Prepare low-level transcoder for transcoding slices.
-
-    static basist::etc1_global_selector_codebook *global_codebook
-        = new basist::etc1_global_selector_codebook(g_global_selector_cb_size,
-                                                    g_global_selector_cb);
-
-    ktxBasisImageTranscoder bit(global_codebook);
+    basisu_etc1s_image_transcoder bit(&global_codebook);
 
     bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
                         bgdh.endpointsByteLength,
@@ -505,14 +498,13 @@ ktxTexture2_transcodeEtc1s(ktxTexture2* This,
     // Find matching VkFormat and calculate output sizes.
 
     assert(hasAlpha == ((bgdh.globalFlags & cBASISHeaderFlagHasAlphaSlices) != 0));
-    const bool transcodeAlphaToOpaqueFormats
-     = (hasAlpha && (transcodeFlags & KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS));
     const bool isVideo = This->isVideo;
 
     ktx_uint8_t* basisData = This->pData;
     ktx_uint8_t* xcodedData = prototype->pData;
     ktxLevelIndexEntry* protoLevelIndex;
     uint64_t levelOffsetWrite;
+    const ktxBasisImageDesc* imageDescs = BGD_IMAGE_DESCS(bgd);
 
     // Finally we're ready to transcode the slices.
 
@@ -525,9 +517,10 @@ ktxTexture2_transcodeEtc1s(ktxTexture2* This,
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         uint64_t levelOffset = ktxTexture2_levelDataOffset(This, level);
         uint64_t writeOffset = levelOffsetWrite;
-        const ktxBasisImageDesc* imageDescs = BGD_IMAGE_DESCS(bgd);
-        uint32_t width = MAX(1, This->baseWidth >> level);
-        uint32_t height = MAX(1, This->baseHeight >> level);
+        basisu_image_desc imageDesc(basis_tex_format::cETC1S,
+                                    MAX(1, This->baseWidth >> level),
+                                    MAX(1, This->baseHeight >> level),
+                                    level);
         uint32_t depth = MAX(1, This->baseDepth >> level);
         //uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
         uint32_t faceSlices = This->numFaces * depth;
@@ -536,15 +529,14 @@ ktxTexture2_transcodeEtc1s(ktxTexture2* This,
         uint32_t endImage = image + numImages;
         ktx_size_t levelImageSizeOut, levelSizeOut;
 
-        // 4x4 is the ETC1S block size.
-        const uint32_t num_blocks_x = getBlockWidth(width, 4);
-        const uint32_t num_blocks_y = getBlockHeight(height, 4);
-
         levelSizeOut = 0;
         // FIXME: Figure out a way to get the size out of the transcoder.
         levelImageSizeOut = ktxTexture2_GetImageSize(prototype, level);
         for (; image < endImage; image++) {
             ktx_size_t bufferByteLength = prototype->dataSize - writeOffset;
+            imageDesc.m_rgb_byte_offset = imageDescs[image].rgbSliceByteOffset;
+            imageDesc.m_rgb_byte_length = imageDescs[image].rgbSliceByteLength;
+            imageDesc.m_flags = imageDescs[image].imageFlags;
 
             if (hasAlpha)
             {
@@ -552,16 +544,26 @@ ktxTexture2_transcodeEtc1s(ktxTexture2* This,
                 if (imageDescs[image].alphaSliceByteOffset == 0
                     || imageDescs[image].alphaSliceByteLength == 0)
                     return KTX_FILE_DATA_ERROR;
+
+                imageDesc.m_alpha_byte_offset
+                                  = imageDescs[image].alphaSliceByteOffset;
+                imageDesc.m_alpha_byte_length
+                                  = imageDescs[image].alphaSliceByteLength;
             }
 
-            result = bit.transcode_image(imageDescs[image], outputFormat,
-                                xcodedData + writeOffset, bufferByteLength,
-                                level,
+            bool status;
+            status = bit.transcode_image(
+                                (transcoder_texture_format)outputFormat,
+                                xcodedData + writeOffset,
+                                (uint32_t)bufferByteLength,
                                 basisData + levelOffset,
-                                width, height, num_blocks_x, num_blocks_y,
-                                isVideo, transcodeAlphaToOpaqueFormats);
-            if (result != KTX_SUCCESS)
+                                imageDesc,
+                                transcodeFlags,
+                                isVideo);
+            if (!status) {
+                result = KTX_TRANSCODE_FAILED;
                 goto cleanup;
+            }
 
             writeOffset += levelImageSizeOut;
             levelSizeOut += levelImageSizeOut;
@@ -593,33 +595,30 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
 {
     assert(This->supercompressionScheme != KTX_SS_BASIS_UNIVERSAL);
 
-    KTX_error_code result = KTX_SUCCESS;
     ktx_uint8_t* writePtr = prototype->pData;
     ktx_size_t bufferByteLength = prototype->dataSize;
     DECLARE_PRIVATE(protoPriv, prototype);
     ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
     ktx_size_t levelOffsetWrite = 0;
 
-    ktxUastcImageTranscoder uit;
+    basisu_uastc_image_transcoder uit;
+    basisu_image_desc imageDesc;
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--)
     {
-        ktx_uint32_t width, height, depth;
+        ktx_uint32_t depth;
         uint64_t writeOffset = levelOffsetWrite;
         ktx_size_t levelImageSizeIn, levelImageSizeOut, levelSizeOut;
         ktx_uint32_t levelImageCount;
         const ktx_uint8_t* pDataIn = This->pData;
 
         /* Array textures have the same number of layers at each mip level. */
-        width = MAX(1, This->baseWidth  >> level);
-        height = MAX(1, This->baseHeight >> level);
+        basisu_image_desc imageDesc(basis_tex_format::cUASTC4x4,
+                                    MAX(1, This->baseWidth >> level),
+                                    MAX(1, This->baseHeight >> level),
+                                    level);
         depth = MAX(1, This->baseDepth  >> level);
 
-        // 4x4 is the UASTC block size.
-        const uint32_t num_blocks_x = getBlockWidth(width, 4);
-        const uint32_t num_blocks_y = getBlockHeight(height, 4);
-
         levelImageCount = This->numLayers * This->numFaces * depth;
-        // Note: this is the inflated size of an image.
         levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), level,
                                                     KTX_FORMAT_VERSION_TWO);
         levelImageSizeOut = ktxTexture_calcImageSize(ktxTexture(prototype),
@@ -627,18 +626,23 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                                                      KTX_FORMAT_VERSION_TWO);
 
         pDataIn += ktxTexture2_levelDataOffset(This, level);
+        imageDesc.m_rgb_byte_offset = 0;
+        imageDesc.m_rgb_byte_length = (uint32_t)levelImageSizeIn;
         levelSizeOut = 0;
+        bool status;
         for (uint32_t image = 0; image < levelImageCount; image++) {
-            result = uit.transcode_image(outputFormat,
+            //imageDesc.m_flags = ???; //TODO: Resolve imageIsIFrame issue and isVideo issue.
+            status = uit.transcode_image(
+                              (transcoder_texture_format)outputFormat,
                               writePtr + writeOffset,
-                              bufferByteLength,
-                              level,
+                              (uint32_t)bufferByteLength,
                               pDataIn,
-                              (ktx_uint32_t)levelImageSizeIn,
-                              width, height, num_blocks_x, num_blocks_y,
-                              hasAlpha,
-                              transcodeFlags);
-            pDataIn += levelImageSizeIn;
+                              imageDesc,
+                              transcodeFlags,
+                              hasAlpha);
+            if (!status)
+                return KTX_TRANSCODE_FAILED;
+            imageDesc.m_rgb_byte_offset += (uint32_t)levelImageSizeIn;
             writeOffset += levelImageSizeOut;
             bufferByteLength -= levelImageSizeOut;
             levelSizeOut += levelImageSizeOut;

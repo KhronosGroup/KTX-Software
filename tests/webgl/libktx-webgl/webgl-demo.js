@@ -387,7 +387,7 @@ function loadTexture(gl, url)
         formatString = 'RGBA4444';
         format = TranscodeTarget.RGBA4444;
       }
-      if (!ktexture.transcodeBasis(format, 0)) {
+      if (ktexture.transcodeBasis(format, 0) != LIBKTX.ErrorCode.SUCCESS) {
           alert('Texture transcode failed. See console for details.');
           return undefined;
       }

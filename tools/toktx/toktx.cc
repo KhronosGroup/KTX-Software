@@ -258,6 +258,13 @@ struct commandOptions {
     unsigned int depth;
     unsigned int layers;
     unsigned int levels;
+    float        scale;
+    int          resize;
+    struct {
+        unsigned int width;
+        unsigned int height;
+    } newGeom;
+
     vector<_tstring> infilenames;
 
     commandOptions() : zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U) {
@@ -278,6 +285,9 @@ struct commandOptions {
       oetf = Image::eOETF::Unset;
       // As required by spec. Opposite of OpenGL {,ES}, same as Vulkan, et al.
       lower_left_maps_to_s0t0 = 0;
+      scale = 1.0f;
+      resize = 0;
+      newGeom.width = newGeom.height = 0;
     }
 };
 
@@ -439,6 +449,13 @@ Create a KTX file from netpbm format files.
     <dd>Force the created texture to have an srgb transfer function. As with
         @b --linear, use with caution. Like @b --linear, the default color
         transform of Netpbm images will not be performed.</dd>
+    <dt>--resize &lt;width&gt;x&lt;height&gt;
+    <dd>Resize images to @e width X @e height. This should not be used with
+        @b --mipmap as it would resize all the images to the same size.
+        Resampler options can be set via @b --filter and  @b --fscale. </dd>
+    <dt>--scale &lt;value&gt;</dt>
+    <dd>Scale images by @e value as they are read. Resampler options can
+        be set via @b --filter and  @b --fscale. </dd>.
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     <dt>--bcmp</dt>
@@ -648,7 +665,7 @@ usage(const _tstring appName)
         "               those for layer 1, etc. It is an error to specify this\n"
         "               together with --depth > 1.\n"
         "  --levels <number>\n"
-        "               KTX file is for a mipmap pyramid with number of levels rather\n"
+        "               KTX file is for a mipmap pyramid with <number> of levels rather\n"
         "               than a full pyramid. number must be <= the maximum number of\n"
         "               levels determined from the size of the base image. This option is\n"
         "               mutually exclusive with @b --automipmap.\n"
@@ -686,6 +703,13 @@ usage(const _tstring appName)
         "  --srgb       Force the created texture to have an srgb transfer function.\n"
         "               As with --linear, use with caution.  Like @b --linear, the\n"
         "               default color transform of Netpbm images will not be performed.\n"
+        "  --resize <width>x<height>\n"
+        "               Resize images to @e width X @e height. This should not be used\n"
+        "               with @b--mipmap as it would resize all the images to the same\n"
+        "               size. Resampler options can be set via --filter and --fscale.\n"
+        "  --scale <value>\n"
+        "               Scale images by <value> as they are read. Resampler options can\n"
+        "               be set via --filter and --fscale.\n"
         "  --t2         Output in KTX2 format. Default is KTX.\n"
         "  --bcmp       Supercompress the image data with Basis Universal. Implies --t2.\n"
         "               RED images will become RGB with RED in each component. RG images\n"
@@ -862,6 +886,44 @@ int _tmain(int argc, _TCHAR* argv[])
         assert(image->getWidth() * image->getHeight() * image->getPixelSize()
                   == image->getByteCount());
 
+        if (i == 0) {
+            // First file.
+            firstImageOETF = image->getOetf();
+            if (options.oetf == Image::eOETF::Unset) {
+                chosenOETF = firstImageOETF;
+            } else {
+                chosenOETF = options.oetf;
+            }
+        }
+
+        if (options.scale != 1.0f || options.resize) {
+            Image* scaledImage;
+            if (options.scale != 1.0f) {
+                scaledImage = image->createImage(
+                                        image->getWidth()  * options.scale,
+                                        image->getHeight()  * options.scale);
+
+            } else {
+                scaledImage = image->createImage(options.newGeom.width,
+                                                 options.newGeom.height);
+            }
+
+            try {
+                image->resample(*scaledImage,
+                                chosenOETF == Image::eOETF::sRGB,
+                                options.gmopts.filter.c_str(),
+                                options.gmopts.filterScale,
+                                basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
+            } catch (runtime_error e) {
+                cerr << appName << ": Image::resample() failed! "
+                          << e.what() << endl;
+                exitCode = 1;
+                goto cleanup;
+            }
+            delete image;
+            image = scaledImage;
+        }
+
         if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
             image->yflip();
         }
@@ -869,13 +931,6 @@ int _tmain(int argc, _TCHAR* argv[])
         if (i == 0) {
             // First file.
             bool srgb;
-
-            firstImageOETF = image->getOetf();
-            if (options.oetf == Image::eOETF::Unset) {
-                chosenOETF = firstImageOETF;
-            } else {
-                chosenOETF = options.oetf;
-            }
 
             componentCount = image->getComponentCount();
             srgb = (chosenOETF == Image::eOETF::sRGB);
@@ -1115,8 +1170,8 @@ int _tmain(int argc, _TCHAR* argv[])
                     goto cleanup;
                 }
 
-                // TODO: and an option for renormalize;
-                //if (m_params.m_mip_renormalize)
+                // TODO: add an option for renormalize;
+                //if (options.gmopts.mipRenormalize)
                 //    levelImage->renormalize_normal_map();
 
                 ktxTexture_SetImageFromMemory(ktxTexture(texture),
@@ -1321,6 +1376,16 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
         usage(appName);
         exit(1);
     }
+    if (options.scale != 1.0 && options.resize) {
+        cerr << "Only one of --scale and --resize can be specified." << endl;
+        usage(appName);
+        exit(1);
+    }
+    if (options.resize && options.mipmap) {
+        cerr << "Only one of --resize and --mipmap can be specified." << endl;
+        usage(appName);
+        exit(1);
+    }
 
     i = parser.optind;
 
@@ -1424,6 +1489,8 @@ processOptions(argparser& parser,
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
         { "linear", argparser::option::no_argument, (int*)&options.oetf, OETF_LINEAR },
         { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
+        { "resize", argparser::option::required_argument, NULL, 'r' },
+        { "scale", argparser::option::required_argument, NULL, 's' },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
         { "bcmp", argparser::option::no_argument, NULL, 'b' },
         { "zcmp", argparser::option::optional_argument, NULL, 'z' },
@@ -1433,8 +1500,8 @@ processOptions(argparser& parser,
         { "qlevel", argparser::option::required_argument, NULL, 'q' },
         { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
         { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'E' },
-        { "max_selectors", argparser::option::required_argument, NULL, 's' },
-        { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'u' },
+        { "max_selectors", argparser::option::required_argument, NULL, 'u' },
+        { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'S' },
         { "normal_map", argparser::option::no_argument, NULL, 'n' },
         { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
         { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
@@ -1453,7 +1520,7 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    _tstring shortopts("bc:e:f:hmnrops:t:u:vl:q:");
+    _tstring shortopts("bc:e:f:hmnroprSs:t:u:vl:q:");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
@@ -1552,14 +1619,30 @@ processOptions(argparser& parser,
           case 1000:
             options.bopts.separateRGToRGB_A = 1;
             break;
-          case 's':
-            options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
-            break;
           case 'S':
             options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
             break;
+          case 'r':
+            {
+                istringstream iss(parser.optarg);
+                char x;
+                iss >> options.newGeom.width >> x >> options.newGeom.height;
+                if (iss.fail()) {
+                    cerr << "Bad resize geometry." << endl;
+                    usage(appName);
+                    exit(1);
+                }
+                options.resize = 1;
+                break;
+            }
+          case 's':
+            options.scale = strtof(parser.optarg.c_str(), nullptr);
+            break;
           case 't':
             options.bopts.threadCount = strtoi(parser.optarg.c_str());
+            break;
+          case 'u':
+            options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
             break;
           case 1001:
             if (options.bcmp) {

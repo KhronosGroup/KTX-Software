@@ -130,6 +130,22 @@ else
   failed=$failed+1
 fi
 
+numtests=$numtests+1
+if ! $toktx --scale 0.5 --resize 10x40 a b 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "Simultaneous --scale & --resize allowed"
+  failed=$failed+1
+fi
+
+numtests=$numtests+1
+if ! $toktx --mipmap --resize 10x40 a b c 2> /dev/null; then
+  passed=$passed+1
+else
+  echo "Simultaneous --mipmap & --resize allowed"
+  failed=$failed+1
+fi
+
 
 function cmpktx () {
   if diff $1 $2; then
@@ -172,7 +188,6 @@ function gencmpktx() {
 }
 
 #---------------- Tests start here -----------------------
-
 
 gencmpktx rgb-reference.ktx --lower_left_maps_to_s0t0 --nometadata ../srcimages/rgb.ppm
 gencmpktx rgb-amg-reference.ktx --automipmap --lower_left_maps_to_s0t0 --linear --nometadata ../srcimages/rgb.ppm
