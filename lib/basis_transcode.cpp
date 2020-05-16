@@ -22,7 +22,7 @@
  * @file basis_transcode.cpp
  * @~English
  *
- * @brief Functions for transcoding Basis Universal ETC1S and UASTC textures.
+ * @brief Functions for transcoding Basis Universal BasisLZ/ETC1S and UASTC textures.
  *
  * Two worlds collide here too. More uglyness!
  *
@@ -58,7 +58,7 @@ inline bool isPow2(uint32_t x) { return x && ((x & (x - 1U)) == 0U); }
 inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
 
 KTX_error_code
-ktxTexture2_transcodeEtc1s(ktxTexture2* This,
+ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
                            bool hasAlpha,
                            ktxTexture2* prototype,
                            ktx_transcode_fmt_e outputFormat,
@@ -74,15 +74,14 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
  * @memberof ktxTexture2
  * @ingroup reader
  * @~English
- * @brief Transcode a KTX2 texture with Basis Universal (ETC1S) or UASTC images.
+ * @brief Transcode a KTX2 texture with BasisLZ/ETC1S or UASTC images.
  *
- * If the texture contains Basis Universal image, Inflates them from
- * supercompression back to ETC1S then transcodes them to the specified
- * block-compressed format. If the texture contains UASTC images, inflates
- * them, if they have been supercompressed with zstd, then transcodes
- * then to the specified format, The transcoded images replace the original
- * images and the texture's fields including the DFD are modified to reflect
- * the new format.
+ * If the texture contains BasisLZ supercompressed images, Inflates them from
+ * back to ETC1S then transcodes them to the specified block-compressed
+ * format. If the texture contains UASTC images, inflates them, if they have been
+ * supercompressed with zstd, then transcodes then to the specified format, The
+ * transcoded images replace the original images and the texture's fields including
+ * the DFD are modified to reflect the new format.
  *
  * These types of textures must be transcoded to a desired target
  * block-compressed format before they can be uploaded to a GPU via a
@@ -150,11 +149,11 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_UASTC
-         && This->supercompressionScheme != KTX_SS_BASIS_UNIVERSAL)
+         && This->supercompressionScheme != KTX_SS_BASIS_LZ)
     return KTX_INVALID_OPERATION; // Not in a transcodable format.
 
     DECLARE_PRIVATE(priv, This);
-    if (This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
         if (!priv._supercompressionGlobalData || priv._sgdByteLength == 0)
             return KTX_INVALID_OPERATION;
     }
@@ -174,7 +173,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
 
     const bool srgb = (KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB);
     bool hasAlpha = false;
-    if (This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
         uint32_t numComponents = ktxTexture2_GetNumComponents(This);
         if (numComponents == 2 || numComponents == 4)
             hasAlpha = true;
@@ -332,7 +331,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     }
 
     if (textureFormat == basis_tex_format::cETC1S) {
-        result = ktxTexture2_transcodeEtc1s(This, hasAlpha, prototype,
+        result = ktxTexture2_transcodeLzEtc1s(This, hasAlpha, prototype,
                                             outputFormat, transcodeFlags);
     } else {
         result = ktxTexture2_transcodeUastc(This, hasAlpha, prototype,
@@ -374,14 +373,14 @@ static basist::etc1_global_selector_codebook
  * @memberof ktxTexture2 @private
  * @ingroup reader
  * @~English
- * @brief Transcode a KTX2 texture with Basis supercompressed images.
+ * @brief Transcode a KTX2 texture with BasisLZ supercompressed ETC1S images.
  *
- * Inflates the images from Basis Universal supercompression back to ETC1S
+ * Inflates the images from BasisLZ supercompression back to ETC1S
  * then transcodes them to the specified block-compressed format. The
  * transcoded images replace the original images and the texture's fields
  * including the DFD are modified to reflect the new format.
  *
- * Basis supercompressed textures must be transcoded to a desired target
+ * BasisLZ supercompressed textures must be transcoded to a desired target
  * block-compressed format before they can be uploaded to a GPU via a graphics
  * API.
  *
@@ -440,20 +439,20 @@ static basist::etc1_global_selector_codebook
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out transcoding.
  */
 KTX_error_code
-ktxTexture2_transcodeEtc1s(ktxTexture2* This,
-                           bool hasAlpha,
-                           ktxTexture2* prototype,
-                           ktx_transcode_fmt_e outputFormat,
-                           ktx_transcode_flags transcodeFlags)
+ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
+                             bool hasAlpha,
+                             ktxTexture2* prototype,
+                             ktx_transcode_fmt_e outputFormat,
+                             ktx_transcode_flags transcodeFlags)
 {
     DECLARE_PRIVATE(priv, This);
     DECLARE_PRIVATE(protoPriv, prototype);
     KTX_error_code result = KTX_SUCCESS;
 
-    assert(This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL);
+    assert(This->supercompressionScheme == KTX_SS_BASIS_LZ);
 
     uint8_t* bgd = priv._supercompressionGlobalData;
-    ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
+    ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
     if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {
             debug_printf("ktxTexture_TranscodeBasis: missing endpoints, selectors or tables");
             return KTX_FILE_DATA_ERROR;
@@ -504,7 +503,7 @@ ktxTexture2_transcodeEtc1s(ktxTexture2* This,
     ktx_uint8_t* xcodedData = prototype->pData;
     ktxLevelIndexEntry* protoLevelIndex;
     uint64_t levelOffsetWrite;
-    const ktxBasisImageDesc* imageDescs = BGD_IMAGE_DESCS(bgd);
+    const ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(bgd);
 
     // Finally we're ready to transcode the slices.
 
@@ -593,7 +592,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                            ktx_transcode_fmt_e outputFormat,
                            ktx_transcode_flags transcodeFlags)
 {
-    assert(This->supercompressionScheme != KTX_SS_BASIS_UNIVERSAL);
+    assert(This->supercompressionScheme != KTX_SS_BASIS_LZ);
 
     ktx_uint8_t* writePtr = prototype->pData;
     ktx_size_t bufferByteLength = prototype->dataSize;

@@ -22,7 +22,7 @@
  * @file basisu_sgd.h
  * @~English
  *
- * @brief Declare global data for Basis Universal supercompression.
+ * @brief Declare global data for Basis LZ supercompression with ETC1S.
  *
  * These functions are private and should not be used outside the library.
  */
@@ -45,7 +45,7 @@ enum bu_image_flags__bits_e { eBUImageIsIframe = 0x02 };
 
 typedef uint32_t buFlags;
 
-typedef struct ktxBasisGlobalHeader {
+typedef struct ktxBasisLzGlobalHeader {
     buFlags globalFlags;
     uint16_t endpointCount;
     uint16_t selectorCount;
@@ -53,23 +53,23 @@ typedef struct ktxBasisGlobalHeader {
     uint32_t selectorsByteLength;
     uint32_t tablesByteLength;
     uint32_t extendedByteLength;
-} ktxBasisGlobalHeader;
+} ktxBasisLzGlobalHeader;
 
 // This header is followed by imageCount "slice" descriptions.
 
 // 1, or 2 slices per image (i.e. layer, face & slice).
 // These offsets are relative to start of a mip level as given by the
 // main levelIndex.
-typedef struct ktxBasisImageDesc {
+typedef struct ktxBasisLzEtc1sImageDesc {
     buFlags imageFlags;
     uint32_t rgbSliceByteOffset;
     uint32_t rgbSliceByteLength;
     uint32_t alphaSliceByteOffset;
     uint32_t alphaSliceByteLength;
-} ktxBasisImageDesc;
+} ktxBasisLzEtc1sImageDesc;
 
-#define BGD_IMAGE_DESCS(bgd) \
-        reinterpret_cast<ktxBasisImageDesc*>(bgd + sizeof(ktxBasisGlobalHeader))
+#define BGD_ETC1S_IMAGE_DESCS(bgd) \
+        reinterpret_cast<ktxBasisLzEtc1sImageDesc*>(bgd + sizeof(ktxBasisLzGlobalHeader))
 
 // The are followed in the global data by these ...
 //    uint8_t[endpointsByteLength] endpointsData;
@@ -77,7 +77,7 @@ typedef struct ktxBasisImageDesc {
 //    uint8_t[tablesByteLength] tablesData;
 
 #define BGD_ENDPOINTS_ADDR(bgd, imageCount) \
-    (bgd + sizeof(ktxBasisGlobalHeader) + sizeof(ktxBasisImageDesc) * imageCount)
+    (bgd + sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
 
 #define BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) (BGD_ENDPOINTS_ADDR(bgd, imageCount) + bgdh.endpointsByteLength)
 

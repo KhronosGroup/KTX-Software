@@ -192,7 +192,7 @@ struct {
         ERROR | 0x0030, "typeSize, %d, does not match data described by the DFD."
     };
     issue VkFormatAndBasis {
-        ERROR | 0x0031, "VkFormat must be VK_FORMAT_UNDEFINED for supercompressionScheme BASIS."
+        ERROR | 0x0031, "VkFormat must be VK_FORMAT_UNDEFINED for supercompressionScheme BASIS_LZ."
     };
     issue TypeSizeNotOne {
         ERROR | 0x0032, "typeSize for a block compressed or supercompressed format must be 1."
@@ -945,7 +945,7 @@ ktxValidator::validateHeader(validationContext& ctx)
     }
 
     if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
-        if (ctx.header.supercompressionScheme != KTX_SS_BASIS_UNIVERSAL) {
+        if (ctx.header.supercompressionScheme != KTX_SS_BASIS_LZ) {
             uint32_t* pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
             if (pDfd == nullptr)
                 addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
@@ -987,7 +987,7 @@ ktxValidator::validateHeader(validationContext& ctx)
     checkOptionalIndexEntry(ctx.header.keyValueData,
                     HeaderData.InvalidRequiredIndexEntry, "kvd");
 
-    if (ctx.header.supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
+    if (ctx.header.supercompressionScheme == KTX_SS_BASIS_LZ) {
         checkRequiredIndexEntry(ctx.header.supercompressionGlobalData,
                                 HeaderData.InvalidOptionalIndexEntry, "sgd");
     } else {
@@ -1035,7 +1035,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
       case KTX_SS_ZSTD:
         expectedOffset = padn(requiredLevelAlignment, ctx.kvDataEndOffset());
         break;
-      case KTX_SS_BASIS_UNIVERSAL:
+      case KTX_SS_BASIS_LZ:
         ktxIndexEntry64 sgdIndex = ctx.header.supercompressionGlobalData;
         // No padding here.
         expectedOffset = sgdIndex.byteOffset + sgdIndex.byteLength;
@@ -1154,7 +1154,7 @@ ktxValidator::validateDfd(validationContext& ctx)
         }
         break;
 
-      case KTX_SS_BASIS_UNIVERSAL:
+      case KTX_SS_BASIS_LZ:
           // validateHeader has already checked if vkFormat is the required
           // VK_FORMAT_UNDEFINED so no check here.
 
@@ -1493,7 +1493,7 @@ void
 ktxValidator::validateSgd(validationContext& ctx)
 {
     uint64_t sgdByteLength = ctx.header.supercompressionGlobalData.byteLength;
-    if (ctx.header.supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
+    if (ctx.header.supercompressionScheme == KTX_SS_BASIS_LZ) {
         if (sgdByteLength == 0) {
             addIssue(logger::eError, SGD.MissingSupercompressionGlobalData);
             return;
@@ -1527,7 +1527,7 @@ ktxValidator::validateSgd(validationContext& ctx)
     }
     uint32_t& imageCount = firstImages[ctx.levelCount];
 
-    ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(sgd);
+  ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(sgd);
     if (bgdh.globalFlags & ~(eBuIsETC1S | eBUHasAlphaSlices))
         addIssue(logger::eError, SGD.InvalidGlobalFlagBit);
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(ctx.pActualDfd + 1);
@@ -1541,14 +1541,14 @@ ktxValidator::validateSgd(validationContext& ctx)
         addIssue(logger::eError, DFD.SgdMismatchAlpha);
     }
 
-    uint64_t expectedBgdByteLength = sizeof(ktxBasisGlobalHeader)
-                                   + sizeof(ktxBasisImageDesc) * imageCount
+  uint64_t expectedBgdByteLength = sizeof(ktxBasisLzGlobalHeader)
+                                   + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount
                                    + bgdh.endpointsByteLength
                                    + bgdh.selectorsByteLength
                                    + bgdh.tablesByteLength;
 
-    ktxBasisImageDesc* imageDescs = BGD_IMAGE_DESCS(sgd);
-    ktxBasisImageDesc* image = imageDescs;
+    ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(sgd);
+    ktxBasisLzEtc1sImageDesc* image = imageDescs;
     for (; image < imageDescs + imageCount; image++) {
         if (image->imageFlags & ~eBUImageIsIframe)
             addIssue(logger::eError, SGD.InvalidImageFlagBit);
