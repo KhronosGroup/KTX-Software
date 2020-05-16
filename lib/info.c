@@ -305,7 +305,7 @@ void
 printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
                 ktx_uint32_t numImages)
 {
-    ktxBasisGlobalHeader* bgdh = (ktxBasisGlobalHeader*)(bgd);
+    ktxBasisLzGlobalHeader* bgdh = (ktxBasisLzGlobalHeader*)(bgd);
 
     fprintf(stdout, "Global flags: %#x\n", bgdh->globalFlags);
     fprintf(stdout, "endpointCount: %d\n", bgdh->endpointCount);
@@ -315,7 +315,7 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
     fprintf(stdout, "tablesByteLength: %d\n", bgdh->tablesByteLength);
     fprintf(stdout, "extendedByteLength: %d\n", bgdh->extendedByteLength);
 
-    ktxBasisImageDesc* slices = (ktxBasisImageDesc*)(bgd + sizeof(ktxBasisGlobalHeader));
+    ktxBasisLzEtc1sImageDesc* slices = (ktxBasisLzEtc1sImageDesc*)(bgd + sizeof(ktxBasisLzGlobalHeader));
     for (ktx_uint32_t i = 0; i < numImages; i++) {
         fprintf(stdout, "\nimageFlags: %#x\n", slices[i].imageFlags);
         fprintf(stdout, "rgbSliceByteLength: %d\n", slices[i].rgbSliceByteLength);
@@ -369,7 +369,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 
     if (pHeader->supercompressionGlobalData.byteOffset != 0
         && pHeader->supercompressionGlobalData.byteLength != 0) {
-        if (pHeader->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL) {
+        if (pHeader->supercompressionScheme == KTX_SS_BASIS_LZ) {
             ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
             stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
             stream->read(stream, sgd, pHeader->supercompressionGlobalData.byteLength);

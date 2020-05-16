@@ -233,9 +233,9 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
 
 // Rewrite DFD changing it to unsized. Account for the Basis compressor
 // not including an all 1's alpha channel, which would have been removed before
-// encoding and supercompression, by looking at hasAlpha.
+// encoding and supercompression, by using hasAlpha.
 static KTX_error_code
-ktxTexture2_rewriteDfd4BasisU(ktxTexture2* This, bool hasAlpha)
+ktxTexture2_rewriteDfd4BasisLz(ktxTexture2* This, bool hasAlpha)
 {
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
@@ -267,7 +267,7 @@ ktxTexture2_rewriteDfd4BasisU(ktxTexture2* This, bool hasAlpha)
     nbdb[KHR_DF_WORD_BYTESPLANE0] = 0;
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;
 
-    // Set the following to 0 as they have no meaning within the BasisU
+    // Set the following to 0 as they have no meaning within the BasisLz
     // encoded data and what they will be after inflation depends on the
     // transcode target.
     nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 0;
@@ -339,7 +339,7 @@ static bool basisuEncoderInitialized = false;
  * @brief Encode and possibly Supercompress a KTX2 texture with uncompressed images.
  *
  * The images are either encoded to ETC1S block-compressed format and supercompressed
- * with Basis Universal or they are encoded to UASTC block-compressed format.  UASTC format is
+ * with Basis LZ or they are encoded to UASTC block-compressed format.  UASTC format is
  * selected by setting the @c uastc field of @a params to @c KTX_TRUE. The encoded images
  * replace the original images and the texture's fields including the DFD are modified to reflect the new
  * state.
@@ -486,8 +486,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
     }
 
-    // NOTA BENE: It is advantageous for the LZ compression in Basis Universal
-    // to order mipmap levels from largest to smallest.
+    // NOTA BENE: It is advantageous for Basis LZ compression to order
+    // mipmap levels from largest to smallest.
     for (uint32_t level = 0; level < This->numLevels; level++) {
         uint32_t width = MAX(1, This->baseWidth >> level);
         uint32_t height = MAX(1, This->baseHeight >> level);
@@ -708,14 +708,14 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         //
         // Allocate supercompression global data and write its header.
         //
-        uint32_t image_desc_size = sizeof(ktxBasisImageDesc);
+        uint32_t image_desc_size = sizeof(ktxBasisLzEtc1sImageDesc);
 
-        bgd_size = sizeof(ktxBasisGlobalHeader)
+        bgd_size = sizeof(ktxBasisLzGlobalHeader)
                  + image_desc_size * num_images
                  + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
                  + bfh.m_tables_file_size;
         bgd = new ktx_uint8_t[bgd_size];
-        ktxBasisGlobalHeader& bgdh = *reinterpret_cast<ktxBasisGlobalHeader*>(bgd);
+        ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
         // Get the flags that are set while ensuring we don't get
         // cBASISHeaderFlagYFlipped
         bgdh.globalFlags = bfh.m_flags & ~cBASISHeaderFlagYFlipped;
@@ -730,7 +730,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // Write the index of slice descriptions to the global data.
         //
 
-        ktxBasisImageDesc* kimages = BGD_IMAGE_DESCS(bgd);
+        ktxBasisLzEtc1sImageDesc* kimages = BGD_ETC1S_IMAGE_DESCS(bgd);
 
         // 3 things to remember about offsets:
         //    1. levelIndex offsets at this point are relative to This->pData;
@@ -851,10 +851,10 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     } else {
-        result = ktxTexture2_rewriteDfd4BasisU(This, hasAlpha);
+        result = ktxTexture2_rewriteDfd4BasisLz(This, hasAlpha);
         if (result != KTX_SUCCESS) goto cleanup;
 
-        This->supercompressionScheme = KTX_SS_BASIS_UNIVERSAL;
+        This->supercompressionScheme = KTX_SS_BASIS_LZ;
         // Reflect this in the formatSize
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
         // and the requiredLevelAlignment.

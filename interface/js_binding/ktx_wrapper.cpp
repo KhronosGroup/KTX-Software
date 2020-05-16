@@ -292,7 +292,7 @@ enum OrientationZ {
 
 enum SupercmpScheme {
     "NONE",
-    "BASIS_UNIVERSAL",
+    "BASIS_LZ",
     "ZSTD"
 };
 
@@ -481,7 +481,7 @@ EMSCRIPTEN_BINDINGS(ktx)
     ;
     enum_<ktxSupercmpScheme>("SupercmpScheme")
         .value("NONE", KTX_SS_NONE)
-        .value("BASIS_UNIVERSAL", KTX_SS_BASIS_UNIVERSAL)
+        .value("BASIS_LZ", KTX_SS_BASIS_LZ)
         .value("ZSTD", KTX_SS_ZSTD)
     ;
 

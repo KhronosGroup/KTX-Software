@@ -127,7 +127,7 @@ ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
 {
     switch (scheme) {
       case KTX_SS_NONE: return "KTX_SS_NONE";
-      case KTX_SS_BASIS_UNIVERSAL: return "KTX_SS_BASIS_UNIVERSAL";
+      case KTX_SS_BASIS_LZ: return "KTX_SS_BASIS_LZ";
       case KTX_SS_ZSTD: return "KTX_SS_ZSTD";
       default:
         if (scheme < KTX_SS_BEGIN_VENDOR_RANGE

@@ -1449,7 +1449,7 @@ ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This)
 ktx_bool_t
 ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 {
-    if (This->supercompressionScheme == KTX_SS_BASIS_UNIVERSAL)
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
         return true;
@@ -1463,7 +1463,7 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
  * @brief Return the total size in bytes of the uncompressed data of a ktxTexture2.
  *
  * If supercompressionScheme == KTX_SS_NONE or
- * KTX_SS_BASIS_UNIVERSAL, returns the value of @c This->dataSize
+ * KTX_SS_BASIS_LZ, returns the value of @c This->dataSize
  * else if supercompressionScheme == KTX_SS_ZSTD,  it returns the
  * sum of the uncompressed sizes of each mip level plus space for the level padding. With no
  * supercompression the data size and uncompressed data size are the same. For Basis
@@ -1476,7 +1476,7 @@ ktx_size_t
 ktxTexture2_GetDataSizeUncompressed(ktxTexture2* This)
 {
     switch (This->supercompressionScheme) {
-      case KTX_SS_BASIS_UNIVERSAL:
+      case KTX_SS_BASIS_LZ:
       case KTX_SS_NONE:
         return This->dataSize;
       case KTX_SS_ZSTD:
