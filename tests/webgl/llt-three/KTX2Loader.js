@@ -416,8 +416,6 @@ class KTX2Container {
 			transcoder.decodePalettes( numEndpoints, endpoints, numSelectors, selectors );
 			transcoder.decodeTables( tables );
 		}
-		var blockDims = basisModule.getTexFormatBlockDimensions(texFormat);
-
 		var targetFormat;
 
 		if ( config.astcSupported ) {
@@ -461,14 +459,11 @@ class KTX2Container {
 			var levelWidth = width / Math.pow( 2, level );
 			var levelHeight = height / Math.pow( 2, level );
 
-			var numBlocksX = Math.floor( ( levelWidth + ( blockDims.w - 1 ) ) / blockDims.w );
-			var numBlocksY = Math.floor( ( levelHeight + ( blockDims.h - 1 ) ) / blockDims.h );
-
 			var numImagesInLevel = 1; // TODO(donmccurdy): Support cubemaps, arrays and 3D.
-			var levelImageByteLength = numBlocksX * numBlocksY * this.dfd.bytesPlane0;
 			var imageOffsetInLevel = 0;
 
 			var imageInfo = new ImageInfo(texFormat, levelWidth, levelHeight, level);
+			var levelImageByteLength = imageInfo.numBlocksX * imageInfo.numBlocksY * this.dfd.bytesPlane0;
 
 			for ( var imageIndex = 0; imageIndex < numImagesInLevel; imageIndex ++ ) {
 
