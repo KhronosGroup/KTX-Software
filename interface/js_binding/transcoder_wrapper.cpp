@@ -31,19 +31,6 @@ namespace msc {
         HighQuality = cDecodeFlagsHighQuality
     };
 
-    struct BlockDimensions {
-        uint32_t w;
-        uint32_t h;
-    };
-
-    BlockDimensions getTexFormatBlockDimensions(basis_tex_format fmt) {
-        BlockDimensions dim;
-        // Currently all formats are 4x4.
-        dim.w = 4;
-        dim.h = 4;
-        return std::move(dim);
-    }
-
     class BasisTranscoderState: public basisu_transcoder_state {
     };
 
@@ -317,7 +304,6 @@ namespace msc {
 void initTranscoders();
 
 bool isFormatSupported(TranscodeTarget targetFormat, TextureFormat texFormat);
-BlockDimensions getTexFormatBlockDimensions(TextureFormat texFormat);
 
 interface BasisTranscoderState {
     void BasisTranscoderState();
@@ -371,11 +357,6 @@ interface ImageInfo = {
     attribute uint32_t numBlocksX;
     attribute uint32_t numBlocksY;
     attribute uint32_t level;
-};
-
-Dictionary BlockDimensions = {
-    uint32_t w;
-    uint32_t h;
 };
 
 // Some targets may not be available depending on options used when compiling
@@ -500,8 +481,8 @@ transcodeEtc1s(targetFormat) {
     var selectorsStart = ...
     var tablesStart = ...
     // The numbers of endpoints & selectors and their byteLengths are items
-    // within buData. In KTX2 they are in the header of the
-    // supercompressionGlobalData.
+    // within buData. They are in the header of a .ktx2 file's
+    // supercompressionGlobalData and in the header of a .basis file.
 
     var endpoints = new Uint8Array(buData, endpointsStart,
                                    endpointsByteLength);
@@ -521,18 +502,17 @@ transcodeEtc1s(targetFormat) {
     var numImages = ...
 
     // Set up a subarray pointing at the deflated image descriptions
-    // in buData. This is for KTX2 containers. .basis containers will
-    // require slightly different code. The image descriptions are
-    // located in supercompressionGlobalData.
+    // in buData. This is for .ktx2 containers. The image descriptions
+    // are located in supercompressionGlobalData. .basis containers will
+    // require different code to locate the slice descriptions within
+    // the file.
     var imageDescsStart = ...:
     // An imageDesc has 5 uint32 values.
     var imageDescs = new Uint32Data(buData, imageDescsStart,
                                     numImages * 5 * 4);
     var curImageIndex = 0;
 
-    var blockDims = getTexFormatBlockDimensions(texFormat);
-
-    // Pseudo code ...
+    // Pseudo code for processing the levels of a .ktx2 container...
     foreach level {
       var leveWidth = width of image at this level
       var levelHeight = height of image at this level
@@ -573,7 +553,12 @@ transcodeEtc1s(targetFormat) {
         transcodedImage.delete();
       }
     }
-}
+
+    // For .basis containers, it is necessary to locate the slice
+    // description(s) for the image and set the values in imageInfo
+    // from them. Use of the .basis-specific transcoder is recommended.
+    // The definition of the basis_slice_desc struct makes it difficult
+    // to create JS interface for it  with embind.
 @endcode
 
 This is the function for transcoding Uastc.
@@ -595,9 +580,7 @@ transcodeUastc(targetFormat) {
         dctx = ZSTD_createDCtx();
     }
 
-    var blockDims = getTexFormatBlockDimensions(TextureFormat::UASTC4x4);
-
-    // Pseudo code ...
+    // Pseudo code for processing the levels of a .ktx2 container...
     foreach level {
       // Determine the location in the ArrayBuffer buData of the
       // start of the deflated data for the level.
@@ -610,15 +593,13 @@ transcodeUastc(targetFormat) {
       var levelWidth = width of image at this level
       var levelHeight = height of image at this level
       var depth = depth of texture at this level
-      var numBlocksX = Math.ceil(width / blockDims.w);
-      var numblocksY = Math.ceil(height / blockDims.h);
       var levelImageCount = number of layers * number of faces * depth;
-      var levelImageByteLength = blockDims.w * blockDims.h * DFD bytesPlane0;
       var imageOffsetInLevel = 0;
-      
+
       var imageInfo = new ImageInfo(TextureFormat::UASTC4x4,
                                     levelWidth, levelHeight, level);
- 
+      var levelImageByteLength = imageInfo.numBlocksX * imageInfo.numBlocksY * DFD bytesPlane0;
+
       foreach image in level {
         inImage = Uint8Array(levelData, imageOffsetInLevel, levelImageByteLength);
         imageInfo.flags = 0;
@@ -648,6 +629,9 @@ transcodeUastc(targetFormat) {
        imageOffsetInLevel += levelImageByteLength;
     }
   }
+  // For .basis containers, as with ETC1S, it is necessary to locate
+  // the slice description for the image and set the values in imageInfo
+  // from it.
 }
 @endcode
 
@@ -688,14 +672,8 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         .value("HIGH_QUALITY", msc::HighQuality)
     ;
 
-    value_object<msc::BlockDimensions>("BlockDimensions")
-        .field("w", &msc::BlockDimensions::w)
-        .field("h", &msc::BlockDimensions::h)
-    ;
-
     function("initTranscoders", basisu_transcoder_init);
     function("isFormatSupported", basis_is_format_supported);
-    function("getTexFormatBlockDimensions", msc::getTexFormatBlockDimensions);
 
     class_<basisu_image_desc>("ImageInfo")
         .constructor<basis_tex_format,uint32_t,uint32_t,uint32_t>()
