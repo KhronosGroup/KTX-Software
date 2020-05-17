@@ -10777,12 +10777,12 @@ namespace basist
             output_buffer_byte_length = output_blocks_buf_size_in_blocks_or_pixels
                                        * basis_get_bytes_per_block_or_pixel(fmt);
         }
-        basisu_image_desc image_desc(&pSlice_descs[slice_index],
-                                     basis_file_has_alpha_slices,
-                                     level_index);
 		if (pHeader->m_tex_format == (int)basis_tex_format::cUASTC4x4)
 		{
 			// UASTC4x4
+            basisu_image_desc image_desc(&pSlice_descs[slice_index],
+                                         false,
+                                         level_index);
             status = m_uastc_image_decoder.transcode_image(fmt,
                                 (uint8_t*)pOutput_blocks,
                                 output_buffer_byte_length,
@@ -10796,6 +10796,9 @@ namespace basist
                                 output_rows_in_pixels);
         } else {
             // ETC1S
+            basisu_image_desc image_desc(&pSlice_descs[slice_index],
+                                         basis_file_has_alpha_slices,
+                                         level_index);
             status = m_etc1s_image_decoder.transcode_image(fmt,
                                 (uint8_t*)pOutput_blocks,
                                 output_buffer_byte_length,
