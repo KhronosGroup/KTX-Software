@@ -153,13 +153,23 @@ add_dependencies(mkvk
 list(APPEND version_h_output
     "${PROJECT_SOURCE_DIR}/lib/version.h")
 
-add_custom_command(
-    OUTPUT ${version_h_output}
-    COMMAND ./mkversion -o version.h lib
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT Generating DFD/VkFormat switch body
-    VERBATIM
-)
+if(WIN32)
+    add_custom_command(
+        OUTPUT ${version_h_output}
+        COMMAND call call "setup_env.bat" && bash -c "\"./mkversion\" \"-o\" \"version.h\" \"lib\""
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT Generate version.h
+        VERBATIM
+    )
+else()
+    add_custom_command(
+        OUTPUT ${version_h_output}
+        COMMAND ./mkversion -o version.h lib
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT Generate version.h
+        VERBATIM
+    )
+endif()
 
 add_custom_target(version_h
     DEPENDS ${version_h_output}
@@ -337,7 +347,12 @@ if(KTX_FEATURE_WRITE)
     )
 endif()
 
-if(APPLE)
+if(WIN32)
+    target_link_libraries(
+        ktx
+        ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib
+        )
+elseif(APPLE)
     if(IOS)
         target_link_libraries(
             ktx
@@ -459,7 +474,9 @@ if(EMSCRIPTEN)
 
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
 set(CMAKE_CXX_STANDARD 11)
 
 if(MSVC)

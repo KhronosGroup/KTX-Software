@@ -1,8 +1,12 @@
 
-find_package(SDL2 REQUIRED)
+if(NOT WIN32)
+    find_package(SDL2 REQUIRED)
+endif()
 if(NOT APPLE)
     find_package(assimp REQUIRED)
 endif()
+
+find_package( ZLIB REQUIRED )
 
 add_library( appfwSDL OBJECT
     appfwSDL/AppBaseSDL.cpp
@@ -89,7 +93,7 @@ target_link_libraries(
     ${OPENGL_LIBRARIES}
     ${SDL2_LIBRARIES}
     ktx
-    z
+    ZLIB::ZLIB
 )
 
 if(APPLE)
@@ -156,7 +160,7 @@ target_include_directories(
 target_link_libraries(
     vkloadtests
     ktx
-    z
+    ZLIB::ZLIB
 )
 
 if(Vulkan_FOUND)
