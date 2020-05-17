@@ -10,7 +10,7 @@ The Official Khronos KTX Software Repository
 This is the official home of the source code
 for the Khronos KTX library and tools.
 
-KTX (Khronos Texture) is a lightweight file format textures for OpenGL<sup>®</sup>, Vulkan<sup>®</sup> and other GPU APIs. KTX files contain all the parameters needed for texture loading. A single file can contain anything from a simple base-level 2D texture through to a cubemap array texture with mipmaps. Textures can be stored in Basis Universal or any of the block-compressed formats supported by OpenGL family and Vulkan APIs and extensions or can be stored uncompressed. Basis Universal is a supercompressed block-compressed format that can be quickly transcoded to any GPU-supported format.
+KTX (Khronos Texture) is a lightweight container for textures for OpenGL<sup>®</sup>, Vulkan<sup>®</sup> and other GPU APIs. KTX files contain all the parameters needed for texture loading. A single file can contain anything from a simple base-level 2D texture through to a cubemap array texture with mipmaps. Contained textures can be in a Basis Universal format, in any of the block-compressed formats supported by OpenGL family and Vulkan APIs and extensions or in an uncompressed single-plane format. Basis Universal currently encompasses two formats that can be quickly transcoded to any GPU-supported format: LZ/ETC1S, which combines block-compression and supercompression, and UASTC, a block-compressed format. Formats other than LZ/ETC1S can be supercompressed with Zstd.
 
 The software consists of: (links are to source folders in the KhronosGroup repo)
 
@@ -20,7 +20,7 @@ from them. [`lib`](https://github.com/KhronosGroup/KTX-Software/tree/master/lib)
 - *libktx.{js,wasm}* - Web assembly version of libktx and
 Javascript wrapper. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
 - *msc\_basis\_transcoder.{js,wasm}* - Web assembly transcoder and
-Javascript wrapper for Basis Universal format images. For use with KTX parsers written in Javascript. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
+Javascript wrapper for Basis Universal formats. For use with KTX parsers written in Javascript. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
 - *ktx2check* - a tool for validating KTX Version 2 format files. [`tools/ktx2check`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2check)
 - *ktx2ktx2* - a tool for converting a KTX Version 1 file to a KTX
 Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2ktx2)
@@ -28,8 +28,8 @@ Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/
 human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxinfo)
 - *ktxsc* - a tool to supercompress a KTX Version 2 file that
 contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxsc)
-- *toktx* - a tool to create KTX files from PNG or Netpbm format images. It supports mipmap generation and encoding & supercompression to
-Basis Universal format.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
+- *toktx* - a tool to create KTX files from PNG or Netpbm format images. It supports mipmap generation, encoding to
+Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
 
 See the Doxygen generated [live documentation](https://github.khronos.org/KTX-Software/)
 for API and tool usage information.
@@ -54,7 +54,12 @@ To report problems use GitHub [issues](https://github.com/KhronosGroup/KTX/issue
 
 **IMPORTANT:** you **must** install the [Git LFS](https://github.com/github/git-lfs)
 command line extension in order to fully checkout this repository after cloning. You
-need at least version 1.1.
+need at least version 1.1. If you did not have Git LFS installed at first checkout
+then, after installing it, you **must** run
+
+```bash
+git lfs checkout
+```
 
 A few files have `$Date$` keywords. If you care about having the proper
 dates shown or will be generating the documentation or preparing
