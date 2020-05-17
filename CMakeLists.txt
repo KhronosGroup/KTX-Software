@@ -64,7 +64,7 @@ list(APPEND mkvkformatfiles_input
     "lib/dfdutils/vulkan/vulkan_core.h"
     "lib/mkvkformatfiles")
 list(APPEND mkvkformatfiles_output
-    "lib/vkformat_enum.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_enum.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_check.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_str.c")
 
@@ -98,7 +98,7 @@ list(APPEND makevkswitch_input
     "lib/vkformat_enum.h"
     "lib/dfdutils/makevkswitch.pl")
 set(makevkswitch_output
-    "lib/dfdutils/vk2dfd.inl")
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
 add_custom_command(
     OUTPUT ${makevkswitch_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
@@ -118,7 +118,7 @@ list(APPEND makedfd2vk_input
     "lib/vkformat_enum.h"
     "lib/dfdutils/makedfd2vk.pl")
 list(APPEND makedfd2vk_output
-    "lib/dfdutils/dfd2vk.inl")
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
 
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
@@ -151,7 +151,7 @@ add_dependencies(mkvk
 # version.h
 
 list(APPEND version_h_output
-    "lib/version.h")
+    "${PROJECT_SOURCE_DIR}/lib/version.h")
 
 add_custom_command(
     OUTPUT ${version_h_output}
