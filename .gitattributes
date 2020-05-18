@@ -31,6 +31,7 @@ build/msvs/* eol=crlf
 # Force line endings for unix shell scripts and other specific files
 tests/toktx-tests eol=lf
 expandkw eol=lf
+mkversion eol=lf
 .ktx-stamp eol=lf
 GNUmakefile eol=lf
 
