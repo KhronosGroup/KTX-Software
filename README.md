@@ -28,7 +28,7 @@ Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/
 human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxinfo)
 - *ktxsc* - a tool to supercompress a KTX Version 2 file that
 contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxsc)
-- *toktx* - a tool to create KTX files from PNG or Netpbm format images. It supports mipmap generation, encoding to
+- *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
 Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
 
 See the Doxygen generated [live documentation](https://github.khronos.org/KTX-Software/)
