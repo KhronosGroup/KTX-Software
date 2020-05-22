@@ -177,18 +177,14 @@ add_custom_target(version_h
 
 # End auto-generated code
 
-set( KTX_DEFS LIBKTX )
-
 if(EMSCRIPTEN)
     set(LIB_TYPE STATIC)
-    list( APPEND KTX_DEFS KHRONOS_STATIC )
 else()
     set(LIB_TYPE SHARED)
 endif()
 
 # Main library
 add_library( ktx ${LIB_TYPE}
-    $<TARGET_OBJECTS:objKtxOpenGLLoader>
     include/ktx.h
     lib/basis_sgd.h
     lib/basis_transcode.cpp
@@ -210,9 +206,15 @@ add_library( ktx ${LIB_TYPE}
     lib/dfdutils/vk2dfd.c
     lib/dfdutils/vulkan/vk_platform.h
     lib/dfdutils/vulkan/vulkan_core.h
+    lib/etcdec.cxx
+    lib/etcunpack.cxx
     lib/filestream.c
     lib/filestream.h
     lib/formatsize.h
+    lib/gl_format.h
+    lib/gl_funcs.c
+    lib/gl_funcs.h
+    lib/glloader.c
     lib/hashlist.c
     lib/info.c
     lib/ktxint.h
@@ -234,14 +236,11 @@ add_library( ktx ${LIB_TYPE}
     )
 add_dependencies(ktx version_h mkvk)
 
-add_library( objKtxOpenGLLoader OBJECT
-    lib/etcdec.cxx
-    lib/etcunpack.cxx
-    lib/gl_format.h
-    lib/gl_funcs.c
-    lib/gl_funcs.h
-    lib/glloader.c
-)
+target_compile_definitions(ktx PUBLIC LIBKTX)
+
+if( LIB_TYPE STREQUAL STATIC )
+    target_compile_definitions(ktx PUBLIC KHRONOS_STATIC)
+endif()
 
 # list(APPEND KTX_DEFS
 #     BASISD_SUPPORT_FXT1=1
@@ -251,32 +250,28 @@ add_library( objKtxOpenGLLoader OBJECT
 #     BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=1
 #     )
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list(APPEND KTX_DEFS
-        _DEBUG)
-endif()
+target_compile_definitions(ktx PUBLIC "$<$<CONFIG:Debug>:_DEBUG>")
 
 if(KTX_FEATURE_KTX1)
-    list( APPEND KTX_DEFS
-        KTX_FEATURE_KTX1
-    )
+    target_compile_definitions(ktx PUBLIC KTX_FEATURE_KTX1)
     target_sources(
         ktx
-        PRIVATE
+    PUBLIC
         lib/texture1.c
         lib/texture1.h
     )
 endif()
 
 if(KTX_FEATURE_KTX2)
-    list( APPEND KTX_DEFS
-        KTX_FEATURE_KTX2
-    )
+    target_compile_definitions(ktx PUBLIC KTX_FEATURE_KTX2)
 endif()
 
 if(KTX_FEATURE_WRITE)
 
-    add_library( objBasisuWrite OBJECT
+    target_sources(
+        ktx
+    PUBLIC
+        lib/basis_encode.cpp
         lib/basisu/apg_bmp.c
         lib/basisu/apg_bmp.h
         lib/basisu/basisu_astc_decomp.cpp
@@ -314,34 +309,16 @@ if(KTX_FEATURE_WRITE)
         lib/basisu/jpgd.h
         lib/basisu/lodepng.cpp
         lib/basisu/lodepng.h
-    )
-    target_include_directories(
-        objBasisuWrite
-        PUBLIC
-        lib/basisu
-    )
-
-    add_library( objKtxWrite OBJECT
-        lib/basis_encode.cpp
         lib/writer1.c
         lib/writer2.c
     )
-    add_dependencies(objKtxWrite version_h mkvk)
     target_include_directories(
-        objKtxWrite
-        PUBLIC
-        include
-        PRIVATE
-        lib
-        other_include
-        )
-
-    target_sources(
         ktx
-        PRIVATE
-        $<TARGET_OBJECTS:objKtxWrite>
-        $<TARGET_OBJECTS:objBasisuWrite>
+    PRIVATE
+        lib
+        lib/basisu
     )
+
 endif()
 
 if(WIN32)
@@ -364,7 +341,7 @@ elseif(APPLE)
 elseif(EMSCRIPTEN)
     target_sources(
         ktx
-        PRIVATE
+    PUBLIC
         lib/zstddeclib.c
     )
 elseif(LINUX)
@@ -380,68 +357,44 @@ endif()
 
 target_include_directories(
     ktx
-    PUBLIC
+PUBLIC
     include
-    PRIVATE
+PRIVATE
     other_include
     lib/basisu/transcoder
 )
 
-target_include_directories(
-    objKtxOpenGLLoader
-    PUBLIC
-    include
-    other_include
-)
-
 if(OPENGL_FOUND)
     target_include_directories(
-        objKtxOpenGLLoader
-        PRIVATE
+        ktx
+    PRIVATE
         ${OPENGL_INCLUDE_DIR}
     )
 endif()
 
-target_compile_definitions(
-    objKtxOpenGLLoader
-    PRIVATE
-    ${KTX_DEFS}
-)
-
 if(KTX_FEATURE_VULKAN)
-    add_library( objKtxVulkanLoader OBJECT
+    target_sources(
+        ktx
+    PUBLIC
         include/ktxvulkan.h
         lib/vk_funcs.c
         lib/vk_funcs.h
         lib/vkloader.c
     )
-    target_sources( ktx PRIVATE $<TARGET_OBJECTS:objKtxVulkanLoader> )
-    target_include_directories(
-        objKtxVulkanLoader
-        PUBLIC
-        include
-        other_include
-    )
-    target_compile_definitions(
-        objKtxVulkanLoader
-        PRIVATE
-        ${KTX_DEFS}
-    )
 
     if(Vulkan_FOUND)
-        list(APPEND KTX_DEFS
-            USE_VULKAN_SDK
-        )
+        target_compile_definitions(ktx PUBLIC USE_VULKAN_SDK)
         target_include_directories(
-            objKtxVulkanLoader
-            PRIVATE
+            ktx
+        PUBLIC
+            ${Vulkan_INCLUDE_DIR}
             ${Vulkan_INCLUDE_DIRS}
         )
     elseif(APPLE)
         # TODO: Make it more elegant than fallback to VULKAN_SDK variable
         target_include_directories(
-            objKtxVulkanLoader
-            PUBLIC
+            ktx
+        PUBLIC
             ${VULKAN_SDK}/include
         )
     endif()
@@ -486,19 +439,6 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O2 -flto")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O2 -flto")
-endif()
-
-target_compile_definitions(
-    ktx
-    PRIVATE
-    ${KTX_DEFS}
-)
-if(KTX_FEATURE_WRITE)
-    target_compile_definitions(
-        objKtxWrite
-        PRIVATE
-        ${KTX_DEFS}
-        )
 endif()
 
 add_library( objUtil OBJECT
