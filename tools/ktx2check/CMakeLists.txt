@@ -4,15 +4,11 @@ add_executable( ktx2check
     stdafx.h
     )
 
-get_property(ktx_include_dirs TARGET ktx PROPERTY INCLUDE_DIRECTORIES)
-get_property(objUtil_include_dirs TARGET objUtil PROPERTY INCLUDE_DIRECTORIES)
-
-
 target_include_directories(
     ktx2check
     PRIVATE
-    ${ktx_include_dirs}
-    ${objUtil_include_dirs}
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     )
