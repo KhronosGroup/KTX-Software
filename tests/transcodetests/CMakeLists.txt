@@ -20,4 +20,10 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     )
 
+target_compile_definitions(
+    transcodetests
+PRIVATE
+    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+)
+
 add_test( NAME transcodetests COMMAND transcodetests "${PROJECT_SOURCE_DIR}/tests/testimages/" )
