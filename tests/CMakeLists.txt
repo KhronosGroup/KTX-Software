@@ -76,3 +76,13 @@ add_subdirectory(loadtests)
 
 add_test( NAME unittests COMMAND unittests )
 add_test( NAME texturetests COMMAND texturetests )
+
+if(WIN32)
+    set_tests_properties(
+        unittests
+        texturetests
+    PROPERTIES
+        # Make sure ktx DLL is found by adding its directory to PATH
+        ENVIRONMENT "PATH=$<TARGET_FILE_DIR:ktx>\;$ENV{PATH}"
+    )
+endif()
