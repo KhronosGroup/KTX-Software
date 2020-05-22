@@ -383,11 +383,15 @@ if(KTX_FEATURE_VULKAN)
     )
 
     if(Vulkan_FOUND)
+        if(NOT Vulkan_INCLUDE_DIRS AND Vulkan_INCLUDE_DIR)
+            # Fallback for inconsistent variable name on Windows
+            set(Vulkan_INCLUDE_DIRS ${Vulkan_INCLUDE_DIR})
+        endif()
+
         target_compile_definitions(ktx PUBLIC USE_VULKAN_SDK)
         target_include_directories(
             ktx
         PUBLIC
-            ${Vulkan_INCLUDE_DIR}
             ${Vulkan_INCLUDE_DIRS}
         )
     elseif(APPLE)
