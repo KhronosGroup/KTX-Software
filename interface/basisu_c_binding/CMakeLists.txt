@@ -11,3 +11,9 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/utils
 )
+
+target_compile_definitions(
+    obj_basisu_cbind
+PRIVATE
+    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+)
