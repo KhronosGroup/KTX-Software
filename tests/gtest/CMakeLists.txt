@@ -1,4 +1,4 @@
-add_library( gtest SHARED
+add_library( gtest STATIC
     src/gtest-all.cc
     src/gtest-internal-inl.h
     src/gtest_main.cc
@@ -6,7 +6,7 @@ add_library( gtest SHARED
 
 target_include_directories(
     gtest
-    PUBLIC
+PUBLIC
     include
     .
 )
