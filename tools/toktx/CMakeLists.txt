@@ -28,4 +28,10 @@ target_link_libraries(
     ktx
     )
 
+target_compile_definitions(
+    toktx
+PRIVATE
+    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+)
+
 install(TARGETS toktx)
