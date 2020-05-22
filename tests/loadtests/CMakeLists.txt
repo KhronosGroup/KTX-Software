@@ -18,7 +18,7 @@ target_include_directories(
     PUBLIC
     ${SDL2_INCLUDE_DIRS}
     appfwSDL
-    ${ktx_include_dirs}
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
@@ -69,7 +69,7 @@ add_executable( gl3loadtests
 target_include_directories(
     gl3loadtests
     PRIVATE
-    ${ktx_include_dirs}
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
@@ -144,7 +144,7 @@ add_executable( vkloadtests
 target_include_directories(
     vkloadtests
     PRIVATE
-    ${ktx_include_dirs}
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
