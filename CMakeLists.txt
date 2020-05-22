@@ -249,15 +249,42 @@ if( LIB_TYPE STREQUAL STATIC )
     target_compile_definitions(ktx PUBLIC KHRONOS_STATIC)
 endif()
 
-# list(APPEND KTX_DEFS
-#     BASISD_SUPPORT_FXT1=1
-#     BASISD_SUPPORT_BC7=1
-#     BASISD_SUPPORT_PVRTC2=1
-#     BASISD_SUPPORT_ETC2_EAC_RG11=1
-#     BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=1
-#     )
 
 target_compile_definitions(ktx PUBLIC "$<$<CONFIG:Debug>:_DEBUG>")
+
+# To reduce size, don't support transcoding to ancient formats.
+target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0 )
+
+# TODO: make options for all formats and good per-platform defaults
+# - BASISD_SUPPORT_UASTC
+# - BASISD_SUPPORT_DXT1 (BC1)
+# - BASISD_SUPPORT_DXT5A (BC3/4/5)
+# - BASISD_SUPPORT_BC7
+# - BASISD_SUPPORT_BC7_MODE5
+# - BASISD_SUPPORT_PVRTC1
+# - BASISD_SUPPORT_ETC2_EAC_A8
+# - BASISD_SUPPORT_ASTC
+# - BASISD_SUPPORT_ATC
+# - BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY
+# - BASISD_SUPPORT_ETC2_EAC_RG11
+# - BASISD_SUPPORT_FXT1
+# - BASISD_SUPPORT_PVRTC2
+
+if(WIN32)
+    target_compile_definitions(
+        ktx
+    PUBLIC
+        "KTX_APICALL=__declspec(dllexport)"
+        BASISU_NO_ITERATOR_DEBUG_LEVEL
+    )
+    target_sources(
+        ktx
+    PRIVATE
+        # The msvs generator automatically sets the needed VCLinker
+        # option when a .def file is seen in sources.
+        lib/internalexport.def
+    )
+endif()
 
 if(KTX_FEATURE_KTX1)
     target_compile_definitions(ktx PUBLIC KTX_FEATURE_KTX1)
