@@ -237,6 +237,13 @@ add_library( ktx ${LIB_TYPE}
 add_dependencies(ktx version_h mkvk)
 
 target_compile_definitions(ktx PUBLIC LIBKTX)
+target_include_directories(
+    ktx
+PUBLIC
+    include
+    lib/basisu/transcoder
+    other_include
+)
 
 if( LIB_TYPE STREQUAL STATIC )
     target_compile_definitions(ktx PUBLIC KHRONOS_STATIC)
@@ -256,7 +263,7 @@ if(KTX_FEATURE_KTX1)
     target_compile_definitions(ktx PUBLIC KTX_FEATURE_KTX1)
     target_sources(
         ktx
-    PUBLIC
+    PRIVATE
         lib/texture1.c
         lib/texture1.h
     )
@@ -270,7 +277,7 @@ if(KTX_FEATURE_WRITE)
 
     target_sources(
         ktx
-    PUBLIC
+    PRIVATE
         lib/basis_encode.cpp
         lib/basisu/apg_bmp.c
         lib/basisu/apg_bmp.h
@@ -341,7 +348,7 @@ elseif(APPLE)
 elseif(EMSCRIPTEN)
     target_sources(
         ktx
-    PUBLIC
+    PRIVATE
         lib/zstddeclib.c
     )
 elseif(LINUX)
@@ -355,15 +362,6 @@ elseif(LINUX)
     )
 endif()
 
-target_include_directories(
-    ktx
-PUBLIC
-    include
-PRIVATE
-    other_include
-    lib/basisu/transcoder
-)
-
 if(OPENGL_FOUND)
     target_include_directories(
         ktx
@@ -375,7 +373,7 @@ endif()
 if(KTX_FEATURE_VULKAN)
     target_sources(
         ktx
-    PUBLIC
+    PRIVATE
         include/ktxvulkan.h
         lib/vk_funcs.c
         lib/vk_funcs.h
@@ -410,11 +408,7 @@ if(EMSCRIPTEN)
 
     add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
     target_link_libraries( ktx_js ktx )
-    target_include_directories( ktx_js
-        PRIVATE
-        lib
-        lib/basisu/transcoder
-    )
+    target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES> )
     target_link_options( ktx_js PUBLIC --bind )
     
     add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )

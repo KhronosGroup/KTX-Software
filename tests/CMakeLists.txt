@@ -8,8 +8,6 @@ find_package (Threads)
 add_subdirectory(gtest)
 enable_testing()
 
-get_property(ktx_include_dirs TARGET ktx PROPERTY INCLUDE_DIRECTORIES)
-
 add_subdirectory(transcodetests)
 
 if(NOT KTX_FEATURE_KTX1)
@@ -35,10 +33,12 @@ add_executable( unittests
 
 target_include_directories(
     unittests
-    PRIVATE
-    ${ktx_include_dirs}
+PUBLIC
+    ${OPENGL_INCLUDE_DIR}
+PRIVATE
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
-    )
+)
 
 target_link_libraries(
     unittests
@@ -57,7 +57,7 @@ if(OPENGL_FOUND)
         # PUBLIC
         PRIVATE
         ${OPENGL_INCLUDE_DIR}
-        ${ktx_include_dirs}
+        $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
         ${PROJECT_SOURCE_DIR}/other_include
         ${PROJECT_SOURCE_DIR}/lib
         unittests
