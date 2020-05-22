@@ -192,9 +192,6 @@ add_library( ktx ${LIB_TYPE}
     include/ktx.h
     lib/basis_sgd.h
     lib/basis_transcode.cpp
-    lib/basisu_image_transcoders.cpp
-    lib/basisu_image_transcoders.h
-    lib/basisu_transcoder_config.h
     lib/basisu/transcoder/basisu_file_headers.h
     lib/basisu/transcoder/basisu_global_selector_cb.h
     lib/basisu/transcoder/basisu_global_selector_palette.h
