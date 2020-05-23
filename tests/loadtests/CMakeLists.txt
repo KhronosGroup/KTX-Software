@@ -14,6 +14,30 @@ set(builddir "${CMAKE_BINARY_DIR}")
 # to take the exact path and not change it.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${builddir}/$<CONFIG>>)
 
+
+function( ensure_runtime_dependencies_windows target )
+    # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
+    # relative to executable.
+    add_custom_command( TARGET gl3loadtests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:${target}>"
+        COMMENT "Copy DLLs to build destination"
+    )
+    add_custom_command( TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${builddir}/shaders" "$<TARGET_FILE_DIR:${target}>/shaders"
+        COMMENT "Copy shaders to build destination"
+    )
+    add_custom_command( TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/testimages" "$<TARGET_FILE_DIR:${target}>/testimages"
+        COMMENT "Copy testimages to build destination"
+    )
+    add_custom_command( TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:${target}>/models"
+        COMMENT "Copy models to build destination"
+    )
+endfunction()
+
 add_library( appfwSDL OBJECT
     appfwSDL/AppBaseSDL.cpp
     appfwSDL/main.cpp
@@ -128,28 +152,7 @@ elseif(WIN32)
         "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
         "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
     )
-
-    # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
-    # relative to executable.
-    add_custom_command( TARGET gl3loadtests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:gl3loadtests>"
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:gl3loadtests>"
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:gl3loadtests>"
-        COMMENT "Copy DLLs to build destination"
-    )
-    add_custom_command( TARGET gl3loadtests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${builddir}/shaders" "$<TARGET_FILE_DIR:gl3loadtests>/shaders"
-        COMMENT "Copy shaders to build destination"
-    )
-    add_custom_command( TARGET gl3loadtests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/testimages" "$<TARGET_FILE_DIR:gl3loadtests>/testimages"
-        COMMENT "Copy testimages to build destination"
-    )
-    add_custom_command( TARGET gl3loadtests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:gl3loadtests>/models"
-        COMMENT "Copy models to build destination"
-    )
-
+    ensure_runtime_dependencies_windows(gl3loadtests)
 endif()
 
 target_compile_definitions(
@@ -237,6 +240,15 @@ elseif(LINUX)
         ${assimp_LIBRARIES}
         ${CMAKE_SOURCE_DIR}/other_lib/linux/${LINUX_LIB_DIR}-x64/libSDL2.a
     )
+elseif(WIN32)
+    target_link_libraries(
+        vkloadtests
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
+    )
+    ensure_runtime_dependencies_windows(vkloadtests)
 endif()
 
 target_compile_definitions(
