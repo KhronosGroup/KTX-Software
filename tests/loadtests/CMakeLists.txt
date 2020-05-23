@@ -15,7 +15,7 @@ add_library( appfwSDL OBJECT
 
 target_include_directories(
     appfwSDL
-    PUBLIC
+PUBLIC
     ${SDL2_INCLUDE_DIRS}
     appfwSDL
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
@@ -31,7 +31,7 @@ target_include_directories(
 if(OPENGL_FOUND)
     target_include_directories(
         appfwSDL
-        PUBLIC
+    PUBLIC
         ${OPENGL_INCLUDE_DIR}
     )
 endif()
@@ -47,8 +47,14 @@ set( GL_LOAD_TEST_RESOURCE_FILES
     "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
 )
 
+if(APPLE)
+    set( EXE_FLAG MACOSX_BUNDLE )
+elseif(WIN32)
+    set( EXE_FLAG WIN32 )
+endif()
+
 add_executable( gl3loadtests
-    MACOSX_BUNDLE
+    ${EXE_FLAG}
     $<TARGET_OBJECTS:appfwSDL>
     $<TARGET_OBJECTS:objUtil>
     appfwSDL/GLAppSDL.cpp
@@ -108,6 +114,14 @@ elseif(LINUX)
         gl3loadtests
         ${assimp_LIBRARIES}
     )
+elseif(WIN32)
+    target_link_libraries(
+        gl3loadtests
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
+    )
 endif()
 
 target_compile_definitions(
@@ -120,7 +134,7 @@ PRIVATE
 )
 
 add_executable( vkloadtests
-    MACOSX_BUNDLE
+    ${EXE_FLAG}
     $<TARGET_OBJECTS:appfwSDL>
     $<TARGET_OBJECTS:objUtil>
     appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
@@ -259,8 +273,8 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
         ${vert2spirv_out}
     )
 
-    SET_SOURCE_FILES_PROPERTIES(${frag2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
-    SET_SOURCE_FILES_PROPERTIES(${vert2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+    set_source_files_properties(${frag2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+    set_source_files_properties(${vert2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
 
 endfunction(compileshader)
 
@@ -286,10 +300,10 @@ add_custom_target(
 
 set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
-SET_SOURCE_FILES_PROPERTIES(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
-SET_SOURCE_FILES_PROPERTIES(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
+set_source_files_properties(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
+set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
 # Hack to prevent *.obj 3D files to be mistaken as linkable obj files
-SET_SOURCE_FILES_PROPERTIES(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
+set_source_files_properties(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
 
 set_target_properties( gl3loadtests PROPERTIES
     RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
