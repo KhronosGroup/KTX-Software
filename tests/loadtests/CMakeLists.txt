@@ -8,6 +8,12 @@ endif()
 
 find_package( ZLIB REQUIRED )
 
+set(builddir "${CMAKE_BINARY_DIR}")
+
+# By wrapping in generator expression we force multi configuration generators (like Visual Studio)
+# to take the exact path and not change it.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${builddir}/$<CONFIG>>)
+
 add_library( appfwSDL OBJECT
     appfwSDL/AppBaseSDL.cpp
     appfwSDL/main.cpp
@@ -122,6 +128,28 @@ elseif(WIN32)
         "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
         "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
     )
+
+    # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
+    # relative to executable.
+    add_custom_command( TARGET gl3loadtests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:gl3loadtests>"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:gl3loadtests>"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:gl3loadtests>"
+        COMMENT "Copy DLLs to build destination"
+    )
+    add_custom_command( TARGET gl3loadtests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${builddir}/shaders" "$<TARGET_FILE_DIR:gl3loadtests>/shaders"
+        COMMENT "Copy shaders to build destination"
+    )
+    add_custom_command( TARGET gl3loadtests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/testimages" "$<TARGET_FILE_DIR:gl3loadtests>/testimages"
+        COMMENT "Copy testimages to build destination"
+    )
+    add_custom_command( TARGET gl3loadtests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:gl3loadtests>/models"
+        COMMENT "Copy models to build destination"
+    )
+
 endif()
 
 target_compile_definitions(
@@ -216,8 +244,6 @@ target_compile_definitions(
     PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
-
-set(builddir "${CMAKE_CURRENT_BINARY_DIR}")
 
 function(compileshader shader_target shader_name shader_src_path shader_path)
 
