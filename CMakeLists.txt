@@ -8,7 +8,6 @@ project(KTX-Software)
 
 include(CTest)
 
-find_package(Doxygen)
 find_package(OpenGL)
 if(NOT EMSCRIPTEN)
     find_package(Vulkan)
@@ -26,6 +25,10 @@ if(UNIX AND NOT APPLE)
 endif()
 
 
+# OPTIONS
+
+option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
+
 # Might become options in the future
 
 # option( KTX_FEATURE_KTX1 "KTX version 1" ON )
@@ -36,7 +39,6 @@ set( KTX_FEATURE_WRITE ON )
 set( KTX_FEATURE_KTX1 ON )
 set( KTX_FEATURE_KTX2 ON )
 set( KTX_FEATURE_VULKAN ON )
-set( KTX_FEATURE_DOC ON )
 
 if(EMSCRIPTEN)
     set( KTX_FEATURE_VULKAN OFF )
@@ -488,11 +490,7 @@ endif()
 add_subdirectory(tests)
 
 if(KTX_FEATURE_DOC)
-    if(DOXYGEN_FOUND)
-        include(cmake/docs.cmake)
-    else()
-        message("Doxygen not found -> skipping documentation")
-    endif()
+    include(cmake/docs.cmake)
 endif()
 
 install(TARGETS ktx)
