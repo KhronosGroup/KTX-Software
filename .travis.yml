@@ -77,6 +77,7 @@ install:
     git lfs version &&
     brew install doxygen &&
     brew install sdl2 &&
+    brew link sdl2 &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
     wget -O vulkansdk-macos-$VULKAN_SDK_VER.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.dmg?Human=true &&
@@ -148,6 +149,7 @@ script:
     cmake --build build-macos --config Release &&
     cmake --build build-macos --config Release --target RUN_TESTS &&
     cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS &&
+    cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DVULKAN_SDK="${VULKAN_INSTALL_DIR}/MoltenVK" &&
     cmake --build build-ios --config Debug &&
     cmake --build build-ios --config Release
     ;;
