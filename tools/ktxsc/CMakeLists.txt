@@ -18,4 +18,4 @@ target_link_libraries(
     ktx
     )
 
-install(TARGETS ktxsc)
+install(TARGETS ktxsc RUNTIME DESTINATION bin)

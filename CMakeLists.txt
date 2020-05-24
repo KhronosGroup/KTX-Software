@@ -493,4 +493,4 @@ if(KTX_FEATURE_DOC)
     include(cmake/docs.cmake)
 endif()
 
-install(TARGETS ktx)
+install(TARGETS ktx LIBRARY DESTINATION lib)
