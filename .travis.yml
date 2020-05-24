@@ -121,8 +121,8 @@ script:
     cmake --build build-linux-release &&
     cmake --build build-linux-debug --target test &&
     cmake --build build-linux-release --target test &&
-    docker exec -it emscripten sh -c "emcmake . -Bbuild-web-debug && cmake --build build-web-debug --config Debug" &&
-    docker exec -it emscripten sh -c "emcmake . -Bbuild-web-release && cmake --build build-web-release --config Release"
+    docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-debug . && cmake --build build-web-debug --config Debug" &&
+    docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
