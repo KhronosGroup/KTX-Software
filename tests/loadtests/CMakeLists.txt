@@ -1,5 +1,4 @@
-
-if(NOT WIN32)
+if(NOT WIN32 AND NOT IOS)
     find_package(SDL2 REQUIRED)
 endif()
 if(NOT APPLE)
