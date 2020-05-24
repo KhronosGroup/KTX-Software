@@ -140,6 +140,8 @@ script:
     #security unlock-keychain -p travis $KEY_CHAIN
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
+    # Ensure that Vulkan SDK's glslc is in PATH
+    export PATH="${VULKAN_SDK}/bin:$PATH"
     cmake -GXcode -Bbuild-macos -DKTX_FEATURE_DOC=ON &&
     cmake --build build-macos --config Debug &&
     cmake --build build-macos --config Debug --target RUN_TESTS &&
