@@ -30,9 +30,14 @@ cmake --build build-macos --config Debug --target RUN_TESTS
 echo "Build KTX-Software (macOS Release)"
 cmake --build build-macos --config Release
 cmake --build build-macos --config Release --target RUN_TESTS
+
 echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DVULKAN_SDK="${VULKAN_INSTALL_DIR}/MoltenVK"
+cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=OFF -DVULKAN_SDK="${VULKAN_INSTALL_DIR}/MoltenVK"
 echo "Build KTX-Software (iOS Debug)"
-cmake --build build-ios --config Debug
+cmake --build build-ios --config Debug -- -sdk iphoneos
+# echo "Build KTX-Software (iOS Simulator Debug)"
+# cmake --build build-ios --config Debug -- -sdk iphonesimulator
 echo "Build KTX-Software (iOS Release)"
-cmake --build build-ios --config Release
+cmake --build build-ios --config Release -- -sdk iphoneos
+# echo "Build KTX-Software (iOS Simulator Release)"
+# cmake --build build-ios --config Release -- -sdk iphonesimulator
