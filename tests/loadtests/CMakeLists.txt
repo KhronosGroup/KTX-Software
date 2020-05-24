@@ -356,6 +356,7 @@ set_target_properties( gl3loadtests PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
     XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
+    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
 )
 
 set_target_properties( vkloadtests PROPERTIES
@@ -363,6 +364,7 @@ set_target_properties( vkloadtests PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
     XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
+    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
 )
 
 # file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${builddir}")

@@ -178,7 +178,7 @@ add_custom_target(version_h
 
 # End auto-generated code
 
-if(EMSCRIPTEN)
+if(EMSCRIPTEN OR IOS)
     set(LIB_TYPE STATIC)
 else()
     set(LIB_TYPE SHARED)
