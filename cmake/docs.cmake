@@ -1,3 +1,5 @@
+find_package(Doxygen REQUIRED)
+
 # Global
 set( DOXYGEN_PROJECT_LOGO icons/ktx_document_small.png )
 set( DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/docs)
