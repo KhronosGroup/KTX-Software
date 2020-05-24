@@ -58,6 +58,9 @@ install:
   linux)
     # No need to install git-lfs. It is part of Travis's Bionic environment.
     sudo apt-get -qq update &&
+    sudo apt-get -qq install libzstd-dev &&
+    sudo apt-get -qq install libsdl2-dev &&
+    sudo apt-get -qq install ninja-build &&
     sudo apt-get -qq install doxygen &&
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq install libvulkan1 libvulkan-dev &&
@@ -111,29 +114,14 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    # Due to a gyp bug in the generation of dependencies for the .frag & .vert shader files
-    # make fails in building the load tests.
-    #cd build/make/linux &&
-    #make BUILDTYPE=Debug &&
-    #make BUILDTYPE=Release &&
-    #cd ../../cmake/linux/Debug &&
-    pushd build/cmake/linux/Debug &&
-    cmake . && make &&
-    cd ../Release &&
-    cmake . && make &&
-    make ktxpkg_doc &&
-    popd &&
-    pushd build/cmake/linux/Debug &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../../../tests/testimages/ &&
-    cd ../Release &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../../../tests/testimages/ &&
-    popd &&
-    docker exec -it emscripten sh -c "cd build/cmake/web/Debug && emconfigure cmake . && make" &&
-    docker exec -it emscripten sh -c "cd build/cmake/web/Release && emconfigure cmake . && make"
+    cmake . -G Ninja -Bbuild-linux-debug -DCMAKE_BUILD_TYPE=Debug &&
+    cmake --build build-linux-debug &&
+    cmake . -G Ninja -Bbuild-linux-release -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_DOC=ON &&
+    cmake --build build-linux-release &&
+    cmake --build build-linux-debug --target test &&
+    cmake --build build-linux-release --target test &&
+    docker exec -it emscripten sh -c "emcmake . -Bbuild-web-debug && cmake --build build-web-debug --config Debug" &&
+    docker exec -it emscripten sh -c "emcmake . -Bbuild-web-release && cmake --build build-web-release --config Release"
     ;;
   osx)
     # Due to the spaces in the platform names, must use array variables so
@@ -151,25 +139,14 @@ script:
     #security unlock-keychain -p travis $KEY_CHAIN
     ## Set keychain locking timeout to 3600 seconds
     #security set-keychain-settings -t 3600 -u $KEY_CHAIN
-    pushd build/xcode/mac &&
-    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxdoc.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    cd ../ios &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    popd &&
-    pushd build/Debug &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../tests/testimages/ &&
-     cd ../Release &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../tests/testimages/ &&
-    popd
+    cmake -GXcode -Bbuild-macos -DKTX_FEATURE_DOC=ON &&
+    cmake --build build-macos --config Debug &&
+    cmake --build build-macos --config Debug --target RUN_TESTS &&
+    cmake --build build-macos --config Release &&
+    cmake --build build-macos --config Release --target RUN_TESTS &&
+    cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS &&
+    cmake --build build-ios --config Debug &&
+    cmake --build build-ios --config Release
     ;;
     esac
 
