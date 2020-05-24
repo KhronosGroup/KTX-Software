@@ -132,12 +132,21 @@ target_link_libraries(
 )
 
 if(APPLE)
-    target_link_libraries(
-        gl3loadtests
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
-    )
+    if(IOS)
+        target_link_libraries(
+            gl3loadtests
+            "-framework OpenGLES"
+            ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
+            ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
+        )
+    else()
+        target_link_libraries(
+            gl3loadtests
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
+        )
+    endif()
 elseif(LINUX)
     target_link_libraries(
         gl3loadtests
@@ -346,12 +355,14 @@ set_target_properties( gl3loadtests PROPERTIES
     RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+    XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
 )
 
 set_target_properties( vkloadtests PROPERTIES
     RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+    XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
 )
 
 # file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${builddir}")
