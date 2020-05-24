@@ -17,4 +17,4 @@ target_link_libraries(
     ktx
     )
 
-install(TARGETS ktxinfo)
+install(TARGETS ktxinfo RUNTIME DESTINATION bin)
