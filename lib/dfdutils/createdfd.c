@@ -404,7 +404,7 @@ static khr_df_model_channels_e compFirstChannel[] = {
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11 ETC2 single-channel. */
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11G11 ETC2 dual-channel. */
     KHR_DF_CHANNEL_ASTC_DATA,         /*!< ASTC. */
-    KHR_DF_CHANNEL_ETC1S_COLOR,       /*!< ETC1S. */
+    KHR_DF_CHANNEL_ETC1S_RGB,         /*!< ETC1S. */
     KHR_DF_CHANNEL_PVRTC_COLOR,       /*!< PVRTC. */
     KHR_DF_CHANNEL_PVRTC2_COLOR       /*!< PVRTC2. */
 };
@@ -424,7 +424,7 @@ static khr_df_model_channels_e compSecondChannel[] = {
     KHR_DF_CHANNEL_ETC2_RED,          /*!< R11 ETC2 single-channel. */
     KHR_DF_CHANNEL_ETC2_GREEN,        /*!< R11G11 ETC2 dual-channel. */
     KHR_DF_CHANNEL_ASTC_DATA,         /*!< ASTC. */
-    KHR_DF_CHANNEL_ETC1S_COLOR,       /*!< ETC1S. */
+    KHR_DF_CHANNEL_ETC1S_RGB,         /*!< ETC1S. */
     KHR_DF_CHANNEL_PVRTC_COLOR,       /*!< PVRTC. */
     KHR_DF_CHANNEL_PVRTC2_COLOR       /*!< PVRTC2. */
 };

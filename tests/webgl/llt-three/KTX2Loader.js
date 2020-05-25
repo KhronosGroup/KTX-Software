@@ -29,7 +29,19 @@ import {
 
 	const DFD = {
 		modelUastc: 166,
-		channelUastcAlphaPresent: 1
+		modelEtc1s: 163,
+		channelUastc: {
+			rgb: 0,
+			rgba: 3,
+			rrr: 4
+            rrrg: 5
+		},
+		channelEtc1s: {
+			rgb: 0,
+			rrr: 3,
+			ggg: 4,
+			aaa: 15,
+		}
 	};
 
 class KTX2Loader extends CompressedTextureLoader {
@@ -121,22 +133,27 @@ class KTX2Loader extends CompressedTextureLoader {
 
 		var ktx = new KTX2Container( buffer );
 
-// TODO: Must test if texture is transcodable before attempting any
-// transcoding. If supercompressionScheme is KTX_SS_BASIS_UNIVERSAL
-// of if dfd colorModel is UASTCF (166) then texture needs transcoding
+// TODO(donmccurdy): Should test if texture is transcodable before attempting
+// any transcoding. If supercompressionScheme is KTX_SS_BASIS_LZ and dfd
+// colorModel is ETC1S (163) or if dfd colorModel is UASTCF (166)
+// then texture must be transcoded.
 
 		var texFormat = ktx.dfd.colorModel == DFD.modelUastc ? TextureFormat.UASTC4x4
 												   : TextureFormat.ETC1S;
+		// TODO(donmccurdy): Handle all channelIds (i.e. the R & R+G cases),
+		// choosing appropriate transcode target formats or providing queries
+		// for applications so they know what to do with the content.
 		var hasAlpha = false;
 		if (texFormat == TextureFormat.UASTC4x4) {
 			var transcoder = new UastcImageTranscoder();
-			if ((ktx.dfd.samples[0].channelType & 0xf) === DFD.channelUastcAlphaPresent)
+			var channelId = ;
+			if ( (ktx.dfd.samples[0].channelId & 0xf) === DFD.channelUastc.rgba )
 				hasAlpha = true;
 		} else {
 			var transcoder = new BasisLzEtc1sImageTranscoder();
-            const hasAlphaSlices = 0x4;
-			if (ktx.sgd.globalFlags & hasAlphaSlices)
+			if ( ktx.dfd.numSamples == 2 && (ktx.dfd.samples[1].channelId & 0xf) === DFD.channelEtc1s.aaa ) {
 				hasAlpha = true;
+			}
 		}
 		ktx.initMipmaps( texFormat, hasAlpha, transcoder, this.basisModule, this.transcoderConfig )
 			.then( function () {
@@ -309,7 +326,7 @@ class KTX2Container {
 			this.dfd.numSamples = (this.dfd.descriptorBlockSize/4 - sampleStart) / sampleWords;
 		for (i = 0; i < this.dfd.numSamples; i++) {
 			this.dfd.samples[i] = {
-				channelType: dfdReader.skip( 3 /* bitOffset + bitLength */ ).nextUint8(),
+				channelId: dfdReader.skip( 3 /* bitOffset + bitLength */ ).nextUint8(),
 				// ... remainder not implemented.
 			};
 			dfdReader.skip( 12 /* samplePosition[0-3], lower, upper */ );
@@ -317,7 +334,7 @@ class KTX2Container {
 
 		if ( this.header.vkFormat !== 0x00 /* VK_FORMAT_UNDEFINED */ &&
 			 !( this.header.supercompressionScheme === 1 /* BasisLZ */ ||
-			    this.dfd.colorModel === DFD.modelUastc ) ) {
+				this.dfd.colorModel === DFD.modelUastc ) ) {
 
 			throw new Error( 'THREE.KTX2Loader: Only Basis Universal supercompression is currently supported.' );
 

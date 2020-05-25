@@ -235,14 +235,12 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
 // not including an all 1's alpha channel, which would have been removed before
 // encoding and supercompression, by using hasAlpha.
 static KTX_error_code
-ktxTexture2_rewriteDfd4BasisLz(ktxTexture2* This, bool hasAlpha)
+ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
+                                    alpha_content_e alphaContent)
 {
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
-    uint32_t newSampleCount = KHR_DFDSAMPLECOUNT(cbdb);
-
-    if (newSampleCount == 4 && !hasAlpha)
-        newSampleCount = 3;
+    uint32_t newSampleCount = alphaContent != eNone ? 2 : 1;
 
     uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART
                        + newSampleCount * KHR_DF_WORD_SAMPLEWORDS;
@@ -254,28 +252,46 @@ ktxTexture2_rewriteDfd4BasisLz(ktxTexture2* This, bool hasAlpha)
     if (!ndfd)
         return KTX_OUT_OF_MEMORY;
 
-    // Copy the basic dfd + wanted samples.
-    memcpy(ndfd, cdfd, ndfdSize);
-    if (ndfdSize != *cdfd) {
-        // Set the size of the new DFD.
-        *ndfd = ndfdSize;
-        // And the descriptor block size
-        KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
-    }
+    *ndfd = ndfdSize;
+    KHR_DFDSETVAL(nbdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
+    KHR_DFDSETVAL(nbdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
+    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_ETC1S);
+    KHR_DFDSETVAL(nbdb, PRIMARIES, KHR_DFDVAL(cbdb, PRIMARIES));
+    KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
+    KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
 
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] =
+                            3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
     // Show it describes an unsized format.
-    nbdb[KHR_DF_WORD_BYTESPLANE0] = 0;
-    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;
+    nbdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
+    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
 
-    // Set the following to 0 as they have no meaning within the BasisLz
-    // encoded data and what they will be after inflation depends on the
-    // transcode target.
-    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 0;
     for (uint32_t sample = 0; sample < newSampleCount; sample++) {
+        // Initializing here keeps the compiler happy.
+        uint16_t channelId;
+        if (sample == 0) {
+            if (getDFDNumComponents(cdfd) == 1)
+                channelId = KHR_DF_CHANNEL_ETC1S_RRR;
+            else
+                channelId = KHR_DF_CHANNEL_ETC1S_RGB;
+        } else {
+            assert(sample == 1 && alphaContent != eNone);
+            if (alphaContent == eAlpha)
+                channelId = KHR_DF_CHANNEL_ETC1S_AAA;
+            else if (alphaContent == eGreen)
+                channelId = KHR_DF_CHANNEL_ETC1S_GGG;
+            else // This is just to keep the compiler happy.
+                channelId = KHR_DF_CHANNEL_ETC1S_RGB;
+        }
+        KHR_DFDSETSVAL(nbdb, sample, CHANNELID, channelId);
+        KHR_DFDSETSVAL(nbdb, sample, QUALIFIERS, 0);
+        KHR_DFDSETSVAL(nbdb, sample, SAMPLEPOSITION_ALL, 0);
         KHR_DFDSETSVAL(nbdb, sample, BITOFFSET, 0);
-        KHR_DFDSETSVAL(nbdb, sample, BITLENGTH, 0);
+        KHR_DFDSETSVAL(nbdb, sample, BITLENGTH, 63);
         KHR_DFDSETSVAL(nbdb, sample, SAMPLELOWER, 0);
-        KHR_DFDSETSVAL(nbdb, sample, SAMPLEUPPER, 0);
+        KHR_DFDSETSVAL(nbdb, sample, SAMPLEUPPER, UINT32_MAX);
     }
 
     This->pDfd = ndfd;
@@ -284,7 +300,8 @@ ktxTexture2_rewriteDfd4BasisLz(ktxTexture2* This, bool hasAlpha)
 }
 
 static KTX_error_code
-ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This, bool hasAlpha)
+ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
+                             alpha_content_e alphaContent)
 {
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
@@ -315,9 +332,17 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This, bool hasAlpha)
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
 
     // Set the data for our single sample
-    KHR_DFDSETSVAL(nbdb, 0, CHANNELID,
-                   hasAlpha ? KHR_DF_CHANNEL_UASTC_ALPHAPRESENT
-                            : KHR_DF_CHANNEL_UASTC_DATA);
+    uint16_t channelId;
+    if (alphaContent == eAlpha) {
+        channelId = KHR_DF_CHANNEL_UASTC_RGBA;
+    } else if (alphaContent == eGreen) {
+        channelId = KHR_DF_CHANNEL_UASTC_RRRG;
+    } else if (getDFDNumComponents(cdfd) == 1) {
+        channelId = KHR_DF_CHANNEL_UASTC_RGB;
+    } else {
+        channelId = KHR_DF_CHANNEL_UASTC_RRR;
+    }
+    KHR_DFDSETSVAL(nbdb, 0, CHANNELID, channelId);
     KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, 0);
     KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
     KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
@@ -469,8 +494,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     }
 
     // There's no other way so sensibly handle 2-component textures.
-    if (num_components == 2 || params->separateRGToRGB_A)
+    alpha_content_e alphaContent = eNone;
+    if (num_components == 2 || params->separateRGToRGB_A) {
         comp_mapping = rg_to_rgba_mapping;
+        alphaContent = eGreen;
+    } else if (num_components == 4) {
+        alphaContent = eAlpha;
+    }
 
     if (num_components == 1)
         comp_mapping = r_to_rgba_mapping;
@@ -826,13 +856,14 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint64_t level_offset = 0;
 
     // Since we've left m_check_for_alpha set and m_force_alpha unset in
-    // the compressor parameters, the basis encoder will not have included
-    // an input alpha channel, if every alpha pixel in every image is 255.
-    // This step occurs prior to encoding and supercompression and, per spec,
-    // the DFD needs to reflect the input to the encoder not this texture.
-    // Pass a parameter, set from the alpha flag of the emitted .basis header,
-    // to rewriteDfd to allow it to do this.
-    bool hasAlpha = (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) != 0;
+    // the compressor parameters, the basis encoder will have removed an input
+    // alpha channel, if every alpha pixel in every image is 255 prior to
+    // encoding and supercompression. The DFD needs to reflect the encoded data
+    // not the input texture. Override the alphacontent setting, if this has
+    // happened.
+    if ((bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) == 0) {
+        alphaContent = eNone;
+    }
 
     new_data = (uint8_t*) malloc(image_data_size);
     if (!new_data) {
@@ -843,7 +874,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Delayed modifying texture until here so it's after points of
     // possible failure.
     if (params->uastc) {
-        result = ktxTexture2_rewriteDfd4Uastc(This, hasAlpha);
+        result = ktxTexture2_rewriteDfd4Uastc(This, alphaContent);
         if (result != KTX_SUCCESS) goto cleanup;
 
         // Reflect this in the formatSize
@@ -851,7 +882,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     } else {
-        result = ktxTexture2_rewriteDfd4BasisLz(This, hasAlpha);
+        result = ktxTexture2_rewriteDfd4BasisLzETC1S(This, alphaContent);
         if (result != KTX_SUCCESS) goto cleanup;
 
         This->supercompressionScheme = KTX_SS_BASIS_LZ;

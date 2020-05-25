@@ -85,6 +85,13 @@ typedef struct ktxBasisLzEtc1sImageDesc {
 
 #define BGD_EXTENDED_ADDR(bgd, bgdh, imageCount) (BGD_TABLES_ADDR(bgd, bgdh, imageCount) + bgdh.tablesByteLength)
 
+// Just because this is a convenient place to put it for basis_{en,trans}code.
+enum alpha_content_e {
+    eNone,
+    eAlpha,
+    eGreen
+};
+
 #ifdef __cplusplus
 }
 #endif
