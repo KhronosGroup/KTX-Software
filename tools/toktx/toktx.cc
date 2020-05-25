@@ -920,8 +920,10 @@ int _tmain(int argc, _TCHAR* argv[])
                 exitCode = 1;
                 goto cleanup;
             }
+            Image::eOETF oetf = image->getOetf();
             delete image;
             image = scaledImage;
+            image->setOetf(oetf);
         }
 
         if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
