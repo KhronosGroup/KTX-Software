@@ -33,8 +33,8 @@ import {
 		channelUastc: {
 			rgb: 0,
 			rgba: 3,
-			rrr: 4
-            rrrg: 5
+			rrr: 4,
+			rrrg: 5
 		},
 		channelEtc1s: {
 			rgb: 0,
@@ -146,7 +146,6 @@ class KTX2Loader extends CompressedTextureLoader {
 		var hasAlpha = false;
 		if (texFormat == TextureFormat.UASTC4x4) {
 			var transcoder = new UastcImageTranscoder();
-			var channelId = ;
 			if ( (ktx.dfd.samples[0].channelId & 0xf) === DFD.channelUastc.rgba )
 				hasAlpha = true;
 		} else {
@@ -362,7 +361,6 @@ class KTX2Container {
 
 			this.sgd = {
 
-				globalFlags: sgdReader.nextUint32(),
 				endpointCount: sgdReader.nextUint16(),
 				selectorCount: sgdReader.nextUint16(),
 				endpointsByteLength: sgdReader.nextUint32(),

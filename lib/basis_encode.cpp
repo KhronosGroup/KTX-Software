@@ -269,26 +269,27 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
 
     for (uint32_t sample = 0; sample < newSampleCount; sample++) {
-        // Initializing here keeps the compiler happy.
-        uint16_t channelId;
+        uint16_t channelId, bitOffset;
         if (sample == 0) {
+            bitOffset = 0;
             if (getDFDNumComponents(cdfd) == 1)
                 channelId = KHR_DF_CHANNEL_ETC1S_RRR;
             else
                 channelId = KHR_DF_CHANNEL_ETC1S_RGB;
         } else {
             assert(sample == 1 && alphaContent != eNone);
+            bitOffset = 64;
             if (alphaContent == eAlpha)
                 channelId = KHR_DF_CHANNEL_ETC1S_AAA;
             else if (alphaContent == eGreen)
                 channelId = KHR_DF_CHANNEL_ETC1S_GGG;
-            else // This is just to keep the compiler happy.
+            else // This is just to quiet a compiler warning.
                 channelId = KHR_DF_CHANNEL_ETC1S_RGB;
         }
         KHR_DFDSETSVAL(nbdb, sample, CHANNELID, channelId);
         KHR_DFDSETSVAL(nbdb, sample, QUALIFIERS, 0);
         KHR_DFDSETSVAL(nbdb, sample, SAMPLEPOSITION_ALL, 0);
-        KHR_DFDSETSVAL(nbdb, sample, BITOFFSET, 0);
+        KHR_DFDSETSVAL(nbdb, sample, BITOFFSET, bitOffset);
         KHR_DFDSETSVAL(nbdb, sample, BITLENGTH, 63);
         KHR_DFDSETSVAL(nbdb, sample, SAMPLELOWER, 0);
         KHR_DFDSETSVAL(nbdb, sample, SAMPLEUPPER, UINT32_MAX);
@@ -748,7 +749,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
         // Get the flags that are set while ensuring we don't get
         // cBASISHeaderFlagYFlipped
-        bgdh.globalFlags = bfh.m_flags & ~cBASISHeaderFlagYFlipped;
         bgdh.endpointCount = bfh.m_total_endpoints;
         bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
         bgdh.selectorCount = bfh.m_total_selectors;

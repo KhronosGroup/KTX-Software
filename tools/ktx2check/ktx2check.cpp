@@ -239,36 +239,51 @@ struct {
     issue ZeroSamples {
         ERROR | 0x0057, "DFD for a %s texture must have sample information."
     };
-    issue UnsizedForUndefined {
-        ERROR | 0x0058, "DFD texel block dimensions and bytes/plane must be non-zero for\n"
-                        "non-supercompressed texture with VK_FORMAT_UNDEFINED"
+    issue TexelBlockDimensionZeroForUndefined {
+        ERROR | 0x0058, "DFD texel block dimensions must be non-zero for non-supercompressed texture\n"
+                        "with VK_FORMAT_UNDEFINED."
     };
-    issue InvalidSampleCountForBasis {
-        ERROR | 0x0059, "DFD for a Basis compressed texture must have 1 to 4 samples."
+    issue FourDimensionalTexturesNotSupported {
+        ERROR | 0x0059, "DFD texelBlockDimension3 is non-zero indicating an unsupported four-dimensional texture."
     };
-    issue IncorrectModelForBasis {
-        ERROR | 0x005a, "DFD color model for a Basis compressed texture must be KHR_DF_MODEL_RGBSDA."
+    issue BytesPlane0Zero {
+        ERROR | 0x005a, "DFD bytesPlane0 must be non-zero for non-supercompressed texture with %s."
     };
-    issue TexelBlockDimensionNotZero {
-        ERROR | 0x005b, "DFD texel block dimensions must be 0 for Basis compressed textures."
+    issue MultiplaneFormatsNotSupported {
+        ERROR | 0x005b, "DFD has non-zero value in bytesPlane[1-7] indicating unsupported multiplane format."
+    };
+    issue InvalidSampleCount {
+        ERROR | 0x005c, "DFD for a %s texture must have %s sample(s)."
+    };
+    issue IncorrectModelForBLZE {
+        ERROR | 0x005d, "DFD colorModel for BasisLZ/ETC1S must be KHR_DF_MODEL_ETC1S."
+    };
+    issue InvalidTexelBlockDimension {
+        ERROR | 0x005e, "DFD texel block dimension must be %dx%d for %s textures."
     };
     issue NotUnsized {
-        ERROR | 0x005c, "DFD bytes/plane must be 0 for a supercompressed texture."
+        ERROR | 0x005f, "DFD bytes/plane must be 0 for a supercompressed texture."
     };
-    issue InvalidChannelForBasis {
-        ERROR | 0x005d, "Only RED, GREEN, BLUE or ALPHA channels allowed for Basis compressed textures."
+    issue InvalidChannelForBLZE {
+        ERROR | 0x0060, "Only ETC1S_RGB (0), ETC1S_RRR (3), ETC1S_GGG (4) or ETC1S_AAA (15) channels\n"
+                        "allowed for BasisLZ/ETC1S textures."
     };
-    issue NonZeroLengthOrOffset {
-        ERROR | 0x005e, "All DFD samples' bitOffset and bitLength must be 0 for Basis compressed textures."
+    issue InvalidBitOffsetForBLZE {
+        ERROR | 0x0061, "DFD sample bitOffsets for BasisLZ/ETC1S textures must be 0 and 64."
     };
-    issue NonZeroUpperOrLower {
-        ERROR | 0x005f, "All DFD samples' sampleLower and sampleUpper must be 0 for Basis compressed textures."
+    issue InvalidBitLength {
+        ERROR | 0x0062, "DFD sample bitLength for %s textures must be %d."
     };
-    issue SgdMismatchNoAlpha {
-        ERROR | 0x0060, "supercompressionGlobalData indicates no alpha channel but DFD indicated alpha channel."
+    issue InvalidLowerOrUpper {
+        ERROR | 0x0063, "All DFD samples' sampleLower must be 0 and sampleUpper must be 0xFFFFFFFF for\n"
+                        "%s textures."
     };
-    issue SgdMismatchAlpha {
-        ERROR | 0x0061, "supercompressionGlobalData indicates an alpha channel but DFD indicated no alpha channel."
+    issue InvalidChannelForUASTC {
+        ERROR | 0x0064, "Only UASTC_RGB (0), UASTC_RGBA (3), UASTC_RRR (4) or UASTC_RRRG (5) channels\n"
+                        "allowed for UASTC textures."
+    };
+    issue InvalidBitOffsetForUASTC {
+        ERROR | 0x0065, "DFD sample bitOffset for UASTC textures must be 0."
     };
 } DFD;
 
@@ -344,17 +359,20 @@ struct {
     issue MissingSupercompressionGlobalData {
         ERROR | 0x0091, "Basis supercompression global data missing."
     };
-    issue InvalidGlobalFlagBit {
-        ERROR | 0x0092, "Basis supercompression global data globalFlags has an invalid bit set."
-    };
     issue InvalidImageFlagBit {
-        ERROR | 0x0093, "Basis supercompression global data imageDesc.imageFlags has an invalid bit set."
+        ERROR | 0x0092, "Basis supercompression global data imageDesc.imageFlags has an invalid bit set."
     };
     issue IncorrectGlobalDataSize {
-        ERROR | 0x0094, "Basis supercompression global data has incorrect size."
+        ERROR | 0x0093, "Basis supercompression global data has incorrect size."
     };
     issue ExtendedByteLengthNotZero {
-        ERROR | 0x0095, "extendedByteLength != 0 in Basis supercompression global data."
+        ERROR | 0x0094, "extendedByteLength != 0 in Basis supercompression global data."
+    };
+    issue DfdMismatchAlpha {
+        ERROR | 0x0095, "supercompressionGlobalData indicates no alpha but DFD indicates alpha channel."
+    };
+    issue DfdMismatchNoAlpha {
+        ERROR | 0x0096, "supercompressionGlobalData indicates an alpha channel but DFD indicated no alpha channel."
     };
 } SGD;
 
@@ -970,7 +988,6 @@ ktxValidator::validateHeader(validationContext& ctx)
     } else {
         if (ctx.header.typeSize != 1)
             addIssue(logger::eError, HeaderData.TypeSizeNotOne);
-        // TODO: Validate DFDs for UASTC and for BasisU.
     }
 
 #define checkRequiredIndexEntry(index, issue, name)     \
@@ -1130,27 +1147,89 @@ ktxValidator::validateDfd(validationContext& ctx)
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(bdb);
     switch (ctx.header.supercompressionScheme) {
       case KTX_SS_NONE:
+      case KTX_SS_ZSTD:
         if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
-            // Do a simple comparison.
-            analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format, *ctx.pDfd4Format);
+            if (ctx.header.supercompressionScheme != KTX_SS_ZSTD) {
+                // Do a simple comparison with the expected DFD.
+                analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format,
+                                  *ctx.pDfd4Format);
+            } else {
+                // Compare up to BYTESPLANE.
+                analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format,
+                                  KHR_DF_WORD_BYTESPLANE0 * 4);
+                // Compare the sample information.
+                if (!analyze) {
+                    analyze = !memcmp(&ctx.pActualDfd[KHR_DF_WORD_SAMPLESTART+1],
+                                    &ctx.pDfd4Format[KHR_DF_WORD_SAMPLESTART+1],
+                                    numSamples * KHR_DF_WORD_SAMPLEWORDS);
+                }
+            }
         } else {
-            // Checking the basics
-            if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
-                || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
-                || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
-                addIssue(logger::eError, DFD.IncorrectBasics);
+            if (KHR_DFDVAL(bdb, MODEL) == KHR_DF_MODEL_UASTC) {
+                // Validate UASTC
+                if (numSamples == 0)
+                    addIssue(logger::eError, DFD.ZeroSamples, "UASTC");
+                if (numSamples > 1)
+                    addIssue(logger::eError, DFD.InvalidSampleCount,
+                             "UASTC", "1");
+                if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0 != 3)
+                    && KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1 != 3)
+                    && (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] & 0xffff0000) != 0)
+                    addIssue(logger::eError, DFD.InvalidTexelBlockDimension,
+                             4, 4, "UASTC");
+                if (ctx.header.supercompressionScheme != KTX_SS_ZSTD) {
+                    if (KHR_DFDVAL(bdb, BYTESPLANE0) == 0)
+                        addIssue(logger::eError, DFD.BytesPlane0Zero, "UASTC");
+                } else {
+                     if (KHR_DFDVAL(bdb, BYTESPLANE0) != 0) {
+                          addIssue(logger::eError, DFD.NotUnsized, "UASTC");
+                     }
+                }
+                uint8_t channelID = KHR_DFDSVAL(bdb, 0, CHANNELID);
+                if (channelID != KHR_DF_CHANNEL_UASTC_RGB
+                    && channelID != KHR_DF_CHANNEL_UASTC_RGBA
+                    && channelID != KHR_DF_CHANNEL_UASTC_RRR
+                    && channelID != KHR_DF_CHANNEL_UASTC_RRRG)
+                    addIssue(logger::eError, DFD.InvalidChannelForUASTC);
+                if (KHR_DFDSVAL(bdb, 0, BITOFFSET) != 0)
+                    addIssue(logger::eError, DFD.InvalidBitOffsetForUASTC);
+                if (KHR_DFDSVAL(bdb, 0, BITLENGTH) != 127)
+                    addIssue(logger::eError, DFD.InvalidBitLength,
+                             "UASTC", 127);
+                if (KHR_DFDSVAL(bdb, 0, SAMPLELOWER) != 0
+                    && KHR_DFDSVAL(bdb, 0, SAMPLEUPPER) != UINT32_MAX)
+                    addIssue(logger::eError, DFD.InvalidLowerOrUpper, "UASTC");
+            } else {
+                // Check the basics
+                if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
+                    || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
+                    || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
+                    addIssue(logger::eError, DFD.IncorrectBasics);
 
-            // Ensure there are at least some samples
-            if (KHR_DFDSAMPLECOUNT(bdb) == 0)
-                addIssue(logger::eError, DFD.ZeroSamples,
-                         "non-supercompressed texture with VK_FORMAT_UNDEFINED");
-            // Check for a sized format
-            // This checks texelBlockDimension[0-3] and bytesPlane[0-7]
-            // as each is a byte and bdb is unit32_t*.
-            if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] == 0
-                && bdb[KHR_DF_WORD_BYTESPLANE0]  == 0
-                && bdb[KHR_DF_WORD_BYTESPLANE4]  == 0)
-                addIssue(logger::eError, DFD.UnsizedForUndefined);
+                // Ensure there are at least some samples
+                if (KHR_DFDSAMPLECOUNT(bdb) == 0)
+                    addIssue(logger::eError, DFD.ZeroSamples,
+                             "non-supercompressed texture with VK_FORMAT_UNDEFINED");
+                // Check for properly sized format
+                // This checks texelBlockDimension[0-3] and bytesPlane[0-7]
+                // as each is a byte and bdb is unit32_t*.
+                if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] == 0)
+                    addIssue(logger::eError, DFD.TexelBlockDimensionZeroForUndefined);
+                if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION3) != 0)
+                    addIssue(logger::eError, DFD.FourDimensionalTexturesNotSupported);
+                if (ctx.header.supercompressionScheme != KTX_SS_ZSTD) {
+                    if (KHR_DFDVAL(bdb, BYTESPLANE0) == 0)
+                        addIssue(logger::eError, DFD.BytesPlane0Zero,
+                                 "VK_FORMAT_UNDEFINED");
+                } else {
+                     if (KHR_DFDVAL(bdb, BYTESPLANE0) != 0) {
+                          addIssue(logger::eError, DFD.NotUnsized);
+                     }
+                }
+                if ((bdb[KHR_DF_WORD_BYTESPLANE0] & KHR_DF_MASK_BYTESPLANE0) != 0
+                    || bdb[KHR_DF_WORD_BYTESPLANE4] != 0)
+                    addIssue(logger::eError, DFD.MultiplaneFormatsNotSupported);
+            }
         }
         break;
 
@@ -1158,59 +1237,44 @@ ktxValidator::validateDfd(validationContext& ctx)
           // validateHeader has already checked if vkFormat is the required
           // VK_FORMAT_UNDEFINED so no check here.
 
-          // This descriptor should have [1-4] samples with sample size and
-          // offset 0, all bytesPlane 0 and sampleUpper & sampleLower 0.
+          // The colorModel must be ETC1S, currently the only format supported
+          // with BasisLZ.
+          if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_ETC1S)
+              addIssue(logger::eError, DFD.IncorrectModelForBLZE);
+          // This descriptor should have 1 or 2 samples with bitLength 63
+          // and bitOffsets 0 and 64.
           if (numSamples == 0)
-              addIssue(logger::eError, DFD.ZeroSamples, "Basis compressed");
-          if (numSamples > 4)
-              addIssue(logger::eError, DFD.InvalidSampleCountForBasis);
-
-          if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_RGBSDA)
-              addIssue(logger::eError, DFD.IncorrectModelForBasis);
-
+              addIssue(logger::eError, DFD.ZeroSamples, "BasisLZ/ETC1S");
+          if (numSamples > 2)
+              addIssue(logger::eError, DFD.InvalidSampleCount, "BasisLZ/ETC1S", "1 or 2");
+          if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0 != 3)
+              && KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1 != 3)
+              && (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] & 0xffff0000) != 0)
+              addIssue(logger::eError, DFD.InvalidTexelBlockDimension,
+                       4, 4, "BasisLZ/ETC1S");
           // Check for unsized.
-          if (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] != 0)
-              addIssue(logger::eError, DFD.TexelBlockDimensionNotZero);
           if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
               || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
               addIssue(logger::eError, DFD.NotUnsized);
 
           for (uint32_t sample = 0; sample < numSamples; sample++) {
               uint8_t channelID = KHR_DFDSVAL(bdb, sample, CHANNELID);
-              if (channelID != KHR_DF_CHANNEL_RGBSDA_R
-                  && channelID != KHR_DF_CHANNEL_RGBSDA_G
-                  && channelID != KHR_DF_CHANNEL_RGBSDA_B
-                  && channelID != KHR_DF_CHANNEL_RGBSDA_A)
-                  addIssue(logger::eError, DFD.InvalidChannelForBasis);
-              if (KHR_DFDSVAL(bdb, sample, BITOFFSET) != 0
-                  && KHR_DFDSVAL(bdb, sample, BITLENGTH) != 0)
-                  addIssue(logger::eError, DFD.NonZeroLengthOrOffset);
+              if (channelID != KHR_DF_CHANNEL_ETC1S_RGB
+                  && channelID != KHR_DF_CHANNEL_ETC1S_RRR
+                  && channelID != KHR_DF_CHANNEL_ETC1S_GGG
+                  && channelID != KHR_DF_CHANNEL_ETC1S_AAA)
+                  addIssue(logger::eError, DFD.InvalidChannelForBLZE);
+              int bo = KHR_DFDSVAL(bdb, sample, BITOFFSET);
+              //if (KHR_DFDSVAL(bdb, sample, BITOFFSET) != sample == 0 ? 0 : 64)
+              if (bo != (sample == 0 ? 0 : 64))
+                  addIssue(logger::eError, DFD.InvalidBitOffsetForBLZE);
+              if (KHR_DFDSVAL(bdb, sample, BITLENGTH) != 63)
+                  addIssue(logger::eError, DFD.InvalidBitLength,
+                           "BasisLZ/ETC1S", 63);
               if (KHR_DFDSVAL(bdb, sample, SAMPLELOWER) != 0
-                  && KHR_DFDSVAL(bdb, sample, SAMPLEUPPER) != 0)
-                  addIssue(logger::eError, DFD.NonZeroUpperOrLower);
-          }
-          break;
-
-        case KTX_SS_ZSTD:
-          // Check for unsized.
-          if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
-              || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
-              addIssue(logger::eError, DFD.NotUnsized);
-
-          // In the event that vkFormat is not set, there is no more that can
-          // be usefully done. Although validateHeader has checked this and
-          // flagged an error validation keeps running so we need to check
-          // here too.
-          if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
-              // compare up to BYTESPLANE.
-              analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format,
-                                KHR_DF_WORD_BYTESPLANE0 * 4);
-              // Compare the sample information.
-              if (!analyze) {
-                  analyze = !memcmp(&ctx.pActualDfd[KHR_DF_WORD_SAMPLESTART+1],
-                                    &ctx.pDfd4Format[KHR_DF_WORD_SAMPLESTART+1],
-                                    numSamples * KHR_DF_WORD_SAMPLEWORDS);
-              }
+                  && KHR_DFDSVAL(bdb, sample, SAMPLEUPPER) != UINT32_MAX)
+                  addIssue(logger::eError, DFD.InvalidLowerOrUpper,
+                           "BasisLZ/ETC1S");
           }
           break;
 
@@ -1527,21 +1591,10 @@ ktxValidator::validateSgd(validationContext& ctx)
     }
     uint32_t& imageCount = firstImages[ctx.levelCount];
 
-  ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(sgd);
-    if (bgdh.globalFlags & ~(eBuIsETC1S | eBUHasAlphaSlices))
-        addIssue(logger::eError, SGD.InvalidGlobalFlagBit);
+    ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(sgd);
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(ctx.pActualDfd + 1);
-    // Crosscheck the DFD.
-    if (!(bgdh.globalFlags & eBUHasAlphaSlices)
-        && (numSamples == 2 || numSamples == 4)) {
-        addIssue(logger::eError, DFD.SgdMismatchNoAlpha);
-    }
-    if ((bgdh.globalFlags & eBUHasAlphaSlices)
-        && (numSamples == 1 || numSamples == 3)) {
-        addIssue(logger::eError, DFD.SgdMismatchAlpha);
-    }
 
-  uint64_t expectedBgdByteLength = sizeof(ktxBasisLzGlobalHeader)
+    uint64_t expectedBgdByteLength = sizeof(ktxBasisLzGlobalHeader)
                                    + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount
                                    + bgdh.endpointsByteLength
                                    + bgdh.selectorsByteLength
@@ -1552,6 +1605,11 @@ ktxValidator::validateSgd(validationContext& ctx)
     for (; image < imageDescs + imageCount; image++) {
         if (image->imageFlags & ~eBUImageIsIframe)
             addIssue(logger::eError, SGD.InvalidImageFlagBit);
+        // Crosscheck the DFD.
+        if (image->alphaSliceByteOffset == 0 && numSamples == 2)
+            addIssue(logger::eError, SGD.DfdMismatchAlpha);
+        if (image->alphaSliceByteOffset > 0 && numSamples == 1)
+            addIssue(logger::eError, SGD.DfdMismatchAlpha);
     }
 
     if (sgdByteLength != expectedBgdByteLength)

@@ -512,7 +512,6 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 
     // Find matching VkFormat and calculate output sizes.
 
-    assert(alphaContent != eNone == ((bgdh.globalFlags & cBASISHeaderFlagHasAlphaSlices) != 0));
     const bool isVideo = This->isVideo;
 
     ktx_uint8_t* basisData = This->pData;

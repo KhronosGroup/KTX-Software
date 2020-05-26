@@ -87,7 +87,7 @@ void printDFD(uint32_t *DFD)
                    channelId == KHR_DF_CHANNEL_ETC1S_AAA ? "AAA"
                  : channelId == KHR_DF_CHANNEL_ETC1S_GGG ? "GGG"
                  : channelId == KHR_DF_CHANNEL_ETC1S_RRR ? "RRR"
-                 : channelId == KHR_DF_CHANNEL_ETC1S_RRR ? "RGB"
+                 : channelId == KHR_DF_CHANNEL_ETC1S_RGB ? "RGB"
                  : "unknown");
         } else {
             printf(" (%c)",

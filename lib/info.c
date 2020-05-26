@@ -307,7 +307,6 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
 {
     ktxBasisLzGlobalHeader* bgdh = (ktxBasisLzGlobalHeader*)(bgd);
 
-    fprintf(stdout, "Global flags: %#x\n", bgdh->globalFlags);
     fprintf(stdout, "endpointCount: %d\n", bgdh->endpointCount);
     fprintf(stdout, "selectorCount: %d\n", bgdh->selectorCount);
     fprintf(stdout, "endpointsByteLength: %d\n", bgdh->endpointsByteLength);
