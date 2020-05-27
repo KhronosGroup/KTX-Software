@@ -356,7 +356,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_bc3_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/texturearray_etc2_unorm.ktx"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/FlightHelmet_baseColor_basis.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/Iron_Bars_001_normal.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/alpha_simple_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cimg5293_uastc.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/cimg5293_uastc_zstd.ktx2"
@@ -369,7 +369,7 @@ list(APPEND testimages__copies__input
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/kodim17_basis.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_app-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_document_basis.ktx2"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_document_uastc_rdo_zstd.ktx2"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/ktx_document_uastc_rdo4_zstd5.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-down-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata-u.ktx2"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/testimages/orient-up-metadata.ktx2"
@@ -414,7 +414,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/texturearray_bc3_unorm.ktx"
   "${builddir}/testimages/texturearray_etc2_unorm.ktx"
   "${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2"
-  "${builddir}/testimages/Iron_Bars_001_normal.ktx2"
+  "${builddir}/testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2"
   "${builddir}/testimages/alpha_simple_basis.ktx2"
   "${builddir}/testimages/cimg5293_uastc.ktx2"
   "${builddir}/testimages/cimg5293_uastc_zstd.ktx2"
@@ -427,7 +427,7 @@ list(APPEND testimages__copies__output
   "${builddir}/testimages/kodim17_basis.ktx2"
   "${builddir}/testimages/ktx_app-u.ktx2"
   "${builddir}/testimages/ktx_document_basis.ktx2"
-  "${builddir}/testimages/ktx_document_uastc_rdo_zstd.ktx2"
+  "${builddir}/testimages/ktx_document_uastc_rdo4_zstd5.ktx2"
   "${builddir}/testimages/orient-down-metadata-u.ktx2"
   "${builddir}/testimages/orient-up-metadata-u.ktx2"
   "${builddir}/testimages/orient-up-metadata.ktx2"
@@ -473,7 +473,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_astc_8x8_unorm.kt
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_bc3_unorm.ktx ${builddir}/testimages/texturearray_bc3_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/texturearray_etc2_unorm.ktx ${builddir}/testimages/texturearray_etc2_unorm.ktx
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/FlightHelmet_baseColor_basis.ktx2 ${builddir}/testimages/FlightHelmet_baseColor_basis.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/Iron_Bars_001_normal.ktx2 ${builddir}/testimages/Iron_Bars_001_normal.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2 ${builddir}/testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/alpha_simple_basis.ktx2 ${builddir}/testimages/alpha_simple_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cimg5293_uastc.ktx2 ${builddir}/testimages/cimg5293_uastc.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cimg5293_uastc_zstd.ktx2 ${builddir}/testimages/cimg5293_uastc_zstd.ktx2
@@ -486,7 +486,7 @@ COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/cubemap_yokohama_basis_rd.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/kodim17_basis.ktx2 ${builddir}/testimages/kodim17_basis.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_app-u.ktx2 ${builddir}/testimages/ktx_app-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_document_basis.ktx2 ${builddir}/testimages/ktx_document_basis.ktx2
-COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_document_uastc_rdo_zstd.ktx2 ${builddir}/testimages/ktx_document_uastc_rdo_zstd.ktx2
+COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/ktx_document_uastc_rdo4_zstd5.ktx2 ${builddir}/testimages/ktx_document_uastc_rdo4_zstd5.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-down-metadata-u.ktx2 ${builddir}/testimages/orient-down-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata-u.ktx2 ${builddir}/testimages/orient-up-metadata-u.ktx2
 COMMAND ${CMAKE_COMMAND} -E copy tests/testimages/orient-up-metadata.ktx2 ${builddir}/testimages/orient-up-metadata.ktx2

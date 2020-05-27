@@ -224,11 +224,11 @@ VulkanLoadTests::onFPSUpdate()
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
-      "testimages/Iron_Bars_001_normal.ktx2",
+      "testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2",
       "UASTC+rdo+zstd compressed KTX2 normal map mipmapped"
     },
     { Texture::create,
-      "testimages/ktx_document_uastc_rdo_zstd.ktx2",
+      "testimages/ktx_document_uastc_rdo4_zstd5.ktx2",
       "UASTC+rdo+zstd compressed KTX2 RGBA8 mipmapped"
     },
     { Texture::create,
