@@ -343,12 +343,6 @@
     <Filter Include="tests\testimages">
       <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tests">
-      <UniqueIdentifier>{71685B5B-5DB1-D3F0-6DF4-FE19B5454C87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="tests\testimages">
-      <UniqueIdentifier>{DE87027A-C57D-1FC8-80DB-8E31E848A66E}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\ktxtests.gyp"/>
@@ -478,13 +472,10 @@
     <None Include="..\..\..\..\tests\testimages\FlightHelmet_baseColor_basis.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\Iron_Bars_001_normal.ktx2">
+    <None Include="..\..\..\..\tests\testimages\Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\kodim17_basis.ktx2">
-      <Filter>tests\testimages</Filter>
-    </None>
-    <None Include="..\..\..\..\tests\testimages\ktx_app_basis.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\ktx_app-u.ktx2">
@@ -493,7 +484,7 @@
     <None Include="..\..\..\..\tests\testimages\ktx_document_basis.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
-    <None Include="..\..\..\..\tests\testimages\ktx_document_uastc_rdo_zstd.ktx2">
+    <None Include="..\..\..\..\tests\testimages\ktx_document_uastc_rdo4_zstd5.ktx2">
       <Filter>tests\testimages</Filter>
     </None>
     <None Include="..\..\..\..\tests\testimages\orient-down-metadata-u.ktx2">

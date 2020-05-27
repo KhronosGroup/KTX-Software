@@ -36,17 +36,13 @@
 extern "C" {
 #endif
 
-// These must be the same values as cBASISHeaderFlagETC1S and
-// cBASISHeaderFlagHasAlphaSlices respectively. As they are within a C
-// namespace they can't easily be accessed from a c header.
-enum bu_global_flag_bits_e { eBuIsETC1S = 0x01, eBUHasAlphaSlices = 0x04 };
-// And this must be the same value as cSliceDescFlagsFrameIsIFrame.
+// This must be the same value as cSliceDescFlagsFrameIsIFrame. As it is within
+// a C namespace it can't easily be accessed from a c header.
 enum bu_image_flags__bits_e { eBUImageIsIframe = 0x02 };
 
 typedef uint32_t buFlags;
 
 typedef struct ktxBasisLzGlobalHeader {
-    buFlags globalFlags;
     uint16_t endpointCount;
     uint16_t selectorCount;
     uint32_t endpointsByteLength;
@@ -84,6 +80,13 @@ typedef struct ktxBasisLzEtc1sImageDesc {
 #define BGD_TABLES_ADDR(bgd, bgdh, imageCount) (BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) + bgdh.selectorsByteLength)
 
 #define BGD_EXTENDED_ADDR(bgd, bgdh, imageCount) (BGD_TABLES_ADDR(bgd, bgdh, imageCount) + bgdh.tablesByteLength)
+
+// Just because this is a convenient place to put it for basis_{en,trans}code.
+enum alpha_content_e {
+    eNone,
+    eAlpha,
+    eGreen
+};
 
 #ifdef __cplusplus
 }

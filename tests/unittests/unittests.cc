@@ -469,7 +469,7 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_R8B8G8) {
               KHR_DF_TRANSFER_LINEAR, KHR_DF_FLAG_ALPHA_STRAIGHT,
               3, 3,
               {
-                {0, 63, KHR_DF_CHANNEL_ETC1S_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
+                {0, 63, KHR_DF_CHANNEL_ETC1S_RGB , 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
              );
 
@@ -486,7 +486,7 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_SR8B8G8) {
               KHR_DF_TRANSFER_SRGB, KHR_DF_FLAG_ALPHA_STRAIGHT,
               3, 3,
               {
-                {0, 63, KHR_DF_CHANNEL_ETC1S_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
+                {0, 63, KHR_DF_CHANNEL_ETC1S_RGB, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }
              );
 

@@ -31,7 +31,7 @@
 #include "LoadTestSample.h"
 
 #if !defined(LOG_GESTURE_DETECTION)
-  #define LOG_GESTURE_DETECTION 0
+  #define LOG_GESTURE_DETECTION 1
 #endif
 
 int

@@ -59,13 +59,13 @@ inline bool isPow2(uint64_t x) { return x && ((x & (x - 1U)) == 0U); }
 
 KTX_error_code
 ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
-                           bool hasAlpha,
+                           alpha_content_e alphaContent,
                            ktxTexture2* prototype,
                            ktx_transcode_fmt_e outputFormat,
                            ktx_transcode_flags transcodeFlags);
 KTX_error_code
 ktxTexture2_transcodeUastc(ktxTexture2* This,
-                           bool hasAlpha,
+                           alpha_content_e alphaContent,
                            ktxTexture2* prototype,
                            ktx_transcode_fmt_e outputFormat,
                            ktx_transcode_flags transcodeFlags);
@@ -149,7 +149,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_UASTC
-         && This->supercompressionScheme != KTX_SS_BASIS_LZ)
+        && This->supercompressionScheme != KTX_SS_BASIS_LZ)
     return KTX_INVALID_OPERATION; // Not in a transcodable format.
 
     DECLARE_PRIVATE(priv, This);
@@ -172,15 +172,25 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     }
 
     const bool srgb = (KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB);
-    bool hasAlpha = false;
-    if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
-        uint32_t numComponents = ktxTexture2_GetNumComponents(This);
-        if (numComponents == 2 || numComponents == 4)
-            hasAlpha = true;
+    alpha_content_e alphaContent = eNone;
+    if (colorModel == KHR_DF_MODEL_ETC1S) {
+        if (KHR_DFDSAMPLECOUNT(BDB) == 2) {
+            uint32_t channelId = KHR_DFDSVAL(BDB, 1, CHANNELID);
+            if (channelId == KHR_DF_CHANNEL_ETC1S_AAA) {
+                alphaContent = eAlpha;
+            } else if (channelId == KHR_DF_CHANNEL_ETC1S_GGG){
+                alphaContent = eGreen;
+            } else {
+                return KTX_FILE_DATA_ERROR;
+            }
+        }
     } else {
         assert(colorModel == KHR_DF_MODEL_UASTC);
-        if (KHR_DFDSVAL(BDB, 0, CHANNELID) == KHR_DF_CHANNEL_UASTC_ALPHAPRESENT)
-            hasAlpha = true;
+        uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
+        if (channelId == KHR_DF_CHANNEL_UASTC_RGBA)
+            alphaContent = eAlpha;
+        else if (channelId == KHR_DF_CHANNEL_UASTC_RRRG)
+            alphaContent = eGreen;
     }
 
     VkFormat vkFormat;
@@ -188,18 +198,22 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     // Do some format mapping.
     switch (outputFormat) {
       case KTX_TTF_BC1_OR_3:
-        outputFormat = hasAlpha ? KTX_TTF_BC3_RGBA : KTX_TTF_BC1_RGB;
+        outputFormat = alphaContent == eAlpha ? KTX_TTF_BC3_RGBA
+                                              : KTX_TTF_BC1_RGB;
         break;
       case KTX_TTF_ETC:
-        outputFormat = hasAlpha ? KTX_TTF_ETC2_RGBA : KTX_TTF_ETC1_RGB;
+        outputFormat = alphaContent == eAlpha ? KTX_TTF_ETC2_RGBA
+                                              : KTX_TTF_ETC1_RGB;
         break;
       case KTX_TTF_PVRTC1_4_RGBA:
         // This transcoder does not write opaque alpha blocks.
-        outputFormat = hasAlpha ? KTX_TTF_PVRTC1_4_RGBA : KTX_TTF_PVRTC1_4_RGB;
+        outputFormat = alphaContent == eAlpha  ? KTX_TTF_PVRTC1_4_RGBA
+                                               : KTX_TTF_PVRTC1_4_RGB;
         break;
       case KTX_TTF_PVRTC2_4_RGBA:
         // This transcoder does not write opaque alpha blocks.
-        outputFormat = hasAlpha ? KTX_TTF_PVRTC2_4_RGBA : KTX_TTF_PVRTC2_4_RGB;
+        outputFormat = alphaContent == eAlpha ? KTX_TTF_PVRTC2_4_RGBA
+                                              : KTX_TTF_PVRTC2_4_RGB;
         break;
       default:
         /*NOP*/;
@@ -331,11 +345,13 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     }
 
     if (textureFormat == basis_tex_format::cETC1S) {
-        result = ktxTexture2_transcodeLzEtc1s(This, hasAlpha, prototype,
-                                            outputFormat, transcodeFlags);
+        result = ktxTexture2_transcodeLzEtc1s(This, alphaContent,
+                                            prototype, outputFormat,
+                                            transcodeFlags);
     } else {
-        result = ktxTexture2_transcodeUastc(This, hasAlpha, prototype,
-                                            outputFormat, transcodeFlags);
+        result = ktxTexture2_transcodeUastc(This, alphaContent,
+                                            prototype, outputFormat,
+                                            transcodeFlags);
     }
 
     if (result == KTX_SUCCESS) {
@@ -440,7 +456,7 @@ static basist::etc1_global_selector_codebook
  */
 KTX_error_code
 ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
-                             bool hasAlpha,
+                             alpha_content_e alphaContent,
                              ktxTexture2* prototype,
                              ktx_transcode_fmt_e outputFormat,
                              ktx_transcode_flags transcodeFlags)
@@ -454,8 +470,8 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     uint8_t* bgd = priv._supercompressionGlobalData;
     ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
     if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {
-            debug_printf("ktxTexture_TranscodeBasis: missing endpoints, selectors or tables");
-            return KTX_FILE_DATA_ERROR;
+        debug_printf("ktxTexture_TranscodeBasis: missing endpoints, selectors or tables");
+        return KTX_FILE_DATA_ERROR;
     }
 
     // Compute some helpful numbers.
@@ -496,7 +512,6 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 
     // Find matching VkFormat and calculate output sizes.
 
-    assert(hasAlpha == ((bgdh.globalFlags & cBASISHeaderFlagHasAlphaSlices) != 0));
     const bool isVideo = This->isVideo;
 
     ktx_uint8_t* basisData = This->pData;
@@ -537,7 +552,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
             imageDesc.m_rgb_byte_length = imageDescs[image].rgbSliceByteLength;
             imageDesc.m_flags = imageDescs[image].imageFlags;
 
-            if (hasAlpha)
+            if (alphaContent != eNone)
             {
                 // The slice descriptions should have alpha information.
                 if (imageDescs[image].alphaSliceByteOffset == 0
@@ -587,7 +602,7 @@ cleanup:
 
 KTX_error_code
 ktxTexture2_transcodeUastc(ktxTexture2* This,
-                           bool hasAlpha,
+                           alpha_content_e alphaContent,
                            ktxTexture2* prototype,
                            ktx_transcode_fmt_e outputFormat,
                            ktx_transcode_flags transcodeFlags)
@@ -630,7 +645,6 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         levelSizeOut = 0;
         bool status;
         for (uint32_t image = 0; image < levelImageCount; image++) {
-            //imageDesc.m_flags = ???; //TODO: Resolve imageIsIFrame issue and isVideo issue.
             status = uit.transcode_image(
                               (transcoder_texture_format)outputFormat,
                               writePtr + writeOffset,
@@ -638,7 +652,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                               pDataIn,
                               imageDesc,
                               transcodeFlags,
-                              hasAlpha);
+                              alphaContent != eNone);
             if (!status)
                 return KTX_TRANSCODE_FAILED;
             imageDesc.m_rgb_byte_offset += (uint32_t)levelImageSizeIn;

@@ -42,7 +42,7 @@
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
-      "testimages/Iron_Bars_001_normal.ktx2",
+      "testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2",
       "Transcode of UASTC+rdo+zstd Compressed KTX2 normal map mipmapped"
     },
     { DrawTexture::create,

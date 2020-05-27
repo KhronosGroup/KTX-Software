@@ -42,6 +42,7 @@ void printDFD(uint32_t *DFD)
     uint32_t *BDB = DFD+1;
     int samples = (KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE) - 4 * KHR_DF_WORD_SAMPLESTART) / (4 * KHR_DF_WORD_SAMPLEWORDS);
     int sample;
+    int model = KHR_DFDVAL(BDB, MODEL);
     printf("DFD total bytes: %d\n", DFD[0]);
     printf("BDB descriptor type 0x%04x vendor id = 0x%05x\n",
            KHR_DFDVAL(BDB, DESCRIPTORTYPE),
@@ -54,7 +55,7 @@ void printDFD(uint32_t *DFD)
            KHR_DFDVAL(BDB, FLAGS),
            KHR_DFDVAL(BDB, TRANSFER),
            KHR_DFDVAL(BDB, PRIMARIES),
-           KHR_DFDVAL(BDB, MODEL));
+           model);
     printf("Dimensions: %d,%d,%d,%d\n",
            KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION0) + 1,
            KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION1) + 1,
@@ -70,11 +71,29 @@ void printDFD(uint32_t *DFD)
            KHR_DFDVAL(BDB, BYTESPLANE6),
            KHR_DFDVAL(BDB, BYTESPLANE7));
     for (sample = 0; sample < samples; ++sample) {
+        int channelId = KHR_DFDSVAL(BDB, sample, CHANNELID);
         printf("    Sample %d\n", sample);
-        printf("Qualifiers %x Channel 0x%x (%c) Length %d bits Offset %d\n",
-               KHR_DFDSVAL(BDB, sample, QUALIFIERS) >> 4,
-               KHR_DFDSVAL(BDB, sample, CHANNELID),
-               "RGB3456789abcdeA"[KHR_DFDSVAL(BDB, sample, CHANNELID)],
+        printf("Qualifiers %x", KHR_DFDSVAL(BDB, sample, QUALIFIERS) >> 4);
+        printf(" Channel 0x%x", channelId);
+        if (model == KHR_DF_MODEL_UASTC) {
+            printf(" (%s)",
+                   channelId == KHR_DF_CHANNEL_UASTC_RRRG ? "RRRG"
+                 : channelId == KHR_DF_CHANNEL_UASTC_RGBA ? "RGBA"
+                 : channelId == KHR_DF_CHANNEL_UASTC_RRR ? "RRR"
+                 : channelId == KHR_DF_CHANNEL_UASTC_RGB ? "RGB"
+                 : "unknown");
+        } else if (model == KHR_DF_MODEL_ETC1S) {
+            printf(" (%s)",
+                   channelId == KHR_DF_CHANNEL_ETC1S_AAA ? "AAA"
+                 : channelId == KHR_DF_CHANNEL_ETC1S_GGG ? "GGG"
+                 : channelId == KHR_DF_CHANNEL_ETC1S_RRR ? "RRR"
+                 : channelId == KHR_DF_CHANNEL_ETC1S_RGB ? "RGB"
+                 : "unknown");
+        } else {
+            printf(" (%c)",
+               "RGB3456789abcdeA"[channelId]);
+        }
+        printf(" Length %d bits Offset %d\n",
                KHR_DFDSVAL(BDB, sample, BITLENGTH) + 1,
                KHR_DFDSVAL(BDB, sample, BITOFFSET));
         printf("Position: %d,%d,%d,%d\n",
