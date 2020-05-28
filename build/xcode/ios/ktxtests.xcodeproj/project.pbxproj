@@ -123,7 +123,6 @@
 		03DC7629D23C971ECADE17E0 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B8F2369D2FE99D18F5E36B1 /* CoreMotion.framework */; };
 		053C03116541F8BFDBAE8FB4 /* cimg5293_uastc_zstd.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = F98A949630D0E04283227C6D /* cimg5293_uastc_zstd.ktx2 */; };
 		05613636FA3644C0C80A1DF5 /* instancing.frag.spv in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/shaders */ = {isa = PBXBuildFile; fileRef = B61ED0DFD6FAAF7FCCD38867 /* instancing.frag.spv */; };
-		0598081BF193EF3CA1033296 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E80E8673310854B62B36A692 /* libMoltenVK.dylib */; };
 		05AC7C63D24B2C943BB5A969 /* torusknot.obj in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/models */ = {isa = PBXBuildFile; fileRef = 5E4F1DFB5A93ABA9E868441C /* torusknot.obj */; };
 		08771A0EE2D252F4A8785152 /* metalplate-amg-rgba8.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = C707F95193941B98DDEC867A /* metalplate-amg-rgba8.ktx */; };
 		0B1DD7EABB6F7C2A8BB8419B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B55FC7E6C507AA74A964E92 /* AVFoundation.framework */; };
@@ -146,6 +145,7 @@
 		1899B388017B9E33AE67EC7A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */; };
 		189E6345A5385DCD9DE16154 /* rgb-amg-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 51369BEC39EAE34575CECDDC /* rgb-amg-reference.ktx */; };
 		1925EDFFEE1D2889F990DD56 /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
+		1BA3D18B984FF01DA34640EE /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 951B9DEE93589C9E30365FB0 /* libMoltenVK.dylib */; };
 		1D6A18143F8BAD9D0A48F6A3 /* ktx_document_basis.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 19875B910EB54E8D1D41BA1B /* ktx_document_basis.ktx2 */; };
 		1FCFE6DE3BA7BBFCF725C876 /* orient-down-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D581FEEAC989F4C91D34F6FB /* orient-down-metadata.ktx */; };
 		20208F35629DDF48885385C7 /* rgb-reference.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 950C8C60F3478061F24DC0B5 /* rgb-reference.ktx */; };
@@ -178,7 +178,6 @@
 		406F121198CD2AB163E3AF0C /* ktx_document_basis.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 19875B910EB54E8D1D41BA1B /* ktx_document_basis.ktx2 */; };
 		41BA1314B834F52BB91AF713 /* cubemap_yokohama_astc_8x8_srgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 38B8C5331BB99134BAF98E94 /* cubemap_yokohama_astc_8x8_srgb.ktx */; };
 		422B77527C719643E511A55F /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31A2FEECFD0C95C8D2C38B4B /* libzstd.a */; };
-		4242CA3F6D7311209267759B /* libMoltenVK.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = 6F26BA56837AD73A00F49E56 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		42A977AC92C044F7EDD2DA88 /* luminance-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 5994790A229208E6B6321971 /* luminance-reference-metadata.ktx */; };
 		434AD3FF849CF933E9625C7A /* alpha_simple_basis.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 95935626D2034BC62A5F697B /* alpha_simple_basis.ktx2 */; };
 		43B167312AC88484506D128C /* rgb-reference-metadata.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 43DA556B988369A49E1AD800 /* rgb-reference-metadata.ktx */; };
@@ -218,6 +217,7 @@
 		62BD0090FB408E442817E230 /* GL3LoadTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA845BAA67354A721D27F33 /* GL3LoadTests.cpp */; };
 		64FB70270ECD0689F2D88E28 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D8E679046C6DF857DC47217 /* libSDL2.a */; };
 		65001C6CAE72C117135A8884 /* not4_rgb888_srgb.ktx in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = D4D8FDF4262C06D294FD5233 /* not4_rgb888_srgb.ktx */; };
+		66631EE75B52FCB4A0CE6CB0 /* libMoltenVK.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */ = {isa = PBXBuildFile; fileRef = C0C4EB3250A89DAE16735226 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		672B0A4FC5B8019ACCA9326B /* Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 2F878956AF2666F7010FFD77 /* Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2 */; };
 		67DA5D0CB83B04AAA2F6CF86 /* texturearray_astc_8x8_unorm.ktx2 in Copy to $(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/testimages */ = {isa = PBXBuildFile; fileRef = 587490B588EEED98F9F6EDED /* texturearray_astc_8x8_unorm.ktx2 */; };
 		67EA9D51BCC3CB75B2641554 /* InstancedSampleBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCFDD6C21F47661002F1A26B /* InstancedSampleBase.cpp */; };
@@ -978,7 +978,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				4242CA3F6D7311209267759B /* libMoltenVK.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
+				66631EE75B52FCB4A0CE6CB0 /* libMoltenVK.dylib in Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH) */,
 			);
 			name = "Copy to $(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1155,7 +1155,6 @@
 		6AC5108FEA713B666D53851E /* Texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Texture.cpp; sourceTree = "<group>"; };
 		6C3BFCAACA638DD11A322958 /* vkloadtests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vkloadtests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6DD21C63DDE7B2517FAFAB50 /* instancinglod.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancinglod.frag.spv; sourceTree = "<group>"; };
-		6F26BA56837AD73A00F49E56 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libMoltenVK.dylib; sourceTree = "<group>"; };
 		6FD7463D11697610428F1823 /* TexturedCube.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TexturedCube.h; sourceTree = "<group>"; };
 		70DB463A5F452B6728C2BC76 /* instancinglod.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = instancinglod.vert; sourceTree = "<group>"; };
 		719014864F2C657873113F4A /* pattern_02_bc2.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = pattern_02_bc2.ktx; sourceTree = "<group>"; };
@@ -1182,6 +1181,7 @@
 		93C31C2FE1A553920082731C /* cube.obj */ = {isa = PBXFileReference; lastKnownFileType = text; path = cube.obj; sourceTree = "<group>"; };
 		94DD1C49F443105D08BF84A6 /* hi_mark.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = hi_mark.ktx; sourceTree = "<group>"; };
 		950C8C60F3478061F24DC0B5 /* rgb-reference.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "rgb-reference.ktx"; sourceTree = "<group>"; };
+		951B9DEE93589C9E30365FB0 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = MoltenVK/iOS/dynamic/libMoltenVK.dylib; sourceTree = VULKAN_INSTALL_DIR; };
 		95935626D2034BC62A5F697B /* alpha_simple_basis.ktx2 */ = {isa = PBXFileReference; lastKnownFileType = text; path = alpha_simple_basis.ktx2; sourceTree = "<group>"; };
 		95B55C26B3D2ADC1077F74FA /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		9750A85567094C55E715E899 /* etc2-sRGBa1.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-sRGBa1.ktx"; sourceTree = "<group>"; };
@@ -1222,6 +1222,7 @@
 		BF61F961682258D7D01BC188 /* texture.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = texture.vert; sourceTree = "<group>"; };
 		BF7C05138E7BA95AA2DA37F6 /* TexturedCube.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TexturedCube.h; sourceTree = "<group>"; };
 		BFE4EA6B67AE6EAFADB5840E /* libassimp.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = libassimp.gypi; path = gyp_include/libassimp.gypi; sourceTree = "<group>"; };
+		C0C4EB3250A89DAE16735226 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libMoltenVK.dylib; sourceTree = "<group>"; };
 		C21206EE7AF38EA70B75516B /* shaders.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = shaders.cpp; sourceTree = "<group>"; };
 		C290F5C48B3CBF81E0E4A15D /* etc2-rgba1.ktx */ = {isa = PBXFileReference; lastKnownFileType = text; path = "etc2-rgba1.ktx"; sourceTree = "<group>"; };
 		C2CF8174AA7F89454CBDA8F6 /* vecmath.hpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = vecmath.hpp; sourceTree = "<group>"; };
@@ -1261,7 +1262,6 @@
 		E4FD930E3E3BCCA8B11C722B /* argparser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = argparser.h; sourceTree = "<group>"; };
 		E501408C12D624046881AC6E /* reflect.frag */ = {isa = PBXFileReference; lastKnownFileType = text; path = reflect.frag; sourceTree = "<group>"; };
 		E6C76B7BA230D05C8A63D8CE /* GLLoadTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GLLoadTests.h; sourceTree = "<group>"; };
-		E80E8673310854B62B36A692 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = MoltenVK/iOS/libMoltenVK.dylib; sourceTree = VULKAN_INSTALL_DIR; };
 		E8C1845C12E4034B4B66726D /* reflect.vert */ = {isa = PBXFileReference; lastKnownFileType = text; path = reflect.vert; sourceTree = "<group>"; };
 		E8F2CA4D47010B8A16AF2043 /* transcodetests.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = transcodetests.gypi; path = tests/transcodetests/transcodetests.gypi; sourceTree = "<group>"; };
 		E9F343F6BDCD2869B303FA2D /* TextureArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextureArray.h; sourceTree = "<group>"; };
@@ -1357,7 +1357,7 @@
 				E3951AC1A7047AC9A5C50AC6 /* GameController.framework in Frameworks */,
 				FC5D58BFE0D6F0558315290D /* libassimp.a in Frameworks */,
 				C601E664537A1056DAF7F693 /* libz.a in Frameworks */,
-				0598081BF193EF3CA1033296 /* libMoltenVK.dylib in Frameworks */,
+				1BA3D18B984FF01DA34640EE /* libMoltenVK.dylib in Frameworks */,
 				BE92DAA60CEE0966EEB7DAB2 /* IOSurface.framework in Frameworks */,
 				A5B9CD3FC8B0FA1D5D76DD6A /* libzstd.a in Frameworks */,
 			);
@@ -1530,7 +1530,7 @@
 				4064762A5A368ADCC9CC334F /* OpenGLES.framework */,
 				BBEB39731669F1BFB32B9CF4 /* QuartzCore.framework */,
 				66D7F90F86F12C09EFD8E8C4 /* UIKit.framework */,
-				E80E8673310854B62B36A692 /* libMoltenVK.dylib */,
+				951B9DEE93589C9E30365FB0 /* libMoltenVK.dylib */,
 				2D8E679046C6DF857DC47217 /* libSDL2.a */,
 				65728EDB4EF804F7A9B40CD5 /* libassimp.a */,
 				A94571C868EE7D97217B7D8E /* libz.a */,
@@ -1641,7 +1641,7 @@
 		8CF90362EA7A20B9ED1ADC73 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				AC792524CC865ABA2A920B0F /* VULKAN_INSTALL_DIR */,
+				9B5A02F9B209D8CEE8287FB5 /* VULKAN_INSTALL_DIR */,
 				58AB15233968493163DBEC17 /* icons/ios */,
 				FD646A369F1C7FD92E180321 /* tests */,
 				F6EBAB1258861E2A059BF92C /* utils */,
@@ -1679,6 +1679,15 @@
 			path = utils;
 			sourceTree = "<group>";
 		};
+		9B5A02F9B209D8CEE8287FB5 /* VULKAN_INSTALL_DIR */ = {
+			isa = PBXGroup;
+			children = (
+				C0C4EB3250A89DAE16735226 /* libMoltenVK.dylib */,
+			);
+			name = VULKAN_INSTALL_DIR;
+			path = MoltenVK/iOS/dynamic;
+			sourceTree = VULKAN_INSTALL_DIR;
+		};
 		AB0658A8651FD256E28EE958 /* texture */ = {
 			isa = PBXGroup;
 			children = (
@@ -1700,15 +1709,6 @@
 			);
 			path = appfwSDL;
 			sourceTree = "<group>";
-		};
-		AC792524CC865ABA2A920B0F /* VULKAN_INSTALL_DIR */ = {
-			isa = PBXGroup;
-			children = (
-				6F26BA56837AD73A00F49E56 /* libMoltenVK.dylib */,
-			);
-			name = VULKAN_INSTALL_DIR;
-			path = MoltenVK/iOS;
-			sourceTree = VULKAN_INSTALL_DIR;
 		};
 		B56E0073963535A528DEDBFC /* glloadtests */ = {
 			isa = PBXGroup;
@@ -2570,7 +2570,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS/dynamic";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2601,7 +2601,7 @@
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
 					gyp_include,
-					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS/dynamic",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				ONLY_ACTIVE_ARCH = YES;
@@ -2711,7 +2711,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS/dynamic";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2739,7 +2739,7 @@
 					"other_lib/ios/$CONFIGURATION-$PLATFORM_NAME",
 					"$(SDKROOT)/System/Library/Frameworks",
 					gyp_include,
-					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS",
+					"$(VULKAN_INSTALL_DIR)/MoltenVK/iOS/dynamic",
 					"other_lib/ios/Release-$PLATFORM_NAME",
 				);
 				ONLY_ACTIVE_ARCH = YES;
@@ -3102,7 +3102,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS/dynamic";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -3160,7 +3160,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_INSTALL_DIR)/MoltenVK/iOS/dynamic";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
