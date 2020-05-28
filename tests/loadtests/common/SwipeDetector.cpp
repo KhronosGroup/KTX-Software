@@ -116,10 +116,10 @@ namespace Swipe {
 }
 
 #if !defined(LOG_GESTURE_EVENTS)
-  #define LOG_GESTURE_EVENTS 1
+  #define LOG_GESTURE_EVENTS 0
 #endif
 #if !defined(LOG_GESTURE_DETECTION)
-  #define LOG_GESTURE_DETECTION 1
+  #define LOG_GESTURE_DETECTION 0
 #endif
 
 SwipeDetector::result
