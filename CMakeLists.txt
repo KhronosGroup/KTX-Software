@@ -5,6 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 project(KTX-Software)
 
 include(CTest)
+include(cmake/version.cmake)
 
 find_package(OpenGL)
 if(NOT EMSCRIPTEN)
@@ -149,33 +150,6 @@ add_dependencies(mkvk
     makedfd2vk
 )
 
-# version.h
-
-list(APPEND version_h_output
-    "${PROJECT_SOURCE_DIR}/lib/version.h")
-
-if(WIN32)
-    add_custom_command(
-        OUTPUT ${version_h_output}
-        COMMAND call call "setup_env.bat" && bash -c "\"./mkversion\" \"-o\" \"version.h\" \"lib\""
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generate version.h
-        VERBATIM
-    )
-else()
-    add_custom_command(
-        OUTPUT ${version_h_output}
-        COMMAND ./mkversion -o version.h lib
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generate version.h
-        VERBATIM
-    )
-endif()
-
-add_custom_target(version_h
-    DEPENDS ${version_h_output}
-)
-
 # End auto-generated code
 
 if(EMSCRIPTEN OR IOS)
@@ -229,13 +203,13 @@ add_library( ktx ${LIB_TYPE}
     lib/texture2.c
     lib/texture2.h
     lib/uthash.h
-    lib/version.h
     lib/vk_format.h
     lib/vkformat_check.c
     lib/vkformat_enum.h
     lib/vkformat_str.c
     )
-add_dependencies(ktx version_h mkvk)
+add_dependencies(ktx mkvk)
+create_version_header(lib ktx)
 
 target_compile_definitions(ktx PUBLIC LIBKTX)
 target_include_directories(
