@@ -62,6 +62,7 @@ add_test( NAME unittests COMMAND unittests )
 add_test( NAME texturetests COMMAND texturetests )
 
 include( ktx2check-tests.cmake )
+include( toktx-tests.cmake )
 
 if(WIN32)
     set_tests_properties(
