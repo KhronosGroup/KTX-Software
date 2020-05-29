@@ -7,22 +7,24 @@ add_executable( toktx
     stdafx.h
     targetver.h
     toktx.cc
-    )
+)
+create_version_header( tools/toktx toktx )
 
 target_include_directories(
     toktx
-    PRIVATE
+PRIVATE
+    .
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/lib/basisu
     ${PROJECT_SOURCE_DIR}/other_include
-    )
+)
 
 target_link_libraries(
     toktx
     ktx
-    )
+)
 
 target_compile_definitions(
     toktx
