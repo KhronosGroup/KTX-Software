@@ -27,6 +27,6 @@ function( create_version_header dest_path target )
     set( version_target ${target}_version )
     add_custom_target( ${version_target} DEPENDS ${version_h_output} )
     add_dependencies( ${target} ${version_target} )
-    # target_sources( ${version_target} PRIVATE ${version_h_output} )
+    target_sources( ${target} PRIVATE ${version_h_output} )
 
 endfunction()
