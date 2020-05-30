@@ -100,6 +100,7 @@ VulkanAppSDL::initialize(int argc, char* argv[])
     delete[] argv2;
 
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 
     // Create window.
     // Vulkan samples do not pass any information from Vulkan initialization
