@@ -61,10 +61,6 @@ install:
     ./ci_install_macos.sh
     ;;
   esac
-- pushd ../..
-- git clone https://github.com/msc-/gyp
-- cd gyp && sudo ./setup.py install && cd ..
-- popd
 
 before_script:
   - |
