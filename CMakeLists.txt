@@ -39,10 +39,15 @@ set( KTX_FEATURE_WRITE ON )
 set( KTX_FEATURE_KTX1 ON )
 set( KTX_FEATURE_KTX2 ON )
 set( KTX_FEATURE_VULKAN ON )
+set( KTX_FEATURE_TOOLS ON )
 
 if(EMSCRIPTEN)
     set( KTX_FEATURE_VULKAN OFF )
-    set( KTX_FEATURE_VULKAN OFF )
+endif()
+    
+if(IOS OR ANDROID OR EMSCRIPTEN)
+    # Tools are not supported on mobile platforms
+    set( KTX_FEATURE_TOOLS OFF )
 endif()
 
 set( KTX_GL_CONTEXT_PROFILE "CORE" CACHE STRING "Open GL context profile" )
@@ -456,7 +461,7 @@ target_include_directories(
 
 add_subdirectory(interface/basisu_c_binding)
 
-if(NOT IOS AND NOT ANDROID AND NOT EMSCRIPTEN)
+if(KTX_FEATURE_TOOLS)
     add_subdirectory(tools)
 endif()
 
