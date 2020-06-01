@@ -21,7 +21,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${builddir}/$<CONFIG>>)
 function( ensure_runtime_dependencies_windows target )
     # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
     # relative to executable.
-    add_custom_command( TARGET gl3loadtests POST_BUILD
+    add_custom_command( TARGET ${target} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:${target}>"
