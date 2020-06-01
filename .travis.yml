@@ -56,10 +56,10 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    ./ci_install_linux.sh
+    ./ci_scripts/install_linux.sh
     ;;
   osx)
-    ./ci_install_macos.sh
+    ./ci_scripts/install_macos.sh
     ;;
   esac
 
@@ -85,10 +85,10 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    ./ci_build_linux.sh
+    ./ci_scripts/build_linux.sh
     ;;
   osx)
-    ./ci_build_macos.sh
+    ./ci_scripts/build_macos.sh
     ;;
     esac
 
