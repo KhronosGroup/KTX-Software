@@ -1,11 +1,15 @@
-if(NOT WIN32 AND NOT IOS)
+if(NOT WIN32 AND NOT IOS AND NOT EMSCRIPTEN)
     find_package(SDL2 REQUIRED)
 endif()
-if(NOT APPLE)
+if(NOT APPLE AND NOT EMSCRIPTEN)
     find_package(assimp REQUIRED)
 endif()
 
-find_package( ZLIB REQUIRED )
+if(EMSCRIPTEN)
+    find_package( ZLIB )
+else()
+    find_package( ZLIB REQUIRED )
+endif()
 
 set(builddir "${CMAKE_BINARY_DIR}")
 
@@ -82,189 +86,6 @@ elseif(WIN32)
     set( EXE_FLAG WIN32 )
 endif()
 
-add_executable( gl3loadtests
-    ${EXE_FLAG}
-    $<TARGET_OBJECTS:appfwSDL>
-    $<TARGET_OBJECTS:objUtil>
-    appfwSDL/GLAppSDL.cpp
-    common/LoadTestSample.cpp
-    common/SwipeDetector.cpp
-    glloadtests/GLLoadTests.cpp
-    glloadtests/shader-based/BasisuTest.cpp
-    glloadtests/shader-based/DrawTexture.cpp
-    glloadtests/shader-based/GL3LoadTests.cpp
-    glloadtests/shader-based/GL3LoadTestSample.cpp
-    glloadtests/shader-based/shaders.cpp
-    glloadtests/shader-based/TextureArray.cpp
-    glloadtests/shader-based/TextureCubemap.cpp
-    glloadtests/shader-based/TexturedCube.cpp
-    ${GL_LOAD_TEST_RESOURCE_FILES}
-    )
-
-target_include_directories(
-    gl3loadtests
-    PRIVATE
-    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib
-    ${PROJECT_SOURCE_DIR}/other_include
-    ${PROJECT_SOURCE_DIR}/utils
-    appfwSDL
-    common
-    geom
-    glloadtests
-    glloadtests/utils
-    )
-
-if(OPENGL_FOUND)
-    target_include_directories(
-        gl3loadtests
-        PRIVATE
-        ${OPENGL_INCLUDE_DIR}
-    )
-endif()
-
-target_link_libraries(
-    gl3loadtests
-    ${OPENGL_LIBRARIES}
-    ${SDL2_LIBRARIES}
-    ktx
-    ZLIB::ZLIB
-)
-
-if(APPLE)
-    if(IOS)
-        target_link_libraries(
-            gl3loadtests
-            "-framework OpenGLES"
-            ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
-            ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
-        )
-    else()
-        target_link_libraries(
-            gl3loadtests
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
-        )
-    endif()
-elseif(LINUX)
-    target_link_libraries(
-        gl3loadtests
-        ${assimp_LIBRARIES}
-    )
-elseif(WIN32)
-    target_link_libraries(
-        gl3loadtests
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
-    )
-    ensure_runtime_dependencies_windows(gl3loadtests)
-endif()
-
-target_compile_definitions(
-    gl3loadtests
-PRIVATE
-    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
-    "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_${KTX_GL_CONTEXT_PROFILE}"
-    GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
-    GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
-)
-
-add_executable( vkloadtests
-    ${EXE_FLAG}
-    $<TARGET_OBJECTS:appfwSDL>
-    $<TARGET_OBJECTS:objUtil>
-    appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
-    appfwSDL/VulkanAppSDL/VulkanContext.cpp
-    appfwSDL/VulkanAppSDL/vulkandebug.cpp
-    appfwSDL/VulkanAppSDL/VulkanSwapchain.cpp
-    appfwSDL/VulkanAppSDL/vulkantools.cpp
-    common/LoadTestSample.cpp
-    common/SwipeDetector.cpp
-    vkloadtests/InstancedSampleBase.cpp
-    vkloadtests/Texture.cpp
-    vkloadtests/TextureArray.cpp
-    vkloadtests/TextureCubemap.cpp
-    vkloadtests/TexturedCube.cpp
-    vkloadtests/TextureMipmap.cpp
-    vkloadtests/VulkanLoadTests.cpp
-    vkloadtests/VulkanLoadTestSample.cpp
-    ${GL_LOAD_TEST_RESOURCE_FILES}
-    )
-
-target_include_directories(
-    vkloadtests
-    PRIVATE
-    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib
-    ${PROJECT_SOURCE_DIR}/other_include
-    ${PROJECT_SOURCE_DIR}/utils
-    ${SDL2_INCLUDE_DIRS}
-    appfwSDL
-    appfwSDL/VulkanAppSDL
-    common
-    geom
-    vkloadtests
-    vkloadtests/utils
-    )
-
-target_link_libraries(
-    vkloadtests
-    ktx
-    ZLIB::ZLIB
-)
-
-if(Vulkan_FOUND)
-    target_include_directories(
-        vkloadtests
-        PRIVATE
-        ${Vulkan_INCLUDE_DIRS}
-    )
-    target_link_libraries(
-        vkloadtests
-        ${Vulkan_LIBRARIES}
-    )
-endif()
-
-if(APPLE)
-    target_link_libraries(
-        vkloadtests
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
-        ${SDL2_LIBRARIES}
-    )
-elseif(LINUX)
-
-    set( LINUX_LIB_DIR Release )
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set( LINUX_LIB_DIR Debug )
-    endif()
-
-    target_link_libraries(
-        vkloadtests
-        ${assimp_LIBRARIES}
-        ${CMAKE_SOURCE_DIR}/other_lib/linux/${LINUX_LIB_DIR}-x64/libSDL2.a
-    )
-elseif(WIN32)
-    target_link_libraries(
-        vkloadtests
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
-    )
-    ensure_runtime_dependencies_windows(vkloadtests)
-endif()
-
-target_compile_definitions(
-    vkloadtests
-    PRIVATE
-    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
-)
-
 function(compileshader shader_target shader_name shader_src_path shader_path)
 
     set(vert_name "${shader_name}.vert")
@@ -307,22 +128,11 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
 
     set_target_properties(${shader_target} PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
-    target_sources( gl3loadtests
-    PUBLIC
-        ${frag2spirv_out}
-        ${vert2spirv_out}
-    )
-
-    target_sources( vkloadtests
-    PUBLIC
-        ${frag2spirv_out}
-        ${vert2spirv_out}
-    )
-
-    set_source_files_properties(${frag2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
-    set_source_files_properties(${vert2spirv_out} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+    set(SHADER_SOURCES ${SHADER_SOURCES} ${frag2spirv_out} ${vert2spirv_out} PARENT_SCOPE)
 
 endfunction(compileshader)
+
+set(SHADER_SOURCES "")
 
 compileshader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
 compileshader(shader_cube cube vkloadtests/shaders/cube shaders )
@@ -346,31 +156,17 @@ add_custom_target(
 
 set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
+include(glloadtests.cmake)
+
+if(NOT EMSCRIPTEN)
+    include(vkloadtests.cmake)
+endif()
+
 set_source_files_properties(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
+set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
 set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
 # Hack to prevent *.obj 3D files to be mistaken as linkable obj files
 set_source_files_properties(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
 
-set_target_properties( gl3loadtests PROPERTIES
-    RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
-    MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
-    MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
-    XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
-    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
-)
-
-set_target_properties( vkloadtests PROPERTIES
-    RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
-    MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
-    MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
-    XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
-    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
-)
-
 # file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${builddir}")
 # file(COPY common/models DESTINATION "${builddir}")
-
-add_dependencies(
-    vkloadtests
-    spirv_shaders
-)
