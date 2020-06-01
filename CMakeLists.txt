@@ -438,15 +438,10 @@ if(EMSCRIPTEN)
         lib/basisu/transcoder
     )
     target_link_options( msc_basis_transcoder_js PUBLIC ${KTX_EMC_LINK_FLAGS} )
-
-    # TODO: Debug -g4
-    # TODO: Release -Oz
-
+    target_link_options( msc_basis_transcoder_js PUBLIC $<IF:$<CONFIG:Debug>,-g4,-Oz> )
 endif()
 
-if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
 if(MSVC)
@@ -455,10 +450,14 @@ if(MSVC)
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /O2")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /O2")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O2 -flto")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O2 -flto")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -std=c++11 -fPIC")
+
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -g")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g")
+
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
 endif()
 
 add_library( objUtil OBJECT
