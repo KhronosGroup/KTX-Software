@@ -27,7 +27,7 @@ endif()
 # OPTIONS
 
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
-option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" ON )
+option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 
 # Might become options in the future
 
