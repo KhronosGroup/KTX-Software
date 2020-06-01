@@ -413,10 +413,22 @@ endif()
 
 if(EMSCRIPTEN)
 
+    set(
+        KTX_EMC_LINK_FLAGS
+        --bind
+        "--source-map-base ./"
+        "-s ALLOW_MEMORY_GROWTH=1"
+        "-s ASSERTIONS=0"
+        "-s MALLOC=emmalloc"
+        "-s MODULARIZE=1"
+        "-s EXPORT_NAME=MSC_TRANSCODER"
+        "-s FULL_ES3=1"
+    )
+
     add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
     target_link_libraries( ktx_js ktx )
     target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES> )
-    target_link_options( ktx_js PUBLIC --bind )
+    target_link_options( ktx_js PUBLIC ${KTX_EMC_LINK_FLAGS} )
     
     add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )
     target_link_libraries( msc_basis_transcoder_js ktx )
@@ -425,7 +437,10 @@ if(EMSCRIPTEN)
         lib
         lib/basisu/transcoder
     )
-    target_link_options( msc_basis_transcoder_js PUBLIC --bind )
+    target_link_options( msc_basis_transcoder_js PUBLIC ${KTX_EMC_LINK_FLAGS} )
+
+    # TODO: Debug -g4
+    # TODO: Release -Oz
 
 endif()
 
