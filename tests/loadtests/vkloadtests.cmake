@@ -106,6 +106,8 @@ set_target_properties( vkloadtests PROPERTIES
     RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+    # Because libassimp is built with bitcode disabled. It's not important unless
+    # submitting to the App Store and currently bitcode is optional.
     XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
     XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
 )
