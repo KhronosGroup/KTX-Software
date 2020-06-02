@@ -129,7 +129,7 @@ const GLchar* pszReflectSrgbEncodeFs =
     "  vec3 ambient = vec3(0.5) * color.rgb;\n"
     "  vec3 diffuse = max(dot(N, L), 0.0) * vec3(1.0);\n"
     "  vec3 specular = pow(max(dot(R, V), 0.0), 16.0) * vec3(0.5);\n"
-    "  color.rgb = srgbEncode(ambient + diffuse * color.rgb + specular);\n"
+    "  color.rgb = srgb_encode(ambient + diffuse * color.rgb + specular);\n"
     "  outFragColor = vec4(color.rgb, 1.0);\n"
     "}\n";
 
