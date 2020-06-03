@@ -8929,7 +8929,7 @@ namespace basist
 		BASISU_NOTE_UNUSED(output_row_pitch_in_blocks_or_pixels);
 		BASISU_NOTE_UNUSED(output_block_or_pixel_stride_in_bytes);
 		BASISU_NOTE_UNUSED(fmt);
-  		BASISU_NOTE_UNUSED(has_alpha);
+		BASISU_NOTE_UNUSED(has_alpha);
 		BASISU_NOTE_UNUSED(image_data_size);
 		BASISU_NOTE_UNUSED(pImage_data);
 		BASISU_NOTE_UNUSED(num_blocks_x);
