@@ -70,7 +70,7 @@ if(OPENGL_FOUND)
 endif()
 
 #Get a list of all of the files in the testimages
-file(GLOB_RECURSE TEST_IMAGES "${PROJECT_SOURCE_DIR}/tests/testimages/*")
+file(GLOB TEST_IMAGES "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx" "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx2")
 #Get a list of all of the files in the models
 file(GLOB_RECURSE MODELS "common/models/*")
 
