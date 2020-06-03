@@ -216,7 +216,7 @@ add_library( ktx ${LIB_TYPE}
 add_dependencies(ktx mkvk)
 create_version_header(lib ktx)
 
-target_compile_definitions(ktx PUBLIC LIBKTX)
+target_compile_definitions(ktx PRIVATE LIBKTX)
 target_include_directories(
     ktx
 PUBLIC
