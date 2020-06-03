@@ -50,16 +50,6 @@ if(IOS OR ANDROID OR EMSCRIPTEN)
     set( KTX_FEATURE_TOOLS OFF )
 endif()
 
-set( KTX_GL_CONTEXT_PROFILE "CORE" CACHE STRING "Open GL(ES) test apps context profile" )
-set_property(CACHE KTX_GL_CONTEXT_PROFILE PROPERTY STRINGS
-    CORE
-    COMPATIBILITY
-    ES
-)
-
-set( KTX_GL_CONTEXT_MAJOR_VERSION 3 CACHE STRING "OpenGL(ES) test apps major version" )
-set( KTX_GL_CONTEXT_MINOR_VERSION 3 CACHE STRING "OpenGL(ES) test apps minor version" )
-
 set(bitness 64)
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
 	set(bitness 32)
