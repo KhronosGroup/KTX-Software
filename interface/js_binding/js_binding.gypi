@@ -9,15 +9,6 @@
   'conditions': [
     ['OS == "web"', {
       'variables': {
-        'common_defines': [
-          'BASISD_SUPPORT_BC7=0',
-          'BASISD_SUPPORT_ATC=0',
-          'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
-          'BASISD_SUPPORT_UASTC=0',
-          'BASISD_SUPPORT_PVRTC2=0',
-          'BASISD_SUPPORT_FXT1=0',
-          'BASISD_SUPPORT_ETC2_EAC_RG11=0',
-        ],
         'common_include_dirs': [
           '../../include',
           '../../lib',
@@ -29,7 +20,6 @@
           'type': 'executable',
           'cflags_cc': [ '--bind' ],
           'dependencies': [ 'libktx' ],
-          'defines': [ '<@(common_defines)' ],
           'mac_bundle': 0,
           'sources': [
             'ktx_wrapper.cpp',
@@ -58,7 +48,6 @@
             '-Wno-nested-anon-types',
             '-Wno-gnu-anonymous-struct',
           ],
-          'defines': [ '<@(common_defines)' ],
           'dependencies': [ 'libktx' ],
           'mac_bundle': 0,
           'sources': [

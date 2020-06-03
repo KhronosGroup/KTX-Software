@@ -2109,10 +2109,60 @@
 		90BB9FCA83D31EF60B4873AF /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = YES;
+				TargetAttributes = {
+					09BA8FB5F992B0DCA38C21BE = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					0B2F68F79FDD3BDDF975D5F6 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					1548AEB99CD1C5C270961D30 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					1BE6899F85464D2301297B34 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					5C02A4F65B8C516F2E3508EB = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					5D14C76351FD143925D22373 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					5E0373E3E25257167764A6D6 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					6CCD749A06B533143615AAEE = {
+						DevelopmentTeam = UZ5V327NE3;
+						ProvisioningStyle = Automatic;
+					};
+					997C25D3CF0D5B1CE5689386 = {
+						DevelopmentTeam = UZ5V327NE3;
+						ProvisioningStyle = Automatic;
+					};
+					9C3634CD4D99CF2D2EBFC2E4 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					BF97B2EE853A57EA8400D402 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					C9FA79AED7857DAE20C5CEC8 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					DAA715274807967C046D9300 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					E28123D177A5F5B4703C8895 = {
+						DevelopmentTeam = UZ5V327NE3;
+					};
+					FAEB3BB157F191BE9FBE9B91 = {
+						DevelopmentTeam = UZ5V327NE3;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = 55F377B00A09F4075C61D1D2 /* Build configuration list for PBXProject "ktxtests" */;
 			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				en,
@@ -2728,10 +2778,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path /usr/local/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = unittests;
@@ -2793,10 +2840,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path /usr/local/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = unittests;
@@ -3033,10 +3077,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path /usr/local/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = transcodetests;
@@ -3250,10 +3291,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path /usr/local/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = texturetests;
@@ -3296,10 +3334,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path /usr/local/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = transcodetests;
@@ -3447,10 +3482,7 @@
 					include,
 					other_include,
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path",
-					/usr/local/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path /usr/local/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = texturetests;
