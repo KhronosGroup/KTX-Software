@@ -18,12 +18,6 @@ glloadtests/shader-based/TexturedCube.cpp
 ${GL_LOAD_TEST_RESOURCE_FILES}
 )
 
-target_sources(
-    gl3loadtests
-PUBLIC
-    ${SHADER_SOURCES}
-)
-
 target_include_directories(
 gl3loadtests
 PRIVATE
