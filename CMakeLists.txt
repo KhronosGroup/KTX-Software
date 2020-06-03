@@ -407,19 +407,24 @@ if(EMSCRIPTEN)
         KTX_EMC_LINK_FLAGS
         --bind
         "--source-map-base ./"
-        "-s ALLOW_MEMORY_GROWTH=1"
-        "-s ASSERTIONS=0"
-        "-s MALLOC=emmalloc"
-        "-s MODULARIZE=1"
-        "-s EXPORT_NAME=MSC_TRANSCODER"
-        "-s FULL_ES3=1"
+        "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+        "SHELL:-s ASSERTIONS=0"
+        "SHELL:-s MALLOC=emmalloc"
+        "SHELL:-s MODULARIZE=1"
+        "SHELL:-s FULL_ES3=1"
     )
 
     add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
     target_link_libraries( ktx_js ktx )
     target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES> )
-    target_link_options( ktx_js PUBLIC ${KTX_EMC_LINK_FLAGS} )
-    
+    target_link_options(
+        ktx_js
+    PUBLIC
+        ${KTX_EMC_LINK_FLAGS}
+        "SHELL:-s EXPORT_NAME=LIBKTX"
+    )
+    set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
+
     add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )
     target_link_libraries( msc_basis_transcoder_js ktx )
     target_include_directories( msc_basis_transcoder_js
@@ -427,8 +432,14 @@ if(EMSCRIPTEN)
         lib
         lib/basisu/transcoder
     )
-    target_link_options( msc_basis_transcoder_js PUBLIC ${KTX_EMC_LINK_FLAGS} )
-    target_link_options( msc_basis_transcoder_js PUBLIC $<IF:$<CONFIG:Debug>,-g4,-Oz> )
+    target_link_options(
+        msc_basis_transcoder_js
+    PUBLIC
+        ${KTX_EMC_LINK_FLAGS}
+        "SHELL:-s EXPORT_NAME=MSC_TRANSCODER"
+        $<IF:$<CONFIG:Debug>,-g4,-Oz>
+        )
+    set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
 endif()
 
 set(CMAKE_C_STANDARD 99)
