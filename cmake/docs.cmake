@@ -18,7 +18,7 @@ set( DOXYGEN_GENERATE_LATEX NO )
 # set( DOXYGEN_PAPER_TYPE a4wide ) # note: invalid value!
 set( DOXYGEN_GENERATE_MAN YES )
 
-# ktx.doxy
+# ktx.doc
 function( CreateDocLibKTX )
     set( DOXYGEN_PROJECT_NAME "libktx - The KTX Library" )
     set( DOXYGEN_ALIASES error=\"\\par Errors\\n\" )
@@ -64,7 +64,7 @@ function( CreateDocLibKTX )
     file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/html )
 
     doxygen_add_docs(
-        libktx.doxy
+        libktx.doc
         LICENSE.md
         TODO.md
         include
@@ -84,7 +84,7 @@ function( CreateDocLibKTX )
     )
 endfunction()
 
-# ktxtools.doxy
+# ktxtools.doc
 function( CreateDocKTXTools )
     set( DOXYGEN_PROJECT_NAME "Khronos Texture Tools" )
     set( DOXYGEN_FULL_PATH_NAMES NO )
@@ -98,7 +98,7 @@ function( CreateDocKTXTools )
     set( DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/docs/ktxtools.tag )
 
     doxygen_add_docs(
-        ktxtools.doxy
+        ktxtools.doc
         tools/ktxinfo/ktxinfo.cpp
         tools/ktx2check/ktx2check.cpp
         tools/ktx2ktx2/ktx2ktx2.cpp
@@ -108,7 +108,7 @@ function( CreateDocKTXTools )
 endfunction()
 
 
-# ktxpkg.doxy
+# ktxpkg.doc
 function( CreateDocKTX )
     set( DOXYGEN_PROJECT_NAME "Khronos Texture Software" )
     set( DOXYGEN_ALIASES pversion=\"\\par Package Version\n\" )
@@ -122,7 +122,7 @@ function( CreateDocKTX )
     set( DOXYGEN_TAGFILES ${CMAKE_BINARY_DIR}/docs/libktx.tag=libktx ${CMAKE_BINARY_DIR}/docs/ktxtools.tag=ktxtools )
 
     doxygen_add_docs(
-        ktxpkg.doxy
+        ktxpkg.doc
         pkgdoc/pages.md
         TODO.md
         interface/js_binding
@@ -133,5 +133,5 @@ CreateDocLibKTX()
 CreateDocKTXTools()
 CreateDocKTX()
 
-add_dependencies( ktxtools.doxy libktx.doxy )
-add_dependencies( ktxpkg.doxy ktxtools.doxy )
+add_dependencies( ktxtools.doc libktx.doc )
+add_dependencies( ktxpkg.doc ktxtools.doc )
