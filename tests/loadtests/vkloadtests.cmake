@@ -74,7 +74,7 @@ endif()
 
 if(SDL2_FOUND)
     target_link_libraries(
-        gl3loadtests
+        vkloadtests
         ${SDL2_LIBRARIES}
     )
 endif()
