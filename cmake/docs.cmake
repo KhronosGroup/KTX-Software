@@ -69,7 +69,6 @@ function( CreateDocLibKTX )
         TODO.md
         include
         lib/basis_encode.cpp
-        lib/basisu_image_transcoders.h
         lib/basis_transcode.cpp
         lib/strings.c
         lib/mainpage.md
@@ -88,7 +87,7 @@ endfunction()
 function( CreateDocKTXTools )
     set( DOXYGEN_PROJECT_NAME "Khronos Texture Tools" )
     set( DOXYGEN_FULL_PATH_NAMES NO )
-    set( DOXYGEN_ALIASES author=\"\\section AUTHOR\n\" )
+    set( DOXYGEN_ALIASES author=\"\\section AUTHOR\\n\" )
     set( DOXYGEN_SHOW_FILES NO )
     set( DOXYGEN_FILE_PATTERNS *.cpp )
     set( DOXYGEN_RECURSIVE YES )
@@ -111,7 +110,7 @@ endfunction()
 # ktxpkg.doc
 function( CreateDocKTX )
     set( DOXYGEN_PROJECT_NAME "Khronos Texture Software" )
-    set( DOXYGEN_ALIASES pversion=\"\\par Package Version\n\" )
+    set( DOXYGEN_ALIASES pversion=\"\\par Package Version\\n\" )
     set( DOXYGEN_LAYOUT_FILE pkgdoc/packageDoxyLayout.xml )
     set( DOXYGEN_EXCLUDE lib/uthash.h )
     set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
@@ -133,5 +132,7 @@ CreateDocLibKTX()
 CreateDocKTXTools()
 CreateDocKTX()
 
+add_dependencies( libktx.doc ktx_version )
 add_dependencies( ktxtools.doc libktx.doc )
 add_dependencies( ktxpkg.doc ktxtools.doc )
+
