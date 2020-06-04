@@ -1,6 +1,7 @@
 add_executable( toktx
     $<TARGET_OBJECTS:objUtil>
     image.cc
+    image.hpp
     jpgimage.cc
     npbmimage.cc
     pngimage.cc
