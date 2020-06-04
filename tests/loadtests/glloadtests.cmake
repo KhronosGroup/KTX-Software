@@ -102,9 +102,9 @@ if(APPLE)
     set(PRODUCT_NAME "gl3loadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-    configure_file( ${INFO_PLIST} Info.plist )
+    configure_file( ${INFO_PLIST} gl3loadtests/Info.plist )
     set_target_properties( gl3loadtests PROPERTIES
-        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/gl3loadtests/Info.plist"
         MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
         # Because libassimp is built with bitcode disabled. It's not important unless
         # submitting to the App Store and currently bitcode is optional.
