@@ -118,15 +118,20 @@ PRIVATE
     GL_CONTEXT_MINOR_VERSION=3
 )
 
-set_target_properties( gl3loadtests PROPERTIES
-    RESOURCE ${KTX_ICON}
-    MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
-    MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
-    # Because libassimp is built with bitcode disabled. It's not important unless
-    # submitting to the App Store and currently bitcode is optional.
-    XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
-    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
-)
+if(APPLE)
+    set_target_properties( gl3loadtests PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
+        MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+        # Because libassimp is built with bitcode disabled. It's not important unless
+        # submitting to the App Store and currently bitcode is optional.
+        XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
+        XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
+    )
+endif()
+if(KTX_ICON)
+    set_target_properties( gl3loadtests PROPERTIES RESOURCE ${KTX_ICON} )
+endif()
+
 
 if(EMSCRIPTEN)
     set_target_properties(gl3loadtests PROPERTIES SUFFIX ".html")

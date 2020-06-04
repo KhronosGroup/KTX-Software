@@ -103,15 +103,19 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
-set_target_properties( vkloadtests PROPERTIES
-    RESOURCE ${KTX_ICON}
-    MACOSX_BUNDLE_INFO_PLIST ${INFO_PLIST}
-    MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
-    # Because libassimp is built with bitcode disabled. It's not important unless
-    # submitting to the App Store and currently bitcode is optional.
-    XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
-    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
-)
+if(APPLE)
+    set_target_properties( vkloadtests PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST ${INFO_PLIST}
+        MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+        # Because libassimp is built with bitcode disabled. It's not important unless
+        # submitting to the App Store and currently bitcode is optional.
+        XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
+        XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
+    )
+endif()
+if(KTX_ICON)
+    set_target_properties( vkloadtests PROPERTIES RESOURCE ${KTX_ICON} )
+endif()
 
 add_dependencies(
     vkloadtests
