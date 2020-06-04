@@ -9,6 +9,7 @@ add_subdirectory(transcodetests)
 
 add_executable( unittests
     unittests/unittests.cc
+    unittests/wthelper.h
 )
 
 if(OPENGL_FOUND)
@@ -31,23 +32,23 @@ target_link_libraries(
     gtest
     ktx
     ${CMAKE_THREAD_LIBS_INIT}
-    )
+)
 
 if(OPENGL_FOUND)
     add_executable( texturetests
         texturetests/texturetests.cc
-        )
+        unittests/wthelper.h
+    )
 
     target_include_directories(
         texturetests
-        # PUBLIC
-        PRIVATE
+    PRIVATE
         ${OPENGL_INCLUDE_DIR}
         $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
         ${PROJECT_SOURCE_DIR}/other_include
         ${PROJECT_SOURCE_DIR}/lib
         unittests
-        )
+    )
 
     target_link_libraries(
         texturetests
@@ -55,7 +56,7 @@ if(OPENGL_FOUND)
         gtest
         ktx
         ${CMAKE_THREAD_LIBS_INIT}
-        )
+    )
 endif()
 
 add_test( NAME unittests COMMAND unittests )
