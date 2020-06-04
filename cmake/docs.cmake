@@ -18,6 +18,16 @@ set( DOXYGEN_GENERATE_LATEX NO )
 # set( DOXYGEN_PAPER_TYPE a4wide ) # note: invalid value!
 set( DOXYGEN_GENERATE_MAN YES )
 
+
+function( add_docs_cmake target )
+    # Make `docs.cmake` show up in IDE/project
+    set_target_properties(
+        ${target}
+    PROPERTIES
+        SOURCES ${SOURCES};cmake/docs.cmake
+    )
+endfunction()
+
 # ktx.doc
 function( CreateDocLibKTX )
     set( DOXYGEN_PROJECT_NAME "libktx - The KTX Library" )
@@ -81,6 +91,7 @@ function( CreateDocLibKTX )
         lib/writer1.c
         lib/writer2.c
     )
+    add_docs_cmake(libktx.doc)
 endfunction()
 
 # ktxtools.doc
@@ -104,6 +115,7 @@ function( CreateDocKTXTools )
         tools/ktxsc/ktxsc.cpp
         tools/toktx/toktx.cc
     )
+    add_docs_cmake(ktxtools.doc)
 endfunction()
 
 
@@ -126,6 +138,7 @@ function( CreateDocKTX )
         TODO.md
         interface/js_binding
     )
+    add_docs_cmake(ktxpkg.doc)
 endfunction()
 
 CreateDocLibKTX()
