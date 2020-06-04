@@ -197,9 +197,9 @@ const GLchar* pszSkyboxSrgbEncodeFs =
 
     "void main()\n"
     "{\n"
-    "  vec4 color = texture(samplerColor, vUVW);"
+    "  vec4 color = texture(samplerColor, vUVW);\n"
     "  outFragColor.rgb = srgb_encode(color.rgb);\n"
-    "  outFragcolor.a = color.a;\n"
+    "  outFragColor.a = color.a;\n"
     "}\n";
 
 const GLchar* pszSkyboxVs =
