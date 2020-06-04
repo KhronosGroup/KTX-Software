@@ -332,7 +332,7 @@ if(KTX_FEATURE_WRITE)
     )
     target_include_directories(
         ktx
-    PRIVATE
+    PUBLIC
         lib
         lib/basisu
     )
@@ -490,9 +490,9 @@ add_library( objUtil OBJECT
     )
 target_include_directories(
     objUtil
-    PUBLIC
+PUBLIC
     utils
-    )
+)
 
 add_subdirectory(interface/basisu_c_binding)
 

@@ -38,15 +38,11 @@ PUBLIC
 target_include_directories(
     vkloadtests
 PRIVATE
-    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib
-    ${PROJECT_SOURCE_DIR}/other_include
-    ${PROJECT_SOURCE_DIR}/utils
     ${SDL2_INCLUDE_DIRS}
-    appfwSDL
+    $<TARGET_PROPERTY:appfwSDL,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     appfwSDL/VulkanAppSDL
-    common
-    geom
     vkloadtests
     vkloadtests/utils
 )
@@ -82,11 +78,27 @@ endif()
 if(APPLE)
     if(IOS)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
+        target_sources(
+            vkloadtests
+        PRIVATE
+            ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+            vkloadtests/resources/ios/LaunchImages.xcassets
+            vkloadtests/resources/ios/LaunchScreen.storyboard
+        )
         target_link_libraries(
             vkloadtests
-            # "-framework SDL2"
-            # "-framework SDL2main"
-            "-framework UIKit"
+            ${AudioToolbox_LIBRARY}
+            ${AVFoundation_LIBRARY}
+            ${CoreAudio_LIBRARY}
+            ${CoreBluetooth_LIBRARY}
+            ${CoreGraphics_LIBRARY}
+            ${CoreMotion_LIBRARY}
+            ${Foundation_LIBRARY}
+            ${GameController_LIBRARY}
+            ${Metal_LIBRARY}
+            ${OpenGLES_LIBRARY}
+            ${QuartzCore_LIBRARY}
+            ${UIKit_LIBRARY}
         )
     else()
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
@@ -104,8 +116,12 @@ PRIVATE
 )
 
 if(APPLE)
+    set(PRODUCT_NAME "vkloadtests")
+    set(EXECUTABLE_NAME ${PRODUCT_NAME})
+    set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
+    configure_file( ${INFO_PLIST} Info.plist )
     set_target_properties( vkloadtests PROPERTIES
-        MACOSX_BUNDLE_INFO_PLIST ${INFO_PLIST}
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
         MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
         # Because libassimp is built with bitcode disabled. It's not important unless
         # submitting to the App Store and currently bitcode is optional.

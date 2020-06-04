@@ -5,17 +5,17 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>gl3loadtests</string>
+	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleExecutable</key>
-	<string>gl3loadtests</string>
+	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
 	<string>ktx_app.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.khronos.ktx.gl3loadtests</string>
+	<string>${PRODUCT_BUNDLE_IDENTIFIER}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>gl3loadtests</string>
+	<string>${PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>

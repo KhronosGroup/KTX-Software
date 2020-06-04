@@ -11,6 +11,22 @@ else()
     find_package( ZLIB REQUIRED )
 endif()
 
+if(APPLE AND IOS)
+    # Find Frameworks
+    find_library(AudioToolbox_LIBRARY AudioToolbox)
+    find_library(AVFoundation_LIBRARY AVFoundation)
+    find_library(CoreAudio_LIBRARY CoreAudio)
+    find_library(CoreBluetooth_LIBRARY CoreBluetooth)
+    find_library(CoreGraphics_LIBRARY CoreGraphics)
+    find_library(CoreMotion_LIBRARY CoreMotion)
+    find_library(Foundation_LIBRARY Foundation)
+    find_library(GameController_LIBRARY GameController)
+    find_library(Metal_LIBRARY Metal)
+    find_library(OpenGLES_LIBRARY OpenGLES)
+    find_library(QuartzCore_LIBRARY QuartzCore)
+    find_library(UIKit_LIBRARY UIKit)
+endif()
+
 function( ensure_runtime_dependencies_windows target )
     # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
     # relative to executable.
@@ -67,12 +83,16 @@ PUBLIC
 add_library( GLAppSDL OBJECT
     appfwSDL/GLAppSDL.cpp
     appfwSDL/GLAppSDL.h
+    glloadtests/GLLoadTests.cpp
+    glloadtests/GLLoadTests.h
 )
 
 target_include_directories(
     GLAppSDL
 PUBLIC
     ${PROJECT_SOURCE_DIR}/other_include
+    appfwSDL
+    common
     glloadtests
     glloadtests/utils
 )
@@ -204,7 +224,11 @@ add_custom_target(
 
 set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
-include(glloadtests.cmake)
+if(IOS)
+    include(esloadtests.cmake)
+elseif()
+    include(glloadtests.cmake)
+endif()
 
 if(NOT EMSCRIPTEN)
     include(vkloadtests.cmake)
