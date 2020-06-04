@@ -339,12 +339,13 @@ if(KTX_FEATURE_WRITE)
 
 endif()
 
+set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
+
 if(WIN32)
     target_link_libraries(
         ktx
         ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib
     )
-    set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
     # By wrapping in generator expression we force multi configuration generators (like Visual Studio)
     # to take the exact path and not change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
