@@ -223,7 +223,7 @@ endif()
 target_compile_definitions(ktx PUBLIC "$<$<CONFIG:Debug>:_DEBUG>")
 
 # To reduce size, don't support transcoding to ancient formats.
-target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0 )
+target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0)
 
 # TODO: make options for all formats and good per-platform defaults
 # - BASISD_SUPPORT_UASTC
@@ -239,6 +239,20 @@ target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0 )
 # - BASISD_SUPPORT_ETC2_EAC_RG11
 # - BASISD_SUPPORT_FXT1
 # - BASISD_SUPPORT_PVRTC2
+
+if(EMSCRIPTEN)
+    # To reduce size, don't support transcoding format not supported on WebGL
+    target_compile_definitions(
+        ktx
+    PUBLIC
+        BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0
+        BASISD_SUPPORT_ATC=0
+        BASISD_SUPPORT_BC7=0
+        BASISD_SUPPORT_ETC2_EAC_RG11=0
+        BASISD_SUPPORT_PVRTC2=0
+        BASISD_SUPPORT_UASTC=0
+    )
+endif()
 
 if(WIN32)
     target_compile_definitions(
