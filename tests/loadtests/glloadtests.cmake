@@ -48,8 +48,8 @@ if(OPENGL_FOUND)
 endif()
 
 target_link_libraries(
-gl3loadtests
-ktx
+    gl3loadtests
+    ktx
 )
 
 if(OPENGL_FOUND AND NOT EMSCRIPTEN)
@@ -79,18 +79,10 @@ if(APPLE)
             glloadtests/resources/ios/LaunchImages.xcassets
             glloadtests/resources/ios/LaunchScreen.storyboard
         )
+        # TODO: should be taken care of by ${OPENGL_LIBRARIES}
         target_link_libraries(
             gl3loadtests
             "-framework OpenGLES"
-            ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
-            ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
-        )
-    else()
-        target_link_libraries(
-            gl3loadtests
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
     endif()
 elseif(EMSCRIPTEN)
@@ -101,11 +93,6 @@ elseif(EMSCRIPTEN)
         # LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g4"
         LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g"
     )
-elseif(LINUX)
-    target_link_libraries(
-        gl3loadtests
-        ${assimp_LIBRARIES}
-    )
 elseif(WIN32)
     target_sources(
         gl3loadtests
@@ -115,13 +102,12 @@ elseif(WIN32)
     )
     target_link_libraries(
         gl3loadtests
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
         "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
     )
-ensure_runtime_dependencies_windows(gl3loadtests)
+    ensure_runtime_dependencies_windows(gl3loadtests)
 endif()
+
+target_link_libraries( gl3loadtests ${LOAD_TEST_COMMON_LIBS} )
 
 target_compile_definitions(
     gl3loadtests
