@@ -43,7 +43,19 @@ endfunction()
 
 add_library( appfwSDL OBJECT
     appfwSDL/AppBaseSDL.cpp
+    appfwSDL/AppBaseSDL.h
     appfwSDL/main.cpp
+    common/LoadTestSample.cpp
+    common/LoadTestSample.h
+    common/ltexceptions.h
+    common/SwipeDetector.cpp
+    common/SwipeDetector.h
+    common/vecmath.hpp
+    geom/cube_data.h
+    geom/cube.h
+    geom/frame.h
+    geom/quad.h
+
 )
 
 target_include_directories(
@@ -57,34 +69,49 @@ PUBLIC
     ${PROJECT_SOURCE_DIR}/utils
     common
     geom
+)
+
+add_library( GLAppSDL OBJECT
+    appfwSDL/GLAppSDL.cpp
+    appfwSDL/GLAppSDL.h
+)
+
+target_include_directories(
+    GLAppSDL
+PUBLIC
+    ${PROJECT_SOURCE_DIR}/other_include
     glloadtests
     glloadtests/utils
 )
 
 if(OPENGL_FOUND)
     target_include_directories(
-        appfwSDL
+        GLAppSDL
     PUBLIC
         ${OPENGL_INCLUDE_DIR}
     )
 endif()
+
+
+if(APPLE)
+    set( EXE_FLAG MACOSX_BUNDLE )
+    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
+elseif(WIN32)
+    set( EXE_FLAG WIN32 )
+    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
+endif()
+
 
 #Get a list of all of the files in the testimages
 file(GLOB TEST_IMAGES "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx" "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx2")
 #Get a list of all of the files in the models
 file(GLOB_RECURSE MODELS "common/models/*")
 
-set( GL_LOAD_TEST_RESOURCE_FILES
+set( LOAD_TEST_COMMON_RESOURCE_FILES
+    ${KTX_ICON}
     ${TEST_IMAGES}
     ${MODELS}
-    "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
 )
-
-if(APPLE)
-    set( EXE_FLAG MACOSX_BUNDLE )
-elseif(WIN32)
-    set( EXE_FLAG WIN32 )
-endif()
 
 function(compileshader shader_target shader_name shader_src_path shader_path)
 
