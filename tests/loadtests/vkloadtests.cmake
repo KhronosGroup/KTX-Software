@@ -36,24 +36,24 @@ PUBLIC
 )
 
 target_include_directories(
-vkloadtests
+    vkloadtests
 PRIVATE
-$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-${PROJECT_SOURCE_DIR}/lib
-${PROJECT_SOURCE_DIR}/other_include
-${PROJECT_SOURCE_DIR}/utils
-${SDL2_INCLUDE_DIRS}
-appfwSDL
-appfwSDL/VulkanAppSDL
-common
-geom
-vkloadtests
-vkloadtests/utils
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/other_include
+    ${PROJECT_SOURCE_DIR}/utils
+    ${SDL2_INCLUDE_DIRS}
+    appfwSDL
+    appfwSDL/VulkanAppSDL
+    common
+    geom
+    vkloadtests
+    vkloadtests/utils
 )
 
 target_link_libraries(
-vkloadtests
-ktx
+    vkloadtests
+    ktx
 )
 
 if(ZLIB_FOUND)
@@ -61,58 +61,51 @@ if(ZLIB_FOUND)
 endif()
 
 if(Vulkan_FOUND)
-target_include_directories(
-    vkloadtests
-    PRIVATE
-    ${Vulkan_INCLUDE_DIRS}
-)
-target_link_libraries(
-    vkloadtests
-    ${Vulkan_LIBRARIES}
-)
+    target_include_directories(
+        vkloadtests
+        PRIVATE
+        ${Vulkan_INCLUDE_DIRS}
+    )
+    target_link_libraries(
+        vkloadtests
+        ${Vulkan_LIBRARIES}
+    )
+endif()
+
+if(SDL2_FOUND)
+    target_link_libraries(
+        gl3loadtests
+        ${SDL2_LIBRARIES}
+    )
 endif()
 
 if(APPLE)
-target_link_libraries(
-    vkloadtests
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
-    ${SDL2_LIBRARIES}
-)
-elseif(EMSCRIPTEN)
-elseif(LINUX)
-
-set( LINUX_LIB_DIR Release )
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set( LINUX_LIB_DIR Debug )
-endif()
-
-target_link_libraries(
-    vkloadtests
-    ${assimp_LIBRARIES}
-    ${CMAKE_SOURCE_DIR}/other_lib/linux/${LINUX_LIB_DIR}-x64/libSDL2.a
-)
+    if(IOS)
+        set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
+        target_link_libraries(
+            vkloadtests
+            # "-framework SDL2"
+            # "-framework SDL2main"
+            "-framework UIKit"
+        )
+    else()
+        set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
+    endif()
 elseif(WIN32)
-target_link_libraries(
-    vkloadtests
-    "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
-    "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
-    "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
-    "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
-)
-ensure_runtime_dependencies_windows(vkloadtests)
+    ensure_runtime_dependencies_windows(vkloadtests)
 endif()
+
+target_link_libraries( vkloadtests ${LOAD_TEST_COMMON_LIBS} )
 
 target_compile_definitions(
-vkloadtests
+    vkloadtests
 PRIVATE
-$<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
 set_target_properties( vkloadtests PROPERTIES
     RESOURCE ${KTX_ICON}
-    MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
+    MACOSX_BUNDLE_INFO_PLIST ${INFO_PLIST}
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
     # Because libassimp is built with bitcode disabled. It's not important unless
     # submitting to the App Store and currently bitcode is optional.

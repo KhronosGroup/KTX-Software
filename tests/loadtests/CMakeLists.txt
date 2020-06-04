@@ -93,12 +93,40 @@ if(OPENGL_FOUND)
 endif()
 
 
+set( LOAD_TEST_COMMON_LIBS )
+
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
     set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
+    if(IOS)
+        set( LOAD_TEST_COMMON_LIBS
+            ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
+            ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
+        )
+    else()
+        set( LOAD_TEST_COMMON_LIBS
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
+        )
+    endif()
+elseif(LINUX)
+    set( LINUX_LIB_DIR Release )
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set( LINUX_LIB_DIR Debug )
+    endif()
+    set( LOAD_TEST_COMMON_LIBS
+        ${assimp_LIBRARIES}
+        ${CMAKE_SOURCE_DIR}/other_lib/linux/${LINUX_LIB_DIR}-x64/libSDL2.a
+    )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
     set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
+    set( LOAD_TEST_COMMON_LIBS
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
+    )
 endif()
 
 
