@@ -11,13 +11,6 @@ else()
     find_package( ZLIB REQUIRED )
 endif()
 
-set(builddir "${CMAKE_BINARY_DIR}")
-
-# By wrapping in generator expression we force multi configuration generators (like Visual Studio)
-# to take the exact path and not change it.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${builddir}/$<CONFIG>>)
-
-
 function( ensure_runtime_dependencies_windows target )
     # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
     # relative to executable.
@@ -28,7 +21,7 @@ function( ensure_runtime_dependencies_windows target )
         COMMENT "Copy DLLs to build destination"
     )
     add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${builddir}/shaders" "$<TARGET_FILE_DIR:${target}>/shaders"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${KTX_BUILD_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/shaders"
         COMMENT "Copy shaders to build destination"
     )
     add_custom_command( TARGET ${target} POST_BUILD
@@ -145,11 +138,11 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
 
     set(vert_name "${shader_name}.vert")
     set(vert2spirv_in "${shader_src_path}/${vert_name}")
-    set(vert2spirv_out "${builddir}/${shader_path}/${vert_name}.spv")
+    set(vert2spirv_out "${KTX_BUILD_DIR}/${shader_path}/${vert_name}.spv")
 
     add_custom_command(OUTPUT
     ${vert2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/${shader_path}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${KTX_BUILD_DIR}/${shader_path}
     COMMAND glslc "-fshader-stage=vertex" -o "${vert2spirv_out}" "${vert2spirv_in}"
     DEPENDS ${vert2spirv_in}
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
@@ -159,11 +152,11 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
 
     set(frag_name "${shader_name}.frag")
     set(frag2spirv_in "${shader_src_path}/${frag_name}")
-    set(frag2spirv_out "${builddir}/${shader_path}/${frag_name}.spv")
+    set(frag2spirv_out "${KTX_BUILD_DIR}/${shader_path}/${frag_name}.spv")
 
     add_custom_command(OUTPUT
     ${frag2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${builddir}/${shader_path}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${KTX_BUILD_DIR}/${shader_path}
     COMMAND glslc "-fshader-stage=fragment" -o "${frag2spirv_out}" "${frag2spirv_in}"
     DEPENDS ${frag2spirv_in}
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
@@ -223,5 +216,5 @@ set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resour
 # Hack to prevent *.obj 3D files to be mistaken as linkable obj files
 set_source_files_properties(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
 
-# file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${builddir}")
-# file(COPY common/models DESTINATION "${builddir}")
+# file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${KTX_BUILD_DIR}")
+# file(COPY common/models DESTINATION "${KTX_BUILD_DIR}")
