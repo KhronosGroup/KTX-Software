@@ -1,24 +1,32 @@
 
 add_executable( vkloadtests
-${EXE_FLAG}
-$<TARGET_OBJECTS:appfwSDL>
-$<TARGET_OBJECTS:objUtil>
-appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
-appfwSDL/VulkanAppSDL/VulkanContext.cpp
-appfwSDL/VulkanAppSDL/vulkandebug.cpp
-appfwSDL/VulkanAppSDL/VulkanSwapchain.cpp
-appfwSDL/VulkanAppSDL/vulkantools.cpp
-common/LoadTestSample.cpp
-common/SwipeDetector.cpp
-vkloadtests/InstancedSampleBase.cpp
-vkloadtests/Texture.cpp
-vkloadtests/TextureArray.cpp
-vkloadtests/TextureCubemap.cpp
-vkloadtests/TexturedCube.cpp
-vkloadtests/TextureMipmap.cpp
-vkloadtests/VulkanLoadTests.cpp
-vkloadtests/VulkanLoadTestSample.cpp
-${GL_LOAD_TEST_RESOURCE_FILES}
+    ${EXE_FLAG}
+    $<TARGET_OBJECTS:appfwSDL>
+    $<TARGET_OBJECTS:objUtil>
+    appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
+    appfwSDL/VulkanAppSDL/VulkanContext.cpp
+    appfwSDL/VulkanAppSDL/vulkandebug.cpp
+    appfwSDL/VulkanAppSDL/VulkanSwapchain.cpp
+    appfwSDL/VulkanAppSDL/vulkantools.cpp
+    vkloadtests/InstancedSampleBase.cpp
+    vkloadtests/InstancedSampleBase.h
+    vkloadtests/Texture.cpp
+    vkloadtests/Texture.h
+    vkloadtests/TextureArray.cpp
+    vkloadtests/TextureArray.h
+    vkloadtests/TextureCubemap.cpp
+    vkloadtests/TextureCubemap.h
+    vkloadtests/TexturedCube.cpp
+    vkloadtests/TexturedCube.h
+    vkloadtests/TextureMipmap.cpp
+    vkloadtests/TextureMipmap.h
+    vkloadtests/utils/VulkanMeshLoader.hpp
+    vkloadtests/utils/VulkanTextureTranscoder.hpp
+    vkloadtests/VulkanLoadTests.cpp
+    vkloadtests/VulkanLoadTests.h
+    vkloadtests/VulkanLoadTestSample.cpp
+    vkloadtests/VulkanLoadTestSample.h
+    ${LOAD_TEST_COMMON_RESOURCE_FILES}
 )
 
 target_sources(
@@ -103,7 +111,7 @@ $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
 set_target_properties( vkloadtests PROPERTIES
-    RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
+    RESOURCE ${KTX_ICON}
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
     # Because libassimp is built with bitcode disabled. It's not important unless

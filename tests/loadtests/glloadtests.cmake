@@ -1,43 +1,50 @@
 
 add_executable( gl3loadtests
-${EXE_FLAG}
-$<TARGET_OBJECTS:appfwSDL>
-$<TARGET_OBJECTS:objUtil>
-appfwSDL/GLAppSDL.cpp
-common/LoadTestSample.cpp
-common/SwipeDetector.cpp
-glloadtests/GLLoadTests.cpp
-glloadtests/shader-based/BasisuTest.cpp
-glloadtests/shader-based/DrawTexture.cpp
-glloadtests/shader-based/GL3LoadTests.cpp
-glloadtests/shader-based/GL3LoadTestSample.cpp
-glloadtests/shader-based/shaders.cpp
-glloadtests/shader-based/TextureArray.cpp
-glloadtests/shader-based/TextureCubemap.cpp
-glloadtests/shader-based/TexturedCube.cpp
-${GL_LOAD_TEST_RESOURCE_FILES}
+    ${EXE_FLAG}
+    $<TARGET_OBJECTS:appfwSDL>
+    $<TARGET_OBJECTS:GLAppSDL>
+    $<TARGET_OBJECTS:objUtil>
+    glloadtests/GLLoadTests.cpp
+    glloadtests/shader-based/BasisuTest.cpp
+    glloadtests/shader-based/BasisuTest.h
+    glloadtests/shader-based/DrawTexture.cpp
+    glloadtests/shader-based/DrawTexture.h
+    glloadtests/shader-based/GL3LoadTests.cpp
+    glloadtests/shader-based/GL3LoadTestSample.cpp
+    glloadtests/shader-based/GL3LoadTestSample.h
+    glloadtests/shader-based/mygl.h
+    glloadtests/shader-based/shaders.cpp
+    glloadtests/shader-based/TextureArray.cpp
+    glloadtests/shader-based/TextureArray.h
+    glloadtests/shader-based/TextureCubemap.cpp
+    glloadtests/shader-based/TextureCubemap.h
+    glloadtests/shader-based/TexturedCube.cpp
+    glloadtests/shader-based/TexturedCube.h
+    glloadtests/utils/GLMeshLoader.hpp
+    glloadtests/utils/GLTextureTranscoder.hpp
+    ${LOAD_TEST_COMMON_RESOURCE_FILES}
 )
 
 target_include_directories(
-gl3loadtests
+    gl3loadtests
 PRIVATE
-$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-${PROJECT_SOURCE_DIR}/lib
-${PROJECT_SOURCE_DIR}/other_include
-${PROJECT_SOURCE_DIR}/utils
-appfwSDL
-common
-geom
-glloadtests
-glloadtests/utils
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:GLAppSDL,INTERFACE_INCLUDE_DIRECTORIES>
+    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/utils
+    appfwSDL
+    common
+    geom
+    glloadtests
+    glloadtests/utils
 )
 
 if(OPENGL_FOUND)
-target_include_directories(
-    gl3loadtests
+    target_include_directories(
+        gl3loadtests
     PRIVATE
-    ${OPENGL_INCLUDE_DIR}
-)
+        ${OPENGL_INCLUDE_DIR}
+    )
 endif()
 
 target_link_libraries(
@@ -64,21 +71,28 @@ if(ZLIB_FOUND)
 endif()
 
 if(APPLE)
-if(IOS)
-    target_link_libraries(
-        gl3loadtests
-        "-framework OpenGLES"
-        ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
-        ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
-    )
-else()
-    target_link_libraries(
-        gl3loadtests
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
-        ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
-    )
-endif()
+    if(IOS)
+        target_sources(
+            gl3loadtests
+        PRIVATE
+            ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+            glloadtests/resources/ios/LaunchImages.xcassets
+            glloadtests/resources/ios/LaunchScreen.storyboard
+        )
+        target_link_libraries(
+            gl3loadtests
+            "-framework OpenGLES"
+            ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
+            ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
+        )
+    else()
+        target_link_libraries(
+            gl3loadtests
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
+        )
+    endif()
 elseif(EMSCRIPTEN)
     set_target_properties(
         gl3loadtests
@@ -88,18 +102,24 @@ elseif(EMSCRIPTEN)
         LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g"
     )
 elseif(LINUX)
-target_link_libraries(
-    gl3loadtests
-    ${assimp_LIBRARIES}
-)
+    target_link_libraries(
+        gl3loadtests
+        ${assimp_LIBRARIES}
+    )
 elseif(WIN32)
-target_link_libraries(
-    gl3loadtests
-    "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
-    "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
-    "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
-    "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
-)
+    target_sources(
+        gl3loadtests
+    PRIVATE
+        glloadtests/resources/win/glloadtests.rc
+        glloadtests/resources/win/resource.h
+    )
+    target_link_libraries(
+        gl3loadtests
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
+        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
+    )
 ensure_runtime_dependencies_windows(gl3loadtests)
 endif()
 
@@ -113,7 +133,7 @@ PRIVATE
 )
 
 set_target_properties( gl3loadtests PROPERTIES
-    RESOURCE "${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns"
+    RESOURCE ${KTX_ICON}
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist"
     MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
     # Because libassimp is built with bitcode disabled. It's not important unless
