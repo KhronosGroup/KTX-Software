@@ -224,11 +224,7 @@ add_custom_target(
 
 set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
-if(IOS)
-    include(esloadtests.cmake)
-else()
-    include(glloadtests.cmake)
-endif()
+include(glloadtests.cmake)
 
 if(NOT EMSCRIPTEN)
     include(vkloadtests.cmake)
