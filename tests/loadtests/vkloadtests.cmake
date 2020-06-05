@@ -78,13 +78,12 @@ endif()
 if(APPLE)
     if(IOS)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
-        target_sources(
-            vkloadtests
-        PRIVATE
+        set( KTX_RESOURCES
             ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
             vkloadtests/resources/ios/LaunchImages.xcassets
             vkloadtests/resources/ios/LaunchScreen.storyboard
         )
+        target_sources( vkloadtests PRIVATE ${KTX_RESOURCES} )
         target_link_libraries(
             vkloadtests
             ${AudioToolbox_LIBRARY}
@@ -101,6 +100,7 @@ if(APPLE)
             ${UIKit_LIBRARY}
         )
     else()
+        set( KTX_RESOURCES ${KTX_ICON} )
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
     endif()
 elseif(WIN32)
@@ -127,10 +127,14 @@ if(APPLE)
         # submitting to the App Store and currently bitcode is optional.
         XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
         XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
     )
-endif()
-if(KTX_ICON)
-    set_target_properties( vkloadtests PROPERTIES RESOURCE ${KTX_ICON} )
+    unset(PRODUCT_NAME)
+    unset(EXECUTABLE_NAME)
+    unset(PRODUCT_BUNDLE_IDENTIFIER)
+    if(KTX_RESOURCES)
+        set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
+    endif()
 endif()
 
 add_dependencies(
