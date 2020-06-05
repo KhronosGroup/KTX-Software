@@ -226,7 +226,7 @@ set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
 if(IOS)
     include(esloadtests.cmake)
-elseif()
+else()
     include(glloadtests.cmake)
 endif()
 
