@@ -495,6 +495,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     // Read DFD
     This->pDfd =
             (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
+    if (!This->pDfd) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
     result = stream->read(stream, This->pDfd,
                           pHeader->dataFormatDescriptor.byteLength);
     if (result != KTX_SUCCESS)
