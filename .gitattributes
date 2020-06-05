@@ -63,15 +63,10 @@ tools/toktx/toktx.cpp filter=keyworder ident
 # to prefix with '**/' otherwise git will try to match
 # the path relative to this .gitattributes file.
 **/*.framework/[Vv]ersions/[A-Za-z]/* filter=lfs -text
-# Large images
-tests/testimages/color_grid*.ktx2 filter=lfs -text
-tests/testimages/cubemap* filter=lfs -text
-tests/testimages/metalplate* filter=lfs -text
-tests/testimages/no-npot* filter=lfs -text
-tests/testimages/not4* filter=lfs -text
-tests/testimages/pattern* filter=lfs -text
-tests/testimages/texturearray* filter=lfs -text
-tests/testimages/FlightHelmet*.ktx2 filter=lfs -text
+# Large images. Well they're not all large but trying to put
+# only the truly large ones in LFS is too fragile.
+tests/testimages/*.ktx filter=lfs -text
+tests/testimages/*.ktx2 filter=lfs -text
 tests/srcimages/**/*.jpg filter=lfs -text
 tests/srcimages/**/*.png filter=lfs -text
 tests/webgl/**/*.ktx2 filter=lfs -text
