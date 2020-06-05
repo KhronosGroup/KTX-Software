@@ -182,7 +182,7 @@ const GLchar* pszSkyboxFs =
 
 const GLchar* pszSkyboxSrgbEncodeFs =
     "precision highp float;"
-    "uniform samplerCube samplerColor;\n\n"
+    "uniform samplerCube uSamplerColor;\n\n"
 
     "in vec3 vUVW;\n\n"
 
@@ -197,7 +197,7 @@ const GLchar* pszSkyboxSrgbEncodeFs =
 
     "void main()\n"
     "{\n"
-    "  vec4 color = texture(samplerColor, vUVW);\n"
+    "  vec4 color = texture(uSamplerColor, vUVW);\n"
     "  outFragColor.rgb = srgb_encode(color.rgb);\n"
     "  outFragColor.a = color.a;\n"
     "}\n";
