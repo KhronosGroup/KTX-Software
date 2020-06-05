@@ -98,6 +98,7 @@ if(APPLE)
             ${OpenGLES_LIBRARY}
             ${QuartzCore_LIBRARY}
             ${UIKit_LIBRARY}
+            ${VULKAN_SDK}/iOS/framework/MoltenVK.framework
         )
     else()
         set( KTX_RESOURCES ${KTX_ICON} )
