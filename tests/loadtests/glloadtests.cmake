@@ -53,13 +53,12 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
     if(APPLE)
         if(IOS)
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist" )
-            target_sources(
-                ${target}
-            PRIVATE
+            set( KTX_RESOURCES
                 ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
                 glloadtests/resources/ios/LaunchImages.xcassets
                 glloadtests/resources/ios/LaunchScreen.storyboard
             )
+            target_sources( ${target} PRIVATE ${KTX_RESOURCES} )
             target_link_libraries(
                 ${target}
                 ${AudioToolbox_LIBRARY}
@@ -76,6 +75,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 ${UIKit_LIBRARY}
             )
         else()
+            set( KTX_RESOURCES ${KTX_ICON} )
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
         endif()
     elseif(EMSCRIPTEN)
@@ -112,7 +112,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
     )
 
     if(APPLE)
-        set(INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
         set(PRODUCT_NAME "${target}")
         set(EXECUTABLE_NAME ${PRODUCT_NAME})
         set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
@@ -124,13 +123,15 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             # submitting to the App Store and currently bitcode is optional.
             XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
             XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
+            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
         )
-    endif()
-    if(KTX_ICON)
-        set_target_properties( ${target} PROPERTIES RESOURCE ${KTX_ICON} )
-    endif()
-
-    if(EMSCRIPTEN)
+        unset(PRODUCT_NAME)
+        unset(EXECUTABLE_NAME)
+        unset(PRODUCT_BUNDLE_IDENTIFIER)
+        if(KTX_RESOURCES)
+            set_target_properties( ${target} PROPERTIES RESOURCE "${KTX_RESOURCES}" )
+        endif()
+    elseif(EMSCRIPTEN)
         set_target_properties(${target} PROPERTIES SUFFIX ".html")
     endif()
 endfunction( create_gl_target target )
