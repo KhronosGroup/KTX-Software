@@ -150,9 +150,9 @@ set( GL3_SOURCES
     glloadtests/shader-based/BasisuTest.h
     glloadtests/shader-based/DrawTexture.cpp
     glloadtests/shader-based/DrawTexture.h
-    glloadtests/shader-based/gl3loadtests.cpp
-    glloadtests/shader-based/gl3loadtestsample.cpp
-    glloadtests/shader-based/gl3loadtestsample.h
+    glloadtests/shader-based/GL3LoadTests.cpp
+    glloadtests/shader-based/GL3LoadTestSample.cpp
+    glloadtests/shader-based/GL3LoadTestSample.h
     glloadtests/shader-based/mygl.h
     glloadtests/shader-based/shaders.cpp
     glloadtests/shader-based/TextureArray.cpp
