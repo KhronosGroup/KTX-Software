@@ -64,6 +64,7 @@ install:
   esac
 
 before_script:
+  - git fetch --unshallow --tags
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
