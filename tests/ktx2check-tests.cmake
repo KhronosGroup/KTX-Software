@@ -22,14 +22,14 @@ PROPERTIES
 
 add_test( NAME ktx2check-test-all
     # Invoke via sh workaround, since CMake puts asterisk in quotes otherwise ( "*.ktx2" )
-    COMMAND sh -c "$<TARGET_FILE:ktx2check> *.ktx2"
+    COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2check> *.ktx2"
     COMMAND_EXPAND_LISTS
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
 add_test( NAME ktx2check-test-all-quiet
     # Invoke via sh workaround, since CMake puts asterisk in quotes otherwise ( "*.ktx2" )
-    COMMAND sh -c "$<TARGET_FILE:ktx2check> --quiet *.ktx2"
+    COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2check> --quiet *.ktx2"
     COMMAND_EXPAND_LISTS
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )

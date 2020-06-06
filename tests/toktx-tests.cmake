@@ -53,12 +53,12 @@ PROPERTIES
 function( gencmpktx test_name reference source args env files )
     if(files)
         add_test( NAME toktx-cmp-${test_name}
-            COMMAND sh -c "printf \"${files}\" > ${source} && $<TARGET_FILE:toktx> ${args} toktx.${reference} @${source} && diff ${reference} toktx.${reference}; rm toktx.${reference}; rm ${source}"
+            COMMAND ${BASH_EXECUTABLE} -c "printf \"${files}\" > ${source} && $<TARGET_FILE:toktx> ${args} toktx.${reference} @${source} && diff ${reference} toktx.${reference}; rm toktx.${reference}; rm ${source}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
         )
     else()
         add_test( NAME toktx-cmp-${test_name}
-            COMMAND sh -c "$<TARGET_FILE:toktx> ${args} toktx.${reference} ${source} && diff ${reference} toktx.${reference}; rm toktx.${reference}"
+            COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> ${args} toktx.${reference} ${source} && diff ${reference} toktx.${reference}; rm toktx.${reference}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
         )
     endif()
@@ -100,7 +100,7 @@ gencmpktx(
 )
 
 add_test( NAME toktx-cmp-rgb-reference-2
-    COMMAND sh -c "$<TARGET_FILE:toktx> --nometadata - ../srcimages/rgb.ppm > toktx-cmp-rgb-reference-2.ktx && diff rgb-reference.ktx toktx-cmp-rgb-reference-2.ktx; rm toktx-cmp-rgb-reference-2.ktx"
+    COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> --nometadata - ../srcimages/rgb.ppm > toktx-cmp-rgb-reference-2.ktx && diff rgb-reference.ktx toktx-cmp-rgb-reference-2.ktx; rm toktx-cmp-rgb-reference-2.ktx"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 set_tests_properties(
