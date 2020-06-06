@@ -240,23 +240,6 @@ target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0)
 # - BASISD_SUPPORT_FXT1
 # - BASISD_SUPPORT_PVRTC2
 
-if(EMSCRIPTEN)
-    # To reduce size, don't support transcoding format not supported on WebGL
-    target_compile_definitions(
-        ktx
-    PUBLIC
-        BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0
-        BASISD_SUPPORT_ATC=0
-        BASISD_SUPPORT_BC7=0
-        BASISD_SUPPORT_ETC2_EAC_RG11=0
-        BASISD_SUPPORT_PVRTC2=0
-
-        # Without UASTC support es3loadtests won't link
-        # TODO: Make UASTC support an option and adopt tests
-        # BASISD_SUPPORT_UASTC=0
-    )
-endif()
-
 if(WIN32)
     target_compile_definitions(
         ktx
