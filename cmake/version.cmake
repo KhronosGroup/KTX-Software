@@ -9,7 +9,8 @@ function( create_version_header dest_path target )
     if(WIN32)
         add_custom_command(
             OUTPUT ${version_h_output}
-            COMMAND call call "setup_env.bat" && bash -c "\"./mkversion\" \"-o\" \"version.h\" \"${dest_path}\""
+            # On Windows this command has to be invoked by a shell in order to work
+            COMMAND ${BASH_EXECUTABLE} -c "\"./mkversion\" \"-o\" \"version.h\" \"${dest_path}\""
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT Generate ${version_h_output}
             VERBATIM

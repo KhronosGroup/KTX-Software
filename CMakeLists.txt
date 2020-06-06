@@ -7,6 +7,7 @@ project(KTX-Software)
 include(CTest)
 include(cmake/version.cmake)
 
+find_package(Bash REQUIRED)
 find_package(OpenGL)
 if(NOT EMSCRIPTEN)
     find_package(Vulkan)
@@ -68,7 +69,7 @@ list(APPEND mkvkformatfiles_output
 if(WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND call call "setup_env.bat" && set VULKAN_SDK=${VULKAN_SDK} && bash -c "lib/mkvkformatfiles lib"
+        COMMAND ${BASH_EXECUTABLE} -c "VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib"
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT Generating VkFormat-related source files
