@@ -37,7 +37,7 @@ function( ensure_runtime_dependencies_windows target )
         COMMENT "Copy DLLs to build destination"
     )
     add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${KTX_BUILD_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/shaders"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/shaders"
         COMMENT "Copy shaders to build destination"
     )
     add_custom_command( TARGET ${target} POST_BUILD
@@ -158,11 +158,11 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
 
     set(vert_name "${shader_name}.vert")
     set(vert2spirv_in "${shader_src_path}/${vert_name}")
-    set(vert2spirv_out "${KTX_BUILD_DIR}/${shader_path}/${vert_name}.spv")
+    set(vert2spirv_out "${CMAKE_CURRENT_BINARY_DIR}/${shader_path}/${vert_name}.spv")
 
     add_custom_command(OUTPUT
     ${vert2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${KTX_BUILD_DIR}/${shader_path}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
     COMMAND glslc "-fshader-stage=vertex" -o "${vert2spirv_out}" "${vert2spirv_in}"
     DEPENDS ${vert2spirv_in}
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
@@ -172,11 +172,11 @@ function(compileshader shader_target shader_name shader_src_path shader_path)
 
     set(frag_name "${shader_name}.frag")
     set(frag2spirv_in "${shader_src_path}/${frag_name}")
-    set(frag2spirv_out "${KTX_BUILD_DIR}/${shader_path}/${frag_name}.spv")
+    set(frag2spirv_out "${CMAKE_CURRENT_BINARY_DIR}/${shader_path}/${frag_name}.spv")
 
     add_custom_command(OUTPUT
     ${frag2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${KTX_BUILD_DIR}/${shader_path}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
     COMMAND glslc "-fshader-stage=fragment" -o "${frag2spirv_out}" "${frag2spirv_in}"
     DEPENDS ${frag2spirv_in}
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
@@ -230,11 +230,15 @@ if(NOT EMSCRIPTEN)
     include(vkloadtests.cmake)
 endif()
 
-set_source_files_properties(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
-set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
-set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
 # Hack to prevent *.obj 3D files to be mistaken as linkable obj files
 set_source_files_properties(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
 
-# file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${KTX_BUILD_DIR}")
-# file(COPY common/models DESTINATION "${KTX_BUILD_DIR}")
+if(APPLE)
+    set_source_files_properties(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
+    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+    set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
+elseif(LINUX)
+    file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    file(COPY common/models DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
+
