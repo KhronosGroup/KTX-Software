@@ -166,8 +166,16 @@ set( GL3_SOURCES
 )
 
 if(IOS)
+    # OpenGL ES 1.0
     create_gl_target( es1loadtests "${ES1_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 )
+endif()
+
+if(IOS OR EMSCRIPTEN)
+    # OpenGL ES 3.0
     create_gl_target( es3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 )
-else()
+endif()
+
+if( (APPLE AND NOT IOS) OR (LINUX AND NOT EMSCRIPTEN) OR WIN32 )
+    # OpenGL 3.3
     create_gl_target( gl3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 )
 endif()

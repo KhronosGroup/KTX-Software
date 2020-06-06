@@ -250,7 +250,10 @@ if(EMSCRIPTEN)
         BASISD_SUPPORT_BC7=0
         BASISD_SUPPORT_ETC2_EAC_RG11=0
         BASISD_SUPPORT_PVRTC2=0
-        BASISD_SUPPORT_UASTC=0
+
+        # Without UASTC support es3loadtests won't link
+        # TODO: Make UASTC support an option and adopt tests
+        # BASISD_SUPPORT_UASTC=0
     )
 endif()
 
