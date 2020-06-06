@@ -412,7 +412,7 @@ if(EMSCRIPTEN)
     set(
         KTX_EMC_LINK_FLAGS
         --bind
-        "--source-map-base ./"
+        "SHELL:--source-map-base ./"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
         "SHELL:-s ASSERTIONS=0"
         "SHELL:-s MALLOC=emmalloc"
