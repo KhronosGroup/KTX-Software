@@ -424,14 +424,11 @@ VulkanAppSDL::createInstance()
     std::vector<const char *>* instanceValidationLayers = nullptr;
 
     std::vector<const char *> instanceValidationLayers_alt1 = {
-        "VK_LAYER_LUNARG_standard_validation"
+        "VK_LAYER_KHRONOS_validation"
     };
 
     std::vector<const char *> instanceValidationLayers_alt2 = {
-        "VK_LAYER_GOOGLE_threading",     "VK_LAYER_LUNARG_parameter_validation",
-        "VK_LAYER_LUNARG_device_limits", "VK_LAYER_LUNARG_object_tracker",
-        "VK_LAYER_LUNARG_image",         "VK_LAYER_LUNARG_core_validation",
-        "VK_LAYER_LUNARG_swapchain",     "VK_LAYER_GOOGLE_unique_objects"
+        "VK_LAYER_LUNARG_standard_validation"
     };
 
     // Look for validation layers.
@@ -910,8 +907,9 @@ VulkanAppSDL::prepareDepthBuffer()
     vk::ImageAspectFlags aspectMask;
   
     if (!getSupportedDepthFormat(vkctx.gpu, eNoStencil, e24bits,
+                                 vk::ImageTiling::eOptimal,
                                  depthFormat, aspectMask))
-      return false;
+        return false;
     vkctx.depthBuffer.format = static_cast<VkFormat>(depthFormat);
 
     VkImageCreateInfo image = {};
@@ -1303,7 +1301,10 @@ void VulkanAppSDL::updateTextOverlay()
        << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)";
     textOverlay->addText(ss.str(), 5.0f, 25.0f, VulkanTextOverlay::alignLeft);
 
-    textOverlay->addText(vkctx.gpuProperties.deviceName, 5.0f, 45.0f,
+    // Cast is a workaround for a change in Vulkan SDK 1.2.141 to the
+    // declaration of deviceName in PhysicalDeviceProperties from a char
+    // array to use an Array1D template.
+    textOverlay->addText((char*)vkctx.gpuProperties.deviceName, 5.0f, 45.0f,
                          VulkanTextOverlay::alignLeft);
 
     // Leave a blank line between us and the derived class's text.
@@ -1332,6 +1333,7 @@ bool
 VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
                                       stencilRequirement requiredStencil,
                                       depthRequirement requiredDepth,
+                                      vk::ImageTiling tiling,
                                       vk::Format& depthFormat,
                                       vk::ImageAspectFlags& aspectMask)
 {
@@ -1354,8 +1356,13 @@ VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
             && format.stencil >= requiredStencil) {
             vk::FormatProperties formatProps;
             gpu.getFormatProperties(format.vkformat, &formatProps);
-            // Format must support depth stencil attachment for optimal tiling
-            if (formatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
+            // Format must support depth stencil attachment for tiling
+            vk::FormatFeatureFlags features;
+            if (tiling == vk::ImageTiling::eOptimal)
+                features = formatProps.optimalTilingFeatures;
+            else
+                features = formatProps.linearTilingFeatures;
+            if (features & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
                 depthFormat = format.vkformat;
                 if (format.stencil == eStencil)
                     aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
