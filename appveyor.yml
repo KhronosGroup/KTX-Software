@@ -1,13 +1,12 @@
 version: 3.0.{build}
 
-#os: Visual Studio 2019
 image:
-  - Visual Studio 2015
+  # - Visual Studio 2015
   - Visual Studio 2017
-  - Visual Studio 2019
+  # - Visual Studio 2019
 
 configuration:
-  - Debug
+  # - Debug
   - Release
 
 platform:
@@ -19,10 +18,31 @@ environment:
   VULKAN_SDK_VER: 1.1.85.0
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2017_R1
+  CMAKE_GEN: Visual Studio 15 2017
 
 branches:
   except:
     - /subrepo\/*/
+
+for:
+  - matrix:
+      only:
+        - image: Visual Studio 2015
+    environment:
+      CMAKE_GEN: Visual Studio 14 2015
+  - matrix:
+      only:
+        - image: Visual Studio 2017
+    environment:
+      CMAKE_GEN: Visual Studio 15 2017
+  - matrix:
+      only:
+        - image: Visual Studio 2019
+    environment:
+      CMAKE_GEN: Visual Studio 16 2019
+
+build:
+  verbosity: detailed
 
 # Following is for GIT_TRACE: 1 above.
 #on_failure:
@@ -38,24 +58,24 @@ clone_folder: c:\projects\ktx
 # proceeding until RDP is connected.
 init:
 #  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
-  - ps: #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-  - curl -L -O https://github.com/git-lfs/git-lfs/releases/download/v2.6.1/git-lfs-windows-v2.6.1.exe
-  - git lfs version
-  - git-lfs-windows-v2.6.1.exe /SILENT
-  - git lfs install
-  - git lfs version
-  - rm git-lfs-windows-v2.6.1.exe
-  - git config --global core.autocrlf true # workaround Git LFS bug
+- ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+    curl -L -O https://github.com/git-lfs/git-lfs/releases/download/v2.6.1/git-lfs-windows-v2.6.1.exe
+    git lfs version
+    git-lfs-windows-v2.6.1.exe /SILENT
+    git lfs install
+    git lfs version
+    rm git-lfs-windows-v2.6.1.exe
+    git config --global core.autocrlf true # workaround Git LFS bug
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:
-- cmd: |-
-    choco install doxygen.install
+- cinst doxygen.install
+- cmd: |
     REM Copy PowerVR OpenGL ES Emulator libraries
-    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
-    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
-    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
-    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
+    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
+    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
+    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
+    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
     REM Install VulkanSDK
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
@@ -75,27 +95,27 @@ before_build:
 # recent git version (2.21.0) in which git checkout writes to StdErr
 # which PS treats as an exception, causing the build to fail. The
 # write is an innocuous message about the number of paths updated.
-- ps: |-
+- ps: |
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
     git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
 
 build_script:
-- ps: |-
+- ps: |
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
     refreshenv
     $ErrorActionPreference = 'Stop'
-    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2015”) {$env:KTX_VSVER = “vs2015"}
-    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2017”) {$env:KTX_VSVER = “vs2017"}
-    IF ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq “Visual Studio 2019”) {$env:KTX_VSVER = “vs2019"}
-    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtests.sln
-    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxtools.sln
-    MSBuild /p:Configuration="$env:CONFIGURATION" /p:Platform="$env:PLATFORM" build/msvs/$env:PLATFORM/$env:KTX_VSVER/ktxdoc.sln
+    $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
+    echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
+    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+    pushd $env:KTX_BUILD_DIR
+    cmake --build . --config $env:CONFIGURATION
+    popd
 
 test_script:
-- ps: |-
-    cd build\msvs\$env:PLATFORM\$env:KTX_VSVER\$env:CONFIGURATION
-    .\texturetests.exe
-    .\unittests.exe
-    .\transcodetests ..\..\..\..\..\tests\testimages\
+- ps: |
+    $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
+    pushd $env:KTX_BUILD_DIR
+    ctest -C $env:CONFIGURATION
+    popd
  
