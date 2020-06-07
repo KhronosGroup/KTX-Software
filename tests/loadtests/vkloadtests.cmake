@@ -74,6 +74,21 @@ endif()
 
 if(APPLE)
     if(IOS)
+
+        # Try to locate MoltenVK.framework
+        set(MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/framework/MoltenVK.framework)
+        if(NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
+            # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
+            message("Could not find MoltenVK.framework (at VULKAN_SDK dir ${VULKAN_SDK})")
+            set(MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/MoltenVK.framework)
+        endif()
+        if(NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
+            message(SEND_ERROR "Could not find MoltenVK.framework (at VULKAN_SDK dir ${VULKAN_SDK})")
+        else()
+            message("Found MoltenVK.framwork at ${MOLTEN_VK_FRAMEWORK}")
+        endif()
+
+
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
         set( KTX_RESOURCES
             ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
@@ -92,10 +107,10 @@ if(APPLE)
             ${Foundation_LIBRARY}
             ${GameController_LIBRARY}
             ${Metal_LIBRARY}
+            ${MOLTEN_VK_FRAMEWORK}
             ${OpenGLES_LIBRARY}
             ${QuartzCore_LIBRARY}
             ${UIKit_LIBRARY}
-            ${VULKAN_SDK}/iOS/framework/MoltenVK.framework
         )
     else()
         set( KTX_RESOURCES ${KTX_ICON} )
