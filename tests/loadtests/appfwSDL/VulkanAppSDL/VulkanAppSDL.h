@@ -97,6 +97,7 @@ class VulkanAppSDL : public AppBaseSDL {
     bool getSupportedDepthFormat(vk::PhysicalDevice gpu,
                                  stencilRequirement requiredStencil,
                                  depthRequirement requiredDepth,
+                                 vk::ImageTiling tiling,
                                  vk::Format& pFormat,
                                  vk::ImageAspectFlags& pAspectMask);
 
