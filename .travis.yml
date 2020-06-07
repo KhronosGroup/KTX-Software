@@ -18,7 +18,7 @@ matrix:
             - g++-7
       dist: bionic
       env:
-        - VULKAN_SDK_VER="1.1.85"
+        - VULKAN_SDK_VER="1.2.141.0"
       compiler: gcc # clang is tested by macOS build
       services:
         - docker
@@ -27,7 +27,7 @@ matrix:
         - node
     - os: osx
       env:
-        - VULKAN_SDK_VER="1.1.85.0"
+        - VULKAN_SDK_VER="1.2.141.0"
         - VULKAN_INSTALL_DIR="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
