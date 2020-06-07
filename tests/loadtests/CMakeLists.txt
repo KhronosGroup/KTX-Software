@@ -16,6 +16,7 @@ if(NOT EMSCRIPTEN)
         endif()
     else()
         find_package( ZLIB REQUIRED )
+        set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
     endif()
 endif()
 
