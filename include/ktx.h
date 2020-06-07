@@ -458,7 +458,7 @@ typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXLOADIMAGEDATA)(ktxTexture* This,
                                          ktx_uint8_t* pBuffer,
                                          ktx_size_t bufSize);
-typedef KTX_error_code
+typedef ktx_bool_t
     (KTX_APIENTRY* PFNKTEXNEEDSTRANSCODING)(ktxTexture* This);
 
 typedef KTX_error_code
