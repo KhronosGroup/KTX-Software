@@ -5,6 +5,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 project(KTX-Software)
 
 include(CTest)
+include(CPack)
+
 include(cmake/version.cmake)
 
 find_package(Bash REQUIRED)
@@ -494,3 +496,16 @@ if(KTX_FEATURE_DOC)
 endif()
 
 install(TARGETS ktx LIBRARY DESTINATION lib)
+
+if(APPLE)
+    set ( CPACK_GENERATOR productbuild )
+endif()
+
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "KTX-Software")
+set(CPACK_PACKAGE_VENDOR "Khronos Group")
+# set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "3")
+set(CPACK_PACKAGE_VERSION_PATCH "2")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
