@@ -58,14 +58,14 @@ clone_folder: c:\projects\ktx
 # proceeding until RDP is connected.
 init:
 #  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
-- ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-    Invoke-WebRequest -Uri https://github.com/git-lfs/git-lfs/releases/download/v2.6.1/git-lfs-windows-v2.6.1.exe -OutFile git-lfs-windows-v2.6.1.exe
-    git lfs version
-    git-lfs-windows-v2.6.1.exe /SILENT
-    git lfs install
-    git lfs version
-    rm git-lfs-windows-v2.6.1.exe
-    git config --global core.autocrlf true # workaround Git LFS bug
+# - ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#     Invoke-WebRequest -Uri https://github.com/git-lfs/git-lfs/releases/download/v2.6.1/git-lfs-windows-v2.6.1.exe -OutFile git-lfs-windows-v2.6.1.exe
+#     git lfs version
+#     ./git-lfs-windows-v2.6.1.exe /SILENT
+#     git lfs install
+#     git lfs version
+#     rm git-lfs-windows-v2.6.1.exe
+#     git config --global core.autocrlf true # workaround Git LFS bug
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:
