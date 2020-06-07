@@ -28,11 +28,11 @@ pushd build-macos
 echo "Build KTX-Software (macOS Debug)"
 cmake --build . --config Debug
 echo "Test KTX-Software (macOS Debug)"
-ctest -C Debug --verbose
+ctest -C Debug # --verbose
 echo "Build KTX-Software (macOS Release)"
 cmake --build . --config Release
 echo "Test KTX-Software (macOS Release)"
-ctest -C Release --verbose
+ctest -C Release # --verbose
 popd
 
 echo "Configure KTX-Software (iOS)"

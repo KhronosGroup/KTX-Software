@@ -9,7 +9,7 @@ pushd build-linux-debug
 echo "Build KTX-Software (Linux Debug)"
 cmake --build .
 echo "Test KTX-Software (Linux Debug)"
-ctest --verbose
+ctest # --verbose
 popd
 
 echo "Configure KTX-Software (Linux Release)"
@@ -18,7 +18,7 @@ pushd build-linux-release
 echo "Build KTX-Software (Linux Release)"
 cmake --build .
 echo "Test KTX-Software (Linux Release)"
-ctest --verbose
+ctest # --verbose
 popd
 
 echo "Configure/Build KTX-Software (Web Debug)"
