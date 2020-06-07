@@ -50,11 +50,8 @@ PRIVATE
 target_link_libraries(
     vkloadtests
     ktx
+    ${KTX_ZLIB_LIBRARIES}
 )
-
-if(ZLIB_FOUND)
-    target_link_libraries( vkloadtests ZLIB::ZLIB )
-endif()
 
 if(Vulkan_FOUND)
     target_include_directories(

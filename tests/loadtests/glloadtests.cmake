@@ -30,6 +30,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
     target_link_libraries(
         ${target}
         ktx
+        ${KTX_ZLIB_LIBRARIES}
     )
 
     if(OPENGL_FOUND AND NOT EMSCRIPTEN)
@@ -44,10 +45,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             ${target}
             ${SDL2_LIBRARIES}
         )
-    endif()
-
-    if(ZLIB_FOUND)
-        target_link_libraries( ${target} ZLIB::ZLIB )
     endif()
 
     if(APPLE)
