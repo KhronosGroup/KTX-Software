@@ -23,7 +23,7 @@ XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQ
 export PATH="${VULKAN_SDK}/bin:$PATH"
 
 echo "Configure KTX-Software (macOS)"
-cmake -GXcode -Bbuild-macos -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+cmake -GXcode -Bbuild-macos -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_LOADTEST_APPS=ON
 pushd build-macos
 echo "Build KTX-Software (macOS Debug)"
 cmake --build . --config Debug
