@@ -150,3 +150,16 @@ add_dependencies( libktx.doc ktx_version )
 add_dependencies( ktxtools.doc libktx.doc )
 add_dependencies( ktxpkg.doc ktxtools.doc )
 
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html
+    DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+)
+
+install( DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/docs/man/man1
+    ${CMAKE_CURRENT_BINARY_DIR}/docs/man/man3
+    ${CMAKE_CURRENT_BINARY_DIR}/docs/man/ktx/man3
+DESTINATION
+    "${CMAKE_INSTALL_MANDIR}"
+)
