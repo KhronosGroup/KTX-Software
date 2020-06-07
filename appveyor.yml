@@ -1,12 +1,12 @@
 version: 3.0.{build}
 
 image:
-  - Visual Studio 2015
+  # - Visual Studio 2015
   - Visual Studio 2017
-  - Visual Studio 2019
+  # - Visual Studio 2019
 
 configuration:
-  - Debug
+  # - Debug
   - Release
 
 platform:
