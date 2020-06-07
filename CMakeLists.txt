@@ -5,7 +5,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 project(KTX-Software)
 
 include(CTest)
-include(CPack)
+
+include(GNUInstallDirs)
+include(CPackComponent)
 
 include(cmake/version.cmake)
 
@@ -206,6 +208,14 @@ add_library( ktx ${LIB_TYPE}
     lib/vkformat_enum.h
     lib/vkformat_str.c
     )
+
+set_target_properties(ktx PROPERTIES
+    PUBLIC_HEADER include/ktx.h
+    # TODO: fill in correct version here
+    VERSION 3.0.0
+    SOVERSION 3
+)
+
 add_dependencies(ktx mkvk)
 create_version_header(lib ktx)
 
@@ -495,17 +505,49 @@ if(KTX_FEATURE_DOC)
     include(cmake/docs.cmake)
 endif()
 
-install(TARGETS ktx LIBRARY DESTINATION lib)
+install(TARGETS ktx
+    LIBRARY
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        COMPONENT Libraries
+        NAMELINK_SKIP
+    PUBLIC_HEADER
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        COMPONENT Headers
+)
+install(TARGETS ktx
+    LIBRARY
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        COMPONENT Namelinks
+        NAMELINK_ONLY
+)
+
+# Packing
 
 if(APPLE)
-    set ( CPACK_GENERATOR productbuild )
+    set(CPACK_GENERATOR productbuild)
+elseif(LINUX AND NOT EMSCRIPTEN)
+    set(CPACK_GENERATOR DEB)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
 endif()
 
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "KTX-Software")
 set(CPACK_PACKAGE_VENDOR "Khronos Group")
+set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
+
 # set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "3")
-set(CPACK_PACKAGE_VERSION_PATCH "2")
+
+# TODO: fill in correct version here
+set(CPACK_PACKAGE_VERSION_MAJOR "3")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+
+
+cpack_add_component(Libraries)
+cpack_add_component(Namelinks GROUP Development DEPENDS Libraries)
+cpack_add_component(Headers GROUP Development DEPENDS Libraries)
+
+cpack_add_component_group(Development)
+
+include(CPack)
