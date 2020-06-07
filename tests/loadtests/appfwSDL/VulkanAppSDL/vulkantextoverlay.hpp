@@ -214,7 +214,7 @@ public:
         VK_CHECK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &image));
 
         vkGetImageMemoryRequirements(device, image, &memReqs);
-        allocInfo.allocationSize = STB_FONT_WIDTH * STB_NUM_CHARS;
+        allocInfo.allocationSize = memReqs.size;
         allocInfo.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory));
         VK_CHECK_RESULT(vkBindImageMemory(device, image, imageMemory, 0));
