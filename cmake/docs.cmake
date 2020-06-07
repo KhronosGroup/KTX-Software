@@ -21,10 +21,11 @@ set( DOXYGEN_GENERATE_MAN YES )
 
 function( add_docs_cmake target )
     # Make `docs.cmake` show up in IDE/project
+    get_target_property( DOC_SOURCES ${target} SOURCES )
     set_target_properties(
         ${target}
     PROPERTIES
-        SOURCES ${SOURCES};cmake/docs.cmake
+        SOURCES "${DOC_SOURCES};cmake/docs.cmake"
     )
 endfunction()
 
