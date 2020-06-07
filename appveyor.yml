@@ -86,7 +86,10 @@ install:
     cd C:\projects\ktx
     REM Pull only Windows binaries.
     git lfs pull --include=other_lib/win
-
+# One-line install/build zlib (for loadtests) into C:\Program Files\zlib
+- ps: |
+    Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
+    ./install.bat
 #cache:
 #  - other_lib
 
@@ -107,7 +110,7 @@ build_script:
     # $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
-    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib"
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
     popd
