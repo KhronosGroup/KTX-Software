@@ -6,7 +6,17 @@ if(NOT APPLE AND NOT EMSCRIPTEN)
 endif()
 
 if(NOT EMSCRIPTEN)
-    find_package( ZLIB REQUIRED )
+    if(WIN32)
+        # On Windows we offer fallback to bundled zlib
+        find_package( ZLIB )
+        if(ZLIB_FOUND)
+            set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
+        else()
+            set( KTX_ZLIB_LIBRARIES "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib" )
+        endif()
+    else()
+        find_package( ZLIB REQUIRED )
+    endif()
 endif()
 
 if(APPLE AND IOS)

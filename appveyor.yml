@@ -86,10 +86,10 @@ install:
     cd C:\projects\ktx
     REM Pull only Windows binaries.
     git lfs pull --include=other_lib/win
-# One-line install/build zlib (for loadtests) into C:\Program Files\zlib
-- ps: |
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
-    ./install.bat
+# # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
+# - ps: |
+#     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
+#     ./install.bat
 #cache:
 #  - other_lib
 
