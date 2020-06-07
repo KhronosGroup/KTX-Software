@@ -4,7 +4,7 @@
 set -e
 
 echo "Configure KTX-Software (Linux Debug)"
-cmake . -G Ninja -Bbuild-linux-debug -DCMAKE_BUILD_TYPE=Debug
+cmake . -G Ninja -Bbuild-linux-debug -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_LOADTEST_APPS=ON
 pushd build-linux-debug
 echo "Build KTX-Software (Linux Debug)"
 cmake --build .
@@ -13,7 +13,7 @@ ctest --verbose
 popd
 
 echo "Configure KTX-Software (Linux Release)"
-cmake . -G Ninja -Bbuild-linux-release -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_DOC=ON
+cmake . -G Ninja -Bbuild-linux-release -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 pushd build-linux-release
 echo "Build KTX-Software (Linux Release)"
 cmake --build .
