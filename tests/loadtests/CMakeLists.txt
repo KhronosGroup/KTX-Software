@@ -21,6 +21,7 @@ if(NOT EMSCRIPTEN)
 endif()
 
 if(APPLE AND IOS)
+    set(CMAKE_OSX_ARCHITECTURES "arm64;arm64e")
     # Find Frameworks
     find_library(AudioToolbox_LIBRARY AudioToolbox)
     find_library(AVFoundation_LIBRARY AVFoundation)
