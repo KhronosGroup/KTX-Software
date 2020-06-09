@@ -40,7 +40,8 @@
 #define VK_NO_PROTOTYPES
 #endif
 
-#include <vulkan/vulkan.h>
+#include "vulkan/vk_platform.h"
+#include "vulkan/vulkan_core.h"
 #include "ktx.h"
 
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)

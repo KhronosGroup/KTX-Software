@@ -1,3 +1,4 @@
+#include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 // Use c++ to keep the example short. Not required.
 #include <vulkan/vulkan.hpp>

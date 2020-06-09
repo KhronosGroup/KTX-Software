@@ -47,7 +47,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libktx", "libktx.vcxproj", "{2F271BF3-8B9A-93F1-9930-826DE0250ACC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{47873421-1C9D-93F7-46D8-2F1E087E3B2F} = {47873421-1C9D-93F7-46D8-2F1E087E3B2F}
-		{D5786794-E205-1340-D109-A32073028A53} = {D5786794-E205-1340-D109-A32073028A53}
 		{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4} = {A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}
 	EndProjectSection
 EndProject
@@ -74,8 +73,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toktx-tests", "toktx-tests.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "version.h", "version.h.vcxproj", "{A22F7FC2-4509-0EA0-5850-BC9B2D195FF4}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_headers", "vulkan_headers.vcxproj", "{D5786794-E205-1340-D109-A32073028A53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,10 +132,6 @@ Global
 		{B4F74704-A9AF-D889-98B4-4B0B0BB7BE51}.Debug|x64.Build.0 = Debug|x64
 		{B4F74704-A9AF-D889-98B4-4B0B0BB7BE51}.Release|x64.ActiveCfg = Release|x64
 		{B4F74704-A9AF-D889-98B4-4B0B0BB7BE51}.Release|x64.Build.0 = Release|x64
-		{D5786794-E205-1340-D109-A32073028A53}.Debug|x64.ActiveCfg = Debug|x64
-		{D5786794-E205-1340-D109-A32073028A53}.Debug|x64.Build.0 = Debug|x64
-		{D5786794-E205-1340-D109-A32073028A53}.Release|x64.ActiveCfg = Release|x64
-		{D5786794-E205-1340-D109-A32073028A53}.Release|x64.Build.0 = Release|x64
 		{EF4570AF-9970-80B7-036A-F16605198A42}.Debug|x64.ActiveCfg = Debug|x64
 		{EF4570AF-9970-80B7-036A-F16605198A42}.Debug|x64.Build.0 = Debug|x64
 		{EF4570AF-9970-80B7-036A-F16605198A42}.Release|x64.ActiveCfg = Release|x64

@@ -50,7 +50,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -66,13 +66,13 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -88,13 +88,13 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -108,13 +108,13 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -129,7 +129,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\tests\loadtests\glloadtests;..\..\..\..\tests\loadtests\common;..\..\..\..\tests\loadtests\geom;..\..\..\..\tests\loadtests\appfwSDL;..\..\..\..\tests\loadtests\appfwSDL\VulkanAppSDL;..\..\..\..\other_include;..\..\..\..\lib\dfdutils;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>

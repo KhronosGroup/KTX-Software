@@ -25,10 +25,10 @@ CFLAGS_CC_Debug := \
 	-Wno-pedantic
 
 INCS_Debug := \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include \
-	-I$(srcdir)/../other_include \
-	-I$(VULKAN_SDK)/include
+	-I$(srcdir)/../other_include
 
 DEFS_Release := \
 	'-DLIBKTX=1' \
@@ -51,10 +51,10 @@ CFLAGS_CC_Release := \
 	-Wno-pedantic
 
 INCS_Release := \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include \
-	-I$(srcdir)/../other_include \
-	-I$(VULKAN_SDK)/include
+	-I$(srcdir)/../other_include
 
 OBJS := \
 	$(obj).target/$(TARGET)/lib/basisu/apg_bmp.o \
@@ -108,7 +108,7 @@ OBJS := \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/libzstd.stamp $(obj).target/vulkan_headers.stamp $(obj).target/version.h.stamp
+$(OBJS): | $(obj).target/libzstd.stamp $(obj).target/version.h.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.

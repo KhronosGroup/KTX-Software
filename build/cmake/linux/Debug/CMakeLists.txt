@@ -386,10 +386,10 @@ set_target_properties(libktx PROPERTIES LIBRARY_OUTPUT_NAME "ktx")
 set_target_properties(libktx PROPERTIES SUFFIX ".so")
 set_source_files_properties(${builddir}/lib.${TOOLSET}/libktx.so PROPERTIES GENERATED "TRUE")
 list(APPEND libktx__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
-  "${CMAKE_CURRENT_LIST_DIR}/../../../../../other_include"
-  "/$ENV{VULKAN_SDK}/include")
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../../other_include")
 set_property(TARGET libktx APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx__include_dirs})
 set_target_properties(libktx PROPERTIES COMPILE_DEFINITIONS "LIBKTX=1;BASISD_SUPPORT_FXT1=0;DEBUG;_DEBUG;")
 set_source_files_properties(${libktx__c_srcs} PROPERTIES COMPILE_FLAGS "-Wpedantic -Og -g -fPIC -std=c99 ")
@@ -410,7 +410,6 @@ set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTE
 set_target_properties(libktx PROPERTIES XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS "NO")
 add_dependencies(libktx
   libzstd
-  vulkan_headers
   version_h
 )
 target_link_libraries(libktx
@@ -507,6 +506,7 @@ set_source_files_properties(${builddir}/toktx PROPERTIES GENERATED "TRUE")
 list(APPEND toktx__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/basisu"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET toktx APPEND PROPERTY INCLUDE_DIRECTORIES ${toktx__include_dirs})
@@ -608,6 +608,7 @@ set_target_properties(ktxsc PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/ktxsc PROPERTIES GENERATED "TRUE")
 list(APPEND ktxsc__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktxsc APPEND PROPERTY INCLUDE_DIRECTORIES ${ktxsc__include_dirs})
@@ -677,6 +678,7 @@ set_target_properties(ktxinfo PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/ktxinfo PROPERTIES GENERATED "TRUE")
 list(APPEND ktxinfo__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktxinfo APPEND PROPERTY INCLUDE_DIRECTORIES ${ktxinfo__include_dirs})
@@ -746,6 +748,7 @@ set_target_properties(ktx2ktx2 PROPERTIES SUFFIX "")
 set_source_files_properties(${builddir}/ktx2ktx2 PROPERTIES GENERATED "TRUE")
 list(APPEND ktx2ktx2__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktx2ktx2 APPEND PROPERTY INCLUDE_DIRECTORIES ${ktx2ktx2__include_dirs})
@@ -817,6 +820,7 @@ set_source_files_properties(${builddir}/ktx2check PROPERTIES GENERATED "TRUE")
 list(APPEND ktx2check__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET ktx2check APPEND PROPERTY INCLUDE_DIRECTORIES ${ktx2check__include_dirs})
@@ -1753,6 +1757,7 @@ list(APPEND vkloadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../$ENV{ASSIMP_HOME}/include"
   "/$ENV{VULKAN_SDK}/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET vkloadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${vkloadtests__include_dirs})
 set_target_properties(vkloadtests PROPERTIES COMPILE_DEFINITIONS "DEBUG;_DEBUG;")
@@ -1902,6 +1907,7 @@ list(APPEND gl3loadtests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL/VulkanAppSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../$ENV{ASSIMP_HOME}/include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET gl3loadtests APPEND PROPERTY INCLUDE_DIRECTORIES ${gl3loadtests__include_dirs})
 set_target_properties(gl3loadtests PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_CORE;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=3;DEBUG;_DEBUG;")
@@ -2054,6 +2060,7 @@ set_source_files_properties(${builddir}/unittests PROPERTIES GENERATED "TRUE")
 list(APPEND unittests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET unittests APPEND PROPERTY INCLUDE_DIRECTORIES ${unittests__include_dirs})
@@ -2108,6 +2115,7 @@ list(APPEND transcodetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/unittests"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET transcodetests APPEND PROPERTY INCLUDE_DIRECTORIES ${transcodetests__include_dirs})
@@ -2156,6 +2164,7 @@ list(APPEND texturetests__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/gtest/include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/unittests"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET texturetests APPEND PROPERTY INCLUDE_DIRECTORIES ${texturetests__include_dirs})

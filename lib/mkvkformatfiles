@@ -118,7 +118,7 @@ function write_source_file(body, filename) {
 
 END {
     # vkformat_enum.h
-    write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_H_", format_decl "\n" end_range, format_hdr);
+    write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_CORE_H_", format_decl "\n" end_range, format_hdr);
 
     # vkformat_prohibited.c
     prohibited = prohibited "        return true;\n"

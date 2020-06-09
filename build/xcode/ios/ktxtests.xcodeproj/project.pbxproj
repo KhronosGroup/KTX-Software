@@ -2591,6 +2591,7 @@
 					other_include,
 					../other_include,
 					"$(VULKAN_SDK)/include",
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/ios/Info.plist;
@@ -2728,6 +2729,7 @@
 					other_include,
 					../other_include,
 					"$(VULKAN_SDK)/include",
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/ios/Info.plist;
@@ -2806,6 +2808,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					../other_include,
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/glloadtests/resources/ios/Info.plist;
@@ -2873,6 +2876,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
+					lib/dfdutils,
 					include,
 					../other_include,
 				);
@@ -2993,6 +2997,7 @@
 					tests/loadtests/appfwSDL,
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
+					lib/dfdutils,
 					include,
 					../other_include,
 				);
@@ -3060,6 +3065,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					../other_include,
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/glloadtests/resources/ios/Info.plist;

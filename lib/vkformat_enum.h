@@ -1,4 +1,4 @@
-#if !defined(_VKFORMAT_ENUM_H_) && !defined(VULKAN_H_)
+#if !defined(_VKFORMAT_ENUM_H_) && !defined(VULKAN_CORE_H_)
 #define _VKFORMAT_ENUM_H_
 
 /***************************** Do not edit.  *****************************
