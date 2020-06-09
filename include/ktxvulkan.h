@@ -30,8 +30,8 @@
  *
  * A separate header file is used to avoid extra dependencies for those not
  * using Vulkan. The nature of the Vulkan API, rampant structures and enums,
- * means that vulkan.h must be included. The alternative is duplicating
- * unattractively large parts of it.
+ * means that vulkan.h must be included @e before including this file. The
+ * alternative is duplicating unattractively large parts of it.
  *
  * @author Mark Callow, Edgewise Consulting
  *
@@ -39,7 +39,6 @@
  */
 
 #include <ktx.h>
-#include <vulkan/vulkan.h>
 
 #if 0
 /* Avoid Vulkan include file */

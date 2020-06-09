@@ -113,6 +113,7 @@
       'vk_funcs.h'
     ],
     'include_dirs': [
+      'dfdutils',
       '../include',
       '../other_include',
     ],
@@ -163,7 +164,7 @@
       },
       'include_dirs': [ '<@(include_dirs)' ],
       'mac_bundle': 0,
-      'dependencies': [ 'libzstd', 'vulkan_headers', 'version.h' ],
+      'dependencies': [ 'libzstd', 'version.h' ],
       'sources': [
         '<@(sources)',
         '<@(vksource_files)',
@@ -245,7 +246,7 @@
                 # Don't support higher quality mode to avoid 64k table.
                 'BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0',
               ],
-              'dependencies!': [ 'libzstd', 'vulkan_headers' ],
+              'dependencies!': [ 'libzstd' ],
               'sources!': [ '<@(vksource_files)' ],
               'sources': [ 'zstddeclib.c' ],
             }, {

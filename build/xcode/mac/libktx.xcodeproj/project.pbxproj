@@ -262,13 +262,6 @@
 			remoteGlobalIDString = D15D12842F0A33D21222E25B;
 			remoteInfo = libktx;
 		};
-		E923F3AB6B0B338A2DEF9708 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F65D357A2EC6F19D7F5E1B7D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A53C7E625BBCBD48220BD07A;
-			remoteInfo = vulkan_headers;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -697,7 +690,6 @@
 			);
 			dependencies = (
 				30FDF994B7F0D73E197A96DD /* PBXTargetDependency */,
-				DA1D381B006E15E6CACE33C2 /* PBXTargetDependency */,
 				524597724045828625B4073F /* PBXTargetDependency */,
 			);
 			name = libktx;
@@ -1047,11 +1039,6 @@
 			target = 4322E581A34BD85A7790FF99 /* version.h */;
 			targetProxy = A306A0051C6D4C1DF9C5549A /* PBXContainerItemProxy */;
 		};
-		DA1D381B006E15E6CACE33C2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A53C7E625BBCBD48220BD07A /* vulkan_headers */;
-			targetProxy = E923F3AB6B0B338A2DEF9708 /* PBXContainerItemProxy */;
-		};
 		F17B536CED34277531019A4E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6D6366BB32CAA6A60F5BEE29 /* mkvkformatfiles */;
@@ -1147,7 +1134,6 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1160,10 +1146,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
+					lib/dfdutils,
 					include,
 					other_include,
 					../other_include,
-					"$(VULKAN_SDK)/include",
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = (
@@ -1477,6 +1463,7 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
+					lib/dfdutils,
 					include,
 					other_include,
 				);
@@ -1525,7 +1512,6 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				EXECUTABLE_PREFIX = lib;
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1539,10 +1525,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
+					lib/dfdutils,
 					include,
 					other_include,
 					../other_include,
-					"$(VULKAN_SDK)/include",
 				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = (
@@ -1576,6 +1562,7 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
+					lib/dfdutils,
 					include,
 					other_include,
 				);

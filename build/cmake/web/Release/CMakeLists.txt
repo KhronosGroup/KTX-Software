@@ -169,6 +169,7 @@ set_target_properties(libktx PROPERTIES ARCHIVE_OUTPUT_NAME "ktx")
 set_target_properties(libktx PROPERTIES SUFFIX ".a")
 set_source_files_properties(${obj}.${TOOLSET}/libktx.a PROPERTIES GENERATED "TRUE")
 list(APPEND libktx__include_dirs
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx__include_dirs})
@@ -207,6 +208,7 @@ set_source_files_properties(${builddir}/msc_basis_transcoder.js PROPERTIES GENER
 list(APPEND msc_basis_transcoder_js__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET msc_basis_transcoder_js APPEND PROPERTY INCLUDE_DIRECTORIES ${msc_basis_transcoder_js__include_dirs})
 set_target_properties(msc_basis_transcoder_js PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
@@ -248,6 +250,7 @@ set_source_files_properties(${builddir}/libktx.js PROPERTIES GENERATED "TRUE")
 list(APPEND libktx_js__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../lib"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include")
 set_property(TARGET libktx_js APPEND PROPERTY INCLUDE_DIRECTORIES ${libktx_js__include_dirs})
 set_target_properties(libktx_js PROPERTIES COMPILE_DEFINITIONS "NDEBUG;")
@@ -641,6 +644,7 @@ list(APPEND es3loadtests_html__include_dirs
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/glloadtests/utils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../tests/loadtests/appfwSDL"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../other_include"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/dfdutils"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../include")
 set_property(TARGET es3loadtests_html APPEND PROPERTY INCLUDE_DIRECTORIES ${es3loadtests_html__include_dirs})
 set_target_properties(es3loadtests_html PROPERTIES COMPILE_DEFINITIONS "GL_CONTEXT_PROFILE=SDL_GL_CONTEXT_PROFILE_ES;GL_CONTEXT_MAJOR_VERSION=3;GL_CONTEXT_MINOR_VERSION=0;TEST_BASIS_COMPRESSION=0;NDEBUG;")

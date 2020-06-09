@@ -97,6 +97,7 @@ ktxTexture_Destroy(texture);
 ## Creating a Vulkan image object from a KTX file.  {#createVulkan}
 
 ~~~~~~~~~~~~~~~~{.c}
+#include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 
 ktxTexture* kTexture;

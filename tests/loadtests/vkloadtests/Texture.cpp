@@ -41,6 +41,7 @@
 #include <assert.h>
 #include <exception>
 #include <vector>
+#include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 
 #include "argparser.h"

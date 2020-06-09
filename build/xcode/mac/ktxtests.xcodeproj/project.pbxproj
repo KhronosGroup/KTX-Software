@@ -2725,6 +2725,7 @@
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					lib,
+					lib/dfdutils,
 					include,
 					other_include,
 				);
@@ -2790,6 +2791,7 @@
 				HEADER_SEARCH_PATHS = (
 					tests/gtest/include,
 					lib,
+					lib/dfdutils,
 					include,
 					other_include,
 				);
@@ -2871,6 +2873,7 @@
 					other_include,
 					../other_include,
 					"$(VULKAN_SDK)/include",
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/mac/Info.plist;
@@ -3030,6 +3033,7 @@
 					utils,
 					tests/gtest/include,
 					tests/unittests,
+					lib/dfdutils,
 					include,
 					other_include,
 				);
@@ -3077,6 +3081,7 @@
 					other_include,
 					../other_include,
 					"$(VULKAN_SDK)/include",
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/vkloadtests/resources/mac/Info.plist;
@@ -3180,6 +3185,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					../other_include,
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/glloadtests/resources/mac/Info.plist;
@@ -3247,6 +3253,7 @@
 					lib,
 					tests/gtest/include,
 					tests/unittests,
+					lib/dfdutils,
 					include,
 					other_include,
 				);
@@ -3293,6 +3300,7 @@
 					utils,
 					tests/gtest/include,
 					tests/unittests,
+					lib/dfdutils,
 					include,
 					other_include,
 				);
@@ -3366,6 +3374,7 @@
 					tests/loadtests/appfwSDL/VulkanAppSDL,
 					other_include,
 					../other_include,
+					lib/dfdutils,
 					include,
 				);
 				INFOPLIST_FILE = tests/loadtests/glloadtests/resources/mac/Info.plist;
@@ -3444,6 +3453,7 @@
 					lib,
 					tests/gtest/include,
 					tests/unittests,
+					lib/dfdutils,
 					include,
 					other_include,
 				);

@@ -38,6 +38,7 @@
 #endif
 
 #include <assert.h>
+#include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 #include <math.h>
 
