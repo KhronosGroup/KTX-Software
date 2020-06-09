@@ -56,6 +56,7 @@ INCS_Debug := \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
 	-I$(ASSIMP_HOME)/include \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include
 
 DEFS_Release := \
@@ -87,6 +88,7 @@ INCS_Release := \
 	-I$(srcdir)/tests/loadtests/appfwSDL/VulkanAppSDL \
 	-I$(srcdir)/other_include \
 	-I$(ASSIMP_HOME)/include \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include
 
 OBJS := \

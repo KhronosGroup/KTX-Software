@@ -26,6 +26,7 @@ INCS_Debug := \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/tests/unittests \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
@@ -51,6 +52,7 @@ INCS_Release := \
 	-I$(srcdir)/lib \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/tests/unittests \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 

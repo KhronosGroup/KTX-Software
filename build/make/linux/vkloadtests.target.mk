@@ -197,6 +197,7 @@ INCS_Debug := \
 	-I$(srcdir)/other_include \
 	-I$(ASSIMP_HOME)/include \
 	-I$(VULKAN_SDK)/include \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include
 
 DEFS_Release := \
@@ -225,6 +226,7 @@ INCS_Release := \
 	-I$(srcdir)/other_include \
 	-I$(ASSIMP_HOME)/include \
 	-I$(VULKAN_SDK)/include \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include
 
 OBJS := \

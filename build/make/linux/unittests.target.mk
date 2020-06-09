@@ -25,6 +25,7 @@ CFLAGS_CC_Debug := \
 INCS_Debug := \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/lib \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
@@ -49,6 +50,7 @@ CFLAGS_CC_Release := \
 INCS_Release := \
 	-I$(srcdir)/tests/gtest/include \
 	-I$(srcdir)/lib \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 

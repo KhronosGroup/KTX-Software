@@ -38,6 +38,7 @@ CFLAGS_CC_Debug := \
 INCS_Debug := \
 	-I$(srcdir)/utils \
 	-I$(srcdir)/lib/basisu \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
@@ -61,6 +62,7 @@ CFLAGS_CC_Release := \
 INCS_Release := \
 	-I$(srcdir)/utils \
 	-I$(srcdir)/lib/basisu \
+	-I$(srcdir)/lib/dfdutils \
 	-I$(srcdir)/include \
 	-I$(srcdir)/other_include
 
