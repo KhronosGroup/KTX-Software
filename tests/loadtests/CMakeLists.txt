@@ -77,6 +77,8 @@ add_library( appfwSDL OBJECT
 
 )
 
+target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_11)
+
 target_include_directories(
     appfwSDL
 PUBLIC
@@ -96,7 +98,7 @@ add_library( GLAppSDL OBJECT
     glloadtests/GLLoadTests.cpp
     glloadtests/GLLoadTests.h
 )
-
+target_link_libraries(GLAppSDL appfwSDL)
 target_include_directories(
     GLAppSDL
 PUBLIC

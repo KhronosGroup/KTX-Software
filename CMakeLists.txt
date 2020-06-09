@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
@@ -221,6 +221,52 @@ add_dependencies(ktx mkvk)
 create_version_header(lib ktx)
 
 target_compile_definitions(ktx PRIVATE LIBKTX)
+
+# C/C++ Standard
+target_compile_features(ktx PUBLIC c_std_99 cxx_std_11)
+
+# Compiler Warning Flags
+target_compile_options(ktx PRIVATE
+    $<IF:$<CXX_COMPILER_ID:AppleClang,Clang>,
+        # clang options
+        -Wno-nested-anon-types
+        -Wno-gnu-anonymous-struct
+    ,
+        # not clang options
+        -Wno-pedantic
+    >
+)
+
+# Optimization Flags
+if(EMSCRIPTEN)
+    target_compile_options(ktx PUBLIC
+        $<IF:$<CONFIG:Debug>,-O0,-Oz>
+    )
+    target_link_options( ktx PUBLIC
+        $<IF:$<CONFIG:Debug>,-g4,-Oz>
+    )
+if(MSVC)
+    target_compile_options(ktx PUBLIC
+        $<IF:$<CONFIG:Debug>,/Gz,/O2>
+    )
+else()
+    target_compile_options(ktx PUBLIC
+        $<IF:$<CONFIG:Debug>,-O0,-O3>
+    )
+    target_link_options( ktx PUBLIC
+        $<IF:$<CONFIG:Debug>,-g,-O3>
+    )
+endif()
+
+
+else()
+    # set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -g")
+    # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g")
+
+    # set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -flto")
+    # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
+endif()
+
 target_include_directories(
     ktx
 PUBLIC
@@ -452,33 +498,19 @@ if(EMSCRIPTEN)
         lib
         lib/basisu/transcoder
     )
+
+    # Re-use ktx's compile options
+    target_compile_options(msc_basis_transcoder_js PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_OPTIONS>)
+
     target_link_options(
         msc_basis_transcoder_js
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=MSC_TRANSCODER"
-        $<IF:$<CONFIG:Debug>,-g4,-Oz>
+        # Re-use ktx's link options
+        $<TARGET_PROPERTY:ktx,INTERFACE_LINK_OPTIONS>
         )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
-endif()
-
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
-
-if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Gz")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gz")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /O2")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /O2")
-else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -fPIC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -std=c++11 -fPIC")
-
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -g")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g")
-
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -flto")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
 endif()
 
 add_library( objUtil OBJECT

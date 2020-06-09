@@ -3,6 +3,8 @@ add_library(obj_basisu_cbind OBJECT
     src/basisu_c_binding.cpp
 )
 
+target_compile_features(obj_basisu_cbind PUBLIC c_std_99 cxx_std_11)
+
 target_include_directories(
     obj_basisu_cbind
 PUBLIC
