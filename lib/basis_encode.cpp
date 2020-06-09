@@ -627,22 +627,24 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // seperation in this func (see above) so leave this at its default, false.
     //bool_param<false> m_seperate_rg_to_color_alpha;
 
-    // m_tex_type, m_userdata0, m_userdata1, m_framerate - These fields go
-    // directly into the Basis file header.
-    //
-    // Set m_tex_type to cBASISTexType2D as any other setting is likely to
-    // cause validity checks, that the encoder performs on its results, to
-    // fail. The checks only work properly when the encoder generates mipmaps
-    // itself and are oriented to ensuring the .basis file is sensible.
-    // Underlying compression works fine and we already know what level, layer
-    // and face/slice each image belongs too.
-    //
-    cparams.m_tex_type = cBASISTexType2D;
+    // m_userdata0, m_userdata1 go directly into the .basis file header.
+    // No need to set.
 
-    // TODO When video support is added, may need to set m_tex_type to this
-    // if video.
-    //cBASISTexTypeVideoFrames
-    // and set cparams.m_us_per_frame;
+    if (This->isVideo) {
+        // Encoder uses this to decode whether to create p-frames.
+        cparams.m_tex_type = cBASISTexTypeVideoFrames;
+        // cparams.m_us_per_frame & m_framerate are not used by
+        // the encoder, except to write the values into the .basis file header,
+        // so no point in setting them.
+    } else {
+        // Set to cBASISTexType2D as any other setting is likely to cause
+        // validity checks that the encoder performs on its results, to
+        // fail. The checks only work properly when the encoder generates
+        // mipmaps tself and are oriented to ensuring the .basis file is
+        // sensible. Underlying compression works fine and we already know
+        // what level, layer and face/slice each image belongs too.
+        cparams.m_tex_type = cBASISTexType2D;
+    }
 
 #define DUMP_BASIS_FILE 0
 #if DUMP_BASIS_FILE
@@ -747,8 +749,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                  + bfh.m_tables_file_size;
         bgd = new ktx_uint8_t[bgd_size];
         ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
-        // Get the flags that are set while ensuring we don't get
-        // cBASISHeaderFlagYFlipped
         bgdh.endpointCount = bfh.m_total_endpoints;
         bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
         bgdh.selectorCount = bfh.m_total_selectors;
@@ -801,9 +801,17 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                         kimages[image].alphaSliceByteOffset = 0;
                         kimages[image].alphaSliceByteLength = 0;
                     }
-                    // Get the IFrame flag, if it's set.
-                    kimages[image].imageFlags =
-                                    slice->m_flags & ~cSliceDescFlagsHasAlpha;
+                    // Set the PFrame flag, inverse of the .basis IFrame flag.
+                    if (This->isVideo) {
+                        // Extract FrameIsIFrame
+                        kimages[image].imageFlags =
+                                    (slice->m_flags & ~cSliceDescFlagsHasAlpha);
+                        // Set our flag to the inverse.
+                        kimages[image].imageFlags ^=
+                                    cSliceDescFlagsFrameIsIFrame;
+                    } else {
+                        kimages[image].imageFlags = 0;
+                    }
                     slice++;
                     image++;
                 }

@@ -550,7 +550,12 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
             ktx_size_t bufferByteLength = prototype->dataSize - writeOffset;
             imageDesc.m_rgb_byte_offset = imageDescs[image].rgbSliceByteOffset;
             imageDesc.m_rgb_byte_length = imageDescs[image].rgbSliceByteLength;
-            imageDesc.m_flags = imageDescs[image].imageFlags;
+            if (This->isVideo) {
+                // Our flag is in the same bit as cSliceDescFlagsFrameIsIFrame
+                // but has an inverted value.
+                imageDesc.m_flags
+                  = imageDescs[image].imageFlags ^ cSliceDescFlagsFrameIsIFrame;
+            }
 
             if (alphaContent != eNone)
             {
