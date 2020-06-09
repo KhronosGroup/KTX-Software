@@ -79,6 +79,19 @@ if(SDL2_FOUND)
     )
 endif()
 
+set( MOLTEN_VK_ICD
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/MoltenVK_icd.json
+)
+set( VK_LAYER
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_core_validation.json
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_object_tracker.json
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_parameter_validation.json
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_standard_validation.json
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_threading.json
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_unique_objects.json
+)
+target_sources(vkloadtests PUBLIC ${MOLTEN_VK_ICD} ${VK_LAYER})
+
 if(APPLE)
     if(IOS)
 
@@ -122,7 +135,11 @@ if(APPLE)
     else()
         set( KTX_RESOURCES ${KTX_ICON} )
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
+        set( VK_ICD "${VULKAN_SDK}/share/vulkan/icd.d/MoltenVK_icd.json" )
     endif()
+
+    set_source_files_properties(${MOLTEN_VK_ICD} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d")
+    set_source_files_properties(${VK_LAYER} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/explicit_layer.d")
 elseif(WIN32)
     ensure_runtime_dependencies_windows(vkloadtests)
 endif()
@@ -154,6 +171,17 @@ if(APPLE)
     unset(PRODUCT_BUNDLE_IDENTIFIER)
     if(KTX_RESOURCES)
         set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
+    endif()
+
+    if(NOT IOS)
+        add_custom_command( TARGET vkloadtests POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${VULKAN_SDK}/Frameworks/vulkan.framework" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/vulkan.framework"
+            COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
+            COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
+            COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
+            COMMENT "Copy libraries/frameworks to build destination"
+        )
     endif()
 endif()
 
