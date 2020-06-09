@@ -11,7 +11,12 @@ sudo apt-get -qq install libsdl2-dev
 sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev
 sudo apt-get -qq install libvulkan1 libvulkan-dev
 sudo apt-get -qq install libassimp4 libassimp-dev
+
 wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
 sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-bionic.list http://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-bionic.list
+
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+
 sudo apt update
-sudo apt install lunarg-vulkan-sdk
+sudo apt install lunarg-vulkan-sdk cmake
