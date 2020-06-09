@@ -4,10 +4,17 @@ add_executable( vkloadtests
     $<TARGET_OBJECTS:appfwSDL>
     $<TARGET_OBJECTS:objUtil>
     appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
+    appfwSDL/VulkanAppSDL/VulkanAppSDL.h
+    appfwSDL/VulkanAppSDL/vulkancheckres.h
     appfwSDL/VulkanAppSDL/VulkanContext.cpp
+    appfwSDL/VulkanAppSDL/VulkanContext.h
     appfwSDL/VulkanAppSDL/vulkandebug.cpp
+    appfwSDL/VulkanAppSDL/vulkandebug.h
     appfwSDL/VulkanAppSDL/VulkanSwapchain.cpp
+    appfwSDL/VulkanAppSDL/VulkanSwapchain.h
+    appfwSDL/VulkanAppSDL/vulkantextoverlay.hpp
     appfwSDL/VulkanAppSDL/vulkantools.cpp
+    appfwSDL/VulkanAppSDL/vulkantools.h
     vkloadtests/InstancedSampleBase.cpp
     vkloadtests/InstancedSampleBase.h
     vkloadtests/Texture.cpp
