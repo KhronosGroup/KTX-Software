@@ -228,16 +228,23 @@ target_compile_definitions(ktx PRIVATE LIBKTX)
 target_compile_features(ktx PUBLIC c_std_99 cxx_std_11)
 
 # Compiler Warning Flags
-target_compile_options(ktx PRIVATE
-    $<IF:$<CXX_COMPILER_ID:AppleClang,Clang>,
-        # clang options
+if(EMSCRIPTEN)
+    target_compile_options(ktx PRIVATE
         -Wno-nested-anon-types
         -Wno-gnu-anonymous-struct
-    ,
-        # not clang options
-        -Wno-pedantic
-    >
-)
+    )
+else()
+    target_compile_options(ktx PRIVATE
+        $<IF:$<CXX_COMPILER_ID:AppleClang,Clang>,
+            # clang options
+            -Wno-nested-anon-types
+            -Wno-gnu-anonymous-struct
+        ,
+            # not clang options
+            -Wno-pedantic
+        >
+    )
+endif()
 
 # Optimization Flags
 if(EMSCRIPTEN)
