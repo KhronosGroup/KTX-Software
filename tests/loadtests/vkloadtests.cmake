@@ -176,12 +176,14 @@ if(APPLE)
     if(NOT IOS)
         add_custom_command( TARGET vkloadtests POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${VULKAN_SDK}/Frameworks/vulkan.framework" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/vulkan.framework"
             COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
             COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
             COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
             COMMENT "Copy libraries/frameworks to build destination"
         )
+
+        install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework" DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/vulkan.framework" )
+        install(TARGETS vkloadtests BUNDLE DESTINATION .)
     endif()
 endif()
 
