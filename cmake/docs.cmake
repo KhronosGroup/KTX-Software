@@ -138,6 +138,7 @@ function( CreateDocKTX )
         pkgdoc/pages.md
         TODO.md
         interface/js_binding
+        ALL
     )
     add_docs_cmake(ktxpkg.doc)
 endfunction()
