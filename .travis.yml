@@ -18,7 +18,8 @@ matrix:
             - g++-7
       dist: bionic
       env:
-        - VULKAN_SDK_VER="1.2.141.0"
+        # NB: This must not have the fourth component of the version number.
+        - VULKAN_SDK_VER="1.2.141"
       compiler: gcc # clang is tested by macOS build
       services:
         - docker
@@ -55,7 +56,7 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    # No need to install git-lfs. It is part of Travis's Xenial environment.
+    # No need to install git-lfs. It is part of Travis's Bionic environment.
     sudo apt-get -qq update &&
     sudo apt-get -qq install doxygen &&
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
