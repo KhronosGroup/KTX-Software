@@ -12,14 +12,6 @@ add_executable( unittests
     unittests/wthelper.h
 )
 
-if(OPENGL_FOUND)
-    target_include_directories(
-        unittests
-    PUBLIC
-        ${OPENGL_INCLUDE_DIR}
-    )
-endif()
-
 target_include_directories(
     unittests
 PRIVATE
@@ -34,30 +26,26 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-if(OPENGL_FOUND)
-    add_executable( texturetests
-        texturetests/texturetests.cc
-        unittests/wthelper.h
-    )
+add_executable( texturetests
+    texturetests/texturetests.cc
+    unittests/wthelper.h
+)
 
-    target_include_directories(
-        texturetests
-    PRIVATE
-        ${OPENGL_INCLUDE_DIR}
-        $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-        ${PROJECT_SOURCE_DIR}/other_include
-        ${PROJECT_SOURCE_DIR}/lib
-        unittests
-    )
+target_include_directories(
+    texturetests
+PRIVATE
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    ${PROJECT_SOURCE_DIR}/other_include
+    ${PROJECT_SOURCE_DIR}/lib
+    unittests
+)
 
-    target_link_libraries(
-        texturetests
-        ${OPENGL_LIBRARIES}
-        gtest
-        ktx
-        ${CMAKE_THREAD_LIBS_INIT}
-    )
-endif()
+target_link_libraries(
+    texturetests
+    gtest
+    ktx
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 
 add_test( NAME unittests COMMAND unittests )
 add_test( NAME texturetests COMMAND texturetests )
