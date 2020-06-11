@@ -23,7 +23,7 @@ XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQ
 export PATH="${VULKAN_SDK}/bin:$PATH"
 
 echo "Configure KTX-Software (macOS)"
-cmake -GXcode -Bbuild-macos -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_SDK="${VULKAN_INSTALL_DIR}/macOS"
+cmake -GXcode -Bbuild-macos -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 pushd build-macos
 echo "Build KTX-Software (macOS Debug)"
 cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
@@ -31,6 +31,7 @@ echo "Test KTX-Software (macOS Debug)"
 ctest -C Debug # --verbose
 echo "Install KTX-Software (macOS Debug)"
 cmake --install . --config Debug --prefix ../install-macos-debug
+
 echo "Build KTX-Software (macOS Release)"
 cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 echo "Test KTX-Software (macOS Release)"
@@ -40,7 +41,7 @@ cmake --install . --config Debug --prefix ../install-macos-release
 popd
 
 echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_SDK="${VULKAN_INSTALL_DIR}/MoltenVK"
+cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
 cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO

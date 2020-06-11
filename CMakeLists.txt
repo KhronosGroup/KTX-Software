@@ -17,19 +17,6 @@ if(NOT EMSCRIPTEN)
     find_package(Vulkan)
 endif()
 
-if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
-    if(IOS)
-        set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "10.0" CACHE STRING "iOS Deployment Target")
-        set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
-    endif()
-endif()
-
-if(UNIX AND NOT APPLE)
-    set(LINUX TRUE)
-endif()
-
-
 # OPTIONS
 
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
@@ -47,6 +34,22 @@ set( KTX_FEATURE_KTX2 ON )
 set( KTX_FEATURE_VULKAN ON )
 set( KTX_FEATURE_TOOLS ON )
 
+
+# Platform specific settings
+
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
+    if(IOS)
+        set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "10.0" CACHE STRING "iOS Deployment Target")
+        set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
+    endif()
+endif()
+
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
+
 if(EMSCRIPTEN)
     set( KTX_FEATURE_VULKAN OFF )
 endif()
@@ -60,6 +63,7 @@ set(bitness 64)
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
 	set(bitness 32)
 endif()
+
 
 # Begin auto-generated code
 

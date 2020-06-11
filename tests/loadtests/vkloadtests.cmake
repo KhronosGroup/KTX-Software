@@ -93,21 +93,27 @@ set( VK_LAYER
 target_sources(vkloadtests PUBLIC ${MOLTEN_VK_ICD} ${VK_LAYER})
 
 if(APPLE)
-    if(IOS)
 
-        # Try to locate MoltenVK.framework
-        set(MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/framework/MoltenVK.framework)
-        if(NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
+    set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
+
+    # Try to locate Vulkan SDK install directory
+    if(NOT VULKAN_INSTALL_DIR)
+        message(SEND_ERROR "Please provide a valid path to your Vulkan SDK installation in CMake variable 'VULKAN_INSTALL_DIR'!")
+    endif()
+
+    if(IOS)
+        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/MoltenVK" )
+        set( MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/framework/MoltenVK.framework )
+        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
             # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
-            message("Could not find MoltenVK.framework (at VULKAN_SDK dir ${VULKAN_SDK})")
+            message("Could not find MoltenVK.framework (at VULKAN_SDK dir '${VULKAN_SDK}')")
             set(MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/MoltenVK.framework)
         endif()
-        if(NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
-            message(SEND_ERROR "Could not find MoltenVK.framework (at VULKAN_SDK dir ${VULKAN_SDK})")
+        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
+            message(SEND_ERROR "Could not find MoltenVK.framework (at VULKAN_SDK dir '${VULKAN_SDK}')")
         else()
             message("Found MoltenVK.framwork at ${MOLTEN_VK_FRAMEWORK}")
         endif()
-
 
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
         set( KTX_RESOURCES
@@ -133,6 +139,7 @@ if(APPLE)
             ${UIKit_LIBRARY}
         )
     else()
+        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/macOS")
         set( KTX_RESOURCES ${KTX_ICON} )
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
         set( VK_ICD "${VULKAN_SDK}/share/vulkan/icd.d/MoltenVK_icd.json" )
