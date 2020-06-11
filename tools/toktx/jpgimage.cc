@@ -75,7 +75,10 @@ class myjpgdstream : public jpeg_decoder_file_stream {
         return static_cast<int>(bytes_read);
     }
 
-    void rewind() { ::rewind(m_pFile); }
+    void rewind() {
+        ::rewind(m_pFile);
+        m_eof_flag = false;
+    }
 
   protected:
    FILE*  m_pFile;
