@@ -4,16 +4,16 @@ list(APPEND mkvkformatfiles_input
     "lib/dfdutils/vulkan/vulkan_core.h"
     "lib/mkvkformatfiles")
 list(APPEND mkvkformatfiles_output
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_enum.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_check.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/vkformat_str.c")
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
 
 if(WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
         COMMAND ${BASH_EXECUTABLE} -c "VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib"
         DEPENDS ${mkvkformatfiles_input}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT Generating VkFormat-related source files
         VERBATIM
     )
@@ -22,7 +22,7 @@ else()
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
         COMMAND VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib
         DEPENDS ${mkvkformatfiles_input}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT Generating VkFormat-related source files
         VERBATIM
     )
@@ -38,13 +38,13 @@ list(APPEND makevkswitch_input
     "lib/vkformat_enum.h"
     "lib/dfdutils/makevkswitch.pl")
 set(makevkswitch_output
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
+    "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
 add_custom_command(
     OUTPUT ${makevkswitch_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
     COMMAND perl lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
     DEPENDS ${makevkswitch_input}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT Generating VkFormat/DFD switch body
     VERBATIM
 )
@@ -58,7 +58,7 @@ list(APPEND makedfd2vk_input
     "lib/vkformat_enum.h"
     "lib/dfdutils/makedfd2vk.pl")
 list(APPEND makedfd2vk_output
-    "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
+    "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
 
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
