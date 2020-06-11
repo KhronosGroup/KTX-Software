@@ -143,12 +143,13 @@ if(EMSCRIPTEN)
     )
 else()
     target_compile_options(ktx PRIVATE
-        $<IF:$<CXX_COMPILER_ID:AppleClang,Clang>,
-            # clang options
+        # clang options
+        $<$<CXX_COMPILER_ID:AppleClang,Clang>:
             -Wno-nested-anon-types
             -Wno-gnu-anonymous-struct
-        ,
-            # not clang options
+        >
+        # not clang options
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
             -Wno-pedantic
         >
     )
