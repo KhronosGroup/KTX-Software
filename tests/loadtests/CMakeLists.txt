@@ -1,3 +1,5 @@
+find_package(OpenGL)
+
 if(NOT WIN32 AND NOT IOS AND NOT EMSCRIPTEN)
     find_package(SDL2 REQUIRED)
 endif()
@@ -166,76 +168,6 @@ set( LOAD_TEST_COMMON_RESOURCE_FILES
     ${MODELS}
 )
 
-function(compileshader shader_target shader_name shader_src_path shader_path)
-
-    set(vert_name "${shader_name}.vert")
-    set(vert2spirv_in "${shader_src_path}/${vert_name}")
-    set(vert2spirv_out "${CMAKE_CURRENT_BINARY_DIR}/${shader_path}/${vert_name}.spv")
-
-    add_custom_command(OUTPUT
-    ${vert2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-    COMMAND glslc "-fshader-stage=vertex" -o "${vert2spirv_out}" "${vert2spirv_in}"
-    DEPENDS ${vert2spirv_in}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT "Compiling ${vert_name}."
-    VERBATIM
-    )
-
-    set(frag_name "${shader_name}.frag")
-    set(frag2spirv_in "${shader_src_path}/${frag_name}")
-    set(frag2spirv_out "${CMAKE_CURRENT_BINARY_DIR}/${shader_path}/${frag_name}.spv")
-
-    add_custom_command(OUTPUT
-    ${frag2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-    COMMAND glslc "-fshader-stage=fragment" -o "${frag2spirv_out}" "${frag2spirv_in}"
-    DEPENDS ${frag2spirv_in}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT "Compiling ${frag_name}."
-    VERBATIM
-    )
-
-    add_custom_target(
-        ${shader_target}
-        DEPENDS
-        ${vert2spirv_out}
-        ${frag2spirv_out}
-        SOURCES
-        ${vert2spirv_in}
-        ${frag2spirv_in}
-    )
-
-    set_target_properties(${shader_target} PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-
-    set(SHADER_SOURCES ${SHADER_SOURCES} ${frag2spirv_out} ${vert2spirv_out} PARENT_SCOPE)
-
-endfunction(compileshader)
-
-set(SHADER_SOURCES "")
-
-compileshader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
-compileshader(shader_cube cube vkloadtests/shaders/cube shaders )
-compileshader(shader_cubemap_reflect reflect vkloadtests/shaders/cubemap shaders )
-compileshader(shader_cubemap_skybox skybox vkloadtests/shaders/cubemap shaders )
-compileshader(shader_texture texture vkloadtests/shaders/texture shaders )
-compileshader(shader_texturearray instancing vkloadtests/shaders/texturearray shaders )
-compileshader(shader_texturemipmap instancinglod vkloadtests/shaders/texturemipmap shaders )
-
-add_custom_target(
-    spirv_shaders
-    DEPENDS
-    shader_textoverlay
-    shader_cube
-    shader_cubemap_reflect
-    shader_cubemap_skybox
-    shader_texture
-    shader_texturearray
-    shader_texturemipmap
-)
-
-set_target_properties(spirv_shaders PROPERTIES EXCLUDE_FROM_ALL "FALSE")
-
 include(glloadtests.cmake)
 
 if(NOT EMSCRIPTEN)
@@ -247,7 +179,6 @@ set_source_files_properties(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
 
 if(APPLE)
     set_source_files_properties(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
-    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
     set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
 elseif(LINUX)
     file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

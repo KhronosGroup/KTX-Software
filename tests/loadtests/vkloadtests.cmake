@@ -1,3 +1,48 @@
+find_package(Vulkan)
+
+if(Vulkan_FOUND)
+    if(NOT Vulkan_INCLUDE_DIRS AND Vulkan_INCLUDE_DIR)
+        # Fallback for inconsistent variable name on Windows
+        set(Vulkan_INCLUDE_DIRS ${Vulkan_INCLUDE_DIR})
+    endif()
+elseif(APPLE)
+    # TODO: Make it more elegant than fallback to VULKAN_SDK variable
+    # Works for MoltenVK/iOS as well
+    set(Vulkan_INCLUDE_DIRS ${VULKAN_SDK}/include)
+endif()
+
+if(APPLE)
+    set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
+
+    # Try to locate Vulkan SDK install directory
+    if(NOT VULKAN_INSTALL_DIR)
+        message(SEND_ERROR "Please provide a valid path to your Vulkan SDK installation in CMake variable 'VULKAN_INSTALL_DIR'!")
+    endif()
+endif()
+
+include(compile_shader.cmake)
+
+set(SHADER_SOURCES "")
+
+compile_shader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
+compile_shader(shader_cube cube vkloadtests/shaders/cube shaders )
+compile_shader(shader_cubemap_reflect reflect vkloadtests/shaders/cubemap shaders )
+compile_shader(shader_cubemap_skybox skybox vkloadtests/shaders/cubemap shaders )
+compile_shader(shader_texture texture vkloadtests/shaders/texture shaders )
+compile_shader(shader_texturearray instancing vkloadtests/shaders/texturearray shaders )
+compile_shader(shader_texturemipmap instancinglod vkloadtests/shaders/texturemipmap shaders )
+
+add_custom_target(
+    spirv_shaders
+    DEPENDS
+    shader_textoverlay
+    shader_cube
+    shader_cubemap_reflect
+    shader_cubemap_skybox
+    shader_texture
+    shader_texturearray
+    shader_texturemipmap
+)
 
 add_executable( vkloadtests
     ${EXE_FLAG}
@@ -34,11 +79,6 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
-)
-
-target_sources(
-    vkloadtests
-PUBLIC
     ${SHADER_SOURCES}
 )
 
@@ -93,14 +133,6 @@ set( VK_LAYER
 target_sources(vkloadtests PUBLIC ${MOLTEN_VK_ICD} ${VK_LAYER})
 
 if(APPLE)
-
-    set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
-
-    # Try to locate Vulkan SDK install directory
-    if(NOT VULKAN_INSTALL_DIR)
-        message(SEND_ERROR "Please provide a valid path to your Vulkan SDK installation in CMake variable 'VULKAN_INSTALL_DIR'!")
-    endif()
-
     if(IOS)
         set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/MoltenVK" )
         set( MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/framework/MoltenVK.framework )
@@ -160,6 +192,8 @@ PRIVATE
 )
 
 if(APPLE)
+    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
@@ -189,7 +223,7 @@ if(APPLE)
             COMMENT "Copy libraries/frameworks to build destination"
         )
 
-        install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework" DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/vulkan.framework" )
+        install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework" DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks" )
         install(TARGETS vkloadtests BUNDLE DESTINATION .)
     endif()
 endif()
