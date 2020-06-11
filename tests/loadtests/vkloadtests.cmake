@@ -220,7 +220,10 @@ if(APPLE)
         )
 
         install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework" DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks" )
-        install(TARGETS vkloadtests BUNDLE DESTINATION .)
+        install(TARGETS vkloadtests
+            BUNDLE DESTINATION .
+            RESOURCE DESTINATION "Resources"
+        )
     endif()
 endif()
 

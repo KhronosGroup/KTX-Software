@@ -136,6 +136,11 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 COMMENT "Copy libraries/frameworks to build destination"
             )
         endif()
+
+        install(TARGETS ${target}
+            BUNDLE DESTINATION .
+            RESOURCE DESTINATION "Resources"
+        )
     elseif(EMSCRIPTEN)
         set_target_properties(${target} PROPERTIES SUFFIX ".html")
     endif()
