@@ -36,7 +36,7 @@
     'vksdk': '<(vksdk)',
     'conditions': [
       ['OS == "ios"', {
-        'fwdir': '<(mvklib)',
+        'fwdir': '<(mvklib)/dynamic',
         'runpath': '@executable_path/Frameworks',
       }, 'OS == "mac"', {
         'fwdir': '<(vksdk)/Frameworks',
@@ -123,7 +123,7 @@
                     'xcode_code_sign': 1,
                     'destination': '<(PRODUCT_DIR)/$(FRAMEWORKS_FOLDER_PATH)',
                     'files': [
-                      '<(mvklib)/libMoltenVK.dylib',
+                      '<(mvklib)/dynamic/libMoltenVK.dylib',
                     ],
                   }], # ios copies
                 }, 'OS == "mac"', {
@@ -140,14 +140,8 @@
                       # Layers are only needed for debug config but I don't
                       # think there is any way to do a copy only for certain
                       # configs.
-                      '<(vklib)/libVkLayer_core_validation.dylib',
-                      '<(vklib)/libVkLayer_object_tracker.dylib',
-                      '<(vklib)/libVkLayer_parameter_validation.dylib',
-                      '<(vklib)/libVkLayer_threading.dylib',
-                      '<(vklib)/libVkLayer_unique_objects.dylib',
-                      '<(vklib)/libvulkan.1.dylib',
-                      '<(vklib)/libvulkan.1.dylib',
-                      '<(vklib)/libvulkan.1.dylib',
+                      '<(vklib)/libVkLayer_api_dump.dylib',
+                      '<(vklib)/libVkLayer_khronos_validation.dylib',
                     ],
                   },
                   {
@@ -160,12 +154,8 @@
                     'destination': '<(PRODUCT_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/vulkan/explicit_layer.d',
                     'files': [
                       # Need these to tell Vulkan loader where the layers are.
-                      '<(otherlibroot_dir)/resources/VkLayer_core_validation.json',
-                      '<(otherlibroot_dir)/resources/VkLayer_object_tracker.json',
-                      '<(otherlibroot_dir)/resources/VkLayer_parameter_validation.json',
-                      '<(otherlibroot_dir)/resources/VkLayer_standard_validation.json',
-                      '<(otherlibroot_dir)/resources/VkLayer_threading.json',
-                      '<(otherlibroot_dir)/resources/VkLayer_unique_objects.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_api_dump.json',
+                      '<(otherlibroot_dir)/resources/VkLayer_khronos_validation.json',
                     ],
                   }], # copies mac
                 }], # OS == "ios"

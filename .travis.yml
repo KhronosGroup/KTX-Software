@@ -18,7 +18,8 @@ matrix:
             - g++-7
       dist: bionic
       env:
-        - VULKAN_SDK_VER="1.1.85"
+        # NB: This must not have the fourth component of the version number.
+        - VULKAN_SDK_VER="1.2.141"
       compiler: gcc # clang is tested by macOS build
       services:
         - docker
@@ -27,8 +28,8 @@ matrix:
         - node
     - os: osx
       env:
-        - VULKAN_SDK_VER="1.1.85.0"
-        - VULKAN_INSTALL_DIR="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
+        - VULKAN_SDK_VER="1.2.141.1"
+        - VULKAN_INSTALL_DIR="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
       osx_image: xcode11.4
@@ -55,14 +56,14 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    # No need to install git-lfs. It is part of Travis's Xenial environment.
+    # No need to install git-lfs. It is part of Travis's Bionic environment.
     sudo apt-get -qq update &&
     sudo apt-get -qq install doxygen &&
     sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
     sudo apt-get -qq install libvulkan1 libvulkan-dev &&
     sudo apt-get -qq install libassimp4 libassimp-dev &&
     wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add - &&
-    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-xenial.list http://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-xenial.list &&
+    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-bionic.list http://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-bionic.list &&
     sudo apt update &&
     sudo apt install lunarg-vulkan-sdk
     ;;
@@ -74,8 +75,8 @@ install:
     brew install doxygen &&
     # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../.. &&
-    wget -O vulkansdk-macos-$VULKAN_SDK_VER.tar.gz https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.tar.gz?Human=true &&
-    tar -xzf vulkansdk-macos-$VULKAN_SDK_VER.tar.gz &&
+    wget -O vulkansdk-macos-$VULKAN_SDK_VER.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.dmg?Human=true &&
+    hdiutil attach vulkansdk-macos-$VULKAN_SDK_VER.dmg &&
     wget -O Packages.dmg http://s.sudre.free.fr/Software/files/Packages.dmg &&
     hdiutil attach Packages.dmg &&
     sudo installer -pkg /Volumes/Packages*/packages/packages.pkg -target / &&
