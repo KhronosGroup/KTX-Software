@@ -123,12 +123,8 @@ set( MOLTEN_VK_ICD
     ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/MoltenVK_icd.json
 )
 set( VK_LAYER
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_core_validation.json
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_object_tracker.json
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_parameter_validation.json
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_standard_validation.json
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_threading.json
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_unique_objects.json
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_khronos_validation.json
+    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_api_dump.json
 )
 target_sources(vkloadtests PUBLIC ${MOLTEN_VK_ICD} ${VK_LAYER})
 
