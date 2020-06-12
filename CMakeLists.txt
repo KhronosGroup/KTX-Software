@@ -198,7 +198,7 @@ if( LIB_TYPE STREQUAL STATIC )
 endif()
 
 
-target_compile_definitions(ktx PUBLIC "$<$<CONFIG:Debug>:_DEBUG>")
+target_compile_definitions(ktx PUBLIC "$<$<CONFIG:Debug>:_DEBUG;DEBUG>")
 
 # To reduce size, don't support transcoding to ancient formats.
 target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0)
