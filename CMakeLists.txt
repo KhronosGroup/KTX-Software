@@ -343,14 +343,6 @@ elseif(LINUX)
     )
 endif()
 
-if(OPENGL_FOUND)
-    target_include_directories(
-        ktx
-    PRIVATE
-        ${OPENGL_INCLUDE_DIR}
-    )
-endif()
-
 if(KTX_FEATURE_VULKAN)
     target_sources(
         ktx

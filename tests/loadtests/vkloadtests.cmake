@@ -1,15 +1,16 @@
-find_package(Vulkan)
-
-if(Vulkan_FOUND)
-    if(NOT Vulkan_INCLUDE_DIRS AND Vulkan_INCLUDE_DIR)
-        # Fallback for inconsistent variable name on Windows
-        set(Vulkan_INCLUDE_DIRS ${Vulkan_INCLUDE_DIR})
+# Find Vulkan package
+if(IOS)
+    # On iOS we link against MoltenVK.framework manually (see below)
+else()
+    find_package(Vulkan)
+    if(Vulkan_FOUND)
+        if(NOT Vulkan_INCLUDE_DIRS AND Vulkan_INCLUDE_DIR)
+            # Fallback for inconsistent variable name on Windows
+            set(Vulkan_INCLUDE_DIRS ${Vulkan_INCLUDE_DIR})
+        endif()
     endif()
-elseif(APPLE)
-    # TODO: Make it more elegant than fallback to VULKAN_SDK variable
-    # Works for MoltenVK/iOS as well
-    set(Vulkan_INCLUDE_DIRS ${VULKAN_SDK}/include)
 endif()
+
 
 if(APPLE)
     set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
@@ -17,6 +18,23 @@ if(APPLE)
     # Try to locate Vulkan SDK install directory
     if(NOT VULKAN_INSTALL_DIR)
         message(SEND_ERROR "Please provide a valid path to your Vulkan SDK installation in CMake variable 'VULKAN_INSTALL_DIR'!")
+    endif()
+
+    if(IOS)
+        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/MoltenVK" )
+        set( MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/framework/MoltenVK.framework )
+        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
+            # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
+            message("Could not find MoltenVK.framework (at VULKAN_SDK dir '${VULKAN_SDK}')")
+            set(MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/MoltenVK.framework)
+        endif()
+        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
+            message(SEND_ERROR "Could not find MoltenVK.framework (at VULKAN_SDK dir '${VULKAN_SDK}')")
+        else()
+            message("Found MoltenVK.framwork at ${MOLTEN_VK_FRAMEWORK}")
+        endif()
+    else()
+        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/macOS")
     endif()
 endif()
 
@@ -100,10 +118,16 @@ target_link_libraries(
     ${KTX_ZLIB_LIBRARIES}
 )
 
-if(Vulkan_FOUND)
+if(IOS)
     target_include_directories(
         vkloadtests
-        PRIVATE
+    PRIVATE
+        ${VULKAN_SDK}/include
+    )
+elseif(Vulkan_FOUND)
+    target_include_directories(
+        vkloadtests
+    PRIVATE
         ${Vulkan_INCLUDE_DIRS}
     )
     target_link_libraries(
@@ -130,19 +154,6 @@ target_sources(vkloadtests PUBLIC ${MOLTEN_VK_ICD} ${VK_LAYER})
 
 if(APPLE)
     if(IOS)
-        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/MoltenVK" )
-        set( MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/framework/MoltenVK.framework )
-        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
-            # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
-            message("Could not find MoltenVK.framework (at VULKAN_SDK dir '${VULKAN_SDK}')")
-            set(MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/MoltenVK.framework)
-        endif()
-        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
-            message(SEND_ERROR "Could not find MoltenVK.framework (at VULKAN_SDK dir '${VULKAN_SDK}')")
-        else()
-            message("Found MoltenVK.framwork at ${MOLTEN_VK_FRAMEWORK}")
-        endif()
-
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
         set( KTX_RESOURCES
             ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
@@ -167,7 +178,6 @@ if(APPLE)
             ${UIKit_LIBRARY}
         )
     else()
-        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/macOS")
         set( KTX_RESOURCES ${KTX_ICON} )
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
         set( VK_ICD "${VULKAN_SDK}/share/vulkan/icd.d/MoltenVK_icd.json" )
