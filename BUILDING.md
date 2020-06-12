@@ -2,13 +2,15 @@
 Building KTX
 ============
 
-KTX uses the the [CMake](https://cmake.org) build system. Depending on your platform and how you configure it, it will create project/build files (e.g. an Xcode project, a Visual Studio solution or MakeFiles) that allow you to build the software and more (See [CMake generators](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html)).
+KTX uses the the [CMake](https://cmake.org) build system. Depending on your 
+platform and how you configure it, it will create project/build files (e.g. an Xcode project, a Visual Studio solution or Make files) that allow you to 
+build the software and more (See [CMake generators](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html)).
 
 KTX consist of the following parts
 
 - The `libktx` main library
 - Command line tools (for Linux / macOS / Windows)
-- Load test applications (for [OpenGL® 3](https://www.khronos.org/opengl), [OpenGLES®](https://www.khronos.org/opengles) or [Vulkan®](https://www.khronos.org/vulkan))
+- Load test applications (for [OpenGL<sup>®</sup> 3](https://www.khronos.org/opengl), [OpenGLES<sup>®</sup>](https://www.khronos.org/opengles) or [Vulkan<sup>®</sup>](https://www.khronos.org/vulkan))
 - Documentation
 
 Supported platforms (please to through their specific requirements first)
@@ -23,7 +25,8 @@ Supported platforms (please to through their specific requirements first)
 The minimal way to a build is to clone this repository and run the following in a terminal
 
 ```bash
-# Navigate to the root of your KTX-Software clone (replace with your actual path)
+# Navigate to the root of your KTX-Software clone (replace with
+# your actual path)
 cd /path/to/KTX-Software
 
 # This generates build/project files in the sub-folder `build`
@@ -66,7 +69,11 @@ On Ubuntu and Debian these can be installed via
 sudo apt install build-essential cmake libzstd-dev ninja-build doxygen libsdl2-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev
 ```
 
-KTX requires `glslc`, which comes with [Vulkan SDK](#vulkan-sdk) (in sub-folder `x86_64/bin/glslc`). Make sure the complete path to the tool in in your environment's `PATH` variable before running
+KTX requires `glslc`, which comes with [Vulkan SDK](#vulkan-sdk) (in sub-
+folder `x86_64/bin/glslc`). Make sure the complete path to the tool is in
+in your environment's `PATH` variable. If you've followed Vulkan SDK
+install instructions for your platform this should already be set up. You
+can test it by running
 
 ```bash
 export PATH=$PATH:/path/to/vulkansdk/x86_64/bin
@@ -179,12 +186,9 @@ Dependencies
 
 ### SDL
 
-> TODO: Section may be outdated. Re-check!
-
 Builds of SDL are provided in the KTX Git repo. These binaries
-were built from a post 2.0.8 changeset given below. This changeset
-includes a fix for an issue with OpenGL applications on macOS Mojave.
-Standard SDL 2.0.8 works fine on all other platforms so you can download
+were built from a post 2.0.12 changeset given below. However
+Standard SDL 2.0.12 works fine everywhere so you can download
 binaries from [libsdl.org](https://libsdl.org), if you prefer.
 
 #### macOS Notes
@@ -198,18 +202,14 @@ cp -R other_lib/mac/<configuration>/SDL2.framework /Library/Frameworks
 ```
 
 replacing `<configuration>` with your choice of `Debug` or `Release`.
-If you do this, you can modify the projects to use this installed
-SDL framework instead of copying it into every application bundle.
-See`gyp_include/config.gypi` for details. You will have to regenerate
-the xcode project if you wish to do this.
 
 #### Building SDL from source
 
-As noted above, KTX uses a post SDL 2.0.8 changeset, no.
-[12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac) in the canonical
+As noted above, KTX uses a post SDL 2.0.12 changeset, no.
+[13845](https://hg.libsdl.org/SDL/rev/210fb62f0c96) in the canonical
 Mercurial repo at https://hg.libsdl.org/SDL or the automated GitHub
 mirror at https://github.com/spurious/SDL-mirror. Clone the repo,
-checkout changeset [12343](https://hg.libsdl.org/SDL/rev/84eaa0636bac)
+checkout changeset [13845](https://hg.libsdl.org/SDL/rev/210fb62f0c96)
 and follow the SDL build instructions.
 
 Copy the results of your build to the appropriate place under the
@@ -219,11 +219,15 @@ Copy the results of your build to the appropriate place under the
 
 Download [Vulkan SDK from Lunar G](https://vulkan.lunarg.com/sdk/home).
 
-For GNU/Linux install the Vulkan SDK by extracting the `.tar.gz` file.
+For Ubuntu (Xenial and Bionic) install packages are available. See [Getting
+Started - Ubuntu](https://vulkan.lunarg.com/doc/sdk/1.2.141.2/linux/getting_started_ubuntu.html) for detailed instructions.
+
+For other GNU/Linux distributions a `.tar.gz` file is available. See
+[Getting Started - Tarball](https://vulkan.lunarg.com/doc/sdk/1.2.141.2/linux/getting_started.html) for detailed instructions.
 
 For Windows install the Vulkan SDK via the installer.
 
-For iOS and macOS, install the Vulkan SDK by copying the content of the mounted `.dmg` to some location of choice (or for older versions, extracting the `.tar.gz`). This SDK contains MoltenVK for both iOS and macOS.
+For iOS and macOS, install the Vulkan SDK by copying the content of the mounted `.dmg` to some location of choice. You need version 1.2.141.2 or later. This SDK contains MoltenVK (Vulkan Portability on Metal) for both iOS and macOS.
 
 ### Doxygen
 
