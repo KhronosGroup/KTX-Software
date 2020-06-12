@@ -121,6 +121,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
             XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
             XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
+            XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
         )
         unset(PRODUCT_NAME)
         unset(EXECUTABLE_NAME)
