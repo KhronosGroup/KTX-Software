@@ -42,7 +42,7 @@ if(APPLE)
     endif()
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID)
     set(LINUX TRUE)
 endif()
 
@@ -464,7 +464,7 @@ endif()
 
 if(APPLE)
     set(CPACK_GENERATOR productbuild)
-elseif(LINUX AND NOT EMSCRIPTEN)
+elseif(LINUX)
     set(CPACK_GENERATOR DEB)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
 

@@ -137,7 +137,7 @@ if(APPLE)
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
     endif()
-elseif(LINUX AND NOT EMSCRIPTEN)
+elseif(LINUX)
     set( LINUX_LIB_DIR Release )
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         set( LINUX_LIB_DIR Debug )
