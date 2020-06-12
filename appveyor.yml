@@ -15,7 +15,7 @@ platform:
 
 environment:
   GIT_TRACE: 0
-  VULKAN_SDK_VER: 1.2.141.0
+  VULKAN_SDK_VER: 1.2.141.2
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2017_R1
   CMAKE_GEN: Visual Studio 15 2017
