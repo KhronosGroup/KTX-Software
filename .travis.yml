@@ -28,7 +28,7 @@ matrix:
         - node
     - os: osx
       env:
-        - VULKAN_SDK_VER="1.2.141.1"
+        - VULKAN_SDK_VER="1.2.141.2"
         - VULKAN_INSTALL_DIR="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
