@@ -27,7 +27,6 @@ ctest # --verbose
 popd
 
 echo "Configure/Build KTX-Software (Web Debug)"
-docker exec -it emscripten sh -c "emcmake ${CMAKE_EXE} -Bbuild-web-debug . && ${CMAKE_EXE} --build build-web-debug --config Debug"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-debug . && cmake --build build-web-debug --config Debug"
 echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
