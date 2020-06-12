@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.13)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
-project(KTX-Software)
-project(KTX-Software VERSION 4.0.0)
+project(KTX-Software
+    VERSION 4.0.0
+    DESCRIPTION "Libraries and tools to create and read KTX image texture files."
+)
 
 include(CTest)
 
 include(GNUInstallDirs)
-include(CPackComponent)
 
 include(cmake/version.cmake)
 include(cmake/mkvk.cmake)
@@ -119,13 +120,11 @@ add_library( ktx ${LIB_TYPE}
     lib/vkformat_str.c
     )
 
-if(LINUX)
-    set_target_properties(ktx PROPERTIES
-        PUBLIC_HEADER include/ktx.h
-        VERSION ${PROJECT_VERSION}
-        SOVERSION ${PROJECT_VERSION_MAJOR}
-    )
-endif()
+set_target_properties(ktx PROPERTIES
+    PUBLIC_HEADER include/ktx.h
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+)
 
 add_dependencies(ktx mkvk)
 create_version_header(lib ktx)
@@ -188,9 +187,14 @@ endif()
 target_include_directories(
     ktx
 PUBLIC
-    include
-    lib/basisu/transcoder
-    other_include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+    $<INSTALL_INTERFACE:lib/basisu/transcoder>
+
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
+    $<INSTALL_INTERFACE:other_include>
 )
 
 if( LIB_TYPE STREQUAL STATIC )
@@ -297,8 +301,11 @@ if(KTX_FEATURE_WRITE)
     target_include_directories(
         ktx
     PUBLIC
-        lib
-        lib/basisu
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
+        $<INSTALL_INTERFACE:lib>
+
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
+        $<INSTALL_INTERFACE:lib/basisu>
     )
 
 endif()
@@ -355,7 +362,8 @@ if(KTX_FEATURE_VULKAN)
     target_include_directories(
         ktx
     PUBLIC
-        lib/dfdutils
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils>
+        $<INSTALL_INTERFACE:lib/dfdutils>
     )
 else()
     target_compile_definitions( ktx PRIVATE KTX_OMIT_VULKAN=1 )
@@ -422,56 +430,101 @@ PUBLIC
 
 add_subdirectory(interface/basisu_c_binding)
 
+# Tools
 if(KTX_FEATURE_TOOLS)
     add_subdirectory(tools)
 endif()
 
+# Tests
 add_subdirectory(tests)
 
+# Documentation
 if(KTX_FEATURE_DOC)
     include(cmake/docs.cmake)
 endif()
 
-if(LINUX)
-    install(TARGETS ktx
-        LIBRARY
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            COMPONENT Libraries
-            NAMELINK_SKIP
-        PUBLIC_HEADER
-            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-            COMPONENT Headers
-    )
-    install(TARGETS ktx
-        LIBRARY
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            COMPONENT Namelinks
-            NAMELINK_ONLY
-    )
-else()
-    install(TARGETS ktx)
-endif()
 
-# Packing
+# Install
+
+install(TARGETS ktx
+    EXPORT KTXTargets
+    LIBRARY
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT Libraries
+        NAMELINK_SKIP
+    INCLUDES
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        COMPONENT Headers
+    PUBLIC_HEADER
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        COMPONENT Headers
+)
+install(TARGETS ktx
+    LIBRARY
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT Namelinks
+        NAMELINK_ONLY
+)
+
+install(EXPORT KTXTargets
+    FILE KtxTargets.cmake
+    NAMESPACE KTX::
+    DESTINATION lib/cmake/ktx
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "KtxConfigVersion.cmake"
+    VERSION 3.0.0
+    COMPATIBILITY SameMajorVersion
+)
+
+install( FILES
+    "cmake/KtxConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/KtxConfigVersion.cmake"
+DESTINATION
+    lib/cmake/ktx
+)
+
+
+# CPack
+
+include(CPackComponent)
 
 if(APPLE)
     set(CPACK_GENERATOR productbuild)
 elseif(LINUX)
     set(CPACK_GENERATOR DEB)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
-
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "KTX-Software")
-    set(CPACK_PACKAGE_VENDOR "Khronos Group")
-    set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
-    
-    # set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
-    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
-    
-    cpack_add_component(Libraries)
-    cpack_add_component(Namelinks GROUP Development DEPENDS Libraries)
-    cpack_add_component(Headers GROUP Development DEPENDS Libraries)
-    
-    cpack_add_component_group(Development)
-    
-    include(CPack)
 endif()
+
+set(CPACK_PACKAGE_NAME "KTX-Software")
+set(CPACK_PACKAGE_VENDOR "Khronos Group")
+set(CPACK_PACKAGE_HOMEPAGE_URL "http://github.khronos.org/KTX-Specification")
+set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
+# TODO: Missing Reamde.txt
+# set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
+# TODO: Currently only .rtfd, .rtf, .html, and .txt files allowed.
+# set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
+set(CPACK_PACKAGE_CHECKSUM SHA1)
+
+
+cpack_add_component(Libraries
+    DESCRIPTION "Main KTX library"
+    REQUIRED
+)
+cpack_add_component(Tools
+    DEPENDS Libraries
+)
+cpack_add_component(Namelinks
+    GROUP Development
+    DEPENDS Libraries
+)
+cpack_add_component(Headers
+    GROUP Development
+    DEPENDS Libraries
+)
+
+cpack_add_component_group(Development)
+
+include(CPack)

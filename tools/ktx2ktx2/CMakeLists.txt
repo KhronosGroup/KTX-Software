@@ -20,4 +20,8 @@ target_link_libraries(
     ktx
 )
 
-install(TARGETS ktx2ktx2 RUNTIME DESTINATION bin)
+install(TARGETS ktx2ktx2
+    RUNTIME
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT Tools
+)
