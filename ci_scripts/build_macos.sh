@@ -25,6 +25,7 @@ export PATH="${VULKAN_SDK}/bin:$PATH"
 echo "Configure KTX-Software (macOS)"
 cmake -GXcode -Bbuild-macos -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 pushd build-macos
+
 echo "Build KTX-Software (macOS Debug)"
 cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 echo "Test KTX-Software (macOS Debug)"
@@ -38,9 +39,9 @@ echo "Test KTX-Software (macOS Release)"
 ctest -C Release # --verbose
 echo "Install KTX-Software (macOS Release)"
 cmake --install . --config Release --prefix ../install-macos-release
-
 echo "Pack KTX-Software (macOS Release)"
 cpack -G productbuild
+popd
 
 echo "Configure KTX-Software (iOS)"
 cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
