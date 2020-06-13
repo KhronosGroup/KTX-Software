@@ -37,8 +37,10 @@ cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=
 echo "Test KTX-Software (macOS Release)"
 ctest -C Release # --verbose
 echo "Install KTX-Software (macOS Release)"
-cmake --install . --config Debug --prefix ../install-macos-release
-popd
+cmake --install . --config Release --prefix ../install-macos-release
+
+echo "Pack KTX-Software (macOS Release)"
+cpack -G productbuild
 
 echo "Configure KTX-Software (iOS)"
 cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"

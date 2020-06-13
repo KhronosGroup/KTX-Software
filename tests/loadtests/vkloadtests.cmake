@@ -222,19 +222,41 @@ if(APPLE)
     endif()
 
     if(NOT IOS)
+        set_target_properties( vkloadtests PROPERTIES
+            INSTALL_RPATH "@executable_path/../Frameworks"
+        )
         add_custom_command( TARGET vkloadtests POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
             COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
             COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
             COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
             COMMENT "Copy libraries/frameworks to build destination"
         )
 
-        install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework" DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks" )
-        install(TARGETS vkloadtests
-            BUNDLE DESTINATION .
-            RESOURCE DESTINATION "Resources"
+        install(TARGETS ktx
+            LIBRARY
+                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
+                COMPONENT VkLoadTestApp
         )
+        install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework"
+            DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
+            COMPONENT VkLoadTestApp
+        )
+        install(TARGETS vkloadtests
+            BUNDLE
+                DESTINATION .
+                COMPONENT VkLoadTestApp
+            RESOURCE
+                COMPONENT VkLoadTestApp
+                ## Providing a destination shuts down a warning, but produces an orphaned file in installs
+                # DESTINATION Resources
+        )
+
+        ## Uncomment for Bundle analyzation
+        # install( CODE "
+        #     include(BundleUtilities)
+        #     verify_app($<TARGET_BUNDLE_DIR:vkloadtests>)
+        #     #fixup_bundle($<TARGET_BUNDLE_DIR:vkloadtests> \"\" \"\")"
+        # )
     endif()
 endif()
 

@@ -15,8 +15,4 @@ brew link sdl2
 pushd ../..
 wget -O vulkansdk-macos-$VULKAN_SDK_VER.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.dmg?Human=true
 hdiutil attach vulkansdk-macos-$VULKAN_SDK_VER.dmg
-wget -O Packages.dmg http://s.sudre.free.fr/Software/files/Packages.dmg
-hdiutil attach Packages.dmg
-sudo installer -pkg /Volumes/Packages*/packages/packages.pkg -target /
-hdiutil detach /Volumes/Packages*
 popd

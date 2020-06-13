@@ -121,7 +121,7 @@ add_library( ktx ${LIB_TYPE}
     )
 
 set_target_properties(ktx PROPERTIES
-    PUBLIC_HEADER include/ktx.h
+    # PUBLIC_HEADER include/ktx.h # Only in shared library frameworks
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -455,9 +455,6 @@ install(TARGETS ktx
     INCLUDES
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         COMPONENT Headers
-    PUBLIC_HEADER
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        COMPONENT Headers
 )
 install(TARGETS ktx
     LIBRARY
@@ -470,20 +467,20 @@ install(EXPORT KTXTargets
     FILE KtxTargets.cmake
     NAMESPACE KTX::
     DESTINATION lib/cmake/ktx
+    COMPONENT Libraries
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "KtxConfigVersion.cmake"
-    VERSION 3.0.0
     COMPATIBILITY SameMajorVersion
 )
 
 install( FILES
     "cmake/KtxConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/KtxConfigVersion.cmake"
-DESTINATION
-    lib/cmake/ktx
+    DESTINATION lib/cmake/ktx
+    COMPONENT Libraries
 )
 
 
@@ -513,17 +510,39 @@ cpack_add_component(Libraries
     DESCRIPTION "Main KTX library"
     REQUIRED
 )
-cpack_add_component(Tools
-    DEPENDS Libraries
-)
 cpack_add_component(Namelinks
-    GROUP Development
+    DEPENDS Libraries
+    HIDDEN
+)
+cpack_add_component(Tools
     DEPENDS Libraries
 )
 cpack_add_component(Headers
     GROUP Development
     DEPENDS Libraries
 )
+cpack_add_component(Documentation
+    GROUP Development
+)
+cpack_add_component(ManualPages
+    DISPLAY_NAME "Manual Pages"
+    GROUP Development
+)
+if(KTX_FEATURE_LOADTEST_APPS)
+    cpack_add_component(GlLoadTestApps
+        GROUP LoadTestApps
+        DISPLAY_NAME "OpenGL Test Applications"
+        DISABLED
+    )
+    cpack_add_component(VkLoadTestApp
+        GROUP LoadTestApps
+        DISPLAY_NAME "Vulkan Test Application"
+        DISABLED
+    )
+    cpack_add_component_group(LoadTestApps
+        DISPLAY_NAME "Load Test Applications"
+    )
+endif()
 
 cpack_add_component_group(Development)
 

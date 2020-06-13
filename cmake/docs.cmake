@@ -155,6 +155,7 @@ add_dependencies( ktxpkg.doc ktxtools.doc )
 install(
     DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html
     DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+    COMPONENT Documentation
 )
 
 install( DIRECTORY
@@ -163,4 +164,5 @@ install( DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/docs/man/ktx/man3
 DESTINATION
     "${CMAKE_INSTALL_MANDIR}"
+COMPONENT ManualPages
 )

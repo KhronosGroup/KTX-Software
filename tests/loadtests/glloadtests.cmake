@@ -138,11 +138,14 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             )
         endif()
 
-        ## TODO: fix install. it is broken for some reason.
-        # install(TARGETS ${target}
-        #     BUNDLE DESTINATION .
-        #     RESOURCE DESTINATION "Resources"
-        # )
+        install(TARGETS ${target}
+            BUNDLE
+                DESTINATION .
+                COMPONENT GlLoadTestApps
+            RESOURCE
+                DESTINATION $<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources
+                COMPONENT GlLoadTestApps
+        )
 
     elseif(EMSCRIPTEN)
         set_target_properties(${target} PROPERTIES SUFFIX ".html")
