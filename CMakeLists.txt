@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.13)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
+include(cmake/version.cmake)
+
 project(KTX-Software
-    VERSION 4.0.0
+    VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
 )
 
@@ -11,7 +13,6 @@ include(CTest)
 
 include(GNUInstallDirs)
 
-include(cmake/version.cmake)
 include(cmake/mkvk.cmake)
 include(cmake/xcode.cmake)
 

@@ -1,4 +1,141 @@
 #
+# Retrieving the current version from GIT tags
+#
+
+include(GetGitRevisionDescription)
+
+function(git_update_index)
+    if(NOT GIT_FOUND)
+        find_package(Git QUIET)
+    endif()
+    execute_process(COMMAND
+        "${GIT_EXECUTABLE}"
+        update-index -q --refresh
+        WORKING_DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        RESULT_VARIABLE
+        res
+        )
+    if(NOT res EQUAL 0)
+        message(SEND_ERROR "git update-index not successful")
+    endif()
+endfunction()
+
+function(git_describe_raw _var)
+	if(NOT GIT_FOUND)
+		find_package(Git QUIET)
+	endif()
+	if(NOT GIT_FOUND)
+		set(${_var} "GIT-NOTFOUND" PARENT_SCOPE)
+		return()
+	endif()
+
+	execute_process(COMMAND
+		"${GIT_EXECUTABLE}"
+		describe
+		${ARGN}
+		WORKING_DIRECTORY
+		"${CMAKE_CURRENT_SOURCE_DIR}"
+		RESULT_VARIABLE
+		res
+		OUTPUT_VARIABLE
+		out
+		ERROR_QUIET
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if(NOT res EQUAL 0)
+		set(out "${out}-${res}-NOTFOUND")
+	endif()
+
+	set(${_var} "${out}" PARENT_SCOPE)
+endfunction()
+
+function(git_rev_list target_path _var)
+    if(NOT GIT_FOUND)
+        find_package(Git QUIET)
+    endif()
+    execute_process(COMMAND
+        "${GIT_EXECUTABLE}"
+        rev-list -1 HEAD ${target_path}
+        WORKING_DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        RESULT_VARIABLE
+        res
+        OUTPUT_VARIABLE
+        out
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(NOT res EQUAL 0)
+        message(SEND_ERROR "git update-index not successful")
+    endif()
+    set(${_var} "${out}" PARENT_SCOPE)
+endfunction()
+
+function(git_dirty _var)
+    if(NOT GIT_FOUND)
+        find_package(Git QUIET)
+    endif()
+    execute_process(COMMAND
+        diff-index --name-only HEAD --
+        WORKING_DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        RESULT_VARIABLE
+        res
+    )
+    set(${_var} "${res}" PARENT_SCOPE)
+endfunction()
+
+
+function(generate_version _var )
+    if(${ARGC} GREATER 1)
+        set(target_path ${ARGN})
+        git_rev_list(${target_path} KTX_REV)
+        git_describe_raw(KTX_VERSION --contains --match v[0-9]* ${KTX_REV})
+        if(NOT KTX_VERSION)
+            git_describe_raw(KTX_VERSION "--match" "v[0-9]*" ${KTX_REV})
+        endif()
+    else()
+        git_describe_raw(KTX_VERSION "--match" "v[0-9]*" "HEAD" )
+    endif()
+
+    git_update_index()
+    git_dirty(GIT_DIRTY)
+    if(GIT_DIRTY)
+        set(KTX_VERSION ${KTX_VERSION}-dirty)
+    endif()
+    string(REPLACE "-" "." KTX_VERSION ${KTX_VERSION})
+    set(${_var} "${KTX_VERSION}" PARENT_SCOPE)
+endfunction()
+
+
+generate_version(KTX_VERSION_FULL)
+#message("KTX full version: ${KTX_VERSION_FULL}")
+
+# generate_version(TOKTX_VERSION tools/toktx)
+# message("TOKTX_VERSION: ${TOKTX_VERSION}")
+
+string(REGEX MATCH "^v([0-9]*)\.([0-9]*).([^\.]*)"
+       KTX_VERSION ${KTX_VERSION_FULL})
+
+set(KTX_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(KTX_VERSION_MINOR ${CMAKE_MATCH_2})
+set(KTX_VERSION_PATCH ${CMAKE_MATCH_3})
+
+string(REGEX MATCH "^[0-9]*$"
+    KTX_VERSION_PATCH_INT ${KTX_VERSION_PATCH})
+
+if(KTX_VERSION_PATCH_INT)
+    set(KTX_VERSION_TWEAK "")
+else()
+    set(KTX_VERSION_TWEAK ${KTX_VERSION_PATCH})
+    set(KTX_VERSION_PATCH "0")
+endif()
+
+set(KTX_VERSION ${KTX_VERSION_MAJOR}.${KTX_VERSION_MINOR}.${KTX_VERSION_PATCH})
+
+#message("KTX version: ${KTX_VERSION}  major: ${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH}")
+
+
+#
 # Create a version.h header file using the mkversion shell script
 #
 
