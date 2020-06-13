@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
 project(KTX-Software)
+project(KTX-Software VERSION 4.0.0)
 
 include(CTest)
 
@@ -121,9 +122,8 @@ add_library( ktx ${LIB_TYPE}
 if(LINUX)
     set_target_properties(ktx PROPERTIES
         PUBLIC_HEADER include/ktx.h
-        # TODO: fill in correct version here
-        VERSION 3.0.0
-        SOVERSION 3
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
     )
 endif()
 
@@ -466,13 +466,6 @@ elseif(LINUX)
     
     # set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
-    
-    # TODO: fill in correct version here
-    set(CPACK_PACKAGE_VERSION_MAJOR "3")
-    set(CPACK_PACKAGE_VERSION_MINOR "0")
-    set(CPACK_PACKAGE_VERSION_PATCH "0")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
-    
     
     cpack_add_component(Libraries)
     cpack_add_component(Namelinks GROUP Development DEPENDS Libraries)
