@@ -121,7 +121,7 @@ add_library( ktx ${LIB_TYPE}
     )
 
 set_target_properties(ktx PROPERTIES
-    # PUBLIC_HEADER include/ktx.h # Only in shared library frameworks
+    PUBLIC_HEADER include/ktx.h
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -446,22 +446,38 @@ endif()
 
 # Install
 
-install(TARGETS ktx
-    EXPORT KTXTargets
-    LIBRARY
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT Libraries
-        NAMELINK_SKIP
-    INCLUDES
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        COMPONENT Headers
-)
-install(TARGETS ktx
-    LIBRARY
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT Namelinks
-        NAMELINK_ONLY
-)
+if(APPLE OR LINUX)
+    # Have library's name links as separate component
+    set(KTX_NAMELINKS ON)
+    install(TARGETS ktx
+        EXPORT KTXTargets
+        LIBRARY
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT Libraries
+            NAMELINK_SKIP
+        PUBLIC_HEADER
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            COMPONENT Headers
+    )
+    install(TARGETS ktx
+        LIBRARY
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT Namelinks
+            NAMELINK_ONLY
+    )
+else()
+    # No name links on Windows
+    set(KTX_NAMELINKS OFF)
+    install(TARGETS ktx
+        EXPORT KTXTargets
+        LIBRARY
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT Libraries
+        PUBLIC_HEADER
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            COMPONENT Headers
+    )
+endif()
 
 install(EXPORT KTXTargets
     FILE KtxTargets.cmake
@@ -510,10 +526,12 @@ cpack_add_component(Libraries
     DESCRIPTION "Main KTX library"
     REQUIRED
 )
-cpack_add_component(Namelinks
-    DEPENDS Libraries
-    HIDDEN
-)
+if(KTX_NAMELINKS)
+    cpack_add_component(Namelinks
+        DEPENDS Libraries
+        HIDDEN
+    )
+endif()
 cpack_add_component(Tools
     DEPENDS Libraries
 )
@@ -546,12 +564,16 @@ endif()
 
 set(CPACK_COMPONENTS_ALL
     Libraries
-    Namelinks
     Tools
     Headers
     Documentation
     # ManualPages
 )
+if(KTX_NAMELINKS)
+    list(APPEND CPACK_COMPONENTS_ALL
+        Namelinks
+    )
+endif()
 
 cpack_add_component_group(Development)
 
