@@ -105,9 +105,9 @@ deploy:
     github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
     local-dir: build-macos/docs/html
     on:
-      branch: master
+      # branch: master
       condition: $TRAVIS_OS_NAME = osx
-      #tags: true
+      tags: true
   - provider: releases
     api_key: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
     file_glob: true
@@ -120,7 +120,8 @@ deploy:
       tags: true
       condition: $TRAVIS_OS_NAME = osx
   - provider: releases
-    api_key: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    api_key:
+      secure: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
     file_glob: true
     file: build-linux-release/KTX-Software-*-Linux.*
     skip_cleanup: true
