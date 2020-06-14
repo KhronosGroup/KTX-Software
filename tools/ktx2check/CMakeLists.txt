@@ -23,6 +23,7 @@ target_link_libraries(
 set_target_properties(ktx2check PROPERTIES
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
 )
+set_xcode_code_sign(ktx2check)
 
 install(TARGETS ktx2check
     RUNTIME

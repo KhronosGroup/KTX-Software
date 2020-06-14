@@ -23,6 +23,7 @@ target_link_libraries(
 set_target_properties(ktxsc PROPERTIES
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
 )
+set_xcode_code_sign(ktxsc)
 
 install(TARGETS ktxsc
     RUNTIME

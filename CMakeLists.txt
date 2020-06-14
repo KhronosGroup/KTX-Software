@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 
 include(cmake/version.cmake)
 include(cmake/mkvk.cmake)
+include(cmake/xcode.cmake)
 
 find_package(Bash REQUIRED)
 
@@ -25,6 +26,8 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
 
 if(APPLE)
+    set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
+    set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
     set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
     set(PKGBUILD_IDENTITY_NAME "" CACHE STRING "pkgbuild identity name")

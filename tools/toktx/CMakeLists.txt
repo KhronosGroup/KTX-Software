@@ -36,6 +36,7 @@ PRIVATE
 set_target_properties(toktx PROPERTIES
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
 )
+set_xcode_code_sign(toktx)
 
 install(TARGETS toktx
     RUNTIME
