@@ -100,13 +100,33 @@ after_script:
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 
 deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  local-dir: build-macos/docs/html
-  on:
-    branch: master
-    condition: $TRAVIS_OS_NAME = osx
-    #tags: true
+  - provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    local-dir: build-macos/docs/html
+    on:
+      branch: master
+      condition: $TRAVIS_OS_NAME = osx
+      #tags: true
+  - provider: releases
+    api_key: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    file_glob: true
+    file:
+      - build-macos/KTX-Software-*.pkg
+      - build-macos/KTX-Software-*.pkg.sha1
+    skip_cleanup: true
+    draft: true
+    on:
+      tags: true
+      condition: $TRAVIS_OS_NAME = osx
+  - provider: releases
+    api_key: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    file_glob: true
+    file: build-linux-release/KTX-Software-*-Linux.*
+    skip_cleanup: true
+    draft: true
+    on:
+      tags: true
+      condition: $TRAVIS_OS_NAME = linux
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

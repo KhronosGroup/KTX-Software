@@ -22,8 +22,10 @@ echo "Build KTX-Software (Linux Release)"
 ${CMAKE_EXE} --build .
 echo "Test KTX-Software (Linux Release)"
 ctest # --verbose
-# echo "Pack KTX-Software (Linux Release)"
-# cpack -G DEB
+echo "Pack KTX-Software (Linux Release)"
+cpack -G DEB
+cpack -G RPM
+cpack -G TBZ2
 popd
 
 echo "Configure/Build KTX-Software (Web Debug)"
