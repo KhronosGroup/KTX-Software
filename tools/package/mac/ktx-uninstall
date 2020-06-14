@@ -1,5 +1,10 @@
 #! /bin/sh
 
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root to uninstall KTX-Software" >&2
+  exit -1
+fi
+
 cd /
 for pkg in com.Khronos.ktx.dev com.Khronos.ktx.library com.Khronos.ktx.tools
 do
