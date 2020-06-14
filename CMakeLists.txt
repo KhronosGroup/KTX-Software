@@ -504,13 +504,6 @@ install( FILES
 
 include(CPackComponent)
 
-if(APPLE)
-    set(CPACK_GENERATOR productbuild)
-elseif(LINUX)
-    set(CPACK_GENERATOR DEB)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
-endif()
-
 set(CPACK_PACKAGE_NAME "KTX-Software")
 set(CPACK_PACKAGE_VENDOR "Khronos Group")
 set(CPACK_PACKAGE_HOMEPAGE_URL "http://github.khronos.org/KTX-Specification")
@@ -521,6 +514,13 @@ set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
 # set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
 set(CPACK_PACKAGE_CHECKSUM SHA1)
 
+if(APPLE)
+    set(CPACK_GENERATOR productbuild)
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+elseif(LINUX)
+    set(CPACK_GENERATOR DEB)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
+endif()
 
 cpack_add_component(Libraries
     DESCRIPTION "Main KTX library"
