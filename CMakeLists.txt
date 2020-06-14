@@ -134,6 +134,7 @@ set_target_properties(ktx PROPERTIES
     PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
+    XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
 )
 
 add_dependencies(ktx mkvk)

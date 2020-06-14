@@ -20,6 +20,10 @@ target_link_libraries(
     ktx
 )
 
+set_target_properties(ktx2check PROPERTIES
+    XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+)
+
 install(TARGETS ktx2check
     RUNTIME
         DESTINATION ${CMAKE_INSTALL_BINDIR}
