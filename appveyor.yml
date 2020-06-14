@@ -113,6 +113,7 @@ build_script:
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib"
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
+    cmake --build . --config $env:CONFIGURATION --target PACKAGE
     popd
     echo "Done Building"
 
