@@ -21,6 +21,16 @@ find_package(Bash REQUIRED)
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 
+
+set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
+
+if(APPLE)
+    set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
+    set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
+    set(PKGBUILD_IDENTITY_NAME "" CACHE STRING "pkgbuild identity name")
+    set(PKGBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
+endif()
+
 # Might become options in the future
 
 # option( KTX_FEATURE_KTX1 "KTX version 1" ON )
@@ -528,6 +538,12 @@ if(APPLE)
     set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
     # Install at root level
     set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+
+    set(CPACK_PRODUCTBUILD_IDENTITY_NAME ${PRODUCTBUILD_IDENTITY_NAME})
+    set(CPACK_PRODUCTBUILD_KEYCHAIN_PATH ${PRODUCTBUILD_KEYCHAIN_PATH})
+    set(CPACK_PKGBUILD_IDENTITY_NAME ${PKGBUILD_IDENTITY_NAME})
+    set(CPACK_PKGBUILD_KEYCHAIN_PATH ${PKGBUILD_KEYCHAIN_PATH})
+
 elseif(LINUX)
     set(CPACK_GENERATOR DEB)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
