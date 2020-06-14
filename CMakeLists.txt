@@ -121,7 +121,7 @@ add_library( ktx ${LIB_TYPE}
     )
 
 set_target_properties(ktx PROPERTIES
-    PUBLIC_HEADER include/ktx.h
+    PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -453,16 +453,16 @@ if(APPLE OR LINUX)
         EXPORT KTXTargets
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT Libraries
+            COMPONENT library
             NAMELINK_SKIP
         PUBLIC_HEADER
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            COMPONENT Headers
+            COMPONENT dev
     )
     install(TARGETS ktx
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT Namelinks
+            COMPONENT library
             NAMELINK_ONLY
     )
 else()
@@ -472,10 +472,10 @@ else()
         EXPORT KTXTargets
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT Libraries
+            COMPONENT library
         PUBLIC_HEADER
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            COMPONENT Headers
+            COMPONENT dev
     )
 endif()
 
@@ -483,7 +483,7 @@ install(EXPORT KTXTargets
     FILE KtxTargets.cmake
     NAMESPACE KTX::
     DESTINATION lib/cmake/ktx
-    COMPONENT Libraries
+    COMPONENT library
 )
 
 include(CMakePackageConfigHelpers)
@@ -496,7 +496,7 @@ install( FILES
     "cmake/KtxConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/KtxConfigVersion.cmake"
     DESTINATION lib/cmake/ktx
-    COMPONENT Libraries
+    COMPONENT library
 )
 
 
@@ -515,37 +515,47 @@ set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
 set(CPACK_PACKAGE_CHECKSUM SHA1)
 
 if(APPLE)
+    install(FILES tools/package/mac/ktx-uninstall
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        COMPONENT tools
+    )
     set(CPACK_GENERATOR productbuild)
+    # Trick the productbuild generator into creating more useful package IDs
+    set(CPACK_PACKAGE_NAME "ktx")
+    set(CPACK_PACKAGE_VENDOR "Khronos")
+    # Package file should still be named `KTX-Software`
+    set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
+    # Install at root level
     set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 elseif(LINUX)
     set(CPACK_GENERATOR DEB)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
 endif()
 
-cpack_add_component(Libraries
+cpack_add_component(library
+    DISPLAY_NAME "Library"
     DESCRIPTION "Main KTX library"
     REQUIRED
 )
-if(KTX_NAMELINKS)
-    cpack_add_component(Namelinks
-        DEPENDS Libraries
-        HIDDEN
-    )
-endif()
-cpack_add_component(Tools
-    DEPENDS Libraries
+# if(KTX_NAMELINKS)
+#     cpack_add_component(Namelinks
+#         DEPENDS library
+#         HIDDEN
+#     )
+# endif()
+cpack_add_component(tools
+    DISPLAY_NAME "Command line tools"
+    DESCRIPTION "Command line tools for creating, converting and inspecting KTX files."
+    DEPENDS library
 )
-cpack_add_component(Headers
-    GROUP Development
-    DEPENDS Libraries
+cpack_add_component(dev
+    DISPLAY_NAME "Development"
+    DESCRIPTION "Additional resources for development (header files and documentation)"
+    DEPENDS library
+    DISABLED
 )
-cpack_add_component(Documentation
-    GROUP Development
-)
-cpack_add_component(ManualPages
-    DISPLAY_NAME "Manual Pages"
-    GROUP Development
-)
+
 if(KTX_FEATURE_LOADTEST_APPS)
     cpack_add_component(GlLoadTestApps
         GROUP LoadTestApps
@@ -563,18 +573,15 @@ if(KTX_FEATURE_LOADTEST_APPS)
 endif()
 
 set(CPACK_COMPONENTS_ALL
-    Libraries
-    Tools
-    Headers
-    Documentation
-    # ManualPages
+    library
+    tools
+    dev
+    # Headers
 )
-if(KTX_NAMELINKS)
-    list(APPEND CPACK_COMPONENTS_ALL
-        Namelinks
-    )
-endif()
-
-cpack_add_component_group(Development)
+# if(KTX_NAMELINKS)
+#     list(APPEND CPACK_COMPONENTS_ALL
+#         Namelinks
+#     )
+# endif()
 
 include(CPack)

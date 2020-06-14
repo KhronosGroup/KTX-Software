@@ -22,5 +22,5 @@ target_link_libraries(
 install(TARGETS ktxinfo
     RUNTIME
         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT Tools
+        COMPONENT tools
 )

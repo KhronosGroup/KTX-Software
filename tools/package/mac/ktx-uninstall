@@ -1,7 +1,7 @@
 #! /bin/sh
 
 cd /
-for pkg in org.khronos.pkg.ktxtools org.khronos.pkg.ktxdev org.khronos.pkg.ktxbase
+for pkg in com.Khronos.ktx.dev com.Khronos.ktx.library com.Khronos.ktx.tools
 do
     pkgutil --only-files --files $pkg | xargs -n 1 rm # sudo rm -i
     pkgutil --forget $pkg

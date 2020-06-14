@@ -36,5 +36,5 @@ PRIVATE
 install(TARGETS toktx
     RUNTIME
         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT Tools
+        COMPONENT tools
 )

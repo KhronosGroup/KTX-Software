@@ -236,6 +236,8 @@ if(APPLE)
             LIBRARY
                 DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
                 COMPONENT VkLoadTestApp
+            PUBLIC_HEADER
+                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Headers"
         )
         install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework"
             DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"

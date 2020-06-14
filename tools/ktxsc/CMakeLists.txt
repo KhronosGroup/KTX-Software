@@ -23,5 +23,5 @@ target_link_libraries(
 install(TARGETS ktxsc
     RUNTIME
         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT Tools
+        COMPONENT tools
 )
