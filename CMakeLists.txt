@@ -544,6 +544,15 @@ if(KTX_FEATURE_LOADTEST_APPS)
     )
 endif()
 
+set(CPACK_COMPONENTS_ALL
+    Libraries
+    Namelinks
+    Tools
+    Headers
+    Documentation
+    # ManualPages
+)
+
 cpack_add_component_group(Development)
 
 include(CPack)
