@@ -516,7 +516,7 @@ include(CPackComponent)
 
 set(CPACK_PACKAGE_NAME "KTX-Software")
 set(CPACK_PACKAGE_VENDOR "Khronos Group")
-set(CPACK_PACKAGE_HOMEPAGE_URL "http://github.khronos.org/KTX-Specification")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.khronos.org/KTX-Software")
 set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
 # TODO: Missing Reamde.txt
 # set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
