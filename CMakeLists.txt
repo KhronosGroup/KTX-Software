@@ -524,7 +524,6 @@ set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
 # set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
 # TODO: Currently only .rtfd, .rtf, .html, and .txt files allowed.
 # set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
-set(CPACK_PACKAGE_CHECKSUM SHA1)
 
 if(APPLE)
     install(FILES tools/package/mac/ktx-uninstall
@@ -547,6 +546,9 @@ if(APPLE)
 elseif(LINUX)
     set(CPACK_GENERATOR DEB)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
+    set(CPACK_PACKAGE_CHECKSUM SHA1)
+else()
+    set(CPACK_PACKAGE_CHECKSUM SHA1)
 endif()
 
 cpack_add_component(library
