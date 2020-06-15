@@ -138,6 +138,7 @@ set_target_properties(ktx PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
 )
+set_xcode_code_sign(ktx)
 
 add_dependencies(ktx mkvk)
 create_version_header(lib ktx)
