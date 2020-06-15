@@ -22,6 +22,7 @@ target_link_libraries(
 
 set_target_properties(ktx2ktx2 PROPERTIES
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+    INSTALL_RPATH "@executable_path;/usr/local/lib"
 )
 set_xcode_code_sign(ktx2ktx2)
 

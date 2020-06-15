@@ -132,6 +132,9 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         endif()
 
         if(NOT IOS)
+            set_target_properties( ${target} PROPERTIES
+                INSTALL_RPATH "@executable_path/../Frameworks"
+            )
             add_custom_command( TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
                 COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"

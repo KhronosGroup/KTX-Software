@@ -21,6 +21,7 @@ target_link_libraries(
 
 set_target_properties(ktxinfo PROPERTIES
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+    INSTALL_RPATH "@executable_path;/usr/local/lib"
 )
 set_xcode_code_sign(ktxinfo)
 
