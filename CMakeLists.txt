@@ -524,10 +524,13 @@ set(CPACK_PACKAGE_NAME "KTX-Software")
 set(CPACK_PACKAGE_VENDOR "Khronos Group")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.khronos.org/KTX-Software")
 set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
-# TODO: Missing Reamde.txt
-# set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
-# TODO: Currently only .rtfd, .rtf, .html, and .txt files allowed.
-# set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
+
+# Note: not used by productbuild.
+# set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
+
+set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Welcome.rtf")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/LICENSE.rtf")
 
 if(APPLE)
     install(FILES tools/package/mac/ktx-uninstall
