@@ -7,6 +7,8 @@ set_target_properties(${target} PROPERTIES
 
 if(XCODE_CODE_SIGN_FOR_RELEASE)
     set_target_properties(${target} PROPERTIES
+        XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--timestamp"
+        XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS "NO"
         BUILD_WITH_INSTALL_RPATH ON
     )
 endif()
