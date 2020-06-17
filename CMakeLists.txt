@@ -27,8 +27,6 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
 
 if(APPLE)
-    option(XCODE_CODE_SIGN_FOR_RELEASE "When ON, targets will be built with final/release RPATH values. This prevents CMake from breaking the signing of binaries but breaks execution within build directories." OFF )
-
     set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
     set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
     set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
@@ -344,6 +342,10 @@ elseif(APPLE)
             ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libzstd.a
             )
     else()
+        # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
+        # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
+        # for working code signing.
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
         target_link_libraries(
             ktx
             ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a

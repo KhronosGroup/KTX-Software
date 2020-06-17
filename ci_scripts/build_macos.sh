@@ -29,54 +29,44 @@ export PATH="${VULKAN_SDK}/bin:$PATH"
 echo "Configure KTX-Software (macOS)"
 cmake -GXcode -Bbuild-macos \
 -DKTX_FEATURE_DOC=ON \
--DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+-DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}" \
+-DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
+-DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+-DPRODUCTBUILD_IDENTITY_NAME="${PKG_IDENTITY_NAME}"
 
 pushd build-macos
+
 # Build and test Debug
 echo "Build KTX-Software (macOS Debug)"
 cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 echo "Test KTX-Software (macOS Debug)"
 ctest -C Debug # --verbose
+
 # Build and test Release
 echo "Build KTX-Software (macOS Release)"
-cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+cmake --build . --config Release
 echo "Test KTX-Software (macOS Release)"
 ctest -C Release # --verbose
-popd
-
-# Re-configure for packaging
-cmake -GXcode -Bbuild-macos \
--DBUILD_TESTING=OFF \
--DKTX_FEATURE_DOC=ON \
--DKTX_FEATURE_LOADTEST_APPS=OFF \
--DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
--DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
--DPRODUCTBUILD_IDENTITY_NAME="${PKG_IDENTITY_NAME}" \
--DXCODE_CODE_SIGN_FOR_RELEASE=ON
-
-pushd build-macos
-# Build Release
-echo "Build KTX-Software (macOS Release)"
-cmake --build . --config Release
 echo "Install KTX-Software (macOS Release)"
 cmake --install . --config Release --prefix ../install-macos-release
 echo "Pack KTX-Software (macOS Release)"
 cpack -G productbuild
+
 popd
 
 #
 # iOS
 #
 
-echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
-pushd build-ios
-echo "Build KTX-Software (iOS Debug)"
-cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
-# echo "Build KTX-Software (iOS Simulator Debug)"
-# cmake --build . --config Debug -- -sdk iphonesimulator
-echo "Build KTX-Software (iOS Release)"
-cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
-# echo "Build KTX-Software (iOS Simulator Release)"
-# cmake --build . --config Release -- -sdk iphonesimulator
-popd
+# echo "Configure KTX-Software (iOS)"
+# cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+# pushd build-ios
+# echo "Build KTX-Software (iOS Debug)"
+# cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+# # echo "Build KTX-Software (iOS Simulator Debug)"
+# # cmake --build . --config Debug -- -sdk iphonesimulator
+# echo "Build KTX-Software (iOS Release)"
+# cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+# # echo "Build KTX-Software (iOS Simulator Release)"
+# # cmake --build . --config Release -- -sdk iphonesimulator
+# popd
