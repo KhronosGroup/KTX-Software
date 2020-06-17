@@ -140,6 +140,13 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
                 COMMENT "Copy libraries/frameworks to build destination"
             )
+            install(TARGETS ktx
+                LIBRARY
+                    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks"
+                    COMPONENT VkLoadTestApp
+                PUBLIC_HEADER
+                    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Headers"
+            )
             install(TARGETS ${target}
                 BUNDLE
                     DESTINATION .
