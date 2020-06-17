@@ -541,7 +541,7 @@ if(APPLE)
     set(CPACK_GENERATOR productbuild)
     # Trick the productbuild generator into creating more useful package IDs
     set(CPACK_PACKAGE_NAME "ktx")
-    set(CPACK_PACKAGE_VENDOR "Khronos")
+    set(CPACK_PACKAGE_VENDOR "khronos")
     # Package file should still be named `KTX-Software`
     set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
     # Install at root level
