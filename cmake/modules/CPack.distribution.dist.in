@@ -4,8 +4,8 @@
     <welcome file="@CPACK_RESOURCE_FILE_WELCOME_NOPATH@"/>
     <readme file="@CPACK_RESOURCE_FILE_README_NOPATH@"/>
     <license file="@CPACK_RESOURCE_FILE_LICENSE_NOPATH@"/>
-    <options allow-external-scripts="no" customize="allow" rootVolumeOnly="true"/>
     <domains enable_localSystem="true"/>
+    <options allow-external-scripts="no" customize="allow" rootVolumeOnly="true"/>
     @CPACK_PACKAGEMAKER_CHOICES@
     <conclusion file="summary.html" mime-type="text/html"/>
 </installer-gui-script>
