@@ -1,4 +1,9 @@
 # Code generation scripts that require a Vulkan SDK installation
+if(WIN32 AND NOT CYGWIN_INSTALL_PATH)
+    # Git for Windows comes with Perl
+    # Trick FindPerl into considering default Git location
+    set(CYGWIN_INSTALL_PATH "C:\\Program Files\\Git\\usr")
+endif()
 
 find_package(Perl)
 
