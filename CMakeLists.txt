@@ -12,6 +12,7 @@ project(KTX-Software
 include(CTest)
 
 include(GNUInstallDirs)
+include(CMakeDependentOption)
 
 include(cmake/mkvk.cmake)
 include(cmake/xcode.cmake)
@@ -20,6 +21,7 @@ find_package(Bash REQUIRED)
 
 # OPTIONS
 
+CMAKE_DEPENDENT_OPTION(KTX_FEATURE_TOOLS "Create KTX tools" ON "NOT IOS;NOT ANDROID;NOT EMSCRIPTEN" OFF)
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 
@@ -43,8 +45,6 @@ set( KTX_FEATURE_WRITE ON )
 set( KTX_FEATURE_KTX1 ON )
 set( KTX_FEATURE_KTX2 ON )
 set( KTX_FEATURE_VULKAN ON )
-set( KTX_FEATURE_TOOLS ON )
-
 
 # Platform specific settings
 
@@ -63,11 +63,6 @@ endif()
 
 if(EMSCRIPTEN)
     set( KTX_FEATURE_VULKAN OFF )
-endif()
-    
-if(IOS OR ANDROID OR EMSCRIPTEN)
-    # Tools are not supported on mobile platforms
-    set( KTX_FEATURE_TOOLS OFF )
 endif()
 
 set(bitness 64)
