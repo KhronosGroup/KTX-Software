@@ -1,5 +1,7 @@
 # Code generation scripts that require a Vulkan SDK installation
 
+find_package(Perl REQUIRED)
+
 list(APPEND mkvkformatfiles_input
     "lib/dfdutils/vulkan/vulkan_core.h"
     "lib/mkvkformatfiles")
@@ -42,7 +44,7 @@ set(makevkswitch_output
 add_custom_command(
     OUTPUT ${makevkswitch_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND perl lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+    COMMAND ${PERL_EXECUTABLE} lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
     DEPENDS ${makevkswitch_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT Generating VkFormat/DFD switch body
