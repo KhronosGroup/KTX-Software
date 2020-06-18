@@ -491,6 +491,9 @@ else()
     set(KTX_NAMELINKS OFF)
     install(TARGETS ktx
         EXPORT KTXTargets
+        ARCHIVE
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT dev
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
