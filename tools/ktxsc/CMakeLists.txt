@@ -25,9 +25,3 @@ set_target_properties(ktxsc PROPERTIES
     INSTALL_RPATH "@executable_path;/usr/local/lib"
 )
 set_xcode_code_sign(ktxsc)
-
-install(TARGETS ktxsc
-    RUNTIME
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT tools
-)

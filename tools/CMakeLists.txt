@@ -18,3 +18,14 @@ add_subdirectory(ktx2ktx2)
 add_subdirectory(ktxinfo)
 add_subdirectory(ktxsc)
 add_subdirectory(toktx)
+
+install(TARGETS
+    ktx2check
+    ktx2ktx2
+    ktxinfo
+    ktxsc
+    toktx
+RUNTIME
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT tools
+)

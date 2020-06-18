@@ -25,9 +25,3 @@ set_target_properties(ktx2ktx2 PROPERTIES
     INSTALL_RPATH "@executable_path;/usr/local/lib"
 )
 set_xcode_code_sign(ktx2ktx2)
-
-install(TARGETS ktx2ktx2
-    RUNTIME
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT tools
-)

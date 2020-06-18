@@ -24,9 +24,3 @@ set_target_properties(ktxinfo PROPERTIES
     INSTALL_RPATH "@executable_path;/usr/local/lib"
 )
 set_xcode_code_sign(ktxinfo)
-
-install(TARGETS ktxinfo
-    RUNTIME
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT tools
-)
