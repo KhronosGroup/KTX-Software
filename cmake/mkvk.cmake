@@ -23,7 +23,7 @@ list(APPEND mkvkformatfiles_output
 if(WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND ${BASH_EXECUTABLE} -c "VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib"
+        COMMAND "${BASH_EXECUTABLE}" -c "VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib"
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT Generating VkFormat-related source files
@@ -54,7 +54,7 @@ set(makevkswitch_output
 add_custom_command(
     OUTPUT ${makevkswitch_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND ${PERL_EXECUTABLE} lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
     DEPENDS ${makevkswitch_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT Generating VkFormat/DFD switch body
@@ -75,7 +75,7 @@ list(APPEND makedfd2vk_output
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
+    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
     DEPENDS ${makedfd2vk_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT Generating DFD/VkFormat switch body
