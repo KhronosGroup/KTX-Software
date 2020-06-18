@@ -1,6 +1,11 @@
 # Code generation scripts that require a Vulkan SDK installation
 
-find_package(Perl REQUIRED)
+find_package(Perl)
+
+if(NOT PERL_FOUND)
+    message(WARNING "Perl not found -> skipping mkvk target (this is harmless; only needed when re-generating of vulkan headers and dfdutils is required)")
+    return()
+endif()
 
 list(APPEND mkvkformatfiles_input
     "lib/dfdutils/vulkan/vulkan_core.h"

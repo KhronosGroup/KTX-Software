@@ -140,7 +140,9 @@ set_target_properties(ktx PROPERTIES
 )
 set_xcode_code_sign(ktx)
 
-add_dependencies(ktx mkvk)
+## Creating vulkan headers is only required when Vulkan SDK updates.
+# add_dependencies(ktx mkvk)
+
 create_version_header(lib ktx)
 
 target_compile_definitions(ktx PRIVATE LIBKTX)
