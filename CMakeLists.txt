@@ -491,6 +491,9 @@ else()
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
+        RUNTIME
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            COMPONENT library
         PUBLIC_HEADER
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
