@@ -13,8 +13,6 @@ endif()
 
 
 if(APPLE)
-    set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
-
     # Try to locate Vulkan SDK install directory
     if(NOT VULKAN_INSTALL_DIR)
         message(SEND_ERROR "Please provide a valid path to your Vulkan SDK installation in CMake variable 'VULKAN_INSTALL_DIR'!")
