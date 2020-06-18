@@ -380,6 +380,12 @@ if(KTX_FEATURE_VULKAN)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils>
         $<INSTALL_INTERFACE:lib/dfdutils>
     )
+
+    get_target_property( KTX_PUBLIC_HEADER ktx PUBLIC_HEADER )
+    list(APPEND KTX_PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktxvulkan.h)
+    set_target_properties(ktx PROPERTIES
+        PUBLIC_HEADER "${KTX_PUBLIC_HEADER}"
+    )
 else()
     target_compile_definitions( ktx PRIVATE KTX_OMIT_VULKAN=1 )
 endif()
