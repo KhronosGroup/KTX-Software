@@ -48,13 +48,26 @@
 
 # ----------------------------------------------------------------------------
 # find BASH executable
+
+# First, look if GIT bash is installed
 find_program (
     BASH_EXECUTABLE
     bash
 PATHS
     # Additional paths for Windows
     "C:\\Program Files\\Git\\bin"
+NO_SYSTEM_ENVIRONMENT_PATH
 )
+
+if(NOT BASH_EXECUTABLE)
+  # Fallback search in default locations
+  # WSL bash did not work in my case :(
+  find_program (
+      BASH_EXECUTABLE
+      bash
+  )
+endif()
+
 mark_as_advanced (BASH_EXECUTABLE)
 
 # ----------------------------------------------------------------------------
