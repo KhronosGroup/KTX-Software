@@ -573,6 +573,13 @@ elseif(WIN32)
     #set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
     # Use the Icon file for the installer.exe
     set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win/ktx_app.ico")
+    set(CPACK_NSIS_MANIFEST_DPI_AWARE ON)
+    set(CPACK_NSIS_URL_INFO_ABOUT ${CPACK_PACKAGE_HOMEPAGE_URL})
+    set(CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
+    set(CPACK_NSIS_MODIFY_PATH ON)
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software")
+    ## Alternative: add major version at end
+    #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
 else()
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 endif()
