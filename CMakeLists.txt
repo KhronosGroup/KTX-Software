@@ -562,6 +562,11 @@ elseif(LINUX)
     set(CPACK_GENERATOR DEB)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
     set(CPACK_PACKAGE_CHECKSUM SHA1)
+elseif(WIN32)
+    ## Alternative license format -> does not look good
+    #set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
+    # Use the Icon file for the installer.exe
+    set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win/ktx_app.ico")
 else()
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 endif()
