@@ -3,7 +3,7 @@ find_package(OpenGL)
 if(NOT WIN32 AND NOT IOS AND NOT EMSCRIPTEN)
     find_package(SDL2 REQUIRED)
 endif()
-if(NOT APPLE AND NOT EMSCRIPTEN)
+if(LINUX)
     find_package(assimp REQUIRED)
 endif()
 
