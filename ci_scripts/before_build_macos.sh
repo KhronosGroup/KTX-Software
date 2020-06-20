@@ -24,7 +24,7 @@ security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
 # Import the macOS certificates
 echo $MACOS_CERTIFICATES_P12 | base64 --decode > $MACOS_CERTS_TMPFILE
-security import $MACOS_CERTS_TMPFILE -k $KEY_CHAIN -P $MACOS_CERTIFICATES_PASSWORD -T /usr/bin/codesign
+security import $MACOS_CERTS_TMPFILE -k $KEY_CHAIN -P $MACOS_CERTIFICATES_PASSWORD -T /usr/bin/codesign -T /usr/bin/productbuild
 rm $MACOS_CERTS_TMPFILE
 
 # Avoid hang in codesign.
