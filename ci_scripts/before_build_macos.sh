@@ -21,6 +21,6 @@ echo $MACOS_CERTIFICATES_P12 | base64 --decode > macOS_certificates.p12
 security import macOS_certificates.p12 -k build.keychain -P $MACOS_CERTIFICATE_PASSWORD -T /usr/bin/codesign
 rm macOS_certificates.p12
 
-# Check it worked
-security find-identity -v
-
+# Avoid hang in codesign.
+# See https://docs.travis-ci.com/user/common-build-problems/#mac-macos-sierra-1012-code-signing-errors
+security set-key-partition-list -S apple-tool:,apple: -s -k mysecretpassword build.keychain
