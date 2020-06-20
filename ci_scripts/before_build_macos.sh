@@ -18,7 +18,8 @@ security unlock-keychain -p mysecretpassword build.keychain
 
 # Import the macOS certificates
 echo $MACOS_CERTIFICATES_P12 | base64 --decode > macOS_certificates.p12
-security import macOS_certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PASSWORD -T /usr/bin/codesign
+security import macOS_certificates.p12 -k build.keychain -P $MACOS_CERTIFICATE_PASSWORD -T /usr/bin/codesign
+rm macOS_certificates.p12
 
 # Check it worked
 security find-identity -v
