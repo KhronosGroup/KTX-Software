@@ -11,16 +11,22 @@ set -e
 git lfs pull --include=other_lib/mac,other_lib/ios,tests/testimages,tests/srcimages
 sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
 
+KEY_CHAIN=build.keychain
+KEY_PASS=mysecretpassword
+MACOS_CERTS_TMPFILE=macOS_certificates.p12
+
 # Set up a keychain for signing certificates
-security create-keychain -p mysecretpassword build.keychain
-security default-keychain -s build.keychain
-security unlock-keychain -p mysecretpassword build.keychain
+security create-keychain -p $KEY_PASS $KEY_CHAIN
+security default-keychain -s $KEY_CHAIN
+security unlock-keychain -p $KEY_PASS $KEY_CHAIN
+# Set locking timeout to 3600 secondsa. Avoid hang in codesign.
+security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
 # Import the macOS certificates
-echo $MACOS_CERTIFICATES_P12 | base64 --decode > macOS_certificates.p12
-security import macOS_certificates.p12 -k build.keychain -P $MACOS_CERTIFICATE_PASSWORD -T /usr/bin/codesign
-rm macOS_certificates.p12
+echo $MACOS_CERTIFICATES_P12 | base64 --decode > $MACOS_CERTS_TMPFILE
+security import $MACOS_CERTS_TMPFILE -k $KEY_CHAIN -P $MACOS_CERTIFICATES_PASSWORD -T /usr/bin/codesign
+rm $MACOS_CERTS_TMPFILE
 
 # Avoid hang in codesign.
 # See https://docs.travis-ci.com/user/common-build-problems/#mac-macos-sierra-1012-code-signing-errors
-security set-key-partition-list -S apple-tool:,apple: -s -k mysecretpassword build.keychain
+security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
