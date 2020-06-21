@@ -49,8 +49,9 @@ security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
 # $ALTOOL_PW_LABEL is a label given to the password. This is used later by `altool`
 # to find the password when submitting the notarization request.
 #
-# $ALTOOL_PW is the actual password.
-security add-generic-password -a $APPLE_ID -T $(xcrun -find altool) -l $ALTOOL_PW_LABEL -s $ALTOOL_PW_LABEL -w $ALTOOL_PW
+# $ALTOOL_PW is the actual password. -w must NOT be the last option. If so it will
+# incorrectly interpret $ALTOOL_PW as the keychain name and will prompt for a password!
+security add-generic-password -a $APPLE_ID -T $(xcrun -find altool) -w $ALTOOL_PW -l $ALTOOL_PW_LABEL -s $ALTOOL_PW_LABEL
 
 # Verify it is there
 security find-generic-password -l $ALTOOL_PW_LABEL
