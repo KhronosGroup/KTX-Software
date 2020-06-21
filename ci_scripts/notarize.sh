@@ -1,7 +1,5 @@
 #!/bin/zsh
 
-set -x
-
 # notarize.sh
 
 # Checks pkg for a valid signature. If valid, uploads the pkg for
