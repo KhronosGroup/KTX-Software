@@ -32,7 +32,9 @@ rm $MACOS_CERTS_TMPFILE
 security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
 
 # Set up password for altool to use for notarization
-security add-generic-password -a $APPLE_ID -D "application password" -T altool -l $ALTOOL_PW_LABEL -w $ALTOOL_PW
+security add-generic-password -a $APPLE_ID -D "application password" -T $(xcrun -find altool) -l $ALTOOL_PW_LABEL -w $ALTOOL_PW
 
 # Verify it is there
 security find-generic-password -l $ALTOOL_PW_LABEL
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab

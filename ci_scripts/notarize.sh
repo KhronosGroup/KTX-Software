@@ -101,3 +101,5 @@ xcrun stapler staple "$pkg"
 echo '## Done!'
 
 exit 0
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab
