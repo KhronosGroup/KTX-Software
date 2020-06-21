@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+set -x
+
 # notarize.sh
 
 # ©2020 - Mark Callow
