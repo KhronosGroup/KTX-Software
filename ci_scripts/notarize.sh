@@ -49,18 +49,17 @@ requeststatus() { # $1: requestUUID
 notarizefile() { # $1: path to file to notarize, $2: bundle id.
     # upload file
     echo "## uploading $1 for notarization"
-    requestUUID=$(xcrun altool --notarize-app \
+    if al_out=$(xcrun altool --notarize-app \
                                --primary-bundle-id "$2" \
                                --username "$appleid" \
                                --password "$passwd" \
                                --asc-provider "$devteam" \
-                               --file "$1" 2>&1 \
-                  | awk '/RequestUUID/ { print $NF; }')
-
-    echo "Notarization RequestUUID: $requestUUID"
-
-    if [[ $requestUUID == "" ]]; then 
-        echo "Could not upload for notarization"
+                               --file "$1" 2>&1)
+    then
+        requestUUID=$(echo -n $al_out | awk '/RequestUUID/ { print $NF; }')
+        echo "Notarization RequestUUID: $requestUUID"
+    else
+        echo "Could not upload for notarization: $al_out"
         exit 1
     fi
 
