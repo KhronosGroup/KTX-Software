@@ -14,6 +14,7 @@ sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
 KEY_CHAIN=build.keychain
 KEY_PASS=mysecretpassword
 MACOS_CERTS_TMPFILE=macOS_certificates.p12
+# All other env vars used here are encrypted env vars set in the Travis settings.
 
 # Set up a keychain for signing certificates
 security create-keychain -p $KEY_PASS $KEY_CHAIN
@@ -23,6 +24,12 @@ security unlock-keychain -p $KEY_PASS $KEY_CHAIN
 security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
 # Import the macOS certificates
+#
+# $MACOS_CERTIFICATES_P12 holds a base64 encoded version of the .p12 file created
+# by Keychain Access with the exported application and installer certificates.
+#
+# $MACOS_CERTIFICATES_PASSWORD is the password created for the .p12 file when
+# it was exported.
 echo $MACOS_CERTIFICATES_P12 | base64 --decode > $MACOS_CERTS_TMPFILE
 security import $MACOS_CERTS_TMPFILE -k $KEY_CHAIN -P $MACOS_CERTIFICATES_PASSWORD -T /usr/bin/codesign -T /usr/bin/productbuild
 rm $MACOS_CERTS_TMPFILE
@@ -31,8 +38,19 @@ rm $MACOS_CERTS_TMPFILE
 # See https://docs.travis-ci.com/user/common-build-problems/#mac-macos-sierra-1012-code-signing-errors
 security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
 
-# Set up password for altool to use for notarization
-security add-generic-password -a $APPLE_ID -D "application password" -T $(xcrun -find altool) -l $ALTOOL_PW_LABEL -w $ALTOOL_PW
+# Add altool-specific password for notarization
+#
+# This is the altool-specific password created in the Apple developer account to
+# be used for notarization, the same account that was used to created the signing
+# certificates imported above.
+#
+# $APPLE_ID is the id of the developer account.
+#
+# $ALTOOL_PW_LABEL is a label given to the password. This is used later by `altool`
+# to find the password when submitting the notarization request.
+#
+# $ALTOOL_PW is the actual password.
+security add-generic-password -a $APPLE_ID -T $(xcrun -find altool) -l $ALTOOL_PW_LABEL -s $ALTOOL_PW_LABEL -w $ALTOOL_PW
 
 # Verify it is there
 security find-generic-password -l $ALTOOL_PW_LABEL
