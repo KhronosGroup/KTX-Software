@@ -77,7 +77,6 @@ before_script:
   - ./install-gitconfig.sh
   - rm TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
   - git checkout TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
-  - git status
 
 script:
 - |
