@@ -94,6 +94,9 @@ if ! pkgutil --check-signature $pkg > /dev/null; then
   exit 2
 fi
 
+security unlock-keychain -p mysecretpassword build.keychain
+security set-keychain-settings -t 3600 -u build.keychain
+
 # Upload for notarization
 notarizefile "$pkg" "$bundleid"
 
