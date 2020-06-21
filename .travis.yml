@@ -101,7 +101,7 @@ before_deploy:
     linux)
       ;;
     osx)
-      ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PW_LABEL
+      ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD
       ;;
     esac
 

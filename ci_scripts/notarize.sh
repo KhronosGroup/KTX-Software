@@ -48,7 +48,7 @@ notarizefile() { # $1: path to file to notarize, $2: bundle id.
     requestUUID=$(xcrun altool --notarize-app \
                                --primary-bundle-id "$2" \
                                --username "$appleid" \
-                               --password "@keychain:$pw_label" \
+                               --password "$pw_label" \
                                --asc-provider "$devteam" \
                                --file "$1" 2>&1 \
                   | awk '/RequestUUID/ { print $NF; }')
