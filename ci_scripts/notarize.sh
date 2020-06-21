@@ -41,7 +41,8 @@ requeststatus() { # $1: requestUUID
 
 notarizefile() { # $1: path to file to notarize, $2: bundle id.
     # upload file
-    echo "## uploading $filepath for notarization"
+    echo "## uploading $1 for notarization"
+    echo "altool is $(xcrun -find altool)"
     requestUUID=$(xcrun altool --notarize-app \
                                --primary-bundle-id "$2" \
                                --username "$appleid" \

@@ -53,6 +53,8 @@ security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
 # incorrectly interpret $ALTOOL_PW as the keychain name and will prompt for a password!
 security add-generic-password -a $APPLE_ID -T $(xcrun -find altool) -w $ALTOOL_PASSWORD -l $ALTOOL_PW_LABEL -s $ALTOOL_PW_LABEL
 
+echo "altool is $(xcrun -find altool)"
+
 # Verify it is there
 security find-generic-password -l $ALTOOL_PW_LABEL
 
