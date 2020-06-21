@@ -30,3 +30,9 @@ rm $MACOS_CERTS_TMPFILE
 # Avoid hang in codesign.
 # See https://docs.travis-ci.com/user/common-build-problems/#mac-macos-sierra-1012-code-signing-errors
 security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
+
+# Set up password for altool to use for notarization
+security add-generic-password -a $APPLE_ID -D "application password" -T altool -l $ALTOOL_PW_LABEL -w $ALTOOL_PW
+
+# Verify it is there
+security find-generic-password -l $ALTOOL_PW_LABEL

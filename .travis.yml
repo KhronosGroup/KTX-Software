@@ -96,6 +96,14 @@ after_script:
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 
 deploy:
+  - |
+    case "${TRAVIS_OS_NAME:-linux}" in
+    linux)
+      ;;
+    osx)
+      ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PW_LABEL
+      ;;
+    esac
   - provider: pages
     skip-cleanup: true
     github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
@@ -109,11 +117,10 @@ deploy:
     file_glob: true
     file:
       - build-macos/KTX-Software-*.pkg
-      - build-macos/KTX-Software-*.pkg.sha1
     skip_cleanup: true
     draft: true
     on:
-      tags: true
+      #tags: true
       condition: $TRAVIS_OS_NAME = osx
   - provider: releases
     api_key:
