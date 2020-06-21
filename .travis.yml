@@ -95,7 +95,7 @@ after_script:
 
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 
-deploy:
+before_deploy:
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
@@ -104,6 +104,8 @@ deploy:
       ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PW_LABEL
       ;;
     esac
+
+deploy:
   - provider: pages
     skip-cleanup: true
     github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
@@ -121,6 +123,7 @@ deploy:
     draft: true
     on:
       #tags: true
+      all_branches: true
       condition: $TRAVIS_OS_NAME = osx
   - provider: releases
     api_key:
@@ -130,7 +133,8 @@ deploy:
     skip_cleanup: true
     draft: true
     on:
-      tags: true
+      #tags: true
+      all_branches: true
       condition: $TRAVIS_OS_NAME = linux
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
