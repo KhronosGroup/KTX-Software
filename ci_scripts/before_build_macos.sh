@@ -34,10 +34,6 @@ echo $MACOS_CERTIFICATES_P12 | base64 --decode > $MACOS_CERTS_TMPFILE
 security import $MACOS_CERTS_TMPFILE -k $KEY_CHAIN -P $MACOS_CERTIFICATES_PASSWORD -T /usr/bin/codesign -T /usr/bin/productbuild
 rm $MACOS_CERTS_TMPFILE
 
-# Avoid hang in codesign.
-# See https://docs.travis-ci.com/user/common-build-problems/#mac-macos-sierra-1012-code-signing-errors
-security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
-
 # Add altool-specific password for notarization
 #
 # This is the altool-specific password created in the Apple developer account to
@@ -55,5 +51,9 @@ security add-generic-password -a $APPLE_ID -T $(xcrun -find altool) -w $ALTOOL_P
 
 # Verify it is there
 security find-generic-password -l $ALTOOL_PW_LABEL
+
+# Avoid hang in codesign.
+# See https://docs.travis-ci.com/user/common-build-problems/#mac-macos-sierra-1012-code-signing-errors
+security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
