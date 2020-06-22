@@ -124,6 +124,10 @@ test_script:
     ctest -C $env:CONFIGURATION
     popd
 
+before_deploy:
+- ps: |
+    ls build-win-Release
+
 deploy:
     # Deploy to GitHub Releases
     provider: GitHub
