@@ -19,9 +19,5 @@ target_link_libraries(
     ktx2check
     ktx
 )
-
-set_target_properties(ktx2check PROPERTIES
-    XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
-    INSTALL_RPATH "@executable_path;/usr/local/lib"
-)
+set_tool_properties(ktx2check)
 set_xcode_code_sign(ktx2check)

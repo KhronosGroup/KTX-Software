@@ -13,6 +13,16 @@ if(NOT KTX_FEATURE_WRITE)
     return()
 endif()
 
+function(set_tool_properties tool_target)
+    if(APPLE)
+        set_target_properties(${tool_target} PROPERTIES
+            XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+            INSTALL_RPATH "@executable_path;/usr/local/lib"
+        )
+    endif()
+endfunction()
+
+
 add_subdirectory(ktx2check)
 add_subdirectory(ktx2ktx2)
 add_subdirectory(ktxinfo)

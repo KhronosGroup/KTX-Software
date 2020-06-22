@@ -33,8 +33,5 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
-set_target_properties(toktx PROPERTIES
-    XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
-    INSTALL_RPATH "@executable_path;/usr/local/lib"
-)
+set_tool_properties(toktx)
 set_xcode_code_sign(toktx)
