@@ -900,8 +900,8 @@ int _tmain(int argc, _TCHAR* argv[])
             Image* scaledImage;
             if (options.scale != 1.0f) {
                 scaledImage = image->createImage(
-                                        image->getWidth()  * options.scale,
-                                        image->getHeight()  * options.scale);
+                              (uint32_t)(image->getWidth()  * options.scale),
+                              (uint32_t)(image->getHeight()  * options.scale));
 
             } else {
                 scaledImage = image->createImage(options.newGeom.width,
@@ -1639,6 +1639,11 @@ processOptions(argparser& parser,
             }
           case 's':
             options.scale = strtof(parser.optarg.c_str(), nullptr);
+            if (options.scale > 2000.0f) {
+                cerr << appName << ": Unreasonable scale factor of "
+                     << options.scale << "." << endl;
+                exit(1);
+            }
             break;
           case 't':
             options.bopts.threadCount = strtoi(parser.optarg.c_str());
