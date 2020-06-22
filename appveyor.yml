@@ -128,7 +128,7 @@ deploy:
     # Deploy to GitHub Releases
     provider: GitHub
     auth_token:
-      secure: $GITHUB_TOKEN
+      secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
     artifact: build-win-Release/KTX-software-*.exe
     draft: true
     #prerelease: false
