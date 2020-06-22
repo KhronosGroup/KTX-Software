@@ -125,8 +125,10 @@ test_script:
     popd
 
 deploy:
-   # Deploy to GitHub Releases
-  - provider: GitHub
+    # Deploy to GitHub Releases
+    provider: GitHub
+    auth_token:
+      secure: $GITHUB_TOKEN
     artifact: build-win-Release/KTX-software-*.exe
     draft: true
     #prerelease: false
