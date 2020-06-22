@@ -41,6 +41,5 @@ docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake -
 
 pushd build-web-release
 echo "Pack KTX-Software (Web Release)"
-zip KTX-Software-libktx-Wasm.zip libktx.js libktx.wasm
-zip KTX-Software-msc_basis_transcoder-Wasm.zip msc_basis_transcoder.js msc_basis_transcoder.wasm
+cpack -G ZIP
 popd

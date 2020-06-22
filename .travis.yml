@@ -130,7 +130,7 @@ deploy:
     file_glob: true
     file:
       - build-linux-release/KTX-Software-*-Linux.*
-      - build-web-release/KTX-Software-*-Wasm.zip
+      - build-web-release/KTX-Software-*-Web-*.zip
     skip_cleanup: true
     draft: true
     on:

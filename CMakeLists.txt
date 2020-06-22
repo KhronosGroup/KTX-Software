@@ -413,6 +413,15 @@ if(EMSCRIPTEN)
         "SHELL:-s EXPORT_NAME=LIBKTX"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
+    install(TARGETS ktx_js
+        RUNTIME
+            DESTINATION .
+            COMPONENT ktx_js
+    )
+    install(FILES ${CMAKE_BINARY_DIR}/libktx.wasm
+        DESTINATION .
+        COMPONENT ktx_js
+    )
 
     add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )
     target_link_libraries( msc_basis_transcoder_js ktx )
@@ -434,6 +443,16 @@ if(EMSCRIPTEN)
         $<TARGET_PROPERTY:ktx,INTERFACE_LINK_OPTIONS>
         )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
+
+    install(TARGETS msc_basis_transcoder_js
+        RUNTIME
+            DESTINATION .
+            COMPONENT msc_basis_transcoder_js
+    )
+    install(FILES ${CMAKE_BINARY_DIR}/msc_basis_transcoder.wasm
+        DESTINATION .
+        COMPONENT msc_basis_transcoder_js
+    )
 endif()
 
 add_library( objUtil OBJECT
@@ -580,6 +599,12 @@ elseif(WIN32)
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software")
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
+elseif(EMSCRIPTEN)
+    set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-Web-libktx")
+    set(CPACK_ARCHIVE_MSC_BASIS_TRANSCODER_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-Web-msc_basis_transcoder")
+
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+    set(CPACK_PACKAGE_CHECKSUM SHA1)
 else()
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 endif()
@@ -623,12 +648,19 @@ if(KTX_FEATURE_LOADTEST_APPS)
     )
 endif()
 
-set(CPACK_COMPONENTS_ALL
-    library
-    tools
-    dev
-    # Headers
-)
+if(EMSCRIPTEN)
+    set(CPACK_COMPONENTS_ALL
+        ktx_js
+        msc_basis_transcoder_js
+    )
+else()
+    set(CPACK_COMPONENTS_ALL
+        library
+        tools
+        dev
+        # Headers
+    )
+endif()
 # if(KTX_NAMELINKS)
 #     list(APPEND CPACK_COMPONENTS_ALL
 #         Namelinks
