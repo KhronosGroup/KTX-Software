@@ -1,4 +1,4 @@
-version: 3.0.{build}
+version: $(APPVEYOR_REPO_TAG_NAME)
 
 image:
   # - Visual Studio 2015
@@ -129,10 +129,10 @@ deploy:
     provider: GitHub
     auth_token:
       secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
-    artifact: build-win-Release/KTX-Software-*.exe
+    artifact: 'build-win-Release/KTX-Software-*.exe'
     draft: true
     #prerelease: false
     #on:
-      #branch: master                # release from master branch only
+      #branch: master                # release from master branch only. Remove when REPO_TAG is true.
       #APPVEYOR_REPO_TAG: true       # deploy on tag push only
  
