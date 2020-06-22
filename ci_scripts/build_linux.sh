@@ -6,6 +6,9 @@ set -e
 # Explicitely take newer CMake installed from apt.kitware.com
 CMAKE_EXE=/usr/bin/cmake
 
+
+# Linux
+
 echo "Configure KTX-Software (Linux Debug)"
 ${CMAKE_EXE} . -G Ninja -Bbuild-linux-debug -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_LOADTEST_APPS=ON
 pushd build-linux-debug
@@ -28,7 +31,16 @@ cpack -G RPM
 cpack -G TBZ2
 popd
 
+
+# Emscripten/WebAssembly
+
 echo "Configure/Build KTX-Software (Web Debug)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-debug . && cmake --build build-web-debug --config Debug"
 echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
+
+pushd build-web-release
+echo "Pack KTX-Software (Web Release)"
+zip KTX-Software-libktx-Wasm.zip libktx.js libktx.wasm
+zip KTX-Software-msc_basis_transcoder-Wasm.zip msc_basis_transcoder.js msc_basis_transcoder.wasm
+popd

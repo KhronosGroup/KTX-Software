@@ -128,7 +128,9 @@ deploy:
   - provider: releases
     api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
-    file: build-linux-release/KTX-Software-*-Linux.*
+    file:
+      - build-linux-release/KTX-Software-*-Linux.*
+      - build-web-release/KTX-Software-*-Wasm.zip
     skip_cleanup: true
     draft: true
     on:
