@@ -146,7 +146,7 @@ deploy:
     #artifact: 'c:\projects\ktx\build-win-Release\KTX-Software-*.exe'
     artifact: WindowsInstaller
     draft: true
-    #prerelease: false
+    prerelease: true
     #on:
       #branch: master                # release from master branch only. Remove when REPO_TAG is true.
       #APPVEYOR_REPO_TAG: true       # deploy on tag push only
