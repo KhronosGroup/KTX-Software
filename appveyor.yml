@@ -127,6 +127,10 @@ test_script:
 artifacts:
   # Save in cloud storage so we can deploy it. Will be kept unnecessarily for 6 months.
   - path: 'build-win-Release/KTX-Software-*.exe'
+
+
+before_deploy:
+- ps: |
     foreach ($artifactName in $artifacts.keys) {
       $artifacts[$artifactName]
     }
