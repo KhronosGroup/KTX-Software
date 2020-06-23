@@ -363,6 +363,22 @@ elseif(LINUX)
         Threads::Threads
         zstd::zstd
     )
+elseif(ANDROID)
+    # add_library(zstd STATIC IMPORTED)
+    # set_target_properties(zstd PROPERTIES
+    # IMPORTED_LOCATION /Users/Shared/SDK/zstd/build/cmake/install-android/lib/libzstd.a
+    # )
+    # target_link_libraries(
+    #     ktx
+    #     zstd
+    # )
+    set(ZSTD_BUILD_PROGRAMS OFF)
+    set(ZSTD_BUILD_TESTS OFF)
+    add_subdirectory(/Users/Shared/SDK/zstd/build/cmake zstd)
+    target_link_libraries(
+        ktx
+        libzstd_static
+    )
 endif()
 
 if(KTX_FEATURE_VULKAN)
@@ -555,9 +571,6 @@ set(CPACK_PACKAGE_VENDOR "Khronos Group")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.khronos.org/KTX-Software")
 set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
 
-# Note: not used by productbuild.
-# set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
-
 set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Welcome.rtf")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/LICENSE.rtf")
@@ -587,6 +600,7 @@ elseif(LINUX)
     set(CPACK_GENERATOR DEB)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
     set(CPACK_PACKAGE_CHECKSUM SHA1)
+    set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 elseif(WIN32)
     ## Alternative license format -> does not look good
     #set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
