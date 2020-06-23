@@ -126,7 +126,7 @@ test_script:
 artifacts:
   # Save in cloud storage so we can deploy it. Will be kept unnecessarily for 6 months.
   - path: 'build-win-Release/KTX-Software-*.exe'
-  - name: WindowsInstaller
+    name: WindowsInstaller
 
 
 before_deploy:
