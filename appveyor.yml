@@ -141,7 +141,8 @@ deploy:
     auth_token:
       secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
     #release: tag name is used as release name if this is not set.
-    artifact: 'build-win-Release/KTX-Software-*.exe'
+    # Need full path to retrieve from artifact storage.
+    artifact: 'c:/projects/ktx/build-win-Release/KTX-Software-*.exe'
     draft: true
     #prerelease: false
     #on:
