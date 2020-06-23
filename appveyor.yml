@@ -126,6 +126,7 @@ test_script:
 artifacts:
   # Save in cloud storage so we can deploy it. Will be kept unnecessarily for 6 months.
   - path: 'build-win-Release/KTX-Software-*.exe'
+  - name: WindowsInstaller
 
 
 before_deploy:
@@ -141,7 +142,8 @@ deploy:
       secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
     #release: tag name is used as release name if this is not set.
     # Need full path to retrieve from artifact storage.
-    artifact: 'c:\projects\ktx\build-win-Release\KTX-Software-*.exe'
+    #artifact: 'c:\projects\ktx\build-win-Release\KTX-Software-*.exe'
+    artifact: WindowsInstaller
     draft: true
     #prerelease: false
     #on:
