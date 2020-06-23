@@ -140,7 +140,8 @@ deploy:
     provider: GitHub
     auth_token:
       secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
-    #release: tag name is used as release name if this is not set.
+    # If this is not set, tag name is used as release name.
+    release: Draft  # Match the name used by Travis-CI for draft releases.
     # Need full path to retrieve from artifact storage.
     #artifact: 'c:\projects\ktx\build-win-Release\KTX-Software-*.exe'
     artifact: WindowsInstaller

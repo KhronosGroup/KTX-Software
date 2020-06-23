@@ -121,6 +121,7 @@ deploy:
       - build-macos/KTX-Software-*.pkg
     skip_cleanup: true
     draft: true
+    #prerelease: true
     on:
       #tags: true
       all_branches: true
@@ -133,6 +134,7 @@ deploy:
       - build-web-release/KTX-Software-*-Web-*.zip
     skip_cleanup: true
     draft: true
+    #prerelease: true
     on:
       #tags: true
       all_branches: true
