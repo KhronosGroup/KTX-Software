@@ -113,26 +113,51 @@ generate_version(KTX_VERSION_FULL)
 # generate_version(TOKTX_VERSION tools/toktx)
 # message("TOKTX_VERSION: ${TOKTX_VERSION}")
 
-string(REGEX MATCH "^v([0-9]*)\.([0-9]*).([^\.]*)"
+# First try a full regex ( vMARJOR.MINOR.PATCH-TWEAK )
+string(REGEX MATCH "^v([0-9]*)\.([0-9]*)\.([0-9]*)(-[^\.]*)"
        KTX_VERSION ${KTX_VERSION_FULL})
 
-set(KTX_VERSION_MAJOR ${CMAKE_MATCH_1})
-set(KTX_VERSION_MINOR ${CMAKE_MATCH_2})
-set(KTX_VERSION_PATCH ${CMAKE_MATCH_3})
-
-string(REGEX MATCH "^[0-9]*$"
-    KTX_VERSION_PATCH_INT ${KTX_VERSION_PATCH})
-
-if(KTX_VERSION_PATCH_INT)
-    set(KTX_VERSION_TWEAK "")
+if(KTX_VERSION)
+    set(KTX_VERSION_MAJOR ${CMAKE_MATCH_1})
+    set(KTX_VERSION_MINOR ${CMAKE_MATCH_2})
+    set(KTX_VERSION_PATCH ${CMAKE_MATCH_3})
+    set(KTX_VERSION_TWEAK ${CMAKE_MATCH_4})
 else()
-    set(KTX_VERSION_TWEAK ${KTX_VERSION_PATCH})
-    set(KTX_VERSION_PATCH "0")
+    # If full regex failed, go for vMARJOR.MINOR.PATCH
+    string(REGEX MATCH "^v([0-9]*)\.([0-9]*)\.([^\.]*)"
+            KTX_VERSION ${KTX_VERSION_FULL})
+
+    if(KTX_VERSION)
+        set(KTX_VERSION_MAJOR ${CMAKE_MATCH_1})
+        set(KTX_VERSION_MINOR ${CMAKE_MATCH_2})
+        set(KTX_VERSION_PATCH ${CMAKE_MATCH_3})
+
+        string(REGEX MATCH "^[0-9]*$"
+            KTX_VERSION_PATCH_INT ${KTX_VERSION_PATCH})
+
+        if(KTX_VERSION_PATCH_INT)
+            set(KTX_VERSION_TWEAK "")
+        else()
+            if(KTX_VERSION_PATCH)
+                set(KTX_VERSION_TWEAK "-${KTX_VERSION_PATCH}")
+            else()
+                set(KTX_VERSION_TWEAK "")
+            endif()
+            set(KTX_VERSION_PATCH "0")
+        endif()
+    else()
+        message(WARNING "Error retrieving version from GIT tag. Falling back to 0.0.0-noversion ")
+        set(KTX_VERSION_MAJOR "0" )
+        set(KTX_VERSION_MINOR "0" )
+        set(KTX_VERSION_PATCH "0" )
+        set(KTX_VERSION_TWEAK "-noversion" )
+    endif()
 endif()
 
 set(KTX_VERSION ${KTX_VERSION_MAJOR}.${KTX_VERSION_MINOR}.${KTX_VERSION_PATCH})
+set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
-#message("KTX version: ${KTX_VERSION}  major: ${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH}")
+# message("KTX version: ${KTX_VERSION}  major: ${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH} tweak:${KTX_VERSION_TWEAK}")
 
 
 #

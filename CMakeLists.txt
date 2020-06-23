@@ -575,6 +575,9 @@ set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Welcome.rtf")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/LICENSE.rtf")
 
+# Custom package file name
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}")
+
 if(APPLE)
     install(FILES tools/package/mac/ktx-uninstall
         DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -585,8 +588,6 @@ if(APPLE)
     # Trick the productbuild generator into creating more useful package IDs
     set(CPACK_PACKAGE_NAME "ktx")
     set(CPACK_PACKAGE_VENDOR "khronos")
-    # Package file should still be named `KTX-Software`
-    set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
     # Install at root level
     set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 
@@ -614,8 +615,8 @@ elseif(WIN32)
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
 elseif(EMSCRIPTEN)
-    set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-Web-libktx")
-    set(CPACK_ARCHIVE_MSC_BASIS_TRANSCODER_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-Web-msc_basis_transcoder")
+    set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")
+    set(CPACK_ARCHIVE_MSC_BASIS_TRANSCODER_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-msc_basis_transcoder")
 
     set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
