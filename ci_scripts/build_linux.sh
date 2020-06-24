@@ -49,5 +49,5 @@ echo "Pack KTX-Software (Web Release)"
 #docker exec -it -w $(pwd)/build-web-release emscripten sh -c "cpack --verbose -G ZIP"
 ls -R /home/travis/build
 # cpack --verbose -G ZIP
-docker exec -it emscripten sh -c "cd build-web-release && make package"
+docker exec -it emscripten sh -c "cmake --build build-web-release --config Release --target package"
 popd
