@@ -40,7 +40,7 @@ echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
 
 docker exec -it emscripten sh -c "which cmake"
-docker exec -it emscripten sh -c "ls $(dirname $(which cmake))"
+docker exec -it emscripten sh -c "ls -l /usr/local/bin"
 docker exec -it emscripten sh -c "if [ -d /opt/cmake ]; then ls -R /opt/cmake"
 
 pushd build-web-release
