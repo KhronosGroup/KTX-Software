@@ -603,8 +603,6 @@ elseif(LINUX)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 elseif(WIN32)
-    ## Alternative license format -> does not look good
-    #set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
     # Use the Icon file for the installer.exe
     set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win/ktx_app.ico")
     set(CPACK_NSIS_MANIFEST_DPI_AWARE ON)
@@ -623,7 +621,7 @@ elseif(EMSCRIPTEN)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 
     # Avoid ZIP pack error
-    set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
+    set(CPACK_PACKAGE_DESCRIPTION "Javascript wrappers for libktx and msc_basisu_transcoder.")
 else()
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 endif()

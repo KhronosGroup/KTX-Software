@@ -1,4 +1,4 @@
-The will install the following KTX tools:
+This will install the following KTX tools along with libktx:
 
 - ktx2check - Check KTX v2 files for validity.
 - ktxinfo - Print info about a KTX file in human-readable form.
@@ -6,4 +6,4 @@ The will install the following KTX tools:
 - ktxsc - Supercompress a KTX v2 file.
 - toktx - Create a KTX v1 or v2 file from .jpg, .png or Netpbm images.
 
-By clicking the Customize button at the bottom of the Installation Type screen you can add installation of the resources needed for developing applications using the KTX library.
+It also installs the header files for development.

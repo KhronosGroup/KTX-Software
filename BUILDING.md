@@ -125,20 +125,18 @@ TODO: code signing / provisioning profile
 
 Install [Emscripten](https://emscripten.org) and follow the [install instructions](https://emscripten.org/docs/getting_started/downloads.html) closely. After you've set up your emscripten environment in a terminal, run the following:
 
-For web there are two additional targets:
-
-- `ktx_js`, (libktx javascript wrapper)
-- `msc_basis_transcoder_js` (transcoder wrapper)
-
-Build instruction
-
 ```bash
 # Configure
-emcmake cmake -Bbuild . -DCMAKE_BUILD_TYPE=Debug
+emcmake cmake -Bbuild-web-debug . -DCMAKE_BUILD_TYPE=Debug
 
 # Build
 cmake --build build-web-debug --config Debug
 ```
+
+For web there are two additional targets:
+
+- `ktx_js`, (libktx javascript wrapper)
+- `msc_basis_transcoder_js` (transcoder wrapper)
 
 > **Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
 
