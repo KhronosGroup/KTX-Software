@@ -37,11 +37,12 @@ popd
 
 # Temporary solution: Update CMake. Can be dropped once the docker container updated the Ubuntu version
 echo "Update CMake for Web"
-docker exec -it emscripten sh -c "apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget"
+docker exec -it emscripten sh -c "apt-get update"
+docker exec -it emscripten sh -c "apt-get -qq install -y --no-install-recommends apt-transport-https ca-certificates gnupg software-properties-common wget"
 docker exec -it emscripten sh -c "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null"
 docker exec -it emscripten sh -c "apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'"
 docker exec -it emscripten sh -c "apt-get update"
-docker exec -it emscripten sh -c "apt-get install cmake"
+docker exec -it emscripten sh -c "apt-get -qq install -y --no-install-recommends cmake"
 
 
 echo "Configure/Build KTX-Software (Web Debug)"
