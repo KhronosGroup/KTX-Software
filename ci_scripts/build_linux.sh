@@ -40,9 +40,6 @@ echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
 
 pushd build-web-release
-pwd
-ls /opt/cmake/share/cmake-3-14/Templates
-ls /src
 echo "Pack KTX-Software (Web Release)"
-cpack --verbose -G ZIP
+docker exec -it emscripten sh -c "cpack --verbose -G ZIP"
 popd
