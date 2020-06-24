@@ -621,8 +621,9 @@ elseif(EMSCRIPTEN)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 
     # Avoid ZIP pack error
-    set(CPACK_PACKAGE_DESCRIPTION "Javascript wrappers for libktx and msc_basisu_transcoder.")
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Javascript wrappers.")
+    #set(CPACK_PACKAGE_DESCRIPTION "Javascript wrappers for libktx and msc_basisu_transcoder.")
+    #set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Javascript wrappers.")
+    set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt-web")
 else()
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 endif()
