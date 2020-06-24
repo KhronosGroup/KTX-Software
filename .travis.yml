@@ -111,7 +111,7 @@ deploy:
     github-token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local-dir: build-macos/docs/html
     on:
-      # branch: master
+      #branch: master
       condition: $TRAVIS_OS_NAME = osx
       tags: true
   - provider: releases
@@ -123,8 +123,8 @@ deploy:
     draft: true
     prerelease: true
     on:
-      #tags: true
-      all_branches: true
+      tags: true
+      #branch: master
       condition: $TRAVIS_OS_NAME = osx
   - provider: releases
     api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
@@ -136,8 +136,8 @@ deploy:
     draft: true
     prerelease: true
     on:
-      #tags: true
-      all_branches: true
+      tags: true
+      #branch: master
       condition: $TRAVIS_OS_NAME = linux
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

@@ -35,7 +35,8 @@ popd
 # Emscripten/WebAssembly
 
 
-# Temporary solution: Update CMake. Can be dropped once the docker container updated the Ubuntu version
+# Temporary solution: Update CMake. Can be dropped once the Ubuntu version in the docker
+# container is updated.
 echo "Update CMake for Web"
 docker exec -it emscripten sh -c "apt-get update"
 docker exec -it emscripten sh -c "apt-get -qq install -y --no-install-recommends apt-transport-https ca-certificates gnupg software-properties-common wget"
@@ -50,15 +51,5 @@ docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-debug . && cmake --b
 echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
 
-docker exec -it emscripten sh -c "which cmake"
-docker exec -it emscripten sh -c "ls -l /usr/local/bin"
-docker exec -it emscripten sh -c "if [ -d /opt/cmake/bin ]; then ls -R /opt/cmake/bin; fi"
-
-# pushd build-web-release
 echo "Pack KTX-Software (Web Release)"
-# cpack is not in the Emscripter docker config.
-#docker exec -it -w $(pwd)/build-web-release emscripten sh -c "cpack --verbose -G ZIP"
-# ls -R /home/travis/build
-# cpack --verbose -G ZIP
 docker exec -it emscripten sh -c "cmake --build build-web-release --config Release --target package"
-# popd

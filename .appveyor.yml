@@ -24,8 +24,9 @@ branches:
   except:
     - /subrepo\/*/
 
-# Do not build on tags. I think deploy will still run but need to check.
-# skip_tags: true
+# Do not build on tags.
+# Deploy will still run & will deploy the artifact saved from prior build.
+skip_tags: true
 
 for:
   - matrix:
@@ -140,14 +141,12 @@ deploy:
     provider: GitHub
     auth_token:
       secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
-    # If this is not set, tag name is used as release name.
-    release: Draft  # Match the name used by Travis-CI for draft releases.
-    # Need full path to retrieve from artifact storage.
-    #artifact: 'c:\projects\ktx\build-win-Release\KTX-Software-*.exe'
+    # Don't set so tag name will be used as release name.
+    #release:
+    # Can't get this to work using artifact.path so use artifact.name set above.
     artifact: WindowsInstaller
     draft: true
     prerelease: true
-    #on:
-      #branch: master                # release from master branch only. Remove when REPO_TAG is true.
-      #APPVEYOR_REPO_TAG: true       # deploy on tag push only
+    on:
+      APPVEYOR_REPO_TAG: true       # deploy on tag push only
  
