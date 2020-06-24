@@ -26,9 +26,8 @@ branches:
   except:
     - /subrepo\/*/
 
-# Do not build on tags.
-# Deploy will still run & will deploy the artifact saved from prior build.
-skip_tags: true
+# Do not skip tags. Deploy will not be run either.
+skip_tags: false
 
 for:
   - matrix:
