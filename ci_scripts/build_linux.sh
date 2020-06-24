@@ -39,7 +39,7 @@ docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-debug . && cmake --b
 echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
 
-pushd build-web-release
+#pushd build-web-release
 echo "Pack KTX-Software (Web Release)"
-cpack --verbose -G ZIP
-popd
+docker exec -it emscripten.sh -w $(pwd)/build-web-release sh -c "cpack --verbose -G ZIP"
+#popd
