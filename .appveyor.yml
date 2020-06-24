@@ -1,12 +1,14 @@
 version: "{build}"
 
 image:
-  # - Visual Studio 2015
+  - Visual Studio 2015
   - Visual Studio 2017
+  # There is a bug in VS 2019, version 16.[56]. Compiler gets internal error.
+  # Was fine in 16.4.
   # - Visual Studio 2019
 
 configuration:
-  # - Debug
+  - Debug
   - Release
 
 platform:
