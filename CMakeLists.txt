@@ -622,6 +622,7 @@ elseif(EMSCRIPTEN)
 
     # Avoid ZIP pack error
     set(CPACK_PACKAGE_DESCRIPTION "Javascript wrappers for libktx and msc_basisu_transcoder.")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Javascript wrappers.")
 else()
     set(CPACK_PACKAGE_CHECKSUM SHA1)
 endif()
