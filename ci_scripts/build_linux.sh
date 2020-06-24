@@ -39,7 +39,13 @@ docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-debug . && cmake --b
 echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
 
-#pushd build-web-release
+docker exec -it emscripten sh -c "ls /opt/bin"
+docker exec -it emscripten sh -c "ls -R /opt/cmake"
+
+pushd build-web-release
 echo "Pack KTX-Software (Web Release)"
-docker exec -it -w $(pwd)/build-web-release emscripten sh -c "cpack --verbose -G ZIP"
-#popd
+# cpack is not in the Emscripter docker config.
+#docker exec -it -w $(pwd)/build-web-release emscripten sh -c "cpack --verbose -G ZIP"
+ls -R /home/travis/build/KhronosGroup/KTX-Software/build-web-release/_CPack_Package
+cpack --verbose -G ZIP
+popd
