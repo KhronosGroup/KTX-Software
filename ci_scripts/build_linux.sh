@@ -41,7 +41,7 @@ docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake -
 
 docker exec -it emscripten sh -c "which cmake"
 docker exec -it emscripten sh -c "ls -l /usr/local/bin"
-docker exec -it emscripten sh -c "if [ -d /opt/cmake ]; then ls -R /opt/cmake"
+docker exec -it emscripten sh -c "if [ -d /opt/cmake/bin ]; then ls -R /opt/cmake/bin; fi"
 
 pushd build-web-release
 echo "Pack KTX-Software (Web Release)"
