@@ -47,6 +47,6 @@ pushd build-web-release
 echo "Pack KTX-Software (Web Release)"
 # cpack is not in the Emscripter docker config.
 #docker exec -it -w $(pwd)/build-web-release emscripten sh -c "cpack --verbose -G ZIP"
-ls -R /home/travis/build/KhronosGroup/KTX-Software/build-web-release/_CPack_Packages
+ls -R /home/travis/build
 cpack --verbose -G ZIP
 popd
