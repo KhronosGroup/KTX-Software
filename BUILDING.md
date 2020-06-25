@@ -1,4 +1,3 @@
-
 Building KTX
 ============
 
@@ -144,14 +143,16 @@ For web there are two additional targets:
 
 CMake can create solutions for Microsoft Visual Studio (2015/2017/2019 are supported by KTX).
 
+zlib and zstd are needed for building libktx. The KTX repo has a Windows binary of libzstd.
+
+The NSIS compiler is needed if you intend to build packages.
+
 The MSVS `ktxtests` solutions on Windows include OpenGL ES versions.
 To build a complete solution and run the OpenGL ES versions you need to
 install an OpenGL ES emulator.
 
-The KTX loader tests in `ktxtests` use libSDL 2.0.8+. You do not
+The KTX loader tests in `ktxtests` use libSDL 2.0.12+. You do not
 need SDL if you only wish to build `libktx` or `ktxtools`.
-
-Binaries of these dependencies are included in the KTX Git repo.
 
 The KTX vulkan loader tests in `ktxtests` require a [Vulkan SDK](#vulkan-sdk)
 and the Open Asset Import Library [`libassimp`](#libassimp). You must install
