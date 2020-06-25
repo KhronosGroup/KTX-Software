@@ -3,7 +3,7 @@
 # exit if any command fails
 set -e
 
-# Explicitely take newer CMake installed from apt.kitware.com
+# Explicitly take newer CMake installed from apt.kitware.com
 CMAKE_EXE=/usr/bin/cmake
 
 
@@ -52,4 +52,6 @@ echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
 
 echo "Pack KTX-Software (Web Release)"
-docker exec -it -w build-web-release emscripten sh -c "cpack -G ZIP"
+# Call cmake rather than cpack so we don't need knowledge of the working directory
+# inside docker.
+docker exec -it emscripten sh -c "cmake --build build-web-release --config Release --target package"
