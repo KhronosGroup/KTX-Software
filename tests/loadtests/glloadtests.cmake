@@ -1,5 +1,7 @@
 
-function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION )
+set(OPENGL_ES_EMULATOR "" CACHE PATH "Path to OpenGL ES emulation libraries")
+
+function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION EMULATE_GLES )
 
     add_executable( ${target}
         ${EXE_FLAG}
@@ -33,7 +35,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         ${KTX_ZLIB_LIBRARIES}
     )
 
-    if(OPENGL_FOUND AND NOT EMSCRIPTEN)
+    if(OPENGL_FOUND AND NOT EMSCRIPTEN AND NOT EMULATE_GLES)
         target_link_libraries(
             ${target}
             ${OPENGL_LIBRARIES}
@@ -90,10 +92,19 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             glloadtests/resources/win/glloadtests.rc
             glloadtests/resources/win/resource.h
         )
-        target_link_libraries(
-            ${target}
-            "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
-        )
+        if(EMULATE_GLES)
+            target_link_libraries(
+                ${target}
+                "${OPENGL_ES_EMULATOR}/libEGL.lib"
+                "${OPENGL_ES_EMULATOR}/libGLESv2.lib"
+                "${OPENGL_ES_EMULATOR}/libGLES_CM.lib"
+            )
+        else()
+            target_link_libraries(
+                ${target}
+                "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
+            )
+        endif()
         ensure_runtime_dependencies_windows(${target})
     endif()
 
@@ -191,17 +202,26 @@ set( GL3_SOURCES
     glloadtests/utils/GLTextureTranscoder.hpp
 )
 
-if(IOS)
-    # OpenGL ES 1.0
-    create_gl_target( es1loadtests "${ES1_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 )
+
+if(WIN32)
+    if(NOT OPENGL_ES_EMULATOR)
+        message("OPENGL_ES_EMULATOR not set. Will not build OpenGL ES load tests applications.")
+    else()
+        set(EMULATE_GLES ON)
+    endif()
 endif()
 
-if(IOS OR EMSCRIPTEN)
+if(IOS OR EMULATE_GLES)
+    # OpenGL ES 1.0
+    create_gl_target( es1loadtests "${ES1_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON )
+endif()
+
+if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
-    create_gl_target( es3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 )
+    create_gl_target( es3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON )
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
-    create_gl_target( gl3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 )
+    create_gl_target( gl3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF )
 endif()
