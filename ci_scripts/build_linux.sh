@@ -52,4 +52,4 @@ echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -Bbuild-web-release . && cmake --build build-web-release --config Release"
 
 echo "Pack KTX-Software (Web Release)"
-docker exec -it emscripten sh -c "cmake --build build-web-release --config Release --target package"
+docker exec -it emscripten sh -c "cpack -G ZIP"

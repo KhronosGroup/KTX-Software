@@ -143,21 +143,22 @@ For web there are two additional targets:
 
 CMake can create solutions for Microsoft Visual Studio (2015/2017/2019 are supported by KTX).
 
+> **Note:** Visual Studio 2019 v16.5 & v16.6 get an internal compiler error when compiling. v16.4 is okay.
+
 zlib and zstd are needed for building libktx. The KTX repo has a Windows binary of libzstd.
 
 The NSIS compiler is needed if you intend to build packages.
 
-The MSVS `ktxtests` solutions on Windows include OpenGL ES versions.
-To build a complete solution and run the OpenGL ES versions you need to
-install an OpenGL ES emulator.
+CMake can be configured to generate an MSVS solution that includes OpenGL
+ES versions of the loadtests. To build and run these you need to install
+an OpenGL ES emulator.
 
-The KTX loader tests in `ktxtests` use libSDL 2.0.12+. You do not
-need SDL if you only wish to build `libktx` or `ktxtools`.
+The KTX loader tests in use libSDL 2.0.12+. You do not need SDL if you only wish to build the library or tools.
 
-The KTX vulkan loader tests in `ktxtests` require a [Vulkan SDK](#vulkan-sdk)
-and the Open Asset Import Library [`libassimp`](#libassimp). You must install
-the former. The KTX Git repo has binaries of the latter for iOS and Windows
-but you must install it on GNU/Linux and macOS.
+The KTX vulkan loader tests require a [Vulkan SDK](#vulkan-sdk)
+and the Open Asset Import Library [`libassimp`](#libassimp). You must
+install the former. The KTX Git repo has binaries of the latter for iOS and 
+Windows but you must install it on GNU/Linux and macOS.
 
 #### OpenGL ES Emulator for Windows
 
@@ -165,7 +166,8 @@ but you must install it on GNU/Linux and macOS.
 
 The generated projects work with the
 [Imagination Technologies PowerVR](https://community.imgtec.com/developers/powervr/graphics-sdk/).
-emulator. Install that before trying to build on Windows.
+emulator. Install that before trying to build the `es1loadtests` or
+`es3loadtests` targets on Windows.
 
 Projects can be modified to work with any of the major emulators;
 [Qualcomm Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools),
@@ -173,8 +175,9 @@ Projects can be modified to work with any of the major emulators;
 [ARM Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
 or [PowerVR](https://community.imgtec.com/developers/powervr/graphics-sdk/).
 
-If you want to run the load tests for OpenGL ES 1.1 you will need to use Imagination
-Technologies' PowerVR emulator as that alone supports OpenGL ES 1.1.
+If you want to run the load tests for OpenGL ES 1.1 you will need to use
+Imagination Technologies' PowerVR emulator as that alone supports OpenGL ES 
+1.1.
 
 <sup>*</sup>You will need to build ANGLE yourself and copy the libs
 and dlls to the appropriate directories under `other_lib/win`. Note
