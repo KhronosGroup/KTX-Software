@@ -129,6 +129,8 @@ artifacts:
   # Save in cloud storage so we can deploy it. Will be kept unnecessarily for 6 months.
   - path: 'build-win-Release/KTX-Software-*.exe'
     name: WindowsInstaller
+  - path: 'build-win-Release/KTX-Software-*.exe.sha1'
+    name: WindowsInstallerSha1
 
 
 before_deploy:
@@ -145,7 +147,7 @@ deploy:
     # Don't set so tag name will be used as release name.
     #release:
     # Can't get this to work using artifact.path so use artifact.name set above.
-    artifact: WindowsInstaller
+    artifact: WindowsInstaller,WindowsInstallerSha1
     draft: true
     prerelease: true
     on:
