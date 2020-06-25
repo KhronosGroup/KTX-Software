@@ -102,12 +102,11 @@ function(generate_version _var )
     if(GIT_DIRTY)
         set(KTX_VERSION ${KTX_VERSION}-dirty)
     endif()
-    string(REPLACE "-" "." KTX_VERSION ${KTX_VERSION})
     set(${_var} "${KTX_VERSION}" PARENT_SCOPE)
 endfunction()
 
-
-generate_version(KTX_VERSION_FULL)
+# Get latest tag
+git_describe_raw(KTX_VERSION_FULL --abbrev=0 --match v[0-9]*)
 #message("KTX full version: ${KTX_VERSION_FULL}")
 
 # generate_version(TOKTX_VERSION tools/toktx)
