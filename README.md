@@ -3,6 +3,11 @@
 The Official Khronos KTX Software Repository
 ---
 
+> **Note:** Visual Studio 2019 v16.5 & v16.6 get an internal compiler error when compiling parts of this software. v16.4 is okay. For Windows we suggest using Visual Studio 2017 until Microsoft fixes this bug.
+
+> **Note:** This repo has just switched from a GYP-based to a CMake-based build system. The pre-generated build files have been removed but the .gyp files will remain available for a while and can be used to generate build files, using the GNUMakefile in the root of the project, in the event of a problem. You will have to install
+[GYP](https://github.com/msc-/gyp/tree/remaster).
+
 | GNU/Linux, iOS & OSX |  Windows | Documentation | 
 |----------------------| :------: | :-----------: |
 | [![Build Status](https://travis-ci.org/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.org/KhronosGroup/KTX-Software) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) |

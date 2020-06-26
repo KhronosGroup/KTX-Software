@@ -3,55 +3,11 @@
 *~
 *.bak
 
-# /build/
-/build/*.tgz
-/build/*.zip
-/build/docs
-
-# /build/GNUmake/lib/
-/build/GNUmake/lib/*.d
-/build/GNUmake/lib/es1
-/build/GNUmake/lib/es2
-/build/GNUmake/lib/es3
-/build/GNUmake/lib/gl
-
-/build/make/**/out
-/build/make/**/*.d
-
-# cmake generated files.
-# Must list the ignore this way. With "/build/cmake", as Git "doesn’t list
-# excluded directories for performance reason", the following negative patterns
-# files have no effect
-/build/cmake/**/Debug/*
-/build/cmake/**/Release/*
-!/build/cmake/**/.ktx-stamp
-!/build/cmake/**/Debug/CMakeLists.txt
-!/build/cmake/**/Release/CMakeLists.txt
-
-# MS Visual Studio build and user option files
-/build/**/*.ncb
-/build/**/*.sdf
-/build/**/*.opensdf
-/build/**/*.suo
-/build/**/*.user
-/build/msvs/**/Debug*
-/build/msvs/**/Release*
-/build/msvs/**/.vs
-
-# User related stuff in /build/xcode
-/build/xcode/*/*.xcodeproj/project.xcworkspace
-/build/xcode/*/*.xcodeproj/xcuserdata
-/build/xcode/*/*.xcodeproj/xcshareddata
-
-# xcodebuild CL build related artifacts.
-build/Debug
-build/Release
-build/XCBuildData
-build/ktxtools.build
-build/libktx.build
-
-# built packages
-build/packages
+/build/
+/build-ios/
+/build-linux/
+/build-macos/
+/build-windows/
 
 # /include/
 /include/imdebug.h

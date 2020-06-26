@@ -1172,8 +1172,8 @@ ktxValidator::validateDfd(validationContext& ctx)
                 if (numSamples > 1)
                     addIssue(logger::eError, DFD.InvalidSampleCount,
                              "UASTC", "1");
-                if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0 != 3)
-                    && KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1 != 3)
+                if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) != 3
+                    && KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) != 3
                     && (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] & 0xffff0000) != 0)
                     addIssue(logger::eError, DFD.InvalidTexelBlockDimension,
                              4, 4, "UASTC");
@@ -1247,8 +1247,8 @@ ktxValidator::validateDfd(validationContext& ctx)
               addIssue(logger::eError, DFD.ZeroSamples, "BasisLZ/ETC1S");
           if (numSamples > 2)
               addIssue(logger::eError, DFD.InvalidSampleCount, "BasisLZ/ETC1S", "1 or 2");
-          if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0 != 3)
-              && KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1 != 3)
+          if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) != 3
+              && KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) != 3
               && (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] & 0xffff0000) != 0)
               addIssue(logger::eError, DFD.InvalidTexelBlockDimension,
                        4, 4, "BasisLZ/ETC1S");

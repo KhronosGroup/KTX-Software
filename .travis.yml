@@ -28,7 +28,7 @@ matrix:
         - node
     - os: osx
       env:
-        - VULKAN_SDK_VER="1.2.141.1"
+        - VULKAN_SDK_VER="1.2.141.2"
         - VULKAN_INSTALL_DIR="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
@@ -48,7 +48,7 @@ before_install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    docker run -dit --name emscripten -v $(pwd):/src trzeci/emscripten:sdk-incoming-64bit bash
+    docker run -dit --name emscripten -v $(pwd):/src trzeci/emscripten-ubuntu:sdk-incoming-64bit bash
     ;;
   esac
 
@@ -56,50 +56,21 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    # No need to install git-lfs. It is part of Travis's Bionic environment.
-    sudo apt-get -qq update &&
-    sudo apt-get -qq install doxygen &&
-    sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev &&
-    sudo apt-get -qq install libvulkan1 libvulkan-dev &&
-    sudo apt-get -qq install libassimp4 libassimp-dev &&
-    wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add - &&
-    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-bionic.list http://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-bionic.list &&
-    sudo apt update &&
-    sudo apt install lunarg-vulkan-sdk
+    ./ci_scripts/install_linux.sh
     ;;
   osx)
-    brew update > /dev/null &&
-    brew install git-lfs &&
-    git lfs install &&
-    git lfs version &&
-    brew install doxygen &&
-    # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
-    pushd ../.. &&
-    wget -O vulkansdk-macos-$VULKAN_SDK_VER.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.dmg?Human=true &&
-    hdiutil attach vulkansdk-macos-$VULKAN_SDK_VER.dmg &&
-    wget -O Packages.dmg http://s.sudre.free.fr/Software/files/Packages.dmg &&
-    hdiutil attach Packages.dmg &&
-    sudo installer -pkg /Volumes/Packages*/packages/packages.pkg -target / &&
-    hdiutil detach /Volumes/Packages* &&
-    popd
+    ./ci_scripts/install_macos.sh
     ;;
   esac
-- pushd ../..
-- git clone https://github.com/msc-/gyp
-- cd gyp && sudo ./setup.py install && cd ..
-- popd
 
 before_script:
+  - git fetch --unshallow --tags
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
     osx)
-      # Pull just the mac/ios files and images to save time. git clone
-      # was done before any code we control so before we could install
-      # git-lfs. Therefore we have to pull the files stored in git LFS.
-      git lfs pull --include=other_lib/mac,other_lib/ios,tests/testimages &&
-      sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
+      ./ci_scripts/before_build_macos.sh
       ;;
     esac
   # Make sure embedded dates are correct.
@@ -111,65 +82,10 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    # Due to a gyp bug in the generation of dependencies for the .frag & .vert shader files
-    # make fails in building the load tests.
-    #cd build/make/linux &&
-    #make BUILDTYPE=Debug &&
-    #make BUILDTYPE=Release &&
-    #cd ../../cmake/linux/Debug &&
-    pushd build/cmake/linux/Debug &&
-    cmake . && make &&
-    cd ../Release &&
-    cmake . && make &&
-    make ktxpkg_doc &&
-    popd &&
-    pushd build/cmake/linux/Debug &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../../../tests/testimages/ &&
-    cd ../Release &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../../../tests/testimages/ &&
-    popd &&
-    docker exec -it emscripten sh -c "cd build/cmake/web/Debug && emconfigure cmake . && make" &&
-    docker exec -it emscripten sh -c "cd build/cmake/web/Release && emconfigure cmake . && make"
+    ./ci_scripts/build_linux.sh
     ;;
   osx)
-    # Due to the spaces in the platform names, must use array variables so
-    # destination args can be expanded to a single word.
-    OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
-    IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
-    XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
-    # The following and more is needed if you want to actually sign the code.
-    # See http://stackoverflow.com/questions/27671854/travis-ci-fails-to-build-with-a-code-signing-error.
-    #KEY_CHAIN=xcode-build.keychain
-    #security create-keychain -p travis $KEY_CHAIN
-    # Make the keychain the default so identities are found
-    #security default-keychain -s $KEY_CHAIN
-    ## Unlock the keychain
-    #security unlock-keychain -p travis $KEY_CHAIN
-    ## Set keychain locking timeout to 3600 seconds
-    #security set-keychain-settings -t 3600 -u $KEY_CHAIN
-    pushd build/xcode/mac &&
-    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtests.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Debug $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtools.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxdoc.xcodeproj "${OSX_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    cd ../ios &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Debug ONLY_ACTIVE_ARCH=NO $XCODE_CODESIGN_ENV &&
-    xcodebuild -project ktxtests.xcodeproj "${IOS_XCODE_OPTIONS[@]}" -configuration Release $XCODE_CODESIGN_ENV &&
-    popd &&
-    pushd build/Debug &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../tests/testimages/ &&
-     cd ../Release &&
-    ./unittests &&
-    ./texturetests &&
-    ./transcodetests ../../tests/testimages/ &&
-    popd
+    ./ci_scripts/build_macos.sh
     ;;
     esac
 
@@ -179,14 +95,49 @@ after_script:
 
 # Errors in something run in after_success: don't cause the build to fail so don't use. 
 
+before_deploy:
+  - |
+    case "${TRAVIS_OS_NAME:-linux}" in
+    linux)
+      ;;
+    osx)
+      ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD
+      ;;
+    esac
+
 deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  local-dir: build/docs/html
-  on:
-    branch: master
-    condition: $TRAVIS_OS_NAME = osx
-    #tags: true
+  - provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    local-dir: build-macos/docs/html
+    on:
+      #branch: master
+      condition: $TRAVIS_OS_NAME = osx
+      tags: true
+  - provider: releases
+    api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    file_glob: true
+    file:
+      - build-macos/KTX-Software-*.pkg
+    skip_cleanup: true
+    draft: true
+    prerelease: true
+    on:
+      tags: true
+      #branch: master
+      condition: $TRAVIS_OS_NAME = osx
+  - provider: releases
+    api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    file_glob: true
+    file:
+      - build-linux-release/KTX-Software-*-Linux.*
+      - build-web-release/KTX-Software-*-Web-*.zip
+    skip_cleanup: true
+    draft: true
+    prerelease: true
+    on:
+      tags: true
+      #branch: master
+      condition: $TRAVIS_OS_NAME = linux
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

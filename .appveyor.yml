@@ -1,0 +1,155 @@
+version: "{build}"
+
+image:
+  - Visual Studio 2015
+  - Visual Studio 2017
+  # There is a bug in VS 2019, version 16.[56]. Compiler gets internal error.
+  # Was fine in 16.4.
+  # - Visual Studio 2019
+
+configuration:
+  - Debug
+  - Release
+
+platform:
+  - x64
+#  - Win32
+
+environment:
+  GIT_TRACE: 0
+  VULKAN_SDK_VER: 1.2.141.2
+  PVR_SDK_GH_VER: 4.3
+  PVR_SDK_DL_VER: 2017_R1
+  CMAKE_GEN: Visual Studio 15 2017
+
+branches:
+  except:
+    - /subrepo\/*/
+
+# Do not skip tags. Deploy will not be run either.
+skip_tags: false
+
+for:
+  - matrix:
+      only:
+        - image: Visual Studio 2015
+    environment:
+      CMAKE_GEN: Visual Studio 14 2015
+  - matrix:
+      only:
+        - image: Visual Studio 2017
+    environment:
+      CMAKE_GEN: Visual Studio 15 2017
+  - matrix:
+      only:
+        - image: Visual Studio 2019
+    environment:
+      CMAKE_GEN: Visual Studio 16 2019
+
+build:
+  verbosity: detailed
+
+# Following is for GIT_TRACE: 1 above.
+#on_failure:
+#  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+
+# Following is for when we want to stop RDP exiting at end of build.
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+clone_folder: c:\projects\ktx
+
+init:
+# This ps command enables RDP and provides the login details. blockRdp variant stops the
+# build proceeding until RDP is connected.
+#  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
+# - ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+# N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
+install:
+- cinst doxygen.install
+#- ps: |
+    #run mkversion 
+    #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
+- cmd: |
+    REM Copy PowerVR OpenGL ES Emulator libraries
+    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
+    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
+    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
+    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
+    REM Install VulkanSDK
+    cd C:\
+    curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
+    .\VulkanSDK-Installer.exe /S
+    refreshenv
+    echo %VULKAN_SDK%
+    REM cd back to cloned repo.
+    cd C:\projects\ktx
+    REM Pull only Windows binaries.
+    git lfs pull --include=other_lib/win
+# # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
+# - ps: |
+#     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
+#     ./install.bat
+#cache:
+#  - other_lib
+
+before_build:
+# Expand date keywords. -q is because the VS2019 image has a more
+# recent git version (2.21.0) in which git checkout writes to StdErr
+# which PS treats as an exception, causing the build to fail. The
+# write is an innocuous message about the number of paths updated.
+- ps: |
+    ./install-gitconfig.bat
+    rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
+    git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
+
+build_script:
+- ps: |
+    # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
+    refreshenv
+    # $ErrorActionPreference = 'Stop'
+    $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
+    echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
+    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib"
+    pushd $env:KTX_BUILD_DIR
+    cmake --build . --config $env:CONFIGURATION
+    cmake --build . --config $env:CONFIGURATION --target PACKAGE
+    popd
+    echo "Done Building"
+
+test_script:
+- ps: |
+    $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
+    pushd $env:KTX_BUILD_DIR
+    ctest -C $env:CONFIGURATION
+    popd
+
+artifacts:
+  # Save in cloud storage so we can deploy it. Will be kept unnecessarily for 6 months.
+  - path: 'build-win-Release/KTX-Software-*.exe'
+    name: WindowsInstaller
+  - path: 'build-win-Release/KTX-Software-*.exe.sha1'
+    name: WindowsInstallerSha1
+
+
+before_deploy:
+- ps: |
+    foreach ($artifactName in $artifacts.keys) {
+      $artifacts[$artifactName]
+    }
+
+deploy:
+    # Deploy to GitHub Releases
+    provider: GitHub
+    auth_token:
+      secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
+    # Don't set so tag name will be used as release name.
+    #release:
+    # Can't get this to work using artifact.path so use artifact.name set above.
+    artifact: WindowsInstaller,WindowsInstallerSha1
+    draft: true
+    prerelease: true
+    on:
+      APPVEYOR_REPO_TAG: true       # deploy on tag push only
+ 
