@@ -149,11 +149,11 @@ zlib and zstd are needed for building libktx. The KTX repo has a Windows binary 
 
 The NSIS compiler is needed if you intend to build packages.
 
-CMake can be configured to generate an MSVS solution that includes OpenGL
-ES versions of the loadtests. To build and run these you need to install
-an OpenGL ES emulator.
+CMake can include OpenGL ES versions of the KTX loader tests in the
+generated solution. To build and run these you need to install an
+OpenGL ES emulator. See below.
 
-The KTX loader tests in use libSDL 2.0.12+. You do not need SDL if you only wish to build the library or tools.
+The KTX loader tests use libSDL 2.0.12+. You do not need SDL if you only wish to build the library or tools.
 
 The KTX vulkan loader tests require a [Vulkan SDK](#vulkan-sdk)
 and the Open Asset Import Library [`libassimp`](#libassimp). You must
@@ -162,22 +162,18 @@ Windows but you must install it on GNU/Linux and macOS.
 
 #### OpenGL ES Emulator for Windows
 
-> TODO: Section may be outdated. Re-check!
-
-The generated projects work with the
+The `es1loadtests` and `es3loadtests` targets on Windows require an
+OpenGL ES emulator.
 [Imagination Technologies PowerVR](https://community.imgtec.com/developers/powervr/graphics-sdk/).
-emulator. Install that before trying to build the `es1loadtests` or
-`es3loadtests` targets on Windows.
+emulator is recommended. Any of the other major emulators listed below could also be used:
 
-Projects can be modified to work with any of the major emulators;
-[Qualcomm Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools),
-[Google ANGLE](https://chromium.googlesource.com/angle/angle/)<sup>*</sup>,
-[ARM Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
-or [PowerVR](https://community.imgtec.com/developers/powervr/graphics-sdk/).
+* [Qualcomm Adreno](https://developer.qualcomm.com/software/adreno-gpu-sdk/tools)
+* [Google ANGLE](https://chromium.googlesource.com/angle/angle/)<sup>*</sup>
+* [ARM Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
 
-If you want to run the load tests for OpenGL ES 1.1 you will need to use
+If you want to run the `es1loadtests` you will need to use
 Imagination Technologies' PowerVR emulator as that alone supports OpenGL ES 
-1.1.
+1.1. You must set the CMake configuration variable `OPENGL_ES_EMULATOR` to the directory containing the .lib files of your chosen emulator.
 
 <sup>*</sup>You will need to build ANGLE yourself and copy the libs
 and dlls to the appropriate directories under `other_lib/win`. Note
