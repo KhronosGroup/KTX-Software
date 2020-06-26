@@ -101,7 +101,10 @@ before_deploy:
     linux)
       ;;
     osx)
-      ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD
+      # Only notarize if we're going to deploy. I.e on a tag.
+      if [ -n "$TRAVIS_TAG" ]; then
+        ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD;
+      fi
       ;;
     esac
 
