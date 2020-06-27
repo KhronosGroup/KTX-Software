@@ -20,7 +20,7 @@ environment:
   VULKAN_SDK_VER: 1.2.141.2
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2020_R1
-  OPENGL_ES_EMULATOR: "C:\Imagination Technologies\PowerVR_Graphics\PowerVR_Tools\PVRFrame\Library\Windows_x86_64
+  OPENGL_ES_EMULATOR: "C:\Imagination Technologies\PowerVR_Graphics\PowerVR_Tools\PVRFrame\Library\Windows_x86_64"
   CMAKE_GEN: Visual Studio 15 2017
 
 branches:
