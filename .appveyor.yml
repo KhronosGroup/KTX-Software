@@ -73,11 +73,11 @@ install:
     #run mkversion 
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 - cmd: |
-    REM Install PVRFrame (PowerVR OpenGL ES Emulator)
-    curl https://www.imgtec.com/downloading/?dlm-dp-dl=87893
-    .\PVRFrameSetup*.exe /S
-    REM Install VulkanSDK
     cd C:\
+    REM Install PVRFrame (PowerVR OpenGL ES Emulator)
+    curl -o PVRFrameSetup.exe https://www.imgtec.com/downloading/?dlm-dp-dl=87893
+    .\PVRFrameSetup.exe /S
+    REM Install VulkanSDK
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
     refreshenv
