@@ -19,8 +19,8 @@ environment:
   GIT_TRACE: 0
   VULKAN_SDK_VER: 1.2.141.2
   PVR_SDK_GH_VER: 4.3
-  PVR_SDK_DL_VER: 2017_R1
-  OPENGL_ES_EMULATOR: C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
+  PVR_SDK_DL_VER: 2020_R1
+  OPENGL_ES_EMULATOR: "C:\Imagination Technologies\PowerVR_Graphics\PowerVR_Tools\PVRFrame\Library\Windows_x86_64
   CMAKE_GEN: Visual Studio 15 2017
 
 branches:
@@ -73,11 +73,9 @@ install:
     #run mkversion 
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 - cmd: |
-    REM Copy PowerVR OpenGL ES Emulator libraries
-    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
-    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & REM curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
-    md %OPENGL_ES_EMULATOR%
-    cd %OPENGL_ES_EMULATOR%  & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
+    REM Install PVRFrame (PowerVR OpenGL ES Emulator)
+    curl https://www.imgtec.com/download/windows-installer-pvrvframe/
+    .\PVRFrameSetup*.exe /S
     REM Install VulkanSDK
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
