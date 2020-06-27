@@ -75,7 +75,7 @@ install:
 - cmd: |
     cd C:\
     REM Install PVRFrame (PowerVR OpenGL ES Emulator)
-    curl -o PVRFrameSetup.exe https://www.imgtec.com/download/windows-installer-pvrvframe/?dlm-dp-dl-force=1&dlm-dp-dl-nonce=b524470423
+    curl -o PVRFrameSetup.exe https://www.imgtec.com/download/windows-installer-pvrvframe?dlm-dp-dl-force=1&dlm-dp-dl-nonce=b524470423
     .\PVRFrameSetup.exe /S
     REM Install VulkanSDK
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
