@@ -73,10 +73,10 @@ install:
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 - cmd: |
     REM Copy PowerVR OpenGL ES Emulator libraries
-    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
-    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
-    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
-    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
+    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
+    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & REM curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
+    md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
+    cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
     REM Install VulkanSDK
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
