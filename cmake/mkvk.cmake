@@ -24,6 +24,9 @@ if(WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
         COMMAND "${BASH_EXECUTABLE}" -c "VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib"
+        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos lib/vkformat_enum.h"
+        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos lib/vkformat_check.c"
+        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos lib/vkformat_str.c"
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT Generating VkFormat-related source files
@@ -72,15 +75,28 @@ list(APPEND makedfd2vk_input
 list(APPEND makedfd2vk_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
 
-add_custom_command(
-    OUTPUT ${makedfd2vk_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
-    DEPENDS ${makedfd2vk_input}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT Generating DFD/VkFormat switch body
-    VERBATIM
-)
+if(WIN32)
+    add_custom_command(
+        OUTPUT ${makedfd2vk_output}
+        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
+        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos lib/dfdutils/dfd2vk.inl"
+        DEPENDS ${makedfd2vk_input}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT Generating DFD/VkFormat switch body
+        VERBATIM
+    )
+else()
+    add_custom_command(
+        OUTPUT ${makedfd2vk_output}
+        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
+        DEPENDS ${makedfd2vk_input}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT Generating DFD/VkFormat switch body
+        VERBATIM
+    )
+endif()
 
 add_custom_target(makedfd2vk
     DEPENDS ${makedfd2vk_output}
