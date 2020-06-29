@@ -70,7 +70,9 @@ before_script:
     linux)
       ;;
     osx)
-      ./ci_scripts/before_build_macos.sh
+      if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+        ./ci_scripts/before_build_macos.sh;
+      fi
       ;;
     esac
   # Make sure embedded dates are correct.

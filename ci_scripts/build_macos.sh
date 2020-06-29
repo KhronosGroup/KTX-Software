@@ -44,7 +44,11 @@ ctest -C Debug # --verbose
 
 # Build and test Release
 echo "Build KTX-Software (macOS Release)"
-cmake --build . --config Release
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+  cmake --build . --config Release
+else # No secure variables in a PR build.
+  cmake --build . --config Release  -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+fi
 echo "Test KTX-Software (macOS Release)"
 ctest -C Release # --verbose
 echo "Install KTX-Software (macOS Release)"
