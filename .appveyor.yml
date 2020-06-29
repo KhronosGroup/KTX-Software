@@ -20,7 +20,7 @@ environment:
   VULKAN_SDK_VER: 1.2.141.2
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2020_R1
-  OPENGL_ES_EMULATOR: "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools/PVRFrame/Library/Windows_x86_64"
+  # OPENGL_ES_EMULATOR: "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools/PVRFrame/Library/Windows_x86_64"
   CMAKE_GEN: Visual Studio 15 2017
 
 branches:
@@ -76,8 +76,8 @@ install:
     cd C:\
     REM Install PVRFrame (PowerVR OpenGL ES Emulator)
     REM Quote to avoid cmd prompt special characters.
-    curl -o PVRFrameSetup.exe "https://www.imgtec.com/download/windows-installer-pvrvframe?dlm-dp-dl-force=1&dlm-dp-dl-nonce=b524470423"
-    .\PVRFrameSetup.exe /S
+    REM curl -o PVRFrameSetup.exe "https://www.imgtec.com/download/windows-installer-pvrvframe?dlm-dp-dl-force=1&dlm-dp-dl-nonce=b524470423"
+    REM .\PVRFrameSetup.exe /S
     REM Install VulkanSDK
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
@@ -109,7 +109,7 @@ build_script:
 - ps: |
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
     refreshenv
-    # $ErrorActionPreference = 'Stop'
+    $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
@@ -121,6 +121,7 @@ build_script:
 
 test_script:
 - ps: |
+    $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     pushd $env:KTX_BUILD_DIR
     ctest -C $env:CONFIGURATION
