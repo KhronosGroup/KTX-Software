@@ -27,7 +27,7 @@ export PATH="${VULKAN_SDK}/bin:$PATH"
 #
 
 echo "Configure KTX-Software (macOS)"
-if [ -n "$TRAVIS_PULL_REQUEST" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
+if [ -z "$TRAVIS_PULL_REQUEST" -o "$TRAVIS_PULL_REQUEST" = "false" ]; then
   cmake -GXcode -Bbuild-macos \
   -DKTX_FEATURE_DOC=ON \
   -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}" \

@@ -11,7 +11,7 @@ set -e
 git lfs pull --include=other_lib/mac,other_lib/ios,tests/testimages,tests/srcimages
 sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
 
-if [ -n "$TRAVIS_PULL_REQUEST" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
+if [ -n "$TRAVIS_PULL_REQUEST" -a "$TRAVIS_PULL_REQUEST" != "false" ]; then
   exit 0
 fi
 
