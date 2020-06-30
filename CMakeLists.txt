@@ -567,7 +567,6 @@ install( FILES
 include(CPackComponent)
 
 set(CPACK_PACKAGE_NAME "KTX-Software")
-set(CPACK_VERSION_FULL ${KTX_VERSION_FULL})
 set(CPACK_PACKAGE_VENDOR "Khronos Group")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.khronos.org/KTX-Software")
 set(CPACK_PACKAGE_CONTACT "khronos@callow.im" )
@@ -576,7 +575,8 @@ set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Welcome.rtf")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
-set( CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/package.txt )
+# Custom package file name
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}")
 
 if(APPLE)
     install(FILES tools/package/mac/ktx-uninstall
@@ -613,6 +613,9 @@ elseif(WIN32)
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
     set(CPACK_PACKAGE_CHECKSUM SHA1)
+    # Custom Package name to make sure it has the "-win64" suffix.
+    set(CPACK_VERSION_FULL ${KTX_VERSION_FULL})
+    set(CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/package.txt)
 elseif(EMSCRIPTEN)
     set(CPACK_GENERATOR ZIP)
     set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")
