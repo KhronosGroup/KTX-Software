@@ -70,7 +70,7 @@ before_script:
     linux)
       ;;
     osx)
-      ./ci_scripts/before_build_macos.sh;
+      ./ci_scripts/before_build_macos.sh
       ;;
     esac
   # Make sure embedded dates are correct.
