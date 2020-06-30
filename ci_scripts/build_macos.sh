@@ -2,6 +2,7 @@
 
 # exit if any command fails
 set -e
+set -x
 
 # Due to the spaces in the platform names, must use array variables so
 # destination args can be expanded to a single word.
