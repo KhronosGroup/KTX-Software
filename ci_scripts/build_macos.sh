@@ -8,16 +8,6 @@ set -e
 OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
 XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
-# The following and more is needed if you want to actually sign the code.
-# See http://stackoverflow.com/questions/27671854/travis-ci-fails-to-build-with-a-code-signing-error.
-#KEY_CHAIN=xcode-build.keychain
-#security create-keychain -p travis $KEY_CHAIN
-# Make the keychain the default so identities are found
-#security default-keychain -s $KEY_CHAIN
-## Unlock the keychain
-#security unlock-keychain -p travis $KEY_CHAIN
-## Set keychain locking timeout to 3600 seconds
-#security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
 # Ensure that Vulkan SDK's glslc is in PATH
 export PATH="${VULKAN_SDK}/bin:$PATH"
@@ -27,12 +17,18 @@ export PATH="${VULKAN_SDK}/bin:$PATH"
 #
 
 echo "Configure KTX-Software (macOS)"
-cmake -GXcode -Bbuild-macos \
--DKTX_FEATURE_DOC=ON \
--DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}" \
--DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
--DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
--DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
+if [ -z "$TRAVIS_PULL_REQUEST" -o "$TRAVIS_PULL_REQUEST" = "false" ]; then
+  cmake -GXcode -Bbuild-macos \
+  -DKTX_FEATURE_DOC=ON \
+  -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}" \
+  -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
+  -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+  -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
+else # Generally no secure variables in a PR build.
+  cmake -GXcode -Bbuild-macos \
+  -DKTX_FEATURE_DOC=ON \
+  -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+fi
 
 pushd build-macos
 
@@ -44,7 +40,11 @@ ctest -C Debug # --verbose
 
 # Build and test Release
 echo "Build KTX-Software (macOS Release)"
-cmake --build . --config Release
+if [ -z "$TRAVIS_PULL_REQUEST" -o "$TRAVIS_PULL_REQUEST" = "false" ]; then
+  cmake --build . --config Release
+else
+  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+fi
 echo "Test KTX-Software (macOS Release)"
 ctest -C Release # --verbose
 echo "Install KTX-Software (macOS Release)"

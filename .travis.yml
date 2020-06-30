@@ -70,13 +70,14 @@ before_script:
     linux)
       ;;
     osx)
-      ./ci_scripts/before_build_macos.sh
+      ./ci_scripts/before_build_macos.sh;
       ;;
     esac
   # Make sure embedded dates are correct.
   - ./install-gitconfig.sh
   - rm TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
   - git checkout TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
+  - git status
 
 script:
 - |

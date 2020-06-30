@@ -11,6 +11,11 @@ set -e
 git lfs pull --include=other_lib/mac,other_lib/ios,tests/testimages,tests/srcimages
 sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
 
+echo $TRAVIS_PULL_REQUEST
+if [ -n "$TRAVIS_PULL_REQUEST" -a "$TRAVIS_PULL_REQUEST" != "false" ]; then
+  exit 0
+fi
+
 KEY_CHAIN=build.keychain
 KEY_PASS=mysecretpassword
 MACOS_CERTS_TMPFILE=macOS_certificates.p12

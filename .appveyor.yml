@@ -19,7 +19,8 @@ environment:
   GIT_TRACE: 0
   VULKAN_SDK_VER: 1.2.141.2
   PVR_SDK_GH_VER: 4.3
-  PVR_SDK_DL_VER: 2017_R1
+  PVR_SDK_DL_VER: 2020_R1
+  # OPENGL_ES_EMULATOR: "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools/PVRFrame/Library/Windows_x86_64"
   CMAKE_GEN: Visual Studio 15 2017
 
 branches:
@@ -72,13 +73,12 @@ install:
     #run mkversion 
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 - cmd: |
-    REM Copy PowerVR OpenGL ES Emulator libraries
-    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib
-    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_32\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_32/Lib/libGLESv2.{dll,lib}
-    REM md C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib
-    REM cd C:\Imagination\PowerVR_Graphics\PowerVR_SDK\SDK_%PVR_SDK_DL_VER%\Builds\Windows\x86_64\Lib & curl -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libEGL.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLES_CM.{dll,lib} -O https://raw.githubusercontent.com/powervr-graphics/Native_SDK/%PVR_SDK_GH_VER%/Builds/Windows/x86_64/Lib/libGLESv2.{dll,lib}
-    REM Install VulkanSDK
     cd C:\
+    REM Install PVRFrame (PowerVR OpenGL ES Emulator)
+    REM Quote to avoid cmd prompt special characters.
+    REM curl -o PVRFrameSetup.exe "https://www.imgtec.com/download/windows-installer-pvrvframe?dlm-dp-dl-force=1&dlm-dp-dl-nonce=b524470423"
+    REM .\PVRFrameSetup.exe /S
+    REM Install VulkanSDK
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
     refreshenv
@@ -103,15 +103,18 @@ before_build:
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
     git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
+    git status
 
 build_script:
 - ps: |
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
     refreshenv
-    # $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
-    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib"
+    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
+    # Put here because without OPENGL_ES_EMULATOR set the above command writes
+    # a warning to stderr that causes PS to stop, even though the exit code is 0.
+    $ErrorActionPreference = 'Stop'
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
@@ -120,6 +123,7 @@ build_script:
 
 test_script:
 - ps: |
+    $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     pushd $env:KTX_BUILD_DIR
     ctest -C $env:CONFIGURATION
