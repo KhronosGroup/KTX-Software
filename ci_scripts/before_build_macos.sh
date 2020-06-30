@@ -4,7 +4,6 @@
 
 # exit if any command fails
 set -e
-set -x
 
 # Pull just the mac/ios files and images to save time. git clone
 # was done before any code we control so before we could install
