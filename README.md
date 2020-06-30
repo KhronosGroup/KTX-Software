@@ -36,6 +36,11 @@ contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX
 - *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
 Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
 
+Downloadable binary packages of the tools, library and development
+headers are available at
+[Releases](https://github.com/KhronosGroup/KTX-Software/releases).
+There are also packages with the Javascript wrappers and .wasm binaries.
+
 See the Doxygen generated [live documentation](https://github.khronos.org/KTX-Software/)
 for API and tool usage information.
 
