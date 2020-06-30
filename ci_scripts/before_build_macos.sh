@@ -4,6 +4,7 @@
 
 # exit if any command fails
 set -e
+set -x
 
 # Pull just the mac/ios files and images to save time. git clone
 # was done before any code we control so before we could install
@@ -11,6 +12,7 @@ set -e
 git lfs pull --include=other_lib/mac,other_lib/ios,tests/testimages,tests/srcimages
 sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
 
+echo $TRAVIS_PULL_REQUEST
 if [ -n "$TRAVIS_PULL_REQUEST" -a "$TRAVIS_PULL_REQUEST" != "false" ]; then
   exit 0
 fi
