@@ -27,12 +27,18 @@ export PATH="${VULKAN_SDK}/bin:$PATH"
 #
 
 echo "Configure KTX-Software (macOS)"
-cmake -GXcode -Bbuild-macos \
--DKTX_FEATURE_DOC=ON \
--DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}" \
--DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
--DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
--DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
+if [ -n "$TRAVIS_PULL_REQUEST" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
+  cmake -GXcode -Bbuild-macos \
+  -DKTX_FEATURE_DOC=ON \
+  -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}" \
+  -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
+  -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+  -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
+else # Generally no secure variables in a PR build.
+  cmake -GXcode -Bbuild-macos \
+  -DKTX_FEATURE_DOC=ON \
+  -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+fi
 
 pushd build-macos
 
@@ -44,11 +50,7 @@ ctest -C Debug # --verbose
 
 # Build and test Release
 echo "Build KTX-Software (macOS Release)"
-if [ -n "$TRAVIS_PULL_REQUEST" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
-  cmake --build . --config Release
-else # No secure variables in a PR build.
-  cmake --build . --config Release  -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
-fi
+cmake --build . --config Release
 echo "Test KTX-Software (macOS Release)"
 ctest -C Release # --verbose
 echo "Install KTX-Software (macOS Release)"
