@@ -69,11 +69,10 @@ init:
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 install:
 - cinst doxygen.install
-#- ps: |
+- ps: |
     #run mkversion 
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
-- cmd: |
-    REM Download PowerVR OpenGL ES Emulator libraries (latest version).
+    # Download PowerVR OpenGL ES Emulator libraries (latest version).
     md %OPENGL_ES_EMULATOR%
     cd %OPENGL_ES_EMULATOR%
     curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLES_CM.dll
@@ -82,15 +81,18 @@ install:
     curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLESv2.lib
     curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.dll
     curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.lib
-    REM Install VulkanSDK
+    # Install VulkanSDK
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
-    refreshenv
+    # PS does not appear to have
+    # refreshenv
+    # so ...
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
     echo %VULKAN_SDK%
-    REM cd back to cloned repo.
+    # cd back to cloned repo.
     cd C:\projects\ktx
-    REM Pull only Windows binaries.
+    # Pull only Windows binaries.
     git lfs pull --include=other_lib/win
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
