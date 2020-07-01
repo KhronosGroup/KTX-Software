@@ -20,7 +20,7 @@ environment:
   VULKAN_SDK_VER: 1.2.141.2
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2020_R1
-  # OPENGL_ES_EMULATOR: "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools/PVRFrame/Library/Windows_x86_64"
+  OPENGL_ES_EMULATOR: "C:/Imagination/Windows_x86_64"
   CMAKE_GEN: Visual Studio 15 2017
 
 branches:
@@ -73,12 +73,17 @@ install:
     #run mkversion 
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 - cmd: |
-    cd C:\
-    REM Install PVRFrame (PowerVR OpenGL ES Emulator)
-    REM Quote to avoid cmd prompt special characters.
-    REM curl -o PVRFrameSetup.exe "https://www.imgtec.com/download/windows-installer-pvrvframe?dlm-dp-dl-force=1&dlm-dp-dl-nonce=b524470423"
-    REM .\PVRFrameSetup.exe /S
+    REM Download PowerVR OpenGL ES Emulator libraries (latest version).
+    md %OPENGL_ES_EMULATOR%
+    cd %OPENGL_ES_EMULATOR%
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLES_CM.dll
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLES_CM.lib
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLESv2.dll
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLESv2.lib
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.dll
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.lib
     REM Install VulkanSDK
+    cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
     refreshenv
