@@ -20,7 +20,8 @@ environment:
   VULKAN_SDK_VER: 1.2.141.2
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2020_R1
-  # OPENGL_ES_EMULATOR: "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools/PVRFrame/Library/Windows_x86_64"
+  OPENGL_ES_EMULATOR: C:/Imagination/Windows_x86_64
+  OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
   CMAKE_GEN: Visual Studio 15 2017
 
 branches:
@@ -67,22 +68,29 @@ init:
 # - ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
+# Not using PS for downloads because its curl is completely different.
 install:
 - cinst doxygen.install
 #- ps: |
     #run mkversion 
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 - cmd: |
-    cd C:\
-    REM Install PVRFrame (PowerVR OpenGL ES Emulator)
-    REM Quote to avoid cmd prompt special characters.
-    REM curl -o PVRFrameSetup.exe "https://www.imgtec.com/download/windows-installer-pvrvframe?dlm-dp-dl-force=1&dlm-dp-dl-nonce=b524470423"
-    REM .\PVRFrameSetup.exe /S
+    REM Download PowerVR OpenGL ES Emulator libraries (latest version).
+    md %OPENGL_ES_EMULATOR_WIN%
+    cd %OPENGL_ES_EMULATOR_WIN%
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLES_CM.dll
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLES_CM.lib
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLESv2.dll
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLESv2.lib
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.dll
+    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.lib
     REM Install VulkanSDK
+    cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
-    refreshenv
     echo %VULKAN_SDK%
+    REM refresh the environment to pick up VulkanSDK changes.
+    refreshenv
     REM cd back to cloned repo.
     cd C:\projects\ktx
     REM Pull only Windows binaries.
@@ -97,8 +105,9 @@ install:
 before_build:
 # Expand date keywords. -q is because the VS2019 image has a more
 # recent git version (2.21.0) in which git checkout writes to StdErr
-# which PS treats as an exception, causing the build to fail. The
-# write is an innocuous message about the number of paths updated.
+# which PS treats as an exception causing the build to fail, if checkout
+# is the last command in this shell. The write is an innocuous message
+# about the number of paths updated.
 - ps: |
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
@@ -107,14 +116,12 @@ before_build:
 
 build_script:
 - ps: |
-    # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
+    # Pick up PATH changes made by Doxygen installer.
     refreshenv
+    $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
-    # Put here because without OPENGL_ES_EMULATOR set the above command writes
-    # a warning to stderr that causes PS to stop, even though the exit code is 0.
-    $ErrorActionPreference = 'Stop'
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
