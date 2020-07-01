@@ -91,9 +91,9 @@ install:
     .\VulkanSDK-Installer.exe /S
     refreshenv
     echo %VULKAN_SDK%
-    # cd back to cloned repo.
+    REM cd back to cloned repo.
     cd C:\projects\ktx
-    # Pull only Windows binaries.
+    REM Pull only Windows binaries.
     git lfs pull --include=other_lib/win
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
