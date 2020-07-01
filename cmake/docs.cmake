@@ -77,7 +77,6 @@ function( CreateDocLibKTX )
     doxygen_add_docs(
         libktx.doc
         LICENSE.md
-        TODO.md
         include
         lib/basis_encode.cpp
         lib/basis_transcode.cpp

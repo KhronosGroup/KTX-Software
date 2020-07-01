@@ -63,7 +63,7 @@ struct commandOptions {
         useStdout = false;
         force = false;
         rewriteBadOrientation = false;
-        test = false;
+        test = 0;
     }
 };
 
@@ -302,7 +302,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
                 // Add required writer metadata.
                 std::stringstream writer;
-                writeId(writer, options.appName, options.test);
+                writeId(writer, options.appName, options.test != 0);
                 ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                                       (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());

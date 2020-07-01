@@ -21,8 +21,6 @@ recipients.
 
 See @ref libktx_history for the list of changes.
 
-See @ref todo for the current To Do list.
-
 @authors
 Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a>,
              formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n

@@ -268,17 +268,17 @@ struct commandOptions {
     vector<_tstring> infilenames;
 
     commandOptions() : zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U) {
-      automipmap = false;
-      cubemap = false;
-      genmipmap = false;
+      automipmap = 0;
+      cubemap = 0;
+      genmipmap = 0;
       ktx2 = 0;
       metadata = 1;
       mipmap = 0;
-      two_d = false;
-      useStdin = false;
-      bcmp = false;
-      zcmp = false;
-      test = false;
+      two_d = 0;
+      useStdin = 0;
+      bcmp = 0;
+      zcmp = 0;
+      test = 0;
       depth = 1;
       layers = 1;
       levels = 1;
@@ -1224,7 +1224,7 @@ int _tmain(int argc, _TCHAR* argv[])
     if (options.ktx2) {
         // Add required writer metadata.
         stringstream writer;
-        writeId(writer, appName, options.test);
+        writeId(writer, appName, options.test != 0);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                               (ktx_uint32_t)writer.str().length() + 1,
                               writer.str().c_str());
