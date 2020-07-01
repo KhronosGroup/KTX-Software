@@ -68,8 +68,7 @@ init:
 # - ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
-# Not using PS for downloads because it's curl is completely different and it has
-# no refreshenv.
+# Not using PS for downloads because its curl is completely different.
 install:
 - cinst doxygen.install
 #- ps: |
@@ -89,7 +88,6 @@ install:
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
-    refreshenv
     echo %VULKAN_SDK%
     REM cd back to cloned repo.
     cd C:\projects\ktx
@@ -105,8 +103,9 @@ install:
 before_build:
 # Expand date keywords. -q is because the VS2019 image has a more
 # recent git version (2.21.0) in which git checkout writes to StdErr
-# which PS treats as an exception, causing the build to fail. The
-# write is an innocuous message about the number of paths updated.
+# which PS treats as an exception causing the build to fail, if checkout
+# is the last command in this shell. The write is an innocuous message
+# about the number of paths updated.
 - ps: |
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
@@ -117,12 +116,10 @@ build_script:
 - ps: |
     # Pick up PATH changes made by Doxygen & Vulkan SDK installers.
     refreshenv
+    $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
-    # Put here because without OPENGL_ES_EMULATOR set the above command writes
-    # a warning to stderr that causes PS to stop, even though the exit code is 0.
-    $ErrorActionPreference = 'Stop'
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
