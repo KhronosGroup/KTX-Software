@@ -92,13 +92,20 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             glloadtests/resources/win/glloadtests.rc
             glloadtests/resources/win/resource.h
         )
-        if(EMULATE_GLES)
-            target_link_libraries(
-                ${target}
-                "${OPENGL_ES_EMULATOR}/libEGL.lib"
-                "${OPENGL_ES_EMULATOR}/libGLESv2.lib"
-                "${OPENGL_ES_EMULATOR}/libGLES_CM.lib"
-            )
+	    if(EMULATE_GLES)
+		    if (KTX_GL_CONTEXT_MAJOR_VERSION EQUAL 1)
+				target_link_libraries(
+					${target}
+					"${OPENGL_ES_EMULATOR}/libGLES_CM.lib"
+					"${OPENGL_ES_EMULATOR}/libEGL.lib"
+                )
+			 else()
+				target_link_libraries(
+					${target}
+					"${OPENGL_ES_EMULATOR}/libGLESv2.lib"
+					"${OPENGL_ES_EMULATOR}/libEGL.lib"
+				)
+			 endif()
         else()
             target_link_libraries(
                 ${target}
@@ -110,14 +117,22 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
 
     target_link_libraries( ${target} ${LOAD_TEST_COMMON_LIBS} )
 
-    target_compile_definitions(
-        ${target}
-    PRIVATE
-        $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
-        GL_CONTEXT_PROFILE=${KTX_GL_CONTEXT_PROFILE}
-        GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
-        GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
-    )
+	if(NOT EMULATE_GLES OR KTX_GL_CONTEXT_MAJOR_VERSION GREATER 1)
+		target_compile_definitions(
+			${target}
+		PRIVATE
+			$<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+			GL_CONTEXT_PROFILE=${KTX_GL_CONTEXT_PROFILE}
+			GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
+			GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
+		)
+	 else()
+		target_compile_definitions(
+			${target}
+		PRIVATE
+			$<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+		)
+	 endif()
 
     if(APPLE)
         set(PRODUCT_NAME "${target}")
