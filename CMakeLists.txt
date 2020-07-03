@@ -33,6 +33,9 @@ if(APPLE)
     set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
     set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
+    if(IOS)
+        set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
+    endif()
 endif()
 
 # Might become options in the future

@@ -97,6 +97,9 @@ add_executable( vkloadtests
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
     ${SHADER_SOURCES}
 )
+if(IOS)
+    set_xcode_code_sign(vkloadtests)
+endif()
 
 target_include_directories(
     vkloadtests
