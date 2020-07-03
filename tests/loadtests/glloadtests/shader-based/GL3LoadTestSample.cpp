@@ -30,6 +30,7 @@
 #include <string.h>
 #include <sstream>
 #include <ktx.h>
+#include <SDL2/SDL_platform.h>
 
 #include "GL3LoadTestSample.h"
 
