@@ -206,6 +206,9 @@ GL3LoadTestSample::framebufferColorEncoding()
 #endif
     if (strstr((const char*)glGetString(GL_VERSION), "GL ES") == NULL)
         attachment = GL_BACK_LEFT;
+    else if (__IPHONEOS__)
+        // iOS does not use the default framebuffer.
+        attachment = GL_COLOR_ATTACHMENT0;
     else
         attachment = GL_BACK;
 
