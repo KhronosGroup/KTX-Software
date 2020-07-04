@@ -160,6 +160,8 @@ struct clampedOption
 
 class scApp : public ktxApp {
   protected:
+    const string scparamKey = "KHRscparams";
+    string scparams;
     struct commandOptions : public ktxApp::commandOptions {
         struct basisOptions : public ktxBasisParams {
             // The remaining numeric fields are clamped within the Basis
@@ -225,6 +227,11 @@ class scApp : public ktxApp {
 
   public:
     scApp(string& version, string& defaultVersion, scApp::commandOptions& options);
+    const string& getParamsStr() {
+        if (*scparams.end() == ' ')
+            scparams.erase(scparams.end());
+        return scparams;
+    }
 
     void usage()
     {
@@ -373,6 +380,7 @@ scApp::processOption(argparser& parser, int opt)
             exit(1);
         }
         options.bcmp = 1;
+        scparams += parser.argv[parser.optind - 1] + " ";
         options.ktx2 = 1;
         break;
       case 'z':
@@ -383,43 +391,65 @@ scApp::processOption(argparser& parser, int opt)
             exit(1);
         }
         options.zcmp = 1;
+        scparams += parser.argv[parser.optind - 1] + " ";
         options.ktx2 = 1;
         if (parser.optarg.size() > 0) {
             options.zcmpLevel = strtoi(parser.optarg.c_str());
+            scparams += parser.optarg + " ";
         }
         break;
       case 'c':
         options.bopts.compressionLevel = strtoi(parser.optarg.c_str());
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'e':
         options.bopts.maxEndpoints = strtoi(parser.optarg.c_str());
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'E':
         options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'N':
         options.bopts.noMultithreading = 1;
         break;
       case 'n':
         options.bopts.normalMap = 1;
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'o':
         options.bopts.noEndpointRDO = 1;
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'p':
         options.bopts.noSelectorRDO = 1;
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'q':
         options.bopts.qualityLevel = strtoi(parser.optarg.c_str());
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 1000:
         options.bopts.separateRGToRGB_A = 1;
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'u':
         options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 'S':
         options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       case 't':
         options.bopts.threadCount = strtoi(parser.optarg.c_str());
@@ -432,6 +462,7 @@ scApp::processOption(argparser& parser, int opt)
              exit(1);
         }
         options.bopts.uastc = 1;
+        scparams += parser.argv[parser.optind - 1] + " ";
         options.ktx2 = 1;
         if (parser.optarg.size() > 0) {
             ktx_uint32_t level = strtoi(parser.optarg.c_str());
@@ -439,17 +470,22 @@ scApp::processOption(argparser& parser, int opt)
             // Ensure the last one wins in case of multiple of these args.
             options.bopts.uastcFlags = ~KTX_PACK_UASTC_LEVEL_MASK;
             options.bopts.uastcFlags |= level;
+            scparams += parser.optarg + " ";
         }
         break;
       case 1002:
         options.bopts.uastcRDO = true;
+        scparams += parser.argv[parser.optind - 1] + " ";
         if (parser.optarg.size() > 0) {
             options.bopts.uastcRDOQualityScalar =
                                 strtof(parser.optarg.c_str(), nullptr);
+            scparams += parser.optarg + " ";
         }
         break;
       case 1003:
         options.bopts.uastcRDODictSize = strtoi(parser.optarg.c_str());
+        scparams += parser.argv[parser.optind - 1] + " ";
+        scparams += parser.optarg + " ";
         break;
       default:
         return false;

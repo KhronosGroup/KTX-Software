@@ -329,7 +329,6 @@ class toktxApp : public scApp {
         Image::eOETF oetf;
         int          useStdin;
         int          lower_left_maps_to_s0t0;
-        int          test;
         struct mipgenOptions gmopts;
         unsigned int depth;
         unsigned int layers;
@@ -579,7 +578,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
     ktxTextureCreateInfo createInfo;
     ktxTexture* texture = 0;
     int exitCode = 0;
-    unsigned int componentCount = 1, faceSlice, i, level, layer, levelCount = 1;
+    unsigned int componentCount = 1, faceSlice, level, layer, levelCount = 1;
     unsigned int levelWidth, levelHeight, levelDepth;
     Image::eOETF chosenOETF, firstImageOETF;
 
@@ -600,7 +599,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
     faceSlice = layer = level = 0;
     std::vector<_tstring>::const_iterator it;
-    for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
+    uint32_t i;
+    for (it = options.infiles.begin(), i = 0;
+         it < options.infiles.end();
+         it++, i++)
+    {
         const _tstring& infile = *it;
 
         Image* image;
@@ -1019,6 +1022,12 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     goto cleanup;
                 }
             }
+#if 0
+            if (!getParamsStr().empty()) {
+                ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
+                getParamsStr().length(), getParamsStr().c_str());
+            }
+#endif
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
@@ -1199,6 +1208,7 @@ toktxApp::processOption(argparser& parser, int opt)
       default:
         return scApp::processOption(parser, opt);
     }
+    return true;
 }
 
 static ktx_uint32_t
