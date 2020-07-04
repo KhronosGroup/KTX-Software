@@ -270,7 +270,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
 
 @par Version 4.0 (using new version numbering system)
   - Add KTX version 2 support including Basis Universal encoding.
-  - Add .png reader.
+  - Add .png and .jpg readers.
   - Transform NetPBM input files to sRGB OETF.
   - Add mipmap generation.
   - Remove legacy items.
@@ -1022,12 +1022,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     goto cleanup;
                 }
             }
-#if 0
             if (!getParamsStr().empty()) {
                 ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
                 getParamsStr().length(), getParamsStr().c_str());
             }
-#endif
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",

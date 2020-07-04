@@ -224,6 +224,8 @@ class scApp : public ktxApp {
 
     commandOptions& options;
     virtual bool processOption(argparser& parser, int opt);
+    enum HasArg { eNone, eOptional, eRequired };
+    void captureOption(const argparser& parser, HasArg hasArg);
 
   public:
     scApp(string& version, string& defaultVersion, scApp::commandOptions& options);
@@ -360,11 +362,27 @@ scApp::scApp(string& version, string& defaultVersion,
   short_opts += "bz;Nt:c:q:e:E:u:S:nop";
 }
 
+void
+scApp::captureOption(const argparser& parser, HasArg hasArg)
+{
+    uint32_t indexDecrement = 1;
+    bool captureArg = false;
+
+    if ((hasArg == eOptional && parser.optarg.size() > 0) || hasArg == eRequired)
+        indexDecrement = 2;
+    scparams += parser.argv[parser.optind - indexDecrement] + " ";
+    if (captureArg)
+        scparams += parser.optarg + " ";
+}
+
 // Derived classes' processOption will have to explicitly call this one
 // and should call it after processing their own options.
 bool
 scApp::processOption(argparser& parser, int opt)
 {
+    bool hasArg = false;
+    bool capture = true;
+
     switch (opt) {
       case 'b':
         if (options.zcmp) {
@@ -380,7 +398,6 @@ scApp::processOption(argparser& parser, int opt)
             exit(1);
         }
         options.bcmp = 1;
-        scparams += parser.argv[parser.optind - 1] + " ";
         options.ktx2 = 1;
         break;
       case 'z':
@@ -391,68 +408,55 @@ scApp::processOption(argparser& parser, int opt)
             exit(1);
         }
         options.zcmp = 1;
-        scparams += parser.argv[parser.optind - 1] + " ";
         options.ktx2 = 1;
         if (parser.optarg.size() > 0) {
             options.zcmpLevel = strtoi(parser.optarg.c_str());
-            scparams += parser.optarg + " ";
+            hasArg = true;
         }
         break;
       case 'c':
         options.bopts.compressionLevel = strtoi(parser.optarg.c_str());
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
+        hasArg = true;
         break;
       case 'e':
         options.bopts.maxEndpoints = strtoi(parser.optarg.c_str());
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
+        hasArg = true;
         break;
       case 'E':
         options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
+        hasArg = true;
         break;
       case 'N':
         options.bopts.noMultithreading = 1;
+        capture = false;
         break;
       case 'n':
         options.bopts.normalMap = 1;
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
         break;
       case 'o':
         options.bopts.noEndpointRDO = 1;
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
         break;
       case 'p':
         options.bopts.noSelectorRDO = 1;
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
         break;
       case 'q':
         options.bopts.qualityLevel = strtoi(parser.optarg.c_str());
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
+        hasArg = true;
         break;
       case 1000:
         options.bopts.separateRGToRGB_A = 1;
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
         break;
       case 'u':
         options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
+        hasArg = true;
         break;
       case 'S':
         options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
+        hasArg = true;
         break;
       case 't':
         options.bopts.threadCount = strtoi(parser.optarg.c_str());
+        capture = false;
         break;
       case 1001:
         if (options.bcmp) {
@@ -462,7 +466,6 @@ scApp::processOption(argparser& parser, int opt)
              exit(1);
         }
         options.bopts.uastc = 1;
-        scparams += parser.argv[parser.optind - 1] + " ";
         options.ktx2 = 1;
         if (parser.optarg.size() > 0) {
             ktx_uint32_t level = strtoi(parser.optarg.c_str());
@@ -470,26 +473,31 @@ scApp::processOption(argparser& parser, int opt)
             // Ensure the last one wins in case of multiple of these args.
             options.bopts.uastcFlags = ~KTX_PACK_UASTC_LEVEL_MASK;
             options.bopts.uastcFlags |= level;
-            scparams += parser.optarg + " ";
+            hasArg = true;
         }
         break;
       case 1002:
         options.bopts.uastcRDO = true;
-        scparams += parser.argv[parser.optind - 1] + " ";
         if (parser.optarg.size() > 0) {
             options.bopts.uastcRDOQualityScalar =
                                 strtof(parser.optarg.c_str(), nullptr);
-            scparams += parser.optarg + " ";
+            hasArg = true;
         }
         break;
       case 1003:
         options.bopts.uastcRDODictSize = strtoi(parser.optarg.c_str());
-        scparams += parser.argv[parser.optind - 1] + " ";
-        scparams += parser.optarg + " ";
+        hasArg = true;
         break;
       default:
         return false;
     }
+
+    if (capture) {
+        scparams += parser.argv[parser.optind - (hasArg ? 2 : 1)] + " ";
+        if (hasArg)
+            scparams += parser.optarg + " ";
+    }
+
     return true;
 }
 
