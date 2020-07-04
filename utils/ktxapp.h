@@ -134,7 +134,7 @@ class ktxApp {
                             StdinUse stdinStat = eAllowStdin,
                             OutfilePos outfilePos = eNone)
     {
-        int i;
+        uint32_t i;
         size_t slash, dot;
 
         name = argv[0];

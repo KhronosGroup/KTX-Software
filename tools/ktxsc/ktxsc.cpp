@@ -343,7 +343,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                 }
                 if (!getParamsStr().empty()) {
                     ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
-                    getParamsStr().length(), getParamsStr().c_str());
+                    (ktx_uint32_t)getParamsStr().length(), getParamsStr().c_str());
                 }
                 result = ktxTexture_WriteToStdioStream(ktxTexture(texture), outf);
                 if (result != KTX_SUCCESS) {
