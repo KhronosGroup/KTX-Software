@@ -17,14 +17,19 @@
 // limitations under the License.
 //
 
-#include <vector>
+#include <limits.h>
 #include <stdarg.h>
+#include <vector>
 #include <ktx.h>
 
 #include "argparser.h"
 
 #define QUOTE(x) #x
 #define STR(x) QUOTE(x)
+
+#if defined(_WIN32)
+  #define PATH_MAX MAX_PATH
+#endif
 
 using namespace std;
 

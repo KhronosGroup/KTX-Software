@@ -32,7 +32,6 @@
 #include <sstream>
 #include <thread>
 #include <vector>
-#include <limits.h>
 #include <inttypes.h>
 #include <zstd.h>
 
@@ -48,10 +47,6 @@
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
 #  undef IMAGE_DEBUG
 #  define IMAGE_DEBUG 0
-#endif
-
-#if defined(_WIN32)
-  #define PATH_MAX MAX_PATH
 #endif
 
 #if !defined(GL_RED)
