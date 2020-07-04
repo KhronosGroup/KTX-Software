@@ -172,7 +172,6 @@ ktxSupercompressor::usage()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-
     ktxSupercompressor ktxsc;
 
     return ktxsc.main(argc, argv);

@@ -39,11 +39,12 @@
 
 typedef float (*OETFFunc)(float const);
 
-template <typename T> inline T clamp(T value, T low, T high) {
+// cclamp to avoid conflict in toktx.cc with clamp template defined in scApp.
+template <typename T> inline T cclamp(T value, T low, T high) {
     return (value < low) ? low : ((value > high) ? high : value);
 }
 template <typename T> inline T saturate(T value) {
-    return clamp<T>(value, 0, 1.0f);
+    return cclamp<T>(value, 0, 1.0f);
 }
 
 template <typename S> inline S maximum(S a, S b) { return (a > b) ? a : b; }
@@ -313,7 +314,8 @@ class Image {
     static Image* CreateFromNPBM(FILE*, bool transformOETF = true);
     static Image* CreateFromJPG(FILE* f, bool transformOETF = true);
     static Image* CreateFromPNG(FILE* f, bool transformOETF = true);
-    static Image* CreateFromFile(_tstring& name, bool transformOETF = true);
+    static Image* CreateFromFile(const _tstring& name,
+                                 bool transformOETF = true);
 
     virtual operator uint8_t*() = 0;
 
@@ -458,7 +460,7 @@ class imageTBase : public Image {
         if (srgb)
         {
             for (int i = 0; i < LINEAR_TO_SRGB_TABLE_SIZE; ++i)
-              linear_to_srgb_table[i] = (uint8_t)::clamp<int>((int)(255.0f * encode_sRGB((float)i * (1.0f / (LINEAR_TO_SRGB_TABLE_SIZE - 1))) + .5f), 0, 255);
+              linear_to_srgb_table[i] = (uint8_t)cclamp<int>((int)(255.0f * encode_sRGB((float)i * (1.0f / (LINEAR_TO_SRGB_TABLE_SIZE - 1))) + .5f), 0, 255);
         }
 
         // Sadly the compiler doesn't realize that getComponentCount() is a
@@ -540,10 +542,10 @@ class imageTBase : public Image {
                     // TODO: Add dithering
                     if (linear_flag) {
                         int j = (int)(255.0f * pOutput_samples[x] + .5f);
-                        pDst->set(ci, (uint8_t)::clamp<int>(j, 0, 255));
+                        pDst->set(ci, (uint8_t)cclamp<int>(j, 0, 255));
                     } else {
                         int j = (int)((LINEAR_TO_SRGB_TABLE_SIZE - 1) * pOutput_samples[x] + .5f);
-                        pDst->set(ci, linear_to_srgb_table[::clamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
+                        pDst->set(ci, linear_to_srgb_table[cclamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
                     }
 
                     pDst++;
@@ -588,7 +590,7 @@ class imageTBase : public Image {
             for (uint32_t comp = 0; comp < it->getComponentCount() && comp < 3; comp++) {
                 float brightness = (float)((*it)[comp]) / 255;
                 float intensity = decode(brightness);
-                brightness = clamp(encode(intensity), 0.0f, 1.0f);
+                brightness = cclamp(encode(intensity), 0.0f, 1.0f);
                 it->set(comp, roundf(brightness * 255));
             }
         }

@@ -40,6 +40,7 @@
 #include "ktx.h"
 #include "../../lib/vkformat_enum.h"
 #include "argparser.h"
+#include "scapp.h"
 #include "version.h"
 #include "image.hpp"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
@@ -89,225 +90,18 @@ enum oetf_e {
   #undef max
 #endif
 
-using namespace std;
-
-template<typename T>
-struct clampedOption
-{
-  clampedOption(T& option, T min_v, T max_v) :
-    option(option),
-    min(min_v),
-    max(max_v)
-  {
-  }
-
-  void clear()
-  {
-    option = 0;
-  }
-
-  operator T() const
-  {
-    return option;
-  }
-
-  T operator= (T v)
-  {
-    option = clamp<T>(v, min, max);
-    return option;
-  }
-
-  T& option;
-  T min;
-  T max;
-};
-
-template<typename T>
-struct clamped
-{
-  clamped(T def_v, T min_v, T max_v) :
-    def(def_v),
-    min(min_v),
-    max(max_v),
-    value(def_v)
-  {
-  }
-
-  void clear()
-  {
-    value = def;
-  }
-
-  operator T() const
-  {
-    return value;
-  }
-
-  T operator= (T v)
-  {
-    value = clamp<T>(v, min, max);
-    return value;
-  }
-
-  T def;
-  T min;
-  T max;
-  T value;
-};
-
-struct commandOptions {
-    struct basisOptions : public ktxBasisParams {
-        // The remaining numeric fields are clamped within the Basis library.
-        clampedOption<ktx_uint32_t> threadCount;
-        clampedOption<ktx_uint32_t> qualityLevel;
-        clampedOption<ktx_uint32_t> maxEndpoints;
-        clampedOption<ktx_uint32_t> maxSelectors;
-        clampedOption<ktx_uint32_t> uastcRDODictSize;
-        clampedOption<float> uastcRDOQualityScalar;
-        int noMultithreading;
-
-        basisOptions() :
-            threadCount(ktxBasisParams::threadCount, 1, 10000),
-            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
-            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
-            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
-            uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
-            uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
-                                  0.001f, 10.0f),
-            noMultithreading(0)
-        {
-            uint32_t tc = thread::hardware_concurrency();
-            if (tc == 0) tc = 1;
-            threadCount.max = tc;
-            threadCount = tc;
-
-            structSize = sizeof(ktxBasisParams);
-            compressionLevel = 0;
-            qualityLevel.clear();
-            maxEndpoints.clear();
-            endpointRDOThreshold = 0.0f;
-            maxSelectors.clear();
-            selectorRDOThreshold = 0.0f;
-            normalMap = false;
-            separateRGToRGB_A = false;
-            preSwizzle = false;
-            noEndpointRDO = false;
-            noSelectorRDO = false;
-            uastc = false; // Default to ETC1S.
-            uastcRDO = false;
-            uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
-            uastcRDODictSize.clear();
-            uastcRDOQualityScalar.clear();
-        }
-
-#define TRAVIS_DEBUG 0
-#if TRAVIS_DEBUG
-        void print() {
-            cout << "threadCount = " << threadCount.value << endl;
-            cout << "qualityLevel = " << qualityLevel.value << endl;
-            cout << "maxEndpoints = " << maxEndpoints.value << endl;
-            cout << "maxSelectors = " << maxSelectors.value << endl;
-            cout << "structSize = " << structSize << endl;
-            cout << "threadCount = " << ktxBasisParams::threadCount << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
-            cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
-            cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
-            cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
-            cout << "normalMap = " << normalMap << endl;
-            cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
-            cout << "preSwizzle = " << preSwizzle << endl;
-            cout << "noEndpointRDO = " << noEndpointRDO << endl;
-            cout << "noSelectorRDO = " << noSelectorRDO << endl;
-            cout << "uastc = " << uastc << endl;
-            cout << "uastcFlags = " << uastcFlags << endl;
-            cout << "uastcRDO = " << uastcRDO << endl;
-            cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
-            cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
-        }
-#endif
-    };
-    struct mipgenOptions {
-        string filter;
-        float filterScale;
-        enum basisu::Resampler::Boundary_Op wrapMode;
-
-        mipgenOptions() : filter("lanczos4"), filterScale(1.0),
-                  wrapMode(basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) { }
-    };
-
-    int          automipmap;
-    int          cubemap;
-    int          genmipmap;
-    int          ktx2;
-    int          metadata;
-    int          mipmap;
-    int          two_d;
-    Image::eOETF oetf;
-    int          useStdin;
-    int          lower_left_maps_to_s0t0;
-    int          bcmp;
-    int          zcmp;
-    clamped<ktx_uint32_t> zcmpLevel;
-    int          test;
-    struct basisOptions bopts;
-    struct mipgenOptions gmopts;
-    _tstring     outfile;
-    unsigned int depth;
-    unsigned int layers;
-    unsigned int levels;
-    float        scale;
-    int          resize;
-    struct {
-        unsigned int width;
-        unsigned int height;
-    } newGeom;
-
-    vector<_tstring> infilenames;
-
-    commandOptions() : zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U) {
-      automipmap = 0;
-      cubemap = 0;
-      genmipmap = 0;
-      ktx2 = 0;
-      metadata = 1;
-      mipmap = 0;
-      two_d = 0;
-      useStdin = 0;
-      bcmp = 0;
-      zcmp = 0;
-      test = 0;
-      depth = 1;
-      layers = 1;
-      levels = 1;
-      oetf = Image::eOETF::Unset;
-      // As required by spec. Opposite of OpenGL {,ES}, same as Vulkan, et al.
-      lower_left_maps_to_s0t0 = 0;
-      scale = 1.0f;
-      resize = 0;
-      newGeom.width = newGeom.height = 0;
-    }
-};
-
-static _tstring      appName;
-
-static bool loadFileList(const _tstring &f, bool relativize,
-                         vector<_tstring>& filenames);
 static ktx_uint32_t log2(ktx_uint32_t v);
-static void processCommandLine(int argc, _TCHAR* argv[],
-                               struct commandOptions& options);
-static void processOptions(argparser& parser, struct commandOptions& options);
 #if IMAGE_DEBUG
 static void dumpImage(_TCHAR* name, int width, int height, int components,
                       int componentSize, unsigned char* srcImage);
 #endif
 
+using namespace std;
+
 /** @page toktx toktx
 @~English
 
-Create a KTX file from netpbm format files.
+Create a KTX file from JPEG, PNG or netpbm format files.
  
 @section toktx_synopsis SYNOPSIS
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
@@ -458,106 +252,8 @@ Create a KTX file from netpbm format files.
         be set via @b --filter and  @b --fscale. </dd>.
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
-    <dt>--bcmp</dt>
-    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.
-        RED images will become RGB with RED in each component. RG images will
-        have R in the RGB part and G in the alpha part of the compressed
-        texture. When set, the following Basis-related options become valid
-        otherwise they are ignored.
-      <dl>
-      <dt>--no_multithreading</dt>
-      <dd>Disable multithreading. By default Basis compression will use the
-          numnber of threads reported by @c thread::hardware_concurrency or
-          1 if value returned is 0.</dd>
-      <dt>--threads &lt;count&gt;</dt>
-      <dd>Explicitly set the number of threads to use during compression.
-          @b --no_multithreading must not be set.</dd>
-      <dt>--clevel &lt;level&gt;</dt>
-      <dd>Basis compression level, an encoding speed vs. quality tradeoff. Range
-          is 0 - 5, default is 1. Higher values are slower, but give higher
-          quality.</dd>
-      <dt>--qlevel &lt;level&gt;</dt>
-      <dd>Basis quality level. Range is 1 - 255.  Lower gives better
-          compression/lower quality/faster. Higher gives less compression
-          /higher quality/slower. Values of @b --max_endpoints and
-          @b --max-selectors computed from this override any explicitly set
-          values. Default is 128, if either of @b --max_endpoints or
-          @b --max_selectors is unset, otherwise those settings rule.</dd>
-      <dt>--max_endpoints &lt;arg&gt;</dt>
-      <dd>Manually set the maximum number of color endpoint clusters
-          from 1-16128. Default is 0, unset.</dd>
-      <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
-      <dd>Set endpoint RDO quality threshold. The default is 1.25. Lower is
-          higher quality but less quality per output bit (try 1.0-3.0).
-          This will override the value chosen by @c --qual.</dd>
-      <dt>--max_selectors &lt;arg&gt;</dt>
-      <dd>Manually set the maximum number of color selector clusters
-          from 1-16128. Default is 0, unset.</dd>
-      <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
-      <dd>Set selector RDO quality threshold. The default is 1.5. Lower is
-          higher quality but less quality per output bit (try 1.0-3.0).
-          This will override the value chosen by @c --qual.</dd>
-      <dt>--normal_map</dt>
-      <dd>Tunes codec parameters for better quality on normal maps (no
-          selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
-      <dt>--separate_rg_to_color_alpha</dt>
-      <dd>Separates the input R and G channels to RGB and A (for tangent
-          space XY normal maps). Only needed with 3 or 4 component input
-          images.</dd>
-      <dt>--no_endpoint_rdo</dt>
-      <dd>Disable endpoint rate distortion optimizations. Slightly faster,
-          less noisy output, but lower quality per output bit. Default is
-          to do endpoint RDO.</dd>
-      <dt>--no_selector_rdo</dt>
-      <dd>Disable selector rate distortion optimizations. Slightly faster,
-          less noisy output, but lower quality per output bit. Default is
-          to do selector RDO.</dd>
-      </dl>
-    </dd>
-    <dt>--uastc [&lt;level&gt;]</dt>
-    <dd>Create a texture in high-quality transcodable UASTC format. Implies @b --t2.
-        The optional parameter @e level selects a speed vs quality tradeoff as shown
-        in the following table:
-
-        Level | Speed | Quality
-        :-----: | :-----: | :-------:
-        0        | Fastest | 43.45dB
-        1        | Faster | 46.49dB
-        2        | Default | 47.47dB
-        3        | Slower | 48.01dB
-        4        | Very slow | 48.24dB
-
-        When set the following options become available for controlling the optional
-        Rate Distortion Optimization (RDO) post-process stage that conditions the
-        encoded UASTC texture data so it can be more effectively LZ compressed:
-      <dl>
-      <dt>--uastc_rdo_q [&lt;quality&gt;]</dt>
-      <dd>Enable UASTC RDO post-processing and optionally set UASTC RDO
-          quality scalar to @e quality.  Lower values yield higher quality/larger LZ
-          compressed files, higher values yield lower quality/smaller LZ compressed
-          files. A good range to try is [.2-4]." Full range is .001 to 10.0. Default is
-          1.0.</dd>
-      <dt>--uastc_rdo_d &lt;dictsize&gt;</dt>
-      <dd> Set UASTC RDO dictionary size in bytes. Default is 32768. Lower
-          values=faster, but give less compression. Possible range is 256 to
-          65536.</dd>
-      </dl>
-    </dd>
-    <dt>--zcmp [&lt;compressionLevel&gt;]</dt>
-    <dd>Supercompress the data with Zstandard. Implies @b --t2. Can be used with data
-        in any format except Basis Universal (@b --bcmp). Most effective with
-        RDO-conditioned UASTC or uncompressed formats. The optional
-        @e compressionLevel range is 1 - 22 and the default is 3. Lower values=faster but
-        give less compression. Values above 20 should be used with caution as they
-        require more memory.
-    <dt>--help</dt>
-    <dd>Print this usage message and exit.</dd>
-    <dt>--version</dt>
-    <dd>Print the version number of this program and exit.</dd>
     </dl>
-
-    In case of ambiguity, such as when the last option is one with an optional parameter,
-    options can be separated from file names with " -- ".
+    @snippet{doc} scApp.h scApp options
 
     Options can also be set in the environment variable TOKTX_OPTIONS.
     TOKTX_OPTIONS is parsed first. If conflicting options appear in
@@ -596,14 +292,147 @@ Create a KTX file from netpbm format files.
     Mark Callow, Edgewise Consulting www.edgewise-consulting.com
 */
 
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
+
+string myversion(STR(TOKTX_VERSION));
+string mydefversion(STR(TOKTX_DEFAULT_VERSION));
+
+class toktxApp : public scApp {
+  public:
+    toktxApp();
+
+    virtual int main(int argc, _TCHAR* argv[]);
+    virtual void usage();
+
+  protected:
+    virtual bool processOption(argparser& parser, int opt);
+    void processEnvOptions();
+    void validateOptions();
+
+    struct commandOptions : public scApp::commandOptions {
+        struct mipgenOptions {
+            string filter;
+            float filterScale;
+            enum basisu::Resampler::Boundary_Op wrapMode;
+
+            mipgenOptions() : filter("lanczos4"), filterScale(1.0),
+                  wrapMode(basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) { }
+        };
+
+        int          automipmap;
+        int          cubemap;
+        int          genmipmap;
+        int          metadata;
+        int          mipmap;
+        int          two_d;
+        Image::eOETF oetf;
+        int          useStdin;
+        int          lower_left_maps_to_s0t0;
+        int          test;
+        struct mipgenOptions gmopts;
+        unsigned int depth;
+        unsigned int layers;
+        unsigned int levels;
+        float        scale;
+        int          resize;
+        struct {
+            unsigned int width;
+            unsigned int height;
+        } newGeom;
+
+        commandOptions() {
+            automipmap = 0;
+            cubemap = 0;
+            genmipmap = 0;
+            ktx2 = 0;
+            metadata = 1;
+            mipmap = 0;
+            two_d = 0;
+            useStdin = 0;
+            test = 0;
+            depth = 1;
+            layers = 1;
+            levels = 1;
+            oetf = Image::eOETF::Unset;
+            // As required by spec. Opposite of OpenGL {,ES}, same as
+            // Vulkan, et al.
+            lower_left_maps_to_s0t0 = 0;
+            scale = 1.0f;
+            resize = 0;
+            newGeom.width = newGeom.height = 0;
+        }
+
+#define TRAVIS_DEBUG 0
+#if TRAVIS_DEBUG
+        void print() {
+            cout << "threadCount = " << threadCount.value << endl;
+            cout << "qualityLevel = " << qualityLevel.value << endl;
+            cout << "maxEndpoints = " << maxEndpoints.value << endl;
+            cout << "maxSelectors = " << maxSelectors.value << endl;
+            cout << "structSize = " << structSize << endl;
+            cout << "threadCount = " << ktxBasisParams::threadCount << endl;
+            cout << "compressionLevel = " << compressionLevel << endl;
+            cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
+            cout << "compressionLevel = " << compressionLevel << endl;
+            cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
+            cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
+            cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
+            cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
+            cout << "normalMap = " << normalMap << endl;
+            cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
+            cout << "preSwizzle = " << preSwizzle << endl;
+            cout << "noEndpointRDO = " << noEndpointRDO << endl;
+            cout << "noSelectorRDO = " << noSelectorRDO << endl;
+            cout << "uastc = " << uastc << endl;
+            cout << "uastcFlags = " << uastcFlags << endl;
+            cout << "uastcRDO = " << uastcRDO << endl;
+            cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
+            cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
+        }
+#endif
+    } options;
+};
+
+toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
+{
+    argparser::option my_option_list[] = {
+        { "2d", argparser::option::no_argument, &options.two_d, 1 },
+        { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
+        { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
+        { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
+        { "filter", argparser::option::required_argument, NULL, 'f' },
+        { "fscale", argparser::option::required_argument, NULL, 'F' },
+        { "wrapping", argparser::option::required_argument, NULL, 'w' },
+        { "depth", argparser::option::required_argument, NULL, 'd' },
+        { "layers", argparser::option::required_argument, NULL, 'a' },
+        { "levels", argparser::option::required_argument, NULL, 'l' },
+        { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
+        { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
+        { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
+        { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
+        { "linear", argparser::option::no_argument, (int*)&options.oetf, OETF_LINEAR },
+        { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
+        { "resize", argparser::option::required_argument, NULL, 'r' },
+        { "scale", argparser::option::required_argument, NULL, 's' },
+        { "t2", argparser::option::no_argument, &options.ktx2, 1},
+    };
+
+    const int lastOptionIndex = sizeof(my_option_list)
+                                / sizeof(argparser::option);
+    option_list.insert(option_list.begin(), my_option_list,
+                       my_option_list + lastOptionIndex);
+    short_opts += "f:F:w:d:a:l:r:s:";
+}
+
 // I really HATE this duplication of text but I cannot find a simple way to
 // avoid it that works on all platforms (e.g running man toktx) even if I was
 // willing to tolerate markup commands in the usage output.
-static void
-usage(const _tstring appName)
+void
+toktxApp::usage()
 {
-    fprintf(stderr, 
-        "Usage: %s [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
+    cerr <<
+        "Usage: " << name << " [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
         "\n"
         "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
         "               If it is '-' the output will be written to stdout.\n"
@@ -710,123 +539,15 @@ usage(const _tstring appName)
         "  --scale <value>\n"
         "               Scale images by <value> as they are read. Resampler options can\n"
         "               be set via --filter and --fscale.\n"
-        "  --t2         Output in KTX2 format. Default is KTX.\n"
-        "  --bcmp       Supercompress the image data with Basis Universal. Implies --t2.\n"
-        "               RED images will become RGB with RED in each component. RG images\n"
-        "               will have R in the RGB part and G in the alpha part of the\n"
-        "               compressed texture. When set, the following Basis-related\n"
-        "               options become valid, otherwise they are ignored.\n\n"
-        "      --no_multithreading\n"
-        "               Disable multithreading. By default Basis compression will use\n"
-        "               the numnber of threads reported by\n"
-        "               @c thread::hardware_concurrency or 1 if value returned is 0.\n"
-        "      --threads <count>\n"
-        "               Explicitly set the number of threads to use during compression.\n"
-        "               --no_multithreading must not be set.\n"
-        "      --clevel <level>\n"
-        "               Basis compression level, an encoding speed vs. quality tradeoff.\n"
-        "               Range is 0 - 5, default is 1. Higher values are slower, but give\n"
-        "               higher quality.\n"
-        "      --qlevel <level>\n"
-        "               Basis quality level. Range is 1 - 255.  Lower gives better\n"
-        "               compression/lower quality/faster. Higher gives less compression\n"
-        "               /higher quality/slower. Values of --max_endpoints and\n"
-        "               --max-selectors computed from this override any explicitly set\n"
-        "               values. Default is 128, if either of --max_endpoints or\n"
-        "               --max_selectors is unset, otherwise those settings rule.\n"
-        "      --max_endpoints <arg>\n"
-        "               Manually set the maximum number of color endpoint clusters from\n"
-        "               1-16128. Default is 0, unset.\n"
-        "      --endpoint_rdo_threshold <arg>\n"
-        "               Set endpoint RDO quality threshold. The default is 1.25. Lower\n"
-        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
-        "               This will override the value chosen by --qual.\n"
-        "      --max_selectors <arg>\n"
-        "               Manually set the maximum number of color selector clusters from\n"
-        "               1-16128. Default is 0, unset.\n"
-        "      --selector_rdo_threshold <arg>\n"
-        "               Set selector RDO quality threshold. The default is 1.25. Lower\n"
-        "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
-        "               This will override the value chosen by --qual.\n"
-        "      --normal_map\n"
-        "               Tunes codec parameters for better quality on normal maps (no\n"
-        "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
-        "      --separate_rg_to_color_alpha\n"
-        "               Separates the input R and G channels to RGB and A (for tangent\n"
-        "               space XY normal maps). Only needed with 3 or 4 component input\n"
-        "               images.\n"
-        "      --no_endpoint_rdo\n"
-        "               Disable endpoint rate distortion optimizations. Slightly faster,\n"
-        "               less noisy output, but lower quality per output bit. Default is\n"
-        "               to do endpoint RDO.\n"
-        "      --no_selector_rdo\n"
-        "               Disable selector rate distortion optimizations. Slightly faster,\n"
-        "               less noisy output, but lower quality per output bit. Default is\n"
-        "               to do selector RDO.\n\n"
-        "  --uastc [<level>]\n"
-        "               Create a texture in high-quality transcodable UASTC format.\n"
-        "               Implies --t2. The optional parameter <level> selects a speed\n"
-        "               vs quality tradeoff as shown in the following table:\n"
-        "\n"
-        "                 Level |  Speed    | Quality\n"
-        "                 ----- | -------   | -------\n"
-        "                   0   |  Fastest  | 43.45dB\n"
-        "                   1   |  Faster   | 46.49dB\n"
-        "                   2   |  Default  | 47.47dB\n"
-        "                   3   |  Slower   | 48.01dB\n"
-        "                   4   | Very slow | 48.24dB\n"
-        "\n"
-        "               When set the following options become available for controlling\n"
-        "               the optional Rate Distortion Optimization (RDO) post-process stage\n"
-        "               that conditions the encoded UASTC texture data so it can be more\n"
-        "               effectively LZ compressed:\n\n"
-        "      --uastc_rdo_q [<quality>]\n"
-        "               Enable UASTC RDO post-processing and optionally set UASTC RDO\n"
-        "               quality scalar to <quality>.  Lower values yield higher\n"
-        "               quality/larger LZ compressed files, higher values yield lower\n"
-        "               quality/smaller LZ compressed files. A good range to try is [.2-4].\n"
-        "               Full range is .001 to 10.0. Default is 1.0.\n"
-        "      --uastc_rdo_d <dictsize>\n"
-        "               Set UASTC RDO dictionary size in bytes. Default is 32768. Lower\n"
-        "               values=faster, but give less compression. Possible range is 256\n"
-        "               to 65536.\n\n"
-        "  --zcmp [<compressionLevel>]\n"
-        "               Supercompress the data with Zstandard. Implies --t2. Can be used\n"
-        "               with data in any format except Basis Universal (--bcmp). Most\n"
-        "               effective with RDO-conditioned UASTC or uncompressed formats. The\n"
-        "               optional compressionLevel range is 1 - 22 and the default is 3.\n"
-        "               Lower values=faster but give less compression. Values above 20\n"
-        "               should be used with caution as they require more memory.\n"
-        "  --help       Print this usage message and exit.\n"
-        "  --version    Print the version number of this program and exit.\n"
-        "\n"
-        "In case of ambiguity, such as when the last option is one with an optional\n"
-        "parameter, options can be separated from file names with \" -- \".\n"
-        "\n"
+        "  --t2         Output in KTX2 format. Default is KTX.\n";
+    scApp::usage();
+    cerr << endl <<
         "Options can also be set in the environment variable TOKTX_OPTIONS.\n"
         "TOKTX_OPTIONS is parsed first. If conflicting options appear in TOKTX_OPTIONS\n"
         "or the command line, the last one seen wins. However if both --automipmap and\n"
         "--mipmap are seen, it is always flagged as an error. You can, for example,\n"
         "set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change the default mapping of\n"
-        "the logical image origin to match the GL convention.\n",
-        appName.c_str());
-}
-
-#define QUOTE(x) #x
-#define STR(x) QUOTE(x)
-
-static void
-writeId(ostream& dst, const _tstring& appName, bool test = false)
-{
-    dst << appName << " " << (test ? STR(TOKTX_DEFAULT_VERSION)
-                                   : STR(TOKTX_VERSION));
-}
-
-static void
-version(const _tstring& appName)
-{
-    writeId(cerr, appName);
-    cerr << endl;
+        "the logical image origin to match the GL convention.\n";
 }
 
 static uint32_t
@@ -846,16 +567,25 @@ imageCount(uint32_t levelCount, uint32_t layerCount,
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+    toktxApp toktx;
+
+    return toktx.main(argc, argv);
+}
+
+int
+toktxApp::main(int argc, _TCHAR *argv[])
+{
     KTX_error_code ret;
     ktxTextureCreateInfo createInfo;
     ktxTexture* texture = 0;
-    struct commandOptions options;
     int exitCode = 0;
     unsigned int componentCount = 1, faceSlice, i, level, layer, levelCount = 1;
     unsigned int levelWidth, levelHeight, levelDepth;
     Image::eOETF chosenOETF, firstImageOETF;
 
-    processCommandLine(argc, argv, options);
+    processEnvOptions();
+    processCommandLine(argc, argv, eDisallowStdin, eFirst);
+    validateOptions();
 
     if (options.cubemap)
       createInfo.numFaces = 6;
@@ -869,15 +599,16 @@ int _tmain(int argc, _TCHAR* argv[])
     // TO DO: handle 3D textures.
 
     faceSlice = layer = level = 0;
-    for (i = 0; i < options.infilenames.size(); i++) {
-        _tstring& infile = options.infilenames[i];
+    std::vector<_tstring>::const_iterator it;
+    for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
+        const _tstring& infile = *it;
 
         Image* image;
         try {
             image =
               Image::CreateFromFile(infile, options.oetf == Image::eOETF::Unset);
         } catch (exception& e) {
-            cerr << appName << ": failed to create image from "
+            cerr << name << ": failed to create image from "
                       << infile << ". " << e.what() << endl;
             exit(2);
         }
@@ -915,7 +646,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                 options.gmopts.filterScale,
                                 basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
             } catch (runtime_error e) {
-                cerr << appName << ": Image::resample() failed! "
+                cerr << name << ": Image::resample() failed! "
                           << e.what() << endl;
                 exitCode = 1;
                 goto cleanup;
@@ -1040,7 +771,7 @@ int _tmain(int argc, _TCHAR* argv[])
                     createInfo.numLevels = log2(max_dim) + 1;
                     if (options.levels > 1) {
                         if (options.levels > createInfo.numLevels) {
-                            cerr << appName << "--levels value is greater than "
+                            cerr << name << "--levels value is greater than "
                                  << "the maximum levels for the image size."
                                  << endl;
                             exitCode = 1;
@@ -1064,20 +795,20 @@ int _tmain(int argc, _TCHAR* argv[])
                                              createInfo.numLayers,
                                              createInfo.numFaces,
                                              createInfo.baseDepth);
-            if (requiredFileCount > options.infilenames.size()) {
-                cerr << appName << ": too few files for " << levelCount
+            if (requiredFileCount > options.infiles.size()) {
+                cerr << name << ": too few files for " << levelCount
                      << " levels, " << createInfo.numLayers
                      << " layers and " << createInfo.numFaces
                      << " faces." << endl;
                 exitCode = 1;
                 goto cleanup;
-            } else if (requiredFileCount < options.infilenames.size()) {
-                cerr << appName << ": too many files for " << levelCount
+            } else if (requiredFileCount < options.infiles.size()) {
+                cerr << name << ": too many files for " << levelCount
                      << " levels, " << createInfo.numLayers
                      << " layers and " << createInfo.numFaces
                      << " faces. Extras will be ignored." << endl;
-                options.infilenames.erase(options.infilenames.begin() + requiredFileCount,
-                                          options.infilenames.end());
+                options.infiles.erase(options.infiles.begin() + requiredFileCount,
+                                          options.infiles.end());
             }
             if (options.ktx2) {
                 ret = ktxTexture2_Create(&createInfo,
@@ -1090,7 +821,7 @@ int _tmain(int argc, _TCHAR* argv[])
             }
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
-                        appName.c_str(), ktxErrorString(ret));
+                        name.c_str(), ktxErrorString(ret));
                 exitCode = 2;
                 goto cleanup;
             }
@@ -1099,7 +830,7 @@ int _tmain(int argc, _TCHAR* argv[])
             if (image->getOetf() != firstImageOETF) {
                 fprintf(stderr, "%s: \"%s\" is encoded with a different transfer"
                                 " function (OETF) than preceding files.\n",
-                                appName.c_str(), infile.c_str());
+                                name.c_str(), infile.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
@@ -1128,7 +859,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
         if (options.cubemap && image->getWidth() != image->getHeight()
             && image->getWidth() != levelWidth) {
-            cerr << appName << ": \"" << infile << "\" intended for a cubemap "
+            cerr << name << ": \"" << infile << "\" intended for a cubemap "
                             << "face, is not square or has incorrect" << endl
                             << "size for current mipmap level" << endl;
             exitCode = 1;
@@ -1166,7 +897,7 @@ int _tmain(int argc, _TCHAR* argv[])
                                     options.gmopts.filterScale,
                                     options.gmopts.wrapMode);
                 } catch (runtime_error e) {
-                    cerr << appName << ": Image::resample() failed! "
+                    cerr << name << ": Image::resample() failed! "
                               << e.what() << endl;
                     exitCode = 1;
                     goto cleanup;
@@ -1224,7 +955,7 @@ int _tmain(int argc, _TCHAR* argv[])
     if (options.ktx2) {
         // Add required writer metadata.
         stringstream writer;
-        writeId(writer, appName, options.test != 0);
+        writeId(writer, options.test != 0);
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                               (ktx_uint32_t)writer.str().length() + 1,
                               writer.str().c_str());
@@ -1245,7 +976,7 @@ int _tmain(int argc, _TCHAR* argv[])
             commandOptions::basisOptions& bopts = options.bopts;
             if (bopts.normalMap && chosenOETF != Image::eOETF::Linear) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
-                        " not linear.", appName.c_str());
+                        " not linear.", name.c_str());
                 exitCode = 1;
                 goto cleanup;
             }
@@ -1269,7 +1000,7 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
-                        appName.c_str(), options.outfile.c_str(),
+                        name.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
                 exitCode = 2;
                 goto cleanup;
@@ -1282,7 +1013,7 @@ int _tmain(int argc, _TCHAR* argv[])
                 ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
                                                options.zcmpLevel);
                 if (KTX_SUCCESS != ret) {
-                    cerr << appName << ": Zstd deflation failed; KTX error: "
+                    cerr << name << ": Zstd deflation failed; KTX error: "
                          << ktxErrorString(ret) << endl;
                     exitCode = 2;
                     goto cleanup;
@@ -1291,7 +1022,7 @@ int _tmain(int argc, _TCHAR* argv[])
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        appName.c_str(), options.outfile.c_str(),
+                        name.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
                 exitCode = 2;
             }
@@ -1304,7 +1035,7 @@ int _tmain(int argc, _TCHAR* argv[])
         }  
     } else {
         fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                appName.c_str(), options.outfile.c_str(), strerror(errno));
+                name.c_str(), options.outfile.c_str(), strerror(errno));
         exitCode = 2;
     }
 
@@ -1314,456 +1045,160 @@ cleanup:
 }
 
 
-static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& options)
+void
+toktxApp::validateOptions()
 {
-    int i;
-    const _TCHAR* toktx_options;
-    size_t slash, dot;
+    if (options.automipmap + options.genmipmap + options.mipmap > 1) {
+        error("only one of --automipmap, --genmipmap and "
+              "--mipmap may be specified.");
+        usage();
+        exit(1);
+    }
+    if ((options.automipmap || options.genmipmap) && options.levels > 1) {
+        error("cannot specify --levels > 1 with --automipmap or --genmipmap.");
+        usage();
+        exit(1);
+    }
+    if (options.cubemap && options.lower_left_maps_to_s0t0) {
+        error("cubemaps require images to have an upper-left origin. "
+              "Ignoring --lower_left_maps_to_s0t0.");
+        options.lower_left_maps_to_s0t0 = 0;
+    }
+    if (options.cubemap && options.depth > 1) {
+        error("cubemaps cannot have depth > 1.");
+        usage();
+        exit(1);
+    }
+    if (options.layers > 1 && options.depth > 1) {
+        error("cannot have 3D array textures.");
+        usage();
+        exit(1);
+    }
+    if (options.scale != 1.0 && options.resize) {
+        error("only one of --scale and --resize can be specified.");
+        usage();
+        exit(1);
+    }
+    if (options.resize && options.mipmap) {
+        error("only one of --resize and --mipmap can be specified.");
+        usage();
+        exit(1);
+    }
 
-    appName = argv[0];
-    // For consistent Id, only use the stem of appName;
-    slash = appName.find_last_of(_T('\\'));
-    if (slash == _tstring::npos)
-        slash = appName.find_last_of(_T('/'));
-    if (slash != _tstring::npos)
-        appName.erase(0, slash+1);  // Remove directory name.
-    dot = appName.find_last_of(_T('.'));
-    if (dot != _tstring::npos)
-      appName.erase(dot, _tstring::npos); // Remove extension.
+    if (options.outfile.compare(_T("-")) != 0
+            && options.outfile.find_last_of('.') == _tstring::npos)
+    {
+        options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
+    }
 
-    toktx_options = _tgetenv(_T("TOKTX_OPTIONS"));
-    if (toktx_options) {
+    ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
+    if (requiredInputFiles > options.infiles.size()) {
+        error("too few input files.");
+        exit(1);
+    }
+    /* Whether there are enough input files for all the mipmap levels in
+     * a full pyramid can only be checked when the first file has been
+     * read and the size determined.
+     */
+}
+
+void
+toktxApp::processEnvOptions() {
+    _tstring toktx_options;
+    _TCHAR* env_options = _tgetenv(_T("TOKTX_OPTIONS"));
+
+    if (env_options != nullptr)
+        toktx_options = env_options;
+    else
+        return;
+
+    if (!toktx_options.empty()) {
         istringstream iss(toktx_options);
         argvector arglist;
         for (_tstring w; iss >> w; )
             arglist.push_back(w);
 
         argparser optparser(arglist, 0);
-        processOptions(optparser, options);
+        processOptions(optparser);
         if (optparser.optind != arglist.size()) {
             cerr << "Only options are allowed in the TOKTX_OPTIONS "
                  << "environment variable." << endl;
-            usage(appName);
+            usage();
             exit(1);
         }
     }
-
-    argparser parser(argc, argv);
-    processOptions(parser, options);
-
-    if (options.automipmap + options.genmipmap + options.mipmap > 1) {
-        cerr << "Only one of --automipmap, --genmipmap and "
-             << "--mipmap may be specified." << endl;
-        usage(appName);
-        exit(1);
-    }
-    if ((options.automipmap || options.genmipmap) && options.levels > 1) {
-        cerr << "Cannot specify --levels > 1 with --automipmap or --genmipmap."
-            << endl;
-        usage(appName);
-        exit(1);
-    }
-    if (options.cubemap && options.lower_left_maps_to_s0t0) {
-        cerr << "Cubemaps require images to have an upper-left origin. "
-             << "Ignoring --lower_left_maps_to_s0t0.\n" << endl;
-        options.lower_left_maps_to_s0t0 = 0;
-    }
-    if (options.cubemap && options.depth > 1) {
-        cerr << "Cubemaps cannot have depth > 1." << endl;
-        usage(appName);
-        exit(1);
-    }
-    if (options.layers > 1 && options.depth > 1) {
-        cerr << "Cannot have 3D array textures." << endl;
-        usage(appName);
-        exit(1);
-    }
-    if (options.scale != 1.0 && options.resize) {
-        cerr << "Only one of --scale and --resize can be specified." << endl;
-        usage(appName);
-        exit(1);
-    }
-    if (options.resize && options.mipmap) {
-        cerr << "Only one of --resize and --mipmap can be specified." << endl;
-        usage(appName);
-        exit(1);
-    }
-
-    i = parser.optind;
-
-    if (argc - i > 0) {
-        options.outfile = parser.argv[i++];
-
-        if (options.outfile.compare(_T("-")) != 0
-            && options.outfile.find_last_of('.') == _tstring::npos)
-        {
-            options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
-        }
-
-        for (; i < argc; i++) {
-            if (parser.argv[i][0] == _T('@')) {
-                if (!loadFileList(parser.argv[i],
-                                  parser.argv[i][1] == _T('@'),
-                                  options.infilenames)) {
-                    exit(1);
-                }
-            } else {
-                options.infilenames.push_back(parser.argv[i]);
-            }
-        }
-        if (options.infilenames.size() > 0) {
-            /* Check for attempt to use stdin as one of the
-             * input files.
-             */
-            vector<_tstring>::const_iterator it;
-            for (it = options.infilenames.begin(); it < options.infilenames.end(); it++) {
-                if (it->compare(_T("-")) == 0) {
-                    cerr << "Cannot use stdin as one among many inputs."
-                         << endl;
-                    usage(appName);
-                    exit(1);
-                }
-            }
-            ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
-            if (requiredInputFiles > options.infilenames.size()) {
-                cerr << "Too few input files." << endl;
-                exit(1);
-            }
-            /* Whether there are enough input files for all the mipmap levels in
-             * a full pyramid can only be checked when the first file has been
-             * read and the size determined.
-             */
-        } else {
-            cerr << "Need some input files." << endl;
-            usage(appName);
-            exit(1);
-        }
-    } else {
-        cerr << "Need an output file and some input files." << endl;
-        usage(appName);
-        exit(1);
-    }
-}
-
-static int strtoi(const char* str)
-{
-    char* endptr;
-    int value = (int)strtol(str, &endptr, 0);
-    // Some implementations set errno == EINVAL but we can't rely on it.
-    if (value == 0 && endptr && *endptr != '\0') {
-        cerr << "Argument \"" << endptr << "\" not a number." << endl;
-        usage(appName);
-        exit(1);
-    }
-    return value;
 }
 
 /*
- * @brief process potential command line options
+ * @brief process a command line option
  *
  * @return
  *
  * @param[in]     parser,     an @c argparser holding the options to process.
- * @param[in,out] options     commandOptions struct in which option information
- *                            is set.
  */
-static void
-processOptions(argparser& parser,
-               struct commandOptions& options)
+bool
+toktxApp::processOption(argparser& parser, int opt)
 {
-    int ch;
-    static struct argparser::option option_list[] = {
-        { "help", argparser::option::no_argument, NULL, 'h' },
-        { "version", argparser::option::no_argument, NULL, 'v' },
-        { "2d", argparser::option::no_argument, &options.two_d, 1 },
-        { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
-        { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
-        { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
-        { "filter", argparser::option::required_argument, NULL, 'f' },
-        { "fscale", argparser::option::required_argument, NULL, 'F' },
-        { "wrapping", argparser::option::required_argument, NULL, 'w' },
-        { "depth", argparser::option::required_argument, NULL, 'd' },
-        { "layers", argparser::option::required_argument, NULL, 'a' },
-        { "levels", argparser::option::required_argument, NULL, 'l' },
-        { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
-        { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
-        { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
-        { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
-        { "linear", argparser::option::no_argument, (int*)&options.oetf, OETF_LINEAR },
-        { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
-        { "resize", argparser::option::required_argument, NULL, 'r' },
-        { "scale", argparser::option::required_argument, NULL, 's' },
-        { "t2", argparser::option::no_argument, &options.ktx2, 1},
-        { "bcmp", argparser::option::no_argument, NULL, 'b' },
-        { "zcmp", argparser::option::optional_argument, NULL, 'z' },
-        { "no_multithreading", argparser::option::no_argument, NULL, 'N' },
-        { "threads", argparser::option::required_argument, NULL, 't' },
-        { "clevel", argparser::option::required_argument, NULL, 'c' },
-        { "qlevel", argparser::option::required_argument, NULL, 'q' },
-        { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
-        { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'E' },
-        { "max_selectors", argparser::option::required_argument, NULL, 'u' },
-        { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'S' },
-        { "normal_map", argparser::option::no_argument, NULL, 'n' },
-        { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
-        { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
-        { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
-        { "uastc", argparser::option::optional_argument, NULL, 1001 },
-        { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1002 },
-        { "uastc_rdo_d", argparser::option::required_argument, NULL, 1003 },
-        { "test", argparser::option::no_argument, &options.test, 1},
-        // -NSDocumentRevisionsDebugMode YES is appended to the end
-        // of the command by Xcode when debugging and "Allow debugging when
-        // using document Versions Browser" is checked in the scheme. It
-        // defaults to checked and is saved in a user-specific file not the
-        // pbxproj file so it can't be disabled in a generated project.
-        // Remove these from the arguments under consideration.
-        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 10000 },
-        { nullptr, argparser::option::no_argument, nullptr, 0 }
-    };
-
-    _tstring shortopts("bc:e:f:hmnroprSs:t:u:vl:q:");
-    while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
-        switch (ch) {
-          case 0:
-            break;
-          case 'a':
-            options.layers = strtoi(parser.optarg.c_str());
-            break;
-          case 'd':
-            options.depth = strtoi(parser.optarg.c_str());
-            break;
-          case 'l':
-            options.levels = strtoi(parser.optarg.c_str());
-            break;
-          case 'h':
-            usage(appName);
-            exit(0);
-          case 'v':
-            version(appName);
-            exit(0);
-          case 'b':
-            if (options.zcmp) {
-                cerr << "Only one of --bcmp and --zcmp can be specified."
-                     << endl;
-                usage(appName);
-                exit(1);
-            }
-            if (options.bopts.uastc) {
-                cerr << "Only one of --bcmp and --uastc can be specified."
-                     << endl;
-                usage(appName);
-                exit(1);
-            }
-            options.bcmp = 1;
-            options.ktx2 = 1;
-            break;
-          case 'z':
-            if (options.bcmp) {
-                cerr << "Only one of --bcmp and --zcmp can be specified."
-                     << endl;
-                usage(appName);
-                exit(1);
-            }
-            options.zcmp = 1;
-            options.ktx2 = 1;
-            if (parser.optarg.size() > 0) {
-                options.zcmpLevel = strtoi(parser.optarg.c_str());
-            }
-            break;
-          case 'c':
-            options.bopts.compressionLevel = strtoi(parser.optarg.c_str());
-            break;
-          case 'e':
-            options.bopts.maxEndpoints = strtoi(parser.optarg.c_str());
-            break;
-          case 'E':
-            options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
-            break;
-          case 'f':
-            options.gmopts.filter = parser.optarg;
-            break;
-          case 'F':
-            options.gmopts.filterScale = strtof(parser.optarg.c_str(), nullptr);
-            break;
-          case 'w':
-            if (!parser.optarg.compare("wrap")) {
-                options.gmopts.wrapMode
-                      = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
-            } else if (!parser.optarg.compare("clamp")) {
-                options.gmopts.wrapMode
-                      = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP;
-            } else if (!parser.optarg.compare("reflect")) {
-                options.gmopts.wrapMode
-                      = basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT;
-            } else {
-                cerr << "Unrecognized mode \"" << parser.optarg
-                     << "\" passed to --wmode" << endl;
-                usage(appName);
-                exit(1);
-            }
-            break;
-          case 'N':
-            options.bopts.noMultithreading = 1;
-            break;
-          case 'n':
-            options.bopts.normalMap = 1;
-            break;
-          case 'o':
-            options.bopts.noEndpointRDO = 1;
-            break;
-          case 'p':
-            options.bopts.noSelectorRDO = 1;
-            break;
-          case 'q':
-            options.bopts.qualityLevel = strtoi(parser.optarg.c_str());
-            break;
-          case 1000:
-            options.bopts.separateRGToRGB_A = 1;
-            break;
-          case 'S':
-            options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
-            break;
-          case 'r':
-            {
-                istringstream iss(parser.optarg);
-                char x;
-                iss >> options.newGeom.width >> x >> options.newGeom.height;
-                if (iss.fail()) {
-                    cerr << "Bad resize geometry." << endl;
-                    usage(appName);
-                    exit(1);
-                }
-                options.resize = 1;
-                break;
-            }
-          case 's':
-            options.scale = strtof(parser.optarg.c_str(), nullptr);
-            if (options.scale > 2000.0f) {
-                cerr << appName << ": Unreasonable scale factor of "
-                     << options.scale << "." << endl;
-                exit(1);
-            }
-            break;
-          case 't':
-            options.bopts.threadCount = strtoi(parser.optarg.c_str());
-            break;
-          case 'u':
-            options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
-            break;
-          case 1001:
-            if (options.bcmp) {
-                 cerr << "Only one of --bcmp and --uastc can be specified."
-                      << endl;
-                 usage(appName);
-                 exit(1);
-            }
-            options.bopts.uastc = 1;
-            options.ktx2 = 1;
-            if (parser.optarg.size() > 0) {
-                ktx_uint32_t level = strtoi(parser.optarg.c_str());
-                level = clamp<ktx_uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
-                // Ensure the last one wins in case of multiple of these args.
-                options.bopts.uastcFlags = ~KTX_PACK_UASTC_LEVEL_MASK;
-                options.bopts.uastcFlags |= level;
-            }
-            break;
-          case 1002:
-            options.bopts.uastcRDO = true;
-            if (parser.optarg.size() > 0) {
-                options.bopts.uastcRDOQualityScalar =
-                                    strtof(parser.optarg.c_str(), nullptr);
-            }
-            break;
-          case 1003:
-            options.bopts.uastcRDODictSize = strtoi(parser.optarg.c_str());
-            break;
-          case 10000:
-            break;
-          case '?':
-          case ':':
-          default:
-            usage(appName);
+    switch (opt) {
+      case 0:
+        break;
+      case 'a':
+        options.layers = strtoi(parser.optarg.c_str());
+        break;
+      case 'd':
+        options.depth = strtoi(parser.optarg.c_str());
+        break;
+      case 'l':
+        options.levels = strtoi(parser.optarg.c_str());
+        break;
+      case 'f':
+        options.gmopts.filter = parser.optarg;
+        break;
+      case 'F':
+        options.gmopts.filterScale = strtof(parser.optarg.c_str(), nullptr);
+        break;
+      case 'w':
+        if (!parser.optarg.compare("wrap")) {
+            options.gmopts.wrapMode
+                  = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
+        } else if (!parser.optarg.compare("clamp")) {
+            options.gmopts.wrapMode
+                  = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP;
+        } else if (!parser.optarg.compare("reflect")) {
+            options.gmopts.wrapMode
+                  = basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT;
+        } else {
+            cerr << "Unrecognized mode \"" << parser.optarg
+                 << "\" passed to --wmode" << endl;
+            usage();
             exit(1);
         }
-    }
-}
-
-static bool
-loadFileList(const _tstring &f, bool relativize,
-             vector<_tstring>& filenames)
-{
-    _tstring listName(f);
-    listName.erase(0, relativize ? 2 : 1);
-
-    FILE *lf = nullptr;
-#ifdef _WIN32
-    _tfopen_s(&lf, listName.c_str(), "r");
-#else
-    lf = _tfopen(listName.c_str(), "r");
-#endif
-
-    if (!lf) {
-        fprintf(stderr, "%s: Failed opening filename list: \"%s\": %s\n",
-                appName.c_str(), listName.c_str(), strerror(errno));
-        return false;
-    }
-
-    uint32_t totalFilenames = 0;
-    _tstring dirname;
-
-    if (relativize) {
-        size_t dirnameEnd = listName.find_last_of('/');
-        if (dirnameEnd == string::npos) {
-            relativize = false;
-        } else {
-            dirname = listName.substr(0, dirnameEnd + 1);
-        }
-    }
-
-    for (;;) {
-        char buf[PATH_MAX];
-        buf[0] = '\0';
-
-        char *p = fgets(buf, sizeof(buf), lf);
-        if (!p) {
-          if (ferror(lf)) {
-            fprintf(stderr, "%s: Failed reading filename list: \"%s\": %s\n",
-                    appName.c_str(), listName.c_str(), strerror(errno));
-            fclose(lf);
-            return false;
-          } else
+        break;
+      case 'r':
+        {
+            istringstream iss(parser.optarg);
+            char x;
+            iss >> options.newGeom.width >> x >> options.newGeom.height;
+            if (iss.fail()) {
+                cerr << "Bad resize geometry." << endl;
+                usage();
+                exit(1);
+            }
+            options.resize = 1;
             break;
         }
-
-        string readFilename(p);
-        while (readFilename.size()) {
-            if (readFilename[0] == _T(' '))
-              readFilename.erase(0, 1);
-            else
-              break;
+      case 's':
+        options.scale = strtof(parser.optarg.c_str(), nullptr);
+        if (options.scale > 2000.0f) {
+            cerr << name << ": Unreasonable scale factor of "
+                 << options.scale << "." << endl;
+            exit(1);
         }
-
-        while (readFilename.size()) {
-            const char c = readFilename.back();
-            if ((c == _T(' ')) || (c == _T('\n')) || (c == _T('\r')))
-              readFilename.erase(readFilename.size() - 1, 1);
-            else
-              break;
-        }
-
-        if (readFilename.size()) {
-            if (relativize)
-                filenames.push_back(dirname + readFilename);
-            else
-                filenames.push_back(readFilename);
-            totalFilenames++;
-        }
+        break;
+      case ':':
+      default:
+        return scApp::processOption(parser, opt);
     }
-
-    fclose(lf);
-
-    return true;
 }
 
 static ktx_uint32_t

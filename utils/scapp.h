@@ -53,7 +53,7 @@ struct clampedOption
 
 /*
 // Markdown doesn't work in files included by snipped{doc} or include{doc}
-// so the table below has to laboriously done in html.
+// so the table below has to be laboriously done in html.
 //! [scApp options]
   <dl>
     <dt>--bcmp</dt>
@@ -336,21 +336,21 @@ scApp::scApp(string& version, string& defaultVersion,
       { "qlevel", argparser::option::required_argument, NULL, 'q' },
       { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
       { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'E' },
-      { "max_selectors", argparser::option::required_argument, NULL, 's' },
-      { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'u' },
+      { "max_selectors", argparser::option::required_argument, NULL, 'u' },
+      { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'S' },
       { "normal_map", argparser::option::no_argument, NULL, 'n' },
       { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
-      { "no_endpoint_rdo", argparser::option::no_argument, NULL, 1001 },
-      { "no_selector_rdo", argparser::option::no_argument, NULL, 1002 },
-      { "uastc", argparser::option::optional_argument, NULL, 1003 },
-      { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1004 },
-      { "uastc_rdo_d", argparser::option::required_argument, NULL, 1005 },
+      { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
+      { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
+      { "uastc", argparser::option::optional_argument, NULL, 1001 },
+      { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1002 },
+      { "uastc_rdo_d", argparser::option::required_argument, NULL, 1003 },
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
   option_list.insert(option_list.begin(), my_option_list,
                      my_option_list + lastOptionIndex);
-  short_opts += "bz;Nt:c:q:e:E:s:u:m";
+  short_opts += "bz;Nt:c:q:e:E:u:S:nop";
 }
 
 // Derived classes' processOption will have to explicitly call this one
@@ -415,7 +415,7 @@ scApp::processOption(argparser& parser, int opt)
       case 1000:
         options.bopts.separateRGToRGB_A = 1;
         break;
-      case 's':
+      case 'u':
         options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
         break;
       case 'S':

@@ -39,7 +39,7 @@ const std::vector<Image::CreateFunction> Image::CreateFunctions = {
     CreateFromJPG
 };
 
-Image* Image::CreateFromFile(_tstring& name, bool transformOETF) {
+Image* Image::CreateFromFile(const _tstring& name, bool transformOETF) {
     FILE* f;
     Image* image;
 
