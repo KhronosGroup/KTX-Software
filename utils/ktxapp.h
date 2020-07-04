@@ -17,7 +17,6 @@
 // limitations under the License.
 //
 
-#include <limits.h>
 #include <stdarg.h>
 #include <vector>
 #include <ktx.h>
@@ -27,8 +26,12 @@
 #define QUOTE(x) #x
 #define STR(x) QUOTE(x)
 
-#if defined(_WIN32)
-  #define PATH_MAX MAX_PATH
+// Thanks Windows!!!
+#if defined(min)
+  #undef min
+#endif
+#if defined(max)
+  #undef max
 #endif
 
 using namespace std;
@@ -227,7 +230,8 @@ class ktxApp {
         }
 
         for (;;) {
-            char buf[PATH_MAX];
+            // Cross platform PATH_MAX def is too much trouble!
+            char buf[4096];
             buf[0] = '\0';
 
             char *p = fgets(buf, sizeof(buf), lf);

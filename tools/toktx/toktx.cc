@@ -80,11 +80,6 @@ enum oetf_e {
     OETF_UNSET = 2
 };
 
-#if defined(_MSC_VER)
-  #undef min
-  #undef max
-#endif
-
 static ktx_uint32_t log2(ktx_uint32_t v);
 #if IMAGE_DEBUG
 static void dumpImage(_TCHAR* name, int width, int height, int components,
@@ -1019,7 +1014,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
             if (!getParamsStr().empty()) {
                 ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
-                getParamsStr().length(), getParamsStr().c_str());
+                (ktx_uint32_t)getParamsStr().length(), getParamsStr().c_str());
             }
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
