@@ -144,41 +144,6 @@ encode_linear(float const intensity)
     return intensity;
 }
 
-template <typename T>
-class PreAllocator
-{
-    private:
-        T* memory_ptr;
-        std::size_t memory_size;
-
-    public:
-        typedef std::size_t     size_type;
-        typedef T*              pointer;
-        typedef const T*        const_pointer;
-        typedef T               value_type;
-
-        PreAllocator(T* memory_ptr, std::size_t memory_size) : memory_ptr(memory_ptr), memory_size(memory_size) {}
-
-        PreAllocator(const PreAllocator& other) throw() : memory_ptr(other.address()), memory_size(other.max_size()) {};
-
-        template<typename U>
-        PreAllocator(const PreAllocator<U>& other) throw() : memory_ptr(reinterpret_cast<const PreAllocator&>(other).address()), memory_size(other.max_size()) {};
-
-        template<typename U>
-        PreAllocator& operator = (const PreAllocator<U>& other) { return *this; }
-        PreAllocator<T>& operator = (const PreAllocator& other) { return *this; }
-        ~PreAllocator() {}
-
-		pointer address() const { return memory_ptr; }
-        // TODO: Figure out what these should really do.
-        pointer address(T& x) { return memory_ptr; }
-        const pointer address(const T& x) { memory_ptr; }
-        pointer allocate(size_type n, const void* hint = 0) {return memory_ptr;}
-        void deallocate(T* ptr, size_type n) {}
-
-        size_type max_size() const {return memory_size;}
-};
-
 template <typename componentType, uint32_t componentCount>
 class color_base {
 public:
@@ -320,14 +285,11 @@ class Image {
     virtual const uint32_t getComponentCount() const = 0;
     virtual const uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
-    virtual Image& clear() = 0;
-    virtual Image& crop(uint32_t w, uint32_t h) = 0;
     virtual void resample(Image& dst, bool srgb = false,
                           const char *pFilter = "lanczos4",
                           float filter_scale = 1.0f,
                           basisu::Resampler::Boundary_Op wrapMode
                           = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) = 0;
-    virtual Image& resize(uint32_t w, uint32_t h) = 0;
     virtual Image& yflip() = 0;
     virtual Image& transformOETF(OETFFunc decode, OETFFunc encode) = 0;
 
@@ -341,13 +303,26 @@ class Image {
 };
 
 // Base class for template and specializations
-template<class Color, class Alloc = std::allocator<Color>>
-class imageTBase : public Image {
+template<class Color>
+class ImageT : public Image {
   public:
-    using colorVector = std::vector<Color, Alloc>;
+    ImageT(uint32_t w, uint32_t h) : Image(w, h)
+    {
+        size_t bytes = sizeof(Color) * w * h;
+        pixels = (Color*)malloc(bytes);
+        if (!pixels)
+            throw std::bad_alloc();
+        memset(pixels, 0, bytes);
+    }
 
-    imageTBase(uint32_t w, uint32_t h) { resize(w, h); }
-    virtual ~imageTBase() { }
+    ImageT(uint32_t w, uint32_t h, Color* pixels) : Image(w, h), pixels(pixels)
+    {
+    }
+
+    ~ImageT()
+    {
+        free(pixels);
+    }
 
     virtual const Color &operator() (uint32_t x, uint32_t y) const {
        assert(x < width && y < height); return pixels[x + y * width];
@@ -355,10 +330,10 @@ class imageTBase : public Image {
     virtual Color &operator() (uint32_t x, uint32_t y) {
         assert(x < width && y < height); return pixels[x + y * width];
     }
-    virtual operator uint8_t*() { return (uint8_t*)pixels.data(); }
+    virtual operator uint8_t*() { return (uint8_t*)pixels; }
 
     virtual size_t getByteCount() const {
-        return pixels.size() * sizeof(Color);
+        return getPixelCount() * sizeof(Color);
     }
 
     virtual const uint32_t getPixelSize() const {
@@ -371,31 +346,9 @@ class imageTBase : public Image {
         return Color::getComponentSize();
     }
 
-    virtual imageTBase& clear() {
-        width = 0;
-        height = 0;
-        pixels.erase(pixels.begin(), pixels.end());
-        return *this;
-    }
-
     virtual Image* createImage(uint32_t width, uint32_t height) {
-        imageTBase<Color>* image = new imageTBase<Color>(width, height);
+        ImageT<Color>* image = new ImageT<Color>(width, height);
         return image;
-    }
-
-    virtual imageTBase& crop(uint32_t w, uint32_t h) {
-        if (w == width && h == height)
-            return *this;
-
-        if (!w || !h) {
-            clear();
-            return *this;
-        }
-
-        pixels.resize(w * h);
-        width = w;
-        height = h;
-        return *this;
     }
 
     static void checkResamplerStatus(basisu::Resampler& resampler,
@@ -428,7 +381,7 @@ class imageTBase : public Image {
     {
         using namespace basisu;
 
-        imageTBase<Color>& dst = static_cast<imageTBase<Color>&>(abstract_dst);
+        ImageT<Color>& dst = static_cast<ImageT<Color>&>(abstract_dst);
 
         const uint32_t src_w = width, src_h = height;
         const uint32_t dst_w = dst.getWidth(), dst_h = dst.getHeight();
@@ -558,11 +511,7 @@ class imageTBase : public Image {
           delete resamplers[i];
     }
 
-    virtual imageTBase& resize(uint32_t w, uint32_t h) {
-        return crop(w, h);
-    }
-
-    virtual imageTBase& yflip() {
+    virtual ImageT& yflip() {
         uint32_t rowSize = width * sizeof(Color);
         // Minimize memory use by only buffering a single row.
         Color* rowBuffer = new Color[width];
@@ -579,70 +528,24 @@ class imageTBase : public Image {
         return *this;
     }
 
-    virtual imageTBase& transformOETF(OETFFunc decode, OETFFunc encode) {
-      typename colorVector::iterator it = pixels.begin();
-        for ( ; it < pixels.end(); it++) {
+    virtual ImageT& transformOETF(OETFFunc decode, OETFFunc encode) {
+        uint32_t pixelCount = getPixelCount();
+        for (uint32_t i = 0; i < pixelCount; ++i) {
+            Color& c = pixels[i];
             // Don't transform the alpha component. --------  v
-            for (uint32_t comp = 0; comp < it->getComponentCount() && comp < 3; comp++) {
-                float brightness = (float)((*it)[comp]) / 255;
+            for (uint32_t comp = 0; comp < Color::getComponentCount() && comp < 3; comp++) {
+                float brightness = (float)(c[comp]) / 255;
                 float intensity = decode(brightness);
                 brightness = cclamp(encode(intensity), 0.0f, 1.0f);
-                it->set(comp, roundf(brightness * 255));
+                c.set(comp, roundf(brightness * 255));
             }
         }
         return *this;
     }
 
   protected:
-    imageTBase() : Image() { }
-    imageTBase(Alloc alloc) : Image(), pixels(alloc) { }
-    imageTBase(Alloc alloc, uint32_t w, uint32_t h) : pixels(alloc) {
-        resize(w, h);
-    }
-
-    colorVector pixels;
+    Color* pixels;
 };
-
-template<class Color, class Alloc = std::allocator<Color>>
-class ImageT : public imageTBase<Color, Alloc> {
-  public:
-    using imageTBase<Color, Alloc>::resize;
-    ImageT() : imageTBase<Color, Alloc>() { }
-    ImageT(uint32_t w, uint32_t h) : imageTBase<Color, Alloc>() {
-        resize(w, h);
-    }
-};
-
-template<class Color>
-class ImageT<Color, PreAllocator<Color>> : public imageTBase<Color, PreAllocator<Color>> {
-  public:
-    using imageTBase<Color, PreAllocator<Color>>::pixels;
-    using Image::width;
-    using Image::height;
-    using Alloc = PreAllocator<Color>;
-    ImageT(uint32_t w, uint32_t h, Color* data, size_t pixelCount)
-        : imageTBase<Color, Alloc>(Alloc(data, pixelCount)), data(data) {
-            // This and PreAllocator is a hack to get "data" to appear in the
-            // vector. resize() would overwrite the data.
-            width = w;
-            height = h;
-            pixels.reserve(pixelCount);
-    }
-
-    ~ImageT() {
-        pixels.erase(pixels.begin(), pixels.end());
-        free(data);
-    }
-
-    virtual size_t getByteCount() const {
-        // Since space has only been reserved, size() will return 0.
-        return pixels.max_size() * sizeof(Color);
-    }
-
-  private:
-    Color* data;
-};
-
 
 class r8image : public ImageT<color<uint8_t, 1>> {
   public:
