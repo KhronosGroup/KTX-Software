@@ -180,14 +180,10 @@ class PreAllocator
 
 template <typename componentType, uint32_t componentCount>
 class color_base {
-    public:
-       uint32_t const getComponentCount() const { return componentCount; }
-       uint32_t const getComponentSize() const {
-           return sizeof(componentType);
-       }
-       uint32_t const getPixelSize() const {
-          return componentCount * sizeof(componentType);
-       }
+public:
+    static uint32_t getComponentCount() { return componentCount; }
+    static uint32_t getComponentSize() { return sizeof(componentType); }
+    static uint32_t getPixelSize() { return componentCount * sizeof(componentType); }
 };
 
 template <typename componentType, uint32_t componentCount>
@@ -364,13 +360,13 @@ class imageTBase : public Image {
     }
 
     virtual const uint32_t getPixelSize() const {
-        return pixels[0].getPixelSize();
+        return Color::getPixelSize();
     }
     virtual const uint32_t getComponentCount() const {
-        return pixels[0].getComponentCount();
+        return Color::getComponentCount();
     }
     virtual const uint32_t getComponentSize() const {
-        return pixels[0].getComponentSize();
+        return Color::getComponentSize();
     }
 
     virtual imageTBase& clear() {
