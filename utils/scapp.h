@@ -230,8 +230,8 @@ class scApp : public ktxApp {
   public:
     scApp(string& version, string& defaultVersion, scApp::commandOptions& options);
     const string& getParamsStr() {
-        if (*scparams.end() == ' ')
-            scparams.erase(scparams.end());
+        if (!scparams.empty() && *(scparams.end()-1) == ' ')
+            scparams.erase(scparams.end()-1);
         return scparams;
     }
 
