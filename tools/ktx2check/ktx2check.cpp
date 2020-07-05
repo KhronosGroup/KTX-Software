@@ -76,6 +76,8 @@ Check the validity of a KTX 2 file.
     <dt>-m &lt;num&gt;, --max-issues &lt;num&gt;</dt>
     <dd>Set the maximum number of issues to be reported per file
         provided -q is not set.</dd>
+    <dt>-w, --warn-as-error</dt>
+    <dd>Treat warnings as errors. Changes exit code from success to error.
     </dl>
     @snippetdoc ktxapp.h ktxApp options
 
@@ -448,7 +450,8 @@ class ktxValidator : public ktxApp {
       public:
         logger() {
             maxIssues = 0xffffffffU;
-            issueCount = 0;
+            errorCount = 0;
+            warningCount = 0;
             headerWritten = false;
             quiet = false;
         }
@@ -456,15 +459,18 @@ class ktxValidator : public ktxApp {
         void addIssue(severity severity, issue issue, va_list args);
         void startFile(const std::string& filename) {
             nameOfFileBeingValidated = filename;
-            issueCount = 0;
+            errorCount = 0;
+            warningCount = 0;
             headerWritten = false;
         }
-        uint32_t getIssueCount() { return this->issueCount; }
+        uint32_t getErrorCount() { return this->errorCount; }
+        uint32_t getWarningCount() { return this->warningCount; }
         uint32_t maxIssues;
         bool quiet;
 
       protected:
-        uint32_t issueCount;
+        uint32_t errorCount;
+        uint32_t warningCount;
         bool headerWritten;
         string nameOfFileBeingValidated;
     } logger;
@@ -634,7 +640,7 @@ class ktxValidator : public ktxApp {
         va_end(args);
     }
     virtual bool processOption(argparser& parser, int opt);
-    int validateFile(const string&);
+    void validateFile(const string&);
     void validateHeader(validationContext& ctx);
     void validateLevelIndex(validationContext& ctx);
     void validateDfd(validationContext& ctx);
@@ -689,10 +695,12 @@ class ktxValidator : public ktxApp {
     struct commandOptions : public ktxApp::commandOptions {
         uint32_t maxIssues;
         bool quiet;
+        bool errorOnWarning;
 
         commandOptions() {
             maxIssues = 0xffffffffU;
             quiet = false;
+			errorOnWarning = false;
         }
     } options;
 };
@@ -716,7 +724,8 @@ ktxValidator::ktxValidator() : ktxApp(myversion, mydefversion, options)
 {
     argparser::option my_option_list[] = {
         { "quiet", argparser::option::no_argument, NULL, 'q' },
-        { "max-issues", argparser::option::required_argument, NULL, 'm' }
+        { "max-issues", argparser::option::required_argument, NULL, 'm' },
+        { "warn-as-error", argparser::option::no_argument, NULL, 'w' }
     };
     const int lastOptionIndex = sizeof(my_option_list)
                                 / sizeof(argparser::option);
@@ -735,17 +744,19 @@ ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
             cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
             headerWritten = true;
         }
-        if (issueCount < maxIssues) {
+        if ((errorCount + warningCount ) < maxIssues) {
             cout << "    ";
             switch (severity) {
               case eError:
                 cout << "ERROR: ";
+                errorCount++;
                 break;
               case eFatal:
                 cout << "FATAL: ";
                 break;
               case eWarning:
                 cout << "WARNING: ";
+                warningCount++;
                 break;
             }
             vfprintf(stdout, issue.message.c_str(), args);
@@ -754,7 +765,6 @@ ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
             throw max_issues_exceeded();
         }
     }
-    issueCount++;
     if (severity == eFatal)
         throw fatal();
 }
@@ -774,7 +784,10 @@ ktxValidator::usage()
         "  -q, --quiet  Validate silently. Indicate valid or invalid via exit code.\n"
         "  -m <num>, --max-issues <num>\n"
         "               Set the maximum number of issues to be reported per file\n"
-        "               provided -q is not set.\n";
+        "               provided -q is not set.\n"
+        "  -w, --warn-as-error\n"
+        "               Treat warnings as errors. Changes error code from success\n"
+        "               to error\n";
     ktxApp::usage();
 }
 
@@ -792,27 +805,27 @@ ktxValidator::main(int argc, _TCHAR *argv[])
 {
     processCommandLine(argc, argv, eAllowStdin);
 
-    uint32_t totalIssues = 0;
-
     logger.quiet = options.quiet;
     logger.maxIssues = options.maxIssues;
 
     vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         try {
-            totalIssues += validateFile(*it);
+            validateFile(*it);
         } catch (fatal&) {
             // File could not be opened.
-            totalIssues++;
+            return 2;
         }
     }
-    if (totalIssues > 0)
+    if (logger.getErrorCount() > 0)
+        return 2;
+    else if (logger.getWarningCount() > 0 && options.errorOnWarning)
         return 2;
     else
         return 0;
 }
 
-int
+void
 ktxValidator::validateFile(const string& filename)
 {
     FILE* inf;
@@ -849,7 +862,6 @@ ktxValidator::validateFile(const string& filename)
     } else {
         addIssue(logger::eFatal, IOError.FileOpen, strerror(errno));
     }
-    return logger.getIssueCount();
 }
 
 bool
@@ -862,6 +874,8 @@ ktxValidator::processOption(argparser& parser, int opt)
       case 'm':
         options.maxIssues = atoi(parser.optarg.c_str());
         break;
+      case 'w':
+        options.errorOnWarning = true;
       default:
         return false;
     }
