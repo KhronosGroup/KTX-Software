@@ -700,6 +700,7 @@ class ktxValidator : public ktxApp {
         commandOptions() {
             maxIssues = 0xffffffffU;
             quiet = false;
+			errorOnWarning = false;
         }
     } options;
 };
