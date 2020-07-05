@@ -7,7 +7,8 @@
 /build-ios/
 /build-linux/
 /build-macos/
-/build-windows/
+/build-web*/
+/build-win*/
 
 # /include/
 /include/imdebug.h
