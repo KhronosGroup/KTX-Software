@@ -72,7 +72,7 @@ function( gencmpktx test_name reference source args env files )
 endfunction()
 
 gencmpktx( rgb-reference rgb-reference.ktx "../srcimages/rgb.ppm" "--lower_left_maps_to_s0t0 --nometadata" "" "" )
-gencmpktx( rgb-amg-reference rgb-amg-reference.ktx "../srcimages/rgb.ppm" "--automipmap --lower_left_maps_to_s0t0 --linear --nometadata" "" "" )
+#gencmpktx( rgb-amg-reference rgb-amg-reference.ktx "../srcimages/rgb.ppm" "--automipmap --lower_left_maps_to_s0t0 --linear --nometadata" "" "" )
 gencmpktx( orient-up orient-up.ktx "../srcimages/up.ppm" "" "--lower_left_maps_to_s0t0 --nometadata" "" )
 gencmpktx( orient-up-metadata orient-up-metadata.ktx "../srcimages/up.ppm" "--lower_left_maps_to_s0t0" "" "" )
 
