@@ -113,13 +113,11 @@ Image::CreateFromPNG(FILE* src, bool)
      // Tell the decoder we want the same color type as the file
      uint8_t* imageData;
      size_t imageByteCount;
-     size_t pixelCount;
      state.info_raw = state.info_png.color;
      uint32_t error = lodepng_decode(&imageData, &w, &h, &state,
                                      png.data(), png.size());
      if (imageData && !error) {
          imageByteCount = lodepng_get_raw_size(w, h, &state.info_raw);
-         pixelCount = w * h;
      } else {
          free(imageData);
          std::stringstream message;
@@ -132,19 +130,19 @@ Image::CreateFromPNG(FILE* src, bool)
         switch (componentCount) {
           case 1: {
             using Color = color<uint16_t, 1>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           } case 2: {
             using Color = color<uint16_t, 2>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           } case 3: {
             using Color = color<uint16_t, 3>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           } case 4: {
             using Color = color<uint16_t, 4>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           }
         }
@@ -152,19 +150,19 @@ Image::CreateFromPNG(FILE* src, bool)
         switch (componentCount) {
           case 1: {
             using Color = color<uint8_t, 1>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           } case 2: {
             using Color = color<uint8_t, 2>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           } case 3: {
             using Color = color<uint8_t, 3>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           } case 4: {
             using Color = color<uint8_t, 4>;
-            image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+            image = new ImageT< Color >(w, h, (Color*)imageData);
             break;
           }
         }

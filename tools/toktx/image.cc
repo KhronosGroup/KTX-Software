@@ -72,4 +72,3 @@ Image* Image::CreateFromFile(_tstring& name, bool transformOETF) {
     return nullptr; // Keep compilers happy.
 }
 
-

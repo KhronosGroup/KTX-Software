@@ -126,20 +126,19 @@ Image::CreateFromJPG(FILE* src, bool)
          throw std::runtime_error("JPEG decode failed");
     }
 
-    uint32_t pixelCount = w * h;
     Image* image;
     switch (componentCount) {
       case 1: {
         using Color = color<uint8_t, 1>;
-        image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+        image = new ImageT< Color >(w, h, (Color*)imageData);
         break;
       } case 3: {
         using Color = color<uint8_t, 3>;
-        image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+        image = new ImageT< Color >(w, h, (Color*)imageData);
         break;
       } case 4: {
         using Color = color<uint8_t, 4>;
-        image = new ImageT< Color, PreAllocator<Color> >(w, h, (Color*)imageData, pixelCount);
+        image = new ImageT< Color >(w, h, (Color*)imageData);
         break;
       }
     }
