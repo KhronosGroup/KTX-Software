@@ -17,14 +17,22 @@
 // limitations under the License.
 //
 
-#include <vector>
 #include <stdarg.h>
+#include <vector>
 #include <ktx.h>
 
 #include "argparser.h"
 
 #define QUOTE(x) #x
 #define STR(x) QUOTE(x)
+
+// Thanks Windows!!!
+#if defined(min)
+  #undef min
+#endif
+#if defined(max)
+  #undef max
+#endif
 
 using namespace std;
 
@@ -89,6 +97,7 @@ class ktxApp {
   protected:
     struct commandOptions {
         std::vector<_tstring> infiles;
+        _tstring outfile;
         int test;
 
         commandOptions() : test(false) { }
@@ -123,8 +132,12 @@ class ktxApp {
     }
 
     enum StdinUse { eDisallowStdin, eAllowStdin };
-    void processCommandLine(int argc, _TCHAR* argv[], StdinUse stdinStat) {
-        int i;
+    enum OutfilePos { eNone, eFirst, eLast };
+    void processCommandLine(int argc, _TCHAR* argv[],
+                            StdinUse stdinStat = eAllowStdin,
+                            OutfilePos outfilePos = eNone)
+    {
+        uint32_t i;
         size_t slash, dot;
 
         name = argv[0];
@@ -143,8 +156,19 @@ class ktxApp {
 
         i = parser.optind;
         if (argc - i > 0) {
-            for (; i < argc; i++) {
-                options.infiles.push_back(parser.argv[i]);
+            if (outfilePos == eFirst)
+                options.outfile = parser.argv[i++];
+            uint32_t infileCount = outfilePos == eLast ? argc - 1 : argc;
+            for (; i < infileCount; i++) {
+                if (parser.argv[i][0] == _T('@')) {
+                    if (!loadFileList(parser.argv[i],
+                                      parser.argv[i][1] == _T('@'),
+                                      options.infiles)) {
+                        exit(1);
+                    }
+                } else {
+                    options.infiles.push_back(parser.argv[i]);
+                }
             }
             if (options.infiles.size() > 1) {
                 std::vector<_tstring>::const_iterator it;
@@ -156,13 +180,99 @@ class ktxApp {
                     }
                 }
             }
-        } else if (stdinStat == eAllowStdin) {
-            options.infiles.push_back(_T("-")); // Use stdin as 0 files.
-        } else {
-            error("no input files.");
-            usage();
-            exit(1);
+            if (outfilePos == eLast)
+                options.outfile = parser.argv[i];
         }
+
+        if (options.infiles.size() == 0) {
+            if (stdinStat == eAllowStdin) {
+                options.infiles.push_back(_T("-")); // Use stdin as 0 files.
+            } else {
+                error("need some input files.");
+                usage();
+                exit(1);
+            }
+        }
+        if (outfilePos != eNone && options.outfile.empty()) {
+            error("need an output file");
+        }
+    }
+
+    bool loadFileList(const _tstring &f, bool relativize,
+                      vector<_tstring>& filenames)
+    {
+        _tstring listName(f);
+        listName.erase(0, relativize ? 2 : 1);
+
+        FILE *lf = nullptr;
+#ifdef _WIN32
+        _tfopen_s(&lf, listName.c_str(), "r");
+#else
+        lf = _tfopen(listName.c_str(), "r");
+#endif
+
+        if (!lf) {
+            error("failed opening filename list: \"%s\": %s\n",
+                  listName.c_str(), strerror(errno));
+            return false;
+        }
+
+        uint32_t totalFilenames = 0;
+        _tstring dirname;
+
+        if (relativize) {
+            size_t dirnameEnd = listName.find_last_of('/');
+            if (dirnameEnd == string::npos) {
+                relativize = false;
+            } else {
+                dirname = listName.substr(0, dirnameEnd + 1);
+            }
+        }
+
+        for (;;) {
+            // Cross platform PATH_MAX def is too much trouble!
+            char buf[4096];
+            buf[0] = '\0';
+
+            char *p = fgets(buf, sizeof(buf), lf);
+            if (!p) {
+              if (ferror(lf)) {
+                error("failed reading filename list: \"%s\": %s\n",
+                      listName.c_str(), strerror(errno));
+                fclose(lf);
+                return false;
+              } else
+                break;
+            }
+
+            string readFilename(p);
+            while (readFilename.size()) {
+                if (readFilename[0] == _T(' '))
+                  readFilename.erase(0, 1);
+                else
+                  break;
+            }
+
+            while (readFilename.size()) {
+                const char c = readFilename.back();
+                if ((c == _T(' ')) || (c == _T('\n')) || (c == _T('\r')))
+                  readFilename.erase(readFilename.size() - 1, 1);
+                else
+                  break;
+            }
+
+            if (readFilename.size()) {
+                if (relativize)
+                    filenames.push_back(dirname + readFilename);
+                else
+                    filenames.push_back(readFilename);
+                totalFilenames++;
+            }
+        }
+
+        fclose(lf);
+
+        return true;
     }
 
     virtual void processOptions(argparser& parser) {
@@ -178,6 +288,10 @@ class ktxApp {
                 exit(0);
               case 'v':
                 printVersion();
+                exit(0);
+              case ':':
+                error("missing required option argument.");
+                usage();
                 exit(0);
               default:
                 if (!processOption(parser, opt)) {

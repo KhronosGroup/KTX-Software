@@ -172,7 +172,6 @@ ktxSupercompressor::usage()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-
     ktxSupercompressor ktxsc;
 
     return ktxsc.main(argc, argv);
@@ -341,6 +340,10 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                             goto cleanup;
                         }
                     }
+                }
+                if (!getParamsStr().empty()) {
+                    ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
+                    (ktx_uint32_t)getParamsStr().length(), getParamsStr().c_str());
                 }
                 result = ktxTexture_WriteToStdioStream(ktxTexture(texture), outf);
                 if (result != KTX_SUCCESS) {

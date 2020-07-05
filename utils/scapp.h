@@ -53,7 +53,7 @@ struct clampedOption
 
 /*
 // Markdown doesn't work in files included by snipped{doc} or include{doc}
-// so the table below has to laboriously done in html.
+// so the table below has to be laboriously done in html.
 //! [scApp options]
   <dl>
     <dt>--bcmp</dt>
@@ -160,6 +160,8 @@ struct clampedOption
 
 class scApp : public ktxApp {
   protected:
+    const string scparamKey = "KHRscparams";
+    string scparams;
     struct commandOptions : public ktxApp::commandOptions {
         struct basisOptions : public ktxBasisParams {
             // The remaining numeric fields are clamped within the Basis
@@ -222,9 +224,16 @@ class scApp : public ktxApp {
 
     commandOptions& options;
     virtual bool processOption(argparser& parser, int opt);
+    enum HasArg { eNone, eOptional, eRequired };
+    void captureOption(const argparser& parser, HasArg hasArg);
 
   public:
     scApp(string& version, string& defaultVersion, scApp::commandOptions& options);
+    const string& getParamsStr() {
+        if (!scparams.empty() && *(scparams.end()-1) == ' ')
+            scparams.erase(scparams.end()-1);
+        return scparams;
+    }
 
     void usage()
     {
@@ -336,21 +345,34 @@ scApp::scApp(string& version, string& defaultVersion,
       { "qlevel", argparser::option::required_argument, NULL, 'q' },
       { "max_endpoints", argparser::option::required_argument, NULL, 'e' },
       { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'E' },
-      { "max_selectors", argparser::option::required_argument, NULL, 's' },
-      { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'u' },
+      { "max_selectors", argparser::option::required_argument, NULL, 'u' },
+      { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'S' },
       { "normal_map", argparser::option::no_argument, NULL, 'n' },
       { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
-      { "no_endpoint_rdo", argparser::option::no_argument, NULL, 1001 },
-      { "no_selector_rdo", argparser::option::no_argument, NULL, 1002 },
-      { "uastc", argparser::option::optional_argument, NULL, 1003 },
-      { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1004 },
-      { "uastc_rdo_d", argparser::option::required_argument, NULL, 1005 },
+      { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
+      { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
+      { "uastc", argparser::option::optional_argument, NULL, 1001 },
+      { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1002 },
+      { "uastc_rdo_d", argparser::option::required_argument, NULL, 1003 },
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
   option_list.insert(option_list.begin(), my_option_list,
                      my_option_list + lastOptionIndex);
-  short_opts += "bz;Nt:c:q:e:E:s:u:m";
+  short_opts += "bz;Nt:c:q:e:E:u:S:nop";
+}
+
+void
+scApp::captureOption(const argparser& parser, HasArg hasArg)
+{
+    uint32_t indexDecrement = 1;
+    bool captureArg = false;
+
+    if ((hasArg == eOptional && parser.optarg.size() > 0) || hasArg == eRequired)
+        indexDecrement = 2;
+    scparams += parser.argv[parser.optind - indexDecrement] + " ";
+    if (captureArg)
+        scparams += parser.optarg + " ";
 }
 
 // Derived classes' processOption will have to explicitly call this one
@@ -358,6 +380,9 @@ scApp::scApp(string& version, string& defaultVersion,
 bool
 scApp::processOption(argparser& parser, int opt)
 {
+    bool hasArg = false;
+    bool capture = true;
+
     switch (opt) {
       case 'b':
         if (options.zcmp) {
@@ -386,19 +411,24 @@ scApp::processOption(argparser& parser, int opt)
         options.ktx2 = 1;
         if (parser.optarg.size() > 0) {
             options.zcmpLevel = strtoi(parser.optarg.c_str());
+            hasArg = true;
         }
         break;
       case 'c':
         options.bopts.compressionLevel = strtoi(parser.optarg.c_str());
+        hasArg = true;
         break;
       case 'e':
         options.bopts.maxEndpoints = strtoi(parser.optarg.c_str());
+        hasArg = true;
         break;
       case 'E':
         options.bopts.endpointRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+        hasArg = true;
         break;
       case 'N':
         options.bopts.noMultithreading = 1;
+        capture = false;
         break;
       case 'n':
         options.bopts.normalMap = 1;
@@ -411,18 +441,22 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 'q':
         options.bopts.qualityLevel = strtoi(parser.optarg.c_str());
+        hasArg = true;
         break;
       case 1000:
         options.bopts.separateRGToRGB_A = 1;
         break;
-      case 's':
+      case 'u':
         options.bopts.maxSelectors = strtoi(parser.optarg.c_str());
+        hasArg = true;
         break;
       case 'S':
         options.bopts.selectorRDOThreshold = strtof(parser.optarg.c_str(), nullptr);
+        hasArg = true;
         break;
       case 't':
         options.bopts.threadCount = strtoi(parser.optarg.c_str());
+        capture = false;
         break;
       case 1001:
         if (options.bcmp) {
@@ -439,6 +473,7 @@ scApp::processOption(argparser& parser, int opt)
             // Ensure the last one wins in case of multiple of these args.
             options.bopts.uastcFlags = ~KTX_PACK_UASTC_LEVEL_MASK;
             options.bopts.uastcFlags |= level;
+            hasArg = true;
         }
         break;
       case 1002:
@@ -446,14 +481,23 @@ scApp::processOption(argparser& parser, int opt)
         if (parser.optarg.size() > 0) {
             options.bopts.uastcRDOQualityScalar =
                                 strtof(parser.optarg.c_str(), nullptr);
+            hasArg = true;
         }
         break;
       case 1003:
         options.bopts.uastcRDODictSize = strtoi(parser.optarg.c_str());
+        hasArg = true;
         break;
       default:
         return false;
     }
+
+    if (capture) {
+        scparams += parser.argv[parser.optind - (hasArg ? 2 : 1)] + " ";
+        if (hasArg)
+            scparams += parser.optarg + " ";
+    }
+
     return true;
 }
 
