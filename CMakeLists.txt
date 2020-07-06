@@ -432,6 +432,15 @@ if(EMSCRIPTEN)
         "SHELL:-s EXPORT_NAME=LIBKTX"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
+
+    add_custom_command(
+        TARGET ktx_js
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js>/$<TARGET_FILE_PREFIX:ktx_js>$<TARGET_FILE_BASE_NAME:ktx_js>.js" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js>/$<TARGET_FILE_PREFIX:ktx_js>$<TARGET_FILE_BASE_NAME:ktx_js>.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMENT "Copy libktx.js and libktx.wasm to tests/webgl"
+    )
+
     install(TARGETS ktx_js
         RUNTIME
             DESTINATION .
@@ -462,6 +471,14 @@ if(EMSCRIPTEN)
         $<TARGET_PROPERTY:ktx,INTERFACE_LINK_OPTIONS>
         )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
+
+    add_custom_command(
+        TARGET ktx_js
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:msc_basis_transcoder_js>/$<TARGET_FILE_PREFIX:msc_basis_transcoder_js>$<TARGET_FILE_BASE_NAME:msc_basis_transcoder_js>.js" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:msc_basis_transcoder_js>/$<TARGET_FILE_PREFIX:msc_basis_transcoder_js>$<TARGET_FILE_BASE_NAME:msc_basis_transcoder_js>.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMENT "Copy msc_basis_transcoder.js and msc_basis_transcoder.wasm to tests/webgl"
+    )
 
     install(TARGETS msc_basis_transcoder_js
         RUNTIME
