@@ -155,13 +155,14 @@ struct clampedOption
 
   In case of ambiguity, such as when the last option is one with an optional
   parameter, separate options from file names with " -- ".
+
+  Any specified Basis Universal and supercompression options are recorded in
+  the custom metadata item @c KHRtoktxScParams in the output file.
 //! [scApp options]
 */
 
 class scApp : public ktxApp {
   protected:
-    const string scparamKey = "KHRscparams";
-    string scparams;
     struct commandOptions : public ktxApp::commandOptions {
         struct basisOptions : public ktxBasisParams {
             // The remaining numeric fields are clamped within the Basis
@@ -223,6 +224,9 @@ class scApp : public ktxApp {
     };
 
     commandOptions& options;
+    const string scparamKey = "KHRtoktxScParams";
+    string scparams;
+
     virtual bool processOption(argparser& parser, int opt);
     enum HasArg { eNone, eOptional, eRequired };
     void captureOption(const argparser& parser, HasArg hasArg);
