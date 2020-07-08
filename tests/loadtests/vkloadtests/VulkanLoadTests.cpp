@@ -64,11 +64,17 @@ VulkanLoadTests::~VulkanLoadTests()
 }
 
 bool
-VulkanLoadTests::initialize(int argc, char* argv[])
+VulkanLoadTests::initialize(Args& args)
 {
-    if (!VulkanAppSDL::initialize(argc, argv))
+    if (!VulkanAppSDL::initialize(args))
         return false;
 
+    for (auto it = args.begin() + 1; it != args.end(); it++) {
+        infiles.push_back(*it);
+    }
+    if (infiles.size() > 0) {
+        sampleIndex.setNumSamples((uint32_t)infiles.size());
+    }
     // Launch the first sample.
     invokeSample(Direction::eForward);
     return true;
@@ -190,27 +196,31 @@ VulkanLoadTests::invokeSample(Direction dir)
         // from this by indicating there is no current sample.
         pCurSample = nullptr;
     }
-    sampleInv = &siSamples[sampleIndex];
 
     for (;;) {
         try {
-            pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
-                                    sampleInv->args, sBasePath);
+            if (infiles.size() > 0) {
+                pCurSample = showFile(infiles[sampleIndex]);
+            } else {
+                sampleInv = &siSamples[sampleIndex];
+                pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
+                                                     sampleInv->args,
+                                                     sBasePath);
+            }
             break;
         } catch (unsupported_ttype& e) {
             (void)e; // To quiet unused variable warnings from some compilers.
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
-            sampleInv = &siSamples[sampleIndex];
         } catch (std::exception& e) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                    sampleInv->title,
+                    infiles.size() > 0 ? "Viewing File" : sampleInv->title,
                     e.what(), NULL);
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
-            sampleInv = &siSamples[sampleIndex];
         }
     }
     prepared = true;
-    setAppTitle(pCurSample->customizeTitle(sampleInv->title));
+    setAppTitle(pCurSample->customizeTitle(infiles.size() > 0 ? "Viewing File"
+                                                          : sampleInv->title));
 }
 
 
@@ -218,6 +228,38 @@ void
 VulkanLoadTests::onFPSUpdate()
 {
     VulkanAppSDL::onFPSUpdate();
+}
+
+VulkanLoadTestSample*
+VulkanLoadTests::showFile(std::string& filename)
+{
+    KTX_error_code ktxresult;
+    ktxTexture* kTexture;
+    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
+                                        KTX_TEXTURE_CREATE_NO_FLAGS,
+                                        &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << getAssetPath()
+                << filename << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+
+    VulkanLoadTestSample::PFN_create createViewer;
+    VulkanLoadTestSample* pViewer;
+    if (kTexture->isArray) {
+        createViewer = TextureArray::create;
+    } else if (kTexture->isCubemap) {
+        createViewer = TextureCubemap::create;
+    } else if (kTexture->numLevels > 1) {
+        createViewer = TextureMipmap::create;
+    } else {
+        createViewer = Texture::create;
+    }
+    ktxTexture_Destroy(kTexture);
+    pViewer = createViewer(vkctx, w_width, w_height, filename.c_str(), "");
+    return pViewer;
 }
 
 /* ------------------------------------------------------------------------ */

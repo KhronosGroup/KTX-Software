@@ -40,6 +40,38 @@
 #define TEST_BASIS_COMPRESSION 1
 #endif
 
+LoadTestSample*
+GLLoadTests::showFile(std::string& filename)
+{
+    KTX_error_code ktxresult;
+    ktxTexture* kTexture;
+    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
+                                        KTX_TEXTURE_CREATE_NO_FLAGS,
+                                        &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << getAssetPath()
+                << filename << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+
+    LoadTestSample::PFN_create createViewer;
+    LoadTestSample* pViewer;
+    if (kTexture->isArray) {
+        createViewer = TextureArray::create;
+    } else if (kTexture->isCubemap) {
+        createViewer = TextureCubemap::create;
+    } else if (kTexture->numLevels > 1) {
+        createViewer = DrawTexture::create;
+    } else {
+        createViewer = DrawTexture::create;
+    }
+    ktxTexture_Destroy(kTexture);
+    pViewer = createViewer(w_width, w_height, filename.c_str(), "");
+    return pViewer;
+}
+
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
       "testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2",

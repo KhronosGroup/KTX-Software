@@ -30,6 +30,8 @@
  * @copyright © 2015-2018, Mark Callow.
  */
 
+#include <string>
+#include <vector>
 #include <stdio.h>
 #include "AppBaseSDL.h"
 #if defined(EMSCRIPTEN)
@@ -66,7 +68,9 @@ main(int argc, char* argv[])
       return 1;
   }
 
-  if (!theApp->initialize(argc, argv))
+  AppBaseSDL::Args args(argv, argv+argc);
+
+  if (!theApp->initialize(args))
     return 1;
 
   // Catches events before they are added to the event queue.

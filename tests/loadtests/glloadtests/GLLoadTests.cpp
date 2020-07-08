@@ -29,6 +29,8 @@
  */
 
 #include <exception>
+#include <sstream>
+#include <ktx.h>
 
 #include "GLLoadTests.h"
 #include "ltexceptions.h"
@@ -53,14 +55,20 @@ GLLoadTests::~GLLoadTests()
 }
 
 bool
-GLLoadTests::initialize(int argc, char* argv[])
+GLLoadTests::initialize(Args& args)
 {
-    if (!GLAppSDL::initialize(argc, argv))
+    if (!GLAppSDL::initialize(args))
         return false;
 
+    for (auto it = args.begin() + 1; it != args.end(); it++) {
+        infiles.push_back(*it);
+    }
+    if (infiles.size() > 0) {
+        sampleIndex.setNumSamples((uint32_t)infiles.size());
+    }
     // Launch the first sample.
     invokeSample(Direction::eForward);
-    return AppBaseSDL::initialize(argc, argv);
+    return AppBaseSDL::initialize(args);
 }
 
 
@@ -194,30 +202,32 @@ GLLoadTests::invokeSample(Direction dir)
         // problems from this by indicating there is no current sample.
         pCurSample = nullptr;
     }
-    sampleInv = &siSamples[sampleIndex];
 
     for (;;) {
         try {
-            pCurSample = sampleInv->createSample(w_width, w_height,
-                                                 sampleInv->args, sBasePath);
+            if (infiles.size() > 0) {
+                pCurSample = showFile(infiles[sampleIndex]);
+            } else {
+                sampleInv = &siSamples[sampleIndex];
+                pCurSample = sampleInv->createSample(w_width, w_height,
+                                                     sampleInv->args,
+                                                     sBasePath);
+            }
             break;
         } catch (unsupported_ctype& e) {
             (void)e; // To quiet unused variable warnings from some compilers.
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
-            sampleInv = &siSamples[sampleIndex];
         } catch (std::exception& e) {
             printf("**** %s\n", e.what());
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                    sampleInv->title,
+                    infiles.size() > 0 ? "Viewing File" : sampleInv->title,
                     e.what(), NULL);
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
-            sampleInv = &siSamples[sampleIndex];
         }
     }
-    setAppTitle(sampleInv->title);
+    setAppTitle(infiles.size() > 0 ? "Viewing File" : sampleInv->title);
     pCurSample->resize(w_width, w_height);
 }
-
 
 void
 GLLoadTests::onFPSUpdate()

@@ -54,7 +54,7 @@ class GLAppSDL : public AppBaseSDL {
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
-    virtual bool initialize(int argc, char* argv[]);
+    virtual bool initialize(Args& args);
     virtual void onFPSUpdate();
     virtual void resizeWindow();
     virtual void windowResized();

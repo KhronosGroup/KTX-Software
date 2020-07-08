@@ -82,22 +82,17 @@ VulkanAppSDL::~VulkanAppSDL()
 
 
 bool
-VulkanAppSDL::initialize(int argc, char* argv[])
+VulkanAppSDL::initialize(Args& args)
 {
-    char** argv2 = new char*[argc];
-    int argc2 = argc;
-
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--validate") == 0) {
+    for (int i = 1; i < args.size(); i++) {
+        if (args[i].compare("--validate") == 0) {
             validate = true;
-            argc2--;
-        } else {
-            argv2[i] = argv[i];
+            args.erase(args.begin() + i);
+            break;
         }
     }
-    if (!AppBaseSDL::initialize(argc2, argv2))
+    if (!AppBaseSDL::initialize(args))
         return false;
-    delete[] argv2;
 
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
