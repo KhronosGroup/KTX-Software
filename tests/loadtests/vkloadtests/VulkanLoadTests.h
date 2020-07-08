@@ -36,7 +36,7 @@ class VulkanLoadTests : public VulkanAppSDL {
     } sampleInvocation;
     
     VulkanLoadTests(const sampleInvocation samples[],
-                const int numSamples,
+                const uint32_t numSamples,
                 const char* const name);
     virtual ~VulkanLoadTests();
     virtual int doEvent(SDL_Event* event);
@@ -77,9 +77,11 @@ class VulkanLoadTests : public VulkanAppSDL {
         operator int32_t() {
             return index;
         }
-        void setNumSamples(int32_t ns) { numSamples = ns; }
+        uint32_t getNumSamples() { return numSamples; }
+        void setNumSamples(uint32_t ns) { numSamples = ns; }
+
       protected:
-        int32_t numSamples;
+        uint32_t numSamples;
         int32_t index;
     } sampleIndex;
 

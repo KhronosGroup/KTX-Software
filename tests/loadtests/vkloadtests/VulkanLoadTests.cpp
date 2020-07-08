@@ -48,7 +48,7 @@
 #define LT_VK_VERSION VK_MAKE_VERSION(1, 0, 0)
 
 VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
-                                 const int numSamples,
+                                 const uint32_t numSamples,
                                  const char* const name)
                   : siSamples(samples), sampleIndex(numSamples),
                     VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true)
@@ -197,10 +197,14 @@ VulkanLoadTests::invokeSample(Direction dir)
         pCurSample = nullptr;
     }
 
+    uint32_t unsupportedTypeExceptions = 0;
+    std::string fileTitle;
     for (;;) {
         try {
             if (infiles.size() > 0) {
                 pCurSample = showFile(infiles[sampleIndex]);
+                fileTitle = "Viewing file ";
+                fileTitle += infiles[sampleIndex];
             } else {
                 sampleInv = &siSamples[sampleIndex];
                 pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
@@ -208,18 +212,30 @@ VulkanLoadTests::invokeSample(Direction dir)
                                                      sBasePath);
             }
             break;
+            unsupportedTypeExceptions = 0;
         } catch (unsupported_ttype& e) {
             (void)e; // To quiet unused variable warnings from some compilers.
-            dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            unsupportedTypeExceptions++;
+            if (unsupportedTypeExceptions == sampleIndex.getNumSamples()) {
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                    infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
+                    "None of the specified samples or files use texture types "
+                    "supported on this platform.",
+                    NULL);
+                exit(0);
+            } else {
+                dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            }
         } catch (std::exception& e) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                    infiles.size() > 0 ? "Viewing File" : sampleInv->title,
+                    infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
                     e.what(), NULL);
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
         }
     }
     prepared = true;
-    setAppTitle(pCurSample->customizeTitle(infiles.size() > 0 ? "Viewing File"
+    setAppTitle(pCurSample->customizeTitle(infiles.size() > 0 ?
+                                                            fileTitle.c_str()
                                                           : sampleInv->title));
 }
 
@@ -275,7 +291,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { Texture::create,
       "testimages/color_grid_uastc_zstd.ktx2",
-      "UASTC+zstd Compressed KTX2 RGB non-mipmapped Transcoded"
+      "UASTC+zstd Compressed KTX2 RGB non-mipmapped"
     },
     { Texture::create,
       "testimages/color_grid_zstd.ktx2",
@@ -283,15 +299,15 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { Texture::create,
       "testimages/color_grid_uastc.ktx2",
-      "UASTC Compressed KTX2 RGB non-mipmapped Transcoded"
+      "UASTC Compressed KTX2 RGB non-mipmapped"
     },
     { Texture::create,
       "testimages/color_grid_basis.ktx2",
-      "ETC1S+BasisLZ Compressed KTX2 RGB non-mipmapped Transcoded"
+      "ETC1S+BasisLZ Compressed KTX2 RGB non-mipmapped"
     },
     { Texture::create,
       "testimages/kodim17_basis.ktx2",
-      "ETC1S+BasisLZ Compressed KTX2 RGB non-mipmapped Transcoded"
+      "ETC1S+BasisLZ Compressed KTX2 RGB non-mipmapped"
     },
     { Texture::create,
         "--qcolor 0.0,0.0,0.0 testimages/pattern_02_bc2.ktx2",
@@ -299,19 +315,19 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { TextureMipmap::create,
       "testimages/ktx_document_basis.ktx2",
-      "ETC1S+BasisLZ  compressed RGBA8 + Mipmap Transcoded"
+      "ETC1S+BasisLZ  compressed RGBA8 + Mipmap"
     },
     { TextureMipmap::create,
       "testimages/rgba-mipmap-reference-basis.ktx2",
-      "ETC1S+BasisLZ Compressed RGBA8 + Mipmap Transcoded"
+      "ETC1S+BasisLZ Compressed RGBA8 + Mipmap"
     },
     { TextureCubemap::create,
       "testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
-      "UASTC+rdo+zstd Compressed Cube Map Transcoded"
+      "UASTC+rdo+zstd Compressed Cube Map"
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_basis_rd.ktx2",
-        "ETC1S+BasisLZ Compressed Cube Map Transcoded"
+        "ETC1S+BasisLZ Compressed Cube Map"
     },
     { Texture::create,
       "testimages/orient-down-metadata.ktx",
@@ -429,7 +445,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
 #endif
 };
 
-const int iNumSamples = sizeof(siSamples) / sizeof(VulkanLoadTests::sampleInvocation);
+const uint32_t uNumSamples = sizeof(siSamples) / sizeof(VulkanLoadTests::sampleInvocation);
 
-AppBaseSDL* theApp = new VulkanLoadTests(siSamples, iNumSamples,
+AppBaseSDL* theApp = new VulkanLoadTests(siSamples, uNumSamples,
                                      "KTX Loader Tests for Vulkan");

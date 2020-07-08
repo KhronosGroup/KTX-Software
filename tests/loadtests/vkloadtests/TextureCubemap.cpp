@@ -809,7 +809,7 @@ TextureCubemap::customizeTitle(const char* const title)
 {
     if (transcoded) {
         this->title = title;
-        this->title += " to ";
+        this->title += " Transcoded to ";
         this->title += vkFormatString((VkFormat)transcodedFormat);
         return this->title.c_str();
     }

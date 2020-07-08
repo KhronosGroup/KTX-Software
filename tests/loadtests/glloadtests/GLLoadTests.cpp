@@ -36,7 +36,7 @@
 #include "ltexceptions.h"
 
 GLLoadTests::GLLoadTests(const sampleInvocation samples[],
-                         const int numSamples,
+                         const uint32_t numSamples,
                          const char* const name,
                          const SDL_GLprofile profile,
                          const int majorVersion,
@@ -203,10 +203,14 @@ GLLoadTests::invokeSample(Direction dir)
         pCurSample = nullptr;
     }
 
+    uint32_t unsupportedTypeExceptions = 0;
+    std::string fileTitle;
     for (;;) {
         try {
             if (infiles.size() > 0) {
                 pCurSample = showFile(infiles[sampleIndex]);
+                fileTitle = "Viewing file ";
+                fileTitle += infiles[sampleIndex];
             } else {
                 sampleInv = &siSamples[sampleIndex];
                 pCurSample = sampleInv->createSample(w_width, w_height,
@@ -216,16 +220,26 @@ GLLoadTests::invokeSample(Direction dir)
             break;
         } catch (unsupported_ctype& e) {
             (void)e; // To quiet unused variable warnings from some compilers.
-            dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            unsupportedTypeExceptions++;
+            if (unsupportedTypeExceptions == sampleIndex.getNumSamples()) {
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                    infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
+                    "None of the specified samples or files use texture types "
+                    "supported on this platform.",
+                    NULL);
+                exit(0);
+            } else {
+                dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            }
         } catch (std::exception& e) {
             printf("**** %s\n", e.what());
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                    infiles.size() > 0 ? "Viewing File" : sampleInv->title,
+                    infiles.size() > 0 ? fileTitle.c_str()  : sampleInv->title,
                     e.what(), NULL);
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
         }
     }
-    setAppTitle(infiles.size() > 0 ? "Viewing File" : sampleInv->title);
+    setAppTitle(infiles.size() > 0 ? fileTitle.c_str()  : sampleInv->title);
     pCurSample->resize(w_width, w_height);
 }
 
