@@ -35,7 +35,7 @@
 #include <sstream>
 
 bool
-AppBaseSDL::initialize(int argc, char* argv[])
+AppBaseSDL::initialize(Args& args)
 {
     const char* basePath = SDL_GetBasePath();
     if (basePath == NULL)

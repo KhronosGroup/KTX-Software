@@ -25,9 +25,36 @@
  * using the DrawTexture and TexturedCube samples.
  */
 
+#include <sstream>
+#include <ktx.h>
+
 #include "GLLoadTests.h"
 #include "DrawTexture.h"
 #include "TexturedCube.h"
+
+LoadTestSample*
+GLLoadTests::showFile(std::string& filename)
+{
+    KTX_error_code ktxresult;
+    ktxTexture* kTexture;
+    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
+                                        KTX_TEXTURE_CREATE_NO_FLAGS,
+                                        &kTexture);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << getAssetPath()
+                << filename << "\" failed: " << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
+
+    LoadTestSample::PFN_create createViewer;
+    LoadTestSample* pViewer;
+    createViewer = DrawTexture::create;
+    ktxTexture_Destroy(kTexture);
+    pViewer = createViewer(w_width, w_height, filename.c_str(), "");
+    return pViewer;
+}
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,

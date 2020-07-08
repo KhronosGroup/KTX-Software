@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <vector>
 
 #include "GLAppSDL.h"
 #include "LoadTestSample.h"
@@ -47,7 +48,7 @@ class GLLoadTests : public GLAppSDL {
     } sampleInvocation;
     
     GLLoadTests(const sampleInvocation samples[],
-                const int numSamples,
+                const uint32_t numSamples,
                 const char* const name,
                 const SDL_GLprofile profile,
                 const int majorVersion,
@@ -57,7 +58,7 @@ class GLLoadTests : public GLAppSDL {
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
     //virtual void getOverlayText(TextOverlay* textOverlay, float yOffset);
-    virtual bool initialize(int argc, char* argv[]);
+    virtual bool initialize(Args& args);
     virtual void onFPSUpdate();
     virtual void windowResized();
 
@@ -67,6 +68,7 @@ class GLLoadTests : public GLAppSDL {
         eBack
     };
     void invokeSample(Direction dir);
+    LoadTestSample* showFile(std::string& filename);
     LoadTestSample* pCurSample;
 
     bool quit = false;
@@ -74,7 +76,7 @@ class GLLoadTests : public GLAppSDL {
     const sampleInvocation* const siSamples;
     class sampleIndex {
       public:
-        sampleIndex(const int32_t numSamples) : numSamples(numSamples) {
+        sampleIndex(const uint32_t numSamples) : numSamples(numSamples) {
             index = 0;
         }
         sampleIndex& operator++() {
@@ -90,10 +92,14 @@ class GLLoadTests : public GLAppSDL {
         operator int32_t() {
             return index;
         }
+        uint32_t getNumSamples() { return numSamples; }
+        void setNumSamples(uint32_t ns) { numSamples = ns; }
       protected:
-        const int32_t numSamples;
+        uint32_t numSamples;
         int32_t index;
     } sampleIndex;
+
+    std::vector<std::string> infiles;
     
     struct {
         int32_t x;

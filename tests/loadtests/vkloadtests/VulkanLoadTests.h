@@ -36,14 +36,14 @@ class VulkanLoadTests : public VulkanAppSDL {
     } sampleInvocation;
     
     VulkanLoadTests(const sampleInvocation samples[],
-                const int numSamples,
+                const uint32_t numSamples,
                 const char* const name);
     virtual ~VulkanLoadTests();
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
     virtual void getOverlayText(VulkanTextOverlay * textOverlay, float yOffset);
-    virtual bool initialize(int argc, char* argv[]);
+    virtual bool initialize(Args& args);
     virtual void onFPSUpdate();
     virtual void windowResized();
 
@@ -53,6 +53,7 @@ class VulkanLoadTests : public VulkanAppSDL {
         eBack
     };
     void invokeSample(Direction dir);
+    VulkanLoadTestSample* showFile(std::string& filename);
     VulkanLoadTestSample* pCurSample;
 
     bool quit = false;
@@ -76,10 +77,15 @@ class VulkanLoadTests : public VulkanAppSDL {
         operator int32_t() {
             return index;
         }
+        uint32_t getNumSamples() { return numSamples; }
+        void setNumSamples(uint32_t ns) { numSamples = ns; }
+
       protected:
-        const int32_t numSamples;
+        uint32_t numSamples;
         int32_t index;
     } sampleIndex;
+
+    std::vector<std::string> infiles;
     
     struct {
         int32_t x;

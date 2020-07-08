@@ -29,12 +29,14 @@
  */
 
 #include <exception>
+#include <sstream>
+#include <ktx.h>
 
 #include "GLLoadTests.h"
 #include "ltexceptions.h"
 
 GLLoadTests::GLLoadTests(const sampleInvocation samples[],
-                         const int numSamples,
+                         const uint32_t numSamples,
                          const char* const name,
                          const SDL_GLprofile profile,
                          const int majorVersion,
@@ -53,14 +55,20 @@ GLLoadTests::~GLLoadTests()
 }
 
 bool
-GLLoadTests::initialize(int argc, char* argv[])
+GLLoadTests::initialize(Args& args)
 {
-    if (!GLAppSDL::initialize(argc, argv))
+    if (!GLAppSDL::initialize(args))
         return false;
 
+    for (auto it = args.begin() + 1; it != args.end(); it++) {
+        infiles.push_back(*it);
+    }
+    if (infiles.size() > 0) {
+        sampleIndex.setNumSamples((uint32_t)infiles.size());
+    }
     // Launch the first sample.
     invokeSample(Direction::eForward);
-    return AppBaseSDL::initialize(argc, argv);
+    return AppBaseSDL::initialize(args);
 }
 
 
@@ -194,30 +202,46 @@ GLLoadTests::invokeSample(Direction dir)
         // problems from this by indicating there is no current sample.
         pCurSample = nullptr;
     }
-    sampleInv = &siSamples[sampleIndex];
 
+    uint32_t unsupportedTypeExceptions = 0;
+    std::string fileTitle;
     for (;;) {
         try {
-            pCurSample = sampleInv->createSample(w_width, w_height,
-                                                 sampleInv->args, sBasePath);
+            if (infiles.size() > 0) {
+                pCurSample = showFile(infiles[sampleIndex]);
+                fileTitle = "Viewing file ";
+                fileTitle += infiles[sampleIndex];
+            } else {
+                sampleInv = &siSamples[sampleIndex];
+                pCurSample = sampleInv->createSample(w_width, w_height,
+                                                     sampleInv->args,
+                                                     sBasePath);
+            }
             break;
         } catch (unsupported_ctype& e) {
             (void)e; // To quiet unused variable warnings from some compilers.
-            dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
-            sampleInv = &siSamples[sampleIndex];
+            unsupportedTypeExceptions++;
+            if (unsupportedTypeExceptions == sampleIndex.getNumSamples()) {
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                    infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
+                    "None of the specified samples or files use texture types "
+                    "supported on this platform.",
+                    NULL);
+                exit(0);
+            } else {
+                dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            }
         } catch (std::exception& e) {
             printf("**** %s\n", e.what());
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                    sampleInv->title,
+                    infiles.size() > 0 ? fileTitle.c_str()  : sampleInv->title,
                     e.what(), NULL);
             dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
-            sampleInv = &siSamples[sampleIndex];
         }
     }
-    setAppTitle(sampleInv->title);
+    setAppTitle(infiles.size() > 0 ? fileTitle.c_str()  : sampleInv->title);
     pCurSample->resize(w_width, w_height);
 }
-
 
 void
 GLLoadTests::onFPSUpdate()

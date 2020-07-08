@@ -53,9 +53,9 @@ void setWindowsIcon(SDL_Window *sdlWindow);
 #endif
 
 bool
-GLAppSDL::initialize(int argc, char* argv[])
+GLAppSDL::initialize(Args& args)
 {
-    if (!AppBaseSDL::initialize(argc, argv))
+    if (!AppBaseSDL::initialize(args))
         return false;
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);

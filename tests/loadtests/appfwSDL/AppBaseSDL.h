@@ -35,12 +35,14 @@
 
 #include <SDL2/SDL.h>
 #include <string>
+#include <vector>
 
 class AppBaseSDL {
   public:
     typedef Uint64 ticks_t;
+    typedef std::vector<std::string> Args;
     AppBaseSDL(const char* const name) : szName(name), appTitle(name) { }
-    virtual bool initialize(int argc, char* argv[]);
+    virtual bool initialize(Args& args);
     virtual void finalize();
     // Ticks in milliseconds since start.
     virtual void drawFrame(uint32_t msTicks) { }
