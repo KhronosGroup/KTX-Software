@@ -87,7 +87,7 @@ class myjpgdstream : public jpeg_decoder_file_stream {
 
 // All JPEG files are sRGB.
 Image*
-Image::CreateFromJPG(FILE* src, bool)
+Image::CreateFromJPG(FILE* src, bool, bool)
 {
     myjpgdstream stream(src);
     uint32_t componentCount;

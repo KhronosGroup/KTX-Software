@@ -95,12 +95,12 @@ void skipNonData(FILE *src)
     skipSpaces(src);
 }
 
-static Image* createFromPPM(FILE*, bool transformOETF);
-static Image* createFromPGM(FILE*, bool transformOETF);
-static Image* createFromPAM(FILE*, bool transformOETF);
+static Image* createFromPPM(FILE*, bool transformOETF, bool rescaleTo8Bits);
+static Image* createFromPGM(FILE*, bool transformOETF, bool rescaleTo8Bits);
+static Image* createFromPAM(FILE*, bool transformOETF, bool rescaleTo8Bits);
 static void parseHeader(FILE* src, uint32_t& width, uint32_t& height,
                         int32_t& maxval);
-static void readImage(FILE* src, Image& dst);
+static void readImage(FILE* src, Image& image, int32_t maxval);
 
 //!
 //! @internal
@@ -122,7 +122,7 @@ static void readImage(FILE* src, Image& dst);
 //! @author Mark Callow
 //!
 Image*
-Image::CreateFromNPBM(FILE* src, bool transformOETF)
+Image::CreateFromNPBM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     char line[255];
     int numvals;
@@ -132,11 +132,13 @@ Image::CreateFromNPBM(FILE* src, bool transformOETF)
     numvals = fscanf(src, "%3s", line);
     if (numvals != 0) {
         if (strcmp(line, "P6") == 0) {
-            return createFromPPM(src, transformOETF);
+            return createFromPPM(src, transformOETF, rescaleTo8Bits);
         } else if (strcmp(line, "P5") == 0) {
-            return createFromPGM(src, transformOETF);
+            return createFromPGM(src, transformOETF, rescaleTo8Bits);
         } else if (strcmp(line, "P7") == 0) {
-            return createFromPAM(src, transformOETF);
+            return createFromPAM(src, transformOETF, rescaleTo8Bits);
+        } else if (strcmp(line, "P3") == 0) {
+            throw std::runtime_error("Plain PPM format is not supported.");
         }
     }
     throw different_format();
@@ -170,7 +172,7 @@ Image::CreateFromNPBM(FILE* src, bool transformOETF)
 //! @author Mark Callow
 //!
 Image*
-createFromPPM(FILE* src, bool transformOETF)
+createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     int32_t maxval;
     uint32_t numvals, width, height;
@@ -182,7 +184,7 @@ createFromPPM(FILE* src, bool transformOETF)
     //fprintf(stderr, "maxval is %d\n",maxval);
 
     // PPM is 3 components
-    if (maxval > 255)
+    if (maxval > 255 && !rescaleTo8Bits)
         image = new rgb16image(width, height);
     else
         image = new rgb8image(width, height);
@@ -192,7 +194,7 @@ createFromPPM(FILE* src, bool transformOETF)
     while(c != '\n')
         numvals = fscanf(src, "%c", &c);
 
-    readImage(src, *image);
+    readImage(src, *image, maxval);
     if (transformOETF) {
         if (maxval <= 255) {
             image->transformOETF(decode_bt709, encode_sRGB);
@@ -233,7 +235,7 @@ createFromPPM(FILE* src, bool transformOETF)
 //! @author Mark Callow
 //!
 Image*
-createFromPGM(FILE* src, bool transformOETF)
+createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     int maxval;
     int numvals;
@@ -245,7 +247,7 @@ createFromPGM(FILE* src, bool transformOETF)
     parseHeader(src, width, height, maxval);
 
     // PGM is 1 component.
-    if (maxval>255)
+    if (maxval > 255 && !rescaleTo8Bits)
         image = new r16image(width, height);
     else
         image = new r8image(width, height);
@@ -254,7 +256,7 @@ createFromPGM(FILE* src, bool transformOETF)
     char ch=0;
     while(ch!='\n') numvals = fscanf(src,"%c",&ch);
 
-    readImage(src, *image);
+    readImage(src, *image, maxval);
     if (transformOETF) {
          if (maxval <= 255) {
             image->transformOETF(decode_bt709, encode_sRGB);
@@ -299,7 +301,7 @@ createFromPGM(FILE* src, bool transformOETF)
 //! @author Mark Callow
 //!
 Image*
-createFromPAM(FILE* src, bool transformOETF)
+createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     char line[255];
 #define MAX_TUPLETYPE_SIZE 20
@@ -348,7 +350,7 @@ createFromPAM(FILE* src, bool transformOETF)
     if (maxval <= 0 || maxval >= (1<<16)) {
         throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
     }
-    if (maxval > 255) {
+    if (maxval > 255 && !rescaleTo8Bits) {
         switch (depth) {
           case 1:
             image = new r16image(width, height);
@@ -380,7 +382,7 @@ createFromPAM(FILE* src, bool transformOETF)
         }
     }
 
-    readImage(src, *image);
+    readImage(src, *image, maxval);
     if (transformOETF) {
         if (maxval <= 255) {
             image->transformOETF(decode_bt709, encode_sRGB);
@@ -412,16 +414,65 @@ tupleSize(const char* tupleType)
         return -1;
 }
 
+static void
+rescale8(uint8_t* dst, uint16_t* src, uint32_t maxval, uint32_t pixelCount)
+{
+    float multiplier = 255.0f / maxval;
+    for (uint32_t i = 0; i < pixelCount; i++) {
+        *dst++ = roundf(*src++ * multiplier);
+    }
+}
+
+/*
+ * SwapEndian16: Swaps endianness in an array of 16-bit values
+ */
+static void
+swapEndian16(uint16_t* pData16, size_t count)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        uint16_t x = *pData16;
+        *pData16++ = (x << 8) | (x >> 8);
+    }
+}
+
+//#define IS_LITTLE_ENDIAN (((union foo { uint16_t x; uint8_t c; }){1}).c)
+
+union foo { uint16_t x; uint8_t c; } bar{1};
+#define IS_LITTLE_ENDIAN (bar.c)
 
 void
-readImage(FILE* src, Image& image)
+readImage(FILE* src, Image& image, int32_t maxval)
 {
-    if (fread(image, image.getByteCount(), 1, src) != 1)
+    // Image have either 2 bytes/pixel if maxval > 255 or 1 byte. If 2, MSB is
+    // first.
+    char* buffer16 = 0;
+    void* pBuffer;
+    uint32_t nitems;
+
+    if (maxval > 255 && image.getComponentSize() == 1) {
+        // Need to rescale so read the image into a temporary buffer.
+        nitems = 2;
+        char* buffer16 = new char[image.getByteCount()*nitems];
+        pBuffer = buffer16;
+    } else {
+        pBuffer = image;
+        nitems = 1;
+    }
+    if (fread(image, image.getByteCount(), nitems, src) != 1)
     {
         std::stringstream message;
         message << "unexpected end of file. Could not read "
                 << image.getByteCount() << " bytes of pixel data.";
         throw std::runtime_error(message.str());
+    }
+    if (IS_LITTLE_ENDIAN && maxval > 255) {
+        swapEndian16((uint16_t*)pBuffer, image.getPixelCount());
+    }
+
+    if (buffer16 != nullptr) {
+        rescale8(image, (uint16_t*)pBuffer, maxval, image.getPixelCount());
+        delete[] buffer16;
     }
     image.setOetf(Image::eOETF::bt709);
 }

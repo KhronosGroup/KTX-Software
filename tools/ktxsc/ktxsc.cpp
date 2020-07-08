@@ -435,7 +435,8 @@ ktxSupercompressor::processOption(argparser& parser, int opt)
             }
             // dot < slash means there's a dot but it is not prefixing
             // a file extension.
-            if (dot == _tstring::npos || dot < slash) {
+            if (dot == _tstring::npos
+                || (slash != _tstring::npos && dot < slash)) {
                 options.outfile += _T(".ktx2");
             }
         }

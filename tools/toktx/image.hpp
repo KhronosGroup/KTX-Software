@@ -269,14 +269,19 @@ class Image {
     eOETF getOetf() const { return oetf; }
     void setOetf(eOETF oetf) { this->oetf = oetf; }
 
-    typedef Image* (*CreateFunction)(FILE* f, bool oetfTransform);
+    typedef Image* (*CreateFunction)(FILE* f, bool transformOETF,
+                                     bool rescaleTo8Bitbool);
     static const std::vector<CreateFunction> CreateFunctions;
 
-    static Image* CreateFromNPBM(FILE*, bool transformOETF = true);
-    static Image* CreateFromJPG(FILE* f, bool transformOETF = true);
-    static Image* CreateFromPNG(FILE* f, bool transformOETF = true);
+    static Image* CreateFromNPBM(FILE*, bool transformOETF = true,
+                                 bool rescaleTo8Bitbool = false);
+    static Image* CreateFromJPG(FILE* f, bool transformOETF = true,
+                                 bool rescaleTo8Bitbool = false);
+    static Image* CreateFromPNG(FILE* f, bool transformOETF = true,
+                                 bool rescaleTo8Bitbool = false);
     static Image* CreateFromFile(const _tstring& name,
-                                 bool transformOETF = true);
+                                 bool transformOETF = true,
+                                 bool rescaleTo8Bitbool = false);
 
     virtual operator uint8_t*() = 0;
 

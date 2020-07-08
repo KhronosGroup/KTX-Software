@@ -353,17 +353,17 @@ scApp::scApp(string& version, string& defaultVersion,
       { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'S' },
       { "normal_map", argparser::option::no_argument, NULL, 'n' },
       { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
-      { "no_endpoint_rdo", argparser::option::no_argument, NULL, 'o' },
-      { "no_selector_rdo", argparser::option::no_argument, NULL, 'p' },
-      { "uastc", argparser::option::optional_argument, NULL, 1001 },
-      { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1002 },
-      { "uastc_rdo_d", argparser::option::required_argument, NULL, 1003 },
+      { "no_endpoint_rdo", argparser::option::no_argument, NULL, 1001 },
+      { "no_selector_rdo", argparser::option::no_argument, NULL, 1002 },
+      { "uastc", argparser::option::optional_argument, NULL, 1003 },
+      { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1004 },
+      { "uastc_rdo_d", argparser::option::required_argument, NULL, 1005 },
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
   option_list.insert(option_list.begin(), my_option_list,
                      my_option_list + lastOptionIndex);
-  short_opts += "bz;Nt:c:q:e:E:u:S:nop";
+  short_opts += "bz;Nt:c:q:e:E:u:S:n";
 }
 
 void
@@ -437,10 +437,10 @@ scApp::processOption(argparser& parser, int opt)
       case 'n':
         options.bopts.normalMap = 1;
         break;
-      case 'o':
+      case 1001:
         options.bopts.noEndpointRDO = 1;
         break;
-      case 'p':
+      case 1002:
         options.bopts.noSelectorRDO = 1;
         break;
       case 'q':
@@ -462,7 +462,7 @@ scApp::processOption(argparser& parser, int opt)
         options.bopts.threadCount = strtoi(parser.optarg.c_str());
         capture = false;
         break;
-      case 1001:
+      case 1003:
         if (options.bcmp) {
              cerr << "Only one of --bcmp and --uastc can be specified."
                   << endl;
@@ -480,7 +480,7 @@ scApp::processOption(argparser& parser, int opt)
             hasArg = true;
         }
         break;
-      case 1002:
+      case 1004:
         options.bopts.uastcRDO = true;
         if (parser.optarg.size() > 0) {
             options.bopts.uastcRDOQualityScalar =
@@ -488,7 +488,7 @@ scApp::processOption(argparser& parser, int opt)
             hasArg = true;
         }
         break;
-      case 1003:
+      case 1005:
         options.bopts.uastcRDODictSize = strtoi(parser.optarg.c_str());
         hasArg = true;
         break;
