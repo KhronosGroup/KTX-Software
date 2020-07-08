@@ -117,10 +117,12 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     supported formats using tools such as ImageMagick and XnView.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
-    based on the input file. .jpg files always useBT709/sRGB primaries and the
-    sRGB OETF. Netpbm files always use BT.709/sRGB primaries and the
-    the BT.709 OETF. @b toktx tranforms the image to the sRGB OETF, sets the
-    transfer function to sRGB and creates sRGB textures for these inputs.
+    based on the input file unless @b --linear or @b --srgb is specified. For .jpg
+    files @b toktx always sets BT709/sRGB primaries and the sRGB OETF in the
+    output file and creates sRGB format textures. Netpbm files always use
+    BT.709/sRGB primaries and the BT.709 OETF. @b toktx tranforms these
+    images to the sRGB OETF, sets BT709/sRGB primaries and the sRGB OETF in
+    the output file and creates sRGB format textures.
 
     For .png files the OETF is set as follows:
 
@@ -131,13 +133,16 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         <dd>primaries are set to BT.709 and OETF to sRGB. gAMA and cHRM chunks
         are ignored.</dd>
     <dt>iCCP chunk present:</dt>
-        <dd>General ICC profiles are not supported by toktx or the KTX2 format.
-        sRGB chunk must not be present.</dd>
+        <dd>General ICC profiles are not yet supported by toktx or the KTX2 format.
+        In future these images may be transformed to linear or sRGB OETF as
+        appropriate for the profile. sRGB chunk must not be present.</dd>
     <dt>gAMA and/or cHRM chunks present without sRGB or iCCP:</dt>
         <dd>If gAMA is 45455 the OETF is set to sRGB, if 100000 it is set to
-        linear. Other gAMA values are unsupported. cHRM is currently
-        unsupported. We should attempt to map the primary values to one of
-        the standard sets listed in the Khronos Data Format specification.</dd>
+        linear. Other gAMA values are currently unsupported. cHRM is currently
+        unsupported. In future images with other gAMA values may be
+        transformed to linear or sRGB OETF and the cHRM primary values
+        mapped to one of the standard sets listed in the Khronos Data Format
+        Specification.</dd>
     </dl>
 
     The following options are always available:
@@ -205,6 +210,9 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     <dt>--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
+    <dt>--nowarn</dt>
+    <dd>Silence warnings which are issued when certain transformations are
+        performed on input images.</dd>
     <dt>--upper_left_maps_to_s0t0</dt>
     <dd>Map the logical upper left corner of the image to s0,t0.
         Although opposite to the OpenGL convention, this is the DEFAULT
@@ -221,18 +229,18 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         writes a KTXorientation value of S=r,T=u into the output file
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.
-        This option is ignored with @b --cubemap.</dd>
+        This option is ignored with @b --cubemap. </dd>
     <dt>--linear</dt>
-    <dd>Force the created texture to have a linear transfer function. Use this
-        only when you know the file format information is wrong and the input
-        file uses a linear transfer function. If this is specified, the default
-        color transform of Netpbm images to sRGB color space will not be
-        performed.
+    <dd>Force the created texture to have a linear transfer function. If this is
+        specified, implicit or explicit color space information from the input file(s)
+        will be ignored and no color transformation will be performed. USE WITH
+        CAUTION preferably only when you know the file format information is
+        wrong.
     </dd>
     <dt>--srgb</dt>
-    <dd>Force the created texture to have an srgb transfer function. As with
-        @b --linear, use with caution. Like @b --linear, the default color
-        transform of Netpbm images will not be performed.</dd>
+    <dd>Force the created texture to have an srgb transfer function. Like
+        @b --linear, USE WITH CAUTION. As with @b --linear, no color
+        transformation will be performed.</dd>
     <dt>--resize &lt;width&gt;x&lt;height&gt;
     <dd>Resize images to @e width X @e height. This should not be used with
         @b --mipmap as it would resize all the images to the same size.
@@ -295,6 +303,8 @@ class toktxApp : public scApp {
     virtual int main(int argc, _TCHAR* argv[]);
     virtual void usage();
 
+    void warning(const char *pFmt, va_list args);
+
   protected:
     virtual bool processOption(argparser& parser, int opt);
     void processEnvOptions();
@@ -319,6 +329,7 @@ class toktxApp : public scApp {
         Image::eOETF oetf;
         int          useStdin;
         int          lower_left_maps_to_s0t0;
+        int          warn;
         struct mipgenOptions gmopts;
         unsigned int depth;
         unsigned int layers;
@@ -347,6 +358,7 @@ class toktxApp : public scApp {
             // As required by spec. Opposite of OpenGL {,ES}, same as
             // Vulkan, et al.
             lower_left_maps_to_s0t0 = 0;
+            warn = 1;
             scale = 1.0f;
             resize = 0;
             newGeom.width = newGeom.height = 0;
@@ -398,6 +410,7 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
         { "levels", argparser::option::required_argument, NULL, 'l' },
         { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
         { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
+        { "nowarn", argparser::option::no_argument, &options.warn, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
         { "linear", argparser::option::no_argument, (int*)&options.oetf, OETF_LINEAR },
@@ -413,6 +426,8 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
                        my_option_list + lastOptionIndex);
     short_opts += "f:F:w:d:a:l:r:s:";
 }
+
+toktxApp theApp;
 
 // I really HATE this duplication of text but I cannot find a simple way to
 // avoid it that works on all platforms (e.g running man toktx) even if I was
@@ -496,6 +511,8 @@ toktxApp::usage()
         "               created texture as it is felt to be more user-friendly.\n"
         "  --nometadata Do not write KTXorientation metadata into the output file.\n"
         "               Use of this option is not recommended.\n"
+        "  --nowarn     Silence warnings which are issued when certain transformations\n"
+        "               are performed on input images.\n"
         "  --upper_left_maps_to_s0t0\n"
         "               Map the logical upper left corner of the image to s0,t0.\n"
         "               Although opposite to the OpenGL convention, this is the DEFAULT\n"
@@ -514,13 +531,13 @@ toktxApp::usage()
         "               loader ignores the orientation value, the image will appear\n"
         "               upside down. This option is ignored with --cubemap.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
-        "               Use this only when you know the file format information is wrong\n"
-        "               and the input file uses a linear transfer function. If this is\n"
-        "               specified, the default transform of Netpbm images to sRGB color\n"
-        "               space will not be performed.\n"
+        "               If this is pecified, implicit or explicit color space information\n"
+        "               from the input file(s) will be ignored and no color transformation\n"
+        "               will be performed. USE WITH CAUTION preferably only when you know\n"
+        "               the file format information is wrong.\n"
         "  --srgb       Force the created texture to have an srgb transfer function.\n"
-        "               As with --linear, use with caution.  Like @b --linear, the\n"
-        "               default color transform of Netpbm images will not be performed.\n"
+        "               Like --linear, USE WITH CAUTION. As with @b --linear, no color\n"
+        "               transformation will be performed.\n"
         "  --resize <width>x<height>\n"
         "               Resize images to @e width X @e height. This should not be used\n"
         "               with @b--mipmap as it would resize all the images to the same\n"
@@ -556,9 +573,7 @@ imageCount(uint32_t levelCount, uint32_t layerCount,
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-    toktxApp toktx;
-
-    return toktx.main(argc, argv);
+    return theApp.main(argc, argv);
 }
 
 int
@@ -599,7 +614,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
         Image* image;
         try {
             image =
-              Image::CreateFromFile(infile, options.oetf == Image::eOETF::Unset);
+              Image::CreateFromFile(infile, options.oetf == Image::eOETF::Unset,
+                                    true); //options.bcmp == true);
         } catch (exception& e) {
             cerr << name << ": failed to create image from "
                       << infile << ". " << e.what() << endl;
@@ -1197,6 +1213,22 @@ toktxApp::processOption(argparser& parser, int opt)
         return scApp::processOption(parser, opt);
     }
     return true;
+}
+
+void toktxApp::warning(const char *pFmt, va_list args) {
+    if (options.warn) {
+        cerr << name << " warning: ";
+        vfprintf(stderr, pFmt, args);
+        cerr << endl;
+    }
+}
+
+void warning(const char *pFmt, ...) {
+        va_list args;
+        va_start(args, pFmt);
+
+        theApp.warning(pFmt, args);
+        va_end(args);
 }
 
 static ktx_uint32_t

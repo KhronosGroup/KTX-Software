@@ -36,8 +36,10 @@
 #include "image.hpp"
 #include "lodepng.h"
 
+void warning(const char *pFmt, ...);
+
 Image*
-Image::CreateFromPNG(FILE* src, bool)
+Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     // Unfortunately LoadPNG doesn't believe in stdio plus
     // the function we need only reads from memory. To avoid
@@ -84,21 +86,40 @@ Image::CreateFromPNG(FILE* src, bool)
     }
 
     lodepng::State state;
-    uint32_t componentCount, componentSize;
+    uint32_t componentCount, componentBits;
     uint32_t w, h;
     // Find out the color type so we can request that type when
     // decoding and avoid conversions. Oh for an option to decode
     // to file's colortype. What a palaver! Sigh!
     lodepng_inspect(&w, &h, &state, &png[0], png.size());
+    // Tell the decoder we want the same color type as the file
+    state.info_raw = state.info_png.color;
     switch (state.info_png.color.colortype) {
       case LCT_GREY:
         componentCount = 1;
+        // TODO: Create 4-bit color type and rescale 1- & 2-bpp to that.
+        rescaleTo8Bits = true;
         break;
       case LCT_RGB:
-        componentCount = 3;
+        if (state.info_png.color.key_defined) {
+            state.info_raw.colortype = LCT_RGBA;
+            componentCount = 4;
+        } else {
+            state.info_raw.colortype = LCT_RGB;
+            componentCount = 3;
+        }
         break;
       case LCT_PALETTE:
-        throw std::runtime_error("Paletted images not supported.");
+        if (state.info_png.color.key_defined) {
+            state.info_raw.colortype = LCT_RGBA;
+            componentCount = 4;
+        } else {
+            state.info_raw.colortype = LCT_RGB;
+            componentCount = 3;
+        }
+        state.info_raw.bitdepth = 8; // Palette values are 8 bit RGB
+        warning("Expanding paletted image to %s 8-bit",
+                state.info_raw.colortype == LCT_RGBA ? "RGBA" : "RGB");
         break;
       case LCT_GREY_ALPHA:
         componentCount = 2;
@@ -107,26 +128,32 @@ Image::CreateFromPNG(FILE* src, bool)
         componentCount = 4;
         break;
     }
-    componentSize = state.info_png.color.bitdepth / 8;
+    if (rescaleTo8Bits) {
+        state.info_raw.bitdepth = 8;
+        if (state.info_png.color.bitdepth != 8) {
+            warning("Rescaling %d-bit image to 8 bits.",
+                    state.info_png.color.bitdepth);
+        }
+        componentBits = 8;
+    } else {
+        componentBits = state.info_png.color.bitdepth;
+    }
 
-
-     // Tell the decoder we want the same color type as the file
-     uint8_t* imageData;
-     size_t imageByteCount;
-     state.info_raw = state.info_png.color;
-     uint32_t error = lodepng_decode(&imageData, &w, &h, &state,
-                                     png.data(), png.size());
-     if (imageData && !error) {
-         imageByteCount = lodepng_get_raw_size(w, h, &state.info_raw);
-     } else {
-         free(imageData);
-         std::stringstream message;
-         message << "PNG decoder error. " << lodepng_error_text(error);
-         throw std::runtime_error(message.str());
-     }
+    uint8_t* imageData;
+    size_t imageByteCount;
+    uint32_t error = lodepng_decode(&imageData, &w, &h, &state,
+                                   png.data(), png.size());
+    if (imageData && !error) {
+        imageByteCount = lodepng_get_raw_size(w, h, &state.info_raw);
+    } else {
+        free(imageData);
+        std::stringstream message;
+        message << "PNG decoder error. " << lodepng_error_text(error);
+        throw std::runtime_error(message.str());
+    }
 
     Image* image;
-    if (state.info_png.color.bitdepth == 16) {
+    if (componentBits == 16 ) {
         switch (componentCount) {
           case 1: {
             using Color = color<uint16_t, 1>;
@@ -168,6 +195,11 @@ Image::CreateFromPNG(FILE* src, bool)
         }
     }
 
+    if (!transformOETF) {
+        // User is overriding color space info from file.
+        return image;
+    }
+
     // state will have been updated with the rest of the file info.
 
     // Here is the priority of the color space info in PNG:
@@ -201,7 +233,7 @@ Image::CreateFromPNG(FILE* src, bool)
        image->setOetf(Image::eOETF::sRGB);
     } else {
        if (state.info_png.iccp_defined) {
-           //delete image;
+           delete image;
            throw std::runtime_error("PNG file has an ICC profile chunk. "
                                     "These are not supported");
        } else if (state.info_png.gama_defined) {
@@ -210,7 +242,7 @@ Image::CreateFromPNG(FILE* src, bool)
            else if (state.info_png.gama_gamma == 45455)
                image->setOetf(Image::eOETF::sRGB);
            else {
-               //delete image;
+               // Actual gamma is gAMA/100000 so 45455 is 1 / 2.2.
                std::stringstream message;
                message << "PNG image has gamma of "
                        << (float)100000 / state.info_png.gama_gamma
