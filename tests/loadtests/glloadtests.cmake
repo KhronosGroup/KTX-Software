@@ -162,14 +162,14 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 INSTALL_RPATH "@executable_path/../Frameworks"
             )
             add_custom_command( TARGET ${target} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
-                COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
+                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
+                COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
                 COMMENT "Copy libraries/frameworks to build destination"
             )
             install(TARGETS ktx
                 LIBRARY
                     DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks"
-                    COMPONENT VkLoadTestApp
+                    COMPONENT GlLoadTestApps
                 PUBLIC_HEADER
                     DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Headers"
             )
