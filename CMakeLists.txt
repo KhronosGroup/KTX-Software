@@ -176,27 +176,19 @@ if(EMSCRIPTEN)
     target_link_options( ktx PUBLIC
         $<IF:$<CONFIG:Debug>,-g4,-Oz>
     )
-if(MSVC)
+elseif(MSVC)
     target_compile_options(ktx PUBLIC
         $<IF:$<CONFIG:Debug>,/Gz,/O2>
     )
 else()
     target_compile_options(ktx PUBLIC
-        $<IF:$<CONFIG:Debug>,-O0,-O3>
+        $<IF:$<CONFIG:Debug>,-g -O0,-O3>
     )
     target_link_options( ktx PUBLIC
         $<IF:$<CONFIG:Debug>,-g,-O3>
     )
 endif()
 
-
-else()
-    # set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -g")
-    # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g")
-
-    # set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -flto")
-    # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
-endif()
 
 target_include_directories(
     ktx
