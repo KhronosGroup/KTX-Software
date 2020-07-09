@@ -61,7 +61,12 @@ GLLoadTests::showFile(std::string& filename)
     if (kTexture->isArray) {
         createViewer = TextureArray::create;
     } else if (kTexture->isCubemap) {
+#if !defined(__EMSCRIPTEN__)
         createViewer = TextureCubemap::create;
+#else
+        throw std::runtime_error("Emscripten viewer can't display cube maps"
+                                 " because there is no libassimp support.");
+#endif
     } else if (kTexture->numLevels > 1) {
         createViewer = DrawTexture::create;
     } else {
