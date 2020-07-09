@@ -430,6 +430,8 @@ if(EMSCRIPTEN)
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=LIBKTX"
+        "SHELL:-s EXTRA_EXPORTED_RUNTIME_METHODS=[\'GL\']"
+        "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
 
