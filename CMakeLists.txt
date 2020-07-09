@@ -143,7 +143,13 @@ set_xcode_code_sign(ktx)
 
 create_version_header(lib ktx)
 
-target_compile_definitions(ktx PRIVATE LIBKTX)
+target_compile_definitions(
+    ktx
+PUBLIC
+    "$<$<CONFIG:Debug>:_DEBUG;DEBUG>"
+PRIVATE
+    LIBKTX
+)
 
 # C/C++ Standard
 target_compile_features(ktx PUBLIC c_std_99 cxx_std_11)
@@ -176,27 +182,19 @@ if(EMSCRIPTEN)
     target_link_options( ktx PUBLIC
         $<IF:$<CONFIG:Debug>,-g4,-Oz>
     )
-if(MSVC)
+elseif(MSVC)
     target_compile_options(ktx PUBLIC
         $<IF:$<CONFIG:Debug>,/Gz,/O2>
     )
 else()
     target_compile_options(ktx PUBLIC
-        $<IF:$<CONFIG:Debug>,-O0,-O3>
+        $<IF:$<CONFIG:Debug>,-g -O0,-O3>
     )
     target_link_options( ktx PUBLIC
         $<IF:$<CONFIG:Debug>,-g,-O3>
     )
 endif()
 
-
-else()
-    # set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -g")
-    # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g")
-
-    # set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -flto")
-    # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto")
-endif()
 
 target_include_directories(
     ktx
@@ -215,8 +213,6 @@ if( LIB_TYPE STREQUAL STATIC )
     target_compile_definitions(ktx PUBLIC KHRONOS_STATIC)
 endif()
 
-
-target_compile_definitions(ktx PUBLIC "$<$<CONFIG:Debug>:_DEBUG;DEBUG>")
 
 # To reduce size, don't support transcoding to ancient formats.
 target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0)
@@ -249,6 +245,18 @@ if(WIN32)
         # The msvs generator automatically sets the needed VCLinker
         # option when a .def file is seen in sources.
         lib/internalexport.def
+    )
+elseif(EMSCRIPTEN)
+    target_compile_definitions(ktx PUBLIC
+        # To reduce size, don't support transcoding to formats not
+        # supported # by WebGL.
+        BASISD_SUPPORT_BC7=0
+        BASISD_SUPPORT_ATC=0
+        BASISD_SUPPORT_PVRTC2=0
+        BASISD_SUPPORT_ETC2_EAC_RG11=0
+        # Don't support higher quality mode to avoid 64k table.
+        BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0
+        KTX_OMIT_VULKAN=1
     )
 endif()
 
