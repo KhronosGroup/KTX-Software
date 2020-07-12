@@ -86,7 +86,7 @@ if(EMSCRIPTEN)
 elseif(MSVC)
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 else()
-    add_compile_options( $<IF:$<CONFIG:Debug>,"-g -O0",-O3> )
+    add_compile_options( $<IF:$<CONFIG:Debug>,$<"SHELL:-g -O0">,-O3> )
     add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
 endif()
 
