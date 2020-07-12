@@ -403,7 +403,8 @@ ktxHashList_Next(ktxHashListEntry* entry)
  * @param [in,out] pKvdLen      @p *pKvdLen is set to the number of bytes of
  *                              data in the returned data block.
  * @param [in,out] ppKvd        @p *ppKvd is set to the point to the block of
- *                              memory containing the serialized data.
+ *                              memory containing the serialized data or
+ *                              NULL. if the hash list is empty.
  *
  * @return KTX_SUCCESS or one of the following error codes.
  *
@@ -430,27 +431,33 @@ ktxHashList_Serialize(ktxHashList* pHead,
             keyValueLen = _KTX_PAD4(keyValueLen);
             bytesOfKeyValueData += keyValueLen;
         }
-        sd = malloc(bytesOfKeyValueData);
-        if (!sd)
-            return KTX_OUT_OF_MEMORY;
 
-        *pKvdLen = bytesOfKeyValueData;
-        *ppKvd = sd;
+        if (bytesOfKeyValueData == 0) {
+            *pKvdLen = 0;
+            *ppKvd = NULL;
+        } else {
+            sd = malloc(bytesOfKeyValueData);
+            if (!sd)
+                return KTX_OUT_OF_MEMORY;
 
-        for (kv = *pHead; kv != NULL; kv = kv->hh.next) {
-            int padLen;
+            *pKvdLen = bytesOfKeyValueData;
+            *ppKvd = sd;
 
-            keyValueLen = kv->keyLen + kv->valueLen;
-            *(ktx_uint32_t*)sd = keyValueLen;
-            sd += sizeof(ktx_uint32_t);
-            memcpy(sd, kv->key, kv->keyLen);
-            sd += kv->keyLen;
-            if (kv->valueLen > 0)
-                memcpy(sd, kv->value, kv->valueLen);
-            sd += kv->valueLen;
-            padLen = _KTX_PAD4_LEN(keyValueLen);
-            memcpy(sd, padding, padLen);
-            sd += padLen;
+            for (kv = *pHead; kv != NULL; kv = kv->hh.next) {
+                int padLen;
+
+                keyValueLen = kv->keyLen + kv->valueLen;
+                *(ktx_uint32_t*)sd = keyValueLen;
+                sd += sizeof(ktx_uint32_t);
+                memcpy(sd, kv->key, kv->keyLen);
+                sd += kv->keyLen;
+                if (kv->valueLen > 0)
+                    memcpy(sd, kv->value, kv->valueLen);
+                sd += kv->valueLen;
+                padLen = _KTX_PAD4_LEN(keyValueLen);
+                memcpy(sd, padding, padLen);
+                sd += padLen;
+            }
         }
         return KTX_SUCCESS;
     } else
