@@ -79,6 +79,18 @@ else()
     set(LIB_TYPE SHARED)
 endif()
 
+# Global Optimization Flags
+if(EMSCRIPTEN)
+    add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-Oz> )
+    add_link_options( $<IF:$<CONFIG:Debug>,-g4,-Oz> )
+elseif(MSVC)
+    add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
+else()
+    add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
+    add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
+endif()
+
+
 # Main library
 add_library( ktx ${LIB_TYPE}
     include/ktx.h
@@ -174,28 +186,6 @@ else()
     )
 endif()
 
-# Optimization Flags
-if(EMSCRIPTEN)
-    target_compile_options(ktx PUBLIC
-        $<IF:$<CONFIG:Debug>,-O0,-Oz>
-    )
-    target_link_options( ktx PUBLIC
-        $<IF:$<CONFIG:Debug>,-g4,-Oz>
-    )
-elseif(MSVC)
-    target_compile_options(ktx PUBLIC
-        $<IF:$<CONFIG:Debug>,/Gz,/O2>
-    )
-else()
-    target_compile_options(ktx PUBLIC
-        $<IF:$<CONFIG:Debug>,-g -O0,-O3>
-    )
-    target_link_options( ktx PUBLIC
-        $<IF:$<CONFIG:Debug>,-g,-O3>
-    )
-endif()
-
-
 target_include_directories(
     ktx
 PUBLIC
@@ -215,7 +205,7 @@ endif()
 
 
 # To reduce size, don't support transcoding to ancient formats.
-target_compile_definitions(ktx PUBLIC BASISD_SUPPORT_FXT1=0)
+target_compile_definitions(ktx PRIVATE BASISD_SUPPORT_FXT1=0)
 
 # TODO: make options for all formats and good per-platform defaults
 # - BASISD_SUPPORT_UASTC
@@ -247,7 +237,7 @@ if(WIN32)
         lib/internalexport.def
     )
 elseif(EMSCRIPTEN)
-    target_compile_definitions(ktx PUBLIC
+    target_compile_definitions(ktx PRIVATE
         # To reduce size, don't support transcoding to formats not
         # supported # by WebGL.
         BASISD_SUPPORT_BC7=0

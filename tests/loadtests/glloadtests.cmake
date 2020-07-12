@@ -5,9 +5,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
 
     add_executable( ${target}
         ${EXE_FLAG}
-        $<TARGET_OBJECTS:appfwSDL>
-        $<TARGET_OBJECTS:GLAppSDL>
-        $<TARGET_OBJECTS:objUtil>
         ${sources}
         ${LOAD_TEST_COMMON_RESOURCE_FILES}
     )
@@ -31,6 +28,9 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
 
     target_link_libraries(
         ${target}
+        objUtil
+        GLAppSDL
+        appfwSDL
         ktx
         ${KTX_ZLIB_LIBRARIES}
     )
@@ -78,12 +78,19 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
         endif()
     elseif(EMSCRIPTEN)
-        set_target_properties(
+        target_link_options(
             ${target}
-        PROPERTIES
-            COMPILE_FLAGS "-Wpedantic -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -O0 -g"
-            # LINK_FLAGS "--source-map-base ./ --preload-file testimages --exclude-file testimages/genref --exclude-file testimages/*.pgm --exclude-file testimages/*.ppm --exclude-file testimages/*.pam --exclude-file testimages/*.pspimage -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g4"
-            LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0 -s USE_SDL=2 -s USE_WEBGL2=1 -g"
+        PRIVATE
+            "SHELL:--source-map-base ./"
+            "SHELL:--preload-file '${PROJECT_SOURCE_DIR}/tests/testimages@testimages'"
+            "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genref'"
+            "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genktx2'"
+            "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/cubemap*'"
+            "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+            "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
+            "SHELL:-s USE_SDL=2"
+            "SHELL:-s USE_WEBGL2=1"
+            -g4
         )
     elseif(WIN32)
         target_sources(
@@ -92,20 +99,20 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             glloadtests/resources/win/glloadtests.rc
             glloadtests/resources/win/resource.h
         )
-	    if(EMULATE_GLES)
-		    if (KTX_GL_CONTEXT_MAJOR_VERSION EQUAL 1)
-				target_link_libraries(
-					${target}
-					"${OPENGL_ES_EMULATOR}/libGLES_CM.lib"
-					"${OPENGL_ES_EMULATOR}/libEGL.lib"
+        if(EMULATE_GLES)
+            if (KTX_GL_CONTEXT_MAJOR_VERSION EQUAL 1)
+                target_link_libraries(
+                    ${target}
+                    "${OPENGL_ES_EMULATOR}/libGLES_CM.lib"
+                    "${OPENGL_ES_EMULATOR}/libEGL.lib"
                 )
-			 else()
-				target_link_libraries(
-					${target}
-					"${OPENGL_ES_EMULATOR}/libGLESv2.lib"
-					"${OPENGL_ES_EMULATOR}/libEGL.lib"
-				)
-			 endif()
+             else()
+                target_link_libraries(
+                    ${target}
+                    "${OPENGL_ES_EMULATOR}/libGLESv2.lib"
+                    "${OPENGL_ES_EMULATOR}/libEGL.lib"
+                )
+             endif()
         else()
             target_link_libraries(
                 ${target}
@@ -117,22 +124,29 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
 
     target_link_libraries( ${target} ${LOAD_TEST_COMMON_LIBS} )
 
-	if(NOT EMULATE_GLES OR KTX_GL_CONTEXT_MAJOR_VERSION GREATER 1)
-		target_compile_definitions(
-			${target}
-		PRIVATE
-			$<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
-			GL_CONTEXT_PROFILE=${KTX_GL_CONTEXT_PROFILE}
-			GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
-			GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
-		)
-	 else()
-		target_compile_definitions(
-			${target}
-		PRIVATE
-			$<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
-		)
-	 endif()
+    if(NOT EMULATE_GLES OR KTX_GL_CONTEXT_MAJOR_VERSION GREATER 1)
+        target_compile_definitions(
+            ${target}
+        PRIVATE
+            $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+            GL_CONTEXT_PROFILE=${KTX_GL_CONTEXT_PROFILE}
+            GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
+            GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
+        )
+        if(EMSCRIPTEN)
+            target_compile_definitions(
+                ${target}
+            PRIVATE
+                TEST_BASIS_COMPRESSION=0
+            )
+        endif()
+     else()
+        target_compile_definitions(
+            ${target}
+        PRIVATE
+            $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+        )
+     endif()
 
     if(APPLE)
         set(PRODUCT_NAME "${target}")

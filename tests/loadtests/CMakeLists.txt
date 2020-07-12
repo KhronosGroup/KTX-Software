@@ -80,6 +80,11 @@ add_library( appfwSDL OBJECT
 )
 
 target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_11)
+if(EMSCRIPTEN)
+    target_compile_options( appfwSDL PUBLIC
+         "SHELL:-s USE_SDL=2"
+    )
+endif()
 
 target_include_directories(
     appfwSDL
@@ -100,6 +105,15 @@ add_library( GLAppSDL OBJECT
     glloadtests/GLLoadTests.cpp
     glloadtests/GLLoadTests.h
 )
+
+if(EMSCRIPTEN)
+    target_compile_options( GLAppSDL PUBLIC
+        "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
+        "SHELL:-s USE_SDL=2"
+        "SHELL:-s USE_WEBGL2=1"
+    )
+endif()
+
 target_link_libraries(GLAppSDL appfwSDL)
 target_include_directories(
     GLAppSDL
