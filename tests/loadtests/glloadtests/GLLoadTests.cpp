@@ -232,7 +232,6 @@ GLLoadTests::invokeSample(Direction dir)
                 dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
             }
         } catch (std::exception& e) {
-            printf("**** %s\n", e.what());
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                     infiles.size() > 0 ? fileTitle.c_str()  : sampleInv->title,
                     e.what(), NULL);
