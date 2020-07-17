@@ -126,7 +126,6 @@ build_script:
     git status
     cmake --build . --config $env:CONFIGURATION
     git status
-    git diff
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
     popd
     echo "Done Building"
