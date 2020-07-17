@@ -240,10 +240,8 @@ elseif(EMSCRIPTEN)
     target_compile_definitions(ktx PRIVATE
         # To reduce size, don't support transcoding to formats not
         # supported # by WebGL.
-        BASISD_SUPPORT_BC7=0
         BASISD_SUPPORT_ATC=0
         BASISD_SUPPORT_PVRTC2=0
-        BASISD_SUPPORT_ETC2_EAC_RG11=0
         # Don't support higher quality mode to avoid 64k table.
         BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0
         KTX_OMIT_VULKAN=1
