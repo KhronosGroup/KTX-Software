@@ -20,6 +20,8 @@ list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
 
+# What a shame! We have to duplicate most of the build commands because
+# if(WIN32) can't appear inside add_custom_command.
 if(WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
@@ -45,7 +47,6 @@ endif()
 
 add_custom_target(mkvkformatfiles
     DEPENDS ${mkvkformatfiles_output}
-    SOURCES ${mkvkformatfiles_input}
 )
 
 
@@ -54,19 +55,31 @@ list(APPEND makevkswitch_input
     "lib/dfdutils/makevkswitch.pl")
 set(makevkswitch_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
-add_custom_command(
-    OUTPUT ${makevkswitch_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
-    COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl"
-    DEPENDS ${makevkswitch_input}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT Generating VkFormat/DFD switch body
-    VERBATIM
-)
+if(WIN32)
+    add_custom_command(
+        OUTPUT ${makevkswitch_output}
+        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl"
+        DEPENDS ${makevkswitch_input}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT Generating VkFormat/DFD switch body
+        VERBATIM
+    )
+else()
+    add_custom_command(
+        OUTPUT ${makevkswitch_output}
+        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+        DEPENDS ${makevkswitch_input}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT Generating VkFormat/DFD switch body
+        VERBATIM
+    )
+endif()
+
 add_custom_target(makevkswitch
     DEPENDS ${makevkswitch_output}
-    SOURCES ${makevkswitch_input}
 )
 
 
@@ -101,7 +114,6 @@ endif()
 
 add_custom_target(makedfd2vk
     DEPENDS ${makedfd2vk_output}
-    SOURCES ${makedfd2vk_input}
 )
 
 add_custom_target(mkvk SOURCES)
