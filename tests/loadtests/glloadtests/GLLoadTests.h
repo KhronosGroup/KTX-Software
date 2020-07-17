@@ -85,7 +85,7 @@ class GLLoadTests : public GLAppSDL {
             return *this;
         }
         sampleIndex& operator--() {
-            if (--index < 0)
+            if (--index > numSamples /* underflow */)
                 index = numSamples-1;
             return *this;
         }
@@ -96,7 +96,7 @@ class GLLoadTests : public GLAppSDL {
         void setNumSamples(uint32_t ns) { numSamples = ns; }
       protected:
         uint32_t numSamples;
-        int32_t index;
+        uint32_t index;
     } sampleIndex;
 
     std::vector<std::string> infiles;

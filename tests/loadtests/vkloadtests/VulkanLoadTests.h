@@ -70,7 +70,7 @@ class VulkanLoadTests : public VulkanAppSDL {
             return *this;
         }
         sampleIndex& operator--() {
-            if (--index < 0)
+            if (--index > numSamples /* underflow */)
                 index = numSamples-1;
             return *this;
         }
@@ -82,7 +82,7 @@ class VulkanLoadTests : public VulkanAppSDL {
 
       protected:
         uint32_t numSamples;
-        int32_t index;
+        uint32_t index;
     } sampleIndex;
 
     std::vector<std::string> infiles;

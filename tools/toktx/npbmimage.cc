@@ -419,7 +419,7 @@ rescale8(uint8_t* dst, uint16_t* src, uint32_t maxval, uint32_t pixelCount)
 {
     float multiplier = 255.0f / maxval;
     for (uint32_t i = 0; i < pixelCount; i++) {
-        *dst++ = roundf(*src++ * multiplier);
+        *dst++ = (uint8_t)roundf(*src++ * multiplier);
     }
 }
 
