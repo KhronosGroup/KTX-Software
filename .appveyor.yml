@@ -98,7 +98,7 @@ install:
     git config core.autocrlf
     git config --global core.autocrlf
     git config --system core.autocrlf
-    git config --workarea core.autocrlf
+    git config --worktree core.autocrlf
     git config --local core.autocrlf
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
