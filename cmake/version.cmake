@@ -173,7 +173,7 @@ function( create_version_header dest_path target )
             # On Windows this command has to be invoked by a shell in order to work
             COMMAND ${BASH_EXECUTABLE} -c "\"./mkversion\" \"-o\" \"version.h\" \"${dest_path}\""
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-            COMMENT Generate ${version_h_output}
+            COMMENT "Generate ${version_h_output}"
             VERBATIM
         )
     else()
@@ -181,7 +181,7 @@ function( create_version_header dest_path target )
             OUTPUT ${version_h_output}
             COMMAND ./mkversion -o version.h ${dest_path}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-            COMMENT Generate ${version_h_output}
+            COMMENT "Generate ${version_h_output}"
             VERBATIM
         )
     endif()

@@ -31,7 +31,7 @@ if(WIN32)
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_str.c"
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generating VkFormat-related source files
+        COMMENT "Generating VkFormat-related source files"
         VERBATIM
     )
 else()
@@ -40,7 +40,7 @@ else()
         COMMAND VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generating VkFormat-related source files
+        COMMENT "Generating VkFormat-related source files"
         VERBATIM
     )
 endif()
@@ -63,7 +63,7 @@ if(WIN32)
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl"
         DEPENDS ${makevkswitch_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generating VkFormat/DFD switch body
+        COMMENT "Generating VkFormat/DFD switch body"
         VERBATIM
     )
 else()
@@ -73,7 +73,7 @@ else()
         COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
         DEPENDS ${makevkswitch_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generating VkFormat/DFD switch body
+        COMMENT "Generating VkFormat/DFD switch body"
         VERBATIM
     )
 endif()
@@ -97,7 +97,7 @@ if(WIN32)
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl"
         DEPENDS ${makedfd2vk_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generating DFD/VkFormat switch body
+        COMMENT "Generating DFD/VkFormat switch body"
         VERBATIM
     )
 else()
@@ -107,7 +107,7 @@ else()
         COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
         DEPENDS ${makedfd2vk_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT Generating DFD/VkFormat switch body
+        COMMENT "Generating DFD/VkFormat switch body"
         VERBATIM
     )
 endif()
