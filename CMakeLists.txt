@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
+find_package(Bash REQUIRED)
+
 include(cmake/version.cmake)
 
 project(KTX-Software
@@ -16,8 +18,6 @@ include(CMakeDependentOption)
 
 include(cmake/mkvk.cmake)
 include(cmake/xcode.cmake)
-
-find_package(Bash REQUIRED)
 
 # OPTIONS
 
