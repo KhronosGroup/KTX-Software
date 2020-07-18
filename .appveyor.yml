@@ -124,9 +124,18 @@ build_script:
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
     pushd $env:KTX_BUILD_DIR
     git status
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/dfdutils/dfd2vk.inl
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/dfdutils/vk2dfd.inl
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/vk2format_enum.h
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/vk2format_check.c
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/vk2format_str.h
     cmake --build . --config $env:CONFIGURATION
     git status
-    git diff
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/dfdutils/dfd2vk.inl
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/dfdutils/vk2dfd.inl
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/vk2format_enum.h
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/vk2format_check.c
+    "C:/Program Files/Git/usr/bin/file.exe" ../lib/vk2format_str.h
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
     popd
     echo "Done Building"
