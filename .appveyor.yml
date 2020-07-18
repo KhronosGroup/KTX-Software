@@ -98,7 +98,6 @@ install:
     git config core.autocrlf
     git config --global core.autocrlf
     git config --system core.autocrlf
-    git config --local core.autocrlf
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
