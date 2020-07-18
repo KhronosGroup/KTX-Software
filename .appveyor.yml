@@ -95,6 +95,11 @@ install:
     cd C:\projects\ktx
     REM Pull only Windows binaries.
     git lfs pull --include=other_lib/win
+    git config core.autocrlf
+    git config --global core.autocrlf
+    git config --system core.autocrlf
+    git config --workarea core.autocrlf
+    git config --local core.autocrlf
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
@@ -126,16 +131,16 @@ build_script:
     git status
     C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/dfd2vk.inl
     C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/vk2dfd.inl
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vk2format_enum.h
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vk2format_check.c
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vk2format_str.h
+    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_enum.h
+    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_check.c
+    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_str.h
     cmake --build . --config $env:CONFIGURATION
     git status
     C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/dfd2vk.inl
     C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/vk2dfd.inl
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vk2format_enum.h
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vk2format_check.c
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vk2format_str.h
+    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_enum.h
+    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_check.c
+    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_str.h
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
     popd
     echo "Done Building"
