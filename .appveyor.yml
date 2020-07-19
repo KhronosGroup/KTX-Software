@@ -62,6 +62,8 @@ build:
 clone_folder: c:\projects\ktx
 
 init:
+  # Set to match Git for Windows default so files with have the line endings we
+  # expect on Windows. Why Appveyor changed it, I have no idea.
   - git config --global core.autocrlf true
 # This ps command enables RDP and provides the login details. blockRdp variant stops the
 # build proceeding until RDP is connected.
@@ -96,9 +98,6 @@ install:
     cd C:\projects\ktx
     REM Pull only Windows binaries.
     git lfs pull --include=other_lib/win
-    git config -l
-    git config --global -l
-    git config --system -l
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
@@ -128,18 +127,8 @@ build_script:
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
     pushd $env:KTX_BUILD_DIR
     git status
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/dfd2vk.inl
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/vk2dfd.inl
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_enum.h
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_check.c
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_str.c
     cmake --build . --config $env:CONFIGURATION
     git status
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/dfd2vk.inl
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/dfdutils/vk2dfd.inl
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_enum.h
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_check.c
-    C:/"Program Files"/Git/usr/bin/file.exe ../lib/vkformat_str.c
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
     popd
     echo "Done Building"
