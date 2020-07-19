@@ -1,5 +1,7 @@
 # Set default behaviour, in case users don't have core.autocrlf set.
-* text=auto
+# N.B. This only causes normalization of files to LF on commit. It says nothing
+# about working directory line endings.
+* text=auto eol=native
 
 # Explicitly declare text files we want to always be normalized and converted 
 # to native line endings on checkout.
