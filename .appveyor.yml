@@ -62,6 +62,7 @@ build:
 clone_folder: c:\projects\ktx
 
 init:
+  - git config --global core.autocrlf true
 # This ps command enables RDP and provides the login details. blockRdp variant stops the
 # build proceeding until RDP is connected.
 #  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
