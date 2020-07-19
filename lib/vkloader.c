@@ -591,6 +591,9 @@ linearTilingPadCallback(int miplevel, int face,
  * @exception KTX_INVALID_OPERATION Requested mipmap generation is not supported
  *                                  by the physical device for the combination
  *                                  of the ktxTexture's format and @p tiling.
+ * @exception KTX_INVALID_OPERATION Number of mip levels or array layers exceeds the
+ *                                maximums supported for the ktxTexture's format
+ *                                and @p tiling.
  * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated
  *                              on either the CPU or the Vulkan device.
  */
@@ -697,6 +700,9 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
     if (vResult == VK_ERROR_FORMAT_NOT_SUPPORTED) {
         return KTX_INVALID_OPERATION;
     }
+    if (This->numLayers > imageFormatProperties.maxArrayLayers) {
+        return KTX_INVALID_OPERATION;
+    }
 
     if (This->generateMipmaps) {
         uint32_t max_dim;
@@ -725,6 +731,10 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         numImageLevels = (uint32_t)floor(log2(max_dim)) + 1;
     } else {
         numImageLevels = This->numLevels;
+    }
+
+    if (numImageLevels > imageFormatProperties.maxMipLevels) {
+        return KTX_INVALID_OPERATION;
     }
 
     if (This->classId == ktxTexture2_c) {

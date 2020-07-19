@@ -97,6 +97,58 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
     transcodedFormat = vkFormat;
+    vk::ImageType imageType;
+    vk::ImageFormatProperties imageFormatProperties;
+    vk::ImageCreateFlags createFlags;
+    vk::ImageUsageFlags usageFlags = vk::ImageUsageFlagBits::eSampled;
+    uint32_t numLevels;
+    switch (kTexture->numDimensions) {
+      case 1:
+        imageType = vk::ImageType::e1D;
+        break;
+      case 2:
+      default: // To keep compilers happy.
+        imageType = vk::ImageType::e2D;
+        break;
+      case 3:
+        if (kTexture->isArray) {
+            std::stringstream message;
+
+            message << "Texture in \"" << getAssetPath() << szArgs
+            << "\" is a 3D array texture which are not supported by Vulkan.";
+            ktxTexture_Destroy(kTexture);
+            throw std::runtime_error(message.str());
+        }
+        imageType = vk::ImageType::e3D;
+        break;
+    }
+    if (tiling == vk::ImageTiling::eOptimal) {
+        // Ensure we can copy from staging buffer to image.
+        usageFlags |= vk::ImageUsageFlagBits::eTransferDst;
+    }
+    if (kTexture->generateMipmaps) {
+        // Ensure we can blit between levels.
+        usageFlags |= (vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc);
+    }
+    vkctx.gpu.getImageFormatProperties(vkFormat, imageType, tiling,
+                                       usageFlags, createFlags,
+                                       &imageFormatProperties);
+    numLevels = kTexture->numLevels;
+    if (kTexture->generateMipmaps) {
+        uint32_t max_dim = std::max(std::max(kTexture->baseWidth, kTexture->baseHeight), kTexture->baseDepth);
+        numLevels = (uint32_t)floor(log2(max_dim)) + 1;
+    }
+    if (numLevels > imageFormatProperties.maxMipLevels) {
+        ktxTexture_Destroy(kTexture);
+        throw unsupported_ttype();
+    }
+    if (kTexture->isArray
+        && kTexture->numLevels > imageFormatProperties.maxArrayLayers)
+    {
+        ktxTexture_Destroy(kTexture);
+        throw unsupported_ttype();
+    }
+
     vk::FormatProperties properties;
     vkctx.gpu.getFormatProperties(vkFormat, &properties);
     vk::FormatFeatureFlags features =  tiling == vk::ImageTiling::eLinear ?
