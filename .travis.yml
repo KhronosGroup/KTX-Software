@@ -102,12 +102,14 @@ before_deploy:
     linux)
       ;;
     osx)
-      # Only notarize if we're going to deploy. I.e on a tag.
+      # Only notarize if we're going to deploy. I.e on a tag. Also check for access
+      # to singing certs to make sure we don't try this on a fork which has a tag.
+      #
       # Although undocumented, except for a blog post, before_deploy is run for each
       # deployment so we need to take steps to prevent notarization being run twice.
       # https://github.com/travis-ci/travis-ci/issues/2570 about this has been open
       # for years. What a crock!
-      if [ -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
+      if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
         ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true";
       fi
       ;;
