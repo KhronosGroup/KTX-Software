@@ -167,7 +167,7 @@ function( create_version_header dest_path target )
 
     set( version_h_output ${dest_path}/version.h)
 
-    if(WIN32)
+    if(CMAKE_HOST_WIN32)
         add_custom_command(
             OUTPUT ${version_h_output}
             # On Windows this command has to be invoked by a shell in order to work
