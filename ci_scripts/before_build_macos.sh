@@ -12,7 +12,7 @@ git lfs pull --include=other_lib/mac,other_lib/ios,tests/testimages,tests/srcima
 sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
 
 # No certs so we're building either a PR or a fork.
-if [ -z "$$MACOS_CERTIFICATES_P12" ]; then
+if [ -z "$MACOS_CERTIFICATES_P12" ]; then
   exit 0
 fi
 
