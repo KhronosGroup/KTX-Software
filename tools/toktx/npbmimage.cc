@@ -198,10 +198,10 @@ createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     if (transformOETF) {
         if (maxval <= 255) {
             image->transformOETF(decode_bt709, encode_sRGB);
-            image->setOetf(Image::eOETF::sRGB);
+            image->setOetf(KHR_DF_TRANSFER_SRGB);
         } else {
             image->transformOETF(decode_bt709, encode_linear);
-            image->setOetf(Image::eOETF::Linear);
+            image->setOetf(KHR_DF_TRANSFER_LINEAR);
         }
     }
     return image;
@@ -260,10 +260,10 @@ createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     if (transformOETF) {
          if (maxval <= 255) {
             image->transformOETF(decode_bt709, encode_sRGB);
-            image->setOetf(Image::eOETF::sRGB);
+            image->setOetf(KHR_DF_TRANSFER_SRGB);
         } else {
             image->transformOETF(decode_bt709, encode_linear);
-            image->setOetf(Image::eOETF::Linear);
+            image->setOetf(KHR_DF_TRANSFER_LINEAR);
         }
     }
     return image;
@@ -386,10 +386,10 @@ createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     if (transformOETF) {
         if (maxval <= 255) {
             image->transformOETF(decode_bt709, encode_sRGB);
-            image->setOetf(Image::eOETF::sRGB);
+            image->setOetf(KHR_DF_TRANSFER_SRGB);
         } else {
             image->transformOETF(decode_bt709, encode_linear);
-            image->setOetf(Image::eOETF::Linear);
+            image->setOetf(KHR_DF_TRANSFER_LINEAR);
         }
     }
 
@@ -474,7 +474,7 @@ readImage(FILE* src, Image& image, int32_t maxval)
         rescale8(image, (uint16_t*)pBuffer, maxval, image.getPixelCount());
         delete[] buffer16;
     }
-    image.setOetf(Image::eOETF::bt709);
+    image.setOetf(KHR_DF_TRANSFER_ITU);
 }
 
 

@@ -144,7 +144,7 @@ Image::CreateFromJPG(FILE* src, bool, bool)
     }
 
     // All JPEG images are sRGB.
-    image->setOetf(Image::eOETF::sRGB);
+    image->setOetf(KHR_DF_TRANSFER_SRGB);
     return image;
 }
 

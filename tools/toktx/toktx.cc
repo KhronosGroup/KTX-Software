@@ -326,7 +326,7 @@ class toktxApp : public scApp {
         int          metadata;
         int          mipmap;
         int          two_d;
-        Image::eOETF oetf;
+        khr_df_transfer_e oetf;
         int          useStdin;
         int          lower_left_maps_to_s0t0;
         int          warn;
@@ -354,7 +354,7 @@ class toktxApp : public scApp {
             depth = 1;
             layers = 1;
             levels = 1;
-            oetf = Image::eOETF::Unset;
+            oetf = KHR_DF_TRANSFER_UNSPECIFIED;
             // As required by spec. Opposite of OpenGL {,ES}, same as
             // Vulkan, et al.
             lower_left_maps_to_s0t0 = 0;
@@ -413,8 +413,8 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
         { "nowarn", argparser::option::no_argument, &options.warn, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
-        { "linear", argparser::option::no_argument, (int*)&options.oetf, OETF_LINEAR },
-        { "srgb", argparser::option::no_argument, (int*)&options.oetf, OETF_SRGB },
+        { "linear", argparser::option::no_argument, (int*)&options.oetf, KHR_DF_TRANSFER_LINEAR },
+        { "srgb", argparser::option::no_argument, (int*)&options.oetf, KHR_DF_TRANSFER_SRGB },
         { "resize", argparser::option::required_argument, NULL, 'r' },
         { "scale", argparser::option::required_argument, NULL, 's' },
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
@@ -585,7 +585,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
     int exitCode = 0;
     unsigned int componentCount = 1, faceSlice, level, layer, levelCount = 1;
     unsigned int levelWidth, levelHeight, levelDepth;
-    Image::eOETF chosenOETF, firstImageOETF;
+    khr_df_transfer_e chosenOETF, firstImageOETF;
+    khr_df_primaries_e chosenPrimaries, firstImagePrimaries;
 
     processEnvOptions();
     processCommandLine(argc, argv, eDisallowStdin, eFirst);
@@ -614,8 +615,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
         Image* image;
         try {
             image =
-              Image::CreateFromFile(infile, options.oetf == Image::eOETF::Unset,
-                                    true); //options.bcmp == true);
+              Image::CreateFromFile(infile,
+                                    options.oetf == KHR_DF_TRANSFER_UNSPECIFIED,
+                                    options.bcmp == true);
         } catch (exception& e) {
             cerr << name << ": failed to create image from "
                       << infile << ". " << e.what() << endl;
@@ -629,7 +631,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
         if (i == 0) {
             // First file.
             firstImageOETF = image->getOetf();
-            if (options.oetf == Image::eOETF::Unset) {
+            firstImagePrimaries = image->getPrimaries();
+            chosenPrimaries = image->getPrimaries();
+            if (options.oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
                 chosenOETF = firstImageOETF;
             } else {
                 chosenOETF = options.oetf;
@@ -650,7 +654,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
             try {
                 image->resample(*scaledImage,
-                                chosenOETF == Image::eOETF::sRGB,
+                                chosenOETF == KHR_DF_TRANSFER_SRGB,
                                 options.gmopts.filter.c_str(),
                                 options.gmopts.filterScale,
                                 basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
@@ -660,7 +664,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 exitCode = 1;
                 goto cleanup;
             }
-            Image::eOETF oetf = image->getOetf();
+            khr_df_transfer_e oetf = image->getOetf();
             delete image;
             image = scaledImage;
             image->setOetf(oetf);
@@ -675,7 +679,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             bool srgb;
 
             componentCount = image->getComponentCount();
-            srgb = (chosenOETF == Image::eOETF::sRGB);
+            srgb = (chosenOETF == KHR_DF_TRANSFER_SRGB);
             switch (componentCount) {
               case 1:
                 switch (image->getComponentSize()) {
@@ -843,7 +847,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 exitCode = 1;
                 goto cleanup;
             }
-            // Input file order is layer, faceSlice, level. This seems easier for
+            if (image->getPrimaries() != firstImagePrimaries) {
+                fprintf(stderr, "%s: \"%s\" has different color primaries than"
+                                " preceding files.\n",
+                                name.c_str(), infile.c_str());
+                exitCode = 1;
+                goto cleanup;
+            }            // Input file order is layer, faceSlice, level. This seems easier for
             // a human to manage than the order in a KTX file. It keeps the
             // base level images and their mip levels together.
             level++;
@@ -901,7 +911,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
                 try {
                     image->resample(*levelImage,
-                                    chosenOETF == Image::eOETF::sRGB,
+                                    chosenOETF == KHR_DF_TRANSFER_SRGB,
                                     options.gmopts.filter.c_str(),
                                     options.gmopts.filterScale,
                                     options.gmopts.wrapMode);
@@ -969,6 +979,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
                               (ktx_uint32_t)writer.str().length() + 1,
                               writer.str().c_str());
     }
+    if (options.ktx2 && chosenPrimaries != KHR_DF_PRIMARIES_BT709) {
+        KHR_DFDSETVAL(((ktxTexture2*)texture)->pDfd + 1, PRIMARIES,
+                      chosenPrimaries);
+    }
 
     FILE* f;
     if (options.outfile.compare("-") == 0) {
@@ -981,9 +995,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-        if (options.bcmp || options.bopts.uastc) {
+       if (options.bcmp || options.bopts.uastc) {
             commandOptions::basisOptions& bopts = options.bopts;
-            if (bopts.normalMap && chosenOETF != Image::eOETF::Linear) {
+            if (bopts.normalMap && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
                         " not linear.", name.c_str());
                 exitCode = 1;

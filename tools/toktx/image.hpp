@@ -32,12 +32,13 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <KHR/khr_df.h>
 
 #include "argparser.h"
 #include "basisu_resampler.h"
 #include "basisu_resampler_filters.h"
 
-typedef float (*OETFFunc)(float const);
+typedef float (*OETFFunc)(float const, float const);
 
 // cclamp to avoid conflict in toktx.cc with clamp template defined in scApp.
 template <typename T> inline T cclamp(T value, T low, T high) {
@@ -57,7 +58,7 @@ template <typename S> inline S minimum(S a, S b) { return (a < b) ? a : b; }
 #endif
 
 static INLINE float
-encode709(float const intensity) {
+encode709(float const intensity, float const) {
     /* We're following what Netpbm does. This is their comment and code. */
 
     /* Here are parameters of the gamma transfer function for the Netpbm
@@ -95,7 +96,7 @@ encode709(float const intensity) {
 }
 
 static INLINE float
-decode_bt709(float const brightness)
+decode_bt709(float const brightness, float const)
 {
     float const gamma = 2.2f;
     float const oneOverGamma = 1.0f / gamma;
@@ -113,8 +114,10 @@ decode_bt709(float const brightness)
     return intensity;
 }
 
+// These are called from resample as well as decode, hence the default
+// parameter values.
 static INLINE float
-encode_sRGB(float const intensity)
+encode_sRGB(float const intensity, float const unused = 1.0f)
 {
     float brightness;
     if (intensity < 0.0031308f)
@@ -126,7 +129,7 @@ encode_sRGB(float const intensity)
 }
 
 static INLINE float
-decode_sRGB(float const brightness)
+decode_sRGB(float const brightness, float const unused = 1.0f)
 {
     float intensity;
 
@@ -139,7 +142,13 @@ decode_sRGB(float const brightness)
 }
 
 static INLINE float
-encode_linear(float const intensity)
+decode_gamma(float const brightness, float const gamma)
+{
+    return saturate(powf(brightness, gamma));
+}
+
+static INLINE float
+encode_linear(float const intensity, float const)
 {
     return intensity;
 }
@@ -254,20 +263,17 @@ class Image {
             : std::runtime_error("Invalid file: " + error) { }
     };
 
-    enum class eOETF {
-      Linear = 0,
-      sRGB = 1,
-      bt709 = 2,
-      Unset = 3
-    };
-
     virtual ~Image() { };
 
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
-    eOETF getOetf() const { return oetf; }
-    void setOetf(eOETF oetf) { this->oetf = oetf; }
+    khr_df_transfer_e getOetf() const { return oetf; }
+    void setOetf(khr_df_transfer_e oetf) { this->oetf = oetf; }
+    khr_df_primaries_e getPrimaries() const { return primaries; }
+    void setPrimaries(khr_df_primaries_e primaries) {
+        this->primaries = primaries;
+    }
 
     typedef Image* (*CreateFunction)(FILE* f, bool transformOETF,
                                      bool rescaleTo8Bitbool);
@@ -296,15 +302,17 @@ class Image {
                           basisu::Resampler::Boundary_Op wrapMode
                           = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) = 0;
     virtual Image& yflip() = 0;
-    virtual Image& transformOETF(OETFFunc decode, OETFFunc encode) = 0;
+    virtual Image& transformOETF(OETFFunc decode, OETFFunc encode,
+                                 float gamma = 1.0f) = 0;
 
   protected:
-    Image() : width(0), height(0) { }
-    Image(uint32_t w, uint32_t h) : width(w), height(h) { }
+    Image() : width(0), height(0), primaries(KHR_DF_PRIMARIES_BT709) { }
+    Image(uint32_t w, uint32_t h)
+            : width(w), height(h), primaries(KHR_DF_PRIMARIES_BT709) { }
 
     uint32_t width, height;  // In pixels
-    eOETF oetf;
-
+    khr_df_transfer_e oetf;
+    khr_df_primaries_e primaries;
 };
 
 // Base class for template and specializations
@@ -533,15 +541,18 @@ class ImageT : public Image {
         return *this;
     }
 
-    virtual ImageT& transformOETF(OETFFunc decode, OETFFunc encode) {
+    virtual ImageT& transformOETF(OETFFunc decode, OETFFunc encode,
+                                  float gamma = 1.0f) {
         uint32_t pixelCount = getPixelCount();
         for (uint32_t i = 0; i < pixelCount; ++i) {
             Color& c = pixels[i];
             // Don't transform the alpha component. --------  v
             for (uint32_t comp = 0; comp < Color::getComponentCount() && comp < 3; comp++) {
                 float brightness = (float)(c[comp]) / 255;
-                float intensity = decode(brightness);
-                brightness = cclamp(encode(intensity), 0.0f, 1.0f);
+                // gamma is only used by decode_gamma. Currently there is no
+                // encode_gamma.
+                float intensity = decode(brightness, gamma);
+                brightness = cclamp(encode(intensity, gamma), 0.0f, 1.0f);
                 c.set(comp, roundf(brightness * 255));
             }
         }

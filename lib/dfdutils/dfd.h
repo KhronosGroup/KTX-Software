@@ -30,6 +30,8 @@
 #ifndef _DFD_H_
 #define _DFD_H_
 
+#include <KHR/khr_df.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -148,6 +150,19 @@ getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
 
 /* Return the number of components described by a DFD. */
 uint32_t getDFDNumComponents(const uint32_t* DFD);
+
+typedef struct _Primaries {
+    float Rx;
+    float Ry;
+    float Gx;
+    float Gy;
+    float Bx;
+    float By;
+    float Wx;
+    float Wy;
+} Primaries;
+
+khr_df_primaries_e findMapping(Primaries *p, float latitude);
 
 #ifdef __cplusplus
 }

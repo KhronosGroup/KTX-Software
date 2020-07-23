@@ -58,7 +58,7 @@ function( gencmpktx test_name reference source args env files )
         )
     else()
         add_test( NAME toktx-cmp-${test_name}
-            COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> ${args} toktx.${reference} ${source} && diff ${reference} toktx.${reference}; rm toktx.${reference}"
+            COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> ${args} toktx.${reference} ${source} && diff ${reference} toktx.${reference} && rm toktx.${reference}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
         )
     endif()
@@ -100,6 +100,8 @@ gencmpktx(
 )
 gencmpktx( 16bit_png camera_camera_BaseColor.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --test --nowarn" "" "" )
 gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --test --nowarn" "" "" )
+gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--test --t2" "" "" )
+gencmpktx( cHRM_chunk_png ccwn2c08.ktx2 ../srcimages/ccwn2c08.png "--test --t2" "" "" )
 
 add_test( NAME toktx-cmp-rgb-reference-2
     COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> --nometadata - ../srcimages/rgb.ppm > toktx-cmp-rgb-reference-2.ktx && diff rgb-reference.ktx toktx-cmp-rgb-reference-2.ktx; rm toktx-cmp-rgb-reference-2.ktx"
