@@ -42,6 +42,9 @@
 #include <vulkan/vulkan.h>
 #include <ktxvulkan.h>
 
+#if defined(_WIN32)
+#define NOMINMAX    // Prevent windows.h min max defines from causing trouble.
+#endif
 #include "argparser.h"
 #include "InstancedSampleBase.h"
 #include "ltexceptions.h"
