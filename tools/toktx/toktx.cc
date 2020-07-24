@@ -617,7 +617,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image =
               Image::CreateFromFile(infile,
                                     options.oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    options.bcmp == true);
+                                    options.bcmp);
         } catch (exception& e) {
             cerr << name << ": failed to create image from "
                       << infile << ". " << e.what() << endl;

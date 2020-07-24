@@ -283,7 +283,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         primaries.By = (float)state.info_png.chrm_blue_y / 100000;
         primaries.Wx = (float)state.info_png.chrm_white_x / 100000;
         primaries.Wy = (float)state.info_png.chrm_white_y / 100000;
-        image->setPrimaries(findMapping(&primaries, 0.002));
+        image->setPrimaries(findMapping(&primaries, 0.002f));
     }
 
     return image;
