@@ -369,8 +369,9 @@ enum TranscodeTarget = {
     "BC3_RGBA",
     "PVRTC1_4_RGB",
     "PVRTC1_4_RGBA",
-    "BC7_M6_RGB",
-    "BC7_M5_RGBA",
+    "BC7_RGBA",
+    "BC7_M6_RGB",   //Deprecated. Use BC7_RGBA.
+    "BC7_M5_RGBA",  //Deprecated. Use BC7_RGBA.
     "ETC2_RGBA",
     "ASTC_4x4_RGBA",
     "RGBA32",
@@ -647,7 +648,10 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         .value("BC3_RGBA", transcoder_texture_format::cTFBC3_RGBA)
         .value("PVRTC1_4_RGB", transcoder_texture_format::cTFPVRTC1_4_RGB)
         .value("PVRTC1_4_RGBA", transcoder_texture_format::cTFPVRTC1_4_RGBA)
+        .value("BC7_RGBA", transcoder_texture_format::cTFBC7_RGBA)
+        // Deprecated. Use BC7_RGBA.
         .value("BC7_M6_RGB", transcoder_texture_format::cTFBC7_M6_RGB)
+        // Deprecated. Use BC7_RGBA.
         .value("BC7_M5_RGBA", transcoder_texture_format::cTFBC7_M5_RGBA)
         .value("ETC2_RGBA", transcoder_texture_format::cTFETC2_RGBA)
         .value("ASTC_4x4_RGBA", transcoder_texture_format::cTFASTC_4x4_RGBA)
