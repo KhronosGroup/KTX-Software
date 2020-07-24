@@ -202,9 +202,9 @@ VulkanLoadTests::invokeSample(Direction dir)
     for (;;) {
         try {
             if (infiles.size() > 0) {
-                pCurSample = showFile(infiles[sampleIndex]);
                 fileTitle = "Viewing file ";
                 fileTitle += infiles[sampleIndex];
+                pCurSample = showFile(infiles[sampleIndex]);
             } else {
                 sampleInv = &siSamples[sampleIndex];
                 pCurSample = sampleInv->createSample(vkctx, w_width, w_height,
@@ -227,10 +227,49 @@ VulkanLoadTests::invokeSample(Direction dir)
                 dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
             }
         } catch (std::exception& e) {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                    infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
-                    e.what(), NULL);
-            dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            const SDL_MessageBoxButtonData buttons[] = {
+                /* .flags, .buttonid, .text */
+                { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Continue" },
+                { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Abort" },
+            };
+#if 0
+            const SDL_MessageBoxColorScheme colorScheme = {
+                { /* .colors (.r, .g, .b) */
+                    /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+                    { 255,   0,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+                    {   0, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+                    { 255, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+                    {   0,   0, 255 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+                    { 255,   0, 255 }
+                }
+            };
+#endif
+            const SDL_MessageBoxData messageboxdata = {
+                SDL_MESSAGEBOX_ERROR,                               // .flags
+                NULL,                                               // .window
+                infiles.size() > 0 ?
+                 fileTitle.c_str() : sampleInv->title,              // .title
+                e.what(),                                           // .message
+                SDL_arraysize(buttons),                             // .numbuttons
+                buttons,                                            // .buttons
+                NULL //&colorScheme                                 // .colorScheme
+            };
+            int buttonid;
+            if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+                SDL_Log("error displaying error message box");
+                exit(1);
+            }
+            if (buttonid == 0) {
+                // Continue
+                dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
+            } else {
+                // We've been told to quit or no button was pressed.
+                exit(1);
+            }
         }
     }
     prepared = true;

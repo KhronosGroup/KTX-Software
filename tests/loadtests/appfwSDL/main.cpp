@@ -67,6 +67,7 @@ main(int argc, char* argv[])
               theApp->name(), SDL_GetError());
       return 1;
   }
+  atexit(SDL_Quit);
 
   AppBaseSDL::Args args(argv, argv+argc);
 
