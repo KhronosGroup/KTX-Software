@@ -35,6 +35,8 @@
 
 #include "image.hpp"
 #include "lodepng.h"
+#include <KHR/khr_df.h>
+#include "dfd.h"
 
 void warning(const char *pFmt, ...);
 
@@ -221,37 +223,67 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     //
     // Using no. 1 above or setting transfer func & primaries from
     // the ICC profile would require parsing the ICC payload.
-    //
-    // Using cHRM to get the primaries would require matching a set
-    // of primary values to a DFD primaries id.
 
     if (state.info_png.srgb_defined) {
-       // intent is a matter for the user when a color transform
-       // is needed during rendering, especially when gamut
-       // mapping. It does not affect the meaning or value of the
-       // image pixels so there is nothing to do here.
-       image->setOetf(Image::eOETF::sRGB);
+        // intent is a matter for the user when a color transform
+        // is needed during rendering, especially when gamut
+        // mapping. It does not affect the meaning or value of the
+        // image pixels so there is nothing to do here.
+        image->setOetf(KHR_DF_TRANSFER_SRGB);
+    } else if (state.info_png.iccp_defined) {
+        delete image;
+        throw std::runtime_error("PNG file has an ICC profile chunk. "
+                                 "These are not supported");
+    } else if (state.info_png.gama_defined) {
+        if (state.info_png.gama_gamma == 100000)
+            image->setOetf(KHR_DF_TRANSFER_LINEAR);
+        else if (state.info_png.gama_gamma == 45455)
+            image->setOetf(KHR_DF_TRANSFER_SRGB);
+        else {
+            if (state.info_png.gama_gamma < 0) {
+                delete image;
+                throw std::runtime_error("PNG file has gAMA of 0.");
+            }
+            // What PNG calls gamma is the power to use for encoding. Elsewhere
+            // gamma is commonly used commonly for the power to use for
+            // decoding. For example by spec. the value in the PNG file is
+            // gamma * 100000 so gamma of 45455 is .45455. The power for
+            // decoding is the inverse, i.e  1 / .45455 which is 2.2.
+            // The variable gamma below is for decoding and is 1 / gAMA.
+            float gamma = (float) 100000 / state.info_png.gama_gamma;
+            // 1.6667 is a very arbitrary cutoff.
+            if (componentBits == 8 && gamma > 1.6667f) {
+                image->transformOETF(decode_gamma, encode_sRGB, gamma);
+                image->setOetf(KHR_DF_TRANSFER_SRGB);
+                if (gamma > 3.3333f) {
+                    warning("Transformed PNG image with gamma of %f to sRGB"
+                            " gamma (~2.2)", gamma);
+                }
+            } else {
+                image->transformOETF(decode_gamma, encode_linear, gamma);
+                image->setOetf(KHR_DF_TRANSFER_LINEAR);
+                if (gamma > 1.3) {
+                    warning("Transformed PNG image with gamma of %f to"
+                            " linear", gamma);
+                }
+            }
+        }
     } else {
-       if (state.info_png.iccp_defined) {
-           delete image;
-           throw std::runtime_error("PNG file has an ICC profile chunk. "
-                                    "These are not supported");
-       } else if (state.info_png.gama_defined) {
-           if (state.info_png.gama_gamma == 100000)
-               image->setOetf(Image::eOETF::Linear);
-           else if (state.info_png.gama_gamma == 45455)
-               image->setOetf(Image::eOETF::sRGB);
-           else {
-               // Actual gamma is gAMA/100000 so 45455 is 1 / 2.2.
-               std::stringstream message;
-               message << "PNG image has gamma of "
-                       << (float)100000 / state.info_png.gama_gamma
-                       << ". This is currently unsupported.";
-               throw std::runtime_error(message.str());
-           }
-       } else {
-           image->setOetf(Image::eOETF::sRGB);
-       }
+        image->setOetf(KHR_DF_TRANSFER_SRGB);
+    }
+
+    if (state.info_png.chrm_defined
+        && !state.info_png.srgb_defined && !state.info_png.iccp_defined) {
+        Primaries primaries;
+        primaries.Rx = (float)state.info_png.chrm_red_x / 100000;
+        primaries.Ry = (float)state.info_png.chrm_red_y / 100000;
+        primaries.Gx = (float)state.info_png.chrm_green_x / 100000;
+        primaries.Gy = (float)state.info_png.chrm_green_y / 100000;
+        primaries.Bx = (float)state.info_png.chrm_blue_x / 100000;
+        primaries.By = (float)state.info_png.chrm_blue_y / 100000;
+        primaries.Wx = (float)state.info_png.chrm_white_x / 100000;
+        primaries.Wy = (float)state.info_png.chrm_white_y / 100000;
+        image->setPrimaries(findMapping(&primaries, 0.002f));
     }
 
     return image;

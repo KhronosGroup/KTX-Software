@@ -106,6 +106,7 @@ add_library( ktx ${LIB_TYPE}
     lib/basisu/transcoder/basisu.h
     lib/checkheader.c
     lib/dfdutils/createdfd.c
+    lib/dfdutils/colourspaces.c
     lib/dfdutils/dfd.h
     lib/dfdutils/dfd2vk.inl
     lib/dfdutils/interpretdfd.c

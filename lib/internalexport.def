@@ -35,6 +35,7 @@ EXPORTS
     createDFDUnpacked
     createDFDPacked
     createDFDCompressed
+    findMapping
     interpretDFD
     isProhibitedFormat
     isValidFormat

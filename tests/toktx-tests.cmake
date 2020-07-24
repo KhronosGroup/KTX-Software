@@ -53,12 +53,12 @@ PROPERTIES
 function( gencmpktx test_name reference source args env files )
     if(files)
         add_test( NAME toktx-cmp-${test_name}
-            COMMAND ${BASH_EXECUTABLE} -c "printf \"${files}\" > ${source} && $<TARGET_FILE:toktx> ${args} toktx.${reference} @${source} && diff ${reference} toktx.${reference}; rm toktx.${reference}; rm ${source}"
+            COMMAND ${BASH_EXECUTABLE} -c "printf \"${files}\" > ${source} && $<TARGET_FILE:toktx> ${args} toktx.${reference} @${source} && diff ${reference} toktx.${reference} && rm toktx.${reference}; rm ${source}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
         )
     else()
         add_test( NAME toktx-cmp-${test_name}
-            COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> ${args} toktx.${reference} ${source} && diff ${reference} toktx.${reference}; rm toktx.${reference}"
+            COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> ${args} toktx.${reference} ${source} && diff ${reference} toktx.${reference} && rm toktx.${reference}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
         )
     endif()
@@ -82,14 +82,18 @@ gencmpktx( rgb-mipmap-reference rgb-mipmap-reference.ktx "../srcimages/level0.pp
 gencmpktx( rgb-mipmap-reference-u rgb-mipmap-reference-u.ktx2 "../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm" "--test --t2 --mipmap" "" "" )
 
 if(APPLE)
-  # Run only on macOS until we figure out the Basis compressor non-determinancy.
+  # Run only on macOS until we figure out the BasisLZ/ETC1S compressor non-determinancy.
   gencmpktx( alpha_simple_basis alpha_simple_basis.ktx2 ../srcimages/alpha_simple.png "--test --bcmp" "" "" )
   gencmpktx( kodim17_basis kodim17_basis.ktx2 ../srcimages/kodim17.png "--test --bcmp" "" "" )
   gencmpktx( color_grid_basis color_grid_basis.ktx2 ../srcimages/color_grid.png "--test --bcmp" "" "" )
   gencmpktx( cimg5293_uastc cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg "--uastc --genmipmap --test" "" "" )
   gencmpktx( cimg5293_uastc_zstd cimg5293_uastc_zstd.ktx2 ../srcimages/CIMG5293.jpg "--zcmp --uastc --genmipmap --test" "" "" )
+  gencmpktx( 16bit_png camera_camera_BaseColor.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --test --nowarn" "" "" )
+  gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --test --nowarn" "" "" )
 endif()
 
+gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--test --t2" "" "" )
+gencmpktx( cHRM_chunk_png ccwn2c08.ktx2 ../srcimages/ccwn2c08.png "--test --t2" "" "" )
 gencmpktx(
     rgb-mipmap-reference-list
     rgb-mipmap-reference.ktx
@@ -98,8 +102,6 @@ gencmpktx(
     ""
     "../srcimages/level0.ppm\\n../srcimages/level1.ppm\\n../srcimages/level2.ppm\\n../srcimages/level3.ppm\\n../srcimages/level4.ppm\\n../srcimages/level5.ppm\\n../srcimages/level6.ppm"
 )
-gencmpktx( 16bit_png camera_camera_BaseColor.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --test --nowarn" "" "" )
-gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --test --nowarn" "" "" )
 
 add_test( NAME toktx-cmp-rgb-reference-2
     COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> --nometadata - ../srcimages/rgb.ppm > toktx-cmp-rgb-reference-2.ktx && diff rgb-reference.ktx toktx-cmp-rgb-reference-2.ktx; rm toktx-cmp-rgb-reference-2.ktx"

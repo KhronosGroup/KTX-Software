@@ -584,7 +584,7 @@ typedef enum _khr_df_transfer_e {
     KHR_DF_TRANSFER_LINEAR      = 1U,
     /* Perceptually-linear transfer function of sRGH (~2.4) */
     KHR_DF_TRANSFER_SRGB        = 2U,
-    /* Perceptually-linear transfer function of ITU non-HDR specifications (~1/.45) */
+    /* Perceptually-linear transfer function of ITU BT.601, BT.709 and BT.2020 (~1/.45) */
     KHR_DF_TRANSFER_ITU         = 3U,
     /* SMTPE170M (digital NTSC) defines an alias for the ITU transfer function (~1/.45) */
     KHR_DF_TRANSFER_SMTPE170M   = 3U,
