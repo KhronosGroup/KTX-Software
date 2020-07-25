@@ -27,7 +27,11 @@ target_compile_definitions(
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
-add_test( NAME transcodetests COMMAND transcodetests "${PROJECT_SOURCE_DIR}/tests/testimages/" )
+
+gtest_discover_tests( transcodetests
+    TEST_PREFIX transcodetest
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
+)
 
 if(WIN32)
     set_tests_properties(

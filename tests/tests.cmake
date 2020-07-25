@@ -3,6 +3,8 @@
 
 # gtest based unit-tests
 
+include(GoogleTest)
+
 add_subdirectory(gtest)
 find_package(Threads)
 
@@ -50,8 +52,8 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-add_test( NAME unittests COMMAND unittests )
-add_test( NAME texturetests COMMAND texturetests )
+gtest_discover_tests(unittests TEST_PREFIX unittest )
+gtest_discover_tests(texturetests TEST_PREFIX texturetest )
 
 if(WIN32)
     set_tests_properties(
