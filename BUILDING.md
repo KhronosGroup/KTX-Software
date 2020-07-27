@@ -124,12 +124,24 @@ TODO: code signing / provisioning profile
 
 Install [Emscripten](https://emscripten.org) and follow the [install instructions](https://emscripten.org/docs/getting_started/downloads.html) closely. After you've set up your emscripten environment in a terminal, run the following:
 
+**Debug:**
+
 ```bash
 # Configure
 emcmake cmake -Bbuild-web-debug . -DCMAKE_BUILD_TYPE=Debug
 
 # Build
 cmake --build build-web-debug --config Debug
+```
+
+**Release:**
+
+```bash
+# Configure
+emcmake cmake -Bbuild-web .
+
+# Build
+cmake --build build-web
 ```
 
 For web there are two additional targets:
