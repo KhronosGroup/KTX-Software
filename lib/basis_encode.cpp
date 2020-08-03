@@ -582,19 +582,33 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         if (params->compressionLevel)
             cparams.m_compression_level = params->compressionLevel;
 
-        // There's no default for m_quality_level. Mimic basisu_tool.
-        if (params->qualityLevel != 0) {
-            cparams.m_max_endpoint_clusters = 0;
-            cparams.m_max_selector_clusters = 0;
-            cparams.m_quality_level = params->qualityLevel;
-        } else if (!params->maxEndpoints || !params->maxSelectors) {
-            cparams.m_max_endpoint_clusters = 0;
-            cparams.m_max_selector_clusters = 0;
-            cparams.m_quality_level = 128;
-        } else {
+        // There's no default for m_quality_level. `basisu` tool overrides
+        // any explicit m_{endpoint,selector}_clusters settings with those
+        // calculated from m_quality_level, if the user set that option. On
+        // the other hand the basis_compressor overrides the values of
+        // m_{endpoint,selector}_rdo_thresh calculated from m_quality_level
+        // with explicit settings made by the user. Note that, unlike the
+        // first pair where both have to be set, each of the second pair
+        // independently override the value for it calculated from
+        // m_quality_level.
+        //
+        // This is confusing for the user and tricky to document clearly.
+        // Therefore we override qualityLevel if both of max{Endpoint,Selector}s
+        // have been set so both sets of parameters are treated the same,
+        // except that intentionally we require the caller to have set both
+        // of max{Endpoint,Selector}s
+        if (params->maxEndpoints && params->maxSelectors) {
             cparams.m_max_endpoint_clusters = params->maxEndpoints;
             cparams.m_max_selector_clusters = params->maxSelectors;
             // cparams.m_quality_level = -1; // Default setting.
+        } else if (params->qualityLevel != 0) {
+            cparams.m_max_endpoint_clusters = 0;
+            cparams.m_max_selector_clusters = 0;
+            cparams.m_quality_level = params->qualityLevel;
+        } else {
+            cparams.m_max_endpoint_clusters = 0;
+            cparams.m_max_selector_clusters = 0;
+            cparams.m_quality_level = 128;
         }
 
         if (params->endpointRDOThreshold > 0)

@@ -36,6 +36,12 @@ add_test( NAME toktx-scale-resize
 add_test( NAME toktx-mipmap-resize
     COMMAND toktx --mipmap --resize 10x40 a b c
 )
+add_test( NAME toktx-only-max-endpoints
+    COMMAND toktx --max_endpoints 5000 a b
+)
+add_test( NAME toktx-only-max-selectors
+    COMMAND toktx --max_selectors 6000 a b
+)
 
 set_tests_properties(
     toktx-test-foobar
@@ -46,6 +52,8 @@ set_tests_properties(
     toktx-bcmp-uastc
     toktx-scale-resize
     toktx-mipmap-resize
+    toktx-only-max-endpoints
+    toktx-only-max-selectors
 PROPERTIES
     WILL_FAIL TRUE
 )

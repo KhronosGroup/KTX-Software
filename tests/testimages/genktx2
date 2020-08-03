@@ -119,19 +119,19 @@ $toktx --test --bcmp color_grid_basis.ktx2 ../srcimages/color_grid.png
 # ... and additional files for the load tests.
 
 $toktx --test --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx ../srcimages/rgb.ppm
-$toktx --test --genmipmap --no_multithreading --zcmp 5 --uastc --uastc_rdo_q 3 Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal.jpg
+$toktx --test --genmipmap --threads 1 --zcmp 5 --uastc --uastc_rdo_q 3 Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal.jpg
 
 # ... these too but these commands will only work with my arrangement
 # of workareas, so keep commented out.
 $toktx --test --genmipmap --bcmp -scale 0.5 ../webgl/libktx-webgl/ktx_app_basis.ktx2 ../../../KTX-Specification/icons/png/ktx_app.png
 $toktx --test --uastc --uastc_rdo_q 5.0 --resize 1000x1392 ../webgl/libktx-webgl/ktx_document_uastc_rdo5.ktx2 ../../../KTX-Specification/icons/png/ktx_document.png
 $toktx --test --genmipmap -bcmp ktx_document_basis.ktx2 ../../../KTX-Specification/icons/png/ktx_document.png
-# no-multithreading here & below is to avoid non determism in the RDO processing.
+# threads 1 here is to avoid non-determism in the RDO processing.
 # Hopefully a fix will be forthcoming.
-$toktx --test --genmipmap --no_multithreading --uastc --uastc_rdo_q 4 --zcmp 5 ktx_document_uastc_rdo4_zstd5.ktx2 ../../../KTX-Specification/icons/png/ktx_document.png
+$toktx --test --genmipmap --threads 1 --uastc --uastc_rdo_q 4 --zcmp 5 ktx_document_uastc_rdo4_zstd5.ktx2 ../../../KTX-Specification/icons/png/ktx_document.png
 
-# ... these also but they take a long time to generate especially with
-# the debug version.
 $toktx --test --cubemap --genmipmap --bcmp cubemap_yokohama_basis_rd.ktx2 @@../srcimages/Yokohama3/filelist.txt
 
-$toktx --test --cubemap -scale 0.5 --genmipmap --no_multithreading --uastc --uastc_rdo_q 4 --zcmp 5 cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2 @@../srcimages/GoldenGateBridge3/filelist.txt
+# ... this also but it takes a long time to generate especially with
+# the debug version.
+$toktx --test --cubemap -scale 0.5 --genmipmap --threads 1 --uastc --uastc_rdo_q 4 --zcmp 5 cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2 @@../srcimages/GoldenGateBridge3/filelist.txt

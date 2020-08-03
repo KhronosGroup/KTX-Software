@@ -320,6 +320,8 @@ class ktxApp {
 
     commandOptions& options;
 
+    virtual void validateOptions() { }
+
     std::vector<argparser::option> option_list {
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "version", argparser::option::no_argument, NULL, 'v' },

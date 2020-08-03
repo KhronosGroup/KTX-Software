@@ -983,14 +983,23 @@ typedef struct ktxBasisParams {
     ktx_uint32_t qualityLevel;
         /*!< Compression quality. Range is 1 - 255.  Lower gives better
              compression/lower quality/faster. Higher gives less compression
-             /higher quality/slower. Values of @c maxEndpoints and
-             @c maxSelectors computed from this override any explicitly set
-             values. Default is 128, if either of @c maxEndpoints or
-             @c maxSelectors is unset, otherwise those settings rule.
+             /higher quality/slower.  This automatically determines values for
+             @c maxEndpoints, @c maxSelectors,
+             @c endpointRDOThreshold and @c selectorRDOThreshold
+             for the target quality level. Setting these parameters overrides
+             the values determined by @c qualityLevel which defaults to
+             128 if neither it nor both of @c maxEndpoints and
+             @c maxSelectors have been set.
+             @note @e Both of @c maxEndpoints and @c maxSelectors
+             must be set for them to have any effect.
+             @note qualityLevel will only determine values for
+             @c endpointRDOThreshold and @c selectorRDOThreshold
+             when its value exceeds 128, otherwise their defaults will be used.
         */
     ktx_uint32_t maxEndpoints;
         /*!< Manually set the max number of color endpoint clusters
-             from 1-16128. Default is 0, unset.
+             from 1-16128. Default is 0, unset. If this is set, maxSelectors
+             must also be set, otherwise the value will be ignored.
          */
     float endpointRDOThreshold;
         /*!< Set endpoint RDO quality threshold. The default is 1.25. Lower is
@@ -999,7 +1008,8 @@ typedef struct ktxBasisParams {
          */
     ktx_uint32_t maxSelectors;
         /*!< Manually set the max number of color selector clusters
-             from 1-16128. Default is 0, unset.
+             from 1-16128. Default is 0, unset. If this is set, maxEndpoints
+             must also be set, otherwise the value will be ignored.
          */
     float selectorRDOThreshold;
         /*!< Set selector RDO quality threshold. The default is 1.5. Lower is

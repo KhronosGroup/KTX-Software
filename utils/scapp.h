@@ -64,33 +64,47 @@ struct clampedOption
         otherwise they are ignored.
       <dl>
       <dt>--no_multithreading</dt>
-      <dd>Disable multithreading. By default Basis compression will use the
-          numnber of threads reported by @c thread::hardware_concurrency or
-          1 if value returned is 0.</dd>
+      <dd>Disable multithreading. Deprecated. For backward compatibility
+          only. Use @b --threads 1 instead.</dd>
       <dt>--threads &lt;count&gt;</dt>
       <dd>Explicitly set the number of threads to use during compression.
-          @b --no_multithreading must not be set.</dd>
+          By default Basis compression will use the numnber of threads
+          reported by @c thread::hardware_concurrency or 1 if value
+          returned is 0.</dd>
       <dt>--clevel &lt;level&gt;</dt>
-      <dd>Basis compression level, an encoding speed vs. quality tradeoff. Range
-          is 0 - 5, default is 1. Higher values are slower, but give higher
-          quality.</dd>
+      <dd>Basis compression level, an encoding speed vs. quality tradeoff.
+          Range is 0 - 5, default is 1. Higher values are slower, but give
+          higher quality.</dd>
       <dt>--qlevel &lt;level&gt;</dt>
       <dd>Basis quality level. Range is 1 - 255.  Lower gives better
           compression/lower quality/faster. Higher gives less compression
-          /higher quality/slower. Values of @b --max_endpoints and
-          @b --max-selectors computed from this override any explicitly set
-          values. Default is 128, if either of @b --max_endpoints or
-          @b --max_selectors is unset, otherwise those settings rule.</dd>
+          /higher quality/slower. @b --qlevel automatically determines values
+          for @b --max_endpoints, @b --max-selectors,
+          @b --endpoint_rdo_threshold and @b --selector_rdo_threshold for the
+          target quality level. Setting these options overrides the values
+          determined by @b --qlevel which defaults to 128 if neither it nor
+          both of @b --max_endpoints and @b --max_selectors have been set.
+
+          @note Both of @b --max_endpoints and @b --max_selectors must be set
+          for them to have any effect. If all three options are set, a
+          warning will be issued that @b --qlevel will be ignored.
+          @note @b --qlevel will only determine values for
+          @b --endpoint_rdo_threshold and @b --selector_rdo_threshold
+          when its value exceeds 128, otherwise their defaults will be used.
       <dt>--max_endpoints &lt;arg&gt;</dt>
       <dd>Manually set the maximum number of color endpoint clusters
-          from 1-16128. Default is 0, unset.</dd>
+          from 1-16128. Default is 0, unset. If this is set,
+          @b --max_selectors must also be set, otherwise the value
+          will be ignored.</dd>
       <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
       <dd>Set endpoint RDO quality threshold. The default is 1.25. Lower is
           higher quality but less quality per output bit (try 1.0-3.0).
           This will override the value chosen by @c --qual.</dd>
       <dt>--max_selectors &lt;arg&gt;</dt>
       <dd>Manually set the maximum number of color selector clusters
-          from 1-16128. Default is 0, unset.</dd>
+          from 1-16128. Default is 0, unset. If this is set,
+          @b --max_selectors must also be set, otherwise the value
+          will be ignored.</dd>
       <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
       <dd>Set selector RDO quality threshold. The default is 1.5. Lower is
           higher quality but less quality per output bit (try 1.0-3.0).
@@ -173,7 +187,6 @@ class scApp : public ktxApp {
             clampedOption<ktx_uint32_t> maxSelectors;
             clampedOption<ktx_uint32_t> uastcRDODictSize;
             clampedOption<float> uastcRDOQualityScalar;
-            int noMultithreading;
 
             basisOptions() :
                 threadCount(ktxBasisParams::threadCount, 1, 10000),
@@ -182,8 +195,7 @@ class scApp : public ktxApp {
                 maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
                 uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
                 uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
-                                      0.001f, 10.0f),
-                noMultithreading(0)
+                                      0.001f, 10.0f)
             {
                 uint32_t tc = thread::hardware_concurrency();
                 if (tc == 0) tc = 1;
@@ -230,6 +242,7 @@ class scApp : public ktxApp {
     virtual bool processOption(argparser& parser, int opt);
     enum HasArg { eNone, eOptional, eRequired };
     void captureOption(const argparser& parser, HasArg hasArg);
+    void validateOptions();
 
   public:
     scApp(string& version, string& defaultVersion, scApp::commandOptions& options);
@@ -248,12 +261,13 @@ class scApp : public ktxApp {
           "               compressed texture. When set, the following Basis-related\n"
           "               options become valid, otherwise they are ignored.\n\n"
           "      --no_multithreading\n"
-          "               Disable multithreading. By default Basis compression will use\n"
-          "               the numnber of threads reported by\n"
-          "               @c thread::hardware_concurrency or 1 if value returned is 0.\n"
+          "               Disable multithreading. Deprecated. For backward compatibilty.\n"
+          "               Use --threads 1 instead.\n"
           "      --threads <count>\n"
           "               Explicitly set the number of threads to use during compression.\n"
-          "               --no_multithreading must not be set.\n"
+          "               By default Basis compression will use the numnber of threads\n"
+          "               reported by thread::hardware_concurrency or 1 if value returned\n"
+          "               is 0.\n"
           "      --clevel <level>\n"
           "               Basis compression level, an encoding speed vs. quality tradeoff.\n"
           "               Range is 0 - 5, default is 1. Higher values are slower, but give\n"
@@ -261,10 +275,20 @@ class scApp : public ktxApp {
           "      --qlevel <level>\n"
           "               Basis quality level. Range is 1 - 255.  Lower gives better\n"
           "               compression/lower quality/faster. Higher gives less compression\n"
-          "               /higher quality/slower. Values of --max_endpoints and\n"
-          "               --max-selectors computed from this override any explicitly set\n"
-          "               values. Default is 128, if either of --max_endpoints or\n"
-          "               --max_selectors is unset, otherwise those settings rule.\n"
+          "               /higher quality/slower. --qlevel automatically determines values\n"
+          "               for --max_endpoints, --max-selectors, --endpoint_rdo_threshold\n"
+          "               and --selector_rdo_threshold for the target quality level.\n"
+          "               Setting these options overrides the values determined by\n"
+          "               --qlevel which defaults to 128 if neither it nor both of\n"
+          "               --max_endpoints and --max_selectors have been set.\n"
+          "\n"
+          "               Note that both of --max_endpoints and --max_selectors\n"
+          "               must be set for them to have any effect. If all three options\n"
+          "               are set, a warning will be issued that --qlevel will be ignored.\n"
+          "\n"
+          "               Note also that --qlevel will only determine values for\n"
+          "               --endpoint_rdo_threshold and --selector_rdo_threshold when\n"
+          "               its value exceeds 128, otherwise their defaults will be used.\n"
           "      --max_endpoints <arg>\n"
           "               Manually set the maximum number of color endpoint clusters from\n"
           "               1-16128. Default is 0, unset.\n"
@@ -379,6 +403,21 @@ scApp::captureOption(const argparser& parser, HasArg hasArg)
         scparams += parser.optarg + " ";
 }
 
+void
+scApp::validateOptions() {
+    if (options.bopts.maxEndpoints == 0 ^ options.bopts.maxSelectors == 0) {
+        cerr << name << ": Both or neither of --max_endpoints and"
+             << " --max_selectors must be specified." << endl;
+        usage();
+        exit(1);
+    }
+    if (options.bopts.qualityLevel
+        && (options.bopts.maxEndpoints + options.bopts.maxSelectors)) {
+        cerr << name << ": Warning: ignoring --qlevel as it, --max_endpoints"
+             << " and --max_selectors are all set." << endl;
+    }
+}
+
 // Derived classes' processOption will have to explicitly call this one
 // and should call it after processing their own options.
 bool
@@ -431,7 +470,7 @@ scApp::processOption(argparser& parser, int opt)
         hasArg = true;
         break;
       case 'N':
-        options.bopts.noMultithreading = 1;
+        options.bopts.threadCount = 1;
         capture = false;
         break;
       case 'n':

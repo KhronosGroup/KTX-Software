@@ -245,8 +245,8 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
                 throw std::runtime_error("PNG file has gAMA of 0.");
             }
             // What PNG calls gamma is the power to use for encoding. Elsewhere
-            // gamma is commonly used commonly for the power to use for
-            // decoding. For example by spec. the value in the PNG file is
+            // gamma is commonly used for the power to use for decoding.
+            // For example by spec. the value in the PNG file is
             // gamma * 100000 so gamma of 45455 is .45455. The power for
             // decoding is the inverse, i.e  1 / .45455 which is 2.2.
             // The variable gamma below is for decoding and is 1 / gAMA.

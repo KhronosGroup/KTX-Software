@@ -301,8 +301,6 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                         exitCode = 1;
                         goto cleanup;
                     }
-                    if (bopts.noMultithreading)
-                        bopts.threadCount = 1;
                     uint32_t componentCount, componentByteLength;
                     ktxTexture2_GetComponentInfo(texture,
                                                  &componentCount,
@@ -395,6 +393,8 @@ cleanup:
 void
 ktxSupercompressor::validateOptions()
 {
+    scApp::validateOptions();
+
     if (options.infiles.size() > 1 && options.outfile.length()) {
         cerr << "Can't use -o when there are multiple infiles." << endl;
         usage();

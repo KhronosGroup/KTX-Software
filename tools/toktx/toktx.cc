@@ -137,12 +137,13 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         In future these images may be transformed to linear or sRGB OETF as
         appropriate for the profile. sRGB chunk must not be present.</dd>
     <dt>gAMA and/or cHRM chunks present without sRGB or iCCP:</dt>
-        <dd>If gAMA is 45455 the OETF is set to sRGB, if 100000 it is set to
-        linear. Other gAMA values are currently unsupported. cHRM is currently
-        unsupported. In future images with other gAMA values may be
-        transformed to linear or sRGB OETF and the cHRM primary values
-        mapped to one of the standard sets listed in the Khronos Data Format
-        Specification.</dd>
+        <dd>If gAMA is < 60000 the image is transformed to and the OETF is set to
+        sRGB. otherwise the image is transformed to and the OETF is set to
+        linear. The color primaries in cHRM are matched to one of the
+        standard sets listed in the Khronos Data Format Specification (the
+        KHR_DF_PRIMARIES values from khr_df.h) and the primaries
+        field of the output file's DFD is set to the matched value. If no match is
+        found the primaries field is set to UNSPECIFIED.</dd>
     </dl>
 
     The following options are always available:
@@ -204,9 +205,11 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         provided for each level. Provide the images in the order of layer
         then face or depth slice then level with the base-level image first
         then in order down to the 1x1 image or the level specified by
-        @b --levels.  This option is mutually exclusive with @b --automipmap
-        and @b --genmipmap. @note This ordering differs from that in the
-        created texture as it is felt to be more user-friendly.</dd>
+        @b --levels.  @note This ordering differs from that in the
+        created texture as it is felt to be more user-friendly.
+
+        This option is mutually exclusive with @b --automipmap and
+        @b --genmipmap.</dd>
     <dt>--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
@@ -444,8 +447,8 @@ toktxApp::usage()
         "               format. Other formats can be readily converted to these formats\n"
         "               using tools such as ImageMagick and XnView. When no infile is\n"
         "               specified, stdin is used. infiles prefixed with '@' are read as\n"
-        "               text files listing actual file names to process with one file path\n"
-        "               per line. Paths must be absolute or relative to the current\n"
+        "               text files listing actual file names to process with one file\n"
+        "               path per line. Paths must be absolute or relative to the current\n"
         "               directory when toktx is run. If '@@' is used instead, paths must\n"
         "               be absolute or relative to the location of the list file.\n"
         "\n"
@@ -532,9 +535,9 @@ toktxApp::usage()
         "               upside down. This option is ignored with --cubemap.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
         "               If this is pecified, implicit or explicit color space information\n"
-        "               from the input file(s) will be ignored and no color transformation\n"
-        "               will be performed. USE WITH CAUTION preferably only when you know\n"
-        "               the file format information is wrong.\n"
+        "               from the input file(s) will be ignored and no color\n"
+        "               transformation will be performed. USE WITH CAUTION preferably\n"
+        "               only when you know the file format information is wrong.\n"
         "  --srgb       Force the created texture to have an srgb transfer function.\n"
         "               Like --linear, USE WITH CAUTION. As with @b --linear, no color\n"
         "               transformation will be performed.\n"
@@ -1003,8 +1006,6 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 exitCode = 1;
                 goto cleanup;
             }
-            if (bopts.noMultithreading)
-                bopts.threadCount = 1;
             if (componentCount == 1 || componentCount == 2) {
                 // Ensure this is not set as it would result in R in both
                 // RGB and A. This is because we have to pass RGBA to the BasisU
@@ -1075,6 +1076,8 @@ cleanup:
 void
 toktxApp::validateOptions()
 {
+    scApp::validateOptions();
+
     if (options.automipmap + options.genmipmap + options.mipmap > 1) {
         error("only one of --automipmap, --genmipmap and "
               "--mipmap may be specified.");
