@@ -955,7 +955,7 @@ typedef enum ktx_pack_uastc_flag_bits_e {
 } ktx_pack_uastc_flag_bits_e;
 typedef ktx_uint32_t ktx_pack_uastc_flags;
 
-extern const uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+extern const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
 
 /**
  * @memberof ktxTexture2
