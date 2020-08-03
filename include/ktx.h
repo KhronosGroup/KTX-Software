@@ -955,6 +955,8 @@ typedef enum ktx_pack_uastc_flag_bits_e {
 } ktx_pack_uastc_flag_bits_e;
 typedef ktx_uint32_t ktx_pack_uastc_flags;
 
+extern const uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+
 /**
  * @memberof ktxTexture2
  * @~English
@@ -977,8 +979,11 @@ typedef struct ktxBasisParams {
     /* ETC1S params */
 
     ktx_uint32_t compressionLevel;
-        /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5, default
-             is 1. Higher values are slower, but give higher quality.
+        /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5. Higher values
+            are slower, but give higher quality. There is no default. Callers must
+            explicitly set this value.  Callers can use
+            KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL for a default value.
+            Currently this is 1.
         */
     ktx_uint32_t qualityLevel;
         /*!< Compression quality. Range is 1 - 255.  Lower gives better

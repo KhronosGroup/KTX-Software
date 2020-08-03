@@ -577,10 +577,12 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
         cparams.m_mip_gen = false; // We provide the mip levels.
 
-
-        // Defaults to BASISU_DEFAULT_COMPRESSION_LEVEL
-        if (params->compressionLevel)
-            cparams.m_compression_level = params->compressionLevel;
+        // Explicit specification is required as 0 is a valid value
+        // in the basis_compressor leaving us without a good way to
+        // indicate the parameter has not been set by the caller. (If we
+        // leave m_compression_level unset it will default to 1. We don't
+        // want the default to differ from `basisu` so 0 can't be the default.
+        cparams.m_compression_level = params->compressionLevel;
 
         // There's no default for m_quality_level. `basisu` tool overrides
         // any explicit m_{endpoint,selector}_clusters settings with those
@@ -946,6 +948,9 @@ cleanup:
     return result;
 }
 
+extern "C" const uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
+                                      = BASISU_DEFAULT_COMPRESSION_LEVEL;
+
 /**
  * @memberof ktxTexture2
  * @ingroup writer
@@ -985,6 +990,7 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
     ktxBasisParams params = {};
     params.structSize = sizeof(params);
     params.threadCount = 1;
+    params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
     params.qualityLevel = quality;
 
     return ktxTexture2_CompressBasisEx(This, &params);

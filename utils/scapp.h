@@ -203,7 +203,7 @@ class scApp : public ktxApp {
                 threadCount = tc;
 
                 structSize = sizeof(ktxBasisParams);
-                compressionLevel = 0;
+                compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
                 qualityLevel.clear();
                 maxEndpoints.clear();
                 endpointRDOThreshold = 0.0f;
