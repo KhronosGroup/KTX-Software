@@ -405,7 +405,7 @@ scApp::captureOption(const argparser& parser, HasArg hasArg)
 
 void
 scApp::validateOptions() {
-    if (options.bopts.maxEndpoints == 0 ^ options.bopts.maxSelectors == 0) {
+    if ((options.bopts.maxEndpoints == 0) ^ (options.bopts.maxSelectors == 0)) {
         cerr << name << ": Both or neither of --max_endpoints and"
              << " --max_selectors must be specified." << endl;
         usage();
