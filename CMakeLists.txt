@@ -226,8 +226,9 @@ target_compile_definitions(ktx PRIVATE BASISD_SUPPORT_FXT1=0)
 if(WIN32)
     target_compile_definitions(
         ktx
-    PUBLIC
-        "KTX_APICALL=__declspec(dllexport)"
+	PRIVATE 
+        "KTX_API=__declspec(dllexport)"
+	PUBLIC # only for basisu_c_binding.
         BASISU_NO_ITERATOR_DEBUG_LEVEL
     )
     target_sources(

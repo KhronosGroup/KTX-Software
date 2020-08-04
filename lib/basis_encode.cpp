@@ -948,7 +948,7 @@ cleanup:
     return result;
 }
 
-extern "C" const uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
+extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
                                       = BASISU_DEFAULT_COMPRESSION_LEVEL;
 
 /**

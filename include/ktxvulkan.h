@@ -90,7 +90,7 @@ typedef struct ktxVulkanTexture
     uint32_t layerCount; /*!< The number of array layers in the image. */
 } ktxVulkanTexture;
 
-KTX_APICALL void KTX_APIENTRY
+KTX_API void KTX_APIENTRY
 ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
                           const VkAllocationCallbacks* pAllocator);
 
@@ -133,54 +133,54 @@ typedef struct ktxVulkanDeviceInfo {
     VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 } ktxVulkanDeviceInfo;
 
-KTX_APICALL ktxVulkanDeviceInfo* KTX_APIENTRY
+KTX_API ktxVulkanDeviceInfo* KTX_APIENTRY
 ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
                            const VkAllocationCallbacks* pAllocator);
-KTX_APICALL KTX_error_code KTX_APIENTRY
+KTX_API KTX_error_code KTX_APIENTRY
 ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
                          VkPhysicalDevice physicalDevice, VkDevice device,
                          VkQueue queue, VkCommandPool cmdPool,
                          const VkAllocationCallbacks* pAllocator);
-KTX_APICALL void KTX_APIENTRY
+KTX_API void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
-KTX_APICALL void KTX_APIENTRY
+KTX_API void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
-KTX_APICALL KTX_error_code KTX_APIENTRY
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
                       VkImageTiling tiling,
                       VkImageUsageFlags usageFlags,
                       VkImageLayout finalLayout);
-KTX_APICALL KTX_error_code KTX_APIENTRY
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
-KTX_APICALL KTX_error_code KTX_APIENTRY
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
                        ktxVulkanTexture* vkTexture,
                        VkImageTiling tiling,
                        VkImageUsageFlags usageFlags,
                        VkImageLayout finalLayout);
-KTX_APICALL KTX_error_code KTX_APIENTRY
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
-KTX_APICALL KTX_error_code KTX_APIENTRY
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
                        ktxVulkanTexture* vkTexture,
                        VkImageTiling tiling,
                        VkImageUsageFlags usageFlags,
                        VkImageLayout finalLayout);
-KTX_APICALL KTX_error_code KTX_APIENTRY
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
                      ktxVulkanTexture *vkTexture);
 
-KTX_APICALL VkFormat KTX_APIENTRY
+KTX_API VkFormat KTX_APIENTRY
 ktxTexture_GetVkFormat(ktxTexture* This);
 
-KTX_APICALL VkFormat KTX_APIENTRY
+KTX_API VkFormat KTX_APIENTRY
 ktxTexture1_GetVkFormat(ktxTexture1* This);
 
-KTX_APICALL VkFormat KTX_APIENTRY
+KTX_API VkFormat KTX_APIENTRY
 ktxTexture2_GetVkFormat(ktxTexture2* This);
 
 #ifdef __cplusplus
