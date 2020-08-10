@@ -81,8 +81,8 @@ endif()
 
 # Global Optimization Flags
 if(EMSCRIPTEN)
-    add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-Oz> )
-    add_link_options( $<IF:$<CONFIG:Debug>,-g4,-Oz> )
+    add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
+    add_link_options( $<IF:$<CONFIG:Debug>,-g4,-O3> )
 elseif(MSVC)
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 else()
@@ -460,7 +460,10 @@ if(EMSCRIPTEN)
     )
 
     # Re-use ktx's compile options
-    target_compile_options(msc_basis_transcoder_js PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_OPTIONS>)
+    target_compile_options(msc_basis_transcoder_js
+    PRIVATE
+       $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_OPTIONS>
+       )
 
     target_link_options(
         msc_basis_transcoder_js
