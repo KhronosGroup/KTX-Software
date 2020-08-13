@@ -771,7 +771,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             createInfo.baseWidth = levelWidth = image->getWidth();
             createInfo.baseHeight = levelHeight = image->getHeight();
             createInfo.baseDepth = levelDepth = options.depth;
-            if (image->getWidth() == 1 && !options.two_d)
+            if (image->getHeight() == 1 && !options.two_d)
                 createInfo.numDimensions = 1;
             else
                 createInfo.numDimensions = 2;
