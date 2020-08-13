@@ -1,3 +1,6 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 # Code generation scripts that require a Vulkan SDK installation
 if(WIN32 AND NOT CYGWIN_INSTALL_PATH)
     # Git for Windows comes with Perl

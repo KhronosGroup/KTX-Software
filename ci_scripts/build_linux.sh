@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 # exit if any command fails
 set -e

@@ -1,3 +1,6 @@
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
+
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	set(ASSIMP_ARCHITECTURE "64")
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)

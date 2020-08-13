@@ -1,11 +1,11 @@
 #!/bin/zsh
+# Copyright 2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
 
 # notarize.sh
 
 # Checks pkg for a valid signature. If valid, uploads the pkg for
 # notarization and monitors the notarization status
-
-# ©2020 - Mark Callow
 
 # Usage: notarize.sh <path/to/pkg> <appleid> <devteam> <password-label>
 #    path/to/pkg - path a signed .pkg file to be notarized.

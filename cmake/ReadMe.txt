@@ -1,3 +1,6 @@
+Copyright 2015-2020 The Khronos Group Inc.
+SPDX-License-Identifier: Apache-2.0
+
 This will install the following KTX tools along with libktx:
 
 - ktx2check - Check KTX v2 files for validity.

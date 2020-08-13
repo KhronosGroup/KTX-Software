@@ -1,0 +1,57 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: KTX-Software
+Source: https://github.com/KhronosGroup/KTX-Software
+
+Files: */*.png */*.ktx */*.ico */*.icns */*.jpg */*.pam */*.ppm */*.ktx */*.ktx2 */*.basis
+Copyright: 2015-2020 The Khronos Group Inc.
+License: Apache-2.0
+Comment: Jon - Unclear whether *all* images / icons fall under this license
+
+Files: lib/basisu/apg_bmp.*
+Copyright: 2019 Anton Gerdelan
+License: Apache-2.0
+Comment: Jon - see https://github.com/BinomialLLC/basis_universal/issues/165
+
+Files: lib/basisu/basisu_astc_decomp.*
+Copyright: 2016 The Android Open Source Project
+License: Apache-2.0
+
+Files: lib/basisu/lodepng.*
+Copyright: 2005-2019 Lode Vandevenne
+License: Zlib
+
+Files: lib/basisu/*
+Copyright: 2019-2020 Binomial LLC
+License: Apache-2.0
+
+Files: cmake/modules/NSIS.InstallOptions.ini.in
+Copyright: 2020 Andreas Atteneder
+License: Apache-2.0
+
+Files: other_lib/win/*
+Copyright: 2020 Andreas Atteneder
+License: Apache-2.0
+
+# Files: other_lib/win/Release-x65/glew32.*
+# Copyright: TBD
+# License: TBD
+
+Files: other_lib/*/*SDL* other_include/SDL2/*
+Copyright: 1997-2020 Sam Lantinga <slouken@libsdl.org>
+License: Zlib
+
+Files: other_lib/*/*/*zstd*
+Copyright: 2016-present Facebook, Inc.
+License: BSD-3-Clause
+
+Files: other_include/assimp/* other_lib/*/*/*assimp*
+Copyright: 2006-2019, assimp team
+License: BSD-3-Clause
+
+Files: tests/gtest/*
+Copyright: 2008, Google Inc.
+License: BSD-3-Clause
+
+Files: other_include/glm/*
+Copyright: 2005 G-Truc Creation
+License: MIT

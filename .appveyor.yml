@@ -1,3 +1,6 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 version: "{build}"
 
 image:
@@ -75,7 +78,7 @@ init:
 install:
 - cinst doxygen.install
 #- ps: |
-    #run mkversion 
+    #run mkversion
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 - cmd: |
     REM Download PowerVR OpenGL ES Emulator libraries (latest version).
@@ -168,4 +171,4 @@ deploy:
     prerelease: true
     on:
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
- 
+
