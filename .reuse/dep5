@@ -2,15 +2,15 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: KTX-Software
 Source: https://github.com/KhronosGroup/KTX-Software
 
+# Jon - Unclear whether *all* images / icons fall under this license
 Files: */*.png */*.ktx */*.ico */*.icns */*.jpg */*.pam */*.ppm */*.ktx */*.ktx2 */*.basis
 Copyright: 2015-2020 The Khronos Group Inc.
 License: Apache-2.0
-Comment: Jon - Unclear whether *all* images / icons fall under this license
 
+# Jon - see https://github.com/BinomialLLC/basis_universal/issues/165
 Files: lib/basisu/apg_bmp.*
 Copyright: 2019 Anton Gerdelan
 License: Apache-2.0
-Comment: Jon - see https://github.com/BinomialLLC/basis_universal/issues/165
 
 Files: lib/basisu/basisu_astc_decomp.*
 Copyright: 2016 The Android Open Source Project
@@ -55,3 +55,7 @@ License: BSD-3-Clause
 Files: other_include/glm/*
 Copyright: 2005 G-Truc Creation
 License: MIT
+
+Files: lib/etcdec.cxx
+Copyright: 2013 Ericsson AB 2013. All Rights Reserved.
+License: LicenseRef-ETCSLA

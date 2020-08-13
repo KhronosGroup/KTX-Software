@@ -1,4 +1,5 @@
-// Copyright (c) 2016 Mark Callow
+// Copyright 2016 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
  
 // Vertex shader for cube sample.
  
