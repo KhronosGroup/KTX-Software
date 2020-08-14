@@ -1,3 +1,6 @@
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
+
 # gtest based unit-tests
 
 add_subdirectory(gtest)
