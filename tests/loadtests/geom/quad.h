@@ -2,6 +2,11 @@
 /* vi: set et sw=2 ts=4 expandtab: */
 
 /*
+ * Copyright 2016-2020 Mark Callow
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
  * Quad definition
  */
 static const GLfloat quad_position[] =

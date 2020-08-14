@@ -32,8 +32,8 @@ Files: lib/basisu/*
 Copyright: 2019-2020 Binomial LLC
 License: Apache-2.0
 
-Files: cmake/modules/NSIS.InstallOptions.ini.in
-Copyright: 2020 Andreas Atteneder
+Files: cmake/modules/NSIS.InstallOptions.ini.in cmake/*.rtf
+Copyright: 2017-2020 Andreas Atteneder
 License: Apache-2.0
 
 Files: other_lib/*/*SDL* other_include/SDL2/*
@@ -65,6 +65,10 @@ License: MIT
 
 Files: other_lib/win/*
 Copyright: 2020 Andreas Atteneder
+License: Apache-2.0
+
+Files: pkgdoc/*
+Copyright: 2018-2020 The Khronos Group Inc.
 License: Apache-2.0
 
 Files: tests/webgl/libktx-gltf/*

@@ -41,7 +41,7 @@
  * Part of FSE library
  *
  * Copyright 2013-2020, Yann Collet, Facebook, Inc.
- * SPDX-License-Identifier: BSD-2-Clause OR LGPL-2.0-or-later
+ * SPDX-License-Identifier: BSD-2-Clause OR GPL-2.0-or-later
  *
  * You can contact the author at :
  * - Source repository : https://github.com/Cyan4973/FiniteStateEntropy
