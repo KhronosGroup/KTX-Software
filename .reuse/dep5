@@ -2,8 +2,16 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: KTX-Software
 Source: https://github.com/KhronosGroup/KTX-Software
 
-# Jon - Unclear whether *all* images / icons fall under this license
-Files: */*.png */*.ktx */*.ico */*.icns */*.jpg */*.pam */*.ppm */*.ktx */*.ktx2 */*.basis
+Files: tests/srcimages/GoldenGateBridge3/* tests/srcimages/Yokohama3/*
+Copyright: Emil Persson http://www.humus.name
+License: CC-BY-3.0
+
+Files: tests/srcimages/Iron_Bars/*
+Copyright: Katsuagi https://3dtextures.me
+License: CC0-1.0
+
+# Jon - Unclear whether all remaining images & icons fall under the Khronos license
+Files: */*.png */*.ktx */*.ico */*.icns */*.jpg */*.pam */*.pgm */*.ppm */*.ktx */*.ktx2 */*.basis */*.pspimage
 Copyright: 2015-2020 The Khronos Group Inc.
 License: Apache-2.0
 
@@ -28,25 +36,48 @@ Files: cmake/modules/NSIS.InstallOptions.ini.in
 Copyright: 2020 Andreas Atteneder
 License: Apache-2.0
 
-Files: other_lib/win/*
-Copyright: 2020 Andreas Atteneder
-License: Apache-2.0
-
-# Files: other_lib/win/Release-x65/glew32.*
-# Copyright: TBD
-# License: TBD
-
 Files: other_lib/*/*SDL* other_include/SDL2/*
 Copyright: 1997-2020 Sam Lantinga <slouken@libsdl.org>
 License: Zlib
 
-Files: other_lib/*/*/*zstd*
+Files: other_lib/*/*/*zstd* other_include/zstd*
 Copyright: 2016-present Facebook, Inc.
 License: BSD-3-Clause
 
-Files: other_include/assimp/* other_lib/*/*/*assimp*
+Files: other_lib/mac/Release/libminizip.a
+Copyright: 1995-2017 Jean-loup Gailly and Mark Adler
+License: Zlib
+
+Files: other_include/assimp/* other_lib/*/*/*assimp* other_lib/mac/Release/libIrrXML.a
 Copyright: 2006-2019, assimp team
 License: BSD-3-Clause
+
+Files: other_include/GL/glew.h other_include/GL/glxew.h other_include/GL/wglew.h other_lib/win/Release-x65/glew32.*
+Copyright: 2008-2015, Nigel Stewart <nigels[]users sourceforge net>
+Copyright: 2002-2008, Milan Ikits <milan ikits[]ieee org>
+Copyright: 2002-2008, Marcelo E. Magallon <mmagallo[]debian org>
+Copyright: 2002, Lev Povalahev
+License: BSD-3-Clause
+
+Files: other_include/EGL/*.h other_include/GL*/*.h other_include/KHR/khrplatform.h
+Copyright: 2007-2020 The Khronos Group Inc.
+License: MIT
+
+Files: other_lib/win/*
+Copyright: 2020 Andreas Atteneder
+License: Apache-2.0
+
+Files: tests/webgl/libktx-gltf/*
+Copyright: 2020 Don McCurdy, Austin Eng, Shrek Shao, and Mark Callow
+License: Apache-2.0
+
+Files: tests/webgl/libktx-webgl/*
+Copyright: 2020 Mark Callow
+License: Apache-2.0
+
+Files: tests/webgl/llt-three/*
+Copyright: 2020 Mark Callow
+License: Apache-2.0
 
 Files: tests/gtest/*
 Copyright: 2008, Google Inc.
@@ -59,3 +90,8 @@ License: MIT
 Files: lib/etcdec.cxx
 Copyright: 2013 Ericsson AB 2013. All Rights Reserved.
 License: LicenseRef-ETCSLA
+
+# Catch-alls
+Files: */*.json
+Copyright: 2017-2020 Mark Callow
+License: Apache-2.0

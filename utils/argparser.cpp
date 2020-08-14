@@ -2,19 +2,8 @@
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
- * ©2017 Mark Callow, www.edgewise-cosulting.com.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2017-2020 Mark Callow, www.edgewise-cosulting.com.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -44,7 +33,7 @@ argvector::argvector(const _tstring& sArgs)
 
     pos = sArgs.find_first_not_of(sep);
     assert(pos != _tstring::npos);
-    
+
     do {
         size_t epos = sArgs.find_first_of(sep, pos);
         size_t len = epos == _tstring::npos ? epos : epos - pos;
@@ -78,7 +67,7 @@ argparser::getopt(_tstring* shortopts, const struct option* longopts,
     if (arg[0] != _T('-') || (arg[0] == _T('-') && arg.size() == 1))
         return -1;
     optind++;
-    
+
     int retval = '?';
     if (arg.compare(0, 2, _T("--")) == 0) {
         if (arg.size() == 2) return -1; // " -- " separates options and files

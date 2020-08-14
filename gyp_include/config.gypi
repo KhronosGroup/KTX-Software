@@ -1,3 +1,6 @@
+# Copyright 2015-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
+
 ##
 # @internal
 # @copyright c 2015, Mark Callow. For license see LICENSE.md.

@@ -1,3 +1,6 @@
+# Copyright 2015-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
+
 ##
 # @internal
 # @copyright © 2015, Mark Callow. For license see LICENSE.md.
@@ -42,7 +45,7 @@
         'gen_platform_arch_var': '<(gen_platform_arch_var)',
         # Default install location
         'conditions': [
-          ['OS == "win"', {            
+          ['OS == "win"', {
             'pvrsdk_dir':
             'C:/Imagination/PowerVR_Graphics/PowerVR_SDK/SDK_2017_R1/Builds/Windows/x86_<(gen_platform_arch_var)/Lib',
           }, {

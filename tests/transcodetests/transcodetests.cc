@@ -1,16 +1,5 @@
-// Copyright (c) 2019 Andreas Atteneder, All Rights Reserved.
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//    http://www.apache.org/licenses/LICENSE-2.0
-
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2019 Andreas Atteneder, All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 #if defined(_WIN32)
 #define _CRT_SECURE_NO_WARNINGS
@@ -113,13 +102,13 @@ bool isPo2(uint32_t i) {
 }
 
 string combine_paths(string const a, string const b) {
-	if (a.back() == OS_SEP) {
-		return a + b;
+        if (a.back() == OS_SEP) {
+                return a + b;
 #if defined(_WIN32)
-	} else if (a.back() == UNIX_SEP) {
-		return a + b;
+        } else if (a.back() == UNIX_SEP) {
+                return a + b;
 #endif
-	} else {
+        } else {
         return a+OS_SEP+b;
     }
 }
@@ -128,7 +117,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     void * basisData;
     long basisSize;
-    
+
     string path = combine_paths(image_path,textureSet.basisuPath);
     bool read_success = read_file(path, &basisData, &basisSize);
 
@@ -171,16 +160,16 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     ASSERT_TRUE(read_success) << "Could not open texture file " << path;
 
     KTX_error_code result;
-    
+
     ktxTexture2* newTex = 0;
-    
+
     result = ktxTexture2_CreateFromMemory(
         (const ktx_uint8_t*) data,
         (ktx_size_t) fsize,
         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
         (ktxTexture2**)&newTex
         );
-    
+
     ASSERT_EQ(result,KTX_SUCCESS);
 
     result = ktxTexture2_TranscodeBasis(

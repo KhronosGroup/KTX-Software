@@ -1,3 +1,6 @@
+# Copyright 2010-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 add_executable( toktx
     $<TARGET_OBJECTS:objUtil>
     image.cc

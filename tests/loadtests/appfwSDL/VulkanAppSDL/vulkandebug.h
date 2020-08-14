@@ -1,3 +1,8 @@
+/*
+ * Copyright 2017-2020 Mark Callow
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #pragma once
 #include "vulkan/vulkan.h"
 
