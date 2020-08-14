@@ -1,4 +1,6 @@
 # Doxyfile 1.8.9.1
+# Copyright 2016-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
 
 # This file describes the settings to be used by the documentation system
 # doxygen (www.doxygen.org) for a project.
@@ -757,7 +759,7 @@ INPUT                  = tools/ktxinfo/ktxinfo.cpp \
                          tools/ktx2ktx2/ktx2ktx2.cpp \
                          tools/ktxsc/ktxsc.cpp \
                          tools/toktx/toktx.cc
- 
+
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
 # libiconv (or the iconv built into libc) for the transcoding. See the libiconv

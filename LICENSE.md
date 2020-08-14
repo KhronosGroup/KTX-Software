@@ -1,3 +1,6 @@
+Copyright 2013-2020 Mark Callow
+SPDX-License-Identifier: Apache-2.0
+
 License and Attribution Notices           {#license}
 =======================
 
@@ -42,7 +45,7 @@ Lode Vandevenne and Rich Geldreich. The source contains code
     © 2019 Andreas Atteneder
 
 The KTX load tests are the work of Mark Callow with a few small portions
-borrowed from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL for 
+borrowed from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL for
 portability. The source contains code
 
     © 2013 The Khronos Group Inc.
@@ -50,15 +53,15 @@ portability. The source contains code
     © 1997-2018 Sam Lantinga
     © 2016 Sascha Willems
     © 2015-2020 Mark Callow
-    
+
 `texturetests` and `unittests` are the work of Mark Callow and are based on gtest. The source contains code
 
     © 2010-2020 Mark Callow
     © 2006 Google Inc.
-    
+
  `transcodetests` are the work of and were contributed by Andreas Atteneder.
  The source contains code
- 
+
     © 2019 Andreas Atteneder
 
 -----------------

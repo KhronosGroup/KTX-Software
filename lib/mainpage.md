@@ -1,3 +1,6 @@
+Copyright 2019-2020 Mark Callow
+SPDX-License-Identifier: Apache-2.0
+
 Introduction             {#mainpage}
 =========
 
