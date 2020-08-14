@@ -95,6 +95,12 @@ Files: lib/etcdec.cxx
 Copyright: 2013 Ericsson AB 2013. All Rights Reserved.
 License: LicenseRef-ETCSLA
 
+# It's not certain that the stb font file indeed comes from tools in the
+# nothings/stb project on Github, but a reasonable assumption.
+Files: other_include/stb/*
+Copyright: 2017 Sean Barrett
+License: MIT
+
 # Catch-alls
 Files: */*.json
 Copyright: 2017-2020 Mark Callow
