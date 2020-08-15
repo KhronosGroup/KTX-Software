@@ -51,7 +51,7 @@ ktxTexture1_constructCommon(ktxTexture1* This)
     if (This->_private == NULL) {
         return KTX_OUT_OF_MEMORY;
     }
-        memset(This->_private, 0, sizeof(*This->_private));
+	memset(This->_private, 0, sizeof(*This->_private));
 
     return KTX_SUCCESS;
 }
@@ -71,7 +71,7 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
     GLenum glFormat;
     KTX_error_code result;
 
-        memset(This, 0, sizeof(*This));
+	memset(This, 0, sizeof(*This));
 
     This->glInternalformat = createInfo->glInternalformat;
     glGetFormatSize(This->glInternalformat, &formatSize);
@@ -199,7 +199,7 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
 
     assert(pHeader != NULL && pStream != NULL);
 
-        memset(This, 0, sizeof(*This));
+	memset(This, 0, sizeof(*This));
     result = ktxTexture_constructFromStream(ktxTexture(This), pStream, createFlags);
     if (result != KTX_SUCCESS)
         return result;

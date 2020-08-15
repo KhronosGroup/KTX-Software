@@ -1494,7 +1494,7 @@ ktxTexture2_GetDataSizeUncompressed(ktxTexture2* This)
       case KTX_SS_BEGIN_VENDOR_RANGE:
       case KTX_SS_END_VENDOR_RANGE:
       case KTX_SS_BEGIN_RESERVED:
-          default:
+	  default:
         return 0;
     }
 }

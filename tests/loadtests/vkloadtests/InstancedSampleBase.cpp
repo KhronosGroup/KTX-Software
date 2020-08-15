@@ -153,9 +153,9 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
                 vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
     }
     if (kTexture->generateMipmaps) {
-                neededFeatures |=  vk::FormatFeatureFlagBits::eBlitDst
-                            | vk::FormatFeatureFlagBits::eBlitSrc
-                       | vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
+		neededFeatures |=  vk::FormatFeatureFlagBits::eBlitDst
+			    | vk::FormatFeatureFlagBits::eBlitSrc
+		       | vk::FormatFeatureFlagBits::eSampledImageFilterLinear;
     }
 
     if ((features & neededFeatures) != neededFeatures) {

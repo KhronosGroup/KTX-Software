@@ -102,13 +102,13 @@ bool isPo2(uint32_t i) {
 }
 
 string combine_paths(string const a, string const b) {
-        if (a.back() == OS_SEP) {
-                return a + b;
+	if (a.back() == OS_SEP) {
+		return a + b;
 #if defined(_WIN32)
-        } else if (a.back() == UNIX_SEP) {
-                return a + b;
+	} else if (a.back() == UNIX_SEP) {
+		return a + b;
 #endif
-        } else {
+	} else {
         return a+OS_SEP+b;
     }
 }
@@ -117,7 +117,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     void * basisData;
     long basisSize;
-
+    
     string path = combine_paths(image_path,textureSet.basisuPath);
     bool read_success = read_file(path, &basisData, &basisSize);
 
@@ -160,16 +160,16 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     ASSERT_TRUE(read_success) << "Could not open texture file " << path;
 
     KTX_error_code result;
-
+    
     ktxTexture2* newTex = 0;
-
+    
     result = ktxTexture2_CreateFromMemory(
         (const ktx_uint8_t*) data,
         (ktx_size_t) fsize,
         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
         (ktxTexture2**)&newTex
         );
-
+    
     ASSERT_EQ(result,KTX_SUCCESS);
 
     result = ktxTexture2_TranscodeBasis(

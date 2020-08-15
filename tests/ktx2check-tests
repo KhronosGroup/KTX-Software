@@ -88,7 +88,7 @@ fi
 #    rm $1
 #    return 0
 #  else
-#       failed=$failed+1
+#	failed=$failed+1
 #    echo "Created ktx file differs from target $2. Bad file saved in $PWD/$1"
 #    return 1
 #  fi
@@ -111,10 +111,10 @@ fi
 #  local reference=$1; shift
 #  local tempfile=$(mktmp)
 #  for i in $*; do
-#       if [ ${i:0:2} == "--" ]; then
-#         args="$args $i"
-#         shift
-#       fi
+#	if [ ${i:0:2} == "--" ]; then
+#	  args="$args $i"
+#	  shift
+#	fi
 #  done
 #  #echo $toktx $args $tempfile $*
 #  if $toktx $args $tempfile $*; then
