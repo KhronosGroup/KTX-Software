@@ -1,0 +1,7 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: dfdutils
+Source: https://github.com/KhronosGroup/dfdutils
+
+Files: vulkan/*.h
+Copyright: 2014-2020 The Khronos Group Inc.
+License: Apache-2.0

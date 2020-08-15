@@ -1,6 +1,7 @@
 ##
 # @internal
-# @copyright © 2019, Mark Callow. For license see LICENSE.md.
+# @copyright Copyright 2019-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
 #
 # @brief Generate project files for building ktxinfo.
 #
