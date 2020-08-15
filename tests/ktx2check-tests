@@ -1,6 +1,6 @@
 #! /bin/bash
 # -*- tab-width: 4; -*-
-# vi: set sw=2 ts=4:
+# vi: set sw=2 ts=4 expandtab:
 
 # Regression tests for ktx2check
 
