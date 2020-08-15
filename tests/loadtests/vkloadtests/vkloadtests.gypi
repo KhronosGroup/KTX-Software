@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # @internal
-# @copyright © 2016, Mark Callow. For license see LICENSE.md.
 #
 # @brief Generate project file for building KTX loadtests for Vulkan.
 #

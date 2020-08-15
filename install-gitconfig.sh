@@ -3,7 +3,7 @@
 # Add [include] of repo's .gitconfig in clone's .git/config.
 
 # Copyright 2016 The Khronos Group Inc.
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: Apache-2.0
 
 # Set colors
 

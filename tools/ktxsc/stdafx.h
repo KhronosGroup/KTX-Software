@@ -1,5 +1,5 @@
-# Copyright 2019-2020 Mark Callow
-# SPDX-License-Identifier: Apache-2.0
+// Copyright 2019-2020 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
 
 // stdafx.h
 

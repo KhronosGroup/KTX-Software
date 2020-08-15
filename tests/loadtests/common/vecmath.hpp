@@ -1,6 +1,11 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
+/*
+ * Copyright 2016-2020 Mark Callow
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef VECMATH_9B7E1CFE346D11E6AFA2D7DC87495A69_H
 #define VECMATH_9B7E1CFE346D11E6AFA2D7DC87495A69_H
 
@@ -9,14 +14,6 @@
  * @~English
  *
  * @brief Vector math package modelled after GLSL.
- *
- * @author Mark Callow
- * @copyright (c) 2016, Mark Callow.
- */
-
-/*
- * Copyright 2016-2020 Mark Callow
- * SPDX-License-Identifier: MIT
  */
 
 #include <assert.h>

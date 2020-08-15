@@ -5,7 +5,7 @@
 # Regenerate the reference ktx2 files for load tests, etc.
 
 # Copyright 2017 The Khronos Group Inc.
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: Apache-2.0
 
 # Depth of this script relative to the project root
 depth=../..

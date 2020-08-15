@@ -11,9 +11,6 @@
  * @brief   Include appropriate version of gl.h for the shader-based tests.
  *
  * This is a separate header to avoid repetition of these conditionals.
- *
- * @author Mark Callow
- * @copyright (c) 2016, Mark Callow.
  */
 
 #ifndef MYGL_H

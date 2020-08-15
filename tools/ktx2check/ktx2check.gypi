@@ -3,7 +3,6 @@
 
 ##
 # @internal
-# @copyright © 2019, Mark Callow. For license see LICENSE.md.
 #
 # @brief Generate project files for building ktx2check.
 #

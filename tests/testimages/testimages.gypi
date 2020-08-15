@@ -3,7 +3,6 @@
 
 ##
 # @internal
-# @copyright © 2016, Mark Callow. For license see LICENSE.md.
 #
 # @brief Target for including test images in KTX tests.
 #

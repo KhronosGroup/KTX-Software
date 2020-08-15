@@ -14,9 +14,6 @@
  * @~English
  *
  * @brief GLAppSDL app class.
- *
- * @author Mark Callow, www.edgewise-consulting.com
- * @copyright © 2015-2018, Mark Callow.
  */
 
 #if defined(_WIN32)

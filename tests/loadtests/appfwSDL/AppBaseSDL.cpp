@@ -14,9 +14,6 @@
  * @~English
  *
  * @brief Base class for SDL applications.
- *
- * @author Mark Callow, www.edgewise-consulting.com
- * @copyright © 2015-2018, Mark Callow.
  */
 
 #include "AppBaseSDL.h"

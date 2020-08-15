@@ -9,9 +9,7 @@
 /**
  * @file    shaders.c
  * @brief   Shaders used by the DrawTexture and TexturedCube samples.
- *
- * @author-2020 Mark Callow, www.edgewise-consulting.com
- */ SPDX-License-Identifier: Apache-2.0
+ */
 
 "uniform highp mat4 mvmatrix;\n"
 "uniform highp mat4 pmatrix;\n\n"

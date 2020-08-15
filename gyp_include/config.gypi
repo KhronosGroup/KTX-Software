@@ -3,7 +3,6 @@
 
 ##
 # @internal
-# @copyright c 2015, Mark Callow. For license see LICENSE.md.
 #
 # @brief Set variables specifying locations from which to link
 #        3rd party libraries and which variants to use.

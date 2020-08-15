@@ -3,7 +3,6 @@
 
 ##
 # @internal
-# @copyright © 2015, Mark Callow. For license see LICENSE.md.
 #
 # @brief Generate project file for building KTX loadtests for OpenGL {,ES}.
 #

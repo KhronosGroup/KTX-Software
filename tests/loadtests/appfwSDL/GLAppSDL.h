@@ -17,9 +17,6 @@
  * @~English
  *
  * @brief Declaration of GLAppSDL base class for GL apps.
- *
- * @author Mark Callow, www.edgewise-consulting.com
- * @copyright © 2015-2018, Mark Callow.
  */
 
 #include "AppBaseSDL.h"

@@ -1,8 +1,8 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 sts=4 expandtab:
 
-# Copyright 2019-2020 Mark Callow
-# SPDX-License-Identifier: Apache-2.0
+// Copyright 2019-2020 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
 
 #include "stdafx.h"
 #include <cstdlib>

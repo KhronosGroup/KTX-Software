@@ -17,9 +17,6 @@
  * @~English
  *
  * @brief Declarations for App framework using SDL.
- *
- * @author Mark Callow, www.edgewise-consulting.com
- * @copyright © 2015-2018, Mark Callow.
  */
 
 #include <SDL2/SDL.h>

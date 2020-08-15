@@ -12,9 +12,6 @@
  * @~English
  *
  * @brief Custom exceptions for the load tests.
- *
- * @author Mark Callow
- * @copyright (c) 2018, Mark Callow.
  */
 
 #include <stdexcept>

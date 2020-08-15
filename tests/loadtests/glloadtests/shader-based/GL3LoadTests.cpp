@@ -13,9 +13,6 @@
  *
  * @brief Instantiate GLLoadTests app with set of tests for OpenGL 3.3+ and
  *        OpenGL ES 3.x
- *
- * @author Mark Callow
- * @copyright (c) 2015-2018, Mark Callow.
  */
 
 #include "GLLoadTests.h"

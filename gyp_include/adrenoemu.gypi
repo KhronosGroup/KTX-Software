@@ -3,7 +3,6 @@
 
 ##
 # @internal
-# @copyright © 2015, Mark Callow. For license see LICENSE.md.
 #
 # @brief Set configuration variables for Qualcomm Adreno emulator.
 #

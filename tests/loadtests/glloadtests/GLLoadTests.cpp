@@ -12,9 +12,6 @@
  * @~English
  *
  * @brief Implementation of app for running a set of OpenGL load tests.
- *
- * @author Mark Callow, www.edgewise-consulting.com
- * @copyright © 2015-2018, Mark Callow.
  */
 
 #include <exception>

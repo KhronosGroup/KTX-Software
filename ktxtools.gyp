@@ -3,7 +3,6 @@
 
 ##
 # @internal
-# @copyright © 2016, Mark Callow. For license see LICENSE.md.
 #
 # @brief Master for generating project files for building the KTX tools
 #
