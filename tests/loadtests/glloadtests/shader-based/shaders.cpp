@@ -11,6 +11,17 @@
  * @brief   Shaders used by the DrawTexture and TexturedCube samples.
  */
 
+#include "GL/glcorearb.h"
+#include "ktx.h"
+
+const GLchar* pszVs =
+"layout(location = 0) in vec4 position;\n"
+"layout(location = 1) in vec4 color;\n"
+"layout(location = 2) in vec4 texcoord;\n\n"
+
+"out vec4 v_color;\n"
+"out vec2 v_texcoord;\n\n"
+
 "uniform highp mat4 mvmatrix;\n"
 "uniform highp mat4 pmatrix;\n\n"
 
