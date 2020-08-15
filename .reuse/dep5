@@ -66,6 +66,14 @@ Files: lib/basisu/*
 Copyright: 2019-2020 Binomial LLC
 License: Apache-2.0
 
+Files: lib/dfdutils/vulkan/*
+Copyright: 2015-2020 The Khronos Group Inc.
+License: Apache-2.0
+
+Files: lib/dfdutils/.gitrepo
+Copyright: 2019-2020 The Khronos Group Inc
+License: Apache-2.0
+
 Files: cmake/modules/NSIS.InstallOptions.ini.in cmake/*.rtf
 Copyright: 2017-2020 Andreas Atteneder
 License: Apache-2.0
@@ -133,7 +141,7 @@ Files: lib/etcdec.cxx
 Copyright: 2013 Ericsson AB 2013. All Rights Reserved.
 License: LicenseRef-ETCSLA
 
-# This has an SPDX identifier but REUSE doesn't recognize it
+# This has an SPDX identifier, but REUSE doesn't recognize it
 Files: tests/loadtests/vkloadtests/resources/ios/LaunchScreen.storyboard
 Copyright: 2017-2020 The Khronos Group Inc.
 License: Apache-2.0
