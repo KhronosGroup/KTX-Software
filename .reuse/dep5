@@ -16,7 +16,7 @@ Copyright: 2015-2020 The Khronos Group Inc.
 License: Apache-2.0
 
 # Jon - see https://github.com/BinomialLLC/basis_universal/issues/165
-Files: lib/basisu/apg_bmp.*
+Files: lib/basisu/apg_bmp.* lib/basisu/CmakeLists.txt lib/basisu/webgl/transcoder/CMakeLists.txt
 Copyright: 2019 Anton Gerdelan
 License: Apache-2.0
 
