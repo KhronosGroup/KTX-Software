@@ -54,6 +54,7 @@ cmake --install . --config Release --prefix ../install-macos-release
 echo "Pack KTX-Software (macOS Release)"
 if ! cpack -G productbuild; then
   cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
+  exit 1
 fi
 
 popd
