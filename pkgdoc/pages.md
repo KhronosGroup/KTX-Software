@@ -14,6 +14,9 @@ formal specification.</a>
 
 The software is open source software. See @ref license for details.
 
+---
+@par This page last modified $Date$
+
 @page libktx_main libktx
 
 Read the [libktx Reference](libktx/index.html).
@@ -22,6 +25,9 @@ Current version is @snippet{doc} version.h Code version
 <br>
 
 View the @ref libktx_history
+
+---
+@par This page last modified $Date$
 
 @page ktxtools KTX Tools
 
@@ -55,6 +61,8 @@ toktx
  - @ref toktx reference page.
  - @ref toktx_history.
 
+---
+@par This page last modified $Date$
 
 @page authors Authors
 
