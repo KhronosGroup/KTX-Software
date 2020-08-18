@@ -1,7 +1,4 @@
-Copyright 2013-2020 Mark Callow  
-SPDX-License-Identifier: Apache-2.0
-
-LICENSE file for the KhronosGroup/KTX-Software project
+LICENSE file for the KhronosGroup/KTX-Software project    {#license}
 ======================================================
 
 Files unique to this repository generally fall under the Apache 2.0 license
@@ -31,7 +28,3 @@ inside the repository.
 
 The file lib/etcdec.cxx is not open source. It is made available under the
 terms of an Ericsson license, found in the file itself.
-
-
-
-

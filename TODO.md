@@ -1,6 +1,3 @@
-Copyright 2013-2020 Mark Callow
-SPDX-License-Identifier: Apache-2.0
-
 To Do List                     {#todo}
 =======
 

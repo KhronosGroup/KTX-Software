@@ -1,5 +1,5 @@
-Copyright 2013-2020 Mark Callow
-SPDX-License-Identifier: Apache-2.0
+<!-- Copyright 2013-2020 Mark Callow -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <img src="https://www.khronos.org/assets/images/api_logos/khronos.svg" width="300"/>
 
