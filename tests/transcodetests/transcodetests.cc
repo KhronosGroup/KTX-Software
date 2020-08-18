@@ -226,5 +226,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    ktx_basisu_basis_init();
+
     return RUN_ALL_TESTS();
 }
