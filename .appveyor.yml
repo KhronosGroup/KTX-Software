@@ -116,8 +116,8 @@ before_build:
 # about the number of paths updated.
 - ps: |
     ./install-gitconfig.bat
-    rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
-    git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
+    rm TODO.md, lib/Introduction.md, pkgdoc/pages.md
+    git checkout -q TODO.md lib/Introduction.md pkgdoc/pages.md
     git status
 
 build_script:
