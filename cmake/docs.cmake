@@ -79,7 +79,7 @@ function( CreateDocLibKTX )
 
     doxygen_add_docs(
         libktx.doc
-        lib/Introduction.md
+        lib/mainpage.md
         LICENSE.md
         include
         lib/basis_encode.cpp

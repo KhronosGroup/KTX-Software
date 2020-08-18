@@ -1,5 +1,5 @@
-<!-- Copyright 2019-2020 Mark Callow -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+Introduction             {#mainpage}
+============
 
 libktx is a small library of functions for creating and reading KTX (Khronos
 TeXture) files, version 1 and 2 and instantiating OpenGL&reg; and OpenGL&reg; ES
@@ -14,22 +14,23 @@ formal specification.</a>
 
 The library is open source software. Source code is available at
 <a href="https://github.com/KhronosGroup/KTX">GitHub</a>. Most of the source
-code and the documentation is licensed under the Apache 2.0 license. See @ref
-license for details. When distributing the library, whether in source or binary
-form, this documentation must be included in the distribution or otherwise made
-available to recipients.
+code and the documentation is licensed under the Apache 2.0 license. See @ref license
+for details. When distributing the library, whether in source or binary form, this
+documentation must be included in the distribution or otherwise made available to
+recipients.
 
 See @ref libktx_history for the list of changes.
 
 @authors
 Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a>,
              formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n
+Andreas Atteneder, Independent.\n
 Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>\n
 Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
 
 @snippet{doc} version.h API version
 
-$Date: Wed Jul 1 12:04:32 2020 -0700 $
+$Date$
 
 # Usage Overview                              {#overview}
 
@@ -304,3 +305,4 @@ if (ktxTexture2_NeedsTranscoding(texture)) {
     // Then use VkUpload or GLUpload to create a texture object on the GPU.
 }
 ~~~~~~~~~~~~~~~~
+
