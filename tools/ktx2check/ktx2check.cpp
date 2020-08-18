@@ -903,7 +903,7 @@ ktxValidator::validateHeader(validationContext& ctx)
         addIssue(logger::eError, HeaderData.ProhibitedFormat);
 
     if (!isValidFormat((VkFormat)ctx.header.vkFormat)) {
-        if (ctx.header.vkFormat < VK_FORMAT_END_RANGE || ctx.header.vkFormat > 0x10010000)
+        if (ctx.header.vkFormat <= VK_FORMAT_MAX_STANDARD_ENUM || ctx.header.vkFormat > 0x10010000)
             addIssue(logger::eError, HeaderData.InvalidFormat, ctx.header.vkFormat);
         else
             addIssue(logger::eError, HeaderData.UnknownFormat, ctx.header.vkFormat);

@@ -2,23 +2,13 @@
 #define _VKFORMAT_ENUM_H_
 
 /***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 119 by mkvkformatfiles.
+ Automatically generated from vulkan_core.h version 151 by mkvkformatfiles.
  *************************************************************************/
 
 /*
-** Copyright (c) 2015-2019 The Khronos Group Inc.
+** Copyright (c) 2015-2020 The Khronos Group Inc.
 **
-** Licensed under the Apache License, Version 2.0 (the "License");
-** you may not use this file except in compliance with the License.
-** You may obtain a copy of the License at
-**
-**     http://www.apache.org/licenses/LICENSE-2.0
-**
-** Unless required by applicable law or agreed to in writing, software
-** distributed under the License is distributed on an "AS IS" BASIS,
-** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-** See the License for the specific language governing permissions and
-** limitations under the License.
+** SPDX-License-Identifier: Apache-2.0
 */
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.
@@ -300,9 +290,11 @@ typedef enum VkFormat {
     VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT = 1000288027,
     VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT = 1000288028,
     VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT = 1000288029,
+    VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT = 1000340000,
+    VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT = 1000340001,
     VK_FORMAT_MAX_ENUM = 0x7FFFFFFF
 } VkFormat;
 
-#define VK_FORMAT_END_RANGE VK_FORMAT_ASTC_12x12_SRGB_BLOCK
+#define VK_FORMAT_MAX_STANDARD_ENUM 184
 
 #endif /* _VKFORMAT_ENUM_H_ */
