@@ -23,3 +23,5 @@ sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
 
 sudo apt update
 sudo apt install lunarg-vulkan-sdk cmake
+
+pip3 install reuse

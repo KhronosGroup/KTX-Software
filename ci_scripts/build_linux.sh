@@ -20,6 +20,9 @@ echo "Test KTX-Software (Linux Debug)"
 ctest # --verbose
 popd
 
+# Verify licensing meets REUSE standard.
+reuse lint
+
 echo "Configure KTX-Software (Linux Release)"
 ${CMAKE_EXE} . -G Ninja -Bbuild-linux-release -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 pushd build-linux-release

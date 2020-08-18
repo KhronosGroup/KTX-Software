@@ -24,6 +24,8 @@ matrix:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER="1.2.141"
       compiler: gcc # clang is tested by macOS build
+      language: python
+      python: '3.7'
       services:
         - docker
       sudo: required
