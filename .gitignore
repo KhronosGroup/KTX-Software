@@ -6,12 +6,7 @@
 *~
 *.bak
 
-/build/
-/build-ios/
-/build-linux/
-/build-macos/
-/build-web*/
-/build-win*/
+/build*/
 
 # /include/
 /include/imdebug.h
