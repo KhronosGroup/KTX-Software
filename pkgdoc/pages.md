@@ -1,5 +1,11 @@
 Abstract        {#abstract}
-======
+========
+
+<!--
+ Can't put at start. Doxygen requires page title on first line.
+ Copyright 2018-2020 The Khronos Groups Inc.
+ SPDX-License-Identifier: Apache-2.0
+-->
 
 The KTX software consists of
 - libktx, a small library of functions for writing and reading KTX (Khronos TeXture)
@@ -14,6 +20,9 @@ formal specification.</a>
 
 The software is open source software. See @ref license for details.
 
+---
+@par This page last modified $Date$
+
 @page libktx_main libktx
 
 Read the [libktx Reference](libktx/index.html).
@@ -22,6 +31,9 @@ Current version is @snippet{doc} version.h Code version
 <br>
 
 View the @ref libktx_history
+
+---
+@par This page last modified $Date$
 
 @page ktxtools KTX Tools
 
@@ -55,6 +67,8 @@ toktx
  - @ref toktx reference page.
  - @ref toktx_history.
 
+---
+@par This page last modified $Date$
 
 @page authors Authors
 

@@ -1,3 +1,6 @@
+// Copyright 2017-2020 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
+
 #version 450 core
 
 layout (location = 0) in vec2 inPos;
@@ -5,9 +8,9 @@ layout (location = 1) in vec2 inUV;
 
 layout (location = 0) out vec2 outUV;
 
-out gl_PerVertex 
+out gl_PerVertex
 {
-    vec4 gl_Position;   
+    vec4 gl_Position;
 };
 
 void main(void)

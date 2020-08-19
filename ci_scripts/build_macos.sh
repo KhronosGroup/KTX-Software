@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 # exit if any command fails
 set -e
@@ -50,7 +52,10 @@ ctest -C Release # --verbose
 echo "Install KTX-Software (macOS Release)"
 cmake --install . --config Release --prefix ../install-macos-release
 echo "Pack KTX-Software (macOS Release)"
-cpack -G productbuild
+if ! cpack -G productbuild; then
+  cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
+  exit 1
+fi
 
 popd
 

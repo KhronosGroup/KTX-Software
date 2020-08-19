@@ -1,3 +1,6 @@
+<!-- Copyright 2013-2020 Mark Callow -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 <img src="https://www.khronos.org/assets/images/api_logos/khronos.svg" width="300"/>
 
 The Official Khronos KTX Software Repository
@@ -8,7 +11,7 @@ The Official Khronos KTX Software Repository
 > **Note:** This repo has just switched from a GYP-based to a CMake-based build system. The pre-generated build files have been removed but the .gyp files will remain available for a while and can be used to generate build files, using the GNUMakefile in the root of the project, in the event of a problem. You will have to install
 [GYP](https://github.com/msc-/gyp/tree/remaster).
 
-| GNU/Linux, iOS & OSX |  Windows | Documentation | 
+| GNU/Linux, iOS & OSX |  Windows | Documentation |
 |----------------------| :------: | :-----------: |
 | [![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.com/KhronosGroup/KTX-Software) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) |
 
@@ -95,7 +98,7 @@ on your %PATH%):
 ```cmd
 install-gitconfig.bat
 del TODO.md include/ktx.h tools/toktx/toktx.cpp
-git checkout TODO.md include/ktx.h tools/toktx/toktx.cpp 
+git checkout TODO.md include/ktx.h tools/toktx/toktx.cpp
 ```
 
 The first command adds an [include] of the repo's `.gitconfig` to the

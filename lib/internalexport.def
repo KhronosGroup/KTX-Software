@@ -1,3 +1,6 @@
+; Copyright 2019-2020 Mark Callow
+; SPDX-License-Identifier: Apache-2.0
+
 ; Export internal functions used by internal test programs and the
 ; validator. Using this file avoids having to decorate those internal
 ; functions or updating such decorations as the tests evolve. Updating

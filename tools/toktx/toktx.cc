@@ -3,21 +3,8 @@
 
 // $Id: aaf1dc131758d6a2a60a7ad1e797c02451aecd32 $
 
-//
-// ©2010-2018 The Khronos Group, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
+// Copyright 2010-2020 The Khronos Group Inc.
+// SPDX-License-Identifier: Apache-2.0
 
 // To use, download from http://www.billbaxter.com/projects/imdebug/
 // Put imdebug.dll in %SYSTEMROOT% (usually C:\WINDOWS), imdebug.h in
@@ -92,7 +79,7 @@ using namespace std;
 @~English
 
 Create a KTX file from JPEG, PNG or netpbm format files.
- 
+
 @section toktx_synopsis SYNOPSIS
     toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
 
@@ -101,7 +88,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     PNG (.png) or Netpbm format (.pam, .pgm, .ppm) images. It writes the
     destination ktx file to @e outfile, appending ".ktx{,2}" if necessary. If
     @e outfile is '-' the output will be written to stdout.
- 
+
     @b toktx reads each named @e infile. which must be in .jpg, .png, .pam,
     .ppm or .pgm format. @e infiles prefixed with '@' are read as text files listing
     actual file names to process with one file path per line. Paths must be
@@ -280,7 +267,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
  - Switch to ktxTexture API.
  - Add --levels option.
  - Add --2d option.
- 
+
 @par Version 1.2
  - Remove --sized; always create sized format.
  - Write metadata by default.
@@ -1060,7 +1047,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             if (f != stdout)
                 _tunlink(options.outfile.c_str());
             exitCode = 2;
-        }  
+        }
     } else {
         fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
                 name.c_str(), options.outfile.c_str(), strerror(errno));

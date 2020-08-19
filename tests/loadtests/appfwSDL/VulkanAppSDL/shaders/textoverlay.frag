@@ -1,3 +1,6 @@
+// Copyright 2017-2020 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
+
 #version 450 core
 
 layout (location = 0) in vec2 inUV;

@@ -1,9 +1,8 @@
 /*
 * Simple wrapper for getting an index buffer and vertices out of an assimp mesh
 *
-* Copyright (C) 2016 by Sascha Willems - www.saschawillems.de
-*
-* This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+* Copyright 2016 Sascha Willems - www.saschawillems.de
+* SPDX-License-Identifier: MIT
 *
 * Suppression of clang unused function warning added by Mark Callow, 2017.3.3.
 */
@@ -26,8 +25,8 @@
 
 #include "vulkan/vulkan.h"
 
-#include <assimp/Importer.hpp> 
-#include <assimp/scene.h>     
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
@@ -38,7 +37,7 @@
 #include <android/asset_manager.h>
 #endif
 
-namespace vkMeshLoader 
+namespace vkMeshLoader
 {
     typedef enum VertexLayout {
         VERTEX_LAYOUT_POSITION = 0x0,
@@ -51,14 +50,14 @@ namespace vkMeshLoader
         VERTEX_LAYOUT_DUMMY_VEC4 = 0x7
     } VertexLayout;
 
-    struct MeshBufferInfo 
+    struct MeshBufferInfo
     {
         VkBuffer buf = VK_NULL_HANDLE;
         VkDeviceMemory mem = VK_NULL_HANDLE;
         size_t size = 0;
     };
 
-    struct MeshBuffer 
+    struct MeshBuffer
     {
         MeshBufferInfo vertices;
         MeshBufferInfo indices;
@@ -75,7 +74,7 @@ namespace vkMeshLoader
             switch (layoutDetail)
             {
             // UV only has two components
-            case VERTEX_LAYOUT_UV: 
+            case VERTEX_LAYOUT_UV:
                 vSize += 2 * sizeof(float);
                 break;
             default:
@@ -85,7 +84,7 @@ namespace vkMeshLoader
         return vSize;
     }
 
-    // Stores some additonal info and functions for 
+    // Stores some additonal info and functions for
     // specifying pipelines, vertex bindings, etc.
     class Mesh
     {
@@ -233,7 +232,7 @@ public:
 
     std::vector<MeshEntry> m_Entries;
 
-    struct Dimension 
+    struct Dimension
     {
         glm::vec3 min = glm::vec3(FLT_MAX);
         glm::vec3 max = glm::vec3(-FLT_MAX);
@@ -269,7 +268,7 @@ public:
     }
 
     // Loads the mesh with some default flags
-    bool LoadMesh(const std::string& filename) 
+    bool LoadMesh(const std::string& filename)
     {
         int flags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
 
@@ -288,7 +287,7 @@ public:
         size_t size = AAsset_getLength(asset);
 
         assert(size > 0);
-        
+
         void *meshData = malloc(size);
         AAsset_read(asset, meshData, size);
         AAsset_close(asset);
@@ -304,7 +303,7 @@ public:
         {
             return InitFromScene(pScene, filename);
         }
-        else 
+        else
         {
             printf("Error parsing '%s': '%s'\n", filename.c_str(), Importer.GetErrorString());
 #if defined(__ANDROID__)
@@ -326,7 +325,7 @@ public:
         }
 
         // Initialize the meshes in the scene one by one
-        for (unsigned int i = 0; i < m_Entries.size(); i++) 
+        for (unsigned int i = 0; i < m_Entries.size(); i++)
         {
             const aiMesh* paiMesh = pScene->mMeshes[i];
             InitMesh(i, paiMesh, pScene);
@@ -358,7 +357,7 @@ public:
             aiVector3D* pTangent = (paiMesh->HasTangentsAndBitangents()) ? &(paiMesh->mTangents[i]) : &Zero3D;
             aiVector3D* pBiTangent = (paiMesh->HasTangentsAndBitangents()) ? &(paiMesh->mBitangents[i]) : &Zero3D;
 
-            Vertex v(glm::vec3(pPos->x, -pPos->y, pPos->z), 
+            Vertex v(glm::vec3(pPos->x, -pPos->y, pPos->z),
                 glm::vec2(pTexCoord->x , pTexCoord->y),
                 glm::vec3(pNormal->x, pNormal->y, pNormal->z),
                 glm::vec3(pTangent->x, pTangent->y, pTangent->z),
@@ -379,7 +378,7 @@ public:
 
         dim.size = dim.max - dim.min;
 
-        for (unsigned int i = 0; i < paiMesh->mNumFaces; i++) 
+        for (unsigned int i = 0; i < paiMesh->mNumFaces; i++)
         {
             const aiFace& Face = paiMesh->mFaces[i];
             if (Face.mNumIndices != 3)
@@ -400,15 +399,15 @@ public:
     }
 
     VkResult createBuffer(
-        VkDevice device, 
+        VkDevice device,
         VkPhysicalDeviceMemoryProperties deviceMemoryProperties,
-        VkBufferUsageFlags usageFlags, 
-        VkMemoryPropertyFlags memoryPropertyFlags, 
-        VkDeviceSize size, 
-        VkBuffer *buffer, 
+        VkBufferUsageFlags usageFlags,
+        VkMemoryPropertyFlags memoryPropertyFlags,
+        VkDeviceSize size,
+        VkBuffer *buffer,
         VkDeviceMemory *memory)
     {
-        VkMemoryAllocateInfo memAllocInfo = vkTools::initializers::memoryAllocateInfo();    
+        VkMemoryAllocateInfo memAllocInfo = vkTools::initializers::memoryAllocateInfo();
         VkMemoryRequirements memReqs;
 
         VkBufferCreateInfo bufferInfo = vkTools::initializers::bufferCreateInfo(usageFlags, size);
@@ -648,10 +647,10 @@ public:
 
     // Create vertex and index buffer with given layout
     void createVulkanBuffers(
-        VkDevice device, 
+        VkDevice device,
         VkPhysicalDeviceMemoryProperties deviceMemoryProperties,
-        vkMeshLoader::MeshBuffer *meshBuffer, 
-        std::vector<vkMeshLoader::VertexLayout> layout, 
+        vkMeshLoader::MeshBuffer *meshBuffer,
+        std::vector<vkMeshLoader::VertexLayout> layout,
         float scale)
     {
         createBuffers(

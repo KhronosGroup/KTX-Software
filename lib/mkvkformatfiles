@@ -1,4 +1,6 @@
 #! /usr/bin/awk -f
+# Copyright 2019-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
 
 # This script creates 3 files from vulkan/vulkan_core.h:
 #

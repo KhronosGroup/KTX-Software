@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 # exit if any command fails
 set -e
@@ -21,3 +23,5 @@ sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
 
 sudo apt update
 sudo apt install lunarg-vulkan-sdk cmake
+
+pip3 install reuse

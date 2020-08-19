@@ -1,3 +1,5 @@
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
 
 function(compile_shader shader_target shader_name shader_src_path shader_path)
 

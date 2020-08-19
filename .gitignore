@@ -1,14 +1,12 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 # vi
 .*.swp
 *~
 *.bak
 
-/build/
-/build-ios/
-/build-linux/
-/build-macos/
-/build-web*/
-/build-win*/
+/build*/
 
 # /include/
 /include/imdebug.h

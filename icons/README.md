@@ -1,3 +1,6 @@
+<!-- Copyright 2016-2020 Mark Callow -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 Icon Notes
 ==========
 

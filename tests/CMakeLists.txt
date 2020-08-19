@@ -1,3 +1,6 @@
+# Copyright 2017-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 if(KTX_FEATURE_LOADTEST_APPS)
     # Test apps that load and display various KTX textures
     add_subdirectory(loadtests)
