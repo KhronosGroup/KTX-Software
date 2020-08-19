@@ -37,7 +37,6 @@ function genversion() {
         test -z "$(git diff-index --name-only HEAD --)" ||
         VN="$VN-dirty" ;;
     esac
-    VN=$(echo "$VN" | sed -e 's/-/./g')
   else
       VN="$DEF_VER"
   fi
