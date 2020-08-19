@@ -1,6 +1,12 @@
 LICENSE file for the KhronosGroup/KTX-Software project    {#license}
 ======================================================
 
+<!--
+ Can't put at start. Doxygen requires page title on first line.
+ Copyright 2013-2020 Mark Callow 
+ SPDX-License-Identifier: Apache-2.0
+-->
+
 Files unique to this repository generally fall under the Apache 2.0 license
 with copyright holders including Mark Callow, the KTX-Software author; The
 Khronos Group Inc., which has supported KTX development; and other

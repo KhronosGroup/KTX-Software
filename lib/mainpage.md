@@ -1,6 +1,12 @@
 Introduction             {#mainpage}
 ============
 
+<!--
+ Can't put at start. Doxygen requires page title on first line.
+ Copyright 2019-2020 Mark Callow 
+ SPDX-License-Identifier: Apache-2.0
+-->
+
 libktx is a small library of functions for creating and reading KTX (Khronos
 TeXture) files, version 1 and 2 and instantiating OpenGL&reg; and OpenGL&reg; ES
 textures and Vulkan images from them. KTX version 2 files can contain images

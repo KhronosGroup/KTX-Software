@@ -1,5 +1,11 @@
 Abstract        {#abstract}
-======
+========
+
+<!--
+ Can't put at start. Doxygen requires page title on first line.
+ Copyright 2018-2020 The Khronos Groups Inc.
+ SPDX-License-Identifier: Apache-2.0
+-->
 
 The KTX software consists of
 - libktx, a small library of functions for writing and reading KTX (Khronos TeXture)
