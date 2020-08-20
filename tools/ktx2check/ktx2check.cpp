@@ -363,7 +363,7 @@ struct {
         ERROR | 0x0095, "supercompressionGlobalData indicates no alpha but DFD indicates alpha channel."
     };
     issue DfdMismatchNoAlpha {
-        ERROR | 0x0096, "supercompressionGlobalData indicates an alpha channel but DFD indicated no alpha channel."
+        ERROR | 0x0096, "supercompressionGlobalData indicates an alpha channel but DFD indicates no alpha channel."
     };
 } SGD;
 
