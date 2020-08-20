@@ -1612,7 +1612,7 @@ ktxValidator::validateSgd(validationContext& ctx)
         if (image->alphaSliceByteOffset == 0 && numSamples == 2)
             addIssue(logger::eError, SGD.DfdMismatchAlpha);
         if (image->alphaSliceByteOffset > 0 && numSamples == 1)
-            addIssue(logger::eError, SGD.DfdMismatchAlpha);
+            addIssue(logger::eError, SGD.DfdMismatchNoAlpha);
     }
 
     if (sgdByteLength != expectedBgdByteLength)
