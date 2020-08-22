@@ -944,7 +944,7 @@ ktxValidator::validateHeader(validationContext& ctx)
 
     // This test works for arrays too because height or depth will be 0.
     max_dim = MAX(MAX(ctx.header.pixelWidth, ctx.header.pixelHeight), ctx.header.pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (ctx.header.levelCount - 1)))
+    if (max_dim < ((ktx_uint32_t)1 << (ctx.levelCount - 1)))
     {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
         addIssue(logger::eError, HeaderData.TooManyMipLevels,
