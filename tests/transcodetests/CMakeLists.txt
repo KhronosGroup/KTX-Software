@@ -32,12 +32,3 @@ gtest_discover_tests( transcodetests
     TEST_PREFIX transcodetest
     EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
-
-if(WIN32)
-    set_tests_properties(
-        transcodetests
-    PROPERTIES
-        # Make sure ktx DLL is found by adding its directory to PATH
-        ENVIRONMENT "PATH=$<TARGET_FILE_DIR:ktx>\;$ENV{PATH}"
-    )
-endif()

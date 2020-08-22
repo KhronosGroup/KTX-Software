@@ -54,13 +54,3 @@ target_link_libraries(
 
 gtest_discover_tests(unittests TEST_PREFIX unittest )
 gtest_discover_tests(texturetests TEST_PREFIX texturetest )
-
-if(WIN32)
-    set_tests_properties(
-        unittests
-        texturetests
-    PROPERTIES
-        # Make sure ktx DLL is found by adding its directory to PATH
-        ENVIRONMENT "PATH=$<TARGET_FILE_DIR:ktx>\;$ENV{PATH}"
-    )
-endif()
