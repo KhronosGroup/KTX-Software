@@ -1160,6 +1160,10 @@ ktxValidator::validateDfd(validationContext& ctx)
                 // Compare up to BYTESPLANE.
                 analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format,
                                   KHR_DF_WORD_BYTESPLANE0 * 4);
+                // Check for unsized.
+                if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
+                    || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
+                    addIssue(logger::eError, DFD.NotUnsized);
                 // Compare the sample information.
                 if (!analyze) {
                     analyze = !memcmp(&ctx.pActualDfd[KHR_DF_WORD_SAMPLESTART+1],
