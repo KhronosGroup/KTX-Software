@@ -83,13 +83,14 @@ distribution archives, you **must** follow the instructions below.
 $Date$ keywords are expanded via a smudge & clean filter. To install
 the filter, issue the following commands in the root of your clone.
 
-On Unix (Linux, Mac OS X, etc.) platforms and Windows using Git for Windows'
-Git Bash or Cygwin's bash terminal:
+On Unix (Linux, Mac OS X, etc.) platforms and Windows using Git for
+Windows' Git Bash or Cygwin's bash terminal:
 
 ```bash
 ./install-gitconfig.sh
-rm TODO.md include/ktx.h tools/toktx/toktx.cpp
-git checkout TODO.md include/ktx.h tools/toktx/toktx.cpp
+rm TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
+git checkout TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
+
 ```
 
 On Windows with the Command Prompt (requires `git.exe` in a directory
@@ -97,8 +98,8 @@ on your %PATH%):
 
 ```cmd
 install-gitconfig.bat
-del TODO.md include/ktx.h tools/toktx/toktx.cpp
-git checkout TODO.md include/ktx.h tools/toktx/toktx.cpp
+del TODO.md TODO.md lib\mainpage.md pkgdoc\pages.md tools\toktx\toktx.cc
+git TODO.md lib\mainpage.md pkgdoc\pages.md tools\toktx\toktx.cc
 ```
 
 The first command adds an [include] of the repo's `.gitconfig` to the
