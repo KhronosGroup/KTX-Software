@@ -206,22 +206,27 @@ TEST_P(TextureCombinationsTest, Basic) {
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
-    if(argc!=2) {
-        cerr << "Usage: " << argv[0] << " <test images path>\n";
-        return -1;
+
+    if(!::testing::FLAGS_gtest_list_tests) {
+        if(argc!=2) {
+            cerr << "Usage: " << argv[0] << " <test images path>\n";
+            return -1;
+        }
+
+        image_path = string(argv[1]);
+
+        struct stat info;
+
+        if( stat( image_path.data(), &info ) != 0 ) {
+            cerr << "Cannot access " << image_path << '\n';
+            return -2;
+        } else if( ! (info.st_mode & S_IFDIR) ) {
+            cerr << image_path << "is not a valid directory\n";
+            return -3;
+        }
     }
 
-    image_path = string(argv[1]);
-
-    struct stat info;
-
-    if( stat( image_path.data(), &info ) != 0 ) {
-        cerr << "Cannot access " << image_path << '\n';
-        return -2;
-    } else if( ! (info.st_mode & S_IFDIR) ) {
-        cerr << image_path << "is not a valid directory\n";
-        return -3;
-    }
+    ktx_basisu_basis_init();
 
     return RUN_ALL_TESTS();
 }
