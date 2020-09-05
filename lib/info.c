@@ -21,7 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <xlocale.h>
+
+#if defined(_WIN32)
+  #define WIN32_LEAN_AND_MEAN
+  #include <windows.h>
+  #include <io.h>
+#endif
 
 #include <ktx.h>
 
@@ -87,23 +92,44 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
     }
 }
 
-uint32_t
-convId2Utf8(const ktx_uint8_t identifier[12], char utf8Identifier[14])
+void
+printIdentifier(const ktx_uint8_t identifier[12])
 {
     // Convert identifier to UTF-8 for better display.
-    uint32_t idLen = 0;
-    for (uint32_t i = 0; i < 12; i++, idLen++) {
+    uint32_t idlen = 0;
+	char u8identifier[30];
+    for (uint32_t i = 0; i < 12 && idlen < sizeof(u8identifier); i++, idlen++) {
         if (identifier[i] == U'\xAB') {
-          utf8Identifier[idLen++] = '\xc2';
-          utf8Identifier[idLen] = '\xAB';
+          u8identifier[idlen++] = '\xc2';
+          u8identifier[idlen] = identifier[i];
         } else if (identifier[i] == U'\xBB') {
-          utf8Identifier[idLen++] = '\xc2';
-          utf8Identifier[idLen] = '\xBB';
-        } else {
-          utf8Identifier[idLen] = identifier[i];
+          u8identifier[idlen++] = '\xc2';
+          u8identifier[idlen] = identifier[i];
+		} else if (identifier[i] < '\x20') {
+			uint32_t nchars;
+			switch (identifier[i]) {
+			  case '\n':
+				u8identifier[idlen++] = '\\';
+				u8identifier[idlen] = 'n';
+				break;
+			  case '\r':
+				u8identifier[idlen++] = '\\';
+				u8identifier[idlen] = 'r';
+				break;
+			  default:
+				nchars = snprintf(&u8identifier[idlen], sizeof(u8identifier) - idlen,
+					"\\x%02X", identifier[i]);
+				idlen += nchars - 1;
+			}
+		} else {
+          u8identifier[idlen] = identifier[i];
         }
     }
-    return idLen;
+#if defined(_WIN32)
+	if (_isatty(_fileno(stdout)))
+	    SetConsoleOutputCP(CP_UTF8);
+#endif
+	fprintf(stdout, "identifier: %.*s\n", idlen, u8identifier);
 }
 
 /*===========================================================*
@@ -120,9 +146,7 @@ convId2Utf8(const ktx_uint8_t identifier[12], char utf8Identifier[14])
 void
 printKTXHeader(KTX_header* pHeader)
 {
-    char identifier[14];
-    uint32_t idLen = convId2Utf8(pHeader->identifier, identifier);
-    fprintf(stdout, "%.*s\n", idLen, identifier);
+    printIdentifier(pHeader->identifier);
     fprintf(stdout, "endianness: %#x\n", pHeader->endianness);
     fprintf(stdout, "glType: %#x\n", pHeader->glType);
     fprintf(stdout, "glTypeSize: %d\n", pHeader->glTypeSize);
@@ -259,17 +283,8 @@ extern const char * ktxSupercompressionSchemeString(ktxSupercmpScheme scheme);
 void
 printKTX2Header(KTX_header2* pHeader)
 {
-    char identifier[14];
-    uint32_t idLen = convId2Utf8(pHeader->identifier, identifier);
-    // On Windows you have to write 16-bit characters.
-    // #include <fcntl.h>
-    // #include <io.h>
-    // _setmode(_fileno(stdout), _O_U16TEXT);
-    // // Convert identifier to wide character string
-    // wfprintf(stdout, "%.12s\n", convertedString
-    // _setmode(_filemode(stdout), _O_U8TEXT);
-    fprintf(stdout, "%.*s\n", idLen, identifier);
-    fprintf(stdout, "vkFormat: %s\n", vkFormatString(pHeader->vkFormat));
+	printIdentifier(pHeader->identifier);
+	fprintf(stdout, "vkFormat: %s\n", vkFormatString(pHeader->vkFormat));
     fprintf(stdout, "typeSize: %d\n", pHeader->typeSize);
     fprintf(stdout, "pixelWidth: %d\n", pHeader->pixelWidth);
     fprintf(stdout, "pixelHeight: %d\n", pHeader->pixelHeight);
