@@ -22,6 +22,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(_WIN32)
+  #define WIN32_LEAN_AND_MEAN
+  #include <windows.h>
+  #include <io.h>
+#endif
+
 #include <ktx.h>
 
 #include "dfdutils/dfd.h"
@@ -86,6 +92,49 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
     }
 }
 
+void
+printIdentifier(const ktx_uint8_t identifier[12])
+{
+    // Convert identifier for better display.
+    uint32_t idlen = 0;
+	char u8identifier[30];
+    for (uint32_t i = 0; i < 12 && idlen < sizeof(u8identifier); i++, idlen++) {
+        // Convert the angle brackets to utf-8 for better printing. The
+        // conversion below only works for characters whose msb's are 10.
+        if (identifier[i] == U'\xAB') {
+          u8identifier[idlen++] = '\xc2';
+          u8identifier[idlen] = identifier[i];
+        } else if (identifier[i] == U'\xBB') {
+          u8identifier[idlen++] = '\xc2';
+          u8identifier[idlen] = identifier[i];
+		} else if (identifier[i] < '\x20') {
+			uint32_t nchars;
+			switch (identifier[i]) {
+			  case '\n':
+				u8identifier[idlen++] = '\\';
+				u8identifier[idlen] = 'n';
+				break;
+			  case '\r':
+				u8identifier[idlen++] = '\\';
+				u8identifier[idlen] = 'r';
+				break;
+			  default:
+				nchars = snprintf(&u8identifier[idlen],
+                                  sizeof(u8identifier) - idlen,
+					              "\\x%02X", identifier[i]);
+				idlen += nchars - 1;
+			}
+		} else {
+          u8identifier[idlen] = identifier[i];
+        }
+    }
+#if defined(_WIN32)
+	if (_isatty(_fileno(stdout)))
+	    SetConsoleOutputCP(CP_UTF8);
+#endif
+	fprintf(stdout, "identifier: %.*s\n", idlen, u8identifier);
+}
+
 /*===========================================================*
  * For KTX format version 1                                  *
  *===========================================================*/
@@ -100,7 +149,7 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
 void
 printKTXHeader(KTX_header* pHeader)
 {
-    fprintf(stdout, "%12s\n", pHeader->identifier);
+    printIdentifier(pHeader->identifier);
     fprintf(stdout, "endianness: %#x\n", pHeader->endianness);
     fprintf(stdout, "glType: %#x\n", pHeader->glType);
     fprintf(stdout, "glTypeSize: %d\n", pHeader->glTypeSize);
@@ -237,8 +286,8 @@ extern const char * ktxSupercompressionSchemeString(ktxSupercmpScheme scheme);
 void
 printKTX2Header(KTX_header2* pHeader)
 {
-    fprintf(stdout, "%12s\n", pHeader->identifier);
-    fprintf(stdout, "vkFormat: %s\n", vkFormatString(pHeader->vkFormat));
+	printIdentifier(pHeader->identifier);
+	fprintf(stdout, "vkFormat: %s\n", vkFormatString(pHeader->vkFormat));
     fprintf(stdout, "typeSize: %d\n", pHeader->typeSize);
     fprintf(stdout, "pixelWidth: %d\n", pHeader->pixelWidth);
     fprintf(stdout, "pixelHeight: %d\n", pHeader->pixelHeight);
