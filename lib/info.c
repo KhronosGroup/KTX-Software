@@ -95,10 +95,12 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
 void
 printIdentifier(const ktx_uint8_t identifier[12])
 {
-    // Convert identifier to UTF-8 for better display.
+    // Convert identifier for better display.
     uint32_t idlen = 0;
 	char u8identifier[30];
     for (uint32_t i = 0; i < 12 && idlen < sizeof(u8identifier); i++, idlen++) {
+        // Convert the angle brackets to utf-8 for better printing. The
+        // conversion below only works for characters whose msb's are 10.
         if (identifier[i] == U'\xAB') {
           u8identifier[idlen++] = '\xc2';
           u8identifier[idlen] = identifier[i];
@@ -117,8 +119,9 @@ printIdentifier(const ktx_uint8_t identifier[12])
 				u8identifier[idlen] = 'r';
 				break;
 			  default:
-				nchars = snprintf(&u8identifier[idlen], sizeof(u8identifier) - idlen,
-					"\\x%02X", identifier[i]);
+				nchars = snprintf(&u8identifier[idlen],
+                                  sizeof(u8identifier) - idlen,
+					              "\\x%02X", identifier[i]);
 				idlen += nchars - 1;
 			}
 		} else {
