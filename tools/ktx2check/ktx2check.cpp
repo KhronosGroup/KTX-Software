@@ -735,6 +735,25 @@ ktxValidator::ktxValidator() : ktxApp(myversion, mydefversion, options)
     short_opts += "qm:";
 }
 
+#if defined(_MSC_VER)
+int vasprintf(char **strp, const char *format, va_list ap)
+{
+    int len = _vscprintf(format, ap);
+    if (len == -1)
+        return -1;
+    char *str = (char*)malloc((size_t) len + 1);
+    if (!str)
+        return -1;
+    int retval = _vsnprintf(str, len + 1, format, ap);
+    if (retval == -1) {
+        free(str);
+        return -1;
+    }
+    *strp = str;
+    return retval;
+}
+#endif
+
 // Why is severity passed here?
 // -  Because it is convenient when browsing the code to see the severity
 //    at the place an issue is raised.
@@ -769,32 +788,35 @@ ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
             //vfprintf(stdout, issue.message.c_str(), args);
             char* pBuf;
             int nchars = vasprintf(&pBuf, issue.message.c_str(), args);
-            //if (nchars <= 80) {
-            //    cout << "    " << pBuf << std::endl;
-            //} else {
-                // Wrap lines on spaces.
-                uint32_t line = 0;
-                uint32_t lsi = 0;  // line start index.
-                uint32_t lei; // line length
-                while (nchars + indent > 80) {
-                    uint32_t ll; // line length
-                    lei = lsi + 79 - indent;
-                    while (pBuf[lei] != ' ')
-                        lei--;
-                    ll = lei - lsi;
-                    for (uint32_t j = 0; j < (line ? indent : 0); j++)
-                        cout.put(' ');
-                    cout.write(&pBuf[lsi], ll) << std::endl;
-                    lsi = lei + 1; // +1 to skip the space
-                    nchars -= ll;
-                    line++;
-                }
-                for (uint32_t j = 0; j < (line ? baseIndent : 0); j++)
-                    cout.put(' ');
-                cout.write(&pBuf[lsi], nchars);
-                cout << std::endl;
+            if (nchars < 0) {
+                std::stringstream message;
 
-          //   }
+                message << "Could not create issue message: ";
+                message << strerror(errno);
+                throw std::runtime_error(message.str());
+            }
+            // Wrap lines on spaces.
+            uint32_t line = 0;
+            uint32_t lsi = 0;  // line start index.
+            uint32_t lei; // line length
+            while (nchars + indent > 80) {
+                uint32_t ll; // line length
+                lei = lsi + 79 - indent;
+                while (pBuf[lei] != ' ') lei--;
+                ll = lei - lsi;
+                for (uint32_t j = 0; j < (line ? indent : 0); j++) {
+                    cout.put(' ');
+                }
+                cout.write(&pBuf[lsi], ll) << std::endl;
+                lsi = lei + 1; // +1 to skip the space
+                nchars -= ll;
+                line++;
+            }
+            for (uint32_t j = 0; j < (line ? baseIndent : 0); j++) {
+                cout.put(' ');
+            }
+            cout.write(&pBuf[lsi], nchars);
+            cout << std::endl;
             free(pBuf);
         } else {
             throw max_issues_exceeded();
