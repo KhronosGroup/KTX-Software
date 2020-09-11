@@ -1,3 +1,6 @@
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
+
 add_test( NAME ktx2check-test-help
     COMMAND ktx2check --help
 )

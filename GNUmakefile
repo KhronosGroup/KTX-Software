@@ -1,10 +1,10 @@
-#
+# Copyright 2015-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
+
 # run GYP to generate various project files.
 #
 # Use this because GYP does not have a way to set its options within
 # the GYP file.
-#
-# © 2015 Mark Callow.
 #
 # TODO: Clean up this makefile and try using gypi files with things like
 # {

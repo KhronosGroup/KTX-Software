@@ -1,4 +1,6 @@
 #! /bin/bash
+# Copyright 2016-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
 
 # Smudge driver for the kwexpander filter for expanding keywords. Currently
 # only $Date$ is supported.

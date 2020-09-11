@@ -1,3 +1,6 @@
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
+
 # Find Vulkan package
 if(IOS)
     # On iOS we link against MoltenVK.framework manually (see below)

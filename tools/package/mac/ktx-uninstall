@@ -1,4 +1,6 @@
 #! /bin/sh
+# Copyright 2019-2020 The Khronos Group, Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root to uninstall KTX-Software" >&2

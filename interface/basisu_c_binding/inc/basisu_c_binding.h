@@ -1,18 +1,13 @@
-// Copyright (c) 2019 Andreas Atteneder, All Rights Reserved.
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//    http://www.apache.org/licenses/LICENSE-2.0
-
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2019 Andreas Atteneder, All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
+
+#ifdef DLL_EXPORT_FLAG
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT
+#endif
 
 #include <basisu_transcoder.h>
 
@@ -44,3 +39,21 @@ public:
     uint32_t startTranscoding();
     uint32_t transcodeImage(void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);
 };
+
+extern "C" {
+DLL_EXPORT void ktx_basisu_basis_init();
+#ifdef KTX_BASISU_C_BINDINGS
+DLL_EXPORT basis_file* ktx_basisu_create_basis();
+DLL_EXPORT bool ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, size_t length );
+DLL_EXPORT void ktx_basisu_close_basis( basis_file* basis );
+DLL_EXPORT void ktx_basisu_delete_basis( basis_file* basis );
+DLL_EXPORT bool ktx_basisu_getHasAlpha( basis_file* basis );
+DLL_EXPORT uint32_t ktx_basisu_getNumImages( basis_file* basis );
+DLL_EXPORT uint32_t ktx_basisu_getNumLevels( basis_file* basis, uint32_t image_index);
+DLL_EXPORT uint32_t ktx_basisu_getImageWidth( basis_file* basis, uint32_t image_index, uint32_t level_index);
+DLL_EXPORT uint32_t ktx_basisu_getImageHeight( basis_file* basis, uint32_t image_index, uint32_t level_index);
+DLL_EXPORT uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis, uint32_t image_index, uint32_t level_index, uint32_t format);
+DLL_EXPORT bool ktx_basisu_startTranscoding( basis_file* basis );
+DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, size_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);
+#endif
+}

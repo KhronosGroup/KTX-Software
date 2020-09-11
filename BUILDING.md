@@ -1,8 +1,11 @@
+<!-- Copyright 2013-2020 Mark Callow -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 Building KTX
 ============
 
-KTX uses the the [CMake](https://cmake.org) build system. Depending on your 
-platform and how you configure it, it will create project/build files (e.g. an Xcode project, a Visual Studio solution or Make files) that allow you to 
+KTX uses the the [CMake](https://cmake.org) build system. Depending on your
+platform and how you configure it, it will create project/build files (e.g. an Xcode project, a Visual Studio solution or Make files) that allow you to
 build the software and more (See [CMake generators](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html)).
 
 KTX consist of the following parts
@@ -169,7 +172,7 @@ The KTX loader tests use libSDL 2.0.12+. You do not need SDL if you only wish to
 
 The KTX vulkan loader tests require a [Vulkan SDK](#vulkan-sdk)
 and the Open Asset Import Library [`libassimp`](#libassimp). You must
-install the former. The KTX Git repo has binaries of the latter for iOS and 
+install the former. The KTX Git repo has binaries of the latter for iOS and
 Windows but you must install it on GNU/Linux and macOS.
 
 #### OpenGL ES Emulator for Windows
@@ -184,7 +187,7 @@ emulator is recommended. Any of the other major emulators listed below could als
 * [ARM Mali](http://malideveloper.arm.com/resources/tools/opengl-es-emulator/)
 
 If you want to run the `es1loadtests` you will need to use
-Imagination Technologies' PowerVR emulator as that alone supports OpenGL ES 
+Imagination Technologies' PowerVR emulator as that alone supports OpenGL ES
 1.1. You must set the CMake configuration variable `OPENGL_ES_EMULATOR` to the directory containing the .lib files of your chosen emulator.
 
 <sup>*</sup>You will need to build ANGLE yourself and copy the libs

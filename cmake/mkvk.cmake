@@ -1,3 +1,6 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 # Code generation scripts that require a Vulkan SDK installation
 if(WIN32 AND NOT CYGWIN_INSTALL_PATH)
     # Git for Windows comes with Perl
@@ -47,8 +50,8 @@ endif()
 
 add_custom_target(mkvkformatfiles
     DEPENDS ${mkvkformatfiles_output}
+    SOURCES ${mkvkformatfiles_input}
 )
-
 
 list(APPEND makevkswitch_input
     "lib/vkformat_enum.h"
@@ -80,6 +83,7 @@ endif()
 
 add_custom_target(makevkswitch
     DEPENDS ${makevkswitch_output}
+    SOURCES ${makevkswitch_input}
 )
 
 
@@ -114,9 +118,10 @@ endif()
 
 add_custom_target(makedfd2vk
     DEPENDS ${makedfd2vk_output}
+    SOURCES ${makedfd2vk_input}
 )
 
-add_custom_target(mkvk SOURCES)
+add_custom_target(mkvk SOURCES ${CMAKE_CURRENT_LIST_FILE})
 
 add_dependencies(mkvk
     mkvkformatfiles

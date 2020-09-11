@@ -13,6 +13,7 @@
 # Copyright 2011-2012 University of Pennsylvania
 # Copyright 2013-2016 Andreas Schuh <andreas.schuh.84@gmail.com>
 # Copyright 2013-2020 Andreas Atteneder <andreas.atteneder@gmail.com>
+# SPDX-License-Identifier: BSD-2-Clause
 #
 # Distributed under the OSI-approved BSD License (the "License");
 

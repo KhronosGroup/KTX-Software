@@ -1,4 +1,7 @@
-
+/*
+ * Copyright 2017-2020 Mark Callow.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #pragma once
 
@@ -19,8 +22,8 @@ using namespace std;
 #else
 #endif
 
-#include <assimp/Importer.hpp> 
-#include <assimp/scene.h>     
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
 #include <glm/glm.hpp>

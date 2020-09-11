@@ -1,4 +1,9 @@
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
+
 # gtest based unit-tests
+
+include(GoogleTest)
 
 add_subdirectory(gtest)
 find_package(Threads)
@@ -47,15 +52,5 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-add_test( NAME unittests COMMAND unittests )
-add_test( NAME texturetests COMMAND texturetests )
-
-if(WIN32)
-    set_tests_properties(
-        unittests
-        texturetests
-    PROPERTIES
-        # Make sure ktx DLL is found by adding its directory to PATH
-        ENVIRONMENT "PATH=$<TARGET_FILE_DIR:ktx>\;$ENV{PATH}"
-    )
-endif()
+gtest_discover_tests(unittests TEST_PREFIX unittest )
+gtest_discover_tests(texturetests TEST_PREFIX texturetest )

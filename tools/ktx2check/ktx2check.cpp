@@ -2,19 +2,8 @@
 // vi: set sw=2 ts=4 sts=4 expandtab:
 
 //
-// ©2019 The Khronos Group, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2019-2020 The Khronos Group, Inc.
+// SPDX-License-Identifier: Apache-2.0
 //
 
 #include "stdafx.h"
@@ -211,9 +200,6 @@ struct {
     issue IncorrectDfd {
         FATAL | 0x0041, "DFD created for %s confused interpretDFD()."
     };
-    issue OnlyBasisSupported {
-        FATAL | 0x0042, "Validator can only currently validate Basis supercompression."
-    };
 } ValidatorError;
 
 struct {
@@ -226,8 +212,8 @@ struct {
     issue IncorrectModelForBlock {
         ERROR | 0x0052, "DFD color model is not that of a block-compressed texture."
     };
-    issue TooComplex {
-        ERROR | 0x0053, "DFD is too complex for analysis. Does not describe a VkFormat or has wrong endianness."
+    issue MultiplePlanes {
+        ERROR | 0x0053, "DFD is for a multiplane format. These are not supported."
     };
     issue sRGBMismatch {
         ERROR | 0x0054, "DFD says sRGB but vkFormat is not an sRGB format."
@@ -242,8 +228,8 @@ struct {
         ERROR | 0x0057, "DFD for a %s texture must have sample information."
     };
     issue TexelBlockDimensionZeroForUndefined {
-        ERROR | 0x0058, "DFD texel block dimensions must be non-zero for non-supercompressed texture\n"
-                        "with VK_FORMAT_UNDEFINED."
+        ERROR | 0x0058, "DFD texel block dimensions must be non-zero for non-supercompressed texture"
+                        " with VK_FORMAT_UNDEFINED."
     };
     issue FourDimensionalTexturesNotSupported {
         ERROR | 0x0059, "DFD texelBlockDimension3 is non-zero indicating an unsupported four-dimensional texture."
@@ -267,8 +253,8 @@ struct {
         ERROR | 0x005f, "DFD bytes/plane must be 0 for a supercompressed texture."
     };
     issue InvalidChannelForBLZE {
-        ERROR | 0x0060, "Only ETC1S_RGB (0), ETC1S_RRR (3), ETC1S_GGG (4) or ETC1S_AAA (15) channels\n"
-                        "allowed for BasisLZ/ETC1S textures."
+        ERROR | 0x0060, "Only ETC1S_RGB (0), ETC1S_RRR (3), ETC1S_GGG (4) or ETC1S_AAA (15)"
+                        " channels allowed for BasisLZ/ETC1S textures."
     };
     issue InvalidBitOffsetForBLZE {
         ERROR | 0x0061, "DFD sample bitOffsets for BasisLZ/ETC1S textures must be 0 and 64."
@@ -277,15 +263,30 @@ struct {
         ERROR | 0x0062, "DFD sample bitLength for %s textures must be %d."
     };
     issue InvalidLowerOrUpper {
-        ERROR | 0x0063, "All DFD samples' sampleLower must be 0 and sampleUpper must be 0xFFFFFFFF for\n"
+        ERROR | 0x0063, "All DFD samples' sampleLower must be 0 and sampleUpper must be 0xFFFFFFFF for"
                         "%s textures."
     };
     issue InvalidChannelForUASTC {
-        ERROR | 0x0064, "Only UASTC_RGB (0), UASTC_RGBA (3), UASTC_RRR (4) or UASTC_RRRG (5) channels\n"
-                        "allowed for UASTC textures."
+        ERROR | 0x0064, "Only UASTC_RGB (0), UASTC_RGBA (3), UASTC_RRR (4) or UASTC_RRRG (5) channels"
+                        " allowed for UASTC textures."
     };
     issue InvalidBitOffsetForUASTC {
         ERROR | 0x0065, "DFD sample bitOffset for UASTC textures must be 0."
+    };
+    issue SizeMismatch {
+        ERROR | 0x0066, "DFD totalSize differs from header's dfdByteLength."
+    };
+    issue InvalidColorModel {
+        ERROR | 0x0067, "DFD colorModel for non block-compressed textures must be RGBSDA."
+    };
+    issue MixedChannels {
+        ERROR | 0x0067, "DFD has channels with differing flags, e.g. some float, some integer."
+    };
+    issue Multisample {
+        ERROR | 0x0067, "DFD indicates multiple sample locations."
+    };
+    issue NonTrivialEndianness {
+        ERROR | 0x0067, "DFD describes non little-endian data."
     };
 } DFD;
 
@@ -318,7 +319,7 @@ struct {
 
 struct {
     issue MissingNulTerminator {
-        ERROR | 0x0080, "Required NUL terminator missing from metadata key beginning \"%5s\".\n"
+        ERROR | 0x0080, "Required NUL terminator missing from metadata key beginning \"%5s\"."
                         "Abandoning validation of individual metadata entries."
     };
     issue ForbiddenBOM1 {
@@ -328,8 +329,8 @@ struct {
         ERROR | 0x0082, "Metadata key beginning \"%s\" has forbidden BOM."
     };
     issue InvalidStructure {
-        ERROR | 0x0083, "Invalid metadata structure? keyAndValueByteLengths failed to total kvdByteLength\n"
-                        "after %d KV pairs."
+        ERROR | 0x0083, "Invalid metadata structure? keyAndValueByteLengths failed to total kvdByteLength"
+                        " after %d KV pairs."
     };
     issue MissingFinalPadding {
         ERROR | 0x0084, "Required valuePadding after last metadata value missing."
@@ -374,7 +375,7 @@ struct {
         ERROR | 0x0095, "supercompressionGlobalData indicates no alpha but DFD indicates alpha channel."
     };
     issue DfdMismatchNoAlpha {
-        ERROR | 0x0096, "supercompressionGlobalData indicates an alpha channel but DFD indicated no alpha channel."
+        ERROR | 0x0096, "supercompressionGlobalData indicates an alpha channel but DFD indicates no alpha channel."
     };
 } SGD;
 
@@ -734,6 +735,25 @@ ktxValidator::ktxValidator() : ktxApp(myversion, mydefversion, options)
     short_opts += "qm:";
 }
 
+#if defined(_MSC_VER)
+int vasprintf(char **strp, const char *format, va_list ap)
+{
+    int len = _vscprintf(format, ap);
+    if (len == -1)
+        return -1;
+    char *str = (char*)malloc((size_t) len + 1);
+    if (!str)
+        return -1;
+    int retval = _vsnprintf(str, len + 1, format, ap);
+    if (retval == -1) {
+        free(str);
+        return -1;
+    }
+    *strp = str;
+    return retval;
+}
+#endif
+
 // Why is severity passed here?
 // -  Because it is convenient when browsing the code to see the severity
 //    at the place an issue is raised.
@@ -744,23 +764,60 @@ ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
             cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
             headerWritten = true;
         }
+        const uint32_t baseIndent = 4;
+        uint32_t indent;
         if ((errorCount + warningCount ) < maxIssues) {
-            cout << "    ";
+            for (uint32_t j = 0; j < baseIndent; j++)
+              cout.put(' ');
             switch (severity) {
               case eError:
                 cout << "ERROR: ";
+                indent = baseIndent + 7;
                 errorCount++;
                 break;
               case eFatal:
                 cout << "FATAL: ";
+                indent = baseIndent + 7;
                 break;
               case eWarning:
                 cout << "WARNING: ";
+                indent = baseIndent + 9;
                 warningCount++;
                 break;
             }
-            vfprintf(stdout, issue.message.c_str(), args);
+            //vfprintf(stdout, issue.message.c_str(), args);
+            char* pBuf;
+            int nchars = vasprintf(&pBuf, issue.message.c_str(), args);
+            if (nchars < 0) {
+                std::stringstream message;
+
+                message << "Could not create issue message: ";
+                message << strerror(errno);
+                throw std::runtime_error(message.str());
+            }
+            // Wrap lines on spaces.
+            uint32_t line = 0;
+            uint32_t lsi = 0;  // line start index.
+            uint32_t lei; // line length
+            while (nchars + indent > 80) {
+                uint32_t ll; // line length
+                lei = lsi + 79 - indent;
+                while (pBuf[lei] != ' ') lei--;
+                ll = lei - lsi;
+                for (uint32_t j = 0; j < (line ? indent : 0); j++) {
+                    cout.put(' ');
+                }
+                cout.write(&pBuf[lsi], ll) << std::endl;
+                lsi = lei + 1; // +1 to skip the space
+                nchars -= ll;
+                line++;
+            }
+            for (uint32_t j = 0; j < (line ? baseIndent : 0); j++) {
+                cout.put(' ');
+            }
+            cout.write(&pBuf[lsi], nchars);
             cout << std::endl;
+            free(pBuf);
         } else {
             throw max_issues_exceeded();
         }
@@ -903,7 +960,7 @@ ktxValidator::validateHeader(validationContext& ctx)
         addIssue(logger::eError, HeaderData.ProhibitedFormat);
 
     if (!isValidFormat((VkFormat)ctx.header.vkFormat)) {
-        if (ctx.header.vkFormat < VK_FORMAT_END_RANGE || ctx.header.vkFormat > 0x10010000)
+        if (ctx.header.vkFormat <= VK_FORMAT_MAX_STANDARD_ENUM || ctx.header.vkFormat > 0x10010000)
             addIssue(logger::eError, HeaderData.InvalidFormat, ctx.header.vkFormat);
         else
             addIssue(logger::eError, HeaderData.UnknownFormat, ctx.header.vkFormat);
@@ -955,7 +1012,7 @@ ktxValidator::validateHeader(validationContext& ctx)
 
     // This test works for arrays too because height or depth will be 0.
     max_dim = MAX(MAX(ctx.header.pixelWidth, ctx.header.pixelHeight), ctx.header.pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (ctx.header.levelCount - 1)))
+    if (max_dim < ((ktx_uint32_t)1 << (ctx.levelCount - 1)))
     {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
         addIssue(logger::eError, HeaderData.TooManyMipLevels,
@@ -1150,6 +1207,10 @@ ktxValidator::validateDfd(validationContext& ctx)
         else
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
     }
+
+    if (ctx.header.dataFormatDescriptor.byteLength != *ctx.pActualDfd)
+        addIssue(logger::eError, DFD.SizeMismatch);
+
     uint32_t* bdb = ctx.pActualDfd + 1; // Basic descriptor block.
 
     uint32_t xferFunc;
@@ -1165,15 +1226,19 @@ ktxValidator::validateDfd(validationContext& ctx)
         if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
             if (ctx.header.supercompressionScheme != KTX_SS_ZSTD) {
                 // Do a simple comparison with the expected DFD.
-                analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format,
+                analyze = memcmp(ctx.pActualDfd, ctx.pDfd4Format,
                                   *ctx.pDfd4Format);
             } else {
                 // Compare up to BYTESPLANE.
-                analyze = !memcmp(ctx.pActualDfd, ctx.pDfd4Format,
+                analyze = memcmp(ctx.pActualDfd, ctx.pDfd4Format,
                                   KHR_DF_WORD_BYTESPLANE0 * 4);
+                // Check for unsized.
+                if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
+                    || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
+                    addIssue(logger::eError, DFD.NotUnsized);
                 // Compare the sample information.
                 if (!analyze) {
-                    analyze = !memcmp(&ctx.pActualDfd[KHR_DF_WORD_SAMPLESTART+1],
+                    analyze = memcmp(&ctx.pActualDfd[KHR_DF_WORD_SAMPLESTART+1],
                                     &ctx.pDfd4Format[KHR_DF_WORD_SAMPLESTART+1],
                                     numSamples * KHR_DF_WORD_SAMPLEWORDS);
                 }
@@ -1297,12 +1362,18 @@ ktxValidator::validateDfd(validationContext& ctx)
     }
 
     if (analyze) {
+        string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
+
         // ctx.pActualDfd differs from what is expected. To help developers, do a
         // more in depth analysis.
         if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
             || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
             || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
             addIssue(logger::eError, DFD.IncorrectBasics);
+        if (KHR_DFDSAMPLECOUNT(bdb) == 0)
+            addIssue(logger::eError, DFD.ZeroSamples, vkFormatStr.c_str());
+        if (!(bdb[KHR_DF_WORD_BYTESPLANE0] & ~KHR_DF_MASK_BYTESPLANE0))
+             addIssue(logger::eError, DFD.BytesPlane0Zero, vkFormatStr.c_str());
 
         if (ctx.formatInfo.isBlockCompressed) {
             // _BLOCK formats.
@@ -1312,34 +1383,52 @@ ktxValidator::validateDfd(validationContext& ctx)
             InterpretedDFDChannel r, g, b, a;
             uint32_t componentByteLength;
             InterpretDFDResult result;
-            string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
 
             result = interpretDFD(ctx.pActualDfd, &r, &g, &b, &a, &componentByteLength);
-            if (result > i_UNSUPPORTED_ERROR_BIT)
-                addIssue(logger::eError, DFD.TooComplex);
-
-            if ((result & i_FLOAT_FORMAT_BIT) && !(result & i_SIGNED_FORMAT_BIT))
-                addIssue(logger::eWarning, DFD.UnsignedFloat);
-
-            if (result & i_SRGB_FORMAT_BIT) {
-                if (vkFormatStr.find("SRGB") == string::npos)
-                    addIssue(logger::eError, DFD.sRGBMismatch);
+            if (result > i_UNSUPPORTED_ERROR_BIT) {
+                switch (result) {
+                  case i_UNSUPPORTED_CHANNEL_TYPES:
+                    addIssue(logger::eError, DFD.InvalidColorModel);
+                    break;
+                  case i_UNSUPPORTED_MULTIPLE_PLANES:
+                    addIssue(logger::eError, DFD.MultiplePlanes);
+                    break;
+                  case i_UNSUPPORTED_MIXED_CHANNELS:
+                    addIssue(logger::eError, DFD.MixedChannels);
+                    break;
+                  case i_UNSUPPORTED_MULTIPLE_SAMPLE_LOCATIONS:
+                    addIssue(logger::eError, DFD.Multisample);
+                    break;
+                  case i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS:
+                    addIssue(logger::eError, DFD.NonTrivialEndianness);
+                    break;
+                  default:
+                    break;
+                }
             } else {
-                string findStr;
-                if (result & i_SIGNED_FORMAT_BIT)
-                    findStr += 'S';
-                else
-                    findStr += 'U';
+                if ((result & i_FLOAT_FORMAT_BIT) && !(result & i_SIGNED_FORMAT_BIT))
+                    addIssue(logger::eWarning, DFD.UnsignedFloat);
 
-                if (result & i_FLOAT_FORMAT_BIT)
-                    findStr += "FLOAT";
-                if (result & i_NORMALIZED_FORMAT_BIT)
-                    findStr += "NORM";
-                else
-                    findStr += "INT";
+                if (result & i_SRGB_FORMAT_BIT) {
+                    if (vkFormatStr.find("SRGB") == string::npos)
+                        addIssue(logger::eError, DFD.sRGBMismatch);
+                } else {
+                    string findStr;
+                    if (result & i_SIGNED_FORMAT_BIT)
+                        findStr += 'S';
+                    else
+                        findStr += 'U';
 
-                if (vkFormatStr.find(findStr) == string::npos)
-                    addIssue(logger::eError, DFD.FormatMismatch);
+                    if (result & i_FLOAT_FORMAT_BIT)
+                        findStr += "FLOAT";
+                    if (result & i_NORMALIZED_FORMAT_BIT)
+                        findStr += "NORM";
+                    else
+                        findStr += "INT";
+
+                    if (vkFormatStr.find(findStr) == string::npos)
+                        addIssue(logger::eError, DFD.FormatMismatch);
+                }
             }
         }
     }
@@ -1623,7 +1712,7 @@ ktxValidator::validateSgd(validationContext& ctx)
         if (image->alphaSliceByteOffset == 0 && numSamples == 2)
             addIssue(logger::eError, SGD.DfdMismatchAlpha);
         if (image->alphaSliceByteOffset > 0 && numSamples == 1)
-            addIssue(logger::eError, SGD.DfdMismatchAlpha);
+            addIssue(logger::eError, SGD.DfdMismatchNoAlpha);
     }
 
     if (sgdByteLength != expectedBgdByteLength)

@@ -1,6 +1,8 @@
+# Copyright 2015-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
+
 ##
 # @internal
-# @copyright © 2015, Mark Callow. For license see LICENSE.md.
 #
 # @brief Generate project to build KTX library for OpenGL.
 #

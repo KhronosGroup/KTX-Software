@@ -1,5 +1,8 @@
 # A version of cmake's FindSDL module modified to find SDL2.
 
+# Copyright 2000-2020 Kitware, Inc. and Contributors
+# SPDX-License-Identifier: BSD-3-Clause
+
 # Distributed under the OSI-approved BSD 3-Clause License. See accompanying
 # file Copyright.txt or https://cmake.org/licensing for details.
 

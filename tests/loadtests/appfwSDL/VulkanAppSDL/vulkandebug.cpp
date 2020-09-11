@@ -3,9 +3,8 @@
 * 
 * Appendix for VK_EXT_Debug_Report can be found at https://github.com/KhronosGroup/Vulkan-Docs/blob/1.0-VK_EXT_debug_report/doc/specs/vulkan/appendices/debug_report.txt
 *
-* Copyright (C) 2016 by Sascha Willems - www.saschawillems.de
-*
-* This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+* Copyright 2016 Sascha Willems - www.saschawillems.de
+* SPDX-License-Identifier: MIT
 */
 
 #include "vulkandebug.h"

@@ -1,3 +1,6 @@
+<!-- Copyright 2013-2020 Mark Callow -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 ## How to contribute to the KTX library and tools.
 
 1. Make sure you have a GitHub account.

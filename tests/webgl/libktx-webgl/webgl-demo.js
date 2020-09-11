@@ -1,3 +1,7 @@
+/*
+ * Copyright 2015-2020 MDN Contributors
+ * SPDX-License-Identifier: CC0-1.0
+ */
 
 /*
 This code originated from sample 7 in the MDN WebGL examples

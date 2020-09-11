@@ -1,4 +1,5 @@
-// Copyright (c) Mark Callow.
+// Copyright 2017 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
  
 // Fragment shader for single texture
  

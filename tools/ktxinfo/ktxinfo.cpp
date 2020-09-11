@@ -2,19 +2,8 @@
 // vi: set sw=2 ts=4 sts=4 expandtab:
 
 //
-// ©2019 The Khronos Group, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2019-2020 The Khronos Group, Inc.
+// SPDX-License-Identifier: Apache-2.0
 //
 
 // To use, download from http://www.billbaxter.com/projects/imdebug/
@@ -74,8 +63,20 @@ Print information about a KTX or KTX2 file.
 
 @section ktxinfo_description DESCRIPTION
     @b ktxinfo prints information about the KTX files provided as arguments.
-    If no arguments are given, it prints information about a single file be
+    If no arguments are given, it prints information about a single file
     read from standard input.
+
+    @note @b ktxinfo prints using UTF-8 encoding. If your console is not
+    set for UTF-8 you will see incorrect characters in output of the file
+    identifier on each side of the "KTX nn".
+
+    The following options are available:
+    <dl>
+    <dt>--help</dt>
+    <dd>Print this usage message and exit.</dd>
+    <dt>--version</dt>
+    <dd>Print the version number of this program and exit.</dd>
+    </dl>
 
 @section ktxinfo_exitstatus EXIT STATUS
     @b ktxinfo exits 0 on success, 1 on command line errors and 2 if one of
@@ -98,9 +99,15 @@ usage(_tstring& appName)
         "\n"
         "  infile ...   The file or files about which to print information. If\n"
         "               not specified, stdin is read.\n"
-//       "\n"
-//        "  Options are:\n"
-//       "\n"
+        "\n"
+        "  Note that ktxinfo prints using UTF-8 encoding. If your console is not\n"
+        "  set for UTF-8 you will see incorrect characters in output of the file\n"
+        "  identifier on each side of the \"KTX nn\".\n"
+        "\n"
+        "  Options are:\n"
+        "  --help       Print this usage message and exit.\n"
+        "  --version    Print the version number of this program and exit.\n"
+        "\n"
         ,
         appName.c_str());
 }

@@ -1,3 +1,5 @@
+# Copyright 2017-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 add_executable( transcodetests
     transcodetests.cc
@@ -25,13 +27,8 @@ target_compile_definitions(
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
-add_test( NAME transcodetests COMMAND transcodetests "${PROJECT_SOURCE_DIR}/tests/testimages/" )
 
-if(WIN32)
-    set_tests_properties(
-        transcodetests
-    PROPERTIES
-        # Make sure ktx DLL is found by adding its directory to PATH
-        ENVIRONMENT "PATH=$<TARGET_FILE_DIR:ktx>\;$ENV{PATH}"
-    )
-endif()
+gtest_discover_tests( transcodetests
+    TEST_PREFIX transcodetest
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
+)

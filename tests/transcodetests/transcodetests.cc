@@ -1,16 +1,5 @@
-// Copyright (c) 2019 Andreas Atteneder, All Rights Reserved.
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//    http://www.apache.org/licenses/LICENSE-2.0
-
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2019 Andreas Atteneder, All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 #if defined(_WIN32)
 #define _CRT_SECURE_NO_WARNINGS
@@ -217,22 +206,27 @@ TEST_P(TextureCombinationsTest, Basic) {
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
-    if(argc!=2) {
-        cerr << "Usage: " << argv[0] << " <test images path>\n";
-        return -1;
+
+    if(!::testing::FLAGS_gtest_list_tests) {
+        if(argc!=2) {
+            cerr << "Usage: " << argv[0] << " <test images path>\n";
+            return -1;
+        }
+
+        image_path = string(argv[1]);
+
+        struct stat info;
+
+        if( stat( image_path.data(), &info ) != 0 ) {
+            cerr << "Cannot access " << image_path << '\n';
+            return -2;
+        } else if( ! (info.st_mode & S_IFDIR) ) {
+            cerr << image_path << "is not a valid directory\n";
+            return -3;
+        }
     }
 
-    image_path = string(argv[1]);
-
-    struct stat info;
-
-    if( stat( image_path.data(), &info ) != 0 ) {
-        cerr << "Cannot access " << image_path << '\n';
-        return -2;
-    } else if( ! (info.st_mode & S_IFDIR) ) {
-        cerr << image_path << "is not a valid directory\n";
-        return -3;
-    }
+    ktx_basisu_basis_init();
 
     return RUN_ALL_TESTS();
 }

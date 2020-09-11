@@ -2,6 +2,9 @@
 # -*- tab-width: 4; -*-
 # vi: set sw=2 ts=4:textwidth=70
 
+# Copyright 2016-2020 Mark Callow
+# SPDX-License-Identifier: Apache-2.0
+
 # Run doxygen, creating any requested output directory first.
 # This script is needed because (a) Doxygen refuses to create
 # more than one level of directory and (b) there is no way to

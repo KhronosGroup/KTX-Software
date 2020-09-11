@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 # exit if any command fails
 set -e
@@ -17,6 +19,9 @@ ${CMAKE_EXE} --build .
 echo "Test KTX-Software (Linux Debug)"
 ctest # --verbose
 popd
+
+# Verify licensing meets REUSE standard.
+reuse lint
 
 echo "Configure KTX-Software (Linux Release)"
 ${CMAKE_EXE} . -G Ninja -Bbuild-linux-release -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
