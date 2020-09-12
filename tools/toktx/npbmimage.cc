@@ -402,11 +402,29 @@ tupleSize(const char* tupleType)
 }
 
 static void
-rescale8(uint8_t* dst, uint16_t* src, uint32_t maxval, uint32_t pixelCount)
+rescale16to8(uint8_t* dst, uint16_t* src, uint32_t maxval, uint32_t count)
 {
     float multiplier = 255.0f / maxval;
-    for (uint32_t i = 0; i < pixelCount; i++) {
+    for (uint32_t i = 0; i < count; ++i) {
         *dst++ = (uint8_t)roundf(*src++ * multiplier);
+    }
+}
+
+static void
+rescale8(uint8_t* dst, uint8_t* src, uint32_t maxval, uint32_t count)
+{
+    float multiplier = 255.0f / maxval;
+    for (uint32_t i = 0; i < count; ++i) {
+        *dst++ = (uint8_t)roundf(*src++ * multiplier);
+    }
+}
+
+static void
+rescale16(uint16_t* dst, uint16_t* src, uint32_t maxval, uint32_t count)
+{
+    float multiplier = 65535.0f / maxval;
+    for (uint32_t i = 0; i < count; ++i) {
+        *dst++ = (uint16_t)roundf(*src++ * multiplier);
     }
 }
 
@@ -440,13 +458,13 @@ readImage(FILE* src, Image& image, int32_t maxval)
     if (maxval > 255 && image.getComponentSize() == 1) {
         // Need to rescale so read the image into a temporary buffer.
         nitems = 2;
-        char* buffer16 = new char[image.getByteCount()*nitems];
+        buffer16 = new char[image.getByteCount()*nitems];
         pBuffer = buffer16;
     } else {
         pBuffer = image;
         nitems = 1;
     }
-    if (fread(image, image.getByteCount(), nitems, src) != 1)
+    if (fread(pBuffer, image.getByteCount(), nitems, src) != 1)
     {
         std::stringstream message;
         message << "unexpected end of file. Could not read "
@@ -454,13 +472,25 @@ readImage(FILE* src, Image& image, int32_t maxval)
         throw std::runtime_error(message.str());
     }
     if (IS_LITTLE_ENDIAN && maxval > 255) {
-        swapEndian16((uint16_t*)pBuffer, image.getPixelCount());
+        swapEndian16((uint16_t*)pBuffer,
+                     image.getPixelCount() * image.getComponentCount());
     }
 
     if (buffer16 != nullptr) {
-        rescale8(image, (uint16_t*)pBuffer, maxval, image.getPixelCount());
+        rescale16to8(image, (uint16_t*)pBuffer, maxval,
+                     image.getPixelCount() * image.getComponentCount());
         delete[] buffer16;
     }
+    // Maxval is whitepoint. Rescale needed if white is not uint MAX.
+    else if (maxval < 255) {
+        rescale8((uint8_t*)pBuffer, (uint8_t*)pBuffer, maxval,
+                 image.getPixelCount() * image.getComponentCount());
+    }
+    else if (maxval > 255 && maxval < 65535) {
+        rescale16((uint16_t*)pBuffer, (uint16_t*)pBuffer, maxval,
+                  image.getPixelCount() * image.getComponentCount());
+    }
+
     image.setOetf(KHR_DF_TRANSFER_ITU);
 }
 
@@ -504,6 +534,3 @@ void parseHeader(FILE* src, uint32_t& width, uint32_t& height, int32_t& maxval)
         throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
     }
 }
-
-
-
