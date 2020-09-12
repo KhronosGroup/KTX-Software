@@ -482,11 +482,11 @@ readImage(FILE* src, Image& image, int32_t maxval)
         delete[] buffer16;
     }
     // Maxval is whitepoint. Rescale needed if white is not uint MAX.
-    else if(maxval < 255) {
+    else if (maxval < 255) {
         rescale8((uint8_t*)pBuffer, (uint8_t*)pBuffer, maxval,
                  image.getPixelCount() * image.getComponentCount());
     }
-    else if(maxval > 255 && maxval < 65535) {
+    else if (maxval > 255 && maxval < 65535) {
         rescale16((uint16_t*)pBuffer, (uint16_t*)pBuffer, maxval,
                   image.getPixelCount() * image.getComponentCount());
     }
