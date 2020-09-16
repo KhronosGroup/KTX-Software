@@ -124,6 +124,11 @@ extern "C" {
 #define KTX_WRITER_KEY "KTXwriter"
 /**
  * @~English
+ * @brief Key string for standard writer supercompression parameter metadata.
+ */
+#define KTX_WRITER_SCPARAMS_KEY "KTXwriterScParams"
+/**
+ * @~English
  * @brief Standard KTX 1 format for 1D orientation value.
  */
 #define KTX_ORIENTATION1_FMT "S=%c"

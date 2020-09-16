@@ -350,6 +350,9 @@ struct {
     issue InvalidValue {
         ERROR | 0x0089, "%s has invalid value."
     };
+    issue NoRequiredKTXwriter {
+        ERROR | 0x008a, "No KTXwriter key. Required when KTXwriterScParams is present."
+    };
     issue NoKTXwriter {
         WARNING | 0x008a, "No KTXwriter key. Writers are strongly urged to identify themselves via this."
     };
@@ -669,6 +672,8 @@ class ktxValidator : public ktxApp {
                         uint8_t* value, uint32_t valueLen);
     void validateWriter(validationContext& ctx, char* key,
                         uint8_t* value, uint32_t valueLen);
+    void validateWriterScParams(validationContext& ctx, char* key,
+                                uint8_t* value, uint32_t valueLen);
     void validateAstcDecodeRGB9E5(validationContext& ctx, char* key,
                                   uint8_t* value, uint32_t valueLen);
 
@@ -714,6 +719,7 @@ vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
     { "KTXMetalPixelFormat", &ktxValidator::validateMetalPixelFormat },
     { "KTXswizzle", &ktxValidator::validateSwizzle },
     { "KTXwriter", &ktxValidator::validateWriter },
+    { "KTXwriterScParams", &ktxValidator::validateWriterScParams },
     { "KTXastcDecodeRGB9E5", &ktxValidator::validateAstcDecodeRGB9E5 }
 };
 
@@ -798,7 +804,7 @@ ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
             // Wrap lines on spaces.
             uint32_t line = 0;
             uint32_t lsi = 0;  // line start index.
-            uint32_t lei; // line length
+            uint32_t lei; // line end index
             while (nchars + indent > 80) {
                 uint32_t ll; // line length
                 lei = lsi + 79 - indent;
@@ -1501,6 +1507,7 @@ ktxValidator::validateKvd(validationContext& ctx)
     uint32_t prevKeyLen;
     KTX_error_code result;
     bool writerFound = false;
+    bool writerScParamsFound = false;
 
     if (allKeysNulTerminated) {
         result = ktxHashList_Deserialize(&kvDataHead, kvdLen, kvd);
@@ -1536,12 +1543,18 @@ ktxValidator::validateKvd(validationContext& ctx)
                 }
                 if (strncmp(key, "KTXwriter", 9) == 0)
                     writerFound = true;
+                if (strncmp(key, "KTXwriterScParams", 17) == 0)
+                    writerScParamsFound = true;
             } else {
                 addIssue(logger::eWarning, Metadata.CustomMetadata, key);
             }
         }
-        if (!writerFound)
-            addIssue(logger::eWarning, Metadata.NoKTXwriter);
+        if (!writerFound) {
+            if (writerScParamsFound)
+                addIssue(logger::eError, Metadata.NoRequiredKTXwriter);
+            else
+                addIssue(logger::eWarning, Metadata.NoKTXwriter);
+        }
     }
 
     if (ctx.header.supercompressionGlobalData.byteOffset != 0) {
@@ -1643,6 +1656,14 @@ ktxValidator::validateSwizzle(validationContext& ctx, char* key,
 void
 ktxValidator::validateWriter(validationContext& ctx, char* key,
                              uint8_t* value, uint32_t valueLen)
+{
+    if (value[valueLen-1] != '\0')
+        addIssue(logger::eError, Metadata.ValueNotNulTerminated, key);
+}
+
+void
+ktxValidator::validateWriterScParams(validationContext& ctx, char* key,
+                                     uint8_t* value, uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
         addIssue(logger::eError, Metadata.ValueNotNulTerminated, key);

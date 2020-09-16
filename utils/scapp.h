@@ -158,7 +158,7 @@ struct clampedOption
   parameter, separate options from file names with " -- ".
 
   Any specified Basis Universal and supercompression options are recorded in
-  the custom metadata item @c KHRtoktxScParams in the output file.
+  the metadata item @c KTXwriterScParams in the output file.
 //! [scApp options]
 */
 
@@ -223,7 +223,7 @@ class scApp : public ktxApp {
     };
 
     commandOptions& options;
-    const string scparamKey = "KHRtoktxScParams";
+    const string scparamKey = "KTXwriterScParams";
     string scparams;
 
     virtual bool processOption(argparser& parser, int opt);
@@ -343,6 +343,9 @@ class scApp : public ktxApp {
           cerr << endl <<
           "In case of ambiguity, such as when the last option is one with an optional\n"
           "parameter, options can be separated from file names with \" -- \".\n"
+          "\n"
+          "Any specified Basis Universal and supercompression options are recorded in\n"
+          "the metadata item @c KTXwriterScParams in the output file.\n"
           << endl;
     }
 };

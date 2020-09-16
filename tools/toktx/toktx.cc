@@ -1032,7 +1032,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
             if (!getParamsStr().empty()) {
                 ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
-                (ktx_uint32_t)getParamsStr().length(), getParamsStr().c_str());
+                (ktx_uint32_t)getParamsStr().length() + 1,
+                getParamsStr().c_str());
             }
             ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
             if (KTX_SUCCESS != ret) {
