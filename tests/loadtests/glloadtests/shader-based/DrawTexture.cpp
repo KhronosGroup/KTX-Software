@@ -92,10 +92,14 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
-        if (target != GL_TEXTURE_2D) {
-            /* Can only draw 2D textures */
+        if (target != GL_TEXTURE_1D && target != GL_TEXTURE_2D) {
+            /* Can only draw 1D & 2D textures */
+            std::stringstream message;
+
             glDeleteTextures(1, &gnTexture);
-            return;
+            message << "DrawTexture supports only 1D & 2D textures. \""
+                    << filename << "\" is not one of these.";
+            throw std::runtime_error(message.str());
         }
 
         if (kTexture->orientation.x == KTX_ORIENT_X_LEFT)
