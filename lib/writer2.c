@@ -312,6 +312,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
               "KTXdxgiFormat__",
               "KTXswizzle",
               "KTXwriter",
+              "KTXwriterScParams",
               "KTXastcDecodeMode",
               "KTXanimData"
             };
