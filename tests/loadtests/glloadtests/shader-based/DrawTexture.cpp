@@ -33,6 +33,10 @@
 #include "argparser.h"
 #include "ltexceptions.h"
 
+#if !defined(GL_TEXTURE_1D)
+  #define GL_TEXTURE_1D                     0x0DE0
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 extern const GLchar* pszVs;
@@ -92,6 +96,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
     if (KTX_SUCCESS == ktxresult) {
+        // GLUpload won't set target to GL_TEXTURE_1D not supported by context.
         if (target != GL_TEXTURE_1D && target != GL_TEXTURE_2D) {
             /* Can only draw 1D & 2D textures */
             std::stringstream message;
