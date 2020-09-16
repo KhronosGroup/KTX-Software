@@ -108,20 +108,27 @@ before_deploy:
       ;;
     osx)
       # Only notarize if we're going to deploy. I.e on a tag. Also check for access
-      # to singing certs to make sure we don't try this on a fork which has a tag.
+      # to signing certs to make sure we don't try this on a fork which has a tag.
       #
       # Although undocumented, except for a blog post, before_deploy is run for each
       # deployment so we need to take steps to prevent notarization being run twice.
       # https://github.com/travis-ci/travis-ci/issues/2570 about this has been open
       # for years. What a crock!
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
-        ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true";
+        ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
+      fi
+      if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
+        # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
+        # unnecessary in the context of a GitHub release description.
+        RELNOTES=$(cat RELEASE_NOTES.md | awk '/^Release Notes/,/^## Version/ { next }
+                                          ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }')
       fi
       ;;
     esac
 
 deploy:
   - provider: pages
+    #edge: true # Use bleeding edge (dplv2)
     skip-cleanup: true
     github-token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local-dir: build-macos/docs/html
@@ -130,10 +137,21 @@ deploy:
       condition: $TRAVIS_OS_NAME = osx
       tags: true
   - provider: releases
+    # dpl v2 is broken. Same named but different releases are created for this
+    # and the deploy below. Happens even when neither of release_notes or
+    # release_notes_file is specified.
+    #edge: true # Use bleeding edge (dplv2)
     api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
       - build-macos/KTX-Software-*.pkg
+    # This goes to the release description so covers all versions.
+    # These are dpl v2 parameters.
+    #release_notes_file: RELEASE_NOTES.md
+    #release_notes: $RELNOTES
+    # dpl v1. Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
+    # body: $RELNOTES
+    # Do release note deployment manually for now.
     skip_cleanup: true
     draft: true
     prerelease: true
@@ -142,6 +160,7 @@ deploy:
       #branch: master
       condition: $TRAVIS_OS_NAME = osx
   - provider: releases
+    #edge: true # Use bleeding edge (dplv2)
     api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
