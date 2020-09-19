@@ -38,11 +38,21 @@ typedef struct {
     bool hasAlpha;
 } TextureSet;
 
+std::ostream& operator<<(std::ostream& out, const TextureSet& h)
+{
+     return out << h.ktxPath;
+}
+
 typedef struct {
     ktx_transcode_fmt_e format;
     bool supportsNonPo2;
     bool supportsNonAlpha;
 } FormatFeature;
+
+std::ostream& operator<<(std::ostream& out, const FormatFeature& h)
+{
+     return out << ktxTranscodeFormatString(h.format);
+}
 
 vector<TextureSet> allTextureSets = {
     {"color_grid_basis.ktx2","color_grid.basis",true,false},
@@ -198,8 +208,6 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 TEST_P(TextureCombinationsTest, Basic) {
     TextureSet ts = get<0>(GetParam());
     FormatFeature format = get<1>(GetParam());
-    cout << "txt: " << ts.ktxPath
-            << " format: " << format.format << "\n";
     test_texture_set(ts,format);
 }
 }  // namespace
