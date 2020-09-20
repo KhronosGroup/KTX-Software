@@ -47,9 +47,10 @@ compile_shader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shad
 compile_shader(shader_cube cube vkloadtests/shaders/cube shaders )
 compile_shader(shader_cubemap_reflect reflect vkloadtests/shaders/cubemap shaders )
 compile_shader(shader_cubemap_skybox skybox vkloadtests/shaders/cubemap shaders )
-compile_shader(shader_texture texture vkloadtests/shaders/texture shaders )
+compile_shader_list(shader_texture vkloadtests/shaders/texture shaders texture.vert texture1d.frag texture2d.frag)
 compile_shader(shader_texturearray instancing vkloadtests/shaders/texturearray shaders )
 compile_shader(shader_texturemipmap instancinglod vkloadtests/shaders/texturemipmap shaders )
+
 
 add_custom_target(
     spirv_shaders

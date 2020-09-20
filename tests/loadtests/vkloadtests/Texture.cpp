@@ -556,7 +556,13 @@ Texture::preparePipelines()
     std::string filepath = getAssetPath() + "shaders/";
     shaderStages[0] = loadShader(filepath + "texture.vert.spv",
                                 vk::ShaderStageFlagBits::eVertex);
-    shaderStages[1] = loadShader(filepath + "texture.frag.spv",
+    std::string fragShader = filepath;
+    if (texture.viewType == VK_IMAGE_VIEW_TYPE_1D)
+        fragShader += "texture1d";
+    else
+        fragShader += "texture2d";
+    fragShader += ".frag.spv";
+    shaderStages[1] = loadShader(fragShader,
                                 vk::ShaderStageFlagBits::eFragment);
 
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
