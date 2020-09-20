@@ -75,15 +75,16 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
 
     processArgs(szArgs);
 
-    ktxresult = ktxTexture_CreateFromNamedFile(
-                         (getAssetPath() + filename).c_str(),
-                         preloadImages ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT
-                                       : KTX_TEXTURE_CREATE_NO_FLAGS,
-                                               &kTexture);
+    std::string ktxfilepath = externalFile ? ktxfilename
+                                           : getAssetPath() + ktxfilename;
+    ktxresult = ktxTexture_CreateFromNamedFile(ktxfilepath.c_str(),
+                        preloadImages ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT
+                                      : KTX_TEXTURE_CREATE_NO_FLAGS,
+                        &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
 
-        message << "Creation of ktxTexture from \"" << filename
+        message << "Creation of ktxTexture from \"" << ktxfilepath
                 << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
@@ -103,7 +104,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
 
             glDeleteTextures(1, &gnTexture);
             message << "DrawTexture supports only 1D & 2D textures. \""
-                    << filename << "\" is not one of these.";
+                    << ktxfilename << "\" is not one of these.";
             throw std::runtime_error(message.str());
         }
 
@@ -284,6 +285,7 @@ DrawTexture::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
+        "external",         argparser::option::no_argument, &externalFile, 1,
         "preload",          argparser::option::no_argument, &preloadImages, 1,
         "transcode-target", argparser::option::required_argument, nullptr, 2,
         NULL,               argparser::option::no_argument,       nullptr, 0
@@ -303,8 +305,7 @@ DrawTexture::processArgs(std::string sArgs)
         }
     }
     assert(ap.optind < argv.size());
-    filename = argv[ap.optind];
-
+    ktxfilename = argv[ap.optind];
 }
 
 ktx_transcode_fmt_e

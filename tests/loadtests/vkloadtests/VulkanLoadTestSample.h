@@ -53,7 +53,10 @@ class VulkanLoadTestSample : public LoadTestSample {
   protected:
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
-    
+
+    std::string ktxfilename;
+    int externalFile = 0;
+
     vk::PipelineShaderStageCreateInfo
     loadShader(std::string filename,
                vk::ShaderStageFlagBits stage,

@@ -26,6 +26,7 @@
 #include <vector>
 #include <ktx.h>
 
+#include "argparser.h"
 #include "TextureCubemap.h"
 #include "GLTextureTranscoder.hpp"
 #include "ltexceptions.h"
@@ -251,17 +252,20 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
     // Ensure we're using the desired unit
     glActiveTexture(cubemapTexUnit);
 
+    processArgs(szArgs);
+
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
     GLenum glerror;
-    ktxresult =
-           ktxTexture_CreateFromNamedFile((getAssetPath() + szArgs).c_str(),
-                                           KTX_TEXTURE_CREATE_NO_FLAGS,
-                                           &kTexture);
+    std::string ktxfilepath = externalFile ? ktxfilename
+                                           : getAssetPath() + ktxfilename;
+    ktxresult = ktxTexture_CreateFromNamedFile(ktxfilepath.c_str(),
+                                               KTX_TEXTURE_CREATE_NO_FLAGS,
+                                               &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
         
-        message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
+        message << "Creation of ktxTexture from \"" << ktxfilepath
                 << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
@@ -376,6 +380,31 @@ TextureCubemap::run(uint32_t msTicks)
         glDepthFunc(GL_LESS);
     }
     assert(GL_NO_ERROR == glGetError());
+}
+
+//===================================================================
+
+void
+TextureCubemap::processArgs(std::string sArgs)
+{
+    // Options descriptor
+    struct argparser::option longopts[] = {
+        "external",      argparser::option::no_argument, &externalFile, 1,
+        NULL,            argparser::option::no_argument, NULL,          0
+    };
+
+    argvector argv(sArgs);
+    argparser ap(argv);
+
+    int ch;
+    while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
+        switch (ch) {
+            case 0: break;
+            default: assert(false); // Error in args in sample table.
+        }
+    }
+    assert(ap.optind < argv.size());
+    ktxfilename = argv[ap.optind];
 }
 
 /* ------------------------------------------------------------------------- */

@@ -37,7 +37,6 @@ class TextureCubemap : public VulkanLoadTestSample
            const char* const szArgs, const std::string sBasePath);
 
   protected:
-    std::string filename;
     int preloadImages = 0;
 
     bool displaySkybox = true;

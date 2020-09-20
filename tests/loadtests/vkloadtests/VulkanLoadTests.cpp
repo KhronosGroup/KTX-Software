@@ -285,8 +285,8 @@ VulkanLoadTests::showFile(std::string& filename)
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
 
-        message << "Creation of ktxTexture from \"" << getAssetPath()
-                << filename << "\" failed: " << ktxErrorString(ktxresult);
+        message << "Creation of ktxTexture from \"" << filename
+                << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
 
@@ -302,7 +302,8 @@ VulkanLoadTests::showFile(std::string& filename)
         createViewer = Texture::create;
     }
     ktxTexture_Destroy(kTexture);
-    pViewer = createViewer(vkctx, w_width, w_height, filename.c_str(), "");
+    std::string args = "--external " + filename;
+    pViewer = createViewer(vkctx, w_width, w_height, args.c_str(), sBasePath);
     return pViewer;
 }
 

@@ -40,6 +40,9 @@ class GL3LoadTestSample : public LoadTestSample {
     virtual void keyPressed(uint32_t keyCode) { }
     virtual void viewChanged() { }
 
+    std::string ktxfilename;
+    int externalFile = 0;
+
     struct compressedTexFeatures {
         bool astc_ldr;
         bool astc_hdr;

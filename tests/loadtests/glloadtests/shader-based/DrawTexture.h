@@ -38,7 +38,6 @@ class DrawTexture : public GL3LoadTestSample {
     void processArgs(std::string sArgs);
     ktx_transcode_fmt_e strtofmt(std::string format);
 
-    std::string filename;
     int preloadImages = 0;
 
     uint32_t uWidth;

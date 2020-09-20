@@ -32,7 +32,6 @@ class InstancedSampleBase : public VulkanLoadTestSample
     virtual const char* const customizeTitle(const char* const title);
 
   protected:
-    std::string filename;
     ktxVulkanTexture texture;
     vk::Sampler sampler;
     vk::ImageView imageView;
