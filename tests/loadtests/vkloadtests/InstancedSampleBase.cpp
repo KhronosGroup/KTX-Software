@@ -68,15 +68,16 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
 
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
-    ktxresult =
-           ktxTexture_CreateFromNamedFile((getAssetPath() + filename).c_str(),
-                                           KTX_TEXTURE_CREATE_NO_FLAGS,
-                                           &kTexture);
+    std::string ktxfilepath = externalFile ? ktxfilename
+                                           : getAssetPath() + ktxfilename;
+    ktxresult = ktxTexture_CreateFromNamedFile(ktxfilepath.c_str(),
+                                               KTX_TEXTURE_CREATE_NO_FLAGS,
+                                               &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
         
-        message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
-        << "\" failed: " << ktxErrorString(ktxresult);
+        message << "Creation of ktxTexture from \"" << ktxfilepath
+                << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
 
@@ -217,6 +218,7 @@ InstancedSampleBase::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
+        "external",      argparser::option::no_argument, &externalFile, 1,
         "linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear,
         NULL,            argparser::option::no_argument, NULL,          0
     };
@@ -232,7 +234,7 @@ InstancedSampleBase::processArgs(std::string sArgs)
         }
     }
     assert(ap.optind < argv.size());
-    filename = argv[ap.optind];
+    ktxfilename = argv[ap.optind];
 }
 
 /* ------------------------------------------------------------------------- */

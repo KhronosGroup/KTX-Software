@@ -17,20 +17,20 @@ layout (location = 5) in vec3 inColor;
 
 layout (location = 0) out vec4 outFragColor;
 
-void main() 
+void main()
 {
-	vec4 fragcolor, texcolor;
+    vec4 fragcolor, texcolor;
 
-	texcolor = texture(samplerColor, inUV, inLodBias);
-	fragcolor.rgb = inColor.rgb * (1.0f - texcolor.a) + texcolor.rgb * texcolor.a;
+    texcolor = texture(samplerColor, inUV, inLodBias);
+    fragcolor.rgb = inColor.rgb * (1.0f - texcolor.a) + texcolor.rgb * texcolor.a;
     fragcolor.a = texcolor.a;
 
-	vec3 N = normalize(inNormal);
-	vec3 L = normalize(inLightVec);
-	vec3 V = normalize(inViewVec);
-	vec3 R = reflect(-L, N);
-	vec3 diffuse = max(dot(N, L), 0.0) * vec3(1.0);
-	float specular = pow(max(dot(R, V), 0.0), 16.0) * fragcolor.a;
+    vec3 N = normalize(inNormal);
+    vec3 L = normalize(inLightVec);
+    vec3 V = normalize(inViewVec);
+    vec3 R = reflect(-L, N);
+    vec3 diffuse = max(dot(N, L), 0.0) * vec3(1.0);
+    float specular = pow(max(dot(R, V), 0.0), 16.0) * fragcolor.a;
 
-	outFragColor = vec4(diffuse * fragcolor.rgb + specular, 1.0);
+    outFragColor = vec4(diffuse * fragcolor.rgb + specular, 1.0);
 }

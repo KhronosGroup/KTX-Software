@@ -73,16 +73,17 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
 
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
-    ktxresult = ktxTexture_CreateFromNamedFile(
-                         (getAssetPath() + filename).c_str(),
+    std::string ktxfilepath = externalFile ? ktxfilename
+                                           : getAssetPath() + ktxfilename;
+    ktxresult = ktxTexture_CreateFromNamedFile(ktxfilepath.c_str(),
                          preloadImages ? KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT
                                        : KTX_TEXTURE_CREATE_NO_FLAGS,
                          &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
         
-        message << "Creation of ktxTexture from \"" << getAssetPath() << szArgs
-        << "\" failed: " << ktxErrorString(ktxresult);
+        message << "Creation of ktxTexture from \"" << ktxfilepath
+                << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
 
@@ -183,8 +184,9 @@ TextureCubemap::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-        "preload", argparser::option::no_argument,  &preloadImages, 1,
-        NULL,      argparser::option::no_argument,  NULL,          0
+        "external", argparser::option::no_argument, &externalFile, 1,
+        "preload",  argparser::option::no_argument,  &preloadImages, 1,
+        NULL,       argparser::option::no_argument,  NULL,          0
     };
 
     argvector argv(sArgs);
@@ -198,7 +200,7 @@ TextureCubemap::processArgs(std::string sArgs)
         }
     }
     assert(ap.optind < argv.size());
-    filename = argv[ap.optind];
+    ktxfilename = argv[ap.optind];
 
 }
 

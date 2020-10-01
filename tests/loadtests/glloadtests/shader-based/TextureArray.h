@@ -104,6 +104,8 @@ class TextureArray : public GL3LoadTestSample
     void prepareProgram();
     void prepare();
 
+    void processArgs(std::string sArgs);
+
     virtual void viewChanged()
     {
         updateUniformBufferMatrices();
