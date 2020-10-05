@@ -189,7 +189,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
         uint32_t currentBitOffset = 0;
         uint32_t currentByteOffset = 0;
         uint32_t currentBitLength = 0;
-        *wordBytes = (BDFDB[4] & 0xFFU);
+        *wordBytes = (BDFDB[KHR_DF_WORD_BYTESPLANE0] & 0xFFU);
         for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
             uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET);
             uint32_t sampleByteOffset = sampleBitOffset >> 3U;
