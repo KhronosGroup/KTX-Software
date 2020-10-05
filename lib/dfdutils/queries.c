@@ -14,6 +14,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
@@ -79,3 +81,51 @@ uint32_t getDFDNumComponents(const uint32_t* DFD)
     }
     return numComponents;
 }
+
+/**
+ * @~English
+ * @brief Recreate the value of bytesPlane0 from sample info.
+ *
+ * This can be use to recreate the value of bytesPlane0 for data that
+ * has been variable-rate compressed so has bytesPlane0 = 0.  For DFDs
+ * that are valid for KTX files. Little-endian data only and no multi-plane
+ * formats.
+ *
+ * @param DFD Pointer to a Data Format Descriptor for which,
+ *            described as 32-bit words in native endianness.
+ *            Note that this is the whole descriptor, not just
+ *            the basic descriptor block.
+ * @param bytesPlane0  pointer to a 32-bit word in which the recreated
+ *                    value of bytesPlane0 will be written.
+ */
+void
+recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
+{
+    const uint32_t *BDFDB = DFD+1;
+    uint32_t numSamples = KHR_DFDSAMPLECOUNT(BDFDB);
+    uint32_t sampleCounter;
+
+    uint32_t bitsPlane0 = 0;
+    int32_t* bitOffsets = malloc(sizeof(uint32_t) * numSamples);
+    memset(bitOffsets, -1, sizeof(uint32_t) * numSamples);
+    for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
+        uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET);
+        /* The sample bitLength field stores the bit length - 1. */
+        uint32_t sampleBitLength = KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) + 1;
+        uint32_t i;
+        for (i = 0; i < numSamples; i++) {
+            if (sampleBitOffset == bitOffsets[i]) {
+                // This sample is being repeated as in e.g. RGB9E5.
+                break;
+            }
+        }
+        if (i == numSamples) {
+            // Previously unseen bitOffset. Bump size.
+            bitsPlane0 += sampleBitLength;
+            bitOffsets[sampleCounter] = sampleBitOffset;
+        }
+    }
+    free(bitOffsets);
+    *bytesPlane0 = bitsPlane0 >> 3U;
+}
+

@@ -58,11 +58,13 @@ struct ktxTexture_vtblInt ktxTexture2_vtblInt;
 bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
+    bool notDepthStencil = false;
     uint32_t* pBdb = pDfd + 1;
     This->blockWidth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION0) + 1;
     This->blockHeight = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION1) + 1;
     This->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
     This->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
+    This->paletteSizeInBits = 0; // No paletted formats in ktx v2.
     This->flags = 0;
     if (KHR_DFDVAL(pBdb, MODEL) >= KHR_DF_MODEL_DXT1A) {
         // A block compressed format. Entire block is a single sample.
@@ -84,16 +86,29 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         } else if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_STENCIL) {
             This->flags |= KTX_FORMAT_SIZE_STENCIL_BIT;
         } else {
-            InterpretedDFDChannel r, g, b, a;
+            InterpretedDFDChannel rgba[4];
             uint32_t wordBytes;
             enum InterpretDFDResult result;
 
-            result = interpretDFD(pDfd, &r, &g, &b, &a, &wordBytes);
+            result = interpretDFD(pDfd, &rgba[0], &rgba[1], &rgba[2], &rgba[3],
+                                  &wordBytes);
             if (result >= i_UNSUPPORTED_ERROR_BIT)
                 return false;
             if (result & i_PACKED_FORMAT_BIT)
                 This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
         }
+    }
+    if (This->blockSizeInBits == 0) {
+        // The DFD shows a supercompressed texture. Complete the ktxFormatSize
+        // struct by figuring out the post inflation value for bytesPlane0.
+        // Setting it here simplifies stuff later in this file. Setting the
+        // post inflation block size here will not cause any problems for
+        // the following reasons. (1) in v2 files levelIndex is always used to
+        // calculate data size and, of course, for the level offsets. (2) Finer
+        // grain access to supercompressed data than levels is not possible.
+        uint32_t blockByteLength;
+        recreateBytesPlane0FromSampleInfo(pDfd, &blockByteLength);
+        This->blockSizeInBits = blockByteLength * 8;
     }
     return true;
 }
@@ -1143,6 +1158,7 @@ ktxTexture2_calcDataSizeLevels(ktxTexture2* This, ktx_uint32_t levels)
     ktx_size_t dataSize = 0;
 
     assert(This != NULL);
+    assert(This->supercompressionScheme == KTX_SS_NONE);
     assert(levels <= This->numLevels);
     for (ktx_uint32_t i = levels - 1; i > 0; i--) {
         ktx_size_t levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
@@ -1164,6 +1180,8 @@ ktxTexture2_calcDataSizeLevels(ktxTexture2* This, ktx_uint32_t levels)
 ktx_size_t
 ktxTexture2_calcFaceLodSize(ktxTexture2* This, ktx_uint32_t level)
 {
+    assert(This != NULL);
+    assert(This->supercompressionScheme == KTX_SS_NONE);
     /*
      * For non-array cubemaps this is the size of a face. For everything
      * else it is the size of the level.
@@ -1193,6 +1211,7 @@ ktx_size_t
 ktxTexture2_calcLevelOffset(ktxTexture2* This, ktx_uint32_t level)
 {
   assert (This != NULL);
+  assert(This->supercompressionScheme == KTX_SS_NONE);
   assert (level < This->numLevels);
   ktx_size_t levelOffset = 0;
   for (ktx_uint32_t i = This->numLevels - 1; i > level; i--) {
@@ -1269,25 +1288,18 @@ lcm4(uint32_t a)
  * @return    The required alignment for levels.
  */
 ktx_uint32_t
-ktxTexture2_calcPostInflationBlockSizeAndAlignment(ktxTexture2* This,
-                                                ktx_uint32_t* pBlockByteLength)
+ktxTexture2_calcPostInflationLevelAlignment(ktxTexture2* This)
 {
-     ktx_uint32_t alignment;
-     ktx_uint32_t componentCount, componentByteLength;
+    ktx_uint32_t alignment;
 
-     // Should actually work for none supercompressed but don't want to
-     // encourage use of it.
-     assert(This->supercompressionScheme >= KTX_SS_ZSTD);
+    // Should actually work for none supercompressed but don't want to
+    // encourage use of it.
+    assert(This->supercompressionScheme >= KTX_SS_ZSTD);
 
-     // This extracts the info based on samples and sample bit lengths which
-     // are still - supposed to be - valid for Zstd compressed textures.
-     getDFDComponentInfoUnpacked(This->pDfd, &componentCount,
-                                 &componentByteLength);
-     *pBlockByteLength = componentCount * componentByteLength;
-     if (This->vkFormat != VK_FORMAT_UNDEFINED)
-         alignment = lcm4(*pBlockByteLength);
-     else
-         alignment = 16;
+    if (This->vkFormat != VK_FORMAT_UNDEFINED)
+        alignment = lcm4(This->_protected->_formatSize.blockSizeInBits / 8);
+    else
+        alignment = 16;
 
     return alignment;
 }
@@ -1474,27 +1486,27 @@ ktxTexture2_GetDataSizeUncompressed(ktxTexture2* This)
         return This->dataSize;
       case KTX_SS_ZSTD:
       {
-        ktx_size_t uncompressedSize = 0;
-        ktx_uint32_t uncompressedLevelAlignment, unused;
-        ktxLevelIndexEntry* levelIndex = This->_private->_levelIndex;
+            ktx_size_t uncompressedSize = 0;
+            ktx_uint32_t uncompressedLevelAlignment;
+            ktxLevelIndexEntry* levelIndex = This->_private->_levelIndex;
 
-        uncompressedLevelAlignment =
-            ktxTexture2_calcPostInflationBlockSizeAndAlignment(This, &unused);
+            uncompressedLevelAlignment =
+                ktxTexture2_calcPostInflationLevelAlignment(This);
 
-        for (ktx_int32_t level = This->numLevels - 1; level >= 1; level--) {
-            ktx_size_t uncompressedLevelSize;
-            uncompressedLevelSize = levelIndex[level].uncompressedByteLength;
-            uncompressedLevelSize = _KTX_PADN(uncompressedLevelAlignment,
-                                              uncompressedLevelSize);
-            uncompressedSize += uncompressedLevelSize;
-        }
-        uncompressedSize += levelIndex[0].uncompressedByteLength;
-        return uncompressedSize;
+            for (ktx_int32_t level = This->numLevels - 1; level >= 1; level--) {
+                ktx_size_t uncompressedLevelSize;
+                uncompressedLevelSize = levelIndex[level].uncompressedByteLength;
+                uncompressedLevelSize = _KTX_PADN(uncompressedLevelAlignment,
+                                                  uncompressedLevelSize);
+                uncompressedSize += uncompressedLevelSize;
+            }
+            uncompressedSize += levelIndex[0].uncompressedByteLength;
+            return uncompressedSize;
       }
       case KTX_SS_BEGIN_VENDOR_RANGE:
       case KTX_SS_END_VENDOR_RANGE:
       case KTX_SS_BEGIN_RESERVED:
-	  default:
+      default:
         return 0;
     }
 }
@@ -1686,12 +1698,8 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
         }
         dctx = ZSTD_createDCtx();
         pData = uncompressedDataBuf;
-        (void)ktxTexture2_calcPostInflationBlockSizeAndAlignment(This,
-                                                             &blockByteLength);
-        // TODO: Should we fix up the texture's formatSize and dataSize?
     } else {
         pData = dataBuf;
-        blockByteLength = prtctd->_formatSize.blockSizeInBits / 8;
     }
 
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; --level)
@@ -1738,7 +1746,9 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
                     return KTX_FILE_DATA_ERROR;
                 }
             }
-            // TODO: Should we fix up the levelIndex?
+            // We don't fix up the texture's dataSize, levelIndex or
+            // _requiredAlignment because after this function completes there
+            // is no way to get at the texture's data.
             //nindex[level].byteOffset = levelOffset;
             //nindex[level].uncompressedByteLength = nindex[level].byteLength =
                                                                 //levelByteLength;
@@ -1775,7 +1785,8 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
               = (uint32_t)ceilf((float)height / prtctd->_formatSize.blockHeight);
             blockCount.x = MAX(1, blockCount.x);
             blockCount.y = MAX(1, blockCount.y);
-            faceSize = blockCount.x * blockCount.y * blockByteLength;
+            faceSize = blockCount.x * blockCount.y
+                       * prtctd->_formatSize.blockSizeInBits / 8;
 
             for (ktx_uint32_t face = 0; face < This->numFaces; ++face) {
                 result = iterCb(level, face,
@@ -1971,12 +1982,12 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
                            ktx_uint8_t* pInflatedData,
                            ktx_size_t inflatedDataCapacity)
 {
+    DECLARE_PROTECTED(ktxTexture);
     ktx_uint32_t levelIndexByteLength =
                             This->numLevels * sizeof(ktxLevelIndexEntry);
     uint32_t levelOffset = 0;
     ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
     ktxLevelIndexEntry* nindex;
-    ktx_uint32_t blockByteLength;
     ktx_uint32_t uncompressedLevelAlignment;
 
     ZSTD_DCtx* dctx = ZSTD_createDCtx();
@@ -1995,8 +2006,7 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
         return KTX_OUT_OF_MEMORY;
 
     uncompressedLevelAlignment =
-        ktxTexture2_calcPostInflationBlockSizeAndAlignment(This,
-                                                           &blockByteLength);
+        ktxTexture2_calcPostInflationLevelAlignment(This);
 
     ktx_size_t inflatedByteLength = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
@@ -2030,12 +2040,11 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     This->dataSize = inflatedByteLength;
     This->supercompressionScheme = KTX_SS_NONE;
     memcpy(cindex, nindex, levelIndexByteLength); // Update level index
+    This->_private->_requiredLevelAlignment = uncompressedLevelAlignment;
     // Set bytesPlane as we're now sized.
     uint32_t* bdb = This->pDfd + 1;
-    // bytesPlane0 = componentCount * componentByteLength, bytesPlane3..1 = 0
-    bdb[KHR_DF_WORD_BYTESPLANE0] = blockByteLength;
-    ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd);
-    This->_private->_requiredLevelAlignment = uncompressedLevelAlignment;
+    // blockSizeInBits was set to the inflated size on file load.
+    bdb[KHR_DF_WORD_BYTESPLANE0] = prtctd->_formatSize.blockSizeInBits / 8;
 
     return KTX_SUCCESS;
 }

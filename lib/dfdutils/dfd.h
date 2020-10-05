@@ -139,6 +139,12 @@ getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
 /* Return the number of components described by a DFD. */
 uint32_t getDFDNumComponents(const uint32_t* DFD);
 
+/* Recreate and return the value of bytesPlane0 as it should be for the data
+ * post-inflation from variable-rate compression.
+ */
+void
+recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0);
+
 typedef struct _Primaries {
     float Rx;
     float Ry;
