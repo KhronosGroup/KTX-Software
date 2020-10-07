@@ -944,7 +944,7 @@ extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
  * @memberof ktxTexture2
  * @ingroup writer
  * @~English
- * @brief Supercompress a KTX2 texture with uncpompressed images.
+ * @brief Supercompress a KTX2 texture with uncompressed images.
  *
  * The images are encoded to ETC1S block-compressed format and supercompressed
  * with Basis Universal. The encoded images replace the original images and the

@@ -521,7 +521,7 @@ toktxApp::usage()
         "               loader ignores the orientation value, the image will appear\n"
         "               upside down. This option is ignored with --cubemap.\n"
         "  --linear     Force the created texture to have a linear transfer function.\n"
-        "               If this is pecified, implicit or explicit color space information\n"
+        "               If this is specified, implicit or explicit color space information\n"
         "               from the input file(s) will be ignored and no color\n"
         "               transformation will be performed. USE WITH CAUTION preferably\n"
         "               only when you know the file format information is wrong.\n"
