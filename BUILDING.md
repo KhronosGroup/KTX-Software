@@ -44,6 +44,8 @@ This creates the `libktx` library and the command line tools. To create the comp
 cmake . -B build -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 ```
 
+If you need the library to be static, enable the `KTX_FEATURE_FORCE_STATIC` setting.
+
 Building
 --------
 

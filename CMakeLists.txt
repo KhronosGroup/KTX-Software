@@ -27,6 +27,7 @@ include(cmake/xcode.cmake)
 CMAKE_DEPENDENT_OPTION(KTX_FEATURE_TOOLS "Create KTX tools" ON "NOT IOS;NOT ANDROID;NOT EMSCRIPTEN" OFF)
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
+option( KTX_FEATURE_FORCE_STATIC "Always create static libraries" OFF )
 
 
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
@@ -76,7 +77,7 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
 	set(bitness 32)
 endif()
 
-if(EMSCRIPTEN OR IOS)
+if(KTX_FEATURE_FORCE_STATIC OR EMSCRIPTEN OR IOS)
     set(LIB_TYPE STATIC)
 else()
     set(LIB_TYPE SHARED)
