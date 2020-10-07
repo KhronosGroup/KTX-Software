@@ -129,9 +129,9 @@ before_deploy:
 deploy:
   - provider: pages
     #edge: true # Use bleeding edge (dplv2)
-    skip-cleanup: true
-    github-token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    local-dir: build-macos/docs/html
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    local_dir: build-macos/docs/html
     on:
       #branch: master
       condition: $TRAVIS_OS_NAME = osx
