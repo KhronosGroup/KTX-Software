@@ -1312,7 +1312,7 @@ ktxTexture2_calcPostInflationLevelAlignment(ktxTexture2* This)
  *
  * @param[in]     This           pointer to the ktxTexture object of interest.
  * @param[in,out] pNumComponents pointer to location in which to write the
- *                               number of ocmponents in the textures images.
+ *                               number of components in the textures images.
  * @param[in,out] pComponentByteLength
  *                               pointer to the location in which to write
  *                               byte length of a component.
