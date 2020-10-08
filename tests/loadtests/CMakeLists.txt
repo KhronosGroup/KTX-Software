@@ -94,7 +94,7 @@ target_include_directories(
 PUBLIC
     ${SDL2_INCLUDE_DIRS}
     appfwSDL
-    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils

@@ -425,7 +425,7 @@ if(EMSCRIPTEN)
 
     add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
     target_link_libraries( ktx_js ktx )
-    target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES> )
+    target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES> )
     target_link_options(
         ktx_js
     PUBLIC
