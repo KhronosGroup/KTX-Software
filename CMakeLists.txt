@@ -363,8 +363,12 @@ elseif(LINUX)
     find_package(Threads REQUIRED)
     target_link_libraries(
         ktx
+        PUBLIC
         dl
         Threads::Threads
+    )
+    target_link_libraries(
+        ktx
         PRIVATE
         zstd::zstd
     )
