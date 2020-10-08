@@ -195,7 +195,7 @@ target_include_directories(
 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-
+PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
     $<INSTALL_INTERFACE:lib/basisu/transcoder>
 
@@ -318,7 +318,7 @@ if(KTX_FEATURE_WRITE)
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
         $<INSTALL_INTERFACE:lib>
-
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
         $<INSTALL_INTERFACE:lib/basisu>
     )
@@ -329,7 +329,7 @@ set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
 if(WIN32)
     target_link_libraries(
-        ktx
+        ktx PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib
     )
     # By wrapping in generator expression we force multi configuration generators (like Visual Studio)
@@ -339,7 +339,7 @@ if(WIN32)
 elseif(APPLE)
     if(IOS)
         target_link_libraries(
-            ktx
+            ktx PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libzstd.a
             )
     else()
@@ -348,7 +348,7 @@ elseif(APPLE)
         # for working code signing.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
         target_link_libraries(
-            ktx
+            ktx PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
             )
     endif()
@@ -362,7 +362,7 @@ elseif(LINUX)
     find_package(zstd REQUIRED)
     find_package(Threads REQUIRED)
     target_link_libraries(
-        ktx
+        ktx PRIVATE
         dl
         Threads::Threads
         zstd::zstd
@@ -380,7 +380,7 @@ elseif(ANDROID)
     set(ZSTD_BUILD_TESTS OFF)
     add_subdirectory(/Users/Shared/SDK/zstd/build/cmake zstd)
     target_link_libraries(
-        ktx
+        ktx PRIVATE
         libzstd_static
     )
 endif()
@@ -396,7 +396,7 @@ if(KTX_FEATURE_VULKAN)
     )
     target_include_directories(
         ktx
-    PUBLIC
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils>
         $<INSTALL_INTERFACE:lib/dfdutils>
     )
