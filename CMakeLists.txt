@@ -362,9 +362,10 @@ elseif(LINUX)
     find_package(zstd REQUIRED)
     find_package(Threads REQUIRED)
     target_link_libraries(
-        ktx PRIVATE
+        ktx
         dl
         Threads::Threads
+        PRIVATE
         zstd::zstd
     )
 elseif(ANDROID)
