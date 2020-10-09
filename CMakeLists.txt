@@ -365,11 +365,11 @@ elseif(LINUX)
         ktx
         PUBLIC
         dl
-        Threads::Threads
     )
     target_link_libraries(
         ktx
         PRIVATE
+        Threads::Threads
         zstd::zstd
     )
 elseif(ANDROID)
