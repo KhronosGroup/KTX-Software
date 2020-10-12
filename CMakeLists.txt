@@ -451,8 +451,8 @@ if(EMSCRIPTEN)
     )
 
     add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
-    target_link_libraries( ktx_js ktx )
-    target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES> )
+    target_link_libraries( ktx_js ktx_read )
+    target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx_read,INTERFACE_INCLUDE_DIRECTORIES> )
     target_link_options(
         ktx_js
     PUBLIC
@@ -482,7 +482,7 @@ if(EMSCRIPTEN)
     )
 
     add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )
-    target_link_libraries( msc_basis_transcoder_js ktx )
+    target_link_libraries( msc_basis_transcoder_js ktx_read )
     target_include_directories( msc_basis_transcoder_js
         PRIVATE
         lib
@@ -492,7 +492,7 @@ if(EMSCRIPTEN)
     # Re-use ktx's compile options
     target_compile_options(msc_basis_transcoder_js
     PRIVATE
-       $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_OPTIONS>
+       $<TARGET_PROPERTY:ktx_read,INTERFACE_COMPILE_OPTIONS>
        )
 
     target_link_options(
@@ -501,7 +501,7 @@ if(EMSCRIPTEN)
         ${KTX_EMC_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=MSC_TRANSCODER"
         # Re-use ktx's link options
-        $<TARGET_PROPERTY:ktx,INTERFACE_LINK_OPTIONS>
+        $<TARGET_PROPERTY:ktx_read,INTERFACE_LINK_OPTIONS>
         )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
 
