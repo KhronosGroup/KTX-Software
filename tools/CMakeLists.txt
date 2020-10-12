@@ -11,11 +11,6 @@ if(NOT KTX_FEATURE_KTX2)
     return()
 endif()
 
-if(NOT KTX_FEATURE_WRITE)
-    message(WARNING "KTX_FEATURE_WRITE is not set -> disabling tools")
-    return()
-endif()
-
 function(set_tool_properties tool_target)
     if(APPLE)
         set_target_properties(${tool_target} PROPERTIES

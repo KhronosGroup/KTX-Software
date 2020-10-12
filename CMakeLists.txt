@@ -52,9 +52,7 @@ endif()
 
 # option( KTX_FEATURE_KTX1 "KTX version 1" ON )
 # option( KTX_FEATURE_KTX2 "KTX version 2" ON )
-# option( KTX_FEATURE_WRITE "Create KTX files" ON )
 
-set( KTX_FEATURE_WRITE ON )
 set( KTX_FEATURE_KTX1 ON )
 set( KTX_FEATURE_KTX2 ON )
 set( KTX_FEATURE_VULKAN ON )
@@ -377,68 +375,67 @@ commom_lib_settings(ktx_read)
 
 create_version_header(lib ktx)
 
-if(KTX_FEATURE_WRITE)
 
-    target_sources(
-        ktx
-    PRIVATE
-        lib/basis_encode.cpp
-        lib/basisu/apg_bmp.c
-        lib/basisu/apg_bmp.h
-        lib/basisu/basisu_astc_decomp.cpp
-        lib/basisu/basisu_astc_decomp.h
-        lib/basisu/basisu_backend.cpp
-        lib/basisu/basisu_backend.h
-        lib/basisu/basisu_basis_file.cpp
-        lib/basisu/basisu_basis_file.h
-        lib/basisu/basisu_bc7enc.cpp
-        lib/basisu/basisu_bc7enc.h
-        lib/basisu/basisu_comp.cpp
-        lib/basisu/basisu_comp.h
-        lib/basisu/basisu_enc.cpp
-        lib/basisu/basisu_enc.h
-        lib/basisu/basisu_etc.cpp
-        lib/basisu/basisu_etc.h
-        lib/basisu/basisu_frontend.cpp
-        lib/basisu/basisu_frontend.h
-        lib/basisu/basisu_global_selector_palette_helpers.cpp
-        lib/basisu/basisu_global_selector_palette_helpers.h
-        lib/basisu/basisu_gpu_texture.cpp
-        lib/basisu/basisu_gpu_texture.h
-        lib/basisu/basisu_miniz.h
-        lib/basisu/basisu_pvrtc1_4.cpp
-        lib/basisu/basisu_pvrtc1_4.h
-        lib/basisu/basisu_resample_filters.cpp
-        lib/basisu/basisu_resampler_filters.h
-        lib/basisu/basisu_resampler.cpp
-        lib/basisu/basisu_resampler.h
-        lib/basisu/basisu_ssim.cpp
-        lib/basisu/basisu_ssim.h
-        lib/basisu/basisu_uastc_enc.cpp
-        lib/basisu/basisu_uastc_enc.h
-        lib/basisu/jpgd.cpp
-        lib/basisu/jpgd.h
-        lib/basisu/lodepng.cpp
-        lib/basisu/lodepng.h
-        lib/writer1.c
-        lib/writer2.c
-    )
-    target_include_directories(
-        ktx
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
-        $<INSTALL_INTERFACE:lib>
+# Adding write capability to target ktx
 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
-        $<INSTALL_INTERFACE:lib/basisu>
-    )
-    target_compile_definitions(
-        ktx
-    PUBLIC
-        KTX_FEATURE_WRITE
-    )
+target_sources(
+    ktx
+PRIVATE
+    lib/basis_encode.cpp
+    lib/basisu/apg_bmp.c
+    lib/basisu/apg_bmp.h
+    lib/basisu/basisu_astc_decomp.cpp
+    lib/basisu/basisu_astc_decomp.h
+    lib/basisu/basisu_backend.cpp
+    lib/basisu/basisu_backend.h
+    lib/basisu/basisu_basis_file.cpp
+    lib/basisu/basisu_basis_file.h
+    lib/basisu/basisu_bc7enc.cpp
+    lib/basisu/basisu_bc7enc.h
+    lib/basisu/basisu_comp.cpp
+    lib/basisu/basisu_comp.h
+    lib/basisu/basisu_enc.cpp
+    lib/basisu/basisu_enc.h
+    lib/basisu/basisu_etc.cpp
+    lib/basisu/basisu_etc.h
+    lib/basisu/basisu_frontend.cpp
+    lib/basisu/basisu_frontend.h
+    lib/basisu/basisu_global_selector_palette_helpers.cpp
+    lib/basisu/basisu_global_selector_palette_helpers.h
+    lib/basisu/basisu_gpu_texture.cpp
+    lib/basisu/basisu_gpu_texture.h
+    lib/basisu/basisu_miniz.h
+    lib/basisu/basisu_pvrtc1_4.cpp
+    lib/basisu/basisu_pvrtc1_4.h
+    lib/basisu/basisu_resample_filters.cpp
+    lib/basisu/basisu_resampler_filters.h
+    lib/basisu/basisu_resampler.cpp
+    lib/basisu/basisu_resampler.h
+    lib/basisu/basisu_ssim.cpp
+    lib/basisu/basisu_ssim.h
+    lib/basisu/basisu_uastc_enc.cpp
+    lib/basisu/basisu_uastc_enc.h
+    lib/basisu/jpgd.cpp
+    lib/basisu/jpgd.h
+    lib/basisu/lodepng.cpp
+    lib/basisu/lodepng.h
+    lib/writer1.c
+    lib/writer2.c
+)
+target_include_directories(
+    ktx
+PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
+    $<INSTALL_INTERFACE:lib>
 
-endif()
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
+    $<INSTALL_INTERFACE:lib/basisu>
+)
+target_compile_definitions(
+    ktx
+PUBLIC
+    KTX_FEATURE_WRITE
+)
 
 if(EMSCRIPTEN)
 
