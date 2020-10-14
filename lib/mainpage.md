@@ -194,7 +194,8 @@ srcSize = // Query size of the file.
 level = 0;
 layer = 0;
 faceSlice = 0;                           
-result = ktxTexture_SetImageFromMemory(ktxTexture(texture), level, layer, faceSlice,
+result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                       level, layer, faceSlice,
                                        src, srcSize);
 // Repeat for the other 15 slices of the base level and all other levels
 // up to createInfo.numLevels.
@@ -261,7 +262,8 @@ srcSize = // Query size of the file.
 level = 0;
 layer = 0;
 faceSlice = 0;                           
-result = ktxTexture2_SetImageFromMemory(texture, level, layer, faceSlice,
+result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                       level, layer, faceSlice,
                                        src, srcSize);
 // Repeat for the other 15 slices of the base level and all other levels
 // up to createInfo.numLevels.
