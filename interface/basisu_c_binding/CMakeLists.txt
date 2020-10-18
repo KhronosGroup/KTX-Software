@@ -28,6 +28,8 @@ PRIVATE
 
 target_compile_definitions(
     obj_basisu_cbind
+PUBLIC
+    KTX_BASISU_C_BINDINGS
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
