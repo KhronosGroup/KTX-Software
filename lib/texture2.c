@@ -1335,7 +1335,7 @@ ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
  * in accordance with the color model. For uncompressed textures it will be the actual
  * number of components. For block-compressed textures, it will be 1 or 2 according to
  * the format's DFD color model. For Basis compressed textures, it will be the
- * the number of components in the image @e before encoding and deflation so it can
+ * number of components in the image @e before encoding and deflation so it can
  * be used to help choose a suitable transcode target format. For other supercompressed formats
  * it returns the number of components prior to deflation.
 
