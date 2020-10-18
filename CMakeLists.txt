@@ -36,6 +36,7 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 
+set( ZSTD_PATH "" CACHE PATH "Path to Facebook Zstandard (https://github.com/facebook/zstd)" )
 
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
 
@@ -161,6 +162,16 @@ add_library( ktx ${LIB_TYPE}
 add_library( ktx_read ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
+
+if(ANDROID)
+    set(ZSTD_BUILD_PROGRAMS OFF)
+    set(ZSTD_BUILD_TESTS OFF)
+    if(EXISTS ${ZSTD_PATH})
+        add_subdirectory("${ZSTD_PATH}/build/cmake" zstd)
+    else()
+        message( FATAL_ERROR "Path to Zstandard (ZSTD_PATH) is not configured correctly! Required for Android")
+    endif()
+endif()
 
 macro(commom_lib_settings lib write)
 
@@ -335,18 +346,6 @@ macro(commom_lib_settings lib write)
         )
 
     elseif(ANDROID)
-        # add_library(zstd STATIC IMPORTED)
-        # set_target_properties(zstd PROPERTIES
-        # IMPORTED_LOCATION /Users/Shared/SDK/zstd/build/cmake/install-android/lib/libzstd.a
-        # )
-        # target_link_libraries(
-        #     ktx
-        # PRIVATE
-        #     zstd
-        # )
-        set(ZSTD_BUILD_PROGRAMS OFF)
-        set(ZSTD_BUILD_TESTS OFF)
-        add_subdirectory(/Users/Shared/SDK/zstd/build/cmake zstd)
         target_link_libraries(
             ${lib}
         PRIVATE
