@@ -40,9 +40,9 @@ public:
     uint32_t transcodeImage(void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);
 };
 
-#ifdef KTX_BASISU_C_BINDINGS
 extern "C" {
 DLL_EXPORT void ktx_basisu_basis_init();
+#ifdef KTX_BASISU_C_BINDINGS
 DLL_EXPORT basis_file* ktx_basisu_create_basis();
 DLL_EXPORT bool ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, uint32_t length );
 DLL_EXPORT void ktx_basisu_close_basis( basis_file* basis );
@@ -55,5 +55,5 @@ DLL_EXPORT uint32_t ktx_basisu_getImageHeight( basis_file* basis, uint32_t image
 DLL_EXPORT uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis, uint32_t image_index, uint32_t level_index, uint32_t format);
 DLL_EXPORT bool ktx_basisu_startTranscoding( basis_file* basis );
 DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);
-}
 #endif
+}

@@ -26,6 +26,7 @@ target_compile_definitions(
     transcodetests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+    $<TARGET_PROPERTY:obj_basisu_cbind,INTERFACE_COMPILE_DEFINITIONS>
 )
 
 gtest_discover_tests( transcodetests

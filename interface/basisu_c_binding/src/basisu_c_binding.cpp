@@ -210,8 +210,6 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
     return status;
 }
 
-#ifdef KTX_BASISU_C_BINDINGS
-
 extern "C" {
 
 DLL_EXPORT void ktx_basisu_basis_init()
@@ -221,6 +219,8 @@ DLL_EXPORT void ktx_basisu_basis_init()
     if (!g_pGlobal_codebook)
         g_pGlobal_codebook = new basist::etc1_global_selector_codebook(g_global_selector_cb_size, g_global_selector_cb);
 }
+
+#ifdef KTX_BASISU_C_BINDINGS
 
 DLL_EXPORT basis_file* ktx_basisu_create_basis() {
     basis_file* new_basis = new basis_file();
@@ -272,6 +272,6 @@ DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_
     return basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
 }
 
-} // END extern "C" 
-
 #endif
+
+} // END extern "C" 
