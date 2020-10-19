@@ -1,0 +1,27 @@
+; Copyright 2019-2020 Mark Callow
+; SPDX-License-Identifier: Apache-2.0
+
+; Export internal functions used by internal test programs and the
+; validator. Using this file avoids having to decorate those internal
+; functions or updating such decorations as the tests evolve. Updating
+; this feels less obnoxious.
+
+LIBRARY
+EXPORTS
+    ??1Resampler@basisu@@QEAA@XZ
+	??0Resampler@basisu@@QEAA@HHHHW4Boundary_Op@01@MMPEBDPEAUContrib_List@01@2MMMM@Z
+	?put_line@Resampler@basisu@@QEAA_NPEBM@Z
+	?get_line@Resampler@basisu@@QEAAPEBMXZ
+    ?lodepng_error_text@@YAPEBDI@Z
+	?lodepng_get_raw_size@@YA_KIIPEBULodePNGColorMode@@@Z
+	?lodepng_decode@@YAIPEAPEAEPEAI1PEAULodePNGState@@PEBE_K@Z
+	?lodepng_inspect@@YAIPEAI0PEAULodePNGState@@PEBE_K@Z
+	??0State@lodepng@@QEAA@XZ
+	??1State@lodepng@@UEAA@XZ
+    ??0jpeg_decoder_file_stream@jpgd@@QEAA@XZ
+	??1jpeg_decoder_file_stream@jpgd@@UEAA@XZ
+	?decompress_jpeg_image_from_stream@jpgd@@YAPEAEPEAVjpeg_decoder_stream@1@PEAH11HI@Z
+	??0jpeg_decoder@jpgd@@QEAA@PEAVjpeg_decoder_stream@1@I@Z
+	??1jpeg_decoder@jpgd@@QEAA@XZ
+    appendLibId
+    
