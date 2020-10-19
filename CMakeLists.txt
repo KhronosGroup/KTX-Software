@@ -34,7 +34,7 @@ CMAKE_DEPENDENT_OPTION(KTX_FEATURE_TOOLS "Create KTX tools" ON "NOT IOS;NOT ANDR
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
-option( KTX_TESTS "Create unit tests" ON )
+option( KTX_FEATURE_TESTS "Create unit tests" ON )
 
 
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
@@ -546,9 +546,7 @@ if(KTX_FEATURE_TOOLS)
 endif()
 
 # Tests
-if(KTX_TESTS)
-    add_subdirectory(tests)
-endif()
+add_subdirectory(tests)
 
 # Documentation
 if(KTX_FEATURE_DOC)

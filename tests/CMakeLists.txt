@@ -7,7 +7,7 @@ if(KTX_FEATURE_LOADTEST_APPS)
 endif()
 
 # gtest based unit-tests
-if(NOT IOS AND NOT ANDROID AND NOT EMSCRIPTEN)
+if(KTX_FEATURE_TESTS AND NOT IOS AND NOT ANDROID AND NOT EMSCRIPTEN)
     include(tests.cmake)
 endif()
 
