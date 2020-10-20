@@ -36,8 +36,6 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 
-set( ZSTD_PATH "" CACHE PATH "Path to Facebook Zstandard (https://github.com/facebook/zstd)" )
-
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
 
 if(APPLE)
@@ -163,14 +161,14 @@ add_library( ktx_read ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
 
-if(ANDROID)
+# zstd
+find_package(zstd)
+if(NOT zstd_FOUND)
+    # Fall back to the bundled zstd sources
     set(ZSTD_BUILD_PROGRAMS OFF)
     set(ZSTD_BUILD_TESTS OFF)
-    if(EXISTS ${ZSTD_PATH})
-        add_subdirectory("${ZSTD_PATH}/build/cmake" zstd)
-    else()
-        message( FATAL_ERROR "Path to Zstandard (ZSTD_PATH) is not configured correctly! Required for Android")
-    endif()
+    add_subdirectory("lib/zstd/build/cmake" zstd)
+    add_library(zstd::zstd ALIAS libzstd_static)
 endif()
 
 macro(commom_lib_settings lib write)
@@ -252,6 +250,14 @@ macro(commom_lib_settings lib write)
     # - BASISD_SUPPORT_FXT1
     # - BASISD_SUPPORT_PVRTC2
 
+    if(${write})
+        # Link against zstd
+        target_link_libraries(${lib} zstd::zstd)
+    else()
+        # Use single file zstd decoder
+        target_sources(${lib} PRIVATE lib/zstddeclib.c)
+    endif()
+
     if(WIN32)
         target_compile_definitions(
             ${lib}
@@ -297,59 +303,25 @@ macro(commom_lib_settings lib write)
     if(WIN32)
         target_link_libraries(
             ${lib}
-        PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib
         )
         # By wrapping in generator expression we force multi configuration generators (like Visual Studio)
         # to take the exact path and not change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
     elseif(APPLE)
-        if(IOS)
-            target_link_libraries(
-                ${lib}
-            PRIVATE
-                ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libzstd.a
-            )
-        else()
+        if(NOT IOS)
             # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
             # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
             # for working code signing.
             set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-            target_link_libraries(
-                ${lib}
-            PRIVATE
-                ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
-            )
         endif()
-    
-    elseif(EMSCRIPTEN)
-        target_sources(
-            ${lib}
-        PRIVATE
-            lib/zstddeclib.c
-        )
-    
     elseif(LINUX)
-        find_package(zstd REQUIRED)
         find_package(Threads REQUIRED)
         target_link_libraries(
             ${lib}
         PUBLIC
             dl
             Threads::Threads
-        )
-        target_link_libraries(
-            ${lib}
-        PRIVATE
-            zstd::zstd
-        )
-
-    elseif(ANDROID)
-        target_link_libraries(
-            ${lib}
-        PRIVATE
-            libzstd_static
         )
     endif()
 
