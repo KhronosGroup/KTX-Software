@@ -163,7 +163,7 @@ add_library( ktx_read ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
 
-macro(commom_lib_settings lib )
+macro(commom_lib_settings lib write )
 
     set_target_properties(${lib} PROPERTIES
         PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
@@ -254,6 +254,7 @@ macro(commom_lib_settings lib )
             # The msvs generator automatically sets the needed VCLinker
             # option when a .def file is seen in sources.
             lib/internalexport.def
+            $<${write}:lib/internalexport_write.def>
         )
     elseif(EMSCRIPTEN)
         target_compile_definitions(${lib} PRIVATE
@@ -368,8 +369,8 @@ endmacro(commom_lib_settings)
 
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
-commom_lib_settings(ktx)
-commom_lib_settings(ktx_read)
+commom_lib_settings(ktx 1)
+commom_lib_settings(ktx_read 0)
 
 ## Creating vulkan headers is only required when Vulkan SDK updates.
 # add_dependencies(ktx mkvk)
