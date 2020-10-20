@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:facebook/zstd.git
+	branch = dev
+	commit = d6dae2000b3148105a4cf8e56ff133f61211767a
+	parent = b79935c86fc8625283313f942943ff893d3b2845
+	method = merge
+	cmdver = 0.4.1
