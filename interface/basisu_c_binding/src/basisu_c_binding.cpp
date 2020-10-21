@@ -92,12 +92,12 @@ uint32_t basis_file::getImageHeight(uint32_t image_index, uint32_t level_index) 
     return orig_height;
 }
 
-bool basis_file::getYFlip() {
+uint32_t basis_file::getYFlip() {
     assert(m_magic == MAGIC);
     return fileinfo.m_y_flipped;
 }
 
-bool basis_file::getIsEtc1s() {
+uint32_t basis_file::getIsEtc1s() {
     assert(m_magic == MAGIC);
     return fileinfo.m_etc1s;
 }
@@ -239,7 +239,7 @@ DLL_EXPORT basis_file* ktx_basisu_create_basis() {
     return new_basis;
 }
     
-DLL_EXPORT bool ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, uint32_t length ) {
+DLL_EXPORT uint32_t ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, uint32_t length ) {
     return basis->open(data,length);
 }
 
@@ -251,7 +251,7 @@ DLL_EXPORT void ktx_basisu_delete_basis( basis_file* basis ) {
     delete basis;
 }
 
-DLL_EXPORT bool ktx_basisu_getHasAlpha( basis_file* basis ) {
+DLL_EXPORT uint32_t ktx_basisu_getHasAlpha( basis_file* basis ) {
     assert(basis!=nullptr);
     return (bool)basis->getHasAlpha();
 }
@@ -272,11 +272,11 @@ DLL_EXPORT uint32_t ktx_basisu_getImageHeight( basis_file* basis, uint32_t image
     return basis->getImageHeight(image_index,level_index);
 }
 
-DLL_EXPORT bool ktx_basisu_get_y_flip( basis_file* basis ) {
+DLL_EXPORT uint32_t ktx_basisu_get_y_flip( basis_file* basis ) {
     return basis->getYFlip();
 }
 
-DLL_EXPORT bool ktx_basisu_get_is_etc1s( basis_file* basis ) {
+DLL_EXPORT uint32_t ktx_basisu_get_is_etc1s( basis_file* basis ) {
     return basis->getIsEtc1s();
 }
 
@@ -288,12 +288,12 @@ DLL_EXPORT uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis,
     return basis->getImageTranscodedSizeInBytes(image_index,level_index,format);
 }
 
-DLL_EXPORT bool ktx_basisu_startTranscoding( basis_file* basis ) {
-    return (bool)basis->startTranscoding();
+DLL_EXPORT uint32_t ktx_basisu_startTranscoding( basis_file* basis ) {
+    return basis->startTranscoding();
 }
 
-DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
-    return (bool)basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
+DLL_EXPORT uint32_t ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
+    return basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
 }
 
 #endif
