@@ -21,7 +21,8 @@ class basis_file
     basisu_transcoder m_transcoder;
     const uint8_t *m_file;
     uint32_t byteLength;
-    
+    basisu_file_info fileinfo;
+
 public:
     basis_file()
     :
@@ -35,6 +36,9 @@ public:
     uint32_t getNumLevels(uint32_t image_index);
     uint32_t getImageWidth(uint32_t image_index, uint32_t level_index);
     uint32_t getImageHeight(uint32_t image_index, uint32_t level_index);
+    bool getYFlip();
+    bool getIsEtc1s();
+    basis_texture_type getTextureType();
     uint32_t getImageTranscodedSizeInBytes(uint32_t image_index, uint32_t level_index, uint32_t format);
     uint32_t startTranscoding();
     uint32_t transcodeImage(void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);
@@ -52,6 +56,9 @@ DLL_EXPORT uint32_t ktx_basisu_getNumImages( basis_file* basis );
 DLL_EXPORT uint32_t ktx_basisu_getNumLevels( basis_file* basis, uint32_t image_index);
 DLL_EXPORT uint32_t ktx_basisu_getImageWidth( basis_file* basis, uint32_t image_index, uint32_t level_index);
 DLL_EXPORT uint32_t ktx_basisu_getImageHeight( basis_file* basis, uint32_t image_index, uint32_t level_index);
+DLL_EXPORT bool ktx_basisu_get_y_flip( basis_file* basis );
+DLL_EXPORT bool ktx_basisu_get_is_etc1s( basis_file* basis );
+DLL_EXPORT basis_texture_type ktx_basisu_get_texture_type( basis_file* basis );
 DLL_EXPORT uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis, uint32_t image_index, uint32_t level_index, uint32_t format);
 DLL_EXPORT bool ktx_basisu_startTranscoding( basis_file* basis );
 DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats);

@@ -22,6 +22,11 @@ bool basis_file::open(const uint8_t *buffer, uint32_t newByteLength) {
         return false;
     }
     
+    if (!m_transcoder.get_file_info(m_file, byteLength, fileinfo))
+    {
+        return false;
+    }
+
     // Initialized after validation
     m_magic = MAGIC;
     return true;
@@ -37,12 +42,8 @@ uint32_t basis_file::getHasAlpha() {
     assert(m_magic == MAGIC);
     if (m_magic != MAGIC)
         return 0;
-    
-    basisu_image_level_info li;
-    if (!m_transcoder.get_image_level_info(m_file, byteLength, li, 0, 0))
-        return 0;
-    
-    return li.m_alpha_flag;
+
+    return fileinfo.m_has_alpha_slices;
 }
 
 uint32_t basis_file::getNumImages() {
@@ -57,12 +58,8 @@ uint32_t basis_file::getNumLevels(uint32_t image_index) {
     assert(m_magic == MAGIC);
     if (m_magic != MAGIC)
         return 0;
-    
-    basisu_image_info ii;
-    if (!m_transcoder.get_image_info(m_file, byteLength, ii, image_index))
-        return 0;
-    
-    return ii.m_total_levels;
+
+    return fileinfo.m_image_mipmap_levels[image_index];
 }
 
 uint32_t basis_file::getImageWidth(uint32_t image_index, uint32_t level_index) {
@@ -93,6 +90,21 @@ uint32_t basis_file::getImageHeight(uint32_t image_index, uint32_t level_index) 
         return 0;
     
     return orig_height;
+}
+
+bool basis_file::getYFlip() {
+    assert(m_magic == MAGIC);
+    return fileinfo.m_y_flipped;
+}
+
+bool basis_file::getIsEtc1s() {
+    assert(m_magic == MAGIC);
+    return fileinfo.m_etc1s;
+}
+
+basis_texture_type basis_file::getTextureType() {
+    assert(m_magic == MAGIC);
+    return fileinfo.m_tex_type;
 }
 
 uint32_t basis_file::getImageTranscodedSizeInBytes(uint32_t image_index, uint32_t level_index, uint32_t format) {
@@ -258,6 +270,18 @@ DLL_EXPORT uint32_t ktx_basisu_getImageWidth( basis_file* basis, uint32_t image_
 
 DLL_EXPORT uint32_t ktx_basisu_getImageHeight( basis_file* basis, uint32_t image_index, uint32_t level_index) {
     return basis->getImageHeight(image_index,level_index);
+}
+
+DLL_EXPORT bool ktx_basisu_get_y_flip( basis_file* basis ) {
+    return basis->getYFlip();
+}
+
+DLL_EXPORT bool ktx_basisu_get_is_etc1s( basis_file* basis ) {
+    return basis->getIsEtc1s();
+}
+
+DLL_EXPORT basis_texture_type ktx_basisu_get_texture_type( basis_file* basis ) {
+    return basis->getTextureType();
 }
 
 DLL_EXPORT uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis, uint32_t image_index, uint32_t level_index, uint32_t format) {
