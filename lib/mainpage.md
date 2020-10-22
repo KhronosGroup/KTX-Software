@@ -162,6 +162,7 @@ if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
+#include <vkformat_enum.h>
 
 ktxTexture2* texture;                   // For KTX2
 //ktxTexture1* texture;                 // For KTX
@@ -172,7 +173,7 @@ FILE* src;
 ktx_size_t srcSize;
 
 createInfo.glInternalformat = GL_RGB8;   // Ignored if creating a ktxTexture2.
-createInfo.vkFormat = VK_R8G8B8_UNORM;   // Ignored if creating a ktxTexture1.
+createInfo.vkFormat = VK_FORMAT_R8G8B8_UNORM;   // Ignored if creating a ktxTexture1.
 createInfo.baseWidth = 2048;
 createInfo.baseHeight = 1024;
 createInfo.baseDepth = 16;
@@ -185,7 +186,7 @@ createInfo.isArray = KTX_FALSE;
 createInfo.generateMipmaps = KTX_FALSE;
 
 // Call ktxTexture1_Create to create a KTX texture.
-result = ktxTexture2_Create(createInfo,
+result = ktxTexture2_Create(&createInfo,
                             KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                             &texture);
 
@@ -232,6 +233,7 @@ ktxTexture_Destroy(texture);
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
+#include <vkformat_enum.h>
 
 ktxTexture2* texture;
 ktxTextureCreateInfo createInfo;
@@ -241,7 +243,7 @@ FILE* src;
 ktx_size_t srcSize;
 
 createInfo.glInternalformat = 0;  //Ignored as we'll create a KTX2 texture.
-createInfo.vkFormat = VK_R8G8B8A8_UNORM;
+createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
 createInfo.baseWidth = 2048;
 createInfo.baseHeight = 1024;
 createInfo.baseDepth = 16;
@@ -253,7 +255,7 @@ createInfo.numFaces = 1;
 createInfo.isArray = KTX_FALSE;
 createInfo.generateMipmaps = KTX_FALSE;
 
-result = ktxTexture2_Create(createInfo,
+result = ktxTexture2_Create(&createInfo,
                             KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                             &texture);
 
@@ -268,7 +270,8 @@ result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
 // Repeat for the other 15 slices of the base level and all other levels
 // up to createInfo.numLevels.
 
-result = ktxTexture2_CompressBasis(texture);
+int quality = 100;
+result = ktxTexture2_CompressBasis(texture, quality);
 
 ktxTexture2_WriteToNamedFile(texture, "mytex3d.ktx2");
 ktxTexture2_Destroy(texture);
