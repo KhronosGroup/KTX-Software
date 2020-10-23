@@ -35,6 +35,22 @@ extern "C" {
 #include "gtest/gtest.h"
 #include "wthelper.h"
 
+// These are so we can test swizzle_to_rgba. Do not put inside "namespace {"
+// as there is no "namespace {" in basis_encode.cpp where the function is
+// defined.
+enum swizzle_e {
+    R = 0,
+    G = 1,
+    B = 2,
+    A = 3,
+    ZERO = 4,
+    ONE = 5,
+};
+
+extern void
+swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
+                  ktx_size_t image_size, swizzle_e swizzle[4]);
+
 namespace {
 
 ///////////////////////////////////////////////////////////
@@ -88,7 +104,7 @@ class WriterTestHelperTestBase : public ::testing::Test {
 
     WriterTestHelper<component_type, num_components, internalformat> helper;
 
-   ktx_uint32_t numComponents() { return num_components; }
+    ktx_uint32_t numComponents() { return num_components; }
 };
 
 class WriterTestHelperRGBA8Test : public WriterTestHelperTestBase<GLubyte, 4, GL_RGBA8> { };
@@ -752,5 +768,114 @@ TEST_F(HashListTest, ConstructCopy) {
     compareList(copyHead, true);
 }
 
+///////////////////////
+// Swizzle test fixture
+///////////////////////
+
+template<ktx_uint32_t num_components, GLenum internalformat>
+class SwizzleTestBase : public ::testing::Test {
+  public:
+    SwizzleTestBase() {
+        std::vector<GLubyte> color;
+        color.resize(num_components);
+        color[0] = R;
+        if (num_components > 1)
+            color[1] = G;
+        if (num_components > 2)
+            color[2] = B;
+        if (num_components > 3)
+            color[3] = A;
+        helper.resize(createFlagBits::eNone, 1, 1, 2, width, height, 1, &color);
+    }
+
+    void runTest(swizzle_e swizzle[4]) {
+        ktxTexture2* texture;
+        ktx_error_code_e result;
+
+        helper.texinfo.vkFormat
+                = vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat);
+        result = ktxTexture2_Create(&helper.texinfo,
+                                    KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                    &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image stoage not allocated";
+
+        result = helper.copyImagesToTexture(ktxTexture(texture));
+        ASSERT_TRUE(result == KTX_SUCCESS);
+
+        size_t destByteLen = width * height * 4 * sizeof(GLubyte);
+        size_t srcByteLen = width * height * num_components * sizeof(GLubyte);
+        typedef GLubyte color[4];
+        color* dest = (color*)malloc(destByteLen);
+        memset(dest, 0x7f, destByteLen);
+        swizzle_to_rgba((uint8_t*)dest,
+                        texture->pData,
+                        num_components,
+                        srcByteLen,
+                        swizzle);
+
+       for (uint32_t i = 0; i < width * height; i++) {
+           for (uint32_t c = 0; c < 4; c++) {
+               if (swizzle[c] == ZERO)
+                   EXPECT_EQ(dest[i][c], 0);
+               else if (swizzle[c] == ONE)
+                   EXPECT_EQ(dest[i][c], 255);
+               else
+                   EXPECT_EQ(swizzle[c], dest[i][c]) << "c = " << c << ", i = "  << i;
+           }
+       }
+    }
+
+  protected:
+    WriterTestHelper<GLubyte, num_components, internalformat> helper;
+    const int width = 16;
+    const int height = 16;
+};
+
+class SwizzleToRGBATestR8 : public SwizzleTestBase<1, GL_R8> { };
+class SwizzleToRGBATestRG8 : public SwizzleTestBase<2, GL_RG8> { };
+class SwizzleToRGBATestRGB8 : public SwizzleTestBase<3, GL_RGB8> { };
+class SwizzleToRGBATestRGBA8 : public SwizzleTestBase<4, GL_RGBA8> { };
+
+////////////////////////
+// swizzle_to_rgba tests
+////////////////////////
+
+TEST_F(SwizzleToRGBATestR8, RRRONE) {
+    swizzle_e r_to_rgba_mapping[4] = { R, R, R, ONE };
+    runTest(r_to_rgba_mapping);
+}
+
+TEST_F(SwizzleToRGBATestRG8, RRRG) {
+    swizzle_e r_to_rgba_mapping[4] = { R, R, R, G };
+    runTest(r_to_rgba_mapping);
+}
+
+TEST_F(SwizzleToRGBATestRGB8, RGBONE) {
+    swizzle_e r_to_rgba_mapping[4] = { R, G, B, ONE };
+    runTest(r_to_rgba_mapping);
+}
+
+TEST_F(SwizzleToRGBATestRGBA8, RGBA) {
+    swizzle_e r_to_rgba_mapping[4] = { R, G, B, A };
+    runTest(r_to_rgba_mapping);
+}
+
+TEST_F(SwizzleToRGBATestRGBA8, BGRA) {
+    swizzle_e r_to_rgba_mapping[4] = { B, G, R, A };
+    runTest(r_to_rgba_mapping);
+}
+
+TEST_F(SwizzleToRGBATestRGBA8, BGRZERO) {
+    swizzle_e r_to_rgba_mapping[4] = { B, G, R, ZERO };
+    runTest(r_to_rgba_mapping);
+}
+
+TEST_F(SwizzleToRGBATestRGBA8, ARGB) {
+    swizzle_e r_to_rgba_mapping[4] = { A, R, G, B };
+    runTest(r_to_rgba_mapping);
+}
 
 }  // namespace

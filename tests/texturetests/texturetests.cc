@@ -208,6 +208,8 @@ const ktx_uint8_t ktxId2[12] = KTX2_IDENTIFIER_REF;
 
 typedef TextureWriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits createFlagBits;
 
+template<typename component_type, ktx_uint32_t numComponents,
+         GLenum internalformat>
 class ktxTextureTestBase : public ::testing::Test {
   protected:
     ktxTextureTestBase(ktxFormatVersionEnum fv) : pixelSize(16)
@@ -306,7 +308,7 @@ class ktxTextureTestBase : public ::testing::Test {
                                      faceLodSize, pixels);
     }
 
-    TextureWriterTestHelper<GLubyte, 4, GL_RGBA8> helper;
+    TextureWriterTestHelper<component_type, numComponents, internalformat> helper;
     wthTexInfo& texinfo = helper.texinfo;
     ktxTextureCreateInfo& createInfo = helper.createInfo;
     unsigned char* kvData;
@@ -325,7 +327,7 @@ class ktxTextureTestBase : public ::testing::Test {
     std::vector<wthImageInfo>& images = helper.imageList;
 };
 
-class ktxTexture1TestBase : public ktxTextureTestBase {
+class ktxTexture1TestBase : public ktxTextureTestBase<GLubyte, 4, GL_RGBA8> {
   protected:
     ktxTexture1TestBase() : ktxTextureTestBase(KTX_FORMAT_VERSION_ONE) { }
 
@@ -362,14 +364,24 @@ class ktxTexture1TestBase : public ktxTextureTestBase {
     }
 };
 
-class ktxTexture2TestBase : public ktxTextureTestBase {
+
+template<typename component_type,
+         ktx_uint32_t numComponents,
+         GLenum internalformat>
+class ktxTexture2TestBase : public ktxTextureTestBase<component_type,
+                                                      numComponents,
+                                                      internalformat>
+{
   protected:
-    ktxTexture2TestBase() : ktxTextureTestBase(KTX_FORMAT_VERSION_TWO) { }
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::helper;
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::texinfo;
+
+    ktxTexture2TestBase() : ktxTextureTestBase<component_type, numComponents, internalformat>(KTX_FORMAT_VERSION_TWO) { }
 
     bool
     compareTexture(ktxTexture2* texture)
     {
-        if (texture->vkFormat != vkGetFormatFromOpenGLInternalFormat(texinfo.glInternalformat))
+        if (texture->vkFormat != vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat))
             return false;
         if (texture->baseWidth != texinfo.baseWidth)
             return false;
@@ -465,11 +477,11 @@ class ktxTexture1WriteTestRGBA8 : public ktxTexture1WriteTestBase<GLubyte, 4, GL
 class ktxTexture1WriteTestRGB8 : public ktxTexture1WriteTestBase<GLubyte, 3, GL_RGB8> { };
 class ktxTexture1WriteTestRG16 : public ktxTexture1WriteTestBase<GLushort, 2, GL_RG16> { };
 
-class ktxTexture2_IterateLoadLevelFacesTest : public ktxTexture2TestBase { };
-class ktxTexture2_IterateLevelFacesTest : public ktxTexture2TestBase { };
-class ktxTexture2_IterateLevelsTest : public ktxTexture2TestBase { };
-class ktxTexture2_LoadImageDataTest : public ktxTexture2TestBase { };
-class ktxTexture2_CreateCopyTest: public ktxTexture2TestBase { };
+class ktxTexture2_IterateLoadLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
+class ktxTexture2_IterateLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
+class ktxTexture2_IterateLevelsTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_LoadImageDataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_CreateCopyTest: public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
 
 /////////////////////////////////////////
 // ktxTexture_Create tests
@@ -1313,7 +1325,7 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGBA2D) {
     if (ktx1texture)
         ktxTexture_Destroy(ktxTexture(ktx1texture));
     if (ktx2texture)
-      ktxTexture_Destroy(ktxTexture(ktx2texture));
+        ktxTexture_Destroy(ktxTexture(ktx2texture));
 }
 
 TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGB2D) {
@@ -1349,7 +1361,7 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGB2D) {
     if (ktx1texture)
         ktxTexture_Destroy(ktxTexture(ktx1texture));
     if (ktx2texture)
-      ktxTexture_Destroy(ktxTexture(ktx2texture));
+        ktxTexture_Destroy(ktxTexture(ktx2texture));
 }
 
 /////////////////////////////////////////
@@ -2145,7 +2157,7 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
     runTest();
 }
 
-class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase { };
+class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
 
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
@@ -2177,4 +2189,264 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
     }
 }
 
+class ktxTexture2_GetNumComponentsTestR8 : public ktxTexture2TestBase<GLubyte, 1, GL_R8> { };
+class ktxTexture2_GetNumComponentsTestRG8 : public ktxTexture2TestBase<GLubyte, 2, GL_RG8> { };
+class ktxTexture2_GetNumComponentsTestRGB8 : public ktxTexture2TestBase<GLubyte, 3, GL_RGB8> { };
+class ktxTexture2_GetNumComponentsTestRGBA8 : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+
+////////////////////////////////////////////
+// ktxTexture2_GetNumComponents tests
+///////////////////////////////////////////
+
+TEST_F(ktxTexture2_GetNumComponentsTestR8, Uncompressed) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 1);
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestR8, BasisLZ) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 1);
+        ktxTexture2_CompressBasis(texture, 0);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+    ktxBasisParams cparams = { };
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 1);
+        cparams.uastc = KTX_TRUE;
+        ktxTexture2_CompressBasisEx(texture, &cparams);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRG8, Uncompressed) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 2);
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 2);
+        ktxTexture2_CompressBasis(texture, 0);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+    ktxBasisParams cparams = { };
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 2);
+        cparams.uastc = KTX_TRUE;
+        ktxTexture2_CompressBasisEx(texture, &cparams);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRGB8, Uncompressed) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 3);
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRGB8, BasisLZ) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 3);
+        ktxTexture2_CompressBasis(texture, 0);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+    ktxBasisParams cparams = { };
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 3);
+        cparams.uastc = KTX_TRUE;
+        ktxTexture2_CompressBasisEx(texture, &cparams);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, Uncompressed) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 4);
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, BasisLZ) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 4);
+        ktxTexture2_CompressBasis(texture, 0);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
+
+TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+    ktxBasisParams cparams = { };
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
+        EXPECT_EQ(components, 4);
+        cparams.uastc = KTX_TRUE;
+        ktxTexture2_CompressBasisEx(texture, &cparams);
+        EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+    }
+}
 }  // namespace

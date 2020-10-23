@@ -87,12 +87,13 @@ copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t src_len,
     }
 }
 
-static void
+// This is not static only so the unit tests can access it.
+void
 swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
                 ktx_size_t image_size, swizzle_e swizzle[4])
 {
     for (ktx_size_t i = 0; i < image_size; i += src_len) {
-        for (uint32_t c = 0; c < src_len; c++) {
+        for (uint32_t c = 0; c < 4; c++) {
             switch (swizzle[c]) {
               case R:
                 rgbadst[c] = rgbasrc[0];
@@ -110,7 +111,7 @@ swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
                 rgbadst[c] = 0x00;
                 break;
               case ONE:
-                rgbadst[i+c] = 0xff;
+                rgbadst[c] = 0xff;
                 break;
               default:
                 assert(false);
@@ -261,7 +262,7 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
         uint16_t channelId, bitOffset;
         if (sample == 0) {
             bitOffset = 0;
-            if (getDFDNumComponents(cdfd) == 1)
+            if (getDFDNumComponents(cdfd) < 3)
                 channelId = KHR_DF_CHANNEL_ETC1S_RRR;
             else
                 channelId = KHR_DF_CHANNEL_ETC1S_RGB;
@@ -520,7 +521,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                 ktxTexture2_GetImageOffset(This, level, layer, slice, &offset);
                 iit->resize(width, height);
                 copycb((uint8_t*)iit->get_ptr(), This->pData + offset,
-                        component_size * num_components, image_size,
+                        num_components, image_size,
                         comp_mapping);
                 ++iit;
             }
