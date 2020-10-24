@@ -858,8 +858,18 @@ TEST_F(SwizzleToRGBATestRGB8, RGBONE) {
     runTest(r_to_rgba_mapping);
 }
 
+TEST_F(SwizzleToRGBATestRGB8, RRRG) {
+    swizzle_e r_to_rgba_mapping[4] = { R, R, R, G };
+    runTest(r_to_rgba_mapping);
+}
+
 TEST_F(SwizzleToRGBATestRGBA8, RGBA) {
     swizzle_e r_to_rgba_mapping[4] = { R, G, B, A };
+    runTest(r_to_rgba_mapping);
+}
+
+TEST_F(SwizzleToRGBATestRGBA8, RRRG) {
+    swizzle_e r_to_rgba_mapping[4] = { R, R, R, G };
     runTest(r_to_rgba_mapping);
 }
 
