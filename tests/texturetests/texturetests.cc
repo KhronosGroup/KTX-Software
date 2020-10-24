@@ -2200,7 +2200,6 @@ class ktxTexture2_GetNumComponentsTestRGBA8 : public ktxTexture2TestBase<GLubyte
 
 TEST_F(ktxTexture2_GetNumComponentsTestR8, Uncompressed) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2219,7 +2218,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, Uncompressed) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestR8, BasisLZ) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2240,7 +2238,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, BasisLZ) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
     ktxBasisParams cparams = { };
 
@@ -2263,7 +2260,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRG8, Uncompressed) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2282,7 +2278,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, Uncompressed) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2303,7 +2298,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
     ktxBasisParams cparams = { };
 
@@ -2326,7 +2320,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGB8, Uncompressed) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2345,7 +2338,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, Uncompressed) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGB8, BasisLZ) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2366,7 +2358,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, BasisLZ) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
     ktxBasisParams cparams = { };
 
@@ -2389,7 +2380,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, Uncompressed) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2408,7 +2398,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, Uncompressed) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, BasisLZ) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
@@ -2429,7 +2418,6 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, BasisLZ) {
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
     ktxBasisParams cparams = { };
 

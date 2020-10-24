@@ -1712,7 +1712,6 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
     ktx_uint8_t*    dataBuf = NULL;
     ktx_uint8_t*    uncompressedDataBuf = NULL;
     ktx_uint8_t*    pData;
-    ktx_uint32_t    blockByteLength;
     ZSTD_DCtx*      dctx = NULL;
 
     if (This == NULL)

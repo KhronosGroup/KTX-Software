@@ -19,7 +19,6 @@ EXPORTS
 	?start_transcoding@basisu_transcoder@basist@@QEAA_NPEBXI@Z
     ?transcode_image_level@basisu_transcoder@basist@@QEBA_NPEBXIIIPEAXIW4transcoder_texture_format@2@IIPEAUbasisu_transcoder_state@2@I@Z
     ??0basisu_transcoder@basist@@QEAA@PEBVetc1_global_selector_codebook@1@@Z
-    ?runTest@?$SwizzleTestBase@$00$0ICCJ@@?A0xa5017cce@@QEAAXQEAW4swizzle_e@@@Z
     createDFDUnpacked
     createDFDPacked
     createDFDCompressed
