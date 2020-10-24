@@ -99,7 +99,7 @@ class WriterTestHelper {
         std::vector<component_type> color;
         color.resize(numComponents);
         if (requestedColor != nullptr) {
-            for (uint32_t i = 0; i < numComponents; i++) {
+            for (ktx_uint32_t i = 0; i < numComponents; i++) {
                 color[i] = (*requestedColor)[i];
             }
         }
