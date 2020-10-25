@@ -5,7 +5,7 @@
 
 # Generate release notes from git log.
 #
-# mkrelnotes [-b] [-c] [-d] [-p <preface> [-t] <previous release tag> <this release>
+# mkrelnotes [-b] [-c] [-d] [-p <preface> [-t] <previous release tag> <release name>
 #
 # <previous release tag> is the name of the tag identifying the previous
 # release. <this release> is the name to be given to the tag for the upcoming
@@ -137,7 +137,7 @@ function log() {
 
 function usage() {
 cat << EOU
-Usage: $0 [-b] [-c] [-d] [-i] [-p <preface>] [-t] <commit range>"
+Usage: $0 [-b] [-c] [-d] [-i] [-p <preface>] [-t] <previous release tag> <release name>"
 Options:
          -b  Include build system changes
          -c  Make cumulative release notes
