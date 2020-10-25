@@ -65,13 +65,14 @@ function commit_summary() {
     author="$(echo $prjson | jq -r -e '.user.login')"
   fi
   summary+=" (@$author)"
-  echo "$summary"
+  # \_ avoids confusion with _ for italics.
+  echo "$summary" | sed -e 's/_/\\_/g'
   if [ -n "$includeDetails" ]; then
     body="$(git log --pretty="%b" -n 1 $hash | sed -E 's/^(.+)/  \1/')"
     if [ -n "$body" ]; then
       echo ""
       # Remove CR which some multi-line commit bodies contain for unknown reasons.
-      echo "$body" | tr -d \\r
+      echo "$body" | tr -d \\r | sed -e 's/_/\\_/g'
     fi
   fi
 }
