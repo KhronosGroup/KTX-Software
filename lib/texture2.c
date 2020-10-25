@@ -1332,13 +1332,13 @@ ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
  * @brief Return the number of components in an image of the texture.
  *
  * Returns the number of components indicated by the DFD's sample information
- * in accordance with the color model. For uncompressed textures it will be the actual
- * number of components. For block-compressed textures, it will be 1 or 2 according to
- * the format's DFD color model. For Basis compressed textures, it will be the
- * number of components in the image @e before encoding and deflation so it can
- * be used to help choose a suitable transcode target format. For other supercompressed formats
- * it returns the number of components prior to deflation.
-
+ * in accordance with the color model. For uncompressed formats it will be the actual
+ * number of components in the image. For block-compressed formats, it will be 1 or 2
+ * according to the format's DFD color model. For Basis compressed textures, the
+ * function examines the ids of the channels indicated by the DFD and uses that
+ * information to determine and return the number of components in the image
+ * @e before encoding and deflation so it can be used to help choose a suitable
+ * transcode target format.
  *
  * @param[in]     This           pointer to the ktxTexture object of interest.
  *
@@ -1347,7 +1347,57 @@ ktxTexture2_GetComponentInfo(ktxTexture2* This, uint32_t* pNumComponents,
 ktx_uint32_t
 ktxTexture2_GetNumComponents(ktxTexture2* This)
 {
-    return getDFDNumComponents(This->pDfd);
+    uint32_t* pBdb = This->pDfd + 1;
+    uint32_t dfdNumComponents = getDFDNumComponents(This->pDfd);
+    uint32_t colorModel = KHR_DFDVAL(pBdb, MODEL);
+    if (colorModel < KHR_DF_MODEL_DXT1A) {
+        return dfdNumComponents;
+    } else {
+        switch (colorModel) {
+          case KHR_DF_MODEL_ETC1S:
+          {
+            uint32_t channel0Id = KHR_DFDSVAL(pBdb, 0, CHANNELID);
+            if (dfdNumComponents == 1) {
+                if (channel0Id == KHR_DF_CHANNEL_ETC1S_RGB)
+                    return 3;
+                else
+                    return 1;
+            } else {
+                uint32_t channel1Id = KHR_DFDSVAL(pBdb, 1, CHANNELID);
+                if (channel0Id == KHR_DF_CHANNEL_ETC1S_RGB
+                    && channel1Id == KHR_DF_CHANNEL_ETC1S_AAA)
+                    return 4;
+                else {
+                    // An invalid combination of channel Ids should never
+                    // have been set during creation or should have been
+                    // caught when the file was loaded.
+                    assert(channel0Id == KHR_DF_CHANNEL_ETC1S_RRR
+                           && channel1Id == KHR_DF_CHANNEL_ETC1S_GGG);
+                    return 2;
+                }
+            }
+            break;
+          }
+          case KHR_DF_MODEL_UASTC:
+            switch (KHR_DFDSVAL(pBdb, 0, CHANNELID)) {
+              case KHR_DF_CHANNEL_UASTC_RRR:
+                return 1;
+              case KHR_DF_CHANNEL_UASTC_RRRG:
+                return 2;
+              case KHR_DF_CHANNEL_UASTC_RGB:
+                return 3;
+              case KHR_DF_CHANNEL_UASTC_RGBA:
+                return 4;
+              default:
+                // Same comment as for the assert in the ETC1 case.
+                assert(false);
+                return 1;
+            }
+            break;
+          default:
+            return dfdNumComponents;
+        }
+    }
 }
 
 /**
@@ -1662,7 +1712,6 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
     ktx_uint8_t*    dataBuf = NULL;
     ktx_uint8_t*    uncompressedDataBuf = NULL;
     ktx_uint8_t*    pData;
-    ktx_uint32_t    blockByteLength;
     ZSTD_DCtx*      dctx = NULL;
 
     if (This == NULL)

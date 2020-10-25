@@ -23,5 +23,6 @@ EXPORTS
 	?decompress_jpeg_image_from_stream@jpgd@@YAPEAEPEAVjpeg_decoder_stream@1@PEAH11HI@Z
 	??0jpeg_decoder@jpgd@@QEAA@PEAVjpeg_decoder_stream@1@I@Z
 	??1jpeg_decoder@jpgd@@QEAA@XZ
+	?swizzle_to_rgba@@YAXPEAE0I_KQEAW4swizzle_e@@@Z
     appendLibId
     

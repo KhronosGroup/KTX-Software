@@ -64,6 +64,21 @@ getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
     }
 }
 
+/**
+ * @~English
+ * @brief Return the number of "components" in the data.
+ *
+ * Calculates the number of uniques samples in the DFD by combining
+ * multiple samples for the same channel. For uncompressed colorModels
+ * this is the same as the number of components in the image data. For
+ * block-compressed color models this is the number of samples in
+ * the color model, typically 1 and in a few cases 2.
+ *
+ * @param DFD Pointer to a Data Format Descriptor for which,
+ *            described as 32-bit words in native endianness.
+ *            Note that this is the whole descriptor, not just
+ *            the basic descriptor block.
+ */
 uint32_t getDFDNumComponents(const uint32_t* DFD)
 {
     const uint32_t *BDFDB = DFD+1;
