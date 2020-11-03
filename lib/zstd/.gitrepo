@@ -7,6 +7,6 @@
 	remote = git@github.com:facebook/zstd.git
 	branch = dev
 	commit = d6dae2000b3148105a4cf8e56ff133f61211767a
-	parent = b79935c86fc8625283313f942943ff893d3b2845
+	parent = be54cd3cf5c3e074ed0de1b420c04f0c2acb74dd
 	method = merge
 	cmdver = 0.4.1
