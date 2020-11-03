@@ -32,3 +32,5 @@
 # version files
 version.h
 
+# zstd linux-kernel (contains GPL, which messes with Reuse)
+/lib/zstd/contrib/linux-kernel
