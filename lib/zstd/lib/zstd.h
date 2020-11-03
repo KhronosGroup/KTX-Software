@@ -339,7 +339,9 @@ typedef enum {
                                      * for large inputs, by finding large matches at long distance.
                                      * It increases memory usage and window size.
                                      * Note: enabling this parameter increases default ZSTD_c_windowLog to 128 MB
-                                     * except when expressly set to a different value. */
+                                     * except when expressly set to a different value. 
+                                     * Note: will be enabled by default if ZSTD_c_windowLog >= 128 MB and
+                                     * compression strategy >= ZSTD_btopt (== compression level 16+) */
     ZSTD_c_ldmHashLog=161,   /* Size of the table for long distance matching, as a power of 2.
                               * Larger values increase memory usage and compression ratio,
                               * but decrease compression speed.
@@ -413,6 +415,8 @@ typedef enum {
      * ZSTD_c_targetCBlockSize
      * ZSTD_c_srcSizeHint
      * ZSTD_c_enableDedicatedDictSearch
+     * ZSTD_c_stableInBuffer
+     * ZSTD_c_stableOutBuffer
      * Because they are not stable, it's necessary to define ZSTD_STATIC_LINKING_ONLY to access them.
      * note : never ever use experimentalParam? names directly;
      *        also, the enums values themselves are unstable and can still change.
@@ -424,7 +428,9 @@ typedef enum {
      ZSTD_c_experimentalParam5=1002,
      ZSTD_c_experimentalParam6=1003,
      ZSTD_c_experimentalParam7=1004,
-     ZSTD_c_experimentalParam8=1005
+     ZSTD_c_experimentalParam8=1005,
+     ZSTD_c_experimentalParam9=1006,
+     ZSTD_c_experimentalParam10=1007
 } ZSTD_cParameter;
 
 typedef struct {
@@ -1114,21 +1120,39 @@ ZSTDLIB_API size_t ZSTD_sizeof_DDict(const ZSTD_DDict* ddict);
 typedef struct ZSTD_CCtx_params_s ZSTD_CCtx_params;
 
 typedef struct {
-    unsigned int matchPos; /* Match pos in dst */
-    /* If seqDef.offset > 3, then this is seqDef.offset - 3
-     * If seqDef.offset < 3, then this is the corresponding repeat offset
-     * But if seqDef.offset < 3 and litLength == 0, this is the
-     *   repeat offset before the corresponding repeat offset
-     * And if seqDef.offset == 3 and litLength == 0, this is the
-     *   most recent repeat offset - 1
-     */
-    unsigned int offset;
-    unsigned int litLength; /* Literal length */
-    unsigned int matchLength; /* Match length */
-    /* 0 when seq not rep and seqDef.offset otherwise
-     * when litLength == 0 this will be <= 4, otherwise <= 3 like normal
-     */
-    unsigned int rep;
+    unsigned int offset;      /* The offset of the match. (NOT the same as the offset code)
+                               * If offset == 0 and matchLength == 0, this sequence represents the last
+                               * literals in the block of litLength size.
+                               */
+
+    unsigned int litLength;   /* Literal length of the sequence. */
+    unsigned int matchLength; /* Match length of the sequence. */
+
+                              /* Note: Users of this API may provide a sequence with matchLength == litLength == offset == 0.
+                               * In this case, we will treat the sequence as a marker for a block boundary.
+                               */
+    
+    unsigned int rep;         /* Represents which repeat offset is represented by the field 'offset'.
+                               * Ranges from [0, 3].
+                               * 
+                               * Repeat offsets are essentially previous offsets from previous sequences sorted in
+                               * recency order. For more detail, see doc/zstd_compression_format.md
+                               * 
+                               * If rep == 0, then 'offset' does not contain a repeat offset.
+                               * If rep > 0:
+                               *  If litLength != 0:
+                               *      rep == 1 --> offset == repeat_offset_1
+                               *      rep == 2 --> offset == repeat_offset_2
+                               *      rep == 3 --> offset == repeat_offset_3
+                               *  If litLength == 0:
+                               *      rep == 1 --> offset == repeat_offset_2
+                               *      rep == 2 --> offset == repeat_offset_3
+                               *      rep == 3 --> offset == repeat_offset_1 - 1
+                               * 
+                               * Note: This field is optional. ZSTD_getSequences() will calculate the value of
+                               * 'rep', but repeat offsets do not necessarily need to be calculated from an external
+                               * sequence provider's perspective.
+                               */
 } ZSTD_Sequence;
 
 typedef struct {
@@ -1274,7 +1298,9 @@ ZSTDLIB_API unsigned long long ZSTD_decompressBound(const void* src, size_t srcS
 ZSTDLIB_API size_t ZSTD_frameHeaderSize(const void* src, size_t srcSize);
 
 /*! ZSTD_getSequences() :
- * Extract sequences from the sequence store
+ * Extract sequences from the sequence store.
+ * Each block will end with a dummy sequence with offset == 0, matchLength == 0, and litLength == length of last literals.
+ * 
  * zc can be used to insert custom compression params.
  * This function invokes ZSTD_compress2
  * @return : number of sequences extracted
@@ -1620,6 +1646,59 @@ ZSTDLIB_API size_t ZSTD_CCtx_refPrefix_advanced(ZSTD_CCtx* cctx, const void* pre
  * make this mode the default.
  */
 #define ZSTD_c_enableDedicatedDictSearch ZSTD_c_experimentalParam8
+
+/* ZSTD_c_stableInBuffer
+ * Experimental parameter.
+ * Default is 0 == disabled. Set to 1 to enable.
+ *
+ * Tells the compressor that the ZSTD_inBuffer will ALWAYS be the same
+ * between calls, except for the modifications that zstd makes to pos (the
+ * caller must not modify pos). This is checked by the compressor, and
+ * compression will fail if it ever changes. This means the only flush
+ * mode that makes sense is ZSTD_e_end, so zstd will error if ZSTD_e_end
+ * is not used. The data in the ZSTD_inBuffer in the range [src, src + pos)
+ * MUST not be modified during compression or you will get data corruption.
+ *
+ * When this flag is enabled zstd won't allocate an input window buffer,
+ * because the user guarantees it can reference the ZSTD_inBuffer until
+ * the frame is complete. But, it will still allocate an output buffer
+ * large enough to fit a block (see ZSTD_c_stableOutBuffer). This will also
+ * avoid the memcpy() from the input buffer to the input window buffer.
+ *
+ * NOTE: ZSTD_compressStream2() will error if ZSTD_e_end is not used.
+ * That means this flag cannot be used with ZSTD_compressStream().
+ *
+ * NOTE: So long as the ZSTD_inBuffer always points to valid memory, using
+ * this flag is ALWAYS memory safe, and will never access out-of-bounds
+ * memory. However, compression WILL fail if you violate the preconditions.
+ *
+ * WARNING: The data in the ZSTD_inBuffer in the range [dst, dst + pos) MUST
+ * not be modified during compression or you will get data corruption. This
+ * is because zstd needs to reference data in the ZSTD_inBuffer to find
+ * matches. Normally zstd maintains its own window buffer for this purpose,
+ * but passing this flag tells zstd to use the user provided buffer.
+ */
+#define ZSTD_c_stableInBuffer ZSTD_c_experimentalParam9
+
+/* ZSTD_c_stableOutBuffer
+ * Experimental parameter.
+ * Default is 0 == disabled. Set to 1 to enable.
+ *
+ * Tells he compressor that the ZSTD_outBuffer will not be resized between
+ * calls. Specifically: (out.size - out.pos) will never grow. This gives the
+ * compressor the freedom to say: If the compressed data doesn't fit in the
+ * output buffer then return ZSTD_error_dstSizeTooSmall. This allows us to
+ * always decompress directly into the output buffer, instead of decompressing
+ * into an internal buffer and copying to the output buffer.
+ *
+ * When this flag is enabled zstd won't allocate an output buffer, because
+ * it can write directly to the ZSTD_outBuffer. It will still allocate the
+ * input window buffer (see ZSTD_c_stableInBuffer).
+ *
+ * Zstd will check that (out.size - out.pos) never grows and return an error
+ * if it does. While not strictly necessary, this should prevent surprises.
+ */
+#define ZSTD_c_stableOutBuffer ZSTD_c_experimentalParam10
 
 /*! ZSTD_CCtx_getParameter() :
  *  Get the requested compression parameter value, selected by enum ZSTD_cParameter,
