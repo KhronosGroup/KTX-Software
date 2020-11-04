@@ -3,11 +3,11 @@
 
 #pragma once
 
-#ifdef DLL_EXPORT_FLAG
+#if defined(_MSC_VER)
 #define DLL_EXPORT __declspec(dllexport)
 #else
 #define DLL_EXPORT
-#endif
+#endif // defined(_MSC_VER)
 
 #include <basisu_transcoder.h>
 
