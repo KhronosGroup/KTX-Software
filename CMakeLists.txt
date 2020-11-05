@@ -258,7 +258,8 @@ macro(commom_lib_settings lib write)
         target_link_libraries(${lib} zstd::zstd)
     else()
         # Use single file zstd decoder
-        target_sources(${lib} PRIVATE lib/zstddeclib.c)
+        include(cmake/zstddeclib.cmake)
+        target_sources(${lib} PRIVATE ${zstddeclib_output})
     endif()
 
     if(WIN32)
