@@ -53,4 +53,8 @@ target_link_libraries(
 )
 
 gtest_discover_tests(unittests TEST_PREFIX unittest )
-gtest_discover_tests(texturetests TEST_PREFIX texturetest )
+# For some reason on Travis, 5s was not long enough for Release config.
+gtest_discover_tests(texturetests
+    TEST_PREFIX texturetest
+    DISCOVERY_TIMEOUT 20
+)

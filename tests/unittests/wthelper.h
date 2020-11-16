@@ -64,7 +64,9 @@ class WriterTestHelper {
     };
     typedef ktx_uint32_t createFlags;
 
-    WriterTestHelper() : writer_ktx2("WriteTestHelper 1.0 __default__") { }
+    WriterTestHelper() : writer_ktx2("WriteTestHelper 1.0 __default__") {
+
+    }
 
     ~WriterTestHelper() {
         ktxHashList_Destruct(&kvHash);
@@ -74,9 +76,11 @@ class WriterTestHelper {
     void resize(createFlags flags,
                 ktx_uint32_t numLayers, ktx_uint32_t numFaces,
                 ktx_uint32_t numDimensions,
-                ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
+                ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth,
+                std::vector<component_type>* requestedColor = nullptr)
     {
         assert(numFaces == 1 || depth == 1);
+        assert(requestedColor == nullptr || requestedColor->size() >= numComponents);
 
         this->width = width;
         this->height = height;
@@ -92,6 +96,13 @@ class WriterTestHelper {
         imageDataSize = 0;
         images.resize(numLevels);
         imageList.resize(numLevels * numLayers * numFaces * depth);
+        std::vector<component_type> color;
+        color.resize(numComponents);
+        if (requestedColor != nullptr) {
+            for (ktx_uint32_t i = 0; i < numComponents; i++) {
+                color[i] = (*requestedColor)[i];
+            }
+        }
         for (ktx_uint32_t level = 0, count = 0; level < numLevels; level++) {
             ktx_uint32_t levelWidth = MAX(1, width >> level);
             ktx_uint32_t levelHeight = MAX(1, height >> level);
@@ -108,18 +119,18 @@ class WriterTestHelper {
                     // Using std::vector avoids warnings in the following
                     // switch due to access past the end of the array, if we
                     // were using an array and numComponents < 4.
-                    std::vector<component_type> color;
-                    color.resize(numComponents);
-                    switch (numComponents) {
-                      case 4:
-                        color[3] = (component_type)1;
-                      case 3:
-                        color[2] = (component_type)faceSlice;
-                      case 2:
-                        color[1] = (component_type)layer;
-                      case 1:
-                        color[0] = (component_type)level;
-                        break;
+                    if (requestedColor == nullptr) {
+                        switch (numComponents) {
+                          case 4:
+                            color[3] = (component_type)0.5;
+                          case 3:
+                            color[2] = (component_type)faceSlice;
+                          case 2:
+                            color[1] = (component_type)layer;
+                          case 1:
+                            color[0] = (component_type)level;
+                            break;
+                        }
                     }
                     for (ktx_uint32_t i = 0; i < pixelCount; i++) {
                         for (ktx_uint32_t j = 0; j < numComponents; j++) {
@@ -282,6 +293,28 @@ class WriterTestHelper {
         return true;
     }
 
+    KTX_error_code
+    copyImagesToTexture(ktxTexture* texture) {
+        KTX_error_code result;
+
+        for (ktx_uint32_t level = 0; level < images.size(); level++) {
+            for (ktx_uint32_t layer = 0; layer < images[level].size(); layer++) {
+                for (ktx_uint32_t faceSlice = 0; faceSlice < images[level][layer].size(); faceSlice++) {
+                    ktx_size_t imageBytes = images[level][layer][faceSlice].size() * sizeof(component_type);
+                    ktx_uint8_t* imageDataPtr = (ktx_uint8_t*)(images[level][layer][faceSlice].data());
+                    result = ktxTexture_SetImageFromMemory(texture,
+                                                            level, layer,
+                                                            faceSlice,
+                                                            imageDataPtr,
+                                                            imageBytes);
+                   if (result != KTX_SUCCESS)
+                       break;
+                }
+            }
+        }
+        return result;
+    }
+
     static ktx_uint32_t
     levelsFromSize(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth) {
         ktx_uint32_t mipLevels;
@@ -311,7 +344,6 @@ class WriterTestHelper {
     char orientation_ktx2[4];
     std::string writer_ktx2;
     std::string comparisonWriter_ktx2;
-    
 
     ktx_size_t imageDataSize;
     std::vector< std::vector < std::vector < std::vector<component_type> > > > images;

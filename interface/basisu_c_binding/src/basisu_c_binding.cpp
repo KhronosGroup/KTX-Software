@@ -211,7 +211,7 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
 }
 
 extern "C" {
-    
+
 DLL_EXPORT void ktx_basisu_basis_init()
 {
     basisu_transcoder_init();
@@ -227,7 +227,7 @@ DLL_EXPORT basis_file* ktx_basisu_create_basis() {
     return new_basis;
 }
     
-DLL_EXPORT bool ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, size_t length ) {
+DLL_EXPORT bool ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, uint32_t length ) {
     return basis->open(data,length);
 }
 
@@ -268,8 +268,10 @@ DLL_EXPORT bool ktx_basisu_startTranscoding( basis_file* basis ) {
     return basis->startTranscoding();
 }
 
-DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, size_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
+DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
     return basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
 }
+
 #endif
+
 } // END extern "C" 

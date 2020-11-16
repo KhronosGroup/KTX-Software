@@ -1303,6 +1303,49 @@ ktxTexture1_NeedsTranscoding(ktxTexture1* This)
     return KTX_FALSE;
 }
 
+#if !KTX_FEATURE_WRITE
+
+/*
+ * Stubs for writer functions that return a proper error code
+ */
+
+KTX_error_code
+ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
+                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                               const ktx_uint8_t* src, ktx_size_t srcSize)
+{
+    return KTX_INVALID_OPERATION;
+}
+
+KTX_error_code
+ktxTexture1_SetImageFromStdioStream(ktxTexture1* This, ktx_uint32_t level,
+                                    ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                                    FILE* src, ktx_size_t srcSize)
+{
+    return KTX_INVALID_OPERATION;
+}
+
+KTX_error_code
+ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
+{
+    return KTX_INVALID_OPERATION;
+}
+
+KTX_error_code
+ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
+{
+    return KTX_INVALID_OPERATION;
+}
+
+KTX_error_code
+ktxTexture1_WriteToMemory(ktxTexture1* This,
+                          ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
+{
+    return KTX_INVALID_OPERATION;
+}
+
+#endif
+
 /*
  * Initialized here at the end to avoid the need for multiple declarations of
  * these functions.
