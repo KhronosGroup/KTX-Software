@@ -95,6 +95,11 @@ Files: lib/dfdutils/.gitrepo
 Copyright: 2019-2020 The Khronos Group Inc
 License: Apache-2.0
 
+Files: lib/zstd/*
+Copyright: Copyright (c) 2016-present, Facebook, Inc.
+# Of the offered choices, we choose the BSD license.
+License: BSD-3-Clause
+
 Files: cmake/modules/NSIS.InstallOptions.ini.in cmake/*.rtf
 Copyright: 2017-2020 Andreas Atteneder
 License: Apache-2.0
@@ -103,7 +108,7 @@ Files: other_lib/*/*SDL* other_include/SDL2/*
 Copyright: 1997-2020 Sam Lantinga <slouken@libsdl.org>
 License: Zlib
 
-Files: other_lib/*/*/*zstd* other_include/zstd*
+Files: other_include/zstd*
 Copyright: 2016-present Facebook, Inc.
 License: BSD-3-Clause
 

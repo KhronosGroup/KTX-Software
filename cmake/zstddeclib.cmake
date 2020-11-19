@@ -1,3 +1,6 @@
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
+
 # Create a single file zstd decoder source file
 
 set( zstddeclib_output ${PROJECT_SOURCE_DIR}/lib/zstd/contrib/single_file_libs/zstddeclib.c )

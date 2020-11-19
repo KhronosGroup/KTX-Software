@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright 2020 Andreas Atteneder
+# SPDX-License-Identifier: Apache-2.0
 
 set -e
 
