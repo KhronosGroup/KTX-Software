@@ -228,6 +228,10 @@ macro(commom_lib_settings lib write)
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
         $<INSTALL_INTERFACE:other_include>
+    PRIVATE
+        # zstd::zstd does not have proper interface include dirs set up, so add them explcitly
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib/common>
     )
 
     if( LIB_TYPE STREQUAL STATIC )
