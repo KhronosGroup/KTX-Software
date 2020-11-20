@@ -262,7 +262,7 @@ macro(commom_lib_settings lib write)
 
     if(${write})
         # Link against zstd
-        target_link_libraries(${lib} zstd::zstd)
+        target_link_libraries(${lib} PRIVATE zstd::zstd)
     else()
         # Use single file zstd decoder
         include(cmake/zstddeclib.cmake)
