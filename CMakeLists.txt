@@ -172,6 +172,10 @@ if(NOT zstd_FOUND)
     endif()
     add_subdirectory("lib/zstd/build/cmake" zstd)
     add_library(zstd::zstd ALIAS libzstd_static)
+    set(zstd_INCLUDES
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib/common>
+    )
 endif()
 
 macro(commom_lib_settings lib write)
@@ -230,8 +234,7 @@ macro(commom_lib_settings lib write)
         $<INSTALL_INTERFACE:other_include>
     PRIVATE
         # zstd::zstd does not have proper interface include dirs set up, so add them explcitly
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib/common>
+        ${zstd_INCLUDES}
     )
 
     if( LIB_TYPE STREQUAL STATIC )
@@ -527,6 +530,7 @@ target_include_directories(
     objUtil
 PUBLIC
     utils
+    ${zstd_INCLUDES}
 )
 
 add_subdirectory(interface/basisu_c_binding)
