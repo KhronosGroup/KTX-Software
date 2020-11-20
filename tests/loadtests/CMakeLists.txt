@@ -10,11 +10,6 @@ if(LINUX)
     find_package(assimp REQUIRED)
 endif()
 
-if(NOT EMSCRIPTEN)
-    find_package( ZLIB REQUIRED )
-    set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
-endif()
-
 if(APPLE AND IOS)
     set(CMAKE_OSX_ARCHITECTURES "arm64")
     # Find Frameworks

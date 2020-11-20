@@ -34,7 +34,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         GLAppSDL
         appfwSDL
         ktx
-        ${KTX_ZLIB_LIBRARIES}
     )
 
     if(OPENGL_FOUND AND NOT EMSCRIPTEN AND NOT EMULATE_GLES)
