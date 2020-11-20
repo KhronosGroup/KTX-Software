@@ -312,9 +312,6 @@ macro(commom_lib_settings lib write)
     endif()
 
     if(WIN32)
-        target_link_libraries(
-            ${lib}
-        )
         # By wrapping in generator expression we force multi configuration generators (like Visual Studio)
         # to take the exact path and not change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
