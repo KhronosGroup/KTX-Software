@@ -77,6 +77,7 @@ init:
 # Not using PS for downloads because its curl is completely different.
 install:
 - cinst doxygen.install
+- cinst Graphviz
 #- ps: |
     #run mkversion
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"

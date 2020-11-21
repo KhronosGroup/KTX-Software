@@ -162,7 +162,7 @@ add_library( ktx_read ${LIB_TYPE}
     )
 
 # zstd
-find_package(zstd)
+find_package(zstd QUIET)
 if(NOT zstd_FOUND)
     # Fall back to the bundled zstd sources
     set(ZSTD_BUILD_PROGRAMS OFF)
