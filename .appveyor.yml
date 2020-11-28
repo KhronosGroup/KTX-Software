@@ -128,7 +128,7 @@ build_script:
     $ErrorActionPreference = 'Continue'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
-    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
+    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
     $ErrorActionPreference = 'Stop'
     pushd $env:KTX_BUILD_DIR
     git status
