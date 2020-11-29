@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( ktx2check
-    $<TARGET_OBJECTS:objUtil>
     ktx2check.cpp
     stdafx.h
 )
@@ -21,6 +20,7 @@ PRIVATE
 target_link_libraries(
     ktx2check
     ktx
+    objUtil
 )
 set_tool_properties(ktx2check)
 set_xcode_code_sign(ktx2check)

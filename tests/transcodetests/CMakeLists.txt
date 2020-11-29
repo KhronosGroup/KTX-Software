@@ -3,7 +3,6 @@
 
 add_executable( transcodetests
     transcodetests.cc
-    $<TARGET_OBJECTS:obj_basisu_cbind>
 )
 
 target_include_directories(
@@ -19,6 +18,7 @@ target_link_libraries(
     transcodetests
     gtest
     ktx
+    obj_basisu_cbind
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

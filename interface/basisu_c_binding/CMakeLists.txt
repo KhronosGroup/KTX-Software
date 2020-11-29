@@ -1,7 +1,7 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-add_library(obj_basisu_cbind OBJECT
+add_library(obj_basisu_cbind STATIC
     inc/basisu_c_binding.h
     src/basisu_c_binding.cpp
 )

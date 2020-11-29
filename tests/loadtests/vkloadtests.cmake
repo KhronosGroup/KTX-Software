@@ -75,8 +75,6 @@ add_custom_target(
 
 add_executable( vkloadtests
     ${EXE_FLAG}
-    $<TARGET_OBJECTS:appfwSDL>
-    $<TARGET_OBJECTS:objUtil>
     appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
     appfwSDL/VulkanAppSDL/VulkanAppSDL.h
     appfwSDL/VulkanAppSDL/vulkancheckres.h
@@ -132,6 +130,8 @@ target_link_libraries(
     vkloadtests
     ktx
     ${KTX_ZLIB_LIBRARIES}
+    objUtil
+    appfwSDL
 )
 
 if(IOS)
