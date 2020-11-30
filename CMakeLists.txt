@@ -338,6 +338,7 @@ macro(commom_lib_settings lib write )
         # )
         # target_link_libraries(
         #     ktx
+        # PRIVATE
         #     zstd
         # )
         set(ZSTD_BUILD_PROGRAMS OFF)
