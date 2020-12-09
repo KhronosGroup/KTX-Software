@@ -163,7 +163,7 @@ add_library( ktx_read ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
 
-macro(commom_lib_settings lib write )
+macro(commom_lib_settings lib write)
 
     set_target_properties(${lib} PROPERTIES
         PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
@@ -310,12 +310,14 @@ macro(commom_lib_settings lib write )
                 ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
             )
         endif()
+    
     elseif(EMSCRIPTEN)
         target_sources(
             ${lib}
         PRIVATE
             lib/zstddeclib.c
         )
+    
     elseif(LINUX)
         find_package(zstd REQUIRED)
         find_package(Threads REQUIRED)
