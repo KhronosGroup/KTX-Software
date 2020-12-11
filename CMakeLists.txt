@@ -163,7 +163,7 @@ add_library( ktx_read ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
 
-macro(commom_lib_settings lib write )
+macro(commom_lib_settings lib write)
 
     set_target_properties(${lib} PROPERTIES
         PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
@@ -209,7 +209,7 @@ macro(commom_lib_settings lib write )
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
         $<INSTALL_INTERFACE:lib/basisu/transcoder>
 
@@ -285,6 +285,7 @@ macro(commom_lib_settings lib write )
     if(WIN32)
         target_link_libraries(
             ${lib}
+        PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib
         )
         # By wrapping in generator expression we force multi configuration generators (like Visual Studio)
@@ -295,8 +296,9 @@ macro(commom_lib_settings lib write )
         if(IOS)
             target_link_libraries(
                 ${lib}
+            PRIVATE
                 ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libzstd.a
-                )
+            )
         else()
             # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
             # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
@@ -304,24 +306,33 @@ macro(commom_lib_settings lib write )
             set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
             target_link_libraries(
                 ${lib}
+            PRIVATE
                 ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
-                )
+            )
         endif()
+    
     elseif(EMSCRIPTEN)
         target_sources(
             ${lib}
         PRIVATE
             lib/zstddeclib.c
         )
+    
     elseif(LINUX)
         find_package(zstd REQUIRED)
         find_package(Threads REQUIRED)
         target_link_libraries(
             ${lib}
+        PUBLIC
             dl
             Threads::Threads
+        )
+        target_link_libraries(
+            ${lib}
+        PRIVATE
             zstd::zstd
         )
+
     elseif(ANDROID)
         # add_library(zstd STATIC IMPORTED)
         # set_target_properties(zstd PROPERTIES
@@ -329,6 +340,7 @@ macro(commom_lib_settings lib write )
         # )
         # target_link_libraries(
         #     ktx
+        # PRIVATE
         #     zstd
         # )
         set(ZSTD_BUILD_PROGRAMS OFF)
@@ -336,6 +348,7 @@ macro(commom_lib_settings lib write )
         add_subdirectory(/Users/Shared/SDK/zstd/build/cmake zstd)
         target_link_libraries(
             ${lib}
+        PRIVATE
             libzstd_static
         )
     endif()
@@ -351,7 +364,7 @@ macro(commom_lib_settings lib write )
         )
         target_include_directories(
             ${lib}
-        PUBLIC
+        PRIVATE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils>
             $<INSTALL_INTERFACE:lib/dfdutils>
         )
@@ -426,10 +439,7 @@ PRIVATE
 )
 target_include_directories(
     ktx
-PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
-    $<INSTALL_INTERFACE:lib>
-
+PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
     $<INSTALL_INTERFACE:lib/basisu>
 )
