@@ -6,7 +6,8 @@
 set -e
 
 sudo apt-get -qq update
-sudo apt-get -qq install libzstd-dev
+# Prefer bundled zstd
+#sudo apt-get -qq install libzstd-dev
 sudo apt-get -qq install ninja-build
 sudo apt-get -qq install doxygen
 sudo apt-get -qq install libsdl2-dev
