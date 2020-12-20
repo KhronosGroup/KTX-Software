@@ -161,22 +161,18 @@ add_library( ktx_read ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
 
-# zstd
-find_package(zstd QUIET)
-if(NOT zstd_FOUND)
-    # Fall back to the bundled zstd sources
-    set(ZSTD_BUILD_PROGRAMS OFF)
-    set(ZSTD_BUILD_TESTS OFF)
-    if(IOS)
-        set(ZSTD_MULTITHREAD_SUPPORT OFF)
-    endif()
-    add_subdirectory("lib/zstd/build/cmake" zstd)
-    add_library(zstd::zstd ALIAS libzstd_static)
-    set(zstd_INCLUDES
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib/common>
-    )
+# zstd (bundled sources)
+set(ZSTD_BUILD_PROGRAMS OFF)
+set(ZSTD_BUILD_TESTS OFF)
+if(IOS)
+    set(ZSTD_MULTITHREAD_SUPPORT OFF)
 endif()
+add_subdirectory("lib/zstd/build/cmake" zstd)
+add_library(zstd::zstd ALIAS libzstd_static)
+set(zstd_INCLUDES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd/lib/common>
+)
 
 macro(commom_lib_settings lib write)
 
