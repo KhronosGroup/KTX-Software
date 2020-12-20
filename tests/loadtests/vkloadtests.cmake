@@ -120,6 +120,7 @@ PRIVATE
 target_link_libraries(
     vkloadtests
     ktx
+    ${KTX_ZLIB_LIBRARIES}
 )
 
 if(IOS)
