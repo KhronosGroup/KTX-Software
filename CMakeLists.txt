@@ -72,7 +72,6 @@ if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID)
     set(LINUX TRUE)
 endif()
 
-
 if(EMSCRIPTEN)
     set( KTX_FEATURE_VULKAN OFF )
 endif()
@@ -164,6 +163,8 @@ add_library( ktx_read ${LIB_TYPE}
     )
 
 macro(commom_lib_settings lib write)
+
+    add_dependencies(${lib} mkvk)
 
     set_target_properties(${lib} PROPERTIES
         PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
