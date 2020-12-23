@@ -358,6 +358,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
         "testimages/cubemap_yokohama_basis_rd.ktx2",
         "ETC1S+BasisLZ Compressed Cube Map"
     },
+    { TextureCubemap::create,
+        "testimages/skybox_zstd.ktx2",
+        "Zstd Compressed B10G11R11_UFLOAT Cube Map. Tests for correct blockSizeInBits after inflation"
+    },
     { Texture::create,
       "testimages/orient-down-metadata.ktx",
       "RGB8 2D + KTXOrientation down"

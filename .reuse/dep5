@@ -4,10 +4,20 @@ Source: https://github.com/KhronosGroup/KTX-Software
 
 ## Binary image licenses
 
+# REUSE seems to use the *last* matching entry in this file, so the most
+# general wildcards go first.
+
+# The majority of images & icons fall under the Khronos license
+Files: */*.png */*.ktx */*.ico */*.icns */*.jpg */*.pam */*.pgm */*.ppm */*.ktx */*.ktx2 */*.basis */*.pspimage
+Copyright: 2015-2020 The Khronos Group Inc.
+License: Apache-2.0
+
+## Exceptions to the above ...
+
 # http://www.schaik.com/pngsuite/PngSuite.LICENSE
 Files: tests/srcimages/ccwn2c08.png tests/srcimages/g03n2c08.png
 Copyright: 1996, 2011 Willem van Schaik
-License: LicenseRef-PngSuite
+License: LicenseRef-PNGSuite
 
 # http://r0k.us/graphics/kodak/
 Files: tests/srcimages/kodim17.png
@@ -19,6 +29,9 @@ License: LicenseRef-Kodak
 Files: tests/srcimages/color_grid.png
 Copyright: Unknown
 License: Apache-2.0
+
+# Copyrights on CC0 items here are bogus just to keep reuse lint happy.
+# CC0 expressly says there is no copyright.
 
 # https://github.com/KhronosGroup/glTF-Sample-Models - public domain
 Files: tests/srcimages/camera_camera_BaseColor_16bit.png
@@ -37,11 +50,6 @@ Files: tests/testimages/himark.ktx tests/testimages/himark.ktx
 Copyright: HI Corporation
 License: LicenseRef-HI-Trademark
 
-# Remaining images & icons fall under the Khronos license
-Files: */*.png */*.ktx */*.ico */*.icns */*.jpg */*.pam */*.pgm */*.ppm */*.ktx */*.ktx2 */*.basis */*.pspimage
-Copyright: 2015-2020 The Khronos Group Inc.
-License: Apache-2.0
-
 Files: tests/srcimages/Iron_Bars/*
 Copyright: Katsuagi https://3dtextures.me
 License: CC0-1.0
@@ -50,13 +58,14 @@ Files: tests/srcimages/GoldenGateBridge3/* tests/srcimages/Yokohama3/*
 Copyright: Emil Persson http://www.humus.name
 License: CC-BY-3.0
 
+Files: tests/testimages/skybox.ktx2 tests/testimages/skybox_zstd.ktx2
+Copyright: HDRIHaven
+License: CC0-1.0
+
 ## Licenses of binary files and files from other projects we don't want to
 ## modify
 
-# REUSE seems to use the *last* matching entry in this file, so the most
-# general wildcards go first.
-
-# The JSON format does not support comments for imbedded copyrights
+# The JSON format does not support comments for embedded copyrights
 Files: */*.json
 Copyright: 2017-2020 Mark Callow
 License: Apache-2.0
