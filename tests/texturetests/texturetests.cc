@@ -434,7 +434,7 @@ class ktxTexture2_CreateTest : public ::testing::Test {
     }
 
     ~ktxTexture2_CreateTest() {
-        ktxTexture2_Destroy(texture);
+        ktxTexture_Destroy(ktxTexture(texture));
     }
 
     ktxTexture2* texture;
