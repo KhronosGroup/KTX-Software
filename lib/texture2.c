@@ -35,12 +35,170 @@
 #include "uthash.h"
 #include "vk_format.h"
 
-// FIXME Test this #define and put it in a header somewhere.
+// FIXME: Test this #define and put it in a header somewhere.
 //#define IS_BIG_ENDIAN (1 == *(unsigned char *)&(const int){0x01000000ul})
 #define IS_BIG_ENDIAN 0
 
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
+
+#if !defined(BITFIELD_ORDER_FROM_MSB)
+// Most compilers, including all those tested so far, including clang, gcc
+// and msvc, order bitfields from the lsb so these struct declarations work.
+// Could this be because I've only tested on little-endian machines?
+// These are preferred as they are much easier to manually initialize
+// and verify.
+struct sampleType {
+    uint32_t bitOffset: 16;
+    uint32_t bitLength: 8;
+    uint32_t channelType: 8; // Includes qualifiers
+    uint32_t samplePosition0: 8;
+    uint32_t samplePosition1: 8;
+    uint32_t samplePosition2: 8;
+    uint32_t samplePosition3: 8;
+    uint32_t lower;
+    uint32_t upper;
+};
+
+struct BDFD {
+    uint32_t vendorId: 17;
+    uint32_t descriptorType: 15;
+    uint32_t versionNumber: 16;
+    uint32_t descriptorBlockSize: 16;
+    uint32_t model: 8;
+    uint32_t primaries: 8;
+    uint32_t transfer: 8;
+    uint32_t flags: 8;
+    uint32_t texelBlockDimension0: 8;
+    uint32_t texelBlockDimension1: 8;
+    uint32_t texelBlockDimension2: 8;
+    uint32_t texelBlockDimension3: 8;
+    uint32_t bytesPlane0: 8;
+    uint32_t bytesPlane1: 8;
+    uint32_t bytesPlane2: 8;
+    uint32_t bytesPlane3: 8;
+    uint32_t bytesPlane4: 8;
+    uint32_t bytesPlane5: 8;
+    uint32_t bytesPlane6: 8;
+    uint32_t bytesPlane7: 8;
+    struct sampleType samples[6];
+};
+
+struct BDFD e5b9g9r9_ufloat_comparator = {
+    .vendorId = 0,
+    .descriptorType = 0,
+    .versionNumber = 2,
+    .descriptorBlockSize = sizeof(struct BDFD),
+    .model = KHR_DF_MODEL_RGBSDA,
+    .primaries = KHR_DF_PRIMARIES_BT709,
+    .transfer = KHR_DF_TRANSFER_LINEAR,
+    .flags = KHR_DF_FLAG_ALPHA_STRAIGHT,
+    .texelBlockDimension0 = 0,
+    .texelBlockDimension1 = 0,
+    .texelBlockDimension2 = 0,
+    .texelBlockDimension3 = 0,
+    .bytesPlane0 = 4,
+    .bytesPlane1 = 0,
+    .bytesPlane2 = 0,
+    .bytesPlane3 = 0,
+    .bytesPlane4 = 0,
+    .bytesPlane5 = 0,
+    .bytesPlane6 = 0,
+    .bytesPlane7 = 0,
+    .samples[0].bitOffset = 0,
+    .samples[0].bitLength = 8,
+    .samples[0].channelType = KHR_DF_CHANNEL_RGBSDA_RED,
+    .samples[0].samplePosition0 = 0,
+    .samples[0].samplePosition1 = 0,
+    .samples[0].samplePosition2 = 0,
+    .samples[0].samplePosition3 = 0,
+    .samples[0].lower = 0,
+    .samples[0].upper = 8448,
+    .samples[1].bitOffset = 27,
+    .samples[1].bitLength = 4,
+    .samples[1].channelType = KHR_DF_CHANNEL_RGBSDA_RED | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+    .samples[1].samplePosition0 = 0,
+    .samples[1].samplePosition1 = 0,
+    .samples[1].samplePosition2 = 0,
+    .samples[1].samplePosition3 = 0,
+    .samples[1].lower = 15,
+    .samples[1].upper = 31,
+    .samples[2].bitOffset = 9,
+    .samples[2].bitLength = 8,
+    .samples[2].channelType = KHR_DF_CHANNEL_RGBSDA_GREEN,
+    .samples[2].samplePosition0 = 0,
+    .samples[2].samplePosition1 = 0,
+    .samples[2].samplePosition2 = 0,
+    .samples[2].samplePosition3 = 0,
+    .samples[2].lower = 0,
+    .samples[2].upper = 8448,
+    .samples[3].bitOffset = 27,
+    .samples[3].bitLength = 4,
+    .samples[3].channelType = KHR_DF_CHANNEL_RGBSDA_GREEN | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+    .samples[3].samplePosition0 = 0,
+    .samples[3].samplePosition1 = 0,
+    .samples[3].samplePosition2 = 0,
+    .samples[3].samplePosition3 = 0,
+    .samples[3].lower = 15,
+    .samples[3].upper = 31,
+    .samples[4].bitOffset = 18,
+    .samples[4].bitLength = 8,
+    .samples[4].channelType = KHR_DF_CHANNEL_RGBSDA_BLUE,
+    .samples[4].samplePosition0 = 0,
+    .samples[4].samplePosition1 = 0,
+    .samples[4].samplePosition2 = 0,
+    .samples[4].samplePosition3 = 0,
+    .samples[4].lower = 0,
+    .samples[4].upper = 8448,
+    .samples[5].bitOffset = 27,
+    .samples[5].bitLength = 4,
+    .samples[5].channelType = KHR_DF_CHANNEL_RGBSDA_BLUE | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+    .samples[5].samplePosition0 = 0,
+    .samples[5].samplePosition1 = 0,
+    .samples[5].samplePosition2 = 0,
+    .samples[5].samplePosition3 = 0,
+    .samples[5].lower = 15,
+    .samples[5].upper = 31,
+};
+#else
+// For compilers which order bitfields from the msb rather than lsb.
+#define shift(x,val) ((val) << KHR_DF_SHIFT_ ## x)
+#define sampleshift(x,val) ((val) << KHR_DF_SAMPLESHIFT_ ## x)
+#define e5b9g9r9_bdbwordcount KHR_DFDSIZEWORDS(6)
+ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
+    0,    // descriptorType & vendorId
+    shift(DESCRIPTORBLOCKSIZE, e5b9g9r9_bdbwordcount * sizeof(ktx_uint32_t)) | shift(VERSIONNUMBER, 2),
+    // N.B. Allow various values of primaries, transfer & flags
+    shift(FLAGS, KHR_DF_FLAG_ALPHA_STRAIGHT) | shift(TRANSFER, KHR_DF_TRANSFER_LINEAR) | shift(PRIMARIES, KHR_DF_PRIMARIES_BT709) | shift(MODEL, KHR_DF_MODEL_RGBSDA),
+    0,    // texelBlockDimension3~0
+    shift(BYTESPLANE0, 4),  // All other bytesPlane fields are 0.
+    0,    // bytesPlane7~4
+    sampleshift(CHANNELID, KHR_DF_CHANNEL_RGBSDA_RED) | sampleshift(BITLENGTH, 8) | sampleshift(BITOFFSET, 0),
+    0,    // samplePosition3~0
+    0,    // sampleLower
+    8448, // sampleUpper
+    sampleshift(CHANNELID, KHR_DF_CHANNEL_RGBSDA_RED | KHR_DF_SAMPLE_DATATYPE_EXPONENT) | sampleshift(BITLENGTH, 4) | sampleshift(BITOFFSET, 27),
+    0,    // samplePosition3~0
+    15,   // sampleLower
+    31,   // sampleUpper
+    sampleshift(CHANNELID, KHR_DF_CHANNEL_RGBSDA_GREEN) | sampleshift(BITLENGTH, 8) | sampleshift(BITOFFSET, 9),
+    0,    // samplePosition3~0
+    0,    // sampleLower
+    8448, // sampleUpper
+    sampleshift(CHANNELID, KHR_DF_CHANNEL_RGBSDA_GREEN | KHR_DF_SAMPLE_DATATYPE_EXPONENT) | sampleshift(BITLENGTH, 4) | sampleshift(BITOFFSET, 27),
+    0,    // samplePosition3~0
+    15,   // sampleLower
+    31,   // sampleUpper
+    sampleshift(CHANNELID, KHR_DF_CHANNEL_RGBSDA_BLUE) | sampleshift(BITLENGTH, 8) | sampleshift(BITOFFSET, 18),
+    0,    // samplePosition3~0
+    0,    // sampleLower
+    8448, // sampleUpper
+    sampleshift(CHANNELID, KHR_DF_CHANNEL_RGBSDA_BLUE | KHR_DF_SAMPLE_DATATYPE_EXPONENT) | sampleshift(BITLENGTH, 4) | sampleshift(BITOFFSET, 27),
+    0,    // samplePosition3~0
+    15,   // sampleLower
+    31,   // sampleUpper
+};
+#endif
 
 /**
 * @private
@@ -60,6 +218,17 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
     bool notDepthStencil = false;
     uint32_t* pBdb = pDfd + 1;
+
+    // Check the DFD is of the expected type and version.
+    if (*pBdb != 0) {
+        // Either decriptorType or vendorId is not 0
+        return false;
+    }
+    if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
+        return false;
+    }
+
+    // DFD has supported type and version. Process it.
     This->blockWidth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION0) + 1;
     This->blockHeight = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION1) + 1;
     This->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
@@ -85,6 +254,16 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
             }
         } else if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_STENCIL) {
             This->flags |= KTX_FORMAT_SIZE_STENCIL_BIT;
+        } else if (KHR_DFDSAMPLECOUNT(pBdb) == 6
+#if !defined(BITFIELD_ORDER_FROM_MSB)
+                   && !memcmp(((uint32_t*)&e5b9g9r9_ufloat_comparator) + KHR_DF_WORD_TEXELBLOCKDIMENSION0, &pBdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0], sizeof(e5b9g9r9_ufloat_comparator)-(KHR_DF_WORD_TEXELBLOCKDIMENSION0)*sizeof(uint32_t))) {
+#else
+                   && !memcmp(&e5b9g9r9_ufloat_comparator[KHR_DF_WORD_TEXELBLOCKDIMENSION0], &pBdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0], sizeof(e5b9g9r9_ufloat_comparator)-(KHR_DF_WORD_TEXELBLOCKDIMENSION0)*sizeof(uint32_t))) {
+#endif
+            // Special case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 as  interpretDFD
+            // only handles "simple formats", i.e. where channels are described
+            // in contiguous bits.
+            This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
         } else {
             InterpretedDFDChannel rgba[4];
             uint32_t wordBytes;
