@@ -403,6 +403,43 @@ class ktxTexture2TestBase : public ktxTextureTestBase<component_type,
     }
 };
 
+class ktxTexture2_CreateTest : public ::testing::Test {
+  protected:
+    ktx_error_code_e create(VkFormat format,
+                          ktx_uint32_t width = 16u,
+                          ktx_uint32_t height = 16u,
+                          ktx_uint32_t depth = 1u,
+                          ktx_uint32_t dimensions = 2u,
+                          ktx_uint32_t levels = 1u,
+                          ktx_uint32_t layers = 1u,
+                          ktx_uint32_t faces = 1u,
+                          bool isArray = false,
+                          bool generateMipmaps = false)
+    {
+        ktxTextureCreateInfo createInfo;
+            createInfo.vkFormat = format;
+            createInfo.baseWidth = width;
+            createInfo.baseHeight = height;
+            createInfo.baseDepth = depth;
+            createInfo.numDimensions = dimensions;
+            createInfo.numLevels = levels;
+            createInfo.numLayers = layers;
+            createInfo.numFaces = faces;
+            createInfo.isArray = isArray;
+            createInfo.generateMipmaps = generateMipmaps;
+
+            return ktxTexture2_Create(&createInfo,
+                                      KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                      &texture);
+    }
+
+    ~ktxTexture2_CreateTest() {
+        ktxTexture2_Destroy(texture);
+    }
+
+    ktxTexture2* texture;
+};
+
 //----------------------------------------------------
 // Template for base fixture for ktxTextureWrite tests.
 //----------------------------------------------------
@@ -641,6 +678,15 @@ TEST_F(ktxTexture1_CreateTest, CreateEmptySetImagesWriteToMemory) {
 
     if (texture)
         ktxTexture1_Destroy(texture);
+}
+
+/////////////////////////////////////////
+// ktxTexture2_Create tests
+////////////////////////////////////////
+
+TEST_F(ktxTexture2_CreateTest, E5B9G9R9) {
+    ktx_error_code_e result = create(VK_FORMAT_E5B9G9R9_UFLOAT_PACK32);
+    EXPECT_EQ(result, KTX_SUCCESS);
 }
 
 /////////////////////////////////////////
@@ -2178,7 +2224,8 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         dataSize = texture->dataSize;
-        ktxTexture2_CompressBasis(texture, 0);
+        result = ktxTexture2_CompressBasis(texture, 0);
+        EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_EQ(texture->supercompressionScheme, KTX_SS_BASIS_LZ);
         EXPECT_TRUE(texture->_private->_supercompressionGlobalData > (ktx_uint8_t*)0);
         EXPECT_EQ(texture->numLevels, helper.numLevels);
@@ -2186,6 +2233,7 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
         // How else to test the result?
 
         result = ktxTexture2_TranscodeBasis(texture, KTX_TTF_BC1_RGB, 0);
+        EXPECT_EQ(result, KTX_SUCCESS);
     }
 }
 
