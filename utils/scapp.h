@@ -44,10 +44,10 @@ struct clampedOption
 //! [scApp options]
   <dl>
     <dt>--bcmp</dt>
-    <dd>Supercompress the image data with Basis Universal. Implies @b --t2.
+    <dd>Supercompress the image data with ETC1S / BasisLZ. Implies @b --t2.
         RED images will become RGB with RED in each component. RG images will
         have R in the RGB part and G in the alpha part of the compressed
-        texture. When set, the following Basis-related options become valid
+        texture. When set, the following BasisLZ-related options become valid
         otherwise they are ignored.
       <dl>
       <dt>--no_multithreading</dt>
@@ -55,15 +55,15 @@ struct clampedOption
           only. Use @b --threads 1 instead.</dd>
       <dt>--threads &lt;count&gt;</dt>
       <dd>Explicitly set the number of threads to use during compression.
-          By default Basis compression will use the numnber of threads
+          By default, ETC1S / BasisLZ compression will use the number of threads
           reported by @c thread::hardware_concurrency or 1 if value
           returned is 0.</dd>
       <dt>--clevel &lt;level&gt;</dt>
-      <dd>Basis compression level, an encoding speed vs. quality tradeoff.
+      <dd>ETC1S / BasisLZ compression level, an encoding speed vs. quality tradeoff.
           Range is 0 - 5, default is 1. Higher values are slower, but give
           higher quality.</dd>
       <dt>--qlevel &lt;level&gt;</dt>
-      <dd>Basis quality level. Range is 1 - 255.  Lower gives better
+      <dd>ETC1S / BasisLZ quality level. Range is 1 - 255.  Lower gives better
           compression/lower quality/faster. Higher gives less compression
           /higher quality/slower. @b --qlevel automatically determines values
           for @b --max_endpoints, @b --max-selectors,
@@ -146,7 +146,7 @@ struct clampedOption
     </dd>
     <dt>--zcmp [&lt;compressionLevel&gt;]</dt>
     <dd>Supercompress the data with Zstandard. Implies @b --t2. Can be used
-        with data in any format except Basis Universal (@b --bcmp). Most
+        with data in any format except ETC1S / BasisLZ (@b --bcmp). Most
         effective with RDO-conditioned UASTC or uncompressed formats. The
         optional @e compressionLevel range is 1 - 22 and the default is 3.
         Lower values=faster but give less compression. Values above 20 should
@@ -157,7 +157,7 @@ struct clampedOption
   In case of ambiguity, such as when the last option is one with an optional
   parameter, separate options from file names with " -- ".
 
-  Any specified Basis Universal and supercompression options are recorded in
+  Any specified ETC1S / BasisLZ and supercompression options are recorded in
   the metadata item @c KTXwriterScParams in the output file.
 //! [scApp options]
 */
@@ -242,25 +242,25 @@ class scApp : public ktxApp {
     void usage()
     {
         cerr <<
-          "  --bcmp       Supercompress the image data with Basis Universal. Implies --t2.\n"
+          "  --bcmp       Supercompress the image data with ETC1S / BasisLZ. Implies --t2.\n"
           "               RED images will become RGB with RED in each component. RG images\n"
           "               will have R in the RGB part and G in the alpha part of the\n"
-          "               compressed texture. When set, the following Basis-related\n"
+          "               compressed texture. When set, the following BasisLZ-related\n"
           "               options become valid, otherwise they are ignored.\n\n"
           "      --no_multithreading\n"
-          "               Disable multithreading. Deprecated. For backward compatibilty.\n"
+          "               Disable multithreading. Deprecated. For backward compatibility.\n"
           "               Use --threads 1 instead.\n"
           "      --threads <count>\n"
           "               Explicitly set the number of threads to use during compression.\n"
-          "               By default Basis compression will use the numnber of threads\n"
+          "               By default, ETC1S / BasisLZ compression will use the number of threads\n"
           "               reported by thread::hardware_concurrency or 1 if value returned\n"
           "               is 0.\n"
           "      --clevel <level>\n"
-          "               Basis compression level, an encoding speed vs. quality tradeoff.\n"
+          "               ETC1S / BasisLZ compression level, an encoding speed vs. quality tradeoff.\n"
           "               Range is 0 - 5, default is 1. Higher values are slower, but give\n"
           "               higher quality.\n"
           "      --qlevel <level>\n"
-          "               Basis quality level. Range is 1 - 255.  Lower gives better\n"
+          "               ETC1S / BasisLZ quality level. Range is 1 - 255.  Lower gives better\n"
           "               compression/lower quality/faster. Higher gives less compression\n"
           "               /higher quality/slower. --qlevel automatically determines values\n"
           "               for --max_endpoints, --max-selectors, --endpoint_rdo_threshold\n"
@@ -334,7 +334,7 @@ class scApp : public ktxApp {
           "               to 65536.\n\n"
           "  --zcmp [<compressionLevel>]\n"
           "               Supercompress the data with Zstandard. Implies --t2. Can be used\n"
-          "               with data in any format except Basis Universal (--bcmp). Most\n"
+          "               with data in any format except ETC1S / BasisLZ (--bcmp). Most\n"
           "               effective with RDO-conditioned UASTC or uncompressed formats. The\n"
           "               optional compressionLevel range is 1 - 22 and the default is 3.\n"
           "               Lower values=faster but give less compression. Values above 20\n"
@@ -344,7 +344,7 @@ class scApp : public ktxApp {
           "In case of ambiguity, such as when the last option is one with an optional\n"
           "parameter, options can be separated from file names with \" -- \".\n"
           "\n"
-          "Any specified Basis Universal and supercompression options are recorded in\n"
+          "Any specified ETC1S / BasisLZ and supercompression options are recorded in\n"
           "the metadata item @c KTXwriterScParams in the output file.\n"
           << endl;
     }
