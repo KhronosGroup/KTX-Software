@@ -23,9 +23,12 @@
 
 using namespace std;
 
+// clamp is in std:: from c++17.
+#if ((defined(_MSVC_LANG) && _MSVC_LANG < 201703L) || __cplusplus < 201703L)
 template <typename T> inline T clamp(T value, T low, T high) {
     return (value < low) ? low : ((value > high) ? high : value);
 }
+#endif
 
 template<typename T>
 struct clamped
