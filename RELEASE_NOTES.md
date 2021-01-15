@@ -1,21 +1,11 @@
-<!-- Copyright 2020, The Khronos Group Inc. -->
+<!-- Copyright 2021, The Khronos Group Inc. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.0.0-beta5
+## Version 4.0.0-beta6
 ### New Features
 
-* The build system now supports building a version `libktx` with only functionality for reading KTX files.
-
-* The build system now has a configuration option to build a static library on Linux, macOS and Windows.
-
 ### Notable Changes
-
-* A bug in the swizzle functionality internal to `libktx` has been fixed.
-This bug caused some textures to be improperly swizzled before
-encoding to BasisLZ/ETC1S and UASTC. The net result is that R textures were swizzled to R,0,0,255 instead of R,R,R,255 and RG textures or those with `separateRGToRGB_A` specified were swlzzled to R,R,0,255 instead of R,R,R,G.
-
-* A bug that prevented zstd compressed textures with packed image formats from being loaded has been fixed.
 
 ### Known Issues
 
@@ -39,36 +29,18 @@ level sizes will differ slightly.
 See [issue #151](https://github.com/BinomialLLC/basis_universal/issues/151)
 in the basis_universal repository.
 
-### Changes since v4.0.0-beta4 (by part)
+### Changes since v4.0.0-beta5 (by part)
 ### libktx
 
-* Move swizzle def to write exports. Fix VS warnings. (8942c6d4) (@MarkCallow)
+* Fix handling of E5R9G9B9 format in initFromDFD. (#353) (5d19bb83) (@MarkCallow)
 
-* Export swizzzle\_to\_rgba. (f37f8772) (@MarkCallow)
-
-* Fix swizzle\_to\_rgba and ETC1S channel ids. (1bb78e9d) (@MarkCallow)
-
-* Match examples to actual usage (#339) (02423933) (@ErixenCruz)
-
-* fix: Linking static ktx\_read now succeeds on Windows. Fixed by splitting up write-related exported symbols (that are not part of ktx\_read) in separate .def file. (#336) (6822201b) (@atteneder)
-
-* fix: double "the" typo (#333) (d5d5708f) (@atteneder)
-
-* Fix Writing BasisLZ/ETC1S example. Fixes #329. (19785767) (@MarkCallow)
-
-* KTX read-only and static libraries (#324) (58c8e981) (@atteneder)
-
-* fixed some typos in doc strings (#322) (c92b946b) (@atteneder)
-
-* Recreate bytesPlane0 for supercompressed textures. (#321) (07a2ea9f) (@MarkCallow)
+  Fixes #343.
 
 ### Tools
 
-* KTX read-only and static libraries (#324) (58c8e981) (@atteneder)
+* Fix an issue with the generated KtxTargets.cmake  (#325) (9131fba1) (@UX3D-becher)
 
-* fix: forcing a transfer function with multiple mipmap levels provided (#323) (6f32ea8f) (@atteneder)
-
-* fixed some typos in doc strings (#322) (c92b946b) (@atteneder)
+  Make it possible to use the find\_package functionality of cmake to use libktx as imported target.
 
 
 
