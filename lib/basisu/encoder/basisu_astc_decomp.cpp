@@ -56,6 +56,13 @@ typedef uint64_t deUint64;
 
 #define DE_ASSERT assert
 
+#ifdef _MSC_VER
+#pragma warning (disable:4505) // unreferenced local function has been removed
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 namespace basisu_astc
 {
 	static bool  DE_MAYBE_UNUSED inBounds(int v, int l, int h)
@@ -1554,3 +1561,7 @@ bool decompress(uint8_t *pDst, const uint8_t * data, bool isSRGB, int blockWidth
 
 } // astc
 } // basisu_astc
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -9,7 +9,7 @@ message("Initial CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release )
-endif( NOT CMAKE_BUILD_TYPE )
+endif()
 
 message( ${PROJECT_NAME} " build type: " ${CMAKE_BUILD_TYPE} )
 
@@ -17,7 +17,7 @@ if (BUILD_X64)
 	message("Building 64-bit")
 else()
 	message("Building 32-bit")
-endif(BUILD_X64)
+endif()
 
 if (NOT MSVC)
    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
@@ -33,11 +33,16 @@ if (NOT MSVC)
 	  set(GCC_COMPILE_FLAGS "${GCC_COMPILE_FLAGS} -m32")
    endif()
 
-   if (STATIC)
+   if (EMSCRIPTEN)
+	  set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -s ALLOW_MEMORY_GROWTH=1")
+	  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -s ALLOW_MEMORY_GROWTH=1")
+
+	  set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_LINK_FLAGS}")
+   elseif (STATIC)
 	  set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_LINK_FLAGS} -static-libgcc -static-libstdc++ -static")
    else()
 	  set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_LINK_FLAGS} -Wl,-rpath .")
-   endif(STATIC)
+   endif()
 
    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${GCC_COMPILE_FLAGS}")
    set(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} ${GCC_COMPILE_FLAGS}")
@@ -49,25 +54,25 @@ if (NOT MSVC)
 endif()
 
 set(BASISU_SRC_LIST ${COMMON_SRC_LIST} 
-	basisu_backend.cpp
-	basisu_basis_file.cpp
-	basisu_comp.cpp
-	basisu_enc.cpp
-	basisu_etc.cpp
-	basisu_frontend.cpp
-	basisu_global_selector_palette_helpers.cpp
-	basisu_gpu_texture.cpp
-	basisu_pvrtc1_4.cpp
-	basisu_resampler.cpp
-	basisu_resample_filters.cpp
-	basisu_ssim.cpp
 	basisu_tool.cpp
-	basisu_astc_decomp.cpp
-	basisu_uastc_enc.cpp
-	basisu_bc7enc.cpp
-	lodepng.cpp
-	apg_bmp.c
-	jpgd.cpp
+	encoder/basisu_backend.cpp
+	encoder/basisu_basis_file.cpp
+	encoder/basisu_comp.cpp
+	encoder/basisu_enc.cpp
+	encoder/basisu_etc.cpp
+	encoder/basisu_frontend.cpp
+	encoder/basisu_global_selector_palette_helpers.cpp
+	encoder/basisu_gpu_texture.cpp
+	encoder/basisu_pvrtc1_4.cpp
+	encoder/basisu_resampler.cpp
+	encoder/basisu_resample_filters.cpp
+	encoder/basisu_ssim.cpp
+	encoder/basisu_astc_decomp.cpp
+	encoder/basisu_uastc_enc.cpp
+	encoder/basisu_bc7enc.cpp
+	encoder/lodepng.cpp
+	encoder/apg_bmp.c
+	encoder/jpgd.cpp
 	transcoder/basisu_transcoder.cpp
 	)
 
@@ -85,15 +90,16 @@ if (NOT MSVC)
    target_link_libraries(basisu m pthread)
 endif()
 
-install(TARGETS basisu DESTINATION bin)
-
-if (UNIX)
-   if (CMAKE_BUILD_TYPE STREQUAL Release)
-       if (APPLE)
-	      add_custom_command(TARGET basisu POST_BUILD COMMAND strip -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu)
-       else()
-           add_custom_command(TARGET basisu POST_BUILD COMMAND strip -g -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu)
-       endif()
-   endif()
+if (NOT EMSCRIPTEN)
+	install(TARGETS basisu DESTINATION bin)
+	
+	if (UNIX)
+		if (CMAKE_BUILD_TYPE STREQUAL Release)
+			if (APPLE)
+				add_custom_command(TARGET basisu POST_BUILD COMMAND strip -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu)
+			else()
+				add_custom_command(TARGET basisu POST_BUILD COMMAND strip -g -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu)
+			endif()
+		endif()
+	endif()
 endif()
-
