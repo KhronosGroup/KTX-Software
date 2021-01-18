@@ -70,9 +70,13 @@ namespace basisu
 			PRINT_BOOL_VALUE(m_read_source_images);
 			PRINT_BOOL_VALUE(m_write_output_basis_files);
 			PRINT_BOOL_VALUE(m_compute_stats);
-			PRINT_BOOL_VALUE(m_check_for_alpha)
-			PRINT_BOOL_VALUE(m_force_alpha)
-			PRINT_BOOL_VALUE(m_seperate_rg_to_color_alpha);
+			PRINT_BOOL_VALUE(m_check_for_alpha);
+			PRINT_BOOL_VALUE(m_force_alpha);
+			debug_printf("swizzle: %d,%d,%d,%d\n",
+				m_params.m_swizzle[0],
+				m_params.m_swizzle[1],
+				m_params.m_swizzle[2],
+				m_params.m_swizzle[3]);
 			PRINT_BOOL_VALUE(m_renormalize);
 			PRINT_BOOL_VALUE(m_multithreading);
 			PRINT_BOOL_VALUE(m_disable_hierarchical_endpoint_codebooks);
@@ -198,8 +202,11 @@ namespace basisu
 				const uint32_t first_index = block_index_iter;
 				const uint32_t last_index = minimum<uint32_t>(total_blocks, block_index_iter + N);
 
+				// FIXME: This sucks, but we're having a stack size related problem with std::function with emscripten.
+#ifndef __EMSCRIPTEN__
 				m_params.m_pJob_pool->add_job([this, first_index, last_index, num_blocks_x, num_blocks_y, total_blocks, &source_image, &tex, &total_blocks_processed]
 					{
+#endif
 						BASISU_NOTE_UNUSED(num_blocks_y);
 						
 						for (uint32_t block_index = first_index; block_index < last_index; block_index++)
@@ -224,11 +231,16 @@ namespace basisu
 							}
 
 						}
+
+#ifndef __EMSCRIPTEN__
 					});
+#endif
 
 			} // block_index_iter
 
+#ifndef __EMSCRIPTEN__
 			m_params.m_pJob_pool->wait_for_all();
+#endif
 
 			if (m_params.m_rdo_uastc)
 			{
@@ -402,19 +414,24 @@ namespace basisu
 			if (m_params.m_renormalize)
 				file_image.renormalize_normal_map();
 
-			if (m_params.m_seperate_rg_to_color_alpha)
+			bool alpha_swizzled = false;
+			if (m_params.m_swizzle[0] != 0 ||
+				m_params.m_swizzle[1] != 1 ||
+				m_params.m_swizzle[2] != 2 ||
+				m_params.m_swizzle[3] != 3)
 			{
 				// Used for XY normal maps in RG - puts X in color, Y in alpha
 				for (uint32_t y = 0; y < file_image.get_height(); y++)
 					for (uint32_t x = 0; x < file_image.get_width(); x++)
 					{
 						const color_rgba &c = file_image(x, y);
-						file_image(x, y).set_noclamp_rgba(c.r, c.r, c.r, c.g);
+						file_image(x, y).set_noclamp_rgba(c[m_params.m_swizzle[0]], c[m_params.m_swizzle[1]], c[m_params.m_swizzle[2]], c[m_params.m_swizzle[3]]);
 					}
+				alpha_swizzled = m_params.m_swizzle[3] != 3;
 			}
 						
 			bool has_alpha = false;
-			if ((m_params.m_force_alpha) || (m_params.m_seperate_rg_to_color_alpha))
+			if (m_params.m_force_alpha || alpha_swizzled)
 				has_alpha = true;
 			else if (!m_params.m_check_for_alpha)
 				file_image.set_alpha(255);
@@ -626,14 +643,20 @@ namespace basisu
 			}
 		}
 
-		debug_printf("Total basis file slices: %u\n", (uint32_t)m_slice_descs.size());
+		if (m_params.m_status_output)
+		{
+			printf("Total basis file slices: %u\n", (uint32_t)m_slice_descs.size());
+		}
 
 		for (uint32_t i = 0; i < m_slice_descs.size(); i++)
 		{
 			const basisu_backend_slice_desc &slice_desc = m_slice_descs[i];
 
-			debug_printf("Slice: %u, alpha: %u, orig width/height: %ux%u, width/height: %ux%u, first_block: %u, image_index: %u, mip_level: %u, iframe: %u\n",
-				i, slice_desc.m_alpha, slice_desc.m_orig_width, slice_desc.m_orig_height, slice_desc.m_width, slice_desc.m_height, slice_desc.m_first_block_index, slice_desc.m_source_file_index,      slice_desc.m_mip_index, slice_desc.m_iframe);
+			if (m_params.m_status_output)
+			{
+				printf("Slice: %u, alpha: %u, orig width/height: %ux%u, width/height: %ux%u, first_block: %u, image_index: %u, mip_level: %u, iframe: %u\n",
+					i, slice_desc.m_alpha, slice_desc.m_orig_width, slice_desc.m_orig_height, slice_desc.m_width, slice_desc.m_height, slice_desc.m_first_block_index, slice_desc.m_source_file_index, slice_desc.m_mip_index, slice_desc.m_iframe);
+			}
 
 			if (m_any_source_image_has_alpha)
 			{
@@ -1212,7 +1235,6 @@ namespace basisu
 		const uint8_vec& comp_data = m_basis_file.get_compressed_data();
 		if (m_params.m_write_output_basis_files)
 		{
-
 			const std::string& basis_filename = m_params.m_out_filename;
 
 			if (!write_vec_to_file(basis_filename.c_str(), comp_data))
@@ -1223,6 +1245,7 @@ namespace basisu
 
 			printf("Wrote output .basis file \"%s\"\n", basis_filename.c_str());
 		}
+
 		size_t comp_size = 0;
 		if ((m_params.m_compute_stats) && (m_params.m_uastc) && (comp_data.size()))
 		{

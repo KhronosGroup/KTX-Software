@@ -35,10 +35,18 @@ Renders a glTF 3D model with `.basis` texture files, transcoded into one of the 
 * PVRTC
   * Tested in Chrome and Safari on iOS iPhone 6 Plus.
 
-The glTF model in this demo uses a hypothetical `GOOGLE_texture_basis` extension. That extension is defined for the sake of example only – the glTF format will officially embed Basis files within a KTX2 wrapper, through a new
+The glTF model in this demo uses a hypothetical `GOOGLE_texture_basis` extension. That extension is defined for the sake of example only - the glTF format will officially embed Basis files within a KTX2 wrapper, through a new
 extension that is [currently in development](https://github.com/KhronosGroup/glTF/pull/1612).
 
 ![Screenshot showing a basis texture rendered as the base color texture for a 3D model in a webpage.](gltf/preview.png)
+
+## Compressor (encode_test)
+
+This demo shows how to use the compressor from JavaScript. To use it, select a .PNG file then hit the "Encode!" button. The compressor will dynamically generate a .basis file in memory which will then be immediately transcoded and displayed. Hit the "Download!" button to locally download the generated .basis file. 
+
+To view the compressor's textual debug output, open your browser's developer debug console (under Developer Tools in Chrome) and enable the Debug checkbox before hitting the "Encode!" button. Multithreading is not currently supported when the compressor is compiled to WebAssembly, so compression will be slower than using the stand-alone command line tool.
+
+![Screenshot showing the encode_test demo](encode_test/preview.png)
 
 ## Testing locally
 
@@ -49,3 +57,5 @@ npx serve
 ```
 
 The console will display a `localhost` URL for local testing, and (on supported WiFi networks and devices) may also display an IP address accessible by other devices on the same network. Note that mobile devices must support WebAssembly to run this demo. Learn more about [remote debugging your android devices](https://developers.google.com/web/tools/chrome-devtools/remote-debugging/).
+
+Alternately, use [Web Server for Chrome](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb), browse to your local "webgl" directory, and then select 127.0.0.1:8887 under "Web Server URL(s).
