@@ -22,6 +22,7 @@ mustBeAbsent() {
 }
 
 # default compilation : all features enabled
+make clean > /dev/null
 $ECHO "testing default library compilation"
 CFLAGS= make -C $DIR/../lib libzstd.a > $INTOVOID
 nm $DIR/../lib/libzstd.a | $GREP "\.o" > tmplog

@@ -134,7 +134,7 @@ if (ZSTD_BUILD_STATIC)
             OUTPUT_NAME ${STATIC_LIBRARY_BASE_NAME})
 endif ()
 
-if (UNIX OR MINGW)
+if (UNIX)
     # pkg-config
     set(PREFIX "${CMAKE_INSTALL_PREFIX}")
     set(LIBDIR "${CMAKE_INSTALL_LIBDIR}")
@@ -152,7 +152,9 @@ endif ()
 # install target
 install(FILES
     "${LIBRARY_DIR}/zstd.h"
+    "${LIBRARY_DIR}/deprecated/zbuff.h"
     "${LIBRARY_DIR}/dictBuilder/zdict.h"
+    "${LIBRARY_DIR}/dictBuilder/cover.h"
     "${LIBRARY_DIR}/common/zstd_errors.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
@@ -161,7 +163,6 @@ install(TARGETS ${library_targets}
     INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     )
 
 # uninstall target

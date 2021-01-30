@@ -40,42 +40,33 @@
 *  Constants
 ***************************************/
 #define COVER_MAX_SAMPLES_SIZE (sizeof(size_t) == 8 ? ((unsigned)-1) : ((unsigned)1 GB))
-#define COVER_DEFAULT_SPLITPOINT 1.0
+#define DEFAULT_SPLITPOINT 1.0
 
 /*-*************************************
 *  Console display
 ***************************************/
-#ifndef LOCALDISPLAYLEVEL
 static int g_displayLevel = 2;
-#endif
-#undef  DISPLAY
 #define DISPLAY(...)                                                           \
   {                                                                            \
     fprintf(stderr, __VA_ARGS__);                                              \
     fflush(stderr);                                                            \
   }
-#undef  LOCALDISPLAYLEVEL
 #define LOCALDISPLAYLEVEL(displayLevel, l, ...)                                \
   if (displayLevel >= l) {                                                     \
     DISPLAY(__VA_ARGS__);                                                      \
   } /* 0 : no display;   1: errors;   2: default;  3: details;  4: debug */
-#undef  DISPLAYLEVEL
 #define DISPLAYLEVEL(l, ...) LOCALDISPLAYLEVEL(g_displayLevel, l, __VA_ARGS__)
 
-#ifndef LOCALDISPLAYUPDATE
-static const clock_t g_refreshRate = CLOCKS_PER_SEC * 15 / 100;
-static clock_t g_time = 0;
-#endif
-#undef  LOCALDISPLAYUPDATE
 #define LOCALDISPLAYUPDATE(displayLevel, l, ...)                               \
   if (displayLevel >= l) {                                                     \
-    if ((clock() - g_time > g_refreshRate) || (displayLevel >= 4)) {             \
+    if ((clock() - g_time > refreshRate) || (displayLevel >= 4)) {             \
       g_time = clock();                                                        \
       DISPLAY(__VA_ARGS__);                                                    \
     }                                                                          \
   }
-#undef  DISPLAYUPDATE
 #define DISPLAYUPDATE(l, ...) LOCALDISPLAYUPDATE(g_displayLevel, l, __VA_ARGS__)
+static const clock_t refreshRate = CLOCKS_PER_SEC * 15 / 100;
+static clock_t g_time = 0;
 
 /*-*************************************
 * Hash table
@@ -129,9 +120,9 @@ static int COVER_map_init(COVER_map_t *map, U32 size) {
 /**
  * Internal hash function
  */
-static const U32 COVER_prime4bytes = 2654435761U;
+static const U32 prime4bytes = 2654435761U;
 static U32 COVER_map_hash(COVER_map_t *map, U32 key) {
-  return (key * COVER_prime4bytes) >> (32 - map->sizeLog);
+  return (key * prime4bytes) >> (32 - map->sizeLog);
 }
 
 /**
@@ -224,7 +215,7 @@ typedef struct {
 } COVER_ctx_t;
 
 /* We need a global context for qsort... */
-static COVER_ctx_t *g_coverCtx = NULL;
+static COVER_ctx_t *g_ctx = NULL;
 
 /*-*************************************
 *  Helper functions
@@ -267,11 +258,11 @@ static int COVER_cmp8(COVER_ctx_t *ctx, const void *lp, const void *rp) {
 
 /**
  * Same as COVER_cmp() except ties are broken by pointer value
- * NOTE: g_coverCtx must be set to call this function.  A global is required because
+ * NOTE: g_ctx must be set to call this function.  A global is required because
  * qsort doesn't take an opaque pointer.
  */
-static int WIN_CDECL COVER_strict_cmp(const void *lp, const void *rp) {
-  int result = COVER_cmp(g_coverCtx, lp, rp);
+static int COVER_strict_cmp(const void *lp, const void *rp) {
+  int result = COVER_cmp(g_ctx, lp, rp);
   if (result == 0) {
     result = lp < rp ? -1 : 1;
   }
@@ -280,8 +271,8 @@ static int WIN_CDECL COVER_strict_cmp(const void *lp, const void *rp) {
 /**
  * Faster version for d <= 8.
  */
-static int WIN_CDECL COVER_strict_cmp8(const void *lp, const void *rp) {
-  int result = COVER_cmp8(g_coverCtx, lp, rp);
+static int COVER_strict_cmp8(const void *lp, const void *rp) {
+  int result = COVER_cmp8(g_ctx, lp, rp);
   if (result == 0) {
     result = lp < rp ? -1 : 1;
   }
@@ -612,7 +603,7 @@ static size_t COVER_ctx_init(COVER_ctx_t *ctx, const void *samplesBuffer,
     /* qsort doesn't take an opaque pointer, so pass as a global.
      * On OpenBSD qsort() is not guaranteed to be stable, their mergesort() is.
      */
-    g_coverCtx = ctx;
+    g_ctx = ctx;
 #if defined(__OpenBSD__)
     mergesort(ctx->suffix, ctx->suffixSize, sizeof(U32),
           (ctx->d <= 8 ? &COVER_strict_cmp8 : &COVER_strict_cmp));
@@ -1115,7 +1106,7 @@ ZDICTLIB_API size_t ZDICT_optimizeTrainFromBuffer_cover(
   /* constants */
   const unsigned nbThreads = parameters->nbThreads;
   const double splitPoint =
-      parameters->splitPoint <= 0.0 ? COVER_DEFAULT_SPLITPOINT : parameters->splitPoint;
+      parameters->splitPoint <= 0.0 ? DEFAULT_SPLITPOINT : parameters->splitPoint;
   const unsigned kMinD = parameters->d == 0 ? 6 : parameters->d;
   const unsigned kMaxD = parameters->d == 0 ? 8 : parameters->d;
   const unsigned kMinK = parameters->k == 0 ? 50 : parameters->k;

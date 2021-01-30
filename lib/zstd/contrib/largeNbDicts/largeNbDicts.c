@@ -156,18 +156,6 @@ createDictionaryBuffer(const char* dictionaryName,
     }
 }
 
-static ZSTD_CDict* createCDictForDedicatedDictSearch(const void* dict, size_t dictSize, int compressionLevel)
-{
-    ZSTD_CCtx_params* params = ZSTD_createCCtxParams();
-    ZSTD_CCtxParams_init(params, compressionLevel);
-    ZSTD_CCtxParams_setParameter(params, ZSTD_c_enableDedicatedDictSearch, 1);
-    ZSTD_CCtxParams_setParameter(params, ZSTD_c_compressionLevel, compressionLevel);
-
-    ZSTD_CDict* cdict = ZSTD_createCDict_advanced2(dict, dictSize, ZSTD_dlm_byCopy, ZSTD_dct_auto, params, ZSTD_defaultCMem);
-
-    ZSTD_freeCCtxParams(params);
-    return cdict;
-}
 
 /*! BMK_loadFiles() :
  *  Loads `buffer`, with content from files listed within `fileNamesTable`.
@@ -461,14 +449,12 @@ static void freeCDictCollection(cdict_collection_t cdictc)
 }
 
 /* returns .buffers=NULL if operation fails */
-static cdict_collection_t createCDictCollection(const void* dictBuffer, size_t dictSize, size_t nbCDict, int cLevel, int dedicatedDictSearch)
+static cdict_collection_t createCDictCollection(const void* dictBuffer, size_t dictSize, size_t nbCDict, int cLevel)
 {
     ZSTD_CDict** const cdicts = malloc(nbCDict * sizeof(ZSTD_CDict*));
     if (cdicts==NULL) return kNullCDictCollection;
     for (size_t dictNb=0; dictNb < nbCDict; dictNb++) {
-        cdicts[dictNb] = dedicatedDictSearch ?
-            createCDictForDedicatedDictSearch(dictBuffer, dictSize, cLevel) :
-            ZSTD_createCDict(dictBuffer, dictSize, cLevel);
+        cdicts[dictNb] = ZSTD_createCDict(dictBuffer, dictSize, cLevel);
         CONTROL(cdicts[dictNb] != NULL);
     }
     cdict_collection_t cdictc;
@@ -734,8 +720,7 @@ int bench(const char** fileNameTable, unsigned nbFiles,
           const char* dictionary,
           size_t blockSize, int clevel,
           unsigned nbDictMax, unsigned nbBlocks,
-          unsigned nbRounds, int benchCompression,
-          int dedicatedDictSearch)
+          unsigned nbRounds, int benchCompression)
 {
     int result = 0;
 
@@ -790,9 +775,7 @@ int bench(const char** fileNameTable, unsigned nbFiles,
                                 DICTSIZE);
     CONTROL(dictBuffer.ptr != NULL);
 
-    ZSTD_CDict* const cdict = dedicatedDictSearch ?
-        createCDictForDedicatedDictSearch(dictBuffer.ptr, dictBuffer.size, clevel) :
-        ZSTD_createCDict(dictBuffer.ptr, dictBuffer.size, clevel);
+    ZSTD_CDict* const cdict = ZSTD_createCDict(dictBuffer.ptr, dictBuffer.size, clevel);
     CONTROL(cdict != NULL);
 
     size_t const cTotalSizeNoDict = compressBlocks(NULL, dstSlices, srcSlices, NULL, clevel);
@@ -815,7 +798,7 @@ int bench(const char** fileNameTable, unsigned nbFiles,
 
     unsigned const nbDicts = nbDictMax ? nbDictMax : nbBlocks;
 
-    cdict_collection_t const cdictionaries = createCDictCollection(dictBuffer.ptr, dictBuffer.size, nbDicts, clevel, dedicatedDictSearch);
+    cdict_collection_t const cdictionaries = createCDictCollection(dictBuffer.ptr, dictBuffer.size, nbDicts, clevel);
     CONTROL(cdictionaries.cdicts != NULL);
 
     ddict_collection_t const ddictionaries = createDDictCollection(dictBuffer.ptr, dictBuffer.size, nbDicts);
@@ -941,7 +924,6 @@ int main (int argc, const char** argv)
 {
     int recursiveMode = 0;
     int benchCompression = 1;
-    int dedicatedDictSearch = 0;
     unsigned nbRounds = BENCH_TIME_DEFAULT_S;
     const char* const exeName = argv[0];
 
@@ -971,7 +953,6 @@ int main (int argc, const char** argv)
         if (longCommandWArg(&argument, "--nbDicts=")) { nbDicts = readU32FromChar(&argument); continue; }
         if (longCommandWArg(&argument, "--nbBlocks=")) { nbBlocks = readU32FromChar(&argument); continue; }
         if (longCommandWArg(&argument, "--clevel=")) { cLevel = (int)readU32FromChar(&argument); continue; }
-        if (longCommandWArg(&argument, "--dedicated-dict-search")) { dedicatedDictSearch = 1; continue; }
         if (longCommandWArg(&argument, "-")) { cLevel = (int)readU32FromChar(&argument); continue; }
         /* anything that's not a command is a filename */
         nameTable[nameIdx++] = argument;
@@ -989,7 +970,7 @@ int main (int argc, const char** argv)
         nameTable = NULL;  /* UTIL_createFileNamesTable() takes ownership of nameTable */
     }
 
-    int result = bench(filenameTable->fileNames, (unsigned)filenameTable->tableSize, dictionary, blockSize, cLevel, nbDicts, nbBlocks, nbRounds, benchCompression, dedicatedDictSearch);
+    int result = bench(filenameTable->fileNames, (unsigned)filenameTable->tableSize, dictionary, blockSize, cLevel, nbDicts, nbBlocks, nbRounds, benchCompression);
 
     UTIL_freeFileNamesTable(filenameTable);
     free(nameTable);

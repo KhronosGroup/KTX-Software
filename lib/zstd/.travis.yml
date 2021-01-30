@@ -25,6 +25,22 @@ env:
 matrix:
   fast_finish: true
   include:
+    - name: icc
+      compiler: icc
+      env:
+      - C_COMPILER=icc
+      - CXX_COMPILER=icpc
+      install:
+      - source /opt/intel/inteloneapi/compiler/latest/env/vars.sh
+      addons:
+        apt:
+          sources:
+          - sourceline: 'deb https://apt.repos.intel.com/oneapi all main'
+            key_url: 'https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB'
+          packages:
+          - intel-oneapi-icc
+      script: make check
+
     - name: arm64    # ~2.5 mn
       os: linux
       arch: arm64
@@ -76,14 +92,14 @@ matrix:
 
     - name: Minimal Decompressor Macros    # ~5mn
       script:
-        - make clean && make -j all ZSTD_LIB_MINIFY=1 MOREFLAGS="-Werror"
-        - make clean && make check ZSTD_LIB_MINIFY=1 MOREFLAGS="-Werror"
-        - make clean && make -j all MOREFLAGS="-Werror -DHUF_FORCE_DECOMPRESS_X1 -DZSTD_FORCE_DECOMPRESS_SEQUENCES_SHORT"
-        - make clean && make check MOREFLAGS="-Werror -DHUF_FORCE_DECOMPRESS_X1 -DZSTD_FORCE_DECOMPRESS_SEQUENCES_SHORT"
-        - make clean && make -j all MOREFLAGS="-Werror -DHUF_FORCE_DECOMPRESS_X2 -DZSTD_FORCE_DECOMPRESS_SEQUENCES_LONG"
-        - make clean && make check MOREFLAGS="-Werror -DHUF_FORCE_DECOMPRESS_X2 -DZSTD_FORCE_DECOMPRESS_SEQUENCES_LONG"
-        - make clean && make -j all MOREFLAGS="-Werror -DZSTD_NO_INLINE -DZSTD_STRIP_ERROR_STRINGS"
-        - make clean && make check MOREFLAGS="-Werror -DZSTD_NO_INLINE -DZSTD_STRIP_ERROR_STRINGS"
+        - make clean
+        - make -j all check ZSTD_LIB_MINIFY=1 MOREFLAGS="-Werror"
+        - make clean
+        - make -j all check MOREFLAGS="-Werror -DHUF_FORCE_DECOMPRESS_X1 -DZSTD_FORCE_DECOMPRESS_SEQUENCES_SHORT"
+        - make clean
+        - make -j all check MOREFLAGS="-Werror -DHUF_FORCE_DECOMPRESS_X2 -DZSTD_FORCE_DECOMPRESS_SEQUENCES_LONG"
+        - make clean
+        - make -j all check MOREFLAGS="-Werror -DZSTD_NO_INLINE -DZSTD_STRIP_ERROR_STRINGS"
 
     - name: cmake build and test check    # ~6mn
       script:

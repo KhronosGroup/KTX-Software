@@ -8,9 +8,6 @@
 # You may select, at your option, one of the above-listed licenses.
 # ################################################################
 
-# verbose mode (print commands) on V=1 or VERBOSE=1
-Q = $(if $(filter 1,$(V) $(VERBOSE)),,@)
-
 PRGDIR   = programs
 ZSTDDIR  = lib
 BUILDIR  = build
@@ -31,9 +28,9 @@ VOID = /dev/null
 TARGET_SYSTEM ?= $(OS)
 
 ifneq (,$(filter Windows%,$(TARGET_SYSTEM)))
-  EXT =.exe
+EXT =.exe
 else
-  EXT =
+EXT =
 endif
 
 ## default: Build lib-release and zstd-release
@@ -49,8 +46,8 @@ allmost: allzstd zlibwrapper
 # skip zwrapper, can't build that on alternate architectures without the proper zlib installed
 .PHONY: allzstd
 allzstd: lib-all
-	$(Q)$(MAKE) -C $(PRGDIR) all
-	$(Q)$(MAKE) -C $(TESTDIR) all
+	$(MAKE) -C $(PRGDIR) all
+	$(MAKE) -C $(TESTDIR) all
 
 .PHONY: all32
 all32:
@@ -58,19 +55,18 @@ all32:
 	$(MAKE) -C $(TESTDIR) all32
 
 .PHONY: lib lib-release libzstd.a
-lib-all : lib
 lib lib-release lib-all :
-	$(Q)$(MAKE) -C $(ZSTDDIR) $@
+	@$(MAKE) -C $(ZSTDDIR) $@
 
 .PHONY: zstd zstd-release
 zstd zstd-release:
-	$(Q)$(MAKE) -C $(PRGDIR) $@
-	$(Q)ln -sf $(PRGDIR)/zstd$(EXT) zstd$(EXT)
+	@$(MAKE) -C $(PRGDIR) $@
+	cp $(PRGDIR)/zstd$(EXT) .
 
 .PHONY: zstdmt
 zstdmt:
-	$(Q)$(MAKE) -C $(PRGDIR) $@
-	$(Q)cp $(PRGDIR)/zstd$(EXT) ./zstdmt$(EXT)
+	@$(MAKE) -C $(PRGDIR) $@
+	cp $(PRGDIR)/zstd$(EXT) ./zstdmt$(EXT)
 
 .PHONY: zlibwrapper
 zlibwrapper: lib
@@ -79,16 +75,16 @@ zlibwrapper: lib
 ## test: run long-duration tests
 .PHONY: test
 DEBUGLEVEL ?= 1
-test: MOREFLAGS += -g -Werror
+test: MOREFLAGS += -g -DDEBUGLEVEL=$(DEBUGLEVEL) -Werror
 test:
-	DEBUGLEVEL=$(DEBUGLEVEL) MOREFLAGS="$(MOREFLAGS)" $(MAKE) -j -C $(PRGDIR) allVariants
+	MOREFLAGS="$(MOREFLAGS)" $(MAKE) -j -C $(PRGDIR) allVariants
 	$(MAKE) -C $(TESTDIR) $@
-	ZSTD=../../programs/zstd $(MAKE) -C doc/educational_decoder $@
+	ZSTD=../../programs/zstd $(MAKE) -C doc/educational_decoder test
 
 ## shortest: same as `make check`
 .PHONY: shortest
 shortest:
-	$(Q)$(MAKE) -C $(TESTDIR) $@
+	$(MAKE) -C $(TESTDIR) $@
 
 ## check: run basic tests for `zstd` cli
 .PHONY: check
@@ -131,17 +127,17 @@ cleanTabs:
 
 .PHONY: clean
 clean:
-	$(Q)$(MAKE) -C $(ZSTDDIR) $@ > $(VOID)
-	$(Q)$(MAKE) -C $(PRGDIR) $@ > $(VOID)
-	$(Q)$(MAKE) -C $(TESTDIR) $@ > $(VOID)
-	$(Q)$(MAKE) -C $(ZWRAPDIR) $@ > $(VOID)
-	$(Q)$(MAKE) -C examples/ $@ > $(VOID)
-	$(Q)$(MAKE) -C contrib/gen_html $@ > $(VOID)
-	$(Q)$(MAKE) -C contrib/pzstd $@ > $(VOID)
-	$(Q)$(MAKE) -C contrib/seekable_format/examples $@ > $(VOID)
-	$(Q)$(MAKE) -C contrib/largeNbDicts $@ > $(VOID)
-	$(Q)$(RM) zstd$(EXT) zstdmt$(EXT) tmp*
-	$(Q)$(RM) -r lz4
+	@$(MAKE) -C $(ZSTDDIR) $@ > $(VOID)
+	@$(MAKE) -C $(PRGDIR) $@ > $(VOID)
+	@$(MAKE) -C $(TESTDIR) $@ > $(VOID)
+	@$(MAKE) -C $(ZWRAPDIR) $@ > $(VOID)
+	@$(MAKE) -C examples/ $@ > $(VOID)
+	@$(MAKE) -C contrib/gen_html $@ > $(VOID)
+	@$(MAKE) -C contrib/pzstd $@ > $(VOID)
+	@$(MAKE) -C contrib/seekable_format/examples $@ > $(VOID)
+	@$(MAKE) -C contrib/largeNbDicts $@ > $(VOID)
+	@$(RM) zstd$(EXT) zstdmt$(EXT) tmp*
+	@$(RM) -r lz4
 	@echo Cleaning completed
 
 #------------------------------------------------------------------------------
@@ -165,7 +161,7 @@ EGREP = egrep $(EGREP_OPTIONS)
 ## list: Print all targets and their descriptions (if provided)
 .PHONY: list
 list:
-	$(Q)TARGETS=$$($(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null \
+	@TARGETS=$$($(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null \
 		| awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' \
 		| $(EGREP) -v  -e '^[^[:alnum:]]' | sort); \
 	{ \
@@ -180,13 +176,13 @@ list:
 
 .PHONY: install armtest usan asan uasan
 install:
-	$(Q)$(MAKE) -C $(ZSTDDIR) $@
-	$(Q)$(MAKE) -C $(PRGDIR) $@
+	@$(MAKE) -C $(ZSTDDIR) $@
+	@$(MAKE) -C $(PRGDIR) $@
 
 .PHONY: uninstall
 uninstall:
-	$(Q)$(MAKE) -C $(ZSTDDIR) $@
-	$(Q)$(MAKE) -C $(PRGDIR) $@
+	@$(MAKE) -C $(ZSTDDIR) $@
+	@$(MAKE) -C $(PRGDIR) $@
 
 .PHONY: travis-install
 travis-install:

@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = git@github.com:facebook/zstd.git
-	branch = dev
-	commit = f54109c5894952b2c9f0ee816d8a1f45116b5ce1
-	parent = be54cd3cf5c3e074ed0de1b420c04f0c2acb74dd
+	branch = v1.4.5
+	commit = b706286adbba780006a47ef92df0ad7a785666b6
+	parent = 58dc071edf501f783150c23788a650787c5a6c65
 	method = merge
-	cmdver = 0.4.1
+	cmdver = 0.4.3

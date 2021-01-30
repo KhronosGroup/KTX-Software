@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 
-#include "zstd_deps.h"
+#include <stddef.h>   /* size_t */
 #define ZSTD_STATIC_LINKING_ONLY   /* ZSTD_customMem */
 #include "../zstd.h"
 

@@ -102,12 +102,6 @@ extern "C" {
 #      define PLATFORM_POSIX_VERSION 1
 #    endif
 
-#    ifdef __UCLIBC__
-#     ifndef __USE_MISC
-#      define __USE_MISC /* enable st_mtim on uclibc */
-#     endif
-#    endif
-
 #  else  /* non-unix target platform (like Windows) */
 #    define PLATFORM_POSIX_VERSION 0
 #  endif

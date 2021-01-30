@@ -20,7 +20,7 @@ extern "C" {
 #define HUF_H_298734234
 
 /* *** Dependencies *** */
-#include "zstd_deps.h"    /* size_t */
+#include <stddef.h>    /* size_t */
 
 
 /* *** library symbols visibility *** */
@@ -111,8 +111,6 @@ HUF_PUBLIC_API size_t HUF_compress4X_wksp (void* dst, size_t dstCapacity,
 
 /* *** Dependencies *** */
 #include "mem.h"   /* U32 */
-#define FSE_STATIC_LINKING_ONLY
-#include "fse.h"
 
 
 /* *** Constants *** */
@@ -228,19 +226,6 @@ size_t HUF_readStats(BYTE* huffWeight, size_t hwSize,
                      U32* rankStats, U32* nbSymbolsPtr, U32* tableLogPtr,
                      const void* src, size_t srcSize);
 
-/*! HUF_readStats_wksp() :
- * Same as HUF_readStats() but takes an external workspace which must be
- * 4-byte aligned and its size must be >= HUF_READ_STATS_WORKSPACE_SIZE.
- * If the CPU has BMI2 support, pass bmi2=1, otherwise pass bmi2=0.
- */
-#define HUF_READ_STATS_WORKSPACE_SIZE_U32 FSE_DECOMPRESS_WKSP_SIZE_U32(6, HUF_TABLELOG_MAX-1)
-#define HUF_READ_STATS_WORKSPACE_SIZE (HUF_READ_STATS_WORKSPACE_SIZE_U32 * sizeof(unsigned))
-size_t HUF_readStats_wksp(BYTE* huffWeight, size_t hwSize,
-                          U32* rankStats, U32* nbSymbolsPtr, U32* tableLogPtr,
-                          const void* src, size_t srcSize,
-                          void* workspace, size_t wkspSize,
-                          int bmi2);
-
 /** HUF_readCTable() :
  *  Loading a CTable saved with HUF_writeCTable() */
 size_t HUF_readCTable (HUF_CElt* CTable, unsigned* maxSymbolValuePtr, const void* src, size_t srcSize, unsigned *hasZeroWeights);
@@ -347,9 +332,6 @@ size_t HUF_decompress1X1_DCtx_wksp_bmi2(HUF_DTable* dctx, void* dst, size_t dstS
 #endif
 size_t HUF_decompress4X_usingDTable_bmi2(void* dst, size_t maxDstSize, const void* cSrc, size_t cSrcSize, const HUF_DTable* DTable, int bmi2);
 size_t HUF_decompress4X_hufOnly_wksp_bmi2(HUF_DTable* dctx, void* dst, size_t dstSize, const void* cSrc, size_t cSrcSize, void* workSpace, size_t wkspSize, int bmi2);
-#ifndef HUF_FORCE_DECOMPRESS_X2
-size_t HUF_readDTableX1_wksp_bmi2(HUF_DTable* DTable, const void* src, size_t srcSize, void* workSpace, size_t wkspSize, int bmi2);
-#endif
 
 #endif /* HUF_STATIC_LINKING_ONLY */
 

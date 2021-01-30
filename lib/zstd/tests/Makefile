@@ -94,23 +94,23 @@ allnothread: fullbench fuzzer paramgrill datagen decodecorpus
 # note : broken : requires symbols unavailable from dynamic library
 dll: fuzzer-dll zstreamtest-dll
 
-PHONY: zstd zstd32 zstd-nolegacy  # phony: only external makefile knows how to build or update them
+PHONY: zstd zstd32 zstd-nolegacy  # must be phony, only external makefile knows how to build them, or if they need an update
 zstd zstd32 zstd-nolegacy:
-	$(MAKE) -C $(PRGDIR) $@ MOREFLAGS+="$(DEBUGFLAGS)" DEBUGLEVEL=$(DEBUGLEVEL)
+	$(MAKE) -C $(PRGDIR) $@ MOREFLAGS+="$(DEBUGFLAGS)"
 
 gzstd:
-	$(MAKE) -C $(PRGDIR) $@ HAVE_ZLIB=1 MOREFLAGS+="$(DEBUGFLAGS)" DEBUGLEVEL=$(DEBUGLEVEL)
+	$(MAKE) -C $(PRGDIR) $@ HAVE_ZLIB=1 MOREFLAGS+="$(DEBUGFLAGS)"
 
 .PHONY: libzstd
 libzstd :
-	$(MAKE) -C $(ZSTDDIR) libzstd DEBUGLEVEL=$(DEBUGLEVEL)
+	$(MAKE) -C $(ZSTDDIR) libzstd
 
 %-dll : libzstd
 %-dll : LDFLAGS+= -L$(ZSTDDIR) -lzstd
 
 .PHONY: zstd-staticLib
 zstd-staticLib :
-	$(MAKE) -C $(ZSTDDIR) libzstd.a DEBUGLEVEL=$(DEBUGLEVEL)
+	$(MAKE) -C $(ZSTDDIR) libzstd.a
 
 zstdm_%.o : $(ZSTDDIR)/common/%.c
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
@@ -255,8 +255,7 @@ clean:
 #----------------------------------------------------------------------------------
 # valgrind tests are validated only for some posix platforms
 #----------------------------------------------------------------------------------
-UNAME := $(shell uname)
-ifneq (,$(filter $(UNAME),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS))
+ifneq (,$(filter $(shell uname),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS))
 HOST_OS = POSIX
 
 valgrindTest: VALGRIND = valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1
@@ -276,8 +275,8 @@ valgrindTest: zstd datagen fuzzer fullbench
 endif
 
 
-ifneq (,$(filter MINGW% MSYS%,$(UNAME)))
-  HOST_OS = MSYS
+ifneq (,$(filter MINGW% MSYS%,$(shell uname)))
+HOST_OS = MSYS
 endif
 
 
@@ -287,8 +286,8 @@ endif
 ifneq (,$(filter $(HOST_OS),MSYS POSIX))
 
 DIFF:=diff
-ifneq (,$(filter $(UNAME),SunOS))
-  DIFF:=gdiff
+ifneq (,$(filter $(shell uname),SunOS))
+DIFF:=gdiff
 endif
 
 .PHONY: list
@@ -381,6 +380,7 @@ test-zbuff32: zbufftest32
 
 test-zstream: zstreamtest
 	$(QEMU_SYS) ./zstreamtest -v $(ZSTREAM_TESTTIME) $(FUZZER_FLAGS)
+	$(QEMU_SYS) ./zstreamtest --mt -t1 $(ZSTREAM_TESTTIME) $(FUZZER_FLAGS)
 	$(QEMU_SYS) ./zstreamtest --newapi -t1 $(ZSTREAM_TESTTIME) $(FUZZER_FLAGS)
 
 test-zstream32: zstreamtest32

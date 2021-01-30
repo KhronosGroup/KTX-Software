@@ -90,11 +90,7 @@ extern "C" {
 *  Basic Types
 *****************************************************************/
 #if defined (__cplusplus) || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */)
-# if defined(_AIX)
-#  include <inttypes.h>
-# else
-#  include <stdint.h> /* intptr_t */
-# endif
+# include <stdint.h>
   typedef  uint8_t BYTE;
   typedef uint16_t U16;
   typedef  int16_t S16;

@@ -22,8 +22,6 @@ zstdmt
 
 # Test artefacts
 tmp*
-*.zst
-*.zstd
 dictionary.
 dictionary
 NUL
@@ -34,7 +32,6 @@ bin/
 .buckd/
 buck-out/
 build-*
-*.gcda
 
 # Other files
 .directory

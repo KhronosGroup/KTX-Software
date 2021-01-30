@@ -14,7 +14,7 @@
 ****************************************************************** */
 
 /* --- dependencies --- */
-#include "../common/zstd_deps.h"   /* size_t */
+#include <stddef.h>   /* size_t */
 
 
 /* --- simple histogram functions --- */
