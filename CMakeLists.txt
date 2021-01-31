@@ -37,7 +37,6 @@ option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
-option( KTX_FEATURE_GL_UPLOAD "" ON )
 
 set_target_processor_type(CPU_ARCHITECTURE)
 if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
@@ -64,8 +63,14 @@ endif()
 set( KTX_FEATURE_KTX1 ON )
 set( KTX_FEATURE_KTX2 ON )
 set( KTX_FEATURE_VULKAN ON )
+set( KTX_FEATURE_GL_UPLOAD "" ON )
 
 # Platform specific settings
+
+if (WIN32 AND ${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
+    # Disable OpenGL upload on Universal Windows Platform
+    set(KTX_FEATURE_GL_UPLOAD OFF)
+endif()
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
