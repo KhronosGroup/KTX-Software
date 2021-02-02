@@ -22,8 +22,8 @@
 #include <KHR/khr_df.h>
 
 #include "argparser.h"
-#include "basisu_resampler.h"
-#include "basisu_resampler_filters.h"
+#include "encoder/basisu_resampler.h"
+#include "encoder/basisu_resampler_filters.h"
 
 typedef float (*OETFFunc)(float const, float const);
 
