@@ -6,6 +6,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/*
+ * This transcoder is DEPRECATED. Use the container independent transcoder from
+ * the Binomial LLC repo instead: https://github.com/BinomialLLC/basis_universal.
+ */
+
 #include <emscripten/bind.h>
 #include "basisu/transcoder/basisu_transcoder.h"
 
@@ -13,6 +18,62 @@ using namespace emscripten;
 using namespace basist;
 
 namespace msc {
+    // Container independent image description. This was originally in a PR
+    // submitted to the BasisU repo to add container independent transcoders.
+    // However the code that was eventually added favored explicit parameters
+    // over collecting them in a struct. To maintain backward compatibility for
+    // msc_basisu_trancoder users, recreate the struct here.
+    struct basisu_image_desc {
+        uint32_t m_flags;
+        uint32_t m_rgb_byte_offset;
+        uint32_t m_rgb_byte_length;
+        uint32_t m_alpha_byte_offset;
+        uint32_t m_alpha_byte_length;
+        uint32_t m_orig_width;
+        uint32_t m_orig_height;
+        uint32_t m_num_blocks_x;
+        uint32_t m_num_blocks_y;
+        uint32_t m_level;
+
+        basisu_image_desc() {
+            memset(this, 0, sizeof(*this));
+        }
+
+        basisu_image_desc(basis_tex_format, uint32_t width, uint32_t height,
+                          uint32_t level)
+        {
+            memset(this, 0, sizeof(*this));
+            m_orig_width = width;
+            m_orig_height = height;
+            // Current formats are all 4 x 4 so ignore tex format param.
+            const uint32_t bw = 4, bh = 4;
+            m_num_blocks_x = (m_orig_width + (bw - 1)) / bw;
+            m_num_blocks_y = (m_orig_height + (bh - 1)) / bh;
+            m_level = level;
+        }
+
+        basisu_image_desc(const basis_slice_desc* pSlice_desc,
+                          const bool hasAlphaSlice,
+                          uint32_t level = 0) : m_level(level)
+        {
+            m_flags = pSlice_desc->m_flags & cSliceDescFlagsFrameIsIFrame;
+            m_rgb_byte_offset = pSlice_desc->m_file_ofs;
+            m_rgb_byte_length = pSlice_desc->m_file_size;
+            m_orig_width = pSlice_desc->m_orig_width;
+            m_orig_height = pSlice_desc->m_orig_height;
+            m_num_blocks_x = pSlice_desc->m_num_blocks_x;
+            m_num_blocks_y = pSlice_desc->m_num_blocks_y;
+            if (hasAlphaSlice) {
+                ++pSlice_desc;
+                m_alpha_byte_offset = pSlice_desc->m_file_ofs;
+                m_alpha_byte_length = pSlice_desc->m_file_size;
+            } else {
+                m_alpha_byte_offset = 0;
+                m_alpha_byte_length = 0;
+            }
+        }
+    };
+
     // This is needed because the enum defining CDecode* is anonymous.
     enum TranscodeFlagBits {
         TranscodeAlphaDataToOpaqueFormats =
@@ -77,10 +138,10 @@ namespace msc {
     };
 
 
-    class BasisLzEtc1sImageTranscoder : public basisu_etc1s_image_transcoder {
+    class BasisLzEtc1sImageTranscoder : public basisu_lowlevel_etc1s_transcoder {
       public:
         BasisLzEtc1sImageTranscoder()
-                : basisu_etc1s_image_transcoder(buildSelectorCodebook()) { }
+                : basisu_lowlevel_etc1s_transcoder(buildSelectorCodebook()) { }
 
         // Yes, code in the following functions handling data coming in from
         // ArrayBuffers IS copying the data. Sigh! According to Alon Zakai:
@@ -111,7 +172,7 @@ namespace msc {
                                             jsSelectors["length"].as<uint32_t>());
             selectorsView.call<void>("set", jsSelectors);
 
-            return basisu_etc1s_image_transcoder::decode_palettes(num_endpoints,
+            return basisu_lowlevel_etc1s_transcoder::decode_palettes(num_endpoints,
                                                        cEndpoints.data(),
                                                        cEndpoints.size(),
                                                        num_selectors,
@@ -130,7 +191,7 @@ namespace msc {
                                             jsTableData["length"].as<uint32_t>());
             TableDataView.call<void>("set", jsTableData);
 
-            return basisu_etc1s_image_transcoder::decode_tables(
+            return basisu_lowlevel_etc1s_transcoder::decode_tables(
                                                           cTableData.data(),
                                                           cTableData.size());
         }
@@ -182,16 +243,33 @@ namespace msc {
                                                       imageDesc.m_orig_width,
                                                       imageDesc.m_orig_height);
             TranscodedImage* dst = new TranscodedImage(tiByteLength);
+            // ETC1S texel block dimensions
+            const uint32_t bw = 4, bh = 4;
+            uint32_t numBlocksX =( imageDesc.m_orig_width + (bw - 1)) / bw;
+            uint32_t numBlocksY = (imageDesc.m_orig_height + (bh - 1)) / bh;
 
-            bool status = basisu_etc1s_image_transcoder::transcode_image(
+            bool status = basisu_lowlevel_etc1s_transcoder::transcode_image(
                                               targetFormat,
                                               dst->data(),
                                               dst->size(),
                                               deflatedSlices.data(),
-                                              imageDesc,
+                                              deflatedSlices.size(),
+                                              numBlocksX,
+                                              numBlocksY,
+                                              imageDesc.m_orig_width,
+                                              imageDesc.m_orig_height,
+                                              imageDesc.m_level,
+                                              imageDesc.m_rgb_byte_offset,
+                                              imageDesc.m_rgb_byte_length,
+                                              imageDesc.m_alpha_byte_offset,
+                                              imageDesc.m_alpha_byte_length,
                                               decodeFlags,
-                                              isVideo);
-
+                                              imageDesc.m_alpha_byte_length != 0,
+                                              isVideo
+                                              // API currently doesn't have any
+                                              // way indicate if this is an
+                                              // iFrame or pFrame.
+                                              );
             val ret = val::object();
             if (status) {
                 ret.set("transcodedImage", dst);
@@ -214,9 +292,9 @@ namespace msc {
         }
     };
 
-    class UastcImageTranscoder : public basisu_uastc_image_transcoder {
+    class UastcImageTranscoder : public basisu_lowlevel_uastc_transcoder {
       public:
-        UastcImageTranscoder() : basisu_uastc_image_transcoder() { }
+        UastcImageTranscoder() :  basisu_lowlevel_uastc_transcoder() { }
 
         // @~English
         // @brief Transcode a single UASTC encoded image.
@@ -263,17 +341,32 @@ namespace msc {
                                                       imageDesc.m_orig_width,
                                                       imageDesc.m_orig_height);
             TranscodedImage* dst = new TranscodedImage(tiByteLength);
+            // UASTC texel block dimensions
+            const uint32_t bw = 4, bh = 4;
+            uint32_t numBlocksX =( imageDesc.m_orig_width + (bw - 1)) / bw;
+            uint32_t numBlocksY = (imageDesc.m_orig_height + (bh - 1)) / bh;
+
             bool status =
-                basisu_uastc_image_transcoder::transcode_image(
+                basisu_lowlevel_uastc_transcoder::transcode_image(
                                               targetFormat,
                                               dst->data(),
                                               dst->size(),
                                               deflatedImage.data(),
-                                              imageDesc,
+                                              deflatedImage.size(),
+                                              numBlocksX,
+                                              numBlocksY,
+                                              imageDesc.m_orig_width,
+                                              imageDesc.m_orig_height,
+                                              imageDesc.m_level,
+                                              imageDesc.m_rgb_byte_offset,
+                                              imageDesc.m_rgb_byte_length,
                                               decodeFlags,
                                               hasAlpha,
-                                              isVideo);
-
+                                              isVideo
+                                              // API currently doesn't have any
+                                              // way indicate if this is an
+                                              // iFrame or pFrame.
+                                              );
             val ret = val::object();
             if (status) {
                 ret.set("transcodedImage", dst);
@@ -286,6 +379,15 @@ namespace msc {
 }
 
 /** @page msc_basis_transcoder Basis Image Transcoder binding
+
+ @warning Deprecated. Use the container independent transcoder from
+ the Binomial LLC repo instead:
+ https://github.com/BinomialLLC/basis_universal.
+ This JS wrapper was designed to use an underlying C++ API that
+ accepted image info in a structure. The API actually added to
+ basis_universal uses explicit parameters so users of this transcoder
+ will be packing the info into a struct from which it will be
+ immediately unpacked before the underlying transcoder is called.
 
  ## WebIDL for the binding
 
@@ -668,18 +770,18 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
     function("initTranscoders", basisu_transcoder_init);
     function("isFormatSupported", basis_is_format_supported);
 
-    class_<basisu_image_desc>("ImageInfo")
+    class_<msc::basisu_image_desc>("ImageInfo")
         .constructor<basis_tex_format,uint32_t,uint32_t,uint32_t>()
-        .property("flags", &basisu_image_desc::m_flags)
-        .property("rgbByteOffset", &basisu_image_desc::m_rgb_byte_offset)
-        .property("rgbByteLength", &basisu_image_desc::m_rgb_byte_length)
-        .property("alphaByteOffset", &basisu_image_desc::m_alpha_byte_offset)
-        .property("alphaByteLength", &basisu_image_desc::m_alpha_byte_length)
-        .property("width", &basisu_image_desc::m_orig_width)
-        .property("height", &basisu_image_desc::m_orig_height)
-        .property("numBlocksX", &basisu_image_desc::m_num_blocks_x)
-        .property("numBlocksY", &basisu_image_desc::m_num_blocks_y)
-        .property("level", &basisu_image_desc::m_level)
+        .property("flags", &msc::basisu_image_desc::m_flags)
+        .property("rgbByteOffset", &msc::basisu_image_desc::m_rgb_byte_offset)
+        .property("rgbByteLength", &msc::basisu_image_desc::m_rgb_byte_length)
+        .property("alphaByteOffset", &msc::basisu_image_desc::m_alpha_byte_offset)
+        .property("alphaByteLength", &msc::basisu_image_desc::m_alpha_byte_length)
+        .property("width", &msc::basisu_image_desc::m_orig_width)
+        .property("height", &msc::basisu_image_desc::m_orig_height)
+        .property("numBlocksX", &msc::basisu_image_desc::m_num_blocks_x)
+        .property("numBlocksY", &msc::basisu_image_desc::m_num_blocks_y)
+        .property("level", &msc::basisu_image_desc::m_level)
         ;
 
     class_<msc::BasisLzEtc1sImageTranscoder>("BasisLzEtc1sImageTranscoder")
