@@ -110,20 +110,58 @@ For the load tests applications you need to install the [Vulkan SDK](#vulkan-sdk
 
 Other dependencies (like zstd, SDL2 or the assimp library are included in this repository or come with Xcode).
 
-To build:
+To build for macOS:
 
 ```bash
-# This creates an Xcode project at `build/KTX-Software.xcodeproj` containting the libktx and tools targets.
-cmake -GXcode -Bbuild
+# This creates an Xcode project at `build/mac/KTX-Software.xcodeproj` containing the libktx and tools targets.
+mkdir build
+cmake -GXcode -Bbuild/mac
 
 # If you want to build the load test apps as well, you have to set the `KTX_FEATURE_LOADTEST_APPS` parameter and pass the location where you installed the Vulkan SDK as parameter `VULKAN_INSTALL_DIR`:
-cmake -GXcode -Bbuild -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 
 # Compile the project
 cmake --build build
 ```
 
-TODO: code signing / provisioning profile
+To sign the applications you need to set the following CMake variables:
+
+| Name | Value |
+| :---: | :---: |
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Developer ID Application_ certificate to use for signing |
+| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner
+
+To sign the installation package you need to set the following variables:
+
+| Name | Value |
+| :---: | :---: |
+| PRODUCTBUILD\_IDENTITY\_NAME | Owner of the _Developer ID Installer_ certificate to use for signing |
+| PRODUCTBUILD\_KEYCHAIN\_PATH | Path to the keychain file with the certificate. Blank if its in the default keychain.
+
+To build for iOS:
+
+```bash
+# This creates an Xcode project at `build/ios/KTX-Software.xcodeproj` containing the libktx targets.
+mkdir build # if it does not exist
+cmake -GXcode -Bbuild/ios -DCMAKE_SYSTEM_NAME=iOS
+
+# This creates a project to build the load test apps as well.
+cmake -GXcode -Bbuild/ios -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+
+# Compile the project
+cmake --build build -- -sdk iphoneos
+```
+If using the CMake GUI, when it asks you to specify the generator for the project, you need to check _Specify options for cross-compiling_ and on the next screen make sure _Operating System_ is set to `iOS`.
+
+To sign the applications you need to set the following CMake variables:
+
+| Name | Value |
+| :---: | :---: |
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _iPhone Developer_ certificate to use for signing |
+| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner
+| XCODE\_PROVISIONING\_PROFILE | Name of the profile to use.
+
+**NOTE:** the `iphoneos` SDK version gets hardwired into the generated projects. After installing an Xcode update that has the SDK for a new version of iOS, builds will fail. The only way to remedy this is to delete the build folder and regenerate from scratch.
 
 ### Web/Emscripten
 
