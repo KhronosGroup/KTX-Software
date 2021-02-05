@@ -4,7 +4,7 @@
 find_package(Doxygen REQUIRED)
 
 # Global
-set( DOXYGEN_PROJECT_LOGO icons/ktx_document_small.png )
+set( DOXYGEN_PROJECT_LOGO icons/ktx_logo_200.png )
 set( DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/docs)
 set( DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES )
 set( DOXYGEN_EXTRACT_LOCAL_CLASSES NO )
