@@ -164,7 +164,10 @@ add_library( ktx_read ${LIB_TYPE}
 
 macro(commom_lib_settings lib write)
 
-    add_dependencies(${lib} mkvk)
+    if(TARGET mkvk)
+        # Creating vulkan headers is only required when Vulkan SDK updates.
+        add_dependencies(${lib} mkvk)
+    endif()
 
     set_target_properties(${lib} PROPERTIES
         PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
@@ -385,9 +388,6 @@ set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
 commom_lib_settings(ktx 1)
 commom_lib_settings(ktx_read 0)
-
-## Creating vulkan headers is only required when Vulkan SDK updates.
-# add_dependencies(ktx mkvk)
 
 create_version_header(lib ktx)
 
