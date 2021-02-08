@@ -607,7 +607,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image =
               Image::CreateFromFile(infile,
                                     options.oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    options.bcmp);
+                                    options.bcmp || options.bopts.uastc);
             if(options.oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
                 image->setOetf(options.oetf);
             }
