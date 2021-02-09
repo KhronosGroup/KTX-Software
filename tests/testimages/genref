@@ -65,7 +65,8 @@ $toktx --bcmp --test color_grid_basis.ktx2 ../srcimages/color_grid.png
 $toktx --t2 --bcmp --mipmap --test rgba-mipmap-reference-basis.ktx2 ../srcimages/level0-alpha.pam ../srcimages/level1-alpha.pam ../srcimages/level2-alpha.pam ../srcimages/level3-alpha.pam ../srcimages/level4-alpha.pam ../srcimages/level5-alpha.pam ../srcimages/level6-alpha.pam
 $toktx --uastc --genmipmap --test cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg
 $toktx --zcmp --uastc --genmipmap --test cimg5293_uastc_zstd.ktx2 ../srcimages/CIMG5293.jpg
-$toktx --nowarn --bcmp --test camera_camera_BaseColor.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png
+$toktx --nowarn --bcmp --test camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png
+$toktx --nowarn --uastc 1 --test camera_camera_BaseColor_uastc.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png
 $toktx --nowarn --bcmp --test CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png
 
 # ... and additional files for the load tests.
