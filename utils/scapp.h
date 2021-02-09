@@ -144,8 +144,8 @@ struct clampedOption
             65536.</dd>
       </dl>
     </dd>
-    <dt>verbose</dt>
-    <dd>Print encoder/compressor activity status to stdout. Currently only"
+    <dt>--verbose</dt>
+    <dd>Print encoder/compressor activity status to stdout. Currently only
         the Basis Universal compressor emits status.</dd>
     <dt>--zcmp [&lt;compressionLevel&gt;]</dt>
     <dd>Supercompress the data with Zstandard. Implies @b --t2. Can be used
