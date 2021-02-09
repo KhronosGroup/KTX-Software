@@ -427,7 +427,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     basis_compressor_params cparams;
     cparams.m_read_source_images = false; // Don't read from source files.
     cparams.m_write_output_basis_files = false; // Don't write output files.
-    cparams.m_status_output = false; // Don't print status output.
+    cparams.m_status_output = params->verbose;
 
     //
     // Calculate number of images
