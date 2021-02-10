@@ -111,7 +111,8 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
  * @exception KTX_FILE_DATA_ERROR
  *                              Supercompression global data is corrupted.
  * @exception KTX_INVALID_OPERATION
- *                              The texture is not supercompressed.
+ *                              The texture's format is not transcodable (not
+ *                              ETC1S/BasisLZ or UASTC).
  * @exception KTX_INVALID_OPERATION
  *                              Supercompression global data is missing, i.e.,
  *                              the texture object is invalid.
@@ -423,7 +424,8 @@ static basist::etc1_global_selector_codebook
  * @exception KTX_FILE_DATA_ERROR
  *                              Supercompression global data is corrupted.
  * @exception KTX_INVALID_OPERATION
- *                              The texture is not supercompressed.
+ *                              The texture's format is not transcodable (not
+ *                              ETC1S/BasisLZ or UASTC).
  * @exception KTX_INVALID_OPERATION
  *                              Supercompression global data is missing, i.e.,
  *                              the texture object is invalid.
