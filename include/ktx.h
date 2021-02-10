@@ -967,6 +967,10 @@ typedef struct ktxBasisParams {
          */
     ktx_bool_t uastc;
         /*!<  True to use UASTC base, false to use ETC1S base. */
+    ktx_bool_t verbose;
+        /*!< If true, prints Basis Universal encoder operation details to @c stdout.
+             Not recommended for GUI apps.
+         */
     ktx_uint32_t threadCount;
         /*!< Number of threads used for compression. Default is 1. */
 
@@ -974,10 +978,10 @@ typedef struct ktxBasisParams {
 
     ktx_uint32_t compressionLevel;
         /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5. Higher values
-            are slower, but give higher quality. There is no default. Callers
-			must explicitly set this value. Callers can use
-            KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value.
-            Currently this is 1.
+             are slower, but give higher quality. There is no default. Callers
+			 must explicitly set this value. Callers can use
+             KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value.
+             Currently this is 1.
         */
     ktx_uint32_t qualityLevel;
         /*!< Compression quality. Range is 1 - 255.  Lower gives better

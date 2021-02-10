@@ -144,6 +144,9 @@ struct clampedOption
             65536.</dd>
       </dl>
     </dd>
+    <dt>--verbose</dt>
+    <dd>Print encoder/compressor activity status to stdout. Currently only
+        the Basis Universal compressor emits status.</dd>
     <dt>--zcmp [&lt;compressionLevel&gt;]</dt>
     <dd>Supercompress the data with Zstandard. Implies @b --t2. Can be used
         with data in any format except ETC1S / BasisLZ (@b --bcmp). Most
@@ -206,6 +209,7 @@ class scApp : public ktxApp {
                 uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
                 uastcRDODictSize.clear();
                 uastcRDOQualityScalar.clear();
+                verbose = false; // Default to quiet operation.
             }
         };
 
@@ -332,6 +336,8 @@ class scApp : public ktxApp {
           "               Set UASTC RDO dictionary size in bytes. Default is 32768. Lower\n"
           "               values=faster, but give less compression. Possible range is 256\n"
           "               to 65536.\n\n"
+          "  --verbose    Print encoder/compressor activity status to stdout. Currently only\n"
+          "               the Basis Universal compressor emits status."
           "  --zcmp [<compressionLevel>]\n"
           "               Supercompress the data with Zstandard. Implies --t2. Can be used\n"
           "               with data in any format except ETC1S / BasisLZ (--bcmp). Most\n"
@@ -372,6 +378,7 @@ scApp::scApp(string& version, string& defaultVersion,
       { "uastc", argparser::option::optional_argument, NULL, 1003 },
       { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1004 },
       { "uastc_rdo_d", argparser::option::required_argument, NULL, 1005 },
+      { "verbose", argparser::option::no_argument, NULL, 1006 }
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
@@ -520,6 +527,10 @@ scApp::processOption(argparser& parser, int opt)
       case 1005:
         options.bopts.uastcRDODictSize = strtoi(parser.optarg.c_str());
         hasArg = true;
+        break;
+      case 1006:
+        options.bopts.verbose = true;
+        capture = false;
         break;
       default:
         return false;
