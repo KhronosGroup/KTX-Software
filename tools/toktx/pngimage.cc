@@ -60,8 +60,8 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     fsz = ftell(src);
     fseek(src, 0L, SEEK_SET);
 
-    // Slurp it into memory so we can use lodepng_inspect to determine
-    // the data type and look at the ancilliary chunks.
+    // Slurp it into memory so we can use lodepng_inspect, to determine
+    // the data type, and lodepng_chunk_find.
     std::vector<uint8_t> png;
     png.resize(fsz);
     if (fread(png.data(), 1L, png.size(), src) != png.size()) {
@@ -75,14 +75,31 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     }
 
     lodepng::State state;
+    unsigned int lodepngError;
+    const unsigned char *trnsChunk = nullptr;
     uint32_t componentCount, componentBits;
     uint32_t w, h;
-    // Find out the color type so we can request that type when
-    // decoding and avoid conversions. Oh for an option to decode
-    // to file's colortype. What a palaver! Sigh!
-    lodepng_inspect(&w, &h, &state, &png[0], png.size());
-    // Tell the decoder we want the same color type as the file
+    // Find out the color type. As lodepng_inspect only reads the IHDR chunk,
+    // we must also check for presence of a tRNS chunk as it affects the
+    // target color type. This is so we can request the exact type we need
+    // when decoding. What a palaver! Sigh! However this is probably faster
+    // than telling the decoder to give us RGBA and potentially touching every
+    // pixel to extract only what we need.
+    lodepngError = lodepng_inspect(&w, &h, &state, png.data(), png.size());
+    if (lodepngError) {
+        std::stringstream message;
+        message << "PNG inspect error: " << lodepng_error_text(lodepngError)
+                << ".";
+        throw std::runtime_error(message.str());
+    }
+    // Tell the decoder we want the same color type as the file. Exceptions
+    // to this are made later.
     state.info_raw = state.info_png.color;
+
+    // Is there a tRNS chunk?
+    const unsigned char* pFirstChunk = &png.data()[33]; // 1st after header
+    trnsChunk = lodepng_chunk_find_const(pFirstChunk, &png[png.size()], "tRNS");
+
     switch (state.info_png.color.colortype) {
       case LCT_GREY:
         componentCount = 1;
@@ -90,7 +107,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         rescaleTo8Bits = true;
         break;
       case LCT_RGB:
-        if (state.info_png.color.key_defined) {
+        if (trnsChunk != nullptr) {
             state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
@@ -99,16 +116,17 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         }
         break;
       case LCT_PALETTE:
-        if (state.info_png.color.key_defined) {
+        if (trnsChunk) {
             state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
             state.info_raw.colortype = LCT_RGB;
             componentCount = 3;
         }
-        state.info_raw.bitdepth = 8; // Palette values are 8 bit RGB
-        warning("Expanding paletted image to %s 8-bit",
-                state.info_raw.colortype == LCT_RGBA ? "RGBA" : "RGB");
+        state.info_raw.bitdepth = 8; // Palette values are 8 bit RGBA
+        warning("Expanding %d-bit paletted image to %s",
+                state.info_png.color.bitdepth,
+                state.info_raw.colortype == LCT_RGBA ? "R8G8B8A8" : "R8G8B8");
         break;
       case LCT_GREY_ALPHA:
         componentCount = 2;
@@ -130,14 +148,15 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 
     uint8_t* imageData;
     size_t imageByteCount;
-    uint32_t error = lodepng_decode(&imageData, &w, &h, &state,
+    lodepngError = lodepng_decode(&imageData, &w, &h, &state,
                                    png.data(), png.size());
-    if (imageData && !error) {
+    if (imageData && !lodepngError) {
         imageByteCount = lodepng_get_raw_size(w, h, &state.info_raw);
     } else {
         free(imageData);
         std::stringstream message;
-        message << "PNG decoder error. " << lodepng_error_text(error);
+        message << "PNG decode error. " << lodepng_error_text(lodepngError)
+                << ".";
         throw std::runtime_error(message.str());
     }
 

@@ -15,7 +15,7 @@ License: Apache-2.0
 ## Exceptions to the above ...
 
 # http://www.schaik.com/pngsuite/PngSuite.LICENSE
-Files: tests/srcimages/ccwn2c08.png tests/srcimages/g03n2c08.png
+Files: tests/srcimages/ccwn2c08.png tests/srcimages/g03n2c08.png tests/srcimages/tbrn2c08.png tests/srcimages/tbyn3p08.png tests/srcimages/tm3n3p02.png
 Copyright: 1996, 2011 Willem van Schaik
 License: LicenseRef-PNGSuite
 

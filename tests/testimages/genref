@@ -68,6 +68,9 @@ $toktx --zcmp --uastc --genmipmap --test cimg5293_uastc_zstd.ktx2 ../srcimages/C
 $toktx --nowarn --bcmp --test camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png
 $toktx --nowarn --uastc 1 --test camera_camera_BaseColor_uastc.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png
 $toktx --nowarn --bcmp --test CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png
+$toktx --nowarn --t2 --test tbrn2c08.ktx2 ../srcimages/tbrn2c08.png
+$toktx --nowarn --t2 --test tbyn3p08.ktx2 ../srcimages/tbyn3p08.png
+$toktx --nowarn --t2 --test tm3n3p02.ktx2 ../srcimages/tm3n3p02.png
 
 # ... and additional files for the load tests.
 
