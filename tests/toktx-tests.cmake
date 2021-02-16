@@ -106,6 +106,9 @@ endif()
 
 gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--test --t2" "" "" )
 gencmpktx( cHRM_chunk_png ccwn2c08.ktx2 ../srcimages/ccwn2c08.png "--test --t2" "" "" )
+gencmpktx( tRNS_chunk_rgb_png tbrn2c08.ktx2 ../srcimages/tbrn2c08.png "--test --t2" "" "" )
+gencmpktx( tRNS_chunk_palette_8-bit_png tbyn3p08.ktx2 ../srcimages/tbyn3p08.png "--test --t2" "" "" )
+gencmpktx( tRNS_chunk_palette_2-bit_png tm3n3p02.ktx2 ../srcimages/tm3n3p02.png "--test --t2" "" "" )
 gencmpktx(
     rgb-mipmap-reference-list
     rgb-mipmap-reference.ktx
