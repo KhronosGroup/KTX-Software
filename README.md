@@ -8,9 +8,6 @@ The Official Khronos KTX Software Repository
 
 > **Note:** Visual Studio 2019 v16.5 & v16.6 get an internal compiler error when compiling parts of this software. v16.4 is okay. For Windows we suggest using Visual Studio 2017 until Microsoft fixes this bug.
 
-> **Note:** This repo has just switched from a GYP-based to a CMake-based build system. The pre-generated build files have been removed but the .gyp files will remain available for a while and can be used to generate build files, using the GNUMakefile in the root of the project, in the event of a problem. You will have to install
-[GYP](https://github.com/msc-/gyp/tree/remaster).
-
 | GNU/Linux, iOS & OSX |  Windows | Documentation |
 |----------------------| :------: | :-----------: |
 | [![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.com/KhronosGroup/KTX-Software) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) |
@@ -19,6 +16,14 @@ This is the official home of the source code
 for the Khronos KTX library and tools.
 
 KTX (Khronos Texture) is a lightweight container for textures for OpenGL<sup>®</sup>, Vulkan<sup>®</sup> and other GPU APIs. KTX files contain all the parameters needed for texture loading. A single file can contain anything from a simple base-level 2D texture through to a cubemap array texture with mipmaps. Contained textures can be in a Basis Universal format, in any of the block-compressed formats supported by OpenGL family and Vulkan APIs and extensions or in an uncompressed single-plane format. Basis Universal currently encompasses two formats that can be quickly transcoded to any GPU-supported format: LZ/ETC1S, which combines block-compression and supercompression, and UASTC, a block-compressed format. Formats other than LZ/ETC1S can be supercompressed with Zstd.
+
+Download [KTX Software Releases](https://github.com/KhronosGroup/KTX-Software/releases)
+to get binary packages of the tools, library and development headers
+described below. The [Releases](https://github.com/KhronosGroup/KTX-Software/releases) 
+page also has packages with the Javascript wrappers and .wasm binaries.
+
+See the Doxygen generated [live documentation](https://github.khronos.org/KTX-Software/)
+for API and tool usage information.
 
 The software consists of: (links are to source folders in the KhronosGroup repo)
 
@@ -38,14 +43,6 @@ human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Softw
 contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxsc)
 - *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
 Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
-
-Downloadable binary packages of the tools, library and development
-headers are available at
-[Releases](https://github.com/KhronosGroup/KTX-Software/releases).
-There are also packages with the Javascript wrappers and .wasm binaries.
-
-See the Doxygen generated [live documentation](https://github.khronos.org/KTX-Software/)
-for API and tool usage information.
 
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
