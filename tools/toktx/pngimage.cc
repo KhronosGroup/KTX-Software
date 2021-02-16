@@ -76,7 +76,6 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 
     lodepng::State state;
     unsigned int lodepngError;
-    const unsigned char *trnsChunk = nullptr;
     uint32_t componentCount, componentBits;
     uint32_t w, h;
     // Find out the color type. As lodepng_inspect only reads the IHDR chunk,
@@ -97,8 +96,9 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     state.info_raw = state.info_png.color;
 
     // Is there a tRNS chunk?
+	const unsigned char *pTrnsChunk = nullptr;
     const unsigned char* pFirstChunk = &png.data()[33]; // 1st after header
-    trnsChunk = lodepng_chunk_find_const(pFirstChunk, &png[png.size()], "tRNS");
+    pTrnsChunk = lodepng_chunk_find_const(pFirstChunk, &png.back(), "tRNS");
 
     switch (state.info_png.color.colortype) {
       case LCT_GREY:
@@ -107,7 +107,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         rescaleTo8Bits = true;
         break;
       case LCT_RGB:
-        if (trnsChunk != nullptr) {
+        if (pTrnsChunk != nullptr) {
             state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
@@ -116,7 +116,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         }
         break;
       case LCT_PALETTE:
-        if (trnsChunk) {
+        if (pTrnsChunk) {
             state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
