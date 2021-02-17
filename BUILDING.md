@@ -20,7 +20,7 @@ Supported platforms (please to through their specific requirements first)
 - [GNU/Linux](#gnulinux)
 - [iOS and macOS](#ios-and-macos)
 - [Web/Emscripten](#webemscripten)
-- [Windows](#windows)
+- [Windows 64-bit](#windows-x64)
 
 > **Note:** Android builds will follow
 
@@ -90,9 +90,9 @@ You should be able then to build like this
 
 ```bash
 # First either configure a debug build of libktx and the tools
-cmake . -G Ninja -Bbuild
+cmake . -G Ninja -B build
 # ...or alternatively a release build including all targets
-cmake . -G Ninja -Bbuild -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 
 # Compile the project
 cmake --build build
@@ -115,7 +115,7 @@ To build for macOS:
 ```bash
 # This creates an Xcode project at `build/mac/KTX-Software.xcodeproj` containing the libktx and tools targets.
 mkdir build
-cmake -GXcode -Bbuild/mac
+cmake -G Xcode -B build/mac
 
 # If you want to build the load test apps as well, you have to set the `KTX_FEATURE_LOADTEST_APPS` parameter and pass the location where you installed the Vulkan SDK as parameter `VULKAN_INSTALL_DIR`:
 cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
@@ -143,10 +143,10 @@ To build for iOS:
 ```bash
 # This creates an Xcode project at `build/ios/KTX-Software.xcodeproj` containing the libktx targets.
 mkdir build # if it does not exist
-cmake -GXcode -Bbuild/ios -DCMAKE_SYSTEM_NAME=iOS
+cmake -G Xcode -B build/ios -DCMAKE_SYSTEM_NAME=iOS
 
 # This creates a project to build the load test apps as well.
-cmake -GXcode -Bbuild/ios -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+cmake -G Xcode -B build/ios -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 
 # Compile the project
 cmake --build build -- -sdk iphoneos
@@ -171,7 +171,7 @@ Install [Emscripten](https://emscripten.org) and follow the [install instruction
 
 ```bash
 # Configure
-emcmake cmake -Bbuild-web-debug . -DCMAKE_BUILD_TYPE=Debug
+emcmake cmake -B build-web-debug . -DCMAKE_BUILD_TYPE=Debug
 
 # Build
 cmake --build build-web-debug --config Debug
@@ -181,7 +181,7 @@ cmake --build build-web-debug --config Debug
 
 ```bash
 # Configure
-emcmake cmake -Bbuild-web .
+emcmake cmake -B build-web .
 
 # Build
 cmake --build build-web
@@ -194,11 +194,27 @@ For web there are two additional targets:
 
 > **Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
 
-### Windows
+### Windows x64
 
 CMake can create solutions for Microsoft Visual Studio (2015/2017/2019 are supported by KTX).
 
+> **Note:** This project builds only for 64-bit Windows.
+
 > **Note:** Visual Studio 2019 v16.5 & v16.6 get an internal compiler error when compiling. v16.4 is okay.
+
+The CMake generators for Visual Studio 2017 and earlier generate projects whose default platform is Windows-x86. Since that is not supported by KTX-Software, the build will fail. To generate a project for x64 when using these earlier generators you must use CMake's `-A` option.
+
+```bash
+# -G shown for completeness. Not needed if you are happy
+# with the CMake's default selection.
+cmake -G "Visual Studio 15 2017" -B build -A x64 .
+```
+
+When using a more recent Visual Studio you simply need
+
+```bash
+cmake -B build .
+```
 
 zlib and zstd are needed for building libktx. The KTX repo has a Windows binary of libzstd.
 
@@ -206,14 +222,13 @@ The NSIS compiler is needed if you intend to build packages.
 
 CMake can include OpenGL ES versions of the KTX loader tests in the
 generated solution. To build and run these you need to install an
-OpenGL ES emulator. See below.
+OpenGL ES emulator. See [below](#opengl-es-emulator-for-windows).
 
 The KTX loader tests use libSDL 2.0.12+. You do not need SDL if you only wish to build the library or tools.
 
 The KTX vulkan loader tests require a [Vulkan SDK](#vulkan-sdk)
 and the Open Asset Import Library [`libassimp`](#libassimp). You must
-install the former. The KTX Git repo has binaries of the latter for iOS and
-Windows but you must install it on GNU/Linux and macOS.
+install the former.
 
 #### OpenGL ES Emulator for Windows
 
@@ -290,5 +305,11 @@ the documentation correctly. You can download binaries and
 also find instructions for building it from source at [Doxygen
 downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
 sure the directory containing the `doxygen` executable is in your `$PATH`.
+
+### libassimp
+
+You need to install the Open Asset Import Library [`libassimp`](https://github.com/assimp/assimp) 
+on GNU/Linux and macOS if you want to build the KTX vulkan loader tests.
+The KTX Git repo has binaries for iOS and Windows. You'll find `libassimp` in the standard package manager on GNU/Linux. On macOS it can be installed via [MacPorts](https://www.macports.org/install.php) or [Brew](https://brew.sh/).
 
 {# vim: set ai ts=4 sts=4 sw=2 expandtab textwidth=75:}
