@@ -247,8 +247,9 @@ enum TranscodeTarget = {
     "BC1_OR_3",
     "PVRTC1_4_RGB",
     "PVRTC1_4_RGBA",
-    "BC7_M6_RGB",
-    "BC7_M5_RGBA",
+    "BC7_RGBA",
+    "BC7_M6_RGB",  // Deprecated. Use BC7_RGBA.
+    "BC7_M5_RGBA", // Deprecated. Use BC7_RGBA.
     "ETC2_RGBA",
     "ASTC_4x4_RGBA",
     "RGBA32",
@@ -437,6 +438,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("BC1_OR_3", KTX_TTF_BC1_OR_3)
         .value("PVRTC1_4_RGB", KTX_TTF_PVRTC1_4_RGB)
         .value("PVRTC1_4_RGBA", KTX_TTF_PVRTC1_4_RGBA)
+        .value("BC7_RGBA", KTX_TTF_BC7_RGBA)
         .value("BC7_M6_RGB", KTX_TTF_BC7_M6_RGB)
         .value("BC7_M5_RGBA", KTX_TTF_BC7_M5_RGBA)
         .value("ETC2_RGBA", KTX_TTF_ETC2_RGBA)
