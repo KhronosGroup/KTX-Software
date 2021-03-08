@@ -93,7 +93,7 @@ Image::CreateFromJPG(FILE* src, bool, bool)
             } else {
                 std::stringstream message;
                 message << "Invalid data in JPEG file. jpgd_status code: "
-                        << strerror(ferror(src));
+                        << errorCode;
                 throw std::runtime_error(message.str());
             }
         }
