@@ -357,7 +357,7 @@ struct {
         ERROR | 0x008b, "Missing required value for \"%s\" key."
     };
     issue NotAllowed {
-        ERROR | 0x008c, "\"%s\" metadata only allowed with ASTC formats and sRGB transfer fnunction."
+        ERROR | 0x008c, "\"%s\" key not allowed %s."
     };
     issue NoKTXwriter {
         WARNING | 0x008f, "No KTXwriter key. Writers are strongly urged to identify themselves via this."
@@ -495,6 +495,7 @@ class ktxValidator : public ktxApp {
         uint32_t* pDfd4Format;
         uint32_t* pActualDfd;
         uint64_t dataSizeFromLevelIndex;
+        bool cubemapIncompleteFound;
 
         struct formatInfo {
             struct {
@@ -511,6 +512,7 @@ class ktxValidator : public ktxApp {
             inf = nullptr;
             pDfd4Format = nullptr;
             pActualDfd = nullptr;
+            cubemapIncompleteFound = false;
         }
 
         ~validationContext() {
@@ -720,6 +722,7 @@ class ktxValidator : public ktxApp {
 };
 
 vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
+    // cubemapIncomplete must appear in this list before animData.
     { "KTXcubemapIncomplete", &ktxValidator::validateCubemapIncomplete },
     { "KTXorientation", &ktxValidator::validateOrientation },
     { "KTXglFormat", &ktxValidator::validateGlFormat },
@@ -729,7 +732,7 @@ vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
     { "KTXwriter", &ktxValidator::validateWriter },
     { "KTXwriterScParams", &ktxValidator::validateWriterScParams },
     { "KTXastcDecodeMode", &ktxValidator::validateAstcDecodeMode },
-    //{ "KTXanimData", &ktxValidator::validateAnimData }
+    { "KTXanimData", &ktxValidator::validateAnimData }
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -1599,6 +1602,7 @@ void
 ktxValidator::validateCubemapIncomplete(validationContext& ctx, char* key,
                                         uint8_t* value, uint32_t valueLen)
 {
+    ctx.cubemapIncompleteFound = true;
     if (valueLen != 1)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
@@ -1701,11 +1705,29 @@ ktxValidator::validateAstcDecodeMode(validationContext& ctx, char* key,
 
     uint32_t* bdb = ctx.pDfd4Format + 1;
     if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_ASTC) {
-         addIssue(logger::eError, Metadata.NotAllowed, key);
+         addIssue(logger::eError, Metadata.NotAllowed, key,
+                  "for non-ASTC texture formats");
     }
     if (KHR_DFDVAL(bdb, TRANSFER) == KHR_DF_TRANSFER_SRGB) {
-         addIssue(logger::eError, Metadata.NotAllowed, key);
+         addIssue(logger::eError, Metadata.NotAllowed, key,
+                  "with sRGB transfer function");
     }
+}
+
+void
+ktxValidator::validateAnimData(validationContext& ctx, char* key,
+                               uint8_t* value, uint32_t valueLen)
+{
+    if (ctx.cubemapIncompleteFound) {
+         addIssue(logger::eError, Metadata.NotAllowed, key,
+                  "together with KTXcubemapIncomplete");
+    }
+    if (ctx.layerCount == 0)
+        addIssue(logger::eError, Metadata.NotAllowed, key,
+                 "except with array textures");
+
+    if (valueLen != sizeof(uint32_t) * 3)
+        addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void

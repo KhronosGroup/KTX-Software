@@ -493,11 +493,13 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // Prepare low-level transcoder for transcoding slices.
     basist::basisu_lowlevel_etc1s_transcoder bit(&global_codebook);
 
-    // Providing this is only needed for video. It is used to track the
-    // previous frame when dealing with P-Frames. It is easier to always
-    // pass our own as it doesn't cost anything. The transcoder would
-    // create one, if we passed nullptr.
-    basisu_transcoder_state xcoderState;
+    // basisu_transcoder_state is used to find the previous frame when
+    // decoding a video P-Frame. It tracks the previous frame for each mip
+    // level. For cube map array textures we need to find the previous frame
+    // for each face so we a state per face. Although providing this is only
+    // needed for video, it is easier to always pass our own.
+    std::vector<basisu_transcoder_state> xcoderStates;
+    xcoderStates.resize(This->isVideo ? This->numFaces : 1);
 
     bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
                         bgdh.endpointsByteLength,
@@ -550,12 +552,21 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
         uint32_t image = firstImages[level];
         uint32_t endImage = image + numImages;
         ktx_size_t levelImageSizeOut, levelSizeOut;
+        uint32_t stateIndex = 0;
 
         levelSizeOut = 0;
         // FIXME: Figure out a way to get the size out of the transcoder.
         levelImageSizeOut = ktxTexture2_GetImageSize(prototype, level);
         for (; image < endImage; image++) {
             const ktxBasisLzEtc1sImageDesc& imageDesc = imageDescs[image];
+
+            basisu_transcoder_state& xcoderState = xcoderStates[stateIndex];
+            // We have face0 [face1 ...] within each layer. Use `stateIndex`
+            // rather than a double loop of layers and faceSlices as this
+            // works for 3d texture and non-array cube maps as well as
+            // cube map arrays without special casing.
+            if (++stateIndex == xcoderStates.size())
+                stateIndex = 0;
 
             if (alphaContent != eNone)
             {
@@ -641,7 +652,8 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
 
     basisu_lowlevel_uastc_transcoder uit;
     // See comment on same declaration in transcodeEtc1s.
-    basisu_transcoder_state xcoderState;
+    std::vector<basisu_transcoder_state> xcoderStates;
+    xcoderStates.resize(This->isVideo ? This->numFaces : 1);
 
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--)
     {
@@ -657,10 +669,12 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         const uint32_t bw = 4, bh = 4;
         uint32_t levelBlocksX = (levelWidth + (bw - 1)) / bw;
         uint32_t levelBlocksY = (levelHeight + (bh - 1)) / bh;
+        uint32_t stateIndex = 0;
 
         depth = MAX(1, This->baseDepth  >> level);
 
         levelImageCount = This->numLayers * This->numFaces * depth;
+        uint32_t numFaceSlices = This->numFaces * depth;
         levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), level,
                                                     KTX_FORMAT_VERSION_TWO);
         levelImageSizeOut = ktxTexture_calcImageSize(ktxTexture(prototype),
@@ -671,6 +685,11 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         levelSizeOut = 0;
         bool status;
         for (uint32_t image = 0; image < levelImageCount; image++) {
+            basisu_transcoder_state& xcoderState = xcoderStates[stateIndex];
+            // See comment before same lines in transcodeEtc1s.
+            if (++stateIndex == xcoderStates.size())
+                stateIndex = 0;
+
             status = uit.transcode_image(
                               (transcoder_texture_format)outputFormat,
                               pXcodedData + writeOffset,
