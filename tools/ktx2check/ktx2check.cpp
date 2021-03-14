@@ -353,8 +353,14 @@ struct {
     issue NoRequiredKTXwriter {
         ERROR | 0x008a, "No KTXwriter key. Required when KTXwriterScParams is present."
     };
+    issue MissingValue {
+        ERROR | 0x008b, "Missing required value for \"%s\" key."
+    };
+    issue NotAllowed {
+        ERROR | 0x008c, "\"%s\" key not allowed %s."
+    };
     issue NoKTXwriter {
-        WARNING | 0x008a, "No KTXwriter key. Writers are strongly urged to identify themselves via this."
+        WARNING | 0x008f, "No KTXwriter key. Writers are strongly urged to identify themselves via this."
     };
 } Metadata;
 
@@ -489,6 +495,7 @@ class ktxValidator : public ktxApp {
         uint32_t* pDfd4Format;
         uint32_t* pActualDfd;
         uint64_t dataSizeFromLevelIndex;
+        bool cubemapIncompleteFound;
 
         struct formatInfo {
             struct {
@@ -505,6 +512,7 @@ class ktxValidator : public ktxApp {
             inf = nullptr;
             pDfd4Format = nullptr;
             pActualDfd = nullptr;
+            cubemapIncompleteFound = false;
         }
 
         ~validationContext() {
@@ -674,8 +682,10 @@ class ktxValidator : public ktxApp {
                         uint8_t* value, uint32_t valueLen);
     void validateWriterScParams(validationContext& ctx, char* key,
                                 uint8_t* value, uint32_t valueLen);
-    void validateAstcDecodeRGB9E5(validationContext& ctx, char* key,
-                                  uint8_t* value, uint32_t valueLen);
+    void validateAstcDecodeMode(validationContext& ctx, char* key,
+                                uint8_t* value, uint32_t valueLen);
+    void validateAnimData(validationContext& ctx, char* key,
+                          uint8_t* value, uint32_t valueLen);
 
     // Move read point from curOffset to next multiple of alignment bytes.
     // Use read not fseeko/setpos so stdin can be used.
@@ -712,6 +722,7 @@ class ktxValidator : public ktxApp {
 };
 
 vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
+    // cubemapIncomplete must appear in this list before animData.
     { "KTXcubemapIncomplete", &ktxValidator::validateCubemapIncomplete },
     { "KTXorientation", &ktxValidator::validateOrientation },
     { "KTXglFormat", &ktxValidator::validateGlFormat },
@@ -720,7 +731,8 @@ vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
     { "KTXswizzle", &ktxValidator::validateSwizzle },
     { "KTXwriter", &ktxValidator::validateWriter },
     { "KTXwriterScParams", &ktxValidator::validateWriterScParams },
-    { "KTXastcDecodeRGB9E5", &ktxValidator::validateAstcDecodeRGB9E5 }
+    { "KTXastcDecodeMode", &ktxValidator::validateAstcDecodeMode },
+    { "KTXanimData", &ktxValidator::validateAnimData }
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -1590,6 +1602,7 @@ void
 ktxValidator::validateCubemapIncomplete(validationContext& ctx, char* key,
                                         uint8_t* value, uint32_t valueLen)
 {
+    ctx.cubemapIncompleteFound = true;
     if (valueLen != 1)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
@@ -1598,6 +1611,11 @@ void
 ktxValidator::validateOrientation(validationContext& ctx, char* key,
                                   uint8_t* value, uint32_t valueLen)
 {
+    if (valueLen == 0) {
+        addIssue(logger::eError, Metadata.MissingValue, key);
+        return;
+    }
+
     if (value[valueLen-1] != '\0')
         addIssue(logger::eError, Metadata.ValueNotNulTerminated, key);
 
@@ -1610,7 +1628,7 @@ ktxValidator::validateOrientation(validationContext& ctx, char* key,
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
       case 2:
-        if (!regex_match ((char*)value, regex("^[rl][du]$") ))
+        if (!regex_match((char*)value, regex("^[rl][du]$")))
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
       case 3:
@@ -1670,10 +1688,45 @@ ktxValidator::validateWriterScParams(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateAstcDecodeRGB9E5(validationContext& ctx, char* key,
-                                       uint8_t* value, uint32_t valueLen)
+ktxValidator::validateAstcDecodeMode(validationContext& ctx, char* key,
+                                     uint8_t* value, uint32_t valueLen)
 {
-    if (valueLen != 0)
+    if (valueLen == 0) {
+        addIssue(logger::eError, Metadata.MissingValue, key);
+        return;
+    }
+
+    if (!regex_match((char*)value, regex("rgb9e5"))
+       && !regex_match((char*)value, regex("unorm8")))
+         addIssue(logger::eError, Metadata.InvalidValue, key);
+
+    if (!ctx.pActualDfd)
+        return;
+
+    uint32_t* bdb = ctx.pDfd4Format + 1;
+    if (KHR_DFDVAL(bdb, MODEL) != KHR_DF_MODEL_ASTC) {
+         addIssue(logger::eError, Metadata.NotAllowed, key,
+                  "for non-ASTC texture formats");
+    }
+    if (KHR_DFDVAL(bdb, TRANSFER) == KHR_DF_TRANSFER_SRGB) {
+         addIssue(logger::eError, Metadata.NotAllowed, key,
+                  "with sRGB transfer function");
+    }
+}
+
+void
+ktxValidator::validateAnimData(validationContext& ctx, char* key,
+                               uint8_t* value, uint32_t valueLen)
+{
+    if (ctx.cubemapIncompleteFound) {
+         addIssue(logger::eError, Metadata.NotAllowed, key,
+                  "together with KTXcubemapIncomplete");
+    }
+    if (ctx.layerCount == 0)
+        addIssue(logger::eError, Metadata.NotAllowed, key,
+                 "except with array textures");
+
+    if (valueLen != sizeof(uint32_t) * 3)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 

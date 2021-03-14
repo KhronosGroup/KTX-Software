@@ -773,13 +773,15 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                         result = KTX_FILE_DATA_ERROR;
                         goto cleanup;
                     }
-                    if (This->isArray && This->numDimensions == 2
-                        && !This->isCubemap)
-                    {
+                    if (This->isArray) {
                         This->isVideo = KTX_TRUE;
                         This->duration = animData[0];
                         This->timescale = animData[1];
                         This->loopcount = animData[2];
+                    } else {
+                        // animData is only valid for array textures.
+                        result = KTX_FILE_DATA_ERROR;
+                        goto cleanup;
                     }
                 } else {
                     result = KTX_SUCCESS; // Not finding video is okay.
