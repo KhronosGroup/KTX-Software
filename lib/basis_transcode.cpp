@@ -578,34 +578,34 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 
             bool status;
             status = bit.transcode_image(
-                              (transcoder_texture_format)outputFormat,
-                              pXcodedData + writeOffset,
-                              (uint32_t)(xcodedDataLength - writeOffsetBlocks),
-                              This->pData,
-                              This->dataSize,
-                              levelBlocksX,
-                              levelBlocksY,
-                              levelWidth,
-                              levelHeight,
-                              level,
-                              levelOffset + imageDesc.rgbSliceByteOffset,
-                              imageDesc.rgbSliceByteLength,
-                              levelOffset + imageDesc.alphaSliceByteOffset,
-                              imageDesc.alphaSliceByteLength,
-                              transcodeFlags,
-                              alphaContent != eNone,
-                              isVideo,
-                              // Our P-Frame flag is in the same bit as
-                              // cSliceDescFlagsFrameIsIFrame. We have to
-                              // invert it to make it an I-Frame flag.
-                              //
-                              // API currently doesn't have any way to pass
-                              // the I-Frame flag.
-                              //imageDesc.imageFlags ^ cSliceDescFlagsFrameIsIFrame,
-                              0, // output_row_pitch_in_blocks_or_pixels
-                              &xcoderState,
-                              0  // output_rows_in_pixels
-                              );
+                      (transcoder_texture_format)outputFormat,
+                      pXcodedData + writeOffset,
+                      (uint32_t)(xcodedDataLength - writeOffsetBlocks),
+                      This->pData,
+                      (uint32_t)This->dataSize,
+                      levelBlocksX,
+                      levelBlocksY,
+                      levelWidth,
+                      levelHeight,
+                      level,
+                      (uint32_t)(levelOffset + imageDesc.rgbSliceByteOffset),
+                      imageDesc.rgbSliceByteLength,
+                      (uint32_t)(levelOffset + imageDesc.alphaSliceByteOffset),
+                      imageDesc.alphaSliceByteLength,
+                      transcodeFlags,
+                      alphaContent != eNone,
+                      isVideo,
+                      // Our P-Frame flag is in the same bit as
+                      // cSliceDescFlagsFrameIsIFrame. We have to
+                      // invert it to make it an I-Frame flag.
+                      //
+                      // API currently doesn't have any way to pass
+                      // the I-Frame flag.
+                      //imageDesc.imageFlags ^ cSliceDescFlagsFrameIsIFrame,
+                      0, // output_row_pitch_in_blocks_or_pixels
+                      &xcoderState,
+                      0  // output_rows_in_pixels
+                      );
             if (!status) {
                 result = KTX_TRANSCODE_FAILED;
                 goto cleanup;
@@ -691,28 +691,28 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                 stateIndex = 0;
 
             status = uit.transcode_image(
-                              (transcoder_texture_format)outputFormat,
-                              pXcodedData + writeOffset,
-                              (uint32_t)(xcodedDataLength - writeOffsetBlocks),
-                              This->pData,
-                              This->dataSize,
-                              levelBlocksX,
-                              levelBlocksY,
-                              levelWidth,
-                              levelHeight,
-                              level,
-                              levelImageOffsetIn,
-                              (uint32_t)levelImageSizeIn,
-                              transcodeFlags,
-                              alphaContent != eNone,
-                              This->isVideo, // is_video
-                              //imageDesc.imageFlags ^ cSliceDescFlagsFrameIsIFrame,
-                              0, // output_row_pitch_in_blocks_or_pixels
-                              &xcoderState, // pState
-                              0, // output_rows_in_pixels,
-                              -1, // channel0
-                              -1  // channel1
-                              );
+                          (transcoder_texture_format)outputFormat,
+                          pXcodedData + writeOffset,
+                          (uint32_t)(xcodedDataLength - writeOffsetBlocks),
+                          This->pData,
+                          (uint32_t)This->dataSize,
+                          levelBlocksX,
+                          levelBlocksY,
+                          levelWidth,
+                          levelHeight,
+                          level,
+                          (uint32_t)levelImageOffsetIn,
+                          (uint32_t)levelImageSizeIn,
+                          transcodeFlags,
+                          alphaContent != eNone,
+                          This->isVideo, // is_video
+                          //imageDesc.imageFlags ^ cSliceDescFlagsFrameIsIFrame,
+                          0, // output_row_pitch_in_blocks_or_pixels
+                          &xcoderState, // pState
+                          0, // output_rows_in_pixels,
+                          -1, // channel0
+                          -1  // channel1
+                          );
             if (!status)
                 return KTX_TRANSCODE_FAILED;
             writeOffset += levelImageSizeOut;
