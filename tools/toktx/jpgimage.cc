@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 #include "image.hpp"
-#include "jpgd.h"
+#include "encoder/jpgd.h"
 
 using namespace jpgd;
 
