@@ -39,12 +39,6 @@
 #define DE_LENGTH_OF_ARRAY(x) (sizeof(x)/sizeof(x[0]))
 #define DE_UNREF(x) (void)x
 
-#if __GNUC__ || __clang__
-  #define DE_MAYBE_UNUSED __attribute__((unused))
-#else
-  #define DE_MAYBE_UNUSED
-#endif
-
 typedef uint8_t deUint8;
 typedef int8_t deInt8;
 typedef uint32_t deUint32;
@@ -65,12 +59,12 @@ typedef uint64_t deUint64;
 
 namespace basisu_astc
 {
-	static bool  DE_MAYBE_UNUSED inBounds(int v, int l, int h)
+	static bool inBounds(int v, int l, int h)
 	{
 		return (v >= l) && (v < h);
 	}
 
-	static bool  DE_MAYBE_UNUSED inRange(int v, int l, int h)
+	static bool inRange(int v, int l, int h)
 	{
 		return (v >= l) && (v <= h);
 	}
@@ -205,7 +199,7 @@ namespace basisu_astc
 		return (a + b - 1) / b;
 	}
 
-	static bool  DE_MAYBE_UNUSED deInBounds32(uint32_t v, uint32_t l, uint32_t h)
+	static bool deInBounds32(uint32_t v, uint32_t l, uint32_t h)
 	{
 		return (v >= l) && (v < h);
 	}
