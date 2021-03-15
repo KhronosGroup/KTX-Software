@@ -447,7 +447,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // has its own array of RGBA-only pixels. Pending modifications to the
     // basisu code we'll have to copy in the images.
     cparams.m_source_images.resize(num_images);
-    std::vector<image>::iterator iit = cparams.m_source_images.begin();
+    basisu::vector<image>::iterator iit = cparams.m_source_images.begin();
 
     swizzle_e meta_mapping[4] = {};
     // Since we have to copy the data into the vector image anyway do the
