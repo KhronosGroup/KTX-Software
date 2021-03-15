@@ -36,6 +36,10 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 
+EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -E -I /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include ${CMAKE_SOURCE_DIR}/cmake/platformtest.c COMMAND tail -1 COMMAND tr -d '\n' OUTPUT_VARIABLE CPU_ARCHITECTURE )
+if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
+    option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" OFF )
+endif()
 
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
 
@@ -105,6 +109,8 @@ set(KTX_MAIN_SRC
     include/ktx.h
     lib/basis_sgd.h
     lib/basis_transcode.cpp
+    lib/basisu/transcoder/basisu_containers.h
+    lib/basisu/transcoder/basisu_containers_impl.h
     lib/basisu/transcoder/basisu_file_headers.h
     lib/basisu/transcoder/basisu_global_selector_cb.h
     lib/basisu/transcoder/basisu_global_selector_palette.h
@@ -420,6 +426,9 @@ PRIVATE
     lib/basisu/encoder/basisu_global_selector_palette_helpers.h
     lib/basisu/encoder/basisu_gpu_texture.cpp
     lib/basisu/encoder/basisu_gpu_texture.h
+    lib/basisu/encoder/basisu_kernels_declares.h
+    lib/basisu/encoder/basisu_kernels_imp.h
+    lib/basisu/encoder/basisu_kernels_sse.cpp
     lib/basisu/encoder/basisu_miniz.h
     lib/basisu/encoder/basisu_pvrtc1_4.cpp
     lib/basisu/encoder/basisu_pvrtc1_4.h
@@ -431,6 +440,11 @@ PRIVATE
     lib/basisu/encoder/basisu_ssim.h
     lib/basisu/encoder/basisu_uastc_enc.cpp
     lib/basisu/encoder/basisu_uastc_enc.h
+    lib/basisu/encoder/cppspmd_flow.h
+    lib/basisu/encoder/cppspmd_math.h
+    lib/basisu/encoder/cppspmd_math_declares.h
+    lib/basisu/encoder/cppspmd_sse.h
+    lib/basisu/encoder/cppspmd_type_aliases.h
     lib/basisu/encoder/jpgd.cpp
     lib/basisu/encoder/jpgd.h
     lib/basisu/encoder/lodepng.cpp
@@ -449,9 +463,28 @@ target_compile_definitions(
 PUBLIC
     KTX_FEATURE_WRITE
 )
+if(BASISU_SUPPORT_SSE)
+    target_compile_definitions(
+        ktx
+    PRIVATE
+        BASISU_SUPPORT_SSE=1
+    )
+    target_compile_options(
+        ktx
+    PRIVATE
+        $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:
+            -msse4.1
+        >
+    )
+else()
+    target_compile_definitions(
+        ktx
+    PRIVATE
+        BASISU_SUPPORT_SSE=0
+    )
+endif()
 
 if(EMSCRIPTEN)
-
     set(
         KTX_EMC_LINK_FLAGS
         --bind
