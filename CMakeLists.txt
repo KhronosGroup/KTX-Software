@@ -39,7 +39,7 @@ option( KTX_FEATURE_TESTS "Create unit tests" ON )
 
 set_target_processor_type(CPU_ARCHITECTURE)
 if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
-    option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" OFF )
+    option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" ON )
 endif()
 
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
