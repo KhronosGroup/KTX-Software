@@ -20,9 +20,6 @@ echo "Test KTX-Software (Linux Debug)"
 ctest # --verbose
 popd
 
-# Verify licensing meets REUSE standard.
-reuse lint
-
 echo "Configure KTX-Software (Linux Release)"
 ${CMAKE_EXE} . -G Ninja -Bbuild-linux-release -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 pushd build-linux-release
@@ -36,9 +33,29 @@ cpack -G RPM
 cpack -G TBZ2
 popd
 
+echo "Configure KTX-Software (Linux Debug without SSE support)"
+${CMAKE_EXE} . -G Ninja -Bbuild-linux-debug-nosse -DCMAKE_BUILD_TYPE=Debug -DBASISU_SUPPORT_SSE=OFF
+pushd build-linux-debug-nosse
+echo "Build KTX-Software (Linux Debug without SSE support)"
+${CMAKE_EXE} --build .
+echo "Test KTX-Software (Linux Debug without SSE support)"
+ctest # --verbose
+popd
+
+echo "Configure KTX-Software (Linux Release without SSE support)"
+${CMAKE_EXE} . -G Ninja -Bbuild-linux-release-nosse -DCMAKE_BUILD_TYPE=Release -DBASISU_SUPPORT_SSE=OFF
+pushd build-linux-release-nosse
+echo "Build KTX-Software (Linux Release without SSE support)"
+${CMAKE_EXE} --build .
+echo "Test KTX-Software (Linux Release without SSE support)"
+ctest # --verbose
+popd
+
+# Verify licensing meets REUSE standard.
+reuse lint
+
 
 # Emscripten/WebAssembly
-
 
 # Temporary solution: Update CMake. Can be dropped once the Ubuntu version in the docker
 # container is updated.

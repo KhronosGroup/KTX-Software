@@ -6,9 +6,7 @@ version: "{build}"
 image:
   - Visual Studio 2015
   - Visual Studio 2017
-  # There is a bug in VS 2019, version 16.[56]. Compiler gets internal error.
-  # Was fine in 16.4.
-  # - Visual Studio 2019
+  - Visual Studio 2019
 
 configuration:
   - Debug
@@ -125,15 +123,21 @@ build_script:
     # Pick up PATH changes made by Doxygen installer.
     refreshenv
     $ErrorActionPreference = 'Stop'
+    # Configure and build with SSE support (default).
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
     pushd $env:KTX_BUILD_DIR
-    git status
     cmake --build . --config $env:CONFIGURATION
-    git status
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
     popd
+    $env:KTX_BUILD_DIR_NOSSE = "build-win-$env:CONFIGURATION-nosse"
+    echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
+    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR_NOSSE -DBASISU_SUPPORT_SSE=OFF -DZLIB_ROOT="C:\Program Files\zlib"
+    pushd $env:KTX_BUILD_DIR_NOSSE
+    cmake --build . --config $env:CONFIGURATION
+    popd
+
     echo "Done Building"
 
 test_script:
@@ -141,6 +145,10 @@ test_script:
     $ErrorActionPreference = 'Stop'
     $env:KTX_BUILD_DIR = "build-win-$env:CONFIGURATION"
     pushd $env:KTX_BUILD_DIR
+    ctest -C $env:CONFIGURATION
+    popd
+    $env:KTX_BUILD_DIR_NOSSE = "build-win-$env:CONFIGURATION-nosse"
+    pushd $env:KTX_BUILD_DIR_NOSSE
     ctest -C $env:CONFIGURATION
     popd
 

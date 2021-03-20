@@ -32,6 +32,9 @@ else # No secure variables means a PR or fork build.
   -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 fi
 
+echo "Configure KTX-Software (macOS) without SSE support"
+cmake -GXcode -Bbuild-macos-nosse -DBASISU_SUPPORT_SSE=OFF
+
 pushd build-macos
 
 # Build and test Debug
@@ -56,6 +59,19 @@ if ! cpack -G productbuild; then
   cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
   exit 1
 fi
+
+popd
+
+pushd build-macos-nosse
+
+echo "Build KTX-Software (macOS without SSE support Debug)"
+cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+echo "Test KTX-Software (macOS without SSE support Debug)"
+ctest -C Debug # --verbose
+echo "Build KTX-Software (macOS without SSE support Release)"
+cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+echo "Test KTX-Software (macOS without SSE support Release)"
+ctest -C Release # --verbose
 
 popd
 
