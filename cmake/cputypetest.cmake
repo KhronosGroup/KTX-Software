@@ -98,6 +98,8 @@ x86
 ")
 file(WRITE "${CMAKE_BINARY_DIR}/cputypetest.c" "${cputypetest_code}")
 
+cmake_policy(SET CMP0054 NEW)
+
 function(set_target_processor_type out)
     if(${ANDROID_ABI} AND ${ANDROID_ABI} STREQUAL "armeabi-v7a")
         set(${out} armv7 PARENT_SCOPE)
@@ -109,21 +111,27 @@ function(set_target_processor_type out)
         set(${out} x86_64 PARENT_SCOPE)
 
     else()
-        # Workaround for CMake < 3.1: Variables such as 'MSVC' are expanded in 'if'
-        # statements even if they are quoted. We can't enable the policy CMP0054 because
-        # we need to support CMake 2.8. Therefore, we append a space on both sides,
-        # which disables automatic expansion.
-        if("${CMAKE_CXX_COMPILER_ID} " STREQUAL "MSVC ")
+        if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
             set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
+            execute_process(
+                COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
+                OUTPUT_VARIABLE processor
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                # Specify this to block MSVC's output of the source file name
+                # so as not to trigger PowerShell's stop-on-error in CI.
+                # Unfortunately it suppresses all compile errors too hence
+                # the special case for MSVC.
+                ERROR_QUIET
+            )
         else()
             set(C_PREPROCESS ${CMAKE_C_COMPILER} -I /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -E -P)
+            execute_process(
+                COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
+                OUTPUT_VARIABLE processor
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
         endif()
 
-        execute_process(
-            COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
-            OUTPUT_VARIABLE processor
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
         string(STRIP "${processor}" processor)
         set(${out} ${processor} PARENT_SCOPE)
     endif()
