@@ -8,6 +8,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 find_package(Bash REQUIRED)
 
 include(cmake/version.cmake)
+include(cmake/cputypetest.cmake)
 
 project(KTX-Software
     VERSION ${KTX_VERSION}
@@ -36,7 +37,7 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 
-EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -E -I /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include ${CMAKE_SOURCE_DIR}/cmake/platformtest.c COMMAND tail -1 COMMAND tr -d '\n' OUTPUT_VARIABLE CPU_ARCHITECTURE )
+set_target_processor_type(CPU_ARCHITECTURE)
 if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
     option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" OFF )
 endif()
