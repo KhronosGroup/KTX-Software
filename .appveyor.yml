@@ -125,14 +125,14 @@ build_script:
     refreshenv
     $ErrorActionPreference = 'Stop'
     # Configure and build with SSE support (default).
-    $env:KTX_BUILD_DIR = "$env:BUILD_DIR\$env:CONFIGURATION"
+    $env:KTX_BUILD_DIR = "$env:BUILD_DIR"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
     popd
-    $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\$env:CONFIGURATION-nosse"
+    $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\nosse"
     echo "Build without SSE support via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR_NOSSE"
     cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR_NOSSE -DBASISU_SUPPORT_SSE=OFF
     pushd $env:KTX_BUILD_DIR_NOSSE
@@ -144,11 +144,11 @@ build_script:
 test_script:
 - ps: |
     $ErrorActionPreference = 'Stop'
-    $env:KTX_BUILD_DIR = "$env:BUILD_DIR\$env:CONFIGURATION"
+    $env:KTX_BUILD_DIR = "$env:BUILD_DIR"
     pushd $env:KTX_BUILD_DIR
     ctest -C $env:CONFIGURATION
     popd
-    $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\$env:CONFIGURATION-nosse"
+    $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\nosse"
     pushd $env:KTX_BUILD_DIR_NOSSE
     ctest -C $env:CONFIGURATION
     popd
@@ -159,7 +159,6 @@ artifacts:
     name: WindowsInstaller
   - path: '$(BUILD_DIR)/Release/KTX-Software-*.exe.sha1'
     name: WindowsInstallerSha1
-
 
 before_deploy:
 - ps: |
