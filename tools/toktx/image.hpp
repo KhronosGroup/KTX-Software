@@ -22,9 +22,6 @@
 #include <KHR/khr_df.h>
 
 #include "argparser.h"
-namespace basisu {
-    class iterator;
-};
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
 
