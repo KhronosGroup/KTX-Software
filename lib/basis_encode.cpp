@@ -547,9 +547,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     job_pool jpool(threadCount);
     cparams.m_pJob_pool = &jpool;
 
+#if BASISU_SUPPORT_SSE
     bool prevSSESupport = g_cpu_supports_sse41;
     if (params->noSSE)
         g_cpu_supports_sse41 = false;
+#endif
 
     cparams.m_uastc = params->uastc;
     if (params->uastc) {
@@ -741,7 +743,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // copy the info and images to This texture.
     //
 
+#if BASISU_SUPPORT_SSE
     g_cpu_supports_sse41 = prevSSESupport;
+#endif
 
     const uint8_vec& bf = c.get_output_basis_file();
     const basis_file_header& bfh = *reinterpret_cast<const basis_file_header*>(bf.data());
