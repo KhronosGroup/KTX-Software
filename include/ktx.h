@@ -984,7 +984,7 @@ typedef struct ktxBasisParams {
              are slower, but give higher quality. There is no default. Callers
              must explicitly set this value. Callers can use
              KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value.
-             Currently this is 1.
+             Currently this is 2.
         */
     ktx_uint32_t qualityLevel;
         /*!< Compression quality. Range is [1,255].  Lower gives better

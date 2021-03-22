@@ -221,7 +221,8 @@ class scApp : public ktxApp {
                 threadCount = tc;
 
                 structSize = sizeof(ktxBasisParams);
-                compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+                // - 1 is to match what basisu_tool does (since 1.13).
+                compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL - 1;
                 qualityLevel.clear();
                 maxEndpoints.clear();
                 endpointRDOThreshold = 0.0f;
