@@ -541,12 +541,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
                                                        basist::g_global_selector_cb);
 
-    ktx_uint32_t countThreads = params->threadCount;
-    if (countThreads < 1)
-        countThreads = 1;
-    job_pool jpool(countThreads);
+    ktx_uint32_t threadCount = params->threadCount;
+    if (threadCount < 1)
+        threadCount = 1;
+    job_pool jpool(threadCount);
     cparams.m_pJob_pool = &jpool;
 
+    bool prevSSESupport = g_cpu_supports_sse41;
     if (params->noSSE)
         g_cpu_supports_sse41 = false;
 
@@ -676,12 +677,19 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     cparams.m_write_output_basis_files = true;
 #endif
 
+#define DEBUG_ENCODER 0
+#if DEBUG_ENCODER
+    cparams.m_debug = true;
+    g_debug_printf = true;
+#endif
+
     basis_compressor c;
 
     // init() only returns false if told to read source image files and the
     // list of files is empty.
     (void)c.init(cparams);
     //enable_debug_printf(true);
+
     basis_compressor::error_code ec = c.process();
 
     if (ec != basis_compressor::cECSuccess) {
@@ -732,6 +740,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Compression successful. Now we have to unpick the basis output and
     // copy the info and images to This texture.
     //
+
+    g_cpu_supports_sse41 = prevSSESupport;
 
     const uint8_vec& bf = c.get_output_basis_file();
     const basis_file_header& bfh = *reinterpret_cast<const basis_file_header*>(bf.data());
