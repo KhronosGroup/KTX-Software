@@ -56,19 +56,21 @@ std::ostream& operator<<(std::ostream& out, const FormatFeature& h)
 
 vector<TextureSet> allTextureSets = {
     {"color_grid_basis.ktx2","color_grid.basis",true,false},
+#if 1
     {"kodim17_basis.ktx2","kodim17.basis",false,false},
     {"alpha_simple_basis.ktx2","alpha_simple.basis",true,true}
+#endif
 };
 
 vector<FormatFeature> allFormats = {
+#if 1
     {KTX_TTF_ETC1_RGB,true,true},
     {KTX_TTF_ETC2_RGBA,true,true},
     {KTX_TTF_BC1_RGB,true,true},
     {KTX_TTF_BC3_RGBA,true,true},
     {KTX_TTF_BC4_R,true,true},
     {KTX_TTF_BC5_RG,true,true},
-    {KTX_TTF_BC7_M6_RGB,true,true},
-    {KTX_TTF_BC7_M5_RGBA,true,true},
+    {KTX_TTF_BC7_RGBA,true,true},
     {KTX_TTF_PVRTC1_4_RGB,false,true},
     {KTX_TTF_PVRTC1_4_RGBA,false,false},
     {KTX_TTF_ASTC_4x4_RGBA,true,true},
@@ -79,6 +81,7 @@ vector<FormatFeature> allFormats = {
     {KTX_TTF_RGBA32,true,true},
     {KTX_TTF_RGB565,true,true},
     {KTX_TTF_BGR565,true,true},
+#endif
     {KTX_TTF_RGBA4444,true,true}
     // ATC and FXT1 formats are not supported by KTX2 as there
     // are no equivalent VkFormats.
