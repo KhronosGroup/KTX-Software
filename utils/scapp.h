@@ -59,11 +59,11 @@ struct clampedOption
           reported by @c thread::hardware_concurrency or 1 if value
           returned is 0.</dd>
       <dt>--clevel &lt;level&gt;</dt>
-      <dd>ETC1S / BasisLZ compression level, an encoding speed vs. quality tradeoff.
-          Range is 0 - 5, default is 1. Higher values are slower, but give
-          higher quality.</dd>
+      <dd>ETC1S / BasisLZ compression level, an encoding speed vs. quality
+          tradeoff. Range is [0,5], default is 1. Higher values are slower, but
+          give higher quality.</dd>
       <dt>--qlevel &lt;level&gt;</dt>
-      <dd>ETC1S / BasisLZ quality level. Range is 1 - 255.  Lower gives better
+      <dd>ETC1S / BasisLZ quality level. Range is [1,255].  Lower gives better
           compression/lower quality/faster. Higher gives less compression
           /higher quality/slower. @b --qlevel automatically determines values
           for @b --max_endpoints, @b --max-selectors,
@@ -79,23 +79,23 @@ struct clampedOption
           @b --endpoint_rdo_threshold and @b --selector_rdo_threshold
           when its value exceeds 128, otherwise their defaults will be used.
       <dt>--max_endpoints &lt;arg&gt;</dt>
-      <dd>Manually set the maximum number of color endpoint clusters
-          from 1-16128. Default is 0, unset. If this is set,
+      <dd>Manually set the maximum number of color endpoint clusters.
+          Range is [1,16128]. Default is 0, unset. If this is set,
           @b --max_selectors must also be set, otherwise the value
           will be ignored.</dd>
       <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
       <dd>Set endpoint RDO quality threshold. The default is 1.25. Lower is
-          higher quality but less quality per output bit (try 1.0-3.0).
-          This will override the value chosen by @c --qual.</dd>
+          higher quality but less quality per output bit (try [1.0,3.0]).
+          This will override the value chosen by @b --qlevel.</dd>
       <dt>--max_selectors &lt;arg&gt;</dt>
-      <dd>Manually set the maximum number of color selector clusters
-          from 1-16128. Default is 0, unset. If this is set,
+      <dd>Manually set the maximum number of color selector clusters. Range
+          is [1,16128]. Default is 0, unset. If this is set,
           @b --max_selectors must also be set, otherwise the value
           will be ignored.</dd>
       <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
       <dd>Set selector RDO quality threshold. The default is 1.5. Lower is
-          higher quality but less quality per output bit (try 1.0-3.0).
-          This will override the value chosen by @c --qual.</dd>
+          higher quality but less quality per output bit (try [1.0,3.0].
+          This will override the value chosen by @b --qlevel.</dd>
       <dt>--normal_map</dt>
       <dd>Tunes codec parameters for better quality on normal maps (no
           selector RDO, no endpoint RDO). Only valid for linear textures.</dd>
@@ -127,23 +127,43 @@ struct clampedOption
         <tr><td>4   </td><td> Very slow </td><td> 48.24dB</td></tr>
         </table>
 
-        When set the following options become available for controlling the
-        optional Rate Distortion Optimization (RDO) post-process stage that
-        conditions the encoded UASTC texture data so it can be more effectively
-        LZ compressed:
+        You are strongly encouraged to also specify @b --zcmp to losslessly
+        compress the UASTC data. This and any LZ-style compression can be made
+        more effective by conditioning the UASTC texture data using the
+        Rate Distortion Optimization (RDO) post-process stage. When @b --uastc
+        is set the following options become available for controlling RDO:
       <dl>
-        <dt>--uastc_rdo_q [&lt;quality&gt;]</dt>
+        <dt>--uastc_rdo_l [&lt;lambda&gt;]</dt>
         <dd>Enable UASTC RDO post-processing and optionally set UASTC RDO
-            quality scalar to @e quality.  Lower values yield higher
+            quality scalar (lambda) to @e lambda.  Lower values yield higher
             quality/larger LZ compressed files, higher values yield lower
             quality/smaller LZ compressed files. A good range to try is
-            [.2-4]." Full range is .001 to 10.0. Default is 1.0.</dd>
+            [.25,10]. For normal maps a good range is [.25-.75]. The full
+            range is [.001,10.0]. Default is 1.0.
+
+            @note Previous versions used the @b --uastc_rdo_q option which was
+            removed because the RDO algorithm changed.</dd>
         <dt>--uastc_rdo_d &lt;dictsize&gt;</dt>
-        <dd>Set UASTC RDO dictionary size in bytes. Default is 32768. Lower
-            values=faster, but give less compression. Possible range is 256 to
-            65536.</dd>
+        <dd>Set UASTC RDO dictionary size in bytes. Default is 4096. Lower
+            values=faster, but give less compression. Range is [64,65536].</dd>
+        <dt>--uastc_rdo_b &lt;scale&gt;</dt>
+        <dd>Set UASTC RDO max smooth block error scale. Range is [1.0,300.0].
+            Default is 10.0, 1.0 is disabled. Larger values suppress more
+            artifacts (and allocate more bits) on smooth blocks.</dd>
+        <dt>--uastc_rdo_s &lt;deviation&gt;</dt>
+        <dd>Set UASTC RDO max smooth block standard deviation. Range is
+            [.01,65536.0]. Default is 18.0. Larger values expand the range of
+            blocks considered smooth.</dd>
+        <dt>--uastc_rdo_f</dt>
+        <dd>Do not favor simpler UASTC modes in RDO mode.</dd>
+        <dt>--uastc_rdo_m</dt>
+        <dd>Disable RDO multithreading (slightly higher compression,
+            deterministic).</dd>
       </dl>
     </dd>
+    <dt>--no_sse</dt>
+    <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
+        support SSE. Only the Basis Universal compressor uses SSE.</dd>
     <dt>--verbose</dt>
     <dd>Print encoder/compressor activity status to stdout. Currently only
         the Basis Universal compressor emits status.</dd>
@@ -177,6 +197,8 @@ class scApp : public ktxApp {
             clampedOption<ktx_uint32_t> maxSelectors;
             clampedOption<ktx_uint32_t> uastcRDODictSize;
             clampedOption<float> uastcRDOQualityScalar;
+            clampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
+            clampedOption<float> uastcRDOMaxSmoothBlockStdDev;
 
             basisOptions() :
                 threadCount(ktxBasisParams::threadCount, 1, 10000),
@@ -185,7 +207,13 @@ class scApp : public ktxApp {
                 maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
                 uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
                 uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
-                                      0.001f, 10.0f)
+                                      0.001f, 50.0f),
+                uastcRDOMaxSmoothBlockErrorScale(
+                              ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale,
+                              1.0f, 300.0f),
+                uastcRDOMaxSmoothBlockStdDev(
+                              ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
+                              0.01f, 65536.0f)
             {
                 uint32_t tc = thread::hardware_concurrency();
                 if (tc == 0) tc = 1;
@@ -209,6 +237,9 @@ class scApp : public ktxApp {
                 uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
                 uastcRDODictSize.clear();
                 uastcRDOQualityScalar.clear();
+                uastcRDODontFavorSimplerModes = false;
+                uastcRDONoMultithreading = false;
+                noSSE = false;
                 verbose = false; // Default to quiet operation.
             }
         };
@@ -256,22 +287,22 @@ class scApp : public ktxApp {
           "               Use --threads 1 instead.\n"
           "      --threads <count>\n"
           "               Explicitly set the number of threads to use during compression.\n"
-          "               By default, ETC1S / BasisLZ compression will use the number of threads\n"
-          "               reported by thread::hardware_concurrency or 1 if value returned\n"
-          "               is 0.\n"
+          "               By default, ETC1S / BasisLZ compression will use the number of\n"
+          "               threads reported by thread::hardware_concurrency or 1 if value\n"
+          "               returned is 0.\n"
           "      --clevel <level>\n"
-          "               ETC1S / BasisLZ compression level, an encoding speed vs. quality tradeoff.\n"
-          "               Range is 0 - 5, default is 1. Higher values are slower, but give\n"
-          "               higher quality.\n"
+          "               ETC1S / BasisLZ compression level, an encoding speed vs. quality\n"
+          "               tradeoff. Range is [0,5], default is 1. Higher values are slower,\n"
+          "               but give higher quality.\n"
           "      --qlevel <level>\n"
-          "               ETC1S / BasisLZ quality level. Range is 1 - 255.  Lower gives better\n"
-          "               compression/lower quality/faster. Higher gives less compression\n"
-          "               /higher quality/slower. --qlevel automatically determines values\n"
-          "               for --max_endpoints, --max-selectors, --endpoint_rdo_threshold\n"
-          "               and --selector_rdo_threshold for the target quality level.\n"
-          "               Setting these options overrides the values determined by\n"
-          "               --qlevel which defaults to 128 if neither it nor both of\n"
-          "               --max_endpoints and --max_selectors have been set.\n"
+          "               ETC1S / BasisLZ quality level. Range is [1,255]. Lower gives\n"
+          "               better compression/lower quality/faster. Higher gives less\n"
+          "               compression/higher quality/slower. --qlevel automatically\n"
+          "               determines values for --max_endpoints, --max-selectors,\n"
+          "               --endpoint_rdo_threshold and --selector_rdo_threshold for the\n"
+          "               target quality level. Setting these options overrides the values\n"
+          "               determined by -qlevel which defaults to 128 if neither it nor\n"
+          "               both of --max_endpoints and --max_selectors have been set.\n"
           "\n"
           "               Note that both of --max_endpoints and --max_selectors\n"
           "               must be set for them to have any effect. If all three options\n"
@@ -281,19 +312,19 @@ class scApp : public ktxApp {
           "               --endpoint_rdo_threshold and --selector_rdo_threshold when\n"
           "               its value exceeds 128, otherwise their defaults will be used.\n"
           "      --max_endpoints <arg>\n"
-          "               Manually set the maximum number of color endpoint clusters from\n"
-          "               1-16128. Default is 0, unset.\n"
+          "               Manually set the maximum number of color endpoint clusters. Range\n"
+          "               is [1,16128]. Default is 0, unset.\n"
           "      --endpoint_rdo_threshold <arg>\n"
           "               Set endpoint RDO quality threshold. The default is 1.25. Lower\n"
-          "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
-          "               This will override the value chosen by --qual.\n"
+          "               is higher quality but less quality per output bit (try\n"
+          "               [1.0,3.0]). This will override the value chosen by --qlevel.\n"
           "      --max_selectors <arg>\n"
           "               Manually set the maximum number of color selector clusters from\n"
-          "               1-16128. Default is 0, unset.\n"
+          "               [1,16128]. Default is 0, unset.\n"
           "      --selector_rdo_threshold <arg>\n"
           "               Set selector RDO quality threshold. The default is 1.25. Lower\n"
-          "               is higher quality but less quality per output bit (try 1.0-3.0).\n"
-          "               This will override the value chosen by --qual.\n"
+          "               is higher quality but less quality per output bit (try\n"
+          "               [1.0,3.0]). This will override the value chosen by --qlevel.\n"
           "      --normal_map\n"
           "               Tunes codec parameters for better quality on normal maps (no\n"
           "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
@@ -322,22 +353,42 @@ class scApp : public ktxApp {
           "                   3   |  Slower   | 48.01dB\n"
           "                   4   | Very slow | 48.24dB\n"
           "\n"
-          "               When set the following options become available for controlling\n"
-          "               the optional Rate Distortion Optimization (RDO) post-process stage\n"
-          "               that conditions the encoded UASTC texture data so it can be more\n"
-          "               effectively LZ compressed:\n\n"
-          "      --uastc_rdo_q [<quality>]\n"
+          "               You are strongly encouraged to also specify --zcmp to losslessly\n"
+          "               compress the UASTC data. This and any LZ-style compression can\n"
+          "               be made more effective by conditioning the UASTC texture data\n"
+          "               using the Rate Distortion Optimization (RDO) post-process stage.\n"
+          "               When --uastc is set the following options become available for\n"
+          "               controlling RDO:\n\n"
+          "      --uastc_rdo_l [<lambda>]\n"
           "               Enable UASTC RDO post-processing and optionally set UASTC RDO\n"
-          "               quality scalar to <quality>.  Lower values yield higher\n"
+          "               quality scalar (lambda) to @e lambda.  Lower values yield higher\n"
           "               quality/larger LZ compressed files, higher values yield lower\n"
-          "               quality/smaller LZ compressed files. A good range to try is [.2-4].\n"
-          "               Full range is .001 to 10.0. Default is 1.0.\n"
+          "               quality/smaller LZ compressed files. A good range to try is\n"
+          "               [.25,10]. For normal maps a good range is [.25,.75]. The full\n"
+          "               range is [.001,10.0]. Default is 1.0.\n"
+          "\n"
+          "               Note that previous versions used the --uastc_rdo_q option which\n"
+          "               was removed because the RDO algorithm changed.\n"
           "      --uastc_rdo_d <dictsize>\n"
-          "               Set UASTC RDO dictionary size in bytes. Default is 32768. Lower\n"
-          "               values=faster, but give less compression. Possible range is 256\n"
-          "               to 65536.\n\n"
-          "  --verbose    Print encoder/compressor activity status to stdout. Currently only\n"
-          "               the Basis Universal compressor emits status."
+          "               Set UASTC RDO dictionary size in bytes. Default is 4096. Lower\n"
+          "               values=faster, but give less compression. Range is [64,65536].\n"
+          "      --uastc_rdo_b <scale>\n"
+          "               Set UASTC RDO max smooth block error scale. Range is [1.0,300.0].\n"
+          "               Default is 10.0, 1.0 is disabled. Larger values suppress more\n"
+          "               artifacts (and allocate more bits) on smooth blocks.\n"
+          "      --uastc_rdo_s <deviation>\n"
+          "               Set UASTC RDO max smooth block standard deviation. Range is\n"
+          "               [.01,65536.0]. Default is 18.0. Larger values expand the range\n"
+          "               of blocks considered smooth.<dd>\n"
+          "      --uastc_rdo_f\n"
+          "               Do not favor simpler UASTC modes in RDO mode.\n"
+          "      --uastc_rdo_m\n"
+          "               Disable RDO multithreading (slightly higher compression,\n"
+          "               deterministic).\n\n"
+          "  --no_sse     Forbid use of the SSE instruction set. Ignored if CPU does not\n"
+          "               support SSE. Only the Basis Universal compressor uses SSE.\n"
+          "  --verbose    Print encoder/compressor activity status to stdout. Currently\n"
+          "               only the Basis Universal compressor emits status.\n"
           "  --zcmp [<compressionLevel>]\n"
           "               Supercompress the data with Zstandard. Implies --t2. Can be used\n"
           "               with data in any format except ETC1S / BasisLZ (--bcmp). Most\n"
@@ -375,10 +426,15 @@ scApp::scApp(string& version, string& defaultVersion,
       { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
       { "no_endpoint_rdo", argparser::option::no_argument, NULL, 1001 },
       { "no_selector_rdo", argparser::option::no_argument, NULL, 1002 },
+      { "no_sse", argparser::option::no_argument, NULL, 1011 },
       { "uastc", argparser::option::optional_argument, NULL, 1003 },
-      { "uastc_rdo_q", argparser::option::optional_argument, NULL, 1004 },
+      { "uastc_rdo_l", argparser::option::optional_argument, NULL, 1004 },
       { "uastc_rdo_d", argparser::option::required_argument, NULL, 1005 },
-      { "verbose", argparser::option::no_argument, NULL, 1006 }
+      { "uastc_rdo_b", argparser::option::optional_argument, NULL, 1006 },
+      { "uastc_rdo_s", argparser::option::optional_argument, NULL, 1007 },
+      { "uastc_rdo_f", argparser::option::no_argument, NULL, 1008 },
+      { "uastc_rdo_m", argparser::option::no_argument, NULL, 1009 },
+      { "verbose", argparser::option::no_argument, NULL, 1010 }
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
@@ -529,8 +585,28 @@ scApp::processOption(argparser& parser, int opt)
         hasArg = true;
         break;
       case 1006:
+        options.bopts.uastcRDOMaxSmoothBlockErrorScale =
+                               strtof(parser.optarg.c_str(), nullptr);
+        hasArg = true;
+        break;
+      case 1007:
+        options.bopts.uastcRDOMaxSmoothBlockStdDev =
+                               strtof(parser.optarg.c_str(), nullptr);
+        hasArg = true;
+        break;
+      case 1008:
+        options.bopts.uastcRDODontFavorSimplerModes = true;
+        break;
+      case 1009:
+        options.bopts.uastcRDONoMultithreading = true;
+        break;
+      case 1010:
         options.bopts.verbose = true;
         capture = false;
+        break;
+      case 1011:
+        options.bopts.noSSE = true;
+        capture = true;
         break;
       default:
         return false;

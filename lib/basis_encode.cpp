@@ -547,16 +547,33 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     job_pool jpool(countThreads);
     cparams.m_pJob_pool = &jpool;
 
+    if (params->noSSE)
+        g_cpu_supports_sse41 = false;
+
     cparams.m_uastc = params->uastc;
     if (params->uastc) {
         cparams.m_pack_uastc_flags = params->uastcFlags;
-        if (params->uastcRDOQualityScalar > 0.0f) {
-            cparams.m_rdo_uastc_quality_scalar = params->uastcRDOQualityScalar;
+        if (params->uastcRDO) {
             cparams.m_rdo_uastc = true;
-        }
-        if (params->uastcRDODictSize > 0) {
-            cparams.m_rdo_uastc_dict_size = params->uastcRDODictSize;
-            cparams.m_rdo_uastc = true;
+            if (params->uastcRDOQualityScalar > 0.0f) {
+                cparams.m_rdo_uastc_quality_scalar =
+                                params->uastcRDOQualityScalar;
+            }
+            if (params->uastcRDODictSize > 0) {
+                cparams.m_rdo_uastc_dict_size = params->uastcRDODictSize;
+            }
+            if (params->uastcRDOMaxSmoothBlockErrorScale > 0) {
+              cparams.m_rdo_uastc_max_smooth_block_error_scale =
+                               params->uastcRDOMaxSmoothBlockErrorScale;
+            }
+            if (params->uastcRDOMaxSmoothBlockStdDev > 0) {
+                cparams.m_rdo_uastc_smooth_block_max_std_dev =
+                                params->uastcRDOMaxSmoothBlockStdDev;
+            }
+            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode =
+                                    !params->uastcRDODontFavorSimplerModes;
+            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode =
+                                    !params->uastcRDONoMultithreading;
         }
     } else {
         // ETC1S-related params.

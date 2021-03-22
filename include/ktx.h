@@ -175,7 +175,7 @@ typedef enum ktx_error_code_e {
     KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
     KTX_UNSUPPORTED_FEATURE,  /*!< Feature not included in in-use library or not yet implemented. */
     KTX_LIBRARY_NOT_LINKED,  /*!< Library dependency (OpenGL or Vulkan) not linked into application. */
-	KTX_ERROR_MAX_ENUM = KTX_LIBRARY_NOT_LINKED /*!< For safety checks. */
+    KTX_ERROR_MAX_ENUM = KTX_LIBRARY_NOT_LINKED /*!< For safety checks. */
 } ktx_error_code_e;
 /**
  * @deprecated
@@ -968,23 +968,26 @@ typedef struct ktxBasisParams {
     ktx_bool_t uastc;
         /*!<  True to use UASTC base, false to use ETC1S base. */
     ktx_bool_t verbose;
-        /*!< If true, prints Basis Universal encoder operation details to @c stdout.
-             Not recommended for GUI apps.
+        /*!< If true, prints Basis Universal encoder operation details to
+             @c stdout. Not recommended for GUI apps.
          */
+    ktx_bool_t noSSE;
+        /*!< True to forbid use of the SSE instruction set. Ignored if CPU
+             does not support SSE. */
     ktx_uint32_t threadCount;
         /*!< Number of threads used for compression. Default is 1. */
 
     /* ETC1S params */
 
     ktx_uint32_t compressionLevel;
-        /*!< Encoding speed vs. quality tradeoff. Range is 0 - 5. Higher values
+        /*!< Encoding speed vs. quality tradeoff. Range is [0,5]. Higher values
              are slower, but give higher quality. There is no default. Callers
-			 must explicitly set this value. Callers can use
+             must explicitly set this value. Callers can use
              KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value.
              Currently this is 1.
         */
     ktx_uint32_t qualityLevel;
-        /*!< Compression quality. Range is 1 - 255.  Lower gives better
+        /*!< Compression quality. Range is [1,255].  Lower gives better
              compression/lower quality/faster. Higher gives less compression
              /higher quality/slower.  This automatically determines values for
              @c maxEndpoints, @c maxSelectors,
@@ -1000,23 +1003,23 @@ typedef struct ktxBasisParams {
              when its value exceeds 128, otherwise their defaults will be used.
         */
     ktx_uint32_t maxEndpoints;
-        /*!< Manually set the max number of color endpoint clusters
-             from 1-16128. Default is 0, unset. If this is set, maxSelectors
+        /*!< Manually set the max number of color endpoint clusters.
+             Range is [1,16128]. Default is 0, unset. If this is set, maxSelectors
              must also be set, otherwise the value will be ignored.
          */
     float endpointRDOThreshold;
         /*!< Set endpoint RDO quality threshold. The default is 1.25. Lower is
-             higher quality but less quality per output bit (try 1.0-3.0).
+             higher quality but less quality per output bit (try [1.0,3.0].
              This will override the value chosen by @c qualityLevel.
          */
     ktx_uint32_t maxSelectors;
-        /*!< Manually set the max number of color selector clusters
-             from 1-16128. Default is 0, unset. If this is set, maxEndpoints
+        /*!< Manually set the max number of color selector clusters. Range
+             is [1,16128]. Default is 0, unset. If this is set, maxEndpoints
              must also be set, otherwise the value will be ignored.
          */
     float selectorRDOThreshold;
         /*!< Set selector RDO quality threshold. The default is 1.5. Lower is
-             higher quality but less quality per output bit (try 1.0-3.0).
+             higher quality but less quality per output bit (try [1.0,3.0]).
              This will override the value chosen by @c qualityLevel.
          */
     ktx_bool_t normalMap;
@@ -1062,14 +1065,26 @@ typedef struct ktxBasisParams {
     ktx_bool_t uastcRDO;
         /*!< Enable Rate Distortion Optimization (RDO) post-processing. */
     float uastcRDOQualityScalar;
-        /*!< Set UASTC RDO quality scalar.  Lower values yield higher quality/larger LZ
-             compressed files, higher values yield lower quality/smaller LZ compressed
-             files. A good range to try is [.2-4]." Full range is .001 to 10.0. Default is
-             1.0.*/
+        /*!< UASTC RDO quality scalar (lambda). Lower values yield higher
+             quality/larger LZ compressed files, higher values yield lower
+             quality/smaller LZ compressed files. A good range to try is [.2,4].
+             Full range is [.001,50.0]. Default is 1.0. */
     ktx_uint32_t uastcRDODictSize;
-        /*!< Set UASTC RDO dictionary size in bytes. Default is 32768. Lower
-             values=faster, but give less compression. Possible range is 256 to
-             65536.*/
+        /*!< UASTC RDO dictionary size in bytes. Default is 4096. Lower
+             values=faster, but give less compression. Range is [64,65536]. */
+    float uastcRDOMaxSmoothBlockErrorScale;
+        /*!< UASTC RDO max smooth block error scale. Range is [1,300].
+             Default is 10.0, 1.0 is disabled. Larger values suppress more
+             artifacts (and allocate more bits) on smooth blocks. */
+    float uastcRDOMaxSmoothBlockStdDev;
+        /*!< UASTC RDO max smooth block standard deviation. Range is
+             [.01,65536.0]. Default is 18.0. Larger values expand the range of
+             blocks considered smooth. */
+    ktx_bool_t uastcRDODontFavorSimplerModes;
+        /*!< Do not favor simpler UASTC modes in RDO mode. */
+    ktx_bool_t uastcRDONoMultithreading;
+        /*!< Disable RDO multithreading (slightly higher compression,
+             deterministic). */
 
 } ktxBasisParams;
 
@@ -1083,16 +1098,18 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params);
  * For BasisU/ETC1S format, @e Opaque and @e alpha here refer to 2 separate
  * RGB images, a.k.a slices within the BasisU compressed data. For UASTC
  * format they refer to the RGB and the alpha components of the UASTC data. If
- * the original image had only 2 components, R will be in the opaque portion and G
- * in the alpha portion. The R value will be replicated in the RGB components. In
- * the case of BasisU the G value will be replicated in all 3 components of the
- * alpha slice. If the original image had only 1 component it's value is replicated in all
- * 3 components of the opaque portion and there is no alpha.
+ * the original image had only 2 components, R will be in the opaque portion
+ * and G in the alpha portion. The R value will be replicated in the RGB
+ * components. In the case of BasisU the G value will be replicated in all 3
+ * components of the alpha slice. If the original image had only 1 component
+ * it's value is replicated in all 3 components of the opaque portion and
+ * there is no alpha.
  *
- * @note You should not transcode sRGB encoded data to @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG,
- * @c KTX_TTF_ETC2_EAC_R{,G}11, @c KTX_TTF_RGB565, @c KTX_TTF_BGR565 or
- * @c KTX_TTF_RGBA4444 formats as neither OpenGL nor Vulkan support sRGB variants of these. Doing
- * sRGB decoding in the shader will not produce correct results if any texture filtering is being used.
+ * @note You should not transcode sRGB encoded data to @c KTX_TTF_BC4_R,
+ * @c KTX_TTF_BC5_RG, @c KTX_TTF_ETC2_EAC_R{,G}11, @c KTX_TTF_RGB565,
+ * @c KTX_TTF_BGR565 or @c KTX_TTF_RGBA4444 formats as neither OpenGL nor
+ * Vulkan support sRGB variants of these. Doing sRGB decoding in the shader
+ * will not produce correct results if any texture filtering is being used.
  */
 typedef enum ktx_transcode_fmt_e {
         // Compressed formats
@@ -1100,80 +1117,96 @@ typedef enum ktx_transcode_fmt_e {
         // ETC1-2
         KTX_TTF_ETC1_RGB = 0,
             /*!< Opaque only. Returns RGB or alpha data, if
-              KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is specified. */
+                 KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is
+                 specified. */
         KTX_TTF_ETC2_RGBA = 1,
-            /*!< Opaque+alpha. EAC_A8 block followed by an ETC1 block. The alpha channel will be
-              opaque for textures without an alpha channel. */
+            /*!< Opaque+alpha. EAC_A8 block followed by an ETC1 block. The
+                 alpha channel will be opaque for textures without an alpha
+                 channel. */
 
         // BC1-5, BC7 (desktop, some mobile devices)
         KTX_TTF_BC1_RGB = 2,
-            /*!< Opaque only, no punchthrough alpha support yet.  Returns RGB or alpha data, if
-              KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is specified. */
+            /*!< Opaque only, no punchthrough alpha support yet.  Returns RGB
+                 or alpha data, if KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS
+                 flag is specified. */
         KTX_TTF_BC3_RGBA = 3,
-            /*!< Opaque+alpha. BC4 block with alpha followed by a BC1 block. The alpha channel will
-              be opaque for textures without an alpha channel. */
+            /*!< Opaque+alpha. BC4 block with alpha followed by a BC1 block. The
+                 alpha channel will be opaque for textures without an alpha
+                 channel. */
         KTX_TTF_BC4_R = 4,
-        	/*!< One BC4 block. R = opaque.g or alpha.g, if
-              KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is specified. */
+            /*!< One BC4 block. R = opaque.g or alpha.g, if
+                 KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is
+                 specified. */
         KTX_TTF_BC5_RG = 5,
-            /*!<Two BC4 blocks, R=opaque.g and G=alpha.g The texture should have an alpha
-              channel (if not G will be all 255's. For tangent space normal maps. */
+            /*!< Two BC4 blocks, R=opaque.g and G=alpha.g The texture should
+                 have an alpha channel (if not G will be all 255's. For tangent
+                 space normal maps. */
         KTX_TTF_BC7_RGBA = 6,
-            /*!< RGB or RGBA mode 5 for ETC1S,  modes 1, 2, 3, 4, 5, 6, 7 for UASTC. */
+            /*!< RGB or RGBA mode 5 for ETC1S, modes 1, 2, 3, 4, 5, 6, 7 for
+                 UASTC. */
 
         // PVRTC1 4bpp (mobile, PowerVR devices)
         KTX_TTF_PVRTC1_4_RGB = 8,
             /*!< Opaque only. Returns RGB or alpha data, if
-              KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is specified. */
+                 KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is
+                 specified. */
         KTX_TTF_PVRTC1_4_RGBA = 9,
-            /*!< Opaque+alpha. Most useful for simple opacity maps. If the texture doesn't have an
-              alpha channel KTX_TTF_PVRTC1_4_RGB will be used instead. Lowest quality of any
-              supported texture format. */
+            /*!< Opaque+alpha. Most useful for simple opacity maps. If the
+                 texture doesn't have an alpha channel KTX_TTF_PVRTC1_4_RGB
+                 will be used instead. Lowest quality of any supported
+                 texture format. */
 
         // ASTC (mobile, Intel devices, hopefully all desktop GPU's one day)
         KTX_TTF_ASTC_4x4_RGBA = 10,
-            /*!< Opaque+alpha, ASTC 4x4. The alpha channel will be opaque for textures without an
-              alpha channel.  The transcoder uses RGB/RGBA/L/LA modes, void extent, and up to
-              two ([0,47] and [0,255]) endpoint precisions. */
+            /*!< Opaque+alpha, ASTC 4x4. The alpha channel will be opaque for
+                 textures without an alpha channel.  The transcoder uses
+                 RGB/RGBA/L/LA modes, void extent, and up to two ([0,47] and
+                 [0,255]) endpoint precisions. */
 
         // ATC and FXT1 formats are not supported by KTX2 as there
         // are no equivalent VkFormats.
 
         KTX_TTF_PVRTC2_4_RGB = 18,
-        	/*!<  Opaque-only. Almost BC1 quality, much faster to transcode and supports arbitrary
-                 texture dimensions (unlike PVRTC1 RGB). */
+            /*!< Opaque-only. Almost BC1 quality, much faster to transcode
+                 and supports arbitrary texture dimensions (unlike
+                 PVRTC1 RGB). */
         KTX_TTF_PVRTC2_4_RGBA = 19,
-        	/*!< Opaque+alpha. Slower to transcode than cTFPVRTC2_4_RGB. Premultiplied alpha
-              is highly recommended, otherwise the color channel can leak into the alpha channel
-              on transparent blocks. */
+            /*!< Opaque+alpha. Slower to transcode than cTFPVRTC2_4_RGB.
+                 Premultiplied alpha is highly recommended, otherwise the
+                 color channel can leak into the alpha channel on transparent
+                 blocks. */
 
         KTX_TTF_ETC2_EAC_R11 = 20,
             /*!< R only (ETC2 EAC R11 unsigned). R = opaque.g or alpha.g, if
-              KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is specified. */
+                 KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS flag is
+                 specified. */
         KTX_TTF_ETC2_EAC_RG11 = 21,
-            /*!< RG only (ETC2 EAC RG11 unsigned), R=opaque.g, G=alpha.g. The texture should have
-              an alpha channel (if not G will be all 255's. For tangent space normal maps. */
-        
+            /*!< RG only (ETC2 EAC RG11 unsigned), R=opaque.g, G=alpha.g. The
+                 texture should have an alpha channel (if not G will be all
+                 255's. For tangent space normal maps. */
+
         // Uncompressed (raw pixel) formats
         KTX_TTF_RGBA32 = 13,
-            /*!< 32bpp RGBA image stored in raster (not block) order in memory, R is first byte, A is last
-              byte. */
+            /*!< 32bpp RGBA image stored in raster (not block) order in
+                 memory, R is first byte, A is last byte. */
         KTX_TTF_RGB565 = 14,
-            /*!< 16bpp RGB image stored in raster (not block) order in memory, R at bit position 11. */
+            /*!< 16bpp RGB image stored in raster (not block) order in memory,
+                 R at bit position 11. */
         KTX_TTF_BGR565 = 15,
-            /*!< 16bpp RGB image stored in raster (not block) order in memory, R at bit position 0. */
+            /*!< 16bpp RGB image stored in raster (not block) order in memory,
+                 R at bit position 0. */
         KTX_TTF_RGBA4444 = 16,
-            /*!< 16bpp RGBA image stored in raster (not block) order in memory, R at bit position 12,
-              A at bit position 0. */
+            /*!< 16bpp RGBA image stored in raster (not block) order in memory,
+                 R at bit position 12, A at bit position 0. */
 
         // Values for automatic selection of RGB or RGBA depending if alpha
         // present.
         KTX_TTF_ETC = 22,
-            /*!< Automatically selects @c KTX_TTF_ETC1_RGB or @c KTX_TTF_ETC2_RGBA
-              according to presence of alpha. */
+            /*!< Automatically selects @c KTX_TTF_ETC1_RGB or
+                 @c KTX_TTF_ETC2_RGBA according to presence of alpha. */
         KTX_TTF_BC1_OR_3 = 23,
-            /*!< Automatically selects @c KTX_TTF_BC1_RGB or @c KTX_TTF_BC3_RGBA
-              according to presence of alpha. */
+            /*!< Automatically selects @c KTX_TTF_BC1_RGB or
+                 @c KTX_TTF_BC3_RGBA according to presence of alpha. */
 
         KTX_TTF_NOSELECTION = 0x7fffffff,
 
