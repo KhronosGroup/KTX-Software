@@ -85,9 +85,9 @@ fi
 #  these too but these commands will only work with my arrangement
 # of workareas, so keep commented out.
 $toktx --test --genmipmap --bcmp -scale 0.5 ../webgl/libktx-webgl/ktx_app_basis.ktx2 $ktxspec_dir/icons/png/ktx_app.png
-$toktx --test --uastc --uastc_rdo_q 5.0 --resize 1000x1392 ../webgl/libktx-webgl/ktx_document_uastc_rdo5.ktx2 $ktxspec_dir/icons/png/ktx_document.png
+$toktx --test --uastc --uastc_rdo_l 5.0 --resize 1000x1392 ../webgl/libktx-webgl/ktx_document_uastc_rdo5.ktx2 $ktxspec_dir/icons/png/ktx_document.png
 $toktx --test --genmipmap -bcmp ktx_document_basis.ktx2 $ktxspec_dir/icons/png/ktx_document.png
 # threads 1 here is to avoid non-determism in the RDO processing.
 # Hopefully a fix will be forthcoming.
-$toktx --test --genmipmap --threads 1 --uastc --uastc_rdo_q 4 --zcmp 5 ktx_document_uastc_rdo4_zstd5.ktx2 $ktxspec_dir/icons/png/ktx_document.png
+$toktx --test --genmipmap --threads 1 --uastc --uastc_rdo_l 4 --zcmp 5 ktx_document_uastc_rdo4_zstd5.ktx2 $ktxspec_dir/icons/png/ktx_document.png
 
