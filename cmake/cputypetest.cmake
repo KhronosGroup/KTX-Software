@@ -34,7 +34,6 @@ x86
 x86
 
         #elif TARGET_CPU_X86_64
-
 #undef x86_64
 x86_64
 
@@ -124,12 +123,24 @@ function(set_target_processor_type out)
                 ERROR_QUIET
             )
         else()
-            set(C_PREPROCESS ${CMAKE_C_COMPILER} -I /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -E -P)
-            execute_process(
-                COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
-                OUTPUT_VARIABLE processor
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-            )
+            if(APPLE AND NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+                # No other Apple systems are x64_64. When configuring for iOS, etc.
+                # CMAKE_C_COMPILER points at the HOST compiler - I can't find
+                # definitive documentation of what is supposed to happen - the
+                # test program above returns x86_64. Since we don't care what
+                # type of ARM processor arbitrarily set armv8 for these systems.
+                set(processor armv8)
+            else()
+                if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+                    set(TC_INCLUDE_DIR -I ${CMAKE_OSX_SYSROOT}/usr/include)
+                endif()
+                set(C_PREPROCESS ${CMAKE_C_COMPILER} ${TC_INCLUDE_DIR} -E -P)
+                execute_process(
+                    COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
+                    OUTPUT_VARIABLE processor
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                )
+            endif()
         endif()
 
         string(STRIP "${processor}" processor)

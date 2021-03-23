@@ -8,7 +8,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 find_package(Bash REQUIRED)
 
 include(cmake/version.cmake)
-include(cmake/cputypetest.cmake)
 
 project(KTX-Software
     VERSION ${KTX_VERSION}
@@ -22,6 +21,8 @@ include(CMakeDependentOption)
 
 include(cmake/mkvk.cmake)
 include(cmake/xcode.cmake)
+
+include(cmake/cputypetest.cmake)
 
 # OPTIONS
 
