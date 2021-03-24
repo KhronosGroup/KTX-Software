@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/KhronosGroup/dfdutils.git
 	branch = ktxsw
-	commit = de0187bfcf35c81316e3e442774bd19e0258be14
-	parent = 253ce430b79d2edbf0a7f9a1b715b37e32563004
+	commit = 75e8a3b9ce9da6b7fe0d007bc7e74fd5e087464d
+	parent = 4e0a2cea60431ef757d7e7d93b245fc074c60e19
 	method = merge
-	cmdver = 0.4.0
+	cmdver = 0.4.3
