@@ -2,57 +2,67 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.0.0-beta7
+## Version 4.0.0-beta8
 ### Significant Changes
 
-* An error that prevented KTX files created from PNG files with tRNS chunks having
-alpha channels was fixed.
+Incoporates Basis Universal 1.13 bringing the latest ETC1S and UASTC
+encodersa.
 
-### Changes since v4.0.0-beta6 (by part)
+The ETC1S encoder is 3x faster with no quality loss (_toktx_ option
+`--clevel 2`) and 4.5x faster with a very slight quality loss
+(`--clevel 1`). Note that the default `compressionLevel` parameter
+in the _libktx_ API has been changed from 1 to 2. However the default in _toktx_ remains 1, to match _basisu\_tool_.
+
+The UASTC RDO encoder has greatly improved quality per bit making
+lower bitrates more usable. As part of this _toktx's_ `--uastc_rdo_q`
+option has been renamed `--uastc_rdo_l` (for lamda) to reflect the new
+implementation. The range of values to try has changed too. The
+UASTC RDO dictionary size default and minimum allowed size have
+changed. There are now options to control the new smooth block
+detector and an option to disable RDO multithreading for determinism.
+See the [toktx man
+page](https://github.khronos.org/KTX-Software/ktxtools/toktx.html) for
+details.
+
+### Changes since v4.0.0-beta7 (by part)
 ### libktx
 
-* Properly detect presence of a tRNS chunk. Fixes #356. (#370) (08eed131) (@MarkCallow)
+* git subrepo push lib/dfdutils (5d1acb19) (@null)
 
-* Fix first INVALID\_OPERATION reason. Fixes #358. (4013b1f0) (@MarkCallow)
+* Ignore noSSE when SSE support not compiled in. (5a1f9e6c) (@MarkCallow)
 
-* Expose BasisU compressor status\_output via a --verbose opt. (#368) (9f40914f) (@MarkCallow)
+* git subrepo pull lib/basisu (edac0216) (@MarkCallow)
 
-* Disable status output from BasisU compressor. (97bdfcaf) (@MarkCallow)
+* Restore previous value of sse support. (41e23d02) (@MarkCallow)
 
-* Update for latest BasisU API & deprecate msc\_basis\_transcoder. (ce766b78) (@MarkCallow)
+* Expose new BU encoder options in libktx & apps. (7d0e9641) (@MarkCallow)
 
-* git subrepo commit (merge) lib/basisu (c2776ffe) (@MarkCallow)
+* git subrepo pull lib/basisu (69017842) (@MarkCallow)
 
-  subrepo:
-    subdir:   "lib/basisu"
-    merged:   "61785924"
-  upstream:
-    origin:   "https://github.com/BinomialLLC/basis\_universal.git"
-    branch:   "master"
-    commit:   "ef70ddd7"
-  git-subrepo:
-    version:  "0.4.0"
-    origin:   "https://github.com/MarkCallow/git-subrepo.git"
-    commit:   "65b6406"
+* Integrate Basis changes into build. (231e828a) (@MarkCallow)
+
+* git subrepo pull --force lib/basisu (8621a855) (@MarkCallow)
+
+* Remove copies of moved and deleted files. (0bc26125) (@MarkCallow)
+
+* Fix compile warnings passing args to new basisu API. (1bdc1eca) (@MarkCallow)
+
+* Support video in cube maps to match relaxation in KTX spec. (#381) (f6c5f548) (@MarkCallow)
 
 ### Tools
 
-* Fix reporting of jpeg decoder errors. (79d3f354) (@MarkCallow)
+* Remove workaround for issue with basisu\_resampler.h. (d74c679f) (@MarkCallow)
 
-* Properly detect presence of a tRNS chunk. Fixes #356. (#370) (08eed131) (@MarkCallow)
+* Expose new BU encoder options in libktx & apps. (7d0e9641) (@null)
 
-* Rescale to 8-bits when encoding to UASTC. Fixes #360. (6c792d94) (@MarkCallow)
+* Fix MSVC confusion & error over intended iterator. (8a00c9c2) (@null)
 
-* Update for latest BasisU API & deprecate msc\_basis\_transcoder. (ce766b78) (@MarkCallow)
+* Remove copies of moved and deleted files. (0bc26125) (@null)
+
+* Support video in cube maps to match relaxation in KTX spec. (#381) (f6c5f548) (@null)
 
 
 
-### JS Wrappers
 
-* Add BC7\_RGBA. Deprecate other BC7 enums. Fixes #369. (a5a812ec) (@MarkCallow)
-
-* Fix duplicate call in transcode example code. (15731f5f) (@MarkCallow)
-
-* Update for latest BasisU API & deprecate msc\_basis\_transcoder. (ce766b78) (@MarkCallow)
 
 
