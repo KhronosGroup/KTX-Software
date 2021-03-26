@@ -14,7 +14,6 @@ sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev
 sudo apt-get -qq install libvulkan1 libvulkan-dev
 sudo apt-get -qq install libassimp5 libassimp-dev
 #sudo apt-get -qq install rpm
-sudo apt-get install rpm
 
 wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
 sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-focal.list http://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-focal.list
