@@ -15,13 +15,9 @@ sudo apt-get -qq install libvulkan1 libvulkan-dev
 sudo apt-get -qq install libassimp5 libassimp-dev
 sudo apt-get -qq install rpm
 
-echo "exit status after rpm install: $?"
-
-echo "wget Vulkan signing key"
-wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-focal.list http://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-focal.list
-
+wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-focal.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-focal.list
 sudo apt update
-sudo apt install lunarg-vulkan-sdk cmake
+sudo apt install vulkan-sdk
 
 pip3 install reuse
