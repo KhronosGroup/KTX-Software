@@ -19,7 +19,7 @@ matrix:
           packages:
             - gcc-7
             - g++-7
-      dist: bionic
+      dist: focal
       env:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER="1.2.141"
