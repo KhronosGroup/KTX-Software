@@ -18,7 +18,7 @@ sudo apt-get -qq install rpm
 echo "wget LunarG key"
 wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
 echo "wget VulkanSDK version $VULKAN_SDK_VER".
-sudo wget /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-focal.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-focal.list
+sudo wget -O etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-focal.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-focal.list
 echo "Install Vulkan SDK"
 sudo apt update
 sudo apt install vulkan-sdk
