@@ -715,7 +715,7 @@ VulkanAppSDL::createDevice()
     for (uint32_t i = 0; i < wantedExtensions.size(); i++) {
         uint32_t j;
         for (j = 0; j < deviceExtensions.size(); j++) {
-            if (!wantedExtensions[i].name.compare(static_cast<std::string>(deviceExtensions[j].extensionName))) {
+            if (!wantedExtensions[i].name.compare(static_cast<const char*>(deviceExtensions[j].extensionName))) {
                 extensionsToEnable.push_back(wantedExtensions[i].name.c_str());
                 if (!wantedExtensions[i].name.compare(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME)) {
                     vkctx.enabledDeviceExtensions.pvrtc = true;
