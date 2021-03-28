@@ -153,7 +153,11 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
     if(APPLE)
         set(PRODUCT_NAME "${target}")
         set(EXECUTABLE_NAME ${PRODUCT_NAME})
+        # How amazingly irritating. We have to set both of these to the same value.
+        # The first must be set otherwise the app cannot be installed on iOS. The second
+        # has to be set to avoid an Xcode warning.
         set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
+        set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
         configure_file( ${INFO_PLIST} ${target}/Info.plist )
         set_target_properties( ${target} PROPERTIES
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/${target}/Info.plist"
