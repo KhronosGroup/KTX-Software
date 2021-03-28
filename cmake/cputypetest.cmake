@@ -132,7 +132,14 @@ function(set_target_processor_type out)
                 set(processor armv8)
             else()
                 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-                    set(TC_INCLUDE_DIR -I ${CMAKE_OSX_SYSROOT}/usr/include)
+                    if (CMAKE_OSX_SYSROOT)
+                        set(TC_INCLUDE_DIR -I ${CMAKE_OSX_SYSROOT}/usr/include)
+                    else()
+                        # I have seen cases where CMAKE_OSX_SYSROOT is not defined
+                        # for reasons I do not understand. Plus, uses can manually
+                        # undefine it. This is the fallback.
+                        set(TC_INCLUDE_DIR -I /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include)
+                    endif()
                 endif()
                 set(C_PREPROCESS ${CMAKE_C_COMPILER} ${TC_INCLUDE_DIR} -E -P)
                 execute_process(
