@@ -10,19 +10,19 @@ language:
 
 matrix:
   include:
-    # works on Precise and Trusty
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          #sources:
+          #  - sourceline: 'ppa:ubuntu-toolchain-r/test'
           packages:
             - gcc-7
             - g++-7
-      dist: bionic
+            - cmake
+      dist: focal
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER="1.2.141"
+        - VULKAN_SDK_VER="1.2.148"
       compiler: gcc # clang is tested by macOS build
       language: python
       python: '3.7'
