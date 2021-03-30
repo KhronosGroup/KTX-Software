@@ -1,0 +1,81 @@
+// Copyright 2019-2020 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+Khronos^®^ Data Format Descriptor Utilities
+===========================================
+
+This directory contains helper utilities for creating and
+interpreting data format descriptors as specified in Part 1 of the
+https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html[Khronos
+Data Format Specification 1.3] (KDFS). KDFS Part 1 is referred to by the
+http://github.khronos.org/KTX-Specification/[KTX File Format
+Specification Version 2] and data format descriptors are embedded
+in `.ktx2` files.  The OpenGL^®^, OpenGL ES^™️^ and Vulkan^®^
+specifications refer to other parts of KDFS that specify color
+transforms and block-compressed texture formats.
+
+These utilities are provided as examples rather than being intended for
+use in production code (they are not robust to all possible
+input, even for legal data format descriptors) and no warranty
+is provided. They should however work with the subset of data format
+descriptors needed in `.ktx2` files.
+
+`colorspaces.c` contains a helper function for finding a mapping from a
+set of color primarie values to a KDFS primaries enum.
+
+`createdfd.c` contains helpers for converting from Vulkan format
+enums to data format descriptors.
+
+`interpretdfd.c` provides the ability to interpret a data format
+descriptor for simple formats, and provides a simplified
+interface for this case.
+
+`printdfd.c` produces a (fairly) human-readable description of
+the fields of a data format descriptor, intended to assist with
+debugging.
+
+`queries.c` contains functions to query the component information
+of a descriptor for an unpacked format and the number of components
+in the described format. It also contains a utility function to
+recreate the `bytesPlane0` value of a DFD for data that is being
+inflated from supercomoression.
+
+`vk2dfd.c` creates a DFD describing a `VkFormat` and `dfd2vk.c`
+returns the VkFormat matching a DFD.
+
+API documentation can be found http://github.khronos.org/dfdutils/[here].
+
+makevkswitch.pl and makedfdtovk.pl generate the code used by
+`vk2dfd.c` and `dfd2vk.c` to convert from Vulkan enums to data
+format descriptors and back again; these should be run with the
+Vulkan header (or the format enum subset of it) as input, since
+they heuristically support formats named in the header rather than
+being hard-wired.  As the resulting code depends highly on
+heuristics to identify existing format mappings, it is not robust
+against descriptors which did not originate as a Vulkan format.
+
+NOTE: Only common color formats and depth formats are
+supported; there's no support for multi-planar formats, for
+example.
+
+The commands` syntax is
+[source,sh]
+----
+makevkswitch.pl [<vulkan header>] [<output_file>]
+makedfd2vk.pl [<vulkan_header>] [<output_file>]
+----
+With no arguments they read from `stdin` and write to `stdout`.
+With 1 argument the commands read the first argument file and write
+to `stdout`. With 2 arguments they read the first argument file and
+write to the second.
+
+[NOTE]
+====
+These utilities require access to vulkan_core.h for access to
+VkFormat. A version is provided in this repo as a temporary measure
+until the Vulkan extension for ASTC 3D formats is released and
+those enums appear in the standard vulkan_core.h.
+====
+
+// vim: filetype=asciidoc ai expandtab tw=72 ts=4 sts=2 sw=2

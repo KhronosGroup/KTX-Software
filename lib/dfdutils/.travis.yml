@@ -1,0 +1,93 @@
+# Copyright 2019-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# CI build script for Travis.
+# See https://docs.travis-ci.com/user/multi-os/ for more info.
+
+branches:
+  except:
+  - ktxsw
+
+language:
+  - cpp
+  - node_js
+
+matrix:
+  include:
+    # works on Focal
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          packages:
+            - gcc-7
+            - g++-7
+      dist: focal
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - VULKAN_SDK_VER="1.1.85"
+      compiler: gcc # clang is tested by macOS build
+      sudo: required
+      node_js:
+        - node
+    - os: osx
+      env:
+        - VULKAN_SDK_VER="1.1.85.0"
+        - VULKAN_INSTALL_DIR="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
+        - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
+      compiler: clang
+      osx_image: xcode11.4
+
+#env:
+  #global:
+
+# Phase 1: Git clone - done automatically.
+# Phase 2: Install apt addons.
+# Phase 3: Install cache components - Currently not using a cache
+# then the following phases:
+before_install:
+
+install:
+- |
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    # No need to install git-lfs. It is part of Travis's Ubuntu environment.
+    sudo apt-get -qq update &&
+    sudo apt-get -qq install doxygen
+    ;;
+  osx)
+    brew install doxygen
+    ;;
+  esac
+#- pushd ../..
+#- git clone https://github.com/msc-/gyp
+#- cd gyp && sudo ./setup.py install && cd ..
+#- popd
+
+before_script:
+
+script:
+- |
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    make
+    ;;
+  osx)
+    make
+    ;;
+    esac
+
+# Errors in something run in after_success: don't cause the build to fail so don't use.
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  local-dir: out/doc/html
+  on:
+    branch: master
+    condition: $TRAVIS_OS_NAME = osx
+    #tags: true
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab
