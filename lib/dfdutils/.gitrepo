@@ -7,6 +7,6 @@
 	remote = https://github.com/KhronosGroup/dfdutils.git
 	branch = master
 	commit = bf8b996163f44d4378fdb35d5aa4a701152aa77c
-	parent = 270e380bfb2339a2bfc077fa6104787d44330488
+	parent = 22d09c26d19174e4e65bb1c832a912c2e6b251fb
 	method = merge
 	cmdver = 0.4.3
