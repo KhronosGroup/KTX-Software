@@ -507,7 +507,7 @@ typedef enum _khr_df_model_channels_e {
     KHR_DF_CHANNEL_UASTC_RGBA  = 3U,
     KHR_DF_CHANNEL_UASTC_RRR   = 4U,
     KHR_DF_CHANNEL_UASTC_RRRG  = 5U,
-    KHR_DF_CHANNEL_UASTC_RG0   = 6U,
+    KHR_DF_CHANNEL_UASTC_RG    = 6U,
 
     /* Common channel names shared by multiple formats */
     KHR_DF_CHANNEL_COMMON_LUMA    =  0U,
