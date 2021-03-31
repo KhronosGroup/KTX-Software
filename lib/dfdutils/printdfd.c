@@ -69,6 +69,7 @@ void printDFD(uint32_t *DFD)
                  : channelId == KHR_DF_CHANNEL_UASTC_RGBA ? "RGBA"
                  : channelId == KHR_DF_CHANNEL_UASTC_RRR ? "RRR"
                  : channelId == KHR_DF_CHANNEL_UASTC_RGB ? "RGB"
+                 : channelId == KHR_DF_CHANNEL_UASTC_RG ? "RG"
                  : "unknown");
         } else if (model == KHR_DF_MODEL_ETC1S) {
             printf(" (%s)",
