@@ -137,6 +137,37 @@ Texture::Texture(VulkanContext& vkctx,
     if (kTexture->orientation.y == KTX_ORIENT_Y_UP)
         sign_t = -1;
 
+    ktx_uint32_t swizzleLen;
+    char* swizzleStr;
+    ktxresult = ktxHashList_FindValue(&kTexture->kvDataHead, KTX_SWIZZLE_KEY,
+                                      &swizzleLen, (void**)&swizzleStr);
+    if (ktxresult == KTX_SUCCESS) {
+        swizzle.r = swizzleStr[0] == 'r' ? vk::ComponentSwizzle::eR
+                  : swizzleStr[0] == 'g' ? vk::ComponentSwizzle::eG
+                  : swizzleStr[0] == 'b' ? vk::ComponentSwizzle::eB
+                  : swizzleStr[0] == 'a' ? vk::ComponentSwizzle::eA
+                  : swizzleStr[0] == '0' ? vk::ComponentSwizzle::eZero
+                  : vk::ComponentSwizzle::eOne;
+        swizzle.g = swizzleStr[1] == 'r' ? vk::ComponentSwizzle::eR
+                  : swizzleStr[1] == 'g' ? vk::ComponentSwizzle::eG
+                  : swizzleStr[1] == 'b' ? vk::ComponentSwizzle::eB
+                  : swizzleStr[1] == 'a' ? vk::ComponentSwizzle::eA
+                  : swizzleStr[1] == '0' ? vk::ComponentSwizzle::eZero
+                  : vk::ComponentSwizzle::eOne;
+        swizzle.b = swizzleStr[2] == 'r' ? vk::ComponentSwizzle::eR
+                  : swizzleStr[2] == 'g' ? vk::ComponentSwizzle::eG
+                  : swizzleStr[2] == 'b' ? vk::ComponentSwizzle::eB
+                  : swizzleStr[2] == 'a' ? vk::ComponentSwizzle::eA
+                  : swizzleStr[2] == '0' ? vk::ComponentSwizzle::eZero
+                  : vk::ComponentSwizzle::eOne;
+        swizzle.a = swizzleStr[3] == 'r' ? vk::ComponentSwizzle::eR
+                  : swizzleStr[3] == 'g' ? vk::ComponentSwizzle::eG
+                  : swizzleStr[3] == 'b' ? vk::ComponentSwizzle::eB
+                  : swizzleStr[3] == 'a' ? vk::ComponentSwizzle::eA
+                  : swizzleStr[3] == '0' ? vk::ComponentSwizzle::eZero
+                  : vk::ComponentSwizzle::eOne;
+    }
+
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&vdi);
     
@@ -653,6 +684,7 @@ Texture::prepareSamplerAndView()
     // ranges.
     vk::ImageViewCreateInfo viewInfo;
     // Set the non-default values.
+    viewInfo.components = swizzle;
     viewInfo.image = texture.image;
     viewInfo.format = static_cast<vk::Format>(texture.imageFormat);
     viewInfo.viewType = static_cast<vk::ImageViewType>(texture.viewType);

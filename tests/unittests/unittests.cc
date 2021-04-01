@@ -39,12 +39,12 @@ extern "C" {
 // as there is no "namespace {" in basis_encode.cpp where the function is
 // defined.
 enum swizzle_e {
-    R = 0,
-    G = 1,
-    B = 2,
-    A = 3,
-    ZERO = 4,
-    ONE = 5,
+    R = 1,
+    G = 2,
+    B = 3,
+    A = 4,
+    ZERO = 5,
+    ONE = 6,
 };
 
 extern void

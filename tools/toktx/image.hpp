@@ -45,7 +45,7 @@ template <typename S> inline S minimum(S a, S b) { return (a < b) ? a : b; }
 #endif
 
 static INLINE float
-encode709(float const intensity, float const) {
+encode_bt709(float const intensity, float const) {
     /* We're following what Netpbm does. This is their comment and code. */
 
     /* Here are parameters of the gamma transfer function for the Netpbm
@@ -132,6 +132,12 @@ static INLINE float
 decode_gamma(float const brightness, float const gamma)
 {
     return saturate(powf(brightness, gamma));
+}
+
+static INLINE float
+decode_linear(float const brightness, float const)
+{
+    return brightness;
 }
 
 static INLINE float
@@ -249,12 +255,17 @@ class Image {
         invalid_file(std::string error)
             : std::runtime_error("Invalid file: " + error) { }
     };
+    enum colortype_e {
+        eLuminance=0, eLuminanceAlpha=1, eR=2, eRG, eRGB, eRGBA
+    };
 
     virtual ~Image() { };
 
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
+    colortype_e getColortype() { return this->colortype; }
+    void setColortype(colortype_e t) { colortype = t; }
     khr_df_transfer_e getOetf() const { return oetf; }
     void setOetf(khr_df_transfer_e oetf) { this->oetf = oetf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
@@ -298,6 +309,7 @@ class Image {
             : width(w), height(h), primaries(KHR_DF_PRIMARIES_BT709) { }
 
     uint32_t width, height;  // In pixels
+    colortype_e colortype;
     khr_df_transfer_e oetf;
     khr_df_primaries_e primaries;
 };
@@ -546,6 +558,19 @@ class ImageT : public Image {
         return *this;
     }
 
+#if 0
+    enum swizzle_e {
+        R = 0,
+        G = 1,
+        B = 2,
+        A = 3,
+        ZERO = 4,
+        ONE = 5,
+    };
+    virtual void swizzleToRGBA(class rgba8image& dst, Image& src, swizzle_e swizzle) {
+
+    }
+#endif
   protected:
     Color* pixels;
 };

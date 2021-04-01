@@ -184,8 +184,9 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     } else {
         switch (componentCount) {
           case 1: {
-            using Color = color<uint8_t, 1>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            //using Color = color<uint8_t, 1>;
+            //image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new r8image(w, h);
             break;
           } case 2: {
             using Color = color<uint8_t, 2>;
@@ -201,6 +202,20 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
             break;
           }
         }
+    }
+    switch (componentCount) {
+      case 1:
+        image->colortype = eLuminance;  // Defined in PNG spec.
+        break;
+      case 2:
+        image->colortype = eLuminanceAlpha; // ditto
+        break;
+      case 3:
+        image->colortype = eRGB;
+        break;
+      case 4:
+        image->colortype = eRGBA;
+        break;
     }
 
     if (!transformOETF) {

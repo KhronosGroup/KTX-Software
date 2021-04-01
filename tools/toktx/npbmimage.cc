@@ -175,6 +175,7 @@ createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         image = new rgb16image(width, height);
     else
         image = new rgb8image(width, height);
+    image->setColortype(Image::eRGB);
 
     // We need to remove the newline.
     char c = 0;
@@ -233,11 +234,12 @@ createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 
     parseHeader(src, width, height, maxval);
 
-    // PGM is 1 component.
+    // PGM is 1 component. Treat as luminance for consistency with .png & .jpg.
     if (maxval > 255 && !rescaleTo8Bits)
         image = new r16image(width, height);
     else
         image = new r8image(width, height);
+    image->setColortype(Image::eLuminance);
 
     /* gotta eat the newline too */
     char ch=0;
@@ -368,6 +370,24 @@ createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
             break;
         }
     }
+    switch (depth) {
+      case 1:
+        // NPBM specs do spec. what a depth 1 image is.
+        // We choose to treat is luminance, for consistency with PNG.
+        image->setColortype(Image::eLuminance);
+        break;
+      case 2:
+        // As with depth=1, handle consistently with PNG.
+        image->setColortype(Image::eLuminanceAlpha);
+        break;
+      case 3:
+        image->setColortype(Image::eRGB);
+        break;
+      case 4:
+        image->setColortype(Image::eRGBA);
+        break;
+    }
+
 
     readImage(src, *image, maxval);
     if (transformOETF) {

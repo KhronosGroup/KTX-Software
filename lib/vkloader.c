@@ -538,10 +538,10 @@ linearTilingPadCallback(int miplevel, int face,
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
  * Creates a VkImage with @c VkFormat etc. matching the KTX data and uploads
- * the images. Also creates a VkImageView object for accessing the image.
- * Mipmaps will be generated if the @c ktxTexture's @c generateMipmaps
- * flag is set. Returns the handles of the created objects and information
- * about the texture in the @c ktxVulkanTexture pointed at by @p vkTexture.
+ * the images.  Mipmaps will be generated if the @c ktxTexture's
+ * @c generateMipmaps flag is set. Returns the handles of the created objects
+ * and information about the texture in the @c ktxVulkanTexture pointed at by
+ * @p vkTexture.
  *
  * @p usageFlags and thus acceptable usage of the created image may be
  * augmented as follows:

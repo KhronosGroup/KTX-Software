@@ -53,12 +53,12 @@ typedef struct ktxBasisParamsV1 {
 } ktxBasisParamsV1;
 
 enum swizzle_e {
-    R = 0,
-    G = 1,
-    B = 2,
-    A = 3,
-    ZERO = 4,
-    ONE = 5,
+    R = 1,
+    G = 2,
+    B = 3,
+    A = 4,
+    ZERO = 5,
+    ONE = 6,
 };
 
 typedef void
@@ -226,7 +226,8 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
 // encoding and supercompression, by using hasAlpha.
 static KTX_error_code
 ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
-                                    alpha_content_e alphaContent)
+                                    alpha_content_e alphaContent,
+                                    bool isLuminance)
 {
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
@@ -262,7 +263,7 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
         uint16_t channelId, bitOffset;
         if (sample == 0) {
             bitOffset = 0;
-            if (getDFDNumComponents(cdfd) < 3)
+            if (getDFDNumComponents(cdfd) < 3 && !isLuminance)
                 channelId = KHR_DF_CHANNEL_ETC1S_RRR;
             else
                 channelId = KHR_DF_CHANNEL_ETC1S_RGB;
@@ -327,7 +328,7 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
     if (alphaContent == eAlpha) {
         channelId = KHR_DF_CHANNEL_UASTC_RGBA;
     } else if (alphaContent == eGreen) {
-        channelId = KHR_DF_CHANNEL_UASTC_RRRG;
+        channelId = KHR_DF_CHANNEL_UASTC_RG;
     } else if (getDFDNumComponents(cdfd) == 1) {
         channelId = KHR_DF_CHANNEL_UASTC_RGB;
     } else {
@@ -378,6 +379,9 @@ static bool basisuEncoderInitialized = false;
  * @exception KTX_INVALID_OPERATION
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
+ * @exception KTX_INVALID_OPERATION
+ *                              Both preSwizzle and and inputSwizzle are specified
+ *                              in @a params.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code
@@ -453,49 +457,84 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Since we have to copy the data into the vector image anyway do the
     // separation here to avoid another loop over the image inside
     // basis_compressor.
-    swizzle_e rg_to_rgba_mapping[4] = { R, R, R, G };
+    swizzle_e rg_to_rgba_mapping_etc1s[4] = { R, R, R, G };
+    swizzle_e rg_to_rgba_mapping_uastc[4] = { R, G, ZERO, ONE };
     swizzle_e r_to_rgba_mapping[4] = { R, R, R, ONE };
     swizzle_e* comp_mapping = 0;
-    if (params->preSwizzle) {
-        ktx_uint32_t swizzleLen;
-        char* swizzleStr;
 
-        result = ktxHashList_FindValue(&This->kvDataHead, KTX_SWIZZLE_KEY,
-                                       &swizzleLen, (void**)&swizzleStr);
-        if (result == KTX_SUCCESS) {
-            // swizzleLen should be 5. 4 plus terminating NUL.
-            // When move this to constructor add a check.
-            // Also need to check that swizzle is 0 for missing color
-            // components and 1 for missing alpha components.
-            if ((num_components == 2 && strncmp(swizzleStr, "rg01", 4U))
-                || (num_components == 3 && strncmp(swizzleStr, "rgb1", 4U))
-                || (num_components == 4 && strncmp(swizzleStr, "rgba", 4U))) {
-                for (int i = 0; i < 4; i++) {
-                    switch (swizzleStr[i]) {
-                      case 'r': meta_mapping[i] = R; break;
-                      case 'g': meta_mapping[i] = G; break;
-                      case 'b': meta_mapping[i] = B; break;
-                      case 'a': meta_mapping[i] = A; break;
-                      case '0': meta_mapping[i] = ZERO; break;
-                      case '1': meta_mapping[i] = ONE; break;
-                    }
-                }
-                comp_mapping = meta_mapping;
-            }
-        }
-    }
-
-    // There's no other way so sensibly handle 2-component textures.
     alpha_content_e alphaContent = eNone;
-    if (num_components == 2 || params->separateRGToRGB_A) {
-        comp_mapping = rg_to_rgba_mapping;
-        alphaContent = eGreen;
+    bool isLuminance = false;
+    if (num_components == 1) {
+        comp_mapping = r_to_rgba_mapping;
+    } else if (num_components == 2) {
+        if (params->uastc)
+            comp_mapping = rg_to_rgba_mapping_uastc;
+        else {
+            comp_mapping = rg_to_rgba_mapping_etc1s;
+            alphaContent = eGreen;
+        }
     } else if (num_components == 4) {
         alphaContent = eAlpha;
     }
 
-    if (num_components == 1)
-        comp_mapping = r_to_rgba_mapping;
+    ktx_uint32_t swizzleLen = 0;
+    char* swizzleStr = nullptr;
+    for (int i = 0; i < 4; i++) {
+        if (params->inputSwizzle[i]) {
+            swizzleStr = params->inputSwizzle;
+            swizzleLen = 5;
+            break;
+        }
+    }
+    if (params->preSwizzle) {
+        if (swizzleStr != nullptr) {
+            return KTX_INVALID_OPERATION;
+        }
+
+        ktxHashListEntry* swizzleEntry;
+        result = ktxHashList_FindEntry(&This->kvDataHead, KTX_SWIZZLE_KEY,
+                                       &swizzleEntry);
+        if (result == KTX_SUCCESS) {
+            ktxHashListEntry_GetValue(swizzleEntry,
+                                      &swizzleLen, (void**)&swizzleStr);
+            // Remove the swizzle as it is no longer needed.
+            ktxHashList_DeleteEntry(&This->kvDataHead, swizzleEntry);
+        }
+    }
+
+    if (swizzleStr != nullptr) {
+        // Only set comp_mapping for cases we can't shortcut.
+        // If num_components < 3 we always swizzle so no shortcut there.
+        if (num_components < 3
+          || (num_components == 3 && strncmp(swizzleStr, "rgb1", 4U))
+          || (num_components == 4 && strncmp(swizzleStr, "rgba", 4U))) {
+            for (int i = 0; i < 4; i++) {
+                switch (swizzleStr[i]) {
+                  case 'r': meta_mapping[i] = R; break;
+                  case 'g': meta_mapping[i] = G; break;
+                  case 'b': meta_mapping[i] = B; break;
+                  case 'a': meta_mapping[i] = A; break;
+                  case '0': meta_mapping[i] = ZERO; break;
+                  case '1': meta_mapping[i] = ONE; break;
+                }
+            }
+            comp_mapping = meta_mapping;
+        }
+        // An incoming swizzle of RRR1 or RRRG is assumed to be for a
+        // luminance texture. Set isLuminance to distinguish from
+        // an identical swizzle generated internally for R & RG cases.
+        int i;
+        for (i = 0; i < 3; i++) {
+            if (meta_mapping[i] != r_to_rgba_mapping[i])
+                break;
+        }
+        if (i == 3) {
+            isLuminance = true;
+        }
+        if (meta_mapping[3] != ONE) {
+            alphaContent = eAlpha;
+        }
+    }
 
     PFNBUCOPYCB copycb;
     if (comp_mapping) {
@@ -928,7 +967,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     } else {
-        result = ktxTexture2_rewriteDfd4BasisLzETC1S(This, alphaContent);
+        result = ktxTexture2_rewriteDfd4BasisLzETC1S(This, alphaContent,
+                                                     isLuminance);
         if (result != KTX_SUCCESS) goto cleanup;
 
         This->supercompressionScheme = KTX_SS_BASIS_LZ;

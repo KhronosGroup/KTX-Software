@@ -96,12 +96,27 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     '\@@' is used instead, paths must be absolute or relative to the location
     of the list file.
 
-    .jpg files yeild RED or RGB textures according to the actual components
-    in the file. .png files yield RED, RG, RGB or RGBA textures according to
-    the files's @e color type, .ppm files RGB textures, .pgm files RED textures
-    and .pam files RED, RG, RGB or RGBA textures according to the file's
-    TUPLTYPE and DEPTH. Other formats can be readily converted to the
-    supported formats using tools such as ImageMagick and XnView.
+    The target texture type (number of components in the output texture) is
+    chosen via @b --target_type. Swizzling of the components of the input
+    file is specified with @b --input_swizzle and swizzzle metadata can be
+    specified with @b --swizzle. Defaults, shown in the following table, are
+    based on the components of the input file and whether the target texture
+    format is uncompressed or block-compressed including the universal
+    formats. Input components are arbitrarily labeled r, g, b & a.
+
+    |   | Uncompressed Formats |||| Block-compressed formats ||||
+    | --------------------- | :-: | :-: | :-: | :-:  | :-: | :-: | :-: | :-: |
+    | Input components |  1  (greyscale)  |  2  (greyscale alpha) |  3  |  4  |  1  |  2  |  3  |  4  |
+    | Target type | R | RG | RGB | RGBA | RGB | RGBA | RGB | RGBA |
+    | Input swizzle | - | - | - | - | rrr1 | rrrg | - | - |
+    | Swizzle | rrr1 | rrrg | - | - | - | - | - | - |
+
+    As can be seen from the table one- and two-component inputs are treated
+    as luminance{,-alpha} in accordance with the JPEG and PNG specifications.
+    For consistency Netpbm inputs are handled the same way. Use of R & RG
+    types for uncompressed formats saves space but note that the sRGB versions
+    of these formats are not widely supported so a warning will be issued and
+    you will be given the opportunity to convert the input to linear.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
     based on the input file unless @b --linear or @b --srgb is specified. For .jpg
@@ -220,17 +235,21 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.
         This option is ignored with @b --cubemap. </dd>
-    <dt>--linear</dt>
-    <dd>Force the created texture to have a linear transfer function. If this is
+    <dt>--assign_oetf &lt;linear|srgb&gt;</dt>
+    <dd>Force the created texture to have the specified transfer function. If this is
         specified, implicit or explicit color space information from the input file(s)
         will be ignored and no color transformation will be performed. USE WITH
         CAUTION preferably only when you know the file format information is
-        wrong.
-    </dd>
+        wrong.</dd>
+    <dt>--convert_oetf &lt;linear|srgb&gt;</dt>
+    <dd>Convert the input images to the specified transfer function, if the current
+        transfer funciton is different. If both this and @b --assign_oetf are
+        specified, conversion will be performed from the assigned transfer function
+        to the transfer function specified by this option, if different.
+    <dt>--linear</dt>
+    <dd>Deprecated. Use @b --assign_profile linear.</dd>
     <dt>--srgb</dt>
-    <dd>Force the created texture to have an srgb transfer function. Like
-        @b --linear, USE WITH CAUTION. As with @b --linear, no color
-        transformation will be performed.</dd>
+    <dd>Deprecated. Use @b --assign_profile srgb.</dd>
     <dt>--resize &lt;width&gt;x&lt;height&gt;
     <dd>Resize images to @e width X @e height. This should not be used with
         @b --mipmap as it would resize all the images to the same size.
@@ -238,6 +257,22 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     <dt>--scale &lt;value&gt;</dt>
     <dd>Scale images by @e value as they are read. Resampler options can
         be set via @b --filter and  @b --fscale. </dd>.
+    <dt>--input_swizzle &lt;swizzle&gt;
+    <dd>Swizzle the input components according to @e swizzle which
+        is an alhpanumeric sequence matching the regular expression
+        @c ^[rgba01]{4}$.
+    <dt>--swizzle &lt;swizzle&gt;
+    <dd>Add swizzle metadata to the file being created. @e swizzle
+        has the same syntax as the parameter for @b --input_swizzle.
+        Not recommended for use with block-cmpressed textures, including
+        Basis Universal formats, because something like @c rabb may
+        yield drastically different error metrics if done after compression.
+    <dt>--target_type &lt;type&gt;
+    <dd>Specify the number of components in the created texture. @e type
+        is one of the following strings: @c R, @c RG, @c RGB or @c RGBA.
+        Excess input components will be dropped. Output components with
+        no mapping from the input will be set to 0 or, if the alpha component,
+        1.0.
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     </dl>
@@ -299,6 +334,7 @@ class toktxApp : public scApp {
     virtual bool processOption(argparser& parser, int opt);
     void processEnvOptions();
     void validateOptions();
+    void validateSwizzle(string& swizzle);
 
     struct commandOptions : public scApp::commandOptions {
         struct mipgenOptions {
@@ -316,7 +352,8 @@ class toktxApp : public scApp {
         int          metadata;
         int          mipmap;
         int          two_d;
-        khr_df_transfer_e oetf;
+        khr_df_transfer_e convert_oetf;
+        khr_df_transfer_e assign_oetf;
         int          useStdin;
         int          lower_left_maps_to_s0t0;
         int          warn;
@@ -330,6 +367,12 @@ class toktxApp : public scApp {
             unsigned int width;
             unsigned int height;
         } newGeom;
+        string inputSwizzle;
+        string swizzle;
+        enum {
+            // These values are selected to match the number of components.
+            eUnspecified=0, eR=1, eRG, eRGB, eRGBA
+        } targetType;
 
         commandOptions() {
             automipmap = 0;
@@ -344,7 +387,8 @@ class toktxApp : public scApp {
             depth = 1;
             layers = 1;
             levels = 1;
-            oetf = KHR_DF_TRANSFER_UNSPECIFIED;
+            convert_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
+            assign_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
             // As required by spec. Opposite of OpenGL {,ES}, same as
             // Vulkan, et al.
             lower_left_maps_to_s0t0 = 0;
@@ -352,7 +396,8 @@ class toktxApp : public scApp {
             scale = 1.0f;
             resize = 0;
             newGeom.width = newGeom.height = 0;
-        }
+            targetType = eUnspecified;
+       }
 
 #define TRAVIS_DEBUG 0
 #if TRAVIS_DEBUG
@@ -403,10 +448,15 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
         { "nowarn", argparser::option::no_argument, &options.warn, 0 },
         { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
         { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
-        { "linear", argparser::option::no_argument, (int*)&options.oetf, KHR_DF_TRANSFER_LINEAR },
-        { "srgb", argparser::option::no_argument, (int*)&options.oetf, KHR_DF_TRANSFER_SRGB },
+        { "linear", argparser::option::no_argument, (int*)&options.assign_oetf, KHR_DF_TRANSFER_LINEAR },
+        { "srgb", argparser::option::no_argument, (int*)&options.assign_oetf, KHR_DF_TRANSFER_SRGB },
         { "resize", argparser::option::required_argument, NULL, 'r' },
         { "scale", argparser::option::required_argument, NULL, 's' },
+        { "input_swizzle", argparser::option::required_argument, NULL, 1100},
+        { "swizzle", argparser::option::required_argument, NULL, 1101},
+        { "target_type", argparser::option::required_argument, NULL, 1102},
+        { "convert_oetf", argparser::option::required_argument, NULL, 1103},
+        { "assign_oetf", argparser::option::required_argument, NULL, 1104},
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
     };
 
@@ -577,6 +627,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
     unsigned int levelWidth, levelHeight, levelDepth;
     khr_df_transfer_e chosenOETF, firstImageOETF;
     khr_df_primaries_e chosenPrimaries, firstImagePrimaries;
+    Image::colortype_e chosenColortype, firstImageColortype;
+    string defaultSwizzle;
 
     processEnvOptions();
     processCommandLine(argc, argv, eDisallowStdin, eFirst);
@@ -606,10 +658,24 @@ toktxApp::main(int argc, _TCHAR *argv[])
         try {
             image =
               Image::CreateFromFile(infile,
-                                    options.oetf == KHR_DF_TRANSFER_UNSPECIFIED,
+                                    options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
                                     options.bcmp || options.bopts.uastc);
-            if(options.oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
-                image->setOetf(options.oetf);
+            if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
+                image->setOetf(options.assign_oetf);
+            }
+            if (options.convert_oetf != KHR_DF_TRANSFER_UNSPECIFIED &&
+                options.convert_oetf != image->getOetf()) {
+                OETFFunc decode, encode;
+                if (image->getOetf() == KHR_DF_TRANSFER_SRGB)
+                    decode = decode_sRGB;
+                else
+                    decode = decode_linear;
+                if (options.convert_oetf == KHR_DF_TRANSFER_SRGB)
+                    encode = encode_sRGB;
+                else
+                    encode = encode_linear;
+                image->transformOETF(decode, encode);
+                image->setOetf(options.convert_oetf);
             }
         } catch (exception& e) {
             cerr << name << ": failed to create image from "
@@ -624,12 +690,24 @@ toktxApp::main(int argc, _TCHAR *argv[])
         if (i == 0) {
             // First file.
             firstImageOETF = image->getOetf();
+            chosenOETF = image->getOetf();
             firstImagePrimaries = image->getPrimaries();
             chosenPrimaries = image->getPrimaries();
-            if (options.oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
-                chosenOETF = firstImageOETF;
-            } else {
-                chosenOETF = options.oetf;
+            firstImageColortype = image->getColortype();
+            chosenColortype = image->getColortype();
+            if (chosenColortype < Image::eR  // Luminance type?
+                && options.targetType != commandOptions::eR
+                && options.targetType != commandOptions::eRG) {
+                if (chosenColortype == Image::eLuminance
+                    || options.targetType == commandOptions::eRGB)
+                {
+                    defaultSwizzle = "rrr1";
+                }
+                else if (chosenColortype == Image::eLuminanceAlpha
+                           || options.targetType == commandOptions::eRGBA)
+                {
+                    defaultSwizzle = "rrrg";
+                }
             }
         }
 
@@ -637,8 +715,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
             Image* scaledImage;
             if (options.scale != 1.0f) {
                 scaledImage = image->createImage(
-                              (uint32_t)(image->getWidth()  * options.scale),
-                              (uint32_t)(image->getHeight()  * options.scale));
+                              (uint32_t)(image->getWidth() * options.scale),
+                              (uint32_t)(image->getHeight() * options.scale));
 
             } else {
                 scaledImage = image->createImage(options.newGeom.width,
@@ -671,8 +749,22 @@ toktxApp::main(int argc, _TCHAR *argv[])
             // First file.
             bool srgb;
 
-            componentCount = image->getComponentCount();
             srgb = (chosenOETF == KHR_DF_TRANSFER_SRGB);
+            if (options.targetType > 0 && options.targetType != image->getComponentCount()) {
+                cerr << name << ": Input image component count and target_type"
+                     " component count must match." << endl
+                     << "Addition and removal of components not yet supported."
+                     << endl;
+            }
+            if (!options.targetType
+                || options.bcmp || options.bopts.uastc) {
+                // Choose format based on actual image.
+                // In BasisU case user specification is applied during
+                // BasisU encoding.
+                componentCount = image->getComponentCount();
+            } else {
+                componentCount = options.targetType;
+            }
             switch (componentCount) {
               case 1:
                 switch (image->getComponentSize()) {
@@ -834,19 +926,25 @@ toktxApp::main(int argc, _TCHAR *argv[])
         } else {
             // Subsequent files.
             if (image->getOetf() != firstImageOETF) {
-                fprintf(stderr, "%s: \"%s\" is encoded with a different transfer"
-                                " function (OETF) than preceding files.\n",
-                                name.c_str(), infile.c_str());
+                cerr << name << ": \"" << infile << "\" is encoded with a "
+                     "different transfer function (OETF) than preceding files."
+                     << endl;
                 exitCode = 1;
                 goto cleanup;
             }
             if (image->getPrimaries() != firstImagePrimaries) {
-                fprintf(stderr, "%s: \"%s\" has different color primaries than"
-                                " preceding files.\n",
-                                name.c_str(), infile.c_str());
+                cerr << name << ": \"" << infile << "\" has different color "
+                     "primaries than preceding files." << endl;
                 exitCode = 1;
                 goto cleanup;
-            }            // Input file order is layer, faceSlice, level. This seems easier for
+            }
+            if (image->getColortype() != firstImageColortype) {
+                cerr << name << ": \"" << infile << "\" has a different colortype"
+                     << " (component count) than preceding files." << endl;
+                exitCode = 1;
+                goto cleanup;
+            }
+            // Input file order is layer, faceSlice, level. This seems easier for
             // a human to manage than the order in a KTX file. It keeps the
             // base level images and their mip levels together.
             level++;
@@ -971,10 +1069,25 @@ toktxApp::main(int argc, _TCHAR *argv[])
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                               (ktx_uint32_t)writer.str().length() + 1,
                               writer.str().c_str());
-    }
-    if (options.ktx2 && chosenPrimaries != KHR_DF_PRIMARIES_BT709) {
-        KHR_DFDSETVAL(((ktxTexture2*)texture)->pDfd + 1, PRIMARIES,
-                      chosenPrimaries);
+
+        string swizzle;
+        // Add Swizzle metadata
+        if (options.swizzle.size()) {
+            swizzle = options.swizzle;
+        } else if (!options.bcmp && !options.bopts.uastc
+                   && defaultSwizzle.size()) {
+            swizzle = defaultSwizzle;
+        }
+        if (swizzle.size()) {
+            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_SWIZZLE_KEY,
+                                  swizzle.size()+1, // For the NUL on the c_str
+                                  swizzle.c_str());
+        }
+
+        if (options.ktx2 && chosenPrimaries != KHR_DF_PRIMARIES_BT709) {
+            KHR_DFDSETVAL(((ktxTexture2*)texture)->pDfd + 1, PRIMARIES,
+                          chosenPrimaries);
+        }
     }
 
     FILE* f;
@@ -996,17 +1109,14 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 exitCode = 1;
                 goto cleanup;
             }
-            if (componentCount == 1 || componentCount == 2) {
-                // Ensure this is not set as it would result in R in both
-                // RGB and A. This is because we have to pass RGBA to the BasisU
-                // encoder and, since a 2-channel file is considered
-                // grayscale-alpha, the "grayscale" component is swizzled to
-                // RGB and the alpha component is swizzled to A. (The same thing
-                // happens in `basisu` and the BasisU library because lodepng,
-                // which it uses, does the same swizzling.) If this flag is
-                // set the BasisU encoder will then copy "G" which is actually
-                // "R" into A.
-                bopts.separateRGToRGB_A = false;
+            if (options.inputSwizzle.size()) {
+                for (int i = 0; i < 4; i++) {
+                     options.bopts.inputSwizzle[i] = options.inputSwizzle[i];
+                }
+            } else if (defaultSwizzle.size()) {
+                 for (int i = 0; i < 4; i++) {
+                     options.bopts.inputSwizzle[i] = defaultSwizzle[i];
+                }
             }
 #if TRAVIS_DEBUG
             bopts.print();
@@ -1124,6 +1234,31 @@ toktxApp::validateOptions()
 }
 
 void
+toktxApp::validateSwizzle(string& swizzle)
+{
+    if (swizzle.size() != 4) {
+        error("a swizzle parameter must have 4 characters.");
+        exit(1);
+    }
+    std::for_each(swizzle.begin(), swizzle.end(), [](char & c) {
+        c = ::tolower(c);
+    });
+
+    for (int i = 0; i < 4; i++) {
+        if (swizzle[i] != 'r'
+            && swizzle[i] != 'g'
+            && swizzle[i] != 'b'
+            && swizzle[i] != 'a'
+            && swizzle[i] != '0'
+            && swizzle[i] != '1') {
+            error("invalid character in swizzle.");
+            usage();
+            exit(1);
+        }
+    }
+}
+
+void
 toktxApp::processEnvOptions() {
     _tstring toktx_options;
     _TCHAR* env_options = _tgetenv(_T("TOKTX_OPTIONS"));
@@ -1215,6 +1350,51 @@ toktxApp::processOption(argparser& parser, int opt)
                  << options.scale << "." << endl;
             exit(1);
         }
+        break;
+      case 1100:
+        validateSwizzle(parser.optarg);
+        options.inputSwizzle = parser.optarg;
+        break;
+      case 1101:
+        validateSwizzle(parser.optarg);
+        options.swizzle = parser.optarg;
+        break;
+      case 1102:
+        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+	        c = ::toupper(c);
+        });
+        if (parser.optarg.compare("R") == 0)
+          options.targetType = commandOptions::eR;
+        else if (parser.optarg.compare("RG") == 0)
+          options.targetType = commandOptions::eRG;
+        else if (parser.optarg.compare("RGB") == 0)
+          options.targetType = commandOptions::eRGB;
+        else if (parser.optarg.compare("RGBA") == 0)
+          options.targetType = commandOptions::eRGBA;
+        else {
+            cerr << name << ": unrecognized target_type \"" << parser.optarg
+                 << "\"." << endl;
+            usage();
+            exit(1);
+        }
+        break;
+      case 1103:
+        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+	        c = ::tolower(c);
+        });
+        if (parser.optarg.compare("linear") == 0)
+            options.convert_oetf = KHR_DF_TRANSFER_LINEAR;
+        if (parser.optarg.compare("srgb") == 0)
+            options.convert_oetf = KHR_DF_TRANSFER_SRGB;
+        break;
+      case 1104:
+        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+	        c = ::tolower(c);
+        });
+        if (parser.optarg.compare("linear") == 0)
+            options.assign_oetf = KHR_DF_TRANSFER_LINEAR;
+        if (parser.optarg.compare("srgb") == 0)
+            options.assign_oetf = KHR_DF_TRANSFER_SRGB;
         break;
       case ':':
       default:

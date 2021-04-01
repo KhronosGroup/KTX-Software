@@ -188,21 +188,21 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     // Do some format mapping.
     switch (outputFormat) {
       case KTX_TTF_BC1_OR_3:
-        outputFormat = alphaContent == eAlpha ? KTX_TTF_BC3_RGBA
-                                              : KTX_TTF_BC1_RGB;
+        outputFormat = alphaContent != eNone ? KTX_TTF_BC3_RGBA
+                                             : KTX_TTF_BC1_RGB;
         break;
       case KTX_TTF_ETC:
-        outputFormat = alphaContent == eAlpha ? KTX_TTF_ETC2_RGBA
-                                              : KTX_TTF_ETC1_RGB;
+        outputFormat = alphaContent != eNone ? KTX_TTF_ETC2_RGBA
+                                             : KTX_TTF_ETC1_RGB;
         break;
       case KTX_TTF_PVRTC1_4_RGBA:
         // This transcoder does not write opaque alpha blocks.
-        outputFormat = alphaContent == eAlpha  ? KTX_TTF_PVRTC1_4_RGBA
-                                               : KTX_TTF_PVRTC1_4_RGB;
+        outputFormat = alphaContent != eNone  ? KTX_TTF_PVRTC1_4_RGBA
+                                              : KTX_TTF_PVRTC1_4_RGB;
         break;
       case KTX_TTF_PVRTC2_4_RGBA:
         // This transcoder does not write opaque alpha blocks.
-        outputFormat = alphaContent == eAlpha ? KTX_TTF_PVRTC2_4_RGBA
+        outputFormat = alphaContent != eNone ? KTX_TTF_PVRTC2_4_RGBA
                                               : KTX_TTF_PVRTC2_4_RGB;
         break;
       default:
