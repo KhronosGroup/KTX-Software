@@ -329,6 +329,7 @@ class toktxApp : public scApp {
     virtual void usage();
 
     void warning(const char *pFmt, va_list args);
+    void warning(const char *pFmt, ...);
 
   protected:
     virtual bool processOption(argparser& parser, int opt);
@@ -849,6 +850,12 @@ toktxApp::main(int argc, _TCHAR *argv[])
               default:
                 /* If we get here there's a bug. */
                 assert(0);
+            }
+            if (createInfo.vkFormat == VK_FORMAT_R8_SRGB
+                || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB) {
+                warning("GPU support of sRGB variants of R & RG formats is"
+                        " limited.\nConsider using '--convert_oetf linear'"
+                        " to avoid these formats.");
             }
             createInfo.baseWidth = levelWidth = image->getWidth();
             createInfo.baseHeight = levelHeight = image->getHeight();
@@ -1407,6 +1414,16 @@ void toktxApp::warning(const char *pFmt, va_list args) {
     if (options.warn) {
         cerr << name << " warning: ";
         vfprintf(stderr, pFmt, args);
+        cerr << endl;
+    }
+}
+
+void toktxApp::warning(const char *pFmt, ...) {
+    if (options.warn) {
+        va_list args;
+        va_start(args, pFmt);
+
+        warning(pFmt, args);
         cerr << endl;
     }
 }
