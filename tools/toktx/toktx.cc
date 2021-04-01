@@ -115,16 +115,16 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     as luminance{,-alpha} in accordance with the JPEG and PNG specifications.
     For consistency Netpbm inputs are handled the same way. Use of R & RG
     types for uncompressed formats saves space but note that the sRGB versions
-    of these formats are not widely supported so a warning will be issued and
-    you will be given the opportunity to convert the input to linear.
+    of these formats are not widely supported so a warning will be issued
+    prompting you to convert the input to linear.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
-    based on the input file unless @b --linear or @b --srgb is specified. For .jpg
-    files @b toktx always sets BT709/sRGB primaries and the sRGB OETF in the
-    output file and creates sRGB format textures. Netpbm files always use
-    BT.709/sRGB primaries and the BT.709 OETF. @b toktx tranforms these
-    images to the sRGB OETF, sets BT709/sRGB primaries and the sRGB OETF in
-    the output file and creates sRGB format textures.
+    based on the input file unless @b --assign_oetf linear or @b --assign_oetf srgb
+    is specified. For .jpg files @b toktx always sets BT709/sRGB primaries and the
+    sRGB OETF in the output file and creates sRGB format textures. Netpbm files
+    always use BT.709/sRGB primaries and the BT.709 OETF. @b toktx tranforms
+    these images to the sRGB OETF, sets BT709/sRGB primaries and the sRGB OETF
+    in the output file and creates sRGB format textures.
 
     For .png files the OETF is set as follows:
 
@@ -490,11 +490,33 @@ toktxApp::usage()
         "               directory when toktx is run. If '@@' is used instead, paths must\n"
         "               be absolute or relative to the location of the list file.\n"
         "\n"
-        "               .jpg files yield RED or RGB textures according to the actual\n"
-        "               number of components. .png files yield RED, RG, RGB or RGBA\n"
-        "               textures according to the files's color type, .ppm files RGB\n"
-        "               textures, .pgm files RED textures and .pam files RED, RG, RGB\n"
-        "               or RGBA textures according to the file's TUPLTYPE and DEPTH.\n"
+        "  The target texture type (number of components in the output texture) is chosen\n"
+        "  via --target_type. Swizzling of the components of the input file is specified\n"
+        "  with --input_swizzle and swizzzle metadata can be specified with --swizzle\n"
+        "  Defaults, shown in the following tables, are based on the components of the\n"
+        "  input file and whether the target texture format is uncompressed or\n"
+        "  block-compressed including the universal formats. Input components are\n"
+        "  arbitrarily labeled r, g, b & a.\n"
+        "\n"
+        "  |                      Uncompressed Formats                           |\n"
+        "  |---------------------------------------------------------------------|\n"
+        "  | Input components | 1 (greyscale) | 2 (greyscale alpha) |  3  |  4   |\n"
+        "  | Target type      |       R       |         RG          | RGB | RGBA |\n"
+        "  | Input swizzle    |       -       |         -           |  -  |  -   |\n"
+        "  | Swizzle          |     rrr1      |        rrrg         |  -  |  -   |\n"
+        "\n"
+        "  |                      Block-compressed formats                       |\n"
+        "  |---------------------------------------------------------------------|\n"
+        "  | Target type      |      RGB      |        RGBA         | RGB | RGBA |\n"
+        "  | Input swizzle    |      rrr1     |        rrrg         |  -  |  -   |\n"
+        "  | Swizzle          |       -       |         -           |  -  |  -   |\n"
+        "\n"
+        "  As can be seen from the table one- and two-component inputs are treated as\n"
+        "  luminance{,-alpha} in accordance with the JPEG and PNG specifications. For\n"
+        "  consistency Netpbm inputs are handled the same way. Use of R & RG types for\n"
+        "  uncompressed formats saves space but note that the sRGB versions of these\n"
+        "  formats are not widely supported so a warning will be issued prompting you\n"
+        "  to convert the input to linear.\n"
         "\n"
         "  Options are:\n"
         "\n"
@@ -571,14 +593,36 @@ toktxApp::usage()
         "               file to inform loaders of the logical orientation. If a Vulkan\n"
         "               loader ignores the orientation value, the image will appear\n"
         "               upside down. This option is ignored with --cubemap.\n"
-        "  --linear     Force the created texture to have a linear transfer function.\n"
-        "               If this is specified, implicit or explicit color space\n"
+        "  --assign_oetf <linear|srgb>\n"
+        "               Force the created texture to have the specified transfer\n"
+        "               function. If this is specified, implicit or explicit color space\n"
         "               information from the input file(s) will be ignored and no color\n"
         "               transformation will be performed. USE WITH CAUTION preferably\n"
         "               only when you know the file format information is wrong.\n"
-        "  --srgb       Force the created texture to have an srgb transfer function.\n"
-        "               Like --linear, USE WITH CAUTION. As with @b --linear, no color\n"
-        "               transformation will be performed.\n"
+        "  --convert_oetf <linear|srgb>\n"
+        "               Convert the input images to the specified transfer function, if\n"
+        "               the current transfer funciton is different. If both this and\n"
+        "               --assign_oetf are specified, conversion will be performed from\n"
+        "               the assigned transfer function to the transfer function specified\n"
+        "               by this option, if different.\n"
+        "  --linear     Deprecated. Use --assign_profile linear.\n"
+        "  --srgb       Deprecated. Use @b --assign_profile srgb.\n"
+        "  --input_swizzle <swizzle>\n"
+        "               Swizzle the input components according to swizzle which is an\n"
+        "               alhpanumeric sequence matching the regular expression\n"
+        "               ^[rgba01]{4}$.\n"
+        "  --swizzle <swizzle>\n"
+        "               Add swizzle metadata to the file being created. swizzle has the\n"
+        "               same syntax as the parameter for --input_swizzle. Not recommended\n"
+        "               for use with block-cmpressed textures, including Basis Universal\n"
+        "               formats, because something like `rabb` may yield drastically\n"
+        "               different error metrics if done after compression.\n"
+        "  --target_type <type>\n"
+        "               Specify the number of components in the created texture. type is\n"
+        "               one of the following strings: @c R, @c RG, @c RGB or @c RGBA.\n"
+        "               Excess input components will be dropped. Output components with\n"
+        "               no mapping from the input will be set to 0 or, if the alpha\n"
+        "               component, 1.0.\n"
         "  --resize <width>x<height>\n"
         "               Resize images to @e width X @e height. This should not be used\n"
         "               with @b--mipmap as it would resize all the images to the same\n"
