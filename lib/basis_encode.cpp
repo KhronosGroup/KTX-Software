@@ -477,17 +477,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         alphaContent = eAlpha;
     }
 
-    ktx_uint32_t swizzleLen = 0;
-    char* swizzleStr = nullptr;
-    for (int i = 0; i < 4; i++) {
-        if (params->inputSwizzle[i]) {
-            swizzleStr = params->inputSwizzle;
-            swizzleLen = 5;
-            break;
-        }
-    }
+    std::string swizzleString = params->inputSwizzle;
     if (params->preSwizzle) {
-        if (swizzleStr != nullptr) {
+        if (swizzleString.size() > 0) {
             return KTX_INVALID_OPERATION;
         }
 
@@ -495,21 +487,27 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         result = ktxHashList_FindEntry(&This->kvDataHead, KTX_SWIZZLE_KEY,
                                        &swizzleEntry);
         if (result == KTX_SUCCESS) {
+            ktx_uint32_t swizzleLen = 0;
+            char* swizzleStr = nullptr;
+
             ktxHashListEntry_GetValue(swizzleEntry,
                                       &swizzleLen, (void**)&swizzleStr);
             // Remove the swizzle as it is no longer needed.
             ktxHashList_DeleteEntry(&This->kvDataHead, swizzleEntry);
+            // Do it this way in case there is no NUL terminator.
+            swizzleString.resize(swizzleLen);
+            swizzleString.assign(swizzleStr, swizzleLen);
         }
     }
 
-    if (swizzleStr != nullptr) {
+    if (swizzleString.size() > 0) {
         // Only set comp_mapping for cases we can't shortcut.
         // If num_components < 3 we always swizzle so no shortcut there.
         if (num_components < 3
-          || (num_components == 3 && strncmp(swizzleStr, "rgb1", 4U))
-          || (num_components == 4 && strncmp(swizzleStr, "rgba", 4U))) {
+          || (num_components == 3 && swizzleString.compare("rgb1"))
+          || (num_components == 4 && swizzleString.compare("rgba"))) {
             for (int i = 0; i < 4; i++) {
-                switch (swizzleStr[i]) {
+                switch (swizzleString[i]) {
                   case 'r': meta_mapping[i] = R; break;
                   case 'g': meta_mapping[i] = G; break;
                   case 'b': meta_mapping[i] = B; break;
@@ -520,6 +518,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             }
             comp_mapping = meta_mapping;
         }
+
         // An incoming swizzle of RRR1 or RRRG is assumed to be for a
         // luminance texture. Set isLuminance to distinguish from
         // an identical swizzle generated internally for R & RG cases.
