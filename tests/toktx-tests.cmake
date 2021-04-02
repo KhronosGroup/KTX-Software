@@ -107,17 +107,17 @@ gencmpktx( rgba-reference rgba-reference.ktx ../srcimages/rgba.pam "--lower_left
 gencmpktx( rgb-mipmap-reference rgb-mipmap-reference.ktx "../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm" "--lower_left_maps_to_s0t0 --mipmap --nometadata" "" "" )
 gencmpktx( rgb-mipmap-reference-u rgb-mipmap-reference-u.ktx2 "../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm" "--test --t2 --mipmap" "" "" )
 
-#if(APPLE)
+if(APPLE)
   # Run only on macOS until we figure out the BasisLZ/ETC1S compressor non-determinancy.
   gencmpktx( alpha_simple_basis alpha_simple_basis.ktx2 ../srcimages/alpha_simple.png "--test --bcmp" "" "" )
   gencmpktx( kodim17_basis kodim17_basis.ktx2 ../srcimages/kodim17.png "--test --bcmp" "" "" )
   gencmpktx( color_grid_basis color_grid_basis.ktx2 ../srcimages/color_grid.png "--test --bcmp" "" "" )
+  gencmpktx( 16bit_png_basis camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --test --nowarn" "" "" )
+  gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --test --nowarn" "" "" )
+endif()
   gencmpktx( cimg5293_uastc cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg "--uastc --genmipmap --test" "" "" )
   gencmpktx( cimg5293_uastc_zstd cimg5293_uastc_zstd.ktx2 ../srcimages/CIMG5293.jpg "--zcmp --uastc --genmipmap --test" "" "" )
-  gencmpktx( 16bit_png_basis camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --test --nowarn" "" "" )
   gencmpktx( 16bit_png_uastc camera_camera_BaseColor_uastc.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--uastc 1 --test --nowarn" "" "" )
-  gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --test --nowarn" "" "" )
-#endif()
 
 gencmpktx( luminance_reference_u luminance_reference_u.ktx2 ../srcimages/luminance.pgm "--test --t2 --convert_oetf linear" "" "" )
 gencmpktx( luminance_reference_uastc luminance_reference_uastc.ktx2 ../srcimages/luminance.pgm "--test --t2 --uastc --" "" "" )
@@ -129,6 +129,7 @@ gencmpktx( luminance_alpha_reference_basis luminance_alpha_reference_basis.ktx2 
 endif()
 gencmpktx( r_reference_u r_reference_u.ktx2 ../srcimages/luminance.pgm "--test --t2 --convert_oetf linear --target_type R" "" "" )
 gencmpktx( r_reference_uastc r_reference_uastc.ktx2 ../srcimages/luminance.pgm "--test --t2 --uastc --target_type R --swizzle r001 --" "" "" )
+# This one seems to be okay.
 gencmpktx( r_reference_basis r_reference_basis.ktx2 ../srcimages/luminance.pgm "--test --t2 --bcmp --target_type R --swizzle r001" "" "" )
 gencmpktx( rg_reference_u rg_reference_u.ktx2 ../srcimages/basn4a08.png "--test --t2 --convert_oetf linear --target_type RG" "" "" )
 gencmpktx( rg_reference_uastc rg_reference_uastc.ktx2 ../srcimages/basn4a08.png "--test --t2 --uastc --target_type RG --swizzle rg01 --" "" "" )
