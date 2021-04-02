@@ -241,15 +241,21 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         will be ignored and no color transformation will be performed. USE WITH
         CAUTION preferably only when you know the file format information is
         wrong.</dd>
+    <dt>--assign_primaries &lt;bt709|none|srgb&gt;</dt>
+    <dd>Force the created texture to have the specified primaries. If this is
+        specified, implicit or explicit color space information from the input file(s)
+        will be ignored and no color transformation will be performed. USE WITH
+        CAUTION preferably only when you know the file format information is
+        wrong.</dd>
     <dt>--convert_oetf &lt;linear|srgb&gt;</dt>
     <dd>Convert the input images to the specified transfer function, if the current
-        transfer funciton is different. If both this and @b --assign_oetf are
+        transfer function is different. If both this and @b --assign_oetf are
         specified, conversion will be performed from the assigned transfer function
         to the transfer function specified by this option, if different.
     <dt>--linear</dt>
-    <dd>Deprecated. Use @b --assign_profile linear.</dd>
+    <dd>Deprecated. Use @b --assign_oetf linear.</dd>
     <dt>--srgb</dt>
-    <dd>Deprecated. Use @b --assign_profile srgb.</dd>
+    <dd>Deprecated. Use @b --assign_oetf srgb.</dd>
     <dt>--resize &lt;width&gt;x&lt;height&gt;
     <dd>Resize images to @e width X @e height. This should not be used with
         @b --mipmap as it would resize all the images to the same size.
@@ -355,6 +361,7 @@ class toktxApp : public scApp {
         int          two_d;
         khr_df_transfer_e convert_oetf;
         khr_df_transfer_e assign_oetf;
+        khr_df_primaries_e assign_primaries;
         int          useStdin;
         int          lower_left_maps_to_s0t0;
         int          warn;
@@ -390,6 +397,7 @@ class toktxApp : public scApp {
             levels = 1;
             convert_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
             assign_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
+            assign_primaries = KHR_DF_PRIMARIES_MAX;
             // As required by spec. Opposite of OpenGL {,ES}, same as
             // Vulkan, et al.
             lower_left_maps_to_s0t0 = 0;
@@ -458,6 +466,7 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
         { "target_type", argparser::option::required_argument, NULL, 1102},
         { "convert_oetf", argparser::option::required_argument, NULL, 1103},
         { "assign_oetf", argparser::option::required_argument, NULL, 1104},
+        { "assign_primaries", argparser::option::required_argument, NULL, 1105},
         { "t2", argparser::option::no_argument, &options.ktx2, 1},
     };
 
@@ -599,14 +608,20 @@ toktxApp::usage()
         "               information from the input file(s) will be ignored and no color\n"
         "               transformation will be performed. USE WITH CAUTION preferably\n"
         "               only when you know the file format information is wrong.\n"
+        "  --assign_primaries <bt709|none|srgb>\n"
+        "               Force the created texture to have the specified primaries. If\n"
+        "               this is specified, implicit or explicit color space information\n"
+        "               from the input file(s) will be ignored and no color\n"
+        "               transformation will be performed. USE WITH CAUTION preferably\n"
+        "               only when you know the file format information is wrong.\n"
         "  --convert_oetf <linear|srgb>\n"
         "               Convert the input images to the specified transfer function, if\n"
-        "               the current transfer funciton is different. If both this and\n"
+        "               the current transfer function is different. If both this and\n"
         "               --assign_oetf are specified, conversion will be performed from\n"
         "               the assigned transfer function to the transfer function specified\n"
         "               by this option, if different.\n"
-        "  --linear     Deprecated. Use --assign_profile linear.\n"
-        "  --srgb       Deprecated. Use @b --assign_profile srgb.\n"
+        "  --linear     Deprecated. Use --assign_oetf linear.\n"
+        "  --srgb       Deprecated. Use --assign_oetf srgb.\n"
         "  --input_swizzle <swizzle>\n"
         "               Swizzle the input components according to swizzle which is an\n"
         "               alhpanumeric sequence matching the regular expression\n"
@@ -721,6 +736,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     encode = encode_linear;
                 image->transformOETF(decode, encode);
                 image->setOetf(options.convert_oetf);
+            }
+            if (options.assign_primaries != KHR_DF_PRIMARIES_MAX) {
+                image->setPrimaries(options.assign_primaries);
             }
         } catch (exception& e) {
             cerr << name << ": failed to create image from "
@@ -1435,7 +1453,7 @@ toktxApp::processOption(argparser& parser, int opt)
         });
         if (parser.optarg.compare("linear") == 0)
             options.convert_oetf = KHR_DF_TRANSFER_LINEAR;
-        if (parser.optarg.compare("srgb") == 0)
+        else if (parser.optarg.compare("srgb") == 0)
             options.convert_oetf = KHR_DF_TRANSFER_SRGB;
         break;
       case 1104:
@@ -1444,8 +1462,19 @@ toktxApp::processOption(argparser& parser, int opt)
         });
         if (parser.optarg.compare("linear") == 0)
             options.assign_oetf = KHR_DF_TRANSFER_LINEAR;
-        if (parser.optarg.compare("srgb") == 0)
+        else if (parser.optarg.compare("srgb") == 0)
             options.assign_oetf = KHR_DF_TRANSFER_SRGB;
+        break;
+      case 1105:
+        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+	        c = ::tolower(c);
+        });
+        if (parser.optarg.compare("bt709") == 0)
+            options.assign_primaries = KHR_DF_PRIMARIES_BT709;
+        else if (parser.optarg.compare("none") == 0)
+            options.assign_primaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+        if (parser.optarg.compare("srgb") == 0)
+            options.assign_primaries = KHR_DF_PRIMARIES_SRGB;
         break;
       case ':':
       default:
