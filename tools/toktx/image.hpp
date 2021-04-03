@@ -260,7 +260,7 @@ class Image {
         invalid_file(std::string error)
             : std::runtime_error("Invalid file: " + error) { }
     };
-    enum class colortype {
+    enum colortype_e {
         eLuminance=0, eLuminanceAlpha=1, eR=2, eRG, eRGB, eRGBA
     };
 
@@ -269,8 +269,8 @@ class Image {
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
-    colortype getColortype() { return this->colortype; }
-    void setColortype(colortype t) { colortype = t; }
+    colortype_e getColortype() { return this->colortype; }
+    void setColortype(colortype_e t) { colortype = t; }
     khr_df_transfer_e getOetf() const { return oetf; }
     void setOetf(khr_df_transfer_e oetf) { this->oetf = oetf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
@@ -319,7 +319,7 @@ class Image {
             : width(w), height(h), primaries(KHR_DF_PRIMARIES_BT709) { }
 
     uint32_t width, height;  // In pixels
-    colortype colortype;
+    colortype_e colortype;
     khr_df_transfer_e oetf;
     khr_df_primaries_e primaries;
 };

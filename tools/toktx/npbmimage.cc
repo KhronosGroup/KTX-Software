@@ -175,7 +175,7 @@ createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         image = new rgb16image(width, height);
     else
         image = new rgb8image(width, height);
-    image->setColortype(Image::colortype::eRGB);
+    image->setColortype(Image::colortype_e::eRGB);
 
     // We need to remove the newline.
     char c = 0;
@@ -239,7 +239,7 @@ createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         image = new r16image(width, height);
     else
         image = new r8image(width, height);
-    image->setColortype(Image::colortype::eLuminance);
+    image->setColortype(Image::colortype_e::eLuminance);
 
     /* gotta eat the newline too */
     char ch=0;
@@ -374,17 +374,17 @@ createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
       case 1:
         // NPBM specs do spec. what a depth 1 image is.
         // We choose to treat is luminance, for consistency with PNG.
-        image->setColortype(Image::colortype::eLuminance);
+        image->setColortype(Image::colortype_e::eLuminance);
         break;
       case 2:
         // As with depth=1, handle consistently with PNG.
-        image->setColortype(Image::colortype::eLuminanceAlpha);
+        image->setColortype(Image::colortype_e::eLuminanceAlpha);
         break;
       case 3:
-        image->setColortype(Image::colortype::eRGB);
+        image->setColortype(Image::colortype_e::eRGB);
         break;
       case 4:
-        image->setColortype(Image::colortype::eRGBA);
+        image->setColortype(Image::colortype_e::eRGBA);
         break;
     }
 

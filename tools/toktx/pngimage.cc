@@ -100,7 +100,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     const unsigned char* pFirstChunk = &png.data()[33]; // 1st after header
     pTrnsChunk = lodepng_chunk_find_const(pFirstChunk, &png.back(), "tRNS");
 
-    switch (state.info_png.color.colortype) {
+  switch (state.info_png.color.colortype) {
       case LCT_GREY:
         componentCount = 1;
         // TODO: Create 4-bit color type and rescale 1- & 2-bpp to that.
@@ -108,19 +108,19 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         break;
       case LCT_RGB:
         if (pTrnsChunk != nullptr) {
-            state.info_raw.colortype = LCT_RGBA;
+          state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
-            state.info_raw.colortype = LCT_RGB;
+          state.info_raw.colortype = LCT_RGB;
             componentCount = 3;
         }
         break;
       case LCT_PALETTE:
         if (pTrnsChunk) {
-            state.info_raw.colortype = LCT_RGBA;
+          state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
-            state.info_raw.colortype = LCT_RGB;
+          state.info_raw.colortype = LCT_RGB;
             componentCount = 3;
         }
         state.info_raw.bitdepth = 8; // Palette values are 8 bit RGBA
@@ -200,16 +200,16 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     }
     switch (componentCount) {
       case 1:
-        image->colortype = colortype::eLuminance;  // Defined in PNG spec.
+        image->colortype = colortype_e::eLuminance;  // Defined in PNG spec.
         break;
       case 2:
-        image->colortype = colortype::eLuminanceAlpha; // ditto
+        image->colortype = colortype_e::eLuminanceAlpha; // ditto
         break;
       case 3:
-        image->colortype = colortype::eRGB;
+        image->colortype = colortype_e::eRGB;
         break;
       case 4:
-        image->colortype = colortype::eRGBA;
+        image->colortype = colortype_e::eRGBA;
         break;
     }
 

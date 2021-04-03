@@ -123,11 +123,11 @@ Image::CreateFromJPG(FILE* src, bool, bool)
     switch (componentCount) {
       case 1: {
         image = new r8image(w, h, (r8color*)imageData);
-        image->colortype = colortype::eLuminance;
+        image->colortype = colortype_e::eLuminance;
         break;
       } case 3: {
         image = new rgb8image(w, h, (rgb8color*)imageData);
-        image->colortype = colortype::eRGB;
+        image->colortype = colortype_e::eRGB;
         break;
       }
     }

@@ -377,7 +377,7 @@ class toktxApp : public scApp {
         } newGeom;
         string inputSwizzle;
         string swizzle;
-        enum targettype_e {
+        enum {
             // These values are selected to match the number of components.
             eUnspecified=0, eR=1, eRG, eRGB, eRGBA
         } targetType;
@@ -687,11 +687,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
     unsigned int levelWidth, levelHeight, levelDepth;
     khr_df_transfer_e chosenOETF, firstImageOETF;
     khr_df_primaries_e chosenPrimaries, firstImagePrimaries;
-#if defined(_MSC_VER) && _MSC_VER <= 1900 // Workaround VC++ 2015 bug.
-    Image::colortype firstImageColortype;
-#else
-    enum Image::colortype firstImageColortype;
-#endif
+    Image::colortype_e firstImageColortype;
     string defaultSwizzle;
 
     processEnvOptions();
@@ -807,22 +803,22 @@ toktxApp::main(int argc, _TCHAR *argv[])
                       case commandOptions::eR:
                         newImage = new r16image(image->getWidth(), image->getHeight());
                         image->copyToR(*newImage);
-                        image->setColortype(Image::colortype::eR);
+                        image->setColortype(Image::colortype_e::eR);
                         break;
                       case commandOptions::eRG:
                         newImage = new rg16image(image->getWidth(), image->getHeight());
                         image->copyToRG(*newImage);
-                        image->setColortype(Image::colortype::eRG);
+                        image->setColortype(Image::colortype_e::eRG);
                         break;
                       case commandOptions::eRGB:
                         newImage = new rgb16image(image->getWidth(), image->getHeight());
                         image->copyToRGB(*newImage);
-                        image->setColortype(Image::colortype::eRGB);
+                        image->setColortype(Image::colortype_e::eRGB);
                         break;
                       case commandOptions::eRGBA:
                         newImage = new rgba16image(image->getWidth(), image->getHeight());
                         image->copyToRGBA(*newImage);
-                        image->setColortype(Image::colortype::eRGBA);
+                        image->setColortype(Image::colortype_e::eRGBA);
                         break;
                       case commandOptions::eUnspecified:
                         assert(false);
@@ -832,21 +828,21 @@ toktxApp::main(int argc, _TCHAR *argv[])
                       case commandOptions::eR:
                         newImage = new r8image(image->getWidth(), image->getHeight());
                         image->copyToR(*newImage);
-                        image->setColortype(Image::colortype::eR);
+                        image->setColortype(Image::colortype_e::eR);
                       case commandOptions::eRG:
                         newImage = new rg8image(image->getWidth(), image->getHeight());
                         image->copyToRG(*newImage);
-                        image->setColortype(Image::colortype::eRG);
+                        image->setColortype(Image::colortype_e::eRG);
                         break;
                       case commandOptions::eRGB:
                         newImage = new rgb8image(image->getWidth(), image->getHeight());
                         image->copyToRGB(*newImage);
-                        image->setColortype(Image::colortype::eRGB);
+                        image->setColortype(Image::colortype_e::eRGB);
                         break;
                       case commandOptions::eRGBA:
                         newImage = new rgba8image(image->getWidth(), image->getHeight());
                         image->copyToRGBA(*newImage);
-                        image->setColortype(Image::colortype::eRGBA);
+                        image->setColortype(Image::colortype_e::eRGBA);
                         break;
                       case commandOptions::eUnspecified:
                         assert(false);
@@ -862,13 +858,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     goto cleanup;
                 }
             } else {
-                if (image->getColortype() < Image::colortype::eR) {
+                if (image->getColortype() < Image::colortype_e::eR) {
                     // Color type is currently set to luminance. Override.
                     assert(image->getComponentCount() < 3);
                     if (options.targetType == commandOptions::eR)
-                        image->setColortype(Image::colortype::eR);
+                        image->setColortype(Image::colortype_e::eR);
                     else
-                        image->setColortype(Image::colortype::eRG);
+                        image->setColortype(Image::colortype_e::eRG);
                 }
             }
         }
@@ -884,10 +880,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
             chosenOETF = image->getOetf();
             chosenPrimaries = image->getPrimaries();
 
-            if (image->getColortype() < Image::colortype::eR) {  // Luminance type?
-                if (image->getColortype() == Image::colortype::eLuminance) {
+            if (image->getColortype() < Image::colortype_e::eR) {  // Luminance type?
+                if (image->getColortype() == Image::colortype_e::eLuminance) {
                     defaultSwizzle = "rrr1";
-                } else if (image->getColortype() == Image::colortype::eLuminanceAlpha) {
+                } else if (image->getColortype() == Image::colortype_e::eLuminanceAlpha) {
                     defaultSwizzle = "rrrg";
                 }
             }
@@ -1074,7 +1070,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 goto cleanup;
             }
             if (image->getColortype() != firstImageColortype) {
-                cerr << name << ": \"" << infile << "\" has a different colortype"
+                cerr << name << ": \"" << infile << "\" has a different colortype_e"
                      << " (component count) than preceding files." << endl;
                 exitCode = 1;
                 goto cleanup;
