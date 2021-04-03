@@ -380,6 +380,10 @@ static bool basisuEncoderInitialized = false;
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
  * @exception KTX_INVALID_OPERATION
+ *                              The texture image's format is a packed format (e.g. RGB565).
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture image format's component size is not 8-bits.
+ * @exception KTX_INVALID_OPERATION
  *                              Both preSwizzle and and inputSwizzle are specified
  *                              in @a params.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
