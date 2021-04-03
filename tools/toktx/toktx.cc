@@ -687,7 +687,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
     unsigned int levelWidth, levelHeight, levelDepth;
     khr_df_transfer_e chosenOETF, firstImageOETF;
     khr_df_primaries_e chosenPrimaries, firstImagePrimaries;
+#if defined(_MSC_VER) && _MSC_VER <= 1900 // Workaround VC++ 2015 bug.
+    Image::colortype firstImageColortype;
+#else
     enum Image::colortype firstImageColortype;
+#endif
     string defaultSwizzle;
 
     processEnvOptions();
