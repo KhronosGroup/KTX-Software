@@ -164,57 +164,52 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     if (componentBits == 16 ) {
         switch (componentCount) {
           case 1: {
-            using Color = color<uint16_t, 1>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new r16image(w, h, (r16color*)imageData);
             break;
           } case 2: {
-            using Color = color<uint16_t, 2>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rg16image(w, h, (rg16color*)imageData);
             break;
           } case 3: {
-            using Color = color<uint16_t, 3>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgb16image(w, h, (rgb16color*)imageData);
             break;
           } case 4: {
-            using Color = color<uint16_t, 4>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgba16image(w, h, (rgba16color*)imageData);
             break;
           }
         }
     } else {
         switch (componentCount) {
           case 1: {
-            //using Color = color<uint8_t, 1>;
-            //image = new ImageT< Color >(w, h, (Color*)imageData);
-            image = new r8image(w, h);
+            using Color = color<uint8_t, 1>;
+            image = new r8image(w, h, (r8color*)imageData);
             break;
           } case 2: {
             using Color = color<uint8_t, 2>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rg8image(w, h, (rg8color*)imageData);
             break;
           } case 3: {
             using Color = color<uint8_t, 3>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgb8image(w, h, (rgb8color*)imageData);
             break;
           } case 4: {
             using Color = color<uint8_t, 4>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgba8image(w, h, (rgba8color*)imageData);
             break;
           }
         }
     }
     switch (componentCount) {
       case 1:
-        image->colortype = eLuminance;  // Defined in PNG spec.
+        image->colortype = colortype::eLuminance;  // Defined in PNG spec.
         break;
       case 2:
-        image->colortype = eLuminanceAlpha; // ditto
+        image->colortype = colortype::eLuminanceAlpha; // ditto
         break;
       case 3:
-        image->colortype = eRGB;
+        image->colortype = colortype::eRGB;
         break;
       case 4:
-        image->colortype = eRGBA;
+        image->colortype = colortype::eRGBA;
         break;
     }
 

@@ -377,7 +377,7 @@ class toktxApp : public scApp {
         } newGeom;
         string inputSwizzle;
         string swizzle;
-        enum {
+        enum targettype_e {
             // These values are selected to match the number of components.
             eUnspecified=0, eR=1, eRG, eRGB, eRGBA
         } targetType;
@@ -687,7 +687,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
     unsigned int levelWidth, levelHeight, levelDepth;
     khr_df_transfer_e chosenOETF, firstImageOETF;
     khr_df_primaries_e chosenPrimaries, firstImagePrimaries;
-    Image::colortype_e chosenColortype, firstImageColortype;
+    enum Image::colortype firstImageColortype;
     string defaultSwizzle;
 
     processEnvOptions();
@@ -720,9 +720,18 @@ toktxApp::main(int argc, _TCHAR *argv[])
               Image::CreateFromFile(infile,
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
                                     options.bcmp || options.bopts.uastc);
+
+            if (i == 0) {
+                // First file.
+                firstImageOETF = image->getOetf();
+                firstImagePrimaries = image->getPrimaries();
+                firstImageColortype = image->getColortype();
+            }
+
             if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
                 image->setOetf(options.assign_oetf);
             }
+
             if (options.convert_oetf != KHR_DF_TRANSFER_UNSPECIFIED &&
                 options.convert_oetf != image->getOetf()) {
                 OETFFunc decode, encode;
@@ -750,30 +759,6 @@ toktxApp::main(int argc, _TCHAR *argv[])
         assert(image->getWidth() * image->getHeight() * image->getPixelSize()
                   == image->getByteCount());
 
-        if (i == 0) {
-            // First file.
-            firstImageOETF = image->getOetf();
-            chosenOETF = image->getOetf();
-            firstImagePrimaries = image->getPrimaries();
-            chosenPrimaries = image->getPrimaries();
-            firstImageColortype = image->getColortype();
-            chosenColortype = image->getColortype();
-            if (chosenColortype < Image::eR  // Luminance type?
-                && options.targetType != commandOptions::eR
-                && options.targetType != commandOptions::eRG) {
-                if (chosenColortype == Image::eLuminance
-                    || options.targetType == commandOptions::eRGB)
-                {
-                    defaultSwizzle = "rrr1";
-                }
-                else if (chosenColortype == Image::eLuminanceAlpha
-                           || options.targetType == commandOptions::eRGBA)
-                {
-                    defaultSwizzle = "rrrg";
-                }
-            }
-        }
-
         if (options.scale != 1.0f || options.resize) {
             Image* scaledImage;
             if (options.scale != 1.0f) {
@@ -788,7 +773,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
             try {
                 image->resample(*scaledImage,
-                                chosenOETF == KHR_DF_TRANSFER_SRGB,
+                                image->getOetf() == KHR_DF_TRANSFER_SRGB,
                                 options.gmopts.filter.c_str(),
                                 options.gmopts.filterScale,
                                 basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
@@ -808,26 +793,103 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image->yflip();
         }
 
+        if (options.targetType != commandOptions::eUnspecified) {
+            if (options.targetType != image->getComponentCount()) {
+                Image* newImage;
+                // The following casts only work because the only case that will
+                // be taken at runtime is the one where image is the same
+                if (image->getComponentSize() == 2) {
+                    switch (options.targetType) {
+                      case commandOptions::eR:
+                        newImage = new r16image(image->getWidth(), image->getHeight());
+                        image->copyToR(*newImage);
+                        image->setColortype(Image::colortype::eR);
+                        break;
+                      case commandOptions::eRG:
+                        newImage = new rg16image(image->getWidth(), image->getHeight());
+                        image->copyToRG(*newImage);
+                        image->setColortype(Image::colortype::eRG);
+                        break;
+                      case commandOptions::eRGB:
+                        newImage = new rgb16image(image->getWidth(), image->getHeight());
+                        image->copyToRGB(*newImage);
+                        image->setColortype(Image::colortype::eRGB);
+                        break;
+                      case commandOptions::eRGBA:
+                        newImage = new rgba16image(image->getWidth(), image->getHeight());
+                        image->copyToRGBA(*newImage);
+                        image->setColortype(Image::colortype::eRGBA);
+                        break;
+                      case commandOptions::eUnspecified:
+                        assert(false);
+                    }
+                } else {
+                    switch (options.targetType) {
+                      case commandOptions::eR:
+                        newImage = new r8image(image->getWidth(), image->getHeight());
+                        image->copyToR(*newImage);
+                        image->setColortype(Image::colortype::eR);
+                      case commandOptions::eRG:
+                        newImage = new rg8image(image->getWidth(), image->getHeight());
+                        image->copyToRG(*newImage);
+                        image->setColortype(Image::colortype::eRG);
+                        break;
+                      case commandOptions::eRGB:
+                        newImage = new rgb8image(image->getWidth(), image->getHeight());
+                        image->copyToRGB(*newImage);
+                        image->setColortype(Image::colortype::eRGB);
+                        break;
+                      case commandOptions::eRGBA:
+                        newImage = new rgba8image(image->getWidth(), image->getHeight());
+                        image->copyToRGBA(*newImage);
+                        image->setColortype(Image::colortype::eRGBA);
+                        break;
+                      case commandOptions::eUnspecified:
+                        assert(false);
+                    }
+                }
+                if (newImage) {
+                     delete image;
+                     image = newImage;
+                } else {
+                    cerr << name << ": creation of image for new target type"
+                                    " failed. Out of memory." << endl;
+                    exitCode = 1;
+                    goto cleanup;
+                }
+            } else {
+                if (image->getColortype() < Image::colortype::eR) {
+                    // Color type is currently set to luminance. Override.
+                    assert(image->getComponentCount() < 3);
+                    if (options.targetType == commandOptions::eR)
+                        image->setColortype(Image::colortype::eR);
+                    else
+                        image->setColortype(Image::colortype::eRG);
+                }
+            }
+        }
+
+        if (options.inputSwizzle.size() > 0
+            // inputSwizzle is handled during BasisU encoding
+            && !options.bcmp && !options.bopts.uastc) {
+            image->swizzle(options.inputSwizzle);
+        }
+
         if (i == 0) {
             // First file.
-            bool srgb;
+            chosenOETF = image->getOetf();
+            chosenPrimaries = image->getPrimaries();
 
-            srgb = (chosenOETF == KHR_DF_TRANSFER_SRGB);
-            if (options.targetType > 0 && options.targetType != image->getComponentCount()) {
-                cerr << name << ": Input image component count and target_type"
-                     " component count must match." << endl
-                     << "Addition and removal of components not yet supported."
-                     << endl;
+            if (image->getColortype() < Image::colortype::eR) {  // Luminance type?
+                if (image->getColortype() == Image::colortype::eLuminance) {
+                    defaultSwizzle = "rrr1";
+                } else if (image->getColortype() == Image::colortype::eLuminanceAlpha) {
+                    defaultSwizzle = "rrrg";
+                }
             }
-            if (!options.targetType
-                || options.bcmp || options.bopts.uastc) {
-                // Choose format based on actual image.
-                // In BasisU case user specification is applied during
-                // BasisU encoding.
-                componentCount = image->getComponentCount();
-            } else {
-                componentCount = options.targetType;
-            }
+
+            bool srgb = (image->getOetf() == KHR_DF_TRANSFER_SRGB);
+            componentCount = image->getComponentCount();
             switch (componentCount) {
               case 1:
                 switch (image->getComponentSize()) {
@@ -1071,7 +1133,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
                 try {
                     image->resample(*levelImage,
-                                    chosenOETF == KHR_DF_TRANSFER_SRGB,
+                                    image->getOetf() == KHR_DF_TRANSFER_SRGB,
                                     options.gmopts.filter.c_str(),
                                     options.gmopts.filterScale,
                                     options.gmopts.wrapMode);
