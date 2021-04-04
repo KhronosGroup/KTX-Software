@@ -803,22 +803,18 @@ toktxApp::main(int argc, _TCHAR *argv[])
                       case commandOptions::eR:
                         newImage = new r16image(image->getWidth(), image->getHeight());
                         image->copyToR(*newImage);
-                        image->setColortype(Image::colortype_e::eR);
                         break;
                       case commandOptions::eRG:
                         newImage = new rg16image(image->getWidth(), image->getHeight());
                         image->copyToRG(*newImage);
-                        image->setColortype(Image::colortype_e::eRG);
                         break;
                       case commandOptions::eRGB:
                         newImage = new rgb16image(image->getWidth(), image->getHeight());
                         image->copyToRGB(*newImage);
-                        image->setColortype(Image::colortype_e::eRGB);
                         break;
                       case commandOptions::eRGBA:
                         newImage = new rgba16image(image->getWidth(), image->getHeight());
                         image->copyToRGBA(*newImage);
-                        image->setColortype(Image::colortype_e::eRGBA);
                         break;
                       case commandOptions::eUnspecified:
                         assert(false);
@@ -828,21 +824,17 @@ toktxApp::main(int argc, _TCHAR *argv[])
                       case commandOptions::eR:
                         newImage = new r8image(image->getWidth(), image->getHeight());
                         image->copyToR(*newImage);
-                        image->setColortype(Image::colortype_e::eR);
                       case commandOptions::eRG:
                         newImage = new rg8image(image->getWidth(), image->getHeight());
                         image->copyToRG(*newImage);
-                        image->setColortype(Image::colortype_e::eRG);
                         break;
                       case commandOptions::eRGB:
                         newImage = new rgb8image(image->getWidth(), image->getHeight());
                         image->copyToRGB(*newImage);
-                        image->setColortype(Image::colortype_e::eRGB);
                         break;
                       case commandOptions::eRGBA:
                         newImage = new rgba8image(image->getWidth(), image->getHeight());
                         image->copyToRGBA(*newImage);
-                        image->setColortype(Image::colortype_e::eRGBA);
                         break;
                       case commandOptions::eUnspecified:
                         assert(false);

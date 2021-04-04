@@ -610,6 +610,9 @@ class ImageT : public Image {
         assert(getComponentSize() == dst.getComponentSize());
         assert(width == dst.getWidth() && height == dst.getHeight());
 
+        dst.setOetf(oetf);
+        dst.setPrimaries(primaries);
+        dst.setColortype((colortype_e)(dst.getComponentCount() + Image::eLuminanceAlpha));
         for (size_t i = 0; i < getPixelCount(); i++) {
             uint32_t c;
             for (c = 0; c < dst.getComponentCount(); c++) {

@@ -200,16 +200,16 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     }
     switch (componentCount) {
       case 1:
-        image->colortype = colortype_e::eLuminance;  // Defined in PNG spec.
+        image->colortype = Image::eLuminance;  // Defined in PNG spec.
         break;
       case 2:
-        image->colortype = colortype_e::eLuminanceAlpha; // ditto
+        image->colortype = Image::eLuminanceAlpha; // ditto
         break;
       case 3:
-        image->colortype = colortype_e::eRGB;
+        image->colortype = Image::eRGB;
         break;
       case 4:
-        image->colortype = colortype_e::eRGBA;
+        image->colortype = Image::eRGBA;
         break;
     }
 
