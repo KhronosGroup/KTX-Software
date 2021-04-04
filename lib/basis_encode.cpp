@@ -330,9 +330,9 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
     } else if (alphaContent == eGreen) {
         channelId = KHR_DF_CHANNEL_UASTC_RG;
     } else if (getDFDNumComponents(cdfd) == 1) {
-        channelId = KHR_DF_CHANNEL_UASTC_RGB;
-    } else {
         channelId = KHR_DF_CHANNEL_UASTC_RRR;
+    } else {
+        channelId = KHR_DF_CHANNEL_UASTC_RGB;
     }
     KHR_DFDSETSVAL(nbdb, 0, CHANNELID, channelId);
     KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, 0);
@@ -377,12 +377,16 @@ static bool basisuEncoderInitialized = false;
  *                              The texture's image are in a block compressed
  *                              format.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's images are 1D. Only 2D images can
- *                              be supercompressed.
- * @exception KTX_INVALID_OPERATION
- *                              The texture image's format is a packed format (e.g. RGB565).
+ *                              The texture image's format is a packed format
+ *                              (e.g. RGB565).
  * @exception KTX_INVALID_OPERATION
  *                              The texture image format's component size is not 8-bits.
+ * @exception KTX_INVALID_OPERATION
+ *                              @c separateRGToRGB_A is specified but the texture
+ *                              is only 1D.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's images are 1D. Only 2D images can
+ *                              be supercompressed.
  * @exception KTX_INVALID_OPERATION
  *                              Both preSwizzle and and inputSwizzle are specified
  *                              in @a params.

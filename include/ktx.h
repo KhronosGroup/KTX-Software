@@ -1034,7 +1034,10 @@ typedef struct ktxBasisParams {
          */
     ktx_bool_t separateRGToRGB_A;
         /*!< Separates the input R and G channels to RGB and A (for tangent
-             space XY normal maps). Only valid for 3- or 4-component
+             space XY normal maps). Equivalent to @c inputSwizzle "rrrg".
+             Separation is the default for 2 component textures. If both this
+             and inputSwizzle are set, the latter wins therefore set
+             @c inputSwizzle to change the default for 2 component
              textures.
          */
     ktx_bool_t preSwizzle;

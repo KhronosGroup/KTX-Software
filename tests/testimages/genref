@@ -83,6 +83,12 @@ $toktx --nowarn --t2 --test --target_type R --swizzle r001 --bcmp r_reference_ba
 $toktx --nowarn --t2 --test --target_type RG rg_reference_u.ktx2 ../srcimages/basn4a08.png
 $toktx --nowarn --t2 --test --target_type RG --swizzle rg01 --uastc -- rg_reference_uastc.ktx2 ../srcimages/basn4a08.png
 $toktx --nowarn --t2 --test --target_type RG --swizzle ra01 --bcmp rg_reference_basis.ktx2 ../srcimages/basn4a08.png
+# Input to the following is a red RGB texture.
+$toktx --nowarn --t2 --test --input_swizzle 0r01 green_rgb_reference_u.ktx2 ../srcimages/level0.ppm
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA cyan_rgba_reference_u.ktx2 ../srcimages/level0.ppm
+# BasisU encoders notice that alpha is all 1 and removes it, hence RGB output for these.
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --bcmp cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --uastc -- cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm
 
 # ... and additional files for the load tests.
 

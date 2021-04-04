@@ -137,6 +137,14 @@ if(APPLE)
 gencmpktx( rg_reference_basis rg_reference_basis.ktx2 ../srcimages/basn4a08.png "--test --t2 --bcmp --target_type RG --swizzle ra01" "" "" )
 endif()
 
+# Input to the following tests is a red RGB texture.
+gencmpktx( swizzle_r_to_g_u green_rgb_reference_u.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --test --input_swizzle 0r01" "" "" )
+gencmpktx( swizzle_r_to_gb_convert_to_rgba_u cyan_rgba_reference_u.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA" "" "" )
+# BasisU encoders notice that alpha is all 1 and removes it, hence RGB output for these.
+gencmpktx( swizzle_r_to_gb_convert_to_rgba_basis cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --bcmp" "" "" )
+gencmpktx( swizzle_r_to_gb_convert_to_rgba_uastc cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --uastc --" "" "" )
+
+
 gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--test --t2" "" "" )
 gencmpktx( cHRM_chunk_png ccwn2c08.ktx2 ../srcimages/ccwn2c08.png "--test --t2" "" "" )
 gencmpktx( tRNS_chunk_rgb_png tbrn2c08.ktx2 ../srcimages/tbrn2c08.png "--test --t2" "" "" )
