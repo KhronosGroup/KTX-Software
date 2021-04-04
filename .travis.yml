@@ -53,7 +53,7 @@ before_install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    docker run -dit --name emscripten -v $(pwd):/src trzeci/emscripten-ubuntu:sdk-incoming-64bit bash
+    docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
     ;;
   esac
 
