@@ -91,6 +91,11 @@ x86
 
         #endif
     #endif
+#elif defined __EMSCRIPTEN__
+
+#undef wasm
+wasm
+
 #else
     #error Unsupported cpu
 #endif
