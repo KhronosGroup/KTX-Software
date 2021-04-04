@@ -2,64 +2,95 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.0.0-beta8
+## Version 4.0.0-rc1
 ### Significant Changes
 
-Incoporates Basis Universal 1.13 bringing the latest ETC1S and UASTC
-encodersa.
+`toktx's` Handling of 1- or 2-component input files has been changed. In accordance with the PNG and JPEG specifications describing files as luminance, it now creates luminance textures.
 
-The ETC1S encoder is 3x faster with no quality loss (_toktx_ option
-`--clevel 2`) and 4.5x faster with a very slight quality loss
-(`--clevel 1`). Note that the default `compressionLevel` parameter
-in the _libktx_ API has been changed from 1 to 2. However the default in _toktx_ remains 1, to match _basisu\_tool_.
+The following options have been added to `toktx`:
 
-The UASTC RDO encoder has greatly improved quality per bit making
-lower bitrates more usable. As part of this _toktx's_ `--uastc_rdo_q`
-option has been renamed `--uastc_rdo_l` (for lamda) to reflect the new
-implementation. The range of values to try has changed too. The
-UASTC RDO dictionary size default and minimum allowed size have
-changed. There are now options to control the new smooth block
-detector and an option to disable RDO multithreading for determinism.
-See the [toktx man
-page](https://github.khronos.org/KTX-Software/ktxtools/toktx.html) for
-details.
+* `--assign_oetf` lets you override the oetf from the input file.
+* `--convert_oetf` lets you convert the input image to a different oetf.
+* `--input_swizzle` lets you specify a component swizzling to be applied to the input image before it is used to create a KTX file.
+* `--swizzle` lets you specify swizzle metadata to be written to a created KTX v2 file.
+* `--target_type` lets you modify the number of components of the input image or override the default handling of 1- or 2-component textures.
 
-### Changes since v4.0.0-beta7 (by part)
+See the [`toktx` man page](https://github.khronos.org/KTX-Software/ktxtools/toktx.html) for details.
+
+### Changes since v4.0.0-beta8 (by part)
 ### libktx
 
-* git subrepo push lib/dfdutils (5d1acb19) (@null)
+* Make luminance{,\_alpha} default for greyscale{,-alpha} input images. Add new features. (#387) (2ffdc81a) (@MarkCallow)
 
-* Ignore noSSE when SSE support not compiled in. (5a1f9e6c) (@MarkCallow)
+  New features include:
+  
+      --input\_swizzle & --swizzle
+      --target\_type
+      --assign\_oetf
+      --convert\_oetf
+  
+  The PR also includes documentation fixes for ktxTexture2\_CompressBasisEx.
+  
 
-* git subrepo pull lib/basisu (edac0216) (@MarkCallow)
+* git subrepo pull lib/dfdutils (7afa86a5) (@MarkCallow)
 
-* Restore previous value of sse support. (41e23d02) (@MarkCallow)
+  subrepo:
+    subdir:   "lib/dfdutils"
+    merged:   "659a739b"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    branch:   "master"
+    commit:   "659a739b"
+  git-subrepo:
+    version:  "0.4.3"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "c1f1132"
 
-* Expose new BU encoder options in libktx & apps. (7d0e9641) (@MarkCallow)
+* git subrepo pull lib/dfdutils (f5310bdd) (@MarkCallow)
 
-* git subrepo pull lib/basisu (69017842) (@MarkCallow)
+  subrepo:
+    subdir:   "lib/dfdutils"
+    merged:   "c95d443a"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    branch:   "master"
+    commit:   "c95d443a"
+  git-subrepo:
+    version:  "0.4.3"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "c1f1132"
 
-* Integrate Basis changes into build. (231e828a) (@MarkCallow)
+* Fix commit of last pull. (9ccf88fd) (@MarkCallow)
 
-* git subrepo pull --force lib/basisu (8621a855) (@MarkCallow)
+* git subrepo clone https://github.com/KhronosGroup/dfdutils.git lib/dfdutils (22d09c26) (@MarkCallow)
 
-* Remove copies of moved and deleted files. (0bc26125) (@MarkCallow)
+  subrepo:
+    subdir:   "lib/dfdutils"
+    merged:   "bf8b9961"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    branch:   "master"
+    commit:   "bf8b9961"
+  git-subrepo:
+    version:  "0.4.3"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "c1f1132"
 
-* Fix compile warnings passing args to new basisu API. (1bdc1eca) (@MarkCallow)
-
-* Support video in cube maps to match relaxation in KTX spec. (#381) (f6c5f548) (@MarkCallow)
+* Remove git subrepo clone of dfdutils ktxsw branch. (0101d6d4) (@MarkCallow)
 
 ### Tools
 
-* Remove workaround for issue with basisu\_resampler.h. (d74c679f) (@MarkCallow)
+* Make luminance{,\_alpha} default for greyscale{,-alpha} input images. Add new features. (#387) (2ffdc81a) (@MarkCallow)
 
-* Expose new BU encoder options in libktx & apps. (7d0e9641) (@null)
-
-* Fix MSVC confusion & error over intended iterator. (8a00c9c2) (@null)
-
-* Remove copies of moved and deleted files. (0bc26125) (@null)
-
-* Support video in cube maps to match relaxation in KTX spec. (#381) (f6c5f548) (@null)
+  New features include:
+  
+      --input\_swizzle & --swizzle
+      --target\_type
+      --assign\_oetf
+      --convert\_oetf
+  
+  The PR also includes documentation fixes for ktxTexture2\_CompressBasisEx.
+  
 
 
 
