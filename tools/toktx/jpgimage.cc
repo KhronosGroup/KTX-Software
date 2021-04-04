@@ -105,6 +105,12 @@ Image::CreateFromJPG(FILE* src, bool, bool)
     stream.rewind();
 
     int w = 0, h = 0, actual_comps = 0;
+    if (componentCount == 4) {
+        // It's most likely an Adobe created YCCK image with the 4th
+        // component used to recreate the original CMYK image. We
+        // can probably safely ignore it so we'll request just 3 components.
+        --componentCount;
+    }
     uint8_t* imageData = decompress_jpeg_image_from_stream(&stream,
                               &w, &h, &actual_comps, componentCount,
                               jpeg_decoder::cFlagLinearChromaFiltering);
@@ -116,16 +122,12 @@ Image::CreateFromJPG(FILE* src, bool, bool)
     Image* image;
     switch (componentCount) {
       case 1: {
-        using Color = color<uint8_t, 1>;
-        image = new ImageT< Color >(w, h, (Color*)imageData);
+        image = new r8image(w, h, (r8color*)imageData);
+        image->colortype = Image::eLuminance;
         break;
       } case 3: {
-        using Color = color<uint8_t, 3>;
-        image = new ImageT< Color >(w, h, (Color*)imageData);
-        break;
-      } case 4: {
-        using Color = color<uint8_t, 4>;
-        image = new ImageT< Color >(w, h, (Color*)imageData);
+        image = new rgb8image(w, h, (rgb8color*)imageData);
+        image->colortype = Image::eRGB;
         break;
       }
     }

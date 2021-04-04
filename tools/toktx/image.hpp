@@ -45,7 +45,7 @@ template <typename S> inline S minimum(S a, S b) { return (a < b) ? a : b; }
 #endif
 
 static INLINE float
-encode709(float const intensity, float const) {
+encode_bt709(float const intensity, float const) {
     /* We're following what Netpbm does. This is their comment and code. */
 
     /* Here are parameters of the gamma transfer function for the Netpbm
@@ -135,6 +135,12 @@ decode_gamma(float const brightness, float const gamma)
 }
 
 static INLINE float
+decode_linear(float const brightness, float const)
+{
+    return brightness;
+}
+
+static INLINE float
 encode_linear(float const intensity, float const)
 {
     return intensity;
@@ -146,6 +152,7 @@ public:
     static uint32_t getComponentCount() { return componentCount; }
     static uint32_t getComponentSize() { return sizeof(componentType); }
     static uint32_t getPixelSize() { return componentCount * sizeof(componentType); }
+    static uint32_t one() { return ((1 << sizeof(componentType) * 8) - 1); }
 };
 
 template <typename componentType, uint32_t componentCount>
@@ -171,6 +178,10 @@ class color<componentType, 4> : public color_base<componentType, 4> {
      void set(uint32_t i, float val) {
          if (i > 3) i = 3;
          comps[i] = (componentType)val;
+     }
+     void set(uint32_t i, componentType val) {
+         if (i > 3) i = 3;
+         comps[i] = val;
      }
 };
 
@@ -249,12 +260,17 @@ class Image {
         invalid_file(std::string error)
             : std::runtime_error("Invalid file: " + error) { }
     };
+    enum colortype_e {
+        eLuminance=0, eLuminanceAlpha=1, eR=2, eRG, eRGB, eRGBA
+    };
 
     virtual ~Image() { };
 
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
+    colortype_e getColortype() { return this->colortype; }
+    void setColortype(colortype_e t) { colortype = t; }
     khr_df_transfer_e getOetf() const { return oetf; }
     void setOetf(khr_df_transfer_e oetf) { this->oetf = oetf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
@@ -291,6 +307,11 @@ class Image {
     virtual Image& yflip() = 0;
     virtual Image& transformOETF(OETFFunc decode, OETFFunc encode,
                                  float gamma = 1.0f) = 0;
+    virtual Image& swizzle(std::string& swizzle) = 0;
+    virtual Image& copyToR(Image&) = 0;
+    virtual Image& copyToRG(Image&) = 0;
+    virtual Image& copyToRGB(Image&) = 0;
+    virtual Image& copyToRGBA(Image&) = 0;
 
   protected:
     Image() : width(0), height(0), primaries(KHR_DF_PRIMARIES_BT709) { }
@@ -298,14 +319,20 @@ class Image {
             : width(w), height(h), primaries(KHR_DF_PRIMARIES_BT709) { }
 
     uint32_t width, height;  // In pixels
+    colortype_e colortype;
     khr_df_transfer_e oetf;
     khr_df_primaries_e primaries;
 };
 
 // Base class for template and specializations
-template<class Color>
+template<typename componentType, uint32_t componentCount>
 class ImageT : public Image {
+  friend class ImageT<componentType, 1>;
+  friend class ImageT<componentType, 2>;
+  friend class ImageT<componentType, 3>;
+  friend class ImageT<componentType, 4>;
   public:
+    using Color = color<componentType, componentCount>;
     ImageT(uint32_t w, uint32_t h) : Image(w, h)
     {
         size_t bytes = sizeof(Color) * w * h;
@@ -347,7 +374,7 @@ class ImageT : public Image {
     }
 
     virtual Image* createImage(uint32_t width, uint32_t height) {
-        ImageT<Color>* image = new ImageT<Color>(width, height);
+        ImageT* image = new ImageT(width, height);
         return image;
     }
 
@@ -381,7 +408,7 @@ class ImageT : public Image {
     {
         using namespace basisu;
 
-        ImageT<Color>& dst = static_cast<ImageT<Color>&>(abstract_dst);
+        ImageT& dst = static_cast<ImageT&>(abstract_dst);
 
         const uint32_t src_w = width, src_h = height;
         const uint32_t dst_w = dst.getWidth(), dst_h = dst.getHeight();
@@ -491,10 +518,10 @@ class ImageT : public Image {
                     // TODO: Add dithering
                     if (linear_flag) {
                         int j = (int)(255.0f * pOutput_samples[x] + .5f);
-                        pDst->set(ci, (uint8_t)cclamp<int>(j, 0, 255));
+                        pDst->set(ci, (componentType)cclamp<int>(j, 0, Color::one()));
                     } else {
                         int j = (int)((LINEAR_TO_SRGB_TABLE_SIZE - 1) * pOutput_samples[x] + .5f);
-                        pDst->set(ci, linear_to_srgb_table[cclamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
+                        pDst->set(ci, (componentType)linear_to_srgb_table[cclamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
                     }
 
                     pDst++;
@@ -534,54 +561,149 @@ class ImageT : public Image {
         for (uint32_t i = 0; i < pixelCount; ++i) {
             Color& c = pixels[i];
             // Don't transform the alpha component. --------  v
-            for (uint32_t comp = 0; comp < Color::getComponentCount() && comp < 3; comp++) {
-                float brightness = (float)(c[comp]) / 255;
+            for (uint32_t comp = 0; comp < getComponentCount() && comp < 3; comp++) {
+                float brightness = (float)(c[comp]) / Color::one();
                 // gamma is only used by decode_gamma. Currently there is no
                 // encode_gamma.
                 float intensity = decode(brightness, gamma);
                 brightness = cclamp(encode(intensity, gamma), 0.0f, 1.0f);
-                c.set(comp, roundf(brightness * 255));
+                c.set(comp, roundf(brightness * Color::one()));
             }
         }
         return *this;
     }
 
+    virtual ImageT& swizzle(std::string& swizzle) {
+        assert(swizzle.size() == 4);
+        for (size_t i = 0; i < getPixelCount(); i++) {
+            Color srcPixel = pixels[i];
+            for (uint32_t c = 0; c < getComponentCount(); c++) {
+                switch (swizzle[c]) {
+                  case 'r':
+                    pixels[i].set(c, srcPixel[0]);
+                    break;
+                  case 'g':
+                    pixels[i].set(c, srcPixel[1]);
+                    break;
+                  case 'b':
+                    pixels[i].set(c, srcPixel[2]);
+                    break;
+                  case 'a':
+                    pixels[i].set(c, srcPixel[3]);
+                    break;
+                  case '0':
+                    pixels[i].set(c, (componentType)0x00);
+                    break;
+                  case '1':
+                    pixels[i].set(c, (componentType)Color::one());
+                    break;
+                  default:
+                    assert(false);
+                }
+            }
+        }
+        return *this;
+    }
+
+    template<class DstImage>
+    ImageT& copyTo(DstImage& dst) {
+        assert(getComponentSize() == dst.getComponentSize());
+        assert(width == dst.getWidth() && height == dst.getHeight());
+
+        dst.setOetf(oetf);
+        dst.setPrimaries(primaries);
+        dst.setColortype((colortype_e)(dst.getComponentCount() + Image::eLuminanceAlpha));
+        for (size_t i = 0; i < getPixelCount(); i++) {
+            uint32_t c;
+            for (c = 0; c < dst.getComponentCount(); c++) {
+                if (c < getComponentCount())
+                    dst.pixels[i].set(c, pixels[i][c]);
+                else
+                    break;
+            }
+            for (; c < dst.getComponentCount(); c++)
+                if (c < 3)
+                    dst.pixels[i].set(c, (componentType)0);
+                else
+                    dst.pixels[i].set(c, (componentType)Color::one());
+        }
+        return *this;
+    }
+
+    virtual ImageT& copyToR(Image& dst) { return copyTo((ImageT<componentType, 1>&)dst); }
+    virtual ImageT& copyToRG(Image& dst) { return copyTo((ImageT<componentType, 2>&)dst); }
+    virtual ImageT& copyToRGB(Image& dst){ return copyTo((ImageT<componentType, 3>&)dst); }
+    virtual ImageT& copyToRGBA(Image& dst) { return copyTo((ImageT<componentType, 4>&)dst); }
+
   protected:
     Color* pixels;
 };
 
-class r8image : public ImageT<color<uint8_t, 1>> {
+using r8color = color<uint8_t, 1>;
+using rg8color = color<uint8_t, 2>;
+using rgb8color = color<uint8_t, 3>;
+using rgba8color = color<uint8_t, 4>;
+using r16color = color<uint16_t, 1>;
+using rg16color = color<uint16_t, 2>;
+using rgb16color = color<uint16_t, 3>;
+using rgba16color = color<uint16_t, 4>;
+
+class r8image : public ImageT<uint8_t, 1> {
   public:
-    r8image(uint32_t w, uint32_t h) : ImageT<color<uint8_t, 1>>(w, h) { }
+    using MyImageT = ImageT<uint8_t, 1>;
+    r8image(uint32_t w, uint32_t h) : MyImageT(w, h) { }
+    r8image(uint32_t w, uint32_t h, r8color* data)
+        : MyImageT(w, h, data) { }
 };
-class rg8image : public ImageT<color<uint8_t, 2>> {
+class rg8image : public ImageT<uint8_t, 2> {
   public:
-    rg8image(uint32_t w, uint32_t h) : ImageT<color<uint8_t, 2>>(w, h) { }
+    using MyImageT = ImageT<uint8_t, 2>;
+    rg8image(uint32_t w, uint32_t h) : MyImageT(w, h) { }
+    rg8image(uint32_t w, uint32_t h, rg8color* data)
+        : MyImageT(w, h, data) { }
 };
-class rgb8image : public ImageT<color<uint8_t, 3>> {
+class rgb8image : public ImageT<uint8_t, 3> {
   public:
-    rgb8image(uint32_t w, uint32_t h) : ImageT<color<uint8_t, 3>>(w, h) { }
+    using MyImageT = ImageT<uint8_t, 3>;
+    rgb8image(uint32_t w, uint32_t h) : MyImageT(w, h) { }
+    rgb8image(uint32_t w, uint32_t h, rgb8color* data)
+        : MyImageT(w, h, data) { }
 };
-class rgba8image : public ImageT<color<uint8_t, 4>> {
+class rgba8image : public ImageT<uint8_t, 4> {
   public:
-    rgba8image(uint32_t w, uint32_t h) : ImageT<color<uint8_t, 4>>(w, h) { }
+    using MyImageT = ImageT<uint8_t, 4>;
+    rgba8image(uint32_t w, uint32_t h) : MyImageT(w, h) { }
+    rgba8image(uint32_t w, uint32_t h, rgba8color* data)
+        : MyImageT(w, h, data) { }
 };
 
-class r16image : public ImageT<color<uint16_t, 1>> {
+class r16image : public ImageT<uint16_t, 1> {
   public:
-    r16image(uint32_t w, uint32_t h) : ImageT<color<uint16_t, 1>>(w, h) { }
+    using MyImageT = ImageT<uint16_t, 1>;
+    r16image(uint32_t w, uint32_t h) : MyImageT(w, h) { }
+    r16image(uint32_t w, uint32_t h, r16color* data)
+        : MyImageT(w, h, data) { }
 };
-class rg16image : public ImageT<color<uint16_t, 2>> {
+class rg16image : public ImageT<uint16_t, 2> {
   public:
-    rg16image(uint32_t w, uint32_t h) : ImageT<color<uint16_t, 2>>(w, h) { }
+    using MyImageT = ImageT<uint16_t, 2>;
+    rg16image(uint32_t w, uint32_t h) : ImageT(w, h) { }
+    rg16image(uint32_t w, uint32_t h, rg16color* data)
+        : MyImageT(w, h, data) { }
 };
-class rgb16image : public ImageT<color<uint16_t, 3>> {
+class rgb16image : public ImageT<uint16_t, 3> {
   public:
-    rgb16image(uint32_t w, uint32_t h) : ImageT<color<uint16_t, 3>>(w, h) { }
+    using MyImageT = ImageT<uint16_t, 3>;
+    rgb16image(uint32_t w, uint32_t h) : MyImageT(w, h) { }
+    rgb16image(uint32_t w, uint32_t h, rgb16color* data)
+        : MyImageT(w, h, data) { }
 };
-class rgba16image : public ImageT<color<uint16_t, 4>> {
+class rgba16image : public ImageT<uint16_t, 4> {
   public:
-    rgba16image(uint32_t w, uint32_t h) : ImageT<color<uint16_t, 4>>(w, h) { }
+    using MyImageT = ImageT<uint16_t, 4>;
+    rgba16image(uint32_t w, uint32_t h) : MyImageT(w, h) { }
+    rgba16image(uint32_t w, uint32_t h, rgba16color* data)
+        : MyImageT(w, h, data) { }
 };
 
 #endif /* IMAGE_HPP */

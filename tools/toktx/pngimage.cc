@@ -100,7 +100,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     const unsigned char* pFirstChunk = &png.data()[33]; // 1st after header
     pTrnsChunk = lodepng_chunk_find_const(pFirstChunk, &png.back(), "tRNS");
 
-    switch (state.info_png.color.colortype) {
+  switch (state.info_png.color.colortype) {
       case LCT_GREY:
         componentCount = 1;
         // TODO: Create 4-bit color type and rescale 1- & 2-bpp to that.
@@ -108,19 +108,19 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         break;
       case LCT_RGB:
         if (pTrnsChunk != nullptr) {
-            state.info_raw.colortype = LCT_RGBA;
+          state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
-            state.info_raw.colortype = LCT_RGB;
+          state.info_raw.colortype = LCT_RGB;
             componentCount = 3;
         }
         break;
       case LCT_PALETTE:
         if (pTrnsChunk) {
-            state.info_raw.colortype = LCT_RGBA;
+          state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
         } else {
-            state.info_raw.colortype = LCT_RGB;
+          state.info_raw.colortype = LCT_RGB;
             componentCount = 3;
         }
         state.info_raw.bitdepth = 8; // Palette values are 8 bit RGBA
@@ -164,20 +164,16 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     if (componentBits == 16 ) {
         switch (componentCount) {
           case 1: {
-            using Color = color<uint16_t, 1>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new r16image(w, h, (r16color*)imageData);
             break;
           } case 2: {
-            using Color = color<uint16_t, 2>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rg16image(w, h, (rg16color*)imageData);
             break;
           } case 3: {
-            using Color = color<uint16_t, 3>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgb16image(w, h, (rgb16color*)imageData);
             break;
           } case 4: {
-            using Color = color<uint16_t, 4>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgba16image(w, h, (rgba16color*)imageData);
             break;
           }
         }
@@ -185,22 +181,36 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         switch (componentCount) {
           case 1: {
             using Color = color<uint8_t, 1>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new r8image(w, h, (r8color*)imageData);
             break;
           } case 2: {
             using Color = color<uint8_t, 2>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rg8image(w, h, (rg8color*)imageData);
             break;
           } case 3: {
             using Color = color<uint8_t, 3>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgb8image(w, h, (rgb8color*)imageData);
             break;
           } case 4: {
             using Color = color<uint8_t, 4>;
-            image = new ImageT< Color >(w, h, (Color*)imageData);
+            image = new rgba8image(w, h, (rgba8color*)imageData);
             break;
           }
         }
+    }
+    switch (componentCount) {
+      case 1:
+        image->colortype = Image::eLuminance;  // Defined in PNG spec.
+        break;
+      case 2:
+        image->colortype = Image::eLuminanceAlpha; // ditto
+        break;
+      case 3:
+        image->colortype = Image::eRGB;
+        break;
+      case 4:
+        image->colortype = Image::eRGBA;
+        break;
     }
 
     if (!transformOETF) {

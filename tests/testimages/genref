@@ -71,6 +71,24 @@ $toktx --nowarn --bcmp --test CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_pa
 $toktx --nowarn --t2 --test tbrn2c08.ktx2 ../srcimages/tbrn2c08.png
 $toktx --nowarn --t2 --test tbyn3p08.ktx2 ../srcimages/tbyn3p08.png
 $toktx --nowarn --t2 --test tm3n3p02.ktx2 ../srcimages/tm3n3p02.png
+$toktx --nowarn --t2 --test --convert_oetf linear luminance_reference_u.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --uastc -- luminance_reference_uastc.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --bcmp luminance_reference_basis.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test luminance_alpha_reference_u.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --uastc -- luminance_alpha_reference_uastc.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --bcmp luminance_alpha_reference_basis.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --convert_oetf linear --target_type R r_reference_u.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --target_type R --swizzle r001 --uastc -- r_reference_uastc.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --target_type R --swizzle r001 --bcmp r_reference_basis.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --target_type RG rg_reference_u.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --target_type RG --swizzle rg01 --uastc -- rg_reference_uastc.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --target_type RG --swizzle ra01 --bcmp rg_reference_basis.ktx2 ../srcimages/basn4a08.png
+# Input to the following is a red RGB texture.
+$toktx --nowarn --t2 --test --input_swizzle 0r01 green_rgb_reference_u.ktx2 ../srcimages/level0.ppm
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA cyan_rgba_reference_u.ktx2 ../srcimages/level0.ppm
+# BasisU encoders notice that alpha is all 1 and removes it, hence RGB output for these.
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --bcmp cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --uastc -- cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm
 
 # ... and additional files for the load tests.
 

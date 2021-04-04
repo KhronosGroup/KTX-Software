@@ -242,6 +242,7 @@ class scApp : public ktxApp {
                 uastcRDONoMultithreading = false;
                 noSSE = false;
                 verbose = false; // Default to quiet operation.
+                for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
             }
         };
 

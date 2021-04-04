@@ -145,6 +145,42 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+        ktx_uint32_t swizzleLen;
+        char* swizzleStr;
+        ktxresult = ktxHashList_FindValue(&kTexture->kvDataHead, KTX_SWIZZLE_KEY,
+                                          &swizzleLen, (void**)&swizzleStr);
+        if (ktxresult == KTX_SUCCESS && swizzleLen == 4) {
+            GLint swizzle[4];
+            swizzle[0] = swizzleStr[0] == 'r' ? GL_RED
+                      : swizzleStr[0] == 'g' ? GL_GREEN
+                      : swizzleStr[0] == 'b' ? GL_BLUE
+                      : swizzleStr[0] == 'a' ? GL_ALPHA
+                      : swizzleStr[0] == '0' ? GL_ZERO
+                      : GL_ONE;
+            swizzle[1] = swizzleStr[1] == 'r' ? GL_RED
+                      : swizzleStr[1] == 'g' ? GL_GREEN
+                      : swizzleStr[1] == 'b' ? GL_BLUE
+                      : swizzleStr[1] == 'a' ? GL_ALPHA
+                      : swizzleStr[1] == '0' ? GL_ZERO
+                      : GL_ONE;
+            swizzle[2] = swizzleStr[2] == 'r' ? GL_RED
+                      : swizzleStr[2] == 'g' ? GL_GREEN
+                      : swizzleStr[2] == 'b' ? GL_BLUE
+                      : swizzleStr[2] == 'a' ? GL_ALPHA
+                      : swizzleStr[2] == '2' ? GL_ZERO
+                      : GL_ONE;
+            swizzle[3] = swizzleStr[3] == 'r' ? GL_RED
+                      : swizzleStr[3] == 'g' ? GL_GREEN
+                      : swizzleStr[3] == 'b' ? GL_BLUE
+                      : swizzleStr[3] == 'a' ? GL_ALPHA
+                      : swizzleStr[3] == '3' ? GL_ZERO
+                      : GL_ONE;
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, swizzle[0]);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, swizzle[1]);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, swizzle[2]);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, swizzle[3]);
+        }
+
         assert(GL_NO_ERROR == glGetError());
 
         ktxTexture_Destroy(kTexture);
