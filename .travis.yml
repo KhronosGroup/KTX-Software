@@ -165,7 +165,7 @@ deploy:
     file_glob: true
     file:
       - build/linux-release/KTX-Software-*-Linux.*
-      - build/web-release/KTX-Software-*-Web-*.zip
+      - build/web-release/KTX-Software-*-Web-*
     skip_cleanup: true
     draft: true
     prerelease: true
