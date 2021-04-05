@@ -11,6 +11,7 @@ The following options have been added to `toktx`:
 
 * `--assign_oetf` lets you override the oetf from the input file.
 * `--convert_oetf` lets you convert the input image to a different oetf.
+* `--assign_primaries` lets you override the color primaries from the input file.
 * `--input_swizzle` lets you specify a component swizzling to be applied to the input image before it is used to create a KTX file.
 * `--swizzle` lets you specify swizzle metadata to be written to a created KTX v2 file.
 * `--target_type` lets you modify the number of components of the input image or override the default handling of 1- or 2-component textures.
