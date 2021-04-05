@@ -12,16 +12,16 @@ CMAKE_EXE=/usr/bin/cmake
 # Linux
 
 build_parent_dir=build
-linux_build_base=$build_dir/linux
-debug_build_dir=${build_dir_base}-debug
-release_build_dir=${build_dir_base}-release
-nosse_debug_build_dir=${build_dir_base}-nosse-debug
-nosse_release_build_dir=${build_dir_base}-nosse-release
+linux_build_base=$build_parent_dir/linux
+debug_build_dir=${linux_build_base}-debug
+release_build_dir=${linux_build_base}-release
+nosse_debug_build_dir=${linux_build_base}-nosse-debug
+nosse_release_build_dir=${linux_build_base}-nosse-release
 
 mkdir -p $build_parent_dir
 
 echo "Configure KTX-Software (Linux Debug)"
-${CMAKE_EXE} . -G Ninja -Bbuild-linux-debug -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_LOADTEST_APPS=ON
+${CMAKE_EXE} . -G Ninja -B$debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_LOADTEST_APPS=ON
 pushd $debug_build_dir
 echo "Build KTX-Software (Linux Debug)"
 ${CMAKE_EXE} --build .
