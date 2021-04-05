@@ -14,10 +14,12 @@ fi
 echo "Emscripten version"
 docker exec -it emscripten sh -c "emcc --version"
 
-build_dir=build
-web_build_base=$build_dir/web
+build_parent_dir=build
+web_build_base=$build_parent_dir/web
+debug_build_dir=${web_build_base}-debug
+release_build_dir=${web_build_base}-release
 
-mkdir -p $build_dir
+mkdir -p $build_parent_dir
 
 echo "Configure/Build KTX-Software (Web Debug)"
 docker exec -it emscripten sh -c "emcmake cmake -B${web_build_base}-debug . && cmake --build ${web_build_base}-debug --config Debug"
