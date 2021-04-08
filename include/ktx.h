@@ -917,7 +917,7 @@ ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
 
-KTX_API void ktxTexture2_Destroy(ktxTexture2* This);
+KTX_API void KTX_APIENTRY ktxTexture2_Destroy(ktxTexture2* This);
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
