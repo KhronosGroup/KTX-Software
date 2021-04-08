@@ -1439,7 +1439,10 @@ ktxValidator::validateDfd(validationContext& ctx)
 
                     if (result & i_FLOAT_FORMAT_BIT)
                         findStr += "FLOAT";
-                    if (result & i_NORMALIZED_FORMAT_BIT)
+                    // else here because Vulkan format names do not reflect
+                    // both normalized and float. E.g, BC6H is just
+                    // VK_FORMAT_BC6H_[SU]FLOAT_BLOCK.
+                    else if (result & i_NORMALIZED_FORMAT_BIT)
                         findStr += "NORM";
                     else
                         findStr += "INT";

@@ -985,7 +985,9 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
             return KTX_INVALID_OPERATION;
         }
     } else {
-       // TODO Check DFD for ASTC HDR or 3D or RGB[DEM] and figure out format.
+       // TODO: Check DFD for ASTC HDR or 3D or RGB[DEM] and figure out format.
+       return KTX_INVALID_OPERATION; // BasisU textures must be transcoded
+                                     // before upload.
     }
 
     formatInfo.glFormat = glGetFormatFromInternalFormat(formatInfo.glInternalformat);
