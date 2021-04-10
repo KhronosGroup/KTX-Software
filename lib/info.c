@@ -55,7 +55,7 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
     KTX_error_code result;
     ktxHashList kvDataHead = 0;
 
-    assert(pKvd != NULL);
+    assert(pKvd != NULL && kvdLen > 0);
 
     result = ktxHashList_Deserialize(&kvDataHead,
                                      kvdLen, pKvd);
@@ -398,11 +398,15 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     printDFD(DFD);
     free(DFD);
 
-    fprintf(stdout, "\nKeyValue Data\n\n");
-    metadata = malloc(pHeader->keyValueData.byteLength);
-    stream->read(stream, metadata, pHeader->keyValueData.byteLength);
-    printKVData(metadata, pHeader->keyValueData.byteLength);
-    free(metadata);
+    if (pHeader->keyValueData.byteLength) {
+        fprintf(stdout, "\nKey/Value Data\n\n");
+        metadata = malloc(pHeader->keyValueData.byteLength);
+        stream->read(stream, metadata, pHeader->keyValueData.byteLength);
+        printKVData(metadata, pHeader->keyValueData.byteLength);
+        free(metadata);
+    } else {
+        fprintf(stdout, "\nNo Key/Value data.\n");
+    }
 
     if (pHeader->supercompressionGlobalData.byteOffset != 0
         && pHeader->supercompressionGlobalData.byteLength != 0) {
