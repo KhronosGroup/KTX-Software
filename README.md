@@ -6,8 +6,6 @@
 The Official Khronos KTX Software Repository
 ---
 
-> **Note:** Visual Studio 2019 v16.5 & v16.6 get an internal compiler error when compiling parts of this software. v16.4 is okay. For Windows we suggest using Visual Studio 2017 until Microsoft fixes this bug.
-
 | GNU/Linux, iOS & OSX |  Windows | Documentation |
 |----------------------| :------: | :-----------: |
 | [![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.com/KhronosGroup/KTX-Software) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) |
