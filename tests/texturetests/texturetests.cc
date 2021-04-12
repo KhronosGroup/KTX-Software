@@ -39,6 +39,10 @@
 #define ROUNDING(x) \
         (3 - ((x + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT));
 
+#if defined(TestNoMetadata)
+extern ktx_bool_t __disableWriterMetadata__;
+#endif
+
 namespace {
 
 // Recursive function to return the greatest common divisor of a and b.
@@ -2234,6 +2238,8 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
 
         result = ktxTexture2_TranscodeBasis(texture, KTX_TTF_BC1_RGB, 0);
         EXPECT_EQ(result, KTX_SUCCESS);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2241,6 +2247,7 @@ class ktxTexture2_GetNumComponentsTestR8 : public ktxTexture2TestBase<GLubyte, 1
 class ktxTexture2_GetNumComponentsTestRG8 : public ktxTexture2TestBase<GLubyte, 2, GL_RG8> { };
 class ktxTexture2_GetNumComponentsTestRGB8 : public ktxTexture2TestBase<GLubyte, 3, GL_RGB8> { };
 class ktxTexture2_GetNumComponentsTestRGBA8 : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_MetadataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
 
 ////////////////////////////////////////////
 // ktxTexture2_GetNumComponents tests
@@ -2261,6 +2268,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, Uncompressed) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 1);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2281,6 +2290,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, BasisLZ) {
         EXPECT_EQ(components, 1);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2303,6 +2314,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2321,6 +2334,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, Uncompressed) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 2);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2363,6 +2378,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2381,6 +2398,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, Uncompressed) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 3);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2401,6 +2420,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, BasisLZ) {
         EXPECT_EQ(components, 3);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2423,6 +2444,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2441,6 +2464,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, Uncompressed) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 4);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2461,6 +2486,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, BasisLZ) {
         EXPECT_EQ(components, 4);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2483,6 +2510,107 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
+
+TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
+    ktxTexture2* texture;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+        result = ktxHashList_AddKVPair(&texture->kvDataHead,
+                                       "MSCtestKey", 0, nullptr);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        ktx_size_t newMemFileLen;
+        ktx_uint8_t* newMemFile;
+        result = ktxTexture2_WriteToMemory(texture, &newMemFile,
+                                           &newMemFileLen);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+
+        result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+        ktx_uint32_t valueLen;
+        ktx_uint8_t* value;
+        result = ktxHashList_FindValue(&texture->kvDataHead,
+                                      "MSCtestKey", &valueLen, (void**)&value);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        EXPECT_EQ(valueLen, 0);
+        EXPECT_EQ(value, nullptr);
+
+        if (newMemFile)
+            free(newMemFile);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+    }
+}
+
+#if defined(TestNoMetadata)
+TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
+    ktxTexture2* texture;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+        ktxHashList_Destruct(&texture->kvDataHead);
+        ktxTexture(texture)->kvDataHead = nullptr;
+        ktxTexture(texture)->kvDataLen = 0;
+
+
+        ktx_size_t newMemFileLen;
+        ktx_uint8_t* newMemFile;
+        ::__disableWriterMetadata__ = KTX_TRUE;
+        result = ktxTexture2_WriteToMemory(texture, &newMemFile,
+                                           &newMemFileLen);
+        ::__disableWriterMetadata__ = KTX_FALSE;
+        EXPECT_EQ(result, KTX_SUCCESS);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+
+        result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+        ktx_uint32_t valueLen;
+        ktx_uint8_t* value;
+        EXPECT_EQ(result, KTX_SUCCESS);
+        EXPECT_EQ(texture->kvDataLen, 0);
+        EXPECT_EQ(texture->kvDataHead, nullptr);
+
+        if (newMemFile)
+            free(newMemFile);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+    }
+}
+#endif
 }  // namespace

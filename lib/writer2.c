@@ -234,6 +234,11 @@ ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
     return result;
 }
 
+#if defined(TestNoMetadata)
+// Only so texturetests can test loading of files without any metadata.
+ktx_bool_t __disableWriterMetadata__ = KTX_FALSE;
+#endif
+
 /**
  * @memberof ktxTexture2 @private
  * @~English
@@ -328,14 +333,18 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
         }
     }
 
-    result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
-                                   &pEntry);
-    pEntry = NULL;
-    result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
-                                   &pEntry);
-    result = appendLibId(&This->kvDataHead, pEntry);
-    if (result != KTX_SUCCESS)
-        return result;
+#if defined(TestNoMetadata)
+    if (!__disableWriterMetadata__) {
+#endif
+        pEntry = NULL;
+        result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
+                                       &pEntry);
+        result = appendLibId(&This->kvDataHead, pEntry);
+        if (result != KTX_SUCCESS)
+            return result;
+#if defined(TestNoMetadata)
+    }
+#endif
 
     ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);

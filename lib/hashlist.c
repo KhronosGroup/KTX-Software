@@ -195,7 +195,7 @@ ktxHashList_Destroy(ktxHashList* pHead)
 KTX_error_code
 ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen, const void* value)
 {
-    if (pHead && key && value && valueLen != 0) {
+    if (pHead && key && (valueLen == 0 || value)) {
         unsigned int keyLen = (unsigned int)strlen(key) + 1;
         ktxKVListEntry* kv;
 
