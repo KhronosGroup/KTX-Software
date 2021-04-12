@@ -2534,8 +2534,8 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
 
         ktx_size_t newMemFileLen;
         ktx_uint8_t* newMemFile;
-        result = ktxTexture2_WriteToMemory(texture, &newMemFile,
-                                           &newMemFileLen);
+        result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile,
+                                          &newMemFileLen);
         EXPECT_EQ(result, KTX_SUCCESS);
         if (texture)
             ktxTexture_Destroy(ktxTexture(texture));
@@ -2585,8 +2585,8 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
         ktx_size_t newMemFileLen;
         ktx_uint8_t* newMemFile;
         ::__disableWriterMetadata__ = KTX_TRUE;
-        result = ktxTexture2_WriteToMemory(texture, &newMemFile,
-                                           &newMemFileLen);
+        result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile,
+                                          &newMemFileLen);
         ::__disableWriterMetadata__ = KTX_FALSE;
         EXPECT_EQ(result, KTX_SUCCESS);
         if (texture)
