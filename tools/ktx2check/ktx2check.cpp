@@ -495,6 +495,7 @@ class ktxValidator : public ktxApp {
         uint32_t* pDfd4Format;
         uint32_t* pActualDfd;
         uint64_t dataSizeFromLevelIndex;
+        uint64_t curFileOffset;  // Keep our own so can use stdin.
         bool cubemapIncompleteFound;
 
         struct formatInfo {
@@ -513,6 +514,8 @@ class ktxValidator : public ktxApp {
             pDfd4Format = nullptr;
             pActualDfd = nullptr;
             cubemapIncompleteFound = false;
+            dataSizeFromLevelIndex = 0;
+            curFileOffset = 0;
         }
 
         ~validationContext() {
@@ -642,6 +645,30 @@ class ktxValidator : public ktxApp {
             inf = f;
             dataSizeFromLevelIndex = 0;
         }
+
+        ktx_size_t fileRead(void* ptr, size_t size, size_t nitems) {
+            ktx_size_t result;
+            result = fread(ptr, size, nitems, inf);
+            if (result == nitems) curFileOffset += (size * nitems);
+            return result;
+        }
+
+        int fileError() {
+            return ferror(inf);
+        }
+
+        // Move read point from curOffset to next multiple of alignment bytes.
+        // Use read not fseeko/setpos so stdin can be used.
+        ktx_uint32_t skipPadding(uint32_t alignment) {
+            uint32_t padLen = padn_len(alignment, curFileOffset);
+            uint8_t padBuf[32];
+            ktx_uint32_t result = 1;
+            if (padLen) {
+                if (fileRead(padBuf, padLen, 1) != 1)
+                    result = 0;
+            }
+            return result;
+        }
     };
 
     void addIssue(logger::severity severity, issue issue, ...) {
@@ -687,21 +714,6 @@ class ktxValidator : public ktxApp {
     void validateAnimData(validationContext& ctx, char* key,
                           uint8_t* value, uint32_t valueLen);
 
-    // Move read point from curOffset to next multiple of alignment bytes.
-    // Use read not fseeko/setpos so stdin can be used.
-    void skipPadding(uint64_t curOffset, uint32_t alignment, FILE* f) {
-        uint32_t pLen = padn_len(alignment, curOffset);
-        uint8_t padBuf[32];
-        if (pLen) {
-            if (fread(padBuf, pLen, 1, f) != 1) {
-                if (ferror(f))
-                    addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-                else
-                    addIssue(logger::eFatal, IOError.UnexpectedEOF);
-            }
-        }
-    }
-
     typedef struct {
         string name;
         validateMetadataFunc validateFunc;
@@ -719,6 +731,15 @@ class ktxValidator : public ktxApp {
 			errorOnWarning = false;
         }
     } options;
+
+    void skipPadding(validationContext& ctx, uint32_t alignment) {
+        if (ctx.skipPadding(alignment) == 0) {
+            if (ctx.fileError())
+                addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+            else
+                addIssue(logger::eFatal, IOError.UnexpectedEOF);
+        }
+    }
 };
 
 vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
@@ -924,7 +945,10 @@ ktxValidator::validateFile(const string& filename)
             validateLevelIndex(context);
             validateDfd(context);
             validateKvd(context);
+            if (context.header.supercompressionGlobalData.byteLength > 0)
+                skipPadding(context, 8);
             validateSgd(context);
+            skipPadding(context, context.requiredLevelAlignment());
             validateDataSize(context);
         } catch (fatal& e) {
             if (!options.quiet)
@@ -963,8 +987,8 @@ ktxValidator::validateHeader(validationContext& ctx)
     ktx_uint8_t identifier_reference[12] = KTX2_IDENTIFIER_REF;
     ktx_uint32_t max_dim;
 
-    if (fread(&ctx.header, sizeof(KTX_header2), 1, ctx.inf) != 1) {
-        if (ferror(ctx.inf))
+    if (ctx.fileRead(&ctx.header, sizeof(KTX_header2), 1) != 1) {
+        if (ctx.fileError())
             addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
         else
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
@@ -1102,7 +1126,8 @@ ktxValidator::validateHeader(validationContext& ctx)
     }
 
     ctx.levelIndexSize = sizeof(ktxLevelIndexEntry) * ctx.levelCount;
-    uint64_t offset = KTX2_HEADER_SIZE + ctx.levelIndexSize;
+    ctx.curFileOffset = KTX2_HEADER_SIZE + ctx.levelIndexSize;
+    uint64_t offset = ctx.curFileOffset;
     if (offset != ctx.header.dataFormatDescriptor.byteOffset)
         addIssue(logger::eError, HeaderData.InvalidDFDOffset);
     offset += ctx.header.dataFormatDescriptor.byteLength;
@@ -1126,12 +1151,13 @@ void
 ktxValidator::validateLevelIndex(validationContext& ctx)
 {
      ktxLevelIndexEntry* levelIndex = new ktxLevelIndexEntry[ctx.levelCount];
-     if (fread(levelIndex, ctx.levelIndexSize, 1, ctx.inf) != 1) {
-        if (ferror(ctx.inf))
+     if (ctx.fileRead(levelIndex, ctx.levelIndexSize, 1) != 1) {
+        if (ctx.fileError())
             addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
         else
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
     }
+    ctx.curFileOffset += ctx.levelIndexSize;
 
     uint32_t requiredLevelAlignment = ctx.requiredLevelAlignment();
     size_t expectedOffset;
@@ -1219,8 +1245,8 @@ ktxValidator::validateDfd(validationContext& ctx)
     // header.dataFormatDescriptor.byteOffset points to this location.
     ctx.pActualDfd = new uint32_t[ctx.header.dataFormatDescriptor.byteLength
                                / sizeof(uint32_t)];
-    if (fread(ctx.pActualDfd, ctx.header.dataFormatDescriptor.byteLength, 1, ctx.inf) != 1) {
-        if (ferror(ctx.inf))
+    if (ctx.fileRead(ctx.pActualDfd, ctx.header.dataFormatDescriptor.byteLength, 1) != 1) {
+        if (ctx.fileError())
             addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
         else
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
@@ -1466,8 +1492,8 @@ ktxValidator::validateKvd(validationContext& ctx)
         return;
 
     uint8_t* kvd = new uint8_t[kvdLen];
-    if (fread(kvd, kvdLen, 1, ctx.inf) != 1) {
-        if (ferror(ctx.inf))
+    if (ctx.fileRead(kvd, kvdLen, 1) != 1) {
+        if (ctx.fileError())
             addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
         else
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
@@ -1570,14 +1596,6 @@ ktxValidator::validateKvd(validationContext& ctx)
             else
                 addIssue(logger::eWarning, Metadata.NoKTXwriter);
         }
-    }
-
-    if (ctx.header.supercompressionGlobalData.byteOffset != 0) {
-        // Need byteOffset because keyValue data starts on 4 byte alignment.
-        skipPadding(ctx.header.keyValueData.byteOffset + kvdLen, 8, ctx.inf);
-    } else {
-        skipPadding(ctx.header.keyValueData.byteOffset + kvdLen,
-                    ctx.requiredLevelAlignment(), ctx.inf);
     }
 }
 
@@ -1749,8 +1767,8 @@ ktxValidator::validateSgd(validationContext& ctx)
     }
 
     uint8_t* sgd = new uint8_t[sgdByteLength];
-    if (fread(sgd, sgdByteLength, 1, ctx.inf) != 1) {
-        if (ferror(ctx.inf))
+    if (ctx.fileRead(sgd, sgdByteLength, 1) != 1) {
+        if (ctx.fileError())
             addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
         else
             addIssue(logger::eFatal, IOError.UnexpectedEOF);
@@ -1800,10 +1818,7 @@ ktxValidator::validateSgd(validationContext& ctx)
 
     // Can't do anymore as we have no idea how many endpoints, etc there
     // should be.
-
-    // Advance read pos to beginning of image data.
-    skipPadding(ctx.header.supercompressionGlobalData.byteOffset + sgdByteLength,
-                ctx.requiredLevelAlignment(), ctx.inf);
+    // TODO: attempt transcode
 }
 
 void
@@ -1826,7 +1841,7 @@ ktxValidator::validateDataSize(validationContext& ctx)
         dataSizeInFile = 0;
         while (getc(ctx.inf) != EOF)
             dataSizeInFile++;
-        if (ferror(ctx.inf))
+        if (ctx.fileError())
             addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
     }
     if (dataSizeInFile != ctx.dataSizeFromLevelIndex)
