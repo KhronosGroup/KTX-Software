@@ -121,7 +121,7 @@ cmake -G Xcode -B build/mac
 cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 
 # Compile the project
-cmake --build build
+cmake --build build/mac
 ```
 
 To sign the applications you need to set the following CMake variables:
