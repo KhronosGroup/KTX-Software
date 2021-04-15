@@ -235,9 +235,13 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     This->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
     This->paletteSizeInBits = 0; // No paletted formats in ktx v2.
     This->flags = 0;
+    This->minBlocksX = This->minBlocksY = 1;
     if (KHR_DFDVAL(pBdb, MODEL) >= KHR_DF_MODEL_DXT1A) {
         // A block compressed format. Entire block is a single sample.
         This->flags |= KTX_FORMAT_SIZE_COMPRESSED_BIT;
+        if (KHR_DFDVAL(pBdb, MODEL) == KHR_DF_MODEL_PVRTC) {
+            This->minBlocksX = This->minBlocksY = 2;
+        }
     } else {
         // An uncompressed format.
 
@@ -2001,7 +2005,7 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
         // With the exception of non-array cubemaps the entire level
         // is passed at once because that is how OpenGL and Vulkan need them.
         // Vulkan could take all the faces at once too but we iterate
-        // them separately or OpenGL.
+        // them separately for OpenGL.
         if (This->isCubemap && !This->isArray) {
             ktx_uint8_t* pFace = pData;
             struct blockCount {
@@ -2013,8 +2017,8 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
               = (uint32_t)ceilf((float)width / prtctd->_formatSize.blockWidth);
             blockCount.y
               = (uint32_t)ceilf((float)height / prtctd->_formatSize.blockHeight);
-            blockCount.x = MAX(1, blockCount.x);
-            blockCount.y = MAX(1, blockCount.y);
+            blockCount.x = MAX(prtctd->_formatSize.minBlocksX, blockCount.x);
+            blockCount.y = MAX(prtctd->_formatSize.minBlocksX, blockCount.y);
             faceSize = blockCount.x * blockCount.y
                        * prtctd->_formatSize.blockSizeInBits / 8;
 

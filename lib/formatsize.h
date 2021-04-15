@@ -41,6 +41,8 @@ typedef struct ktxFormatSize {
     unsigned int        blockWidth;         // in texels
     unsigned int        blockHeight;        // in texels
     unsigned int        blockDepth;         // in texels
+    unsigned int        minBlocksX;         // Minimum required number of blocks
+    unsigned int        minBlocksY;
 } ktxFormatSize;
 
 #ifdef __cplusplus
