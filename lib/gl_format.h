@@ -1,4 +1,4 @@
-﻿/*
+/*
 ================================================================================================
 
 Description	:	OpenGL formats/types and properties.
@@ -1625,6 +1625,7 @@ static inline unsigned int glGetTypeSizeFromType(GLenum type)
 
 static inline void glGetFormatSize( const GLenum internalFormat, ktxFormatSize * pFormatSize )
 {
+    pFormatSize->minBlocksX = pFormatSize->minBlocksY = 1;
 	switch ( internalFormat )
 	{
 		//
@@ -2007,27 +2008,31 @@ static inline void glGetFormatSize( const GLenum internalFormat, ktxFormatSize *
 		//
 		// PVRTC
 		//
-		case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:				// 3-component PVRTC, 16x8 blocks, unsigned normalized
-		case GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT:				// 3-component PVRTC, 16x8 blocks, sRGB
-		case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:				// 4-component PVRTC, 16x8 blocks, unsigned normalized
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT:			// 4-component PVRTC, 16x8 blocks, sRGB
-			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
-			pFormatSize->paletteSizeInBits = 0;
-			pFormatSize->blockSizeInBits = 64;
-			pFormatSize->blockWidth = 16;
-			pFormatSize->blockHeight = 8;
-			pFormatSize->blockDepth = 1;
-			break;
-		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:				// 3-component PVRTC, 8x8 blocks, unsigned normalized
-		case GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT:				// 3-component PVRTC, 8x8 blocks, sRGB
-		case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:				// 4-component PVRTC, 8x8 blocks, unsigned normalized
-		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT:			// 4-component PVRTC, 8x8 blocks, sRGB
+		case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:				// 3-component PVRTC, 8x4 blocks, unsigned normalized
+		case GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT:				// 3-component PVRTC, 8x4 blocks, sRGB
+		case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:				// 4-component PVRTC, 8x4 blocks, unsigned normalized
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT:			// 4-component PVRTC, 8x4 blocks, sRGB
 			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 64;
 			pFormatSize->blockWidth = 8;
-			pFormatSize->blockHeight = 8;
+			pFormatSize->blockHeight = 4;
 			pFormatSize->blockDepth = 1;
+            pFormatSize->minBlocksX = 2;
+            pFormatSize->minBlocksY = 2;
+			break;
+		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:				// 3-component PVRTC, 4x4 blocks, unsigned normalized
+		case GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT:				// 3-component PVRTC, 4x4 blocks, sRGB
+		case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:				// 4-component PVRTC, 4x4 blocks, unsigned normalized
+		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT:			// 4-component PVRTC, 4x4 blocks, sRGB
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->paletteSizeInBits = 0;
+			pFormatSize->blockSizeInBits = 64;
+			pFormatSize->blockWidth = 4;
+			pFormatSize->blockHeight = 4;
+			pFormatSize->blockDepth = 1;
+            pFormatSize->minBlocksX = 2;
+            pFormatSize->minBlocksY = 2;
 			break;
 		case GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG:				// 4-component PVRTC, 8x4 blocks, unsigned normalized
 		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG:			// 4-component PVRTC, 8x4 blocks, sRGB

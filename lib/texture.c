@@ -565,8 +565,8 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
         = (uint32_t)ceilf(levelWidth / prtctd->_formatSize.blockWidth);
     blockCount.y
         = (uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
-    blockCount.x = MAX(1, blockCount.x);
-    blockCount.y = MAX(1, blockCount.y);
+    blockCount.x = MAX(prtctd->_formatSize.minBlocksX, blockCount.x);
+    blockCount.y = MAX(prtctd->_formatSize.minBlocksX, blockCount.y);
 
     blockSizeInBytes = prtctd->_formatSize.blockSizeInBits / 8;
 
