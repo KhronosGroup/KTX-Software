@@ -1210,8 +1210,6 @@ static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pForm
 			break;
 		case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG:
 		case VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG:
-        case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
-        case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG:
 			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
@@ -1220,11 +1218,18 @@ static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pForm
 			pFormatSize->blockDepth = 1;
             pFormatSize->minBlocksX = 2;
             pFormatSize->minBlocksY = 2;
+            break;
+        case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
+        case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG:
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->paletteSizeInBits = 0;
+			pFormatSize->blockSizeInBits = 8 * 8;
+			pFormatSize->blockWidth = 8;
+			pFormatSize->blockHeight = 4;
+			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
 		case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG:
-        case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
-        case VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG:
 			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
@@ -1233,6 +1238,15 @@ static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pForm
 			pFormatSize->blockDepth = 1;
             pFormatSize->minBlocksX = 2;
             pFormatSize->minBlocksY = 2;
+            break;
+        case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
+        case VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG:
+			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
+			pFormatSize->paletteSizeInBits = 0;
+			pFormatSize->blockSizeInBits = 8 * 8;
+			pFormatSize->blockWidth = 4;
+			pFormatSize->blockHeight = 4;
+			pFormatSize->blockDepth = 1;
 			break;
 		case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
