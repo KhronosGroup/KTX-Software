@@ -239,7 +239,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     if (KHR_DFDVAL(pBdb, MODEL) >= KHR_DF_MODEL_DXT1A) {
         // A block compressed format. Entire block is a single sample.
         This->flags |= KTX_FORMAT_SIZE_COMPRESSED_BIT;
-        if (KHR_DFDVAL(pBdb, MODEL) >= KHR_DF_MODEL_PVRTC) {
+        if (KHR_DFDVAL(pBdb, MODEL) == KHR_DF_MODEL_PVRTC) {
             This->minBlocksX = This->minBlocksY = 2;
         }
     } else {
