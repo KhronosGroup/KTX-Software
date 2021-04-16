@@ -1625,7 +1625,7 @@ static inline unsigned int glGetTypeSizeFromType(GLenum type)
 
 static inline void glGetFormatSize( const GLenum internalFormat, ktxFormatSize * pFormatSize )
 {
-    pFormatSize->minBlocksX = pFormatSize->minBlocksY = 1;
+	pFormatSize->minBlocksX = pFormatSize->minBlocksY = 1;
 	switch ( internalFormat )
 	{
 		//
@@ -2018,8 +2018,8 @@ static inline void glGetFormatSize( const GLenum internalFormat, ktxFormatSize *
 			pFormatSize->blockWidth = 8;
 			pFormatSize->blockHeight = 4;
 			pFormatSize->blockDepth = 1;
-            pFormatSize->minBlocksX = 2;
-            pFormatSize->minBlocksY = 2;
+			pFormatSize->minBlocksX = 2;
+			pFormatSize->minBlocksY = 2;
 			break;
 		case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:				// 3-component PVRTC, 4x4 blocks, unsigned normalized
 		case GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT:				// 3-component PVRTC, 4x4 blocks, sRGB
@@ -2031,8 +2031,8 @@ static inline void glGetFormatSize( const GLenum internalFormat, ktxFormatSize *
 			pFormatSize->blockWidth = 4;
 			pFormatSize->blockHeight = 4;
 			pFormatSize->blockDepth = 1;
-            pFormatSize->minBlocksX = 2;
-            pFormatSize->minBlocksY = 2;
+			pFormatSize->minBlocksX = 2;
+			pFormatSize->minBlocksY = 2;
 			break;
 		case GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG:				// 4-component PVRTC, 8x4 blocks, unsigned normalized
 		case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG:			// 4-component PVRTC, 8x4 blocks, sRGB

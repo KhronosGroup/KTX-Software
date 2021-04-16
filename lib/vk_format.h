@@ -825,7 +825,7 @@ static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum interna
 
 static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pFormatSize )
 {
-    pFormatSize->minBlocksX = pFormatSize->minBlocksY = 1;
+	pFormatSize->minBlocksX = pFormatSize->minBlocksY = 1;
 	switch ( format )
 	{
 		case VK_FORMAT_R4G4_UNORM_PACK8:
@@ -1158,8 +1158,8 @@ static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pForm
 		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
 		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
 		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-        case VK_FORMAT_BC4_UNORM_BLOCK:
-        case VK_FORMAT_BC4_SNORM_BLOCK:
+		case VK_FORMAT_BC4_UNORM_BLOCK:
+		case VK_FORMAT_BC4_SNORM_BLOCK:
 			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
@@ -1171,8 +1171,8 @@ static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pForm
 		case VK_FORMAT_BC2_SRGB_BLOCK:
 		case VK_FORMAT_BC3_UNORM_BLOCK:
 		case VK_FORMAT_BC3_SRGB_BLOCK:
-        case VK_FORMAT_BC5_UNORM_BLOCK:
-        case VK_FORMAT_BC5_SNORM_BLOCK:
+		case VK_FORMAT_BC5_UNORM_BLOCK:
+		case VK_FORMAT_BC5_SNORM_BLOCK:
 		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
 		case VK_FORMAT_BC6H_SFLOAT_BLOCK:
 		case VK_FORMAT_BC7_UNORM_BLOCK:
@@ -1216,11 +1216,11 @@ static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pForm
 			pFormatSize->blockWidth = 8;
 			pFormatSize->blockHeight = 4;
 			pFormatSize->blockDepth = 1;
-            pFormatSize->minBlocksX = 2;
-            pFormatSize->minBlocksY = 2;
-            break;
-        case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
-        case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG:
+			pFormatSize->minBlocksX = 2;
+			pFormatSize->minBlocksY = 2;
+			break;
+		case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
+		case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG:
 			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
@@ -1236,11 +1236,11 @@ static inline void vkGetFormatSize( const VkFormat format, ktxFormatSize * pForm
 			pFormatSize->blockWidth = 4;
 			pFormatSize->blockHeight = 4;
 			pFormatSize->blockDepth = 1;
-            pFormatSize->minBlocksX = 2;
-            pFormatSize->minBlocksY = 2;
-            break;
-        case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
-        case VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG:
+			pFormatSize->minBlocksX = 2;
+			pFormatSize->minBlocksY = 2;
+			break;
+		case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
+		case VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG:
 			pFormatSize->flags = KTX_FORMAT_SIZE_COMPRESSED_BIT;
 			pFormatSize->paletteSizeInBits = 0;
 			pFormatSize->blockSizeInBits = 8 * 8;
