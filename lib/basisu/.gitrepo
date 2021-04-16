@@ -7,6 +7,6 @@
 	remote = https://github.com/BinomialLLC/basis_universal.git
 	branch = master
 	commit = 57b9051d94ea172406c2d99518028b797070235d
-	parent = 579dab89382baa8dfcbecad24dde9b2699025b96
+	parent = 5a1f9e6c84e051f465fbef0bac655724a8700496
 	method = merge
 	cmdver = 0.4.3
