@@ -20,8 +20,8 @@
 #pragma warning (disable: 4127) //  conditional expression is constant
 #endif
 
-#define BASISD_LIB_VERSION 113
-#define BASISD_VERSION_STRING "01.13"
+#define BASISD_LIB_VERSION 115
+#define BASISD_VERSION_STRING "01.15"
 
 #ifdef _DEBUG
 #define BASISD_BUILD_DEBUG
@@ -686,14 +686,19 @@ namespace basist
 
 		bool operator== (const color32&rhs) const { return m == rhs.m; }
 
-		static color32 comp_min(const color32& a, const color32& b) { return color32(cNoClamp, std::min(a[0], b[0]), std::min(a[1], b[1]), std::min(a[2], b[2]), std::min(a[3], b[3])); }
-		static color32 comp_max(const color32& a, const color32& b) { return color32(cNoClamp, std::max(a[0], b[0]), std::max(a[1], b[1]), std::max(a[2], b[2]), std::max(a[3], b[3])); }
+		static color32 comp_min(const color32& a, const color32& b) { return color32(cNoClamp, basisu::minimum(a[0], b[0]), basisu::minimum(a[1], b[1]), basisu::minimum(a[2], b[2]), basisu::minimum(a[3], b[3])); }
+		static color32 comp_max(const color32& a, const color32& b) { return color32(cNoClamp, basisu::maximum(a[0], b[0]), basisu::maximum(a[1], b[1]), basisu::maximum(a[2], b[2]), basisu::maximum(a[3], b[3])); }
 	};
 
 	struct endpoint
 	{
 		color32 m_color5;
 		uint8_t m_inten5;
+		bool operator== (const endpoint& rhs) const
+		{
+			return (m_color5.r == rhs.m_color5.r) && (m_color5.g == rhs.m_color5.g) && (m_color5.b == rhs.m_color5.b) && (m_inten5 == rhs.m_inten5);
+		}
+		bool operator!= (const endpoint& rhs) const { return !(*this == rhs); }
 	};
 
 	struct selector
@@ -706,6 +711,17 @@ namespace basist
 
 		uint8_t m_lo_selector, m_hi_selector;
 		uint8_t m_num_unique_selectors;
+		bool operator== (const selector& rhs) const
+		{
+			return (m_selectors[0] == rhs.m_selectors[0]) &&
+				(m_selectors[1] == rhs.m_selectors[1]) &&
+				(m_selectors[2] == rhs.m_selectors[2]) &&
+				(m_selectors[3] == rhs.m_selectors[3]);
+		}
+		bool operator!= (const selector& rhs) const
+		{
+			return !(*this == rhs);
+		}
 
 		void init_flags()
 		{

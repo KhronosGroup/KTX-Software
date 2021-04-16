@@ -36,6 +36,7 @@
 namespace basisu
 {
 	extern uint8_t g_hamming_dist[256];
+	extern const uint8_t g_debug_font8x8_basic[127 - 32 + 1][8];
 
 	// Encoder library initialization.
 	// This function MUST be called before encoding anything!
@@ -194,8 +195,8 @@ namespace basisu
 				m_new_s = m_old_s + (x - m_old_m) * (x - m_new_m);
 				m_old_m = m_new_m;
 				m_old_s = m_new_s;
-				m_min = std::min(x, m_min);
-				m_max = std::max(x, m_max);
+				m_min = basisu::minimum(x, m_min);
+				m_max = basisu::maximum(x, m_max);
 			}
 		}
 		uint32_t get_num() const
@@ -741,13 +742,14 @@ namespace basisu
 			return basist::color32(r, g, b, a);
 		}
 
-		static color_rgba comp_min(const color_rgba& a, const color_rgba& b) { return color_rgba(std::min(a[0], b[0]), std::min(a[1], b[1]), std::min(a[2], b[2]), std::min(a[3], b[3])); }
-		static color_rgba comp_max(const color_rgba& a, const color_rgba& b) { return color_rgba(std::max(a[0], b[0]), std::max(a[1], b[1]), std::max(a[2], b[2]), std::max(a[3], b[3])); }
+		static color_rgba comp_min(const color_rgba& a, const color_rgba& b) { return color_rgba(basisu::minimum(a[0], b[0]), basisu::minimum(a[1], b[1]), basisu::minimum(a[2], b[2]), basisu::minimum(a[3], b[3])); }
+		static color_rgba comp_max(const color_rgba& a, const color_rgba& b) { return color_rgba(basisu::maximum(a[0], b[0]), basisu::maximum(a[1], b[1]), basisu::maximum(a[2], b[2]), basisu::maximum(a[3], b[3])); }
 	};
 
 	typedef basisu::vector<color_rgba> color_rgba_vec;
 
 	const color_rgba g_black_color(0, 0, 0, 255);
+	const color_rgba g_black_trans_color(0, 0, 0, 0);
 	const color_rgba g_white_color(255, 255, 255, 255);
 
 	inline int color_distance(int r0, int g0, int b0, int r1, int g1, int b1)
@@ -2448,6 +2450,14 @@ namespace basisu
 			return *this;
 		}
 
+		image& fill_box_alpha(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const color_rgba& c)
+		{
+			for (uint32_t iy = 0; iy < h; iy++)
+				for (uint32_t ix = 0; ix < w; ix++)
+					set_clipped_alpha(x + ix, y + iy, c);
+			return *this;
+		}
+
 		image &crop_dup_borders(uint32_t w, uint32_t h)
 		{
 			const uint32_t orig_w = m_width, orig_h = m_height;
@@ -2534,6 +2544,13 @@ namespace basisu
 		{
 			if ((static_cast<uint32_t>(x) < m_width) && (static_cast<uint32_t>(y) < m_height))
 				(*this)(x, y) = c;
+			return *this;
+		}
+
+		inline image& set_clipped_alpha(int x, int y, const color_rgba& c)
+		{
+			if ((static_cast<uint32_t>(x) < m_width) && (static_cast<uint32_t>(y) < m_height))
+				(*this)(x, y).m_comps[3] = c.m_comps[3];
 			return *this;
 		}
 
@@ -2661,6 +2678,8 @@ namespace basisu
 			}
 			return *this;
 		}
+
+		void debug_text(uint32_t x_ofs, uint32_t y_ofs, uint32_t x_scale, uint32_t y_scale, const color_rgba &fg, const color_rgba *pBG, bool alpha_only, const char* p, ...);
 				
 	private:
 		uint32_t m_width, m_height, m_pitch;  // all in pixels

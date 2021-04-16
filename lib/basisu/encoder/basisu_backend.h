@@ -84,6 +84,8 @@ namespace basisu
 		uint32_t m_global_sel_codebook_mod_bits;
 		bool m_use_hybrid_sel_codebooks;
 
+		bool m_used_global_codebooks;
+
 		basisu_backend_params()
 		{
 			clear();
@@ -102,6 +104,7 @@ namespace basisu
 			m_global_sel_codebook_pal_bits = ETC1_GLOBAL_SELECTOR_CODEBOOK_MAX_PAL_BITS;
 			m_global_sel_codebook_mod_bits = basist::etc1_global_palette_entry_modifier::cTotalBits;
 			m_use_hybrid_sel_codebooks = false;
+			m_used_global_codebooks = false;
 		}
 	};
 
@@ -111,10 +114,12 @@ namespace basisu
 		{
 			clear();
 		}
+
 		void clear()
 		{
 			clear_obj(*this);
 		}
+
 		uint32_t m_first_block_index;
 
 		uint32_t m_orig_width;
@@ -142,6 +147,8 @@ namespace basisu
 		basist::basis_tex_format m_tex_format;
 
 		bool m_etc1s;
+		bool m_uses_global_codebooks;
+		bool m_srgb;
 
 		uint32_t m_num_endpoints;
 		uint32_t m_num_selectors;
@@ -164,6 +171,8 @@ namespace basisu
 		{
 			m_tex_format = basist::basis_tex_format::cETC1S;
 			m_etc1s = false;
+			m_uses_global_codebooks = false;
+			m_srgb = true;
 
 			m_num_endpoints = 0;
 			m_num_selectors = 0;
@@ -201,6 +210,7 @@ namespace basisu
 		uint32_t encode();
 
 		const basisu_backend_output &get_output() const { return m_output; }
+		const basisu_backend_params& get_params() const { return m_params; }
 
 	private:
 		basisu_frontend *m_pFront_end;
@@ -228,6 +238,8 @@ namespace basisu
 		// Maps OLD to NEW endpoint/selector indices
 		uint_vec m_endpoint_remap_table_old_to_new;
 		uint_vec m_endpoint_remap_table_new_to_old;
+		bool_vec m_old_endpoint_was_used;
+		bool_vec m_new_endpoint_was_used;
 
 		uint_vec m_selector_remap_table_old_to_new;
 
