@@ -783,10 +783,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 exitCode = 1;
                 goto cleanup;
             }
-            khr_df_transfer_e oetf = image->getOetf();
+            scaledImage->setOetf(image->getOetf());
+            scaledImage->setColortype(image->getColortype());
+            scaledImage->setPrimaries(image->getPrimaries());
             delete image;
             image = scaledImage;
-            image->setOetf(oetf);
         }
 
         if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
@@ -1122,7 +1123,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     = maximum<uint32_t>(1, image->getHeight() >> level);
 
                 Image *levelImage = image->createImage(levelWidth, levelHeight);
-
+                levelImage->setOetf(image->getOetf());
+                levelImage->setColortype(image->getColortype());
+                levelImage->setPrimaries(image->getPrimaries());
                 try {
                     image->resample(*levelImage,
                                     image->getOetf() == KHR_DF_TRANSFER_SRGB,
