@@ -10,19 +10,13 @@ if(LINUX)
     find_package(assimp REQUIRED)
 endif()
 
-if(NOT EMSCRIPTEN)
-    if(WIN32)
-        # On Windows we offer fallback to bundled zlib
-        find_package( ZLIB )
-        if(ZLIB_FOUND)
-            set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
-        else()
-            set( KTX_ZLIB_LIBRARIES "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib" )
-        endif()
-    else()
-        find_package( ZLIB REQUIRED )
-        set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
-    endif()
+if(NOT EMSCRIPTEN AND NOT WIN32)
+    # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
+    # There is no offcial libassimp for Emscripten yet and we've had no
+    # time to experiment so tests that use assimp are no included in the
+    # Emscripten build.
+    find_package( ZLIB REQUIRED )
+    set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
 endif()
 
 if(APPLE AND IOS)

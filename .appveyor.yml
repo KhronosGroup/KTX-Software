@@ -127,7 +127,7 @@ build_script:
     # Configure and build with SSE support (default).
     $env:KTX_BUILD_DIR = "$env:BUILD_DIR"
     echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
-    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DZLIB_ROOT="C:\Program Files\zlib" -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
+    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
     cmake --build . --config $env:CONFIGURATION --target PACKAGE

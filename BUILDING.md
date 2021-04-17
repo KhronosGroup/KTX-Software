@@ -56,7 +56,6 @@ You need to install the following
 - [CMake](https://cmake.org)
 - gcc and g++ from the [GNU Compiler Collection](https://gcc.gnu.org)
 - [GNU Make](https://www.gnu.org/software/make) or [Ninja](https://ninja-build.org) (recommended)
-- zstd development library
 - [Doxygen](#doxygen) (only if generating documentation)
 
 Additional requirements for the load tests applications
@@ -66,6 +65,7 @@ Additional requirements for the load tests applications
 - OpenGL development libraries
 - Vulkan development libraries
 - [Vulkan SDK](#vulkan-sdk)
+- zlib development library
 
 On Ubuntu and Debian these can be installed via
 
@@ -200,8 +200,6 @@ CMake can create solutions for Microsoft Visual Studio (2015/2017/2019 are suppo
 
 > **Note:** This project builds only for 64-bit Windows.
 
-> **Note:** Visual Studio 2019 v16.5 & v16.6 get an internal compiler error when compiling. v16.4 is okay.
-
 The CMake generators for Visual Studio 2017 and earlier generate projects whose default platform is Windows-x86. Since that is not supported by KTX-Software, the build will fail. To generate a project for x64 when using these earlier generators you must use CMake's `-A` option.
 
 ```bash
@@ -215,8 +213,6 @@ When using a more recent Visual Studio you simply need
 ```bash
 cmake -B build .
 ```
-
-zlib and zstd are needed for building libktx. The KTX repo has a Windows binary of libzstd.
 
 The NSIS compiler is needed if you intend to build packages.
 

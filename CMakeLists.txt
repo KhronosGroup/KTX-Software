@@ -121,6 +121,7 @@ set(KTX_MAIN_SRC
     lib/basisu/transcoder/basisu_transcoder.cpp
     lib/basisu/transcoder/basisu_transcoder.h
     lib/basisu/transcoder/basisu.h
+    lib/basisu/zstd/zstd.c
     lib/checkheader.c
     lib/dfdutils/createdfd.c
     lib/dfdutils/colourspaces.c
@@ -225,6 +226,9 @@ macro(commom_lib_settings lib write)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
         $<INSTALL_INTERFACE:lib/basisu/transcoder>
 
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+        $<INSTALL_INTERFACE:lib/basisu/zstd>
+
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
         $<INSTALL_INTERFACE:other_include>
     )
@@ -233,6 +237,16 @@ macro(commom_lib_settings lib write)
         target_compile_definitions(${lib} PUBLIC KHRONOS_STATIC)
     endif()
 
+    # BASISD_SUPPORT_KTX2 has to be 1 to compile the encoder. We
+    # don't use it. Hopefully it doesn't add too much code. We're using
+    # the zstd encoder in basisu by explicitly including the file in our
+    # source list. We don't need to related code in the encoder.
+    target_compile_definitions(
+        ${lib}
+    PRIVATE
+        BASISD_SUPPORT_KTX2_ZSTD=0
+        BASISD_SUPPORT_KTX2=1
+    )
 
     # To reduce size, don't support transcoding to ancient formats.
     target_compile_definitions(${lib} PRIVATE BASISD_SUPPORT_FXT1=0)
@@ -295,73 +309,25 @@ macro(commom_lib_settings lib write)
     endif()
 
     if(WIN32)
-        target_link_libraries(
-            ${lib}
-        PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/win/Release-x64/zstd_static.lib
-        )
         # By wrapping in generator expression we force multi configuration generators (like Visual Studio)
         # to take the exact path and not change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
     elseif(APPLE)
-        if(IOS)
-            target_link_libraries(
-                ${lib}
-            PRIVATE
-                ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libzstd.a
-            )
-        else()
+        if(NOT IOS)
             # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
             # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
             # for working code signing.
             set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-            target_link_libraries(
-                ${lib}
-            PRIVATE
-                ${CMAKE_CURRENT_SOURCE_DIR}/other_lib/mac/Release/libzstd.a
-            )
         endif()
-    
-    elseif(EMSCRIPTEN)
-        target_sources(
-            ${lib}
-        PRIVATE
-            lib/zstddeclib.c
-        )
-    
+
     elseif(LINUX)
-        find_package(zstd REQUIRED)
         find_package(Threads REQUIRED)
         target_link_libraries(
             ${lib}
         PUBLIC
             dl
             Threads::Threads
-        )
-        target_link_libraries(
-            ${lib}
-        PRIVATE
-            zstd::zstd
-        )
-
-    elseif(ANDROID)
-        # add_library(zstd STATIC IMPORTED)
-        # set_target_properties(zstd PROPERTIES
-        # IMPORTED_LOCATION /Users/Shared/SDK/zstd/build/cmake/install-android/lib/libzstd.a
-        # )
-        # target_link_libraries(
-        #     ktx
-        # PRIVATE
-        #     zstd
-        # )
-        set(ZSTD_BUILD_PROGRAMS OFF)
-        set(ZSTD_BUILD_TESTS OFF)
-        add_subdirectory(/Users/Shared/SDK/zstd/build/cmake zstd)
-        target_link_libraries(
-            ${lib}
-        PRIVATE
-            libzstd_static
         )
     endif()
 
@@ -700,7 +666,6 @@ if(APPLE)
 
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzstd1 (>= 1.3.1)")
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 elseif(WIN32)
