@@ -99,7 +99,7 @@ endif()
 # Global Optimization Flags
 if(EMSCRIPTEN)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
-    add_link_options( $<IF:$<CONFIG:Debug>,-g4,-O3> )
+    add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
 elseif(MSVC)
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 else()

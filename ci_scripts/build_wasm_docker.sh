@@ -22,7 +22,7 @@ release_build_dir=${web_build_base}-release
 mkdir -p $build_parent_dir
 
 echo "Configure/Build KTX-Software (Web Debug)"
-docker exec -it emscripten sh -c "emcmake cmake -B${web_build_base}-debug . && cmake --build ${web_build_base}-debug --config Debug"
+docker exec -it emscripten sh -c "emcmake cmake -B${web_build_base}-debug -DKTX_FEATURE_LOADTEST_APPS=ON . && cmake --build ${web_build_base}-debug --config Debug"
 echo "Configure/Build KTX-Software (Web Release)"
 docker exec -it emscripten sh -c "emcmake cmake -B${web_build_base}-release -DKTX_FEATURE_LOADTEST_APPS=ON . && cmake --build ${web_build_base}-release --config Release"
 

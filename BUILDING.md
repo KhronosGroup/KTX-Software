@@ -165,6 +165,24 @@ To sign the applications you need to set the following CMake variables:
 
 ### Web/Emscripten
 
+There are two ways to build the Web version of the software: using Docker or using your own Emscripten installation.
+
+#### Using Docker
+
+Install [Docker Desktop](https://www.docker.com/products/docker-desktop) which is available for GNU/Linux, macOS and Windows.
+
+In the repo root run
+
+```bash
+ci_scripts/build_wasm_docker.sh
+```
+
+This will build both Debug and Release configurations and will include the load test application. Builds are done with the official Emscripten Docker image. Output will be written to the folders `build/web-{debug,release}`.
+
+If you are using Windows you will need a Unix-like shell such as the one with _Git for Windows_ or one in Windows Subsystem for Linux (WSL) to run this script.
+
+#### Using Your Own Emscripten Installation
+
 Install [Emscripten](https://emscripten.org) and follow the [install instructions](https://emscripten.org/docs/getting_started/downloads.html) closely. After you've set up your emscripten environment in a terminal, run the following:
 
 **Debug:**
@@ -187,7 +205,9 @@ emcmake cmake -B build-web .
 cmake --build build-web
 ```
 
-For web there are two additional targets:
+To include the load test application into the build add `-DKTX_FEATURE_LOADTEST_APPS=ON` to either of the above configuration steps.
+
+Web builds create two additional targets:
 
 - `ktx_js`, (libktx javascript wrapper)
 - `msc_basis_transcoder_js` (transcoder wrapper)

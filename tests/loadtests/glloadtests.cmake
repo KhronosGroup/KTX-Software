@@ -92,7 +92,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
             "SHELL:-s USE_SDL=2"
             "SHELL:-s USE_WEBGL2=1"
-            -g4
         )
     elseif(WIN32)
         target_sources(
@@ -135,13 +134,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
             GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
         )
-        if(EMSCRIPTEN)
-            target_compile_definitions(
-                ${target}
-            PRIVATE
-                TEST_BASIS_COMPRESSION=0
-            )
-        endif()
      else()
         target_compile_definitions(
             ${target}
