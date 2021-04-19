@@ -75,7 +75,7 @@ init:
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
 # Not using PS for downloads because its curl is completely different.
 install:
-- cinst doxygen.install
+- if not "%appveyor_build_worker_image%" == "Visual Studio 2019" cinst doxygen.install
 #- ps: |
     #run mkversion
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
