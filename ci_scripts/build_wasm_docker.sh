@@ -21,6 +21,8 @@ release_build_dir=${web_build_base}-release
 
 mkdir -p $build_parent_dir
 
+echo "Install Emscripten 2.0.15 to avoid emscripten issue 13926."
+docker exec -t emscripten sh -c "emsdk install 2.0.15 && emsdk activate 2.0.15"
 echo "Configure/Build KTX-Software (Web Debug)"
 docker exec -it emscripten sh -c "emcmake cmake -B${web_build_base}-debug -DKTX_FEATURE_LOADTEST_APPS=ON . && cmake --build ${web_build_base}-debug --config Debug"
 echo "Configure/Build KTX-Software (Web Release)"
