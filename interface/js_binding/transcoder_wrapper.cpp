@@ -159,14 +159,16 @@ namespace msc {
                              uint32_t num_selectors, const val& jsSelectors)
         {
             std::vector<uint8_t> cEndpoints{}, cSelectors{};
-            val memory = val::module_property("HEAP8")["buffer"];
             cEndpoints.resize(jsEndpoints["byteLength"].as<size_t>());
+            val memory = val::module_property("HEAP8")["buffer"];
             val endpointsView = jsEndpoints["constructor"].new_(memory,
                                             reinterpret_cast<uintptr_t>(cEndpoints.data()),
                                             jsEndpoints["length"].as<uint32_t>());
             endpointsView.call<void>("set", jsEndpoints);
 
             cSelectors.resize(jsSelectors["byteLength"].as<size_t>());
+            // In case the resize caused HEAP8 to grow.
+            memory = val::module_property("HEAP8")["buffer"];
             val selectorsView = jsSelectors["constructor"].new_(memory,
                                             reinterpret_cast<uintptr_t>(cSelectors.data()),
                                             jsSelectors["length"].as<uint32_t>());
@@ -183,9 +185,9 @@ namespace msc {
         bool decode_tables(const val& jsTableData)
         {
             std::vector<uint8_t> cTableData{};
-            val memory = val::module_property("HEAP8")["buffer"];
 
             cTableData.resize(jsTableData["byteLength"].as<size_t>());
+            val memory = val::module_property("HEAP8")["buffer"];
             val TableDataView = jsTableData["constructor"].new_(memory,
                                             reinterpret_cast<uintptr_t>(cTableData.data()),
                                             jsTableData["length"].as<uint32_t>());
@@ -226,13 +228,13 @@ namespace msc {
                           uint32_t decodeFlags = 0,
                           bool isVideo = false)
         {
-            val memory = val::module_property("HEAP8")["buffer"];
-
             // First of all copy in the deflated data.
             std::vector <uint8_t> deflatedSlices;
             uint32_t deflatedSlicesByteLength
                                      = jsInSlices["byteLength"].as<uint32_t>();
             deflatedSlices.resize(deflatedSlicesByteLength);
+            val memory = val::module_property("HEAP8")["buffer"];
+
             val memoryView = jsInSlices["constructor"].new_(memory,
                              reinterpret_cast<uintptr_t>(deflatedSlices.data()),
                              deflatedSlices.size());
