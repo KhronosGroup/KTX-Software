@@ -154,7 +154,7 @@ deploy:
     # Do release note deployment manually for now.
     skip_cleanup: true
     draft: true
-    prerelease: true
+    #prerelease: true
     on:
       tags: true
       #branch: master
@@ -168,7 +168,7 @@ deploy:
       - build/web-release/KTX-Software-*-Web-*
     skip_cleanup: true
     draft: true
-    prerelease: true
+    #prerelease: true
     on:
       tags: true
       #branch: master

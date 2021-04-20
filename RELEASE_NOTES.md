@@ -2,99 +2,117 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.0.0-rc1
-### Significant Changes
+## Version 4.0.0
+### Significant Changes since Release Candidate 1
 
-`toktx's` Handling of 1- or 2-component input files has been changed. In accordance with the PNG and JPEG specifications describing files as luminance, it now creates luminance textures.
+* Basis Universal has been updated to version 1.15.
 
-The following options have been added to `toktx`:
+* Errors in both `ktx2check` and `ktxinfo` causing bogus out of memory messages when there is no metadata or an empty value have been fixed.
 
-* `--assign_oetf` lets you override the oetf from the input file.
-* `--convert_oetf` lets you convert the input image to a different oetf.
-* `--assign_primaries` lets you override the color primaries from the input file.
-* `--input_swizzle` lets you specify a component swizzling to be applied to the input image before it is used to create a KTX file.
-* `--swizzle` lets you specify swizzle metadata to be written to a created KTX v2 file.
-* `--target_type` lets you modify the number of components of the input image or override the default handling of 1- or 2-component textures.
+* An issue in msc\_basis\_transcoder causing intermittent Javascript
+"Cannot perform Construct on a detached ArrayBuffer" errors has been
+fixed. _NOTE:_ that msc\_basis\_transcoder is deprecated and will be
+replaced by the transcoder wrapper from the
+[Basis Universal](https://github.com/BinomialLLC/basis_universal)
+repository.
 
-See the [`toktx` man page](https://github.khronos.org/KTX-Software/ktxtools/toktx.html) for details.
+### Known Issues in v4.0.0.
 
-### Changes since v4.0.0-beta8 (by part)
+* `toktx` will not read JPEG files with a width or height > 32768 pixels.
+
+* `toktx` will not read 4-component JPEG files such as those sometimes
+created by Adobe software where the 4th component can be used to re-create
+a CMYK image.
+
+* Emscripten versions greater than 2.0.15 have an
+[issue](https://github.com/emscripten-core/emscripten/issues/13926)
+that causes the Javascript wrapper for libktx to fail. The downloadable
+package `KTX-Software-4.0.0-rc1-Web-libktx.zip` has been built with
+Emscripten 2.0.15. You only need to be aware of this if building the
+wrapper yourself with your own installed emsdk.
+
+* Users making Basisu encoded or block compressed textures for WebGL
+must be aware of WebGL restrictions with regard to texture size and
+may need to resize images appropriately using the --resize feature
+of `toktx`.  In general the dimensions of block compressed textures
+must be a multiple of the block size and, if
+`WEBGL_compressed_texture_s3tc` on WebGL 1.0 is expected to be one
+of the targets, then the dimensions must be a power of 2. For
+portability glTF's KHR\_texture\_basisu extension requires texture
+dimensions to be a multiple of 4, the block size of the Universal texture
+formats.
+
+* Basis Universal encoding results (both ETC1S/LZ and UASTC) are
+non-deterministic across platforms. Results are valid but level
+sizes and data will differ slightly.
+See [issue #60](https://github.com/BinomialLLC/basis_universal/issues/60)
+in the basis_universal repository.
+
+* UASTC RDO results differ from run to run unless multi-threading
+or RDO multi-threading is disabled. In `toktx` use `--threads 1` for the
+former or `--uastc_rdo_m` for the latter. As with the preceeding issue
+results are valid but level sizes will differ slightly. See
+[issue #151](https://github.com/BinomialLLC/basis_universal/issues/151)
+in the basis_universal repository.
+
+### Changes since v4.0.0-rc1 (by part)
 ### libktx
 
-* Make luminance{,\_alpha} default for greyscale{,-alpha} input images. Add new features. (#387) (2ffdc81a) (@MarkCallow)
+* Adapt for Basisu 1.15. (a0642fa1) (@MarkCallow)
 
-  New features include:
-  
-      --input\_swizzle & --swizzle
-      --target\_type
-      --assign\_oetf
-      --convert\_oetf
-  
-  The PR also includes documentation fixes for ktxTexture2\_CompressBasisEx.
-  
+  * Use zstd included in basisu.
+  * Regen reference images with updated ETC1S encoder and newer zstd version.
 
-* git subrepo pull lib/dfdutils (7afa86a5) (@MarkCallow)
+* git subrepo pull lib/basisu (c7211336) (@MarkCallow)
 
   subrepo:
-    subdir:   "lib/dfdutils"
-    merged:   "659a739b"
+    subdir:   "lib/basisu"
+    merged:   "5337227c"
   upstream:
-    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    origin:   "https://github.com/BinomialLLC/basis\_universal.git"
     branch:   "master"
-    commit:   "659a739b"
+    commit:   "5337227c"
   git-subrepo:
     version:  "0.4.3"
     origin:   "https://github.com/MarkCallow/git-subrepo.git"
     commit:   "c1f1132"
 
-* git subrepo pull lib/dfdutils (f5310bdd) (@MarkCallow)
+* Point .gitsubrepo at correct parent. (02c43d57) (@MarkCallow)
 
-  subrepo:
-    subdir:   "lib/dfdutils"
-    merged:   "c95d443a"
-  upstream:
-    origin:   "https://github.com/KhronosGroup/dfdutils.git"
-    branch:   "master"
-    commit:   "c95d443a"
-  git-subrepo:
-    version:  "0.4.3"
-    origin:   "https://github.com/MarkCallow/git-subrepo.git"
-    commit:   "c1f1132"
+* Minor reformat (#399) (a78c3b46) (@lexaknyazev)
 
-* Fix commit of last pull. (9ccf88fd) (@MarkCallow)
+* Handle PVRTC1 minimum 2 block requirement. Fixes issue #390. (#398) (2034ce71) (@MarkCallow)
 
-* git subrepo clone https://github.com/KhronosGroup/dfdutils.git lib/dfdutils (22d09c26) (@MarkCallow)
+* Fix: Handle metadata with empty values. (02652303) (@MarkCallow)
 
-  subrepo:
-    subdir:   "lib/dfdutils"
-    merged:   "bf8b9961"
-  upstream:
-    origin:   "https://github.com/KhronosGroup/dfdutils.git"
-    branch:   "master"
-    commit:   "bf8b9961"
-  git-subrepo:
-    version:  "0.4.3"
-    origin:   "https://github.com/MarkCallow/git-subrepo.git"
-    commit:   "c1f1132"
+  Incidental to the main fix, fix memory leaks in texturetests.
 
-* Remove git subrepo clone of dfdutils ktxsw branch. (0101d6d4) (@MarkCallow)
+* Fix: properly handle 0 length kvdata. (aee7a1c5) (@MarkCallow)
+
+* Fix error in example. (b7563ea6) (@MarkCallow)
+
+* 2 small fixes: (50000ca6) (@MarkCallow)
+
+  * Raise error in GLUpload on attempted upload of universal texture.
+  * In ktx2check don't combine FLOAT & NORM when checking VK\_FORMAT name.
 
 ### Tools
 
-* Make luminance{,\_alpha} default for greyscale{,-alpha} input images. Add new features. (#387) (2ffdc81a) (@MarkCallow)
+* Copy all image attributes when resampling. (83518cdc) (@MarkCallow)
 
-  New features include:
-  
-      --input\_swizzle & --swizzle
-      --target\_type
-      --assign\_oetf
-      --convert\_oetf
-  
-  The PR also includes documentation fixes for ktxTexture2\_CompressBasisEx.
-  
+* Skip mipPadding also when no sgd or kvd. Fixes #395. (#396) (fa739a2d) (@MarkCallow)
+
+* 2 small fixes: (50000ca6) (@MarkCallow)
+
+  * Raise error in GLUpload on attempted upload of universal texture.
+  * In ktx2check don't combine FLOAT & NORM when checking VK\_FORMAT name.
 
 
 
+### JS Wrappers
 
+* Obtain HEAP references after resizing vectors. (5bf11d8f) (@MarkCallow)
+
+  Possible fix for issue #371.
 
 
