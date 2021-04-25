@@ -168,7 +168,7 @@ set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
 function( create_version_header dest_path target )
 
-    set( version_h_output ${dest_path}/version.h)
+    set( version_h_output ${PROJECT_SOURCE_DIR}/${dest_path}/version.h)
 
     if(CMAKE_HOST_WIN32)
         add_custom_command(
