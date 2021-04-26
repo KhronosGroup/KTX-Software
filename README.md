@@ -56,8 +56,8 @@ the [OpenGL ES SDK](http://www.khronos.org/opengles/sdk) on
 [khronos.org](http://www.khronos.org).
 -->
 
-If you need help with using the KTX library or KTX tools, please use the
-[KTX forum](https://community.khronos.org/c/other-standards/ktx/).
+If you need help with using the KTX library or KTX tools, please use GitHub
+[Discussions](https://github.com/KhronosGroup/KTX-Software/discussions).
 To report problems use GitHub [issues](https://github.com/KhronosGroup/KTX/issues).
 
 **IMPORTANT:** you **must** install the [Git LFS](https://github.com/github/git-lfs)
