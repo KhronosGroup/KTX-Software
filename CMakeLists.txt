@@ -357,7 +357,7 @@ create_version_header(lib ktx)
 target_compile_definitions(
     ktx_read
 PRIVATE
-    # We're reading the files ourselves so don't Basis KTX v2 support.
+    # We're reading the files ourselves so don't need Basis KTX v2 support.
     BASISD_SUPPORT_KTX2_ZSTD=0
     BASISD_SUPPORT_KTX2=0
 )
