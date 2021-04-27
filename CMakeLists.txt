@@ -226,7 +226,7 @@ macro(commom_lib_settings lib write)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
         $<INSTALL_INTERFACE:lib/basisu/transcoder>
 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
         $<INSTALL_INTERFACE:lib/basisu/zstd>
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
@@ -236,17 +236,6 @@ macro(commom_lib_settings lib write)
     if( LIB_TYPE STREQUAL STATIC )
         target_compile_definitions(${lib} PUBLIC KHRONOS_STATIC)
     endif()
-
-    # BASISD_SUPPORT_KTX2 has to be 1 to compile the encoder. We
-    # don't use it. Hopefully it doesn't add too much code. We're using
-    # the zstd encoder in basisu by explicitly including the file in our
-    # source list. We don't need to related code in the encoder.
-    target_compile_definitions(
-        ${lib}
-    PRIVATE
-        BASISD_SUPPORT_KTX2_ZSTD=0
-        BASISD_SUPPORT_KTX2=1
-    )
 
     # To reduce size, don't support transcoding to ancient formats.
     target_compile_definitions(${lib} PRIVATE BASISD_SUPPORT_FXT1=0)
@@ -365,6 +354,13 @@ commom_lib_settings(ktx_read 0)
 
 create_version_header(lib ktx)
 
+target_compile_definitions(
+    ktx_read
+PRIVATE
+    # We're reading the files ourselves so don't need Basis KTX v2 support.
+    BASISD_SUPPORT_KTX2_ZSTD=0
+    BASISD_SUPPORT_KTX2=0
+)
 
 # Adding write capability to target ktx
 
@@ -430,27 +426,23 @@ target_compile_definitions(
     ktx
 PUBLIC
     KTX_FEATURE_WRITE
+PRIVATE
+    # BASISD_SUPPORT_KTX2 has to be 1 to compile the encoder. We
+    # don't use it. Hopefully it doesn't add too much code. We're using
+    # the zstd encoder in basisu by explicitly including the file in our
+    # source list. We don't need the related code in the encoder.
+    BASISD_SUPPORT_KTX2_ZSTD=0
+    BASISD_SUPPORT_KTX2=1
+    $<$<BOOL:${BASISU_SUPPORT_SSE}>:BASISU_SUPPORT_SSE=1>
+    $<$<NOT:$<BOOL:${BASISU_SUPPORT_SSE}>>:BASISU_SUPPORT_SSE=0>
 )
-if(BASISU_SUPPORT_SSE)
-    target_compile_definitions(
-        ktx
-    PRIVATE
-        BASISU_SUPPORT_SSE=1
-    )
-    target_compile_options(
-        ktx
-    PRIVATE
-        $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:
-            -msse4.1
-        >
-    )
-else()
-    target_compile_definitions(
-        ktx
-    PRIVATE
-        BASISU_SUPPORT_SSE=0
-    )
-endif()
+target_compile_options(
+    ktx
+PRIVATE
+    $<$<AND:$<BOOL:${BASISU_SUPPORT_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
+        -msse4.1
+    >
+)
 
 if(EMSCRIPTEN)
     set(

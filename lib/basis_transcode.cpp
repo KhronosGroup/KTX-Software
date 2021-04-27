@@ -29,7 +29,6 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
-#include "basisu/encoder/basisu_comp.h"
 #include "basisu/transcoder/basisu_file_headers.h"
 #include "basisu/transcoder/basisu_transcoder.h"
 #include "basisu/transcoder/basisu_transcoder_internal.h"
