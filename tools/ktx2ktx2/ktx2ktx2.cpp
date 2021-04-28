@@ -173,7 +173,7 @@ version(const _tstring& appName)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-    FILE *inf, *outf;
+    FILE *inf, *outf = nullptr;
     KTX_error_code result;
     ktxTexture1* texture = 0;
     struct commandOptions options;
@@ -407,7 +407,7 @@ static void
 processOptions(argparser& parser,
                struct commandOptions& options)
 {
-    _TCHAR ch;
+    int ch;
     static struct argparser::option option_list[] = {
         { "force", argparser::option::no_argument, NULL, 'f' },
         { "help", argparser::option::no_argument, NULL, 'h' },
