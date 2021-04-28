@@ -466,7 +466,8 @@ class ktxValidator : public ktxApp {
             quiet = false;
         }
         enum severity { eWarning, eError, eFatal };
-        void addIssue(severity severity, issue issue, va_list args);
+        template<typename ... Args>
+        void addIssue(severity severity, issue issue, Args ... args);
         void startFile(const std::string& filename) {
             nameOfFileBeingValidated = filename;
             errorCount = 0;
@@ -607,8 +608,8 @@ class ktxValidator : public ktxApp {
             return calcLayerSize(level) * layerCount;
         }
 
-        bool extractFormatInfo(uint32_t* pDfd4Format) {
-            this->pDfd4Format = pDfd4Format;
+        bool extractFormatInfo(uint32_t* pDfd) {
+            pDfd4Format = pDfd;
             uint32_t* bdb = pDfd4Format + 1;
             struct formatInfo& fi = formatInfo;
             fi.blockDimension.x = KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) + 1;
@@ -671,12 +672,11 @@ class ktxValidator : public ktxApp {
         }
     };
 
-    void addIssue(logger::severity severity, issue issue, ...) {
-        va_list args;
-        va_start(args, issue);
-
-        logger.addIssue(severity, issue, args);
-        va_end(args);
+    // Using template because having a struct as last arg before the
+    // variable args when using va_start etc. is non-portable.
+    template <typename ... Args>
+    void addIssue(logger::severity severity, issue newIssue, Args ... args) {
+        logger.addIssue(severity, newIssue, args...);
     }
     virtual bool processOption(argparser& parser, int opt);
     void validateFile(const string&);
@@ -791,20 +791,31 @@ int vasprintf(char **strp, const char *format, va_list ap)
     *strp = str;
     return retval;
 }
+
+int asprintf(char** strp, const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    int r = vasprintf(strp, format, ap);
+    va_end(ap);
+    return r;
+}
 #endif
 
 // Why is severity passed here?
 // -  Because it is convenient when browsing the code to see the severity
 //    at the place an issue is raised.
+
+template<typename ... Args>
 void
-ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
+ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args) {
     if (!quiet) {
         if (!headerWritten) {
             cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
             headerWritten = true;
         }
         const uint32_t baseIndent = 4;
-        uint32_t indent;
+        uint32_t indent = 0;
         if ((errorCount + warningCount ) < maxIssues) {
             for (uint32_t j = 0; j < baseIndent; j++)
               cout.put(' ');
@@ -824,9 +835,9 @@ ktxValidator::logger::addIssue(severity severity, issue issue, va_list args) {
                 warningCount++;
                 break;
             }
-            //vfprintf(stdout, issue.message.c_str(), args);
+            //fprintf(stdout, issue.message.c_str(), args...);
             char* pBuf;
-            int nchars = vasprintf(&pBuf, issue.message.c_str(), args);
+            int nchars = asprintf(&pBuf, issue.message.c_str(), args...);
             if (nchars < 0) {
                 std::stringstream message;
 
@@ -1160,7 +1171,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
     ctx.curFileOffset += ctx.levelIndexSize;
 
     uint32_t requiredLevelAlignment = ctx.requiredLevelAlignment();
-    size_t expectedOffset;
+    size_t expectedOffset = 0;
     size_t lastByteLength = 0;
     switch (ctx.header.supercompressionScheme) {
       case KTX_SS_NONE:
@@ -1621,7 +1632,7 @@ ktxValidator::validateMetadata(validationContext& ctx, char* key,
 
 void
 ktxValidator::validateCubemapIncomplete(validationContext& ctx, char* key,
-                                        uint8_t* value, uint32_t valueLen)
+                                        uint8_t*, uint32_t valueLen)
 {
     ctx.cubemapIncompleteFound = true;
     if (valueLen != 1)
@@ -1660,30 +1671,30 @@ ktxValidator::validateOrientation(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateGlFormat(validationContext& ctx, char* key,
-                               uint8_t* value, uint32_t valueLen)
+ktxValidator::validateGlFormat(validationContext& /*ctx*/, char* key,
+                               uint8_t* /*value*/, uint32_t valueLen)
 {
     if (valueLen != sizeof(uint32_t) * 3)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateDxgiFormat(validationContext& ctx, char* key,
-                                 uint8_t* value, uint32_t valueLen)
+ktxValidator::validateDxgiFormat(validationContext& /*ctx*/, char* key,
+                                 uint8_t* /*value*/, uint32_t valueLen)
 {
     if (valueLen != sizeof(uint32_t))
         addIssue(logger::eError, Metadata.InvalidValue, key);}
 
 void
-ktxValidator::validateMetalPixelFormat(validationContext& ctx, char* key,
-                                       uint8_t* value, uint32_t valueLen)
+ktxValidator::validateMetalPixelFormat(validationContext& /*ctx*/, char* key,
+                                       uint8_t* /*value*/, uint32_t valueLen)
 {
     if (valueLen != sizeof(uint32_t))
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateSwizzle(validationContext& ctx, char* key,
+ktxValidator::validateSwizzle(validationContext& /*ctx*/, char* key,
                               uint8_t* value, uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
@@ -1693,7 +1704,7 @@ ktxValidator::validateSwizzle(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateWriter(validationContext& ctx, char* key,
+ktxValidator::validateWriter(validationContext& /*ctx*/, char* key,
                              uint8_t* value, uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
@@ -1701,7 +1712,7 @@ ktxValidator::validateWriter(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateWriterScParams(validationContext& ctx, char* key,
+ktxValidator::validateWriterScParams(validationContext& /*ctx*/, char* key,
                                      uint8_t* value, uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
@@ -1737,7 +1748,7 @@ ktxValidator::validateAstcDecodeMode(validationContext& ctx, char* key,
 
 void
 ktxValidator::validateAnimData(validationContext& ctx, char* key,
-                               uint8_t* value, uint32_t valueLen)
+                               uint8_t* /*value*/, uint32_t valueLen)
 {
     if (ctx.cubemapIncompleteFound) {
          addIssue(logger::eError, Metadata.NotAllowed, key,
