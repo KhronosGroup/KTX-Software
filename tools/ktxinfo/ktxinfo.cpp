@@ -92,7 +92,7 @@ Print information about a KTX or KTX2 file.
 */
 
 static void
-usage(_tstring& appName)
+usage()
 {
     fprintf(stderr,
         "Usage: %s [options] [<infile> ...]\n"
@@ -116,7 +116,7 @@ usage(_tstring& appName)
 #define STR(x) QUOTE(x)
 
 static void
-version(_tstring& appName)
+version()
 {
     std::cerr << appName << " " << STR(KTXINFO_VERSION) << std::endl;
 }
@@ -219,7 +219,7 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
             if (it->compare(_T("-")) == 0) {
                 fprintf(stderr, "%s: cannot use stdin as one among many inputs.\n",
                         appName.c_str());
-                usage(appName);
+                usage();
                 exit(1);
             }
         }
@@ -239,10 +239,9 @@ static void processCommandLine(int argc, _TCHAR* argv[], struct commandOptions& 
  *                            is set.
  */
 static void
-processOptions(argparser& parser,
-               struct commandOptions& options)
+processOptions(argparser& parser, struct commandOptions& /*options*/)
 {
-    _TCHAR ch;
+    int ch;
     static struct argparser::option option_list[] = {
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "version", argparser::option::no_argument, NULL, 'v' },
@@ -256,21 +255,21 @@ processOptions(argparser& parser,
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    _tstring shortopts("fd:ho:v");
+    _tstring shortopts("hv");
     while ((ch = parser.getopt(&shortopts, option_list, NULL)) != -1) {
         switch (ch) {
           case 0:
             break;
           case 'h':
-            usage(appName);
+            usage();
             exit(0);
           case 'v':
-            version(appName);
+            version();
             exit(0);
           case '?':
           case ':':
           default:
-            usage(appName);
+            usage();
             exit(1);
         }
     }
