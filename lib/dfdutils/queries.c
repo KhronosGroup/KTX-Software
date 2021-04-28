@@ -121,7 +121,7 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
     uint32_t sampleCounter;
 
     uint32_t bitsPlane0 = 0;
-    int32_t* bitOffsets = malloc(sizeof(uint32_t) * numSamples);
+    uint32_t* bitOffsets = malloc(sizeof(uint32_t) * numSamples);
     memset(bitOffsets, -1, sizeof(uint32_t) * numSamples);
     for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
         uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET);

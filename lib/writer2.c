@@ -268,7 +268,7 @@ ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
     KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
-    ktx_uint32_t align8PadLen;
+    ktx_uint32_t align8PadLen = 0;
     ktx_uint64_t sgdLen;
     ktx_uint32_t initialLevelPadLen;
     ktx_uint32_t levelIndexSize;

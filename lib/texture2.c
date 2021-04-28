@@ -216,7 +216,6 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
 bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
-    bool notDepthStencil = false;
     uint32_t* pBdb = pDfd + 1;
 
     // Check the DFD is of the expected type and version.

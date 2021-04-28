@@ -25,8 +25,10 @@
 #include <iomanip>
 #include <sstream>
 #include <ktx.h>
+#include "disable_glm_warnings.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "reenable_warnings.h"
 
 #include "DrawTexture.h"
 #include "frame.h"
@@ -209,11 +211,11 @@ DrawTexture::~DrawTexture()
 /* ------------------------------------------------------------------------ */
 
 void
-DrawTexture::resize(uint32_t uWidth, uint32_t uHeight)
+DrawTexture::resize(uint32_t uNewWidth, uint32_t uNewHeight)
 {
-    glViewport(0, 0, uWidth, uHeight);
-    this->uWidth = uWidth;
-    this->uHeight = uHeight;
+    glViewport(0, 0, uNewWidth, uNewHeight);
+    this->uWidth = uNewWidth;
+    this->uHeight = uNewHeight;
 
     // Set up an orthographic projection where 1 = 1 pixel
     framePMatrix = glm::ortho(0.f, (float)uWidth, 0.f, (float)uHeight);
@@ -241,7 +243,7 @@ DrawTexture::resize(uint32_t uWidth, uint32_t uHeight)
 /* ------------------------------------------------------------------------ */
 
 void
-DrawTexture::run(uint32_t msTicks)
+DrawTexture::run(uint32_t /*msTicks*/)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_TEXTURE_2D);

@@ -30,8 +30,10 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
+#include "disable_glm_warnings.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "reenable_warnings.h"
 
 #if defined(__ANDROID__)
 #include <android/asset_manager.h>
@@ -154,7 +156,10 @@ namespace vkMeshLoader
 
 // Because this file is included in multiple .cpp files, via
 // VulkanLoadTestSample.h, and not all of those samples call this function...
-#if !defined(_MSC_VER)
+#if defined(_MSC_VER)
+  #pragma warning(push)
+  #pragma warning(disable: 4505)
+#else
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-function"
 #endif
@@ -169,7 +174,9 @@ namespace vkMeshLoader
         }
     }
 }
-#if !defined(_MSC_VER)
+#if defined(_MSC_VER)
+  #pragma warning(pop)
+#else
   #pragma clang diagnostic pop
 #endif
 
@@ -246,13 +253,13 @@ public:
     {
         VkBuffer buf;
         VkDeviceMemory mem;
-    } vertexBuffer;
+    } deviceVertexBuffer;
 
     struct {
         VkBuffer buf;
         VkDeviceMemory mem;
         uint32_t count;
-    } indexBuffer;
+    } deviceIndexBuffer;
 
     VkPipelineVertexInputStateCreateInfo vi;
     std::vector<VkVertexInputBindingDescription> bindingDescriptions;
@@ -313,33 +320,33 @@ public:
         }
     }
 
-    bool InitFromScene(const aiScene* pScene, const std::string& Filename)
+    bool InitFromScene(const aiScene* pSrcScene, const std::string& /*Filename*/)
     {
-        m_Entries.resize(pScene->mNumMeshes);
+        m_Entries.resize(pSrcScene->mNumMeshes);
 
         // Counters
         for (unsigned int i = 0; i < m_Entries.size(); i++)
         {
             m_Entries[i].vertexBase = numVertices;
-            numVertices += pScene->mMeshes[i]->mNumVertices;
+            numVertices += pSrcScene->mMeshes[i]->mNumVertices;
         }
 
         // Initialize the meshes in the scene one by one
         for (unsigned int i = 0; i < m_Entries.size(); i++)
         {
-            const aiMesh* paiMesh = pScene->mMeshes[i];
-            InitMesh(i, paiMesh, pScene);
+            const aiMesh* paiMesh = pSrcScene->mMeshes[i];
+            InitMesh(i, paiMesh, pSrcScene);
         }
 
         return true;
     }
 
-    void InitMesh(unsigned int index, const aiMesh* paiMesh, const aiScene* pScene)
+    void InitMesh(unsigned int index, const aiMesh* paiMesh, const aiScene* pSrcScene)
     {
         m_Entries[index].MaterialIndex = paiMesh->mMaterialIndex;
 
         aiColor3D pColor(0.f, 0.f, 0.f);
-        pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
+        pSrcScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
 
         aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
@@ -392,10 +399,10 @@ public:
     // Clean up vulkan resources used by a mesh
     static void freeVulkanResources(VkDevice device, VulkanMeshLoader *mesh)
     {
-        vkDestroyBuffer(device, mesh->vertexBuffer.buf, nullptr);
-        vkFreeMemory(device, mesh->vertexBuffer.mem, nullptr);
-        vkDestroyBuffer(device, mesh->indexBuffer.buf, nullptr);
-        vkFreeMemory(device, mesh->indexBuffer.mem, nullptr);
+        vkDestroyBuffer(device, mesh->deviceVertexBuffer.buf, nullptr);
+        vkFreeMemory(device, mesh->deviceVertexBuffer.mem, nullptr);
+        vkDestroyBuffer(device, mesh->deviceIndexBuffer.buf, nullptr);
+        vkFreeMemory(device, mesh->deviceIndexBuffer.mem, nullptr);
     }
 
     VkResult createBuffer(

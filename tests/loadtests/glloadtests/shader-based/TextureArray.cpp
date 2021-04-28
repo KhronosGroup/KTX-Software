@@ -205,7 +205,7 @@ TextureArray::resize(uint32_t width, uint32_t height)
 }
 
 void
-TextureArray::run(uint32_t msTicks)
+TextureArray::run(uint32_t /*msTicks*/)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

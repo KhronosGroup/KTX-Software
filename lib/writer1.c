@@ -76,7 +76,7 @@ ktxTexture1_setImageFromStream(ktxTexture1* This, ktx_uint32_t level,
                                ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                ktxStream* src, ktx_size_t srcSize)
 {
-    ktx_uint32_t packedRowBytes, rowBytes, rowPadding, numRows;
+    ktx_uint32_t packedRowBytes, rowBytes, rowPadding, numRows = 0;
     ktx_size_t packedBytes, unpackedBytes;
     ktx_size_t imageOffset;
 #if (KTX_GL_UNPACK_ALIGNMENT != 4)
@@ -266,7 +266,7 @@ ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
 {
     KTX_header header = KTX_IDENTIFIER_REF;
     KTX_error_code result = KTX_SUCCESS;
-    ktx_uint8_t* pKvd;
+    ktx_uint8_t* pKvd = 0;
     ktx_uint32_t level, levelOffset;
 
     if (!dststr) {

@@ -23,8 +23,10 @@
 #include <assert.h>
 #include <sstream>
 #include <ktx.h>
+#include "disable_glm_warnings.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "reenable_warnings.h"
 
 #include "BasisuTest.h"
 #include "GLTextureTranscoder.hpp"

@@ -146,7 +146,7 @@ uint32_t basis_file::startTranscoding() {
     return m_transcoder.start_transcoding(m_file, byteLength);
 }
 
-uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
+uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t /*pvrtc_wrap_addressing*/, uint32_t get_alpha_for_opaque_formats) {
     assert(m_magic == MAGIC);
     if (m_magic != MAGIC)
         return 0;

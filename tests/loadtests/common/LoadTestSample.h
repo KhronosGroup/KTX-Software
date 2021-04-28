@@ -12,15 +12,9 @@
 #include <string>
 #include <SDL2/SDL_events.h>
 #define GLM_FORCE_RADIANS
-#if !defined(_MSC_VER)
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-  #pragma clang diagnostic ignored "-Wnested-anon-types"
-#endif
+#include "disable_glm_warnings.h"
 #include <glm/glm.hpp>
-#if !defined(_MSC_VER)
-  #pragma clang diagnostic pop
-#endif
+#include "reenable_warnings.h"
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -56,7 +50,7 @@ class LoadTestSample {
                                           const std::string sBasePath);
 
   protected:
-    virtual void keyPressed(uint32_t keyCode) { }
+    virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
     
     const std::string getAssetPath() { return sBasePath; }

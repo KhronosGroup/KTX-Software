@@ -823,10 +823,11 @@ ktxTexture1_calcDataSizeLevels(ktxTexture1* This, ktx_uint32_t levels)
         ktx_size_t levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
                                                         KTX_FORMAT_VERSION_ONE);
         /* mipPadding. NOTE: this adds padding after the last level too. */
-        if (KTX_GL_UNPACK_ALIGNMENT != 4)
+        #if KTX_GL_UNPACK_ALIGNMENT != 4
             dataSize += _KTX_PAD4(levelSize);
-        else
+        #else
             dataSize += levelSize;
+        #endif
     }
     return dataSize;
 }
@@ -1300,6 +1301,7 @@ cleanup:
 ktx_bool_t
 ktxTexture1_NeedsTranscoding(ktxTexture1* This)
 {
+    This; // Reference to keep compiler happy.
     return KTX_FALSE;
 }
 

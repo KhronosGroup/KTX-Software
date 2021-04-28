@@ -26,8 +26,10 @@ using namespace std;
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "disable_glm_warnings.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "reenable_warnings.h"
 
 #if defined(__ANDROID__)
 #include <android/asset_manager.h>
@@ -224,31 +226,31 @@ class GLMeshLoader {
         rootTransform = pScene->mRootNode->mTransformation;
     }
 
-    void InitFromScene(const aiScene* pScene, const std::string& filename)
+    void InitFromScene(const aiScene* pSrcScene, const std::string& /*filename*/)
     {
-        m_Entries.resize(pScene->mNumMeshes);
+        m_Entries.resize(pSrcScene->mNumMeshes);
 
         // Counters
         for (unsigned int i = 0; i < m_Entries.size(); i++)
         {
             m_Entries[i].vertexBase = numVertices;
-            numVertices += pScene->mMeshes[i]->mNumVertices;
+            numVertices += pSrcScene->mMeshes[i]->mNumVertices;
         }
 
         // Initialize the meshes in the scene one by one
         for (unsigned int i = 0; i < m_Entries.size(); i++)
         {
-            const aiMesh* paiMesh = pScene->mMeshes[i];
-            InitMesh(i, paiMesh, pScene);
+            const aiMesh* paiMesh = pSrcScene->mMeshes[i];
+            InitMesh(i, paiMesh, pSrcScene);
         }
     }
 
-    void InitMesh(unsigned int index, const aiMesh* paiMesh, const aiScene* pScene)
+    void InitMesh(unsigned int index, const aiMesh* paiMesh, const aiScene* pSrcScene)
     {
         m_Entries[index].MaterialIndex = paiMesh->mMaterialIndex;
 
         aiColor3D pColor(0.f, 0.f, 0.f);
-        pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
+        pSrcScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
 
         aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 

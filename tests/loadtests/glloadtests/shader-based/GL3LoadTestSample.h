@@ -20,7 +20,7 @@ class GL3LoadTestSample : public LoadTestSample {
   public:
     typedef uint64_t ticks_t;
     GL3LoadTestSample(uint32_t width, uint32_t height,
-                     const char* const szArgs,
+                     const char* const /*szArgs*/,
                      const std::string sBasePath)
            : LoadTestSample(width, height, sBasePath)
     {
@@ -37,7 +37,7 @@ class GL3LoadTestSample : public LoadTestSample {
                                           const std::string sBasePath);
 
   protected:
-    virtual void keyPressed(uint32_t keyCode) { }
+    virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
 
     std::string ktxfilename;
