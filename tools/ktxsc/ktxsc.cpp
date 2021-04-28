@@ -171,7 +171,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
     KTX_error_code result;
     ktxTexture2* texture = 0;
     int exitCode = 0;
-    const _TCHAR* pTmpFile;
+    const _TCHAR* pTmpFile = 0;
 
     processCommandLine(argc, argv, eAllowStdin);
     validateOptions();
