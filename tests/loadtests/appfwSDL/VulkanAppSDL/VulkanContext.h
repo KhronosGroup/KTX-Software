@@ -60,8 +60,7 @@ struct VulkanContext {
                                         bool begin);
     // End a command buffer, submit it to the queue and free, if requested.
     // Note : Waits for the queue to become idle
-    void flushCommandBuffer(vk::CommandBuffer& commandBuffer, vk::Queue& queue,
-                            bool free);
+    void flushCommandBuffer(vk::CommandBuffer& commandBuffer, bool free);
 
     // Create a command buffer for each image in the swap chain.
     bool createDrawCommandBuffers();

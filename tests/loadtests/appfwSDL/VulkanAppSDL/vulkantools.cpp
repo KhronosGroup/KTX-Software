@@ -119,7 +119,7 @@ namespace vkTools
     void setImageLayout(
         VkCommandBuffer cmdbuffer, 
         VkImage image, 
-        VkImageAspectFlags aspectMask, 
+        VkImageAspectFlags /*aspectMask*/, 
         VkImageLayout oldImageLayout, 
         VkImageLayout newImageLayout,
         VkImageSubresourceRange subresourceRange)
@@ -314,7 +314,7 @@ namespace vkTools
         return shaderModule;
     }
 #else
-    VkShaderModule loadShader(const char *fileName, VkDevice device, VkShaderStageFlagBits stage) 
+    VkShaderModule loadShader(const char *fileName, VkDevice device, VkShaderStageFlagBits /*stage*/) 
     {
         size_t size;
 
@@ -330,6 +330,7 @@ namespace vkTools
         char *shaderCode = new char[size];
         size_t U_ASSERT_ONLY retval = fread(shaderCode, size, 1, fp);
         assert(retval == 1);
+        (void)retval; // Supress VC++ unused variable warning for Release config.
         assert(size > 0);
 
         fclose(fp);
@@ -854,6 +855,7 @@ VkPipelineMultisampleStateCreateInfo vkTools::initializers::pipelineMultisampleS
     VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo = {};
     pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pipelineMultisampleStateCreateInfo.rasterizationSamples = rasterizationSamples;
+    pipelineMultisampleStateCreateInfo.flags = flags;
     return pipelineMultisampleStateCreateInfo;
 }
 
@@ -866,6 +868,7 @@ VkPipelineDynamicStateCreateInfo vkTools::initializers::pipelineDynamicStateCrea
     pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     pipelineDynamicStateCreateInfo.pDynamicStates = pDynamicStates;
     pipelineDynamicStateCreateInfo.dynamicStateCount = dynamicStateCount;
+    pipelineDynamicStateCreateInfo.flags = flags;
     return pipelineDynamicStateCreateInfo;
 }
 

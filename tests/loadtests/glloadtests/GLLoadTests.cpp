@@ -179,7 +179,7 @@ GLLoadTests::getOverlayText(GLTextOverlay * textOverlay)
 void
 GLLoadTests::invokeSample(Direction dir)
 {
-    const sampleInvocation* sampleInv;
+    const sampleInvocation* sampleInv = &siSamples[sampleIndex];
 
     if (pCurSample != nullptr) {
         delete pCurSample;

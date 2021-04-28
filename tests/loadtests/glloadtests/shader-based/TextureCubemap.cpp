@@ -354,7 +354,7 @@ TextureCubemap::resize(uint32_t width, uint32_t height)
 }
 
 void
-TextureCubemap::run(uint32_t msTicks)
+TextureCubemap::run(uint32_t /*msTicks*/)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

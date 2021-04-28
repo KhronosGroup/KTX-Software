@@ -431,6 +431,7 @@ texImage1DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    faceLodSize; depth; height; // Reference to keep compiler happy.
 
     assert(gl.glTexImage1D != NULL);
     gl.glTexImage1D(cbData->glTarget + face, miplevel,
@@ -452,6 +453,7 @@ compressedTexImage1DCallback(int miplevel, int face,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    height; depth;
 
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
@@ -476,6 +478,7 @@ texImage2DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    depth; faceLodSize; // Reference to keep compiler happy.
 
     glTexImage2D(cbData->glTarget + face, miplevel,
                  cbData->glInternalformat, width,
@@ -500,6 +503,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
     GLenum glerror;
     KTX_error_code result;
+    depth; // Reference to keep compiler happy.
 
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
@@ -563,6 +567,7 @@ texImage3DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    faceLodSize; // Reference to keep compiler happy.
 
     assert(gl.glTexImage3D != NULL);
     gl.glTexImage3D(cbData->glTarget + face, miplevel,
@@ -886,7 +891,7 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
     }
 
     if (!ktxOpenGLModuleHandle) {
-        ktx_error_code_e result = ktxLoadOpenGLLibrary();
+        result = ktxLoadOpenGLLibrary();
         if (result != KTX_SUCCESS) {
             return result;
         }

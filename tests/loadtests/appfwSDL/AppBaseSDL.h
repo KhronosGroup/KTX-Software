@@ -31,7 +31,7 @@ class AppBaseSDL {
     virtual bool initialize(Args& args);
     virtual void finalize();
     // Ticks in milliseconds since start.
-    virtual void drawFrame(uint32_t msTicks) { }
+    virtual void drawFrame(uint32_t) { }
     // When used with SDL_SetEventWatch, return value is ignored. When used
     // with SDL_SetEventFilter, 1 causes event to be added to SDL's internal
     // event queue, 0 causes it to be dropped.

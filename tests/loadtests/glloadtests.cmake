@@ -210,6 +210,8 @@ set( ES1_SOURCES
 )
 
 set( GL3_SOURCES
+    common/disable_glm_warnings.h
+    common/reenable_warnings.h
     glloadtests/shader-based/BasisuTest.cpp
     glloadtests/shader-based/BasisuTest.h
     glloadtests/shader-based/DrawTexture.cpp

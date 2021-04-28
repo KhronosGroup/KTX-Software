@@ -253,7 +253,7 @@ KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const ktx_size_t cou
     const ktx_uint8_t* bytes;
 
 
-    if (!str || !(mem = str->data.mem))
+    if (!str || (mem = str->data.mem)== 0)
         return KTX_INVALID_VALUE;
 
     newpos = mem->pos + count;
@@ -288,7 +288,7 @@ KTX_error_code ktxMemStream_skip(ktxStream* str, const ktx_size_t count)
     ktxMem* mem;
     ktx_off_t newpos;
 
-    if (!str || !(mem = str->data.mem))
+    if (!str || (mem = str->data.mem) == 0)
         return KTX_INVALID_VALUE;
 
     newpos = mem->pos + count;
@@ -329,7 +329,7 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
     KTX_error_code rc = KTX_SUCCESS;
     ktx_size_t new_size;
 
-    if (!str || !(mem = str->data.mem))
+    if (!str || (mem = str->data.mem) == 0)
         return KTX_INVALID_VALUE;
 
     if (mem->robytes)

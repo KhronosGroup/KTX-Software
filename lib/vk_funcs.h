@@ -14,7 +14,7 @@
  * @brief Declare pointers for Vulkan functions.
  *
  * Dynamically retrieving pointers avoids apps having to make sure a
- * Vulkan library is availablei when using a shared libktx, even if
+ * Vulkan library is available when using a shared libktx, even if
  * not using libktx's Vulkan loader.
  */
 

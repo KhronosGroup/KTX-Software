@@ -274,6 +274,7 @@ optimalTilingCallback(int miplevel, int face,
                       void* pixels, void* userdata)
 {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
+    pixels; // Reference to keep compiler happy.
 
     // Set up copy to destination region in final image
 #if defined(_DEBUG)
@@ -351,7 +352,7 @@ optimalTilingPadCallback(int miplevel, int face,
         // Must remove padding. Copy a row at a time.
 		ktx_uint32_t image, imageIterations;
 		ktx_int32_t row;
-        ktx_uint32_t rowPitch, paddedRowPitch;
+        ktx_uint32_t paddedRowPitch;
 
         if (ud->numDimensions == 3)
             imageIterations = depth;
@@ -423,6 +424,7 @@ linearTilingCallback(int miplevel, int face,
       .mipLevel = miplevel,
       .arrayLayer = face
     };
+    width; height; depth; // Reference to keep compiler happy.
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.
@@ -472,6 +474,7 @@ linearTilingPadCallback(int miplevel, int face,
     ktx_uint32_t row, image;
     ktx_uint8_t* pSrc;
     ktx_size_t   copySize;
+    width; // Reference to keep compiler happy.
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.

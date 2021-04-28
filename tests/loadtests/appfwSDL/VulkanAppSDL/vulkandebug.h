@@ -20,19 +20,11 @@
   #include <io.h>
 #endif
 
-// Turn off warning about use of GNU anonymous struct extension
-#if !defined(_MSC_VER)
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-  #pragma clang diagnostic ignored "-Wnested-anon-types"
-#endif
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "disable_glm_warnings.h"
 #include <glm/glm.hpp>
-#if !defined(_MSC_VER)
-  // And back on again.
-  #pragma clang diagnostic pop
-#endif
+#include "reenable_warnings.h"
 
 namespace vkDebug
 {

@@ -182,9 +182,9 @@ VulkanSwapchain::initSurface(SDL_Window* window)
 
 // Connect to the instance and device and get all required function pointers
 bool
-VulkanSwapchain::connectDevice(VkDevice device)
+VulkanSwapchain::connectDevice(VkDevice targetDevice)
 {
-    this->device = device;
+    this->device = targetDevice;
 #if USE_FUNCPTRS_FOR_KHR_EXTS
     GET_DEVICE_PROC_ADDR(device, CreateSwapchainKHR);
     GET_DEVICE_PROC_ADDR(device, DestroySwapchainKHR);
@@ -198,11 +198,11 @@ VulkanSwapchain::connectDevice(VkDevice device)
 
 // Connect to the instance and device and get all required function pointers
 bool
-VulkanSwapchain::connectInstance(VkInstance instance,
-                                 VkPhysicalDevice physicalDevice)
+VulkanSwapchain::connectInstance(VkInstance targetInstance,
+                                 VkPhysicalDevice targetPhysicalDevice)
 {
-    this->instance = instance;
-    this->physicalDevice = physicalDevice;
+    this->instance = targetInstance;
+    this->physicalDevice = targetPhysicalDevice;
 #if USE_FUNCPTRS_FOR_KHR_EXTS
     GET_INSTANCE_PROC_ADDR(instance, GetPhysicalDeviceSurfaceSupportKHR);
     GET_INSTANCE_PROC_ADDR(instance, GetPhysicalDeviceSurfaceCapabilitiesKHR);

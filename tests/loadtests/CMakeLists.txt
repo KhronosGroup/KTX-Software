@@ -68,12 +68,13 @@ add_library( appfwSDL OBJECT
     common/ltexceptions.h
     common/SwipeDetector.cpp
     common/SwipeDetector.h
+    common/disable_glm_warnings.h
+    common/reenable_warnings.h
     common/vecmath.hpp
     geom/cube_data.h
     geom/cube.h
     geom/frame.h
     geom/quad.h
-
 )
 
 target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_11)

@@ -194,6 +194,7 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
                                ktxTextureCreateFlags createFlags)
 {
     ktxStream* stream;
+    createFlags; // Reference to keep compiler happy.
 
     assert(This != NULL);
     assert(pStream->data.mem != NULL);
