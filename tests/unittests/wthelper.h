@@ -295,7 +295,7 @@ class WriterTestHelper {
 
     KTX_error_code
     copyImagesToTexture(ktxTexture* texture) {
-        KTX_error_code result;
+        KTX_error_code result = KTX_SUCCESS;
 
         for (ktx_uint32_t level = 0; level < images.size(); level++) {
             for (ktx_uint32_t layer = 0; layer < images[level].size(); layer++) {
