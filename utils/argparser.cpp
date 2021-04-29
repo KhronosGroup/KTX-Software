@@ -57,7 +57,7 @@ argvector::argvector(int argc, const _TCHAR* const* argv)
  */
 int
 argparser::getopt(_tstring* shortopts, const struct option* longopts,
-                  int* longindex)
+                  int* /*longindex*/)
 {
     if (optind == argv.size())
         return -1;
