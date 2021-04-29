@@ -82,16 +82,16 @@ class TextureWriterTestHelper
     TextureWriterTestHelper() {}
 
     void
-    resize(createFlags flags, ktx_uint32_t numLayers, ktx_uint32_t numFaces,
-           ktx_uint32_t numDimensions,
-           ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
+    resize(createFlags flags, ktx_uint32_t layers, ktx_uint32_t faces,
+           ktx_uint32_t dimensions,
+           ktx_uint32_t w, ktx_uint32_t h, ktx_uint32_t d)
     {
         WriterTestHelper<component_type, numComponents, internalformat>::resize(
-                                               flags, numLayers, numFaces,
-                                               numDimensions, width,
-                                               height, depth);
-        createInfo.resize(flags, numLayers, numFaces,
-                          numDimensions, width, height, depth);
+                                               flags, layers, faces,
+                                               dimensions,
+                                               w, h, d);
+        createInfo.resize(flags, layers, faces,
+                          dimensions, w, h, d);
     }
 
     // Compare images as loaded into a ktxTexture1 object with our image.
@@ -152,7 +152,7 @@ class TextureWriterTestHelper
 
     KTX_error_code
     copyImagesToTexture(ktxTexture1* texture) {
-        KTX_error_code result;
+        KTX_error_code result = KTX_SUCCESS;
 
         for (ktx_uint32_t level = 0; level < images.size(); level++) {
             for (ktx_uint32_t layer = 0; layer < images[level].size(); layer++) {
@@ -179,21 +179,21 @@ class TextureWriterTestHelper
         }
 
         void resize(createFlags flags,
-                    ktx_uint32_t numLayers, ktx_uint32_t numFaces,
-                    ktx_uint32_t numDimensions, ktx_uint32_t width,
-                    ktx_uint32_t height, ktx_uint32_t depth)
+                    ktx_uint32_t layers, ktx_uint32_t faces,
+                    ktx_uint32_t dimensions, ktx_uint32_t w,
+                    ktx_uint32_t h, ktx_uint32_t d)
         {
-            baseWidth = width;
-            baseHeight = height;
-            baseDepth = depth;
-            this->numDimensions = numDimensions;
+            baseWidth = w;
+            baseHeight = h;
+            baseDepth = d;
+            this->numDimensions = dimensions;
             generateMipmaps = flags & createFlagBits::eGenerateMipmaps
                               ? KTX_TRUE : KTX_FALSE;
             isArray = flags & createFlagBits::eArray ? KTX_TRUE : KTX_FALSE;
-            this->numFaces = numFaces;
-            this->numLayers = numLayers;
+            this->numFaces = faces;
+            this->numLayers = layers;
             numLevels = flags & createFlagBits::eMipmapped
-                        ? levelsFromSize(width, height, depth) : 1;
+                        ? levelsFromSize(w, h, d) : 1;
         };
     } createInfo;
 
@@ -287,8 +287,8 @@ class ktxTextureTestBase : public ::testing::Test {
     }
 
     KTX_error_code
-    iterCallback(int miplevel, int face,
-                 int width, int height, int depth,
+    iterCallback(int miplevel, int /*face*/,
+                 int width, int /*height*/, int /*depth*/,
                  ktx_uint64_t faceLodSize,
                  void* pixels)
     {
@@ -321,7 +321,7 @@ class ktxTextureTestBase : public ::testing::Test {
     ktx_uint8_t* ktxMemFile;
     ktx_size_t ktxMemFileLen;
     const int pixelSize;
-    int mipLevels;
+    unsigned int mipLevels;
     unsigned int iterCbCalls;
 
     ktx_size_t paddedImageDataSize;
@@ -385,7 +385,7 @@ class ktxTexture2TestBase : public ktxTextureTestBase<component_type,
     bool
     compareTexture(ktxTexture2* texture)
     {
-        if (texture->vkFormat != vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat))
+        if (texture->vkFormat != (uint32_t)vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat))
             return false;
         if (texture->baseWidth != texinfo.baseWidth)
             return false;
@@ -559,8 +559,8 @@ TEST_F(ktxTexture_CreateTest, ConstructFromMemory) {
         EXPECT_EQ(compareTexture((ktxTexture1*)texture), true);
         EXPECT_EQ(texture->isCompressed, KTX_FALSE);
         EXPECT_EQ(texture->generateMipmaps, KTX_FALSE);
-        EXPECT_EQ(texture->numDimensions, 2);
-        EXPECT_EQ(texture->numLayers, 1);
+        EXPECT_EQ(texture->numDimensions, 2U);
+        EXPECT_EQ(texture->numLayers, 1U);
         EXPECT_EQ(texture->isArray, KTX_FALSE);
         if (texture)
             ktxTexture_Destroy(texture);
@@ -580,8 +580,8 @@ TEST_F(ktxTexture1_CreateTest, ConstructFromMemory) {
         EXPECT_EQ(compareTexture(texture), true);
         EXPECT_EQ(texture->isCompressed, KTX_FALSE);
         EXPECT_EQ(texture->generateMipmaps, KTX_FALSE);
-        EXPECT_EQ(texture->numDimensions, 2);
-        EXPECT_EQ(texture->numLayers, 1);
+        EXPECT_EQ(texture->numDimensions, 2U);
+        EXPECT_EQ(texture->numLayers, 1U);
         EXPECT_EQ(texture->isArray, KTX_FALSE);
         if (texture)
             ktxTexture1_Destroy(texture);
@@ -2267,7 +2267,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, Uncompressed) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 1);
+        EXPECT_EQ(components, 1U);
         if (texture)
             ktxTexture_Destroy(ktxTexture(texture));
     }
@@ -2287,7 +2287,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, BasisLZ) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 1);
+        EXPECT_EQ(components, 1U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
         if (texture)
@@ -2310,7 +2310,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 1);
+        EXPECT_EQ(components, 1U);
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
@@ -2333,7 +2333,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, Uncompressed) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 2);
+        EXPECT_EQ(components, 2U);
         if (texture)
             ktxTexture_Destroy(ktxTexture(texture));
     }
@@ -2353,7 +2353,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 2);
+        EXPECT_EQ(components, 2U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
     }
@@ -2374,7 +2374,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 2);
+        EXPECT_EQ(components, 2U);
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
@@ -2397,7 +2397,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, Uncompressed) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 3);
+        EXPECT_EQ(components, 3U);
         if (texture)
             ktxTexture_Destroy(ktxTexture(texture));
     }
@@ -2417,7 +2417,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, BasisLZ) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 3);
+        EXPECT_EQ(components, 3U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
         if (texture)
@@ -2440,7 +2440,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 3);
+        EXPECT_EQ(components, 3U);
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
@@ -2463,7 +2463,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, Uncompressed) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 4);
+        EXPECT_EQ(components, 4U);
         if (texture)
             ktxTexture_Destroy(ktxTexture(texture));
     }
@@ -2483,7 +2483,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, BasisLZ) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 4);
+        EXPECT_EQ(components, 4U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
         if (texture)
@@ -2506,7 +2506,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
-        EXPECT_EQ(components, 4);
+        EXPECT_EQ(components, 4U);
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
@@ -2553,7 +2553,7 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
         result = ktxHashList_FindValue(&texture->kvDataHead,
                                       "MSCtestKey", &valueLen, (void**)&value);
         EXPECT_EQ(result, KTX_SUCCESS);
-        EXPECT_EQ(valueLen, 0);
+        EXPECT_EQ(valueLen, 0U);
         EXPECT_EQ(value, nullptr);
 
         if (newMemFile)
@@ -2603,7 +2603,7 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
         ktx_uint32_t valueLen;
         ktx_uint8_t* value;
         EXPECT_EQ(result, KTX_SUCCESS);
-        EXPECT_EQ(texture->kvDataLen, 0);
+        EXPECT_EQ(texture->kvDataLen, 0U);
         EXPECT_EQ(texture->kvDataHead, nullptr);
 
         if (newMemFile)
