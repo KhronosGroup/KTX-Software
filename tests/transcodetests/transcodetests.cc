@@ -128,8 +128,8 @@ string combine_paths(string const a, string const b) {
 
 void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
-    void * basisData;
-    long basisSize;
+    void * basisData = nullptr;
+    long basisSize = 0;
     
     string path = combine_paths(image_path,textureSet.basisuPath);
     bool read_success = read_file(path, &basisData, &basisSize);
