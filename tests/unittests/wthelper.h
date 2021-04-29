@@ -74,23 +74,23 @@ class WriterTestHelper {
     }
 
     void resize(createFlags flags,
-                ktx_uint32_t numLayers, ktx_uint32_t numFaces,
-                ktx_uint32_t numDimensions,
-                ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth,
+                ktx_uint32_t layers, ktx_uint32_t faces,
+                ktx_uint32_t dimensions,
+                ktx_uint32_t w, ktx_uint32_t h, ktx_uint32_t d,
                 std::vector<component_type>* requestedColor = nullptr)
     {
-        assert(numFaces == 1 || depth == 1);
+        assert(faces == 1 || d == 1);
         assert(requestedColor == nullptr || requestedColor->size() >= numComponents);
 
-        this->width = width;
-        this->height = height;
-        this->depth = depth;
-        numLevels = flags & eMipmapped? levelsFromSize(width, height, depth): 1;
-        this->numLayers = numLayers;
-        this->numFaces=numFaces;
+        this->width = w;
+        this->height = h;
+        this->depth = d;
+        numLevels = flags & eMipmapped? levelsFromSize(w, h, d): 1;
+        this->numLayers = layers;
+        this->numFaces=faces;
         isArray = flags & eArray ? true : false;
-        texinfo.resize(numLevels, numLayers, numFaces, numDimensions,
-                       isArray, width, height, depth);
+        texinfo.resize(numLevels, layers, faces, dimensions,
+                       isArray, w, h, d);
 
         // Create the image set.
         imageDataSize = 0;
@@ -147,7 +147,7 @@ class WriterTestHelper {
             }
         }
 
-        switch (numDimensions) {
+        switch (dimensions) {
           case 1:
             assert(strlen(KTX_ORIENTATION1_FMT) < sizeof(orientation));
             snprintf(orientation, sizeof(orientation), KTX_ORIENTATION1_FMT,
@@ -169,7 +169,7 @@ class WriterTestHelper {
         orientation_ktx2[1] = 'd';
         orientation_ktx2[2] = 'i';
         orientation_ktx2[3] = 0;
-        orientation_ktx2[numDimensions] = 0; // Ensure terminating NULL.
+        orientation_ktx2[dimensions] = 0; // Ensure terminating NULL.
 
         ktxHashList_Construct(&kvHash);
         ktxHashList_AddKVPair(&kvHash, KTX_ORIENTATION_KEY,
@@ -192,7 +192,7 @@ class WriterTestHelper {
 
         ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
         ktxHashList_AddKVPair(&kvHash_ktx2, KTX_ORIENTATION_KEY,
-                              numDimensions + 1,
+                              dimensions + 1,
                               orientation_ktx2);
         ktxHashList_Sort(&kvHash_ktx2);
         ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenAll_ktx2, &kvDataAll_ktx2);
@@ -359,15 +359,15 @@ class WriterTestHelper {
             glBaseInternalformat = glFormat;
         }
 
-        void resize(GLuint numLevels, GLuint numLayers, GLuint numFaces,
-                    GLuint numDimensions, bool isArray,
+        void resize(GLuint levels, GLuint layers, GLuint faces,
+                    GLuint dimensions, bool array,
                     GLsizei width, GLsizei height, GLsizei depth) {
-            this->numLayers = numLayers;
-            this->numFaces = numFaces;
-            this->numLevels = numLevels;
-            this->numDimensions = numDimensions;
+            this->numLayers = layers;
+            this->numFaces = faces;
+            this->numLevels = levels;
+            this->numDimensions = dimensions;
             this->generateMipmaps = false;
-            this->isArray = isArray;
+            this->isArray = array;
             baseWidth = width;
             baseHeight = height;
             baseDepth = depth;
@@ -399,7 +399,7 @@ class WriterTestHelper {
 
             // Should find better way to test this. Code we're testing uses the
             // same switch to convert format.
-            if (header->vkFormat == format
+            if (header->vkFormat == (uint32_t)format
                 && header->pixelWidth == baseWidth
                 && header->pixelHeight == headerPixelHeight
                 && header->pixelDepth == headerPixelDepth
@@ -415,9 +415,9 @@ class WriterTestHelper {
 
         bool compare(ktxTexture2* texture) {
             VkFormat format =
-            vkGetFormatFromOpenGLInternalFormat(glInternalformat);
+                 vkGetFormatFromOpenGLInternalFormat(glInternalformat);
 
-            if (texture->vkFormat == format
+            if (texture->vkFormat == (uint32_t)format
                 && texture->baseWidth == baseWidth
                 && texture->baseHeight == baseHeight
                 && texture->baseDepth == baseDepth
