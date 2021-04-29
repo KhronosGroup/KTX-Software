@@ -684,16 +684,20 @@ toktxApp::main(int argc, _TCHAR *argv[])
     ktxTexture* texture = 0;
     int exitCode = 0;
     unsigned int componentCount = 1, faceSlice, level, layer, levelCount = 1;
-    unsigned int levelWidth, levelHeight, levelDepth;
-    khr_df_transfer_e chosenOETF, firstImageOETF;
-    khr_df_primaries_e chosenPrimaries, firstImagePrimaries;
-    Image::colortype_e firstImageColortype;
+    unsigned int levelWidth=0, levelHeight=0, levelDepth=0;
+    // These initializations are to avoid compiler warnings.
+    khr_df_transfer_e chosenOETF = KHR_DF_TRANSFER_UNSPECIFIED;
+    khr_df_transfer_e firstImageOETF = KHR_DF_TRANSFER_UNSPECIFIED;
+    khr_df_primaries_e chosenPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+    khr_df_primaries_e firstImagePrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+    Image::colortype_e firstImageColortype = Image::eRGB;
     string defaultSwizzle;
 
     processEnvOptions();
     processCommandLine(argc, argv, eDisallowStdin, eFirst);
     validateOptions();
 
+    memset(&createInfo, 0, sizeof(createInfo));
     if (options.cubemap)
       createInfo.numFaces = 6;
     else
@@ -795,8 +799,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
         }
 
         if (options.targetType != commandOptions::eUnspecified) {
-            if (options.targetType != image->getComponentCount()) {
-                Image* newImage;
+            if (options.targetType != (int)image->getComponentCount()) {
+                Image* newImage = nullptr;
                 // The following casts only work because the only case that will
                 // be taken at runtime is the one where image is the same
                 if (image->getComponentSize() == 2) {
@@ -1113,16 +1117,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                       *image,
                                       image->getByteCount());
         if (options.genmipmap) {
-            for (uint32_t level = 1; level < createInfo.numLevels; level++)
+            for (uint32_t glevel = 1; glevel < createInfo.numLevels; glevel++)
             {
-                // Note: level variable in this loop is different from that
-                // with the same name outside it.
-                const uint32_t levelWidth
-                    = maximum<uint32_t>(1, image->getWidth() >> level);
-                const uint32_t levelHeight
-                    = maximum<uint32_t>(1, image->getHeight() >> level);
-
-                Image *levelImage = image->createImage(levelWidth, levelHeight);
+                Image *levelImage = image->createImage(
+                    maximum<uint32_t>(1, image->getWidth() >> glevel),
+                    maximum<uint32_t>(1, image->getHeight() >> glevel));
                 levelImage->setOetf(image->getOetf());
                 levelImage->setColortype(image->getColortype());
                 levelImage->setPrimaries(image->getPrimaries());
@@ -1144,7 +1143,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 //    levelImage->renormalize_normal_map();
 
                 ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                              level,
+                                              glevel,
                                               layer,
                                               faceSlice,
                                               *levelImage,
@@ -1206,7 +1205,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
         }
         if (swizzle.size()) {
             ktxHashList_AddKVPair(&texture->kvDataHead, KTX_SWIZZLE_KEY,
-                                  swizzle.size()+1, // For the NUL on the c_str
+                                  (uint32_t)swizzle.size()+1,
+                                  // +1 is for the NUL on the c_str
                                   swizzle.c_str());
         }
 
@@ -1236,11 +1236,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 goto cleanup;
             }
             if (options.inputSwizzle.size()) {
-                for (int i = 0; i < 4; i++) {
+                for (i = 0; i < 4; i++) {
                      options.bopts.inputSwizzle[i] = options.inputSwizzle[i];
                 }
             } else if (defaultSwizzle.size()) {
-                 for (int i = 0; i < 4; i++) {
+                 for (i = 0; i < 4; i++) {
                      options.bopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
             }
@@ -1367,7 +1367,7 @@ toktxApp::validateSwizzle(string& swizzle)
         exit(1);
     }
     std::for_each(swizzle.begin(), swizzle.end(), [](char & c) {
-        c = ::tolower(c);
+        c = (char)::tolower(c);
     });
 
     for (int i = 0; i < 4; i++) {
@@ -1487,7 +1487,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1102:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = ::toupper(c);
+	        c = (char)::toupper(c);
         });
         if (parser.optarg.compare("R") == 0)
           options.targetType = commandOptions::eR;
@@ -1506,7 +1506,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1103:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = ::tolower(c);
+	        c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
             options.convert_oetf = KHR_DF_TRANSFER_LINEAR;
@@ -1515,7 +1515,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1104:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = ::tolower(c);
+	        c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
             options.assign_oetf = KHR_DF_TRANSFER_LINEAR;
@@ -1524,7 +1524,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1105:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = ::tolower(c);
+	        c = (char)::tolower(c);
         });
         if (parser.optarg.compare("bt709") == 0)
             options.assign_primaries = KHR_DF_PRIMARIES_BT709;

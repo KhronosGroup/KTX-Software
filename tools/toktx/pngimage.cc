@@ -134,6 +134,9 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
       case LCT_RGBA:
         componentCount = 4;
         break;
+      default:
+        // To avoid potentially uninitialized variable warning.
+        componentCount = 0;
     }
     if (rescaleTo8Bits) {
         state.info_raw.bitdepth = 8;
@@ -160,7 +163,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         throw std::runtime_error(message.str());
     }
 
-    Image* image;
+    Image* image = nullptr;
     if (componentBits == 16 ) {
         switch (componentCount) {
           case 1: {

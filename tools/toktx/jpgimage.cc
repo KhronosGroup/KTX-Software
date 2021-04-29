@@ -119,7 +119,7 @@ Image::CreateFromJPG(FILE* src, bool, bool)
          throw std::runtime_error("JPEG decode failed");
     }
 
-    Image* image;
+    Image* image = nullptr;
     switch (componentCount) {
       case 1: {
         image = new r8image(w, h, (r8color*)imageData);

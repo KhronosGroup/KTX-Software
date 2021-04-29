@@ -106,7 +106,9 @@ decode_bt709(float const brightness, float const)
 static INLINE float
 encode_sRGB(float const intensity, float const unused = 1.0f)
 {
+    unused; // Avoid unreferenced parameter warning.
     float brightness;
+
     if (intensity < 0.0031308f)
         brightness = 12.92f * intensity;
     else
@@ -118,6 +120,7 @@ encode_sRGB(float const intensity, float const unused = 1.0f)
 static INLINE float
 decode_sRGB(float const brightness, float const unused = 1.0f)
 {
+    unused; // Avoid unreferenced parameter warning.
     float intensity;
 
     if (brightness < .04045f)
@@ -272,10 +275,10 @@ class Image {
     colortype_e getColortype() { return this->colortype; }
     void setColortype(colortype_e t) { colortype = t; }
     khr_df_transfer_e getOetf() const { return oetf; }
-    void setOetf(khr_df_transfer_e oetf) { this->oetf = oetf; }
+    void setOetf(khr_df_transfer_e noetf) { this->oetf = noetf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
-    void setPrimaries(khr_df_primaries_e primaries) {
-        this->primaries = primaries;
+    void setPrimaries(khr_df_primaries_e nprimaries) {
+        this->primaries = nprimaries;
     }
 
     typedef Image* (*CreateFunction)(FILE* f, bool transformOETF,
@@ -373,8 +376,8 @@ class ImageT : public Image {
         return Color::getComponentSize();
     }
 
-    virtual Image* createImage(uint32_t width, uint32_t height) {
-        ImageT* image = new ImageT(width, height);
+    virtual Image* createImage(uint32_t w, uint32_t h) {
+        ImageT* image = new ImageT(w, h);
         return image;
     }
 
