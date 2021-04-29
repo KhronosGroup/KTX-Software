@@ -297,11 +297,12 @@ createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 #define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
 #define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
     char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
-    unsigned int width, height;
-    unsigned int maxval, depth;
+    // Initialization avoids potentially uninitialized variable warning.
+    unsigned int width=0, height=0;
+    unsigned int maxval=0, depth=0;
     unsigned int numFieldsFound = 0;
     unsigned int components;
-    Image* image;
+    Image* image = nullptr;
 
     for (;;) {
         skipNonData(src);
