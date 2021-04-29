@@ -1316,6 +1316,7 @@ ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
                                ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                const ktx_uint8_t* src, ktx_size_t srcSize)
 {
+    This; level; layer; faceSlice; src; srcSize;
     return KTX_INVALID_OPERATION;
 }
 
@@ -1324,18 +1325,21 @@ ktxTexture1_SetImageFromStdioStream(ktxTexture1* This, ktx_uint32_t level,
                                     ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                     FILE* src, ktx_size_t srcSize)
 {
+    This; level; layer; faceSlice; src; srcSize;
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
 {
+    This; dstsstr;
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
 {
+    This; dstname;
     return KTX_INVALID_OPERATION;
 }
 
@@ -1343,6 +1347,7 @@ KTX_error_code
 ktxTexture1_WriteToMemory(ktxTexture1* This,
                           ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
+    This; ppDstBytes; pSize;
     return KTX_INVALID_OPERATION;
 }
 
