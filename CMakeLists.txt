@@ -96,12 +96,14 @@ else()
     set(LIB_TYPE SHARED)
 endif()
 
-# Global Optimization Flags
+# Global compile & link options including optimization flags
 if(EMSCRIPTEN)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
 elseif(MSVC)
-    add_compile_options(/W4)
+    # With /W4 VS2015 (V19.0) issues many warnings that VS2017 & 2019 don't
+    # so only increase warning level for recent versions.
+    add_compile_options($<$<VERSION_GREATER:${CMAKE_CXX_COMPILER_VERSION},19.0>:/W4>)
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 else()
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
