@@ -575,7 +575,9 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
         assert(This->isCompressed);
         return blockCount.x * blockCount.y * blockSizeInBytes;
     } else {
-        assert(prtctd->_formatSize.blockWidth == prtctd->_formatSize.blockHeight == prtctd->_formatSize.blockDepth == 1);
+        assert(prtctd->_formatSize.blockWidth == 1U
+               && prtctd->_formatSize.blockHeight == 1U
+               && prtctd->_formatSize.blockDepth == 1U);
         rowBytes = blockCount.x * blockSizeInBytes;
         if (fv == KTX_FORMAT_VERSION_ONE)
             (void)padRow(&rowBytes);
@@ -842,7 +844,9 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
     assert (This != NULL);
 
     assert(!This->isCompressed);
-    assert(prtctd->_formatSize.blockWidth == prtctd->_formatSize.blockHeight == prtctd->_formatSize.blockDepth == 1);
+    assert(prtctd->_formatSize.blockWidth == 1U
+           && prtctd->_formatSize.blockHeight == 1U
+           && prtctd->_formatSize.blockDepth == 1U);
 
     blockCount.x = MAX(1, (This->baseWidth / prtctd->_formatSize.blockWidth)  >> level);
     *numRows = MAX(1, (This->baseHeight / prtctd->_formatSize.blockHeight)  >> level);

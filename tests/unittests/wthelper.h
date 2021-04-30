@@ -278,7 +278,7 @@ class WriterTestHelper {
 #if 0 //DUMP_IMAGE
                     fprintf(stdout, "Reading level %d, layer %d, faceSlice %d at offset %#" PRIx64 "\n",
                             level, layer, faceSlice, levelIndex[level].offset);
-                    for (uint32_t i = 0; i < imageBytes; i++)
+                    for (ktx_uint32_t i = 0; i < imageBytes; i++)
                         fprintf(stdout, "%#x, ", *(pData + i));
                     fprintf(stdout, "\n");
 #endif
@@ -399,7 +399,7 @@ class WriterTestHelper {
 
             // Should find better way to test this. Code we're testing uses the
             // same switch to convert format.
-            if (header->vkFormat == (uint32_t)format
+            if (header->vkFormat == (ktx_uint32_t)format
                 && header->pixelWidth == baseWidth
                 && header->pixelHeight == headerPixelHeight
                 && header->pixelDepth == headerPixelDepth
@@ -417,7 +417,7 @@ class WriterTestHelper {
             VkFormat format =
                  vkGetFormatFromOpenGLInternalFormat(glInternalformat);
 
-            if (texture->vkFormat == (uint32_t)format
+            if (texture->vkFormat == (ktx_uint32_t)format
                 && texture->baseWidth == baseWidth
                 && texture->baseHeight == baseHeight
                 && texture->baseDepth == baseDepth
