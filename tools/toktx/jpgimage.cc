@@ -47,7 +47,7 @@ class myjpgdstream : public jpeg_decoder_file_stream {
           return -1;
 
         size_t bytes_read = fread(pBuf, 1, max_bytes_to_read, m_pFile);
-        if (bytes_read < max_bytes_to_read)
+        if (bytes_read < (size_t)max_bytes_to_read)
         {
           if (ferror(m_pFile))
           {

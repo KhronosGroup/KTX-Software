@@ -33,6 +33,7 @@
 #include "memstream.h"
 #include "texture2.h"
 #include "uthash.h"
+#include "unused.h"
 #include "vk_format.h"
 
 // FIXME: Test this #define and put it in a header somewhere.
@@ -2293,7 +2294,12 @@ ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
                                ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                const ktx_uint8_t* src, ktx_size_t srcSize)
 {
-    This; level; layer; faceSlice; src; srcSize;
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
@@ -2302,21 +2308,28 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
                                     ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                     FILE* src, ktx_size_t srcSize)
 {
-    This; level; layer; faceSlice; src; srcSize;
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
 {
-    This; dstsstr;
+    UNUSED(This);
+    UNUSED(dstsstr);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
 {
-    This; dstname;
+    UNUSED(This);
+    UNUSED(dstname);
     return KTX_INVALID_OPERATION;
 }
 
@@ -2324,7 +2337,9 @@ KTX_error_code
 ktxTexture2_WriteToMemory(ktxTexture2* This,
                           ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
-    This; ppDstBytes; pSize;
+    UNUSED(This);
+    UNUSED(ppDstBytes);
+    UNUSED(pSize);
     return KTX_INVALID_OPERATION;
 }
 

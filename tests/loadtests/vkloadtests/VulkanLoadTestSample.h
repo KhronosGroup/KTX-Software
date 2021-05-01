@@ -41,7 +41,7 @@ class VulkanLoadTestSample : public LoadTestSample {
 
     virtual void getOverlayText(VulkanTextOverlay* /*textOverlay*/,
                                 float /*yoffset*/) { }
-    virtual const char* const customizeTitle(const char* const title) {
+    virtual const char* customizeTitle(const char* const title) {
         return title;
     }
 

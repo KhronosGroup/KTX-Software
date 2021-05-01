@@ -17,7 +17,7 @@ extern basist::etc1_global_selector_codebook *g_pGlobal_codebook;
 
 class basis_file
 {
-    int m_magic = 0;
+    unsigned int m_magic = 0;
     basisu_transcoder m_transcoder;
     const uint8_t *m_file;
     uint32_t byteLength;

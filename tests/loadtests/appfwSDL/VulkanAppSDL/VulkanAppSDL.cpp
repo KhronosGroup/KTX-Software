@@ -73,7 +73,7 @@ VulkanAppSDL::~VulkanAppSDL()
 bool
 VulkanAppSDL::initialize(Args& args)
 {
-    for (int i = 1; i < args.size(); i++) {
+    for (uint32_t i = 1; i < args.size(); i++) {
         if (args[i].compare("--validate") == 0) {
             validate = true;
             args.erase(args.begin() + i);

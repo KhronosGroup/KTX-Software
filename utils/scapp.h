@@ -411,7 +411,7 @@ class scApp : public ktxApp {
 
 scApp::scApp(string& version, string& defaultVersion,
              scApp::commandOptions& options)
-      : options(options), ktxApp(version, defaultVersion, options)
+      : ktxApp(version, defaultVersion, options), options(options)
 {
   argparser::option my_option_list[] = {
       { "bcmp", argparser::option::no_argument, NULL, 'b' },

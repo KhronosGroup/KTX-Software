@@ -95,7 +95,7 @@ INSTANTIATE_TEST_CASE_P(AllCombinations,
                         ::testing::Combine(::testing::ValuesIn(allTextureSets),
                                            ::testing::ValuesIn(allFormats)),);
 
-bool read_file( string path, void** data, long *fsize ) {
+bool read_file( string path, void** data, unsigned long *fsize ) {
     FILE *f = fopen(path.data(),"rb");
     if(f==NULL) {
         return false;
@@ -129,7 +129,7 @@ string combine_paths(string const a, string const b) {
 void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     void * basisData = nullptr;
-    long basisSize = 0;
+    unsigned long basisSize = 0;
     
     string path = combine_paths(image_path,textureSet.basisuPath);
     bool read_success = read_file(path, &basisData, &basisSize);
@@ -165,7 +165,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     basisu.close();
 
     void * data;
-    long fsize;
+    unsigned long fsize;
 
     path = combine_paths(image_path,textureSet.ktxPath);
     read_success = read_file(path, &data, &fsize);

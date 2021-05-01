@@ -337,7 +337,7 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
 
     new_size = mem->pos + (size*count);
     //if (new_size < mem->used_size)
-    if (new_size < mem->pos)
+    if ((ktx_off_t)new_size < mem->pos)
         return KTX_FILE_OVERFLOW;
 
     if (mem->alloc_size < new_size) {
@@ -348,7 +348,7 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
 
     memcpy(mem->bytes + mem->pos, src, size*count);
     mem->pos += size*count;
-    if (mem->pos > mem->used_size)
+    if (mem->pos > (ktx_off_t)mem->used_size)
         mem->used_size = mem->pos;
 
 
@@ -402,7 +402,7 @@ KTX_error_code ktxMemStream_setpos(ktxStream* str, ktx_off_t pos)
 
     assert(str->type == eStreamTypeMemory);
 
-    if (pos > str->data.mem->alloc_size)
+    if (pos > (ktx_off_t)str->data.mem->alloc_size)
         return KTX_INVALID_OPERATION;
 
     str->data.mem->pos = pos;

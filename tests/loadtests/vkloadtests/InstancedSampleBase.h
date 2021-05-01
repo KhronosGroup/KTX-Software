@@ -29,7 +29,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
     virtual void run(uint32_t msTicks);
 
     //virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
-    virtual const char* const customizeTitle(const char* const title);
+    virtual const char* customizeTitle(const char* const title);
 
   protected:
     ktxVulkanTexture texture;

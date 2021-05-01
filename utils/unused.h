@@ -19,4 +19,7 @@
 
 #define U_ASSERT_ONLY MAYBE_UNUSED
 
+// For unused parameters of c functions. Portable.
+#define UNUSED(x) (void)(x)
+
 #endif /* UNUSED_H */

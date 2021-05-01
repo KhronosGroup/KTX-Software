@@ -27,9 +27,11 @@ class VulkanAppSDL : public AppBaseSDL {
              int width, int height,
              const uint32_t version,
              bool enableTextOverlay)
-            : w_width(width), w_height(height), vkVersion(version),
-              enableTextOverlay(enableTextOverlay), AppBaseSDL(name),
-              subOptimalPresentWarned(false), textOverlay(nullptr), validate(false)
+            : AppBaseSDL(name), w_width(width), w_height(height),
+              subOptimalPresentWarned(false), validate(false),
+              vkVersion(version),
+              enableTextOverlay(enableTextOverlay),
+              textOverlay(nullptr)
     {
         // The overridden new below will zero the storage. Thus
         // we avoid a long list of initializers.

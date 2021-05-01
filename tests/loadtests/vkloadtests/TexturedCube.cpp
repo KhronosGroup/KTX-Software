@@ -139,9 +139,30 @@ TexturedCube::buildCommandBuffer(const int bufferIndex)
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, NULL, 0, NULL
     };
 
+#if 0
+typedef union VkClearColorValue {
+    float       float32[4];
+    int32_t     int32[4];
+    uint32_t    uint32[4];
+} VkClearColorValue;
+
+typedef struct VkClearDepthStencilValue {
+    float       depth;
+    uint32_t    stencil;
+} VkClearDepthStencilValue;
+
+typedef union VkClearValue {
+    VkClearColorValue           color;
+    VkClearDepthStencilValue    depthStencil;
+} VkClearValue;
+#endif
+
+    // clang suggested all these braces. I could not find documentation of
+    // union initialization except using designated intializers which are not
+    // in C++11.
     VkClearValue clear_values[2] = {
-       { 0.0f, 0.2f, 0.2f, 1.0f },
-       { 0.0f, 0 }
+      { {{0.0f, 0.2f, 0.2f, 1.0f}} },
+      { {{0.0f, 0}} }
     };
 
     const VkRenderPassBeginInfo rp_begin = {
@@ -149,7 +170,7 @@ TexturedCube::buildCommandBuffer(const int bufferIndex)
         NULL,
         vkctx.renderPass,
         vkctx.framebuffers[bufferIndex],
-        { 0, 0, w_width, w_height },
+        { {0, 0}, {w_width, w_height} },
         ARRAY_LEN(clear_values),
         clear_values,
     };

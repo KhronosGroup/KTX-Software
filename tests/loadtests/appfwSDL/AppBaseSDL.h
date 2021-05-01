@@ -41,7 +41,7 @@ class AppBaseSDL {
     
     void drawFrame();
     void initializeFPSTimer();
-    const char* const name() { return szName; }
+    const char* name() { return szName; }
     const std::string getAssetPath() { return sBasePath; }
 
     // Sets title to be used on window title bar. Content of szExtra ia

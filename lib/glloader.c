@@ -32,6 +32,7 @@
 #include "ktxint.h"
 #include "texture.h"
 #include "gl_format.h"      // Must come after texture.h.
+#include "unused.h"
 
 /**
  * @defgroup ktx_glloader OpenGL Texture Image Loader
@@ -431,7 +432,9 @@ texImage1DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    faceLodSize; depth; height; // Reference to keep compiler happy.
+    UNUSED(faceLodSize);
+    UNUSED(depth);
+    UNUSED(height);
 
     assert(gl.glTexImage1D != NULL);
     gl.glTexImage1D(cbData->glTarget + face, miplevel,
@@ -453,7 +456,8 @@ compressedTexImage1DCallback(int miplevel, int face,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    height; depth;
+    UNUSED(depth);
+    UNUSED(height);
 
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
@@ -478,7 +482,8 @@ texImage2DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    depth; faceLodSize; // Reference to keep compiler happy.
+    UNUSED(depth);
+    UNUSED(faceLodSize);
 
     glTexImage2D(cbData->glTarget + face, miplevel,
                  cbData->glInternalformat, width,
@@ -503,7 +508,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
     GLenum glerror;
     KTX_error_code result;
-    depth; // Reference to keep compiler happy.
+    UNUSED(depth);
 
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
@@ -567,7 +572,7 @@ texImage3DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
-    faceLodSize; // Reference to keep compiler happy.
+    UNUSED(faceLodSize);
 
     assert(gl.glTexImage3D != NULL);
     gl.glTexImage3D(cbData->glTarget + face, miplevel,

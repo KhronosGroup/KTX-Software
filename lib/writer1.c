@@ -264,7 +264,7 @@ ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
 static KTX_error_code
 ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
 {
-    KTX_header header = KTX_IDENTIFIER_REF;
+    KTX_header header = { .identifier = KTX_IDENTIFIER_REF };
     KTX_error_code result = KTX_SUCCESS;
     ktx_uint8_t* pKvd = 0;
     ktx_uint32_t level, levelOffset;
@@ -525,7 +525,7 @@ KTX_error_code appendLibId(ktxHashList* head,
 static KTX_error_code
 ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 {
-    KTX_header2 header = KTX2_IDENTIFIER_REF;
+    KTX_header2 header = { .identifier = KTX2_IDENTIFIER_REF };
     KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;

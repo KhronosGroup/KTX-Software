@@ -22,6 +22,7 @@
 #include <KHR/khr_df.h>
 
 #include "argparser.h"
+#include "unused.h"
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
 
@@ -106,7 +107,7 @@ decode_bt709(float const brightness, float const)
 static INLINE float
 encode_sRGB(float const intensity, float const unused = 1.0f)
 {
-    unused; // Avoid unreferenced parameter warning.
+    UNUSED(unused);
     float brightness;
 
     if (intensity < 0.0031308f)
@@ -120,7 +121,7 @@ encode_sRGB(float const intensity, float const unused = 1.0f)
 static INLINE float
 decode_sRGB(float const brightness, float const unused = 1.0f)
 {
-    unused; // Avoid unreferenced parameter warning.
+    UNUSED(unused);
     float intensity;
 
     if (brightness < .04045f)
@@ -298,9 +299,9 @@ class Image {
     virtual operator uint8_t*() = 0;
 
     virtual size_t getByteCount() const = 0;
-    virtual const uint32_t getPixelSize() const = 0;
-    virtual const uint32_t getComponentCount() const = 0;
-    virtual const uint32_t getComponentSize() const = 0;
+    virtual uint32_t getPixelSize() const = 0;
+    virtual uint32_t getComponentCount() const = 0;
+    virtual uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
     virtual void resample(Image& dst, bool srgb = false,
                           const char *pFilter = "lanczos4",
@@ -366,13 +367,13 @@ class ImageT : public Image {
         return getPixelCount() * sizeof(Color);
     }
 
-    virtual const uint32_t getPixelSize() const {
+    virtual uint32_t getPixelSize() const {
         return Color::getPixelSize();
     }
-    virtual const uint32_t getComponentCount() const {
+    virtual uint32_t getComponentCount() const {
         return Color::getComponentCount();
     }
-    virtual const uint32_t getComponentSize() const {
+    virtual uint32_t getComponentSize() const {
         return Color::getComponentSize();
     }
 

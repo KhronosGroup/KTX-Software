@@ -176,8 +176,7 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #pragma warning(disable: 4100 4244 )
 #else
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma clang diagnostic ignored "-Wnested-anon-types"
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #endif
 
 // Typedefs
