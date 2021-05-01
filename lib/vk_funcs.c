@@ -132,7 +132,7 @@ ktxGetVulkanModuleHandle()
 }
 #endif
 
-ktx_bool_t
+ktx_error_code_e
 ktxLoadVulkanLibrary(void)
 {
     if (ktxVulkanModuleHandle)

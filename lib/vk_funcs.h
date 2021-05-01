@@ -43,7 +43,7 @@ extern HMODULE ktxVulkanModuleHandle;
 extern void* ktxVulkanModuleHandle;
 #endif
 
-extern ktx_bool_t ktxLoadVulkanLibrary(void);
+extern ktx_error_code_e ktxLoadVulkanLibrary(void);
 
 /* Declare pointers for functions libktx is using. */
 #define VK_FUNCTION(fun) extern PFN_##fun ktx_##fun;

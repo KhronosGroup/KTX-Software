@@ -175,8 +175,8 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #pragma warning(push)
 #pragma warning(disable: 4100 4244 )
 #else
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 // Typedefs
@@ -1859,5 +1859,5 @@ void decompressBlockAlpha16bit(uint8* data, uint8* img, int width, int height, i
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #else
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 #endif
