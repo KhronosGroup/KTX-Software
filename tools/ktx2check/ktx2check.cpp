@@ -676,9 +676,9 @@ class ktxValidator : public ktxApp {
     // Using template because having a struct as last arg before the
     // variable args when using va_start etc. is non-portable.
     template <typename ... Args>
-    void addIssue(logger::severity severity, issue newIssue, Args ... args)
+    void addIssue(logger::severity severity, issue issue, Args ... args)
     {
-        logger.addIssue(severity, newIssue, args...);
+        logger.addIssue(severity, issue, args...);
     }
     virtual bool processOption(argparser& parser, int opt);
     void validateFile(const string&);
@@ -1167,7 +1167,8 @@ ktxValidator::validateHeader(validationContext& ctx)
                     addIssue(logger::eError, HeaderData.ZeroLevelCountForBC);
             } else {
                 if (ctx.header.typeSize != ctx.formatInfo.wordSize)
-                     addIssue(logger::eError, HeaderData.TypeSizeMismatch);
+                     addIssue(logger::eError, HeaderData.TypeSizeMismatch,
+                              ctx.header.typeSize);
             }
         } else {
             addIssue(logger::eError, HeaderData.VkFormatAndBasis);
