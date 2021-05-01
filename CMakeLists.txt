@@ -423,6 +423,17 @@ PRIVATE
     lib/writer1.c
     lib/writer2.c
 )
+
+# Turn off these warnings until Rich fixes the occurences.
+set_source_files_properties(
+    lib/basisu/transcoder/basisu_transcoder.cpp
+    lib/basisu/encoder/basisu_enc.cpp
+    PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable"
+    )
+set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+    PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+    )
+
 target_include_directories(
     ktx
 PRIVATE
