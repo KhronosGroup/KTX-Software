@@ -29,6 +29,7 @@
 #include "vk_funcs.h"   // Must be included before ktxvulkan.h.
 #include "ktxvulkan.h"
 #include "ktxint.h"
+#include "unused.h"
 #include "texture1.h"
 #include "texture2.h"
 #include "vk_format.h"
@@ -274,7 +275,7 @@ optimalTilingCallback(int miplevel, int face,
                       void* pixels, void* userdata)
 {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
-    pixels; // Reference to keep compiler happy.
+    UNUSED(pixels);
 
     // Set up copy to destination region in final image
 #if defined(_DEBUG)
@@ -424,7 +425,9 @@ linearTilingCallback(int miplevel, int face,
       .mipLevel = miplevel,
       .arrayLayer = face
     };
-    width; height; depth; // Reference to keep compiler happy.
+    UNUSED(width);
+    UNUSED(height);
+    UNUSED(depth);
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.
@@ -474,7 +477,7 @@ linearTilingPadCallback(int miplevel, int face,
     ktx_uint32_t row, image;
     ktx_uint8_t* pSrc;
     ktx_size_t   copySize;
-    width; // Reference to keep compiler happy.
+    UNUSED(width);
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.

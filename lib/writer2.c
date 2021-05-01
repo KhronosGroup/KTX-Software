@@ -264,7 +264,7 @@ static KTX_error_code
 ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 {
     DECLARE_PRIVATE(ktxTexture2);
-    KTX_header2 header = KTX2_IDENTIFIER_REF;
+    KTX_header2 header = { .identifier = KTX2_IDENTIFIER_REF };
     KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;

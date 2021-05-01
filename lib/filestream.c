@@ -265,7 +265,7 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
         return result;
     }
 
-    if (pos > fileSize)
+    if (pos > (ktx_off_t)fileSize)
         return KTX_INVALID_OPERATION;
 
     if (fseeko(str->data.file, pos, SEEK_SET) < 0)

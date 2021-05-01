@@ -183,19 +183,15 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     } else {
         switch (componentCount) {
           case 1: {
-            using Color = color<uint8_t, 1>;
             image = new r8image(w, h, (r8color*)imageData);
             break;
           } case 2: {
-            using Color = color<uint8_t, 2>;
             image = new rg8image(w, h, (rg8color*)imageData);
             break;
           } case 3: {
-            using Color = color<uint8_t, 3>;
             image = new rgb8image(w, h, (rgb8color*)imageData);
             break;
           } case 4: {
-            using Color = color<uint8_t, 4>;
             image = new rgba8image(w, h, (rgba8color*)imageData);
             break;
           }

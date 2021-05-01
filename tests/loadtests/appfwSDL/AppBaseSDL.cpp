@@ -120,7 +120,7 @@ AppBaseSDL::setWindowTitle()
 }
 
 
-const char* const appName()
+const char* appName()
 {
     return theApp->name();
 }

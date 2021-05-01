@@ -242,8 +242,8 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
     assert(err == VK_SUCCESS);
 
     VkExtent2D swapchainExtent = {};
-    // width and height are either both -1, or both not -1.
-    if (surfCaps.currentExtent.width == -1)
+    // width and height are either both 0xFFFFFFFF, or both not 0xFFFFFFFF.
+    if (surfCaps.currentExtent.width == UINT32_MAX)
     {
         // If the surface size is undefined, the size is set to
         // the size of the images requested.

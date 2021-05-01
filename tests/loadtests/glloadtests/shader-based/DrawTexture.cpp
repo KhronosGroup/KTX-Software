@@ -323,10 +323,10 @@ DrawTexture::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-        "external",         argparser::option::no_argument, &externalFile, 1,
-        "preload",          argparser::option::no_argument, &preloadImages, 1,
-        "transcode-target", argparser::option::required_argument, nullptr, 2,
-        NULL,               argparser::option::no_argument,       nullptr, 0
+      {"external",         argparser::option::no_argument, &externalFile, 1},
+      {"preload",          argparser::option::no_argument, &preloadImages, 1},
+      {"transcode-target", argparser::option::required_argument, nullptr, 2},
+      {NULL,               argparser::option::no_argument,       nullptr, 0}
     };
 
     argvector argv(sArgs);

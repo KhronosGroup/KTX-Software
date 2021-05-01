@@ -37,6 +37,7 @@
 #include "texture1.h"
 #include "texture2.h"
 #include "uthash.h"
+#include "unused.h"
 
 ktx_size_t ktxTexture_GetDataSize(ktxTexture* This);
 
@@ -194,7 +195,7 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
                                ktxTextureCreateFlags createFlags)
 {
     ktxStream* stream;
-    createFlags; // Reference to keep compiler happy.
+    UNUSED(createFlags); // Reference to keep compiler happy.
 
     assert(This != NULL);
     assert(pStream->data.mem != NULL);

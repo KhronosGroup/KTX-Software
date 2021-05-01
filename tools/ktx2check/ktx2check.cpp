@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <errno.h>
 #include <math.h>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <sstream>
@@ -675,7 +676,8 @@ class ktxValidator : public ktxApp {
     // Using template because having a struct as last arg before the
     // variable args when using va_start etc. is non-portable.
     template <typename ... Args>
-    void addIssue(logger::severity severity, issue newIssue, Args ... args) {
+    void addIssue(logger::severity severity, issue newIssue, Args ... args)
+    {
         logger.addIssue(severity, newIssue, args...);
     }
     virtual bool processOption(argparser& parser, int opt);
@@ -737,7 +739,7 @@ class ktxValidator : public ktxApp {
             if (ctx.fileError())
                 addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
             else
-                addIssue(logger::eFatal, IOError.UnexpectedEOF);
+                addIssue(logger::eFatal, IOError.UnexpectedEOF, 0);
         }
     }
 };
@@ -774,33 +776,99 @@ ktxValidator::ktxValidator() : ktxApp(myversion, mydefversion, options)
     short_opts += "qm:";
 }
 
-#if defined(_MSC_VER)
-int vasprintf(char **strp, const char *format, va_list ap)
+void
+streamout(stringstream& oss, const char* s, int length)
 {
-    int len = _vscprintf(format, ap);
-    if (len == -1)
-        return -1;
-    char *str = (char*)malloc((size_t) len + 1);
-    if (!str)
-        return -1;
-    int retval = _vsnprintf(str, len + 1, format, ap);
-    if (retval == -1) {
-        free(str);
-        return -1;
-    }
-    *strp = str;
-    return retval;
+    // Can't find a way to get stringstream to truncate a stream.
+    if (length != 0)
+        oss.write(s, length);
+    else
+        oss << s;
 }
 
-int asprintf(char** strp, const char* format, ...)
+template <typename T>
+void streamout(stringstream&oss, T value, int)
 {
-    va_list ap;
-    va_start(ap, format);
-    int r = vasprintf(strp, format, ap);
-    va_end(ap);
-    return r;
+    oss << value;
 }
-#endif
+
+void
+sprintf(stringstream& oss, const string& fmt)
+{
+    for (auto it = fmt.cbegin() ; it != fmt.cend(); ++it) {
+        if (*it == '%' && *++it != '%')
+            throw std::runtime_error("invalid format string: missing arguments");
+        oss << *it;
+    }
+}
+
+// Does not support repordering of arguments which would be needed for
+// multi-language support. Don't know how to do that with variadic templates.
+template <typename T, typename ... Args>
+void
+sprintf(stringstream& oss, const string& fmt, T value, Args ... args)
+{
+    for (size_t pos = 0; pos < fmt.size(); pos++) {
+        if (fmt[pos] == '%' && fmt[++pos] != '%') {
+            bool alternateForm = false;
+            // Find the format character
+            size_t fpos = fmt.find_first_of("diouXxfFeEgGaAcsb", pos);
+            for (; pos < fpos; pos++) {
+                switch (fmt[pos]) {
+                  case '#':
+                    alternateForm = true;
+                    continue;
+                  case '-':
+                    oss << left;
+                    continue;
+                  case '+':
+                    oss << showpos;
+                    continue;
+                  case ' ':
+                    continue;
+                  case '0':
+                    if (!(oss.flags() & oss.left))
+                        oss << setfill('0');
+                    continue;
+                  default:
+                    break;
+                }
+                break;
+            }
+            try {
+                size_t afterpos;
+                int width = stoi(fmt.substr(pos, fpos - pos), &afterpos);
+                oss << setw(width);
+                pos += afterpos;
+            } catch (invalid_argument& e) {
+                (void)e;
+            }
+            int precision = 0;
+            if (fmt[pos] == '.') try {
+                size_t afterpos;
+                ++pos;
+                precision = stoi(fmt.substr(pos, fpos - pos), &afterpos);
+                if (!std::is_same<T, const char*>::value) {
+                     oss << setprecision(precision);
+                     precision = 0;
+                }
+                pos += afterpos;
+            } catch (invalid_argument& e) {
+                throw std::runtime_error("Expected precision value in sprintf");
+                (void)e;
+            }
+            if (fmt[pos] == 'x' || fmt[pos] == 'X') {
+                oss << hex;
+                if (alternateForm) oss << showbase;
+            }
+            // Having another function call sucks. See streamout for the reason.
+            streamout(oss, value, precision);
+            return sprintf(oss, fmt.substr(++pos), args...);
+        }
+        oss << fmt[pos];
+    }
+    throw std::runtime_error("extra arguments provided to sprintf");
+}
 
 // Why is severity passed here?
 // -  Because it is convenient when browsing the code to see the severity
@@ -808,7 +876,8 @@ int asprintf(char** strp, const char* format, ...)
 
 template<typename ... Args>
 void
-ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args) {
+ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args)
+{
     if (!quiet) {
         if (!headerWritten) {
             cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
@@ -836,28 +905,23 @@ ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args) {
                 break;
             }
             //fprintf(stdout, issue.message.c_str(), args...);
-            char* pBuf;
-            int nchars = asprintf(&pBuf, issue.message.c_str(), args...);
-            if (nchars < 0) {
-                std::stringstream message;
-
-                message << "Could not create issue message: ";
-                message << strerror(errno);
-                throw std::runtime_error(message.str());
-            }
+            std::stringstream oss;
+            sprintf(oss, issue.message, args...);
             // Wrap lines on spaces.
+            std::string message = oss.str();
+            uint32_t nchars = message.size();
             uint32_t line = 0;
             uint32_t lsi = 0;  // line start index.
             uint32_t lei; // line end index
             while (nchars + indent > 80) {
                 uint32_t ll; // line length
                 lei = lsi + 79 - indent;
-                while (pBuf[lei] != ' ') lei--;
+                while (message[lei] != ' ') lei--;
                 ll = lei - lsi;
                 for (uint32_t j = 0; j < (line ? indent : 0); j++) {
                     cout.put(' ');
                 }
-                cout.write(&pBuf[lsi], ll) << std::endl;
+                cout.write(&message[lsi], ll) << std::endl;
                 lsi = lei + 1; // +1 to skip the space
                 nchars -= ll;
                 line++;
@@ -865,9 +929,8 @@ ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args) {
             for (uint32_t j = 0; j < (line ? baseIndent : 0); j++) {
                 cout.put(' ');
             }
-            cout.write(&pBuf[lsi], nchars);
+            cout.write(&message[lsi], nchars);
             cout << std::endl;
-            free(pBuf);
         } else {
             throw max_issues_exceeded();
         }
@@ -1837,7 +1900,7 @@ ktxValidator::validateDataSize(validationContext& ctx)
 {
     // Expects to be called after validateSgd so current file offset is at
     // the start of the data.
-    off_t dataSizeInFile;
+    uint64_t dataSizeInFile;
     if (ctx.inf != stdin) {
         off_t dataStart = (off_t)ftello(ctx.inf);
         if (fseeko(ctx.inf, 0, SEEK_END) < 0)

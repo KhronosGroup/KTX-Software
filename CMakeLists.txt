@@ -106,6 +106,7 @@ elseif(MSVC)
     add_compile_options($<$<VERSION_GREATER:${CMAKE_CXX_COMPILER_VERSION},19.0>:/W4>)
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 else()
+    add_compile_options(-Wall -Wextra)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
 endif()
@@ -234,6 +235,9 @@ macro(commom_lib_settings lib write)
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
         $<INSTALL_INTERFACE:other_include>
+
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
+        $<INSTALL_INTERFACE:utils>
     )
 
     if( LIB_TYPE STREQUAL STATIC )

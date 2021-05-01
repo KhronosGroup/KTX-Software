@@ -30,6 +30,7 @@
 #include "memstream.h"
 #include "texture1.h"
 #include "uthash.h"
+#include "unused.h"
 #include "gl_format.h"
 
 typedef struct ktxTexture1_private {
@@ -1301,7 +1302,7 @@ cleanup:
 ktx_bool_t
 ktxTexture1_NeedsTranscoding(ktxTexture1* This)
 {
-    This; // Reference to keep compiler happy.
+    UNUSED(This);
     return KTX_FALSE;
 }
 
@@ -1316,7 +1317,12 @@ ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
                                ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                const ktx_uint8_t* src, ktx_size_t srcSize)
 {
-    This; level; layer; faceSlice; src; srcSize;
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
@@ -1325,21 +1331,28 @@ ktxTexture1_SetImageFromStdioStream(ktxTexture1* This, ktx_uint32_t level,
                                     ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                     FILE* src, ktx_size_t srcSize)
 {
-    This; level; layer; faceSlice; src; srcSize;
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
 {
-    This; dstsstr;
+    UNUSED(This);
+    UNUSED(dstsstr);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
 {
-    This; dstname;
+    UNUSED(This);
+    UNUSED(dstname);
     return KTX_INVALID_OPERATION;
 }
 
@@ -1347,7 +1360,9 @@ KTX_error_code
 ktxTexture1_WriteToMemory(ktxTexture1* This,
                           ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
-    This; ppDstBytes; pSize;
+    UNUSED(This);
+    UNUSED(ppDstBytes);
+    UNUSED(pSize);
     return KTX_INVALID_OPERATION;
 }
 

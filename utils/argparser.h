@@ -47,10 +47,10 @@ class argparser {
     argvector argv;
 
     argparser(argvector& argv, unsigned int startindex = 0)
-        : argv(argv), optind(startindex) { }
+        : optind(startindex), argv(argv) { }
 
     argparser(int argc, const _TCHAR* const* argv1)
-       : argv(argc, argv1), optind(1) { }
+        : optind(1), argv(argc, argv1)  { }
 
     int getopt(_tstring* shortopts, const struct option* longopts,
                int* longindex = nullptr);

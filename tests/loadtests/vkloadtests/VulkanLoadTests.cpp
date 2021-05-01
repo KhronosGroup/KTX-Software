@@ -39,8 +39,8 @@
 VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
                                  const uint32_t numSamples,
                                  const char* const name)
-                  : siSamples(samples), sampleIndex(numSamples),
-                    VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true)
+                  : VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true),
+                    siSamples(samples), sampleIndex(numSamples)
 {
     pCurSample = nullptr;
 }

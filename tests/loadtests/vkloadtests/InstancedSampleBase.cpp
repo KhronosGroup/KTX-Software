@@ -218,9 +218,9 @@ InstancedSampleBase::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-        "external",      argparser::option::no_argument, &externalFile, 1,
-        "linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear,
-        NULL,            argparser::option::no_argument, NULL,          0
+      {"external",      argparser::option::no_argument, &externalFile, 1},
+      {"linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear},
+      {NULL,            argparser::option::no_argument, NULL,          0}
     };
 
     argvector argv(sArgs);
@@ -693,7 +693,7 @@ InstancedSampleBase::prepare(const char* const fragShaderName,
     buildCommandBuffers();
 }
 
-const char* const
+const char*
 InstancedSampleBase::customizeTitle(const char* const baseTitle)
 {
     if (transcoded) {

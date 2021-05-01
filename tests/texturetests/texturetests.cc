@@ -294,7 +294,7 @@ class ktxTextureTestBase : public ::testing::Test {
     {
         int expectedWidth = pixelSize >> miplevel;
         EXPECT_EQ(width, expectedWidth);
-        EXPECT_EQ(faceLodSize, expectedWidth * expectedWidth * 4);
+        EXPECT_EQ(faceLodSize, (uint64_t)(expectedWidth * expectedWidth * 4));
         EXPECT_EQ(memcmp(pixels, images[miplevel].data, images[miplevel].size),
                   0);
         iterCbCalls++;
@@ -1456,7 +1456,7 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetLevel) {
                                  << ktxErrorString(result);
     EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, 0, 0, &offset),
               KTX_SUCCESS);
-    EXPECT_EQ(offset, 0);
+    EXPECT_EQ(offset, 0U);
     // GL_RGBA8 is 1 x 4 bytes.
     imageSize = helper.createInfo.baseWidth
                 * helper.createInfo.baseHeight * 1 * 4;
@@ -1843,7 +1843,7 @@ class ktxTexture1WriteKTX2TestBase
         for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
             ktx_uint64_t levelOffset = levelIndex[level].byteOffset;
             // Check offset is properly aligned.
-            EXPECT_EQ(levelOffset % requiredLevelAlignment, 0);
+            EXPECT_EQ(levelOffset % requiredLevelAlignment, 0U);
             // Check mipmaps are in order of increasing size in the file
             // therefore each offset should be smaller than the previous.
             EXPECT_LE(levelOffset, prevOffset);
@@ -1940,7 +1940,7 @@ class ktxTexture1WriteKTX2TestBase
             for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
                 ktx_uint64_t levelOffset = levelIndex[level].byteOffset;
                 // Check offset is properly aligned.
-                EXPECT_EQ(levelOffset % requiredLevelAlignment, 0);
+                EXPECT_EQ(levelOffset % requiredLevelAlignment, 0U);
                 // Check mipmaps are in order of increasing size in the file
                 // therefore each offset should be smaller than the previous.
                 EXPECT_LE(levelOffset, offset);

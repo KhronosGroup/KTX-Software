@@ -27,8 +27,8 @@ GLLoadTests::GLLoadTests(const sampleInvocation samples[],
                          const SDL_GLprofile profile,
                          const int majorVersion,
                          const int minorVersion)
-                : siSamples(samples), sampleIndex(numSamples),
-                  GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion)
+                : GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion),
+                  siSamples(samples), sampleIndex(numSamples)
 {
     pCurSample = nullptr;
 }

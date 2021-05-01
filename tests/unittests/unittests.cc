@@ -211,7 +211,7 @@ TEST_F(WriterTestHelperRGB8Test, Construct3D) {
     EXPECT_EQ(helper.images.size(), 1U);
     EXPECT_EQ(helper.images[0].size(), 1U);
     EXPECT_EQ(helper.images[0][0].size(), 32U);
-    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32 * 3);
+    EXPECT_EQ(helper.images[0][0][0].size(), (size_t)(32 * 32 * 3));
     EXPECT_EQ(numComponents(), 3U);
 }
 
