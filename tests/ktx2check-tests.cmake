@@ -57,6 +57,16 @@ add_test( NAME ktx2check-test-incorrect-mip-layout-and-padding-quiet
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
+add_test( NAME ktx2check-test-bad-typesize
+    COMMAND ktx2check bad_typesize.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
+add_test( NAME ktx2check-test-no-nul-on-value
+    COMMAND ktx2check no_nul_on_kvd_val.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
 set_tests_properties(
     ktx2check-test-help
 PROPERTIES
@@ -84,4 +94,18 @@ set_tests_properties(
     ktx2check-test-incorrect-mip-layout-and-padding-quiet
 PROPERTIES
     WILL_FAIL TRUE
+)
+
+set_tests_properties(
+    ktx2check-test-bad-typesize
+PROPERTIES
+    WILL_FAIL TRUE
+    FAIL_REGULAR_EXPRESSION "ERROR: typeSize, 1, does not match data described by the DFD."
+)
+
+set_tests_properties(
+    ktx2check-test-no-nul-on-value
+PROPERTIES
+    WILL_FAIL TRUE
+    FAIL_REGULAR_EXPRESSION "WARNING: KTXswizzle value missing encouraged NUL termination."
 )
