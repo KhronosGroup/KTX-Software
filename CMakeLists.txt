@@ -425,6 +425,18 @@ PRIVATE
 )
 
 # Turn off these warnings until Rich fixes the occurences.
+# It it not clear to me if generator expressions can be used here
+# hence the long-winded way.
+if(MSVC)
+set_source_files_properties(
+    lib/basisu/transcoder/basisu_transcoder.cpp
+    lib/basisu/encoder/basisu_enc.cpp
+    PROPERTIES COMPILE_OPTIONS "/w44100"
+    )
+set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+    PROPERTIES COMPILE_OPTIONS "/w44244"
+    )
+elseif(NOT EMSCRIPTEN)
 set_source_files_properties(
     lib/basisu/transcoder/basisu_transcoder.cpp
     lib/basisu/encoder/basisu_enc.cpp
@@ -433,6 +445,7 @@ set_source_files_properties(
 set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
     PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
     )
+endif()
 
 target_include_directories(
     ktx
