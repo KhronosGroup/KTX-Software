@@ -160,8 +160,8 @@ namespace vkMeshLoader
   #pragma warning(push)
   #pragma warning(disable: 4505)
 #else
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wunused-function"
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
     static void freeMeshBufferResources(VkDevice device, vkMeshLoader::MeshBuffer *meshBuffer)
     {
@@ -177,7 +177,7 @@ namespace vkMeshLoader
 #if defined(_MSC_VER)
   #pragma warning(pop)
 #else
-  #pragma clang diagnostic pop
+  #pragma GCC diagnostic pop
 #endif
 
 // Simple mesh class for getting all the necessary stuff from models loaded via ASSIMP

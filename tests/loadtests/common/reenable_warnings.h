@@ -12,7 +12,7 @@
 #if defined(_MSC_VER)
   #pragma warning(pop)
 #else
-  #pragma clang diagnostic pop
+  #pragma GCC diagnostic pop
 #endif
 
 #endif /* REENABLE_WARNINGS_H */

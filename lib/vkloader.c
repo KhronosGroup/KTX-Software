@@ -154,9 +154,9 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
     // Delay loading not supported so must do it ourselves.
     if (!ktxVulkanModuleHandle) {
-        result = ktxLoadVulkanLibrary();
-        if (result != KTX_SUCCESS)
-            return result;
+        ktx_error_code_e kresult = ktxLoadVulkanLibrary();
+        if (kresult != KTX_SUCCESS)
+            return kresult;
     }
 #endif
 

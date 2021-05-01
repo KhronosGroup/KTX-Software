@@ -781,7 +781,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                 options.gmopts.filter.c_str(),
                                 options.gmopts.filterScale,
                                 basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
-            } catch (runtime_error e) {
+            } catch (runtime_error& e) {
                 cerr << name << ": Image::resample() failed! "
                           << e.what() << endl;
                 exitCode = 1;
@@ -1131,7 +1131,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                     options.gmopts.filter.c_str(),
                                     options.gmopts.filterScale,
                                     options.gmopts.wrapMode);
-                } catch (runtime_error e) {
+                } catch (runtime_error& e) {
                     cerr << name << ": Image::resample() failed! "
                               << e.what() << endl;
                     exitCode = 1;

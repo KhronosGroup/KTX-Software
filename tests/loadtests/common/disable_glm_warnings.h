@@ -13,9 +13,9 @@
   #pragma warning(push)
   #pragma warning(disable: 4201)
 #else
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-  #pragma clang diagnostic ignored "-Wnested-anon-types"
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+  #pragma GCC diagnostic ignored "-Wnested-anon-types"
 #endif
 
 #endif /* DISABLE_GLM_WARNINGS_H */

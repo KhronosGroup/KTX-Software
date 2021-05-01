@@ -1049,6 +1049,7 @@ ktxValidator::processOption(argparser& parser, int opt)
         break;
       case 'w':
         options.errorOnWarning = true;
+        break;
       default:
         return false;
     }
