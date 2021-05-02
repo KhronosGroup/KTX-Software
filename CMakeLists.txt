@@ -431,7 +431,7 @@ if(MSVC)
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
         lib/basisu/encoder/basisu_enc.cpp
-        PROPERTIES COMPILE_OPTIONS "/wd4100 /wd4189"
+        PROPERTIES COMPILE_OPTIONS "/wd4100;/wd4189"
         )
     set_source_files_properties(
         lib/basisu/encoder/basisu_kernels_sse.cpp
