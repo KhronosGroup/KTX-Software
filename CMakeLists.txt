@@ -435,7 +435,7 @@ if(MSVC)
         )
     set_source_files_properties(
         lib/basisu/encoder/basisu_kernels_sse.cpp
-        lib\basisu\encoder\basisu_comp.cpp
+        lib/basisu/encoder/basisu_comp.cpp
         PROPERTIES COMPILE_OPTIONS "/wd4244"
         )
     set_source_files_properties(
