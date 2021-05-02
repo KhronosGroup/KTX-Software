@@ -428,23 +428,29 @@ PRIVATE
 # It it not clear to me if generator expressions can be used here
 # hence the long-winded way.
 if(MSVC)
-set_source_files_properties(
-    lib/basisu/transcoder/basisu_transcoder.cpp
-    lib/basisu/encoder/basisu_enc.cpp
-    PROPERTIES COMPILE_OPTIONS "/w44100 /w44189"
-    )
-set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
-    PROPERTIES COMPILE_OPTIONS "/w44244"
-    )
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        lib/basisu/encoder/basisu_enc.cpp
+        PROPERTIES COMPILE_OPTIONS "/wd4100 /wd4189"
+        )
+    set_source_files_properties(
+        lib/basisu/encoder/basisu_kernels_sse.cpp
+        lib\basisu\encoder\basisu_comp.cpp
+        PROPERTIES COMPILE_OPTIONS "/wd4244"
+        )
+    set_source_files_properties(
+        lib\basisu\encoder\basisu_uastc_enc.cpp
+        PROPERTIES COMPILE_OPTIONS "/wd4800"
+        )
 elseif(NOT EMSCRIPTEN)
-set_source_files_properties(
-    lib/basisu/transcoder/basisu_transcoder.cpp
-    lib/basisu/encoder/basisu_enc.cpp
-    PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable"
-    )
-set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
-    PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
-    )
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        lib/basisu/encoder/basisu_enc.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable"
+        )
+    set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+        )
 endif()
 
 target_include_directories(
