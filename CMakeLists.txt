@@ -439,7 +439,7 @@ if(MSVC)
         PROPERTIES COMPILE_OPTIONS "/wd4244"
         )
     set_source_files_properties(
-        lib\basisu\encoder\basisu_uastc_enc.cpp
+        lib/basisu/encoder/basisu_uastc_enc.cpp
         PROPERTIES COMPILE_OPTIONS "/wd4800"
         )
 elseif(NOT EMSCRIPTEN)
