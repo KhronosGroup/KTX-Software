@@ -241,7 +241,7 @@ DLL_EXPORT void ktx_basisu_delete_basis( basis_file* basis ) {
 
 DLL_EXPORT bool ktx_basisu_getHasAlpha( basis_file* basis ) {
     assert(basis!=nullptr);
-    return basis->getHasAlpha();
+    return (bool)basis->getHasAlpha();
 }
 
 DLL_EXPORT uint32_t ktx_basisu_getNumImages( basis_file* basis ) {
@@ -265,11 +265,11 @@ DLL_EXPORT uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis,
 }
 
 DLL_EXPORT bool ktx_basisu_startTranscoding( basis_file* basis ) {
-    return basis->startTranscoding();
+    return (bool)basis->startTranscoding();
 }
 
 DLL_EXPORT bool ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
-    return basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
+    return (bool)basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
 }
 
 #endif
