@@ -909,7 +909,7 @@ ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args)
             sprintf(oss, issue.message, args...);
             // Wrap lines on spaces.
             std::string message = oss.str();
-            uint32_t nchars = message.size();
+            size_t nchars = message.size();
             uint32_t line = 0;
             uint32_t lsi = 0;  // line start index.
             uint32_t lei; // line end index
