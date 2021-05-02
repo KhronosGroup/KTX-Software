@@ -431,7 +431,7 @@ if(MSVC)
 set_source_files_properties(
     lib/basisu/transcoder/basisu_transcoder.cpp
     lib/basisu/encoder/basisu_enc.cpp
-    PROPERTIES COMPILE_OPTIONS "/w44100"
+    PROPERTIES COMPILE_OPTIONS "/w44100 /w44189"
     )
 set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
     PROPERTIES COMPILE_OPTIONS "/w44244"
