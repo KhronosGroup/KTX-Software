@@ -11,8 +11,8 @@
 // Reenable warnings disabled by, e.g. disable_glm_warnings.h.
 #if defined(_MSC_VER)
   #pragma warning(pop)
-#else
-  #pragma GCC diagnostic pop
+#elif defined(__clang__)
+  #pragma clang diagnostic pop
 #endif
 
 #endif /* REENABLE_WARNINGS_H */

@@ -1198,7 +1198,7 @@ class TestCreateInfo : public ktxTextureCreateInfo {
 
     TestCreateInfo(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth,
                    ktx_uint32_t dimensions, ktx_uint32_t internalformat,
-                   ktx_uint32_t vkformat, ktx_bool_t isArray, ktx_uint32_t faces,
+                   ktx_uint32_t vkformat, ktx_bool_t array, ktx_uint32_t faces,
                    ktx_uint32_t layers) {
         baseWidth = width;
         baseHeight = height;
@@ -1207,7 +1207,7 @@ class TestCreateInfo : public ktxTextureCreateInfo {
         generateMipmaps = KTX_FALSE;
         glInternalformat = internalformat;
         vkFormat = vkformat;
-        isArray = KTX_FALSE;
+        isArray = array;
         numFaces = faces;
         numLayers = layers;
         numLevels = levelsFromSize(width, height, depth);

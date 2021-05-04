@@ -21,6 +21,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "dfdutils/dfd.h"
 #include "ktx.h"
@@ -29,7 +30,6 @@
 #include "filestream.h"
 #include "memstream.h"
 #include "texture1.h"
-#include "uthash.h"
 #include "unused.h"
 #include "gl_format.h"
 
@@ -65,7 +65,6 @@ static KTX_error_code
 ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
                       ktxTextureCreateStorageEnum storageAllocation)
 {
-    ktxTexture1_private* private;
     ktxTexture_protected* prtctd;
     ktxFormatSize formatSize;
     GLuint typeSize;
@@ -92,7 +91,6 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
     if (result != KTX_SUCCESS)
         return result;
     prtctd = This->_protected;
-    private = This->_private;
 
     This->isCompressed
                     = (formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
@@ -333,8 +331,10 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
                     switch (This->numDimensions) {
                       case 3:
                         This->orientation.z = orient[2];
+                        FALLTHROUGH;
                       case 2:
                         This->orientation.y = orient[1];
+                        FALLTHROUGH;
                       case 1:
                         This->orientation.x = orient[0];
                     }

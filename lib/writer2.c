@@ -85,7 +85,12 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
                              + (ktx_uint32_t)strlen(libId);
     char* fullId = malloc(fullIdLen);
     strncpy(fullId, id, idLen);
-    strncpy(&fullId[idLen], idIntro, sizeof(idIntro));
+    // &idIntro[0] instead of idIntro is to workaround a gcc warning
+    // that I'm passing the same thing to sizeof as to the src
+    // parameter (i.e. I'm requesting the sizeof a pointer).
+    // Actually idIntro is an array of char not a pointer. Looks
+    // like a gcc bug.
+    strncpy(&fullId[idLen], &idIntro[0], sizeof(idIntro));
     strcpy(&fullId[idLen + sizeof(idIntro)-1], libId);
 
     ktxHashList_DeleteEntry(head, writerEntry);

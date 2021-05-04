@@ -150,11 +150,10 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     }
 
     uint8_t* imageData;
-    size_t imageByteCount;
     lodepngError = lodepng_decode(&imageData, &w, &h, &state,
                                    png.data(), png.size());
     if (imageData && !lodepngError) {
-        imageByteCount = lodepng_get_raw_size(w, h, &state.info_raw);
+        (void)lodepng_get_raw_size(w, h, &state.info_raw);
     } else {
         free(imageData);
         std::stringstream message;
@@ -255,7 +254,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         else if (state.info_png.gama_gamma == 45455)
             image->setOetf(KHR_DF_TRANSFER_SRGB);
         else {
-            if (state.info_png.gama_gamma < 0) {
+            if (state.info_png.gama_gamma == 0) {
                 delete image;
                 throw std::runtime_error("PNG file has gAMA of 0.");
             }

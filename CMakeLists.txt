@@ -84,7 +84,7 @@ endif()
 
 set(bitness 64)
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
-	set(bitness 32)
+        set(bitness 32)
 endif()
 
 if(KTX_FEATURE_STATIC_LIBRARY)
@@ -371,12 +371,12 @@ PRIVATE
 
 # Adding write capability to target ktx
 
-target_sources(
-    ktx
-PRIVATE
-    lib/basis_encode.cpp
+set(BASISU_ENCODER_C_SRC
     lib/basisu/encoder/apg_bmp.c
     lib/basisu/encoder/apg_bmp.h
+    )
+
+set(BASISU_ENCODER_CXX_SRC
     lib/basisu/encoder/basisu_astc_decomp.cpp
     lib/basisu/encoder/basisu_astc_decomp.h
     lib/basisu/encoder/basisu_backend.cpp
@@ -420,6 +420,14 @@ PRIVATE
     lib/basisu/encoder/jpgd.h
     lib/basisu/encoder/lodepng.cpp
     lib/basisu/encoder/lodepng.h
+    )
+
+target_sources(
+    ktx
+PRIVATE
+    lib/basis_encode.cpp
+    ${BASISU_ENCODER_C_SRC}
+    ${BASISU_ENCODER_CXX_SRC}
     lib/writer1.c
     lib/writer2.c
 )
@@ -442,6 +450,18 @@ if(MSVC)
         lib/basisu/encoder/basisu_uastc_enc.cpp
         PROPERTIES COMPILE_OPTIONS "/wd4800"
         )
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    set_source_files_properties(
+        # It's too much work to discriminate which files need which warnings
+        # disabled.
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses"
+        )
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess"
+        )
+elseif(NOT EMSCRIPTEN)
 elseif(NOT EMSCRIPTEN)
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
