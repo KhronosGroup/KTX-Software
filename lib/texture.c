@@ -564,9 +564,9 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
     // Round up to next whole block. We can't use KTX_PADN because some of
     // the block sizes are not powers of 2.
     blockCount.x
-        = (uint32_t)ceilf(levelWidth / prtctd->_formatSize.blockWidth);
+        = (ktx_uint32_t)ceilf(levelWidth / prtctd->_formatSize.blockWidth);
     blockCount.y
-        = (uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
+        = (ktx_uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
     blockCount.x = MAX(prtctd->_formatSize.minBlocksX, blockCount.x);
     blockCount.y = MAX(prtctd->_formatSize.minBlocksX, blockCount.y);
 
