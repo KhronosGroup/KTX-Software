@@ -462,7 +462,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess"
         )
 elseif(NOT EMSCRIPTEN)
-elseif(NOT EMSCRIPTEN)
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
         lib/basisu/encoder/basisu_enc.cpp
