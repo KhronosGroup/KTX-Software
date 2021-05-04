@@ -49,8 +49,7 @@ void skipComments(FILE *src)
     {
         char line[1024];
                 // This is to silence -Wunused-result from GCC 4.8+.
-        char* retval;
-        retval = fgets(line, 1024, src);
+        (void)fgets(line, 1024, src);
     }
     ungetc(c, src);
 }
@@ -162,7 +161,7 @@ Image*
 createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     int32_t maxval;
-    uint32_t numvals, width, height;
+    uint32_t width, height;
     Image* image;
 
     skipNonData(src);
@@ -180,7 +179,7 @@ createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     // We need to remove the newline.
     char c = 0;
     while(c != '\n')
-        numvals = fscanf(src, "%c", &c);
+        (void)fscanf(src, "%c", &c);
 
     readImage(src, *image, maxval);
     if (transformOETF) {
@@ -226,7 +225,6 @@ Image*
 createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     int maxval;
-    int numvals;
     uint32_t width, height;
     Image* image;
 
@@ -243,7 +241,7 @@ createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 
     /* gotta eat the newline too */
     char ch=0;
-    while(ch!='\n') numvals = fscanf(src,"%c",&ch);
+    while(ch!='\n') (void)fscanf(src,"%c",&ch);
 
     readImage(src, *image, maxval);
     if (transformOETF) {

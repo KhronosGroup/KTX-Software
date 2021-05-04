@@ -487,7 +487,7 @@ texImage2DCallback(int miplevel, int face,
 
     glTexImage2D(cbData->glTarget + face, miplevel,
                  cbData->glInternalformat, width,
-                 cbData->numLayers == 0 ? height : cbData->numLayers, 0,
+                 cbData->numLayers == 0 ? (GLuint)height : cbData->numLayers, 0,
                  cbData->glFormat, cbData->glType, pixels);
 
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
@@ -518,7 +518,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     // error, software unpacking can be attempted.
     glCompressedTexImage2D(cbData->glTarget + face, miplevel,
                            cbData->glInternalformat, width,
-                           cbData->numLayers == 0 ? height : cbData->numLayers,
+                           cbData->numLayers == 0 ? (GLuint)height : cbData->numLayers,
                            0,
                            (ktx_uint32_t)faceLodSize, pixels);
 
@@ -549,7 +549,7 @@ compressedTexImage2DCallback(int miplevel, int face,
         }
         glTexImage2D(cbData->glTarget + face, miplevel,
                      internalformat, width,
-                     cbData->numLayers == 0 ? height : cbData->numLayers, 0,
+                     cbData->numLayers == 0 ? (GLuint)height : cbData->numLayers, 0,
                      format, type, unpacked);
 
         free(unpacked);
@@ -578,7 +578,7 @@ texImage3DCallback(int miplevel, int face,
     gl.glTexImage3D(cbData->glTarget + face, miplevel,
                    cbData->glInternalformat,
                    width, height,
-                   cbData->numLayers == 0 ? depth : cbData->numLayers,
+                   cbData->numLayers == 0 ? (GLuint)depth : cbData->numLayers,
                    0,
                    cbData->glFormat, cbData->glType, pixels);
 
@@ -605,7 +605,7 @@ compressedTexImage3DCallback(int miplevel, int face,
     gl.glCompressedTexImage3D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat,
                              width, height,
-                             cbData->numLayers == 0 ? depth : cbData->numLayers,
+                             cbData->numLayers == 0 ? (GLuint)depth : cbData->numLayers,
                              0,
                              (ktx_uint32_t)faceLodSize, pixels);
 

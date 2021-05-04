@@ -174,7 +174,7 @@ void
 VulkanLoadTests::invokeSample(Direction dir)
 {
     const sampleInvocation* sampleInv
-            = sampleInv = &siSamples[sampleIndex];
+            = &siSamples[sampleIndex];
 
     prepared = false;  // Prevent any more rendering.
     if (pCurSample != nullptr) {

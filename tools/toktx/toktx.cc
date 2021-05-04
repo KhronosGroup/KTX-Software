@@ -330,6 +330,7 @@ string mydefversion(STR(TOKTX_DEFAULT_VERSION));
 class toktxApp : public scApp {
   public:
     toktxApp();
+    virtual ~toktxApp() { };
 
     virtual int main(int argc, _TCHAR* argv[]);
     virtual void usage();
@@ -661,7 +662,7 @@ imageCount(uint32_t levelCount, uint32_t layerCount,
            uint32_t faceCount, uint32_t baseDepth)
 {
     assert((faceCount == 1 && baseDepth >= 1)
-           || faceCount > 1 && baseDepth == 1);
+           || (faceCount > 1 && baseDepth == 1));
 
     uint32_t layerPixelDepth = baseDepth;
     for(uint32_t level = 1; level < levelCount; level++)
@@ -829,6 +830,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                       case commandOptions::eR:
                         newImage = new r8image(image->getWidth(), image->getHeight());
                         image->copyToR(*newImage);
+                        break;
                       case commandOptions::eRG:
                         newImage = new rg8image(image->getWidth(), image->getHeight());
                         image->copyToRG(*newImage);

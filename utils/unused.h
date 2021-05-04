@@ -5,6 +5,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/* I'm extending this beyond its name rather than creating
+ * a new file to hold the FALLTHROUGH declaration as this
+ * file is already included in most places the new
+ * declaration is needed.
+ */
+
 #ifndef _UNUSED_H
 #define _UNUSED_H
 
@@ -21,5 +27,11 @@
 
 // For unused parameters of c functions. Portable.
 #define UNUSED(x) (void)(x)
+
+#if defined(__GNUC__)
+#define FALLTHROUGH __attribute__((fallthrough))
+#else
+#define FALLTHROUGH
+#endif
 
 #endif /* UNUSED_H */

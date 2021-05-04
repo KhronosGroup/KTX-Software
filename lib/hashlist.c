@@ -175,6 +175,11 @@ ktxHashList_Destroy(ktxHashList* pHead)
     free(pHead);
 }
 
+#if defined(__GNUC__)
+// These are in uthash.h macros. I don't want to change that file.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
 
 /**
  * @memberof ktxHashList @public
@@ -346,6 +351,9 @@ ktxHashList_FindValue(ktxHashList *pHead, const char* key, unsigned int* pValueL
         return KTX_INVALID_VALUE;
 }
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 /**
  * @memberof ktxHashList @public

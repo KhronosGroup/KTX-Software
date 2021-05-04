@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ktx.h"
 #include "ktxint.h"
@@ -36,7 +37,6 @@
 #include "memstream.h"
 #include "texture1.h"
 #include "texture2.h"
-#include "uthash.h"
 #include "unused.h"
 
 ktx_size_t ktxTexture_GetDataSize(ktxTexture* This);
@@ -734,7 +734,7 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
     if (fv == KTX_FORMAT_VERSION_ONE && KTX_GL_UNPACK_ALIGNMENT != 4) {
         if (This->isCubemap && !This->isArray) {
             /* cubePadding. NOTE: this adds padding after the last face too. */
-            _KTX_PAD4(layerSize);
+            layerSize += _KTX_PAD4(layerSize);
         }
     }
     return layerSize * This->numFaces;

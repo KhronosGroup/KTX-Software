@@ -24,6 +24,7 @@ extern "C" {
   #include "ktxint.h"
   #include "texture2.h"
 }
+#include "unused.h"
 
 struct wthImageInfo {
     GLsizei size;   // Size of the image data in bytes.
@@ -123,10 +124,13 @@ class WriterTestHelper {
                         switch (numComponents) {
                           case 4:
                             color[3] = (component_type)0.5;
+                            FALLTHROUGH;
                           case 3:
                             color[2] = (component_type)faceSlice;
+                            FALLTHROUGH;
                           case 2:
                             color[1] = (component_type)layer;
+                            FALLTHROUGH;
                           case 1:
                             color[0] = (component_type)level;
                             break;
@@ -208,11 +212,10 @@ class WriterTestHelper {
             ktx_uint32_t levelDepth = MAX(1, depth >> level);
             ktx_uint32_t numImages;
             ktx_uint32_t rowPadding;
-            ktx_size_t paddedImageBytes, imageBytes;
+            ktx_size_t paddedImageBytes;
             ktx_size_t paddedRowBytes, rowBytes;
             ktx_size_t expectedFaceLodSize;
 
-            imageBytes = images[level][0][0].size() * sizeof(component_type);
             rowBytes = levelWidth
                             * sizeof(component_type)
                             * numComponents;
