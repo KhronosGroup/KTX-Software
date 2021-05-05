@@ -76,7 +76,7 @@ Supercompress the images in a KTX2 file.
     <dt>--t2</dt>
     <dd>Output a KTX version2 file. Always true.</dd>
     </dl>
-    @snippet{doc} scApp.h scApp options
+    @snippet{doc} scapp.h scApp options
 
 @section ktxsc_exitstatus EXIT STATUS
     @b toktx exits 0 on success, 1 on command line errors and 2 on
