@@ -345,7 +345,7 @@ struct {
         ERROR | 0x0087, "Unrecognized metadata \"%s\" found with KTX or ktx prefix found."
     };
     issue ValueNotNulTerminated {
-        ERROR | 0x0088, "%s value missing required NUL termination."
+        WARNING | 0x0088, "%s value missing encouraged NUL termination."
     };
     issue InvalidValue {
         ERROR | 0x0089, "%s has invalid value."
@@ -1638,7 +1638,7 @@ ktxValidator::validateOrientation(validationContext& ctx, char* key,
     }
 
     if (value[valueLen-1] != '\0')
-        addIssue(logger::eError, Metadata.ValueNotNulTerminated, key);
+        addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
 
     if (valueLen != ctx.dimensionCount + 1)
         addIssue(logger::eError, Metadata.InvalidValue, key);
@@ -1687,7 +1687,7 @@ ktxValidator::validateSwizzle(validationContext& ctx, char* key,
                               uint8_t* value, uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
-        addIssue(logger::eError, Metadata.ValueNotNulTerminated, key);
+        addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
     if (!regex_match((char*)value, regex("^[rgba01]{4}$")))
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
@@ -1697,7 +1697,7 @@ ktxValidator::validateWriter(validationContext& ctx, char* key,
                              uint8_t* value, uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
-        addIssue(logger::eError, Metadata.ValueNotNulTerminated, key);
+        addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
 }
 
 void
@@ -1705,7 +1705,7 @@ ktxValidator::validateWriterScParams(validationContext& ctx, char* key,
                                      uint8_t* value, uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
-        addIssue(logger::eError, Metadata.ValueNotNulTerminated, key);
+        addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
 }
 
 void
