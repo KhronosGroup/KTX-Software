@@ -748,7 +748,7 @@ vector<ktxValidator::metadataValidator> ktxValidator::metadataValidators {
     { "KTXorientation", &ktxValidator::validateOrientation },
     { "KTXglFormat", &ktxValidator::validateGlFormat },
     { "KTXdxgiFormat__", &ktxValidator::validateDxgiFormat },
-    { "KTXMetalPixelFormat", &ktxValidator::validateMetalPixelFormat },
+    { "KTXmetalPixelFormat", &ktxValidator::validateMetalPixelFormat },
     { "KTXswizzle", &ktxValidator::validateSwizzle },
     { "KTXwriter", &ktxValidator::validateWriter },
     { "KTXwriterScParams", &ktxValidator::validateWriterScParams },
