@@ -93,8 +93,15 @@ static void writeSample(uint32_t *DFD, int sampleNo, int channel,
                         int bits, int offset,
                         int topSample, int bottomSample, enum VkSuffix suffix)
 {
-    uint32_t lower, upper;
+    // Use this to avoid type-punning complaints from the gcc optimizer
+    // with -Wall.
+    union {
+        uint32_t i;
+        float f;
+    } lower, upper;
     uint32_t *sample = DFD + 1 + KHR_DF_WORD_SAMPLESTART + sampleNo * KHR_DF_WORD_SAMPLEWORDS;
+    if (channel == 3) channel = KHR_DF_CHANNEL_RGBSDA_ALPHA;
+
     if (channel == 3) channel = KHR_DF_CHANNEL_RGBSDA_ALPHA;
     channel = setChannelFlags(channel, suffix);
 
@@ -110,42 +117,42 @@ static void writeSample(uint32_t *DFD, int sampleNo, int channel,
     case s_SRGB:
     default:
         if (bits > 32) {
-            upper = 0xFFFFFFFFU;
+            upper.i = 0xFFFFFFFFU;
         } else {
-            upper = (uint32_t)((1U << bits) - 1U);
+            upper.i = (uint32_t)((1U << bits) - 1U);
         }
-        lower = 0U;
+        lower.i = 0U;
         break;
     case s_SNORM:
         if (bits > 32) {
-            upper = 0x7FFFFFFF;
+            upper.i = 0x7FFFFFFF;
         } else {
-            upper = topSample ? (1U << (bits - 1)) - 1 : (1U << bits) - 1;
+            upper.i = topSample ? (1U << (bits - 1)) - 1 : (1U << bits) - 1;
         }
-        lower = ~upper;
-        if (bottomSample) lower += 1;
+        lower.i = ~upper.i;
+        if (bottomSample) lower.i += 1;
         break;
     case s_USCALED:
     case s_UINT:
-        upper = bottomSample ? 1U : 0U;
-        lower = 0U;
+        upper.i = bottomSample ? 1U : 0U;
+        lower.i = 0U;
         break;
     case s_SSCALED:
     case s_SINT:
-        upper = bottomSample ? 1U : 0U;
-        lower = ~0U;
+        upper.i = bottomSample ? 1U : 0U;
+        lower.i = ~0U;
         break;
     case s_SFLOAT:
-        *((float*)(void*)&upper) = 1.0f;
-        *((float*)(void*)&lower) = -1.0f;
+        upper.f = 1.0f;
+        lower.f = -1.0f;
         break;
     case s_UFLOAT:
-        *((float*)(void*)&upper) = 1.0f;
-        *((float*)(void*)&lower) = 0.0f;
+        upper.f = 1.0f;
+        lower.f = 0.0f;
         break;
     }
-    sample[KHR_DF_SAMPLEWORD_SAMPLELOWER] = lower;
-    sample[KHR_DF_SAMPLEWORD_SAMPLEUPPER] = upper;
+    sample[KHR_DF_SAMPLEWORD_SAMPLELOWER] = lower.i;
+    sample[KHR_DF_SAMPLEWORD_SAMPLEUPPER] = upper.i;
 }
 
 /**
@@ -502,8 +509,12 @@ uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bhei
     uint32_t* BDFD;
     uint32_t *sample;
     uint32_t channel;
-    uint32_t lower;
-    uint32_t upper;
+    // Use union to avoid type-punning complaints from gcc optimizer
+    // with -Wall.
+    union {
+        uint32_t i;
+        float f;
+    } lower, upper;
 
     DFD = (uint32_t *) malloc(sizeof(uint32_t) *
                               (1 + KHR_DF_WORD_SAMPLESTART +
@@ -551,34 +562,34 @@ uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bhei
     case s_UNORM:
     case s_SRGB:
     default:
-        upper = 0xFFFFFFFFU;
-        lower = 0U;
+        upper.i = 0xFFFFFFFFU;
+        lower.i = 0U;
         break;
     case s_SNORM:
-        upper = 0x7FFFFFFF;
-        lower = ~upper;
+        upper.i = 0x7FFFFFFF;
+        lower.i = ~upper.i;
         break;
     case s_USCALED:
     case s_UINT:
-        upper = 1U;
-        lower = 0U;
+        upper.i = 1U;
+        lower.i = 0U;
         break;
     case s_SSCALED:
     case s_SINT:
-        upper = 1U;
-        lower = ~0U;
+        upper.i = 1U;
+        lower.i = ~0U;
         break;
     case s_SFLOAT:
-        *((float*)(void*)&upper) = 1.0f;
-        *((float*)(void*)&lower) = -1.0f;
+        upper.f = 1.0f;
+        lower.f = -1.0f;
         break;
     case s_UFLOAT:
-        *((float*)(void*)&upper) = 1.0f;
-        *((float*)(void*)&lower) = 0.0f;
+        upper.f = 1.0f;
+        lower.f = 0.0f;
         break;
     }
-    sample[KHR_DF_SAMPLEWORD_SAMPLELOWER] = lower;
-    sample[KHR_DF_SAMPLEWORD_SAMPLEUPPER] = upper;
+    sample[KHR_DF_SAMPLEWORD_SAMPLELOWER] = lower.i;
+    sample[KHR_DF_SAMPLEWORD_SAMPLEUPPER] = upper.i;
 
     if (compSampleCount[compScheme] > 1) {
         sample += KHR_DF_WORD_SAMPLEWORDS;
@@ -592,8 +603,8 @@ uint32_t *createDFDCompressed(enum VkCompScheme compScheme, int bwidth, int bhei
 
         sample[KHR_DF_SAMPLEWORD_SAMPLEPOSITION_ALL] = 0;
 
-        sample[KHR_DF_SAMPLEWORD_SAMPLELOWER] = lower;
-        sample[KHR_DF_SAMPLEWORD_SAMPLEUPPER] = upper;
+        sample[KHR_DF_SAMPLEWORD_SAMPLELOWER] = lower.i;
+        sample[KHR_DF_SAMPLEWORD_SAMPLEUPPER] = upper.i;
     }
     return DFD;
 }
