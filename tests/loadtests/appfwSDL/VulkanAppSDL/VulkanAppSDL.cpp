@@ -403,7 +403,7 @@ VulkanAppSDL::initializeVulkan()
 bool
 VulkanAppSDL::createInstance()
 {
-    VkResult err;
+    VkResult MAYBE_UNUSED err;
     uint32_t instanceLayerCount = 0;
     std::vector<const char *>* instanceValidationLayers = nullptr;
 
@@ -576,7 +576,7 @@ VulkanAppSDL::createInstance()
 bool
 VulkanAppSDL::findGpu()
 {
-    vk::Result err;
+    vk::Result MAYBE_UNUSED err;
     uint32_t gpuCount;
 
     // Make initial call to query gpu_count, then second call for gpu info.

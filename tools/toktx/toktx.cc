@@ -282,7 +282,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     <dt>--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     </dl>
-    @snippet{doc} scApp.h scApp options
+    @snippet{doc} scapp.h scApp options
 
     Options can also be set in the environment variable TOKTX_OPTIONS.
     TOKTX_OPTIONS is parsed first. If conflicting options appear in
