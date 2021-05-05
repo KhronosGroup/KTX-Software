@@ -28,7 +28,14 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
+#if (EMSCRIPTEN)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 #include "basisu/encoder/basisu_comp.h"
+#if (EMSCRIPTEN)
+#pragma clang diagnostic pop
+#endif
 #include "basisu/transcoder/basisu_file_headers.h"
 #include "basisu/transcoder/basisu_transcoder.h"
 #include "dfdutils/dfd.h"
@@ -800,7 +807,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     assert(bfh.m_total_images == num_images);
 
     uint8_t* bgd = nullptr;
-    uint32_t bgd_size;
+    size_t bgd_size;
     uint32_t image_data_size = 0;
     ktxTexture2_private& priv = *This->_private;
     uint32_t base_offset = bfh.m_slice_desc_file_ofs;
@@ -929,7 +936,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                &bf[bfh.m_tables_file_ofs],
                bfh.m_tables_file_size);
 
-        assert((dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
+        assert((size_t)(dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
 
         //
         // We have a complete global data package.
