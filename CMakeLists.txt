@@ -97,18 +97,22 @@ else()
 endif()
 
 # Global compile & link options including optimization flags
-if(EMSCRIPTEN)
-    add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
-    add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
-elseif(MSVC)
+if(MSVC)
     # With /W4 VS2015 (V19.0) issues many warnings that VS2017 & 2019 don't
     # so only increase warning level for recent versions.
     add_compile_options($<$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},19.16>:/W4>)
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
-else()
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
+       OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options(-Wall -Wextra)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
-    add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
+    if(EMSCRIPTEN)
+        add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
+    else()
+        add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
+    endif()
+else()
+    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
 set(KTX_MAIN_SRC
@@ -457,11 +461,16 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         ${BASISU_ENCODER_CXX_SRC}
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses;-Wno-strict-aliasing"
         )
+elseif(EMSCRIPTEN)
+    set_source_files_properties(
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter"
+        )
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;"
         )
-elseif(NOT EMSCRIPTEN)
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
         lib/basisu/encoder/basisu_enc.cpp
@@ -470,6 +479,8 @@ elseif(NOT EMSCRIPTEN)
     set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
+else()
+    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
 target_include_directories(
