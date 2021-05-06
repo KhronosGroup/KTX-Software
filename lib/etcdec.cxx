@@ -174,10 +174,10 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable: 4100 4244 )
-#elif defined(__clang__)
+#elif __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
-#elif defined(__GNUC__)
+#elif __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"

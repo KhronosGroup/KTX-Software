@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <algorithm>
 
-#if !defined(__clang__) && defined(__GNUC__) // Grumble clang grumble
+#if !__clang__ && __GNUC__ // Grumble clang grumble
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
@@ -1913,6 +1913,6 @@ namespace std
 
 } // namespace std
 
-#if !defined(__clang__) && defined(__GNUC__)
+#if !__clang__ && __GNUC__
 #pragma GCC diagnostic pop
 #endif
