@@ -276,7 +276,7 @@ namespace msc {
             if (status) {
                 ret.set("transcodedImage", dst);
             }
-            return std::move(ret);
+            return ret;
         }
 
       protected:
@@ -373,7 +373,7 @@ namespace msc {
             if (status) {
                 ret.set("transcodedImage", dst);
             }
-            return std::move(ret);
+            return ret;
         }
     };
 
