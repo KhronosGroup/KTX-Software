@@ -37,7 +37,7 @@ matrix:
         - VULKAN_INSTALL_DIR="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
-      osx_image: xcode11.4
+      osx_image: xcode12.4
 
 #env:
   #global:
