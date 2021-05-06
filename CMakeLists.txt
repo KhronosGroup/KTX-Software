@@ -461,6 +461,10 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         ${BASISU_ENCODER_CXX_SRC}
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses;-Wno-strict-aliasing"
         )
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+        )
 elseif(EMSCRIPTEN)
     set_source_files_properties(
         ${BASISU_ENCODER_CXX_SRC}
