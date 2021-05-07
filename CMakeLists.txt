@@ -478,7 +478,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
         lib/basisu/encoder/basisu_enc.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable"
+        PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable;-Wno-sign-compare;-Wno-shorten-64-to-32"
         )
     set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"

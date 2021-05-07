@@ -73,7 +73,6 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     gnTexture = 0;
 
 
-    typedef void (*PFN_voidFunction)(void);
     if (strstr(szExtensions, "OES_draw_texture") != NULL) {
        /*
         * This strange casting is because SDL_GL_GetProcAddress returns a
