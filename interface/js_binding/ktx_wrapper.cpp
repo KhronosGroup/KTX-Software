@@ -155,7 +155,7 @@ namespace ktx
             ret.set("texture", texture);
             ret.set("target", target);
             ret.set("error", error);
-            return std::move(ret);
+            return ret;
         }
 
     private:

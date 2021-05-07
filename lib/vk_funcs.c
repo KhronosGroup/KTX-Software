@@ -108,10 +108,10 @@ static PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
     return KTX_FALSE;                                                          \
   }
 #else
-#define VK_FUNCTION(fun)                                                     \
-  if (!(ktx_##fun = (PFN_##fun)LoadProcAddr(ktxVulkanModuleHandle, #fun))) { \
-    fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);           \
-    return KTX_FALSE;                                                        \
+#define VK_FUNCTION(fun)                                                       \
+  if ((ktx_##fun=(PFN_##fun)LoadProcAddr(ktxVulkanModuleHandle, #fun)) == 0) { \
+    fprintf(stderr, "Could not load Vulkan command: %s!\n", #fun);             \
+    return KTX_FALSE;                                                          \
   }
 #endif
 #endif
@@ -132,7 +132,7 @@ ktxGetVulkanModuleHandle()
 }
 #endif
 
-ktx_bool_t
+ktx_error_code_e
 ktxLoadVulkanLibrary(void)
 {
     if (ktxVulkanModuleHandle)

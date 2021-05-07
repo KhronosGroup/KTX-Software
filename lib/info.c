@@ -36,6 +36,7 @@
 #include "memstream.h"
 #include "ktxint.h"
 #include "basis_sgd.h"
+#include "unused.h"
 
 /*===========================================================*
  * Common Utilities for version 1 and 2.                     *
@@ -344,6 +345,7 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
                 ktx_uint32_t numImages)
 {
     ktxBasisLzGlobalHeader* bgdh = (ktxBasisLzGlobalHeader*)(bgd);
+    UNUSED(byteLength);
 
     fprintf(stdout, "endpointCount: %d\n", bgdh->endpointCount);
     fprintf(stdout, "selectorCount: %d\n", bgdh->selectorCount);
@@ -525,8 +527,6 @@ ktxPrintInfoForStdioStream(FILE* stdioStream)
     if (result == KTX_SUCCESS)
         result = ktxPrintInfoForStream(&stream);
     return result;
-
-    return KTX_SUCCESS;
 }
 
 /**
@@ -540,6 +540,8 @@ ktxPrintInfoForStdioStream(FILE* stdioStream)
 KTX_error_code
 ktxPrintInfoForNamedFile(const char* const filename)
 {
+    // TODO: Implement
+    UNUSED(filename);
     return KTX_SUCCESS;
 }
 
@@ -562,5 +564,4 @@ ktxPrintInfoForMemory(const ktx_uint8_t* bytes, ktx_size_t size)
     if (result == KTX_SUCCESS)
         result = ktxPrintInfoForStream(&stream);
     return result;
-    return KTX_SUCCESS;
 }

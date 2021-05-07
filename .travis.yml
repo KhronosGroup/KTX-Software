@@ -8,7 +8,10 @@ language:
   - cpp
   - node_js
 
-matrix:
+os: linux
+dist: focal
+
+jobs:
   include:
     - os: linux
       addons:
@@ -28,7 +31,6 @@ matrix:
       python: '3.7'
       services:
         - docker
-      sudo: required
       node_js:
         - node
     - os: osx
@@ -37,7 +39,7 @@ matrix:
         - VULKAN_INSTALL_DIR="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
-      osx_image: xcode11.4
+      osx_image: xcode12.4
 
 #env:
   #global:
@@ -130,7 +132,7 @@ deploy:
   - provider: pages
     #edge: true # Use bleeding edge (dplv2)
     skip_cleanup: true
-    github_token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local_dir: build-macos/docs/html
     on:
       #branch: master
@@ -141,7 +143,7 @@ deploy:
     # and the deploy below. Happens even when neither of release_notes or
     # release_notes_file is specified.
     #edge: true # Use bleeding edge (dplv2)
-    api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
       - build-macos/KTX-Software-*.pkg
@@ -161,7 +163,7 @@ deploy:
       condition: $TRAVIS_OS_NAME = osx
   - provider: releases
     #edge: true # Use bleeding edge (dplv2)
-    api_key: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
       - build/linux-release/KTX-Software-*-Linux.*

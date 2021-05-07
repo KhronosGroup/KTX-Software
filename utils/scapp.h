@@ -411,7 +411,7 @@ class scApp : public ktxApp {
 
 scApp::scApp(string& version, string& defaultVersion,
              scApp::commandOptions& options)
-      : options(options), ktxApp(version, defaultVersion, options)
+      : ktxApp(version, defaultVersion, options), options(options)
 {
   argparser::option my_option_list[] = {
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
@@ -569,7 +569,7 @@ scApp::processOption(argparser& parser, int opt)
             ktx_uint32_t level = strtoi(parser.optarg.c_str());
             level = clamp<ktx_uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
             // Ensure the last one wins in case of multiple of these args.
-            options.bopts.uastcFlags = ~KTX_PACK_UASTC_LEVEL_MASK;
+            options.bopts.uastcFlags = (unsigned int)~KTX_PACK_UASTC_LEVEL_MASK;
             options.bopts.uastcFlags |= level;
             hasArg = true;
         }

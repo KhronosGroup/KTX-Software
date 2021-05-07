@@ -47,7 +47,7 @@ class myjpgdstream : public jpeg_decoder_file_stream {
           return -1;
 
         size_t bytes_read = fread(pBuf, 1, max_bytes_to_read, m_pFile);
-        if (bytes_read < max_bytes_to_read)
+        if (bytes_read < (size_t)max_bytes_to_read)
         {
           if (ferror(m_pFile))
           {
@@ -119,7 +119,7 @@ Image::CreateFromJPG(FILE* src, bool, bool)
          throw std::runtime_error("JPEG decode failed");
     }
 
-    Image* image;
+    Image* image = nullptr;
     switch (componentCount) {
       case 1: {
         image = new r8image(w, h, (r8color*)imageData);

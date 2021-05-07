@@ -44,6 +44,10 @@
 	#endif // BASISU_NO_ITERATOR_DEBUG_LEVEL
 
 #endif // _MSC_VER
+#if !__clang__ && __GNUC__ // Grumble clang grumble
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif // __GNUC__
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -465,4 +469,7 @@ namespace basisu
 	}
 							
 } // namespace basisu
+#if !__clang__ && __GNUC__
 
+#pragma GCC diagnostic pop
+#endif

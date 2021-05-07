@@ -73,7 +73,7 @@ VulkanAppSDL::~VulkanAppSDL()
 bool
 VulkanAppSDL::initialize(Args& args)
 {
-    for (int i = 1; i < args.size(); i++) {
+    for (uint32_t i = 1; i < args.size(); i++) {
         if (args[i].compare("--validate") == 0) {
             validate = true;
             args.erase(args.begin() + i);
@@ -160,7 +160,7 @@ VulkanAppSDL::doEvent(SDL_Event* event)
 
 
 void
-VulkanAppSDL::drawFrame(uint32_t msTicks)
+VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
 {
     if (!prepared)
         return;
@@ -403,7 +403,7 @@ VulkanAppSDL::initializeVulkan()
 bool
 VulkanAppSDL::createInstance()
 {
-    VkResult err;
+    VkResult MAYBE_UNUSED err;
     uint32_t instanceLayerCount = 0;
     std::vector<const char *>* instanceValidationLayers = nullptr;
 
@@ -545,16 +545,16 @@ VulkanAppSDL::createInstance()
                 assert(err == VK_SUCCESS);
             }
             msg << "Cannot find the following extensions:\n";
-            for (uint32_t i = 0; i < extensionNames.size(); i++) {
-                uint32_t j;
-                for (j = 0; j < instanceExtensionCount; j++) {
-                    if (!strcmp(extensionNames[i],
-                                instanceExtensions[j].extensionName))
+            for (uint32_t j = 0; j < extensionNames.size(); j++) {
+                uint32_t k;
+                for (k = 0; k < instanceExtensionCount; k++) {
+                    if (!strcmp(extensionNames[j],
+                                instanceExtensions[k].extensionName))
                         break;
                 }
-                if (j == instanceExtensionCount) {
+                if (k == instanceExtensionCount) {
                     // Not found
-                    msg << "    " << extensionNames[i] << "\n";
+                    msg << "    " << extensionNames[j] << "\n";
                 }
             }
             msg << "\nMake sure your layers path is set appropriately.";
@@ -576,7 +576,7 @@ VulkanAppSDL::createInstance()
 bool
 VulkanAppSDL::findGpu()
 {
-    vk::Result err;
+    vk::Result MAYBE_UNUSED err;
     uint32_t gpuCount;
 
     // Make initial call to query gpu_count, then second call for gpu info.
@@ -1292,13 +1292,13 @@ void VulkanAppSDL::updateTextOverlay()
                          VulkanTextOverlay::alignLeft);
 
     // Leave a blank line between us and the derived class's text.
-    getOverlayText(textOverlay, 85.0f);
+    getOverlayText(85.0f);
 
     textOverlay->endTextUpdate();
 }
 
 
-void VulkanAppSDL::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
+void VulkanAppSDL::getOverlayText(float /*yOffset*/)
 {
     // Can be overriden in derived class
 }
@@ -1491,8 +1491,8 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
 
 VKAPI_ATTR VkBool32 VKAPI_CALL
 VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
-                    VkDebugReportObjectTypeEXT objType,
-                    uint64_t srcObject, size_t location, int32_t msgCode,
+                    VkDebugReportObjectTypeEXT /*objType*/,
+                    uint64_t /*srcObject*/, size_t /*location*/, int32_t msgCode,
                     const char *pLayerPrefix, const char *pMsg)
 {
 
@@ -1500,7 +1500,7 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
     std::string text(pMsg);
     std::string prefix("");
     std::stringstream message;
-    uint32_t mbFlags;
+    uint32_t mbFlags = SDL_MESSAGEBOX_INFORMATION;
 
     // Errors may cause undefined behaviour or a crash.
     if (msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {

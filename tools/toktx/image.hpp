@@ -22,6 +22,7 @@
 #include <KHR/khr_df.h>
 
 #include "argparser.h"
+#include "unused.h"
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
 
@@ -106,7 +107,9 @@ decode_bt709(float const brightness, float const)
 static INLINE float
 encode_sRGB(float const intensity, float const unused = 1.0f)
 {
+    UNUSED(unused);
     float brightness;
+
     if (intensity < 0.0031308f)
         brightness = 12.92f * intensity;
     else
@@ -118,6 +121,7 @@ encode_sRGB(float const intensity, float const unused = 1.0f)
 static INLINE float
 decode_sRGB(float const brightness, float const unused = 1.0f)
 {
+    UNUSED(unused);
     float intensity;
 
     if (brightness < .04045f)
@@ -272,10 +276,10 @@ class Image {
     colortype_e getColortype() { return this->colortype; }
     void setColortype(colortype_e t) { colortype = t; }
     khr_df_transfer_e getOetf() const { return oetf; }
-    void setOetf(khr_df_transfer_e oetf) { this->oetf = oetf; }
+    void setOetf(khr_df_transfer_e noetf) { this->oetf = noetf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
-    void setPrimaries(khr_df_primaries_e primaries) {
-        this->primaries = primaries;
+    void setPrimaries(khr_df_primaries_e nprimaries) {
+        this->primaries = nprimaries;
     }
 
     typedef Image* (*CreateFunction)(FILE* f, bool transformOETF,
@@ -295,9 +299,9 @@ class Image {
     virtual operator uint8_t*() = 0;
 
     virtual size_t getByteCount() const = 0;
-    virtual const uint32_t getPixelSize() const = 0;
-    virtual const uint32_t getComponentCount() const = 0;
-    virtual const uint32_t getComponentSize() const = 0;
+    virtual uint32_t getPixelSize() const = 0;
+    virtual uint32_t getComponentCount() const = 0;
+    virtual uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
     virtual void resample(Image& dst, bool srgb = false,
                           const char *pFilter = "lanczos4",
@@ -363,18 +367,18 @@ class ImageT : public Image {
         return getPixelCount() * sizeof(Color);
     }
 
-    virtual const uint32_t getPixelSize() const {
+    virtual uint32_t getPixelSize() const {
         return Color::getPixelSize();
     }
-    virtual const uint32_t getComponentCount() const {
+    virtual uint32_t getComponentCount() const {
         return Color::getComponentCount();
     }
-    virtual const uint32_t getComponentSize() const {
+    virtual uint32_t getComponentSize() const {
         return Color::getComponentSize();
     }
 
-    virtual Image* createImage(uint32_t width, uint32_t height) {
-        ImageT* image = new ImageT(width, height);
+    virtual Image* createImage(uint32_t w, uint32_t h) {
+        ImageT* image = new ImageT(w, h);
         return image;
     }
 

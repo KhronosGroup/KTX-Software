@@ -167,6 +167,22 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #include <stdio.h>
 #include <stdlib.h>
 
+// License does not permit distributing modified versions of this file
+// so rather than fixing the compile warnings I'm adding the following
+// code to suppress them. Yes it is a mod but it doesn't change
+// the source of the functions or the compiled binary code.
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4100 4244 )
+#elif __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#elif __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+
 // Typedefs
 typedef unsigned char uint8;
 typedef unsigned short uint16;
@@ -1842,3 +1858,10 @@ void decompressBlockAlpha16bit(uint8* data, uint8* img, int width, int height, i
 {
   decompressBlockAlpha16bitC(data, img, width, height, ix, iy, 1);
 }
+
+// Reenable warnings disabled at the top of this file.
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#else
+#pragma GCC diagnostic pop
+#endif

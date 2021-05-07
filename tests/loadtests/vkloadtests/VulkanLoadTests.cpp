@@ -39,8 +39,8 @@
 VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
                                  const uint32_t numSamples,
                                  const char* const name)
-                  : siSamples(samples), sampleIndex(numSamples),
-                    VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true)
+                  : VulkanAppSDL(name, 1280, 720, LT_VK_VERSION, true),
+                    siSamples(samples), sampleIndex(numSamples)
 {
     pCurSample = nullptr;
 }
@@ -150,7 +150,7 @@ VulkanLoadTests::drawFrame(uint32_t msTicks)
 
 
 void
-VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay, float yOffset)
+VulkanLoadTests::getOverlayText(float yOffset)
 {
     if (enableTextOverlay) {
         textOverlay->addText("Press \"n\" or 2-finger swipe left for next "
@@ -173,7 +173,8 @@ VulkanLoadTests::getOverlayText(VulkanTextOverlay * textOverlay, float yOffset)
 void
 VulkanLoadTests::invokeSample(Direction dir)
 {
-    const sampleInvocation* sampleInv;
+    const sampleInvocation* sampleInv
+            = &siSamples[sampleIndex];
 
     prepared = false;  // Prevent any more rendering.
     if (pCurSample != nullptr) {
@@ -201,7 +202,6 @@ VulkanLoadTests::invokeSample(Direction dir)
                                                      sBasePath);
             }
             break;
-            unsupportedTypeExceptions = 0;
         } catch (unsupported_ttype& e) {
             (void)e; // To quiet unused variable warnings from some compilers.
             unsupportedTypeExceptions++;

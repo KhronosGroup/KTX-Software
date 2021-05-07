@@ -197,7 +197,7 @@ Texture::resize(uint32_t width, uint32_t height)
 }
 
 void
-Texture::run(uint32_t msTicks)
+Texture::run(uint32_t /*msTicks*/)
 {
     // Nothing to do since the scene is not animated.
     // VulkanLoadTests base class redraws from the command buffer we built.
@@ -210,10 +210,10 @@ Texture::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-        "external",      argparser::option::no_argument,       &externalFile, 1,
-        "linear-tiling", argparser::option::no_argument,       (int*)&tiling, (int)vk::ImageTiling::eLinear,
-        "qcolor",        argparser::option::required_argument, NULL,          1,
-        NULL,            argparser::option::no_argument,       NULL,          0
+      {"external",      argparser::option::no_argument,       &externalFile, 1},
+      {"linear-tiling", argparser::option::no_argument,       (int*)&tiling, (int)vk::ImageTiling::eLinear},
+      {"qcolor",        argparser::option::required_argument, NULL,          1},
+      {NULL,            argparser::option::no_argument,       NULL,          0}
     };
 
     argvector argv(sArgs);
@@ -748,15 +748,15 @@ Texture::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
                          5.0f, yOffset, VulkanTextOverlay::alignLeft);
 }
 
-const char* const
-Texture::customizeTitle(const char* const title)
+const char*
+Texture::customizeTitle(const char* const baseTitle)
 {
     if (transcoded) {
-        this->title = title;
+        this->title = baseTitle;
         this->title += " Transcoded to ";
         this->title += vkFormatString((VkFormat)transcodedFormat);
         return this->title.c_str();
     }
-    return title;
+    return baseTitle;
 }
 

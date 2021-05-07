@@ -49,7 +49,7 @@
 #endif
 #if defined(DEBUG)
 #include <sstream>
-extern const char* const appName();
+extern const char* appName();
 #define VK_CHECK_RESULT(f)                                                    \
 {                                                                             \
     VkResult res = (f);                                                       \

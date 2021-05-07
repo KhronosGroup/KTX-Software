@@ -80,6 +80,8 @@ add_executable( vkloadtests
     appfwSDL/VulkanAppSDL/vulkantextoverlay.hpp
     appfwSDL/VulkanAppSDL/vulkantools.cpp
     appfwSDL/VulkanAppSDL/vulkantools.h
+    common/disable_glm_warnings.h
+    common/reenable_warnings.h
     vkloadtests/InstancedSampleBase.cpp
     vkloadtests/InstancedSampleBase.h
     vkloadtests/Texture.cpp

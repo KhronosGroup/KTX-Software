@@ -32,6 +32,7 @@
 #include "ktxint.h"
 #include "texture.h"
 #include "gl_format.h"      // Must come after texture.h.
+#include "unused.h"
 
 /**
  * @defgroup ktx_glloader OpenGL Texture Image Loader
@@ -431,6 +432,9 @@ texImage1DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    UNUSED(faceLodSize);
+    UNUSED(depth);
+    UNUSED(height);
 
     assert(gl.glTexImage1D != NULL);
     gl.glTexImage1D(cbData->glTarget + face, miplevel,
@@ -452,6 +456,8 @@ compressedTexImage1DCallback(int miplevel, int face,
                              void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    UNUSED(depth);
+    UNUSED(height);
 
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
@@ -476,10 +482,12 @@ texImage2DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    UNUSED(depth);
+    UNUSED(faceLodSize);
 
     glTexImage2D(cbData->glTarget + face, miplevel,
                  cbData->glInternalformat, width,
-                 cbData->numLayers == 0 ? height : cbData->numLayers, 0,
+                 cbData->numLayers == 0 ? (GLuint)height : cbData->numLayers, 0,
                  cbData->glFormat, cbData->glType, pixels);
 
     if ((cbData->glError = glGetError()) == GL_NO_ERROR) {
@@ -500,6 +508,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
     GLenum glerror;
     KTX_error_code result;
+    UNUSED(depth);
 
     if (faceLodSize > UINT32_MAX)
         return KTX_INVALID_OPERATION; // Too big for OpenGL {,ES}.
@@ -509,7 +518,7 @@ compressedTexImage2DCallback(int miplevel, int face,
     // error, software unpacking can be attempted.
     glCompressedTexImage2D(cbData->glTarget + face, miplevel,
                            cbData->glInternalformat, width,
-                           cbData->numLayers == 0 ? height : cbData->numLayers,
+                           cbData->numLayers == 0 ? (GLuint)height : cbData->numLayers,
                            0,
                            (ktx_uint32_t)faceLodSize, pixels);
 
@@ -540,7 +549,7 @@ compressedTexImage2DCallback(int miplevel, int face,
         }
         glTexImage2D(cbData->glTarget + face, miplevel,
                      internalformat, width,
-                     cbData->numLayers == 0 ? height : cbData->numLayers, 0,
+                     cbData->numLayers == 0 ? (GLuint)height : cbData->numLayers, 0,
                      format, type, unpacked);
 
         free(unpacked);
@@ -563,12 +572,13 @@ texImage3DCallback(int miplevel, int face,
                    void* pixels, void* userdata)
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
+    UNUSED(faceLodSize);
 
     assert(gl.glTexImage3D != NULL);
     gl.glTexImage3D(cbData->glTarget + face, miplevel,
                    cbData->glInternalformat,
                    width, height,
-                   cbData->numLayers == 0 ? depth : cbData->numLayers,
+                   cbData->numLayers == 0 ? (GLuint)depth : cbData->numLayers,
                    0,
                    cbData->glFormat, cbData->glType, pixels);
 
@@ -595,7 +605,7 @@ compressedTexImage3DCallback(int miplevel, int face,
     gl.glCompressedTexImage3D(cbData->glTarget + face, miplevel,
                              cbData->glInternalformat,
                              width, height,
-                             cbData->numLayers == 0 ? depth : cbData->numLayers,
+                             cbData->numLayers == 0 ? (GLuint)depth : cbData->numLayers,
                              0,
                              (ktx_uint32_t)faceLodSize, pixels);
 
@@ -886,7 +896,7 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
     }
 
     if (!ktxOpenGLModuleHandle) {
-        ktx_error_code_e result = ktxLoadOpenGLLibrary();
+        result = ktxLoadOpenGLLibrary();
         if (result != KTX_SUCCESS) {
             return result;
         }

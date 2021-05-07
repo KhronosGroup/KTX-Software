@@ -84,7 +84,7 @@ endif()
 
 set(bitness 64)
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
-	set(bitness 32)
+        set(bitness 32)
 endif()
 
 if(KTX_FEATURE_STATIC_LIBRARY)
@@ -96,15 +96,23 @@ else()
     set(LIB_TYPE SHARED)
 endif()
 
-# Global Optimization Flags
-if(EMSCRIPTEN)
-    add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
-    add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
-elseif(MSVC)
+# Global compile & link options including optimization flags
+if(MSVC)
+    # With /W4 VS2015 (V19.0) issues many warnings that VS2017 & 2019 don't
+    # so only increase warning level for recent versions.
+    add_compile_options($<$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},19.16>:/W4>)
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
-else()
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
+       OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    add_compile_options(-Wall -Wextra)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
-    add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
+    if(EMSCRIPTEN)
+        add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
+    else()
+        add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
+    endif()
+else()
+    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
 set(KTX_MAIN_SRC
@@ -231,6 +239,9 @@ macro(commom_lib_settings lib write)
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
         $<INSTALL_INTERFACE:other_include>
+
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
+        $<INSTALL_INTERFACE:utils>
     )
 
     if( LIB_TYPE STREQUAL STATIC )
@@ -364,12 +375,12 @@ PRIVATE
 
 # Adding write capability to target ktx
 
-target_sources(
-    ktx
-PRIVATE
-    lib/basis_encode.cpp
+set(BASISU_ENCODER_C_SRC
     lib/basisu/encoder/apg_bmp.c
     lib/basisu/encoder/apg_bmp.h
+    )
+
+set(BASISU_ENCODER_CXX_SRC
     lib/basisu/encoder/basisu_astc_decomp.cpp
     lib/basisu/encoder/basisu_astc_decomp.h
     lib/basisu/encoder/basisu_backend.cpp
@@ -413,9 +424,69 @@ PRIVATE
     lib/basisu/encoder/jpgd.h
     lib/basisu/encoder/lodepng.cpp
     lib/basisu/encoder/lodepng.h
+    )
+
+target_sources(
+    ktx
+PRIVATE
+    lib/basis_encode.cpp
+    ${BASISU_ENCODER_C_SRC}
+    ${BASISU_ENCODER_CXX_SRC}
     lib/writer1.c
     lib/writer2.c
 )
+
+# Turn off these warnings until Rich fixes the occurences.
+# It it not clear to me if generator expressions can be used here
+# hence the long-winded way.
+if(MSVC)
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        lib/basisu/encoder/basisu_enc.cpp
+        PROPERTIES COMPILE_OPTIONS "/wd4100;/wd4189"
+        )
+    set_source_files_properties(
+        lib/basisu/encoder/basisu_kernels_sse.cpp
+        lib/basisu/encoder/basisu_comp.cpp
+        PROPERTIES COMPILE_OPTIONS "/wd4244"
+        )
+    set_source_files_properties(
+        lib/basisu/encoder/basisu_uastc_enc.cpp
+        PROPERTIES COMPILE_OPTIONS "/wd4800"
+        )
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    set_source_files_properties(
+        # It's too much work to discriminate which files need which warnings
+        # disabled.
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses;-Wno-strict-aliasing"
+        )
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+        )
+elseif(EMSCRIPTEN)
+    set_source_files_properties(
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter"
+        )
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;"
+        )
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    set_source_files_properties(
+        lib/basisu/transcoder/basisu_transcoder.cpp
+        lib/basisu/encoder/basisu_enc.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable;-Wno-sign-compare;-Wno-shorten-64-to-32"
+        )
+    set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+        )
+else()
+    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+endif()
+
 target_include_directories(
     ktx
 PRIVATE

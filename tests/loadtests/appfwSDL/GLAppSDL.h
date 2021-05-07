@@ -29,9 +29,9 @@ class GLAppSDL : public AppBaseSDL {
                const SDL_GLprofile profile,
                const int majorVersion,
                const int minorVersion)
-            : profile(profile),
-              majorVersion(majorVersion), minorVersion(minorVersion),
-              AppBaseSDL(name)
+            : AppBaseSDL(name),
+              profile(profile),
+              majorVersion(majorVersion), minorVersion(minorVersion)
     {
         appTitle = name;
         w_width = width;

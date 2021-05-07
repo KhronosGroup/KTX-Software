@@ -51,7 +51,6 @@ VulkanContext::createCommandBuffer(vk::CommandBufferLevel level, bool begin)
 
 void
 VulkanContext::flushCommandBuffer(vk::CommandBuffer& cmdBuffer,
-                                  vk::Queue& queue,
                                   bool free)
 {
     if (!cmdBuffer) {

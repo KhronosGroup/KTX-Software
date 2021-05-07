@@ -27,8 +27,8 @@ GLLoadTests::GLLoadTests(const sampleInvocation samples[],
                          const SDL_GLprofile profile,
                          const int majorVersion,
                          const int minorVersion)
-                : siSamples(samples), sampleIndex(numSamples),
-                  GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion)
+                : GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion),
+                  siSamples(samples), sampleIndex(numSamples)
 {
     pCurSample = nullptr;
 }
@@ -179,7 +179,7 @@ GLLoadTests::getOverlayText(GLTextOverlay * textOverlay)
 void
 GLLoadTests::invokeSample(Direction dir)
 {
-    const sampleInvocation* sampleInv;
+    const sampleInvocation* sampleInv = &siSamples[sampleIndex];
 
     if (pCurSample != nullptr) {
         delete pCurSample;

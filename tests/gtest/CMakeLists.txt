@@ -13,3 +13,11 @@ PUBLIC
     include
     .
 )
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    set_source_files_properties(
+        src/gtest-all.cc
+        PROPERTIES COMPILE_OPTIONS "-Wno-missing-field-initializers"
+    )
+endif()
+

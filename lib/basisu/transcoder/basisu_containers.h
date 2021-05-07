@@ -6,6 +6,12 @@
 #include <assert.h>
 #include <algorithm>
 
+#if !__clang__ && __GNUC__ // Grumble clang grumble
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
 #if defined(__linux__) && !defined(ANDROID)
 // Only for malloc_usable_size() in basisu_containers_impl.h
 #include <malloc.h>
@@ -1906,3 +1912,7 @@ namespace std
    }
 
 } // namespace std
+
+#if !__clang__ && __GNUC__
+#pragma GCC diagnostic pop
+#endif

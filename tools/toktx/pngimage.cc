@@ -134,6 +134,9 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
       case LCT_RGBA:
         componentCount = 4;
         break;
+      default:
+        // To avoid potentially uninitialized variable warning.
+        componentCount = 0;
     }
     if (rescaleTo8Bits) {
         state.info_raw.bitdepth = 8;
@@ -147,11 +150,10 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     }
 
     uint8_t* imageData;
-    size_t imageByteCount;
     lodepngError = lodepng_decode(&imageData, &w, &h, &state,
                                    png.data(), png.size());
     if (imageData && !lodepngError) {
-        imageByteCount = lodepng_get_raw_size(w, h, &state.info_raw);
+        (void)lodepng_get_raw_size(w, h, &state.info_raw);
     } else {
         free(imageData);
         std::stringstream message;
@@ -160,7 +162,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         throw std::runtime_error(message.str());
     }
 
-    Image* image;
+    Image* image = nullptr;
     if (componentBits == 16 ) {
         switch (componentCount) {
           case 1: {
@@ -180,19 +182,15 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     } else {
         switch (componentCount) {
           case 1: {
-            using Color = color<uint8_t, 1>;
             image = new r8image(w, h, (r8color*)imageData);
             break;
           } case 2: {
-            using Color = color<uint8_t, 2>;
             image = new rg8image(w, h, (rg8color*)imageData);
             break;
           } case 3: {
-            using Color = color<uint8_t, 3>;
             image = new rgb8image(w, h, (rgb8color*)imageData);
             break;
           } case 4: {
-            using Color = color<uint8_t, 4>;
             image = new rgba8image(w, h, (rgba8color*)imageData);
             break;
           }
@@ -256,7 +254,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         else if (state.info_png.gama_gamma == 45455)
             image->setOetf(KHR_DF_TRANSFER_SRGB);
         else {
-            if (state.info_png.gama_gamma < 0) {
+            if (state.info_png.gama_gamma == 0) {
                 delete image;
                 throw std::runtime_error("PNG file has gAMA of 0.");
             }

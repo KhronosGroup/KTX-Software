@@ -12,6 +12,7 @@ git lfs version
 brew install doxygen
 brew install sdl2
 brew link sdl2
+gem install xcpretty
 
 # Current directory is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
 pushd ../..

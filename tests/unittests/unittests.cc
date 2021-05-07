@@ -199,20 +199,20 @@ TEST(MemStreamTest, WriteExpand) {
 
 TEST_F(WriterTestHelperRGB8Test, Construct2D) {
     helper.resize(createFlagBits::eNone, 1, 1, 2, 32, 32, 1);
-    EXPECT_EQ(helper.images.size(), 1);
-    EXPECT_EQ(helper.images[0].size(), 1);
-    EXPECT_EQ(helper.images[0][0].size(), 1);
-    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32 * 3);
-    EXPECT_EQ(numComponents(), 3);
+    EXPECT_EQ(helper.images.size(), 1U);
+    EXPECT_EQ(helper.images[0].size(), 1U);
+    EXPECT_EQ(helper.images[0][0].size(), 1U);
+    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32 * 3U);
+    EXPECT_EQ(numComponents(), 3U);
 }
 
 TEST_F(WriterTestHelperRGB8Test, Construct3D) {
     helper.resize(createFlagBits::eNone, 1, 1, 3, 32, 32, 32);
-    EXPECT_EQ(helper.images.size(), 1);
-    EXPECT_EQ(helper.images[0].size(), 1);
-    EXPECT_EQ(helper.images[0][0].size(), 32);
-    EXPECT_EQ(helper.images[0][0][0].size(), 32 * 32 * 3);
-    EXPECT_EQ(numComponents(), 3);
+    EXPECT_EQ(helper.images.size(), 1U);
+    EXPECT_EQ(helper.images[0].size(), 1U);
+    EXPECT_EQ(helper.images[0][0].size(), 32U);
+    EXPECT_EQ(helper.images[0][0][0].size(), (size_t)(32 * 32 * 3));
+    EXPECT_EQ(numComponents(), 3U);
 }
 
 /////////////////////////////////////
@@ -380,7 +380,7 @@ TEST_F(createDFDUnpackedTest4, FormatSRGBA8) {
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -400,7 +400,7 @@ TEST_F(createDFDUnpackedTest4, FormatSBGRA8) {
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_TRUE, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -419,7 +419,7 @@ TEST_F(createDFDUnpackedTest4, FormatRGBA8) {
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -437,7 +437,7 @@ TEST_F(createDFDUnpackedTest3, FormatSRGB8) {
 
     uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 3, 1, KTX_FALSE, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -463,7 +463,7 @@ TEST_F(createDFDPackedTest3, FormatRGB565) {
     };
     uint32_t* dfd = createDFDPacked(KTX_FALSE, 3, bits, channels, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -480,7 +480,7 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_R8B8G8) {
 
     uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, 1, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -497,7 +497,7 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_SR8B8G8) {
 
     uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, 1, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -514,7 +514,7 @@ TEST_F(createDFDCompressedTest1, FormatETC2_R8B8G8) {
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -532,7 +532,7 @@ TEST_F(createDFDCompressedTest2, FormatETC2_R8G8B8A8) {
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -549,7 +549,7 @@ TEST_F(createDFDCompressedTest1, FormatETC2_SR8B8G8) {
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -568,7 +568,7 @@ TEST_F(createDFDCompressedTest2, FormatETC2_SR8G8B8A8) {
 
     uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -585,7 +585,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_12x12_SRGB) {
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 12, 12, 1, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -602,7 +602,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x5_SRGB) {
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 5, 1, s_SRGB);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -619,7 +619,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_5x4) {
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 5, 4, 1, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -636,7 +636,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x8) {
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 8, 1, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -653,7 +653,7 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_3x3x3) {
 
     uint32_t* dfd = createDFDCompressed(c_ASTC, 3, 3, 3, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -670,7 +670,7 @@ TEST_F(createDFDCompressedTest1, FormatBC1) {
 
     uint32_t* dfd = createDFDCompressed(c_BC1_RGB, 4, 4, 1, s_UNORM);
 
-    EXPECT_EQ(*dfd, sizeof(expected) + 4);
+    EXPECT_EQ(*dfd, sizeof(expected) + 4U);
     EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
 
     free(dfd);
@@ -709,7 +709,7 @@ class HashListTest : public ::testing::Test {
         compareList(head, sorted);
     }
 
-    void compareList(ktxHashList list, bool sorted) {
+    void compareList(ktxHashList list, bool isSorted) {
         ktxHashListEntry* entry = list;
         ktx_uint32_t entryCount = 0;
 
@@ -721,7 +721,7 @@ class HashListTest : public ::testing::Test {
             entryCount++;
             ktxHashListEntry_GetKey(entry, &keyLen, &key);
             ktxHashListEntry_GetValue(entry, &valueLen, (void**)&value);
-            if (sorted) {
+            if (isSorted) {
                 switch (entryCount) {
                   case 1:
                     EXPECT_STREQ(key, KTX_ORIENTATION_KEY);
@@ -740,7 +740,7 @@ class HashListTest : public ::testing::Test {
             else
                 EXPECT_TRUE(false);
         }
-        EXPECT_EQ(entryCount, 2);
+        EXPECT_EQ(entryCount, 2U);
     }
 
     ktxHashList head;
@@ -777,14 +777,12 @@ class SwizzleTestBase : public ::testing::Test {
   public:
     SwizzleTestBase() {
         std::vector<GLubyte> color;
+        // Use swizzle enumerator values for easy checking of result.
+        std::vector<GLubyte> defaultColor = { R, G, B, A };
         color.resize(num_components);
-        color[0] = R;
-        if (num_components > 1)
-            color[1] = G;
-        if (num_components > 2)
-            color[2] = B;
-        if (num_components > 3)
-            color[3] = A;
+        for (uint32_t i = 0; i < num_components; i++) {
+            color[i] = defaultColor[i];
+        }
         helper.resize(createFlagBits::eNone, 1, 1, 2, width, height, 1, &color);
     }
 
@@ -830,8 +828,8 @@ class SwizzleTestBase : public ::testing::Test {
 
   protected:
     WriterTestHelper<GLubyte, num_components, internalformat> helper;
-    const int width = 16;
-    const int height = 16;
+    const unsigned int width = 16;
+    const unsigned int height = 16;
 };
 
 class SwizzleToRGBATestR8 : public SwizzleTestBase<1, GL_R8> { };

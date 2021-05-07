@@ -46,7 +46,7 @@ Image* Image::CreateFromFile(const _tstring& name,
         try {
             image = (*func)(f, transformOETF, rescaleTo8Bit);
             return image;
-        } catch (different_format) {
+        } catch (different_format&) {
             rewind(f);
             continue;
         }

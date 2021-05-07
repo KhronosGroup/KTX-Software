@@ -684,7 +684,7 @@ public:
     }
 
     // Submit the text command buffers to a queue
-    void submit(VkQueue queue, uint32_t bufferindex, VkSubmitInfo submitInfo)
+    void submit(VkQueue targetQueue, uint32_t bufferindex, VkSubmitInfo submitInfo)
     {
         if (!visible)
         {
@@ -694,7 +694,7 @@ public:
         submitInfo.pCommandBuffers = &cmdBuffers[bufferindex];
         submitInfo.commandBufferCount = 1;
 
-        VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
+        VK_CHECK_RESULT(vkQueueSubmit(targetQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
     void reallocateCommandBuffers()

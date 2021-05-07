@@ -39,9 +39,9 @@ class VulkanLoadTestSample : public LoadTestSample {
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void run(uint32_t msTicks) = 0;
 
-    virtual void getOverlayText(VulkanTextOverlay *textOverlay,
-                                float yoffset) { }
-    virtual const char* const customizeTitle(const char* const title) {
+    virtual void getOverlayText(VulkanTextOverlay* /*textOverlay*/,
+                                float /*yoffset*/) { }
+    virtual const char* customizeTitle(const char* const title) {
         return title;
     }
 
@@ -51,7 +51,7 @@ class VulkanLoadTestSample : public LoadTestSample {
                                     const std::string sBasePath);
 
   protected:
-    virtual void keyPressed(uint32_t keyCode) { }
+    virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
 
     std::string ktxfilename;

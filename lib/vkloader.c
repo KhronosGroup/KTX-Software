@@ -29,6 +29,7 @@
 #include "vk_funcs.h"   // Must be included before ktxvulkan.h.
 #include "ktxvulkan.h"
 #include "ktxint.h"
+#include "unused.h"
 #include "texture1.h"
 #include "texture2.h"
 #include "vk_format.h"
@@ -153,9 +154,9 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
     // Delay loading not supported so must do it ourselves.
     if (!ktxVulkanModuleHandle) {
-        result = ktxLoadVulkanLibrary();
-        if (result != KTX_SUCCESS)
-            return result;
+        ktx_error_code_e kresult = ktxLoadVulkanLibrary();
+        if (kresult != KTX_SUCCESS)
+            return kresult;
     }
 #endif
 
@@ -274,6 +275,7 @@ optimalTilingCallback(int miplevel, int face,
                       void* pixels, void* userdata)
 {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
+    UNUSED(pixels);
 
     // Set up copy to destination region in final image
 #if defined(_DEBUG)
@@ -351,7 +353,7 @@ optimalTilingPadCallback(int miplevel, int face,
         // Must remove padding. Copy a row at a time.
 		ktx_uint32_t image, imageIterations;
 		ktx_int32_t row;
-        ktx_uint32_t rowPitch, paddedRowPitch;
+        ktx_uint32_t paddedRowPitch;
 
         if (ud->numDimensions == 3)
             imageIterations = depth;
@@ -423,6 +425,9 @@ linearTilingCallback(int miplevel, int face,
       .mipLevel = miplevel,
       .arrayLayer = face
     };
+    UNUSED(width);
+    UNUSED(height);
+    UNUSED(depth);
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.
@@ -472,6 +477,7 @@ linearTilingPadCallback(int miplevel, int face,
     ktx_uint32_t row, image;
     ktx_uint8_t* pSrc;
     ktx_size_t   copySize;
+    UNUSED(width);
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.

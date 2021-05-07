@@ -37,7 +37,7 @@ sPrimaryMapping primaryMap[] = {
  *                 but it depends on the application.
  */
 khr_df_primaries_e findMapping(Primaries *p, float latitude) {
-    int i;
+    unsigned int i;
     for (i = 0; i < sizeof(primaryMap)/sizeof(sPrimaryMapping); ++i) {
         if (primaryMap[i].primaries.Rx - p->Rx <= latitude && p->Rx - primaryMap[i].primaries.Rx <= latitude &&
             primaryMap[i].primaries.Gx - p->Gx <= latitude && p->Gx - primaryMap[i].primaries.Gx <= latitude &&

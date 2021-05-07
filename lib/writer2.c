@@ -85,7 +85,12 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
                              + (ktx_uint32_t)strlen(libId);
     char* fullId = malloc(fullIdLen);
     strncpy(fullId, id, idLen);
-    strncpy(&fullId[idLen], idIntro, sizeof(idIntro));
+    // &idIntro[0] instead of idIntro is to workaround a gcc warning
+    // that I'm passing the same thing to sizeof as to the src
+    // parameter (i.e. I'm requesting the sizeof a pointer).
+    // Actually idIntro is an array of char not a pointer. Looks
+    // like a gcc bug.
+    strncpy(&fullId[idLen], &idIntro[0], sizeof(idIntro));
     strcpy(&fullId[idLen + sizeof(idIntro)-1], libId);
 
     ktxHashList_DeleteEntry(head, writerEntry);
@@ -264,11 +269,11 @@ static KTX_error_code
 ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
 {
     DECLARE_PRIVATE(ktxTexture2);
-    KTX_header2 header = KTX2_IDENTIFIER_REF;
+    KTX_header2 header = { .identifier = KTX2_IDENTIFIER_REF };
     KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
-    ktx_uint32_t align8PadLen;
+    ktx_uint32_t align8PadLen = 0;
     ktx_uint64_t sgdLen;
     ktx_uint32_t initialLevelPadLen;
     ktx_uint32_t levelIndexSize;

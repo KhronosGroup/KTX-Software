@@ -182,9 +182,9 @@ VulkanSwapchain::initSurface(SDL_Window* window)
 
 // Connect to the instance and device and get all required function pointers
 bool
-VulkanSwapchain::connectDevice(VkDevice device)
+VulkanSwapchain::connectDevice(VkDevice targetDevice)
 {
-    this->device = device;
+    this->device = targetDevice;
 #if USE_FUNCPTRS_FOR_KHR_EXTS
     GET_DEVICE_PROC_ADDR(device, CreateSwapchainKHR);
     GET_DEVICE_PROC_ADDR(device, DestroySwapchainKHR);
@@ -198,11 +198,11 @@ VulkanSwapchain::connectDevice(VkDevice device)
 
 // Connect to the instance and device and get all required function pointers
 bool
-VulkanSwapchain::connectInstance(VkInstance instance,
-                                 VkPhysicalDevice physicalDevice)
+VulkanSwapchain::connectInstance(VkInstance targetInstance,
+                                 VkPhysicalDevice targetPhysicalDevice)
 {
-    this->instance = instance;
-    this->physicalDevice = physicalDevice;
+    this->instance = targetInstance;
+    this->physicalDevice = targetPhysicalDevice;
 #if USE_FUNCPTRS_FOR_KHR_EXTS
     GET_INSTANCE_PROC_ADDR(instance, GetPhysicalDeviceSurfaceSupportKHR);
     GET_INSTANCE_PROC_ADDR(instance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
@@ -242,8 +242,8 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
     assert(err == VK_SUCCESS);
 
     VkExtent2D swapchainExtent = {};
-    // width and height are either both -1, or both not -1.
-    if (surfCaps.currentExtent.width == -1)
+    // width and height are either both 0xFFFFFFFF, or both not 0xFFFFFFFF.
+    if (surfCaps.currentExtent.width == UINT32_MAX)
     {
         // If the surface size is undefined, the size is set to
         // the size of the images requested.

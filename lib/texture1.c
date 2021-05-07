@@ -21,6 +21,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "dfdutils/dfd.h"
 #include "ktx.h"
@@ -29,7 +30,7 @@
 #include "filestream.h"
 #include "memstream.h"
 #include "texture1.h"
-#include "uthash.h"
+#include "unused.h"
 #include "gl_format.h"
 
 typedef struct ktxTexture1_private {
@@ -64,7 +65,6 @@ static KTX_error_code
 ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
                       ktxTextureCreateStorageEnum storageAllocation)
 {
-    ktxTexture1_private* private;
     ktxTexture_protected* prtctd;
     ktxFormatSize formatSize;
     GLuint typeSize;
@@ -91,7 +91,6 @@ ktxTexture1_construct(ktxTexture1* This, ktxTextureCreateInfo* createInfo,
     if (result != KTX_SUCCESS)
         return result;
     prtctd = This->_protected;
-    private = This->_private;
 
     This->isCompressed
                     = (formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
@@ -332,8 +331,10 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
                     switch (This->numDimensions) {
                       case 3:
                         This->orientation.z = orient[2];
+                        FALLTHROUGH;
                       case 2:
                         This->orientation.y = orient[1];
+                        FALLTHROUGH;
                       case 1:
                         This->orientation.x = orient[0];
                     }
@@ -823,10 +824,11 @@ ktxTexture1_calcDataSizeLevels(ktxTexture1* This, ktx_uint32_t levels)
         ktx_size_t levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
                                                         KTX_FORMAT_VERSION_ONE);
         /* mipPadding. NOTE: this adds padding after the last level too. */
-        if (KTX_GL_UNPACK_ALIGNMENT != 4)
+        #if KTX_GL_UNPACK_ALIGNMENT != 4
             dataSize += _KTX_PAD4(levelSize);
-        else
+        #else
             dataSize += levelSize;
+        #endif
     }
     return dataSize;
 }
@@ -1300,6 +1302,7 @@ cleanup:
 ktx_bool_t
 ktxTexture1_NeedsTranscoding(ktxTexture1* This)
 {
+    UNUSED(This);
     return KTX_FALSE;
 }
 
@@ -1314,6 +1317,12 @@ ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
                                ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                const ktx_uint8_t* src, ktx_size_t srcSize)
 {
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
@@ -1322,18 +1331,28 @@ ktxTexture1_SetImageFromStdioStream(ktxTexture1* This, ktx_uint32_t level,
                                     ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                     FILE* src, ktx_size_t srcSize)
 {
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
 {
+    UNUSED(This);
+    UNUSED(dstsstr);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
 {
+    UNUSED(This);
+    UNUSED(dstname);
     return KTX_INVALID_OPERATION;
 }
 
@@ -1341,6 +1360,9 @@ KTX_error_code
 ktxTexture1_WriteToMemory(ktxTexture1* This,
                           ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
+    UNUSED(This);
+    UNUSED(ppDstBytes);
+    UNUSED(pSize);
     return KTX_INVALID_OPERATION;
 }
 

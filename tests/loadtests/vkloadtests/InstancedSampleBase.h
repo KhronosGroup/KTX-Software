@@ -29,7 +29,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
     virtual void run(uint32_t msTicks);
 
     //virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
-    virtual const char* const customizeTitle(const char* const title);
+    virtual const char* customizeTitle(const char* const title);
 
   protected:
     ktxVulkanTexture texture;
@@ -95,8 +95,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
     void preparePipelines(const char* const fragShaderName,
                           const char* const vertShaderName);
 
-    void prepareUniformBuffers(uint32_t shaderDeclaredInstances,
-                               uint32_t instanceCount);
+    void prepareUniformBuffers(uint32_t shaderDeclaredInstances);
     void updateUniformBufferMatrices();
 
     void prepareSamplerAndView();

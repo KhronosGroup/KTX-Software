@@ -28,7 +28,14 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
+#if (EMSCRIPTEN)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 #include "basisu/encoder/basisu_comp.h"
+#if (EMSCRIPTEN)
+#pragma clang diagnostic pop
+#endif
 #include "basisu/transcoder/basisu_file_headers.h"
 #include "basisu/transcoder/basisu_transcoder.h"
 #include "dfdutils/dfd.h"
@@ -69,16 +76,16 @@ typedef void
 // component size to be 8 bits.
 
 static void
-copy_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
-                  ktx_size_t image_size, swizzle_e swizzle[4])
+copy_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t,
+                  ktx_size_t image_size, swizzle_e[4])
 {
     memcpy(rgbadst, rgbasrc, image_size);
 }
 
 // Copy rgb to rgba. No swizzle.
 static void
-copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t src_len,
-                 ktx_size_t image_size, swizzle_e swizzle[4])
+copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t,
+                 ktx_size_t image_size, swizzle_e[4])
 {
     for (ktx_size_t i = 0; i < image_size; i += 3) {
         memcpy(rgbadst, rgbsrc, 3);
@@ -543,7 +550,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
     }
 
-    PFNBUCOPYCB copycb;
+    PFNBUCOPYCB copycb = copy_rgba_to_rgba; // Initialization is just to keep
+                                            // compilers happy
     if (comp_mapping) {
         copycb = swizzle_to_rgba;
     } else {
@@ -799,7 +807,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     assert(bfh.m_total_images == num_images);
 
     uint8_t* bgd = nullptr;
-    uint32_t bgd_size;
+    size_t bgd_size;
     uint32_t image_data_size = 0;
     ktxTexture2_private& priv = *This->_private;
     uint32_t base_offset = bfh.m_slice_desc_file_ofs;
@@ -833,9 +841,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                  + bfh.m_tables_file_size;
         bgd = new ktx_uint8_t[bgd_size];
         ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
-        bgdh.endpointCount = bfh.m_total_endpoints;
+        bgdh.endpointCount = (uint16_t)bfh.m_total_endpoints;
         bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
-        bgdh.selectorCount = bfh.m_total_selectors;
+        bgdh.selectorCount = (uint16_t)bfh.m_total_selectors;
         bgdh.selectorsByteLength = bfh.m_selector_cb_file_size;
         bgdh.tablesByteLength = bfh.m_tables_file_size;
         bgdh.extendedByteLength = 0;
@@ -928,7 +936,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                &bf[bfh.m_tables_file_ofs],
                bfh.m_tables_file_size);
 
-        assert((dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
+        assert((size_t)(dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
 
         //
         // We have a complete global data package.

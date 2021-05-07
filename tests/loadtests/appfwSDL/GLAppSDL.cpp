@@ -147,8 +147,8 @@ GLAppSDL::initialize(Args& args)
         typedef GLenum(GLEWAPIENTRY PFNGLEWINIT)(void);
         typedef const GLubyte * GLEWAPIENTRY PFNGLEWGETERRORSTRING(GLenum error);
         PFNGLEWINIT* pGlewInit;
-        PFNGLEWGETERRORSTRING* pGlewGetErrorString;
-        bool error = true;
+        PFNGLEWGETERRORSTRING* pGlewGetErrorString = nullptr;
+        bool loadError = true;
 #define STR(s) #s
 #if defined(_M_IX86)
         /* Win32 GLEW uses __stdcall. */
@@ -162,11 +162,11 @@ GLAppSDL::initialize(Args& args)
             pGlewGetErrorString = (PFNGLEWGETERRORSTRING*)SDL_LoadFunction(
                     glewdll, DNAMESTR(glewGetErrorString,4));
             if (pGlewGetErrorString != NULL) {
-                error = false;
+                loadError = false;
             }
         }
 
-        if (error) {
+        if (loadError) {
             std::string sName(szName);
 
             (void)SDL_ShowSimpleMessageBox(
@@ -231,7 +231,7 @@ GLAppSDL::doEvent(SDL_Event* event)
 
 
 void
-GLAppSDL::drawFrame(uint32_t msTicks)
+GLAppSDL::drawFrame(uint32_t /*msTicks*/)
 {
     SDL_GL_SwapWindow(pswMainWindow);
 }

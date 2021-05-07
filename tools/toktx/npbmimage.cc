@@ -35,6 +35,18 @@
 
 static int tupleSize(const char* tupleType);
 
+static void throwOnReadFailure(FILE* src)
+{
+    if (feof(src)) {
+        throw std::runtime_error("Unexpected end-of-file.");
+    } else {
+        std::stringstream message;
+        message << "I/O error reading file: "
+                << strerror(ferror(src));
+        throw std::runtime_error(message.str());
+    }
+}
+
 // Skips over comments in a netpbm file
 // (i.e., lines starting with #)
 //
@@ -48,9 +60,8 @@ void skipComments(FILE *src)
     while((c = getc(src)) == '#')
     {
         char line[1024];
-                // This is to silence -Wunused-result from GCC 4.8+.
-        char* retval;
-        retval = fgets(line, 1024, src);
+        if (fgets(line, sizeof(line), src) == NULL)
+            throwOnReadFailure(src);
     }
     ungetc(c, src);
 }
@@ -162,7 +173,7 @@ Image*
 createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     int32_t maxval;
-    uint32_t numvals, width, height;
+    uint32_t width, height;
     Image* image;
 
     skipNonData(src);
@@ -178,9 +189,7 @@ createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     image->setColortype(Image::eRGB);
 
     // We need to remove the newline.
-    char c = 0;
-    while(c != '\n')
-        numvals = fscanf(src, "%c", &c);
+    while((char)getc(src) != '\n') ;
 
     readImage(src, *image, maxval);
     if (transformOETF) {
@@ -226,7 +235,6 @@ Image*
 createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 {
     int maxval;
-    int numvals;
     uint32_t width, height;
     Image* image;
 
@@ -242,8 +250,7 @@ createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     image->setColortype(Image::eLuminance);
 
     /* gotta eat the newline too */
-    char ch=0;
-    while(ch!='\n') numvals = fscanf(src,"%c",&ch);
+    while((char)getc(src) != '\n') ;
 
     readImage(src, *image, maxval);
     if (transformOETF) {
@@ -297,20 +304,17 @@ createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 #define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
 #define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
     char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
-    unsigned int width, height;
-    unsigned int maxval, depth;
+    // Initialization avoids potentially uninitialized variable warning.
+    unsigned int width=0, height=0;
+    unsigned int maxval=0, depth=0;
     unsigned int numFieldsFound = 0;
     unsigned int components;
-    Image* image;
+    Image* image = nullptr;
 
     for (;;) {
         skipNonData(src);
-        if (!fgets(line, sizeof(line), src)) {
-            if (feof(src))
-                throw std::runtime_error("Unexpected end of file.");
-            else
-                throw std::runtime_error("IO error.");
-        }
+        if (!fgets(line, sizeof(line), src))
+            throwOnReadFailure(src);
         if (strcmp(line, "ENDHDR\n") == 0)
             break;
 
@@ -485,12 +489,8 @@ readImage(FILE* src, Image& image, int32_t maxval)
         nitems = 1;
     }
     if (fread(pBuffer, image.getByteCount(), nitems, src) != 1)
-    {
-        std::stringstream message;
-        message << "unexpected end of file. Could not read "
-                << image.getByteCount() << " bytes of pixel data.";
-        throw std::runtime_error(message.str());
-    }
+        throwOnReadFailure(src);
+
     if (IS_LITTLE_ENDIAN && maxval > 255) {
         swapEndian16((uint16_t*)pBuffer,
                      image.getPixelCount() * image.getComponentCount());

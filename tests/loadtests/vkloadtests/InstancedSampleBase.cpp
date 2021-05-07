@@ -205,7 +205,7 @@ InstancedSampleBase::resize(uint32_t width, uint32_t height)
 }
 
 void
-InstancedSampleBase::run(uint32_t msTicks)
+InstancedSampleBase::run(uint32_t /*msTicks*/)
 {
     // Nothing to do since the scene is not animated.
     // VulkanLoadTests base class redraws from the command buffer we built.
@@ -218,9 +218,9 @@ InstancedSampleBase::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-        "external",      argparser::option::no_argument, &externalFile, 1,
-        "linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear,
-        NULL,            argparser::option::no_argument, NULL,          0
+      {"external",      argparser::option::no_argument, &externalFile, 1},
+      {"linear-tiling", argparser::option::no_argument, (int*)&tiling, (int)vk::ImageTiling::eLinear},
+      {NULL,            argparser::option::no_argument, NULL,          0}
     };
 
     argvector argv(sArgs);
@@ -576,8 +576,7 @@ InstancedSampleBase::preparePipelines(const char* const fragShaderName,
 }
 
 void
-InstancedSampleBase::prepareUniformBuffers(uint32_t shaderDeclaredInstances,
-                                           uint32_t instanceCount)
+InstancedSampleBase::prepareUniformBuffers(uint32_t shaderDeclaredInstances)
 {
     uboVS.instance = new UboInstanceData[instanceCount];
 
@@ -685,7 +684,7 @@ InstancedSampleBase::prepare(const char* const fragShaderName,
     prepareSamplerAndView();
     setupVertexDescriptions();
     generateQuad();
-    prepareUniformBuffers(shaderDeclaredInstances, instanceCount);
+    prepareUniformBuffers(shaderDeclaredInstances);
     setupDescriptorSetLayout();
     preparePipelines(fragShaderName, vertShaderName);
     setupDescriptorPool();
@@ -694,14 +693,14 @@ InstancedSampleBase::prepare(const char* const fragShaderName,
     buildCommandBuffers();
 }
 
-const char* const
-InstancedSampleBase::customizeTitle(const char* const title)
+const char*
+InstancedSampleBase::customizeTitle(const char* const baseTitle)
 {
     if (transcoded) {
-        this->title = title;
+        this->title = baseTitle;
         this->title += " Transcoded to ";
         this->title += vkFormatString((VkFormat)transcodedFormat);
         return this->title.c_str();
     }
-    return title;
+    return baseTitle;
 }

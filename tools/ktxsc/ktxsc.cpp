@@ -76,7 +76,7 @@ Supercompress the images in a KTX2 file.
     <dt>--t2</dt>
     <dd>Output a KTX version2 file. Always true.</dd>
     </dl>
-    @snippet{doc} scApp.h scApp options
+    @snippet{doc} scapp.h scApp options
 
 @section ktxsc_exitstatus EXIT STATUS
     @b toktx exits 0 on success, 1 on command line errors and 2 on
@@ -171,7 +171,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
     KTX_error_code result;
     ktxTexture2* texture = 0;
     int exitCode = 0;
-    const _TCHAR* pTmpFile;
+    const _TCHAR* pTmpFile = 0;
 
     processCommandLine(argc, argv, eAllowStdin);
     validateOptions();

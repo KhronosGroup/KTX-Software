@@ -673,7 +673,6 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         depth = MAX(1, This->baseDepth  >> level);
 
         levelImageCount = This->numLayers * This->numFaces * depth;
-        uint32_t numFaceSlices = This->numFaces * depth;
         levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), level,
                                                     KTX_FORMAT_VERSION_TWO);
         levelImageSizeOut = ktxTexture_calcImageSize(ktxTexture(prototype),

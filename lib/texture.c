@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ktx.h"
 #include "ktxint.h"
@@ -36,7 +37,7 @@
 #include "memstream.h"
 #include "texture1.h"
 #include "texture2.h"
-#include "uthash.h"
+#include "unused.h"
 
 ktx_size_t ktxTexture_GetDataSize(ktxTexture* This);
 
@@ -194,6 +195,7 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
                                ktxTextureCreateFlags createFlags)
 {
     ktxStream* stream;
+    UNUSED(createFlags); // Reference to keep compiler happy.
 
     assert(This != NULL);
     assert(pStream->data.mem != NULL);
@@ -562,9 +564,9 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
     // Round up to next whole block. We can't use KTX_PADN because some of
     // the block sizes are not powers of 2.
     blockCount.x
-        = (uint32_t)ceilf(levelWidth / prtctd->_formatSize.blockWidth);
+        = (ktx_uint32_t)ceilf(levelWidth / prtctd->_formatSize.blockWidth);
     blockCount.y
-        = (uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
+        = (ktx_uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
     blockCount.x = MAX(prtctd->_formatSize.minBlocksX, blockCount.x);
     blockCount.y = MAX(prtctd->_formatSize.minBlocksX, blockCount.y);
 
@@ -574,7 +576,9 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
         assert(This->isCompressed);
         return blockCount.x * blockCount.y * blockSizeInBytes;
     } else {
-        assert(prtctd->_formatSize.blockWidth == prtctd->_formatSize.blockHeight == prtctd->_formatSize.blockDepth == 1);
+        assert(prtctd->_formatSize.blockWidth == 1U
+               && prtctd->_formatSize.blockHeight == 1U
+               && prtctd->_formatSize.blockDepth == 1U);
         rowBytes = blockCount.x * blockSizeInBytes;
         if (fv == KTX_FORMAT_VERSION_ONE)
             (void)padRow(&rowBytes);
@@ -730,7 +734,7 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
     if (fv == KTX_FORMAT_VERSION_ONE && KTX_GL_UNPACK_ALIGNMENT != 4) {
         if (This->isCubemap && !This->isArray) {
             /* cubePadding. NOTE: this adds padding after the last face too. */
-            _KTX_PAD4(layerSize);
+            layerSize += _KTX_PAD4(layerSize);
         }
     }
     return layerSize * This->numFaces;
@@ -841,7 +845,9 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
     assert (This != NULL);
 
     assert(!This->isCompressed);
-    assert(prtctd->_formatSize.blockWidth == prtctd->_formatSize.blockHeight == prtctd->_formatSize.blockDepth == 1);
+    assert(prtctd->_formatSize.blockWidth == 1U
+           && prtctd->_formatSize.blockHeight == 1U
+           && prtctd->_formatSize.blockDepth == 1U);
 
     blockCount.x = MAX(1, (This->baseWidth / prtctd->_formatSize.blockWidth)  >> level);
     *numRows = MAX(1, (This->baseHeight / prtctd->_formatSize.blockHeight)  >> level);

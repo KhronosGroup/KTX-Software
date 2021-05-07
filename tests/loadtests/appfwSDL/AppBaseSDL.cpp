@@ -21,7 +21,7 @@
 #include <sstream>
 
 bool
-AppBaseSDL::initialize(Args& args)
+AppBaseSDL::initialize(Args& /*args*/)
 {
     const char* basePath = SDL_GetBasePath();
     if (basePath == NULL)
@@ -120,7 +120,7 @@ AppBaseSDL::setWindowTitle()
 }
 
 
-const char* const appName()
+const char* appName()
 {
     return theApp->name();
 }

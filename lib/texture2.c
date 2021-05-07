@@ -21,6 +21,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 #include <zstd.h>
 #include <zstd_errors.h>
 #include <KHR/khr_df.h>
@@ -32,7 +33,7 @@
 #include "filestream.h"
 #include "memstream.h"
 #include "texture2.h"
-#include "uthash.h"
+#include "unused.h"
 #include "vk_format.h"
 
 // FIXME: Test this #define and put it in a header somewhere.
@@ -105,60 +106,75 @@ struct BDFD e5b9g9r9_ufloat_comparator = {
     .bytesPlane5 = 0,
     .bytesPlane6 = 0,
     .bytesPlane7 = 0,
-    .samples[0].bitOffset = 0,
-    .samples[0].bitLength = 8,
-    .samples[0].channelType = KHR_DF_CHANNEL_RGBSDA_RED,
-    .samples[0].samplePosition0 = 0,
-    .samples[0].samplePosition1 = 0,
-    .samples[0].samplePosition2 = 0,
-    .samples[0].samplePosition3 = 0,
-    .samples[0].lower = 0,
-    .samples[0].upper = 8448,
-    .samples[1].bitOffset = 27,
-    .samples[1].bitLength = 4,
-    .samples[1].channelType = KHR_DF_CHANNEL_RGBSDA_RED | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
-    .samples[1].samplePosition0 = 0,
-    .samples[1].samplePosition1 = 0,
-    .samples[1].samplePosition2 = 0,
-    .samples[1].samplePosition3 = 0,
-    .samples[1].lower = 15,
-    .samples[1].upper = 31,
-    .samples[2].bitOffset = 9,
-    .samples[2].bitLength = 8,
-    .samples[2].channelType = KHR_DF_CHANNEL_RGBSDA_GREEN,
-    .samples[2].samplePosition0 = 0,
-    .samples[2].samplePosition1 = 0,
-    .samples[2].samplePosition2 = 0,
-    .samples[2].samplePosition3 = 0,
-    .samples[2].lower = 0,
-    .samples[2].upper = 8448,
-    .samples[3].bitOffset = 27,
-    .samples[3].bitLength = 4,
-    .samples[3].channelType = KHR_DF_CHANNEL_RGBSDA_GREEN | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
-    .samples[3].samplePosition0 = 0,
-    .samples[3].samplePosition1 = 0,
-    .samples[3].samplePosition2 = 0,
-    .samples[3].samplePosition3 = 0,
-    .samples[3].lower = 15,
-    .samples[3].upper = 31,
-    .samples[4].bitOffset = 18,
-    .samples[4].bitLength = 8,
-    .samples[4].channelType = KHR_DF_CHANNEL_RGBSDA_BLUE,
-    .samples[4].samplePosition0 = 0,
-    .samples[4].samplePosition1 = 0,
-    .samples[4].samplePosition2 = 0,
-    .samples[4].samplePosition3 = 0,
-    .samples[4].lower = 0,
-    .samples[4].upper = 8448,
-    .samples[5].bitOffset = 27,
-    .samples[5].bitLength = 4,
-    .samples[5].channelType = KHR_DF_CHANNEL_RGBSDA_BLUE | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
-    .samples[5].samplePosition0 = 0,
-    .samples[5].samplePosition1 = 0,
-    .samples[5].samplePosition2 = 0,
-    .samples[5].samplePosition3 = 0,
-    .samples[5].lower = 15,
-    .samples[5].upper = 31,
+    // gcc likes this way. It does not like, e.g.,
+    // .samples[0].bitOffset = 0, etc. which is accepted by both clang & msvc.
+    // I find the standards docs impenetrable so I don't know which is correct.
+    .samples[0] = {
+        .bitOffset = 0,
+        .bitLength = 8,
+        .channelType = KHR_DF_CHANNEL_RGBSDA_RED,
+        .samplePosition0 = 0,
+        .samplePosition1 = 0,
+        .samplePosition2 = 0,
+        .samplePosition3 = 0,
+        .lower = 0,
+        .upper = 8448,
+    },
+    .samples[1] = {
+        .bitOffset = 27,
+        .bitLength = 4,
+        .channelType = KHR_DF_CHANNEL_RGBSDA_RED | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+        .samplePosition0 = 0,
+        .samplePosition1 = 0,
+        .samplePosition2 = 0,
+        .samplePosition3 = 0,
+        .lower = 15,
+        .upper = 31,
+    },
+    .samples[2] = {
+        .bitOffset = 9,
+        .bitLength = 8,
+        .channelType = KHR_DF_CHANNEL_RGBSDA_GREEN,
+        .samplePosition0 = 0,
+        .samplePosition1 = 0,
+        .samplePosition2 = 0,
+        .samplePosition3 = 0,
+        .lower = 0,
+        .upper = 8448,
+    },
+    .samples[3] = {
+        .bitOffset = 27,
+        .bitLength = 4,
+        .channelType = KHR_DF_CHANNEL_RGBSDA_GREEN | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+        .samplePosition0 = 0,
+        .samplePosition1 = 0,
+        .samplePosition2 = 0,
+        .samplePosition3 = 0,
+        .lower = 15,
+        .upper = 31,
+    },
+    .samples[4] = {
+        .bitOffset = 18,
+        .bitLength = 8,
+        .channelType = KHR_DF_CHANNEL_RGBSDA_BLUE,
+        .samplePosition0 = 0,
+        .samplePosition1 = 0,
+        .samplePosition2 = 0,
+        .samplePosition3 = 0,
+        .lower = 0,
+        .upper = 8448,
+    },
+    .samples[5] = {
+        .bitOffset = 27,
+        .bitLength = 4,
+        .channelType = KHR_DF_CHANNEL_RGBSDA_BLUE | KHR_DF_SAMPLE_DATATYPE_EXPONENT,
+        .samplePosition0 = 0,
+        .samplePosition1 = 0,
+        .samplePosition2 = 0,
+        .samplePosition3 = 0,
+        .lower = 15,
+        .upper = 31,
+    }
 };
 #else
 // For compilers which order bitfields from the msb rather than lsb.
@@ -216,7 +232,6 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
 bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
-    bool notDepthStencil = false;
     uint32_t* pBdb = pDfd + 1;
 
     // Check the DFD is of the expected type and version.
@@ -414,10 +429,8 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
 
     // Create levelIndex. Offsets are from start of the KTX2 stream.
     ktxLevelIndexEntry* levelIndex = This->_private->_levelIndex;
-    ktx_uint32_t levelIndexSize;
 
     This->_private->_firstLevelFileOffset = 0;
-    levelIndexSize = sizeof(ktxLevelIndexEntry) * This->numLevels;
 
     for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
         levelIndex[level].uncompressedByteLength =
@@ -758,8 +771,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
                         switch (This->numDimensions) {
                           case 3:
                             This->orientation.z = orientationStr[2];
+                            FALLTHROUGH;
                           case 2:
                             This->orientation.y = orientationStr[1];
+                            FALLTHROUGH;
                           case 1:
                             This->orientation.x = orientationStr[0];
                         }
@@ -2294,6 +2309,12 @@ ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
                                ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                const ktx_uint8_t* src, ktx_size_t srcSize)
 {
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
@@ -2302,18 +2323,28 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
                                     ktx_uint32_t layer, ktx_uint32_t faceSlice,
                                     FILE* src, ktx_size_t srcSize)
 {
+    UNUSED(This);
+    UNUSED(level);
+    UNUSED(layer);
+    UNUSED(faceSlice);
+    UNUSED(src);
+    UNUSED(srcSize);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
 {
+    UNUSED(This);
+    UNUSED(dstsstr);
     return KTX_INVALID_OPERATION;
 }
 
 KTX_error_code
 ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
 {
+    UNUSED(This);
+    UNUSED(dstname);
     return KTX_INVALID_OPERATION;
 }
 
@@ -2321,6 +2352,9 @@ KTX_error_code
 ktxTexture2_WriteToMemory(ktxTexture2* This,
                           ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
 {
+    UNUSED(This);
+    UNUSED(ppDstBytes);
+    UNUSED(pSize);
     return KTX_INVALID_OPERATION;
 }
 
