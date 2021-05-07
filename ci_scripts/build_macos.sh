@@ -35,21 +35,24 @@ fi
 echo "Configure KTX-Software (macOS) without SSE support"
 cmake -GXcode -Bbuild-macos-nosse -DBASISU_SUPPORT_SSE=OFF
 
+# Cause the build pipes below to set the exit to the exit code of the
+# last program to exit non-zero.
+set -o pipefail
+
 pushd build-macos
 
 # Build and test Debug
 echo "Build KTX-Software (macOS Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee fullbuild.log | xcpretty && exit ${PIPESTATUS[0]}
+cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee fullbuild.log | xcpretty
 echo "Test KTX-Software (macOS Debug)"
 ctest -C Debug # --verbose
 
 # Build and test Release
 echo "Build KTX-Software (macOS Release)"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
-  cmake --build . --config Release | tee -a fullbuild.log | xcpretty && exit ${PIPESTATUS[0]}
+  cmake --build . --config Release | tee -a fullbuild.log | xcpretty
 else
-  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty && exit ${PIPESTATUS[0]}
-
+  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 fi
 echo "Test KTX-Software (macOS Release)"
 ctest -C Release # --verbose
@@ -66,12 +69,12 @@ popd
 pushd build-macos-nosse
 
 echo "Build KTX-Software (macOS without SSE support Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty && exit ${PIPESTATUS[0]}
+cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 
 echo "Test KTX-Software (macOS without SSE support Debug)"
 ctest -C Debug # --verbose
 echo "Build KTX-Software (macOS without SSE support Release)"
-cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty && exit ${PIPESTATUS[0]}
+cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 
 echo "Test KTX-Software (macOS without SSE support Release)"
 ctest -C Release # --verbose
@@ -86,11 +89,11 @@ echo "Configure KTX-Software (iOS)"
 cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
-cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty && exit ${PIPESTATUS[0]}
+cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 # echo "Build KTX-Software (iOS Simulator Debug)"
 # cmake --build . --config Debug -- -sdk iphonesimulator
 echo "Build KTX-Software (iOS Release)"
-cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty && exit ${PIPESTATUS[0]}
+cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 # echo "Build KTX-Software (iOS Simulator Release)"
 # cmake --build . --config Release -- -sdk iphonesimulator
 popd
