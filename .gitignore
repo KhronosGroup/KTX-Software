@@ -7,6 +7,7 @@
 *.bak
 
 /build*/
+/install*/
 
 # /include/
 /include/imdebug.h
@@ -33,3 +34,7 @@
 
 # version files
 version.h
+
+# Visual Studio
+.vs/
+CMakeSettings.json

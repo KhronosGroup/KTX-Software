@@ -105,7 +105,11 @@ You need to install the following
 - Xcode
 - [Doxygen](#doxygen) (only if generating documentation)
 
-For the load tests applications you need to install the [Vulkan SDK](#vulkan-sdk).
+For the load tests applications you need to install the Vulkan SDK.
+To build for iOS you need to set the CMake cache variable `MOLTEN_VK_SDK` to the root of MoltenVK inside the Vulkan SDK, if it is not already set.
+Caution: `setup.env` in the macOS Vulkan SDK sets `VULKAN_SDK` to the macOS folder of the SDK, a sibling of the MoltenVK folder.
+To build for other platforms, you shouldn't need to do anything else, but you might need to set the environment variable `VULKAN_SDK`
+to the root of the Vulkan SDK as a hint for [FindVulkan](https://cmake.org/cmake/help/latest/module/FindVulkan.html#hints).
 
 Other dependencies (like zstd, SDL2 or the assimp library are included in this repository or come with Xcode).
 
@@ -120,8 +124,8 @@ To build for macOS:
 mkdir build
 cmake -G Xcode -B build/mac
 
-# If you want to build the load test apps as well, you have to set the `KTX_FEATURE_LOADTEST_APPS` parameter and pass the location where you installed the Vulkan SDK as parameter `VULKAN_INSTALL_DIR`:
-cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+# If you want to build the load test apps as well, you have to set the `KTX_FEATURE_LOADTEST_APPS` parameter:
+cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON"
 
 # Compile the project
 cmake --build build/mac
@@ -182,7 +186,7 @@ mkdir build # if it does not exist
 cmake -G Xcode -B build/ios -DCMAKE_SYSTEM_NAME=iOS
 
 # This creates a project to build the load test apps as well.
-cmake -G Xcode -B build/ios -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+cmake -G Xcode -B build/ios -DKTX_FEATURE_LOADTEST_APPS=ON"
 
 # Compile the project
 cmake --build build -- -sdk iphoneos

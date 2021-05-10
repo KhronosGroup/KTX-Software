@@ -36,8 +36,7 @@ jobs:
     - os: osx
       env:
         - VULKAN_SDK_VER="1.2.141.2"
-        - VULKAN_INSTALL_DIR="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER"
-        - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
+        - VULKAN_SDK="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER/macOS"
       compiler: clang
       osx_image: xcode12.4
 
