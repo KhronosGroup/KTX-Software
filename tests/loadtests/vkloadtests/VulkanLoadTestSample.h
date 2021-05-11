@@ -60,7 +60,7 @@ class VulkanLoadTestSample : public LoadTestSample {
     vk::PipelineShaderStageCreateInfo
     loadShader(std::string filename,
                vk::ShaderStageFlagBits stage,
-               std::string modname = "main");
+               const char* modname = "main");
     void loadMesh(std::string filename,
                   vkMeshLoader::MeshBuffer* meshBuffer,
                   std::vector<vkMeshLoader::VertexLayout> vertexLayout,
