@@ -94,7 +94,7 @@ on your %PATH%):
 ```cmd
 install-gitconfig.bat
 del TODO.md TODO.md lib\mainpage.md pkgdoc\pages.md tools\toktx\toktx.cc
-git TODO.md lib\mainpage.md pkgdoc\pages.md tools\toktx\toktx.cc
+git checkout TODO.md lib\mainpage.md pkgdoc\pages.md tools\toktx\toktx.cc
 ```
 
 The first command adds an [include] of the repo's `.gitconfig` to the
