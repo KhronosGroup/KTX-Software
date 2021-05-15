@@ -195,3 +195,7 @@ function( create_version_header dest_path target )
     target_sources( ${target} PRIVATE ${version_h_output} )
 
 endfunction()
+
+function( create_version_file )
+    file(WRITE ${PROJECT_BINARY_DIR}/ktx.version "${KTX_VERSION}")
+endfunction()
