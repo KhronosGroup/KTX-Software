@@ -21,7 +21,7 @@ cmake . -G Ninja -B "build-android-$ANDROID_ABI-debug" \
 pushd "build-android-$ANDROID_ABI-debug"
 
 echo "Build KTX-Software (Android $ANDROID_ABI Debug)"
-cmake --build . --config Debug -j 8
+cmake --build . --config Debug -j
 # echo "Test KTX-Software (Android $ANDROID_ABI Debug)"
 # ctest -C Debug # --verbose
 echo "Install KTX-Software (Android $ANDROID_ABI Debug)"
@@ -41,7 +41,7 @@ cmake . -G Ninja -B "build-android-$ANDROID_ABI" \
 pushd "build-android-$ANDROID_ABI"
 
 echo "Build KTX-Software (Android $ANDROID_ABI Release)"
-cmake --build . --config Release -j 8
+cmake --build . --config Release -j
 # echo "Test KTX-Software (Android $ANDROID_ABI Release)"
 # ctest -C Release # --verbose
 echo "Install KTX-Software (Android $ANDROID_ABI Release)"
