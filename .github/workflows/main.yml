@@ -23,9 +23,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        # Fetch more than 1 commits to ensure the latest release tag is
+        # Fetch all history to make sure tags are
         # included (used for version creation)
-        fetch-depth: 100
+        fetch-depth: 0
     - uses: seanmiddleditch/gha-setup-ninja@v3
 
     - uses: nttld/setup-ndk@v1
