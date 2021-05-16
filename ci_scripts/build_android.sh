@@ -16,7 +16,8 @@ cmake . -G Ninja -B "build-android-$ANDROID_ABI-debug" \
 -DANDROID_ABI="$ANDROID_ABI" \
 -DANDROID_NDK="$ANDROID_NDK" \
 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
--DCMAKE_BUILD_TYPE=Debug
+-DCMAKE_BUILD_TYPE=Debug \
+-DBASISU_SUPPORT_SSE=OFF
 
 pushd "build-android-$ANDROID_ABI-debug"
 
@@ -36,7 +37,8 @@ cmake . -G Ninja -B "build-android-$ANDROID_ABI" \
 -DANDROID_ABI=$ANDROID_ABI \
 -DANDROID_NDK="$ANDROID_NDK" \
 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
--DCMAKE_BUILD_TYPE=Release
+-DCMAKE_BUILD_TYPE=Release \
+-DBASISU_SUPPORT_SSE=OFF
 
 pushd "build-android-$ANDROID_ABI"
 
