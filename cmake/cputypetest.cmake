@@ -110,7 +110,7 @@ function(set_target_processor_type out)
     elseif(ANDROID_ABI AND "${ANDROID_ABI}" STREQUAL "arm64-v8a")
         set(${out} armv8 PARENT_SCOPE)
     elseif(ANDROID_ABI AND "${ANDROID_ABI}" STREQUAL "x86")
-        set(${out} x86_32 PARENT_SCOPE)
+        set(${out} x86 PARENT_SCOPE)
     elseif(ANDROID_ABI AND "${ANDROID_ABI}" STREQUAL "x86_64")
         set(${out} x86_64 PARENT_SCOPE)
 
