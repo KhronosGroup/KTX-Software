@@ -6,8 +6,6 @@ on:
   # Trigger the workflow on pull request,
   # but only for the main branch
   pull_request:
-    branches:
-      - main
   # Also trigger on release created events
   release:
     types:
