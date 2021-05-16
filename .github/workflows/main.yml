@@ -60,7 +60,7 @@ jobs:
 
     - name: get-version
       id: ktx-version
-      run: >
+      run: |
         KTX_VERSION=$(cat build-android-arm64-v8a/ktx.version)
         echo "::set-output name=ktx-version::$KTX_VERSION"
 
