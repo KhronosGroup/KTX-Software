@@ -1,0 +1,21 @@
+# Text type files use auto line endings
+* text=auto
+
+# Explicitly declare text file types for this repo
+*.c text
+*.cpp text
+*.h text
+*.md text
+Jenkinsfile text
+
+# VS solutions always use Windows line endings
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+
+# Bash scripts always use *nux line endings
+*.sh text eol=lf
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.hdr binary
+*.exe binary
