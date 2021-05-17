@@ -70,6 +70,22 @@ Files: */*.json
 Copyright: 2017-2020 Mark Callow
 License: Apache-2.0
 
+Files: lib/astc-encoder/Docs/* lib/astc-encoder/Test/* lib/astc-encoder/jenkins/* lib/astc-encoder/.gitattributes lib/astc-encoder/.gitignore lib/astc-encoder/.gitmodules lib/astc-encoder/.pylintrc lib/astc-encoder/README.md
+Copyright: 2020-2021 Arm Limited
+License: Apache-2.0
+
+Files: lib/astc-encoder/.gitrepo
+Copyright: 2021 Mark Callow
+License: Apache-2.0
+
+Files: lib/astc-encoder/Source/stb_image*.h
+Copyright: 2017 Sean Barrett
+License: MIT
+
+Files: lib/astc-encoder/Source/tinyexr.h
+Copyright: 2014-2019 Syoyo Fujita and many contributors
+License: BSD-3-Clause
+
 # We have asked Binomial about REUSE compliance for their repo, see https://github.com/BinomialLLC/basis_universal/issues/165
 Files: lib/basisu/*
 Copyright: 2019-2020 Binomial LLC
