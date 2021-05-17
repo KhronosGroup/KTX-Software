@@ -20,7 +20,7 @@ Supported platforms (please to through their specific requirements first)
 - [GNU/Linux](#gnulinux)
 - [iOS and macOS](#ios-and-macos)
 - [Web/Emscripten](#webemscripten)
-- [Windows 64-bit](#windows-x64)
+- [Windows](#windows)
 - [Android](#android)
 
 The minimal way to a build is to clone this repository and run the following in a terminal
