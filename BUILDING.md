@@ -166,14 +166,14 @@ To sign the applications you need to set the following CMake variables:
 
 | Name | Value |
 | :---: | :---: |
-| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Developer ID Application_ certificate to use for signing |
-| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Developer ID Application_ certificate to use for signing. |
+| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner.
 
 To sign the installation package you need to set the following variables:
 
 | Name | Value |
 | :---: | :---: |
-| PRODUCTBUILD\_IDENTITY\_NAME | Owner of the _Developer ID Installer_ certificate to use for signing |
+| PRODUCTBUILD\_IDENTITY\_NAME | Owner of the _Developer ID Installer_ certificate to use for signing. |
 | PRODUCTBUILD\_KEYCHAIN\_PATH | Path to the keychain file with the certificate. Blank if its in the default keychain.
 
 #### iOS
@@ -200,8 +200,8 @@ To sign the applications you need to set the following CMake variables:
 
 | Name | Value |
 | :---: | :---: |
-| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _iPhone Developer_ certificate to use for signing |
-| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Apple Development_ certificate to use for signing. |
+| XCODE\_DEVELOPMENT\_TEAM | Development team used to create the Provisioning Profile. This may not be the same as the team of the _Apple Development_ certificate owner.
 | XCODE\_PROVISIONING\_PROFILE | Name of the profile to use.
 
 ### Web/Emscripten
