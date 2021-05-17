@@ -117,16 +117,23 @@ function(set_target_processor_type out)
     else()
         if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
             set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
-            execute_process(
-                COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
-                OUTPUT_VARIABLE processor
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-                # Specify this to block MSVC's output of the source file name
-                # so as not to trigger PowerShell's stop-on-error in CI.
-                # Unfortunately it suppresses all compile errors too hence
-                # the special case for MSVC.
-                ERROR_QUIET
-            )
+            if(${CMAKE_GENERATOR_PLATFORM} STREQUAL "ARM")
+                set(processor "arm")
+            elseif(${CMAKE_GENERATOR_PLATFORM} STREQUAL "ARM64")
+                set(processor "arm64")
+            else()
+                set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
+                execute_process(
+                    COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
+                    OUTPUT_VARIABLE processor
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    # Specify this to block MSVC's output of the source file name
+                    # so as not to trigger PowerShell's stop-on-error in CI.
+                    # Unfortunately it suppresses all compile errors too hence
+                    # the special case for MSVC.
+                    ERROR_QUIET
+                )
+            endif()
         else()
             if(APPLE AND NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
                 # No other Apple systems are x64_64. When configuring for iOS, etc.
