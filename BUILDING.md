@@ -213,11 +213,11 @@ Web builds create two additional targets:
 
 > **Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
 
-### Windows x64
+### Windows
 
 CMake can create solutions for Microsoft Visual Studio (2015/2017/2019 are supported by KTX).
 
-> **Note:** This project builds only for 64-bit Windows.
+> **Note:** x86 (32-bit) Windows is not supported.
 
 The CMake generators for Visual Studio 2017 and earlier generate projects whose default platform is Windows-x86. Since that is not supported by KTX-Software, the build will fail. To generate a project for x64 when using these earlier generators you must use CMake's `-A` option.
 
@@ -231,6 +231,22 @@ When using a more recent Visual Studio you simply need
 
 ```bash
 cmake -B build .
+```
+
+To configure for Universal Windows Platform (Windows Store) you have to
+
+- Set the platform to `x64`, `ARM` or `ARM64` (depending on your target device/platform)
+- Set the system name to `WindowsStore`
+- Provide a system version (e.g. `10.0`)
+
+> **Note:** Support is currently limited to `ktx` and `libktx_read` (no tools, tests or load tests apps)
+
+Example UWP configuration
+
+```bash
+cmake . -A ARM64 -B build_uwp_arm64 -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+# Build `ktx.dll` only
+cmake -B build_uwp_arm64 --target ktx
 ```
 
 The NSIS compiler is needed if you intend to build packages.
