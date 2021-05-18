@@ -63,8 +63,14 @@ endif()
 set( KTX_FEATURE_KTX1 ON )
 set( KTX_FEATURE_KTX2 ON )
 set( KTX_FEATURE_VULKAN ON )
+set( KTX_FEATURE_GL_UPLOAD "" ON )
 
 # Platform specific settings
+
+if (WIN32 AND ${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
+    # Disable OpenGL upload on Universal Windows Platform
+    set(KTX_FEATURE_GL_UPLOAD OFF)
+endif()
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
@@ -147,9 +153,6 @@ set(KTX_MAIN_SRC
     lib/filestream.h
     lib/formatsize.h
     lib/gl_format.h
-    lib/gl_funcs.c
-    lib/gl_funcs.h
-    lib/glloader.c
     lib/hashlist.c
     lib/info.c
     lib/ktxint.h
@@ -168,6 +171,14 @@ set(KTX_MAIN_SRC
     lib/vkformat_enum.h
     lib/vkformat_str.c
     )
+
+if(KTX_FEATURE_GL_UPLOAD)
+    list(APPEND KTX_MAIN_SRC
+        lib/gl_funcs.c
+        lib/gl_funcs.h
+        lib/glloader.c
+    )
+endif()
 
 # Main library
 add_library( ktx ${LIB_TYPE}
