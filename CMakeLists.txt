@@ -364,6 +364,7 @@ commom_lib_settings(ktx 1)
 commom_lib_settings(ktx_read 0)
 
 create_version_header(lib ktx)
+create_version_file()
 
 target_compile_definitions(
     ktx_read

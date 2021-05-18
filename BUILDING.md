@@ -21,8 +21,7 @@ Supported platforms (please to through their specific requirements first)
 - [iOS and macOS](#ios-and-macos)
 - [Web/Emscripten](#webemscripten)
 - [Windows 64-bit](#windows-x64)
-
-> **Note:** Android builds will follow
+- [Android](#android)
 
 The minimal way to a build is to clone this repository and run the following in a terminal
 
@@ -264,6 +263,33 @@ Imagination Technologies' PowerVR emulator as that alone supports OpenGL ES
 <sup>*</sup>You will need to build ANGLE yourself and copy the libs
 and dlls to the appropriate directories under `other_lib/win`. Note
 that ANGLE's OpenGL ES 3 support is not yet complete.
+
+### Android
+
+Support is currently limited to libktx and libktx_read (no tools, tests or loadtest apps)
+
+Requirements:
+
+- [CMake](https://cmake.org)
+- [Android NDK](https://developer.android.com/ndk)
+
+The path to the NDK, a CMake toolchain file (that comes with the NDK), the desired Android ABI and minimum API level have to be provided when configuring with CMake (see [Android NDK CMake guide](https://developer.android.com/ndk/guides/cmake) for more details/settings). Example:
+
+```bash
+export ANDROID_NDK=/path/to/Android_NDK #This is the location of Android NDK
+# Configure
+cmake . -B "build-android" \
+-DANDROID_PLATFORM=android-24 \ # API level 24 equals Android 7.0
+-DANDROID_ABI="arm64-v8a" \ # target platform
+-DANDROID_NDK="$ANDROID_NDK" \
+-DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \ # Toolchain file in a subfolder of the NDK
+-DBASISU_SUPPORT_SSE=OFF # Disable SSE
+
+# Build
+cmake --build "build-android"
+```
+
+> Note: SSE has to be disabled currently (for ABIs x86 and x86_64) due to [an issue](https://github.com/BinomialLLC/basis_universal/pull/233).
 
 Dependencies
 ------------
