@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Code generation scripts that require a Vulkan SDK installation
-if(WIN32 AND NOT CYGWIN_INSTALL_PATH)
+if(CMAKE_HOST_WIN32 AND NOT CYGWIN_INSTALL_PATH)
     # Git for Windows comes with Perl
     # Trick FindPerl into considering default Git location
     set(CYGWIN_INSTALL_PATH "C:\\Program Files\\Git\\usr")
@@ -24,8 +24,8 @@ list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
 
 # What a shame! We have to duplicate most of the build commands because
-# if(WIN32) can't appear inside add_custom_command.
-if(WIN32)
+# if(CMAKE_HOST_WIN32) can't appear inside add_custom_command.
+if(CMAKE_HOST_WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
         COMMAND "${BASH_EXECUTABLE}" -c "VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib"
@@ -58,7 +58,7 @@ list(APPEND makevkswitch_input
     "lib/dfdutils/makevkswitch.pl")
 set(makevkswitch_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
-if(WIN32)
+if(CMAKE_HOST_WIN32)
     add_custom_command(
         OUTPUT ${makevkswitch_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
@@ -93,7 +93,7 @@ list(APPEND makedfd2vk_input
 list(APPEND makedfd2vk_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
 
-if(WIN32)
+if(CMAKE_HOST_WIN32)
     add_custom_command(
         OUTPUT ${makedfd2vk_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
