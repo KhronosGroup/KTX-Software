@@ -23,8 +23,6 @@ Supported platforms (please to through their specific requirements first)
 - [Windows 64-bit](#windows-x64)
 - [Android](#android)
 
-> **Note:** Android builds will follow
-
 The minimal way to a build is to clone this repository and run the following in a terminal
 
 ```bash
