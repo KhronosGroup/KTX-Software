@@ -129,11 +129,11 @@ cmake --build build/mac
 ```
 ##### Apple Silicon and Universal Binaries
 
-Macs are either based on Intel or the newer Apple Silicon architecture. By default CMake configures to build for your hosts platform, whichever it is. If you want to cross compile universal binaries (that support both platforms), add the paramter `-DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)"` to cmake.
+Macs are either based on Intel or the newer Apple Silicon architecture. By default CMake configures to build for your host's platform, whichever it is. If you want to cross compile universal binaries (that support both platforms), add the parameter `-DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)"` to cmake.
 
 > **Known limitations:**
 > - Load tests apps are not supported on native Apple Silicon and cannot be cross compiled for Intel either
-> - Intel Macs have support for SSE, but if you're building universal binaries, you have to disable SSE in order or the build will fail
+> - Intel Macs have support for SSE, but if you're building universal binaries, you have to disable SSE or the build will fail
 
 Example how to build universal binaries
 
