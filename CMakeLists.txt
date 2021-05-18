@@ -314,7 +314,10 @@ macro(commom_lib_settings lib write)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
     elseif(APPLE)
-        if(NOT IOS)
+        if(IOS)
+            # Create bitcode for iOS
+            target_compile_options(${lib} PRIVATE "-fembed-bitcode")
+        else()
             # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
             # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
             # for working code signing.
