@@ -43,6 +43,8 @@ if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
     option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" ON )
 endif()
 
+CMAKE_DEPENDENT_OPTION(KTX_EMBED_BITCODE "Embed bitcode in binaries" OFF "APPLE AND IOS" OFF)
+
 set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
 
 if(APPLE)
@@ -325,6 +327,9 @@ macro(commom_lib_settings lib write)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
     elseif(APPLE)
+        if(KTX_EMBED_BITCODE)
+            target_compile_options(${lib} PRIVATE "-fembed-bitcode")
+        endif()
         if(NOT IOS)
             # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
             # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
