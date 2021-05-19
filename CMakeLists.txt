@@ -613,7 +613,7 @@ if(EMSCRIPTEN)
     )
 endif()
 
-add_library( objUtil OBJECT
+add_library( objUtil STATIC
     utils/argparser.cpp
     utils/argparser.h
     utils/ktxapp.h

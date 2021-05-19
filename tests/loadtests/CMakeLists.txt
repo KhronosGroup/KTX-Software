@@ -59,7 +59,7 @@ function( ensure_runtime_dependencies_windows target )
     )
 endfunction()
 
-add_library( appfwSDL OBJECT
+add_library( appfwSDL STATIC
     appfwSDL/AppBaseSDL.cpp
     appfwSDL/AppBaseSDL.h
     appfwSDL/main.cpp
@@ -97,7 +97,7 @@ PUBLIC
     geom
 )
 
-add_library( GLAppSDL OBJECT
+add_library( GLAppSDL STATIC
     appfwSDL/GLAppSDL.cpp
     appfwSDL/GLAppSDL.h
     glloadtests/GLLoadTests.cpp

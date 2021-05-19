@@ -75,8 +75,6 @@ add_custom_target(
 
 add_executable( vkloadtests
     ${EXE_FLAG}
-    $<TARGET_OBJECTS:appfwSDL>
-    $<TARGET_OBJECTS:objUtil>
     appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
     appfwSDL/VulkanAppSDL/VulkanAppSDL.h
     appfwSDL/VulkanAppSDL/vulkancheckres.h
@@ -132,6 +130,8 @@ target_link_libraries(
     vkloadtests
     ktx
     ${KTX_ZLIB_LIBRARIES}
+    objUtil
+    appfwSDL
 )
 
 if(IOS)
@@ -245,6 +245,8 @@ if(APPLE)
     if(NOT IOS)
         set_target_properties( vkloadtests PROPERTIES
             INSTALL_RPATH "@executable_path/../Frameworks"
+            # No Apple silicon support yet, so restrict archs to Intel
+            XCODE_ATTRIBUTE_ARCHS x86_64
         )
         add_custom_command( TARGET vkloadtests POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"

@@ -52,8 +52,19 @@ armv8
         #endif
     #elif TARGET_OS_MAC
 
+        #if defined __x86_64__
+
 #undef x86_64
 x86_64
+
+        #elif defined __aarch64__
+
+#undef arm64
+arm64
+
+        #else
+            #error Unsupported platform
+        #endif
 
     #else
         #error Unsupported platform

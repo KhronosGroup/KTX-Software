@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( ktxsc
-    $<TARGET_OBJECTS:objUtil>
     ktxsc.cpp
     stdafx.h
 )
@@ -21,6 +20,7 @@ PRIVATE
 target_link_libraries(
     ktxsc
     ktx
+    objUtil
 )
 
 set_tool_properties(ktxsc)
