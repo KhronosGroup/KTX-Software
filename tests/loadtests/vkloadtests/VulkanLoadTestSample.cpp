@@ -65,11 +65,9 @@ VulkanLoadTestSample::loadMesh(std::string filename,
 vk::PipelineShaderStageCreateInfo
 VulkanLoadTestSample::loadShader(std::string filename,
                                  vk::ShaderStageFlagBits stage,
-                                 std::string modname)
+                                 const char* modname)
 {
-    vk::PipelineShaderStageCreateInfo shaderStage({}, stage);
-    shaderStage.module = vkctx.loadShader(filename);
-    shaderStage.pName = modname.c_str();
+    vk::PipelineShaderStageCreateInfo shaderStage = vkctx.loadShader(filename, stage, modname);
     assert(shaderStage.module);
     shaderModules.push_back(shaderStage.module);
     return shaderStage;
