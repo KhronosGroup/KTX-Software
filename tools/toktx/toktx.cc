@@ -724,7 +724,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image =
               Image::CreateFromFile(infile,
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    options.bcmp || options.bopts.uastc);
+									options.bcmp || options.bopts.uastc || options.astc);
 
             if (i == 0) {
                 // First file.
@@ -869,8 +869,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
         }
 
         if (options.inputSwizzle.size() > 0
-            // inputSwizzle is handled during BasisU encoding
-            && !options.bcmp && !options.bopts.uastc) {
+			// inputSwizzle is handled during BasisU and astc encoding
+			&& !options.bcmp && !options.bopts.uastc && !options.astc) {
             image->swizzle(options.inputSwizzle);
         }
 
@@ -1201,7 +1201,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
         // Add Swizzle metadata
         if (options.swizzle.size()) {
             swizzle = options.swizzle;
-        } else if (!options.bcmp && !options.bopts.uastc
+		} else if (!options.bcmp && !options.bopts.uastc && !options.astc
                    && defaultSwizzle.size()) {
             swizzle = defaultSwizzle;
         }

@@ -38,6 +38,18 @@ struct clampedOption
   T max;
 };
 
+ktx_pack_astc_block_size_e
+getAstcBlockSize(const char* block_size);
+
+ktx_pack_astc_quality_levels_e
+getAstcQualityLevel(const char* quality);
+
+ktx_pack_astc_encoder_function_e
+getAstcEncoderFunction(const char* function);
+
+ktx_pack_astc_encoder_mode_e
+getAstcEncoderMode(const char* mode);
+
 /*
 // Markdown doesn't work in files included by snipped{doc} or include{doc}
 // so the table below has to be laboriously done in html.
@@ -246,16 +258,46 @@ class scApp : public ktxApp {
             }
         };
 
+		struct astcOptions : public ktxAstcParams {
+			clampedOption<ktx_uint32_t> threadCount;
+			clampedOption<ktx_uint32_t> blockSize;
+			clampedOption<ktx_uint32_t> function;
+			clampedOption<ktx_uint32_t> mode;
+			clampedOption<ktx_uint32_t> qualityLevel;
+
+			astcOptions() :
+				threadCount(ktxAstcParams::threadCount, 1, 10000),
+				blockSize(ktxAstcParams::blockSize, 0, KTX_PACK_ASTC_BLOACK_SIZE_MAX),
+				function(ktxAstcParams::function, 0, KTX_PACK_ASTC_ENCODER_FUNCTION_MAX),
+				mode(ktxAstcParams::mode, 0, KTX_PACK_ASTC_ENCODER_MODE_MAX),
+				qualityLevel(ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX)
+			{
+				uint32_t tc = thread::hardware_concurrency();
+				if (tc == 0) tc = 1;
+				threadCount.max = tc;
+				threadCount = tc;
+
+				structSize = sizeof(ktxAstcParams);
+				blockSize.clear();
+				function.clear();
+				mode.clear();
+				qualityLevel.clear();
+				normalMap = false;
+			}
+		};
         int          ktx2;
         int          bcmp;
         int          zcmp;
+		int          astc;
         clamped<ktx_uint32_t> zcmpLevel;
         struct basisOptions bopts;
+		struct astcOptions astcopts;
 
         commandOptions() : zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U) {
             ktx2 = false;
             bcmp = false;
             zcmp = false;
+			astc = false;
         }
     };
 
@@ -276,10 +318,74 @@ class scApp : public ktxApp {
         return scparams;
     }
 
+	void setEncoder(string encoding)
+	{
+		if (encoding == "astc")
+			options.astc = 1;
+		else if (encoding == "bcmp")
+			options.bcmp = 1;
+		else if (encoding == "uastc")
+			options.bopts.uastc = 1;
+	}
+
     void usage()
     {
         cerr <<
-          "  --bcmp       Supercompress the image data with ETC1S / BasisLZ. Implies --t2.\n"
+		  "  --encode <encoding>\n"
+		  "               Compress the image data with ETC1S / BasisLZ, high-quality transcodable\n"
+		  "               UASTC format or ASTC format. Implies --t2 for all encoding.\n"
+		  "               Accepable options are 'bcmp', 'uastc' and 'astc'. With each encoding\n"
+		  "               option the following encoding specific options become valid, otherwise.\n"
+		  "               they are ignored.\n\n"
+		  "    astc:\n"
+		  "               Create a texture in high-quality ASTC format.\n"
+		  "      --astc_blk_s <XxY>/<XxYxZ>\n"
+		  "               Specify which block size to use for compressing the textures.\n"
+		  "               i.e. --astc_blk_s 6x5 for 2D or --astc_blk_s 6x6x6 for 3D.\n"
+		  "               6x6 is default for 2D.\n\n"
+		  "                     Supported 2D block sizes are:\n\n"
+		  "                           4x4: 8.00 bpp        10x5: 2.56 bpp\n"
+		  "                           5x4: 6.40 bpp        10x6: 2.13 bpp\n"
+		  "                           5x5: 5.12 bpp         8x8: 2.00 bpp\n"
+		  "                           6x5: 4.27 bpp        10x8: 1.60 bpp\n"
+		  "                           6x6: 3.56 bpp       10x10: 1.28 bpp\n"
+		  "                           8x5: 3.20 bpp       12x10: 1.07 bpp\n"
+		  "                           8x6: 2.67 bpp       12x12: 0.89 bpp\n\n"
+		  "                     Supported 3D block sizes are:\n\n"
+		  "                         3x3x3: 4.74 bpp       5x5x4: 1.28 bpp\n"
+		  "                         4x3x3: 3.56 bpp       5x5x5: 1.02 bpp\n"
+		  "                         4x4x3: 2.67 bpp       6x5x5: 0.85 bpp\n"
+		  "                         4x4x4: 2.00 bpp       6x6x5: 0.71 bpp\n"
+		  "                         5x4x4: 1.60 bpp       6x6x6: 0.59 bpp\n"
+		  "      --astc_func <srgb/linear>\n"
+		  "               Specify which transfer function to use while compressing.\n"
+		  "               Use this only if you don't trust the color space info in source image.\n"
+		  "               Default is srgb for sRGB color space compression.\n"
+		  "      --astc_mode <ldr/hdr>\n"
+		  "               Specify which encoding mode to use. LDR is the default.\n"
+		  "      --astc_quality <quality>\n"
+		  "               The quality level configures the quality-performance tradeoff for\n"
+		  "               the compressor; more complete searches of the search space improve\n"
+		  "               image quality at the expense of compression time. Default is 'medium'\n"
+		  "               The quality level can be set to fastest (0) and thorough (100) via the \n"
+		  "               following fixed quality presets:\n\n"
+		  "                   fastest       (equivalent to quality =   0)\n"
+		  "                   fast          (equivalent to quality =  10)\n"
+		  "                   medium        (equivalent to quality =  60)\n"
+		  "                   thorough      (equivalent to quality =  98)\n"
+		  "                   exhaustive    (equivalent to quality = 100)\n"
+		  "      --astc_normal\n"
+		  "           The input texture is a three component linear LDR normal map\n"
+		  "           storing unit length normals as (R=X, G=Y, B=Z). The output will\n"
+		  "           be a two component X+Y normal map stored as (RGB=X, A=Y),\n"
+		  "           optimized for angular error instead of simple PSNR. The Z\n"
+		  "           component can be recovered programmatically in shader code by\n"
+		  "           using the equation:\n\n"
+		  "               nml.xy = texture(...).ga;              // Load in [0,1]\n"
+		  "               nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
+		  "               nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
+		  "    bcmp:\n"
+		  "               Supercompress the image data with ETC1S / BasisLZ.\n"
           "               RED images will become RGB with RED in each component. RG images\n"
           "               will have R in the RGB part and G in the alpha part of the\n"
           "               compressed texture. When set, the following BasisLZ-related\n"
@@ -287,11 +393,6 @@ class scApp : public ktxApp {
           "      --no_multithreading\n"
           "               Disable multithreading. Deprecated. For backward compatibility.\n"
           "               Use --threads 1 instead.\n"
-          "      --threads <count>\n"
-          "               Explicitly set the number of threads to use during compression.\n"
-          "               By default, ETC1S / BasisLZ compression will use the number of\n"
-          "               threads reported by thread::hardware_concurrency or 1 if value\n"
-          "               returned is 0.\n"
           "      --clevel <level>\n"
           "               ETC1S / BasisLZ compression level, an encoding speed vs. quality\n"
           "               tradeoff. Range is [0,5], default is 1. Higher values are slower,\n"
@@ -342,10 +443,11 @@ class scApp : public ktxApp {
           "               Disable selector rate distortion optimizations. Slightly faster,\n"
           "               less noisy output, but lower quality per output bit. Default is\n"
           "               to do selector RDO.\n\n"
-          "  --uastc [<level>]\n"
+		  "    uastc:\n"
           "               Create a texture in high-quality transcodable UASTC format.\n"
-          "               Implies --t2. The optional parameter <level> selects a speed\n"
-          "               vs quality tradeoff as shown in the following table:\n"
+		  "      --uastc_level <level>\n"
+		  "               This optional parameter selects a speed vs quality\n"
+		  "               tradeoff as shown in the following table:\n"
           "\n"
           "                 Level |  Speed    | Quality\n"
           "                 ----- | -------   | -------\n"
@@ -359,8 +461,8 @@ class scApp : public ktxApp {
           "               compress the UASTC data. This and any LZ-style compression can\n"
           "               be made more effective by conditioning the UASTC texture data\n"
           "               using the Rate Distortion Optimization (RDO) post-process stage.\n"
-          "               When --uastc is set the following options become available for\n"
-          "               controlling RDO:\n\n"
+		  "               When uastc encoding is set the following options become available\n"
+		  "               for controlling RDO:\n\n"
           "      --uastc_rdo_l [<lambda>]\n"
           "               Enable UASTC RDO post-processing and optionally set UASTC RDO\n"
           "               quality scalar (lambda) to @e lambda.  Lower values yield higher\n"
@@ -389,15 +491,21 @@ class scApp : public ktxApp {
           "               deterministic).\n\n"
           "  --no_sse     Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
-          "  --verbose    Print encoder/compressor activity status to stdout. Currently\n"
-          "               only the Basis Universal compressor emits status.\n"
           "  --zcmp [<compressionLevel>]\n"
           "               Supercompress the data with Zstandard. Implies --t2. Can be used\n"
-          "               with data in any format except ETC1S / BasisLZ (--bcmp). Most\n"
+		  "               with data in any format except ETC1S / BasisLZ (bcmp). Most\n"
           "               effective with RDO-conditioned UASTC or uncompressed formats. The\n"
           "               optional compressionLevel range is 1 - 22 and the default is 3.\n"
           "               Lower values=faster but give less compression. Values above 20\n"
-          "               should be used with caution as they require more memory.\n";
+		  "               should be used with caution as they require more memory.\n"
+		  "  --threads <count>\n"
+		  "               Explicitly set the number of threads to use during compression.\n"
+		  "               By default, ETC1S / BasisLZ and astc compression will use the number of\n"
+		  "               threads reported by thread::hardware_concurrency or 1 if value\n"
+		  "               returned is 0.\n"
+		  "  --verbose    Print encoder/compressor activity status to stdout. Currently\n"
+		  "               only both astcencoder and Basis Universal compressor emits status.\n"
+		  "\n";
           ktxApp::usage();
           cerr << endl <<
           "In case of ambiguity, such as when the last option is one with an optional\n"
@@ -414,7 +522,7 @@ scApp::scApp(string& version, string& defaultVersion,
       : ktxApp(version, defaultVersion, options), options(options)
 {
   argparser::option my_option_list[] = {
-      { "bcmp", argparser::option::no_argument, NULL, 'b' },
+	  { "encode", argparser::option::required_argument, NULL, 'b' },
       { "zcmp", argparser::option::optional_argument, NULL, 'z' },
       { "no_multithreading", argparser::option::no_argument, NULL, 'N' },
       { "threads", argparser::option::required_argument, NULL, 't' },
@@ -429,14 +537,19 @@ scApp::scApp(string& version, string& defaultVersion,
       { "no_endpoint_rdo", argparser::option::no_argument, NULL, 1001 },
       { "no_selector_rdo", argparser::option::no_argument, NULL, 1002 },
       { "no_sse", argparser::option::no_argument, NULL, 1011 },
-      { "uastc", argparser::option::optional_argument, NULL, 1003 },
+	  { "uastc_level", argparser::option::required_argument, NULL, 1003 },
       { "uastc_rdo_l", argparser::option::optional_argument, NULL, 1004 },
       { "uastc_rdo_d", argparser::option::required_argument, NULL, 1005 },
       { "uastc_rdo_b", argparser::option::optional_argument, NULL, 1006 },
       { "uastc_rdo_s", argparser::option::optional_argument, NULL, 1007 },
       { "uastc_rdo_f", argparser::option::no_argument, NULL, 1008 },
       { "uastc_rdo_m", argparser::option::no_argument, NULL, 1009 },
-      { "verbose", argparser::option::no_argument, NULL, 1010 }
+	  { "verbose", argparser::option::no_argument, NULL, 1010 },
+	  { "astc_blk_s", argparser::option::required_argument, NULL, 1012 },
+	  { "astc_func", argparser::option::required_argument, NULL, 1013 },
+	  { "astc_mode", argparser::option::required_argument, NULL, 1014 },
+	  { "astc_quality", argparser::option::required_argument, NULL, 1015 },
+	  { "astc_normal", argparser::option::no_argument, NULL, 1016 }
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
@@ -483,24 +596,12 @@ scApp::processOption(argparser& parser, int opt)
 
     switch (opt) {
       case 'b':
-        if (options.zcmp) {
-            cerr << "Only one of --bcmp and --zcmp can be specified."
-                 << endl;
-            usage();
-            exit(1);
-        }
-        if (options.bopts.uastc) {
-            cerr << "Only one of --bcmp and --uastc can be specified."
-                 << endl;
-            usage();
-            exit(1);
-        }
-        options.bcmp = 1;
+		setEncoder(parser.optarg);
         options.ktx2 = 1;
         break;
       case 'z':
         if (options.bcmp) {
-            cerr << "Only one of --bcmp and --zcmp can be specified."
+			cerr << "Only one of '--encode bcmp' and --zcmp can be specified."
                  << endl;
             usage();
             exit(1);
@@ -554,18 +655,11 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 't':
         options.bopts.threadCount = strtoi(parser.optarg.c_str());
+		options.astcopts.threadCount = strtoi(parser.optarg.c_str());
         capture = false;
         break;
       case 1003:
-        if (options.bcmp) {
-             cerr << "Only one of --bcmp and --uastc can be specified."
-                  << endl;
-             usage();
-             exit(1);
-        }
-        options.bopts.uastc = 1;
-        options.ktx2 = 1;
-        if (parser.optarg.size() > 0) {
+		{
             ktx_uint32_t level = strtoi(parser.optarg.c_str());
             level = clamp<ktx_uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
             // Ensure the last one wins in case of multiple of these args.
@@ -604,12 +698,37 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 1010:
         options.bopts.verbose = true;
+		options.astcopts.verbose = true;
         capture = false;
         break;
       case 1011:
         options.bopts.noSSE = true;
         capture = true;
         break;
+	  case 1012: // astc_blk_s
+		options.astcopts.blockSize = getAstcBlockSize(parser.optarg.c_str());
+		hasArg = true;
+		capture = false;
+		break;
+	  case 1013: // astc_func
+		options.astcopts.function = getAstcEncoderFunction(parser.optarg.c_str());
+		hasArg = true;
+		capture = false;
+		break;
+	  case 1014: // astc_mode
+		options.astcopts.mode = getAstcEncoderMode(parser.optarg.c_str());
+		hasArg = true;
+		capture = false;
+		break;
+	  case 1015: // astc_quality
+		options.astcopts.qualityLevel = getAstcQualityLevel(parser.optarg.c_str());
+		hasArg = true;
+		capture = false;
+		break;
+	  case 1016: // astc_normal
+		options.astcopts.normalMap = true;
+		capture = false;
+		break;
       default:
         return false;
     }
@@ -622,4 +741,3 @@ scApp::processOption(argparser& parser, int opt)
 
     return true;
 }
-
