@@ -267,7 +267,7 @@ class scApp : public ktxApp {
 
 			astcOptions() :
 				threadCount(ktxAstcParams::threadCount, 1, 10000),
-				blockSize(ktxAstcParams::blockSize, 0, KTX_PACK_ASTC_BLOACK_SIZE_MAX),
+				blockSize(ktxAstcParams::blockSize, 0, KTX_PACK_ASTC_BLOCK_SIZE_MAX),
 				function(ktxAstcParams::function, 0, KTX_PACK_ASTC_ENCODER_FUNCTION_MAX),
 				mode(ktxAstcParams::mode, 0, KTX_PACK_ASTC_ENCODER_MODE_MAX),
 				qualityLevel(ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX)
@@ -279,7 +279,10 @@ class scApp : public ktxApp {
 
 				structSize = sizeof(ktxAstcParams);
 				blockSize.clear();
+				blockSize = KTX_PACK_ASTC_BLOCK_6x6;
 				function.clear();
+				// Default to unknown to have a chance to use to use color space from file
+				function = KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN;
 				mode.clear();
 				qualityLevel.clear();
 				normalMap = false;
@@ -360,7 +363,7 @@ class scApp : public ktxApp {
 		  "      --astc_func <srgb/linear>\n"
 		  "               Specify which transfer function to use while compressing.\n"
 		  "               Use this only if you don't trust the color space info in source image.\n"
-		  "               Default is srgb for sRGB color space compression.\n"
+		  "               Default is what's read from the image.\n"
 		  "      --astc_mode <ldr/hdr>\n"
 		  "               Specify which encoding mode to use. LDR is the default.\n"
 		  "      --astc_quality <quality>\n"
@@ -708,26 +711,21 @@ scApp::processOption(argparser& parser, int opt)
 	  case 1012: // astc_blk_s
 		options.astcopts.blockSize = getAstcBlockSize(parser.optarg.c_str());
 		hasArg = true;
-		capture = false;
 		break;
 	  case 1013: // astc_func
 		options.astcopts.function = getAstcEncoderFunction(parser.optarg.c_str());
 		hasArg = true;
-		capture = false;
 		break;
 	  case 1014: // astc_mode
 		options.astcopts.mode = getAstcEncoderMode(parser.optarg.c_str());
 		hasArg = true;
-		capture = false;
 		break;
 	  case 1015: // astc_quality
 		options.astcopts.qualityLevel = getAstcQualityLevel(parser.optarg.c_str());
 		hasArg = true;
-		capture = false;
 		break;
 	  case 1016: // astc_normal
 		options.astcopts.normalMap = true;
-		capture = false;
 		break;
       default:
         return false;

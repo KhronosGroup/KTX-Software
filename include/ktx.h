@@ -1001,28 +1001,26 @@ typedef enum ktx_pack_astc_block_size_e {
 	KTX_PACK_ASTC_BLOCK_6x5x5,					//: 0.85 bpp
 	KTX_PACK_ASTC_BLOCK_6x6x5,					//: 0.71 bpp
 	KTX_PACK_ASTC_BLOCK_6x6x6,					//: 0.59 bpp
-	KTX_PACK_ASTC_BLOACK_SIZE_MAX = KTX_PACK_ASTC_BLOCK_6x6x6
+	KTX_PACK_ASTC_BLOCK_SIZE_MAX = KTX_PACK_ASTC_BLOCK_6x6x6
 		/*!< Maximum supported blocks. */
 } ktx_pack_astc_block_size_e;
 
 /**
  * @~English
- * @brief Options specifiying ASTC encoder profile
+ * @brief Options specifiying ASTC encoder profile function
  */
-typedef enum ktx_pack_astc_encoder_profile_e {
-	KTX_PACK_ASTC_ENCODER_PROFILE_SRGB_LDR,
-	KTX_PACK_ASTC_ENCODER_PROFILE_LINEAR_LDR,
-	KTX_PACK_ASTC_ENCODER_PROFILE_HDR_RGB_LDR_ALPHA,
-	KTX_PACK_ASTC_ENCODER_PROFILE_HDR_RGBA,
-	KTX_PACK_ASTC_ENCODER_PROFILE_MAX = KTX_PACK_ASTC_ENCODER_PROFILE_HDR_RGBA
-} ktx_pack_astc_encoder_profile_e;
-
 typedef enum ktx_pack_astc_encoder_function_e {
+	KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN,
 	KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB,
 	KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR,
 	KTX_PACK_ASTC_ENCODER_FUNCTION_MAX = KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR
 } ktx_pack_astc_encoder_function_e;
 
+/**
+ * @~English
+ * @brief Options specifiying ASTC encoder profile mode
+ *        This and function is used later to derive the profile.
+ */
 typedef enum ktx_pack_astc_encoder_mode_e {
 	KTX_PACK_ASTC_ENCODER_MODE_LDR,
 	KTX_PACK_ASTC_ENCODER_MODE_HDR,
@@ -1072,6 +1070,9 @@ typedef struct ktxAstcParams {
 		  Discarding Z component, reader will need to generate Z
 		  component in shaders.
 		*/
+	char inputSwizzle[4];
+		 /*!< A swizzle to provide as input to astcenc. It must match the regular
+			 expression /^[rgba01]{4}$/.*/
 } ktxAstcParams;
 
 ktxAstcParams
