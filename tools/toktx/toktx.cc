@@ -724,7 +724,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image =
               Image::CreateFromFile(infile,
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-									options.bcmp || options.bopts.uastc || options.astc);
+                                    options.bcmp || options.bopts.uastc || options.astc);
 
             if (i == 0) {
                 // First file.
@@ -869,8 +869,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
         }
 
         if (options.inputSwizzle.size() > 0
-			// inputSwizzle is handled during BasisU and astc encoding
-			&& !options.bcmp && !options.bopts.uastc && !options.astc) {
+            // inputSwizzle is handled during BasisU and astc encoding
+            && !options.bcmp && !options.bopts.uastc && !options.astc) {
             image->swizzle(options.inputSwizzle);
         }
 
@@ -1201,7 +1201,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
         // Add Swizzle metadata
         if (options.swizzle.size()) {
             swizzle = options.swizzle;
-		} else if (!options.bcmp && !options.bopts.uastc && !options.astc
+        } else if (!options.bcmp && !options.bopts.uastc && !options.astc
                    && defaultSwizzle.size()) {
             swizzle = defaultSwizzle;
         }
@@ -1252,6 +1252,29 @@ toktxApp::main(int argc, _TCHAR *argv[])
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
+                        name.c_str(), options.outfile.c_str(),
+                        ktxErrorString(ret));
+                exitCode = 2;
+                goto cleanup;
+            }
+        } else if (options.astc) {
+            commandOptions::astcOptions& astcopts = options.astcopts;
+#if TRAVIS_DEBUG
+            astcopts.print();
+#endif
+            if (options.inputSwizzle.size()) {
+                for (i = 0; i < 4; i++) {
+                     astcopts.inputSwizzle[i] = options.inputSwizzle[i];
+                }
+            } else if (defaultSwizzle.size()) {
+                 for (i = 0; i < 4; i++) {
+                     astcopts.inputSwizzle[i] = defaultSwizzle[i];
+                }
+            }
+
+            ret = ktxTexture_CompressAstcEx(texture, &astcopts);
+            if (KTX_SUCCESS != ret) {
+                fprintf(stderr, "%s failed to compress KTX file \"%s\" to astc; KTX error: %s\n",
                         name.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
                 exitCode = 2;
@@ -1489,7 +1512,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1102:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::toupper(c);
+            c = (char)::toupper(c);
         });
         if (parser.optarg.compare("R") == 0)
           options.targetType = commandOptions::eR;
@@ -1508,7 +1531,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1103:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::tolower(c);
+            c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
             options.convert_oetf = KHR_DF_TRANSFER_LINEAR;
@@ -1517,7 +1540,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1104:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::tolower(c);
+            c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
             options.assign_oetf = KHR_DF_TRANSFER_LINEAR;
@@ -1526,7 +1549,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1105:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::tolower(c);
+            c = (char)::tolower(c);
         });
         if (parser.optarg.compare("bt709") == 0)
             options.assign_primaries = KHR_DF_PRIMARIES_BT709;

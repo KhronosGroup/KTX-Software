@@ -442,6 +442,7 @@ target_sources(
     ktx
 PRIVATE
     lib/basis_encode.cpp
+    lib/astc_encode.cpp
     ${BASISU_ENCODER_C_SRC}
     ${BASISU_ENCODER_CXX_SRC}
     lib/writer1.c
@@ -627,6 +628,28 @@ PUBLIC
 )
 
 add_subdirectory(interface/basisu_c_binding)
+
+# Add astcenc subdirectory
+# Only one architecture is supported at once, if default (avx2) is not available,
+# user must define ISA_SSE41, ISA_SSE2 or ISA_NEON themselves
+
+set(ISA_AVX2 ON) # AVX2 is the default
+set(ASTC_LIB_NAME astcenc-avx2-static)
+
+if (${ISA_SSE41})
+  set(ASTC_LIB_NAME astcenc-sse4.1-static)
+endif()
+
+if (${ISA_SSE2})
+  set(ASTC_LIB_NAME astcenc-sse2-static)
+endif()
+
+if (${ISA_NEON})
+  set(ASTC_LIB_NAME astcenc-neon-static)
+endif()
+
+add_subdirectory(lib/astc-encoder)
+target_link_libraries(ktx PRIVATE ${ASTC_LIB_NAME})
 
 # Tools
 if(KTX_FEATURE_TOOLS)
