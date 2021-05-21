@@ -498,7 +498,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
         PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable;-Wno-sign-compare;-Wno-shorten-64-to-32"
         )
     set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+        PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
 else()
     message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
