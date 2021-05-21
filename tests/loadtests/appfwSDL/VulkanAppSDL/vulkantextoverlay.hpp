@@ -308,7 +308,12 @@ public:
         imageViewInfo.image = image;
         imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         imageViewInfo.format = imageInfo.format;
-        imageViewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B,    VK_COMPONENT_SWIZZLE_A };
+        imageViewInfo.components = {
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY
+        };
         imageViewInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
         VK_CHECK_RESULT(vkCreateImageView(device, &imageViewInfo, nullptr, &view));

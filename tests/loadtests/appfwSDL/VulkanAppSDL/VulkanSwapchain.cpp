@@ -349,10 +349,10 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
         colorAttachmentView.pNext = NULL;
         colorAttachmentView.format = colorFormat;
         colorAttachmentView.components = {
-            VK_COMPONENT_SWIZZLE_R,
-            VK_COMPONENT_SWIZZLE_G,
-            VK_COMPONENT_SWIZZLE_B,
-            VK_COMPONENT_SWIZZLE_A
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY
         };
         colorAttachmentView.subresourceRange.aspectMask
                                                   = VK_IMAGE_ASPECT_COLOR_BIT;

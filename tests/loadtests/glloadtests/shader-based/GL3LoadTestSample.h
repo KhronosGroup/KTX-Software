@@ -40,6 +40,8 @@ class GL3LoadTestSample : public LoadTestSample {
     virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
 
+    static bool contextSupportsSwizzle();
+
     std::string ktxfilename;
     int externalFile = 0;
 

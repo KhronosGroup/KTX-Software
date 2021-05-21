@@ -11,7 +11,6 @@
 
 #include <vector>
 
-#include <ktxvulkan.h>
 #include "InstancedSampleBase.h"
 
 #include <glm/gtc/matrix_transform.hpp>

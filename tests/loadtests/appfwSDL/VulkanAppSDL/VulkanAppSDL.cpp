@@ -32,6 +32,7 @@
 #include <sstream>
 
 #include "VulkanAppSDL.h"
+
 // Include this when vulkantools is removed.
 //#include "vulkancheckres.h"
 #include <SDL2/SDL_vulkan.h>
@@ -476,6 +477,27 @@ VulkanAppSDL::createInstance()
         return false;
     }
 
+    uint32_t availableExtensionCount;
+    vk::enumerateInstanceExtensionProperties(nullptr, &availableExtensionCount,
+                                             nullptr);
+
+    // Find out if device_properties2 is available. If so, enable it just
+    // in case we later find we are running on a Portability Subset device
+    // in which case this extension is required.
+    std::vector<vk::ExtensionProperties> availableExtensions;
+    availableExtensions.resize(availableExtensionCount);
+    vk::enumerateInstanceExtensionProperties(nullptr, &availableExtensionCount,
+                                             availableExtensions.data());
+    for (auto& extension : availableExtensions) {
+        if (!strncmp(extension.extensionName,
+                     VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+                     VK_MAX_EXTENSION_NAME_SIZE)) {
+            extensionNames.push_back(
+                VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
+            );
+        }
+    }
+
     if (validate)
         extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
@@ -674,6 +696,9 @@ VulkanAppSDL::createDevice()
 
     wantedExtensions.push_back({VK_KHR_SWAPCHAIN_EXTENSION_NAME, required});
     wantedExtensions.push_back({VK_KHR_MAINTENANCE1_EXTENSION_NAME, required});
+    // Portability must be enabled, if present.
+    wantedExtensions.push_back({VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME, optional});
+    // And if present and enabled it requires this to be enabled.
     wantedExtensions.push_back({VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, optional});
 #if 0
     wantedExtensions.push_back(
@@ -720,6 +745,9 @@ VulkanAppSDL::createDevice()
                 if (!wantedExtensions[i].name.compare(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME)) {
                     vkctx.enabledDeviceExtensions.pvrtc = true;
                 }
+                if (!wantedExtensions[i].name.compare(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
+                    vkctx.gpuIsPortabilitySubsetDevice = true;
+                }
                 break;
             }
         }
@@ -757,18 +785,25 @@ VulkanAppSDL::createDevice()
         queue_priorities
     );
 
-    vk::PhysicalDeviceFeatures deviceFeatures;
+    vk::PhysicalDeviceFeatures deviceFeaturesToEnable;
     // Enable specific required and available features here.
     if (vkctx.gpuFeatures.samplerAnisotropy)
-        deviceFeatures.samplerAnisotropy = true;
+        deviceFeaturesToEnable.samplerAnisotropy = true;
     if (vkctx.gpuFeatures.textureCompressionASTC_LDR)
-        deviceFeatures.textureCompressionASTC_LDR = true;
+        deviceFeaturesToEnable.textureCompressionASTC_LDR = true;
     if (vkctx.gpuFeatures.textureCompressionBC)
-        deviceFeatures.textureCompressionBC = true;
+        deviceFeaturesToEnable.textureCompressionBC = true;
     if (vkctx.gpuFeatures.textureCompressionETC2)
-        deviceFeatures.textureCompressionETC2 = true;
+        deviceFeaturesToEnable.textureCompressionETC2 = true;
+
+    if (vkctx.gpuIsPortabilitySubsetDevice) {
+        vk::PhysicalDeviceFeatures2 deviceFeatures;
+        deviceFeatures.pNext = &vkctx.gpuPortabilityFeatures;
+        vkctx.gpu.getFeatures2(&deviceFeatures);
+    }
+
 #if 0
-    // This needs PhysicalDeviceFeatures2 and proper understanding of how to
+    // This needs PhysicaldeviceFeaturesToEnable2 and proper understanding of how to
     // navigate a structure chain. Maybe something also was necessary when the
     // gpuFeatures were queried.
     vk::BaseOutStructure* dfs = reinterpret_cast<vk::BaseOutStructure*>(&vkctx.gpuFeatures);
@@ -776,19 +811,19 @@ VulkanAppSDL::createDevice()
         if (dfs->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT) {
             vk::PhysicalDeviceTextureCompressionASTCHDRFeaturesEXT* ahf = dfs;
             if (afs->textureCompressionASTC_HDR) {
-                // Add one of these structs to the requested deviceFeatures we
+                // Add one of these structs to the requested deviceFeaturesToEnable we
                 // are passing in and enable this feature.
             }
         }
         if (dfs->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_3D_FEATURES_EXT) {
             vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT* ahf = dfs;
             if (afs->textureCompressionASTC_HDR) {
-                // Add one of these structs to the requested deviceFeatures we
+                // Add one of these structs to the requested deviceFeaturesToEnable we
                 // are passing in and enable this feature.
             }
         }
 #endif
-     
+
     vk::DeviceCreateInfo deviceInfo(
             {},
             1,
@@ -799,7 +834,12 @@ VulkanAppSDL::createDevice()
                                   : NULL),
             (uint32_t)extensionsToEnable.size(),
             (const char *const *)extensionsToEnable.data(),
-            &deviceFeatures);
+            &deviceFeaturesToEnable);
+
+    if (vkctx.gpuIsPortabilitySubsetDevice) {
+        // Enable all available portability features.
+        deviceInfo.pNext = &vkctx.gpuPortabilityFeatures;
+    }
 
     err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
     if (err != vk::Result::eSuccess) {

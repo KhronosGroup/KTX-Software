@@ -10,6 +10,7 @@
  */
 
 #include <vector>
+#define VK_ENABLE_BETA_EXTENSIONS 1
 #include <vulkan/vulkan.hpp>
 #include "VulkanSwapchain.h"
 
@@ -25,11 +26,14 @@ struct VulkanContext {
     vk::Instance instance;
     vk::PhysicalDevice gpu;
     vk::PhysicalDeviceFeatures gpuFeatures;
+    vk::PhysicalDevicePortabilitySubsetFeaturesKHR gpuPortabilityFeatures;
     vk::PhysicalDeviceProperties gpuProperties;
     vk::PhysicalDeviceMemoryProperties memoryProperties;
     vk::Device device;
     vk::CommandPool commandPool;
     vk::Queue queue;
+
+    bool gpuIsPortabilitySubsetDevice = false;
 
     struct {
        bool pvrtc = false;
@@ -114,6 +118,11 @@ struct VulkanContext {
                                             const char* const modname = "main");
     vk::ShaderModule loadShader(std::string filename);
     uint32_t* readSpv(const char *filename, size_t *pSize);
+
+    bool gpuSupportsSwizzle() {
+        return !gpuIsPortabilitySubsetDevice
+               || gpuPortabilityFeatures.imageViewFormatSwizzle;
+    }
 };
 
 #endif /* VULKAN_TEXTURE_H_229895365400979164311947449304284143508 */

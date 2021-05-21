@@ -53,6 +53,9 @@ class VulkanLoadTestSample : public LoadTestSample {
   protected:
     virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
+    bool gpuSupportsSwizzle() {
+        return vkctx.gpuSupportsSwizzle();
+    }
 
     std::string ktxfilename;
     int externalFile = 0;
