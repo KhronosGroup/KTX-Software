@@ -38,8 +38,8 @@ struct clampedOption
   T max;
 };
 
-ktx_pack_astc_block_size_e
-astcBlockSize(const char* block_size);
+ktx_pack_astc_block_dimension_e
+astcBlockDimension(const char* block_dimension);
 
 ktx_pack_astc_quality_levels_e
 astcQualityLevel(const char* quality);
@@ -260,14 +260,14 @@ class scApp : public ktxApp {
 
         struct astcOptions : public ktxAstcParams {
             clampedOption<ktx_uint32_t> threadCount;
-            clampedOption<ktx_uint32_t> blockSize;
+            clampedOption<ktx_uint32_t> blockDimension;
             clampedOption<ktx_uint32_t> function;
             clampedOption<ktx_uint32_t> mode;
             clampedOption<ktx_uint32_t> qualityLevel;
 
             astcOptions() :
                 threadCount(ktxAstcParams::threadCount, 1, 10000),
-                blockSize(ktxAstcParams::blockSize, 0, KTX_PACK_ASTC_BLOCK_SIZE_MAX),
+                blockDimension(ktxAstcParams::blockDimension, 0, KTX_PACK_ASTC_BLOCK_DIMENSION_MAX),
                 function(ktxAstcParams::function, 0, KTX_PACK_ASTC_ENCODER_FUNCTION_MAX),
                 mode(ktxAstcParams::mode, 0, KTX_PACK_ASTC_ENCODER_MODE_MAX),
                 qualityLevel(ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX)
@@ -278,8 +278,8 @@ class scApp : public ktxApp {
                 threadCount = tc;
 
                 structSize = sizeof(ktxAstcParams);
-                blockSize.clear();
-                blockSize = KTX_PACK_ASTC_BLOCK_6x6;
+                blockDimension.clear();
+                blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
                 function.clear();
                 // Default to unknown to have a chance to use to use color space from file
                 function = KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN;
@@ -336,16 +336,16 @@ class scApp : public ktxApp {
           "  --encode <encoding>\n"
           "               Compress the image data with ETC1S / BasisLZ, high-quality transcodable\n"
           "               UASTC format or ASTC format. Implies --t2 for all encoding.\n"
-          "               Accepable options are 'bcmp', 'uastc' and 'astc'. With each encoding\n"
+          "               Acceptable options are 'bcmp', 'uastc' and 'astc'. With each encoding\n"
           "               option the following encoding specific options become valid, otherwise.\n"
           "               they are ignored.\n\n"
           "    astc:\n"
           "               Create a texture in high-quality ASTC format.\n"
-          "      --astc_blk_s <XxY>/<XxYxZ>\n"
-          "               Specify which block size to use for compressing the textures.\n"
-          "               e.g. --astc_blk_s 6x5 for 2D or --astc_blk_s 6x6x6 for 3D.\n"
+          "      --astc_blk_d <XxY>/<XxYxZ>\n"
+          "               Specify which block dimension to use for compressing the textures.\n"
+          "               e.g. --astc_blk_d 6x5 for 2D or --astc_blk_d 6x6x6 for 3D.\n"
           "               6x6 is default for 2D.\n\n"
-          "                   Supported 2D block sizes are:\n\n"
+          "                   Supported 2D block dimensions are:\n\n"
           "                       4x4: 8.00 bpp         10x5:  2.56 bpp\n"
           "                       5x4: 6.40 bpp         10x6:  2.13 bpp\n"
           "                       5x5: 5.12 bpp         8x8:   2.00 bpp\n"
@@ -353,7 +353,7 @@ class scApp : public ktxApp {
           "                       6x6: 3.56 bpp         10x10: 1.28 bpp\n"
           "                       8x5: 3.20 bpp         12x10: 1.07 bpp\n"
           "                       8x6: 2.67 bpp         12x12: 0.89 bpp\n\n"
-          "                   Supported 3D block sizes are:\n\n"
+          "                   Supported 3D block dimensions are:\n\n"
           "                       3x3x3: 4.74 bpp       5x5x4: 1.28 bpp\n"
           "                       4x3x3: 3.56 bpp       5x5x5: 1.02 bpp\n"
           "                       4x4x3: 2.67 bpp       6x5x5: 0.85 bpp\n"
@@ -506,7 +506,7 @@ class scApp : public ktxApp {
           "               threads reported by thread::hardware_concurrency or 1 if value\n"
           "               returned is 0.\n"
           "  --verbose    Print encoder/compressor activity status to stdout. Currently\n"
-          "               only both astcencoder and Basis Universal compressor emits status.\n"
+          "               only the astc, etc1s and uastc encoders emit status.\n"
           "\n";
           ktxApp::usage();
           cerr << endl <<
@@ -524,7 +524,7 @@ scApp::scApp(string& version, string& defaultVersion,
       : ktxApp(version, defaultVersion, options), options(options)
 {
   argparser::option my_option_list[] = {
-      { "encode", argparser::option::required_argument, NULL, 'b' },
+      { "encode", argparser::option::required_argument, NULL, 'o' },
       { "zcmp", argparser::option::optional_argument, NULL, 'z' },
       { "no_multithreading", argparser::option::no_argument, NULL, 'N' },
       { "threads", argparser::option::required_argument, NULL, 't' },
@@ -547,7 +547,7 @@ scApp::scApp(string& version, string& defaultVersion,
       { "uastc_rdo_f", argparser::option::no_argument, NULL, 1008 },
       { "uastc_rdo_m", argparser::option::no_argument, NULL, 1009 },
       { "verbose", argparser::option::no_argument, NULL, 1010 },
-      { "astc_blk_s", argparser::option::required_argument, NULL, 1012 },
+      { "astc_blk_d", argparser::option::required_argument, NULL, 1012 },
       { "astc_func", argparser::option::required_argument, NULL, 1013 },
       { "astc_mode", argparser::option::required_argument, NULL, 1014 },
       { "astc_quality", argparser::option::required_argument, NULL, 1015 },
@@ -557,7 +557,7 @@ scApp::scApp(string& version, string& defaultVersion,
                               / sizeof(argparser::option);
   option_list.insert(option_list.begin(), my_option_list,
                      my_option_list + lastOptionIndex);
-  short_opts += "bz;Nt:c:q:e:E:u:S:n";
+  short_opts += "oz;Nt:c:q:e:E:u:S:n";
 }
 
 void
@@ -597,7 +597,7 @@ scApp::processOption(argparser& parser, int opt)
     bool capture = true;
 
     switch (opt) {
-      case 'b':
+      case 'o':
         setEncoder(parser.optarg);
         options.ktx2 = 1;
         break;
@@ -707,8 +707,8 @@ scApp::processOption(argparser& parser, int opt)
         options.bopts.noSSE = true;
         capture = true;
         break;
-      case 1012: // astc_blk_s
-        options.astcopts.blockSize = astcBlockSize(parser.optarg.c_str());
+      case 1012: // astc_blk_d
+        options.astcopts.blockDimension = astcBlockDimension(parser.optarg.c_str());
         hasArg = true;
         break;
       case 1013: // astc_func

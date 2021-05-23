@@ -649,9 +649,8 @@ typedef enum ktxSupercmpScheme {
     KTX_SS_NONE = 0,            /*!< No supercompression. */
     KTX_SS_BASIS_LZ = 1,        /*!< Basis LZ supercompression. */
     KTX_SS_ZSTD = 2,            /*!< ZStd supercompression. */
-    KTX_SS_ASTC = 4,            /*!< ASTC compression. */
     KTX_SS_BEGIN_RANGE = KTX_SS_NONE,
-    KTX_SS_END_RANGE = KTX_SS_ASTC,
+    KTX_SS_END_RANGE = KTX_SS_ZSTD,
     KTX_SS_BEGIN_VENDOR_RANGE = 0x10000,
     KTX_SS_END_VENDOR_RANGE = 0x1ffff,
     KTX_SS_BEGIN_RESERVED = 0x20000,
@@ -973,36 +972,36 @@ typedef enum ktx_pack_astc_quality_levels_e {
  * @~English
  * @brief Options specifiying ASTC encoding block dimensions
  */
-typedef enum ktx_pack_astc_block_size_e {
+typedef enum ktx_pack_astc_block_dimension_e {
     // 2D formats
-    KTX_PACK_ASTC_BLOCK_4x4,                    //: 8.00 bpp
-    KTX_PACK_ASTC_BLOCK_5x4,                    //: 6.40 bpp
-    KTX_PACK_ASTC_BLOCK_5x5,                    //: 5.12 bpp
-    KTX_PACK_ASTC_BLOCK_6x5,                    //: 4.27 bpp
-    KTX_PACK_ASTC_BLOCK_6x6,                    //: 3.56 bpp
-    KTX_PACK_ASTC_BLOCK_8x5,                    //: 3.20 bpp
-    KTX_PACK_ASTC_BLOCK_8x6,                    //: 2.67 bpp
-    KTX_PACK_ASTC_BLOCK_10x5,                   //: 2.56 bpp
-    KTX_PACK_ASTC_BLOCK_10x6,                   //: 2.13 bpp
-    KTX_PACK_ASTC_BLOCK_8x8,                    //: 2.00 bpp
-    KTX_PACK_ASTC_BLOCK_10x8,                   //: 1.60 bpp
-    KTX_PACK_ASTC_BLOCK_10x10,                  //: 1.28 bpp
-    KTX_PACK_ASTC_BLOCK_12x10,                  //: 1.07 bpp
-    KTX_PACK_ASTC_BLOCK_12x12,                  //: 0.89 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x4,                    //: 8.00 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x4,                    //: 6.40 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x5,                    //: 5.12 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x5,                    //: 4.27 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x6,                    //: 3.56 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_8x5,                    //: 3.20 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_8x6,                    //: 2.67 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x5,                   //: 2.56 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x6,                   //: 2.13 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_8x8,                    //: 2.00 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x8,                   //: 1.60 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x10,                  //: 1.28 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_12x10,                  //: 1.07 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_12x12,                  //: 0.89 bpp
     // 3D formats
-    KTX_PACK_ASTC_BLOCK_3x3x3,                  //: 4.74 bpp
-    KTX_PACK_ASTC_BLOCK_4x3x3,                  //: 3.56 bpp
-    KTX_PACK_ASTC_BLOCK_4x4x3,                  //: 2.67 bpp
-    KTX_PACK_ASTC_BLOCK_4x4x4,                  //: 2.00 bpp
-    KTX_PACK_ASTC_BLOCK_5x4x4,                  //: 1.60 bpp
-    KTX_PACK_ASTC_BLOCK_5x5x4,                  //: 1.28 bpp
-    KTX_PACK_ASTC_BLOCK_5x5x5,                  //: 1.02 bpp
-    KTX_PACK_ASTC_BLOCK_6x5x5,                  //: 0.85 bpp
-    KTX_PACK_ASTC_BLOCK_6x6x5,                  //: 0.71 bpp
-    KTX_PACK_ASTC_BLOCK_6x6x6,                  //: 0.59 bpp
-    KTX_PACK_ASTC_BLOCK_SIZE_MAX = KTX_PACK_ASTC_BLOCK_6x6x6
+    KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3,                  //: 4.74 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3,                  //: 3.56 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3,                  //: 2.67 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4,                  //: 2.00 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4,                  //: 1.60 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4,                  //: 1.28 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5,                  //: 1.02 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5,                  //: 0.85 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5,                  //: 0.71 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6,                  //: 0.59 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_MAX = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6
         /*!< Maximum supported blocks. */
-} ktx_pack_astc_block_size_e;
+} ktx_pack_astc_block_dimension_e;
 
 /**
  * @~English
@@ -1050,7 +1049,7 @@ typedef struct ktxAstcParams {
         /*!< Number of threads used for compression. Default is 1. */
 
     /* astcenc params */
-    ktx_uint32_t blockSize;
+    ktx_uint32_t blockDimension;
         /*!< Combinations of block dimensions that astcenc supports
           i.e. 6x6, 8x8, 6x5 etc*/
 

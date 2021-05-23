@@ -223,7 +223,7 @@ astcDefaultOptions() {
     params.structSize = sizeof(params);
     params.verbose = false;
     params.threadCount = 1;
-    params.blockSize = KTX_PACK_ASTC_BLOCK_6x6;
+    params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
     params.function = KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN;
     params.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
     params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
@@ -236,44 +236,44 @@ astcDefaultOptions() {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief Creates valid astc block size from string.
+ * @brief Creates valid astc block dimension from string.
  *
- * @return      Valid ktx_pack_astc_block_size_e from string
+ * @return      Valid ktx_pack_astc_block_dimension_e from string
  */
-ktx_pack_astc_block_size_e
-astcBlockSize(const char* block_size) {
-  static std::unordered_map<std::string, ktx_pack_astc_block_size_e>
-      astc_blocks_mapping{{"4x4", KTX_PACK_ASTC_BLOCK_4x4},
-                          {"5x4", KTX_PACK_ASTC_BLOCK_5x4},
-                          {"5x5", KTX_PACK_ASTC_BLOCK_5x5},
-                          {"6x5", KTX_PACK_ASTC_BLOCK_6x5},
-                          {"6x6", KTX_PACK_ASTC_BLOCK_6x6},
-                          {"8x5", KTX_PACK_ASTC_BLOCK_8x5},
-                          {"8x6", KTX_PACK_ASTC_BLOCK_8x6},
-                          {"10x5", KTX_PACK_ASTC_BLOCK_10x5},
-                          {"10x6", KTX_PACK_ASTC_BLOCK_10x6},
-                          {"8x8", KTX_PACK_ASTC_BLOCK_8x8},
-                          {"10x8", KTX_PACK_ASTC_BLOCK_10x8},
-                          {"10x10", KTX_PACK_ASTC_BLOCK_10x10},
-                          {"12x10", KTX_PACK_ASTC_BLOCK_12x10},
-                          {"12x12", KTX_PACK_ASTC_BLOCK_12x12},
-                          {"3x3x3", KTX_PACK_ASTC_BLOCK_3x3x3},
-                          {"4x3x3", KTX_PACK_ASTC_BLOCK_4x3x3},
-                          {"4x4x3", KTX_PACK_ASTC_BLOCK_4x4x3},
-                          {"4x4x4", KTX_PACK_ASTC_BLOCK_4x4x4},
-                          {"5x4x4", KTX_PACK_ASTC_BLOCK_5x4x4},
-                          {"5x5x4", KTX_PACK_ASTC_BLOCK_5x5x4},
-                          {"5x5x5", KTX_PACK_ASTC_BLOCK_5x5x5},
-                          {"6x5x5", KTX_PACK_ASTC_BLOCK_6x5x5},
-                          {"6x6x5", KTX_PACK_ASTC_BLOCK_6x6x5},
-                          {"6x6x6", KTX_PACK_ASTC_BLOCK_6x6x6}};
+ktx_pack_astc_block_dimension_e
+astcBlockDimension(const char* block_size) {
+  static std::unordered_map<std::string, ktx_pack_astc_block_dimension_e>
+      astc_blocks_mapping{{"4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4},
+                          {"5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4},
+                          {"5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5},
+                          {"6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5},
+                          {"6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6},
+                          {"8x5", KTX_PACK_ASTC_BLOCK_DIMENSION_8x5},
+                          {"8x6", KTX_PACK_ASTC_BLOCK_DIMENSION_8x6},
+                          {"10x5", KTX_PACK_ASTC_BLOCK_DIMENSION_10x5},
+                          {"10x6", KTX_PACK_ASTC_BLOCK_DIMENSION_10x6},
+                          {"8x8", KTX_PACK_ASTC_BLOCK_DIMENSION_8x8},
+                          {"10x8", KTX_PACK_ASTC_BLOCK_DIMENSION_10x8},
+                          {"10x10", KTX_PACK_ASTC_BLOCK_DIMENSION_10x10},
+                          {"12x10", KTX_PACK_ASTC_BLOCK_DIMENSION_12x10},
+                          {"12x12", KTX_PACK_ASTC_BLOCK_DIMENSION_12x12},
+                          {"3x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3},
+                          {"4x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3},
+                          {"4x4x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3},
+                          {"4x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4},
+                          {"5x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4},
+                          {"5x5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4},
+                          {"5x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5},
+                          {"6x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5},
+                          {"6x6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5},
+                          {"6x6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6}};
 
   auto opt = astc_blocks_mapping.find(block_size);
 
   if (opt != astc_blocks_mapping.end())
       return opt->second;
 
-  return KTX_PACK_ASTC_BLOCK_6x6;
+  return KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
 }
 
 /**
@@ -353,57 +353,57 @@ static ktx_uint32_t
 astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
     if (sRGB) {
         switch (block_size) {
-        case KTX_PACK_ASTC_BLOCK_4x4: return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_5x4: return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_5x5: return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_6x5: return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_6x6: return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_8x5: return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_8x6: return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_8x8: return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x5: return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x6: return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x8: return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x10: return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_12x10: return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_12x12: return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_3x3x3: return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_4x3x3: return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_4x4x3: return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_4x4x4: return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_5x4x4: return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_5x5x4: return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_5x5x5: return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_6x5x5: return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_6x6x5: return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_6x6x6: return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8: return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
         }
     } else {
         switch (block_size) {
-        case KTX_PACK_ASTC_BLOCK_4x4: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_5x4: return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_5x5: return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_6x5: return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_6x6: return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_8x5: return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_8x6: return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_8x8: return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x5: return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x6: return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x8: return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_10x10: return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_12x10: return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_12x12: return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_3x3x3: return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_4x3x3: return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_4x4x3: return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_4x4x4: return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_5x4x4: return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_5x5x4: return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_5x5x5: return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_6x5x5: return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_6x6x5: return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_6x6x6: return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8: return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
         }
     }
 
@@ -489,33 +489,33 @@ astcSwizzle(const ktxAstcParams &params) {
 }
 
 static void
-astcBlockSizes(ktx_uint32_t block_size,
+astcBlockDimensions(ktx_uint32_t block_size,
                uint32_t& block_x, uint32_t& block_y, uint32_t& block_z) {
     switch (block_size) {
-    case KTX_PACK_ASTC_BLOCK_4x4 : block_x = 4; block_y = 4; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_5x4 : block_x = 5; block_y = 4; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_5x5 : block_x = 5; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_6x5 : block_x = 6; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_6x6 : block_x = 6; block_y = 6; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_8x5 : block_x = 8; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_8x6 : block_x = 8; block_y = 6; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_10x5 : block_x = 10; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_10x6 : block_x = 10; block_y = 6; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_8x8 : block_x = 8; block_y = 8; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_10x8 : block_x = 10; block_y = 8; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_10x10 : block_x = 10; block_y = 10; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_12x10 : block_x = 12; block_y = 10; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_12x12 : block_x = 12; block_y = 12; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_3x3x3 : block_x = 3; block_y = 3; block_z = 3; break;
-    case KTX_PACK_ASTC_BLOCK_4x3x3 : block_x = 4; block_y = 3; block_z = 3; break;
-    case KTX_PACK_ASTC_BLOCK_4x4x3 : block_x = 4; block_y = 4; block_z = 3; break;
-    case KTX_PACK_ASTC_BLOCK_4x4x4 : block_x = 4; block_y = 4; block_z = 4; break;
-    case KTX_PACK_ASTC_BLOCK_5x4x4 : block_x = 5; block_y = 4; block_z = 4; break;
-    case KTX_PACK_ASTC_BLOCK_5x5x4 : block_x = 5; block_y = 5; block_z = 4; break;
-    case KTX_PACK_ASTC_BLOCK_5x5x5 : block_x = 5; block_y = 5; block_z = 5; break;
-    case KTX_PACK_ASTC_BLOCK_6x5x5 : block_x = 6; block_y = 5; block_z = 5; break;
-    case KTX_PACK_ASTC_BLOCK_6x6x5 : block_x = 6; block_y = 6; block_z = 5; break;
-    case KTX_PACK_ASTC_BLOCK_6x6x6 : block_x = 6; block_y = 6; block_z = 6; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4 : block_x = 4; block_y = 4; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4 : block_x = 5; block_y = 4; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5 : block_x = 5; block_y = 5; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5 : block_x = 6; block_y = 5; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6 : block_x = 6; block_y = 6; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5 : block_x = 8; block_y = 5; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6 : block_x = 8; block_y = 6; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5 : block_x = 10; block_y = 5; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6 : block_x = 10; block_y = 6; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8 : block_x = 8; block_y = 8; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8 : block_x = 10; block_y = 8; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10 : block_x = 10; block_y = 10; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10 : block_x = 12; block_y = 10; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12 : block_x = 12; block_y = 12; block_z = 1; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3 : block_x = 3; block_y = 3; block_z = 3; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3 : block_x = 4; block_y = 3; block_z = 3; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3 : block_x = 4; block_y = 4; block_z = 3; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4 : block_x = 4; block_y = 4; block_z = 4; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4 : block_x = 5; block_y = 4; block_z = 4; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4 : block_x = 5; block_y = 5; block_z = 4; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5 : block_x = 5; block_y = 5; block_z = 5; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5 : block_x = 6; block_y = 5; block_z = 5; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5 : block_x = 6; block_y = 6; block_z = 5; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6 : block_x = 6; block_y = 6; block_z = 6; break;
     default:
         block_x = 6; block_y = 6; block_z = 1; break;
     }
@@ -637,7 +637,7 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_OPERATION
- *                              The texture is already supercompressed.
+ *                              The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
  *                              The texture's image are in a block compressed
  *                              format.
@@ -653,7 +653,7 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  * @exception KTX_INVALID_OPERATION
  *                              Astc compressor failed to compress image for any
                                 reason.
- * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
 ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
@@ -709,7 +709,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     float           quality{ASTCENC_PRE_MEDIUM};
     uint32_t        flags{params->normalMap ? ASTCENC_FLG_MAP_NORMAL : 0};
 
-    astcBlockSizes(params->blockSize,
+    astcBlockDimensions(params->blockDimension,
                    block_size_x, block_size_y, block_size_z);
     quality = astcQuality(params->qualityLevel);
     profile = astcEncoderAction(*params, BDB);
@@ -757,6 +757,9 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
 
     // Walk in reverse on levels so we don't have to do this later
     // This->numLevels = 0 not allowed for block compressed formats
+    // But just in case make sure its not zero
+    This->numLevels = MAX(1, This->numLevels);
+
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         uint32_t width = MAX(1, This->baseWidth >> level);
         uint32_t height = MAX(1, This->baseHeight >> level);
@@ -876,7 +879,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
     bool sRGB = transfer == KHR_DF_TRANSFER_SRGB; // Is this right or I need "KHR_DF_PRIMARIES_SRGB"?
 
-    This->vkFormat = astcVkFormat(params->blockSize, sRGB);
+    This->vkFormat = astcVkFormat(params->blockDimension, sRGB);
 
     free(This->pDfd);
     This->pDfd = vk2dfd(static_cast<VkFormat>(This->vkFormat));
@@ -887,7 +890,6 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     // Astc-related checks
     ktx_uint32_t model = KHR_DFDVAL(BDB, MODEL);
     ktx_uint32_t primaries = KHR_DFDVAL(BDB, PRIMARIES);
-    This->supercompressionScheme = KTX_SS_ASTC;
     This->isCompressed = true;
 
     assert(model == KHR_DF_MODEL_ASTC && "Invalid dfd generated for astc image\n");
@@ -895,7 +897,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
         assert(primaries == KHR_DF_PRIMARIES_SRGB && "Not a valid sRGB image\n");
     }
 
-    // Since we only allow 8-bit components to be compressed
+    // Block-compressed textures never need byte swapping so typeSize is 1.
     This->_protected->_typeSize = 1;
 
     return KTX_SUCCESS;

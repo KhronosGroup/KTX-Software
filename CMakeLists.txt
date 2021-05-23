@@ -629,25 +629,28 @@ PUBLIC
 
 add_subdirectory(interface/basisu_c_binding)
 
-# Add astcenc subdirectory
-# Only one architecture is supported at once, if default (avx2) is not available,
-# user must define ISA_SSE41, ISA_SSE2 or ISA_NEON themselves
+# Only one architecture is supported at once, if neither of
+# ISA_SSE41 and ISA_SSE2  are defined ISA_AVX2 is chosen.
+# If ISA_AVX2 fails to compile user must chose other x86 options
+# On arm based systems ISA_NEON is default
 
-set(ISA_AVX2 ON) # AVX2 is the default
-set(ASTC_LIB_NAME astcenc-avx2-static)
-
-if (${ISA_SSE41})
-  set(ASTC_LIB_NAME astcenc-sse4.1-static)
+if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
+    if (${ISA_SSE41})
+        set(ASTC_LIB_NAME astcenc-sse4.1-static)
+    elseif (${ISA_SSE2})
+        set(ASTC_LIB_NAME astcenc-sse2-static)
+    else()
+        set(ISA_AVX2 ON) # AVX2 is the default
+        set(ASTC_LIB_NAME astcenc-avx2-static)
+        message("ASTCENC: Building for AVX2. If this fails to compile, define either ISA_SSE41 or ISA_SSE2")
+    endif()
+elseif(CPU_ARCHITECTURE STREQUAL arm OR CPU_ARCHITECTURE STREQUAL armv7
+       OR CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
+    set(ISA_NEON ON)
+    set(ASTC_LIB_NAME astcenc-neon-static)
 endif()
 
-if (${ISA_SSE2})
-  set(ASTC_LIB_NAME astcenc-sse2-static)
-endif()
-
-if (${ISA_NEON})
-  set(ASTC_LIB_NAME astcenc-neon-static)
-endif()
-
+# astcenc
 add_subdirectory(lib/astc-encoder)
 target_link_libraries(ktx PRIVATE ${ASTC_LIB_NAME})
 
