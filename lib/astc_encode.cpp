@@ -199,16 +199,6 @@ unorm8x4ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     return img;
 }
 
-static ktx_size_t
-astcBufferSize(uint32_t width, uint32_t height, uint32_t depth,
-               uint32_t block_x, uint32_t block_y, uint32_t block_z) {
-    auto xblocs = (width  + block_x - 1) / block_x;
-    auto yblocs = (height + block_y - 1) / block_y;
-    auto zblocs = (depth  + block_z - 1) / block_z;
-
-    return xblocs * yblocs * zblocs * 16;
-}
-
 /**
  * @memberof ktxTexture
  * @ingroup write
@@ -747,119 +737,83 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
         return KTX_INVALID_OPERATION;
     }
 
-    //
-    // Copy images into compressor readable format.
-    //
-    std::vector<astcenc_image*> astc_input_images;
-    std::vector<ktx_size_t> astc_image_sizes;
-
-    // Conservative allocation, only used to resize data vectors
-    uint32_t num_images = MAX(1, This->numLayers) * MAX(1, This->numFaces) *
-        MAX(1, This->numLevels) * MAX(1, This->baseDepth);
-
-    astc_input_images.reserve(num_images);
-    astc_image_sizes.reserve(num_images);
-
-    // Size of all ASTC compressed images in bytes
-    ktx_size_t astc_images_size = 0;
-
     // Walk in reverse on levels so we don't have to do this later
     // This->numLevels = 0 not allowed for block compressed formats
     // But just in case make sure its not zero
     This->numLevels = MAX(1, This->numLevels);
 
-    for (int32_t level = This->numLevels - 1; level >= 0; level--) {
-        uint32_t width = MAX(1, This->baseWidth >> level);
-        uint32_t height = MAX(1, This->baseHeight >> level);
-        uint32_t depth = MAX(1, This->baseDepth >> level);
-        uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
+    assert(prototype->dataSize && "Prototype texture size not initialized.\n");
 
-        ktx_size_t size = astcBufferSize(width, height, depth,
-                                         block_size_x, block_size_y, block_size_z);
-
-        for (uint32_t layer = 0; layer < MAX(1, This->numLayers); layer++) {
-            for (ktx_uint32_t slice = 0; slice < faceSlices; slice++) {
-                ktx_size_t offset;
-                ktxTexture2_GetImageOffset((ktxTexture2*)This, level, layer,
-                                           slice, &offset);
-
-                // TODO: Fix depth for 3D textures
-                // Create compressor readable image from each image in the container
-                astcenc_image *input_image = nullptr;
-                if (num_components == 1)
-                    input_image = unorm8x1ArrayToImage(This->pData + offset,
-                                                       width, height);
-                else if (num_components == 2)
-                    input_image = unorm8x2ArrayToImage(This->pData + offset,
-                                                       width, height);
-                else if (num_components == 3)
-                    input_image = unorm8x3ArrayToImage(This->pData + offset,
-                                                       width, height);
-                else // assume (num_components == 4)
-                    input_image = unorm8x4ArrayToImage(This->pData + offset,
-                                                       width, height);
-
-                assert(input_image);
-
-                astc_input_images.push_back(input_image);
-                astc_image_sizes.push_back(size);
-
-                astc_images_size += size;
-            }
-        }
-    }
-
-    free(This->pData); // No longer needed. Reduce memory footprint.
-    This->pData = NULL;
-    This->dataSize = 0;
-
-    // Allocate big enough buffer for all compressed images
-    prototype->dataSize = astc_images_size;
-    prototype->pData = reinterpret_cast<uint8_t *>(malloc(prototype->dataSize));
     if (!prototype->pData) {
         return KTX_OUT_OF_MEMORY;
     }
 
     uint8_t* buffer_out  = prototype->pData;
-    uint32_t input_size = astc_input_images.size();
 
-    for (uint32_t level = 0; level < input_size; level++) {
-        if (params->verbose)
-            std::cout << "ASTC compressor: compressing image = " <<
-                         level + 1 << " of " << input_size  << std::endl;
+    for (int32_t level = This->numLevels - 1; level >= 0; level--) {
+        uint32_t width = MAX(1, This->baseWidth >> level);
+        uint32_t height = MAX(1, This->baseHeight >> level);
+        uint32_t depth = MAX(1, This->baseDepth >> level);
+        ktx_size_t levelImageSizeIn = 0;
+        ktx_size_t levelImageSizeOut = 0;
+        ktx_uint32_t levelImages = 0;
 
-        // Lets compress to astc
-        astcenc_image *input_image = astc_input_images[level];
-        ktx_size_t     size        = astc_image_sizes[level];
+        levelImages = This->numLayers * This->numFaces * depth;
+        levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), level,
+                                                    KTX_FORMAT_VERSION_TWO);
+        levelImageSizeOut = ktxTexture_calcImageSize(ktxTexture(prototype), level,
+                                                     KTX_FORMAT_VERSION_TWO);
+        ktx_size_t offset = ktxTexture2_levelDataOffset(This, level);
 
-        CompressionWorkload work;
-        work.context = astc_context;
-        work.image = input_image;
-        work.swizzle = swizzle;
-        work.data_out = buffer_out;
-        work.data_len = size;
-        work.error = ASTCENC_SUCCESS;
+        for (uint32_t image = 0; image < levelImages; image++) {
+            if (params->verbose)
+                std::cout << "ASTC compressor: compressing image " <<
+                             (This->numLevels - level - 1) * levelImages + image + 1
+                             << " of " << This->numLevels * levelImages
+                             << std::endl;
 
-        launchThreads(threadCount, compressionWorkloadRunner, &work);
+            astcenc_image *input_image = nullptr;
+            if (num_components == 1)
+                input_image = unorm8x1ArrayToImage(This->pData + offset,
+                                                   width, height);
+            else if (num_components == 2)
+                input_image = unorm8x2ArrayToImage(This->pData + offset,
+                                                   width, height);
+            else if (num_components == 3)
+                input_image = unorm8x3ArrayToImage(This->pData + offset,
+                                                   width, height);
+            else // assume (num_components == 4)
+                input_image = unorm8x4ArrayToImage(This->pData + offset,
+                                                   width, height);
 
-        if (work.error != ASTCENC_SUCCESS) {
-            std::cout << "ASTC compressor failed\n" <<
-                         astcenc_get_error_string(work.error) << std::endl;
+            assert(input_image);
 
-            for(auto& ii : astc_input_images)
-                imageFree(ii);
+            CompressionWorkload work;
+            work.context = astc_context;
+            work.image = input_image;
+            work.swizzle = swizzle;
+            work.data_out = buffer_out;
+            work.data_len = levelImageSizeOut;
+            work.error = ASTCENC_SUCCESS;
 
-            astcenc_context_free(astc_context);
-            return KTX_INVALID_OPERATION;
+            launchThreads(threadCount, compressionWorkloadRunner, &work);
+
+            if (work.error != ASTCENC_SUCCESS) {
+                std::cout << "ASTC compressor failed\n" <<
+                             astcenc_get_error_string(work.error) << std::endl;
+
+                imageFree(input_image);
+
+                astcenc_context_free(astc_context);
+                return KTX_INVALID_OPERATION;
+            }
+
+            buffer_out += levelImageSizeOut;
+
+            // Reset ASTC context for next image
+            astcenc_compress_reset(astc_context);
+            offset += levelImageSizeIn;
         }
-
-        buffer_out += size;
-
-        // Free input image
-        imageFree(input_image);
-
-        // Reset ASTC context for next image
-        astcenc_compress_reset(astc_context);
     }
 
     // We are done with astcencoder
@@ -878,10 +832,10 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     }
 
     // Fix up the current (This) texture
-#undef DECLARE_PRIVATE
-#undef DECLARE_PROTECTED
-#define DECLARE_PRIVATE(n,t2) ktxTexture2_private& n = *(t2->_private)
-#define DECLARE_PROTECTED(n,t2) ktxTexture_protected& n = *(t2->_protected)
+    #undef DECLARE_PRIVATE
+    #undef DECLARE_PROTECTED
+    #define DECLARE_PRIVATE(n,t2) ktxTexture2_private& n = *(t2->_private)
+    #define DECLARE_PROTECTED(n,t2) ktxTexture_protected& n = *(t2->_protected)
 
     DECLARE_PROTECTED(thisPrtctd, This);
     DECLARE_PRIVATE(protoPriv, prototype);
