@@ -164,18 +164,9 @@ function gencmpktx() {
   local args
   local reference=$1; shift
   local tempfile=$(mktmp)
-  local prevarg=""
   for i in $*; do
-  if [ ! -z "$prevarg" ]; then
-    args="$args $i"
-    prevarg=""
-    shift
-  fi
 	if [ ${i:0:2} == "--" ]; then
 	  args="$args $i"
-    if [ ${i:2:6} == "encode" ]; then
-      prevarg="encode"
-    fi
     shift
 	fi
   done
@@ -197,11 +188,11 @@ gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometada
 gencmpktx rgb-mipmap-reference-u.ktx2 --test --t2 --mipmap ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
 if [ $(uname) == "Darwin" ]; then
   # Run only on macOS until we figure out the Basis compressor non-determinancy.
-  gencmpktx alpha_simple_basis.ktx2 --test --encode etc1s ../srcimages/alpha_simple.png
-  gencmpktx kodim17_basis.ktx2 --test --encode etc1s ../srcimages/kodim17.png
-  gencmpktx color_grid_basis.ktx2 --test --encode etc1s ../srcimages/color_grid.png
-  gencmpktx cimg5293_uastc.ktx2 --encode uastc --genmipmap --test ../srcimages/CIMG5293.jpg
-  gencmpktx cimg5293_uastc_zstd.ktx2 --zcmp --encode uastc --genmipmap --test ../srcimages/CIMG5293.jpg
+  gencmpktx alpha_simple_basis.ktx2 --test --bcmp ../srcimages/alpha_simple.png
+  gencmpktx kodim17_basis.ktx2 --test --bcmp ../srcimages/kodim17.png
+  gencmpktx color_grid_basis.ktx2 --test --bcmp ../srcimages/color_grid.png
+  gencmpktx cimg5293_uastc.ktx2 --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
+  gencmpktx cimg5293_uastc_zstd.ktx2 --zcmp --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
 fi
 
 filelist=$(mktemp)

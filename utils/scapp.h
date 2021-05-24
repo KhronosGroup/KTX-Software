@@ -363,11 +363,13 @@ class scApp : public ktxApp {
           "               image quality at the expense of compression time. Default is 'medium'\n"
           "               The quality level can be set to fastest (0) and thorough (100) via the \n"
           "               following fixed quality presets:\n\n"
-          "                   fastest       (equivalent to quality =   0)\n"
-          "                   fast          (equivalent to quality =  10)\n"
-          "                   medium        (equivalent to quality =  60)\n"
-          "                   thorough      (equivalent to quality =  98)\n"
-          "                   exhaustive    (equivalent to quality = 100)\n"
+          "                   Level      |  Quality\n"
+          "                   ---------- | -----------------------------\n"
+          "                   fastest    | (equivalent to quality =   0)\n"
+          "                   fast       | (equivalent to quality =  10)\n"
+          "                   medium     | (equivalent to quality =  60)\n"
+          "                   thorough   | (equivalent to quality =  98)\n"
+          "                   exhaustive | (equivalent to quality = 100)\n"
           "      --astc_normal\n"
           "               The input texture is a three component linear LDR normal map\n"
           "               storing unit length normals as (R=X, G=Y, B=Z). The output will\n"
@@ -444,7 +446,7 @@ class scApp : public ktxApp {
           "               tradeoff as shown in the following table:\n"
           "\n"
           "                   Level |  Speed    | Quality\n"
-          "                   ----- | -------   | -------\n"
+          "                   ----- | --------- | -------\n"
           "                     0   |  Fastest  | 43.45dB\n"
           "                     1   |  Faster   | 46.49dB\n"
           "                     2   |  Default  | 47.47dB\n"
@@ -485,6 +487,10 @@ class scApp : public ktxApp {
           "               deterministic).\n\n"
           "  --no_sse     Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
+          "  --bcmp\n"
+          "               Deprecated. Use '--encode etc1s' instead.\n"
+          "  --uastc [<level>]\n"
+          "               Deprecated. Use '--encode uastc' instead.\n"
           "  --zcmp [<compressionLevel>]\n"
           "               Supercompress the data with Zstandard. Implies --t2. Can be used\n"
           "               with data in any format except ETC1S / BasisLZ. Most\n"
@@ -542,13 +548,16 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_blk_d", argparser::option::required_argument, NULL, 1012 },
       { "astc_mode", argparser::option::required_argument, NULL, 1013 },
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
-      { "astc_normal", argparser::option::no_argument, NULL, 1015 }
+      { "astc_normal", argparser::option::no_argument, NULL, 1015 },
+      // Deprecated options
+      { "bcmp", argparser::option::no_argument, NULL, 'b' },
+      { "uastc", argparser::option::optional_argument, NULL, 1016 }
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
   option_list.insert(option_list.begin(), my_option_list,
                      my_option_list + lastOptionIndex);
-  short_opts += "oz;Nt:c:q:e:E:u:S:n";
+  short_opts += "oz;Nt:c:q:e:E:u:S:nb";
 }
 
 void
@@ -594,7 +603,7 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 'z':
         if (options.etc1s) {
-            cerr << "Only one of '--encode etc1s' and --zcmp can be specified."
+            cerr << "Only one of '--encode etc1s|--bcmp'  and --zcmp can be specified."
                  << endl;
             usage();
             exit(1);
@@ -712,6 +721,42 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 1015: // astc_normal
         options.astcopts.normalMap = true;
+        break;
+      case 'b':
+        if (options.zcmp) {
+            cerr << "Only one of --bcmp and --zcmp can be specified.\n"
+                 << "--bcmp is deprecated, use '--encode etc1s' instead."
+                 << endl;
+            usage();
+            exit(1);
+        }
+        if (options.bopts.uastc) {
+            cerr << "Only one of --bcmp and '--encode etc1s|--uastc' can be specified.\n"
+                 << "--bcmp is deprecated, use '--encode etc1s' instead."
+                 << endl;
+            usage();
+            exit(1);
+        }
+        options.etc1s = 1;
+        options.ktx2 = 1;
+        break;
+      case 1016:
+        if (options.etc1s) {
+             cerr << "Only one of `--encode etc1s|--bcmp` and `--uastc [<level>]` can be specified."
+                  << endl;
+             usage();
+             exit(1);
+        }
+        options.bopts.uastc = 1;
+        options.ktx2 = 1;
+        if (parser.optarg.size() > 0) {
+            ktx_uint32_t level = strtoi(parser.optarg.c_str());
+            level = clamp<ktx_uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
+            // Ensure the last one wins in case of multiple of these args.
+            options.bopts.uastcFlags = (unsigned int)~KTX_PACK_UASTC_LEVEL_MASK;
+            options.bopts.uastcFlags |= level;
+            hasArg = true;
+        }
         break;
       default:
         return false;
