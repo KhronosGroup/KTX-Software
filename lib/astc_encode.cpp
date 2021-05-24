@@ -11,7 +11,7 @@
  * @file astc_encode.cpp
  * @~English
  *
- * @brief Functions for compressing a texture to astc format.
+ * @brief Functions for compressing a texture to ASTC format.
  *
  * @author Wasim Abbas , www.arm.com
  */
@@ -213,9 +213,9 @@ astcBufferSize(uint32_t width, uint32_t height, uint32_t depth,
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief       Creates default astc parameters
+ * @brief       Creates default ASTC parameters
  *
- * @return      ktxAstcParams with default options for astc compressor
+ * @return      ktxAstcParams with default options for ASTC compressor
  */
 static ktxAstcParams
 astcDefaultOptions() {
@@ -236,7 +236,7 @@ astcDefaultOptions() {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief Creates valid astc block dimension from string.
+ * @brief Creates valid ASTC block dimension from string.
  *
  * @return      Valid ktx_pack_astc_block_dimension_e from string
  */
@@ -280,7 +280,7 @@ astcBlockDimension(const char* block_size) {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief Creates valid astc quality from string.
+ * @brief Creates valid ASTC quality from string.
  *
  * @return      Valid ktx_pack_astc_quality_e from string
  */
@@ -308,7 +308,7 @@ astcQualityLevel(const char *quality) {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief Creates valid astc mode from string.
+ * @brief Creates valid ASTC mode from string.
  *
  * @return      Valid ktx_pack_astc_mode_e from string
  */
@@ -326,11 +326,11 @@ astcEncoderMode(const char* mode) {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief       Should be used to get VkFormat from astc block enum
+ * @brief       Should be used to get VkFormat from ASTC block enum
  *
- * @return      VKFormat for a specific astc block size
+ * @return      VKFormat for a specific ASTC block size
  */
-static ktx_uint32_t
+static VkFormat
 astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
     if (sRGB) {
         switch (block_size) {
@@ -395,7 +395,7 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief Creates valid astc encoder action from string.
+ * @brief Creates valid ASTC encoder action from string.
  *
  * @return      Valid astc_profile from string
  */
@@ -440,7 +440,7 @@ astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief Creates valid astc encoder swizzle from string.
+ * @brief Creates valid ASTC encoder swizzle from string.
  *
  * @return      Valid astcenc_swizzle from string
  */
@@ -606,14 +606,14 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  * @~English
  * @brief Encode and compress a ktx texture with uncompressed images to astc.
  *
- * The images are encoded to astc block-compressed format. The encoded images
+ * The images are encoded to ASTC block-compressed format. The encoded images
  * replace the original images and the texture's fields including the DFD are
  * modified to reflect the new state.
  *
  * Such textures can be directly uploaded to a GPU via a graphics API.
  *
  * @param[in]   This   pointer to the ktxTexture object of interest.
- * @param[in]   params pointer to astc params object.
+ * @param[in]   params pointer to ASTC params object.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -632,14 +632,14 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              Astc compressor failed to compress image for any
+ *                              ASTC  compressor failed to compress image for any
                                 reason.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
 ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     // FIXME: At the moment defaults to ktx2 textures only
-    assert(_This->classId == ktxTexture2_c && "Only support ktx2 astc.");
+    assert(_This->classId == ktxTexture2_c && "Only support ktx2 ASTC.");
     ktxTexture2* This = (ktxTexture2*)_This;
 
     KTX_error_code result;
@@ -655,7 +655,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
 
     if (This->isCompressed)
         return KTX_INVALID_OPERATION;  // Only non-block compressed formats
-                                       // can be encoded into a astc format.
+                                       // can be encoded into an ASTC format.
 
     if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
         return KTX_INVALID_OPERATION;
@@ -679,6 +679,37 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     ktx_uint32_t threadCount = params->threadCount;
     if (threadCount < 1)
         threadCount = 1;
+
+    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
+
+    VkFormat vkFormat = astcVkFormat(params->blockDimension, sRGB);
+
+    // Create a prototype texture to use for calculating sizes in the target
+    // format and, as useful side effects, provide us with a properly sized
+    // data allocation and the DFD for the target format.
+    ktxTextureCreateInfo createInfo;
+    createInfo.glInternalformat = 0;
+    createInfo.vkFormat = vkFormat;
+    createInfo.baseWidth = This->baseWidth;
+    createInfo.baseHeight = This->baseHeight;
+    createInfo.baseDepth = This->baseDepth;
+    createInfo.generateMipmaps = This->generateMipmaps;
+    createInfo.isArray = This->isArray;
+    createInfo.numDimensions = This->numDimensions;
+    createInfo.numFaces = This->numFaces;
+    createInfo.numLayers = This->numLayers;
+    createInfo.numLevels = This->numLevels;
+    createInfo.pDfd = nullptr;
+
+    ktxTexture2* prototype;
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                &prototype);
+
+    if (result != KTX_SUCCESS) {
+        assert(result == KTX_OUT_OF_MEMORY && "Out of memory allocating texture.");
+        return result;
+    }
 
     astcenc_profile profile{ASTCENC_PRF_LDR_SRGB};
 
@@ -704,7 +735,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
                                                    &astc_config);
 
     if (astc_error != ASTCENC_SUCCESS) {
-        std::cout << "Astc config init failed\n";
+        std::cout << "ASTC config init failed\n";
         return KTX_INVALID_OPERATION;
     }
 
@@ -712,7 +743,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
                                         &astc_context);
 
     if (astc_error != ASTCENC_SUCCESS) {
-        std::cout << "Astc context alloc failed\n";
+        std::cout << "ASTC context alloc failed\n";
         return KTX_INVALID_OPERATION;
     }
 
@@ -729,10 +760,10 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     astc_input_images.reserve(num_images);
     astc_image_sizes.reserve(num_images);
 
-    // Size of all astc compressed images in bytes
+    // Size of all ASTC compressed images in bytes
     ktx_size_t astc_images_size = 0;
 
-    ktxTexture2_private& priv = *This->_private;
+    ktxTexture2_private& priv = *prototype->_private;
 
     ktx_size_t level_offset = 0;
 
@@ -787,9 +818,10 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
             }
         }
 
-        // Offset is from start of the astc compressed block
+
+        // Offset is from start of the ASTC compressed block
         priv._levelIndex[level].byteOffset = level_offset;
-        priv._requiredLevelAlignment = 8; // For astc its always 8 bytes (128bits) irrespective of block sizes
+        priv._requiredLevelAlignment = 8; // For ASTC its always 8 bytes (128bits) irrespective of block sizes
 
         ktx_size_t prev_level_offset = level_offset;
         level_offset += _KTX_PADN(priv._requiredLevelAlignment,
@@ -806,18 +838,18 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     This->dataSize = 0;
 
     // Allocate big enough buffer for all compressed images
-    This->dataSize = astc_images_size;
-    This->pData = reinterpret_cast<uint8_t *>(malloc(This->dataSize));
-    if (!This->pData) {
+    prototype->dataSize = astc_images_size;
+    prototype->pData = reinterpret_cast<uint8_t *>(malloc(prototype->dataSize));
+    if (!prototype->pData) {
         return KTX_OUT_OF_MEMORY;
     }
 
-    uint8_t* buffer_out  = This->pData;
+    uint8_t* buffer_out  = prototype->pData;
     uint32_t input_size = astc_input_images.size();
 
     for (uint32_t level = 0; level < input_size; level++) {
         if (params->verbose)
-            std::cout << "Astc compressor: compressing image = " <<
+            std::cout << "ASTC compressor: compressing image = " <<
                          level + 1 << " of " << input_size  << std::endl;
 
         // Lets compress to astc
@@ -835,7 +867,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
         launchThreads(threadCount, compressionWorkloadRunner, &work);
 
         if (work.error != ASTCENC_SUCCESS) {
-            std::cout << "Astc compressor failed\n" <<
+            std::cout << "ASTC compressor failed\n" <<
                          astcenc_get_error_string(work.error) << std::endl;
 
             for(auto& ii : astc_input_images)
@@ -850,37 +882,54 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
         // Free input image
         imageFree(input_image);
 
-        // Reset astc context for next image
+        // Reset ASTC context for next image
         astcenc_compress_reset(astc_context);
     }
 
     // We are done with astcencoder
     astcenc_context_free(astc_context);
 
-    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB; // Is this right or I need "KHR_DF_PRIMARIES_SRGB"?
-
-    This->vkFormat = astcVkFormat(params->blockDimension, sRGB);
-
-    free(This->pDfd);
-    This->pDfd = vk2dfd(static_cast<VkFormat>(This->vkFormat));
-
     // reset pointer to new BDB
-    BDB = This->pDfd+1;
+    BDB = prototype->pDfd+1;
 
-    // Astc-related checks
+    // ASTC-related checks
     ktx_uint32_t model = KHR_DFDVAL(BDB, MODEL);
     ktx_uint32_t primaries = KHR_DFDVAL(BDB, PRIMARIES);
-    This->isCompressed = true;
 
-    assert(model == KHR_DF_MODEL_ASTC && "Invalid dfd generated for astc image\n");
+    assert(model == KHR_DF_MODEL_ASTC && "Invalid dfd generated for ASTC image\n");
     if (transfer == KHR_DF_TRANSFER_SRGB) {
         assert(primaries == KHR_DF_PRIMARIES_SRGB && "Not a valid sRGB image\n");
     }
 
-    // Block-compressed textures never need byte swapping so typeSize is 1.
-    This->_protected->_typeSize = 1;
+    // Fix up the current (This) texture
+#undef DECLARE_PRIVATE
+#undef DECLARE_PROTECTED
+#define DECLARE_PRIVATE(n,t2) ktxTexture2_private& n = *(t2->_private)
+#define DECLARE_PROTECTED(n,t2) ktxTexture_protected& n = *(t2->_protected)
 
+    DECLARE_PROTECTED(thisPrtctd, This);
+    DECLARE_PRIVATE(protoPriv, prototype);
+    DECLARE_PROTECTED(protoPrtctd, prototype);
+    memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize,
+           sizeof(ktxFormatSize));
+    This->vkFormat = vkFormat;
+    This->isCompressed = prototype->isCompressed;
+    This->supercompressionScheme = KTX_SS_NONE;
+    This->_private->_requiredLevelAlignment = protoPriv._requiredLevelAlignment;
+    // Copy the levelIndex from the prototype to This.
+    memcpy(This->_private->_levelIndex, protoPriv._levelIndex,
+           This->numLevels * sizeof(ktxLevelIndexEntry));
+    // Move the DFD and data from the prototype to This.
+    delete This->pDfd;
+    This->pDfd = prototype->pDfd;
+    prototype->pDfd = 0;
+    delete This->pData;
+    This->pData = prototype->pData;
+    This->dataSize = prototype->dataSize;
+    prototype->pData = 0;
+    prototype->dataSize = 0;
+
+    ktxTexture2_Destroy(prototype);
     return KTX_SUCCESS;
 }
 
@@ -890,7 +939,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
  * @~English
  * @brief Encode and compress a ktx texture with uncompressed images to astc.
  *
- * The images are either encoded to astc block-compressed format. The encoded images
+ * The images are either encoded to ASTC block-compressed format. The encoded images
  * replace the original images and the texture's fields including the DFD are modified to reflect the new
  * state.
  *
