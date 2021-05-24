@@ -104,18 +104,18 @@ else
 fi
 
 numtests=$numtests+1
-if ! $toktx --zcmp --bcmp a b 2> /dev/null; then
+if ! $toktx --zcmp --etc1s a b 2> /dev/null; then
   passed=$passed+1
 else
-  echo "Simultaneous --bcmp & --zcmp allowed"
+  echo "Simultaneous --etc1s & --zcmp allowed"
   failed=$failed+1
 fi
 
 numtests=$numtests+1
-if ! $toktx --bcmp --uastc a b 2> /dev/null; then
+if ! $toktx --etc1s --uastc a b 2> /dev/null; then
   passed=$passed+1
 else
-  echo "Simultaneous --bcmp & --uastc allowed"
+  echo "Simultaneous --etc1s & --uastc allowed"
   failed=$failed+1
 fi
 
@@ -197,9 +197,9 @@ gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometada
 gencmpktx rgb-mipmap-reference-u.ktx2 --test --t2 --mipmap ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
 if [ $(uname) == "Darwin" ]; then
   # Run only on macOS until we figure out the Basis compressor non-determinancy.
-  gencmpktx alpha_simple_basis.ktx2 --test --encode bcmp ../srcimages/alpha_simple.png
-  gencmpktx kodim17_basis.ktx2 --test --encode bcmp ../srcimages/kodim17.png
-  gencmpktx color_grid_basis.ktx2 --test --encode bcmp ../srcimages/color_grid.png
+  gencmpktx alpha_simple_basis.ktx2 --test --encode etc1s ../srcimages/alpha_simple.png
+  gencmpktx kodim17_basis.ktx2 --test --encode etc1s ../srcimages/kodim17.png
+  gencmpktx color_grid_basis.ktx2 --test --encode etc1s ../srcimages/color_grid.png
   gencmpktx cimg5293_uastc.ktx2 --encode uastc --genmipmap --test ../srcimages/CIMG5293.jpg
   gencmpktx cimg5293_uastc_zstd.ktx2 --zcmp --encode uastc --genmipmap --test ../srcimages/CIMG5293.jpg
 fi
