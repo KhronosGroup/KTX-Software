@@ -648,6 +648,9 @@ elseif(CPU_ARCHITECTURE STREQUAL arm OR CPU_ARCHITECTURE STREQUAL armv7
        OR CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
     set(ISA_NEON ON)
     set(ASTC_LIB_NAME astcenc-neon-static)
+else()
+    set(ISA_NONE ON)
+    set(ASTC_LIB_NAME astcenc-none-static)
 endif()
 
 # astcenc
