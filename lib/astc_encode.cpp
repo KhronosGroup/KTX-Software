@@ -763,10 +763,6 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     // Size of all ASTC compressed images in bytes
     ktx_size_t astc_images_size = 0;
 
-    ktxTexture2_private& priv = *prototype->_private;
-
-    ktx_size_t level_offset = 0;
-
     // Walk in reverse on levels so we don't have to do this later
     // This->numLevels = 0 not allowed for block compressed formats
     // But just in case make sure its not zero
@@ -777,9 +773,6 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
         uint32_t height = MAX(1, This->baseHeight >> level);
         uint32_t depth = MAX(1, This->baseDepth >> level);
         uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
-
-        priv._levelIndex[level].byteLength             = 0;
-        priv._levelIndex[level].uncompressedByteLength = 0;
 
         ktx_size_t size = astcBufferSize(width, height, depth,
                                          block_size_x, block_size_y, block_size_z);
@@ -812,25 +805,8 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
                 astc_image_sizes.push_back(size);
 
                 astc_images_size += size;
-
-                priv._levelIndex[level].byteLength             += size;
-                priv._levelIndex[level].uncompressedByteLength += size;
             }
         }
-
-
-        // Offset is from start of the ASTC compressed block
-        priv._levelIndex[level].byteOffset = level_offset;
-        priv._requiredLevelAlignment = 8; // For ASTC its always 8 bytes (128bits) irrespective of block sizes
-
-        ktx_size_t prev_level_offset = level_offset;
-        level_offset += _KTX_PADN(priv._requiredLevelAlignment,
-                                  priv._levelIndex[level].byteLength);
-
-        ktx_size_t diff = level_offset - prev_level_offset;
-
-        assert(diff - priv._levelIndex[level].byteLength == 0
-               && "\nSome format/blocks aren't alighned to 8 bytes, need to create offsets\n");
     }
 
     free(This->pData); // No longer needed. Reduce memory footprint.
