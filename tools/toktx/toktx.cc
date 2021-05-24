@@ -724,7 +724,16 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image =
               Image::CreateFromFile(infile,
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    options.bcmp || options.bopts.uastc || options.astc);
+                                    options.etc1s || options.bopts.uastc ||
+                                    (options.astc &&
+                                     options.astcopts.mode != KTX_PACK_ASTC_ENCODER_MODE_HDR));
+
+            if (options.astc &&
+                options.astcopts.mode != KTX_PACK_ASTC_ENCODER_MODE_HDR &&
+                image->getComponentSize() == 2) {
+                cerr << name << ": Warning! input file is 16bit but no HDR option provided."
+                     << endl;
+            }
 
             if (i == 0) {
                 // First file.
@@ -870,7 +879,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
         if (options.inputSwizzle.size() > 0
             // inputSwizzle is handled during BasisU and astc encoding
-            && !options.bcmp && !options.bopts.uastc && !options.astc) {
+            && !options.etc1s && !options.bopts.uastc && !options.astc) {
             image->swizzle(options.inputSwizzle);
         }
 
@@ -1106,7 +1115,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             goto cleanup;
         }
 #if TRAVIS_DEBUG
-        if (options.bcmp) {
+        if (options.etc1s) {
             cout << "level = " << level << ", faceSlice = " << faceSlice;
             cout << ", srcImg = " << hex  << (void *)srcImg << dec;
             cout << ", imageSize = " << imageSize << endl;
@@ -1201,7 +1210,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
         // Add Swizzle metadata
         if (options.swizzle.size()) {
             swizzle = options.swizzle;
-        } else if (!options.bcmp && !options.bopts.uastc && !options.astc
+        } else if (!options.etc1s && !options.bopts.uastc && !options.astc
                    && defaultSwizzle.size()) {
             swizzle = defaultSwizzle;
         }
@@ -1229,7 +1238,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-       if (options.bcmp || options.bopts.uastc) {
+       if (options.etc1s || options.bopts.uastc) {
             commandOptions::basisOptions& bopts = options.bopts;
             if (bopts.normalMap && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
@@ -1270,6 +1279,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
                  for (i = 0; i < 4; i++) {
                      astcopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
+            }
+
+            if (firstImageOETF == KHR_DF_TRANSFER_SRGB) {
+                astcopts.function = KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB;
+            }
+            else {
+                astcopts.function = KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR;
             }
 
             ret = ktxTexture_CompressAstcEx(texture, &astcopts);

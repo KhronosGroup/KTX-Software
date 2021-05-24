@@ -308,25 +308,6 @@ astcQualityLevel(const char *quality) {
  * @memberof ktxTexture
  * @ingroup write
  * @~English
- * @brief       Creates valid astc function from string.
- *              Checks the input file color space to use as default.
- *
- * @return      Valid ktx_pack_astc_function_e from string
- */
-ktx_pack_astc_encoder_function_e
-astcEncoderFunction(const char* function) {
-    if (std::strcmp(function, "srgb") == 0)
-        return KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB;
-    else if (std::strcmp(function, "linear") == 0)
-        return KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR;
-
-    return KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB;
-}
-
-/**
- * @memberof ktxTexture
- * @ingroup write
- * @~English
  * @brief Creates valid astc mode from string.
  *
  * @return      Valid ktx_pack_astc_mode_e from string
