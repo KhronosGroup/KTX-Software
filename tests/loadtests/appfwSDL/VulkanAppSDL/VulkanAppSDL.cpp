@@ -696,8 +696,10 @@ VulkanAppSDL::createDevice()
 
     wantedExtensions.push_back({VK_KHR_SWAPCHAIN_EXTENSION_NAME, required});
     wantedExtensions.push_back({VK_KHR_MAINTENANCE1_EXTENSION_NAME, required});
+#if VK_KHR_portability_subset
     // Portability must be enabled, if present.
     wantedExtensions.push_back({VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME, optional});
+#endif
     // And if present and enabled it requires this to be enabled.
     wantedExtensions.push_back({VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, optional});
 #if 0
@@ -745,9 +747,11 @@ VulkanAppSDL::createDevice()
                 if (!wantedExtensions[i].name.compare(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME)) {
                     vkctx.enabledDeviceExtensions.pvrtc = true;
                 }
+#if VK_KHR_portability_subset
                 if (!wantedExtensions[i].name.compare(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
                     vkctx.gpuIsPortabilitySubsetDevice = true;
                 }
+#endif
                 break;
             }
         }
