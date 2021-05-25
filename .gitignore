@@ -12,6 +12,8 @@
 /include/imdebug.h
 
 # /lib/
+/lib/astc-encoder/.gitmodules
+/lib/astc-encoder/Source/GoogleTest
 /lib/basisu/bin_osx
 /lib/basisu/bin
 /lib/basisu/build
@@ -31,4 +33,3 @@
 
 # version files
 version.h
-
