@@ -800,11 +800,13 @@ VulkanAppSDL::createDevice()
     if (vkctx.gpuFeatures.textureCompressionETC2)
         deviceFeaturesToEnable.textureCompressionETC2 = true;
 
+#if VK_KHR_portability_subset
     if (vkctx.gpuIsPortabilitySubsetDevice) {
         vk::PhysicalDeviceFeatures2 deviceFeatures;
         deviceFeatures.pNext = &vkctx.gpuPortabilityFeatures;
         vkctx.gpu.getFeatures2(&deviceFeatures);
     }
+#endif
 
 #if 0
     // This needs PhysicaldeviceFeaturesToEnable2 and proper understanding of how to

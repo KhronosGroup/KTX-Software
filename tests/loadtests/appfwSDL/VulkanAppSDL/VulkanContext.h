@@ -26,7 +26,9 @@ struct VulkanContext {
     vk::Instance instance;
     vk::PhysicalDevice gpu;
     vk::PhysicalDeviceFeatures gpuFeatures;
+#if VK_KHR_portability_subset
     vk::PhysicalDevicePortabilitySubsetFeaturesKHR gpuPortabilityFeatures;
+#endif
     vk::PhysicalDeviceProperties gpuProperties;
     vk::PhysicalDeviceMemoryProperties memoryProperties;
     vk::Device device;
@@ -120,8 +122,12 @@ struct VulkanContext {
     uint32_t* readSpv(const char *filename, size_t *pSize);
 
     bool gpuSupportsSwizzle() {
+#if VK_KHR_portability_subset
         return !gpuIsPortabilitySubsetDevice
                || gpuPortabilityFeatures.imageViewFormatSwizzle;
+#else
+        return true;
+#endif
     }
 };
 
