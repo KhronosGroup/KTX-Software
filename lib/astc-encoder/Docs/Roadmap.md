@@ -40,7 +40,6 @@ significantly slower than color LDR textures, and it feels like we should be
 able to come up with a criteria to exit "easy blocks" faster. Simple linear
 PSNR may not be a good choice, but _something_ should be possible.
 
-
 ## Command line front-end implementation
 
 The current command line front-end is very similar to the version in the 1.x
@@ -61,10 +60,3 @@ be selected at runtime.
 
 Last time we tried this using a dynamically loaded shared object was 8% slower
 than a static build, which we need to investigate and reduce.
-
-## Code cleanup
-
-We've been doing this piecemeal, but we want to have a push on improving the
-quality of the source code style and documentation for the codec. This includes
-module-level documentation of the core algorithms, adding Doxygen API
-documentation for the codec, and generally apply some code cleanup.

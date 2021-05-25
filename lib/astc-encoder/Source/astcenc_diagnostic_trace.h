@@ -21,43 +21,38 @@
  * Overview
  * ========
  *
- * The built-in diagnostic trace tool generates a hierarchical JSON tree
- * structure. The tree hierarchy contains three levels:
+ * The built-in diagnostic trace tool generates a hierarchical JSON tree structure. The tree
+ * hierarchy contains three levels:
  *
  *    - block
  *        - pass
  *           - candidate
  *
- * One block node exists for each compressed block in the image. One pass node
- * exists for each major pass (N partition, M planes, O components) applied to
- * a block. One candidate node exists for each encoding candidate trialed for a
- * pass.
+ * One block node exists for each compressed block in the image. One pass node exists for each major
+ * pass (N partition, M planes, O components) applied to a block. One candidate node exists for each
+ * encoding candidate trialed for a pass.
  *
- * Each node contains both the hierarchy but also a number of attributes which
- * explain the behavior. For example, the block node contains the block
- * coordinates in the image, the pass explains the pass configuration, and the
- * candidate will explain the candidate encoding such as weight decimation,
- * refinement error, etc.
+ * Each node contains both the hierarchy but also a number of attributes which explain the behavior.
+ * For example, the block node contains the block coordinates in the image, the pass explains the
+ * pass configuration, and the candidate will explain the candidate encoding such as weight
+ * decimation, refinement error, etc.
  *
- * Trace Nodes are designed as scope-managed C++ objects with stack-like
- * push/pop behavior. Constructing a trace node on the stack will automatically
- * add it to the current node as a child, and then make it the current node.
- * Destroying the current node will pop the stack and set the parent to the
- * current node. This provides a robust mechanism for ensuring reliable
- * nesting in the tree structure.
+ * Trace Nodes are designed as scope-managed C++ objects with stack-like push/pop behavior.
+ * Constructing a trace node on the stack will automatically add it to the current node as a child,
+ * and then make it the current node. Destroying the current node will pop the stack and set the
+ * parent to the current node. This provides a robust mechanism for ensuring reliable nesting in the
+ * tree structure.
  *
- * A set of utility macros are provided to add attribute annotations to the
- * current trace node.
+ * A set of utility macros are provided to add attribute annotations to the current trace node.
  *
  * Usage
  * =====
  *
- * Create Trace Nodes on the stack using the TRACE_NODE() macro. This will
- * compile-out completely in builds with diagnostics disabled.
+ * Create Trace Nodes on the stack using the @c TRACE_NODE() macro. This will compile-out completely
+ * in builds with diagnostics disabled.
  *
- * Add annotations to the current trace node using the trace_add_data() macro.
- * This will similarly compile out completely in builds with diagnostics
- * disabled.
+ * Add annotations to the current trace node using the @c trace_add_data() macro. This will
+ * similarly compile out completely in builds with diagnostics disabled.
  *
  * If you need to add additional code to support diagnostics-only behavior wrap
  * it in preprocessor guards:
@@ -84,9 +79,8 @@ public:
 	/**
 	 * @brief Construct a new node.
 	 *
-	 * Constructing a node will push to the the top of the stack, automatically
-	 * making it a child of the current node, and then setting it to become the
-	 * current node.
+	 * Constructing a node will push to the the top of the stack, automatically making it a child of
+	 * the current node, and then setting it to become the current node.
 	 *
 	 * @param format   The format template for the node name.
 	 * @param ...      The format parameters.
@@ -96,8 +90,8 @@ public:
 	/**
 	 * @brief Add an attribute to this node.
 	 *
-	 * Note that no quoting is applied to the @c value, so if quoting is
-	 * needed it must be done by the caller.
+	 * Note that no quoting is applied to the @c value, so if quoting is needed it must be done by
+	 * the caller.
 	 *
 	 * @param type    The type of the attribute.
 	 * @param key     The key of the attribute.
@@ -108,9 +102,9 @@ public:
 	/**
 	 * @brief Destroy this node.
 	 *
-	 * Destroying a node will pop it from the top of the stack, making its
-	 * parent the current node. It is invalid behavior to destroy a node that
-	 * is not the current node; usage must conform to stack push-pop semantics.
+	 * Destroying a node will pop it from the top of the stack, making its parent the current node.
+	 * It is invalid behavior to destroy a node that is not the current node; usage must conform to
+	 * stack push-pop semantics.
 	 */
 	~TraceNode();
 

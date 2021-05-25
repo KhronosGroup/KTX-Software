@@ -28,14 +28,14 @@ static inline uint64_t rotl(uint64_t val, int count)
 	return (val << count) | (val >> (64 - count));
 }
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation. */
 void astc::rand_init(uint64_t state[2])
 {
 	state[0] = 0xfaf9e171cea1ec6bULL;
 	state[1] = 0xf1b318cc06af5d71ULL;
 }
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation. */
 uint64_t astc::rand(uint64_t state[2])
 {
 	uint64_t s0 = state[0];
