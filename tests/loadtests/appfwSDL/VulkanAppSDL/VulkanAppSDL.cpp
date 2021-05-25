@@ -477,17 +477,11 @@ VulkanAppSDL::createInstance()
         return false;
     }
 
-    uint32_t availableExtensionCount;
-    vk::enumerateInstanceExtensionProperties(nullptr, &availableExtensionCount,
-                                             nullptr);
-
     // Find out if device_properties2 is available. If so, enable it just
     // in case we later find we are running on a Portability Subset device
     // in which case this extension is required.
-    std::vector<vk::ExtensionProperties> availableExtensions;
-    availableExtensions.resize(availableExtensionCount);
-    vk::enumerateInstanceExtensionProperties(nullptr, &availableExtensionCount,
-                                             availableExtensions.data());
+    std::vector<vk::ExtensionProperties> availableExtensions =
+        vk::enumerateInstanceExtensionProperties(nullptr);
     for (auto& extension : availableExtensions) {
         if (!strncmp(extension.extensionName,
                      VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -842,10 +836,12 @@ VulkanAppSDL::createDevice()
             (const char *const *)extensionsToEnable.data(),
             &deviceFeaturesToEnable);
 
+#if VK_KHR_portability_subset
     if (vkctx.gpuIsPortabilitySubsetDevice) {
         // Enable all available portability features.
         deviceInfo.pNext = &vkctx.gpuPortabilityFeatures;
     }
+#endif
 
     err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
     if (err != vk::Result::eSuccess) {
