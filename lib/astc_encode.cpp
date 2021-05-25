@@ -712,7 +712,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     uint32_t        flags{params->normalMap ? ASTCENC_FLG_MAP_NORMAL : 0};
 
     astcBlockDimensions(params->blockDimension,
-                   block_size_x, block_size_y, block_size_z);
+                        block_size_x, block_size_y, block_size_z);
     quality = astcQuality(params->qualityLevel);
     profile = astcEncoderAction(*params, BDB);
     swizzle = astcSwizzle(*params);
@@ -819,17 +819,11 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     // We are done with astcencoder
     astcenc_context_free(astc_context);
 
-    // reset pointer to new BDB
-    BDB = prototype->pDfd+1;
-
-    // ASTC-related checks
-    ktx_uint32_t model = KHR_DFDVAL(BDB, MODEL);
-    ktx_uint32_t primaries = KHR_DFDVAL(BDB, PRIMARIES);
-
-    assert(model == KHR_DF_MODEL_ASTC && "Invalid dfd generated for ASTC image\n");
-    if (transfer == KHR_DF_TRANSFER_SRGB) {
-        assert(primaries == KHR_DF_PRIMARIES_SRGB && "Not a valid sRGB image\n");
-    }
+    assert(KHR_DFDVAL(prototype->pDfd+1, MODEL) == KHR_DF_MODEL_ASTC
+           && "Invalid dfd generated for ASTC image\n");
+    assert((transfer == KHR_DF_TRANSFER_SRGB
+           ? KHR_DFDVAL(prototype->pDfd+1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
+           : true) && "Not a valid sRGB image\n");
 
     // Fix up the current (This) texture
     #undef DECLARE_PRIVATE
@@ -850,10 +844,10 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     memcpy(This->_private->_levelIndex, protoPriv._levelIndex,
            This->numLevels * sizeof(ktxLevelIndexEntry));
     // Move the DFD and data from the prototype to This.
-    delete This->pDfd;
+    free(This->pDfd);
     This->pDfd = prototype->pDfd;
     prototype->pDfd = 0;
-    delete This->pData;
+    free(This->pData);
     This->pData = prototype->pData;
     This->dataSize = prototype->dataSize;
     prototype->pData = 0;

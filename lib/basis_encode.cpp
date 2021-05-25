@@ -381,7 +381,7 @@ static bool basisuEncoderInitialized = false;
  * @exception KTX_INVALID_OPERATION
  *                              The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's image are in a block compressed
+ *                              The texture's images are in a block compressed
  *                              format.
  * @exception KTX_INVALID_OPERATION
  *                              The texture image's format is a packed format

@@ -728,10 +728,12 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                     (options.astc &&
                                      options.astcopts.mode != KTX_PACK_ASTC_ENCODER_MODE_HDR));
 
-            if (options.astc &&
-                options.astcopts.mode != KTX_PACK_ASTC_ENCODER_MODE_HDR &&
-                image->getComponentSize() == 2) {
-                cerr << name << ": Warning! input file is 16bit but no HDR option provided."
+            if (options.astc && image->getComponentSize() == 2)
+                options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
+
+            if (options.astc && image->getComponentSize() != 2 &&
+                options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
+                cerr << name << ": Warning! input file is not 16bit but HDR option is provided."
                      << endl;
             }
 
@@ -1255,6 +1257,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
                      options.bopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
             }
+
+            bopts.threadCount = options.threadCount;
+
 #if TRAVIS_DEBUG
             bopts.print();
 #endif
@@ -1281,12 +1286,14 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 }
             }
 
-            if (firstImageOETF == KHR_DF_TRANSFER_SRGB) {
+            if (chosenOETF == KHR_DF_TRANSFER_SRGB) {
                 astcopts.function = KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB;
             }
             else {
                 astcopts.function = KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR;
             }
+
+            astcopts.threadCount = options.threadCount;
 
             ret = ktxTexture_CompressAstcEx(texture, &astcopts);
             if (KTX_SUCCESS != ret) {

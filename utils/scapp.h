@@ -290,10 +290,14 @@ class scApp : public ktxApp {
         int          zcmp;
         int          astc;
         clamped<ktx_uint32_t> zcmpLevel;
+        clamped<ktx_uint32_t> threadCount;
         struct basisOptions bopts;
         struct astcOptions astcopts;
 
-        commandOptions() : zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U) {
+        commandOptions() :
+            zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U),
+            threadCount(max(1U, thread::hardware_concurrency()) , 1U, 10000U)
+        {
             ktx2 = false;
             etc1s = false;
             zcmp = false;
@@ -331,8 +335,8 @@ class scApp : public ktxApp {
     {
         cerr <<
           "  --encode <astc|etc1s|uastc>\n"
-          "               Compress the image data with ASTC format or high-quality transcodable\n"
-          "               ETC1S / BasisLZ or UASTC format. Implies --t2 for all encoding options.\n"
+          "               Compress the image data to ASTC, transcodable ETC1S / BasisLZ or\n"
+          "               high-quality transcodable UASTC format. Implies --t2.\n"
           "               With each encoding option the following encoder specific options\n"
           "               become valid, otherwise they are ignored.\n\n"
           "    astc:\n"
@@ -356,7 +360,8 @@ class scApp : public ktxApp {
           "                       4x4x4: 2.00 bpp       6x6x5: 0.71 bpp\n"
           "                       5x4x4: 1.60 bpp       6x6x6: 0.59 bpp\n"
           "      --astc_mode <ldr|hdr>\n"
-          "               Specify which encoding mode to use. LDR is the default.\n"
+          "               Specify which encoding mode to use. LDR is the default unless the input.\n"
+          "               image is 16-bit in which case the default is HDR.\n"
           "      --astc_quality <level>\n"
           "               The quality level configures the quality-performance tradeoff for\n"
           "               the compressor; more complete searches of the search space improve\n"
@@ -370,16 +375,6 @@ class scApp : public ktxApp {
           "                   medium     | (equivalent to quality =  60)\n"
           "                   thorough   | (equivalent to quality =  98)\n"
           "                   exhaustive | (equivalent to quality = 100)\n"
-          "      --astc_normal\n"
-          "               The input texture is a three component linear LDR normal map\n"
-          "               storing unit length normals as (R=X, G=Y, B=Z). The output will\n"
-          "               be a two component X+Y normal map stored as (RGB=X, A=Y),\n"
-          "               optimized for angular error instead of simple PSNR. The Z\n"
-          "               component can be recovered programmatically in shader code by\n"
-          "               using the equation:\n\n"
-          "                   nml.xy = texture(...).ga;              // Load in [0,1]\n"
-          "                   nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
-          "                   nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
           "    etc1s:\n"
           "               Supercompress the image data with ETC1S / BasisLZ.\n"
           "               RED images will become RGB with RED in each component. RG images\n"
@@ -424,9 +419,6 @@ class scApp : public ktxApp {
           "               Set selector RDO quality threshold. The default is 1.25. Lower\n"
           "               is higher quality but less quality per output bit (try\n"
           "               [1.0,3.0]). This will override the value chosen by --qlevel.\n"
-          "      --normal_map\n"
-          "               Tunes codec parameters for better quality on normal maps (no\n"
-          "               selector RDO, no endpoint RDO). Only valid for linear textures.\n"
           "      --separate_rg_to_color_alpha\n"
           "               Separates the input R and G channels to RGB and A (for tangent\n"
           "               space XY normal maps). Only needed with 3 or 4 component input\n"
@@ -485,6 +477,19 @@ class scApp : public ktxApp {
           "      --uastc_rdo_m\n"
           "               Disable RDO multithreading (slightly higher compression,\n"
           "               deterministic).\n\n"
+          "  --normal_mode\n"
+          "               For ASTC encoder '--encode astc' assumes the input texture is\n"
+          "               a three component linear LDR normal map storing unit length\n"
+          "               normals as (R=X, G=Y, B=Z). The output will be a two component\n"
+          "               X+Y normal map stored as (RGB=X, A=Y), optimized for angular\n"
+          "               error instead of simple PSNR. The Z component can be recovered\n"
+          "               programmatically in shader code by using the equation:\n\n"
+          "                   nml.xy = texture(...).ga;              // Load in [0,1]\n"
+          "                   nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
+          "                   nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n\n"
+          "               For ETC1S encoder '--encode etc1s' tunes codec parameters for \n"
+          "               better quality on normal maps (no selector RDO, no endpoint RDO).\n"
+          "               Only valid for linear textures.\n"
           "  --no_sse     Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
           "  --bcmp\n"
@@ -522,7 +527,6 @@ scApp::scApp(string& version, string& defaultVersion,
       : ktxApp(version, defaultVersion, options), options(options)
 {
   argparser::option my_option_list[] = {
-      { "encode", argparser::option::required_argument, NULL, 'o' },
       { "zcmp", argparser::option::optional_argument, NULL, 'z' },
       { "no_multithreading", argparser::option::no_argument, NULL, 'N' },
       { "threads", argparser::option::required_argument, NULL, 't' },
@@ -532,7 +536,7 @@ scApp::scApp(string& version, string& defaultVersion,
       { "endpoint_rdo_threshold", argparser::option::required_argument, NULL, 'E' },
       { "max_selectors", argparser::option::required_argument, NULL, 'u' },
       { "selector_rdo_threshold", argparser::option::required_argument, NULL, 'S' },
-      { "normal_map", argparser::option::no_argument, NULL, 'n' },
+      { "normal_mode", argparser::option::no_argument, NULL, 'n' },
       { "separate_rg_to_color_alpha", argparser::option::no_argument, NULL, 1000 },
       { "no_endpoint_rdo", argparser::option::no_argument, NULL, 1001 },
       { "no_selector_rdo", argparser::option::no_argument, NULL, 1002 },
@@ -548,7 +552,7 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_blk_d", argparser::option::required_argument, NULL, 1012 },
       { "astc_mode", argparser::option::required_argument, NULL, 1013 },
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
-      { "astc_normal", argparser::option::no_argument, NULL, 1015 },
+      { "encode", argparser::option::required_argument, NULL, 1015 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
       { "uastc", argparser::option::optional_argument, NULL, 1016 }
@@ -557,7 +561,7 @@ scApp::scApp(string& version, string& defaultVersion,
                               / sizeof(argparser::option);
   option_list.insert(option_list.begin(), my_option_list,
                      my_option_list + lastOptionIndex);
-  short_opts += "oz;Nt:c:q:e:E:u:S:nb";
+  short_opts += "z;Nt:c:q:e:E:u:S:nb";
 }
 
 void
@@ -597,10 +601,6 @@ scApp::processOption(argparser& parser, int opt)
     bool capture = true;
 
     switch (opt) {
-      case 'o':
-        setEncoder(parser.optarg);
-        options.ktx2 = 1;
-        break;
       case 'z':
         if (options.etc1s) {
             cerr << "Only one of '--encode etc1s|--bcmp'  and --zcmp can be specified."
@@ -628,11 +628,12 @@ scApp::processOption(argparser& parser, int opt)
         hasArg = true;
         break;
       case 'N':
-        options.bopts.threadCount = 1;
+        options.threadCount = 1;
         capture = false;
         break;
       case 'n':
         options.bopts.normalMap = 1;
+        options.astcopts.normalMap = true;
         break;
       case 1001:
         options.bopts.noEndpointRDO = 1;
@@ -656,8 +657,7 @@ scApp::processOption(argparser& parser, int opt)
         hasArg = true;
         break;
       case 't':
-        options.bopts.threadCount = strtoi(parser.optarg.c_str());
-        options.astcopts.threadCount = strtoi(parser.optarg.c_str());
+        options.threadCount = strtoi(parser.optarg.c_str());
         capture = false;
         break;
       case 1003:
@@ -719,9 +719,6 @@ scApp::processOption(argparser& parser, int opt)
         options.astcopts.qualityLevel = astcQualityLevel(parser.optarg.c_str());
         hasArg = true;
         break;
-      case 1015: // astc_normal
-        options.astcopts.normalMap = true;
-        break;
       case 'b':
         if (options.zcmp) {
             cerr << "Only one of --bcmp and --zcmp can be specified.\n"
@@ -738,6 +735,10 @@ scApp::processOption(argparser& parser, int opt)
             exit(1);
         }
         options.etc1s = 1;
+        options.ktx2 = 1;
+        break;
+      case 1015:
+        setEncoder(parser.optarg);
         options.ktx2 = 1;
         break;
       case 1016:
