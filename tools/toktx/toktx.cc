@@ -1259,6 +1259,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
 
             bopts.threadCount = options.threadCount;
+            bopts.normalMap = options.normalMode;
 
 #if TRAVIS_DEBUG
             bopts.print();
@@ -1294,6 +1295,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
 
             astcopts.threadCount = options.threadCount;
+            astcopts.normalMap = options.normalMode;
 
             ret = ktxTexture_CompressAstcEx(texture, &astcopts);
             if (KTX_SUCCESS != ret) {

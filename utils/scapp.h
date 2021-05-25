@@ -289,6 +289,7 @@ class scApp : public ktxApp {
         int          etc1s;
         int          zcmp;
         int          astc;
+        ktx_bool_t   normalMode;
         clamped<ktx_uint32_t> zcmpLevel;
         clamped<ktx_uint32_t> threadCount;
         struct basisOptions bopts;
@@ -302,6 +303,7 @@ class scApp : public ktxApp {
             etc1s = false;
             zcmp = false;
             astc = false;
+            normalMode = false;
         }
     };
 
@@ -632,8 +634,7 @@ scApp::processOption(argparser& parser, int opt)
         capture = false;
         break;
       case 'n':
-        options.bopts.normalMap = 1;
-        options.astcopts.normalMap = true;
+        options.normalMode = true;
         break;
       case 1001:
         options.bopts.noEndpointRDO = 1;
