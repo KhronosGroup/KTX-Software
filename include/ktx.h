@@ -1016,7 +1016,7 @@ typedef enum ktx_pack_astc_encoder_function_e {
 
 /**
  * @~English
- * @brief Options specifiying ASTC encoder profile mode
+ * @brief Options specifying ASTC encoder profile mode
  *        This and function is used later to derive the profile.
  */
 typedef enum ktx_pack_astc_encoder_mode_e {

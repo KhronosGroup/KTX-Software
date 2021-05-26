@@ -675,6 +675,10 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
 
     VkFormat vkFormat = astcVkFormat(params->blockDimension, sRGB);
 
+    // This->numLevels = 0 not allowed for block compressed formats
+    // But just in case make sure its not zero
+    This->numLevels = MAX(1, This->numLevels);
+
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
     // data allocation and the DFD for the target format.
@@ -738,10 +742,6 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
     }
 
     // Walk in reverse on levels so we don't have to do this later
-    // This->numLevels = 0 not allowed for block compressed formats
-    // But just in case make sure its not zero
-    This->numLevels = MAX(1, This->numLevels);
-
     assert(prototype->dataSize && "Prototype texture size not initialized.\n");
 
     if (!prototype->pData) {
