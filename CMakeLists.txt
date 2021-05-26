@@ -634,23 +634,25 @@ add_subdirectory(interface/basisu_c_binding)
 # If ISA_AVX2 fails to compile user must chose other x86 options
 # On arm based systems ISA_NEON is default
 
-if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
-    if (${ISA_SSE41})
-        set(ASTC_LIB_NAME astcenc-sse4.1-static)
-    elseif (${ISA_SSE2})
-        set(ASTC_LIB_NAME astcenc-sse2-static)
-    else()
-        set(ISA_AVX2 ON) # AVX2 is the default
-        set(ASTC_LIB_NAME astcenc-avx2-static)
-        message("ASTCENC: Building for AVX2. If this fails to compile, define either ISA_SSE41 or ISA_SSE2")
-    endif()
-elseif(CPU_ARCHITECTURE STREQUAL arm OR CPU_ARCHITECTURE STREQUAL armv7
-       OR CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-    set(ISA_NEON ON)
-    set(ASTC_LIB_NAME astcenc-neon-static)
-else()
+if (${ISA_NONE})
     set(ISA_NONE ON)
     set(ASTC_LIB_NAME astcenc-none-static)
+else()
+    if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
+        if (${ISA_SSE41})
+            set(ASTC_LIB_NAME astcenc-sse4.1-static)
+        elseif (${ISA_SSE2})
+            set(ASTC_LIB_NAME astcenc-sse2-static)
+        else()
+            set(ISA_AVX2 ON) # AVX2 is the default
+            set(ASTC_LIB_NAME astcenc-avx2-static)
+            message("ASTCENC: Building for AVX2. If this fails to compile, define either ISA_SSE41 or ISA_SSE2")
+        endif()
+    elseif(CPU_ARCHITECTURE STREQUAL arm OR CPU_ARCHITECTURE STREQUAL armv7
+           OR CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
+        set(ISA_NEON ON)
+        set(ASTC_LIB_NAME astcenc-neon-static)
+    endif()
 endif()
 
 # astcenc
