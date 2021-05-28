@@ -659,6 +659,9 @@ endif()
 add_subdirectory(lib/astc-encoder)
 set_property(TARGET ${ASTC_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(ktx PRIVATE ${ASTC_LIB_NAME})
+# Since astcenc uses LTO in release build by default, turn it on for ktx too
+# Its a good optimisation anyways and most compilers now support it
+set_property(TARGET ktx PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE True)
 
 # Tools
 if(KTX_FEATURE_TOOLS)

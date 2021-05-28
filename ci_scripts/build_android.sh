@@ -18,7 +18,8 @@ cmake . -G Ninja -B "build-android-$ANDROID_ABI" \
 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
 -DCMAKE_BUILD_TYPE=Release \
 -DBASISU_SUPPORT_SSE=OFF \
--DISA_NONE=ON
+-DISA_NEON=ON \
+-DARCH=aarch64
 
 pushd "build-android-$ANDROID_ABI"
 
