@@ -93,7 +93,6 @@ install:
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
-    echo %VULKAN_SDK%
     REM refresh the environment to pick up VulkanSDK changes.
     refreshenv
     REM cd back to cloned repo.
