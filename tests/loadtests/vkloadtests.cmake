@@ -5,46 +5,38 @@
 if(IOS)
     # On iOS we link against MoltenVK.framework manually (see below)
 else()
-    find_package(Vulkan)
+    find_package(Vulkan REQUIRED)
     if(Vulkan_FOUND)
-        if(NOT Vulkan_INCLUDE_DIRS AND Vulkan_INCLUDE_DIR)
-            # Fallback for inconsistent variable name on Windows
-            set(Vulkan_INCLUDE_DIRS ${Vulkan_INCLUDE_DIR})
-        endif()
+        # Once we've moved on to CMake 3.20
+        #cmake_path(REMOVE_FILENAME ${Vulkan_LIBRARY} OUTPUT VARIABLE Vulkan_LIBRARY_DIR)
+        # Until then
+        string(REGEX REPLACE lib/.*$ lib/ Vulkan_LIBRARY_DIR ${Vulkan_LIBRARY})
+        message(STATUS "Found Vulkan at ${Vulkan_INCLUDE_DIR} & ${Vulkan_LIBRARY}")
     endif()
 endif()
 
-
 if(APPLE)
-    # Try to locate Vulkan SDK install directory
-    if(NOT VULKAN_INSTALL_DIR)
-        message(SEND_ERROR "Please provide a valid path to your Vulkan SDK installation in CMake variable 'VULKAN_INSTALL_DIR'!")
-    endif()
-
     if(IOS)
-        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/MoltenVK" )
-        set( MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/framework/MoltenVK.framework )
+        set( MOLTEN_VK_FRAMEWORK ${MOLTEN_VK_SDK}/iOS/framework/MoltenVK.framework )
         if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
             # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
             message("Could not find MoltenVK framework (at '${MOLTEN_VK_FRAMEWORK}')")
-            set(MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/iOS/MoltenVK.framework)
+            set(MOLTEN_VK_FRAMEWORK ${MOLTEN_VK_SDK}/iOS/MoltenVK.framework)
         endif()
         if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
             message("Could not find MoltenVK framework (at '${MOLTEN_VK_FRAMEWORK}')")
             # Fallback: One newer Vulkan SDKs it's a .xcframework at the root level
             # CMake does not support linking those directly (see https://gitlab.kitware.com/cmake/cmake/-/issues/21752),
             # so we manually pick the static library file for iOS arm64 from a subfolder here
-            if( IS_DIRECTORY ${VULKAN_SDK}/MoltenVK.xcframework )
-                set( MOLTEN_VK_FRAMEWORK ${VULKAN_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
+            if( IS_DIRECTORY ${MOLTEN_VK_SDK}/MoltenVK.xcframework )
+                set( MOLTEN_VK_FRAMEWORK ${MOLTEN_VK_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
             endif()
         endif()
         if( NOT EXISTS ${MOLTEN_VK_FRAMEWORK})
-            message(SEND_ERROR "Could not find MoltenVK framework (at VULKAN_SDK dir '${VULKAN_SDK}')")
+            message(SEND_ERROR "Could not find MoltenVK framework (at MOLTEN_VK_SDK dir '${MOLTEN_VK_SDK}')")
         else()
-            message("Found MoltenVK framework at ${MOLTEN_VK_FRAMEWORK}")
+            message(STATUS "Found MoltenVK framework at ${MOLTEN_VK_FRAMEWORK}")
         endif()
-    else()
-        set( VULKAN_SDK "${VULKAN_INSTALL_DIR}/macOS")
     endif()
 endif()
 
@@ -138,17 +130,17 @@ if(IOS)
     target_include_directories(
         vkloadtests
     PRIVATE
-        ${VULKAN_SDK}/include
+        ${MOLTEN_VK_SDK}/include
     )
 elseif(Vulkan_FOUND)
     target_include_directories(
         vkloadtests
     PRIVATE
-        ${Vulkan_INCLUDE_DIRS}
+        ${Vulkan_INCLUDE_DIR}
     )
     target_link_libraries(
         vkloadtests
-        ${Vulkan_LIBRARIES}
+        ${Vulkan_LIBRARY}
     )
 endif()
 
@@ -196,7 +188,6 @@ if(APPLE)
     else()
         set( KTX_RESOURCES ${KTX_ICON} )
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
-        set( VK_ICD "${VULKAN_SDK}/share/vulkan/icd.d/MoltenVK_icd.json" )
     endif()
 
     set_source_files_properties(${MOLTEN_VK_ICD} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d")
@@ -249,8 +240,8 @@ if(APPLE)
             XCODE_ATTRIBUTE_ARCHS x86_64
         )
         add_custom_command( TARGET vkloadtests POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
-            COMMAND ${CMAKE_COMMAND} -E copy "${VULKAN_SDK}/lib/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
+            COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
+            COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
             COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
             COMMENT "Copy libraries/frameworks to build destination"
         )
@@ -261,10 +252,6 @@ if(APPLE)
                 COMPONENT VkLoadTestApp
             PUBLIC_HEADER
                 DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Headers"
-        )
-        install(DIRECTORY "${VULKAN_SDK}/Frameworks/vulkan.framework"
-            DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
-            COMPONENT VkLoadTestApp
         )
         install(TARGETS vkloadtests
             BUNDLE

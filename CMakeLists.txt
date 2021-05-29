@@ -19,9 +19,7 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
-include(cmake/mkvk.cmake)
 include(cmake/xcode.cmake)
-
 include(cmake/cputypetest.cmake)
 
 # OPTIONS
@@ -45,8 +43,6 @@ endif()
 
 CMAKE_DEPENDENT_OPTION(KTX_EMBED_BITCODE "Embed bitcode in binaries" OFF "APPLE AND IOS" OFF)
 
-set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
-
 if(APPLE)
     set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
     set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
@@ -54,6 +50,7 @@ if(APPLE)
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
     if(IOS)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
+        set(MOLTEN_VK_SDK "$ENV{VULKAN_SDK}/../MoltenVK" CACHE STRING "MoltenVK directory inside the Vulkan SDK")
     endif()
 endif()
 
@@ -103,6 +100,9 @@ else()
     endif()
     set(LIB_TYPE SHARED)
 endif()
+
+# Depends on the settings, so it must be included after
+include(cmake/mkvk.cmake)
 
 # Global compile & link options including optimization flags
 if(MSVC)

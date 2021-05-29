@@ -2,6 +2,22 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Code generation scripts that require a Vulkan SDK installation
+
+set(skip_mkvk_message "-> skipping mkvk target (this is harmless; only needed when re-generating of vulkan headers and dfdutils is required)")
+
+if (NOT IOS)
+    # find_package doesn't find the Vulkan SDK when building for IOS.
+    # I haven't investigated why.
+    find_package(Vulkan)
+    if(NOT Vulkan_FOUND)
+        message(STATUS "Vulkan SDK not found ${skip_mkvk_message}")
+        return()
+    endif()
+else()
+    # Skip mkvk. We don't need to run it when building for iOS.
+    return()
+endif()
+
 if(CMAKE_HOST_WIN32 AND NOT CYGWIN_INSTALL_PATH)
     # Git for Windows comes with Perl
     # Trick FindPerl into considering default Git location
@@ -11,7 +27,7 @@ endif()
 find_package(Perl)
 
 if(NOT PERL_FOUND)
-    message(WARNING "Perl not found -> skipping mkvk target (this is harmless; only needed when re-generating of vulkan headers and dfdutils is required)")
+    message(STATUS "Perl not found ${skip_mkvk_message}")
     return()
 endif()
 
@@ -28,7 +44,7 @@ list(APPEND mkvkformatfiles_output
 if(CMAKE_HOST_WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND "${BASH_EXECUTABLE}" -c "VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib"
+        COMMAND "${BASH_EXECUTABLE}" -c "Vulkan_INCLUDE_DIR=${Vulkan_INCLUDE_DIR} lib/mkvkformatfiles lib"
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_str.c"
@@ -40,7 +56,7 @@ if(CMAKE_HOST_WIN32)
 else()
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND VULKAN_SDK=${VULKAN_SDK} lib/mkvkformatfiles lib
+        COMMAND Vulkan_INCLUDE_DIR=${Vulkan_INCLUDE_DIR} lib/mkvkformatfiles lib
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating VkFormat-related source files"
