@@ -20,4 +20,5 @@ wget -O vulkansdk-macos-$VULKAN_SDK_VER.dmg https://sdk.lunarg.com/sdk/download/
 hdiutil attach vulkansdk-macos-$VULKAN_SDK_VER.dmg
 sudo /Volumes/vulkansdk-macos-$VULKAN_SDK_VER/InstallVulkan.app/Contents/macOS/InstallVulkan --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install
 hdiutil detach /Volumes/vulkansdk-macos-$VULKAN_SDK_VER
+rm vulkansdk-macos-$VULKAN_SDK_VER.dmg
 popd
