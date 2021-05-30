@@ -25,7 +25,7 @@ jobs:
       dist: focal
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER="1.2.148"
+        - VULKAN_SDK_VER="1.2.176"
       compiler: gcc # clang is tested by macOS build
       language: python
       python: '3.7'
@@ -35,8 +35,10 @@ jobs:
         - node
     - os: osx
       env:
-        - VULKAN_SDK_VER="1.2.141.2"
-        - VULKAN_SDK="/Volumes/vulkansdk-macos-$VULKAN_SDK_VER/macOS"
+        - VULKAN_SDK_VER="1.2.176.1"
+        # This is just to tell the install script where to install.
+        - VULKAN_INSTALL_DIR="$HOME/VulkanSDK/$VULKAN_SDK_VER"
+        - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
       compiler: clang
       osx_image: xcode12.4
 

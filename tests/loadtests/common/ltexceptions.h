@@ -26,4 +26,5 @@ class unsupported_ttype : public std::runtime_error {
   public:
     unsupported_ttype()
          : std::runtime_error("Implementation does not support needed operations on image format") { }
+    unsupported_ttype(std::string& message) : std::runtime_error(message) { }
 };

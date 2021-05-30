@@ -187,6 +187,30 @@ GL3LoadTestSample::determineCompressedTexFeatures(compressedTexFeatures& feature
         features.astc_hdr = true;
 }
 
+bool
+GL3LoadTestSample::contextSupportsSwizzle()
+{
+    bool esProfile = false;
+    GLint majorVersion, minorVersion;
+    if (strstr((const char*)glGetString(GL_VERSION), "GL ES") != NULL) {
+        esProfile = true;
+    }
+    // MAJOR & MINOR only introduced in GL {,ES} 3.0
+    glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+    glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+    if (glGetError() != GL_NO_ERROR) {
+        // This is not a GL {,ES} 3.0 context...
+        assert(false);
+        return false;
+    }
+    if (esProfile)
+        return true; // ES 3.0+ has swizzle
+    else if (majorVersion == 3 && minorVersion < 3)
+        return false; // Swizzle was introduced in OpenGL 3.3.
+    else
+        return true;
+}
+
 GLint
 GL3LoadTestSample::framebufferColorEncoding()
 {

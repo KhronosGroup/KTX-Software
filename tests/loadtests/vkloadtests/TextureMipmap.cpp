@@ -29,10 +29,10 @@
 #include <time.h>
 #include <vector>
 
-#include <vulkan/vulkan.h>
-#include <ktxvulkan.h>
 #include "TextureMipmap.h"
 #include "ltexceptions.h"
+
+#include <ktxvulkan.h>
 
 VulkanLoadTestSample*
 TextureMipmap::create(VulkanContext& vkctx,
