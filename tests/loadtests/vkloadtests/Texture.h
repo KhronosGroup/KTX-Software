@@ -8,9 +8,9 @@
 
 #include <vector>
 
-#include <ktxvulkan.h>
 #include "VulkanLoadTestSample.h"
 
+#include <ktxvulkan.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 class Texture : public VulkanLoadTestSample

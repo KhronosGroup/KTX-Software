@@ -370,10 +370,10 @@ static astcenc_error validate_decompression_swizzle(
  *
  * This function can respond in two ways:
  *
- *   * Numerical inputs that have valid ranges are clamped to those valid
- *     ranges. No error is thrown for out-of-range inputs in this case.
- *   * Numerical inputs and logic inputs are are logically invalid and which
- *     make no sense algorithmically will return an error.
+ *   * Numerical inputs that have valid ranges are clamped to those valid ranges. No error is thrown
+ *     for out-of-range inputs in this case.
+ *   * Numerical inputs and logic inputs are are logically invalid and which make no sense
+ *     algorithmically will return an error.
  *
  * @param[in,out] config   The input compressor configuration.
  *
@@ -425,7 +425,7 @@ static astcenc_error validate_config(
 	config.rgbm_m_scale = astc::max(config.rgbm_m_scale, 1.0f);
 
 	config.tune_partition_count_limit = astc::clamp(config.tune_partition_count_limit, 1u, 4u);
-	config.tune_partition_index_limit = astc::clamp(config.tune_partition_index_limit, 1u, (unsigned int)PARTITION_COUNT);
+	config.tune_partition_index_limit = astc::clamp(config.tune_partition_index_limit, 1u, (unsigned int)BLOCK_MAX_PARTITIONINGS);
 	config.tune_block_mode_limit = astc::clamp(config.tune_block_mode_limit, 1u, 100u);
 	config.tune_refinement_limit = astc::max(config.tune_refinement_limit, 1u);
 	config.tune_candidate_limit = astc::clamp(config.tune_candidate_limit, 1u, TUNE_MAX_TRIAL_CANDIDATES);
@@ -488,10 +488,9 @@ astcenc_error astcenc_config_init(
 	float texels = static_cast<float>(block_x * block_y * block_z);
 	float ltexels = logf(texels) / logf(10.0f);
 
-	// Process the performance quality level or preset; note that this must be
-	// done before we process any additional settings, such as color profile
-	// and flags, which may replace some of these settings with more use case
-	// tuned values
+	// Process the performance quality level or preset; note that this must be done before we
+	// process any additional settings, such as color profile and flags, which may replace some of
+	// these settings with more use case tuned values
 	if (quality < ASTCENC_PRE_FASTEST ||
 	    quality > ASTCENC_PRE_EXHAUSTIVE)
 	{
@@ -806,7 +805,7 @@ astcenc_error astcenc_context_alloc(
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
 	prepare_angular_tables();
 #endif
-	build_quant_mode_table();
+	init_quant_mode_table();
 
 	return ASTCENC_SUCCESS;
 }
@@ -1003,6 +1002,12 @@ astcenc_error astcenc_compress_image(
 		return ASTCENC_ERR_OUT_OF_MEM;
 	}
 
+	// If context thread count is one then implicitly reset
+	if (ctx->thread_count == 1)
+	{
+		astcenc_compress_reset(ctx);
+	}
+
 	if (ctx->config.v_rgb_mean != 0.0f || ctx->config.v_rgb_stdev != 0.0f ||
 	    ctx->config.v_a_mean != 0.0f || ctx->config.v_a_stdev != 0.0f ||
 	    ctx->config.a_scale_radius != 0)
@@ -1019,14 +1024,14 @@ astcenc_error astcenc_compress_image(
 			return init_compute_averages_and_variances(
 				image, ctx->config.v_rgb_power, ctx->config.v_a_power,
 				ctx->config.v_rgba_radius, ctx->config.a_scale_radius, *swizzle,
-				ctx->arg, ctx->ag);
+				ctx->avg_var_preprocess_args);
 		};
 
 		// Only the first thread actually runs the initializer
 		ctx->manage_avg_var.init(init_avg_var);
 
 		// All threads will enter this function and dynamically grab work
-		compute_averages_and_variances(*ctx, ctx->ag);
+		compute_averages_and_variances(*ctx, ctx->avg_var_preprocess_args);
 	}
 
 	// Wait for compute_averages_and_variances to complete before compressing
@@ -1118,6 +1123,12 @@ astcenc_error astcenc_decompress_image(
 
 	imageblock blk;
 
+	// If context thread count is one then implicitly reset
+	if (ctx->thread_count == 1)
+	{
+		astcenc_decompress_reset(ctx);
+	}
+
 	// Only the first thread actually runs the initializer
 	ctx->manage_decompress.init(zblocks * yblocks * xblocks);
 
@@ -1199,34 +1210,31 @@ astcenc_error astcenc_get_block_info(
 	info->block_z = ctx->config.block_z;
 	info->texel_count = bsd.texel_count;
 
-	// Check for error blocks first - block_mode will be negative
-	info->is_error_block = scb.error_block != 0;
+	// Check for error blocks first
+	info->is_error_block = scb.block_type == SYM_BTYPE_ERROR;
 	if (info->is_error_block)
 	{
 		return ASTCENC_SUCCESS;
 	}
 
-	// Check for constant color blocks second - block_mode will be negative
-	info->is_constant_block = scb.block_mode < 0;
+	// Check for constant color blocks second
+	info->is_constant_block = scb.block_type == SYM_BTYPE_CONST_F16 ||
+	                          scb.block_type == SYM_BTYPE_CONST_U16;
 	if (info->is_constant_block)
 	{
 		return ASTCENC_SUCCESS;
 	}
 
-	// Otherwise, handle a full block with partition payload; values are known
-	// to be valid once the two conditions above have been checked
+	// Otherwise handle a full block ; known to be valid after conditions above have been checked
 	int partition_count = scb.partition_count;
-	const partition_info* pt = get_partition_table(&bsd, partition_count);
-	pt += scb.partition_index;
+	const auto& pi = bsd.get_partition_info(partition_count, scb.partition_index);
 
-	const int packed_index = bsd.block_mode_packed_index[scb.block_mode];
-	assert(packed_index >= 0 && packed_index < bsd.block_mode_count);
-	const block_mode& bm = bsd.block_modes[packed_index];
-	const decimation_table& dt = *bsd.decimation_tables[bm.decimation_mode];
+	const block_mode& bm = bsd.get_block_mode(scb.block_mode);
+	const decimation_info& di = *bsd.decimation_tables[bm.decimation_mode];
 
-	info->weight_x = dt.weight_x;
-	info->weight_y = dt.weight_y;
-	info->weight_z = dt.weight_z;
+	info->weight_x = di.weight_x;
+	info->weight_y = di.weight_y;
+	info->weight_z = di.weight_z;
 
 	info->is_dual_plane_block = bm.is_dual_plane != 0;
 
@@ -1234,11 +1242,11 @@ astcenc_error astcenc_get_block_info(
 	info->partition_index = scb.partition_index;
 	info->dual_plane_component = scb.plane2_component;
 
-	info->color_level_count =  get_quant_method_levels((quant_method)scb.color_quant_level);
-	info->weight_level_count = get_quant_method_levels((quant_method)bm.quant_mode);
+	info->color_level_count = get_quant_level(scb.get_color_quant_mode());
+	info->weight_level_count = get_quant_level(bm.get_weight_quant_mode());
 
 	// Unpack color endpoints for each active partition
-	for (int i = 0; i < scb.partition_count; i++)
+	for (unsigned int i = 0; i < scb.partition_count; i++)
 	{
 		bool rgb_hdr;
 		bool a_hdr;
@@ -1246,7 +1254,7 @@ astcenc_error astcenc_get_block_info(
 
 		unpack_color_endpoints(ctx->config.profile,
 		                       scb.color_formats[i],
-		                       scb.color_quant_level,
+		                       scb.get_color_quant_mode(),
 		                       scb.color_values[i],
 		                       rgb_hdr, a_hdr,
 		                       endpnt[0], endpnt[1]);
@@ -1267,23 +1275,23 @@ astcenc_error astcenc_get_block_info(
 	}
 
 	// Unpack weights for each texel
-	int weight_plane1[MAX_TEXELS_PER_BLOCK];
-	int weight_plane2[MAX_TEXELS_PER_BLOCK];
+	int weight_plane1[BLOCK_MAX_TEXELS];
+	int weight_plane2[BLOCK_MAX_TEXELS];
 
-	unpack_weights(bsd, scb, dt, bm.is_dual_plane, bm.quant_mode, weight_plane1, weight_plane2);
-	for (int i = 0; i < bsd.texel_count; i++)
+	unpack_weights(bsd, scb, di, bm.is_dual_plane, bm.get_weight_quant_mode(), weight_plane1, weight_plane2);
+	for (unsigned int i = 0; i < bsd.texel_count; i++)
 	{
-		info->weight_values_plane1[i] = (float)weight_plane1[i] / (float)TEXEL_WEIGHT_SUM;
+		info->weight_values_plane1[i] = (float)weight_plane1[i] * (1.0f / WEIGHTS_TEXEL_SUM);
 		if (info->is_dual_plane_block)
 		{
-			info->weight_values_plane2[i] = (float)weight_plane2[i] / (float)TEXEL_WEIGHT_SUM;
+			info->weight_values_plane2[i] = (float)weight_plane2[i] * (1.0f / WEIGHTS_TEXEL_SUM);
 		}
 	}
 
 	// Unpack partition assignments for each texel
-	for (int i = 0; i < bsd.texel_count; i++)
+	for (unsigned int i = 0; i < bsd.texel_count; i++)
 	{
-		info->partition_assignment[i] = pt->partition_of_texel[i];
+		info->partition_assignment[i] = pi.partition_of_texel[i];
 	}
 
 	return ASTCENC_SUCCESS;

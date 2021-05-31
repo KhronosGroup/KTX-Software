@@ -29,7 +29,7 @@ void compute_avgs_and_dirs_4_comp(
 	const partition_info& pi,
 	const imageblock& blk,
 	const error_weight_block& ewb,
-	partition_metrics pm[4]
+	partition_metrics pm[BLOCK_MAX_PARTITIONS]
 ) {
 	int partition_count = pi.partition_count;
 	promise(partition_count > 0);
@@ -138,8 +138,8 @@ void compute_avgs_and_dirs_3_comp(
 	const partition_info& pi,
 	const imageblock& blk,
 	const error_weight_block& ewb,
-	int omitted_component,
-	partition_metrics pm[4]
+	unsigned int omitted_component,
+	partition_metrics pm[BLOCK_MAX_PARTITIONS]
 ) {
 	const float *texel_weights = ewb.texel_weight_rgb;
 
@@ -279,11 +279,6 @@ void compute_avgs_and_dirs_3_comp(
 			best_vector = sum_zp;
 		}
 
-		if (dot3_s(best_vector, best_vector) < 1e-18f)
-		{
-			best_vector = vfloat3(1.0f, 1.0f, 1.0f);
-		}
-
 		pm[partition].dir = best_vector;
 	}
 }
@@ -293,9 +288,9 @@ void compute_avgs_and_dirs_2_comp(
 	const partition_info& pt,
 	const imageblock& blk,
 	const error_weight_block& ewb,
-	int component1,
-	int component2,
-	partition_metrics pm[4]
+	unsigned int component1,
+	unsigned int component2,
+	partition_metrics pm[BLOCK_MAX_PARTITIONS]
 ) {
 	const float *texel_weights;
 
@@ -338,10 +333,10 @@ void compute_avgs_and_dirs_2_comp(
 		error_vg = ewb.texel_weight_b;
 	}
 
-	int partition_count = pt.partition_count;
+	unsigned int partition_count = pt.partition_count;
 	promise(partition_count > 0);
 
-	for (int partition = 0; partition < partition_count; partition++)
+	for (unsigned int partition = 0; partition < partition_count; partition++)
 	{
 		const uint8_t *weights = pt.texels_of_partition[partition];
 
@@ -349,12 +344,12 @@ void compute_avgs_and_dirs_2_comp(
 		vfloat4 base_sum = vfloat4::zero();
 		float partition_weight = 0.0f;
 
-		int texel_count = pt.partition_texel_count[partition];
+		unsigned int texel_count = pt.partition_texel_count[partition];
 		promise(texel_count > 0);
 
-		for (int i = 0; i < texel_count; i++)
+		for (unsigned int i = 0; i < texel_count; i++)
 		{
-			int iwt = weights[i];
+			unsigned int iwt = weights[i];
 			float weight = texel_weights[iwt];
 			vfloat4 texel_datum = vfloat2(data_vr[iwt], data_vg[iwt]) * weight;
 
@@ -378,9 +373,9 @@ void compute_avgs_and_dirs_2_comp(
 		vfloat4 sum_xp = vfloat4::zero();
 		vfloat4 sum_yp = vfloat4::zero();
 
-		for (int i = 0; i < texel_count; i++)
+		for (unsigned int i = 0; i < texel_count; i++)
 		{
-			int iwt = weights[i];
+			unsigned int iwt = weights[i];
 			float weight = texel_weights[iwt];
 			vfloat4 texel_datum = vfloat2(data_vr[iwt], data_vg[iwt]);
 			texel_datum = (texel_datum - average) * weight;
@@ -414,20 +409,20 @@ void compute_error_squared_rgba(
 	const partition_info& pi,
 	const imageblock& blk,
 	const error_weight_block& ewb,
-	const processed_line4 uncor_plines[4],
-	const processed_line4 samec_plines[4],
-	float uncor_lengths[4],
-	float samec_lengths[4],
+	const processed_line4 uncor_plines[BLOCK_MAX_PARTITIONS],
+	const processed_line4 samec_plines[BLOCK_MAX_PARTITIONS],
+	float uncor_lengths[BLOCK_MAX_PARTITIONS],
+	float samec_lengths[BLOCK_MAX_PARTITIONS],
 	float& uncor_error,
 	float& samec_error
 ) {
-	int partition_count = pi.partition_count;
+	unsigned int partition_count = pi.partition_count;
 	promise(partition_count > 0);
 
 	uncor_error = 0.0f;
 	samec_error = 0.0f;
 
-	for (int partition = 0; partition < partition_count; partition++)
+	for (unsigned int partition = 0; partition < partition_count; partition++)
 	{
 		const uint8_t *weights = pi.texels_of_partition[partition];
 
@@ -440,7 +435,7 @@ void compute_error_squared_rgba(
 		processed_line4 l_uncor = uncor_plines[partition];
 		processed_line4 l_samec = samec_plines[partition];
 
-		int texel_count = pi.partition_texel_count[partition];
+		unsigned int texel_count = pi.partition_texel_count[partition];
 		promise(texel_count > 0);
 
 		// Vectorize some useful scalar inputs
@@ -483,7 +478,7 @@ void compute_error_squared_rgba(
 		// to extend the last value. This means min/max are not impacted, but we need to mask
 		// out the dummy values when we compute the line weighting.
 		vint lane_ids = vint::lane_id();
-		for (int i = 0; i < texel_count; i += ASTCENC_SIMD_WIDTH)
+		for (unsigned int i = 0; i < texel_count; i += ASTCENC_SIMD_WIDTH)
 		{
 			vmask mask = lane_ids < vint(texel_count);
 			vint texel_idxs(&(weights[i]));
@@ -572,21 +567,21 @@ void compute_error_squared_rgb(
 	const partition_info& pi,
 	const imageblock& blk,
 	const error_weight_block& ewb,
-	partition_lines3 plines[4],
+	partition_lines3 plines[BLOCK_MAX_PARTITIONS],
 	float& uncor_error,
 	float& samec_error
 ) {
-	int partition_count = pi.partition_count;
+	unsigned int partition_count = pi.partition_count;
 	promise(partition_count > 0);
 
 	uncor_error = 0.0f;
 	samec_error = 0.0f;
 
-	for (int partition = 0; partition < partition_count; partition++)
+	for (unsigned int partition = 0; partition < partition_count; partition++)
 	{
 		partition_lines3& pl = plines[partition];
 		const uint8_t *weights = pi.texels_of_partition[partition];
-		int texel_count = pi.partition_texel_count[partition];
+		unsigned int texel_count = pi.partition_texel_count[partition];
 		promise(texel_count > 0);
 
 		float uncor_loparam = 1e10f;
@@ -637,7 +632,7 @@ void compute_error_squared_rgb(
 		// to extend the last value. This means min/max are not impacted, but we need to mask
 		// out the dummy values when we compute the line weighting.
 		vint lane_ids = vint::lane_id();
-		for (int i = 0; i < texel_count; i += ASTCENC_SIMD_WIDTH)
+		for (unsigned int i = 0; i < texel_count; i += ASTCENC_SIMD_WIDTH)
 		{
 			vmask mask = lane_ids < vint(texel_count);
 			vint texel_idxs(&(weights[i]));

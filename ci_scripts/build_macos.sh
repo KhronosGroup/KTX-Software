@@ -22,14 +22,18 @@ echo "Configure KTX-Software (macOS)"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake -GXcode -Bbuild-macos \
   -DKTX_FEATURE_DOC=ON \
-  -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}" \
+  -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
+  -DBASISU_SUPPORT_SSE=OFF \
+  -DKTX_FEATURE_LOADTEST_APPS=ON \
   -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
   -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
   -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
 else # No secure variables means a PR or fork build.
   cmake -GXcode -Bbuild-macos \
   -DKTX_FEATURE_DOC=ON \
-  -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+  -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
+  -DBASISU_SUPPORT_SSE=OFF \
+  -DKTX_FEATURE_LOADTEST_APPS=ON
 fi
 
 echo "Configure KTX-Software (macOS) without SSE support"
@@ -86,7 +90,8 @@ popd
 #
 
 echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DARCH=aarch64 -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+
+cmake -GXcode -Bbuild-ios -DARCH=aarch64 -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
 cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty

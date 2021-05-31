@@ -32,7 +32,7 @@ releases. Please update and rebuild your client-side code using the updated
     library users targeting older 32-bit Android and iOS devices.
   * **Feature:** A compressor mode for encoding HDR textures that have been
     encoded into LDR RGBM wrapper format is now supported. Note that this
-    encoding has some strong recomendations for how the RGBM encoding is
+    encoding has some strong recommendations for how the RGBM encoding is
     implemented to avoid block artifacts in the compressed image.
 * **Core API:**
   * **API Change:** The core API has been changed to be a pure C API, making it

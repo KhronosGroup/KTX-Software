@@ -24,7 +24,7 @@ environment:
   OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
   PVR_SDK_GH_VER: 4.3
   PVR_SDK_DL_VER: 2020_R1
-  VULKAN_SDK_VER: 1.2.141.2
+  VULKAN_SDK_VER: 1.2.176.1
 
 branches:
   except:
@@ -93,7 +93,6 @@ install:
     cd C:\
     curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
     .\VulkanSDK-Installer.exe /S
-    echo %VULKAN_SDK%
     REM refresh the environment to pick up VulkanSDK changes.
     refreshenv
     REM cd back to cloned repo.

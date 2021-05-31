@@ -52,8 +52,19 @@ armv8
         #endif
     #elif TARGET_OS_MAC
 
+        #if defined __x86_64__
+
 #undef x86_64
 x86_64
+
+        #elif defined __aarch64__
+
+#undef arm64
+arm64
+
+        #else
+            #error Unsupported platform
+        #endif
 
     #else
         #error Unsupported platform
@@ -117,9 +128,9 @@ function(set_target_processor_type out)
     else()
         if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
             set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
-            if(${CMAKE_GENERATOR_PLATFORM} STREQUAL "ARM")
+            if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM")
                 set(processor "arm")
-            elseif(${CMAKE_GENERATOR_PLATFORM} STREQUAL "ARM64")
+            elseif("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM64")
                 set(processor "arm64")
             else()
                 set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)

@@ -27,7 +27,6 @@
 #include <assert.h>
 #include <vector>
 
-#include <vulkan/vulkan.h>
 #include "TextureCubemap.h"
 #include "VulkanTextureTranscoder.hpp"
 #include "argparser.h"

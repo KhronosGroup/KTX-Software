@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( toktx
-    $<TARGET_OBJECTS:objUtil>
     image.cc
     image.hpp
     jpgimage.cc
@@ -28,6 +27,7 @@ PRIVATE
 target_link_libraries(
     toktx
     ktx
+    objUtil
 )
 
 target_compile_definitions(

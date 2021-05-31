@@ -35,7 +35,6 @@ add_library(astc${CODEC}-${ISA_SIMD}-static
         astcenc_ideal_endpoints_and_weights.cpp
         astcenc_image.cpp
         astcenc_integer_sequence.cpp
-        astcenc_kmeans_partitioning.cpp
         astcenc_mathlib.cpp
         astcenc_mathlib_softfloat.cpp
         astcenc_partition_tables.cpp

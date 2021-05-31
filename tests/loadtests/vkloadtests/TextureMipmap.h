@@ -11,9 +11,9 @@
 
 #include <vector>
 
-#include <ktxvulkan.h>
 #include "InstancedSampleBase.h"
 
+#include <ktxvulkan.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 class TextureMipmap : public InstancedSampleBase
