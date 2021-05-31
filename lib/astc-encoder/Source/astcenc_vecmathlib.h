@@ -148,7 +148,7 @@
  *
  * @return The rounded value.
  */
-ASTCENC_SIMD_INLINE int round_down_to_simd_multiple_8(int count)
+ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_8(unsigned int count)
 {
 	return count & ~(8 - 1);
 }
@@ -160,7 +160,7 @@ ASTCENC_SIMD_INLINE int round_down_to_simd_multiple_8(int count)
  *
  * @return The rounded value.
  */
-ASTCENC_SIMD_INLINE int round_down_to_simd_multiple_4(int count)
+ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_4(unsigned int count)
 {
 	return count & ~(4 - 1);
 }
@@ -174,7 +174,7 @@ ASTCENC_SIMD_INLINE int round_down_to_simd_multiple_4(int count)
  *
  * @return The rounded value.
  */
-ASTCENC_SIMD_INLINE int round_down_to_simd_multiple_vla(int count)
+ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_vla(unsigned int count)
 {
 	return count & ~(ASTCENC_SIMD_WIDTH - 1);
 }
@@ -188,7 +188,7 @@ ASTCENC_SIMD_INLINE int round_down_to_simd_multiple_vla(int count)
  *
  * @return The rounded value.
  */
-ASTCENC_SIMD_INLINE int round_up_to_simd_multiple_vla(int count)
+ASTCENC_SIMD_INLINE unsigned int round_up_to_simd_multiple_vla(unsigned int count)
 {
 	int multiples = (count + ASTCENC_SIMD_WIDTH - 1) / ASTCENC_SIMD_WIDTH;
 	return multiples * ASTCENC_SIMD_WIDTH;

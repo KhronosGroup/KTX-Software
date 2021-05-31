@@ -28,8 +28,6 @@
 #include <time.h> 
 #include <vector>
 
-#include <vulkan/vulkan.h>
-#include <ktxvulkan.h>
 #include "TextureArray.h"
 #include "ltexceptions.h"
 

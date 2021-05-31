@@ -19,9 +19,7 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
-include(cmake/mkvk.cmake)
 include(cmake/xcode.cmake)
-
 include(cmake/cputypetest.cmake)
 
 # OPTIONS
@@ -43,7 +41,7 @@ if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
     option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" ON )
 endif()
 
-set(VULKAN_INSTALL_DIR "" CACHE PATH "Path to installation of Vulkan SDK (obtainable from https://vulkan.lunarg.com/sdk/home )")
+CMAKE_DEPENDENT_OPTION(KTX_EMBED_BITCODE "Embed bitcode in binaries" OFF "APPLE AND IOS" OFF)
 
 if(APPLE)
     set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
@@ -52,6 +50,7 @@ if(APPLE)
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
     if(IOS)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
+        set(MOLTEN_VK_SDK "$ENV{VULKAN_SDK}/../MoltenVK" CACHE STRING "MoltenVK directory inside the Vulkan SDK")
     endif()
 endif()
 
@@ -101,6 +100,9 @@ else()
     endif()
     set(LIB_TYPE SHARED)
 endif()
+
+# Depends on the settings, so it must be included after
+include(cmake/mkvk.cmake)
 
 # Global compile & link options including optimization flags
 if(MSVC)
@@ -325,6 +327,9 @@ macro(commom_lib_settings lib write)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
     elseif(APPLE)
+        if(KTX_EMBED_BITCODE)
+            target_compile_options(${lib} PRIVATE "-fembed-bitcode")
+        endif()
         if(NOT IOS)
             # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
             # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
@@ -493,9 +498,15 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
         lib/basisu/encoder/basisu_enc.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable;-Wno-sign-compare;-Wno-shorten-64-to-32"
         )
-    set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
-        )
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
+        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
+            )
+    else()
+        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+            )
+    endif()
 else()
     message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
@@ -614,7 +625,7 @@ if(EMSCRIPTEN)
     )
 endif()
 
-add_library( objUtil OBJECT
+add_library( objUtil STATIC
     utils/argparser.cpp
     utils/argparser.h
     utils/ktxapp.h

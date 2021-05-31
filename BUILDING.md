@@ -18,7 +18,7 @@ KTX consist of the following parts
 Supported platforms (please to through their specific requirements first)
 
 - [GNU/Linux](#gnulinux)
-- [iOS and macOS](#ios-and-macos)
+- [Apple macOS/iOS](#apple-macosios)
 - [Web/Emscripten](#webemscripten)
 - [Windows](#windows)
 - [Android](#android)
@@ -97,7 +97,7 @@ cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS
 cmake --build build
 ```
 
-### iOS and macOS
+### Apple macOS/iOS
 
 You need to install the following
 
@@ -105,9 +105,17 @@ You need to install the following
 - Xcode
 - [Doxygen](#doxygen) (only if generating documentation)
 
-For the load tests applications you need to install the [Vulkan SDK](#vulkan-sdk).
+For the load tests applications you need to install the Vulkan SDK.
+To build for iOS you need to set the CMake cache variable `MOLTEN_VK_SDK` to the root of MoltenVK inside the Vulkan SDK, if it is not already set.
+Caution: `setup.env` in the macOS Vulkan SDK sets `VULKAN_SDK` to the macOS folder of the SDK, a sibling of the MoltenVK folder.
+To build for other platforms, you shouldn't need to do anything else, but you might need to set the environment variable `VULKAN_SDK`
+to the root of the Vulkan SDK as a hint for [FindVulkan](https://cmake.org/cmake/help/latest/module/FindVulkan.html#hints).
 
 Other dependencies (like zstd, SDL2 or the assimp library are included in this repository or come with Xcode).
+
+**NOTE:** the `iphoneos` or `MacOSX` SDK version gets hardwired into the generated projects. After installing an Xcode update that has the SDK for a new version of iOS, builds will fail. The only way to remedy this is to delete the build folder and regenerate from scratch.
+
+#### macOS
 
 To build for macOS:
 
@@ -116,26 +124,59 @@ To build for macOS:
 mkdir build
 cmake -G Xcode -B build/mac
 
-# If you want to build the load test apps as well, you have to set the `KTX_FEATURE_LOADTEST_APPS` parameter and pass the location where you installed the Vulkan SDK as parameter `VULKAN_INSTALL_DIR`:
-cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+# If you want to build the load test apps as well, you have to set the `KTX_FEATURE_LOADTEST_APPS` parameter:
+cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON"
 
 # Compile the project
 cmake --build build/mac
 ```
+##### Apple Silicon and Universal Binaries
+
+Macs are either based on Intel or the newer Apple Silicon architecture. By default CMake configures to build for your host's platform, whichever it is. If you want to cross compile universal binaries (that support both platforms), add the parameter `-DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)"` to cmake.
+
+> **Known limitations:**
+> - Load tests apps are not supported on native Apple Silicon and cannot be cross compiled for Intel either
+> - Intel Macs have support for SSE, but if you're building universal binaries, you have to disable SSE or the build will fail
+
+Example how to build universal binaries
+
+```bash
+# Configure universal binaries and disable SSE 
+cmake -G Xcode -B build-macos-universal -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" -DBASISU_SUPPORT_SSE=OFF
+# Build 
+cmake --build build-macos-universal
+# Easy way to check if the resulting binaries are universal
+
+file build-macos-universal/Debug/libktx.dylib
+# outputs:
+# build-macos-universal/Debug/libktx.dylib: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit dynamically linked shared library x86_64] [arm64]
+# build-macos-universal/Debug/libktx.dylib (for architecture x86_64):	Mach-O 64-bit dynamically linked shared library x86_64
+# build-macos-universal/Debug/libktx.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64
+
+file build-macos-universal/Debug/toktx
+# outputs:
+# build-macos-universal/Debug/toktx: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64:Mach-O 64-bit executable arm64]
+# build-macos-universal/Debug/toktx (for architecture x86_64):	Mach-O 64-bit executable x86_64
+# build-macos-universal/Debug/toktx (for architecture arm64):	Mach-O 64-bit executable arm64
+```
+
+##### macOS signing
 
 To sign the applications you need to set the following CMake variables:
 
 | Name | Value |
 | :---: | :---: |
-| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Developer ID Application_ certificate to use for signing |
-| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Developer ID Application_ certificate to use for signing. |
+| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner.
 
 To sign the installation package you need to set the following variables:
 
 | Name | Value |
 | :---: | :---: |
-| PRODUCTBUILD\_IDENTITY\_NAME | Owner of the _Developer ID Installer_ certificate to use for signing |
+| PRODUCTBUILD\_IDENTITY\_NAME | Owner of the _Developer ID Installer_ certificate to use for signing. |
 | PRODUCTBUILD\_KEYCHAIN\_PATH | Path to the keychain file with the certificate. Blank if its in the default keychain.
+
+#### iOS
 
 To build for iOS:
 
@@ -145,22 +186,23 @@ mkdir build # if it does not exist
 cmake -G Xcode -B build/ios -DCMAKE_SYSTEM_NAME=iOS
 
 # This creates a project to build the load test apps as well.
-cmake -G Xcode -B build/ios -DKTX_FEATURE_LOADTEST_APPS=ON -DVULKAN_INSTALL_DIR="${VULKAN_INSTALL_DIR}"
+cmake -G Xcode -B build/ios -DKTX_FEATURE_LOADTEST_APPS=ON"
 
 # Compile the project
 cmake --build build -- -sdk iphoneos
 ```
+
 If using the CMake GUI, when it asks you to specify the generator for the project, you need to check _Specify options for cross-compiling_ and on the next screen make sure _Operating System_ is set to `iOS`.
+
+##### iOS signing
 
 To sign the applications you need to set the following CMake variables:
 
 | Name | Value |
 | :---: | :---: |
-| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _iPhone Developer_ certificate to use for signing |
-| XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Apple Development_ certificate to use for signing. |
+| XCODE\_DEVELOPMENT\_TEAM | Development team used to create the Provisioning Profile. This may not be the same as the team of the _Apple Development_ certificate owner.
 | XCODE\_PROVISIONING\_PROFILE | Name of the profile to use.
-
-**NOTE:** the `iphoneos` SDK version gets hardwired into the generated projects. After installing an Xcode update that has the SDK for a new version of iOS, builds will fail. The only way to remedy this is to delete the build folder and regenerate from scratch.
 
 ### Web/Emscripten
 

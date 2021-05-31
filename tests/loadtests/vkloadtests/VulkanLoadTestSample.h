@@ -53,6 +53,9 @@ class VulkanLoadTestSample : public LoadTestSample {
   protected:
     virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
+    bool gpuSupportsSwizzle() {
+        return vkctx.gpuSupportsSwizzle();
+    }
 
     std::string ktxfilename;
     int externalFile = 0;
@@ -60,7 +63,7 @@ class VulkanLoadTestSample : public LoadTestSample {
     vk::PipelineShaderStageCreateInfo
     loadShader(std::string filename,
                vk::ShaderStageFlagBits stage,
-               std::string modname = "main");
+               const char* modname = "main");
     void loadMesh(std::string filename,
                   vkMeshLoader::MeshBuffer* meshBuffer,
                   std::vector<vkMeshLoader::VertexLayout> vertexLayout,

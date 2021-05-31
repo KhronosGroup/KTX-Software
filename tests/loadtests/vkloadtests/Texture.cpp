@@ -30,8 +30,6 @@
 #include <assert.h>
 #include <exception>
 #include <vector>
-#include <vulkan/vulkan.h>
-#include <ktxvulkan.h>
 
 #include "argparser.h"
 #include "Texture.h"
@@ -141,31 +139,45 @@ Texture::Texture(VulkanContext& vkctx,
     char* swizzleStr;
     ktxresult = ktxHashList_FindValue(&kTexture->kvDataHead, KTX_SWIZZLE_KEY,
                                       &swizzleLen, (void**)&swizzleStr);
-    if (ktxresult == KTX_SUCCESS) {
-        swizzle.r = swizzleStr[0] == 'r' ? vk::ComponentSwizzle::eR
-                  : swizzleStr[0] == 'g' ? vk::ComponentSwizzle::eG
-                  : swizzleStr[0] == 'b' ? vk::ComponentSwizzle::eB
-                  : swizzleStr[0] == 'a' ? vk::ComponentSwizzle::eA
-                  : swizzleStr[0] == '0' ? vk::ComponentSwizzle::eZero
-                  : vk::ComponentSwizzle::eOne;
-        swizzle.g = swizzleStr[1] == 'r' ? vk::ComponentSwizzle::eR
-                  : swizzleStr[1] == 'g' ? vk::ComponentSwizzle::eG
-                  : swizzleStr[1] == 'b' ? vk::ComponentSwizzle::eB
-                  : swizzleStr[1] == 'a' ? vk::ComponentSwizzle::eA
-                  : swizzleStr[1] == '0' ? vk::ComponentSwizzle::eZero
-                  : vk::ComponentSwizzle::eOne;
-        swizzle.b = swizzleStr[2] == 'r' ? vk::ComponentSwizzle::eR
-                  : swizzleStr[2] == 'g' ? vk::ComponentSwizzle::eG
-                  : swizzleStr[2] == 'b' ? vk::ComponentSwizzle::eB
-                  : swizzleStr[2] == 'a' ? vk::ComponentSwizzle::eA
-                  : swizzleStr[2] == '0' ? vk::ComponentSwizzle::eZero
-                  : vk::ComponentSwizzle::eOne;
-        swizzle.a = swizzleStr[3] == 'r' ? vk::ComponentSwizzle::eR
-                  : swizzleStr[3] == 'g' ? vk::ComponentSwizzle::eG
-                  : swizzleStr[3] == 'b' ? vk::ComponentSwizzle::eB
-                  : swizzleStr[3] == 'a' ? vk::ComponentSwizzle::eA
-                  : swizzleStr[3] == '0' ? vk::ComponentSwizzle::eZero
-                  : vk::ComponentSwizzle::eOne;
+    if (ktxresult == KTX_SUCCESS && swizzleLen == 5) {
+        if (gpuSupportsSwizzle()) {
+            swizzle.r = swizzleStr[0] == 'r' ? vk::ComponentSwizzle::eR
+                      : swizzleStr[0] == 'g' ? vk::ComponentSwizzle::eG
+                      : swizzleStr[0] == 'b' ? vk::ComponentSwizzle::eB
+                      : swizzleStr[0] == 'a' ? vk::ComponentSwizzle::eA
+                      : swizzleStr[0] == '0' ? vk::ComponentSwizzle::eZero
+                      : vk::ComponentSwizzle::eOne;
+            swizzle.g = swizzleStr[1] == 'r' ? vk::ComponentSwizzle::eR
+                      : swizzleStr[1] == 'g' ? vk::ComponentSwizzle::eG
+                      : swizzleStr[1] == 'b' ? vk::ComponentSwizzle::eB
+                      : swizzleStr[1] == 'a' ? vk::ComponentSwizzle::eA
+                      : swizzleStr[1] == '0' ? vk::ComponentSwizzle::eZero
+                      : vk::ComponentSwizzle::eOne;
+            swizzle.b = swizzleStr[2] == 'r' ? vk::ComponentSwizzle::eR
+                      : swizzleStr[2] == 'g' ? vk::ComponentSwizzle::eG
+                      : swizzleStr[2] == 'b' ? vk::ComponentSwizzle::eB
+                      : swizzleStr[2] == 'a' ? vk::ComponentSwizzle::eA
+                      : swizzleStr[2] == '0' ? vk::ComponentSwizzle::eZero
+                      : vk::ComponentSwizzle::eOne;
+            swizzle.a = swizzleStr[3] == 'r' ? vk::ComponentSwizzle::eR
+                      : swizzleStr[3] == 'g' ? vk::ComponentSwizzle::eG
+                      : swizzleStr[3] == 'b' ? vk::ComponentSwizzle::eB
+                      : swizzleStr[3] == 'a' ? vk::ComponentSwizzle::eA
+                      : swizzleStr[3] == '0' ? vk::ComponentSwizzle::eZero
+                      : vk::ComponentSwizzle::eOne;
+        } else {
+            std::stringstream message;
+            message << "Input file has swizzle metadata but "
+                    << "app is running on a VK_KHR_portability_subset device "
+                    << "that does not support swizzling.";
+            // I have absolutely no idea why the following line makes clang
+            // raise an error about no matching conversion from
+            // std::__1::basic_stringstream to unsupported_ttype
+            // so I've resorted to using a temporary variable.
+            //throw(unsupported_ttype(message.str());
+            std::string msg = message.str();
+            throw(unsupported_ttype(msg));
+        }
     }
 
     ktxTexture_Destroy(kTexture);

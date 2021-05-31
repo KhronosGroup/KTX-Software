@@ -151,36 +151,49 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         char* swizzleStr;
         ktxresult = ktxHashList_FindValue(&kTexture->kvDataHead, KTX_SWIZZLE_KEY,
                                           &swizzleLen, (void**)&swizzleStr);
-        if (ktxresult == KTX_SUCCESS && swizzleLen == 4) {
-            GLint swizzle[4];
-            swizzle[0] = swizzleStr[0] == 'r' ? GL_RED
-                      : swizzleStr[0] == 'g' ? GL_GREEN
-                      : swizzleStr[0] == 'b' ? GL_BLUE
-                      : swizzleStr[0] == 'a' ? GL_ALPHA
-                      : swizzleStr[0] == '0' ? GL_ZERO
-                      : GL_ONE;
-            swizzle[1] = swizzleStr[1] == 'r' ? GL_RED
-                      : swizzleStr[1] == 'g' ? GL_GREEN
-                      : swizzleStr[1] == 'b' ? GL_BLUE
-                      : swizzleStr[1] == 'a' ? GL_ALPHA
-                      : swizzleStr[1] == '0' ? GL_ZERO
-                      : GL_ONE;
-            swizzle[2] = swizzleStr[2] == 'r' ? GL_RED
-                      : swizzleStr[2] == 'g' ? GL_GREEN
-                      : swizzleStr[2] == 'b' ? GL_BLUE
-                      : swizzleStr[2] == 'a' ? GL_ALPHA
-                      : swizzleStr[2] == '2' ? GL_ZERO
-                      : GL_ONE;
-            swizzle[3] = swizzleStr[3] == 'r' ? GL_RED
-                      : swizzleStr[3] == 'g' ? GL_GREEN
-                      : swizzleStr[3] == 'b' ? GL_BLUE
-                      : swizzleStr[3] == 'a' ? GL_ALPHA
-                      : swizzleStr[3] == '3' ? GL_ZERO
-                      : GL_ONE;
-            glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, swizzle[0]);
-            glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, swizzle[1]);
-            glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, swizzle[2]);
-            glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, swizzle[3]);
+        if (ktxresult == KTX_SUCCESS && swizzleLen == 5) {
+            if (contextSupportsSwizzle()) {
+                GLint swizzle[4];
+                swizzle[0] = swizzleStr[0] == 'r' ? GL_RED
+                          : swizzleStr[0] == 'g' ? GL_GREEN
+                          : swizzleStr[0] == 'b' ? GL_BLUE
+                          : swizzleStr[0] == 'a' ? GL_ALPHA
+                          : swizzleStr[0] == '0' ? GL_ZERO
+                          : GL_ONE;
+                swizzle[1] = swizzleStr[1] == 'r' ? GL_RED
+                          : swizzleStr[1] == 'g' ? GL_GREEN
+                          : swizzleStr[1] == 'b' ? GL_BLUE
+                          : swizzleStr[1] == 'a' ? GL_ALPHA
+                          : swizzleStr[1] == '0' ? GL_ZERO
+                          : GL_ONE;
+                swizzle[2] = swizzleStr[2] == 'r' ? GL_RED
+                          : swizzleStr[2] == 'g' ? GL_GREEN
+                          : swizzleStr[2] == 'b' ? GL_BLUE
+                          : swizzleStr[2] == 'a' ? GL_ALPHA
+                          : swizzleStr[2] == '2' ? GL_ZERO
+                          : GL_ONE;
+                swizzle[3] = swizzleStr[3] == 'r' ? GL_RED
+                          : swizzleStr[3] == 'g' ? GL_GREEN
+                          : swizzleStr[3] == 'b' ? GL_BLUE
+                          : swizzleStr[3] == 'a' ? GL_ALPHA
+                          : swizzleStr[3] == '3' ? GL_ZERO
+                          : GL_ONE;
+                glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, swizzle[0]);
+                glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, swizzle[1]);
+                glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, swizzle[2]);
+                glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, swizzle[3]);
+            } else {
+                std::stringstream message;
+                message << "Input file has swizzle metadata but the "
+                        << "GL context does not support swizzling.";
+                // I have absolutely no idea why the following line makes clang
+                // raise an error about no matching conversion from
+                // std::__1::basic_stringstream to unsupported_ttype
+                // so I've resorted to using a temporary variable.
+                //throw(unsupported_ttype(message.str());
+                std::string msg = message.str();
+                throw(unsupported_ttype(msg));
+            }
         }
 
         assert(GL_NO_ERROR == glGetError());

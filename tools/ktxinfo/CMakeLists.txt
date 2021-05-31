@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( ktxinfo
-    $<TARGET_OBJECTS:objUtil>
     ktxinfo.cpp
     stdafx.h
 )
@@ -20,6 +19,7 @@ PRIVATE
 target_link_libraries(
     ktxinfo
     ktx
+    objUtil
 )
 
 set_tool_properties(ktxinfo)

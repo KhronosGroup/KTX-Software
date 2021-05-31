@@ -206,10 +206,14 @@ VulkanLoadTests::invokeSample(Direction dir)
             (void)e; // To quiet unused variable warnings from some compilers.
             unsupportedTypeExceptions++;
             if (unsupportedTypeExceptions == sampleIndex.getNumSamples()) {
+                std::string manyFailMessage =
+                    "All of the specified samples or files use texture types "
+                    "or features not supported on this platform.";
+                const std::string& message = unsupportedTypeExceptions == 1 ?
+                                       e.what() : manyFailMessage;
                 SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                     infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
-                    "None of the specified samples or files use texture types "
-                    "supported on this platform.",
+                    message.c_str(),
                     NULL);
                 exit(0);
             } else {

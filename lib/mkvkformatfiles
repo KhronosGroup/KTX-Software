@@ -39,12 +39,12 @@ BEGIN {
     format_strings = output_dir "vkformat_str.c"
     format_check = output_dir "vkformat_check.c"
 # Use local vulkan_core.h until ASTC 3D texture extension is released.
-#    if (ENVIRON["VULKAN_SDK"]) {
-#        vulkan_include_root = ENVIRON["VULKAN_SDK"];
+#    if (ENVIRON["Vulkan_INCLUDE_DIR"]) {
+#        vulkan_include_dir = ENVIRON["Vulkan_INCLUDE_DIR"];
 #    } else {
-#        vulkan_include_root = "/usr";
+#        vulkan_include_dir = "/usr/include";
 #    }
-#    ARGV[1] = vulkan_include_root"/include/vulkan/"vulkan_core; ARGC = 2
+#    ARGV[1] = vulkan_include_dir"/vulkan/"vulkan_core; ARGC = 2
      ARGV[1] = "lib/dfdutils/vulkan/"vulkan_core; ARGC = 2
 }
 

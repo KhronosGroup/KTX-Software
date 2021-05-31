@@ -153,14 +153,14 @@ void fetch_imageblock(
 	const astcenc_image& img,
 	imageblock& blk,
 	const block_size_descriptor& bsd,
-	int xpos,
-	int ypos,
-	int zpos,
+	unsigned int xpos,
+	unsigned int ypos,
+	unsigned int zpos,
 	const astcenc_swizzle& swz
 ) {
-	int xsize = img.dim_x;
-	int ysize = img.dim_y;
-	int zsize = img.dim_z;
+	unsigned int xsize = img.dim_x;
+	unsigned int ysize = img.dim_y;
+	unsigned int zsize = img.dim_z;
 
 	blk.xpos = xpos;
 	blk.ypos = ypos;
@@ -205,18 +205,18 @@ void fetch_imageblock(
 		converter = encode_texel_lns;
 	}
 
-	for (int z = 0; z < bsd.zdim; z++)
+	for (unsigned int z = 0; z < bsd.zdim; z++)
 	{
-		int zi = astc::min(zpos + z, zsize - 1);
+		unsigned int zi = astc::min(zpos + z, zsize - 1);
 		void* plane = img.data[zi];
 
-		for (int y = 0; y < bsd.ydim; y++)
+		for (unsigned int y = 0; y < bsd.ydim; y++)
 		{
-			int yi = astc::min(ypos + y, ysize - 1);
+			unsigned int yi = astc::min(ypos + y, ysize - 1);
 
-			for (int x = 0; x < bsd.xdim; x++)
+			for (unsigned int x = 0; x < bsd.xdim; x++)
 			{
-				int xi = astc::min(xpos + x, xsize - 1);
+				unsigned int xi = astc::min(xpos + x, xsize - 1);
 
 				vfloat4 datav = loader(plane, (4 * xsize * yi) + (4 * xi));
 				datav = swizzler(datav, swz);
@@ -268,25 +268,25 @@ void write_imageblock(
 	astcenc_image& img,
 	const imageblock& blk,
 	const block_size_descriptor& bsd,
-	int xpos,
-	int ypos,
-	int zpos,
+	unsigned int xpos,
+	unsigned int ypos,
+	unsigned int zpos,
 	const astcenc_swizzle& swz
 ) {
-	int xsize = img.dim_x;
-	int ysize = img.dim_y;
-	int zsize = img.dim_z;
+	unsigned int xsize = img.dim_x;
+	unsigned int ysize = img.dim_y;
+	unsigned int zsize = img.dim_z;
 
-	int x_start = xpos;
-	int x_end = std::min(xsize, xpos + bsd.xdim);
-	int x_nudge = bsd.xdim - (x_end - x_start);
+	unsigned int x_start = xpos;
+	unsigned int x_end = std::min(xsize, xpos + bsd.xdim);
+	unsigned int x_nudge = bsd.xdim - (x_end - x_start);
 
-	int y_start = ypos;
-	int y_end = std::min(ysize, ypos + bsd.ydim);
-	int y_nudge = (bsd.ydim - (y_end - y_start)) * bsd.xdim;
+	unsigned int y_start = ypos;
+	unsigned int y_end = std::min(ysize, ypos + bsd.ydim);
+	unsigned int y_nudge = (bsd.ydim - (y_end - y_start)) * bsd.xdim;
 
-	int z_start = zpos;
-	int z_end = std::min(zsize, zpos + bsd.zdim);
+	unsigned int z_start = zpos;
+	unsigned int z_end = std::min(zsize, zpos + bsd.zdim);
 
 	float data[7];
 	data[ASTCENC_SWZ_0] = 0.0f;
@@ -303,14 +303,14 @@ void write_imageblock(
 	int idx = 0;
 	if (img.data_type == ASTCENC_TYPE_U8)
 	{
-		for (int z = z_start; z < z_end; z++)
+		for (unsigned int z = z_start; z < z_end; z++)
 		{
 			// Fetch the image plane
 			uint8_t* data8 = static_cast<uint8_t*>(img.data[z]);
 
-			for (int y = y_start; y < y_end; y++)
+			for (unsigned int y = y_start; y < y_end; y++)
 			{
-				for (int x = x_start; x < x_end; x++)
+				for (unsigned int x = x_start; x < x_end; x++)
 				{
 					vint4 colori = vint4::zero();
 
@@ -359,14 +359,14 @@ void write_imageblock(
 	}
 	else if (img.data_type == ASTCENC_TYPE_F16)
 	{
-		for (int z = z_start; z < z_end; z++)
+		for (unsigned int z = z_start; z < z_end; z++)
 		{
 			// Fetch the image plane
 			uint16_t* data16 = static_cast<uint16_t*>(img.data[z]);
 
-			for (int y = y_start; y < y_end; y++)
+			for (unsigned int y = y_start; y < y_end; y++)
 			{
-				for (int x = x_start; x < x_end; x++)
+				for (unsigned int x = x_start; x < x_end; x++)
 				{
 					vint4 color;
 
@@ -418,14 +418,14 @@ void write_imageblock(
 	{
 		assert(img.data_type == ASTCENC_TYPE_F32);
 
-		for (int z = z_start; z < z_end; z++)
+		for (unsigned int z = z_start; z < z_end; z++)
 		{
 			// Fetch the image plane
 			float* data32 = static_cast<float*>(img.data[z]);
 
-			for (int y = y_start; y < y_end; y++)
+			for (unsigned int y = y_start; y < y_end; y++)
 			{
-				for (int x = x_start; x < x_end; x++)
+				for (unsigned int x = x_start; x < x_end; x++)
 				{
 					vfloat4 color = blk.texel(idx);
 
