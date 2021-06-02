@@ -267,6 +267,9 @@ class Image {
     enum colortype_e {
         eLuminance=0, eLuminanceAlpha=1, eR=2, eRG, eRGB, eRGBA
     };
+    enum rescale_e {
+      eNoRescale, eAlwaysRescaleTo8Bits, eRescaleTo8BitsIfLess
+    };
 
     virtual ~Image() { };
 
@@ -283,18 +286,18 @@ class Image {
     }
 
     typedef Image* (*CreateFunction)(FILE* f, bool transformOETF,
-                                     bool rescaleTo8Bitbool);
+                                     rescale_e rescale);
     static const std::vector<CreateFunction> CreateFunctions;
 
     static Image* CreateFromNPBM(FILE*, bool transformOETF = true,
-                                 bool rescaleTo8Bitbool = false);
+                                 rescale_e rescale = eNoRescale);
     static Image* CreateFromJPG(FILE* f, bool transformOETF = true,
-                                 bool rescaleTo8Bitbool = false);
+                                rescale_e rescale = eNoRescale);
     static Image* CreateFromPNG(FILE* f, bool transformOETF = true,
-                                 bool rescaleTo8Bitbool = false);
+                                rescale_e rescale = eNoRescale);
     static Image* CreateFromFile(const _tstring& name,
                                  bool transformOETF = true,
-                                 bool rescaleTo8Bitbool = false);
+                                 rescale_e rescale = eNoRescale);
 
     virtual operator uint8_t*() = 0;
 

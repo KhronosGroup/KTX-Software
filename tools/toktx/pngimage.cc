@@ -28,7 +28,7 @@
 void warning(const char *pFmt, ...);
 
 Image*
-Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
+Image::CreateFromPNG(FILE* src, bool transformOETF, Image::rescale_e rescale)
 {
     // Unfortunately LoadPNG doesn't believe in stdio plus
     // the function we need only reads from memory. To avoid
@@ -104,7 +104,7 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
       case LCT_GREY:
         componentCount = 1;
         // TODO: Create 4-bit color type and rescale 1- & 2-bpp to that.
-        rescaleTo8Bits = true;
+        rescale = Image::eAlwaysRescaleTo8Bits;
         break;
       case LCT_RGB:
         if (pTrnsChunk != nullptr) {
@@ -138,7 +138,9 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, bool rescaleTo8Bits)
         // To avoid potentially uninitialized variable warning.
         componentCount = 0;
     }
-    if (rescaleTo8Bits) {
+    if (rescale == eAlwaysRescaleTo8Bits
+        || (rescale == eRescaleTo8BitsIfLess
+            && state.info_png.color.bitdepth < 8)) {
         state.info_raw.bitdepth = 8;
         if (state.info_png.color.bitdepth != 8) {
             warning("Rescaling %d-bit image to 8 bits.",

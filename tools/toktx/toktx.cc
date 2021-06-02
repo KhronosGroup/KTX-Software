@@ -721,12 +721,16 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
         Image* image;
         try {
+            Image::rescale_e rescale = Image::eNoRescale;
+            if (options.etc1s || options.bopts.uastc)
+                rescale = Image::rescale_e::eAlwaysRescaleTo8Bits;
+            else if (options.astc)
+                rescale = Image::rescale_e::eRescaleTo8BitsIfLess;
+
             image =
               Image::CreateFromFile(infile,
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    options.etc1s || options.bopts.uastc ||
-                                    (options.astc &&
-                                     options.astcopts.mode != KTX_PACK_ASTC_ENCODER_MODE_HDR));
+                                    rescale);
 
             if (options.astc && image->getComponentSize() == 2)
                 options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
