@@ -52,11 +52,14 @@ jobs:
         ANDROID_ABI: armeabi-v7a
         ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-    - name: android_x86
-      run: ./ci_scripts/build_android.sh
-      env:
-        ANDROID_ABI: x86
-        ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
+    # Android ABI x86 is obsolete
+    # and not supported by ARM ASTC encoder
+
+    # - name: android_x86
+    #   run: ./ci_scripts/build_android.sh
+    #   env:
+    #     ANDROID_ABI: x86
+    #     ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
 
     - name: android_x86_64
       run: ./ci_scripts/build_android.sh
