@@ -735,7 +735,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             // If input is > 8bit and user wants LDR issue quality loss warning
             if (options.astc && image->getComponentSize() == 2
                 && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
-                cerr << name << ": Warning! input file is 16bit but LDR option is provided."
+                cerr << name << ": Warning! input file is 16bit but LDR option is specified."
                      << " Expect quality loss in the output."
                      << endl;
             }
@@ -743,7 +743,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             // If input is 8bit and user wants HDR issue warning
             if (options.astc && image->getComponentSize() != 2 &&
                 options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
-                cerr << name << ": Warning! input file is not 16bit but HDR option is provided."
+                cerr << name << ": Warning! input file is not 16bit but HDR option is specified."
                      << endl;
             }
 
