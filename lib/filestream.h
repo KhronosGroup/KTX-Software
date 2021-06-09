@@ -15,7 +15,6 @@
 #define FILESTREAM_H
 
 #include "ktx.h"
-#include "stream.h"
 
 /*
  * ktxFileInit: Initialize a ktxStream to a ktxFileStream with a FILE object
