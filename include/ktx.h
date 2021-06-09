@@ -984,7 +984,7 @@ ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
  * Write a ktxTexture object to a ktxStream in KTX format.
  */
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream dststr);
+ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream *dststr);
 
 /*
  * Create a new ktxTexture2.
@@ -1021,7 +1021,7 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromStream(ktxStream* stream,
                              ktxTextureCreateFlags createFlags,
-                             ktxTexture1** newTex);
+                             ktxTexture2** newTex);
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
