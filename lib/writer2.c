@@ -244,7 +244,7 @@ ktx_bool_t __disableWriterMetadata__ = KTX_FALSE;
 #endif
 
 /**
- * @memberof ktxTexture2 @private
+ * @memberof ktxTexture2
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX format.
  *
