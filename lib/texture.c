@@ -304,7 +304,7 @@ ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
 }
 
 /**
- * @memberof ktxTexture @private
+ * @memberof ktxTexture
  * @~English
  * @brief Construct (initialize) a ktx1 or ktx2 texture according to the stream
  *        data.
@@ -312,7 +312,7 @@ ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
  * @copydetails ktxTexture_CreateFromStdioStream
  */
 KTX_error_code
-ktxTexture_createFromStream(ktxStream* pStream,
+ktxTexture_CreateFromStream(ktxStream* pStream,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture** newTex)
 {
@@ -375,7 +375,7 @@ ktxTexture_CreateFromStdioStream(FILE* stdioStream,
 
     result = ktxFileStream_construct(&stream, stdioStream, KTX_FALSE);
     if (result == KTX_SUCCESS) {
-        result = ktxTexture_createFromStream(&stream, createFlags, newTex);
+        result = ktxTexture_CreateFromStream(&stream, createFlags, newTex);
     }
     return result;
 }
@@ -428,7 +428,7 @@ ktxTexture_CreateFromNamedFile(const char* const filename,
 
     result = ktxFileStream_construct(&stream, file, KTX_TRUE);
     if (result == KTX_SUCCESS) {
-        result = ktxTexture_createFromStream(&stream, createFlags, newTex);
+        result = ktxTexture_CreateFromStream(&stream, createFlags, newTex);
     }
     return result;
 }
@@ -476,7 +476,7 @@ ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 
     result = ktxMemStream_construct_ro(&stream, bytes, size);
     if (result == KTX_SUCCESS) {
-        result = ktxTexture_createFromStream(&stream, createFlags, newTex);
+        result = ktxTexture_CreateFromStream(&stream, createFlags, newTex);
     }
     return result;}
 

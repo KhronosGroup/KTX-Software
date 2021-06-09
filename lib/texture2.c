@@ -2358,6 +2358,15 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
     return KTX_INVALID_OPERATION;
 }
 
+KTX_error_code
+ktxTexture2_WriteToStream(ktxTexture2* This,
+                          ktxStream* dststr)
+{
+    UNUSED(This);
+    UNUSED(dststr);
+    return KTX_INVALID_OPERATION;
+}
+
 #endif
 
 /*
