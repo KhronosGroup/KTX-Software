@@ -88,7 +88,6 @@
       'ktxint.h',
       'memstream.c',
       'memstream.h',
-      'stream.h',
       'strings.c',
       'swap.c',
       'texture.c',
