@@ -1,4 +1,4 @@
-# Copyright 2015-2020 Mark Callow
+# Copyright 2015-2021 Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
 ##
@@ -9,6 +9,7 @@
 {
   'includes': [
      'loadtests/loadtests.gypi',
+     'streamtests/streamtests.gypi',
      'testimages/testimages.gypi',
   ],
   'conditions': [
