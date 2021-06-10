@@ -616,6 +616,9 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  *                              The texture image's format is a packed format
  *                              (e.g. RGB565).
  * @exception KTX_INVALID_OPERATION
+ *                              The texture image format's component size is not
+ *                              8-bits.
+ * @exception KTX_INVALID_OPERATION
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
  * @exception KTX_INVALID_OPERATION
@@ -652,6 +655,9 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
 
     uint32_t num_components, component_size;
     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
+
+    if (component_size != 1)
+        return KTX_INVALID_OPERATION; // Can only deal with 8-bit components at the moment
 
     if (This->pData == NULL) {
         result = ktxTexture2_LoadImageData((ktxTexture2*)This, nullptr, 0);
