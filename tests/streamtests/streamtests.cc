@@ -38,12 +38,16 @@ std::unique_ptr<std::streambuf> testImageFilebuf(std::string name)
 /// A ktxStream that wraps a C++ std::streambuf.
 class StreambufStream
 {
-    // Should be everywhere, really...
+    // Doubt this will ever get triggered
     static_assert(sizeof(char) == sizeof(uint8_t), "Chars are != 1 byte in this platform");
 
 public:
-    StreambufStream(std::unique_ptr<std::streambuf> &&streambuf)
-        : _streambuf{std::move(streambuf)}, _stream{std::make_unique<ktxStream>()}, _destructed{false}
+    StreambufStream(std::unique_ptr<std::streambuf> &&streambuf,
+                    std::ios::openmode seek_mode = std::ios::in | std::ios::out)
+        : _streambuf{std::move(streambuf)}
+        , _seek_mode{seek_mode}
+        , _stream{std::make_unique<ktxStream>()}
+        , _destructed{false}
     {
         _stream->type = eStreamTypeCustom;
         _stream->closeOnDestruct = false;
@@ -83,6 +87,21 @@ public:
         return _streambuf.get();
     }
 
+    inline std::ios::openmode seek_mode() const
+    {
+        return _seek_mode;
+    }
+
+    inline void seek_mode(std::ios::openmode newmode)
+    {
+        _seek_mode = newmode;
+    }
+
+    inline bool destructed() const
+    {
+        return _destructed;
+    }
+
 protected:
     // C++ streambuf overrides
 
@@ -95,6 +114,8 @@ protected:
 
     static KTX_error_code read(ktxStream* str, void* dst, ktx_size_t count)
     {
+        std::cerr << "\t  read: " << count << 'B' << std::endl;
+
         auto self = parent(str);
         const std::streamsize nread = self->_streambuf->sgetn(reinterpret_cast<char*>(dst), std::streamsize(count));
         return (nread > 0) ? KTX_SUCCESS : KTX_FILE_UNEXPECTED_EOF;
@@ -107,9 +128,10 @@ protected:
         {
             return KTX_SUCCESS;
         }
+        std::cerr << "\t  skip: " << count << 'B' << std::endl;
 
-        const std::streampos curpos = self->_streambuf->pubseekoff(0, std::ios::cur);
-        const std::streampos newpos = self->_streambuf->pubseekoff(std::streamoff(count), std::ios::cur);
+        const std::streampos curpos = self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode);
+        const std::streampos newpos = self->_streambuf->pubseekoff(std::streamoff(count), std::ios::cur, self->_seek_mode);
         return (curpos > newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
@@ -120,22 +142,18 @@ protected:
         {
             return KTX_SUCCESS;
         }
+        std::cerr << "\t write: " << count << "*" << size << "B" << std::endl;
 
-        for (ktx_size_t i = 0; i < count; i++)
-        {
-            const std::streamsize nput = self->_streambuf->sputn(reinterpret_cast<const char*>(src), size);
-            if (nput == 0)
-            {
-                return KTX_FILE_WRITE_ERROR;
-            }
-        }
-        return KTX_SUCCESS;
+        const auto ntotal = std::streamsize(size * count);
+        const std::streamsize nput = self->_streambuf->sputn(reinterpret_cast<const char*>(src), ntotal);
+        return (nput == ntotal) ? KTX_SUCCESS : KTX_FILE_WRITE_ERROR;
     }
 
     static KTX_error_code getpos(ktxStream* str, ktx_off_t *offset)
     {
         auto self = parent(str);
-        *offset = ktx_off_t(self->_streambuf->pubseekoff(0, std::ios::cur));
+        *offset = ktx_off_t(self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode));
+        std::cerr << "\tgetpos: " << *offset << std::endl;
         return KTX_SUCCESS;
     }
 
@@ -143,16 +161,18 @@ protected:
     {
         auto self = parent(str);
         const std::streamoff newpos{offset};
-        const std::streampos setpos = self->_streambuf->pubseekoff(newpos, std::ios::beg);
+        const std::streampos setpos = self->_streambuf->pubseekoff(newpos, std::ios::beg, self->_seek_mode);
+        std::cerr << "\tsetpos: " << offset << std::endl;
         return (setpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
     static KTX_error_code getsize(ktxStream* str, ktx_size_t* size)
     {
         auto self = parent(str);
-        const std::streampos oldpos = self->_streambuf->pubseekoff(0, std::ios::cur);
+        const std::streampos oldpos = self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode);
         *size = ktx_size_t(self->_streambuf->pubseekoff(0, std::ios::end));
-        const std::streampos newpos = self->_streambuf->pubseekoff(oldpos, std::ios::beg);
+        const std::streampos newpos = self->_streambuf->pubseekoff(oldpos, std::ios::beg, self->_seek_mode);
+        std::cerr << "\t  size: " << *size << 'B' << std::endl;
         return (oldpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
@@ -163,6 +183,7 @@ protected:
     }
 
     std::unique_ptr<std::streambuf> _streambuf;
+    std::ios::openmode _seek_mode;
     std::unique_ptr<ktxStream> _stream;
     bool _destructed;
 };
@@ -193,32 +214,84 @@ protected:
 
 TEST_F(ktxStreamTest, CanCreateKtx1FromCppStream)
 {
-    StreambufStream ktx1Stream{std::move(_ktx1Streambuf)};
+    StreambufStream ktx1Stream{std::move(_ktx1Streambuf), std::ios::in};
     ktxTexture1 *texture1{nullptr};
 
     KTX_error_code err = ktxTexture1_CreateFromStream(ktx1Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture1);
     EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX1 from C++ stream: " << ktxErrorString(err);
     ASSERT_NE(texture1, nullptr) << "Newly-created KTX1 is null";
+    EXPECT_TRUE(ktx1Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+
+    ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(texture1));
 }
 
 TEST_F(ktxStreamTest, CanCreateKtx2FromCppStream)
 {
-    StreambufStream ktx2Stream{std::move(_ktx2Streambuf)};
+    StreambufStream ktx2Stream{std::move(_ktx2Streambuf), std::ios::in};
     ktxTexture2 *texture2{nullptr};
 
     KTX_error_code err = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture2);
     EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX2 from C++ stream: " << ktxErrorString(err);
     ASSERT_NE(texture2, nullptr) << "Newly-created KTX2 is null";
+    EXPECT_TRUE(ktx2Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+
+    ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(texture2));
 }
 
 TEST_F(ktxStreamTest, CanCreateAutoKtxFromCppStream)
 {
-    StreambufStream ktxStream{std::move(_ktx2Streambuf)}; // Or could use the KTx1, no difference
+    StreambufStream ktxStream{std::move(_ktx2Streambuf), std::ios::in}; // Or could use the KTx1, no difference
     ktxTexture *texture{nullptr};
 
     KTX_error_code err = ktxTexture_CreateFromStream(ktxStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
     EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create auto-detected KTX from C++ stream: " << ktxErrorString(err);
     ASSERT_NE(texture, nullptr) << "Newly-created auto-detected KTX is null";
+    EXPECT_TRUE(ktxStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+
+    ktxTexture_Destroy(texture);
+}
+
+TEST_F(ktxStreamTest, CanWriteKtx1AsKtx2ToCppStream)
+{
+    KTX_error_code err{KTX_INVALID_VALUE};
+    auto dstStreambuf = std::make_unique<std::stringbuf>();
+    StreambufStream dstStream{std::move(dstStreambuf)};
+
+    {
+        ktxTexture1 *srcTexture{nullptr};
+
+        std::cerr << "Loading KTX1 from file" << std::endl;
+        StreambufStream srcStream{std::move(_ktx1Streambuf), std::ios::in};
+        err = ktxTexture1_CreateFromStream(srcStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &srcTexture);
+        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load source KTX1 from C++ stream: " << ktxErrorString(err);
+        ASSERT_NE(srcTexture, nullptr) << "Source KTX1 is null";
+        EXPECT_TRUE(srcStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+
+        // We're about to write to `dstStream`
+        dstStream.seek_mode(std::ios::out);
+
+        std::cerr << "Converting KTX1 -> KTX2" << std::endl;
+        err = ktxTexture1_WriteKTX2ToStream(srcTexture, dstStream.stream());
+        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to convert KTX1 -> KTX2 to C++ stream: " << ktxErrorString(err);
+
+        // Not needed anymore - it already got copied to KTX2 format into dstStream
+        ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(srcTexture)); srcTexture = nullptr;
+    }
+ 
+    // Rewind dstStream and set it up for reading
+    dstStream.streambuf()->pubseekpos(0, std::ios::in);
+    dstStream.seek_mode(std::ios::in);
+
+    {
+        ktxTexture2 *dstTexture{nullptr};
+
+        std::cerr << "Loading the converted KTX2" << std::endl;
+        err = ktxTexture2_CreateFromStream(dstStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &dstTexture);
+        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load converted KTX2 from C++ stream: " << ktxErrorString(err);
+        ASSERT_NE(dstTexture, nullptr) << "Destination KTX2 is null";
+
+        ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(dstTexture));
+    }
 }
 
 }  // namespace
