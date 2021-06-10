@@ -160,7 +160,7 @@ protected:
     static KTX_error_code setpos(ktxStream* str, ktx_off_t offset)
     {
         auto self = parent(str);
-        const std::streamoff newpos{offset};
+        const auto newpos = std::streamoff(offset);
         const std::streampos setpos = self->_streambuf->pubseekoff(newpos, std::ios::beg, self->_seek_mode);
         std::cerr << "\tsetpos: " << offset << std::endl;
         return (setpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
