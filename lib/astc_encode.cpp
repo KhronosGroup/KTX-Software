@@ -309,7 +309,7 @@ astcEncoderMode(const char* mode) {
     else if (std::strcmp(mode, "hdr") == 0)
         return KTX_PACK_ASTC_ENCODER_MODE_HDR;
 
-  return KTX_PACK_ASTC_ENCODER_MODE_LDR;
+  return KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
 }
 
 /**

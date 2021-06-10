@@ -350,7 +350,7 @@ class scApp : public ktxApp {
                 blockDimension.clear();
                 blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
                 function.clear();
-                // Default to unknown to have a chance to use to use color space from file
+                // Default to unknown to have a chance to use color space from file
                 function = KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN;
                 mode.clear();
                 qualityLevel.clear();
