@@ -224,7 +224,7 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
 
 extern "C" {
 
-DLL_EXPORT void ktx_basisu_basis_init()
+KTX_BASISU_API void ktx_basisu_basis_init()
 {
     basisu_transcoder_init();
     
@@ -234,65 +234,65 @@ DLL_EXPORT void ktx_basisu_basis_init()
 
 #ifdef KTX_BASISU_C_BINDINGS
 
-DLL_EXPORT basis_file* ktx_basisu_create_basis() {
+KTX_BASISU_API basis_file* ktx_basisu_create_basis() {
     basis_file* new_basis = new basis_file();
     return new_basis;
 }
     
-DLL_EXPORT uint32_t ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, uint32_t length ) {
+KTX_BASISU_API uint32_t ktx_basisu_open_basis( basis_file* basis, const uint8_t * data, uint32_t length ) {
     return basis->open(data,length);
 }
 
-DLL_EXPORT void ktx_basisu_close_basis( basis_file* basis ) {
+KTX_BASISU_API void ktx_basisu_close_basis( basis_file* basis ) {
     basis->close();
 }
     
-DLL_EXPORT void ktx_basisu_delete_basis( basis_file* basis ) {
+KTX_BASISU_API void ktx_basisu_delete_basis( basis_file* basis ) {
     delete basis;
 }
 
-DLL_EXPORT uint32_t ktx_basisu_getHasAlpha( basis_file* basis ) {
+KTX_BASISU_API uint32_t ktx_basisu_getHasAlpha( basis_file* basis ) {
     assert(basis!=nullptr);
     return (bool)basis->getHasAlpha();
 }
 
-DLL_EXPORT uint32_t ktx_basisu_getNumImages( basis_file* basis ) {
+KTX_BASISU_API uint32_t ktx_basisu_getNumImages( basis_file* basis ) {
     return basis->getNumImages();
 }
 
-DLL_EXPORT uint32_t ktx_basisu_getNumLevels( basis_file* basis, uint32_t image_index) {
+KTX_BASISU_API uint32_t ktx_basisu_getNumLevels( basis_file* basis, uint32_t image_index) {
     return basis->getNumLevels(image_index);
 }
 
-DLL_EXPORT uint32_t ktx_basisu_getImageWidth( basis_file* basis, uint32_t image_index, uint32_t level_index) {
+KTX_BASISU_API uint32_t ktx_basisu_getImageWidth( basis_file* basis, uint32_t image_index, uint32_t level_index) {
     return basis->getImageWidth(image_index,level_index);
 }
 
-DLL_EXPORT uint32_t ktx_basisu_getImageHeight( basis_file* basis, uint32_t image_index, uint32_t level_index) {
+KTX_BASISU_API uint32_t ktx_basisu_getImageHeight( basis_file* basis, uint32_t image_index, uint32_t level_index) {
     return basis->getImageHeight(image_index,level_index);
 }
 
-DLL_EXPORT uint32_t ktx_basisu_get_y_flip( basis_file* basis ) {
+KTX_BASISU_API uint32_t ktx_basisu_get_y_flip( basis_file* basis ) {
     return basis->getYFlip();
 }
 
-DLL_EXPORT uint32_t ktx_basisu_get_is_etc1s( basis_file* basis ) {
+KTX_BASISU_API uint32_t ktx_basisu_get_is_etc1s( basis_file* basis ) {
     return basis->getIsEtc1s();
 }
 
-DLL_EXPORT basis_texture_type ktx_basisu_get_texture_type( basis_file* basis ) {
+KTX_BASISU_API basis_texture_type ktx_basisu_get_texture_type( basis_file* basis ) {
     return basis->getTextureType();
 }
 
-DLL_EXPORT uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis, uint32_t image_index, uint32_t level_index, uint32_t format) {
+KTX_BASISU_API uint32_t ktx_basisu_getImageTranscodedSizeInBytes( basis_file* basis, uint32_t image_index, uint32_t level_index, uint32_t format) {
     return basis->getImageTranscodedSizeInBytes(image_index,level_index,format);
 }
 
-DLL_EXPORT uint32_t ktx_basisu_startTranscoding( basis_file* basis ) {
+KTX_BASISU_API uint32_t ktx_basisu_startTranscoding( basis_file* basis ) {
     return basis->startTranscoding();
 }
 
-DLL_EXPORT uint32_t ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
+KTX_BASISU_API uint32_t ktx_basisu_transcodeImage( basis_file* basis, void* dst, uint32_t dst_size, uint32_t image_index, uint32_t level_index, uint32_t format, uint32_t pvrtc_wrap_addressing, uint32_t get_alpha_for_opaque_formats) {
     return basis->transcodeImage(dst,dst_size,image_index,level_index,format,pvrtc_wrap_addressing,get_alpha_for_opaque_formats);
 }
 
