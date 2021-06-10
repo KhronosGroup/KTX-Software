@@ -258,9 +258,8 @@ if(APPLE)
                 DESTINATION .
                 COMPONENT VkLoadTestApp
             RESOURCE
+                DESTINATION Resources
                 COMPONENT VkLoadTestApp
-                ## Providing a destination shuts down a warning, but produces an orphaned file in installs
-                # DESTINATION Resources
         )
 
         ## Uncomment for Bundle analyzation
