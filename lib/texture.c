@@ -199,7 +199,8 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
     assert(This != NULL);
     assert(pStream->data.mem != NULL);
     assert(pStream->type == eStreamTypeFile
-           || pStream->type == eStreamTypeMemory);
+           || pStream->type == eStreamTypeMemory
+           || pStream->type == eStreamTypeCustom);
 
     This->_protected = (struct ktxTexture_protected *)
                                 malloc(sizeof(struct ktxTexture_protected));
@@ -274,7 +275,8 @@ ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
     assert(pStream != NULL && pFileType != NULL);
     assert(pStream->data.mem != NULL);
     assert(pStream->type == eStreamTypeFile
-           || pStream->type == eStreamTypeMemory);
+           || pStream->type == eStreamTypeMemory
+           || pStream->type == eStreamTypeCustom);
 
     result = pStream->read(pStream, pHeader, sizeof(ktx2_ident_ref));
     if (result == KTX_SUCCESS) {
