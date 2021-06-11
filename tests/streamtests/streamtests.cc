@@ -36,7 +36,7 @@ std::unique_ptr<std::streambuf> testImageFilebuf(std::string name)
     imagePath += name;
     
     auto filebuf = make_unique<std::filebuf>();
-    filebuf->open(imagePath, std::ios::in);
+    filebuf->open(imagePath, std::ios::in | std::ios::binary);
     if (filebuf->is_open())
     {
         return filebuf;
@@ -123,11 +123,16 @@ protected:
 
     static KTX_error_code read(ktxStream* str, void* dst, ktx_size_t count)
     {
+        auto self = parent(str);
+        if (count == 0)
+        {
+            return KTX_SUCCESS;
+        }
         std::cerr << "\t  read: " << count << 'B' << std::endl;
 
-        auto self = parent(str);
-        const std::streamsize nread = self->_streambuf->sgetn(reinterpret_cast<char*>(dst), std::streamsize(count));
-        return (nread > 0) ? KTX_SUCCESS : KTX_FILE_UNEXPECTED_EOF;
+        const auto stdcount = std::streamsize(count);
+        const std::streamsize nread = self->_streambuf->sgetn(reinterpret_cast<char*>(dst), stdcount);
+        return (nread == stdcount) ? KTX_SUCCESS : KTX_FILE_UNEXPECTED_EOF;
     }
 
     static KTX_error_code skip(ktxStream* str, ktx_size_t count)
