@@ -203,6 +203,8 @@ typedef enum ktx_error_code_e {
  */
 typedef struct ktxKVListEntry* ktxHashList;
 
+typedef struct ktxStream ktxStream;
+
 #define KTX_APIENTRYP KTX_APIENTRY *
 /**
  * @class ktxHashListEntry
@@ -478,6 +480,9 @@ typedef KTX_error_code
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXWRITETOMEMORY)(ktxTexture* This,
                                          ktx_uint8_t** bytes, ktx_size_t* size);
+typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXWRITETOSTREAM)(ktxTexture* This,
+                                         ktxStream* dststr);
 
 /**
  * @memberof ktxTexture
@@ -498,6 +503,7 @@ typedef KTX_error_code
     PFNKTEXWRITETOSTDIOSTREAM WriteToStdioStream;
     PFNKTEXWRITETONAMEDFILE WriteToNamedFile;
     PFNKTEXWRITETOMEMORY WriteToMemory;
+    PFNKTEXWRITETOSTREAM WriteToStream;
 };
 
 /****************************************************************
@@ -617,6 +623,14 @@ typedef KTX_error_code
  */
 #define ktxTexture_WriteToMemory(This, ppDstBytes, pSize) \
                   (This)->vtbl->WriteToMemory(This, ppDstBytes, pSize)
+
+/**
+ * @~English
+ * @brief Helper for calling the WriteToStream virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_WriteToStream
+ */
+#define ktxTexture_WriteToStream(This, dststr) \
+                  (This)->vtbl->WriteToStream(This, dststr)
 
 
 /**
