@@ -284,6 +284,59 @@ private:
     T* _handle;
 };
 
+/// Expects two textures to be equal in content (but not necessarily be the same texture).
+bool expectSameTextureContent(const ktxTexture* tex1, const ktxTexture* tex2)
+{
+    bool ok = true;
+#define EXPECT_EQ_OK(val1, val2) \
+    ok = ok && (val1) == (val2); \
+    EXPECT_EQ(val1, val2)
+
+    EXPECT_EQ_OK(tex1->classId, tex2->classId) << "Mismatched texture type (KTX1 or KTX2)";
+
+    EXPECT_EQ_OK(tex1->isArray, tex2->isArray) << "Both textures should [not] be array textures";
+    EXPECT_EQ_OK(tex1->isCubemap, tex2->isCubemap) << "Both textures should [not] be cubemap [arrays]";
+    EXPECT_EQ_OK(tex1->isCompressed, tex2->baseDepth) << "Both textures should [not] be compressed";
+
+    EXPECT_EQ_OK(tex1->baseWidth, tex2->baseWidth) << "Mismatched base width";
+    EXPECT_EQ_OK(tex1->baseHeight, tex2->baseHeight) << "Mismatched base height";
+    EXPECT_EQ_OK(tex1->baseDepth, tex2->baseDepth) << "Mismatched base depth";
+    EXPECT_EQ_OK(tex1->numDimensions, tex2->numDimensions) << "Mismatched # of texture dimensions";
+    EXPECT_EQ_OK(tex1->numLevels, tex2->numLevels) << "Mismatched # of texture levels";
+    EXPECT_EQ_OK(tex1->numLayers, tex2->numLayers) << "Mismatched # of texture layers";
+    EXPECT_EQ_OK(tex1->numFaces, tex2->numFaces) << "Mismatched # of texture faces";
+
+    EXPECT_EQ_OK(tex1->orientation.x, tex2->orientation.x) << "Mismatched X orientation";
+    EXPECT_EQ_OK(tex1->orientation.y, tex2->orientation.y) << "Mismatched Y orientation";
+    EXPECT_EQ_OK(tex1->orientation.z, tex2->orientation.z) << "Mismatched Z orientation";
+
+    EXPECT_EQ_OK(tex1->kvDataLen, tex2->kvDataLen) << "Mismatched K/V data length";
+    auto* e1 = ktxHashList_Next(tex1->kvDataHead);
+    auto* e2 = ktxHashList_Next(tex2->kvDataHead);
+    for(size_t i = 0; e1 && e2; e1 = ktxHashList_Next(e1), e2 = ktxHashList_Next(e2), i++)
+    {
+        unsigned int len1 = 0, len2 = 0;
+        {
+            char *key1 = nullptr, *key2 = nullptr;
+            (void)ktxHashListEntry_GetKey(e1, &len1, &key1);
+            (void)ktxHashListEntry_GetKey(e2, &len2, &key2);
+            EXPECT_EQ_OK(strncmp(key1, key2, std::min(len1, len2)), 0) << i << "th key mismatch";
+        }
+        {
+            void *val1 = nullptr, *val2 = nullptr;
+            (void)ktxHashListEntry_GetValue(e1, &len1, &val1);
+            (void)ktxHashListEntry_GetValue(e2, &len2, &val2);
+            EXPECT_EQ_OK(memcmp(val1, val2, std::min(len1, len2)), 0) << i << "th value mismatch";
+        }
+    }
+
+    EXPECT_EQ_OK(tex1->dataSize, tex2->dataSize) << "Mismatched image data size";
+    EXPECT_EQ_OK(memcmp(tex1->pData, tex2->pData, std::min(tex1->dataSize, tex2->dataSize)), 0) << "Mismatched image data";
+
+#undef EXPECT_EQ_OK
+    return ok;
+}
+
 // --- Tests ---
 
 TEST_F(ktxStreamTest, CanCreateKtx1FromCppStream)
@@ -398,6 +451,9 @@ TEST_F(ktxStreamTest, CanWriteKtx2ToCppStream)
         EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load converted KTX2 from C++ stream: " << ktxErrorString(err);
         ASSERT_NE(dstTexture2, nullptr) << "Destination KTX2 is null";
     }
+
+    // Should be a clone of the same texture
+    expectSameTextureContent(srcTexture2.handle<ktxTexture>(), dstTexture2.handle<ktxTexture>());
 }
 
 }  // namespace
