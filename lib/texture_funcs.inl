@@ -62,6 +62,8 @@ KTX_error_code CLASS_FUNC(WriteToNamedFile)(CLASS* This,
                                              const char* const dstname);
 KTX_error_code CLASS_FUNC(WriteToMemory)(CLASS* This,
                           ktx_uint8_t** ppDstBytes, ktx_size_t* pSize);
+KTX_error_code CLASS_FUNC(WriteToStream)(CLASS* This,
+                          ktxStream* dststr);
 
 /*
  ======================================
