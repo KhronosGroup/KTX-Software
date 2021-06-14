@@ -663,6 +663,8 @@ else()
             set(ISA_AVX2 OFF)
             set(ASTCENC_POPCNT 0)
             set(ASTC_LIB_NAME astcenc-none-static)
+        else()
+            set(ARCH x64 CACHE STRING "Target architecture")
         endif()
     elseif(CPU_ARCHITECTURE STREQUAL arm OR CPU_ARCHITECTURE STREQUAL armv7
            OR CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
