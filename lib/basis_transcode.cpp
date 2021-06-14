@@ -358,10 +358,10 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         memcpy(priv._levelIndex, protoPriv._levelIndex,
                This->numLevels * sizeof(ktxLevelIndexEntry));
         // Move the DFD and data from the prototype to This.
-        delete This->pDfd;
+        free(This->pDfd);
         This->pDfd = prototype->pDfd;
         prototype->pDfd = 0;
-        delete This->pData;
+        free(This->pData);
         This->pData = prototype->pData;
         This->dataSize = prototype->dataSize;
         prototype->pData = 0;
