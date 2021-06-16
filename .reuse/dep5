@@ -46,7 +46,7 @@ Files: tests/srcimages/CesiumLogoFlat_palette.png
 Copyright: Analytical Graphics
 License: CC-BY-4.0 WITH LicenseRef-Cesium-Trademark-Terms
 
-Files: tests/testimages/himark.ktx tests/testimages/himark.ktx
+Files: tests/testimages/hi_mark.ktx tests/testimages/hi_mark_sq.ktx
 Copyright: HI Corporation
 License: LicenseRef-HI-Trademark
 
