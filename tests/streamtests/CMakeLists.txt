@@ -13,6 +13,13 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../../lib  # Just for gl_format.h
 )
 
+set_target_properties(
+    streamtests PROPERTIES
+    # Force C++14 (for std::make_unique on AppleClang and Linux GCC)
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED YES
+)
+
 target_link_libraries(
     streamtests
     gtest

@@ -21,20 +21,13 @@ constexpr const char SAMPLE_KTX2[] = "pattern_02_bc2.ktx2";
 
 std::string testImagesPath;
 
-// For AppleClang 12, since it can't find `std::make_unique<>`
-template <typename T, typename... Args>
-inline std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
 std::unique_ptr<std::streambuf> testImageFilebuf(std::string name)
 {
     std::string imagePath{testImagesPath};
     imagePath += '/';
     imagePath += name;
     
-    auto filebuf = make_unique<std::filebuf>();
+    auto filebuf = std::make_unique<std::filebuf>();
     filebuf->open(imagePath, std::ios::in | std::ios::binary);
     if (filebuf->is_open())
     {
@@ -54,7 +47,7 @@ public:
                     std::ios::openmode seek_mode = std::ios::in | std::ios::out)
         : _streambuf{std::move(streambuf)}
         , _seek_mode{seek_mode}
-        , _stream{make_unique<ktxStream>()}
+        , _stream{std::make_unique<ktxStream>()}
         , _destructed{false}
     {
         _stream->type = eStreamTypeCustom;
@@ -376,7 +369,7 @@ TEST_F(ktxStreamTest, CanCreateAutoKtxFromCppStream)
 TEST_F(ktxStreamTest, CanWriteKtx1AsKtx2ToCppStream)
 {
     KTX_error_code err{KTX_INVALID_VALUE};
-    auto dstStreambuf = make_unique<std::stringbuf>();
+    auto dstStreambuf = std::make_unique<std::stringbuf>();
     StreambufStream dstStream{std::move(dstStreambuf)};
 
     KtxTexture<ktxTexture1> srcTexture1{nullptr};
@@ -416,7 +409,7 @@ TEST_F(ktxStreamTest, CanWriteKtx1AsKtx2ToCppStream)
 TEST_F(ktxStreamTest, CanWriteKtx2ToCppStream)
 {
     KTX_error_code err{KTX_INVALID_VALUE};
-    auto dstStreambuf = make_unique<std::stringbuf>();
+    auto dstStreambuf = std::make_unique<std::stringbuf>();
     StreambufStream dstStream{std::move(dstStreambuf)};
 
     KtxTexture<ktxTexture2> srcTexture2;
