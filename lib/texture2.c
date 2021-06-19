@@ -1336,7 +1336,6 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
  * ktxTexture.
  *
  * @param[in] stream pointer to the stream to read KTX data from.
- * @param[in] size  length of the KTX data in bytes.
  * @param[in] createFlags bitmask requesting specific actions during creation.
  * @param[in,out] newTex  pointer to a location in which store the address of
  *                        the newly created texture.
