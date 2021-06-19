@@ -16,12 +16,13 @@
 // ----------------------------------------------------------------------------
 
 /**
- * @brief Functions for building the implementation of stb_image and tinyexr
+ * @brief Functions for building the implementation of stb_image and tinyexr.
  */
 
 #include <cstdlib>
 #include <cstdio>
 
+// Configure the STB image imagewrite library build.
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_NO_GIF
@@ -29,6 +30,7 @@
 #define STBI_NO_PNM
 #define STBI_NO_PSD
 
+// Configure the TinyEXR library build.
 #define TINYEXR_IMPLEMENTATION
 
 // For both libraries force asserts (which can be triggered by corrupt input
@@ -36,6 +38,9 @@
 #define STBI_ASSERT(x) astcenc_runtime_assert(x)
 #define TEXR_ASSERT(x) astcenc_runtime_assert(x)
 
+/**
+ * @brief Trap image load failures and convert into a runtime error.
+ */
 static void astcenc_runtime_assert(bool condition)
 {
     if (!condition)

@@ -28,17 +28,17 @@
  * @brief An accumulator using Kahan compensated floating-point summation.
  *
  * This method keeps higher precision than direct summation by keeping track of
- * the error compensation factor, c, which can be added into the next
+ * the error compensation factor @c comp which can be added into the next
  * calculation. This allows single precision floats to be used in places that
  * would otherwise need double precision, which is useful when vectorizing.
  */
 class kahan_accum4
 {
 public:
-	/** The running sum. */
+	/** @brief The running sum. */
 	vfloat4 sum { vfloat4::zero() };
 
-	/** The current compensation factor. */
+	/** @brief The current compensation factor. */
 	vfloat4 comp { vfloat4::zero() };
 };
 
@@ -64,8 +64,8 @@ static kahan_accum4& operator+=(
 /**
  * @brief mPSNR tonemapping operator for HDR images.
  *
- * @param val The color value to tone map
- * @param fstop The exposure fstop; should be in range [-125, 125]
+ * @param val     The color value to tone map
+ * @param fstop   The exposure fstop; should be in range [-125, 125]
  *
  * @return The mapped color value in [0.0f, 255.0f] range
  */
@@ -87,10 +87,10 @@ static float mpsnr_operator(
  *
  * Differences are given as "val1 - val2".
  *
- * @param val1     The first color value
- * @param val2     The second color value
- * @param fstop_lo The low exposure fstop; should be in range [-125, 125]
- * @param fstop_hi The high exposure fstop; should be in range [-125, 125]
+ * @param val1       The first color value
+ * @param val2       The second color value
+ * @param fstop_lo   The low exposure fstop; should be in range [-125, 125]
+ * @param fstop_hi   The high exposure fstop; should be in range [-125, 125]
  *
  * @return The summed mPSNR difference across all active fstop levels
  */
@@ -111,7 +111,7 @@ static float mpsnr_sumdiff(
 	return summa;
 }
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation */
 void compute_error_metrics(
 	int compute_hdr_metrics,
 	int input_components,

@@ -24,9 +24,14 @@ cd build
 
 # Configure your build of choice, for example:
 
-# x86-64
+# x86-64 using NMake
 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=.\ ^
     -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+
+# x86-64 using Visual Studio solution
+cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=.\ ^
+    -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+
 ```
 
 This example shows all SIMD variants being enabled. It is possible to build a
@@ -73,11 +78,21 @@ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ \
 # x86-64
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ \
     -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+
+# Host builds optimized for the local CPU's microarchitecture
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ \
+    -DISA_NATIVE=ON ..
 ```
 
 This example shows all SIMD variants being enabled. It is possible to build a
-subset of the supported variants by enabling only the ones you require. At
-least one variant must be enabled.
+subset of the supported variants by enabling only the ones you require. If no
+variant is explicitly specified the build will compile a native binary for the
+build machine.
+
+:warning: Compiling a native binary for the build machine usually gives the
+fastest binaries for that specific CPU type but may produce binaries that do
+not work (due to using ISA extensions) or run slowly (due to poor instruction
+scheduling) on other processors.
 
 ### Building
 

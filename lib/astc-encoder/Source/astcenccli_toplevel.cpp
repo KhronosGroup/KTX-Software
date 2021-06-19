@@ -34,7 +34,8 @@
 
 typedef unsigned int astcenc_operation;
 
-struct mode_entry {
+struct mode_entry
+{
 	const char* opt;
 	astcenc_operation operation;
 	astcenc_profile decode_mode;
@@ -44,30 +45,49 @@ struct mode_entry {
 	Constants and literals
 ============================================================================ */
 
+/** @brief Stage bit indicating we need to load a compressed image. */
 static const unsigned int ASTCENC_STAGE_LD_COMP    = 1 << 0;
+
+/** @brief Stage bit indicating we need to store a compressed image. */
 static const unsigned int ASTCENC_STAGE_ST_COMP    = 1 << 1;
 
+/** @brief Stage bit indicating we need to load an uncompressed image. */
 static const unsigned int ASTCENC_STAGE_LD_NCOMP   = 1 << 2;
+
+/** @brief Stage bit indicating we need to store an uncompressed image. */
 static const unsigned int ASTCENC_STAGE_ST_NCOMP   = 1 << 3;
 
+/** @brief Stage bit indicating we need compress an image. */
 static const unsigned int ASTCENC_STAGE_COMPRESS   = 1 << 4;
+
+/** @brief Stage bit indicating we need to decompress an image. */
 static const unsigned int ASTCENC_STAGE_DECOMPRESS = 1 << 5;
+
+/** @brief Stage bit indicating we need to compare an image with the original input. */
 static const unsigned int ASTCENC_STAGE_COMPARE    = 1 << 6;
 
+/** @brief Operation indicating an unknown request (should never happen). */
 static const astcenc_operation ASTCENC_OP_UNKNOWN  = 0;
+
+/** @brief Operation indicating the user wants to print long-form help text and version info. */
 static const astcenc_operation ASTCENC_OP_HELP     = 1 << 7;
+
+/** @brief Operation indicating the user wants to print short-form help text and version info. */
 static const astcenc_operation ASTCENC_OP_VERSION  = 1 << 8;
 
+/** @brief Operation indicating the user wants to compress and store an image. */
 static const astcenc_operation ASTCENC_OP_COMPRESS =
                                ASTCENC_STAGE_LD_NCOMP |
                                ASTCENC_STAGE_COMPRESS |
                                ASTCENC_STAGE_ST_COMP;
 
+/** @brief Operation indicating the user wants to decompress and store an image. */
 static const astcenc_operation ASTCENC_OP_DECOMPRESS =
                                ASTCENC_STAGE_LD_COMP |
                                ASTCENC_STAGE_DECOMPRESS |
                                ASTCENC_STAGE_ST_NCOMP;
 
+/** @brief Operation indicating the user wants to test a compression setting on an image. */
 static const astcenc_operation ASTCENC_OP_TEST =
                                ASTCENC_STAGE_LD_NCOMP |
                                ASTCENC_STAGE_COMPRESS |
@@ -88,7 +108,8 @@ enum astcenc_preprocess
 	ASTCENC_PP_PREMULTIPLY
 };
 
-static const mode_entry modes[] = {
+/** @brief Decode table for command line operation modes. */
+static const mode_entry modes[] {
 	{"-cl",      ASTCENC_OP_COMPRESS,   ASTCENC_PRF_LDR},
 	{"-dl",      ASTCENC_OP_DECOMPRESS, ASTCENC_PRF_LDR},
 	{"-tl",      ASTCENC_OP_TEST,       ASTCENC_PRF_LDR},
@@ -107,7 +128,11 @@ static const mode_entry modes[] = {
 	{"-version", ASTCENC_OP_VERSION,    ASTCENC_PRF_HDR}
 };
 
-struct compression_workload {
+/**
+ * @brief Compression workload definition for worker threads.
+ */
+struct compression_workload
+{
 	astcenc_context* context;
 	astcenc_image* image;
 	astcenc_swizzle swizzle;
@@ -116,7 +141,11 @@ struct compression_workload {
 	astcenc_error error;
 };
 
-struct decompression_workload {
+/**
+ * @brief Decompression workload definition for worker threads.
+ */
+struct decompression_workload
+{
 	astcenc_context* context;
 	uint8_t* data;
 	size_t data_len;
@@ -152,6 +181,13 @@ static bool ends_with(
 	       (0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix));
 }
 
+/**
+ * @brief Runner callback function for a compression worker thread.
+ *
+ * @param thread_count   The number of threads in the worker pool.
+ * @param thread_id      The index of this thread in the worker pool.
+ * @param payload        The parameters for this thread.
+ */
 static void compression_workload_runner(
 	int thread_count,
 	int thread_id,
@@ -172,6 +208,13 @@ static void compression_workload_runner(
 	}
 }
 
+/**
+ * @brief Runner callback function for a decompression worker thread.
+ *
+ * @param thread_count   The number of threads in the worker pool.
+ * @param thread_id      The index of this thread in the worker pool.
+ * @param payload        The parameters for this thread.
+ */
 static void decompression_workload_runner(
 	int thread_count,
 	int thread_id,
@@ -357,8 +400,8 @@ static astcenc_image* load_uncomp_file(
 /**
  * @brief Parse the command line.
  *
- * @param argc             Command line argument count.
- * @param[in] argv         Command line argument vector.
+ * @param      argc        Command line argument count.
+ * @param[in]  argv        Command line argument vector.
  * @param[out] operation   Codec operation mode.
  * @param[out] profile     Codec color profile.
  *
@@ -595,7 +638,7 @@ static int init_astcenc_config(
  * @param[out]    cli_config   Command line config.
  * @param[in,out] config       Codec configuration.
  *
- * @return 0 if everything is Okay, 1 if there is some error
+ * @return 0 if everything is OK, 1 if there is some error
  */
 static int edit_astcenc_config(
 	int argc,
@@ -810,7 +853,7 @@ static int edit_astcenc_config(
 				return 1;
 			}
 
-			config.rgbm_m_scale = atof(argv[argidx - 1]);
+			config.rgbm_m_scale = static_cast<float>(atof(argv[argidx - 1]));
 			config.cw_a_weight = 2.0f * config.rgbm_m_scale;
 		}
 		else if (!strcmp(argv[argidx], "-perceptual"))
@@ -894,17 +937,6 @@ static int edit_astcenc_config(
 
 			config.tune_3_partition_early_out_limit_factor = static_cast<float>(atof(argv[argidx - 1]));
 		}
-		else if (!strcmp(argv[argidx], "-2planelimitfactor"))
-		{
-			argidx += 2;
-			if (argidx > argc)
-			{
-				printf("ERROR: -2planelimitfactor switch with no argument\n");
-				return 1;
-			}
-
-			config.tune_2_plane_early_out_limit_factor = static_cast<float>(atof(argv[argidx - 1]));
-		}
 		else if (!strcmp(argv[argidx], "-2planelimitcorrelation"))
 		{
 			argidx += 2;
@@ -915,6 +947,17 @@ static int edit_astcenc_config(
 			}
 
 			config.tune_2_plane_early_out_limit_correlation = static_cast<float>(atof(argv[argidx - 1]));
+		}
+		else if (!strcmp(argv[argidx], "-lowweightmodelimit"))
+		{
+			argidx += 2;
+			if (argidx > argc)
+			{
+				printf("ERROR: -lowweightmodelimit switch with no argument\n");
+				return 1;
+			}
+
+			config.tune_low_weight_count_limit= atoi(argv[argidx - 1]);
 		}
 		else if (!strcmp(argv[argidx], "-refinementlimit"))
 		{
@@ -1039,76 +1082,84 @@ static int edit_astcenc_config(
 	}
 #endif
 
-	if (operation & ASTCENC_STAGE_COMPRESS)
-	{
-		// print all encoding settings unless specifically told otherwise.
-		if (!cli_config.silentmode)
-		{
-			printf("Compressor settings\n");
-			printf("===================\n\n");
-
-			switch(config.profile)
-			{
-			case ASTCENC_PRF_LDR:
-				printf("    Color profile:              LDR linear\n");
-				break;
-			case ASTCENC_PRF_LDR_SRGB:
-				printf("    Color profile:              LDR sRGB\n");
-				break;
-			case ASTCENC_PRF_HDR_RGB_LDR_A:
-				printf("    Color profile:              HDR RGB + LDR A\n");
-				break;
-			case ASTCENC_PRF_HDR:
-				printf("    Color profile:              HDR RGBA\n");
-				break;
-			}
-
-			if (config.block_z == 1)
-			{
-				printf("    Block size:                 %ux%u\n", config.block_x, config.block_y);
-			}
-			else
-			{
-				printf("    Block size:                 %ux%ux%u\n", config.block_x, config.block_y, config.block_z);
-			}
-
-			printf("    Bitrate:                    %3.2f bpp\n", 128.0 / (config.block_x * config.block_y * config.block_z));
-
-			printf("    Radius mean/stdev:          %u texels\n", config.v_rgba_radius);
-			printf("    RGB power:                  %g\n", (double)config.v_rgb_power );
-			printf("    RGB base weight:            %g\n", (double)config.v_rgb_base);
-			printf("    RGB mean weight:            %g\n", (double)config.v_rgb_mean);
-			printf("    RGB stdev weight:           %g\n", (double)config.v_rgba_mean_stdev_mix);
-			printf("    RGB mean/stdev mixing:      %g\n", (double)config.v_rgba_mean_stdev_mix);
-			printf("    Alpha power:                %g\n", (double)config.v_a_power);
-			printf("    Alpha base weight:          %g\n", (double)config.v_a_base);
-			printf("    Alpha mean weight:          %g\n", (double)config.v_a_mean);
-			printf("    Alpha stdev weight:         %g\n", (double)config.v_a_stdev);
-			printf("    RGB alpha scale weight:     %d\n", (config.flags & ASTCENC_FLG_MAP_NORMAL));
-			if ((config.flags & ASTCENC_FLG_MAP_NORMAL))
-			{
-				printf("    Radius RGB alpha scale:     %u texels\n", config.a_scale_radius);
-			}
-
-			printf("    R component weight:         %g\n",(double)config.cw_r_weight);
-			printf("    G component weight:         %g\n",(double)config.cw_g_weight);
-			printf("    B component weight:         %g\n",(double)config.cw_b_weight);
-			printf("    A component weight:         %g\n",(double)config.cw_a_weight);
-			printf("    Deblock artifact setting:   %g\n", (double)config.b_deblock_weight);
-			printf("    Partition cutoff:           %u partitions\n", config.tune_partition_count_limit);
-			printf("    Partition index cutoff:     %u partition ids\n", config.tune_partition_index_limit);
-			printf("    PSNR cutoff:                %g dB\n", (double)config.tune_db_limit);
-			printf("    2.2+ partition cutoff:      %g\n", (double)config.tune_2_partition_early_out_limit_factor);
-			printf("    3.2+ partition cutoff:      %g\n", (double)config.tune_3_partition_early_out_limit_factor);
-			printf("    2 plane correlation cutoff: %g\n", (double)config.tune_2_plane_early_out_limit_correlation);
-			printf("    Block mode centile cutoff:  %g%%\n", (double)(config.tune_block_mode_limit));
-			printf("    Max refinement cutoff:      %u iterations\n", config.tune_refinement_limit);
-			printf("    Compressor thread count:    %d\n", cli_config.thread_count);
-			printf("\n");
-		}
-	}
-
 	return 0;
+}
+
+/**
+ * @brief Print the config settings in a human readable form.
+ *
+ * @param[in] cli_config   Command line config.
+ * @param[in] config       Codec configuration.
+ */
+static void print_astcenc_config(
+	const cli_config_options& cli_config,
+	const astcenc_config& config
+) {
+	// Print all encoding settings unless specifically told otherwise
+	if (!cli_config.silentmode)
+	{
+		printf("Compressor settings\n");
+		printf("===================\n\n");
+
+		switch(config.profile)
+		{
+		case ASTCENC_PRF_LDR:
+			printf("    Color profile:              LDR linear\n");
+			break;
+		case ASTCENC_PRF_LDR_SRGB:
+			printf("    Color profile:              LDR sRGB\n");
+			break;
+		case ASTCENC_PRF_HDR_RGB_LDR_A:
+			printf("    Color profile:              HDR RGB + LDR A\n");
+			break;
+		case ASTCENC_PRF_HDR:
+			printf("    Color profile:              HDR RGBA\n");
+			break;
+		}
+
+		if (config.block_z == 1)
+		{
+			printf("    Block size:                 %ux%u\n", config.block_x, config.block_y);
+		}
+		else
+		{
+			printf("    Block size:                 %ux%ux%u\n", config.block_x, config.block_y, config.block_z);
+		}
+
+		printf("    Bitrate:                    %3.2f bpp\n", 128.0 / (config.block_x * config.block_y * config.block_z));
+
+		printf("    Radius mean/stdev:          %u texels\n", config.v_rgba_radius);
+		printf("    RGB power:                  %g\n", (double)config.v_rgb_power );
+		printf("    RGB base weight:            %g\n", (double)config.v_rgb_base);
+		printf("    RGB mean weight:            %g\n", (double)config.v_rgb_mean);
+		printf("    RGB stdev weight:           %g\n", (double)config.v_rgba_mean_stdev_mix);
+		printf("    RGB mean/stdev mixing:      %g\n", (double)config.v_rgba_mean_stdev_mix);
+		printf("    Alpha power:                %g\n", (double)config.v_a_power);
+		printf("    Alpha base weight:          %g\n", (double)config.v_a_base);
+		printf("    Alpha mean weight:          %g\n", (double)config.v_a_mean);
+		printf("    Alpha stdev weight:         %g\n", (double)config.v_a_stdev);
+		printf("    RGB alpha scale weight:     %d\n", (config.flags & ASTCENC_FLG_MAP_NORMAL));
+		if ((config.flags & ASTCENC_FLG_MAP_NORMAL))
+		{
+			printf("    Radius RGB alpha scale:     %u texels\n", config.a_scale_radius);
+		}
+
+		printf("    R component weight:         %g\n",(double)config.cw_r_weight);
+		printf("    G component weight:         %g\n",(double)config.cw_g_weight);
+		printf("    B component weight:         %g\n",(double)config.cw_b_weight);
+		printf("    A component weight:         %g\n",(double)config.cw_a_weight);
+		printf("    Deblock artifact setting:   %g\n", (double)config.b_deblock_weight);
+		printf("    Partition cutoff:           %u partitions\n", config.tune_partition_count_limit);
+		printf("    Partition index cutoff:     %u partition ids\n", config.tune_partition_index_limit);
+		printf("    PSNR cutoff:                %g dB\n", (double)config.tune_db_limit);
+		printf("    2.2+ partition cutoff:      %g\n", (double)config.tune_2_partition_early_out_limit_factor);
+		printf("    3.2+ partition cutoff:      %g\n", (double)config.tune_3_partition_early_out_limit_factor);
+		printf("    2 plane correlation cutoff: %g\n", (double)config.tune_2_plane_early_out_limit_correlation);
+		printf("    Block mode centile cutoff:  %g%%\n", (double)(config.tune_block_mode_limit));
+		printf("    Max refinement cutoff:      %u iterations\n", config.tune_refinement_limit);
+		printf("    Compressor thread count:    %d\n", cli_config.thread_count);
+		printf("\n");
+	}
 }
 
 /**
@@ -1253,6 +1304,7 @@ static void image_preprocess_normalize(
 
 /**
  * @brief Linearize an sRGB value.
+ *
  * @return The linearized value.
  */
 static float srgb_to_linear(
@@ -1268,6 +1320,7 @@ static float srgb_to_linear(
 
 /**
  * @brief sRGB gamma-encode a linear value.
+ *
  * @return The gamma encoded value.
  */
 static float linear_to_srgb(
@@ -1331,6 +1384,14 @@ static void image_preprocess_premultiply(
 	}
 }
 
+/**
+ * @brief The main entry point.
+ *
+ * @param argc   The number of arguments.
+ * @param argv   The vector of arguments.
+ *
+ * @return 0 on success, non-zero otherwise.
+ */
 int main(
 	int argc,
 	char **argv
@@ -1418,6 +1479,7 @@ int main(
 		else
 		{
 			printf("ERROR: Unknown compressed input file type\n");
+			return 1;
 		}
 	}
 
@@ -1448,6 +1510,32 @@ int main(
 	// TODO: Handle RAII resources so they get freed when out of scope
 	astcenc_error    codec_status;
 	astcenc_context* codec_context;
+
+
+	// Preflight - check we have valid extensions for storing a file
+	if (operation & ASTCENC_STAGE_ST_NCOMP)
+	{
+		int bitness = get_output_filename_enforced_bitness(output_filename.c_str());
+		if (bitness == -1)
+		{
+			return 1;
+		}
+	}
+
+	if (operation & ASTCENC_STAGE_ST_COMP)
+	{
+#if defined(_WIN32)
+		bool is_null = output_filename == "NUL" || output_filename == "nul";
+#else
+		bool is_null = output_filename == "/dev/null";
+#endif
+
+		if (!(is_null || ends_with(output_filename, ".astc") || ends_with(output_filename, ".ktx")))
+		{
+			printf("ERROR: Unknown compressed output file type\n");
+			return 1;
+		}
+	}
 
 	codec_status = astcenc_context_alloc(&config, cli_config.thread_count, &codec_context);
 	if (codec_status != ASTCENC_SUCCESS)
@@ -1538,6 +1626,8 @@ int main(
 	// Compress an image
 	if (operation & ASTCENC_STAGE_COMPRESS)
 	{
+		print_astcenc_config(cli_config, config);
+
 		unsigned int blocks_x = (image_uncomp_in->dim_x + config.block_x - 1) / config.block_x;
 		unsigned int blocks_y = (image_uncomp_in->dim_y + config.block_y - 1) / config.block_y;
 		unsigned int blocks_z = (image_uncomp_in->dim_z + config.block_z - 1) / config.block_z;
@@ -1585,7 +1675,7 @@ int main(
 	if (operation & ASTCENC_STAGE_DECOMPRESS)
 	{
 		int out_bitness = get_output_filename_enforced_bitness(output_filename.c_str());
-		if (out_bitness == -1)
+		if (out_bitness == 0)
 		{
 			bool is_hdr = (config.profile == ASTCENC_PRF_HDR) || (config.profile == ASTCENC_PRF_HDR_RGB_LDR_A);
 			// TODO: Make this 32 to use direct passthrough as float
@@ -1673,9 +1763,6 @@ int main(
 	// Store decompressed image
 	if (operation & ASTCENC_STAGE_ST_NCOMP)
 	{
-		int store_result = -1;
-		const char *format_string = "";
-
 #if defined(_WIN32)
 		bool is_null = output_filename == "NUL" || output_filename == "nul";
 #else
@@ -1684,9 +1771,9 @@ int main(
 
 		if (!is_null)
 		{
-			store_result = store_ncimage(image_decomp_out, output_filename.c_str(),
-			                             &format_string, cli_config.y_flip);
-			if (store_result < 0)
+			bool store_result = store_ncimage(image_decomp_out, output_filename.c_str(),
+			                                  cli_config.y_flip);
+			if (!store_result)
 			{
 				printf("ERROR: Failed to write output image %s\n", output_filename.c_str());
 				return 1;

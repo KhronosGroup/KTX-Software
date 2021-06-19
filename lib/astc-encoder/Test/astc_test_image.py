@@ -132,7 +132,7 @@ def format_solo_result(image, result):
     tCTime = "%.3f s" % result.cTime
     tCMTS = "%.3f MT/s" % result.cRate
 
-    return "%-32s | %8s | %9s | %9s | %10s" % \
+    return "%-32s | %8s | %9s | %9s | %11s" % \
         (name, tPSNR, tTTime, tCTime, tCMTS)
 
 
@@ -159,7 +159,7 @@ def format_result(image, reference, result):
     tCMTS = "%.3f MT/s" % (result.cRate)
     result = determine_result(image, reference, result)
 
-    return "%-32s | %22s | %15s | %15s | %10s | %s" % \
+    return "%-32s | %22s | %15s | %15s | %11s | %s" % \
            (name, tPSNR, tTTime, tCTime, tCMTS, result.name)
 
 
@@ -258,6 +258,14 @@ def get_encoder_params(encoderName, referenceName, imageSet):
             refName = None
             return (encoder, name, outDir, refName)
 
+        # 3.x variants
+        if version.startswith("3."):
+            encoder = te.Encoder2xRel(version, simd)
+            name = f"reference-{version}-{simd}"
+            outDir = "Test/Images/%s" % imageSet
+            refName = None
+            return (encoder, name, outDir, refName)
+
         # Latest main
         if version == "main":
             encoder = te.Encoder2x(simd)
@@ -287,10 +295,11 @@ def parse_command_line():
     # All reference encoders
     refcoders = ["ref-1.7",
                  "ref-2.5-neon", "ref-2.5-sse2", "ref-2.5-sse4.1", "ref-2.5-avx2",
+                 "ref-3.0-neon", "ref-3.0-sse2", "ref-3.0-sse4.1", "ref-3.0-avx2",
                  "ref-main-neon", "ref-main-sse2", "ref-main-sse4.1", "ref-main-avx2"]
 
     # All test encoders
-    testcoders = ["none", "neon", "sse2", "sse4.1", "avx2"]
+    testcoders = ["none", "native", "neon", "sse2", "sse4.1", "avx2"]
     testcodersAArch64 = ["none", "neon"]
     testcodersX86 = ["none", "sse2", "sse4.1", "avx2"]
 

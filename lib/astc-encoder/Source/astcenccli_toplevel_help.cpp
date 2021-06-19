@@ -21,11 +21,13 @@
 
 #include "astcenccli_internal.h"
 
+/** @brief The version header. */
 static const char *astcenc_copyright_string =
-R"(astcenc v3.0-develop, %u-bit %s%s
+R"(astcenc v3.0, %u-bit %s%s
 Copyright 2011-2021 Arm Limited, all rights reserved
 )";
 
+/** @brief The short-form help text. */
 static const char *astcenc_short_help =
 R"(
 Basic usage:
@@ -65,6 +67,7 @@ The -*H options configure the compressor for HDR across all 4 components.
 For full help documentation run 'astcenc -help'.
 )";
 
+/** @brief The long-form help text. */
 static const char *astcenc_long_help = R"(
 NAME
        astcenc - compress or decompress images using the ASTC format
@@ -396,18 +399,6 @@ ADVANCED COMPRESSION
                -thorough   :  1.25
                -exhaustive : 10.00
 
-       -2planelimitfactor <factor>
-           Skip encodings with two weight planes, unless the best one
-           partition score using two weight planes is better than the
-           best one partition score using one weight plane by this
-           factor. Preset defaults are:
-
-               -fastest    :  1.05
-               -fast       :  1.05
-               -medium     :  1.05
-               -thorough   :  1.05
-               -exhaustive : 10.00
-
        -2planelimitcorrelation <factor>
            Stop compression after testing only one plane of weights, unless
            the minimum color correlation factor between any pair of color
@@ -419,6 +410,16 @@ ADVANCED COMPRESSION
                -medium     : 0.75
                -thorough   : 0.95
                -exhaustive : 0.99
+
+       -lowweightmodelimit <weight count>
+           Use a simpler weight search for weight counts less than or
+           equal to this threshold. Preset defaults are bitrate dependent:
+
+               -fastest    : 25
+               -fast       : 20
+               -medium     : 16
+               -thorough   : 12
+               -exhaustive : 0
 
        Other options
        -------------
@@ -572,7 +573,7 @@ QUICK REFERENCE
        Quality = -fastest/-fast/-medium/-thorough/-exhaustive/a float [0-100].
 )";
 
-// print version and basic build information
+/* See header for documentation. */
 void astcenc_print_header()
 {
 #if (ASTCENC_AVX == 2)
@@ -597,12 +598,14 @@ void astcenc_print_header()
 	printf(astcenc_copyright_string, bits, simdtype, pcnttype);
 }
 
+/* See header for documentation. */
 void astcenc_print_shorthelp()
 {
 	astcenc_print_header();
 	printf("%s", astcenc_short_help);
 }
 
+/* See header for documentation. */
 void astcenc_print_longhelp()
 {
 	astcenc_print_header();

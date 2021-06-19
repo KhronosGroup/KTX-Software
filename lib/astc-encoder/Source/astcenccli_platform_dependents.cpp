@@ -40,10 +40,15 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+/** @brief Alias pthread_t to one of the internal Windows types. */
 typedef HANDLE pthread_t;
+
+/** @brief Alias pthread_attr_t to one of the internal Windows types. */
 typedef int pthread_attr_t;
 
-/* Public function, see header file for detailed documentation */
+/**
+ * @brief Proxy Windows @c CreateThread underneath a pthreads-like wrapper.
+ */
 static int pthread_create(
 	pthread_t* thread,
 	const pthread_attr_t* attribs,
@@ -56,7 +61,9 @@ static int pthread_create(
 	return 0;
 }
 
-/* Public function, see header file for detailed documentation */
+/**
+ * @brief Proxy Windows @c WaitForSingleObject underneath a pthreads-like wrapper.
+ */
 static int pthread_join(
 	pthread_t thread,
 	void** value
@@ -66,7 +73,7 @@ static int pthread_join(
 	return 0;
 }
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation */
 int get_cpu_count()
 {
 	SYSTEM_INFO sysinfo;
@@ -74,7 +81,7 @@ int get_cpu_count()
 	return sysinfo.dwNumberOfProcessors;
 }
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation */
 double get_time()
 {
 	FILETIME tv;
@@ -93,13 +100,13 @@ double get_time()
 #include <sys/time.h>
 #include <unistd.h>
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation */
 int get_cpu_count()
 {
 	return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation */
 double get_time()
 {
 	timeval tv;
@@ -114,15 +121,15 @@ double get_time()
  */
 struct launch_desc
 {
-	/** The native thread handle. */
+	/** @brief The native thread handle. */
 	pthread_t thread_handle;
-	/** The total number of threads in the thread pool. */
+	/** @brief The total number of threads in the thread pool. */
 	int thread_count;
-	/** The thread index in the thread pool. */
+	/** @brief The thread index in the thread pool. */
 	int thread_id;
-	/** The user thread function to execute. */
+	/** @brief The user thread function to execute. */
 	void (*func)(int, int, void*);
-	/** The user thread payload. */
+	/** @brief The user thread payload. */
 	void* payload;
 };
 
@@ -134,14 +141,15 @@ struct launch_desc
  *
  * @param p The thread launch helper payload.
  */
-static void* launch_threads_helper(void *p)
-{
+static void* launch_threads_helper(
+	void *p
+) {
 	launch_desc* ltd = (launch_desc*)p;
 	ltd->func(ltd->thread_count, ltd->thread_id, ltd->payload);
 	return nullptr;
 }
 
-/* Public function, see header file for detailed documentation */
+/* See header for documentation */
 void launch_threads(
 	int thread_count,
 	void (*func)(int, int, void*),

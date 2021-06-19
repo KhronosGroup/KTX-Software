@@ -244,7 +244,8 @@ static const float ASTCENC_PRE_EXHAUSTIVE = 100.0f;
 /**
  * @brief A codec component swizzle selector.
  */
-enum astcenc_swz {
+enum astcenc_swz
+{
 	/** @brief Select the red component. */
 	ASTCENC_SWZ_R = 0,
 	/** @brief Select the green component. */
@@ -264,7 +265,8 @@ enum astcenc_swz {
 /**
  * @brief A texel component swizzle.
  */
-struct astcenc_swizzle {
+struct astcenc_swizzle
+{
 	/** @brief The red component selector. */
 	astcenc_swz r;
 	/** @brief The green component selector. */
@@ -278,7 +280,8 @@ struct astcenc_swizzle {
 /**
  * @brief A texel component data format.
  */
-enum astcenc_type {
+enum astcenc_type
+{
 	/** @brief Unorm 8-bit data per component. */
 	ASTCENC_TYPE_U8 = 0,
 	/** @brief 16-bit float per component. */
@@ -542,18 +545,16 @@ struct astcenc_config
 	float tune_3_partition_early_out_limit_factor;
 
 	/**
-	 * @brief The threshold for skipping two weight planes (-2planelimitfactor).
-	 *
-	 * This option is ineffective for normal maps.
-	 */
-	float tune_2_plane_early_out_limit_factor;
-
-	/**
 	 * @brief The threshold for skipping two weight planes (-2planelimitcorrelation).
 	 *
 	 * This option is ineffective for normal maps.
 	 */
 	float tune_2_plane_early_out_limit_correlation;
+
+	/**
+	 * @brief The threshold below which (inclusive) we stop testing low/high/low+high cutoffs.
+	 */
+	unsigned int tune_low_weight_count_limit;
 
 #if defined(ASTCENC_DIAGNOSTICS)
 	/**

@@ -31,7 +31,8 @@
 #include <array>
 #include <vector>
 
-struct BlockSizes {
+struct BlockSizes
+{
 	int x;
 	int y;
 	int z;
