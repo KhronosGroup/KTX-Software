@@ -31,7 +31,6 @@
 #include <ktx.h>
 
 #include "dfdutils/dfd.h"
-#include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
 #include "ktxint.h"

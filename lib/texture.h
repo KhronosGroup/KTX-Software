@@ -22,7 +22,6 @@
 
 #include "ktx.h"
 #include "formatsize.h"
-#include "stream.h"
 
 #define DECLARE_PRIVATE(class) class ## _private* private = This->_private
 #define DECLARE_PROTECTED(class) class ## _protected* prtctd = This->_protected;

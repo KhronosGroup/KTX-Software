@@ -1,4 +1,4 @@
-# Copyright 2020 Andreas Atteneder
+# Copyright 2020-2021 Andreas Atteneder
 # SPDX-License-Identifier: Apache-2.0
 
 # gtest based unit-tests
@@ -11,6 +11,7 @@ find_package(Threads)
 enable_testing()
 
 add_subdirectory(transcodetests)
+add_subdirectory(streamtests)
 
 add_executable( unittests
     unittests/unittests.cc

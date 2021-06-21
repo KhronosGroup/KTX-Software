@@ -30,7 +30,6 @@
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
 #include "texture1.h"
@@ -241,7 +240,7 @@ ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture @private
+ * @memberof ktxTexture
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX format.
  *
@@ -261,8 +260,8 @@ ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
  * @exception KTX_FILE_WRITE_ERROR
  *                              An error occurred while writing the file.
  */
-static KTX_error_code
-ktxTexture1_writeToStream(ktxTexture1* This, ktxStream* dststr)
+KTX_error_code
+ktxTexture1_WriteToStream(ktxTexture1* This, ktxStream* dststr)
 {
     KTX_header header = { .identifier = KTX_IDENTIFIER_REF };
     KTX_error_code result = KTX_SUCCESS;
@@ -390,7 +389,7 @@ ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
     if (result != KTX_SUCCESS)
         return result;
 
-    return ktxTexture1_writeToStream(This, &stream);
+    return ktxTexture1_WriteToStream(This, &stream);
 }
 
 /**
@@ -478,7 +477,7 @@ ktxTexture1_WriteToMemory(ktxTexture1* This,
     if (result != KTX_SUCCESS)
         return result;
 
-    result = ktxTexture1_writeToStream(This, &dststr);
+    result = ktxTexture1_WriteToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
         ktxMemStream_destruct(&dststr);
@@ -502,7 +501,7 @@ KTX_error_code appendLibId(ktxHashList* head,
                            ktxHashListEntry* writerEntry);
 
 /**
- * @memberof ktxTexture @private
+ * @memberof ktxTexture
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX 2 format.
  *
@@ -522,8 +521,8 @@ KTX_error_code appendLibId(ktxHashList* head,
  * @exception KTX_FILE_WRITE_ERROR
  *                              An error occurred while writing the file.
  */
-static KTX_error_code
-ktxTexture1_writeKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
+KTX_error_code
+ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 {
     KTX_header2 header = { .identifier = KTX2_IDENTIFIER_REF };
     KTX_error_code result;
@@ -827,7 +826,7 @@ ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr)
     if (result != KTX_SUCCESS)
         return result;
 
-    return ktxTexture1_writeKTX2ToStream(This, &stream);
+    return ktxTexture1_WriteKTX2ToStream(This, &stream);
 }
 
 /**
@@ -937,7 +936,7 @@ ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
     if (result != KTX_SUCCESS)
         return result;
 
-    result = ktxTexture1_writeKTX2ToStream(This, &dststr);
+    result = ktxTexture1_WriteKTX2ToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
         ktxMemStream_destruct(&dststr);

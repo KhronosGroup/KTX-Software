@@ -33,7 +33,6 @@
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
 #include "texture2.h"
@@ -245,7 +244,7 @@ ktx_bool_t __disableWriterMetadata__ = KTX_FALSE;
 #endif
 
 /**
- * @memberof ktxTexture2 @private
+ * @memberof ktxTexture2
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX format.
  *
@@ -265,8 +264,8 @@ ktx_bool_t __disableWriterMetadata__ = KTX_FALSE;
  * @exception KTX_FILE_WRITE_ERROR
  *                              An error occurred while writing the file.
  */
-static KTX_error_code
-ktxTexture2_writeToStream(ktxTexture2* This, ktxStream* dststr)
+KTX_error_code
+ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
 {
     DECLARE_PRIVATE(ktxTexture2);
     KTX_header2 header = { .identifier = KTX2_IDENTIFIER_REF };
@@ -532,7 +531,7 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
     if (result != KTX_SUCCESS)
         return result;
 
-    return ktxTexture2_writeToStream(This, &stream);
+    return ktxTexture2_WriteToStream(This, &stream);
 }
 
 /**
@@ -642,7 +641,7 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
     if (result != KTX_SUCCESS)
         return result;
 
-    result = ktxTexture2_writeToStream(This, &dststr);
+    result = ktxTexture2_WriteToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
         ktxMemStream_destruct(&dststr);

@@ -17,7 +17,6 @@
 #define KTXINT_H
 
 #include <math.h>
-#include "stream.h"
 
 /* Define this to include the ETC unpack software in the library. */
 #ifndef SUPPORT_SOFTWARE_ETC_UNPACK

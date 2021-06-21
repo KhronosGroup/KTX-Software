@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <sys/types.h>
 
 /*
  * Don't use khrplatform.h in order not to break apps existing
@@ -201,6 +202,8 @@ typedef enum ktx_error_code_e {
  * @brief Opaque handle to a ktxHashList.
  */
 typedef struct ktxKVListEntry* ktxHashList;
+
+typedef struct ktxStream ktxStream;
 
 #define KTX_APIENTRYP KTX_APIENTRY *
 /**
@@ -477,6 +480,9 @@ typedef KTX_error_code
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXWRITETOMEMORY)(ktxTexture* This,
                                          ktx_uint8_t** bytes, ktx_size_t* size);
+typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXWRITETOSTREAM)(ktxTexture* This,
+                                         ktxStream* dststr);
 
 /**
  * @memberof ktxTexture
@@ -497,6 +503,7 @@ typedef KTX_error_code
     PFNKTEXWRITETOSTDIOSTREAM WriteToStdioStream;
     PFNKTEXWRITETONAMEDFILE WriteToNamedFile;
     PFNKTEXWRITETOMEMORY WriteToMemory;
+    PFNKTEXWRITETOSTREAM WriteToStream;
 };
 
 /****************************************************************
@@ -616,6 +623,14 @@ typedef KTX_error_code
  */
 #define ktxTexture_WriteToMemory(This, ppDstBytes, pSize) \
                   (This)->vtbl->WriteToMemory(This, ppDstBytes, pSize)
+
+/**
+ * @~English
+ * @brief Helper for calling the WriteToStream virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_WriteToStream
+ */
+#define ktxTexture_WriteToStream(This, dststr) \
+                  (This)->vtbl->WriteToStream(This, dststr)
 
 
 /**
@@ -755,13 +770,120 @@ enum ktxTextureCreateFlagBits {
  */
 typedef ktx_uint32_t ktxTextureCreateFlags;
 
+/*===========================================================*
+* ktxStream
+*===========================================================*/
+
+/*
+ * This is unsigned to allow ktxmemstreams to use the
+ * full amount of memory available. Platforms will
+ * limit the size of ktxfilestreams to, e.g, MAX_LONG
+ * on 32-bit and ktxfilestreams raises errors if
+ * offset values exceed the limits. This choice may
+ * need to be revisited if we ever start needing -ve
+ * offsets.
+ *
+ * Should the 2GB file size handling limit on 32-bit
+ * platforms become a problem, ktxfilestream will have
+ * to be changed to explicitly handle large files by
+ * using the 64-bit stream functions.
+ */
+#if defined(_MSC_VER) && defined(_WIN64)
+  typedef unsigned __int64 ktx_off_t;
+#else
+  typedef   off_t ktx_off_t;
+#endif
+typedef struct ktxMem ktxMem;
+typedef struct ktxStream ktxStream;
+
+enum streamType { eStreamTypeFile = 1, eStreamTypeMemory = 2, eStreamTypeCustom = 3 };
+
+/**
+ * @~English
+ * @brief type for a pointer to a stream reading function
+ */
+typedef KTX_error_code (*ktxStream_read)(ktxStream* str, void* dst,
+                                         const ktx_size_t count);
+/**
+ * @~English
+ * @brief type for a pointer to a stream skipping function
+ */
+typedef KTX_error_code (*ktxStream_skip)(ktxStream* str,
+                                         const ktx_size_t count);
+
+/**
+ * @~English
+ * @brief type for a pointer to a stream reading function
+ */
+typedef KTX_error_code (*ktxStream_write)(ktxStream* str, const void *src,
+                                          const ktx_size_t size,
+                                          const ktx_size_t count);
+
+/**
+ * @~English
+ * @brief type for a pointer to a stream position query function
+ */
+typedef KTX_error_code (*ktxStream_getpos)(ktxStream* str, ktx_off_t* const offset);
+
+/**
+ * @~English
+ * @brief type for a pointer to a stream position query function
+ */
+typedef KTX_error_code (*ktxStream_setpos)(ktxStream* str, const ktx_off_t offset);
+
+/**
+ * @~English
+ * @brief type for a pointer to a stream size query function
+ */
+typedef KTX_error_code (*ktxStream_getsize)(ktxStream* str, ktx_size_t* const size);
+
+/**
+ * @~English
+ * @brief Destruct a stream
+ */
+typedef void (*ktxStream_destruct)(ktxStream* str);
+
+/**
+ * @~English
+ *
+ * @brief Interface of ktxStream.
+ *
+ * @author Maksim Kolesin
+ * @author Georg Kolling, Imagination Technology
+ * @author Mark Callow, HI Corporation
+ */
+struct ktxStream
+{
+    ktxStream_read read;   /*!< @internal pointer to function for reading bytes. */
+    ktxStream_skip skip;   /*!< @internal pointer to function for skipping bytes. */
+    ktxStream_write write; /*!< @internal pointer to function for writing bytes. */
+    ktxStream_getpos getpos; /*!< @internal pointer to function for getting current position in stream. */
+    ktxStream_setpos setpos; /*!< @internal pointer to function for setting current position in stream. */
+    ktxStream_getsize getsize; /*!< @internal pointer to function for querying size. */
+    ktxStream_destruct destruct; /*!< @internal destruct the stream. */
+
+    enum streamType type;
+    union {
+        FILE* file;
+        ktxMem* mem;
+        struct
+        {
+            void* address;
+            void* allocatorAddress;
+            ktx_size_t size;
+        } custom_ptr;
+    } data;                /**< @internal pointer to the stream data. */
+    ktx_off_t readpos;     /**< @internal used by FileStream for stdin. */
+    ktx_bool_t closeOnDestruct; /**< @internal Close FILE* or dispose of memory on destruct. */
+};
+
 /*
  * See the implementation files for the full documentation of the following
  * functions.
  */
 
 /*
- * These three create a ktxTexture1 or ktxTexture2 according to the data
+ * These four create a ktxTexture1 or ktxTexture2 according to the data
  * header, and return a pointer to the base ktxTexture class.
  */
 KTX_API KTX_error_code KTX_APIENTRY
@@ -776,6 +898,11 @@ ktxTexture_CreateFromNamedFile(const char* const filename,
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
+                            ktxTextureCreateFlags createFlags,
+                            ktxTexture** newTex);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture_CreateFromStream(ktxStream* stream,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture** newTex);
 
@@ -824,7 +951,7 @@ ktxTexture1_Create(ktxTextureCreateInfo* createInfo,
                    ktxTexture1** newTex);
 
 /*
- * These three create a ktxTexture1 provided the data is in KTX format.
+ * These four create a ktxTexture1 provided the data is in KTX format.
  */
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_CreateFromStdioStream(FILE* stdioStream,
@@ -840,6 +967,11 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture1** newTex);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_CreateFromStream(ktxStream* stream,
+                             ktxTextureCreateFlags createFlags,
+                             ktxTexture1** newTex);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_NeedsTranscoding(ktxTexture1* This);
@@ -864,6 +996,12 @@ ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
                              ktx_uint8_t** bytes, ktx_size_t* size);
 
 /*
+ * Write a ktxTexture object to a ktxStream in KTX format.
+ */
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream *dststr);
+
+/*
  * Create a new ktxTexture2.
  */
 KTX_API KTX_error_code KTX_APIENTRY
@@ -878,7 +1016,7 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateCopy(ktxTexture2* orig, ktxTexture2** newTex);
 
  /*
-  * These three create a ktxTexture2 provided the data is in KTX2 format.
+  * These four create a ktxTexture2 provided the data is in KTX2 format.
   */
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromStdioStream(FILE* stdioStream,
@@ -894,6 +1032,11 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
                             ktxTextureCreateFlags createFlags,
                             ktxTexture2** newTex);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_CreateFromStream(ktxStream* stream,
+                             ktxTextureCreateFlags createFlags,
+                             ktxTexture2** newTex);
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);

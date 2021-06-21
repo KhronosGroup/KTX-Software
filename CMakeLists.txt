@@ -160,7 +160,6 @@ set(KTX_MAIN_SRC
     lib/ktxint.h
     lib/memstream.c
     lib/memstream.h
-    lib/stream.h
     lib/strings.c
     lib/swap.c
     lib/texture.c
