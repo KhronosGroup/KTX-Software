@@ -496,13 +496,13 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
         lib/basisu/encoder/basisu_enc.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable;-Wno-sign-compare;-Wno-shorten-64-to-32"
         )
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.0")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
             )
     else()
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
             )
     endif()
 else()
