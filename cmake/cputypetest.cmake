@@ -93,6 +93,8 @@ function(set_target_processor_type out)
                     ${CMAKE_BINARY_DIR}/cputypetest.c
                     OUTPUT_VARIABLE processor)
 
+                # Inspired by answers to the following SO question
+                # https://stackoverflow.com/questions/39258250/how-to-detect-if-64-bit-msvc-with-cmake
                 string(REGEX MATCH "ARCH_FOUND ([_a-z0-9]+)" processor "${processor}")
                 string(REPLACE "ARCH_FOUND " "" processor "${processor}")
             endif()
