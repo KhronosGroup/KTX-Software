@@ -3,11 +3,6 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-# Use a static runtime on MSVC builds (ignored on non-MSVC compilers)
-set_property(TARGET ${NAME}
-    PROPERTY
-        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
 find_package(Bash REQUIRED)
@@ -688,6 +683,11 @@ target_link_libraries(ktx PRIVATE ${ASTC_LIB_NAME})
 # Since astcenc uses LTO in release build by default, turn it on for ktx too
 # Its a good optimisation anyways and most compilers now support it
 set_property(TARGET ktx PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE True)
+
+# Use a static runtime on MSVC builds (ignored on non-MSVC compilers)
+set_property(TARGET ktx
+    PROPERTY
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # Tools
 if(KTX_FEATURE_TOOLS)
