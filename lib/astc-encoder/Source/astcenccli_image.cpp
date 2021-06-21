@@ -24,6 +24,7 @@
 
 #include "astcenccli_internal.h"
 
+/* See header for documentation. */
 astcenc_image *alloc_image(
 	unsigned int bitness,
 	unsigned int dim_x,
@@ -73,6 +74,7 @@ astcenc_image *alloc_image(
 	return img;
 }
 
+/* See header for documentation. */
 void free_image(astcenc_image * img)
 {
 	if (img == nullptr)
@@ -89,15 +91,14 @@ void free_image(astcenc_image * img)
 	delete img;
 }
 
+/* See header for documentation. */
 int determine_image_components(const astcenc_image * img)
 {
 	unsigned int dim_x = img->dim_x;
 	unsigned int dim_y = img->dim_y;
 	unsigned int dim_z = img->dim_z;
 
-	// scan through the image data
-	// to determine how many color components the image has.
-
+	// Scan through the image data to determine how many color components the image has
 	bool is_luma = true;
 	bool has_alpha = false;
 
@@ -172,7 +173,7 @@ int determine_image_components(const astcenc_image * img)
 	return image_components;
 }
 
-// initialize an astcenc_image data structure from a 2D array of RGBA float*4
+/* See header for documentation. */
 astcenc_image* astc_img_from_floatx4_array(
 	const float* data,
 	unsigned int dim_x,
@@ -221,7 +222,7 @@ astcenc_image* astc_img_from_floatx4_array(
 	return img;
 }
 
-// initialize an astcenc_image data structure from a 2D array of UNORM8
+/* See header for documentation. */
 astcenc_image* astc_img_from_unorm8x4_array(
 	const uint8_t* data,
 	unsigned int dim_x,
@@ -250,6 +251,7 @@ astcenc_image* astc_img_from_unorm8x4_array(
 
 // initialize a flattened array of float values from an ASTC codec image
 // The returned array is allocated with new[] and must be deleted with delete[].
+/* See header for documentation. */
 float* floatx4_array_from_astc_img(
 	const astcenc_image* img,
 	bool y_flip
@@ -319,8 +321,7 @@ float* floatx4_array_from_astc_img(
 	return buf;
 }
 
-// initialize a flattened array of unorm8x4 values from an ASTC codec image
-// The returned array is allocated with new[] and must be deleted with delete[].
+/* See header for documentation. */
 uint8_t* unorm8x4_array_from_astc_img(
 	const astcenc_image* img,
 	bool y_flip

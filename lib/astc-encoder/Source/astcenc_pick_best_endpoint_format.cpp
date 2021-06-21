@@ -110,7 +110,7 @@ static void compute_partition_error_color_weightings(
 static void compute_error_squared_rgb_single_partition(
 	const partition_info& pi,
 	int partition_index,
-	const imageblock& blk,
+	const image_block& blk,
 	const error_weight_block& ewb,
 	const processed_line3& uncor_pline,
 	float& uncor_err,
@@ -189,7 +189,7 @@ static void compute_error_squared_rgb_single_partition(
   */
 static void compute_encoding_choice_errors(
 	const block_size_descriptor& bsd,
-	const imageblock& blk,
+	const image_block& blk,
 	const partition_info& pi,
 	const error_weight_block& ewb,
 	const endpoints& ep,
@@ -322,7 +322,7 @@ static void compute_color_error_for_every_integer_count_and_quant_level(
 ) {
 	int partition_size = pi.partition_texel_count[partition_index];
 
-	static const float baseline_quant_error[21] = {
+	static const float baseline_quant_error[21] {
 		(65536.0f * 65536.0f / 18.0f),				// 2 values, 1 step
 		(65536.0f * 65536.0f / 18.0f) / (2 * 2),	// 3 values, 2 steps
 		(65536.0f * 65536.0f / 18.0f) / (3 * 3),	// 4 values, 3 steps
@@ -514,13 +514,14 @@ static void compute_color_error_for_every_integer_count_and_quant_level(
 		// Pick among the available HDR endpoint modes
 		for (int i = 0; i < 8; i++)
 		{
-			best_error[i][3] = 1e30f;
+			best_error[i][3] = ERROR_CALC_DEFAULT;
+			best_error[i][2] = ERROR_CALC_DEFAULT;
+			best_error[i][1] = ERROR_CALC_DEFAULT;
+			best_error[i][0] = ERROR_CALC_DEFAULT;
+
 			format_of_choice[i][3] = encode_hdr_alpha ? FMT_HDR_RGBA : FMT_HDR_RGB_LDR_ALPHA;
-			best_error[i][2] = 1e30f;
 			format_of_choice[i][2] = FMT_HDR_RGB;
-			best_error[i][1] = 1e30f;
 			format_of_choice[i][1] = FMT_HDR_RGB_SCALE;
-			best_error[i][0] = 1e30f;
 			format_of_choice[i][0] = FMT_HDR_LUMINANCE_LARGE_RANGE;
 		}
 
@@ -561,10 +562,10 @@ static void compute_color_error_for_every_integer_count_and_quant_level(
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			best_error[i][3] = 1e30f;
-			best_error[i][2] = 1e30f;
-			best_error[i][1] = 1e30f;
-			best_error[i][0] = 1e30f;
+			best_error[i][3] = ERROR_CALC_DEFAULT;
+			best_error[i][2] = ERROR_CALC_DEFAULT;
+			best_error[i][1] = ERROR_CALC_DEFAULT;
+			best_error[i][0] = ERROR_CALC_DEFAULT;
 
 			format_of_choice[i][3] = FMT_RGBA;
 			format_of_choice[i][2] = FMT_RGB;
@@ -671,15 +672,15 @@ static void compute_color_error_for_every_integer_count_and_quant_level(
  * @param      bits_available         The number of bits available for encoding.
  * @param[out] best_quant_level       The output best color quant level.
  * @param[out] best_format            The output best color format.
- * @param[out] best_error             The output error for the best pairing.
+ *
+ * @return The output error for the best pairing.
  */
-static void one_partition_find_best_combination_for_bitcount(
+static float one_partition_find_best_combination_for_bitcount(
 	const float best_combined_error[21][4],
 	const int best_combined_format[21][4],
 	int bits_available,
 	quant_method& best_quant_level,
-	int& best_format,
-	float& best_error
+	int& best_format
 ) {
 	int best_integer_count = 0;
 	float best_integer_count_error = 1e20f;
@@ -707,12 +708,13 @@ static void one_partition_find_best_combination_for_bitcount(
 
 	best_quant_level = (quant_method)ql;
 	best_format = FMT_LUMINANCE;
-	best_error = best_integer_count_error;
 
 	if (ql >= 0)
 	{
 		best_format = best_combined_format[ql][best_integer_count];
 	}
+
+	return best_integer_count_error;
 }
 
 /**
@@ -733,7 +735,7 @@ static void two_partitions_find_best_combination_for_every_quantization_and_inte
 	{
 		for (int j = 0; j < 7; j++)
 		{
-			best_combined_error[i][j] = 1e30f;
+			best_combined_error[i][j] = ERROR_CALC_DEFAULT;
 		}
 	}
 
@@ -772,16 +774,16 @@ static void two_partitions_find_best_combination_for_every_quantization_and_inte
  * @param[out] best_quant_level       The output best color quant level.
  * @param[out] best_quant_level_mod   The output best color quant level assuming two more bits are available.
  * @param[out] best_formats           The output best color formats.
- * @param[out] best_error             The output error for the best pairing.
+ *
+ * @return The output error for the best pairing.
  */
-static void two_partitions_find_best_combination_for_bitcount(
+static float two_partitions_find_best_combination_for_bitcount(
 	float best_combined_error[21][7],
 	int best_combined_format[21][7][2],
 	int bits_available,
 	quant_method& best_quant_level,
 	quant_method& best_quant_level_mod,
-	int* best_formats,
-	float& best_error
+	int* best_formats
 ) {
 	int best_integer_count = 0;
 	float best_integer_count_error = 1e20f;
@@ -810,7 +812,7 @@ static void two_partitions_find_best_combination_for_bitcount(
 
 	best_quant_level = (quant_method)ql;
 	best_quant_level_mod = (quant_method)ql_mod;
-	best_error = best_integer_count_error;
+
 	if (ql >= 0)
 	{
 		for (int i = 0; i < 2; i++)
@@ -825,6 +827,8 @@ static void two_partitions_find_best_combination_for_bitcount(
 			best_formats[i] = FMT_LUMINANCE;
 		}
 	}
+
+	return best_integer_count_error;
 }
 
 /**
@@ -845,7 +849,7 @@ static void three_partitions_find_best_combination_for_every_quantization_and_in
 	{
 		for (int j = 0; j < 10; j++)
 		{
-			best_combined_error[i][j] = 1e30f;
+			best_combined_error[i][j] = ERROR_CALC_DEFAULT;
 		}
 	}
 
@@ -895,16 +899,16 @@ static void three_partitions_find_best_combination_for_every_quantization_and_in
  * @param[out] best_quant_level       The output best color quant level.
  * @param[out] best_quant_level_mod   The output best color quant level assuming two more bits are available.
  * @param[out] best_formats           The output best color formats.
- * @param[out] best_error             The output error for the best pairing.
+ *
+ * @return The output error for the best pairing.
  */
-static void three_partitions_find_best_combination_for_bitcount(
+static float three_partitions_find_best_combination_for_bitcount(
 	const float best_combined_error[21][10],
 	const int best_combined_format[21][10][3],
 	int bits_available,
 	quant_method& best_quant_level,
 	quant_method& best_quant_level_mod,
-	int* best_formats,
-	float& best_error
+	int* best_formats
 ) {
 	int best_integer_count = 0;
 	float best_integer_count_error = 1e20f;
@@ -933,7 +937,7 @@ static void three_partitions_find_best_combination_for_bitcount(
 
 	best_quant_level = (quant_method)ql;
 	best_quant_level_mod = (quant_method)ql_mod;
-	best_error = best_integer_count_error;
+
 	if (ql >= 0)
 	{
 		for (int i = 0; i < 3; i++)
@@ -948,6 +952,8 @@ static void three_partitions_find_best_combination_for_bitcount(
 			best_formats[i] = FMT_LUMINANCE;
 		}
 	}
+
+	return best_integer_count_error;
 }
 
 /**
@@ -968,7 +974,7 @@ static void four_partitions_find_best_combination_for_every_quantization_and_int
 	{
 		for (int j = 0; j < 13; j++)
 		{
-			best_combined_error[i][j] = 1e30f;
+			best_combined_error[i][j] = ERROR_CALC_DEFAULT;
 		}
 	}
 
@@ -1029,16 +1035,16 @@ static void four_partitions_find_best_combination_for_every_quantization_and_int
  * @param[out] best_quant_level       The output best color quant level.
  * @param[out] best_quant_level_mod   The output best color quant level assuming two more bits are available.
  * @param[out] best_formats           The output best color formats.
- * @param[out] best_error             The output error for the best pairing.
+ *
+ * @return best_error The output error for the best pairing.
  */
-static void four_partitions_find_best_combination_for_bitcount(
+static float four_partitions_find_best_combination_for_bitcount(
 	const float best_combined_error[21][13],
 	const int best_combined_format[21][13][4],
 	int bits_available,
 	quant_method& best_quant_level,
 	quant_method& best_quant_level_mod,
-	int* best_formats,
-	float& best_error
+	int* best_formats
 ) {
 	int best_integer_count = 0;
 	float best_integer_count_error = 1e20f;
@@ -1067,7 +1073,7 @@ static void four_partitions_find_best_combination_for_bitcount(
 
 	best_quant_level = (quant_method)ql;
 	best_quant_level_mod = (quant_method)ql_mod;
-	best_error = best_integer_count_error;
+
 	if (ql >= 0)
 	{
 		for (int i = 0; i < 4; i++)
@@ -1082,13 +1088,15 @@ static void four_partitions_find_best_combination_for_bitcount(
 			best_formats[i] = FMT_LUMINANCE;
 		}
 	}
+
+	return best_integer_count_error;
 }
 
 /* See header for documentation. */
 unsigned int compute_ideal_endpoint_formats(
 	const block_size_descriptor& bsd,
 	const partition_info& pi,
-	const imageblock& blk,
+	const image_block& blk,
 	const error_weight_block& ewb,
 	const endpoints& ep,
 	 // bitcounts and errors computed for the various quantization methods
@@ -1140,7 +1148,7 @@ unsigned int compute_ideal_endpoint_formats(
 	const int packed_mode_count_simd_up = round_up_to_simd_multiple_vla(packed_mode_count);
 	for (int i = packed_mode_count; i < packed_mode_count_simd_up; ++i)
 	{
-		errors_of_best_combination[i] = 1e30f;
+		errors_of_best_combination[i] = ERROR_CALC_DEFAULT;
 		best_quant_levels[i] = QUANT_2;
 		best_quant_levels_mod[i] = QUANT_2;
 	}
@@ -1148,21 +1156,19 @@ unsigned int compute_ideal_endpoint_formats(
 	// The block contains 1 partition
 	if (partition_count == 1)
 	{
-		float error_of_best_combination;
 		for (unsigned int i = 0; i < bsd.block_mode_count; ++i)
 		{
-			if (qwt_errors[i] >= 1e29f)
+			if (qwt_errors[i] >= ERROR_CALC_DEFAULT)
 			{
-				errors_of_best_combination[i] = 1e30f;
+				errors_of_best_combination[i] = ERROR_CALC_DEFAULT;
 				continue;
 			}
 
-			one_partition_find_best_combination_for_bitcount(
+			float error_of_best = one_partition_find_best_combination_for_bitcount(
 			    best_error[0], format_of_choice[0], qwt_bitcounts[i],
-			    best_quant_levels[i], best_ep_formats[i][0], error_of_best_combination);
-			error_of_best_combination += qwt_errors[i];
+			    best_quant_levels[i], best_ep_formats[i][0]);
 
-			errors_of_best_combination[i] = error_of_best_combination;
+			errors_of_best_combination[i] = error_of_best + qwt_errors[i];
 			best_quant_levels_mod[i] = best_quant_levels[i];
 		}
 	}
@@ -1178,19 +1184,18 @@ unsigned int compute_ideal_endpoint_formats(
 
 		for (unsigned int i = 0; i < bsd.block_mode_count; ++i)
 		{
-			if (qwt_errors[i] >= 1e29f)
+			if (qwt_errors[i] >= ERROR_CALC_DEFAULT)
 			{
-				errors_of_best_combination[i] = 1e30f;
+				errors_of_best_combination[i] = ERROR_CALC_DEFAULT;
 				continue;
 			}
 
-			float error_of_best_combination;
-			two_partitions_find_best_combination_for_bitcount(
+			float error_of_best = two_partitions_find_best_combination_for_bitcount(
 			    combined_best_error, formats_of_choice, qwt_bitcounts[i],
 			    best_quant_levels[i], best_quant_levels_mod[i],
-			    best_ep_formats[i], error_of_best_combination);
+			    best_ep_formats[i]);
 
-			errors_of_best_combination[i] = error_of_best_combination + qwt_errors[i];
+			errors_of_best_combination[i] = error_of_best + qwt_errors[i];
 		}
 	}
 	// The block contains 3 partitions
@@ -1204,24 +1209,24 @@ unsigned int compute_ideal_endpoint_formats(
 
 		for (unsigned int i = 0; i < bsd.block_mode_count; ++i)
 		{
-			if (qwt_errors[i] >= 1e29f)
+			if (qwt_errors[i] >= ERROR_CALC_DEFAULT)
 			{
-				errors_of_best_combination[i] = 1e30f;
+				errors_of_best_combination[i] = ERROR_CALC_DEFAULT;
 				continue;
 			}
 
-			float error_of_best_combination;
-			three_partitions_find_best_combination_for_bitcount(
+			float error_of_best = three_partitions_find_best_combination_for_bitcount(
 			    combined_best_error, formats_of_choice, qwt_bitcounts[i],
 			    best_quant_levels[i], best_quant_levels_mod[i],
-			    best_ep_formats[i], error_of_best_combination);
+			    best_ep_formats[i]);
 
-			errors_of_best_combination[i] = error_of_best_combination + qwt_errors[i];
+			errors_of_best_combination[i] = error_of_best + qwt_errors[i];
 		}
 	}
 	// The block contains 4 partitions
-	else if (partition_count == 4)
+	else // if (partition_count == 4)
 	{
+		assert(partition_count == 4);
 		float combined_best_error[21][13];
 		int formats_of_choice[21][13][4];
 
@@ -1230,19 +1235,18 @@ unsigned int compute_ideal_endpoint_formats(
 
 		for (unsigned int i = 0; i < bsd.block_mode_count; ++i)
 		{
-			if (qwt_errors[i] >= 1e29f)
+			if (qwt_errors[i] >= ERROR_CALC_DEFAULT)
 			{
-				errors_of_best_combination[i] = 1e30f;
+				errors_of_best_combination[i] = ERROR_CALC_DEFAULT;
 				continue;
 			}
 
-			float error_of_best_combination;
-			four_partitions_find_best_combination_for_bitcount(
+			float error_of_best = four_partitions_find_best_combination_for_bitcount(
 			    combined_best_error, formats_of_choice, qwt_bitcounts[i],
 			    best_quant_levels[i], best_quant_levels_mod[i],
-			    best_ep_formats[i], error_of_best_combination);
+			    best_ep_formats[i]);
 
-			errors_of_best_combination[i] = error_of_best_combination + qwt_errors[i];
+			errors_of_best_combination[i] = error_of_best + qwt_errors[i];
 		}
 	}
 
@@ -1251,7 +1255,7 @@ unsigned int compute_ideal_endpoint_formats(
 	for (unsigned int i = 0; i < tune_candidate_limit; i++)
 	{
 		vint vbest_error_index(-1);
-		vfloat vbest_ep_error(1e30f);
+		vfloat vbest_ep_error(ERROR_CALC_DEFAULT);
 		vint lane_ids = vint::lane_id();
 		for (unsigned int j = 0; j < bsd.block_mode_count; j += ASTCENC_SIMD_WIDTH)
 		{
@@ -1275,7 +1279,7 @@ unsigned int compute_ideal_endpoint_formats(
 		// Max the error for this candidate so we don't pick it again
 		if (best_error_index >= 0)
 		{
-			errors_of_best_combination[best_error_index] = 1e30f;
+			errors_of_best_combination[best_error_index] = ERROR_CALC_DEFAULT;
 		}
 		// Early-out if no more candidates are valid
 		else

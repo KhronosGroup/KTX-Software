@@ -26,6 +26,7 @@ Test/Images/Scratch*
 
 # Test output
 TestOutput
+/*.xlsx
 /*.json
 /*.log
 /*.txt

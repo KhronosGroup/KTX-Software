@@ -16,7 +16,7 @@
 // ----------------------------------------------------------------------------
 
 /**
- * @brief Functions for loading/storing ASTC compressed images.
+ * @brief Functions for loading/storing uncompressed and compressed images.
  */
 
 #include <array>
@@ -32,10 +32,20 @@
 #include "stb_image_write.h"
 #include "tinyexr.h"
 
-/*******************************************************************
-Image load and store through the stb_iamge and tinyexr libraries
-*******************************************************************/
+/* ============================================================================
+  Image load and store through the stb_iamge and tinyexr libraries
+============================================================================ */
 
+/**
+ * @brief Load a .exr image using TinyExr to provide the loader.
+ *
+ * @param      filename          The name of the file to load.
+ * @param      y_flip            Should the image be vertically flipped?
+ * @param[out] is_hdr            Is this an HDR image load? Always @c true for this function.
+ * @param[out] component_count   The number of components in the data.
+ *
+ * @return The loaded image data in a canonical 4 channel format.
+ */
 static astcenc_image* load_image_with_tinyexr(
 	const char* filename,
 	bool y_flip,
@@ -62,6 +72,16 @@ static astcenc_image* load_image_with_tinyexr(
 	return res_img;
 }
 
+/**
+ * @brief Load an image using STBImage to provide the loader.
+ *
+ * @param      filename          The name of the file to load.
+ * @param      y_flip            Should the image be vertically flipped?
+ * @param[out] is_hdr            Is this an HDR image load?
+ * @param[out] component_count   The number of components in the data.
+ *
+ * @return The loaded image data in a canonical 4 channel format, or @c nullptr on error.
+ */
 static astcenc_image* load_image_with_stb(
 	const char* filename,
 	bool y_flip,
@@ -99,7 +119,16 @@ static astcenc_image* load_image_with_stb(
 	return nullptr;
 }
 
-static int store_exr_image_with_tinyexr(
+/**
+ * @brief Save an EXR image using TinyExr to provide the store routine.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The name of the file to save.
+ * @param y_flip     Should the image be vertically flipped?
+ *
+ * @return @c true if the image saved OK, @c false on error.
+ */
+static bool store_exr_image_with_tinyexr(
 	const astcenc_image* img,
 	const char* filename,
 	int y_flip
@@ -107,10 +136,19 @@ static int store_exr_image_with_tinyexr(
 	float *buf = floatx4_array_from_astc_img(img, y_flip);
 	int res = SaveEXR(buf, img->dim_x, img->dim_y, 4, 1, filename, nullptr);
 	delete[] buf;
-	return (res == 0) ? 4 : res;
+	return res >= 0;
 }
 
-static int store_png_image_with_stb(
+/**
+ * @brief Save a PNG image using STBImageWrite to provide the store routine.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The name of the file to save.
+ * @param y_flip     Should the image be vertically flipped?
+ *
+ * @return @c true if the image saved OK, @c false on error.
+ */
+static bool store_png_image_with_stb(
 	const astcenc_image* img,
 	const char* filename,
 	int y_flip
@@ -120,11 +158,19 @@ static int store_png_image_with_stb(
 
 	stbi_flip_vertically_on_write(y_flip);
 	int res = stbi_write_png(filename, img->dim_x, img->dim_y, 4, buf, img->dim_x * 4);
-
-	return (res == 0) ? -1 : 4;
+	return res != 0;
 }
 
-static int store_tga_image_with_stb(
+/**
+ * @brief Save a TGA image using STBImageWrite to provide the store routine.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The name of the file to save.
+ * @param y_flip     Should the image be vertically flipped?
+ *
+ * @return @c true if the image saved OK, @c false on error.
+ */
+static bool store_tga_image_with_stb(
 	const astcenc_image* img,
 	const char* filename,
 	int y_flip
@@ -134,11 +180,19 @@ static int store_tga_image_with_stb(
 
 	stbi_flip_vertically_on_write(y_flip);
 	int res = stbi_write_tga(filename, img->dim_x, img->dim_y, 4, buf);
-
-	return (res == 0) ? -1 : 4;
+	return res != 0;
 }
 
-static int store_bmp_image_with_stb(
+/**
+ * @brief Save a BMP image using STBImageWrite to provide the store routine.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The name of the file to save.
+ * @param y_flip     Should the image be vertically flipped?
+ *
+ * @return @c true if the image saved OK, @c false on error.
+ */
+static bool store_bmp_image_with_stb(
 	const astcenc_image* img,
 	const char* filename,
 	int y_flip
@@ -148,11 +202,19 @@ static int store_bmp_image_with_stb(
 
 	stbi_flip_vertically_on_write(y_flip);
 	int res = stbi_write_bmp(filename, img->dim_x, img->dim_y, 4, buf);
-
-	return (res == 0) ? -1 : 4;
+	return res != 0;
 }
 
-static int store_hdr_image_with_stb(
+/**
+ * @brief Save a HDR image using STBImageWrite to provide the store routine.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The name of the file to save.
+ * @param y_flip     Should the image be vertically flipped?
+ *
+ * @return @c true if the image saved OK, @c false on error.
+ */
+static bool store_hdr_image_with_stb(
 	const astcenc_image* img,
 	const char* filename,
 	int y_flip
@@ -160,22 +222,22 @@ static int store_hdr_image_with_stb(
 	float* buf = floatx4_array_from_astc_img(img, y_flip);
 	int res = stbi_write_hdr(filename, img->dim_x, img->dim_y, 4, buf);
 	delete[] buf;
-	return (res == 0) ? -1 : 4;
+	return res != 0;
 }
 
-/*********************************************************************
+/* ============================================================================
 Native Load and store of KTX and DDS file formats.
 
-Unlike "regular" 2D image formats, which are mostly supported
-through stb_image and tinyexr, these formats are supported directly;
-this involves a relatively large number of pixel formats.
+Unlike "regular" 2D image formats, which are mostly supported through stb_image and tinyexr, these
+formats are supported directly; this involves a relatively large number of pixel formats.
 
 The following restrictions apply to loading of these file formats:
- * Only uncompressed data supported
- * Only first mipmap in mipmap pyramid supported
- * KTX: Cube-map arrays are not supported
-*********************************************************************/
-enum scanline_copy_method
+
+    * Only uncompressed data supported
+    * Only first mipmap in mipmap pyramid supported
+    * KTX: Cube-map arrays are not supported
+============================================================================ */
+enum scanline_transfer
 {
 	R8_TO_RGBA8,
 	RG8_TO_RGBA8,
@@ -217,12 +279,21 @@ enum scanline_copy_method
 	LA32F_TO_RGBA16F
 };
 
-// scanline copying function: this function expands data to RGBA, either U8 or FP16.
+/**
+ * @brief Copy a scanline from a source file and expand to a canonical format.
+ *
+ * Outputs are always 4 component RGBA, stored as U8 (LDR) or FP16 (HDR).
+ *
+ * @param[out] dst           The start of the line to store to.
+ * @param      src           The start of the line to load.
+ * @param      pixel_count   The number of pixels in the scanline.
+ * @param      method        The conversion function.
+ */
 static void copy_scanline(
 	void* dst,
 	const void* src,
-	int pixels,
-	int method
+	int pixel_count,
+	scanline_transfer method
 ) {
 
 #define id(x) (x)
@@ -233,12 +304,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[i]); \
-			d[4*i+1] = 0; \
-			d[4*i+2] = 0; \
-			d[4*i+3] = oneval; \
+		for (int i = 0; i < pixel_count; i++) \
+		{ \
+			d[4 * i    ] = convfunc(s[i]); \
+			d[4 * i + 1] = 0;              \
+			d[4 * i + 2] = 0;              \
+			d[4 * i + 3] = oneval;         \
 		} \
 	} while (0); \
 	break
@@ -247,12 +318,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[2*i]); \
-			d[4*i+1] = convfunc(s[2*i+1]); \
-			d[4*i+2] = 0; \
-			d[4*i+3] = oneval; \
+		for (int i = 0; i < pixel_count; i++) \
+		{ \
+			d[4 * i    ] = convfunc(s[2 * i    ]); \
+			d[4 * i + 1] = convfunc(s[2 * i + 1]); \
+			d[4 * i + 2] = 0;                      \
+			d[4 * i + 3] = oneval;                 \
 		} \
 	} while (0); \
 	break
@@ -261,12 +332,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[3*i]); \
-			d[4*i+1] = convfunc(s[3*i+1]); \
-			d[4*i+2] = convfunc(s[3*i+2]); \
-			d[4*i+3] = oneval; \
+		for (int i = 0; i < pixel_count; i++) \
+		{ \
+			d[4 * i    ] = convfunc(s[3 * i    ]); \
+			d[4 * i + 1] = convfunc(s[3 * i + 1]); \
+			d[4 * i + 2] = convfunc(s[3 * i + 2]); \
+			d[4 * i + 3] = oneval;                 \
 		} \
 	} while (0); \
 	break
@@ -275,12 +346,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[3*i+2]); \
-			d[4*i+1] = convfunc(s[3*i+1]); \
-			d[4*i+2] = convfunc(s[3*i]); \
-			d[4*i+3] = oneval; \
+		for (int i = 0; i < pixel_count; i++)\
+		{ \
+			d[4 * i    ] = convfunc(s[3 * i + 2]); \
+			d[4 * i + 1] = convfunc(s[3 * i + 1]); \
+			d[4 * i + 2] = convfunc(s[3 * i    ]); \
+			d[4 * i + 3] = oneval;                 \
 		} \
 	} while (0); \
 	break
@@ -289,12 +360,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[4*i]); \
-			d[4*i+1] = convfunc(s[4*i+1]); \
-			d[4*i+2] = convfunc(s[4*i+2]); \
-			d[4*i+3] = oneval; \
+		for (int i = 0; i < pixel_count; i++)\
+		{ \
+			d[4 * i    ] = convfunc(s[4 * i    ]); \
+			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
+			d[4 * i + 2] = convfunc(s[4 * i + 2]); \
+			d[4 * i + 3] = oneval;                 \
 		} \
 	} while (0); \
 	break
@@ -303,12 +374,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[4*i+2]); \
-			d[4*i+1] = convfunc(s[4*i+1]); \
-			d[4*i+2] = convfunc(s[4*i]); \
-			d[4*i+3] = oneval; \
+		for (int i = 0; i < pixel_count; i++)\
+		{ \
+			d[4 * i    ] = convfunc(s[4 * i + 2]); \
+			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
+			d[4 * i + 2] = convfunc(s[4 * i    ]); \
+			d[4 * i + 3] = oneval;                 \
 		} \
 	} while (0); \
 	break
@@ -317,12 +388,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[4*i]); \
-			d[4*i+1] = convfunc(s[4*i+1]); \
-			d[4*i+2] = convfunc(s[4*i+2]); \
-			d[4*i+3] = convfunc(s[4*i+3]); \
+		for (int i = 0; i < pixel_count; i++) \
+		{ \
+			d[4 * i    ] = convfunc(s[4 * i    ]); \
+			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
+			d[4 * i + 2] = convfunc(s[4 * i + 2]); \
+			d[4 * i + 3] = convfunc(s[4 * i + 3]); \
 		} \
 	} while (0); \
 	break
@@ -331,12 +402,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[4*i+2]); \
-			d[4*i+1] = convfunc(s[4*i+1]); \
-			d[4*i+2] = convfunc(s[4*i]); \
-			d[4*i+3] = convfunc(s[4*i+3]); \
+		for (int i = 0; i < pixel_count; i++) \
+		{ \
+			d[4 * i    ] = convfunc(s[4 * i + 2]); \
+			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
+			d[4 * i + 2] = convfunc(s[4 * i    ]); \
+			d[4 * i + 3] = convfunc(s[4 * i + 3]); \
 		} \
 	} while (0); \
 	break
@@ -345,12 +416,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[i]); \
-			d[4*i+1] = convfunc(s[i]); \
-			d[4*i+2] = convfunc(s[i]); \
-			d[4*i+3] = oneval; \
+		for (int i = 0; i < pixel_count; i++) \
+		{ \
+			d[4 * i    ] = convfunc(s[i]); \
+			d[4 * i + 1] = convfunc(s[i]); \
+			d[4 * i + 2] = convfunc(s[i]); \
+			d[4 * i + 3] = oneval;         \
 		} \
 	} while (0); \
 	break
@@ -359,12 +430,12 @@ static void copy_scanline(
 	do { \
 		const srctype* s = (const srctype*)src; \
 		dsttype* d = (dsttype*)dst; \
-		for (int i = 0; i < pixels; i++)\
-		{\
-			d[4*i] = convfunc(s[2*i]); \
-			d[4*i+1] = convfunc(s[2*i]); \
-			d[4*i+2] = convfunc(s[2*i]); \
-			d[4*i+3] = convfunc(s[2*i+1]); \
+		for (int i = 0; i < pixel_count; i++) \
+		{ \
+			d[4 * i    ] = convfunc(s[2 * i    ]); \
+			d[4 * i + 1] = convfunc(s[2 * i    ]); \
+			d[4 * i + 2] = convfunc(s[2 * i    ]); \
+			d[4 * i + 3] = convfunc(s[2 * i + 1]); \
 		} \
 	} while (0); \
 	break
@@ -445,13 +516,18 @@ static void copy_scanline(
 	}
 }
 
-// perform endianness switch on raw data
+/**
+ * @brief Swap endianness of N two byte values.
+ *
+ * @param[in,out] dataptr      The data to convert.
+ * @param         byte_count   The number of bytes to convert.
+ */
 static void switch_endianness2(
 	void* dataptr,
-	int bytes
+	int byte_count
 ) {
 	uint8_t *data = (uint8_t *) dataptr;
-	for (int i = 0; i < bytes / 2; i++)
+	for (int i = 0; i < byte_count / 2; i++)
 	{
 		uint8_t d0 = data[0];
 		uint8_t d1 = data[1];
@@ -461,12 +537,18 @@ static void switch_endianness2(
 	}
 }
 
+/**
+ * @brief Swap endianness of N four byte values.
+ *
+ * @param[in,out] dataptr      The data to convert.
+ * @param         byte_count   The number of bytes to convert.
+ */
 static void switch_endianness4(
 	void* dataptr,
-	int bytes
+	int byte_count
 ) {
 	uint8_t *data = (uint8_t *) dataptr;
-	for (int i = 0; i < bytes / 4; i++)
+	for (int i = 0; i < byte_count / 4; i++)
 	{
 		uint8_t d0 = data[0];
 		uint8_t d1 = data[1];
@@ -480,106 +562,113 @@ static void switch_endianness4(
 	}
 }
 
+/**
+ * @brief Swap endianness of a u32 value.
+ *
+ * @param v   The data to convert.
+ *
+ * @return The converted value.
+ */
 static uint32_t u32_byterev(uint32_t v)
 {
 	return (v >> 24) | ((v >> 8) & 0xFF00) | ((v << 8) & 0xFF0000) | (v << 24);
 }
 
 /*
-	Notes about KTX:
+ Notes about KTX:
 
-	After the header and the key/value data area, the actual image data follows.
-	Each image starts with a 4-byte "imageSize" value indicating the number of bytes of image data follow.
-	(For cube-maps, this value appears only after first image; the remaining 5 images are all of equal size.)
-	If the size of an image is not a multiple of 4, then it is padded to the next multiple of 4.
-	Note that this padding is NOT included in the "imageSize" field.
-	In a cubemap, the padding appears after each face note that in a 2D/3D texture, padding does
-	NOT appear between the lines/planes of the texture!
+ After the header and the key/value data area, the actual image data follows.
+ Each image starts with a 4-byte "imageSize" value indicating the number of bytes of image data follow.
+ (For cube-maps, this value appears only after first image; the remaining 5 images are all of equal size.)
+ If the size of an image is not a multiple of 4, then it is padded to the next multiple of 4.
+ Note that this padding is NOT included in the "imageSize" field.
+ In a cubemap, the padding appears after each face note that in a 2D/3D texture, padding does
+ NOT appear between the lines/planes of the texture!
 
-	In a KTX file, there may be multiple images; they are organized as follows:
+ In a KTX file, there may be multiple images; they are organized as follows:
 
-	For each mipmap_level in numberOfMipmapLevels
-		UInt32 imageSize;
-		For each array_element in numberOfArrayElements
-		* for each face in numberOfFaces
-			* for each z_slice in pixelDepth
-				* for each row or row_of_blocks in pixelHeight
-					* for each pixel or block_of_pixels in pixelWidth
-						Byte data[format-specific-number-of-bytes]
-					* end
-				* end
-			*end
-			Byte cubePadding[0-3]
-		*end
-		Byte mipPadding[3 - ((imageSize+ 3) % 4)]
-	*end
+ For each mipmap_level in numberOfMipmapLevels
+ 	UInt32 imageSize;
+ 	For each array_element in numberOfArrayElements
+ 	* for each face in numberOfFaces
+ 		* for each z_slice in pixelDepth
+ 			* for each row or row_of_blocks in pixelHeight
+ 				* for each pixel or block_of_pixels in pixelWidth
+ 					Byte data[format-specific-number-of-bytes]
+ 				* end
+ 			* end
+ 		*end
+ 		Byte cubePadding[0-3]
+ 	*end
+ 	Byte mipPadding[3 - ((imageSize+ 3) % 4)]
+ *end
 
-	In the ASTC codec, we will, for the time being only harvest the first image,
-	and we will support only a limited set of formats:
+ In the ASTC codec, we will, for the time being only harvest the first image,
+ and we will support only a limited set of formats:
 
-	gl_type: UNSIGNED_BYTE UNSIGNED_SHORT HALF_FLOAT FLOAT UNSIGNED_INT_8_8_8_8 UNSIGNED_INT_8_8_8_8_REV
-	gl_format: RED, RG. RGB, RGBA BGR, BGRA
-	gl_internal_format: used for upload to OpenGL; we can ignore it on uncompressed-load, but
-		need to provide a reasonable value on store: RGB8 RGBA8 RGB16F RGBA16F
-	gl_base_internal_format: same as gl_format unless texture is compressed (well, BGR is turned into RGB)
-		RED, RG, RGB, RGBA
- */
+ gl_type: UNSIGNED_BYTE UNSIGNED_SHORT HALF_FLOAT FLOAT UNSIGNED_INT_8_8_8_8 UNSIGNED_INT_8_8_8_8_REV
+ gl_format: RED, RG. RGB, RGBA BGR, BGRA
+ gl_internal_format: used for upload to OpenGL; we can ignore it on uncompressed-load, but
+ 	need to provide a reasonable value on store: RGB8 RGBA8 RGB16F RGBA16F
+ gl_base_internal_format: same as gl_format unless texture is compressed (well, BGR is turned into RGB)
+ 	RED, RG, RGB, RGBA
+*/
 
-// enums copied from GL/GL.h
-#define GL_RED    0x1903
-#define GL_RG     0x8227
-#define GL_RGB    0x1907
-#define GL_RGBA   0x1908
-#define GL_BGR    0x80E0
-#define GL_BGRA   0x80E1
-#define GL_LUMINANCE        0x1909
-#define GL_LUMINANCE_ALPHA  0x190A
+// Khronos enums
+#define GL_RED                                      0x1903
+#define GL_RG                                       0x8227
+#define GL_RGB                                      0x1907
+#define GL_RGBA                                     0x1908
+#define GL_BGR                                      0x80E0
+#define GL_BGRA                                     0x80E1
+#define GL_LUMINANCE                                0x1909
+#define GL_LUMINANCE_ALPHA                          0x190A
 
-#define GL_UNSIGNED_BYTE   0x1401
-#define GL_UNSIGNED_SHORT  0x1403
-#define GL_HALF_FLOAT      0x140B
-#define GL_FLOAT           0x1406
+#define GL_UNSIGNED_BYTE                            0x1401
+#define GL_UNSIGNED_SHORT                           0x1403
+#define GL_HALF_FLOAT                               0x140B
+#define GL_FLOAT                                    0x1406
 
-#define GL_COMPRESSED_RGBA_ASTC_4x4                0x93B0
-#define GL_COMPRESSED_RGBA_ASTC_5x4                0x93B1
-#define GL_COMPRESSED_RGBA_ASTC_5x5                0x93B2
-#define GL_COMPRESSED_RGBA_ASTC_6x5                0x93B3
-#define GL_COMPRESSED_RGBA_ASTC_6x6                0x93B4
-#define GL_COMPRESSED_RGBA_ASTC_8x5                0x93B5
-#define GL_COMPRESSED_RGBA_ASTC_8x6                0x93B6
-#define GL_COMPRESSED_RGBA_ASTC_8x8                0x93B7
-#define GL_COMPRESSED_RGBA_ASTC_10x5               0x93B8
-#define GL_COMPRESSED_RGBA_ASTC_10x6               0x93B9
-#define GL_COMPRESSED_RGBA_ASTC_10x8               0x93BA
-#define GL_COMPRESSED_RGBA_ASTC_10x10              0x93BB
-#define GL_COMPRESSED_RGBA_ASTC_12x10              0x93BC
-#define GL_COMPRESSED_RGBA_ASTC_12x12              0x93BD
+#define GL_COMPRESSED_RGBA_ASTC_4x4                 0x93B0
+#define GL_COMPRESSED_RGBA_ASTC_5x4                 0x93B1
+#define GL_COMPRESSED_RGBA_ASTC_5x5                 0x93B2
+#define GL_COMPRESSED_RGBA_ASTC_6x5                 0x93B3
+#define GL_COMPRESSED_RGBA_ASTC_6x6                 0x93B4
+#define GL_COMPRESSED_RGBA_ASTC_8x5                 0x93B5
+#define GL_COMPRESSED_RGBA_ASTC_8x6                 0x93B6
+#define GL_COMPRESSED_RGBA_ASTC_8x8                 0x93B7
+#define GL_COMPRESSED_RGBA_ASTC_10x5                0x93B8
+#define GL_COMPRESSED_RGBA_ASTC_10x6                0x93B9
+#define GL_COMPRESSED_RGBA_ASTC_10x8                0x93BA
+#define GL_COMPRESSED_RGBA_ASTC_10x10               0x93BB
+#define GL_COMPRESSED_RGBA_ASTC_12x10               0x93BC
+#define GL_COMPRESSED_RGBA_ASTC_12x12               0x93BD
 
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4        0x93D0
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4        0x93D1
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5        0x93D2
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5        0x93D3
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6        0x93D4
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5        0x93D5
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6        0x93D6
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8        0x93D7
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5       0x93D8
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6       0x93D9
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8       0x93DA
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10      0x93DB
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10      0x93DC
-#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12      0x93DD
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4         0x93D0
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4         0x93D1
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5         0x93D2
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5         0x93D3
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6         0x93D4
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5         0x93D5
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6         0x93D6
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8         0x93D7
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5        0x93D8
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6        0x93D9
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8        0x93DA
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10       0x93DB
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10       0x93DC
+#define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12       0x93DD
 
-#define GL_COMPRESSED_RGBA_ASTC_3x3x3_OES          0x93C0
-#define GL_COMPRESSED_RGBA_ASTC_4x3x3_OES          0x93C1
-#define GL_COMPRESSED_RGBA_ASTC_4x4x3_OES          0x93C2
-#define GL_COMPRESSED_RGBA_ASTC_4x4x4_OES          0x93C3
-#define GL_COMPRESSED_RGBA_ASTC_5x4x4_OES          0x93C4
-#define GL_COMPRESSED_RGBA_ASTC_5x5x4_OES          0x93C5
-#define GL_COMPRESSED_RGBA_ASTC_5x5x5_OES          0x93C6
-#define GL_COMPRESSED_RGBA_ASTC_6x5x5_OES          0x93C7
-#define GL_COMPRESSED_RGBA_ASTC_6x6x5_OES          0x93C8
-#define GL_COMPRESSED_RGBA_ASTC_6x6x6_OES          0x93C9
+#define GL_COMPRESSED_RGBA_ASTC_3x3x3_OES           0x93C0
+#define GL_COMPRESSED_RGBA_ASTC_4x3x3_OES           0x93C1
+#define GL_COMPRESSED_RGBA_ASTC_4x4x3_OES           0x93C2
+#define GL_COMPRESSED_RGBA_ASTC_4x4x4_OES           0x93C3
+#define GL_COMPRESSED_RGBA_ASTC_5x4x4_OES           0x93C4
+#define GL_COMPRESSED_RGBA_ASTC_5x5x4_OES           0x93C5
+#define GL_COMPRESSED_RGBA_ASTC_5x5x5_OES           0x93C6
+#define GL_COMPRESSED_RGBA_ASTC_6x5x5_OES           0x93C7
+#define GL_COMPRESSED_RGBA_ASTC_6x6x5_OES           0x93C8
+#define GL_COMPRESSED_RGBA_ASTC_6x6x6_OES           0x93C9
 
 #define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_3x3x3_OES   0x93E0
 #define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x3x3_OES   0x93E1
@@ -592,11 +681,12 @@ static uint32_t u32_byterev(uint32_t v)
 #define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6x5_OES   0x93E8
 #define GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6x6_OES   0x93E9
 
-struct format_entry {
+struct format_entry
+{
 	unsigned int x;
 	unsigned int y;
 	unsigned int z;
-	bool srgb;
+	bool is_srgb;
 	unsigned int format;
 };
 
@@ -673,11 +763,11 @@ static unsigned int get_format(
 	unsigned int x,
 	unsigned int y,
 	unsigned int z,
-	bool srgb
+	bool is_srgb
 ) {
 	for (auto& it : ASTC_FORMATS)
 	{
-		if ((it.x == x) && (it.y == y) && (it.z == z)  && (it.srgb == srgb))
+		if ((it.x == x) && (it.y == y) && (it.z == z)  && (it.is_srgb == is_srgb))
 		{
 			return it.format;
 		}
@@ -704,7 +794,7 @@ struct ktx_header
 };
 
 // magic 12-byte sequence that must appear at the beginning of every KTX file.
-static uint8_t ktx_magic[12] = {
+static uint8_t ktx_magic[12] {
 	0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A
 };
 
@@ -727,6 +817,16 @@ static void ktx_header_switch_endianness(ktx_header * kt)
 	#undef REV
 }
 
+/**
+ * @brief Load an uncompressed KTX image using the local custom loader.
+ *
+ * @param      filename          The name of the file to load.
+ * @param      y_flip            Should the image be vertically flipped?
+ * @param[out] is_hdr            Is this an HDR image load?
+ * @param[out] component_count   The number of components in the data.
+ *
+ * @return The loaded image data in a canonical 4 channel format, or @c nullptr on error.
+ */
 static astcenc_image* load_ktx_uncompressed_image(
 	const char* filename,
 	bool y_flip,
@@ -811,7 +911,7 @@ static astcenc_image* load_ktx_uncompressed_image(
 	// Although these are set up later, we include a default initializer to remove warnings
 	int bytes_per_component = 1;	// bytes per component in the KTX file.
 	int bitness = 8;			// internal precision we will use in the codec.
-	scanline_copy_method cm = R8_TO_RGBA8;
+	scanline_transfer copy_method = R8_TO_RGBA8;
 
 	switch (hdr.gl_type)
 	{
@@ -822,28 +922,28 @@ static astcenc_image* load_ktx_uncompressed_image(
 			switch (hdr.gl_format)
 			{
 			case GL_RED:
-				cm = R8_TO_RGBA8;
+				copy_method = R8_TO_RGBA8;
 				break;
 			case GL_RG:
-				cm = RG8_TO_RGBA8;
+				copy_method = RG8_TO_RGBA8;
 				break;
 			case GL_RGB:
-				cm = RGB8_TO_RGBA8;
+				copy_method = RGB8_TO_RGBA8;
 				break;
 			case GL_RGBA:
-				cm = RGBA8_TO_RGBA8;
+				copy_method = RGBA8_TO_RGBA8;
 				break;
 			case GL_BGR:
-				cm = BGR8_TO_RGBA8;
+				copy_method = BGR8_TO_RGBA8;
 				break;
 			case GL_BGRA:
-				cm = BGRA8_TO_RGBA8;
+				copy_method = BGRA8_TO_RGBA8;
 				break;
 			case GL_LUMINANCE:
-				cm = L8_TO_RGBA8;
+				copy_method = L8_TO_RGBA8;
 				break;
 			case GL_LUMINANCE_ALPHA:
-				cm = LA8_TO_RGBA8;
+				copy_method = LA8_TO_RGBA8;
 				break;
 			}
 			break;
@@ -855,28 +955,28 @@ static astcenc_image* load_ktx_uncompressed_image(
 			switch (hdr.gl_format)
 			{
 			case GL_RED:
-				cm = R16_TO_RGBA16F;
+				copy_method = R16_TO_RGBA16F;
 				break;
 			case GL_RG:
-				cm = RG16_TO_RGBA16F;
+				copy_method = RG16_TO_RGBA16F;
 				break;
 			case GL_RGB:
-				cm = RGB16_TO_RGBA16F;
+				copy_method = RGB16_TO_RGBA16F;
 				break;
 			case GL_RGBA:
-				cm = RGBA16_TO_RGBA16F;
+				copy_method = RGBA16_TO_RGBA16F;
 				break;
 			case GL_BGR:
-				cm = BGR16_TO_RGBA16F;
+				copy_method = BGR16_TO_RGBA16F;
 				break;
 			case GL_BGRA:
-				cm = BGRA16_TO_RGBA16F;
+				copy_method = BGRA16_TO_RGBA16F;
 				break;
 			case GL_LUMINANCE:
-				cm = L16_TO_RGBA16F;
+				copy_method = L16_TO_RGBA16F;
 				break;
 			case GL_LUMINANCE_ALPHA:
-				cm = LA16_TO_RGBA16F;
+				copy_method = LA16_TO_RGBA16F;
 				break;
 			}
 			break;
@@ -888,28 +988,28 @@ static astcenc_image* load_ktx_uncompressed_image(
 			switch (hdr.gl_format)
 			{
 			case GL_RED:
-				cm = R16F_TO_RGBA16F;
+				copy_method = R16F_TO_RGBA16F;
 				break;
 			case GL_RG:
-				cm = RG16F_TO_RGBA16F;
+				copy_method = RG16F_TO_RGBA16F;
 				break;
 			case GL_RGB:
-				cm = RGB16F_TO_RGBA16F;
+				copy_method = RGB16F_TO_RGBA16F;
 				break;
 			case GL_RGBA:
-				cm = RGBA16F_TO_RGBA16F;
+				copy_method = RGBA16F_TO_RGBA16F;
 				break;
 			case GL_BGR:
-				cm = BGR16F_TO_RGBA16F;
+				copy_method = BGR16F_TO_RGBA16F;
 				break;
 			case GL_BGRA:
-				cm = BGRA16F_TO_RGBA16F;
+				copy_method = BGRA16F_TO_RGBA16F;
 				break;
 			case GL_LUMINANCE:
-				cm = L16F_TO_RGBA16F;
+				copy_method = L16F_TO_RGBA16F;
 				break;
 			case GL_LUMINANCE_ALPHA:
-				cm = LA16F_TO_RGBA16F;
+				copy_method = LA16F_TO_RGBA16F;
 				break;
 			}
 			break;
@@ -921,28 +1021,28 @@ static astcenc_image* load_ktx_uncompressed_image(
 			switch (hdr.gl_format)
 			{
 			case GL_RED:
-				cm = R32F_TO_RGBA16F;
+				copy_method = R32F_TO_RGBA16F;
 				break;
 			case GL_RG:
-				cm = RG32F_TO_RGBA16F;
+				copy_method = RG32F_TO_RGBA16F;
 				break;
 			case GL_RGB:
-				cm = RGB32F_TO_RGBA16F;
+				copy_method = RGB32F_TO_RGBA16F;
 				break;
 			case GL_RGBA:
-				cm = RGBA32F_TO_RGBA16F;
+				copy_method = RGBA32F_TO_RGBA16F;
 				break;
 			case GL_BGR:
-				cm = BGR32F_TO_RGBA16F;
+				copy_method = BGR32F_TO_RGBA16F;
 				break;
 			case GL_BGRA:
-				cm = BGRA32F_TO_RGBA16F;
+				copy_method = BGRA32F_TO_RGBA16F;
 				break;
 			case GL_LUMINANCE:
-				cm = L32F_TO_RGBA16F;
+				copy_method = L32F_TO_RGBA16F;
 				break;
 			case GL_LUMINANCE_ALPHA:
-				cm = LA32F_TO_RGBA16F;
+				copy_method = LA32F_TO_RGBA16F;
 				break;
 			}
 			break;
@@ -954,13 +1054,19 @@ static astcenc_image* load_ktx_uncompressed_image(
 	}
 
 	if (hdr.number_of_mipmap_levels > 1)
+	{
 		printf("WARNING: KTX file %s has %d mipmap levels; only the first one will be encoded.\n", filename, hdr.number_of_mipmap_levels);
+	}
 
 	if (hdr.number_of_array_elements > 1)
+	{
 		printf("WARNING: KTX file %s contains a texture array with %d layers; only the first one will be encoded.\n", filename, hdr.number_of_array_elements);
+	}
 
 	if (hdr.number_of_faces > 1)
+	{
 		printf("WARNING: KTX file %s contains a cubemap with 6 faces; only the first one will be encoded.\n", filename);
+	}
 
 
 	unsigned int dim_x = hdr.pixel_width;
@@ -1043,7 +1149,7 @@ static astcenc_image* load_ktx_uncompressed_image(
 			}
 
 			uint8_t *src = buf + (z * ystride) + (y * xstride);
-			copy_scanline(dst, src, dim_x, cm);
+			copy_scanline(dst, src, dim_x, copy_method);
 		}
 	}
 
@@ -1053,6 +1159,15 @@ static astcenc_image* load_ktx_uncompressed_image(
 	return astc_img;
 }
 
+/**
+ * @brief Load a KTX compressed image using the local custom loader.
+ *
+ * @param      filename          The name of the file to load.
+ * @param[out] is_srgb           @c true if this is an sRGB image, @c false otherwise.
+ * @param[out] img               The output image to populate.
+ *
+ * @return @c true on error, @c false otherwise.
+ */
 bool load_ktx_compressed_image(
 	const char* filename,
 	bool& is_srgb,
@@ -1152,19 +1267,27 @@ bool load_ktx_compressed_image(
 	img.data_len = data_len;
 	img.data = data;
 
-	is_srgb = fmt->srgb;
+	is_srgb = fmt->is_srgb;
 
 	fclose(f);
 	return false;
 }
 
-
+/**
+ * @brief Store a KTX compressed image using a local store routine.
+ *
+ * @param img        The image data to store.
+ * @param filename   The name of the file to save.
+ * @param is_srgb    @c true if this is an sRGB image, @c false if linear.
+ *
+ * @return @c true on error, @c false otherwise.
+ */
 bool store_ktx_compressed_image(
 	const astc_compressed_image& img,
 	const char* filename,
-	bool srgb
+	bool is_srgb
 ) {
-	unsigned int fmt = get_format(img.block_x, img.block_y, img.block_z, srgb);
+	unsigned int fmt = get_format(img.block_x, img.block_y, img.block_z, is_srgb);
 
 	ktx_header hdr;
 	memcpy(hdr.magic, ktx_magic, 12);
@@ -1204,9 +1327,18 @@ bool store_ktx_compressed_image(
 	return false;
 }
 
-static int store_ktx_uncompressed_image(
+/**
+ * @brief Save a KTX uncompressed image using a local store routine.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The name of the file to save.
+ * @param y_flip     Should the image be vertically flipped?
+ *
+ * @return @c true if the image saved OK, @c false on error.
+ */
+static bool store_ktx_uncompressed_image(
 	const astcenc_image* img,
-	const char* ktx_filename,
+	const char* filename,
 	int y_flip
 ) {
 	unsigned int dim_x = img->dim_x;
@@ -1237,7 +1369,7 @@ static int store_ktx_uncompressed_image(
 	hdr.number_of_mipmap_levels = 1;
 	hdr.bytes_of_key_value_data = 0;
 
-	// collect image data to write
+	// Collect image data to write
 	uint8_t ***row_pointers8 = nullptr;
 	uint16_t ***row_pointers16 = nullptr;
 	if (bitness == 8)
@@ -1365,11 +1497,11 @@ static int store_ktx_uncompressed_image(
 		}
 	}
 
-	int retval = image_components + (bitness == 16 ? 0x80 : 0);
+	bool retval { true };
 	uint32_t image_bytes = dim_x * dim_y * dim_z * image_components * (bitness / 8);
 	uint32_t image_write_bytes = (image_bytes + 3) & ~3;
 
-	FILE *wf = fopen(ktx_filename, "wb");
+	FILE *wf = fopen(filename, "wb");
 	if (wf)
 	{
 		void *dataptr = (bitness == 16) ? (void *)(row_pointers16[0][0]) : (void *)(row_pointers8[0][0]);
@@ -1380,11 +1512,13 @@ static int store_ktx_uncompressed_image(
 		size_t data_bytes_written = fwrite(dataptr, 1, image_write_bytes, wf);
 		fclose(wf);
 		if (hdr_bytes_written + bytecount_bytes_written + data_bytes_written != expected_bytes_written)
-			retval = -1;
+		{
+			retval = false;
+		}
 	}
 	else
 	{
-		retval = -1;
+		retval = false;
 	}
 
 	if (row_pointers8)
@@ -1491,6 +1625,16 @@ struct dds_header_dx10
 #define DDS_MAGIC 0x20534444
 #define DX10_MAGIC 0x30315844
 
+/**
+ * @brief Load an uncompressed DDS image using the local custom loader.
+ *
+ * @param      filename          The name of the file to load.
+ * @param      y_flip            Should the image be vertically flipped?
+ * @param[out] is_hdr            Is this an HDR image load?
+ * @param[out] component_count   The number of components in the data.
+ *
+ * @return The loaded image data in a canonical 4 channel format, or @c nullptr on error.
+ */
 static astcenc_image* load_dds_uncompressed_image(
 	const char* filename,
 	bool y_flip,
@@ -1562,7 +1706,7 @@ static astcenc_image* load_dds_uncompressed_image(
 	// The bytes per component in the DDS file itself
 	int bytes_per_component = 0;
 	int components = 0;
-	int copy_method = 0;
+	scanline_transfer copy_method = R8_TO_RGBA8;;
 
 	// figure out the format actually used in the DDS file.
 	if (use_dx10_header)
@@ -1589,11 +1733,11 @@ static astcenc_image* load_dds_uncompressed_image(
 			int bitness;
 			int bytes_per_component;
 			int components;
-			int copy_method;
+			scanline_transfer copy_method;
 			uint32_t dxgi_format_number;
 		};
 
-		static const dxgi_params format_params[] = {
+		static const dxgi_params format_params[] {
 			{16, 4, 4, RGBA32F_TO_RGBA16F, DXGI_FORMAT_R32G32B32A32_FLOAT},
 			{16, 4, 3, RGB32F_TO_RGBA16F, DXGI_FORMAT_R32G32B32_FLOAT},
 			{16, 2, 4, RGBA16F_TO_RGBA16F, DXGI_FORMAT_R16G16B16A16_FLOAT},
@@ -1773,9 +1917,18 @@ static astcenc_image* load_dds_uncompressed_image(
 	return astc_img;
 }
 
-static int store_dds_uncompressed_image(
+/**
+ * @brief Save a DDS uncompressed image using a local store routine.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The name of the file to save.
+ * @param y_flip     Should the image be vertically flipped?
+ *
+ * @return @c true if the image saved OK, @c false on error.
+ */
+static bool store_dds_uncompressed_image(
 	const astcenc_image* img,
-	const char* dds_filename,
+	const char* filename,
 	int y_flip
 ) {
 	unsigned int dim_x = img->dim_x;
@@ -1784,7 +1937,6 @@ static int store_dds_uncompressed_image(
 
 	int bitness = img->data_type == ASTCENC_TYPE_U8 ? 8 : 16;
 	int image_components = (bitness == 16) ? 4 : determine_image_components(img);
-
 
 	// DDS-pixel-format structures to use when storing LDR image with 1,2,3 or 4 components.
 	static const dds_pixelformat format_of_image_components[4] =
@@ -1801,13 +1953,13 @@ static int store_dds_uncompressed_image(
 		32, 4, DX10_MAGIC, 0, 0, 0, 0, 0
 	};
 
-	// header handling. We will write:
+	// Header handling; will write:
 	// * DDS magic value
 	// * DDS header
 	// * DDS DX10 header, if the file is floating-point
-	// * pixel data.
+	// * pixel data
 
-	// main header data
+	// Main header data
 	dds_header hdr;
 	hdr.size = 124;
 	hdr.flags = 0x100F | (dim_z > 1 ? 0x800000 : 0);
@@ -1825,7 +1977,7 @@ static int store_dds_uncompressed_image(
 	hdr.caps3 = 0;
 	hdr.caps4 = 0;
 
-	// pixel-format data
+	// Pixel-format data
 	if (bitness == 8)
 	{
 		hdr.ddspf = format_of_image_components[image_components - 1];
@@ -1843,7 +1995,7 @@ static int store_dds_uncompressed_image(
 	dx10.array_size = 1;
 	dx10.reserved = 0;
 
-	// collect image data to write
+	// Collect image data to write
 	uint8_t ***row_pointers8 = nullptr;
 	uint16_t ***row_pointers16 = nullptr;
 
@@ -1974,12 +2126,12 @@ static int store_dds_uncompressed_image(
 		}
 	}
 
-	int retval = image_components;
+	bool retval { true };
 	uint32_t image_bytes = dim_x * dim_y * dim_z * image_components * (bitness / 8);
 
 	uint32_t dds_magic = DDS_MAGIC;
 
-	FILE *wf = fopen(dds_filename, "wb");
+	FILE *wf = fopen(filename, "wb");
 	if (wf)
 	{
 		void *dataptr = (bitness == 16) ? (void *)(row_pointers16[0][0]) : (void *)(row_pointers8[0][0]);
@@ -2004,12 +2156,12 @@ static int store_dds_uncompressed_image(
 		fclose(wf);
 		if (magic_bytes_written + hdr_bytes_written + dx10_bytes_written + data_bytes_written != expected_bytes_written)
 		{
-			retval = -1;
+			retval = false;
 		}
 	}
 	else
 	{
-		retval = -1;
+		retval = false;
 	}
 
 	if (row_pointers8)
@@ -2029,31 +2181,15 @@ static int store_dds_uncompressed_image(
 	return retval;
 }
 
-/***************************************************************************
-
-Main image load/store functions
-
-We have specialized loaders for DDS and KTX; for other formats,
-we use stb_image. This image loader will choose one based on filename.
-
-We have specialized image storer for DDS and KTX; for OpenEXR,
-we use tinyexr; for TGA, BMP and PNG, we use stb_image_write.
-
-***************************************************************************/
-
-
-
-
-
-
-// descriptors for each image/texture file format that we support loading of - endings and
-// loader function. The last entry is a catch-all to use when nothing else matches;
-// this will result in an attempt to use stb_image to load the image.
-static const struct {
+/**
+ * @brief Supported uncompressed image load functions, and their associated file extensions.
+ */
+static const struct
+{
 	const char* ending1;
 	const char* ending2;
 	astcenc_image* (*loader_func)(const char*, bool, bool&, unsigned int&);
-} loader_descs[] = {
+} loader_descs[] {
 	// HDR formats
 	{".exr",   ".EXR",  load_image_with_tinyexr },
 	// Container formats
@@ -2065,46 +2201,38 @@ static const struct {
 
 static const int loader_descr_count = sizeof(loader_descs) / sizeof(loader_descs[0]);
 
-// descriptors for each image/texture file format that we support storing to to - endings,
-// enforced-bitness, and storer function.
+/**
+ * @brief Supported uncompressed image store functions, and their associated file extensions.
+ */
 static const struct
 {
 	const char *ending1;
 	const char *ending2;
-	const char *file_format_name;
 	int enforced_bitness;
-	int (*storer_func)(const astcenc_image *output_image, const char *output_filename, int y_flip);
-} storer_descs[] = {
+	bool (*storer_func)(const astcenc_image *output_image, const char *filename, int y_flip);
+} storer_descs[] {
 	// LDR formats
-	{".bmp", ".BMP", "BMP",             8, store_bmp_image_with_stb},
-	{".png", ".PNG", "PNG",             8, store_png_image_with_stb},
-	{".tga", ".TGA", "Targa",           8, store_tga_image_with_stb},
+	{".bmp", ".BMP",  8, store_bmp_image_with_stb},
+	{".png", ".PNG",  8, store_png_image_with_stb},
+	{".tga", ".TGA",  8, store_tga_image_with_stb},
 	// HDR formats
-	{".exr", ".EXR", "OpenEXR",        16, store_exr_image_with_tinyexr},
-	{".hdr", ".HDR", "Radiance HDR",   16, store_hdr_image_with_stb},
+	{".exr", ".EXR", 16, store_exr_image_with_tinyexr},
+	{".hdr", ".HDR", 16, store_hdr_image_with_stb},
 	// Container formats
-	{".dds", ".DDS", "DirectDraw DDS", -1, store_dds_uncompressed_image},
-	{".ktx", ".KTX", "Khronos KTX",    -1, store_ktx_uncompressed_image}
+	{".dds", ".DDS",  0, store_dds_uncompressed_image},
+	{".ktx", ".KTX",  0, store_ktx_uncompressed_image}
 };
 
 static const int storer_descr_count = sizeof(storer_descs) / sizeof(storer_descs[0]);
 
-// check from filename ending what the enforced bitness of the format-to-store is.
-// May return:
-//  8:  enforced 8-bit UNOR8
-//  16: enforced 16-bit FP16
-//  -1: no format enforced
-// If the format has an unrecognized ending, an error message is produced.
-// Lack of an ending is likely to result from a write to /dev/null
-// or some other non-file thing; for this, we use the KTX format.
-
+/* See header for documentation. */
 int get_output_filename_enforced_bitness(
-	const char*output_filename
+	const char* filename
 ) {
-	const char *eptr = strrchr(output_filename, '.');
+	const char *eptr = strrchr(filename, '.');
 	if (!eptr)
 	{
-		return -1;
+		return 0;
 	}
 
 	for (int i = 0; i < storer_descr_count; i++)
@@ -2116,10 +2244,10 @@ int get_output_filename_enforced_bitness(
 		}
 	}
 
-	printf("ERROR: Unknown file extension for output file: %s\n", eptr);
-	exit(1);
+	return -1;
 }
 
+/* See header for documentation. */
 astcenc_image* load_ncimage(
 	const char* filename,
 	bool y_flip,
@@ -2148,13 +2276,13 @@ astcenc_image* load_ncimage(
 	return nullptr;
 }
 
-int store_ncimage(
+/* See header for documentation. */
+bool store_ncimage(
 	const astcenc_image* output_image,
-	const char* output_filename,
-	const char** file_format_name,
+	const char* filename,
 	int y_flip
 ) {
-	const char* eptr = strrchr(output_filename, '.');
+	const char* eptr = strrchr(filename, '.');
 	if (!eptr)
 	{
 		eptr = ".ktx"; // use KTX file format if we don't have an ending.
@@ -2165,14 +2293,13 @@ int store_ncimage(
 		if (strcmp(eptr, storer_descs[i].ending1) == 0
 		 || strcmp(eptr, storer_descs[i].ending2) == 0)
 		{
-			*file_format_name = storer_descs[i].file_format_name;
-			return storer_descs[i].storer_func(output_image, output_filename, y_flip);
+			return storer_descs[i].storer_func(output_image, filename, y_flip);
 		}
 	}
 
 	// Should never reach here - get_output_filename_enforced_bitness should
 	// have acted as a preflight check
-	return -1;
+	return false;
 }
 
 /* ============================================================================
@@ -2189,7 +2316,6 @@ struct astc_header
 	uint8_t dim_z[3];			// block count is inferred
 };
 
-
 static const uint32_t ASTC_MAGIC_ID = 0x5CA1AB13;
 
 static unsigned int unpack_bytes(
@@ -2204,9 +2330,11 @@ static unsigned int unpack_bytes(
 	       ((unsigned int)(d) << 24);
 }
 
+/* See header for documentation. */
+// TODO: Return a bool?
 int load_cimage(
 	const char* filename,
-	astc_compressed_image& out_image
+	astc_compressed_image& img
 ) {
 	std::ifstream file(filename, std::ios::in | std::ios::binary);
 	if (!file)
@@ -2259,20 +2387,21 @@ int load_cimage(
 		return 1;
 	}
 
-	out_image.data = buffer;
-	out_image.data_len = data_size;
-	out_image.block_x = block_x;
-	out_image.block_y = block_y;
-	out_image.block_z = block_z;
-	out_image.dim_x = dim_x;
-	out_image.dim_y = dim_y;
-	out_image.dim_z = dim_z;
+	img.data = buffer;
+	img.data_len = data_size;
+	img.block_x = block_x;
+	img.block_y = block_y;
+	img.block_z = block_z;
+	img.dim_x = dim_x;
+	img.dim_y = dim_y;
+	img.dim_z = dim_z;
 	return 0;
 }
 
-
+/* See header for documentation. */
+// TODO: Return a bool?
 int store_cimage(
-	const astc_compressed_image& comp_img,
+	const astc_compressed_image& img,
 	const char* filename
 ) {
 	astc_header hdr;
@@ -2281,21 +2410,21 @@ int store_cimage(
 	hdr.magic[2] = (ASTC_MAGIC_ID >> 16) & 0xFF;
 	hdr.magic[3] = (ASTC_MAGIC_ID >> 24) & 0xFF;
 
-	hdr.block_x = comp_img.block_x;
-	hdr.block_y = comp_img.block_y;
-	hdr.block_z = comp_img.block_z;
+	hdr.block_x = static_cast<uint8_t>(img.block_x);
+	hdr.block_y = static_cast<uint8_t>(img.block_y);
+	hdr.block_z = static_cast<uint8_t>(img.block_z);
 
-	hdr.dim_x[0] =  comp_img.dim_x        & 0xFF;
-	hdr.dim_x[1] = (comp_img.dim_x >>  8) & 0xFF;
-	hdr.dim_x[2] = (comp_img.dim_x >> 16) & 0xFF;
+	hdr.dim_x[0] =  img.dim_x        & 0xFF;
+	hdr.dim_x[1] = (img.dim_x >>  8) & 0xFF;
+	hdr.dim_x[2] = (img.dim_x >> 16) & 0xFF;
 
-	hdr.dim_y[0] =  comp_img.dim_y       & 0xFF;
-	hdr.dim_y[1] = (comp_img.dim_y >>  8) & 0xFF;
-	hdr.dim_y[2] = (comp_img.dim_y >> 16) & 0xFF;
+	hdr.dim_y[0] =  img.dim_y       & 0xFF;
+	hdr.dim_y[1] = (img.dim_y >>  8) & 0xFF;
+	hdr.dim_y[2] = (img.dim_y >> 16) & 0xFF;
 
-	hdr.dim_z[0] =  comp_img.dim_z        & 0xFF;
-	hdr.dim_z[1] = (comp_img.dim_z >>  8) & 0xFF;
-	hdr.dim_z[2] = (comp_img.dim_z >> 16) & 0xFF;
+	hdr.dim_z[0] =  img.dim_z        & 0xFF;
+	hdr.dim_z[1] = (img.dim_z >>  8) & 0xFF;
+	hdr.dim_z[2] = (img.dim_z >> 16) & 0xFF;
 
 	std::ofstream file(filename, std::ios::out | std::ios::binary);
 	if (!file)
@@ -2305,6 +2434,6 @@ int store_cimage(
 	}
 
 	file.write((char*)&hdr, sizeof(astc_header));
-	file.write((char*)comp_img.data, comp_img.data_len);
+	file.write((char*)img.data, img.data_len);
 	return 0;
 }

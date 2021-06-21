@@ -190,6 +190,12 @@ macro(astcenc_set_properties NAME)
             PRIVATE
                 $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
                 $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>)
+
+    elseif(${ISA_SIMD} MATCHES "native")
+        target_compile_options(${NAME}
+            PRIVATE
+                $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-march=native>)
+
     endif()
 
 endmacro()

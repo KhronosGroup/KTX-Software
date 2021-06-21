@@ -29,7 +29,6 @@
 #include "dfdutils/dfd.h"
 #include "ktx.h"
 #include "ktxint.h"
-#include "stream.h"
 #include "filestream.h"
 #include "memstream.h"
 #include "texture2.h"
@@ -1322,6 +1321,57 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
 /**
  * @memberof ktxTexture2
  * @~English
+ * @brief Create a ktxTexture2 from KTX-formatted data from a stream.
+ *
+ * The address of a newly created ktxTexture2 reflecting the contents of the
+ * serialized KTX data is written to the location pointed at by @p newTex.
+ *
+ * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
+ * if the ktxTexture is ultimately to be uploaded to OpenGL or Vulkan. This
+ * will minimize memory usage by allowing, for example, loading the images
+ * directly from the source into a Vulkan staging buffer.
+ *
+ * The create flag KTX_TEXTURE_CREATE_RAW_KVDATA_BIT should not be used. It is
+ * provided solely to enable implementation of the @e libktx v1 API on top of
+ * ktxTexture.
+ *
+ * @param[in] stream pointer to the stream to read KTX data from.
+ * @param[in] createFlags bitmask requesting specific actions during creation.
+ * @param[in,out] newTex  pointer to a location in which store the address of
+ *                        the newly created texture.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE Either @p bytes is NULL or @p size is 0.
+ *
+ * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ */
+KTX_error_code
+ktxTexture2_CreateFromStream(ktxStream* stream,
+                             ktxTextureCreateFlags createFlags,
+                             ktxTexture2** newTex)
+{
+    KTX_error_code result;
+    if (newTex == NULL)
+        return KTX_INVALID_VALUE;
+
+    ktxTexture2* tex = (ktxTexture2*)malloc(sizeof(ktxTexture2));
+    if (tex == NULL)
+        return KTX_OUT_OF_MEMORY;
+
+    result = ktxTexture2_constructFromStream(tex, stream, createFlags);
+    if (result == KTX_SUCCESS)
+        *newTex = (ktxTexture2*)tex;
+    else {
+        free(tex);
+        *newTex = NULL;
+    }
+    return result;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Destroy a ktxTexture2 object.
  *
  * This frees the memory associated with the texture contents and the memory
@@ -2358,6 +2408,15 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
     return KTX_INVALID_OPERATION;
 }
 
+KTX_error_code
+ktxTexture2_WriteToStream(ktxTexture2* This,
+                          ktxStream* dststr)
+{
+    UNUSED(This);
+    UNUSED(dststr);
+    return KTX_INVALID_OPERATION;
+}
+
 #endif
 
 /*
@@ -2385,6 +2444,7 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXWRITETOSTDIOSTREAM)ktxTexture2_WriteToStdioStream,
     (PFNKTEXWRITETONAMEDFILE)ktxTexture2_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture2_WriteToMemory,
+    (PFNKTEXWRITETOSTREAM)ktxTexture2_WriteToStream,
 };
 
 /** @} */

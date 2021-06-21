@@ -22,7 +22,6 @@
 #define MEMSTREAM_H
 
 #include "ktx.h"
-#include "stream.h"
 
 /*
  * Initialize a ktxStream to a ktxMemStream with internally

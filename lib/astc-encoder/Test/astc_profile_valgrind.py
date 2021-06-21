@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020 Arm Limited
+# Copyright 2020-2021 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -105,26 +105,25 @@ def run_pass(image, noStartup, encoder, blocksize, quality):
         CalledProcessException: Any subprocess failed.
     """
     binary =  "./astcenc/astcenc-%s" % encoder
-    qualityFlag = "-%s" % quality
     args = ["valgrind", "--tool=callgrind", "--callgrind-out-file=callgrind.txt",
-            binary, "-cl", image, "out.astc", blocksize, qualityFlag, "-j", "1"]
+            binary, "-cl", image, "out.astc", blocksize, quality, "-j", "1"]
 
     result = sp.run(args, check=True, universal_newlines=True)
 
     args = ["callgrind_annotate", "callgrind.txt"]
     ret = sp.run(args, stdout=sp.PIPE, check=True, encoding="utf-8")
-    postprocess_cga(ret.stdout, "perf_%s.txt" % quality)
+    postprocess_cga(ret.stdout, "perf_%s.txt" % quality.replace("-", ""))
 
     if noStartup:
         args = ["gprof2dot", "--format=callgrind", "--output=out.dot", "callgrind.txt",
-                "-s", "-z", "compress_block(astcenc_context const&, astcenc_image const&, imageblock const*, symbolic_compressed_block&, physical_compressed_block&, compress_symbolic_block_buffers*)"]
+                "-s", "-z", "compress_block(astcenc_context const&, astcenc_image const&, image_block const&, physical_compressed_block&, compression_working_buffers&)"]
     else:
         args = ["gprof2dot", "--format=callgrind", "--output=out.dot", "callgrind.txt",
                 "-s",  "-z", "main"]
 
     result = sp.run(args, check=True, universal_newlines=True)
 
-    args = ["dot", "-Tpng", "out.dot", "-o", "perf_%s.png" % quality]
+    args = ["dot", "-Tpng", "out.dot", "-o", "perf_%s.png" % quality.replace("-", "")]
     result = sp.run(args, check=True, universal_newlines=True)
 
     os.remove("out.astc")
@@ -149,7 +148,7 @@ def parse_command_line():
     parser.add_argument("--encoder", dest="encoders", default="avx2",
                         choices=encoders, help="select encoder variant")
 
-    testqualities = ["fastest", "fast", "medium", "thorough"]
+    testqualities = ["fastest", "fast", "medium", "thorough", "20", "30", "40", "50"]
     qualities = testqualities + ["all"]
     parser.add_argument("--test-quality", dest="qualities", default="medium",
                         choices=qualities, help="select compression quality")
@@ -166,6 +165,8 @@ def parse_command_line():
 
     if args.qualities == "all":
         args.qualities = testqualities
+    elif args.qualities in ["fastest", "fast", "medium", "thorough"]:
+        args.qualities = [f"-{args.qualities}"]
     else:
         args.qualities = [args.qualities]
 

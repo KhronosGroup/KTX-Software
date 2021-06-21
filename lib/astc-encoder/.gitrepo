@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ARM-software/astc-encoder.git
 	branch = main
-	commit = 2f9362c16e71cb6da1ae48bc23ca7e9243ba8f99
+	commit = 2d45bde830cd8d2e5635ced588d601ecb8f127bf
 	parent = 90c01d4fe24470b1065d99cecff49e9514e5fad3
 	method = merge
 	cmdver = 0.4.3

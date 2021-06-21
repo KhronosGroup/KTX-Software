@@ -180,7 +180,7 @@ void decompress_symbolic_block(
 	int ypos,
 	int zpos,
 	const symbolic_compressed_block& scb,
-	imageblock& blk
+	image_block& blk
 ) {
 	blk.xpos = xpos;
 	blk.ypos = ypos;
@@ -210,7 +210,7 @@ void decompress_symbolic_block(
 	    (scb.block_type == SYM_BTYPE_CONST_U16))
 	{
 		vfloat4 color;
-		int use_lns = 0;
+		uint8_t use_lns = 0;
 
 		// UNORM16 constant color block
 		if (scb.block_type == SYM_BTYPE_CONST_U16)
@@ -323,13 +323,13 @@ float compute_symbolic_block_difference(
 	const astcenc_config& config,
 	const block_size_descriptor& bsd,
 	const symbolic_compressed_block& scb,
-	const imageblock& blk,
+	const image_block& blk,
 	const error_weight_block& ewb
 ) {
 	// If we detected an error-block, blow up immediately.
 	if (scb.block_type == SYM_BTYPE_ERROR)
 	{
-		return 1e29f;
+		return ERROR_CALC_DEFAULT;
 	}
 
 	assert(scb.block_mode >= 0);
@@ -394,7 +394,7 @@ float compute_symbolic_block_difference(
 				// happen, especially at low bit rates ...
 				if (color.lane<3>() == 0.0f)
 				{
-					return -1e30f;
+					return -ERROR_CALC_DEFAULT;
 				}
 
 				// Compute error based on decoded RGBM color
@@ -418,7 +418,7 @@ float compute_symbolic_block_difference(
 			error = error * error;
 
 			float metric = dot_s(error, ewb.error_weights[tix]);
-			summa += astc::min(metric, 1e30f);
+			summa += astc::min(metric, ERROR_CALC_DEFAULT);
 		}
 	}
 

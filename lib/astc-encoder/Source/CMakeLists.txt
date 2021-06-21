@@ -36,6 +36,14 @@ if (${ISA_NONE})
 endif()
 
 # - - - - - - - - - - - - - - - - - -
+# Implicit host architecture-specific SIMD
+
+if (${ISA_NATIVE})
+    set(ISA_SIMD native)
+    include(cmake_core.cmake)
+endif()
+
+# - - - - - - - - - - - - - - - - - -
 # Armv8-A architecture-specific SIMD
 
 if (${ISA_NEON})

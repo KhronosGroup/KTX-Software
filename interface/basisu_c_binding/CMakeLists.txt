@@ -27,3 +27,11 @@ PRIVATE
     BASISD_SUPPORT_KTX2_ZSTD=0
     BASISD_SUPPORT_KTX2=0
 )
+
+if(WIN32)
+    target_compile_definitions(
+        obj_basisu_cbind
+    PRIVATE 
+        "KTX_BASISU_API=__declspec(dllexport)"
+    )
+endif()

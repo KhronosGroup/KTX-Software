@@ -64,10 +64,10 @@ static vfloat4 load_texel_f16(
 	int base_offset
 ) {
 	const uint16_t* data16 = static_cast<const uint16_t*>(data);
-	int r = static_cast<float>(data16[base_offset    ]);
-	int g = static_cast<float>(data16[base_offset + 1]);
-	int b = static_cast<float>(data16[base_offset + 2]);
-	int a = static_cast<float>(data16[base_offset + 3]);
+	int r = data16[base_offset    ];
+	int g = data16[base_offset + 1];
+	int b = data16[base_offset + 2];
+	int a = data16[base_offset + 3];
 	return float16_to_float(vint4(r, g, b, a));
 }
 
@@ -148,10 +148,10 @@ static vfloat4 encode_texel_lns(
 }
 
 /* See header for documentation. */
-void fetch_imageblock(
+void fetch_image_block(
 	astcenc_profile decode_mode,
 	const astcenc_image& img,
-	imageblock& blk,
+	image_block& blk,
 	const block_size_descriptor& bsd,
 	unsigned int xpos,
 	unsigned int ypos,
@@ -177,8 +177,9 @@ void fetch_imageblock(
 	bool grayscale = true;
 
 	// This works because we impose the same choice everywhere during encode
-	int rgb_lns = (decode_mode == ASTCENC_PRF_HDR) || (decode_mode == ASTCENC_PRF_HDR_RGB_LDR_A);
-	int a_lns = decode_mode == ASTCENC_PRF_HDR;
+	uint8_t rgb_lns = (decode_mode == ASTCENC_PRF_HDR) ||
+	                  (decode_mode == ASTCENC_PRF_HDR_RGB_LDR_A) ? 1 : 0;
+	uint8_t a_lns = decode_mode == ASTCENC_PRF_HDR ? 1 : 0;
 	vint4 use_lns(rgb_lns, rgb_lns, rgb_lns, a_lns);
 	vmask4 lns_mask = use_lns != vint4::zero();
 
@@ -264,9 +265,9 @@ void fetch_imageblock(
 }
 
 /* See header for documentation. */
-void write_imageblock(
+void write_image_block(
 	astcenc_image& img,
-	const imageblock& blk,
+	const image_block& blk,
 	const block_size_descriptor& bsd,
 	unsigned int xpos,
 	unsigned int ypos,
