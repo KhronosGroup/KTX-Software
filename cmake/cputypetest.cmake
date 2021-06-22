@@ -13,104 +13,55 @@ set(cputypetest_code "
 //
 // For CMake literal compatibility, this file must have no double quotes
 //
-#ifdef _WIN32
-    #ifdef _WIN64
 
-#undef x86_64
+#if defined(__x86_64__) || defined(_M_X64)
 x86_64
-
-    #else
-
-#undef x86
-x86
-
-    #endif
-#elif defined __APPLE__
-    #include <TargetConditionals.h>
-    #if TARGET_OS_IPHONE
-        #if TARGET_CPU_X86
-
-#undef x86
-x86
-
-        #elif TARGET_CPU_X86_64
-#undef x86_64
-x86_64
-
-        #elif TARGET_CPU_ARM
-
-#undef armv7
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+x86_32
+#elif defined(__ARM_ARCH_2__)
+armv2
+#elif defined(__ARM_ARCH_3__) || defined(__ARM_ARCH_3M__)
+armv3
+#elif defined(__ARM_ARCH_4T__) || defined(__TARGET_ARM_4T)
+armv4T
+#elif defined(__ARM_ARCH_5_) || defined(__ARM_ARCH_5E_)
+ARM5
+#elif defined(__ARM_ARCH_6T2_) || defined(__ARM_ARCH_6T2_)
+armv6T2
+#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__)
+armv6
+#elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
 armv7
-
-        #elif TARGET_CPU_ARM64
-
-#undef armv8
-armv8
-
-        #else
-            #error Unsupported cpu
-        #endif
-    #elif TARGET_OS_MAC
-
-        #if defined __x86_64__
-
-#undef x86_64
-x86_64
-
-        #elif defined __aarch64__
-
-#undef arm64
+#elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
+armv7A
+#elif defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
+armv7R
+#elif defined(__ARM_ARCH_7M__)
+armv7M
+#elif defined(__ARM_ARCH_7S__)
+armv7S
+#elif defined(__aarch64__) || defined(_M_ARM64)
 arm64
-
-        #else
-            #error Unsupported platform
-        #endif
-
-    #else
-        #error Unsupported platform
-    #endif
-#elif defined __linux
-    #ifdef __ANDROID__
-        #ifdef __i386__
-
-#undef x86
-x86
-
-        #elif defined __arm__
-
-#undef armv7
-armv7
-
-        #elif defined __aarch64__
-
-#undef armv8
-armv8
-
-        #else
-            #error Unsupported cpu
-        #endif
-    #else
-        #ifdef __LP64__
-
-#undef x86_64
-x86_64
-
-        #else
-
-#undef x86
-x86
-
-        #endif
-    #endif
+#elif defined(mips) || defined(__mips__) || defined(__mips)
+mips
+#elif defined(__sh__)
+superh
+#elif defined(__powerpc) || defined(__powerpc__) || defined(__powerpc64__) || defined(__POWERPC__) || defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC)
+powerpc
+#elif defined(__PPC64__) || defined(__ppc64__) || defined(_ARCH_PPC64)
+powerpc64
+#elif defined(__sparc__) || defined(__sparc)
+sparc
+#elif defined(__m68k__)
+m68k
 #elif defined __EMSCRIPTEN__
-
-#undef wasm
 wasm
-
 #else
     #error Unsupported cpu
 #endif
+
 ")
+
 file(WRITE "${CMAKE_BINARY_DIR}/cputypetest.c" "${cputypetest_code}")
 
 cmake_policy(SET CMP0054 NEW)
@@ -119,7 +70,7 @@ function(set_target_processor_type out)
     if(ANDROID_ABI AND "${ANDROID_ABI}" STREQUAL "armeabi-v7a")
         set(${out} armv7 PARENT_SCOPE)
     elseif(ANDROID_ABI AND "${ANDROID_ABI}" STREQUAL "arm64-v8a")
-        set(${out} armv8 PARENT_SCOPE)
+        set(${out} arm64 PARENT_SCOPE)
     elseif(ANDROID_ABI AND "${ANDROID_ABI}" STREQUAL "x86")
         set(${out} x86 PARENT_SCOPE)
     elseif(ANDROID_ABI AND "${ANDROID_ABI}" STREQUAL "x86_64")
@@ -127,44 +78,85 @@ function(set_target_processor_type out)
 
     else()
         if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-            set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
             if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM")
                 set(processor "arm")
             elseif("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM64")
                 set(processor "arm64")
             else()
                 set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
+                # Versions of MSVC prior to VS2019 have a supporting dll which
+                # must be found along the search path. MSVC in VS 2019 just
+                # works. Whether due to not having this supporting dll or using
+                # a different way to locate it, is unknown. To make earlier
+                # versions work set the WORKING_DIR to the location of the
+                # support dll to ensure it is found.
+                string(REGEX REPLACE "/VC/.*$" "/Common7/IDE"
+                       compiler_support_dir
+                       ${CMAKE_C_COMPILER})
                 execute_process(
                     COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
+                    WORKING_DIRECTORY ${compiler_support_dir}
                     OUTPUT_VARIABLE processor
                     OUTPUT_STRIP_TRAILING_WHITESPACE
                     # Specify this to block MSVC's output of the source file name
                     # so as not to trigger PowerShell's stop-on-error in CI.
                     # Unfortunately it suppresses all compile errors too hence
-                    # the special case for MSVC.
+                    # the special case for MSVC. Which was convenient to have
+                    # when we found the issue with earlier versions of VS.
                     ERROR_QUIET
                 )
             endif()
         else()
+            # Apple's clang is a single compiler whose target is determined by
+            # its -arch <architecture> or --target=<architecture> options
+            # defaulting to the processor of the Mac it is running on. CMake does
+            # not set this directly when generating for Xcode. (I don't know what
+            # it does when generating makefiles. Therefore, in the Xcode case,
+            # compiling cputypetest.c with CMAKE_{C,CXX}_COMPILER results in
+            # processor being set to x86_86 or arm64 depending on the Mac it is
+            # running on.
+            #
+            # When building for iOS, only CMAKE_SYSTEN_NAME is specified during
+            # configuration. CMake leaves it up to Xcode or to the user passing
+            # a -sdk argument to xcbuild to make sure the correct <architecture>
+            # is set when calling the compiler.
+            #
+            # When building for macOS (and possibly for iOS, not tested) the
+            # user can specify CMAKE_OSX_ARCHITECTURES if they want to compile
+            # for something different than the current processor. This could be
+            # set to $(ARCHS_STANDARD) an Xcode build setting whose value in
+            # recent Xcode versions is "x86_64 arm64" to create universal binaries.
+            # This is passed to Xcode which calls the compiler twice passing the
+            # same set of target_definitions each time so in this case we have
+            # to choose BASISU_SUPPORT_SSE=OFF or the arm64 compile will fail.
+            #
+            # The following code reflects all this.
             if(APPLE AND NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-                # No other Apple systems are x64_64. When configuring for iOS, etc.
-                # CMAKE_C_COMPILER points at the HOST compiler - I can't find
-                # definitive documentation of what is supposed to happen - the
-                # test program above returns x86_64. Since we don't care what
-                # type of ARM processor arbitrarily set armv8 for these systems.
+                # Building for iOS, iPadOS, etc. Since we don't care what
+                # type of ARM processor, arbitrarily set armv8.
+                # It should be arm64 but there is a check in tests/CMakeLists.txt
+                # that is dropping loadtests for Apple Silicon arm64.
                 set(processor armv8)
-            else()
-                if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-                    if (CMAKE_OSX_SYSROOT)
-                        set(TC_INCLUDE_DIR -I ${CMAKE_OSX_SYSROOT}/usr/include)
-                    else()
-                        # I have seen cases where CMAKE_OSX_SYSROOT is not defined
-                        # for reasons I do not understand. Plus, uses can manually
-                        # undefine it. This is the fallback.
-                        set(TC_INCLUDE_DIR -I /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include)
-                    endif()
+            elseif(APPLE AND CMAKE_OSX_ARCHITECTURES)
+                string(STRIP "${CMAKE_OSX_ARCHITECTURES}" architectures)
+                if("${architectures}" STREQUAL "$(ARCHS_STANDARD)")
+                    # Choose arm64 so SSE support is disabled.
+                    set(processor arm64)
+                elseif("${architectures}" MATCHES "[^ ]+[ ]+[^ ]+")
+                    # Multiple words, choose arm64 so SSE support is disabled.
+                    set(processor arm64)
+                elseif(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+                    set(processor x86_64)
+                elseif(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+                    set(processor arm64)
+                else()
+                    # Choose arm64 so SSE support is disabled.
+                    set(processor arm64)
                 endif()
-                set(C_PREPROCESS ${CMAKE_C_COMPILER} ${TC_INCLUDE_DIR} -E -P)
+                unset(architectures)
+            else()
+                # This will distinguish between M1 and Intel Macs
+                set(C_PREPROCESS ${CMAKE_C_COMPILER} -E -P)
                 execute_process(
                     COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
                     OUTPUT_VARIABLE processor
@@ -174,6 +166,7 @@ function(set_target_processor_type out)
         endif()
 
         string(STRIP "${processor}" processor)
+        #message(STATUS "*** set_target_processor_type ***: processor is ${processor}")
         set(${out} ${processor} PARENT_SCOPE)
     endif()
 endfunction(set_target_processor_type)
