@@ -14,8 +14,9 @@ XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQ
 # Ensure that Vulkan SDK's glslc is in PATH
 export PATH="${VULKAN_SDK}/bin:$PATH"
 
-if [ -n "$DEPLOY_BUILD_DIR" ]; then
+if [ -z "$DEPLOY_BUILD_DIR" ]; then
 DEPLOY_BUILD_DIR=build-macos-universal
+fi
 
 #
 # macOS
