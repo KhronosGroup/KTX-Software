@@ -74,6 +74,7 @@ mark_as_advanced (BASH_EXECUTABLE)
 # ----------------------------------------------------------------------------
 # get version of found BASH executable
 if (BASH_EXECUTABLE)
+  set(ENV{LANG} "en_US.UTF-8")
   execute_process (COMMAND "${BASH_EXECUTABLE}" --version OUTPUT_VARIABLE _BASH_STDOUT ERROR_VARIABLE _BASH_STDERR)
   if (_BASH_STDOUT MATCHES "version ([0-9]+)\\.([0-9]+)\\.([0-9]+)")
     set (BASH_VERSION_MAJOR "${CMAKE_MATCH_1}")
