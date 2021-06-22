@@ -78,22 +78,28 @@ function(set_target_processor_type out)
 
     else()
         if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-            set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
             if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM")
                 set(processor "arm")
             elseif("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM64")
                 set(processor "arm64")
             else()
                 set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
+				# Versions of MSVC prior to VS2019 search for supporting dlls.
+				# MSVC in VS 2019 maybe loads them via relative paths so it
+				# just works. To make earlier versions work set the WORKING_DIR
+				# to the location of the support dlls.
+				string(REGEX REPLACE "/VC/.*$" "/Common7/IDE" compiler_support_dir ${CMAKE_C_COMPILER})
                 execute_process(
                     COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
+					WORKING_DIRECTORY ${compiler_support_dir}
                     OUTPUT_VARIABLE processor
                     OUTPUT_STRIP_TRAILING_WHITESPACE
                     # Specify this to block MSVC's output of the source file name
                     # so as not to trigger PowerShell's stop-on-error in CI.
                     # Unfortunately it suppresses all compile errors too hence
-                    # the special case for MSVC.
-                    ERROR_QUIET
+					# the special case for MSVC. Which was convenient to have
+					# when we found the issue with earlier versions of VS.
+					ERROR_QUIET
                 )
             endif()
         else()
