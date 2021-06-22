@@ -84,11 +84,15 @@ function(set_target_processor_type out)
                 set(processor "arm64")
             else()
                 set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
-                # Versions of MSVC prior to VS2019 search for supporting dlls.
-                # MSVC in VS 2019 maybe loads them via relative paths so it
-                # just works. To make earlier versions work set the WORKING_DIR
-                # to the location of the support dlls.
-                string(REGEX REPLACE "/VC/.*$" "/Common7/IDE" compiler_support_dir ${CMAKE_C_COMPILER})
+                # Versions of MSVC prior to VS2019 have a supporting dll which
+                # must be found along the search path. MSVC in VS 2019 just
+                # works. Whether due to not having this supporting dll or using
+                # a different way to locate it, is unknown. To make earlier
+                # versions work set the WORKING_DIR to the location of the
+                # support dll to ensure it is found.
+                string(REGEX REPLACE "/VC/.*$" "/Common7/IDE"
+                       compiler_support_dir
+                       ${CMAKE_C_COMPILER})
                 execute_process(
                     COMMAND ${C_PREPROCESS} "${CMAKE_BINARY_DIR}/cputypetest.c"
                     WORKING_DIRECTORY ${compiler_support_dir}
@@ -162,7 +166,7 @@ function(set_target_processor_type out)
         endif()
 
         string(STRIP "${processor}" processor)
-        message(STATUS "*** set_target_processor_type ***: processor is ${processor}")
+        #message(STATUS "*** set_target_processor_type ***: processor is ${processor}")
         set(${out} ${processor} PARENT_SCOPE)
     endif()
 endfunction(set_target_processor_type)
