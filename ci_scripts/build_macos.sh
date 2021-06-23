@@ -67,7 +67,7 @@ echo "Build KTX-Software (macOS universal binary Release)"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake --build . --config Release | tee -a fullbuild.log | xcpretty
 else
-  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | tee -a fullbuild.log | xcpretty
+  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 fi
 echo "Test KTX-Software (macOS universal binary Release)"
 ctest -C Release # --verbose
