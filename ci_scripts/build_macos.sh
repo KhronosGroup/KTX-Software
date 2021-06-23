@@ -15,7 +15,7 @@ XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQ
 export PATH="${VULKAN_SDK}/bin:$PATH"
 
 if [ -z "$DEPLOY_BUILD_DIR" ]; then
-DEPLOY_BUILD_DIR=build-macos-universal
+  DEPLOY_BUILD_DIR=build-macos-universal
 fi
 
 #
@@ -37,6 +37,7 @@ if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
   -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
 else # No secure variables means a PR or fork build.
+  echo "************* No Secure variables. ******************"
   cmake -GXcode -B$DEPLOY_BUILD_DIR \
   -DKTX_FEATURE_DOC=ON \
   -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
@@ -66,7 +67,7 @@ echo "Build KTX-Software (macOS universal binary Release)"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake --build . --config Release | tee -a fullbuild.log | xcpretty
 else
-  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
+  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | tee -a fullbuild.log | xcpretty
 fi
 echo "Test KTX-Software (macOS universal binary Release)"
 ctest -C Release # --verbose
