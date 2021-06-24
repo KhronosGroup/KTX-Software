@@ -29,26 +29,28 @@ fi
 echo "Configure KTX-Software (macOS universal binary) without SSE support"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake -GXcode -B$DEPLOY_BUILD_DIR \
-  -DKTX_FEATURE_DOC=ON \
   -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
-  -DBASISU_SUPPORT_SSE=OFF \
+  -DKTX_FEATURE_DOC=ON \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
+  -DBASISU_SUPPORT_SSE=OFF \
   -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
   -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
   -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
 else # No secure variables means a PR or fork build.
   echo "************* No Secure variables. ******************"
   cmake -GXcode -B$DEPLOY_BUILD_DIR \
-  -DKTX_FEATURE_DOC=ON \
   -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
-  -DBASISU_SUPPORT_SSE=OFF \
-  -DKTX_FEATURE_LOADTEST_APPS=ON
+  -DKTX_FEATURE_DOC=ON \
+  -DKTX_FEATURE_LOADTEST_APPS=ON \
+  -DBASISU_SUPPORT_SSE=OFF
 fi
 
 echo "Configure KTX-Software (macOS x86_64) with SSE support"
 cmake -GXcode -Bbuild-macos-sse \
   -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+  -DKTX_FEATURE_LOADTEST_APPS=ON \
   -DBASISU_SUPPORT_SSE=ON
+
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
