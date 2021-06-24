@@ -39,6 +39,7 @@ jobs:
         # This is just to tell the install script where to install.
         - VULKAN_INSTALL_DIR="$HOME/VulkanSDK/$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
+        - DEPLOY_BUILD_DIR=build-macos-universal
       compiler: clang
       osx_image: xcode12.4
 
@@ -134,7 +135,7 @@ deploy:
     #edge: true # Use bleeding edge (dplv2)
     skip_cleanup: true
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    local_dir: build-macos/docs/html
+    local_dir: $DEPLOY_BUILD_DIR/docs/html
     on:
       #branch: master
       condition: $TRAVIS_OS_NAME = osx
@@ -147,7 +148,7 @@ deploy:
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
-      - build-macos/KTX-Software-*.pkg
+      - $DEPLOY_BUILD_DIR/KTX-Software-*.pkg
     # This goes to the release description so covers all versions.
     # These are dpl v2 parameters.
     #release_notes_file: RELEASE_NOTES.md
