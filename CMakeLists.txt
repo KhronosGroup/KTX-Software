@@ -641,11 +641,10 @@ add_subdirectory(interface/basisu_c_binding)
 
 # Only one architecture is supported at once, if neither of
 # ISA_SSE41 and ISA_SSE2  are defined ISA_AVX2 is chosen.
-# If ISA_AVX2 fails to compile user must chose other x86 options
+# If ISA_AVX2 fails to compile user must chose other x86 options.
 # On arm based systems ISA_NEON is default
 
 if (${ISA_NONE})
-    set(ISA_NONE ON)
     set(ASTC_LIB_NAME astcenc-none-static)
 else()
     if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
@@ -662,17 +661,12 @@ else()
             set(ISA_AVX2 OFF)
             set(ASTCENC_POPCNT 0)
             set(ASTC_LIB_NAME astcenc-none-static)
-        else()
-            set(ARCH x64 CACHE STRING "Target architecture")
         endif()
-    elseif(CPU_ARCHITECTURE STREQUAL arm OR CPU_ARCHITECTURE STREQUAL armv7
-           OR CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-        set(ISA_NEON ON)
+    elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
         set(ASTC_LIB_NAME astcenc-neon-static)
-        set(ARCH aarch64 CACHE STRING "Target architecture")
-        if(CPU_ARCHITECTURE STREQUAL armv7)
-           set(ARCH aarch32 CACHE STRING "Target architecture" FORCE)
-        endif()
+    else()
+        message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
+        set(ISA_NONE ON)
     endif()
 endif()
 

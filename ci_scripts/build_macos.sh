@@ -37,7 +37,7 @@ else # No secure variables means a PR or fork build.
 fi
 
 echo "Configure KTX-Software (macOS) without SSE support"
-cmake -GXcode -Bbuild-macos-nosse -DBASISU_SUPPORT_SSE=OFF
+cmake -GXcode -Bbuild-macos-nosse -DBASISU_SUPPORT_SSE=OFF -DISA_NONE=ON
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
@@ -91,7 +91,7 @@ popd
 
 echo "Configure KTX-Software (iOS)"
 
-cmake -GXcode -Bbuild-ios -DARCH=aarch64 -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
 cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
