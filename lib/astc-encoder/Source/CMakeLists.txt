@@ -27,46 +27,29 @@ else()
     set(CODEC enc)
 endif()
 
-# - - - - - - - - - - - - - - - - - -
-# No architecture-specific SIMD
-
-if (${ISA_NONE})
-    set(ISA_SIMD none)
+if (${UNIVERSAL_BUILD})
+    if (${ISA_AVX2})
+        set(ISA_SIMD "avx2")
+    elseif (${ISA_SSE41})
+        set(ISA_SIMD "sse4.1")
+    elseif (${ISA_SSE2})
+        set(ISA_SIMD "sse2")
+    endif()
     include(cmake_core.cmake)
-endif()
+else()
+    set(ARTEFACTS none neon avx2 sse4.1 sse2)
+    set(CONFIGS ${ISA_NONE} ${ISA_NEON} ${ISA_AVX2} ${ISA_SSE41} ${ISA_SSE2})
+    list(LENGTH ARTEFACTS ARTEFACTS_LEN)
+    math(EXPR ARTEFACTS_LEN "${ARTEFACTS_LEN} - 1")
 
-# - - - - - - - - - - - - - - - - - -
-# Implicit host architecture-specific SIMD
-
-if (${ISA_NATIVE})
-    set(ISA_SIMD native)
-    include(cmake_core.cmake)
-endif()
-
-# - - - - - - - - - - - - - - - - - -
-# Armv8-A architecture-specific SIMD
-
-if (${ISA_NEON})
-    set(ISA_SIMD neon)
-    include(cmake_core.cmake)
-endif()
-
-# - - - - - - - - - - - - - - - - - -
-# x86-64 architecture-specific SIMD
-
-if (${ISA_AVX2})
-    set(ISA_SIMD avx2)
-    include(cmake_core.cmake)
-endif()
-
-if (${ISA_SSE41})
-    set(ISA_SIMD sse4.1)
-    include(cmake_core.cmake)
-endif()
-
-if (${ISA_SSE2})
-    set(ISA_SIMD sse2)
-    include(cmake_core.cmake)
+    foreach(INDEX RANGE ${ARTEFACTS_LEN})
+        list(GET ARTEFACTS ${INDEX} ARTEFACT)
+        list(GET CONFIGS ${INDEX} CONFIG)
+        if(${CONFIG})
+            set(ISA_SIMD ${ARTEFACT})
+            include(cmake_core.cmake)
+        endif()
+    endforeach()
 endif()
 
 # - - - - - - - - - - - - - - - - - -

@@ -800,7 +800,6 @@ astcenc_error astcenc_context_alloc(
 
 	*context = ctx;
 
-	// TODO: Currently static memory; should move to context memory
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
 	prepare_angular_tables();
 #endif

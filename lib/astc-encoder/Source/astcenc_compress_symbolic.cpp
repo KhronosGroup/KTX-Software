@@ -271,14 +271,12 @@ static float compress_symbolic_block_for_partition_1plane(
 	uint8_t *dec_weights_quant_pvalue = tmpbuf.dec_weights_quant_pvalue;
 
 	// For each decimation mode, compute an ideal set of weights with no quantization
-	for (unsigned int i = 0; i < bsd.decimation_mode_count; i++)
+	unsigned int max_decimation_modes = only_always ? bsd.always_decimation_mode_count
+	                                                : bsd.decimation_mode_count;
+	promise(max_decimation_modes > 0);
+	for (unsigned int i = 0; i < max_decimation_modes; i++)
 	{
 		const auto& dm = bsd.get_decimation_mode(i);
-		if (only_always && !dm.percentile_always)
-		{
-			break;
-		}
-
 		if (dm.maxprec_1plane < 0 || !dm.percentile_hit)
 		{
 			continue;
@@ -330,14 +328,12 @@ static float compress_symbolic_block_for_partition_1plane(
 		qwt_errors[i] = 1e38f;
 	}
 
-	for (unsigned int i = 0; i < bsd.block_mode_count; ++i)
+	unsigned int max_block_modes = only_always ? bsd.always_block_mode_count
+	                                           : bsd.block_mode_count;
+	promise(max_block_modes > 0);
+	for (unsigned int i = 0; i < max_block_modes; ++i)
 	{
 		const block_mode& bm = bsd.block_modes[i];
-		if (only_always && !bm.percentile_always)
-		{
-			break;
-		}
-
 		if (bm.is_dual_plane || !bm.percentile_hit)
 		{
 			continue;
@@ -359,9 +355,9 @@ static float compress_symbolic_block_for_partition_1plane(
 		int bitcount = free_bits_for_partition_count[partition_count] - bits_used_by_weights;
 		if (bitcount <= 0)
 		{
-			qwt_errors[i] = 1e38f;
 			continue;
 		}
+
 		qwt_bitcounts[i] = bitcount;
 
 		// Generate the optimized set of weights for the weight mode
@@ -533,7 +529,9 @@ static float compress_symbolic_block_for_partition_1plane(
 
 					if (errorval < tune_errorval_threshold)
 					{
-						return errorval;
+						// Skip remaining candidates - this is "good enough"
+						i = candidate_count;
+						break;
 					}
 				}
 			}
@@ -572,7 +570,9 @@ static float compress_symbolic_block_for_partition_1plane(
 
 				if (errorval < tune_errorval_threshold)
 				{
-					return errorval;
+					// Skip remaining candidates - this is "good enough"
+					i = candidate_count;
+					break;
 				}
 			}
 
@@ -640,15 +640,15 @@ static float compress_symbolic_block_for_partition_2planes(
 		    ei1,
 		    eix1[i],
 		    di,
-		    dec_weights_ideal_value + (2 * i) * BLOCK_MAX_WEIGHTS,
-		    dec_weights_ideal_sig + (2 * i) * BLOCK_MAX_WEIGHTS);
+		    dec_weights_ideal_value + i * BLOCK_MAX_WEIGHTS,
+		    dec_weights_ideal_sig + i * BLOCK_MAX_WEIGHTS);
 
 		compute_ideal_weights_for_decimation(
 		    ei2,
 		    eix2[i],
 		    di,
-		    dec_weights_ideal_value + (2 * i + 1) * BLOCK_MAX_WEIGHTS,
-		    dec_weights_ideal_sig + (2 * i + 1) * BLOCK_MAX_WEIGHTS);
+		    dec_weights_ideal_value + i * BLOCK_MAX_WEIGHTS + WEIGHTS_PLANE2_OFFSET,
+		    dec_weights_ideal_sig +  i * BLOCK_MAX_WEIGHTS + WEIGHTS_PLANE2_OFFSET);
 	}
 
 	// Compute maximum colors for the endpoints and ideal weights, then for each endpoint and ideal
@@ -719,12 +719,13 @@ static float compress_symbolic_block_for_partition_2planes(
 		unsigned int bits_used_by_weights = get_ise_sequence_bitcount(
 		    2 * di.weight_count,
 		    bm.get_weight_quant_mode());
+
 		int bitcount = 113 - 4 - bits_used_by_weights;
 		if (bitcount <= 0)
 		{
-			qwt_errors[i] = 1e38f;
 			continue;
 		}
+
 		qwt_bitcounts[i] = bitcount;
 
 		// Generate the optimized set of weights for the mode
@@ -732,18 +733,18 @@ static float compress_symbolic_block_for_partition_2planes(
 		    di,
 		    weight_low_value1[i],
 		    weight_high_value1[i],
-		    dec_weights_ideal_value + BLOCK_MAX_WEIGHTS * (2 * decimation_mode),
-		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * (2 * i),
-		    dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * (2 * i),
+		    dec_weights_ideal_value + BLOCK_MAX_WEIGHTS * decimation_mode,
+		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * i,
+		    dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * i,
 		    bm.get_weight_quant_mode());
 
 		compute_quantized_weights_for_decimation(
 		    di,
 		    weight_low_value2[i],
 		    weight_high_value2[i],
-		    dec_weights_ideal_value + BLOCK_MAX_WEIGHTS * (2 * decimation_mode + 1),
-		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * (2 * i + 1),
-		    dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * (2 * i + 1),
+		    dec_weights_ideal_value + BLOCK_MAX_WEIGHTS * decimation_mode + WEIGHTS_PLANE2_OFFSET,
+		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * i + WEIGHTS_PLANE2_OFFSET,
+		    dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * i + WEIGHTS_PLANE2_OFFSET,
 		    bm.get_weight_quant_mode());
 
 		// Compute weight quantization errors for the block mode
@@ -751,8 +752,8 @@ static float compress_symbolic_block_for_partition_2planes(
 		    eix1[decimation_mode],
 		    eix2[decimation_mode],
 		    di,
-		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * (2 * i),
-		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * (2 * i + 1));
+		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * i,
+		    dec_weights_quant_uvalue + BLOCK_MAX_WEIGHTS * i + WEIGHTS_PLANE2_OFFSET);
 	}
 
 	// Decide the optimal combination of color endpoint encodings and weight encodings
@@ -801,8 +802,8 @@ static float compress_symbolic_block_for_partition_2planes(
 
 		symbolic_compressed_block workscb;
 
-		uint8_t* u8_weight1_src = dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * (2 * bm_packed_index);
-		uint8_t* u8_weight2_src = dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * (2 * bm_packed_index + 1);
+		uint8_t* u8_weight1_src = dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * bm_packed_index;
+		uint8_t* u8_weight2_src = dec_weights_quant_pvalue + BLOCK_MAX_WEIGHTS * bm_packed_index + WEIGHTS_PLANE2_OFFSET;
 
 		for (int j = 0; j < di.weight_count; j++)
 		{
@@ -872,7 +873,9 @@ static float compress_symbolic_block_for_partition_2planes(
 
 					if (errorval < tune_errorval_threshold)
 					{
-						return errorval;
+						// Skip remaining candidates - this is "good enough"
+						i = candidate_count;
+						break;
 					}
 				}
 			}
@@ -911,7 +914,9 @@ static float compress_symbolic_block_for_partition_2planes(
 
 				if (errorval < tune_errorval_threshold)
 				{
-					return errorval;
+					// Skip remaining candidates - this is "good enough"
+					i = candidate_count;
+					break;
 				}
 			}
 
@@ -971,9 +976,6 @@ void expand_deblock_weights(
  * This approach creates relatively large error block tables, but it allows a very flexible level of
  * control over how specific texels and channels are prioritized by the compressor.
  *
- * TODO: Inline the expand_deblock_weights here? The computation is cheap, and it would remove some
- * memory allocation from the context, at the expense of recomputing per block.
- *
  * @param      ctx     The compressor context and configuration.
  * @param      image   The input image information.
  * @param      bsd     The block size information.
@@ -1030,7 +1032,6 @@ static float prepare_error_weight_block(
 					// Compute derivative if we have any use of LNS
 					if (any(lns_mask))
 					{
-						// TODO: Can we avoid some of the multi-type translation?
 						vfloat4 data = blk.texel(idx);
 						vint4 datai = lns_to_sf16(float_to_int(data));
 
@@ -1426,7 +1427,13 @@ void compress_block(
 
 	static const float errorval_overshoot = 1.0f / ctx.config.tune_refinement_mse_overshoot;
 
-	int start_trial = bsd->texel_count < (int)TUNE_MAX_TEXELS_MODE0_FASTPATH ? 1 : 0;
+	// Only enable MODE0 fast path (trial 0) if 2D and more than 25 texels
+	int start_trial = 1;
+	if ((bsd->texel_count >= TUNE_MIN_TEXELS_MODE0_FASTPATH) && (bsd->zdim == 1))
+	{
+		start_trial = 0;
+	}
+
 	for (int i = start_trial; i < 2; i++)
 	{
 		TRACE_NODE(node1, "pass");

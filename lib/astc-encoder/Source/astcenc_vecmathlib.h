@@ -442,7 +442,6 @@ static ASTCENC_SIMD_INLINE vint4 unorm16_to_sf16(vint4 p)
 	vint4 lz = clz(p) - 16;
 #endif
 
-	// TODO: Could use AVX2 _mm_sllv_epi32() instead of p * 2^<shift>
 	p = p * two_to_the_n(lz + 1);
 	p = p & vint4(0xFFFF);
 

@@ -246,7 +246,6 @@ void fetch_image_block(
 	}
 
 	// Reverse the encoding so we store origin block in the original format
-	// TODO: Move this to when we consume it, as we rarely do?
 	vfloat4 data_enc = blk.texel(0);
 	vfloat4 data_enc_unorm = data_enc / 65535.0f;
 	vfloat4 data_enc_lns = vfloat4::zero();

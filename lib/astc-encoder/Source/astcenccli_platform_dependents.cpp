@@ -103,7 +103,7 @@ double get_time()
 /* See header for documentation */
 int get_cpu_count()
 {
-	return sysconf(_SC_NPROCESSORS_ONLN);
+	return static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
 }
 
 /* See header for documentation */

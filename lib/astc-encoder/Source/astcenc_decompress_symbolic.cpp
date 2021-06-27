@@ -109,7 +109,6 @@ static inline vfloat4 decode_texel(
 	vint4 color_lns = vint4::zero();
 	vint4 color_unorm = vint4::zero();
 
-	// TODO: Why bounce this via fp16 first?
 	if (any(lns_mask))
 	{
 		color_lns = lns_to_sf16(data);
@@ -245,7 +244,6 @@ void decompress_symbolic_block(
 			}
 		}
 
-		// TODO: Skip this and add constant color transfer to img block?
 		for (unsigned int i = 0; i < bsd.texel_count; i++)
 		{
 			blk.data_r[i] = color.lane<0>();

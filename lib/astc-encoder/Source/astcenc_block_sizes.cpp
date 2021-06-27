@@ -801,7 +801,6 @@ static int construct_dt_entry_2d(
 
 	// Default to not enabled - we'll populate these based on active block modes
 	bsd.decimation_modes[dm_index].percentile_hit = false;
-	bsd.decimation_modes[dm_index].percentile_always = false;
 
 	bsd.decimation_tables[dm_index] = di;
 
@@ -852,6 +851,8 @@ static void construct_block_size_descriptor_2d(
 
 	// Construct the list of block formats referencing the decimation tables
 	unsigned int packed_idx = 0;
+	unsigned int always_block_mode_count = 0;
+	unsigned int always_decimation_mode_count = 0;
 
 	// Iterate twice; first time keep the "always" blocks, second time keep the "non-always" blocks.
 	// This ensures that the always block modes and decimation modes are at the start of the list.
@@ -862,7 +863,6 @@ static void construct_block_size_descriptor_2d(
 			unsigned int x_weights, y_weights;
 			bool is_dual_plane;
 
-			// TODO: Make this an enum? It's been validated.
 			unsigned int quant_mode;
 
 	#if !defined(ASTCENC_DECOMPRESS_ONLY)
@@ -909,28 +909,30 @@ static void construct_block_size_descriptor_2d(
 			{
 				decimation_mode = construct_dt_entry_2d(x_texels, y_texels, x_weights, y_weights, bsd);
 				decimation_mode_index[y_weights * 16 + x_weights] = decimation_mode;
+
+	#if !defined(ASTCENC_DECOMPRESS_ONLY)
+				if (percentile == 0.0f)
+				{
+					always_decimation_mode_count++;
+				}
+	#endif
 			}
 
 	#if !defined(ASTCENC_DECOMPRESS_ONLY)
 			// Flatten the block mode heuristic into some precomputed flags
 			if (percentile == 0.0f)
 			{
-				bsd.block_modes[packed_idx].percentile_always = true;
-				bsd.decimation_modes[decimation_mode].percentile_always = true;
-
+				always_block_mode_count++;
 				bsd.block_modes[packed_idx].percentile_hit = true;
 				bsd.decimation_modes[decimation_mode].percentile_hit = true;
 			}
 			else if (percentile <= mode_cutoff)
 			{
-				bsd.block_modes[packed_idx].percentile_always = false;
-
 				bsd.block_modes[packed_idx].percentile_hit = true;
 				bsd.decimation_modes[decimation_mode].percentile_hit = true;
 			}
 			else
 			{
-				bsd.block_modes[packed_idx].percentile_always = false;
 				bsd.block_modes[packed_idx].percentile_hit = false;
 			}
 	#endif
@@ -945,6 +947,11 @@ static void construct_block_size_descriptor_2d(
 	}
 
 	bsd.block_mode_count = packed_idx;
+	bsd.always_block_mode_count = always_block_mode_count;
+	bsd.always_decimation_mode_count = always_decimation_mode_count;
+
+	assert(bsd.always_block_mode_count > 0);
+	assert(bsd.always_decimation_mode_count > 0);
 
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
 	delete[] percentiles;
@@ -956,7 +963,6 @@ static void construct_block_size_descriptor_2d(
 		bsd.decimation_modes[i].maxprec_1plane = -1;
 		bsd.decimation_modes[i].maxprec_2planes = -1;
 		bsd.decimation_modes[i].percentile_hit = false;
-		bsd.decimation_modes[i].percentile_always = false;
 		bsd.decimation_tables[i] = nullptr;
 	}
 
@@ -1039,7 +1045,6 @@ static void construct_block_size_descriptor_3d(
 				bsd.decimation_modes[decimation_mode_count].maxprec_1plane = static_cast<int8_t>(maxprec_1plane);
 				bsd.decimation_modes[decimation_mode_count].maxprec_2planes = static_cast<int8_t>(maxprec_2planes);
 				bsd.decimation_modes[decimation_mode_count].percentile_hit = false;
-				bsd.decimation_modes[decimation_mode_count].percentile_always = false;
 				bsd.decimation_tables[decimation_mode_count] = di;
 				decimation_mode_count++;
 			}
@@ -1052,7 +1057,6 @@ static void construct_block_size_descriptor_3d(
 		bsd.decimation_modes[i].maxprec_1plane = -1;
 		bsd.decimation_modes[i].maxprec_2planes = -1;
 		bsd.decimation_modes[i].percentile_hit = false;
-		bsd.decimation_modes[i].percentile_always = false;
 		bsd.decimation_tables[i] = nullptr;
 	}
 
@@ -1093,9 +1097,7 @@ static void construct_block_size_descriptor_3d(
 
 		// No percentile table, so enable everything all the time ...
 		bsd.block_modes[packed_idx].percentile_hit = true;
-		bsd.block_modes[packed_idx].percentile_always = true;
 		bsd.decimation_modes[decimation_mode].percentile_hit = true;
-		bsd.decimation_modes[decimation_mode].percentile_always = true;
 
 		bsd.block_mode_packed_index[i] = static_cast<uint16_t>(packed_idx);
 
@@ -1103,6 +1105,10 @@ static void construct_block_size_descriptor_3d(
 	}
 
 	bsd.block_mode_count = packed_idx;
+
+	// These are never used = the MODE0 fast path is skipped for 3D blocks
+	bsd.always_block_mode_count = 0;
+	bsd.always_decimation_mode_count = 0;
 
 	// Determine the texels to use for kmeans clustering.
 	assign_kmeans_texels(bsd);

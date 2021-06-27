@@ -353,7 +353,6 @@ static astcenc_image* load_uncomp_file(
 		{
 			unsigned int dim_x = slices[0]->dim_x;
 			unsigned int dim_y = slices[0]->dim_y;
-			// TODO: Make this 32 to use direct pass though as float
 			int bitness = is_hdr ? 16 : 8;
 			int slice_size = dim_x * dim_y;
 
@@ -362,7 +361,6 @@ static astcenc_image* load_uncomp_file(
 			// Combine 2D source images into one 3D image
 			for (unsigned int z = 0; z < dim_z; z++)
 			{
-				// TODO: This is now a pointless copy, so don't do this ...
 				if (image->data_type == ASTCENC_TYPE_U8)
 				{
 					uint8_t* data8 = static_cast<uint8_t*>(image->data[z]);
@@ -1449,7 +1447,6 @@ int main(
 	{
 		if (ends_with(input_filename, ".astc"))
 		{
-			// TODO: Just pass on a std::string
 			error = load_cimage(input_filename.c_str(), image_comp);
 			if (error)
 			{
@@ -1458,7 +1455,6 @@ int main(
 		}
 		else if (ends_with(input_filename, ".ktx"))
 		{
-			// TODO: Just pass on a std::string
 			bool is_srgb;
 			error = load_ktx_compressed_image(input_filename.c_str(), is_srgb, image_comp);
 			if (error)
@@ -1678,7 +1674,6 @@ int main(
 		if (out_bitness == 0)
 		{
 			bool is_hdr = (config.profile == ASTCENC_PRF_HDR) || (config.profile == ASTCENC_PRF_HDR_RGB_LDR_A);
-			// TODO: Make this 32 to use direct passthrough as float
 			out_bitness = is_hdr ? 16 : 8;
 		}
 

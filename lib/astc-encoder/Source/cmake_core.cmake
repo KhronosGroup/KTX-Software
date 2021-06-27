@@ -15,12 +15,18 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-project(astc${CODEC}-${ISA_SIMD})
+if (${UNIVERSAL_BUILD})
+    set(ASTC_TARGET astc${CODEC})
+else()
+    set(ASTC_TARGET astc${CODEC}-${ISA_SIMD})
+endif()
+
+project(${ASTC_TARGET})
 
 set(GNU_LIKE "GNU,Clang,AppleClang")
 set(CLANG_LIKE "Clang,AppleClang")
 
-add_library(astc${CODEC}-${ISA_SIMD}-static
+add_library(${ASTC_TARGET}-static
     STATIC
         astcenc_averages_and_directions.cpp
         astcenc_block_sizes.cpp
@@ -46,11 +52,12 @@ add_library(astc${CODEC}-${ISA_SIMD}-static
         astcenc_weight_align.cpp
         astcenc_weight_quant_xfer_tables.cpp)
 
-target_include_directories(astc${CODEC}-${ISA_SIMD}-static
+target_include_directories(${ASTC_TARGET}-static
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(astc${CODEC}-${ISA_SIMD}
+if (${CLI})
+    add_executable(${ASTC_TARGET}
         astcenccli_error_metrics.cpp
         astcenccli_image.cpp
         astcenccli_image_external.cpp
@@ -59,9 +66,10 @@ add_executable(astc${CODEC}-${ISA_SIMD}
         astcenccli_toplevel.cpp
         astcenccli_toplevel_help.cpp)
 
-target_link_libraries(astc${CODEC}-${ISA_SIMD}
-    PRIVATE
-        astc${CODEC}-${ISA_SIMD}-static)
+    target_link_libraries(${ASTC_TARGET}
+        PRIVATE
+            ${ASTC_TARGET}-static)
+endif()
 
 macro(astcenc_set_properties NAME)
 
@@ -138,63 +146,80 @@ macro(astcenc_set_properties NAME)
 
     # Set up configuration for SIMD ISA builds
     if(${ISA_SIMD} MATCHES "none")
-        target_compile_definitions(${NAME}
-            PRIVATE
-                ASTCENC_NEON=0
-                ASTCENC_SSE=0
-                ASTCENC_AVX=0
-                ASTCENC_POPCNT=0
-                ASTCENC_F16C=0)
+        if (NOT ${UNIVERSAL_BUILD})
+            target_compile_definitions(${NAME}
+                PRIVATE
+                    ASTCENC_NEON=0
+                    ASTCENC_SSE=0
+                    ASTCENC_AVX=0
+                    ASTCENC_POPCNT=0
+                    ASTCENC_F16C=0)
+        endif()
 
     elseif(${ISA_SIMD} MATCHES "neon")
-        target_compile_definitions(${NAME}
-            PRIVATE
-                ASTCENC_NEON=1
-                ASTCENC_SSE=0
-                ASTCENC_AVX=0
-                ASTCENC_POPCNT=0
-                ASTCENC_F16C=0)
+        if (NOT ${UNIVERSAL_BUILD})
+            target_compile_definitions(${NAME}
+                PRIVATE
+                    ASTCENC_NEON=1
+                    ASTCENC_SSE=0
+                    ASTCENC_AVX=0
+                    ASTCENC_POPCNT=0
+                    ASTCENC_F16C=0)
+        endif()
 
-    elseif(${ISA_SIMD} MATCHES "sse2")
-        target_compile_definitions(${NAME}
-            PRIVATE
-                ASTCENC_NEON=0
-                ASTCENC_SSE=20
-                ASTCENC_AVX=0
-                ASTCENC_POPCNT=0
-                ASTCENC_F16C=0)
+    elseif((${ISA_SIMD} MATCHES "sse2") OR (${UNIVERSAL_BUILD} AND ${ISA_SSE2}))
+        if (NOT ${UNIVERSAL_BUILD})
+            target_compile_definitions(${NAME}
+                PRIVATE
+                    ASTCENC_NEON=0
+                    ASTCENC_SSE=20
+                    ASTCENC_AVX=0
+                    ASTCENC_POPCNT=0
+                    ASTCENC_F16C=0)
+        endif()
 
-    elseif(${ISA_SIMD} MATCHES "sse4.1")
-        target_compile_definitions(${NAME}
-            PRIVATE
-                ASTCENC_NEON=0
-                ASTCENC_SSE=41
-                ASTCENC_AVX=0
-                ASTCENC_POPCNT=1
-                ASTCENC_F16C=0)
-
+        # These settings are needed on AppleClang as SSE4.1 is on by default
+        # Suppress unused argument for macOS universal build behavior
         target_compile_options(${NAME}
             PRIVATE
-                $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.1 -mpopcnt>)
+                $<$<CXX_COMPILER_ID:AppleClang>:-msse2>
+                $<$<CXX_COMPILER_ID:AppleClang>:-mno-sse4.1>
+                $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
 
-    elseif(${ISA_SIMD} MATCHES "avx2")
-        target_compile_definitions(${NAME}
+    elseif((${ISA_SIMD} MATCHES "sse4.1") OR (${UNIVERSAL_BUILD} AND ${ISA_SSE41}))
+        if (NOT ${UNIVERSAL_BUILD})
+            target_compile_definitions(${NAME}
+                PRIVATE
+                    ASTCENC_NEON=0
+                    ASTCENC_SSE=41
+                    ASTCENC_AVX=0
+                    ASTCENC_POPCNT=1
+                    ASTCENC_F16C=0)
+        endif()
+
+        # Suppress unused argument for macOS universal build behavior
+        target_compile_options(${NAME}
             PRIVATE
-                ASTCENC_NEON=0
-                ASTCENC_SSE=41
-                ASTCENC_AVX=2
-                ASTCENC_POPCNT=1
-                ASTCENC_F16C=1)
+                $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.1 -mpopcnt>
+                $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
 
+    elseif((${ISA_SIMD} MATCHES "avx2") OR (${UNIVERSAL_BUILD} AND ${ISA_AVX2}))
+        if (NOT ${UNIVERSAL_BUILD})
+            target_compile_definitions(${NAME}
+                PRIVATE
+                    ASTCENC_NEON=0
+                    ASTCENC_SSE=41
+                    ASTCENC_AVX=2
+                    ASTCENC_POPCNT=1
+                    ASTCENC_F16C=1)
+        endif()
+
+        # Suppress unused argument for macOS universal build behavior
         target_compile_options(${NAME}
             PRIVATE
                 $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
-                $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>)
-
-    elseif(${ISA_SIMD} MATCHES "native")
-        target_compile_options(${NAME}
-            PRIVATE
-                $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-march=native>)
+                $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
+                $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
 
     endif()
 
@@ -219,8 +244,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             COMPILE_FLAGS ${EXTERNAL_CXX_FLAGS})
 endif()
 
-astcenc_set_properties(astc${CODEC}-${ISA_SIMD})
+astcenc_set_properties(${ASTC_TARGET}-static)
 
-astcenc_set_properties(astc${CODEC}-${ISA_SIMD}-static)
-
-install(TARGETS astc${CODEC}-${ISA_SIMD} DESTINATION ${PACKAGE_ROOT})
+if (${CLI})
+    astcenc_set_properties(${ASTC_TARGET})
+    install(TARGETS ${ASTC_TARGET} DESTINATION ${PACKAGE_ROOT})
+endif()
