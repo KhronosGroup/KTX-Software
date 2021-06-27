@@ -180,24 +180,10 @@ astcenc_image* astc_img_from_floatx4_array(
 	unsigned int dim_y,
 	bool y_flip
 ) {
-	// TODO: Make this 32 to use direct passthough as float
 	astcenc_image* img = alloc_image(16, dim_x, dim_y, 1);
 
 	for (unsigned int y = 0; y < dim_y; y++)
 	{
-#if 0
-		float*** data32 = static_cast<float***>(img->data);
-		unsigned int y_src = y_flip ? (dim_y - y - 1) : y;
-		const float* src = data + 4 * dim_x * y_src;
-
-		for (unsigned int x = 0; x < dim_x; x++)
-		{
-			data32[0][y][4 * x    ] = src[4 * x    ];
-			data32[0][y][4 * x + 1] = src[4 * x + 1];
-			data32[0][y][4 * x + 2] = src[4 * x + 2];
-			data32[0][y][4 * x + 3] = src[4 * x + 3];
-		}
-#else
 		uint16_t* data16 = static_cast<uint16_t*>(img->data[0]);
 		unsigned int y_src = y_flip ? (dim_y - y - 1) : y;
 		const float* src = data + 4 * dim_x * y_src;
@@ -216,7 +202,6 @@ astcenc_image* astc_img_from_floatx4_array(
 			data16[(4 * dim_x * y) + (4 * x + 2)] = (uint16_t)colorf16.lane<2>();
 			data16[(4 * dim_x * y) + (4 * x + 3)] = (uint16_t)colorf16.lane<3>();
 		}
-#endif
 	}
 
 	return img;

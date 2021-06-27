@@ -54,15 +54,16 @@
  * deciding how to quantize colors, as not all partitions are equal. For example, some partitions
  * will have far fewer texels than others in the same block.
  *
- * @param      ewb   The block error weights.
- * @param      pi    The partiion info.
- * @param[out] pm    The output metrics; only writes to @c error_weight field.
+ * @param      ewb             The block error weights.
+ * @param      pi              The partiion info.
+ * @param[out] error_weights   The output per-partition error_weight sum.
  */
 static void compute_partition_error_color_weightings(
 	const error_weight_block& ewb,
 	const partition_info& pi,
-	partition_metrics pm[BLOCK_MAX_PARTITIONS]
+	vfloat4 error_weights[BLOCK_MAX_PARTITIONS]
 ) {
+	// TODO: Candidate for 4-group counting
 	int partition_count = pi.partition_count;
 	promise(partition_count > 0);
 
@@ -76,11 +77,10 @@ static void compute_partition_error_color_weightings(
 		for (int j = 0; j < texel_count; j++)
 		{
 			int tidx = pi.texels_of_partition[i][j];
-			error_weight = error_weight + ewb.error_weights[tidx];
+			error_weight += ewb.error_weights[tidx];
 		}
 
-		error_weight = error_weight / pi.partition_texel_count[i];
-		pm[i].error_weight = error_weight;
+		error_weights[i] = error_weight / pi.partition_texel_count[i];
 	}
 }
 
@@ -159,7 +159,6 @@ static void compute_error_squared_rgb_single_partition(
 		vfloat4 dist2 = rp2 - point;
 		samec_err += dot3_s(ews, dist2 * dist2);
 
-		// TODO - this is only used for HDR textures. Can we skip?
 		float param3 = dot3_s(point,  rgbl_pline.bs);
 		vfloat4 rp3 = rgbl_pline.amod + param3 * rgbl_pline.bis;
 		vfloat4 dist3 = rp3 - point;
@@ -203,13 +202,12 @@ static void compute_encoding_choice_errors(
 
 	partition_metrics pms[BLOCK_MAX_PARTITIONS];
 
-	compute_avgs_and_dirs_3_comp(pi, blk, ewb, 3, pms);
+	compute_avgs_and_dirs_3_comp_rgb(pi, blk, ewb, pms);
 
 	for (int i = 0; i < partition_count; i++)
 	{
 		partition_metrics& pm = pms[i];
 
-		// TODO: Can we skip rgb_luma_lines for LDR images?
 		line3 uncor_rgb_lines;
 		line3 samec_rgb_lines;	// for LDR-RGB-scale
 		line3 rgb_luma_lines;	// for HDR-RGB-scale
@@ -249,7 +247,6 @@ static void compute_encoding_choice_errors(
 		samec_rgb_plines.bs   = samec_rgb_lines.b * csf;
 		samec_rgb_plines.bis  = samec_rgb_lines.b * icsf;
 
-		// TODO - this is only used for HDR textures. Can we skip?
 		rgb_luma_plines.amod = (rgb_luma_lines.a - rgb_luma_lines.b * dot3(rgb_luma_lines.a, rgb_luma_lines.b)) * icsf;
 		rgb_luma_plines.bs   = rgb_luma_lines.b * csf;
 		rgb_luma_plines.bis  = rgb_luma_lines.b * icsf;
@@ -1123,9 +1120,9 @@ unsigned int compute_ideal_endpoint_formats(
 	compute_encoding_choice_errors(bsd, blk, pi, ewb, ep, eci);
 
 	// For each partition, compute the error weights to apply for that partition
-	partition_metrics pms[BLOCK_MAX_PARTITIONS];
+	vfloat4 error_weights[BLOCK_MAX_PARTITIONS];
 
-	compute_partition_error_color_weightings(ewb, pi, pms);
+	compute_partition_error_color_weightings(ewb, pi, error_weights);
 
 	float best_error[BLOCK_MAX_PARTITIONS][21][4];
 	int format_of_choice[BLOCK_MAX_PARTITIONS][21][4];
@@ -1133,7 +1130,7 @@ unsigned int compute_ideal_endpoint_formats(
 	{
 		compute_color_error_for_every_integer_count_and_quant_level(
 		    encode_hdr_rgb, encode_hdr_alpha, i,
-		    pi, eci[i], ep, pms[i].error_weight, best_error[i],
+		    pi, eci[i], ep, error_weights[i], best_error[i],
 		    format_of_choice[i]);
 	}
 
@@ -1146,7 +1143,7 @@ unsigned int compute_ideal_endpoint_formats(
 	// that will never be picked as best candidate
 	const int packed_mode_count = bsd.block_mode_count;
 	const int packed_mode_count_simd_up = round_up_to_simd_multiple_vla(packed_mode_count);
-	for (int i = packed_mode_count; i < packed_mode_count_simd_up; ++i)
+	for (int i = packed_mode_count; i < packed_mode_count_simd_up; i++)
 	{
 		errors_of_best_combination[i] = ERROR_CALC_DEFAULT;
 		best_quant_levels[i] = QUANT_2;
@@ -1180,7 +1177,6 @@ unsigned int compute_ideal_endpoint_formats(
 
 		two_partitions_find_best_combination_for_every_quantization_and_integer_count(
 		    best_error, format_of_choice, combined_best_error, formats_of_choice);
-
 
 		for (unsigned int i = 0; i < bsd.block_mode_count; ++i)
 		{

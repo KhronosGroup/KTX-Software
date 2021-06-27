@@ -65,6 +65,10 @@ static const unsigned int quantization_steps_for_level[13] {
 alignas(ASTCENC_VECALIGN) static float sin_table[SINCOS_STEPS][ANGULAR_STEPS];
 alignas(ASTCENC_VECALIGN) static float cos_table[SINCOS_STEPS][ANGULAR_STEPS];
 
+#if !defined(NDEBUG)
+	static bool print_once { true };
+#endif
+
 /* See header for documentation. */
 void prepare_angular_tables()
 {
@@ -279,7 +283,6 @@ static void compute_angular_endpoints_for_quant_levels(
 
 	// Initialize the array to some safe defaults
 	promise(max_quant_steps > 0);
-	// TODO: Why the + 4 in the current code?
 	for (unsigned int i = 0; i < (max_quant_steps + 4); i++)
 	{
 		// Lane<0> = Best error
@@ -327,9 +330,10 @@ static void compute_angular_endpoints_for_quant_levels(
 
 		// Did we find anything?
 #if !defined(NDEBUG)
-		if (bsi < 0)
+		if ((bsi < 0) && print_once)
 		{
-			printf("WARNING: Unable to find encoding within specified error limit\n");
+			print_once = false;
+			printf("INFO: Unable to find full encoding within search error limit\n\n");
 		}
 #endif
 
@@ -463,7 +467,6 @@ static void compute_angular_endpoints_for_quant_levels_lwc(
 
 	// Initialize the array to some safe defaults
 	promise(max_quant_steps > 0);
-	// TODO: Why the + 4 in the current code?
 	for (unsigned int i = 0; i < (max_quant_steps + 4); i++)
 	{
 		best_error[i] = ERROR_CALC_DEFAULT;
@@ -491,9 +494,10 @@ static void compute_angular_endpoints_for_quant_levels_lwc(
 
 		// Did we find anything?
 #if !defined(NDEBUG)
-		if (bsi < 0)
+		if ((bsi < 0) && print_once)
 		{
-			printf("WARNING: Unable to find encoding within specified error limit\n");
+			print_once = false;
+			printf("INFO: Unable to find low weight encoding within search error limit\n\n");
 		}
 #endif
 
@@ -520,15 +524,12 @@ void compute_angular_endpoints_1plane(
 	float low_values[WEIGHTS_MAX_DECIMATION_MODES][12];
 	float high_values[WEIGHTS_MAX_DECIMATION_MODES][12];
 
-	promise(bsd.decimation_mode_count > 0);
-	for (unsigned int i = 0; i < bsd.decimation_mode_count; i++)
+	unsigned int max_decimation_modes = only_always ? bsd.always_decimation_mode_count
+	                                                : bsd.decimation_mode_count;
+	promise(max_decimation_modes > 0);
+	for (unsigned int i = 0; i < max_decimation_modes; i++)
 	{
 		const decimation_mode& dm = bsd.decimation_modes[i];
-		if (only_always && !dm.percentile_always)
-		{
-			break;
-		}
-
 		if (dm.maxprec_1plane < 0 || !dm.percentile_hit)
 		{
 			continue;
@@ -554,15 +555,12 @@ void compute_angular_endpoints_1plane(
 		}
 	}
 
-	promise(bsd.block_mode_count > 0);
-	for (unsigned int i = 0; i < bsd.block_mode_count; ++i)
+	unsigned int max_block_modes = only_always ? bsd.always_block_mode_count
+	                                           : bsd.block_mode_count;
+	promise(max_block_modes > 0);
+	for (unsigned int i = 0; i < max_block_modes; ++i)
 	{
 		const block_mode& bm = bsd.block_modes[i];
-		if (only_always && !bm.percentile_always)
-		{
-			break;
-		}
-
 		if (bm.is_dual_plane || !bm.percentile_hit)
 		{
 			continue;
@@ -607,28 +605,28 @@ void compute_angular_endpoints_2planes(
 		{
 			compute_angular_endpoints_for_quant_levels_lwc(
 				weight_count,
-				dec_weight_quant_uvalue + 2 * i * BLOCK_MAX_WEIGHTS,
-				dec_weight_quant_sig + 2 * i * BLOCK_MAX_WEIGHTS,
+				dec_weight_quant_uvalue + i * BLOCK_MAX_WEIGHTS,
+				dec_weight_quant_sig + i * BLOCK_MAX_WEIGHTS,
 				dm.maxprec_2planes, low_values1[i], high_values1[i]);
 
 			compute_angular_endpoints_for_quant_levels_lwc(
 				weight_count,
-				dec_weight_quant_uvalue + (2 * i + 1) * BLOCK_MAX_WEIGHTS,
-				dec_weight_quant_sig + (2 * i + 1) * BLOCK_MAX_WEIGHTS,
+				dec_weight_quant_uvalue + i * BLOCK_MAX_WEIGHTS + WEIGHTS_PLANE2_OFFSET,
+				dec_weight_quant_sig + i * BLOCK_MAX_WEIGHTS + WEIGHTS_PLANE2_OFFSET,
 				dm.maxprec_2planes, low_values2[i], high_values2[i]);
 		}
 		else
 		{
 			compute_angular_endpoints_for_quant_levels(
 				weight_count,
-				dec_weight_quant_uvalue + 2 * i * BLOCK_MAX_WEIGHTS,
-				dec_weight_quant_sig + 2 * i * BLOCK_MAX_WEIGHTS,
+				dec_weight_quant_uvalue + i * BLOCK_MAX_WEIGHTS,
+				dec_weight_quant_sig + i * BLOCK_MAX_WEIGHTS,
 				dm.maxprec_2planes, low_values1[i], high_values1[i]);
 
 			compute_angular_endpoints_for_quant_levels(
 				weight_count,
-				dec_weight_quant_uvalue + (2 * i + 1) * BLOCK_MAX_WEIGHTS,
-				dec_weight_quant_sig + (2 * i + 1) * BLOCK_MAX_WEIGHTS,
+				dec_weight_quant_uvalue + i * BLOCK_MAX_WEIGHTS + WEIGHTS_PLANE2_OFFSET,
+				dec_weight_quant_sig + i * BLOCK_MAX_WEIGHTS + WEIGHTS_PLANE2_OFFSET,
 				dm.maxprec_2planes, low_values2[i], high_values2[i]);
 		}
 	}

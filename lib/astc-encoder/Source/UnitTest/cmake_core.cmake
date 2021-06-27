@@ -15,18 +15,24 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-add_executable(test-simd-${ISA_SIMD})
+if (${UNIVERSAL_BUILD})
+    set(ASTC_TEST test-simd)
+else()
+    set(ASTC_TEST test-simd-${ISA_SIMD})
+endif()
 
-target_sources(test-simd-${ISA_SIMD}
+add_executable(${ASTC_TEST})
+
+target_sources(${ASTC_TEST}
     PRIVATE
         test_simd.cpp
         ../astcenc_mathlib_softfloat.cpp)
 
-target_include_directories(test-simd-${ISA_SIMD}
+target_include_directories(${ASTC_TEST}
     PRIVATE
         ${gtest_SOURCE_DIR}/include)
 
-target_compile_options(test-simd-${ISA_SIMD}
+target_compile_options(${ASTC_TEST}
     PRIVATE
         # Use pthreads on Linux/macOS
         $<$<PLATFORM_ID:Linux,Darwin>:-pthread>
@@ -44,75 +50,80 @@ target_compile_options(test-simd-${ISA_SIMD}
 
 # Set up configuration for SIMD ISA builds
 if(${ISA_SIMD} MATCHES "none")
-    target_compile_definitions(test-simd-${ISA_SIMD}
-        PRIVATE
-            ASTCENC_NEON=0
-            ASTCENC_SSE=0
-            ASTCENC_AVX=0
-            ASTCENC_POPCNT=0
-            ASTCENC_F16C=0)
-
-    if (${ARCH} MATCHES x64)
-        target_compile_options(test-simd-${ISA_SIMD}
+    if (NOT ${UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTC_TEST}
             PRIVATE
-                $<$<CXX_COMPILER_ID:${GNU_LIKE}>:-mfpmath=sse -msse2>)
+                ASTCENC_NEON=0
+                ASTCENC_SSE=0
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=0
+                ASTCENC_F16C=0)
     endif()
 
 elseif(${ISA_SIMD} MATCHES "neon")
-    target_compile_definitions(test-simd-${ISA_SIMD}
-        PRIVATE
-            ASTCENC_NEON=1
-            ASTCENC_SSE=0
-            ASTCENC_AVX=0
-            ASTCENC_POPCNT=0
-            ASTCENC_F16C=0)
+    if (NOT ${UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTC_TEST}
+            PRIVATE
+                ASTCENC_NEON=1
+                ASTCENC_SSE=0
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=0
+                ASTCENC_F16C=0)
+    endif()
 
 elseif(${ISA_SIMD} MATCHES "sse2")
-    target_compile_definitions(test-simd-${ISA_SIMD}
-        PRIVATE
-            ASTCENC_NEON=0
-            ASTCENC_SSE=20
-            ASTCENC_AVX=0
-            ASTCENC_POPCNT=0
-            ASTCENC_F16C=0)
+    if (NOT ${UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTC_TEST}
+            PRIVATE
+                ASTCENC_NEON=0
+                ASTCENC_SSE=20
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=0
+                ASTCENC_F16C=0)
+    endif()
 
-    target_compile_options(test-simd-${ISA_SIMD}
+    target_compile_options(${ASTC_TEST}
         PRIVATE
         $<$<CXX_COMPILER_ID:${GNU_LIKE}>:-mfpmath=sse -msse2>)
 
 elseif(${ISA_SIMD} MATCHES "sse4.1")
-    target_compile_definitions(test-simd-${ISA_SIMD}
-        PRIVATE
-            ASTCENC_NEON=0
-            ASTCENC_SSE=41
-            ASTCENC_AVX=0
-            ASTCENC_POPCNT=1
-            ASTCENC_F16C=0)
+    if (NOT ${UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTC_TEST}
+            PRIVATE
+                ASTCENC_NEON=0
+                ASTCENC_SSE=41
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=1
+                ASTCENC_F16C=0)
+    endif()
 
-    target_compile_options(test-simd-${ISA_SIMD}
+    target_compile_options(${ASTC_TEST}
         PRIVATE
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfpmath=sse -msse4.1 -mpopcnt>)
 
 elseif(${ISA_SIMD} MATCHES "avx2")
-    target_compile_definitions(test-simd-${ISA_SIMD}
-        PRIVATE
-            ASTCENC_NEON=0
-            ASTCENC_SSE=41
-            ASTCENC_AVX=2
-            ASTCENC_POPCNT=1
-            ASTCENC_F16C=1)
+    if (NOT ${UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTC_TEST}
+            PRIVATE
+                ASTCENC_NEON=0
+                ASTCENC_SSE=41
+                ASTCENC_AVX=2
+                ASTCENC_POPCNT=1
+                ASTCENC_F16C=1)
+    endif()
 
-    target_compile_options(test-simd-${ISA_SIMD}
+    target_compile_options(${ASTC_TEST}
         PRIVATE
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfpmath=sse -mavx2 -mpopcnt -mf16c>
             $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>)
+
 endif()
 
-target_link_libraries(test-simd-${ISA_SIMD}
+target_link_libraries(${ASTC_TEST}
     PRIVATE
         gtest_main)
 
-add_test(NAME test-simd-${ISA_SIMD}
-         COMMAND test-simd-${ISA_SIMD})
+add_test(NAME ${ASTC_TEST}
+         COMMAND ${ASTC_TEST})
 
-install(TARGETS test-simd-${ISA_SIMD} DESTINATION ${PACKAGE_ROOT})
+install(TARGETS ${ASTC_TEST} DESTINATION ${PACKAGE_ROOT})

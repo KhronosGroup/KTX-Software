@@ -31,6 +31,7 @@ void compute_avgs_and_dirs_4_comp(
 	const error_weight_block& ewb,
 	partition_metrics pm[BLOCK_MAX_PARTITIONS]
 ) {
+	// TODO: Candidate for 4-group counting
 	int partition_count = pi.partition_count;
 	promise(partition_count > 0);
 
@@ -40,8 +41,6 @@ void compute_avgs_and_dirs_4_comp(
 
 		vfloat4 error_sum = vfloat4::zero();
 		vfloat4 base_sum = vfloat4::zero();
-		vfloat4 rgba_min(1e38f);
-		vfloat4 rgba_max(-1e38f);
 		float partition_weight = 0.0f;
 
 		unsigned int texel_count = pi.partition_texel_count[partition];
@@ -53,12 +52,6 @@ void compute_avgs_and_dirs_4_comp(
 			float weight = ewb.texel_weight[iwt];
 			vfloat4 texel_datum = blk.texel(iwt);
 			vfloat4 error_weight = ewb.error_weights[iwt];
-
-			if (weight > 1e-10f)
-			{
-				rgba_min = min(texel_datum, rgba_min);
-				rgba_max = max(texel_datum, rgba_max);
-			}
 
 			partition_weight += weight;
 			base_sum += texel_datum * weight;
@@ -74,8 +67,6 @@ void compute_avgs_and_dirs_4_comp(
 		pm[partition].avg = average * csf;
 		pm[partition].color_scale = csf;
 		pm[partition].icolor_scale = 1.0f / max(csf, 1e-7f);
-		vfloat4 range = max(rgba_max - rgba_min, 1e-10f);
-		pm[partition].range_sq = range * range;
 
 		vfloat4 sum_xp = vfloat4::zero();
 		vfloat4 sum_yp = vfloat4::zero();
@@ -141,6 +132,7 @@ void compute_avgs_and_dirs_3_comp(
 	unsigned int omitted_component,
 	partition_metrics pm[BLOCK_MAX_PARTITIONS]
 ) {
+	// TODO: Candidate for 4-group counting
 	const float *texel_weights = ewb.texel_weight_rgb;
 
 	const float* data_vr = blk.data_r;
@@ -191,8 +183,6 @@ void compute_avgs_and_dirs_3_comp(
 
 		vfloat4 error_sum = vfloat4::zero();
 		vfloat4 base_sum = vfloat4::zero();
-		vfloat4 rgb_min(1e38f);
-		vfloat4 rgb_max(-1e38f);
 		float partition_weight = 0.0f;
 
 		unsigned int texel_count = pi.partition_texel_count[partition];
@@ -213,12 +203,6 @@ void compute_avgs_and_dirs_3_comp(
 			                     error_vb[iwt],
 			                     0.0f);
 
-			if (weight > 1e-10f)
-			{
-				rgb_min = min(texel_datum, rgb_min);
-				rgb_max = max(texel_datum, rgb_max);
-			}
-
 			partition_weight += weight;
 			base_sum += texel_datum * weight;
 			error_sum += error_weight;
@@ -233,8 +217,6 @@ void compute_avgs_and_dirs_3_comp(
 		pm[partition].avg = average * csf;
 		pm[partition].color_scale = csf;
 		pm[partition].icolor_scale = 1.0f / max(csf, 1e-7f);
-		vfloat4 range = max(rgb_max - rgb_min, 1e-10f);
-		pm[partition].range_sq = range * range;
 
 		vfloat4 sum_xp = vfloat4::zero();
 		vfloat4 sum_yp = vfloat4::zero();
@@ -292,6 +274,7 @@ void compute_avgs_and_dirs_3_comp_rgb(
 	const error_weight_block& ewb,
 	partition_metrics pm[BLOCK_MAX_PARTITIONS]
 ) {
+	// TODO: Candidate for 4-group counting
 	unsigned int partition_count = pi.partition_count;
 	promise(partition_count > 0);
 
@@ -301,8 +284,6 @@ void compute_avgs_and_dirs_3_comp_rgb(
 
 		vfloat4 error_sum = vfloat4::zero();
 		vfloat4 base_sum = vfloat4::zero();
-		vfloat4 rgb_min(1e38f);
-		vfloat4 rgb_max(-1e38f);
 		float partition_weight = 0.0f;
 
 		unsigned int texel_count = pi.partition_texel_count[partition];
@@ -320,12 +301,6 @@ void compute_avgs_and_dirs_3_comp_rgb(
 			                     ewb.texel_weight_b[iwt],
 			                     0.0f);
 
-			if (weight > 1e-10f)
-			{
-				rgb_min = min(texel_datum, rgb_min);
-				rgb_max = max(texel_datum, rgb_max);
-			}
-
 			partition_weight += weight;
 			base_sum += texel_datum * weight;
 			error_sum += error_weight;
@@ -340,8 +315,6 @@ void compute_avgs_and_dirs_3_comp_rgb(
 		pm[partition].avg = average * csf;
 		pm[partition].color_scale = csf;
 		pm[partition].icolor_scale = 1.0f / max(csf, 1e-7f);
-		vfloat4 range = max(rgb_max - rgb_min, 1e-10f);
-		pm[partition].range_sq = range * range;
 
 		vfloat4 sum_xp = vfloat4::zero();
 		vfloat4 sum_yp = vfloat4::zero();
@@ -434,7 +407,6 @@ void compute_avgs_and_dirs_2_comp(
 
 		data_vr = blk.data_g;
 		data_vg = blk.data_b;
-
 
 		error_vr = ewb.texel_weight_g;
 		error_vg = ewb.texel_weight_b;

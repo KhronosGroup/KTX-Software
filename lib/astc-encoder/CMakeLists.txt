@@ -20,165 +20,198 @@ cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0069 NEW)  # LTO support
 cmake_policy(SET CMP0091 NEW)  # MSVC runtime support
 
-project(astcenc VERSION 3.0.0)
-
-# Command line configuration
-function(printopt optName optVal optArch tgtArch)
-    if(${optVal})
-        if(${optArch} MATCHES ${tgtArch})
-            message(STATUS "  ${optName} backend - ON")
-        else()
-            message(STATUS "  ${optName} backend - SKIPPED (${optArch} only)")
-        endif()
-    else()
-        message(STATUS "  ${optName} backend - OFF")
-    endif()
-endfunction()
-
-set(VALID_ARCH aarch64 aarch32 aarch32hf x64)
-set(ARCH x64 CACHE STRING "Target architecture")
-set_property(CACHE ARCH PROPERTY STRINGS ${VALID_ARCH})
-
-message(STATUS "Selecting target astcenc backends:")
-list(FIND VALID_ARCH ${ARCH} index)
-if(index EQUAL -1)
-    message(FATAL_ERROR "ARCH must be one of ${VALID_ARCH}")
-endif()
-
-set(ANY_ISA 0)
-
-option(ISA_AVX2 "Enable builds for AVX2 SIMD")
-printopt("AVX2" ${ISA_AVX2} "x64" ${ARCH})
-if(${ISA_AVX2} AND ${ARCH} MATCHES "x64")
-    set(ANY_ISA 1)
-endif()
-
-option(ISA_SSE41 "Enable builds for SSE4.1 SIMD")
-printopt("SSE4.1" ${ISA_SSE41} "x64" ${ARCH})
-if(${ISA_SSE41} AND ${ARCH} MATCHES "x64")
-    set(ANY_ISA 1)
-endif()
-
-option(ISA_SSE2 "Enable builds for SSE2 SIMD")
-printopt("SSE2" ${ISA_SSE2} "x64" ${ARCH})
-if(${ISA_SSE2} AND ${ARCH} MATCHES "x64")
-    set(ANY_ISA 1)
-endif()
-
-option(ISA_NEON "Enable builds for NEON SIMD")
-printopt("NEON" ${ISA_NEON} "aarch32|aarch32hf|aarch64" ${ARCH})
-if(${ISA_NEON} AND ${ARCH} MATCHES "aarch32|aarch32hf|aarch64")
-    set(ANY_ISA 1)
-endif()
-
-option(ISA_NONE "Enable builds for no SIMD")
-if(${ISA_NONE})
-    set(ANY_ISA 1)
-    message(STATUS "  No SIMD backend - ON")
-else()
-    message(STATUS "  No SIMD backend - OFF")
-endif()
-
-# Manually provide this as a tristate so we can distinguish the default
-# not set state from explicitly ON and OFF ...
-set(ISA_NATIVE AUTO CACHE STRING "Enable builds for the native local CPU")
-set_property(CACHE ISA_NATIVE PROPERTY STRINGS AUTO ON OFF)
-
-if(((NOT ${ANY_ISA}) AND (${ISA_NATIVE} STREQUAL AUTO)) OR (${ISA_NATIVE} STREQUAL ON))
-    set(ISA_NATIVE 1)
-    set(ANY_ISA 1)
-    message(STATUS "  Native SIMD backend - ON")
-else()
-    set(ISA_NATIVE 0)
-    message(STATUS "  Native SIMD backend - OFF")
-endif()
-
-option(DECOMPRESSOR "Enable builds for decompression only")
-if(${DECOMPRESSOR})
-    message(STATUS "  Decompress-only backend - ON")
-else()
-    message(STATUS "  Decompress-only backend - OFF")
-endif()
-
-option(DIAGNOSTICS "Enable builds for diagnostic trace")
-if(${DIAGNOSTICS})
-    message(STATUS "  Diagnostic tracing - ON")
-else()
-    message(STATUS "  Diagnostic tracing - OFF")
-endif()
-
-option(UNITTEST "Enable builds for unit tests")
-if(${UNITTEST})
-    message(STATUS "  Unit tests - ON")
-else()
-    message(STATUS "  Unit tests - OFF")
-endif()
-
-if(NOT ${ANY_ISA})
-    message(FATAL_ERROR "At least one backend ISA must be enabled")
-endif()
-
-
-# Project configuration
-
-# Must be done after project() but before compiler settings
-# or it gets overriden (this contradicts the official docs)
-if(${ARCH} MATCHES "aarch64")
-    set(CMAKE_OSX_ARCHITECTURES "arm64")
-
-elseif(${ARCH} MATCHES "aarch32|aarch32hf")
-    # Deliberately use Armv7 for Clang - its most compatible with the current
-    # code; we provide some fallbacks for a few missing v8 intrinsics.
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-
-        set(CMAKE_OSX_ARCHITECTURES "armv7")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7-a")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon-vfpv4")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument")
-        set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
-    # For GCC we directly target Armv8-A A32, and provide some emulated
-    # fallback intrinsics for functionality that exists for A64 but not A32.
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon-fp-armv8")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfp16-format=ieee")
-
-        if(${ARCH} STREQUAL "aarch32")  # arm-linux-gnueabi-g++
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfloat-abi=softfp")
-        elseif(${ARCH} STREQUAL "aarch32hf")  # arm-linux-gnueabihf-g++
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
-        endif()
-
-        # Workaround for Source/tinyexr.h:11025
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-type-limits")
-    endif()
-else()
-    set(CMAKE_OSX_ARCHITECTURES "x86_64")
-endif()
+project(astcencoder VERSION 3.0.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(PACKAGE_ROOT astcenc)
+
 include(CTest)
+
+option(ISA_AVX2 "Enable builds for AVX2 SIMD")
+option(ISA_SSE41 "Enable builds for SSE4.1 SIMD")
+option(ISA_SSE2 "Enable builds for SSE2 SIMD")
+option(ISA_NEON "Enable builds for NEON SIMD")
+option(ISA_NONE "Enable builds for no SIMD")
+option(DECOMPRESSOR "Enable builds for decompression only")
+option(DIAGNOSTICS "Enable builds for diagnostic trace")
+option(UNITTEST "Enable builds for unit tests")
+option(CLI "Enable build of CLI" ON)
+
+set(UNIVERSAL_BUILD OFF)
+set(MACOS_BUILD OFF)
+set(MACOS_ARCH_LEN 0)
+
+# Preflight for some macOS-specific build options
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(MACOS_BUILD ON)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES MACOS_ARCH_LEN)
+endif()
+
+# Count options which MUST be x64
+set(X64_ISA_COUNT 0)
+set(CONFIGS ${ISA_AVX2} ${ISA_SSE41} ${ISA_SSE2})
+foreach(CONFIG ${CONFIGS})
+    if(${CONFIG})
+        math(EXPR X64_ISA_COUNT "${X64_ISA_COUNT} + 1")
+    endif()
+endforeach()
+
+# Count options which MUST be arm64
+set(ARM64_ISA_COUNT 0)
+set(CONFIGS ${ISA_NEON})
+foreach(CONFIG ${CONFIGS})
+    if(${CONFIG})
+        math(EXPR ARM64_ISA_COUNT "${ARM64_ISA_COUNT} + 1")
+    endif()
+endforeach()
+
+# macOS builds
+if("${MACOS_BUILD}")
+    list(FIND CMAKE_OSX_ARCHITECTURES "x86_64" IS_X64)
+    list(FIND CMAKE_OSX_ARCHITECTURES "arm64" IS_ARM64)
+    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" IS_AUTO)
+
+    # Turn list index into boolean
+    if(${IS_X64} EQUAL -1)
+        set(IS_X64 OFF)
+    else()
+        set(IS_X64 ON)
+    endif()
+
+    if(${IS_ARM64} EQUAL -1)
+        set(IS_ARM64 OFF)
+    else()
+        set(IS_ARM64 ON)
+    endif()
+
+    if(${IS_AUTO} EQUAL -1)
+        set(IS_AUTO OFF)
+    else()
+        set(IS_AUTO ON)
+    endif()
+
+    # Set up defaults if no more specific ISA set - use XCode's own defaults
+    if((IS_ARM64 OR IS_AUTO) AND ("${ARM64_ISA_COUNT}" EQUAL 0) AND (NOT "${ISA_NONE}"))
+        set(ARM64_ISA_COUNT 1)
+        set(ISA_NEON ON)
+    endif()
+
+    if((IS_X64 OR IS_AUTO) AND ("${X64_ISA_COUNT}" EQUAL 0) AND (NOT "${ISA_NONE}"))
+        set(X64_ISA_COUNT 1)
+        set(ISA_SSE41 ON)
+    endif()
+
+    # User might be doing multi-architecture - XCode sets this at runtime
+    if("${IS_AUTO}")
+        if(("${ARM64_ISA_COUNT}" GREATER 1) OR ("${X64_ISA_COUNT}" GREATER 1))
+            message(FATAL_ERROR "For macOS universal binaries only one backend per architecture is allowed.")
+        endif()
+
+        set(UNIVERSAL_BUILD ON)
+
+    # User requested explicit multi-architecture universal build
+    elseif("${MACOS_ARCH_LEN}" GREATER 2)
+        message(FATAL_ERROR "For macOS universal binaries only x86_64 and arm64 builds are allowed.")
+
+    elseif("${MACOS_ARCH_LEN}" EQUAL 2)
+        if (NOT (${IS_X64} AND ${IS_ARM64}))
+            message(FATAL_ERROR "For macOS universal binaries only x86_64 and arm64 builds are allowed.")
+        endif()
+
+        if(("${ARM64_ISA_COUNT}" GREATER 1) OR ("${X64_ISA_COUNT}" GREATER 1))
+            message(FATAL_ERROR "For macOS universal binaries only one backend per architecture is allowed.")
+        endif()
+
+        set(UNIVERSAL_BUILD ON)
+
+    # User requested explicit single architecture build
+    elseif("${MACOS_ARCH_LEN}" EQUAL 1)
+        if("${IS_X64}" AND "${ARM64_ISA_COUNT}")
+            message(FATAL_ERROR "For macOS x86_64 builds an arm64 backend cannot be specified.")
+        endif()
+
+        if("${IS_ARM64}" AND "${X64_ISA_COUNT}")
+            message(FATAL_ERROR "For macOS arm64 builds an x86_64 backend cannot be specified.")
+        endif()
+
+    # Else is this a implicit multi-architecture universal build?
+    elseif(("${ARM64_ISA_COUNT}" EQUAL 1) AND ("${X64_ISA_COUNT}" GREATER 1))
+        string(CONCAT MSG "For macOS setting multiple architecture backends builds a universal binary. "
+                          "For universal binaries only one backend per architecture is allowed.")
+        message(FATAL_ERROR "${MSG}")
+
+    elseif(("${X64_ISA_COUNT}" EQUAL 1) AND ("${ARM64_ISA_COUNT}" GREATER 1))
+        string(CONCAT MSG "For macOS setting multiple architecture backends builds a universal binary. "
+                          "For universal binaries only one backend per architecture is allowed.")
+        message(FATAL_ERROR "${MSG}")
+
+    elseif(("${ARM64_ISA_COUNT}" EQUAL 1) AND ("${X64_ISA_COUNT}" EQUAL 1))
+        set(UNIVERSAL_BUILD ON)
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+
+    # Else is this an implicit single architecture build?
+    elseif("${ARM64_ISA_COUNT}" EQUAL 1)
+        set(CMAKE_OSX_ARCHITECTURES "arm64")
+
+    elseif("${X64_ISA_COUNT}" EQUAL 1)
+        set(CMAKE_OSX_ARCHITECTURES "x86_64")
+
+    else()
+        # Do nothing here - assume it defaults to host?
+
+    endif()
+
+# Non-macOS builds
+else()
+    if(("${ARM64_ISA_COUNT}" GREATER 0) AND ("${X64_ISA_COUNT}" GREATER 0))
+        message(FATAL_ERROR "Builds can only support a single architecture per configure.")
+    endif()
+endif()
+
+if(("${ARM64_ISA_COUNT}" EQUAL 0) AND ("${X64_ISA_COUNT}" EQUAL 0))
+    set(ISA_NONE ON)
+endif()
+
+function(printopt optName optVal)
+    if(${optVal})
+        message(STATUS "  ${optName} -  ON")
+    else()
+        message(STATUS "  ${optName} - OFF")
+    endif()
+endfunction()
+
+printopt("AVX2 backend  " ${ISA_AVX2})
+printopt("SSE4.1 backend" ${ISA_SSE41})
+printopt("SSE2 backend  " ${ISA_SSE2})
+printopt("NEON backend  " ${ISA_NEON})
+printopt("NONE backend  " ${ISA_NONE})
+if("${MACOS_BUILD}")
+    printopt("Universal bin " ${UNIVERSAL_BUILD})
+endif()
+printopt("Decompressor  " ${DECOMPRESSOR})
+printopt("Diagnostics   " ${DIAGNOSTICS})
+printopt("Unit tests    " ${UNITTEST})
 
 # Subcomponents
 add_subdirectory(Source)
 
 # Configure package archive
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    string(TOLOWER "macOS" PKG_OS)
-else()
-    string(TOLOWER ${CMAKE_SYSTEM_NAME} PKG_OS)
+if(PACKAGE)
+    if("${MACOS_BUILD}")
+        string(TOLOWER "macOS" PKG_OS)
+    else()
+        string(TOLOWER ${CMAKE_SYSTEM_NAME} PKG_OS)
+    endif()
+
+    set(PKG_VER ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR})
+
+    set(CPACK_PACKAGE_FILE_NAME "astcenc-${PKG_VER}-${PKG_OS}${PACKAGE}")
+    set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
+    set(CPACK_PACKAGE_CHECKSUM SHA256)
+    set(CPACK_GENERATOR ZIP)
+
+    include(CPack) # Must be included after CPack configuration.
 endif()
-
-set(PKG_VER ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR})
-
-set(CPACK_PACKAGE_FILE_NAME "astcenc-${PKG_VER}-${PKG_OS}-${ARCH}")
-set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
-set(CPACK_PACKAGE_CHECKSUM SHA256)
-set(CPACK_GENERATOR ZIP)
-
-include(CPack) # Must be included after CPack configuration.
