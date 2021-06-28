@@ -24,7 +24,7 @@
 #include <zstd.h>
 #include <KHR/khr_df.h>
 
-#include "dfd.h"
+#include "dfdutils/dfd.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture2.h"
