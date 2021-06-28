@@ -6,6 +6,7 @@
 
 #include <zstd.h>
 #include "ktxapp.h"
+#include "ktxint.h"
 #include <unordered_map>
 
 template<typename T>
@@ -451,7 +452,7 @@ class scApp : public ktxApp {
 
         commandOptions() :
             zcmpLevel(ZSTD_CLEVEL_DEFAULT, 1U, 22U),
-            threadCount(max(1U, thread::hardware_concurrency()) , 1U, 10000U)
+            threadCount(MAX(1U, thread::hardware_concurrency()) , 1U, 10000U)
         {
             ktx2 = false;
             etc1s = false;
