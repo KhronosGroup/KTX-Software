@@ -644,7 +644,17 @@ add_subdirectory(interface/basisu_c_binding)
 # If ISA_AVX2 fails to compile user must chose other x86 options.
 # On arm based systems ISA_NEON is default
 
-if (${ISA_NONE})
+list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
+
+if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
+    set(ASTC_BUILD_UNIVERSAL OFF)
+else()
+    set(ASTC_BUILD_UNIVERSAL ON)
+endif()
+
+if (${ASTC_BUILD_UNIVERSAL})
+    set(ASTC_LIB_NAME astcenc-static)
+elseif (${ISA_NONE})
     set(ASTC_LIB_NAME astcenc-none-static)
 else()
     if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
