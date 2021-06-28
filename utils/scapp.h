@@ -6,6 +6,7 @@
 
 #include <zstd.h>
 #include "ktxapp.h"
+#include <unordered_map>
 
 template<typename T>
 struct clampedOption
@@ -38,14 +39,95 @@ struct clampedOption
   T max;
 };
 
+/**
+ * @memberof ktxTexture
+ * @ingroup write
+ * @~English
+ * @brief Creates valid ASTC block dimension from string.
+ *
+ * @return      Valid ktx_pack_astc_block_dimension_e from string
+ */
 ktx_pack_astc_block_dimension_e
-astcBlockDimension(const char* block_dimension);
+astcBlockDimension(const char* block_size) {
+  static std::unordered_map<std::string, ktx_pack_astc_block_dimension_e>
+      astc_blocks_mapping{{"4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4},
+                          {"5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4},
+                          {"5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5},
+                          {"6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5},
+                          {"6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6},
+                          {"8x5", KTX_PACK_ASTC_BLOCK_DIMENSION_8x5},
+                          {"8x6", KTX_PACK_ASTC_BLOCK_DIMENSION_8x6},
+                          {"10x5", KTX_PACK_ASTC_BLOCK_DIMENSION_10x5},
+                          {"10x6", KTX_PACK_ASTC_BLOCK_DIMENSION_10x6},
+                          {"8x8", KTX_PACK_ASTC_BLOCK_DIMENSION_8x8},
+                          {"10x8", KTX_PACK_ASTC_BLOCK_DIMENSION_10x8},
+                          {"10x10", KTX_PACK_ASTC_BLOCK_DIMENSION_10x10},
+                          {"12x10", KTX_PACK_ASTC_BLOCK_DIMENSION_12x10},
+                          {"12x12", KTX_PACK_ASTC_BLOCK_DIMENSION_12x12},
+                          {"3x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3},
+                          {"4x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3},
+                          {"4x4x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3},
+                          {"4x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4},
+                          {"5x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4},
+                          {"5x5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4},
+                          {"5x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5},
+                          {"6x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5},
+                          {"6x6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5},
+                          {"6x6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6}};
 
+  auto opt = astc_blocks_mapping.find(block_size);
+
+  if (opt != astc_blocks_mapping.end())
+      return opt->second;
+
+  return KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
+}
+
+/**
+ * @memberof ktxTexture
+ * @ingroup write
+ * @~English
+ * @brief Creates valid ASTC quality from string.
+ *
+ * @return      Valid ktx_pack_astc_quality_e from string
+ */
 ktx_pack_astc_quality_levels_e
-astcQualityLevel(const char* quality);
+astcQualityLevel(const char *quality) {
 
+    static std::unordered_map<std::string,
+                              ktx_pack_astc_quality_levels_e> astc_quality_mapping{
+        {"fastest", KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST},
+        {"fast", KTX_PACK_ASTC_QUALITY_LEVEL_FAST},
+        {"medium", KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM},
+        {"thorough", KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH},
+        {"exhaustive", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE}
+    };
+
+  auto opt = astc_quality_mapping.find(quality);
+
+  if (opt != astc_quality_mapping.end())
+      return opt->second;
+
+  return KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
+}
+
+/**
+ * @memberof ktxTexture
+ * @ingroup write
+ * @~English
+ * @brief Creates valid ASTC mode from string.
+ *
+ * @return      Valid ktx_pack_astc_mode_e from string
+ */
 ktx_pack_astc_encoder_mode_e
-astcEncoderMode(const char* mode);
+astcEncoderMode(const char* mode) {
+    if (std::strcmp(mode, "ldr") == 0)
+        return KTX_PACK_ASTC_ENCODER_MODE_LDR;
+    else if (std::strcmp(mode, "hdr") == 0)
+        return KTX_PACK_ASTC_ENCODER_MODE_HDR;
+
+  return KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
+}
 
 /*
 // Markdown doesn't work in files included by snipped{doc} or include{doc}
