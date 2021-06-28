@@ -122,9 +122,9 @@ astcQualityLevel(const char *quality) {
  */
 ktx_pack_astc_encoder_mode_e
 astcEncoderMode(const char* mode) {
-    if (std::strcmp(mode, "ldr") == 0)
+    if (strcmp(mode, "ldr") == 0)
         return KTX_PACK_ASTC_ENCODER_MODE_LDR;
-    else if (std::strcmp(mode, "hdr") == 0)
+    else if (strcmp(mode, "hdr") == 0)
         return KTX_PACK_ASTC_ENCODER_MODE_HDR;
 
   return KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
