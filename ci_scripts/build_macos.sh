@@ -11,11 +11,25 @@ OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
 XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
 
+if [ -z "$VULKAN_SDK" ]; then
+  export VULKAN_SDK=~/VulkanSDK/1.2.176.1/macOS
+fi
+
 # Ensure that Vulkan SDK's glslc is in PATH
 export PATH="${VULKAN_SDK}/bin:$PATH"
 
 if [ -z "$DEPLOY_BUILD_DIR" ]; then
   DEPLOY_BUILD_DIR=build-macos-universal
+fi
+
+if which -s xcpretty ; then
+  function handle_compiler_output() {
+    tee -a fullbuild.log | xcpretty
+  }
+else
+  function handle_compiler_output() {
+    cat
+  }
 fi
 
 #
@@ -60,7 +74,7 @@ pushd $DEPLOY_BUILD_DIR
 
 # Build and test Debug
 echo "Build KTX-Software (macOS universal binary Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee fullbuild.log | xcpretty
+cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 echo "Test KTX-Software (macOS universal binary Debug)"
 ctest -C Debug # --verbose
 
@@ -69,7 +83,7 @@ echo "Build KTX-Software (macOS universal binary Release)"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake --build . --config Release | tee -a fullbuild.log | xcpretty
 else
-  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
+  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 fi
 echo "Test KTX-Software (macOS universal binary Release)"
 ctest -C Release # --verbose
@@ -86,12 +100,12 @@ popd
 pushd build-macos-sse
 
 echo "Build KTX-Software (macOS with SSE support Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
+cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
 echo "Test KTX-Software (macOS with SSE support Debug)"
 ctest -C Debug # --verbose
 echo "Build KTX-Software (macOS with SSE support Release)"
-cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
+cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
 echo "Test KTX-Software (macOS with SSE support Release)"
 ctest -C Release # --verbose
@@ -106,11 +120,11 @@ echo "Configure KTX-Software (iOS)"
 cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
-cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
+cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 # echo "Build KTX-Software (iOS Simulator Debug)"
 # cmake --build . --config Debug -- -sdk iphonesimulator
 echo "Build KTX-Software (iOS Release)"
-cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
+cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 # echo "Build KTX-Software (iOS Simulator Release)"
 # cmake --build . --config Release -- -sdk iphonesimulator
 popd
