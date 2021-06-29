@@ -71,20 +71,13 @@ if (WIN32 AND ${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
     set(KTX_FEATURE_GL_UPLOAD OFF)
 endif()
 
-message(STATUS "Before APPLE section")
 if(APPLE)
-    message(STATUS "Setting deployment target (APPLE)")
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
     if(IOS)
         set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "10.0" CACHE STRING "iOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
     endif()
-else()
-    message(STATUS "Apparently APPLE is not set")
 endif()
-
-message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET = ${CMAKE_OSX_DEPLOYMENT_TARGET}")
-message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
 
 if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID)
     set(LINUX TRUE)
@@ -498,7 +491,7 @@ elseif(EMSCRIPTEN)
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;"
         )
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
+    #message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
         lib/basisu/encoder/basisu_enc.cpp
