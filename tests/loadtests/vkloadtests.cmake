@@ -17,25 +17,25 @@ endif()
 
 if(APPLE)
     if(IOS)
-        set( MOLTEN_VK_FRAMEWORK ${MOLTEN_VK_SDK}/iOS/framework/MoltenVK.framework )
-        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
+        set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/framework/MoltenVK.framework )
+        if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
             # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
-            message("Could not find MoltenVK framework (at '${MOLTEN_VK_FRAMEWORK}')")
-            set(MOLTEN_VK_FRAMEWORK ${MOLTEN_VK_SDK}/iOS/MoltenVK.framework)
+            message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
+            set(MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/MoltenVK.framework)
         endif()
-        if( NOT IS_DIRECTORY ${MOLTEN_VK_FRAMEWORK})
-            message("Could not find MoltenVK framework (at '${MOLTEN_VK_FRAMEWORK}')")
+        if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
+            message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
             # Fallback: One newer Vulkan SDKs it's a .xcframework at the root level
             # CMake does not support linking those directly (see https://gitlab.kitware.com/cmake/cmake/-/issues/21752),
             # so we manually pick the static library file for iOS arm64 from a subfolder here
-            if( IS_DIRECTORY ${MOLTEN_VK_SDK}/MoltenVK.xcframework )
-                set( MOLTEN_VK_FRAMEWORK ${MOLTEN_VK_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
+            if( IS_DIRECTORY ${MOLTENVK_SDK}/MoltenVK.xcframework )
+                set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
             endif()
         endif()
-        if( NOT EXISTS ${MOLTEN_VK_FRAMEWORK})
-            message(SEND_ERROR "Could not find MoltenVK framework (at MOLTEN_VK_SDK dir '${MOLTEN_VK_SDK}')")
+        if( NOT EXISTS ${MOLTENVK_FRAMEWORK})
+            message(SEND_ERROR "Could not find MoltenVK framework (at MOLTENVK_SDK dir '${MOLTENVK_SDK}')")
         else()
-            message(STATUS "Found MoltenVK framework at ${MOLTEN_VK_FRAMEWORK}")
+            message(STATUS "Found MoltenVK framework at ${MOLTENVK_FRAMEWORK}")
         endif()
     endif()
 endif()
@@ -130,7 +130,7 @@ if(IOS)
     target_include_directories(
         vkloadtests
     PRIVATE
-        ${MOLTEN_VK_SDK}/include
+        ${MOLTENVK_SDK}/include
     )
 elseif(Vulkan_FOUND)
     target_include_directories(
@@ -151,14 +151,14 @@ if(SDL2_FOUND)
     )
 endif()
 
-set( MOLTEN_VK_ICD
+set( MOLTENVK_ICD
     ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/MoltenVK_icd.json
 )
 set( VK_LAYER
     ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_khronos_validation.json
     ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_api_dump.json
 )
-target_sources(vkloadtests PUBLIC ${MOLTEN_VK_ICD} ${VK_LAYER})
+target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 
 if(APPLE)
     if(IOS)
@@ -180,7 +180,7 @@ if(APPLE)
             ${Foundation_LIBRARY}
             ${GameController_LIBRARY}
             ${Metal_LIBRARY}
-            ${MOLTEN_VK_FRAMEWORK}
+            ${MOLTENVK_FRAMEWORK}
             ${OpenGLES_LIBRARY}
             ${QuartzCore_LIBRARY}
             ${UIKit_LIBRARY}
@@ -190,7 +190,7 @@ if(APPLE)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
     endif()
 
-    set_source_files_properties(${MOLTEN_VK_ICD} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d")
+    set_source_files_properties(${MOLTENVK_ICD} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d")
     set_source_files_properties(${VK_LAYER} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/explicit_layer.d")
 elseif(WIN32)
     ensure_runtime_dependencies_windows(vkloadtests)
