@@ -6,6 +6,7 @@
 *~
 *.bak
 
+/CMakeUserPresets.json
 /build*/
 /install*/
 
