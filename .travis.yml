@@ -103,6 +103,14 @@ script:
 after_script:
  - sleep 10
 
+after_failure:
+  - echo "Now uploading the failed tests"
+  - which curl
+  - curl --upload-file ./tests/testimages/toktx-cmp-astc_mipmap_ldr_4x4.ktx2 https://transfer.sh/toktx-cmp-astc_mipmap_ldr_4x4.ktx2
+  - curl --upload-file ./tests/testimages/toktx-cmp-astc_ldr_6x5.ktx2        https://transfer.sh/toktx-cmp-astc_ldr_6x5.ktx2
+  - curl --upload-file ./tests/testimages/toktx-cmp-astc_mipmap_ldr_6x6.ktx2 https://transfer.sh/toktx-cmp-astc_mipmap_ldr_6x6.ktx2
+  - curl --upload-file ./tests/testimages/toktx-cmp-astc_mipmap_ldr_6x5.ktx2 https://transfer.sh/toktx-cmp-astc_mipmap_ldr_6x5.ktx2
+
 # Errors in something run in after_success: don't cause the build to fail so don't use.
 
 before_deploy:
