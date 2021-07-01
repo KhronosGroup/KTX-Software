@@ -20,11 +20,12 @@
  */
 
 #include "astcenccli_internal.h"
+#include "astcenccli_version.h"
 
 /** @brief The version header. */
 static const char *astcenc_copyright_string =
-R"(astcenc v3.0, %u-bit %s%s
-Copyright 2011-2021 Arm Limited, all rights reserved
+R"(astcenc v%s, %u-bit %s%s
+Copyright 2011-%s Arm Limited, all rights reserved
 )";
 
 /** @brief The short-form help text. */
@@ -595,7 +596,8 @@ void astcenc_print_header()
 #endif
 
 	unsigned int bits = (int)(sizeof(void*) * 8);
-	printf(astcenc_copyright_string, bits, simdtype, pcnttype);
+	printf(astcenc_copyright_string,
+	       VERSION_STRING, bits, simdtype, pcnttype, YEAR_STRING);
 }
 
 /* See header for documentation. */

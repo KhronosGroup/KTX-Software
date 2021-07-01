@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020 Arm Limited
+#  Copyright 2020-2021 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -15,12 +15,12 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-if (${UNIVERSAL_BUILD})
-    if (${ISA_AVX2})
+if(${UNIVERSAL_BUILD})
+    if(${ISA_AVX2})
         set(ISA_SIMD "avx2")
-    elseif (${ISA_SSE41})
+    elseif(${ISA_SSE41})
         set(ISA_SIMD "sse4.1")
-    elseif (${ISA_SSE2})
+    elseif(${ISA_SSE2})
         set(ISA_SIMD "sse2")
     endif()
     include(cmake_core.cmake)

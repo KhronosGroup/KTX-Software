@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020 Arm Limited
+#  Copyright 2020-2021 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -17,22 +17,22 @@
 
 # Overwrite the LTO flags to force fat LTO; worth 3-4% performance
 # See https://gitlab.kitware.com/cmake/cmake/-/issues/16808
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND ${CLI})
     set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto")
 endif()
 
-if (${DECOMPRESSOR})
+if(${DECOMPRESSOR})
     set(CODEC dec)
 else()
     set(CODEC enc)
 endif()
 
-if (${UNIVERSAL_BUILD})
-    if (${ISA_AVX2})
+if(${UNIVERSAL_BUILD})
+    if(${ISA_AVX2})
         set(ISA_SIMD "avx2")
-    elseif (${ISA_SSE41})
+    elseif(${ISA_SSE41})
         set(ISA_SIMD "sse4.1")
-    elseif (${ISA_SSE2})
+    elseif(${ISA_SSE2})
         set(ISA_SIMD "sse2")
     endif()
     include(cmake_core.cmake)
@@ -54,7 +54,7 @@ endif()
 
 # - - - - - - - - - - - - - - - - - -
 # Unit testing
-if (${UNITTEST})
+if(${UNITTEST})
     set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
     add_subdirectory(GoogleTest)
     enable_testing()
