@@ -261,7 +261,7 @@ discoverContextCapabilities(void)
             contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
             supportsSwizzle = GL_FALSE;
             // sRGB textures introduced in 2.0
-            if (majorVersion < 2 && hasExtension("GL_EXT_texture_sRGB")) {
+            if (majorVersion < 2 && !hasExtension("GL_EXT_texture_sRGB")) {
                 supportsSRGB = GL_FALSE;
             }
             // R{,G]16 introduced in 3.0; R{,G}16_SNORM introduced in 3.1.
