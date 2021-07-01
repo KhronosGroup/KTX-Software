@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020 Arm Limited
+#  Copyright 2020-2021 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -15,7 +15,7 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-if (${UNIVERSAL_BUILD})
+if(${UNIVERSAL_BUILD})
     set(ASTC_TEST test-simd)
 else()
     set(ASTC_TEST test-simd-${ISA_SIMD})
@@ -50,7 +50,7 @@ target_compile_options(${ASTC_TEST}
 
 # Set up configuration for SIMD ISA builds
 if(${ISA_SIMD} MATCHES "none")
-    if (NOT ${UNIVERSAL_BUILD})
+    if(NOT ${UNIVERSAL_BUILD})
         target_compile_definitions(${ASTC_TEST}
             PRIVATE
                 ASTCENC_NEON=0
@@ -61,7 +61,7 @@ if(${ISA_SIMD} MATCHES "none")
     endif()
 
 elseif(${ISA_SIMD} MATCHES "neon")
-    if (NOT ${UNIVERSAL_BUILD})
+    if(NOT ${UNIVERSAL_BUILD})
         target_compile_definitions(${ASTC_TEST}
             PRIVATE
                 ASTCENC_NEON=1
@@ -72,7 +72,7 @@ elseif(${ISA_SIMD} MATCHES "neon")
     endif()
 
 elseif(${ISA_SIMD} MATCHES "sse2")
-    if (NOT ${UNIVERSAL_BUILD})
+    if(NOT ${UNIVERSAL_BUILD})
         target_compile_definitions(${ASTC_TEST}
             PRIVATE
                 ASTCENC_NEON=0
@@ -87,7 +87,7 @@ elseif(${ISA_SIMD} MATCHES "sse2")
         $<$<CXX_COMPILER_ID:${GNU_LIKE}>:-mfpmath=sse -msse2>)
 
 elseif(${ISA_SIMD} MATCHES "sse4.1")
-    if (NOT ${UNIVERSAL_BUILD})
+    if(NOT ${UNIVERSAL_BUILD})
         target_compile_definitions(${ASTC_TEST}
             PRIVATE
                 ASTCENC_NEON=0
@@ -102,7 +102,7 @@ elseif(${ISA_SIMD} MATCHES "sse4.1")
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfpmath=sse -msse4.1 -mpopcnt>)
 
 elseif(${ISA_SIMD} MATCHES "avx2")
-    if (NOT ${UNIVERSAL_BUILD})
+    if(NOT ${UNIVERSAL_BUILD})
         target_compile_definitions(${ASTC_TEST}
             PRIVATE
                 ASTCENC_NEON=0

@@ -20,6 +20,10 @@ cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0069 NEW)  # LTO support
 cmake_policy(SET CMP0091 NEW)  # MSVC runtime support
 
+if(MSVC)
+    add_compile_options("/wd4324") # Disable structure was padded due to alignment specifier
+endif()
+
 project(astcencoder VERSION 3.0.0)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -117,7 +121,7 @@ if("${MACOS_BUILD}")
         message(FATAL_ERROR "For macOS universal binaries only x86_64 and arm64 builds are allowed.")
 
     elseif("${MACOS_ARCH_LEN}" EQUAL 2)
-        if (NOT (${IS_X64} AND ${IS_ARM64}))
+        if(NOT (${IS_X64} AND ${IS_ARM64}))
             message(FATAL_ERROR "For macOS universal binaries only x86_64 and arm64 builds are allowed.")
         endif()
 
