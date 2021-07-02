@@ -105,7 +105,7 @@ after_script:
 
 after_failure:
   - echo "Now uploading the failed tests"
-  - tar -cvf failed-tests.tar ./tests/testimages/toktx-*
+  - tar -cvf failed-tests.tar ./tests/testimages/toktx*
   - curl --upload-file failed-tests.tar https://transfer.sh/toktx-failed-tests.tar
 
 # Errors in something run in after_success: don't cause the build to fail so don't use.
