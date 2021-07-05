@@ -51,6 +51,8 @@ jobs:
 # Phase 3: Install cache components - Currently not using a cache
 # then the following phases:
 before_install:
+- echo "Running on the following travis CI runner"
+- uname -a
 - eval "${MATRIX_EVAL}"
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
 - cat ~/.netrc
@@ -105,6 +107,7 @@ after_script:
 
 after_failure:
   - echo "Now uploading the failed tests"
+  - ls -alsh ./tests/testimages/toktx*
   - tar -cvf failed-tests.tar ./tests/testimages/toktx*
   - curl --upload-file failed-tests.tar https://transfer.sh/toktx-failed-tests.tar
 
