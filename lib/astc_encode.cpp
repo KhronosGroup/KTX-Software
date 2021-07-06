@@ -638,8 +638,42 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
                                                    quality, flags,
                                                    &astc_config);
 
+bool defined_avx = false,
+    defined_sse = false,
+    defined_f16c = false,
+    defined_popcnt = false,
+    defined_neon = false;
+
+#if defined(ASTCENC_POPCNT)
+    defined_popcnt = true;
+#endif
+
+#if defined(ASTCENC_F16C)
+    defined_f16c = true;
+#endif
+
+#if defined(ASTCENC_SSE)
+    defined_sse = true;
+#endif
+
+#if defined(ASTCENC_AVX)
+    defined_avx = true;
+#endif
+
+#if defined(ASTCENC_NEON)
+    defined_neon = true;
+#endif
+
+    std::cout << "The following ASTC Encoder compiler options are set " << std::boolalpha
+        << "AVX = " << defined_avx << std::endl
+        << "POPCNT = " << defined_popcnt << std::endl
+        << "SSE = " << defined_sse << std::endl
+        << "F16c = " << defined_f16c << std::endl
+        << "NEON = " << defined_neon << std::endl;
+
+
     if (astc_error != ASTCENC_SUCCESS) {
-        std::cout << "ASTC config init failed\n";
+        std::cout << "ASTC config init failed with error " << astcenc_get_error_string(astc_error) << std::endl;
         return KTX_INVALID_OPERATION;
     }
 
@@ -647,7 +681,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
                                         &astc_context);
 
     if (astc_error != ASTCENC_SUCCESS) {
-        std::cout << "ASTC context alloc failed\n";
+        std::cout << "ASTC context alloc failed with error " << astcenc_get_error_string(astc_error) << std::endl;
         return KTX_INVALID_OPERATION;
     }
 

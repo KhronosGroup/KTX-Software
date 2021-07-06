@@ -169,7 +169,7 @@ PROPERTIES
     ENVIRONMENT TOKTX_OPTIONS=--lower_left_maps_to_s0t0
 )
 
-gencmpktx( astc_mipmap_ldr_cubemap_6x6 astc_mipmap_ldr_cubemap_6x6.ktx2 toktx.cubemap.filelist.txt "--test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap" "" "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" )
+# gencmpktx( astc_mipmap_ldr_cubemap_6x6 astc_mipmap_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap" "" "" )
 gencmpktx( astc_mipmap_ldr_6x6_posx astc_mipmap_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
 gencmpktx( astc_ldr_6x6_posx               astc_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x6" "" "" )
 gencmpktx( astc_mipmap_ldr_6x6_posz astc_mipmap_ldr_6x6_posz.ktx2 ../srcimages/Yokohama3/posz.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
