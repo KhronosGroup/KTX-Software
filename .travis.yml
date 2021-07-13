@@ -13,6 +13,26 @@ dist: focal
 
 jobs:
   include:
+    - os: linux
+      addons:
+        apt:
+          #sources:
+          #  - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          packages:
+            - gcc-7
+            - g++-7
+            - cmake
+      dist: focal
+      env:
+        # NB: This must not have the fourth component of the version number.
+        - VULKAN_SDK_VER="1.2.176"
+      compiler: gcc # clang is tested by macOS build
+      language: python
+      python: '3.7'
+      services:
+        - docker
+      node_js:
+        - node
     - os: osx
       env:
         - VULKAN_SDK_VER="1.2.176.1"
@@ -33,7 +53,7 @@ jobs:
 before_install:
 - echo "Running on the following travis CI runner"
 - uname -a
-- echo "CMake version using is"
+- echo "CMake version on the runner is"
 - cmake --version
 - eval "${MATRIX_EVAL}"
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
