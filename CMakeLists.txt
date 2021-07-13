@@ -695,13 +695,18 @@ if(KTX_FEATURE_DOC)
     include(cmake/docs.cmake)
 endif()
 
+set(KTX_INSTALL_TARGETS ktx)
+
+if(KTX_FEATURE_STATIC_LIBRARY)
+    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_NAME})
+endif()
 
 # Install
 
 if(APPLE OR LINUX)
     # Have library's name links as separate component
     set(KTX_NAMELINKS ON)
-    install(TARGETS ktx
+    install(TARGETS ${KTX_INSTALL_TARGETS}
         EXPORT KTXTargets
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -711,7 +716,7 @@ if(APPLE OR LINUX)
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
     )
-    install(TARGETS ktx
+    install(TARGETS ${KTX_INSTALL_TARGETS}
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
@@ -720,7 +725,7 @@ if(APPLE OR LINUX)
 else()
     # No name links on Windows
     set(KTX_NAMELINKS OFF)
-    install(TARGETS ktx
+    install(TARGETS ${KTX_INSTALL_TARGETS}
         EXPORT KTXTargets
         ARCHIVE
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
