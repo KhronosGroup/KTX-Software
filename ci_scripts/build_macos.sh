@@ -48,7 +48,8 @@ fi
 echo "Configure KTX-Software (macOS x86_64) with SSE support"
 cmake -GXcode -Bbuild-macos-sse \
   -DCMAKE_OSX_ARCHITECTURES="x86_64" \
-  -DBASISU_SUPPORT_SSE=ON
+  -DBASISU_SUPPORT_SSE=ON \
+  -DISA_SSE41=ON
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
