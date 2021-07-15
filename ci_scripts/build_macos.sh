@@ -61,7 +61,7 @@ pushd $DEPLOY_BUILD_DIR
 echo "Build KTX-Software (macOS universal binary Debug)"
 cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee fullbuild.log | xcpretty
 echo "Test KTX-Software (macOS universal binary Debug)"
-ctest -C Debug --verbose
+ctest -C Debug # --verbose
 
 # Build and test Release
 echo "Build KTX-Software (macOS universal binary Release)"
@@ -71,7 +71,7 @@ else
   cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 fi
 echo "Test KTX-Software (macOS universal binary Release)"
-ctest -C Release --verbose
+ctest -C Release # --verbose
 echo "Install KTX-Software (macOS universal binary Release)"
 cmake --install . --config Release --prefix ../install-macos-release
 echo "Pack KTX-Software (macOS Release)"
@@ -88,12 +88,12 @@ echo "Build KTX-Software (macOS with SSE support Debug)"
 cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 
 echo "Test KTX-Software (macOS with SSE support Debug)"
-ctest -C Debug --verbose
+ctest -C Debug # --verbose
 echo "Build KTX-Software (macOS with SSE support Release)"
 cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee -a fullbuild.log | xcpretty
 
 echo "Test KTX-Software (macOS with SSE support Release)"
-ctest -C Release --verbose
+ctest -C Release # --verbose
 
 popd
 
