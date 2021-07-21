@@ -175,3 +175,11 @@ make package -j16
 
 Windows packages will use the `.zip` format, other packages will use the
 `.tar.gz` format.
+
+## Integrating as a library into another project
+
+The core codec of astcenc is built as a library, and so can be easily
+integrated into other projects using CMake. An example of the CMake integration
+and the codec API usage can be found in the `./Utils/Example` directory in the
+repository. See the [Example Readme](../Utils/Example/README.md) for more
+details.

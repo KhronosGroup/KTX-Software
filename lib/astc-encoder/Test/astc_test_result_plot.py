@@ -254,7 +254,7 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast"],
-            ["ref-2.5-avx2", "ref-3.0-avx2"],
+            ["ref-2.5-avx2", "ref-3.1-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-1.7",
@@ -264,7 +264,7 @@ def main():
         ], [
             # Absolute scores
             ["thorough", "medium", "fast"],
-            ["ref-1.7", "ref-2.5-avx2", "ref-3.0-avx2"],
+            ["ref-1.7", "ref-2.5-avx2", "ref-3.1-avx2"],
             ["4x4", "6x6", "8x8"],
             False,
             None,
@@ -284,35 +284,18 @@ def main():
             None,
             "relative-2.x-vs-1.x.png",
             (None, None)
-        ], [
-            # Absolute scores
+        ],
+        # --------------------------------------------------------
+        # Latest 3.x vs 1.7 release charts
+        [
+            # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-1.7", "ref-2.5-avx2"],
-            ["4x4", "6x6", "8x8"],
-            False,
-            None,
-            None,
-            "absolute-2.x-vs-1.x.png",
-            (absoluteXLimit, None)
-        ], [
-            # Relative ISAs of latest
-            ["thorough", "medium", "fast", "fastest"],
-            ["ref-2.5-sse4.1", "ref-2.5-avx2"],
+            ["ref-3.1-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
-            "ref-2.5-sse2",
+            "ref-1.7",
             None,
-            "relative-2.x-isa.png",
-            (None, None)
-        ], [
-            # Relative quality of latest
-            ["medium", "fast", "fastest"],
-            ["ref-2.5-avx2"],
-            ["4x4", "6x6", "8x8"],
-            True,
-            None,
-            "thorough",
-            "relative-2.x-quality.png",
+            "relative-3.x-vs-1.x.png",
             (None, None)
         ],
         # --------------------------------------------------------
@@ -320,70 +303,47 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.0-avx2"],
+            ["ref-3.1-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-2.5-avx2",
             None,
             "relative-3.x-vs-2.x.png",
             (None, None)
-        ], [
-            # Absolute scores
+        ],
+        # --------------------------------------------------------
+        # Latest 3.x vs 3.0 release charts
+        [
+            # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-2.5-avx2", "ref-3.0-avx2"],
+            ["ref-3.1-avx2"],
             ["4x4", "6x6", "8x8"],
-            False,
+            True,
+            "ref-3.0-avx2",
             None,
-            None,
-            "absolute-3.x-vs-2.x.png",
-            (absoluteXLimit, None)
+            "relative-3.x-vs-3.x.png",
+            (None, None)
         ], [
             # Relative ISAs of latest
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.0-sse4.1", "ref-3.0-avx2"],
+            ["ref-3.1-sse4.1", "ref-3.1-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
-            "ref-3.0-sse2",
+            "ref-3.1-sse2",
             None,
             "relative-3.x-isa.png",
             (None, None)
         ], [
             # Relative quality of latest
             ["medium", "fast", "fastest"],
-            ["ref-3.0-avx2"],
+            ["ref-3.1-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             None,
             "thorough",
             "relative-3.x-quality.png",
             (None, None)
-        ],
-        # --------------------------------------------------------
-        # Latest 3.x vs 2.5 release charts
-        [
-            # Relative scores
-            ["thorough", "medium", "fast", "fastest"],
-            ["ref-main-avx2"],
-            ["4x4", "6x6", "8x8"],
-            True,
-            "ref-3.0-avx2",
-            None,
-            "relative-main-vs-3.x.png",
-            (None, None),
-            1
-        ],
-        [
-            # Relative scores
-            ["thorough", "medium", "fast"],
-            ["ref-main-avx2"],
-            ["4x4", "6x6", "8x8"],
-            True,
-            "ref-1.7",
-            None,
-            "relative-main-vs-1.x.png",
-            (None, None),
-            1
-        ],
+        ]
     ]
 
     results = find_reference_results()

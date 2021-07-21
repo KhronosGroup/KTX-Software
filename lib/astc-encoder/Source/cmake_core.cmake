@@ -54,7 +54,8 @@ add_library(${ASTC_TARGET}-static
 
 target_include_directories(${ASTC_TARGET}-static
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR})
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:.>)
 
 if(${CLI})
     add_executable(${ASTC_TARGET}
