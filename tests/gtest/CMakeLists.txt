@@ -14,6 +14,8 @@ PUBLIC
     .
 )
 
+target_compile_features(gtest PUBLIC cxx_std_11)
+
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     set_source_files_properties(
         src/gtest-all.cc

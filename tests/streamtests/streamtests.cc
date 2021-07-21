@@ -4,6 +4,7 @@
 #include <cstring>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -289,7 +290,7 @@ bool expectSameTextureContent(const ktxTexture* tex1, const ktxTexture* tex2)
 
     EXPECT_EQ_OK(tex1->isArray, tex2->isArray) << "Both textures should [not] be array textures";
     EXPECT_EQ_OK(tex1->isCubemap, tex2->isCubemap) << "Both textures should [not] be cubemap [arrays]";
-    EXPECT_EQ_OK(tex1->isCompressed, tex2->baseDepth) << "Both textures should [not] be compressed";
+    EXPECT_EQ_OK(tex1->isCompressed, tex2->isCompressed) << "Both textures should [not] be compressed";
 
     EXPECT_EQ_OK(tex1->baseWidth, tex2->baseWidth) << "Mismatched base width";
     EXPECT_EQ_OK(tex1->baseHeight, tex2->baseHeight) << "Mismatched base height";
