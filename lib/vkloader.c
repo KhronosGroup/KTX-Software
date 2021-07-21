@@ -972,6 +972,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             numCopyRegions, copyRegions
             );
 
+        free(copyRegions);
+
         if (This->generateMipmaps) {
             generateMipmaps(vkTexture, vdi,
                             blitFilter, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
