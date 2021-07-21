@@ -1082,11 +1082,11 @@ TEST(vfloat4, normalize_safe)
 /** @brief Test vfloat4 float_to_int. */
 TEST(vfloat4, float_to_int)
 {
-	vfloat4 a(1.1f, 1.5f, 1.6f, 4.0f);
+	vfloat4 a(1.1f, 1.5f, -1.6f, 4.0f);
 	vint4 r = float_to_int(a);
 	EXPECT_EQ(r.lane<0>(), 1);
 	EXPECT_EQ(r.lane<1>(), 1);
-	EXPECT_EQ(r.lane<2>(), 1);
+	EXPECT_EQ(r.lane<2>(), -1);
 	EXPECT_EQ(r.lane<3>(), 4);
 }
 

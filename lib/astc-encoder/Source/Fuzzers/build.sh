@@ -20,6 +20,11 @@
 
 # This script is invoked by oss-fuzz from <root>/Source/
 
+# Generate a dummy verison header (normally built by CMake variable expansion)
+echo "#pragma once" > astcenccli_version.h
+echo "#define VERSION_STRING \"0.0.0\"" >> astcenccli_version.h
+echo "#define YEAR_STRING \"2021\"" >> astcenccli_version.h
+
 # Build the core project for fuzz tests to link against
 for source in ./*.cpp; do
   BASE="${source##*/}"

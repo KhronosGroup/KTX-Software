@@ -90,10 +90,10 @@ vector<FormatFeature> allFormats = {
 class TextureCombinationsTest :
     public ::testing::TestWithParam<tuple<TextureSet,FormatFeature>> {};
 
-INSTANTIATE_TEST_CASE_P(AllCombinations,
+INSTANTIATE_TEST_SUITE_P(AllCombinations,
                         TextureCombinationsTest,
                         ::testing::Combine(::testing::ValuesIn(allTextureSets),
-                                           ::testing::ValuesIn(allFormats)),);
+                                           ::testing::ValuesIn(allFormats)));
 
 bool read_file( string path, void** data, unsigned long *fsize ) {
     FILE *f = fopen(path.data(),"rb");
