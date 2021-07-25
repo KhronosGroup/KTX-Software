@@ -115,6 +115,16 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
     add_compile_options(-Wall -Wextra)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     if(EMSCRIPTEN)
+        # For reasons I have yet to understand, the clang v12 used by the
+        # current Emscripten versions raises this deprecated copy warning on
+        # the assimp headers while the clang v12 used by Xcode does not. I am
+        # also unable to update the assimp headers as the macOS build of the
+        # matching version of libassimp fails. There has been no response
+        # from the assimp project and I don't have time to investigate.
+        # Therefore, since we don't have an Emscripten port of libassimp,
+        # meaning the relevant load tests will never be called, just globally
+        # suppress the warning.
+        add_compile_options(-Wno-deprecated-copy)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
     else()
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
@@ -558,7 +568,7 @@ if(EMSCRIPTEN)
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=LIBKTX"
-        "SHELL:-s EXTRA_EXPORTED_RUNTIME_METHODS=[\'GL\']"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
