@@ -70,7 +70,7 @@ Files: */*.json
 Copyright: 2017-2020 Mark Callow
 License: Apache-2.0
 
-Files: lib/astc-encoder/Docs/* lib/astc-encoder/Test/* lib/astc-encoder/jenkins/* lib/astc-encoder/.gitattributes lib/astc-encoder/.gitignore lib/astc-encoder/.gitmodules lib/astc-encoder/.pylintrc lib/astc-encoder/README.md
+Files: lib/astc-encoder/Docs/* lib/astc-encoder/Test/* lib/astc-encoder/jenkins/* lib/astc-encoder/.gitattributes lib/astc-encoder/.gitignore lib/astc-encoder/.gitmodules lib/astc-encoder/.pylintrc lib/astc-encoder/README.md lib/astc-encoder/Utils/Example/README.md
 Copyright: 2020-2021 Arm Limited
 License: Apache-2.0
 
