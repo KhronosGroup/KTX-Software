@@ -45,7 +45,10 @@
     LIBKTX({preinitializedWebGLContext: gl}).then(module => {
       window.LIBKTX = module;
       // Make existing WebGL context current for Emscripten OpenGL.
-      LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
+      LIBKTX.GL.makeContextCurrent(
+                  LIBKTX.GL.createContext(document.getElementById("glcanvas"),
+                                          { majorVersion: 2.0 })
+                  );
       texture = loadTexture(gl, 'ktx_app_basis.ktx2');
     });
   </script>
