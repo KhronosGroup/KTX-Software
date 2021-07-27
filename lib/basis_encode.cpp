@@ -390,10 +390,7 @@ static bool basisuEncoderInitialized = false;
  *                              The texture image format's component size is not 8-bits.
  * @exception KTX_INVALID_OPERATION
  *                              @c separateRGToRGB_A is specified but the texture
- *                              is only 1D.
- * @exception KTX_INVALID_OPERATION
- *                              The texture's images are 1D. Only 2D images can
- *                              be supercompressed.
+ *                              has only 1 component.
  * @exception KTX_INVALID_OPERATION
  *                              Both preSwizzle and and inputSwizzle are specified
  *                              in @a params.
@@ -1056,9 +1053,6 @@ extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
  * @exception KTX_INVALID_OPERATION
  *                              The texture's image are in a block compressed
  *                              format.
- * @exception KTX_INVALID_OPERATION
- *                              The texture's images are 1D. Only 2D images can
- *                              be supercompressed.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code

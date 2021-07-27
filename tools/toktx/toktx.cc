@@ -1297,11 +1297,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
             astcopts.print();
 #endif
             if (options.inputSwizzle.size()) {
-                for (i = 0; i < 4; i++) {
+                for (i = 0; i < options.inputSwizzle.size(); i++) {
                      astcopts.inputSwizzle[i] = options.inputSwizzle[i];
                 }
             } else if (defaultSwizzle.size()) {
-                 for (i = 0; i < 4; i++) {
+                 for (i = 0; i < options.inputSwizzle.size(); i++) {
                      astcopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
             }
