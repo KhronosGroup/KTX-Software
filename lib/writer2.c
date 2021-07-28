@@ -319,6 +319,7 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
               "KTXorientation",
               "KTXglFormat",
               "KTXdxgiFormat__",
+              "KTXmetalPixelFormat",
               "KTXswizzle",
               "KTXwriter",
               "KTXwriterScParams",
