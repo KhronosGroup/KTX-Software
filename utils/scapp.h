@@ -7,6 +7,7 @@
 #include <zstd.h>
 #include "ktxapp.h"
 #include <unordered_map>
+#include <algorithm>
 
 template<typename T>
 struct clampedOption
