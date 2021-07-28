@@ -291,9 +291,9 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
                 ktx_uint8_t* src = pKvd;
                 ktx_uint8_t* end = pKvd + kvdLen;
                 while (src < end) {
-                    ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t*)src);
-                    _ktxSwapEndian32(&keyAndValueByteSize, 1);
-                    src += _KTX_PAD4(keyAndValueByteSize);
+                    ktx_uint32_t* pKeyAndValueByteSize = (ktx_uint32_t*)src;
+                    _ktxSwapEndian32(pKeyAndValueByteSize, 1);
+                    src += _KTX_PAD4(*pKeyAndValueByteSize);
                 }
             }
 
