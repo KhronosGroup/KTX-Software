@@ -704,9 +704,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
     else
       createInfo.numFaces = 1;
 
-    // TO DO: handle array textures
     createInfo.numLayers = options.layers;
-    createInfo.isArray = KTX_FALSE;
+    createInfo.isArray = options.layers > 1;
 
     // TO DO: handle 3D textures.
 
@@ -1086,6 +1085,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 level = 0;
                 levelWidth = createInfo.baseWidth;
                 levelHeight = createInfo.baseHeight;
+                levelDepth = createInfo.baseDepth;
                 if (faceSlice == (options.cubemap ? 6 : levelDepth)) {
                     faceSlice = 0;
                     layer++;
