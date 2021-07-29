@@ -74,7 +74,7 @@ endif()
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
     if(IOS)
-        set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "10.0" CACHE STRING "iOS Deployment Target")
+        set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "11.0" CACHE STRING "iOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
     endif()
 endif()
@@ -456,6 +456,7 @@ target_sources(
     ktx
 PRIVATE
     lib/basis_encode.cpp
+    lib/astc_encode.cpp
     ${BASISU_ENCODER_C_SRC}
     ${BASISU_ENCODER_CXX_SRC}
     lib/writer1.c
@@ -649,6 +650,49 @@ PUBLIC
 
 add_subdirectory(interface/basisu_c_binding)
 
+# Only one architecture is supported at once, if neither of
+# ISA_SSE41 and ISA_SSE2  are defined ISA_AVX2 is chosen.
+# If ISA_AVX2 fails to compile user must chose other x86 options.
+# On arm based systems ISA_NEON is default
+
+list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
+
+if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
+    if (${ISA_NONE})
+        set(ASTC_LIB_NAME astcenc-none-static)
+    else()
+        if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
+            if (${ISA_SSE41})
+                set(ASTC_LIB_NAME astcenc-sse4.1-static)
+            elseif (${ISA_SSE2})
+                set(ASTC_LIB_NAME astcenc-sse2-static)
+            else()
+                set(ISA_AVX2 ON)
+                set(ASTC_LIB_NAME astcenc-avx2-static)
+            endif()
+            if(CPU_ARCHITECTURE STREQUAL x86)
+                set(ISA_NONE ON)
+                set(ISA_AVX2 OFF)
+                set(ASTCENC_POPCNT 0)
+                set(ASTC_LIB_NAME astcenc-none-static)
+            endif()
+        elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
+            set(ASTC_LIB_NAME astcenc-neon-static)
+        else()
+            message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
+            set(ISA_NONE ON)
+        endif()
+    endif()
+else()
+    set(ASTC_LIB_NAME astcenc-static)
+endif()
+
+# astcenc
+set(CLI OFF) # Only build as library not the CLI astcencoder
+add_subdirectory(lib/astc-encoder)
+set_property(TARGET ${ASTC_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(ktx PRIVATE ${ASTC_LIB_NAME})
+
 # Tools
 if(KTX_FEATURE_TOOLS)
     add_subdirectory(tools)
@@ -662,13 +706,18 @@ if(KTX_FEATURE_DOC)
     include(cmake/docs.cmake)
 endif()
 
+set(KTX_INSTALL_TARGETS ktx)
+
+if(KTX_FEATURE_STATIC_LIBRARY)
+    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_NAME})
+endif()
 
 # Install
 
 if(APPLE OR LINUX)
     # Have library's name links as separate component
     set(KTX_NAMELINKS ON)
-    install(TARGETS ktx
+    install(TARGETS ${KTX_INSTALL_TARGETS}
         EXPORT KTXTargets
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -678,7 +727,7 @@ if(APPLE OR LINUX)
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
     )
-    install(TARGETS ktx
+    install(TARGETS ${KTX_INSTALL_TARGETS}
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
@@ -687,7 +736,7 @@ if(APPLE OR LINUX)
 else()
     # No name links on Windows
     set(KTX_NAMELINKS OFF)
-    install(TARGETS ktx
+    install(TARGETS ${KTX_INSTALL_TARGETS}
         EXPORT KTXTargets
         ARCHIVE
             DESTINATION ${CMAKE_INSTALL_LIBDIR}

@@ -6,9 +6,10 @@ set -e
 
 # Fallback to arm64-v8a
 ANDROID_ABI=${ANDROID_ABI:-'arm64-v8a'}
+ASTC_ISA=${ASTC_ISA:-'ISA_NONE=ON'}
 
 # You need to set the following environment variables first
-# ANDROID_NDK= <Path to Android NDK> 
+# ANDROID_NDK= <Path to Android NDK>
 
 echo "Configure KTX-Software (Android $ANDROID_ABI Debug)"
 cmake . -G Ninja -B "build-android-$ANDROID_ABI-debug" \
@@ -17,7 +18,8 @@ cmake . -G Ninja -B "build-android-$ANDROID_ABI-debug" \
 -DANDROID_NDK="$ANDROID_NDK" \
 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
 -DCMAKE_BUILD_TYPE=Debug \
--DBASISU_SUPPORT_SSE=OFF
+-DBASISU_SUPPORT_SSE=OFF \
+-D${ASTC_ISA}
 
 pushd "build-android-$ANDROID_ABI-debug"
 

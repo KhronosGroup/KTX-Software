@@ -93,9 +93,9 @@ void skipNonData(FILE *src)
     skipSpaces(src);
 }
 
-static Image* createFromPPM(FILE*, bool transformOETF, bool rescaleTo8Bits);
-static Image* createFromPGM(FILE*, bool transformOETF, bool rescaleTo8Bits);
-static Image* createFromPAM(FILE*, bool transformOETF, bool rescaleTo8Bits);
+static Image* createFromPPM(FILE*, bool transformOETF, Image::rescale_e rescale);
+static Image* createFromPGM(FILE*, bool transformOETF, Image::rescale_e rescale);
+static Image* createFromPAM(FILE*, bool transformOETF, Image::rescale_e rescale);
 static void parseHeader(FILE* src, uint32_t& width, uint32_t& height,
                         int32_t& maxval);
 static void readImage(FILE* src, Image& image, int32_t maxval);
@@ -120,7 +120,7 @@ static void readImage(FILE* src, Image& image, int32_t maxval);
 //! @author Mark Callow
 //!
 Image*
-Image::CreateFromNPBM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
+Image::CreateFromNPBM(FILE* src, bool transformOETF, Image::rescale_e rescale)
 {
     char line[255];
     int numvals;
@@ -130,11 +130,11 @@ Image::CreateFromNPBM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     numvals = fscanf(src, "%3s", line);
     if (numvals != 0) {
         if (strcmp(line, "P6") == 0) {
-            return createFromPPM(src, transformOETF, rescaleTo8Bits);
+            return createFromPPM(src, transformOETF, rescale);
         } else if (strcmp(line, "P5") == 0) {
-            return createFromPGM(src, transformOETF, rescaleTo8Bits);
+            return createFromPGM(src, transformOETF, rescale);
         } else if (strcmp(line, "P7") == 0) {
-            return createFromPAM(src, transformOETF, rescaleTo8Bits);
+            return createFromPAM(src, transformOETF, rescale);
         } else if (strcmp(line, "P3") == 0) {
             throw std::runtime_error("Plain PPM format is not supported.");
         }
@@ -170,7 +170,7 @@ Image::CreateFromNPBM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 //! @author Mark Callow
 //!
 Image*
-createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
+createFromPPM(FILE* src, bool transformOETF, Image::rescale_e rescale)
 {
     int32_t maxval;
     uint32_t width, height;
@@ -182,7 +182,7 @@ createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     //fprintf(stderr, "maxval is %d\n",maxval);
 
     // PPM is 3 components
-    if (maxval > 255 && !rescaleTo8Bits)
+    if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits)
         image = new rgb16image(width, height);
     else
         image = new rgb8image(width, height);
@@ -232,7 +232,7 @@ createFromPPM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 //! @author Mark Callow
 //!
 Image*
-createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
+createFromPGM(FILE* src, bool transformOETF, Image::rescale_e rescale)
 {
     int maxval;
     uint32_t width, height;
@@ -243,7 +243,7 @@ createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     parseHeader(src, width, height, maxval);
 
     // PGM is 1 component. Treat as luminance for consistency with .png & .jpg.
-    if (maxval > 255 && !rescaleTo8Bits)
+    if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits)
         image = new r16image(width, height);
     else
         image = new r8image(width, height);
@@ -297,7 +297,7 @@ createFromPGM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
 //! @author Mark Callow
 //!
 Image*
-createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
+createFromPAM(FILE* src, bool transformOETF, Image::rescale_e rescale)
 {
     char line[255];
 #define MAX_TUPLETYPE_SIZE 20
@@ -343,7 +343,7 @@ createFromPAM(FILE* src, bool transformOETF, bool rescaleTo8Bits)
     if (maxval <= 0 || maxval >= (1<<16)) {
         throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
     }
-    if (maxval > 255 && !rescaleTo8Bits) {
+    if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits) {
         switch (depth) {
           case 1:
             image = new r16image(width, height);

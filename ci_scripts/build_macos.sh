@@ -63,8 +63,8 @@ echo "Configure KTX-Software (macOS x86_64) with SSE support"
 cmake -GXcode -Bbuild-macos-sse \
   -DCMAKE_OSX_ARCHITECTURES="x86_64" \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
-  -DBASISU_SUPPORT_SSE=ON
-
+  -DBASISU_SUPPORT_SSE=ON \
+  -DISA_SSE41=ON
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
@@ -117,7 +117,7 @@ popd
 #
 
 echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF
+cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
 cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output

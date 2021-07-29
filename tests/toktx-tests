@@ -104,18 +104,18 @@ else
 fi
 
 numtests=$numtests+1
-if ! $toktx --zcmp --bcmp a b 2> /dev/null; then
+if ! $toktx --zcmp --etc1s a b 2> /dev/null; then
   passed=$passed+1
 else
-  echo "Simultaneous --bcmp & --zcmp allowed"
+  echo "Simultaneous --etc1s & --zcmp allowed"
   failed=$failed+1
 fi
 
 numtests=$numtests+1
-if ! $toktx --bcmp --uastc a b 2> /dev/null; then
+if ! $toktx --etc1s --uastc a b 2> /dev/null; then
   passed=$passed+1
 else
-  echo "Simultaneous --bcmp & --uastc allowed"
+  echo "Simultaneous --etc1s & --uastc allowed"
   failed=$failed+1
 fi
 
@@ -167,7 +167,7 @@ function gencmpktx() {
   for i in $*; do
 	if [ ${i:0:2} == "--" ]; then
 	  args="$args $i"
-	  shift
+    shift
 	fi
   done
   #echo $toktx $args $tempfile $*

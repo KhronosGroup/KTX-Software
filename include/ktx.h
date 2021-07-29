@@ -1092,7 +1092,136 @@ typedef enum ktx_pack_uastc_flag_bits_e {
 } ktx_pack_uastc_flag_bits_e;
 typedef ktx_uint32_t ktx_pack_uastc_flags;
 
+/**
+ * @~English
+ * @brief Options specifiying ASTC encoding quality levels.
+ */
+typedef enum ktx_pack_astc_quality_levels_e {
+    KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST  = 0,
+        /*!< Fastest compression. */
+    KTX_PACK_ASTC_QUALITY_LEVEL_FAST   = 10,
+        /*!< Fast compression. */
+    KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM   = 60,
+        /*!< Medium compression. */
+    KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH   = 98,
+        /*!< Slower compression. */
+    KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE = 100,
+        /*!< Very slow compression. */
+    KTX_PACK_ASTC_QUALITY_LEVEL_MAX = KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE,
+        /*!< Maximum supported quality level. */
+} ktx_pack_astc_quality_levels_e;
+
+/**
+ * @~English
+ * @brief Options specifiying ASTC encoding block dimensions
+ */
+typedef enum ktx_pack_astc_block_dimension_e {
+    // 2D formats
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x4,                    //: 8.00 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x4,                    //: 6.40 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x5,                    //: 5.12 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x5,                    //: 4.27 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x6,                    //: 3.56 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_8x5,                    //: 3.20 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_8x6,                    //: 2.67 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x5,                   //: 2.56 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x6,                   //: 2.13 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_8x8,                    //: 2.00 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x8,                   //: 1.60 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_10x10,                  //: 1.28 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_12x10,                  //: 1.07 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_12x12,                  //: 0.89 bpp
+    // 3D formats
+    KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3,                  //: 4.74 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3,                  //: 3.56 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3,                  //: 2.67 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4,                  //: 2.00 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4,                  //: 1.60 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4,                  //: 1.28 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5,                  //: 1.02 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5,                  //: 0.85 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5,                  //: 0.71 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6,                  //: 0.59 bpp
+    KTX_PACK_ASTC_BLOCK_DIMENSION_MAX = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6
+        /*!< Maximum supported blocks. */
+} ktx_pack_astc_block_dimension_e;
+
+/**
+ * @~English
+ * @brief Options specifiying ASTC encoder profile function
+ */
+typedef enum ktx_pack_astc_encoder_function_e {
+    KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN,
+    KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB,
+    KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR,
+    KTX_PACK_ASTC_ENCODER_FUNCTION_MAX = KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR
+} ktx_pack_astc_encoder_function_e;
+
+/**
+ * @~English
+ * @brief Options specifying ASTC encoder profile mode
+ *        This and function is used later to derive the profile.
+ */
+typedef enum ktx_pack_astc_encoder_mode_e {
+    KTX_PACK_ASTC_ENCODER_MODE_DEFAULT,
+    KTX_PACK_ASTC_ENCODER_MODE_LDR,
+    KTX_PACK_ASTC_ENCODER_MODE_HDR,
+    KTX_PACK_ASTC_ENCODER_MODE_MAX = KTX_PACK_ASTC_ENCODER_MODE_HDR
+} ktx_pack_astc_encoder_mode_e;
+
 extern KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Structure for passing extended parameters to
+ *        ktxTexture_CompressAstc.
+ *
+ * Passing a struct initialized to 0 (e.g. " = {};") will use the default
+ * values. Only those settings to be modified need be non-zero.
+ */
+typedef struct ktxAstcParams {
+    ktx_uint32_t structSize;
+        /*!< Size of this struct. Used so library can tell which version
+             of struct is being passed.
+         */
+    ktx_bool_t verbose;
+        /*!< If true, prints Astc encoder operation details to
+             @c stdout. Not recommended for GUI apps.
+         */
+    ktx_uint32_t threadCount;
+        /*!< Number of threads used for compression. Default is 1. */
+
+    /* astcenc params */
+    ktx_uint32_t blockDimension;
+        /*!< Combinations of block dimensions that astcenc supports
+          i.e. 6x6, 8x8, 6x5 etc*/
+
+    ktx_uint32_t function;
+        /*!< Can be {linear/srgb} from astcenc*/
+
+    ktx_uint32_t mode;
+        /*!< Can be {ldr/hdr} from astcenc*/
+
+    ktx_uint32_t qualityLevel;
+        /*!< astcenc supports -fastest, -fast, -medium, -thorough, -exhaustive*/
+
+    ktx_bool_t normalMap;
+        /*!< Tunes codec parameters for better quality on normal maps
+          In this mode normals are compressed to X,Y components
+          Discarding Z component, reader will need to generate Z
+          component in shaders.
+        */
+    char inputSwizzle[4];
+         /*!< A swizzle to provide as input to astcenc. It must match the regular
+             expression /^[rgba01]{4}$/.*/
+} ktxAstcParams;
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture_CompressAstcEx(ktxTexture* This, ktxAstcParams* params);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture_CompressAstc(ktxTexture* This, ktx_uint32_t quality);
 
 /**
  * @memberof ktxTexture2
@@ -1648,4 +1777,3 @@ Initial release.
 */
 
 #endif /* KTX_H_A55A6F00956F42F3A137C11929827FE1 */
-

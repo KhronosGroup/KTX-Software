@@ -51,6 +51,10 @@ jobs:
 # Phase 3: Install cache components - Currently not using a cache
 # then the following phases:
 before_install:
+- echo "Running on the following travis CI runner"
+- uname -a
+- echo "CMake version on the runner is"
+- cmake --version
 - eval "${MATRIX_EVAL}"
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
 - cat ~/.netrc
@@ -102,6 +106,12 @@ script:
 # See if this helps with truncated logs.
 after_script:
  - sleep 10
+
+# after_failure:
+#   - echo "Now uploading the failed tests"
+#   - ls -alsh ./tests/testimages/toktx*
+#   - tar -cvf failed-tests.tar ./tests/testimages/toktx*
+#   - curl --upload-file failed-tests.tar https://transfer.sh/toktx-failed-tests.tar
 
 # Errors in something run in after_success: don't cause the build to fail so don't use.
 

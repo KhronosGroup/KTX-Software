@@ -379,9 +379,9 @@ static bool basisuEncoderInitialized = false;
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_OPERATION
- *                              The texture is already supercompressed.
+ *                              The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's image are in a block compressed
+ *                              The texture's images are in a block compressed
  *                              format.
  * @exception KTX_INVALID_OPERATION
  *                              The texture image's format is a packed format
@@ -390,14 +390,11 @@ static bool basisuEncoderInitialized = false;
  *                              The texture image format's component size is not 8-bits.
  * @exception KTX_INVALID_OPERATION
  *                              @c separateRGToRGB_A is specified but the texture
- *                              is only 1D.
- * @exception KTX_INVALID_OPERATION
- *                              The texture's images are 1D. Only 2D images can
- *                              be supercompressed.
+ *                              has only 1 component.
  * @exception KTX_INVALID_OPERATION
  *                              Both preSwizzle and and inputSwizzle are specified
  *                              in @a params.
- * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
 ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
@@ -994,7 +991,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     }
     This->vkFormat = VK_FORMAT_UNDEFINED;
 
-    // Since we only allow 8-bit components to be compressed ...
+    // Block-compressed textures never need byte swapping so typeSize is 1.
     assert(This->_protected->_typeSize == 1);
 
     // Copy in the compressed image data.
@@ -1056,9 +1053,6 @@ extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
  * @exception KTX_INVALID_OPERATION
  *                              The texture's image are in a block compressed
  *                              format.
- * @exception KTX_INVALID_OPERATION
- *                              The texture's images are 1D. Only 2D images can
- *                              be supercompressed.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code

@@ -260,7 +260,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                     exitCode = 1;
                     goto cleanup;
                 }
-                if ((options.bcmp || options.bopts.uastc) && texture->isCompressed) {
+                if ((options.etc1s || options.bopts.uastc) && texture->isCompressed) {
                     cerr << name << ": "
                          << "Cannot encode already block-compressed textures "
                          << "to Basis Universal or UASTC."
@@ -277,7 +277,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                                       (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
 
-                if (options.bcmp || options.bopts.uastc) {
+                if (options.etc1s || options.bopts.uastc) {
                     commandOptions::basisOptions& bopts = options.bopts;
                     ktx_uint32_t transfer = ktxTexture2_GetOETF(texture);
                     if (bopts.normalMap && transfer != KHR_DF_TRANSFER_LINEAR) {
@@ -387,8 +387,8 @@ ktxSupercompressor::validateOptions()
         usage();
         exit(1);
     }
-    if (!options.bcmp && !options.zcmp && !options.bopts.uastc) {
-       cerr << "Must specify one of --zcmp, --bcmp or --uastc." << endl;
+    if (!options.etc1s && !options.zcmp && !options.bopts.uastc) {
+       cerr << "Must specify one of --zcmp, --etc1s (deprecated --bcmp) or --uastc." << endl;
        usage();
        exit(1);
     }

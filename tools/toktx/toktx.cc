@@ -721,10 +721,40 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
         Image* image;
         try {
+            Image::rescale_e rescale = Image::eNoRescale;
+            if (options.etc1s || options.bopts.uastc)
+                rescale = Image::rescale_e::eAlwaysRescaleTo8Bits;
+            else if (options.astc)
+                rescale = Image::rescale_e::eRescaleTo8BitsIfLess;
+
             image =
               Image::CreateFromFile(infile,
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    options.bcmp || options.bopts.uastc);
+                                    rescale);
+
+            // If input is > 8bit and user wants LDR issue quality loss warning
+            if (options.astc && image->getComponentSize() > 1
+                && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
+                cerr << name << ": Warning! input file is 16bit but LDR option is specified."
+                     << " Expect quality loss in the output."
+                     << endl;
+            }
+
+            // If input is < 8bit and user wants HDR issue warning
+            if (options.astc && image->getComponentSize() <= 1 &&
+                options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
+                cerr << name << ": Warning! input file is not 16bit but HDR option is specified."
+                     << endl;
+            }
+
+            // If no astc mode option is specified and
+            // if input is <= 8bit default to LDR otherwise default to HDR
+            if (options.astc && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
+                if (image->getComponentSize() <= 1)
+                    options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
+                else
+                    options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
+            }
 
             if (i == 0) {
                 // First file.
@@ -869,8 +899,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
         }
 
         if (options.inputSwizzle.size() > 0
-            // inputSwizzle is handled during BasisU encoding
-            && !options.bcmp && !options.bopts.uastc) {
+            // inputSwizzle is handled during BasisU and astc encoding
+            && !options.etc1s && !options.bopts.uastc && !options.astc) {
             image->swizzle(options.inputSwizzle);
         }
 
@@ -1106,7 +1136,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             goto cleanup;
         }
 #if TRAVIS_DEBUG
-        if (options.bcmp) {
+        if (options.etc1s) {
             cout << "level = " << level << ", faceSlice = " << faceSlice;
             cout << ", srcImg = " << hex  << (void *)srcImg << dec;
             cout << ", imageSize = " << imageSize << endl;
@@ -1201,7 +1231,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
         // Add Swizzle metadata
         if (options.swizzle.size()) {
             swizzle = options.swizzle;
-        } else if (!options.bcmp && !options.bopts.uastc
+        } else if (!options.etc1s && !options.bopts.uastc && !options.astc
                    && defaultSwizzle.size()) {
             swizzle = defaultSwizzle;
         }
@@ -1229,7 +1259,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-       if (options.bcmp || options.bopts.uastc) {
+       if (options.etc1s || options.bopts.uastc) {
             commandOptions::basisOptions& bopts = options.bopts;
             if (bopts.normalMap && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
@@ -1246,12 +1276,49 @@ toktxApp::main(int argc, _TCHAR *argv[])
                      options.bopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
             }
+
+            bopts.threadCount = options.threadCount;
+            bopts.normalMap = options.normalMode;
+
 #if TRAVIS_DEBUG
             bopts.print();
 #endif
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
+                        name.c_str(), options.outfile.c_str(),
+                        ktxErrorString(ret));
+                exitCode = 2;
+                goto cleanup;
+            }
+        } else if (options.astc) {
+            commandOptions::astcOptions& astcopts = options.astcopts;
+#if TRAVIS_DEBUG
+            astcopts.print();
+#endif
+            if (options.inputSwizzle.size()) {
+                for (i = 0; i < options.inputSwizzle.size(); i++) {
+                     astcopts.inputSwizzle[i] = options.inputSwizzle[i];
+                }
+            } else if (defaultSwizzle.size()) {
+                 for (i = 0; i < options.inputSwizzle.size(); i++) {
+                     astcopts.inputSwizzle[i] = defaultSwizzle[i];
+                }
+            }
+
+            if (chosenOETF == KHR_DF_TRANSFER_SRGB) {
+                astcopts.function = KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB;
+            }
+            else {
+                astcopts.function = KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR;
+            }
+
+            astcopts.threadCount = options.threadCount;
+            astcopts.normalMap = options.normalMode;
+
+            ret = ktxTexture_CompressAstcEx(texture, &astcopts);
+            if (KTX_SUCCESS != ret) {
+                fprintf(stderr, "%s failed to compress KTX file \"%s\" to astc; KTX error: %s\n",
                         name.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
                 exitCode = 2;
@@ -1489,7 +1556,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1102:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::toupper(c);
+            c = (char)::toupper(c);
         });
         if (parser.optarg.compare("R") == 0)
           options.targetType = commandOptions::eR;
@@ -1508,7 +1575,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1103:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::tolower(c);
+            c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
             options.convert_oetf = KHR_DF_TRANSFER_LINEAR;
@@ -1517,7 +1584,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1104:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::tolower(c);
+            c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
             options.assign_oetf = KHR_DF_TRANSFER_LINEAR;
@@ -1526,7 +1593,7 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 1105:
         std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-	        c = (char)::tolower(c);
+            c = (char)::tolower(c);
         });
         if (parser.optarg.compare("bt709") == 0)
             options.assign_primaries = KHR_DF_PRIMARIES_BT709;

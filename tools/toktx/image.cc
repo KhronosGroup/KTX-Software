@@ -27,7 +27,7 @@ const std::vector<Image::CreateFunction> Image::CreateFunctions = {
 };
 
 Image* Image::CreateFromFile(const _tstring& name,
-                             bool transformOETF, bool rescaleTo8Bit) {
+                             bool transformOETF, rescale_e rescale) {
     FILE* f;
     Image* image;
 
@@ -44,7 +44,7 @@ Image* Image::CreateFromFile(const _tstring& name,
         func = CreateFunctions.begin();
     for (; func < CreateFunctions.end(); func++ ) {
         try {
-            image = (*func)(f, transformOETF, rescaleTo8Bit);
+            image = (*func)(f, transformOETF, rescale);
             return image;
         } catch (different_format&) {
             rewind(f);
