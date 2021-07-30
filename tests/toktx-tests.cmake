@@ -170,7 +170,31 @@ PROPERTIES
 )
 
 gencmpktx( astc_mipmap_ldr_cubemap_6x6 astc_mipmap_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap" "" "" )
+gencmpktx( astc_ldr_cubemap_6x6 astc_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --cubemap" "" "" )
+
 gencmpktx( astc_mipmap_ldr_6x6_posx astc_mipmap_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
 gencmpktx( astc_ldr_6x6_posx               astc_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x6" "" "" )
 gencmpktx( astc_mipmap_ldr_6x6_posz astc_mipmap_ldr_6x6_posz.ktx2 ../srcimages/Yokohama3/posz.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
 gencmpktx( astc_mipmap_ldr_6x6_posy astc_mipmap_ldr_6x6_posy.ktx2 ../srcimages/Yokohama3/posy.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
+
+gencmpktx( astc_mipmap_ldr_6x6_kodim17_fastest    astc_mipmap_ldr_6x6_kodim17_fastest.ktx2    ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fastest   " "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_kodim17_fast       astc_mipmap_ldr_6x6_kodim17_fast.ktx2       ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fast      " "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_kodim17_medium     astc_mipmap_ldr_6x6_kodim17_medium.ktx2     ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality medium    " "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_kodim17_thorough   astc_mipmap_ldr_6x6_kodim17_thorough.ktx2   ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality thorough  " "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_kodim17_exhaustive astc_mipmap_ldr_6x6_kodim17_exhaustive.ktx2 ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality exhaustive" "" "" )
+
+gencmpktx( astc_mipmap_ldr_4x4_posx     astc_mipmap_ldr_4x4_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 4x4   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_6x5_posx     astc_mipmap_ldr_6x5_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x5   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_8x6_posx     astc_mipmap_ldr_8x6_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 8x6   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_10x5_posx    astc_mipmap_ldr_10x5_posx.ktx2  ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 10x5  --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_8x8_posx     astc_mipmap_ldr_8x8_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 8x8   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_12x10_posx   astc_mipmap_ldr_12x10_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 12x10 --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_12x12_posx   astc_mipmap_ldr_12x12_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 12x12 --genmipmap" "" "" )
+
+gencmpktx( astc_ldr_4x4_FlightHelmet_baseColor    astc_ldr_4x4_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 4x4" "" "")
+gencmpktx( astc_ldr_6x5_FlightHelmet_baseColor    astc_ldr_6x5_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 6x5" "" "")
+gencmpktx( astc_ldr_8x6_FlightHelmet_baseColor    astc_ldr_8x6_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 8x6" "" "")
+gencmpktx( astc_ldr_10x5_FlightHelmet_baseColor   astc_ldr_10x5_FlightHelmet_baseColor.ktx2  ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 10x5" "" "")
+gencmpktx( astc_ldr_8x8_FlightHelmet_baseColor    astc_ldr_8x8_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 8x8" "" "")
+gencmpktx( astc_ldr_12x10_FlightHelmet_baseColor  astc_ldr_12x10_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 12x10" "" "")
+gencmpktx( astc_ldr_12x12_FlightHelmet_baseColor  astc_ldr_12x12_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 12x12" "" "")
