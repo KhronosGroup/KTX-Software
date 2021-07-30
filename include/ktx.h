@@ -1218,10 +1218,10 @@ typedef struct ktxAstcParams {
 } ktxAstcParams;
 
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture_CompressAstcEx(ktxTexture* This, ktxAstcParams* params);
+ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params);
 
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture_CompressAstc(ktxTexture* This, ktx_uint32_t quality);
+ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality);
 
 /**
  * @memberof ktxTexture2
