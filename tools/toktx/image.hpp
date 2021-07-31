@@ -318,9 +318,9 @@ class Image {
     virtual Image& copyToRGBA(Image&) = 0;
 
   protected:
-    Image() : width(0), height(0), primaries(KHR_DF_PRIMARIES_BT709) { }
+    Image() : Image(0, 0)  { }
     Image(uint32_t w, uint32_t h)
-            : width(w), height(h), primaries(KHR_DF_PRIMARIES_BT709) { }
+            : width(w), height(h), primaries(KHR_DF_PRIMARIES_BT709), oetf(KHR_DF_TRANSFER_UNSPECIFIED) { }
 
     uint32_t width, height;  // In pixels
     colortype_e colortype;
