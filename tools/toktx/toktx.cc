@@ -726,15 +726,15 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
                                     options.bcmp || options.bopts.uastc);
 
+            if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
+                image->setOetf(options.assign_oetf);
+            }
+
             if (i == 0) {
                 // First file.
                 firstImageOETF = image->getOetf();
                 firstImagePrimaries = image->getPrimaries();
                 firstImageColortype = image->getColortype();
-            }
-
-            if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
-                image->setOetf(options.assign_oetf);
             }
 
             if (options.convert_oetf != KHR_DF_TRANSFER_UNSPECIFIED &&
