@@ -688,9 +688,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
     unsigned int levelWidth=0, levelHeight=0, levelDepth=0;
     // These initializations are to avoid compiler warnings.
     khr_df_transfer_e chosenOETF = KHR_DF_TRANSFER_UNSPECIFIED;
-    khr_df_transfer_e firstImageOETF = KHR_DF_TRANSFER_UNSPECIFIED;
+    khr_df_transfer_e prevSpecifiedImageOETF = KHR_DF_TRANSFER_UNSPECIFIED;
     khr_df_primaries_e chosenPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
-    khr_df_primaries_e firstImagePrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+    khr_df_primaries_e prevSpecifiedImagePrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
     Image::colortype_e firstImageColortype = Image::eRGB;
     string defaultSwizzle;
 
@@ -726,14 +726,55 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                     options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
                                     options.bcmp || options.bopts.uastc);
 
+            bool differentOetfDetected = false;
+            if (image->getOetf() != KHR_DF_TRANSFER_UNSPECIFIED) {
+                differentOetfDetected =
+                    prevSpecifiedImageOETF != KHR_DF_TRANSFER_UNSPECIFIED &&
+                    prevSpecifiedImageOETF != image->getOetf();
+                prevSpecifiedImageOETF = image->getOetf();
+            }
+            if (differentOetfDetected) {
+                stringstream msg;
+                msg << name << ": \"" << infile << "\" is encoded with a "
+                    "different transfer function (OETF) than preceding files."
+                    << endl;
+                if (options.assign_oetf)
+                    warning(msg.str().c_str());
+                else if (options.convert_oetf)
+                    ; // silence
+                else {
+                    std::cerr << msg.str();
+                    exitCode = 1;
+                    goto cleanup;
+                }
+            }
+
+            bool differentPrimariesDetected = false;
+            if (image->getPrimaries() != KHR_DF_PRIMARIES_UNSPECIFIED) {
+                differentPrimariesDetected =
+                    prevSpecifiedImagePrimaries != KHR_DF_PRIMARIES_UNSPECIFIED &&
+                    prevSpecifiedImagePrimaries != image->getPrimaries();
+                prevSpecifiedImagePrimaries = image->getPrimaries();
+            }
+            if (differentPrimariesDetected) {
+                stringstream msg;
+                msg << name << ": \"" << infile << "\" has different color "
+                    "primaries than preceding files." << endl;
+                if (options.assign_primaries)
+                    warning(msg.str().c_str());
+                else {
+                    cerr << msg.str();
+                    exitCode = 1;
+                    goto cleanup;
+                }
+            }
+
             if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
                 image->setOetf(options.assign_oetf);
             }
 
             if (i == 0) {
                 // First file.
-                firstImageOETF = image->getOetf();
-                firstImagePrimaries = image->getPrimaries();
                 firstImageColortype = image->getColortype();
             }
 
@@ -1055,19 +1096,6 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
         } else {
             // Subsequent files.
-            if (image->getOetf() != firstImageOETF) {
-                cerr << name << ": \"" << infile << "\" is encoded with a "
-                     "different transfer function (OETF) than preceding files."
-                     << endl;
-                exitCode = 1;
-                goto cleanup;
-            }
-            if (image->getPrimaries() != firstImagePrimaries) {
-                cerr << name << ": \"" << infile << "\" has different color "
-                     "primaries than preceding files." << endl;
-                exitCode = 1;
-                goto cleanup;
-            }
             if (image->getColortype() != firstImageColortype) {
                 cerr << name << ": \"" << infile << "\" has a different colortype_e"
                      << " (component count) than preceding files." << endl;
