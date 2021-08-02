@@ -106,8 +106,6 @@ $toktx --test --encode astc --astc_blk_d 6x6 --genmipmap astc_mipmap_ldr_6x6_pos
 $toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fastest    astc_mipmap_ldr_6x6_kodim17_fastest.ktx2    ../srcimages/kodim17.png
 $toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fast       astc_mipmap_ldr_6x6_kodim17_fast.ktx2       ../srcimages/kodim17.png
 $toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality medium     astc_mipmap_ldr_6x6_kodim17_medium.ktx2     ../srcimages/kodim17.png
-$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality thorough   astc_mipmap_ldr_6x6_kodim17_thorough.ktx2   ../srcimages/kodim17.png
-$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality exhaustive astc_mipmap_ldr_6x6_kodim17_exhaustive.ktx2 ../srcimages/kodim17.png
 
 $toktx --test --encode astc --astc_blk_d 4x4    --genmipmap astc_mipmap_ldr_4x4_posx.ktx2   ../srcimages/Yokohama3/posx.jpg
 $toktx --test --encode astc --astc_blk_d 6x5    --genmipmap astc_mipmap_ldr_6x5_posx.ktx2   ../srcimages/Yokohama3/posx.jpg
