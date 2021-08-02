@@ -180,8 +180,6 @@ gencmpktx( astc_mipmap_ldr_6x6_posy astc_mipmap_ldr_6x6_posy.ktx2 ../srcimages/Y
 gencmpktx( astc_mipmap_ldr_6x6_kodim17_fastest    astc_mipmap_ldr_6x6_kodim17_fastest.ktx2    ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fastest   " "" "" )
 gencmpktx( astc_mipmap_ldr_6x6_kodim17_fast       astc_mipmap_ldr_6x6_kodim17_fast.ktx2       ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fast      " "" "" )
 gencmpktx( astc_mipmap_ldr_6x6_kodim17_medium     astc_mipmap_ldr_6x6_kodim17_medium.ktx2     ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality medium    " "" "" )
-gencmpktx( astc_mipmap_ldr_6x6_kodim17_thorough   astc_mipmap_ldr_6x6_kodim17_thorough.ktx2   ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality thorough  " "" "" )
-gencmpktx( astc_mipmap_ldr_6x6_kodim17_exhaustive astc_mipmap_ldr_6x6_kodim17_exhaustive.ktx2 ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality exhaustive" "" "" )
 
 gencmpktx( astc_mipmap_ldr_4x4_posx     astc_mipmap_ldr_4x4_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 4x4   --genmipmap" "" "" )
 gencmpktx( astc_mipmap_ldr_6x5_posx     astc_mipmap_ldr_6x5_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x5   --genmipmap" "" "" )
