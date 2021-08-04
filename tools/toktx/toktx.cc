@@ -1316,7 +1316,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             astcopts.threadCount = options.threadCount;
             astcopts.normalMap = options.normalMode;
 
-            ret = ktxTexture_CompressAstcEx(texture, &astcopts);
+            ret = ktxTexture2_CompressAstcEx((ktxTexture2*)texture, &astcopts);
             if (KTX_SUCCESS != ret) {
                 fprintf(stderr, "%s failed to compress KTX file \"%s\" to astc; KTX error: %s\n",
                         name.c_str(), options.outfile.c_str(),

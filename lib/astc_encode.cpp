@@ -501,7 +501,7 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @ingroup writer
  * @~English
  * @brief Encode and compress a ktx texture with uncompressed images to astc.
@@ -512,7 +512,7 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  *
  * Such textures can be directly uploaded to a GPU via a graphics API.
  *
- * @param[in]   This   pointer to the ktxTexture object of interest.
+ * @param[in]   This   pointer to the ktxTexture2 object of interest.
  * @param[in]   params pointer to ASTC params object.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
@@ -537,10 +537,8 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
-ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
-    // FIXME: At the moment defaults to ktx2 textures only
-    assert(_This->classId == ktxTexture2_c && "Only support ktx2 ASTC.");
-    ktxTexture2* This = (ktxTexture2*)_This;
+ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
+    assert(This->classId == ktxTexture2_c && "Only support ktx2 ASTC.");
 
     KTX_error_code result;
 
@@ -768,7 +766,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @ingroup writer
  * @~English
  * @brief Encode and compress a ktx texture with uncompressed images to astc.
@@ -779,11 +777,11 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
  *
  * Such textures can be directly uploaded to a GPU via a graphics API.
  *
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @ingroup writer
  * @~English
  *
- * @param[in]   This    pointer to the ktxTexture object of interest.
+ * @param[in]   This    pointer to the ktxTexture2 object of interest.
  * @param[in]   quality Compression quality, a value from 0 - 100.
                         Higher=higher quality/slower speed.
                         Lower=lower quality/faster speed.
@@ -807,7 +805,7 @@ ktxTexture_CompressAstcEx(ktxTexture* _This, ktxAstcParams* params) {
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code
-ktxTexture_CompressAstc(ktxTexture* This, ktx_uint32_t quality) {
+ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality) {
     ktxAstcParams params = astcDefaultOptions();
 
     if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST)
@@ -825,5 +823,5 @@ ktxTexture_CompressAstc(ktxTexture* This, ktx_uint32_t quality) {
     if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE)
         params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE;
 
-    return ktxTexture_CompressAstcEx(This, &params);
+    return ktxTexture2_CompressAstcEx(This, &params);
 }
