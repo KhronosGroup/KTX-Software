@@ -337,6 +337,7 @@ class toktxApp : public scApp {
 
     void warning(const char *pFmt, va_list args);
     void warning(const char *pFmt, ...);
+    void warning(const string&);
 
   protected:
     virtual bool processOption(argparser& parser, int opt);
@@ -747,16 +748,20 @@ toktxApp::main(int argc, _TCHAR *argv[])
             // If input is > 8bit and user wants LDR issue quality loss warning
             if (options.astc && image->getComponentSize() > 1
                 && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
-                cerr << name << ": Warning! input file is 16bit but LDR option is specified."
-                     << " Expect quality loss in the output."
-                     << endl;
+                stringstream msg;
+                msg << "Input file is 16-bit but LDR option is specified. "
+                    << "Expect quality loss in the output."
+                    << endl;
+                warning(msg.str());
             }
 
             // If input is < 8bit and user wants HDR issue warning
             if (options.astc && image->getComponentSize() <= 1 &&
                 options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
-                cerr << name << ": Warning! input file is not 16bit but HDR option is specified."
-                     << endl;
+                stringstream msg;
+                msg << "Input file is not 16-bit but HDR option is specified."
+                    << endl;
+                warning(msg.str());
             }
 
             // If no astc mode option is specified and
@@ -790,7 +795,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                         exitCode = 1;
                         goto cleanup;
                     } else if (!expectedAttribs.oetfWarned) {
-                        warning(msg.str().c_str());
+                        warning(msg.str());
                         expectedAttribs.oetfWarned = true;
                     }
                     // Don't warn when convert_oetf is set as proper conversions
@@ -805,7 +810,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                         exitCode = 1;
                         goto cleanup;
                     } else if (!expectedAttribs.primariesWarned) {
-                        warning(msg.str().c_str());
+                        warning(msg.str());
                         expectedAttribs.primariesWarned = true;
                     }
                     // There is no convert_primaries option.
@@ -827,7 +832,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                             << endl
                             << "from those in other levels or layers."
                             << endl;
-                        warning(msg.str().c_str());
+                        warning(msg.str());
                         expectedAttribs.componentCountWarned = true;
                     }
                 }
@@ -1662,7 +1667,7 @@ toktxApp::processOption(argparser& parser, int opt)
 
 void toktxApp::warning(const char *pFmt, va_list args) {
     if (options.warn) {
-        cerr << name << " warning: ";
+        cerr << name << " warning! ";
         vfprintf(stderr, pFmt, args);
         cerr << endl;
     }
@@ -1678,12 +1683,23 @@ void toktxApp::warning(const char *pFmt, ...) {
     }
 }
 
-void warning(const char *pFmt, ...) {
-        va_list args;
-        va_start(args, pFmt);
+void toktxApp::warning(const string& msg) {
+    if (options.warn) {
+        cerr << name << " warning! ";
+        cerr << msg;
+    }
+}
 
-        theApp.warning(pFmt, args);
-        va_end(args);
+void warning(const char *pFmt, ...) {
+    va_list args;
+    va_start(args, pFmt);
+
+    theApp.warning(pFmt, args);
+    va_end(args);
+}
+
+void warning(const string& msg) {
+   theApp.warning(msg);
 }
 
 static ktx_uint32_t

@@ -105,7 +105,7 @@ PROPERTIES
 set_tests_properties(
     toktx-different-colortype-second-file-warning
 PROPERTIES
-    PASS_REGULAR_EXPRESSION "toktx warning: \"../srcimages/level1-alpha.pam\" has a different colortype_e"
+    PASS_REGULAR_EXPRESSION "toktx warning! \"../srcimages/level1-alpha.pam\" has a different colortype_e"
 )
 
 function( gencmpktx test_name reference source args env files )
