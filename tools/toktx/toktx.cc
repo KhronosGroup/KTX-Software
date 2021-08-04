@@ -773,9 +773,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
             }
 
-            // Check that all input files have matching oetf & primaries and
-            // colortype. Raise error or warning depending on attribute and
-            // assign or convert options.
+            // Check that all input files have matching oetf, primaries and
+            // component count. Raise error or warning depending on attribute
+            // and assign or convert options.
             if (i == 0) {
                 // First file.
                 expectedAttribs.oetf = image->getOetf();
