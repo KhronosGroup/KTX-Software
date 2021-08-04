@@ -688,10 +688,22 @@ toktxApp::main(int argc, _TCHAR *argv[])
     unsigned int levelWidth=0, levelHeight=0, levelDepth=0;
     // These initializations are to avoid compiler warnings.
     khr_df_transfer_e chosenOETF = KHR_DF_TRANSFER_UNSPECIFIED;
-    khr_df_transfer_e firstImageOETF = KHR_DF_TRANSFER_UNSPECIFIED;
     khr_df_primaries_e chosenPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
-    khr_df_primaries_e firstImagePrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
-    Image::colortype_e firstImageColortype = Image::eRGB;
+    struct _imageAttribs {
+        khr_df_transfer_e oetf;
+        khr_df_primaries_e primaries;
+        uint32_t componentCount;
+        bool oetfWarned;
+        bool primariesWarned;
+        bool componentCountWarned;
+    } expectedAttribs = {
+        KHR_DF_TRANSFER_UNSPECIFIED,
+        KHR_DF_PRIMARIES_UNSPECIFIED,
+        3,
+        false,
+        false,
+        false
+    };
     string defaultSwizzle;
 
     processEnvOptions();
@@ -756,11 +768,69 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
             }
 
+            // Check that all input files have matching oetf & primaries and
+            // colortype. Raise error or warning depending on attribute and
+            // assign or convert options.
             if (i == 0) {
                 // First file.
-                firstImageOETF = image->getOetf();
-                firstImagePrimaries = image->getPrimaries();
-                firstImageColortype = image->getColortype();
+                expectedAttribs.oetf = image->getOetf();
+                expectedAttribs.primaries = image->getPrimaries();
+                expectedAttribs.componentCount = image->getComponentCount();
+            } else {
+                // Subsequent files.
+                if (image->getOetf() != expectedAttribs.oetf
+                    && options.convert_oetf == KHR_DF_TRANSFER_UNSPECIFIED)
+                {
+                    stringstream msg;
+                    msg << "\"" << infile << "\" is encoded with a "
+                        "different transfer function (OETF) than preceding "
+                        "file(s)." << endl;
+                    if (options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
+                        cerr << name << ": " << msg.str();
+                        exitCode = 1;
+                        goto cleanup;
+                    } else if (!expectedAttribs.oetfWarned) {
+                        warning(msg.str().c_str());
+                        expectedAttribs.oetfWarned = true;
+                    }
+                    // Don't warn when convert_oetf is set as proper conversions
+                    // will be done so all images will be in the same space.
+                }
+                if (image->getPrimaries() != expectedAttribs.primaries) {
+                    stringstream msg;
+                    msg << "\"" << infile << "\" has different color "
+                         "primaries than preceding file(s)." << endl;
+                    if (options.assign_primaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
+                        cerr << name << ": " << msg.str();
+                        exitCode = 1;
+                        goto cleanup;
+                    } else if (!expectedAttribs.primariesWarned) {
+                        warning(msg.str().c_str());
+                        expectedAttribs.primariesWarned = true;
+                    }
+                    // There is no convert_primaries option.
+                }
+                if (image->getComponentCount() != expectedAttribs.componentCount) {
+                    stringstream msg;
+                    msg << "\"" << infile
+                        << "\" has a different colortype_e"
+                        << " (component count) than preceding file(s)."
+                        << endl;
+                    if (options.targetType == commandOptions::eUnspecified) {
+                        cerr << name << ": " << msg.str();
+                        exitCode = 1;
+                        goto cleanup;
+                    } else if (!expectedAttribs.componentCountWarned) {
+                        msg << "The components of the level or layer derived "
+                            << "from this file will likely be significantly "
+                            << "different"
+                            << endl
+                            << "from those in other levels or layers."
+                            << endl;
+                        warning(msg.str().c_str());
+                        expectedAttribs.componentCountWarned = true;
+                    }
+                }
             }
 
             if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
@@ -832,8 +902,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
         if (options.targetType != commandOptions::eUnspecified) {
             if (options.targetType != (int)image->getComponentCount()) {
                 Image* newImage = nullptr;
-                // The following casts only work because the only case that will
-                // be taken at runtime is the one where image is the same
+                // The casts in the following copyTo* definitions only work
+                // because, thanks to the switch, at runtime we always pass
+                // the image type being cast to.
                 if (image->getComponentSize() == 2) {
                     switch (options.targetType) {
                       case commandOptions::eR:
@@ -1084,26 +1155,6 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 goto cleanup;
             }
         } else {
-            // Subsequent files.
-            if (image->getOetf() != firstImageOETF) {
-                cerr << name << ": \"" << infile << "\" is encoded with a "
-                     "different transfer function (OETF) than preceding files."
-                     << endl;
-                exitCode = 1;
-                goto cleanup;
-            }
-            if (image->getPrimaries() != firstImagePrimaries) {
-                cerr << name << ": \"" << infile << "\" has different color "
-                     "primaries than preceding files." << endl;
-                exitCode = 1;
-                goto cleanup;
-            }
-            if (image->getColortype() != firstImageColortype) {
-                cerr << name << ": \"" << infile << "\" has a different colortype_e"
-                     << " (component count) than preceding files." << endl;
-                exitCode = 1;
-                goto cleanup;
-            }
             // Input file order is layer, faceSlice, level. This seems easier for
             // a human to manage than the order in a KTX file. It keeps the
             // base level images and their mip levels together.

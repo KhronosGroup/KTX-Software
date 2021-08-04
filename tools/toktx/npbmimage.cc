@@ -200,6 +200,8 @@ createFromPPM(FILE* src, bool transformOETF, Image::rescale_e rescale)
             image->transformOETF(decode_bt709, encode_linear);
             image->setOetf(KHR_DF_TRANSFER_LINEAR);
         }
+    } else {
+        image->setOetf(KHR_DF_TRANSFER_ITU);
     }
     return image;
 }
@@ -261,6 +263,8 @@ createFromPGM(FILE* src, bool transformOETF, Image::rescale_e rescale)
             image->transformOETF(decode_bt709, encode_linear);
             image->setOetf(KHR_DF_TRANSFER_LINEAR);
         }
+    } else {
+        image->setOetf(KHR_DF_TRANSFER_ITU);
     }
     return image;
 }
@@ -402,6 +406,8 @@ createFromPAM(FILE* src, bool transformOETF, Image::rescale_e rescale)
             image->transformOETF(decode_bt709, encode_linear);
             image->setOetf(KHR_DF_TRANSFER_LINEAR);
         }
+    } else {
+        image->setOetf(KHR_DF_TRANSFER_ITU);
     }
 
     return image;

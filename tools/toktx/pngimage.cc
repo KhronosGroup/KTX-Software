@@ -213,11 +213,6 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, Image::rescale_e rescale)
         break;
     }
 
-    if (!transformOETF) {
-        // User is overriding color space info from file.
-        return image;
-    }
-
     // state will have been updated with the rest of the file info.
 
     // Here is the priority of the color space info in PNG:
@@ -260,28 +255,34 @@ Image::CreateFromPNG(FILE* src, bool transformOETF, Image::rescale_e rescale)
                 delete image;
                 throw std::runtime_error("PNG file has gAMA of 0.");
             }
-            // What PNG calls gamma is the power to use for encoding. Elsewhere
-            // gamma is commonly used for the power to use for decoding.
-            // For example by spec. the value in the PNG file is
-            // gamma * 100000 so gamma of 45455 is .45455. The power for
-            // decoding is the inverse, i.e  1 / .45455 which is 2.2.
-            // The variable gamma below is for decoding and is 1 / gAMA.
-            float gamma = (float) 100000 / state.info_png.gama_gamma;
-            // 1.6667 is a very arbitrary cutoff.
-            if (componentBits == 8 && gamma > 1.6667f) {
-                image->transformOETF(decode_gamma, encode_sRGB, gamma);
-                image->setOetf(KHR_DF_TRANSFER_SRGB);
-                if (gamma > 3.3333f) {
-                    warning("Transformed PNG image with gamma of %f to sRGB"
-                            " gamma (~2.2)", gamma);
+            if (transformOETF) {
+                // What PNG calls gamma is the power to use for encoding.
+                // Elsewhere gamma is commonly used for the power to use for
+                // decoding. For example by spec. the value in the PNG file is
+                // gamma * 100000 so gamma of 45455 is .45455. The power for
+                // decoding is the inverse, i.e  1 / .45455 which is 2.2.
+                // The variable gamma below is for decoding and is 1 / gAMA.
+                float gamma = (float) 100000 / state.info_png.gama_gamma;
+                // 1.6667 is a very arbitrary cutoff.
+                if (componentBits == 8 && gamma > 1.6667f) {
+                    image->transformOETF(decode_gamma, encode_sRGB, gamma);
+                    image->setOetf(KHR_DF_TRANSFER_SRGB);
+                    if (gamma > 3.3333f) {
+                        warning("Transformed PNG image with gamma of %f to sRGB"
+                                " gamma (~2.2)", gamma);
+                    }
+                } else {
+                    image->transformOETF(decode_gamma, encode_linear, gamma);
+                    image->setOetf(KHR_DF_TRANSFER_LINEAR);
+                    if (gamma > 1.3) {
+                        warning("Transformed PNG image with gamma of %f to"
+                                " linear", gamma);
+                    }
                 }
             } else {
-                image->transformOETF(decode_gamma, encode_linear, gamma);
-                image->setOetf(KHR_DF_TRANSFER_LINEAR);
-                if (gamma > 1.3) {
-                    warning("Transformed PNG image with gamma of %f to"
-                            " linear", gamma);
-                }
+                // User is overriding color space info from file.
+                image->setOetf(KHR_DF_TRANSFER_UNSPECIFIED);
+                return image;
             }
         }
     } else {
