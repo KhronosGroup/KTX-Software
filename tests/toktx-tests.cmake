@@ -58,6 +58,31 @@ add_test( NAME toktx-invalid-target-type
     COMMAND toktx --target_type RGBH a b
 )
 
+add_test( NAME toktx-set-oetf-second-file-no-error
+    COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --assign_oetf linear -- - ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
+add_test( NAME toktx-convert-oetf-second-file-no-error
+    COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --convert_oetf linear -- - ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
+add_test( NAME toktx-change-target-type-second-file-no-error
+    COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --target_type RGBA -- - ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
+add_test( NAME toktx-different-colortype-second-file-error
+    COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata -- - ../srcimages/level0.ppm ../srcimages/level1-alpha.pam ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
+add_test( NAME toktx-different-colortype-second-file-warning
+    COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --target_type RGBA -- - ../srcimages/level0.ppm ../srcimages/level1-alpha.pam ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
 set_tests_properties(
     toktx-test-foobar
     toktx-automipmap-mipmaps
@@ -72,8 +97,15 @@ set_tests_properties(
     toktx-swizzle-gt-4
     toktx-invalid-swizzle-char
     toktx-invalid-target-type
+    toktx-different-colortype-second-file-error
 PROPERTIES
     WILL_FAIL TRUE
+)
+
+set_tests_properties(
+    toktx-different-colortype-second-file-warning
+PROPERTIES
+    PASS_REGULAR_EXPRESSION "toktx warning! \"../srcimages/level1-alpha.pam\" has a different colortype_e"
 )
 
 function( gencmpktx test_name reference source args env files )
